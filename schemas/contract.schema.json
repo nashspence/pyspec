@@ -170,11 +170,21 @@
         }
       },
       "required": [
-        "html",
-        "textual",
         "basis"
       ],
-      "type": "object"
+      "type": "object",
+      "anyOf": [
+        {
+          "required": [
+            "html"
+          ]
+        },
+        {
+          "required": [
+            "textual"
+          ]
+        }
+      ]
     },
     "audit_profile_spec": {
       "additionalProperties": false,
@@ -1802,6 +1812,9 @@
             "object",
             "null"
           ]
+        },
+        "persistence": {
+          "$ref": "#/$defs/persistence_spec"
         }
       },
       "required": [
@@ -2422,6 +2435,22 @@
         "steps",
         "ref",
         "basis"
+      ],
+      "type": "object"
+    },
+    "persistence_spec": {
+      "additionalProperties": false,
+      "properties": {
+        "dialect": {
+          "const": "sqlite"
+        },
+        "table": {
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "dialect"
       ],
       "type": "object"
     }

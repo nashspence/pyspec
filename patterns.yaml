@@ -1,204 +1,149 @@
 version: 1
+
+authoring_layers:
+  rule: Layers constrain PM patch vocabulary only. They are never written into contract.yaml and never imply absent surfaces are planned.
+  layers:
+    core:
+      targets: [fixture, resource, capability, scenario]
+      projections: [generated/fixtures.yaml, generated/scenarios.yaml, generated/features, generated/refs.py]
+    http:
+      opens: [entry.surface.api]
+      requires: [core]
+      projections_when_declared: [generated/openapi.yaml]
+    persistence:
+      opens: [resource.persistence]
+      requires: [core]
+      projections_when_declared: [generated/persistence.json, generated/persistence.sql]
+    events:
+      opens: [entry.surface.webhook]
+      requires: [core]
+      projections_when_declared: [generated/asyncapi.yaml]
+    workflow:
+      opens: [workflow, entry.surface.cli, entry.surface.worker, entry.surface.schedule]
+      requires: [core]
+      projections_when_declared: [generated/workflows.cwl.yaml, generated/asyncapi.yaml]
+    ui:
+      opens: [panel, view, copy, asset, content_case, audit_profile, render_case]
+      requires: [core]
+      projections_when_declared: [generated/panels.json, generated/audit]
+    textual:
+      opens: [entry.surface.textual, presentation.textual, render_case.surface.textual, audit_profile.textual]
+      requires: [core, ui]
+      projections_when_declared: [generated/textual_contract.py, generated/audit/textual/**/*.svg]
+    web:
+      opens: [entry.surface.web, presentation.html, presentation.css, render_case.surface.html, audit_profile.html]
+      requires: [core, ui]
+      projections_when_declared: [generated/routes.json, generated/panels.html, generated/panel_styles.css, generated/audit/html/**/*.png]
+  common_sets:
+    api_only: core,http
+    api_with_persistence: core,http,persistence
+    evented_api: core,events
+    ci_client: core,workflow
+    textual_app: core,ui,textual
+    web_app: core,ui,web
+    full: full
+
 patch_operations:
-  verbs:
-  - add
-  - replace
-  - delete
-  targets:
-  - fixture
-  - resource
-  - capability
-  - panel
-  - view
-  - entry
-  - workflow
-  - scenario
-  - copy
-  - asset
-  - audit_profile
-  - render_case
+  verbs: [add, replace, delete]
+  targets: [fixture, resource, capability, panel, view, entry, workflow, scenario, copy, asset, content_case, audit_profile, render_case]
   shape:
     add:
-      required:
-      - op
-      - target
-      - id
-      - spec
-      - basis
+      required: [op, target, id, spec, basis]
     replace:
-      required:
-      - op
-      - target
-      - id
-      - spec
-      - basis
+      required: [op, target, id, spec, basis]
       rule: Replace the whole item; no partial mutations.
     delete:
-      required:
-      - op
-      - target
-      - id
-      - basis
+      required: [op, target, id, basis]
       rule: Non-cascading; all dependents must be deleted or replaced explicitly.
+
 scenario_archetypes:
   empty_collection_view:
     when: open_entry
-    then:
-    - view.state.empty
-    - enables
-    - forbids
+    then: [view.state.empty, enables, forbids]
   ready_collection_view:
     when: open_entry
-    then:
-    - view.state.ready
-    - enables
-  capability_success:
-    when: invoke_capability
-    then:
-    - resource.exists
-    - events.emitted
-    - invoked
-  api_entry_success:
-    when: call_entry
-    then:
-    - response.status
-    - resource.exists
-    - events.emitted
-    - invoked
-  workflow_event_success:
-    when: emit_event
-    then:
-    - workflow.ran
-    - invoked
-  forbidden_action:
+    then: [view.state.ready, enables]
+  composed_view:
     when: open_entry
-    then:
-    - forbids
+    then: [view.panels, enables, forbids]
   composed_view_sync:
     when: open_entry
-    then:
-    - view.panels
-    - view.context
-    - view.sync.observed
-surfaces:
-  web:
-    target: view
-    requires:
-    - path
-    - params
-    projections:
-    - generated/routes.json
-    - generated/panels.json
-    - generated/panels.html
-    - generated/panel_styles.css
-  textual:
-    target: view
-    requires:
-    - command
-    projections:
-    - generated/textual_contract.py
-    - generated/panels.json
+    then: [view.panels, view.context, view.sync.observed]
+  capability_success:
+    when: invoke_capability
+    then: [resource.exists, events.emitted, invoked]
+  api_entry_success:
+    when: call_entry
+    then: [response.status, resource.exists, events.emitted, invoked]
+  workflow_event_success:
+    when: emit_event
+    then: [workflow.ran, invoked]
+  forbidden_action:
+    when: open_entry
+    then: [forbids]
+
+surface_entries:
   api:
     target: capability
-    requires:
-    - method
-    - path
-    - params
-    projections:
-    - generated/openapi.yaml
+    requires: [method, path]
+    layer: http
   cli:
     target: capability
-    requires:
-    - command
-    projections:
-    - generated/workflows.cwl.yaml
+    requires: [command]
+    layer: workflow
   worker:
     target: workflow
     requires: []
-    projections:
-    - generated/asyncapi.yaml
-    - generated/workflows.cwl.yaml
+    layer: workflow
   schedule:
     target: workflow
-    requires:
-    - schedule
-    projections:
-    - generated/workflows.cwl.yaml
+    requires: [schedule]
+    layer: workflow
   webhook:
-    target:
-    - event
-    - workflow
-    requires:
-    - path
-    projections:
-    - generated/asyncapi.yaml
-always_projected:
-  resources:
-  - generated/persistence.json
-  - generated/persistence.sql
-  scenarios:
-  - generated/scenarios.yaml
-  - generated/features
-  refs:
-  - generated/refs.py
-  content:
-  - generated/content_contract.py
-  - generated/content_stubs.py
-  - generated/content_cases.yaml
-  audit:
-  - generated/audit/copy.yaml
-  - generated/audit/fixtures.yaml
-  - generated/audit/assets/*.svg
-  - generated/audit/fsm/*.svg
-  - generated/audit/composition/*.svg
-  - generated/audit/html/**/*.png
-  - generated/audit/textual/**/*.svg
-pm_agent_rules:
-- Edit pm.patch.yaml only.
-- Choose op: add|replace|delete, a target kind, a surface, and a scenario archetype from this file.
-- Add every fixture explicitly; unresolved $fixture paths fail compile.
-- Never write raw .feature files, OpenAPI, AsyncAPI, CWL, routes, panels, Textual projections, SQL projections, tests, or
-  generated Python.
-- Represent uncertainty with basis.review=true or a blocking review_flag; do not invent free-form fields.
-- 'Back every rendered copy/asset with target: copy or target: asset, every final resolver with target: content_case, and every auditable view state/vector with target: render_case.'
+    target: [event, workflow]
+    requires: [path]
+    layer: events
+  textual:
+    target: view
+    requires: [command]
+    layer: textual
+  web:
+    target: view
+    requires: [path]
+    layer: web
+
 presentation_contracts:
   html:
+    layer: web
     location: 'target: view or target: panel -> spec.states.<state>.presentation.html'
     purpose: Exact root element, ARIA role, classes, and semantic slots.
-    selectors_allowed:
-    - copy_slots
-    - asset_slots
-    - field_slots
-    - actions
+    selectors_allowed: [copy_slots, asset_slots, field_slots, actions]
   css:
-    location: 'target: view or target: panel -> spec.states.<state>.presentation.css'
+    layer: web
+    location: 'target: view or target: panel -> spec.states.<state>.presentation.css, or composed view layout.css'
     purpose: Exact CSS tokens and selector-scoped declarations.
-    selectors_allowed:
-    - root
-    - slot.<declared_slot>
-    - action.<declared_action>
+    selectors_allowed: [root, slot.<declared_slot>, action.<declared_action>, instance.<declared_instance>]
   textual:
-    location: 'target: view or target: panel -> spec.states.<state>.presentation.textual'
+    layer: textual
+    location: 'target: view or target: panel -> spec.states.<state>.presentation.textual, or composed view layout.textual'
     purpose: Exact Textual screen class, widgets, bindings, and TCSS-like rules.
-    selectors_allowed:
-    - screen
-    - slot.<declared_slot>
-    - action.<declared_action>
+    selectors_allowed: [screen, slot.<declared_slot>, action.<declared_action>, instance.<declared_instance>]
+
 gherkin_policy:
   source_of_truth: generated/scenarios.yaml
   generated_features: pytest-bdd adapter only
   rule: PM agents never author raw .feature files; pytest-bdd consumes generated features.
+
 composition_contracts:
-  panel: 'target: panel defines a reusable FSM with context, initial state, states, state-local data, transitions, and emitted
-    events.'
+  panel: 'target: panel defines a reusable FSM with context, initial state, states, state-local data, transitions, and emitted events.'
   view: 'target: view composes panels with layout slots, include instances, shared context, and sync rules.'
   scenario: 'target: scenario asserts a panel state vector instead of flattened fake view states.'
+
 audit_contracts:
   copy: 'target: copy declares placeholder text for every rendered copy ref.'
-  asset: 'target: asset declares placeholder visual intent; the compiler emits SVG assets.'
-  audit_profile: 'target: audit_profile declares fixed HTML/Textual breakpoints.'
-  render_case: 'target: render_case binds a view state or composed panel state vector to fixtures, surfaces, and an audit
-    profile.'
+  asset: 'target: asset declares placeholder visual intent; the compiler emits generic SVG placeholder assets.'
+  audit_profile: 'target: audit_profile declares fixed HTML and/or Textual breakpoints.'
+  render_case: 'target: render_case binds a view state or composed panel state vector to fixtures, surfaces, and an audit profile.'
   content_case: 'target: content_case exercises every final copy/asset resolver with deterministic args.'
   final_content: 'target: copy or asset may declare args and final.status/resolver; generated content stubs constrain content/resolvers.py.'
   formats:
@@ -206,7 +151,4 @@ audit_contracts:
     composition: svg
     textual: svg
     html: png
-  forbidden:
-  - generated/audit/review.html
-  - generated/audit/change_report.md
-  - generated/audit/manifest.json
+  forbidden: [generated/audit/review.html, generated/audit/change_report.md, generated/audit/manifest.json]

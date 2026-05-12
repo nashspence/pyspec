@@ -37,11 +37,11 @@ def audit_expected_files(contract: dict[str, Any]) -> set[str]:
     for panel in projection["panels"]:
         for profile_id, profile in sorted(contract.get("audit_profiles", {}).items()):
             panel_path = safe_id(panel["id"])
-            for breakpoint in profile["html"]["breakpoints"]:
+            for breakpoint in profile.get("html", {}).get("breakpoints", {}):
                 stem = f"{safe_id(profile_id)}.{safe_id(breakpoint)}"
                 files.add(f"generated/audit/html/panels/{panel_path}/{stem}.html")
                 files.add(f"generated/audit/html/panels/{panel_path}/{stem}.png")
-            for breakpoint in profile["textual"]["breakpoints"]:
+            for breakpoint in profile.get("textual", {}).get("breakpoints", {}):
                 stem = f"{safe_id(profile_id)}.{safe_id(breakpoint)}"
                 files.add(f"generated/audit/textual/panels/{panel_path}/{stem}.py")
                 files.add(f"generated/audit/textual/panels/{panel_path}/{stem}.svg")
@@ -52,12 +52,12 @@ def audit_expected_files(contract: dict[str, Any]) -> set[str]:
         case_path = safe_id(case_id)
         profile_path = safe_id(case["profile"])
         if "html" in case["surfaces"]:
-            for breakpoint in profile["html"]["breakpoints"]:
+            for breakpoint in profile.get("html", {}).get("breakpoints", {}):
                 stem = f"{profile_path}.{safe_id(breakpoint)}.{case_path}"
                 files.add(f"generated/audit/html/views/{view_path}/{stem}.html")
                 files.add(f"generated/audit/html/views/{view_path}/{stem}.png")
         if "textual" in case["surfaces"]:
-            for breakpoint in profile["textual"]["breakpoints"]:
+            for breakpoint in profile.get("textual", {}).get("breakpoints", {}):
                 stem = f"{profile_path}.{safe_id(breakpoint)}.{case_path}"
                 files.add(f"generated/audit/textual/views/{view_path}/{stem}.py")
                 files.add(f"generated/audit/textual/views/{view_path}/{stem}.svg")
@@ -125,8 +125,11 @@ def _render_visual_audit(root: Path, contract: dict[str, Any], tools_root: Path)
         try:
             for panel in sorted(projection["panels"], key=lambda p: p["id"]):
                 for profile_id, profile in sorted(contract.get("audit_profiles", {}).items()):
+                    html_profile = profile.get("html")
+                    if not html_profile:
+                        continue
                     html_doc = audit_html_document(contract, render_panel_audit_html(root, contract, panel, None))
-                    for name, viewport in sorted(profile["html"]["breakpoints"].items()):
+                    for name, viewport in sorted(html_profile["breakpoints"].items()):
                         stem = f"{safe_id(profile_id)}.{safe_id(name)}"
                         base = root / "generated" / "audit" / "html" / "panels" / safe_id(panel["id"]) / stem
                         _write_html_and_png_page(page, html_doc, base, viewport)
@@ -134,7 +137,7 @@ def _render_visual_audit(root: Path, contract: dict[str, Any], tools_root: Path)
                 profile = contract["audit_profiles"][case["profile"]]
                 if "html" in case["surfaces"]:
                     html_doc = audit_html_document(contract, render_case_html(root, contract, case_id, case))
-                    for name, viewport in sorted(profile["html"]["breakpoints"].items()):
+                    for name, viewport in sorted(profile.get("html", {}).get("breakpoints", {}).items()):
                         stem = f"{safe_id(case['profile'])}.{safe_id(name)}.{safe_id(case_id)}"
                         base = root / "generated" / "audit" / "html" / "views" / safe_id(case["view"]) / stem
                         _write_html_and_png_page(page, html_doc, base, viewport)
@@ -151,7 +154,7 @@ def _render_visual_audit(root: Path, contract: dict[str, Any], tools_root: Path)
         for panel in sorted(projection["panels"], key=lambda p: p["id"]):
             lines = panel_textual_lines(root, contract, panel, None)
             for profile_id, profile in sorted(contract.get("audit_profiles", {}).items()):
-                for name, viewport in sorted(profile["textual"]["breakpoints"].items()):
+                for name, viewport in sorted(profile.get("textual", {}).get("breakpoints", {}).items()):
                     stem = f"{safe_id(profile_id)}.{safe_id(name)}"
                     base = root / "generated" / "audit" / "textual" / "panels" / safe_id(panel["id"]) / stem
                     _write_textual_source(Path(str(base) + ".py"), lines)
@@ -161,7 +164,7 @@ def _render_visual_audit(root: Path, contract: dict[str, Any], tools_root: Path)
                 continue
             profile = contract["audit_profiles"][case["profile"]]
             lines = textual_audit_lines(root, contract, case_id, case)
-            for name, viewport in sorted(profile["textual"]["breakpoints"].items()):
+            for name, viewport in sorted(profile.get("textual", {}).get("breakpoints", {}).items()):
                 stem = f"{safe_id(case['profile'])}.{safe_id(name)}.{safe_id(case_id)}"
                 base = root / "generated" / "audit" / "textual" / "views" / safe_id(case["view"]) / stem
                 _write_textual_source(Path(str(base) + ".py"), lines)

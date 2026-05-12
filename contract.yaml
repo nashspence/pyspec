@@ -50,7 +50,7 @@ audit_profiles:
 capabilities:
   project.approve:
     archetype: transition
-    basis: &id001
+    basis:
       confidence: high
       kind: explicit
       text: Reviewers can approve submitted dispatch projects.
@@ -68,7 +68,7 @@ capabilities:
       to: approved
   project.archive:
     archetype: transition
-    basis: &id002
+    basis:
       confidence: high
       kind: explicit
       text: Approved dispatch projects can be archived.
@@ -86,7 +86,7 @@ capabilities:
       to: archived
   project.create:
     archetype: create
-    basis: &id003
+    basis:
       confidence: high
       kind: explicit
       text: Members can create a new dispatch project.
@@ -130,7 +130,7 @@ capabilities:
     resource: Project
   project.submit:
     archetype: transition
-    basis: &id004
+    basis:
       confidence: high
       kind: explicit
       text: Draft dispatch projects can be submitted for review.
@@ -363,22 +363,34 @@ entries:
     workflow_ref: workflow.project.approval_notice
 events:
   project.approved:
-    basis: *id001
+    basis:
+      confidence: high
+      kind: explicit
+      text: Reviewers can approve submitted dispatch projects.
     emitted_by:
     - project.approve
     payload: Project
   project.archived:
-    basis: *id002
+    basis:
+      confidence: high
+      kind: explicit
+      text: Approved dispatch projects can be archived.
     emitted_by:
     - project.archive
     payload: Project
   project.created:
-    basis: *id003
+    basis:
+      confidence: high
+      kind: explicit
+      text: Members can create a new dispatch project.
     emitted_by:
     - project.create
     payload: Project
   project.submitted:
-    basis: *id004
+    basis:
+      confidence: high
+      kind: explicit
+      text: Draft dispatch projects can be submitted for review.
     emitted_by:
     - project.submit
     payload: Project
@@ -782,6 +794,9 @@ resources:
       - by: project.archive
         from: approved
         to: archived
+    persistence:
+      dialect: sqlite
+      table: projects
 review_flags:
 - blocks_release: true
   id: starter.scope
@@ -900,7 +915,7 @@ scenarios:
         - query.project.list.list
       view:
         composition:
-          includes: &id005
+          includes:
           - context:
               selected_project_id: $view.selected_project_id
               workspace_id: $view.workspace_id
@@ -928,7 +943,7 @@ scenarios:
               when:
                 context_present: selected_project_id
             slot: aside
-          layout: &id006
+          layout:
             css:
               rules:
               - declarations:
@@ -1000,7 +1015,7 @@ scenarios:
                 - declarations:
                     width: '28'
                   selector: slot.aside
-          sync: &id007
+          sync:
           - do:
             - set:
                 context: selected_project_id
@@ -1092,9 +1107,121 @@ scenarios:
         - query.project.list.list
       view:
         composition:
-          includes: *id005
-          layout: *id006
-          sync: *id007
+          includes:
+          - context:
+              selected_project_id: $view.selected_project_id
+              workspace_id: $view.workspace_id
+            id: list
+            initial: loading
+            panel: panel.project.list
+            slot: nav
+          - context:
+              project_id: $view.selected_project_id
+            id: detail
+            initial: none
+            panel: panel.project.detail
+            selected:
+              state: loading
+              when:
+                context_present: selected_project_id
+            slot: main
+          - context:
+              project_id: $view.selected_project_id
+            id: activity
+            initial: empty
+            panel: panel.project.activity
+            selected:
+              state: ready
+              when:
+                context_present: selected_project_id
+            slot: aside
+          layout:
+            css:
+              rules:
+              - declarations:
+                  display: grid
+                  gap: token.gap
+                  grid-template-columns: token.nav_width 1fr token.aside_width
+                selector: root
+              - declarations:
+                  min-width: token.nav_width
+                selector: slot.nav
+              - declarations:
+                  min-width: '0'
+                selector: slot.main
+              - declarations:
+                  min-width: token.aside_width
+                selector: slot.aside
+              tokens:
+                aside_width: 16rem
+                gap: 1rem
+                nav_width: 20rem
+            kind: slots
+            root:
+              classes:
+              - dispatch-board
+              element: section
+              role: region
+            slots:
+              aside:
+                classes:
+                - dispatch-board-aside
+                element: aside
+                order: 3
+                required: true
+                role: complementary
+              main:
+                classes:
+                - dispatch-board-main
+                element: main
+                order: 2
+                required: true
+                role: main
+              nav:
+                classes:
+                - dispatch-board-nav
+                element: nav
+                order: 1
+                required: true
+                role: navigation
+            textual:
+              containers:
+              - id: nav
+                kind: Container
+                slot: nav
+              - id: main
+                kind: Container
+                slot: main
+              - id: aside
+                kind: Container
+                slot: aside
+              screen_class: ProjectBoardScreen
+              tcss:
+                rules:
+                - declarations:
+                    layout: horizontal
+                  selector: screen
+                - declarations:
+                    width: '32'
+                  selector: slot.nav
+                - declarations:
+                    width: '28'
+                  selector: slot.aside
+          sync:
+          - do:
+            - set:
+                context: selected_project_id
+                from: $event.project_id
+            - send:
+                event: project.selection_changed
+                panel: detail
+            - send:
+                event: project.selection_changed
+                panel: activity
+            id: select_project_updates_panels
+            when:
+              emits: project.selected
+              panel: list
         panel: panel.project.board.ready
         panels:
           activity:
@@ -1185,8 +1312,106 @@ views:
     data:
     - capability: project.list
       query: query.project.board.list
-    includes: *id005
-    layout: *id006
+    includes:
+    - context:
+        selected_project_id: $view.selected_project_id
+        workspace_id: $view.workspace_id
+      id: list
+      initial: loading
+      panel: panel.project.list
+      slot: nav
+    - context:
+        project_id: $view.selected_project_id
+      id: detail
+      initial: none
+      panel: panel.project.detail
+      selected:
+        state: loading
+        when:
+          context_present: selected_project_id
+      slot: main
+    - context:
+        project_id: $view.selected_project_id
+      id: activity
+      initial: empty
+      panel: panel.project.activity
+      selected:
+        state: ready
+        when:
+          context_present: selected_project_id
+      slot: aside
+    layout:
+      css:
+        rules:
+        - declarations:
+            display: grid
+            gap: token.gap
+            grid-template-columns: token.nav_width 1fr token.aside_width
+          selector: root
+        - declarations:
+            min-width: token.nav_width
+          selector: slot.nav
+        - declarations:
+            min-width: '0'
+          selector: slot.main
+        - declarations:
+            min-width: token.aside_width
+          selector: slot.aside
+        tokens:
+          aside_width: 16rem
+          gap: 1rem
+          nav_width: 20rem
+      kind: slots
+      root:
+        classes:
+        - dispatch-board
+        element: section
+        role: region
+      slots:
+        aside:
+          classes:
+          - dispatch-board-aside
+          element: aside
+          order: 3
+          required: true
+          role: complementary
+        main:
+          classes:
+          - dispatch-board-main
+          element: main
+          order: 2
+          required: true
+          role: main
+        nav:
+          classes:
+          - dispatch-board-nav
+          element: nav
+          order: 1
+          required: true
+          role: navigation
+      textual:
+        containers:
+        - id: nav
+          kind: Container
+          slot: nav
+        - id: main
+          kind: Container
+          slot: main
+        - id: aside
+          kind: Container
+          slot: aside
+        screen_class: ProjectBoardScreen
+        tcss:
+          rules:
+          - declarations:
+              layout: horizontal
+            selector: screen
+          - declarations:
+              width: '32'
+            selector: slot.nav
+          - declarations:
+              width: '28'
+            selector: slot.aside
     resource: Project
     states:
       ready:
@@ -1197,7 +1422,21 @@ views:
         fields: []
         panel: panel.project.board.ready
         pattern: detail
-    sync: *id007
+    sync:
+    - do:
+      - set:
+          context: selected_project_id
+          from: $event.project_id
+      - send:
+          event: project.selection_changed
+          panel: detail
+      - send:
+          event: project.selection_changed
+          panel: activity
+      id: select_project_updates_panels
+      when:
+        emits: project.selected
+        panel: list
 workflows:
   project.approval_notice:
     basis:

@@ -19,6 +19,7 @@ from .io import read_json, read_yaml
 from .audit import audit_expected_files
 from .project import (
     components_projection,
+    validated_projection_paths,
     composition_css_selector,
     composition_tcss_selector,
     constant_name,
@@ -63,20 +64,32 @@ def validate_generated_projections(root: Path, contract: dict[str, Any]) -> None
     if not generated.exists():
         raise ContractError("Missing generated directory")
 
+    expected_paths = set(validated_projection_paths(contract))
     _validate_python_projections(root)
     validate_refs_py(root, contract)
-    validate_openapi(contract, read_yaml(generated / "openapi.yaml"))
-    validate_asyncapi(contract, read_yaml(generated / "asyncapi.yaml"))
-    validate_routes(contract, read_json(generated / "routes.json"))
-    validate_panels_json(contract, read_json(generated / "panels.json"))
-    validate_panels_html(contract, (generated / "panels.html").read_text(encoding="utf-8"))
-    validate_panel_css(contract, (generated / "panel_styles.css").read_text(encoding="utf-8"))
-    validate_textual_contract(root, contract)
-    validate_content_contract(root, contract)
-    validate_persistence(contract, read_json(generated / "persistence.json"), (generated / "persistence.sql").read_text(encoding="utf-8"))
-    validate_workflows(contract, read_yaml(generated / "workflows.cwl.yaml"))
+    if "generated/openapi.yaml" in expected_paths:
+        validate_openapi(contract, read_yaml(generated / "openapi.yaml"))
+    if "generated/asyncapi.yaml" in expected_paths:
+        validate_asyncapi(contract, read_yaml(generated / "asyncapi.yaml"))
+    if "generated/routes.json" in expected_paths:
+        validate_routes(contract, read_json(generated / "routes.json"))
+    if "generated/panels.json" in expected_paths:
+        validate_panels_json(contract, read_json(generated / "panels.json"))
+    if "generated/panels.html" in expected_paths:
+        validate_panels_html(contract, (generated / "panels.html").read_text(encoding="utf-8"))
+    if "generated/panel_styles.css" in expected_paths:
+        validate_panel_css(contract, (generated / "panel_styles.css").read_text(encoding="utf-8"))
+    if "generated/textual_contract.py" in expected_paths:
+        validate_textual_contract(root, contract)
+    if "generated/content_contract.py" in expected_paths:
+        validate_content_contract(root, contract)
+    if "generated/persistence.json" in expected_paths:
+        validate_persistence(contract, read_json(generated / "persistence.json"), (generated / "persistence.sql").read_text(encoding="utf-8"))
+    if "generated/workflows.cwl.yaml" in expected_paths:
+        validate_workflows(contract, read_yaml(generated / "workflows.cwl.yaml"))
     validate_fixtures_and_scenarios(root, contract)
-    validate_audit_outputs(root, contract)
+    if (root / "generated" / "audit").exists() or any(path.startswith("generated/audit/") for path in audit_expected_files(contract)):
+        validate_audit_outputs(root, contract)
 
 
 def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
@@ -646,7 +659,9 @@ def validate_persistence(contract: dict[str, Any], doc: dict[str, Any], sql: str
         raise ContractError("persistence.json project/dialect mismatch")
     expected_tables = []
     for resource_id, resource in sorted(contract["resources"].items()):
-        table = _snake_case(resource_id)
+        if not resource.get("persistence"):
+            continue
+        table = resource["persistence"].get("table") or _snake_case(resource_id)
         columns = []
         for name, type_name in sorted(resource["fields"].items()):
             columns.append({"name": name, "type": type_name, "storage": _sql_type(type_name), "primary_key": name == "id"})
@@ -753,24 +768,8 @@ def validate_fixtures_and_scenarios(root: Path, contract: dict[str, Any]) -> Non
         raise ContractError("test_obligations.yaml metadata mismatch")
     if obligations["scenarios"] != contract["scenarios"]:
         raise ContractError("test_obligations.yaml scenarios mismatch")
-    if set(obligations["must_validate_projections"]) != {
-        "generated/openapi.yaml",
-        "generated/asyncapi.yaml",
-        "generated/routes.json",
-        "generated/panels.json",
-        "generated/panels.html",
-        "generated/panel_styles.css",
-        "generated/textual_contract.py",
-        "generated/content_contract.py",
-        "generated/content_stubs.py",
-        "generated/content_cases.yaml",
-        "generated/persistence.json",
-        "generated/persistence.sql",
-        "generated/workflows.cwl.yaml",
-        "generated/fixtures.yaml",
-        "generated/scenarios.yaml",
-    }:
-        raise ContractError("test_obligations.yaml must_validate_projections is incomplete")
+    if obligations["must_validate_projections"] != validated_projection_paths(contract):
+        raise ContractError("test_obligations.yaml must_validate_projections does not match active projections")
 
     expected_by_harness: dict[str, set[str]] = {"spec": set(), "prod": set()}
     for scenario_id, scenario in contract["scenarios"].items():
@@ -822,13 +821,13 @@ def validate_audit_outputs(root: Path, contract: dict[str, Any]) -> None:
     projection = panels_projection(contract)
     for panel in projection["panels"]:
         for profile_id, profile in sorted(contract.get("audit_profiles", {}).items()):
-            for breakpoint, viewport in profile["html"]["breakpoints"].items():
+            for breakpoint, viewport in profile.get("html", {}).get("breakpoints", {}).items():
                 stem = f"{safe_id(profile_id)}.{safe_id(breakpoint)}"
                 html_path = audit_root / "html" / "panels" / safe_id(panel["id"]) / f"{stem}.html"
                 png_path = audit_root / "html" / "panels" / safe_id(panel["id"]) / f"{stem}.png"
                 _assert_html_source(html_path, f"HTML panel audit {panel['id']}/{breakpoint}")
                 _assert_png(png_path, f"HTML panel audit {panel['id']}/{breakpoint}", viewport)
-            for breakpoint in profile["textual"]["breakpoints"]:
+            for breakpoint in profile.get("textual", {}).get("breakpoints", {}):
                 stem = f"{safe_id(profile_id)}.{safe_id(breakpoint)}"
                 py_path = audit_root / "textual" / "panels" / safe_id(panel["id"]) / f"{stem}.py"
                 svg_path = audit_root / "textual" / "panels" / safe_id(panel["id"]) / f"{stem}.svg"
@@ -840,14 +839,14 @@ def validate_audit_outputs(root: Path, contract: dict[str, Any]) -> None:
     for case_id, case in contract.get("render_cases", {}).items():
         profile = contract["audit_profiles"][case["profile"]]
         if "html" in case["surfaces"]:
-            for breakpoint, viewport in profile["html"]["breakpoints"].items():
+            for breakpoint, viewport in profile.get("html", {}).get("breakpoints", {}).items():
                 stem = f"{safe_id(case['profile'])}.{safe_id(breakpoint)}.{safe_id(case_id)}"
                 html_path = audit_root / "html" / "views" / safe_id(case["view"]) / f"{stem}.html"
                 png_path = audit_root / "html" / "views" / safe_id(case["view"]) / f"{stem}.png"
                 _assert_html_source(html_path, f"HTML view audit {case_id}/{breakpoint}")
                 _assert_png(png_path, f"HTML view audit {case_id}/{breakpoint}", viewport)
         if "textual" in case["surfaces"]:
-            for breakpoint in profile["textual"]["breakpoints"]:
+            for breakpoint in profile.get("textual", {}).get("breakpoints", {}):
                 stem = f"{safe_id(case['profile'])}.{safe_id(breakpoint)}.{safe_id(case_id)}"
                 py_path = audit_root / "textual" / "views" / safe_id(case["view"]) / f"{stem}.py"
                 svg_path = audit_root / "textual" / "views" / safe_id(case["view"]) / f"{stem}.svg"
@@ -903,6 +902,8 @@ def _assert_png(path: Path, label: str, viewport: dict[str, int]) -> None:
 def _validate_python_projections(root: Path) -> None:
     for relative in _PYTHON_PROJECTIONS:
         path = root / relative
+        if not path.exists():
+            continue
         source = path.read_text(encoding="utf-8")
         try:
             ast.parse(source, filename=str(path))

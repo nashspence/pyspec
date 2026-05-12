@@ -548,6 +548,18 @@
     },
     "audit_profile_spec": {
       "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "html"
+          ]
+        },
+        {
+          "required": [
+            "textual"
+          ]
+        }
+      ],
       "properties": {
         "html": {
           "additionalProperties": false,
@@ -589,19 +601,7 @@
         }
       },
       "required": [],
-      "type": "object",
-      "anyOf": [
-        {
-          "required": [
-            "html"
-          ]
-        },
-        {
-          "required": [
-            "textual"
-          ]
-        }
-      ]
+      "type": "object"
     },
     "basis": {
       "additionalProperties": false,
@@ -2364,6 +2364,22 @@
       ],
       "type": "object"
     },
+    "persistence_spec": {
+      "additionalProperties": false,
+      "properties": {
+        "dialect": {
+          "const": "sqlite"
+        },
+        "table": {
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "dialect"
+      ],
+      "type": "object"
+    },
     "presentation_contract": {
       "additionalProperties": false,
       "properties": {
@@ -3978,27 +3994,12 @@
         "steps"
       ],
       "type": "object"
-    },
-    "persistence_spec": {
-      "additionalProperties": false,
-      "properties": {
-        "dialect": {
-          "const": "sqlite"
-        },
-        "table": {
-          "pattern": "^[a-z][a-z0-9_]*$",
-          "type": "string"
-        }
-      },
-      "required": [
-        "dialect"
-      ],
-      "type": "object"
     }
   },
   "$id": "https://example.invalid/pm-patch.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
+  "description": "Layer-pruned authoring schema; runtime layer validation also applies.",
   "properties": {
     "changes": {
       "items": {
@@ -4031,24 +4032,6 @@
             "$ref": "#/$defs/delete_capability"
           },
           {
-            "$ref": "#/$defs/add_panel"
-          },
-          {
-            "$ref": "#/$defs/replace_panel"
-          },
-          {
-            "$ref": "#/$defs/delete_panel"
-          },
-          {
-            "$ref": "#/$defs/add_view"
-          },
-          {
-            "$ref": "#/$defs/replace_view"
-          },
-          {
-            "$ref": "#/$defs/delete_view"
-          },
-          {
             "$ref": "#/$defs/add_entry"
           },
           {
@@ -4058,15 +4041,6 @@
             "$ref": "#/$defs/delete_entry"
           },
           {
-            "$ref": "#/$defs/add_workflow"
-          },
-          {
-            "$ref": "#/$defs/replace_workflow"
-          },
-          {
-            "$ref": "#/$defs/delete_workflow"
-          },
-          {
             "$ref": "#/$defs/add_scenario"
           },
           {
@@ -4074,51 +4048,6 @@
           },
           {
             "$ref": "#/$defs/delete_scenario"
-          },
-          {
-            "$ref": "#/$defs/add_copy"
-          },
-          {
-            "$ref": "#/$defs/replace_copy"
-          },
-          {
-            "$ref": "#/$defs/delete_copy"
-          },
-          {
-            "$ref": "#/$defs/add_asset"
-          },
-          {
-            "$ref": "#/$defs/replace_asset"
-          },
-          {
-            "$ref": "#/$defs/delete_asset"
-          },
-          {
-            "$ref": "#/$defs/add_audit_profile"
-          },
-          {
-            "$ref": "#/$defs/replace_audit_profile"
-          },
-          {
-            "$ref": "#/$defs/delete_audit_profile"
-          },
-          {
-            "$ref": "#/$defs/add_render_case"
-          },
-          {
-            "$ref": "#/$defs/replace_render_case"
-          },
-          {
-            "$ref": "#/$defs/delete_render_case"
-          },
-          {
-            "$ref": "#/$defs/add_content_case"
-          },
-          {
-            "$ref": "#/$defs/replace_content_case"
-          },
-          {
-            "$ref": "#/$defs/delete_content_case"
           }
         ]
       },
@@ -4152,6 +4081,6 @@
     "status",
     "changes"
   ],
-  "title": "PM Spec Patch",
+  "title": "PM patch schema (core,http,persistence layers)",
   "type": "object"
 }

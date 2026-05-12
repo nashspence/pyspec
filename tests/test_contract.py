@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from pm_contract.compile import ContractError, compile_patch
-from pm_contract.io import read_yaml
+from pm_contract.io import assert_yaml_has_no_anchors, read_yaml, write_yaml
 from pm_contract.validate import validate_project
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -27,6 +27,37 @@ def _change(patch: dict, target: str, item_id: str | None = None) -> dict:
 def _first_spec(patch: dict, target: str) -> dict:
     return _change(patch, target)["spec"]
 
+
+
+
+def test_write_yaml_expands_repeated_objects_without_aliases(tmp_path: Path) -> None:
+    repeated = {"kind": "explicit", "confidence": "high", "text": "shared basis"}
+    data = {"first": repeated, "second": repeated}
+    path = tmp_path / "expanded.yaml"
+    write_yaml(path, data)
+    text = path.read_text(encoding="utf-8")
+    assert "&id" not in text
+    assert "*id" not in text
+    assert_yaml_has_no_anchors(path)
+    assert text.count("shared basis") == 2
+
+
+def test_generated_yaml_files_are_fully_expanded() -> None:
+    paths = [ROOT / "contract.yaml"] + sorted((ROOT / "generated").rglob("*.yaml"))
+    assert paths
+    for path in paths:
+        assert_yaml_has_no_anchors(path)
+
+
+def test_validation_rejects_yaml_anchor_or_alias_in_contract(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    ignore = shutil.ignore_patterns("__pycache__", ".pytest_cache", "*.pyc", "node_modules")
+    shutil.copytree(ROOT, project, ignore=ignore)
+    contract_path = project / "contract.yaml"
+    text = contract_path.read_text(encoding="utf-8")
+    contract_path.write_text(text.replace("project: project_dispatch_board", "project: &project project_dispatch_board", 1), encoding="utf-8")
+    with pytest.raises(ContractError, match="YAML anchor is not allowed"):
+        validate_project(project)
 
 def test_project_validates() -> None:
     validate_project(ROOT)
@@ -196,3 +227,108 @@ def test_composed_scenario_rejects_unknown_panel_instance() -> None:
     scenario["then"]["view"]["panels"]["ghost"] = {"state": "ready"}
     with pytest.raises(ContractError, match="unknown panel instance"):
         compile_patch(patch)
+
+
+def _api_only_patch() -> dict:
+    return {
+        "version": 1,
+        "project": "api_only",
+        "status": "draft",
+        "changes": [
+            {
+                "op": "add",
+                "target": "resource",
+                "id": "Ticket",
+                "spec": {"kind": "aggregate", "fields": {"id": "ID", "title": "Text"}},
+                "basis": _basis("ticket resource"),
+            },
+            {
+                "op": "add",
+                "target": "capability",
+                "id": "ticket.create",
+                "spec": {
+                    "archetype": "create",
+                    "resource": "Ticket",
+                    "input": {"title": "Text"},
+                    "output": "Ticket",
+                },
+                "basis": _basis("create ticket"),
+            },
+            {
+                "op": "add",
+                "target": "entry",
+                "id": "api.ticket.create",
+                "spec": {
+                    "surface": "api",
+                    "method": "POST",
+                    "path": "/tickets",
+                    "target": {"capability": "ticket.create"},
+                },
+                "basis": _basis("HTTP create ticket entry"),
+            },
+        ],
+    }
+
+
+def test_authoring_layers_allow_api_only_contract_and_graph_driven_projections() -> None:
+    from pm_contract.layers import parse_layers
+    from pm_contract.project import projection_paths
+
+    contract = compile_patch(_api_only_patch(), layers=parse_layers("core,http"))
+    paths = set(projection_paths(contract))
+    assert "generated/openapi.yaml" in paths
+    assert "generated/persistence.sql" not in paths
+    assert "generated/panels.html" not in paths
+    assert "generated/textual_contract.py" not in paths
+    assert "generated/asyncapi.yaml" not in paths
+    assert "generated/workflows.cwl.yaml" not in paths
+
+
+def test_authoring_layers_reject_irrelevant_ui_targets() -> None:
+    from pm_contract.layers import parse_layers
+
+    patch = _api_only_patch()
+    patch["changes"].append(
+        {
+            "op": "add",
+            "target": "panel",
+            "id": "panel.ticket.list",
+            "spec": {
+                "kind": "fsm",
+                "resource": "Ticket",
+                "context": {},
+                "data": [],
+                "events": [],
+                "initial": "empty",
+                "states": {"empty": {"pattern": "empty"}},
+                "transitions": [],
+            },
+            "basis": _basis("UI panel is not part of this API layer"),
+        }
+    )
+    with pytest.raises(ContractError, match="outside active authoring layers"):
+        compile_patch(patch, layers=parse_layers("core,http"))
+
+
+def test_authoring_layers_reject_wrong_entry_surface() -> None:
+    from pm_contract.layers import parse_layers
+
+    patch = _api_only_patch()
+    for change in patch["changes"]:
+        if change["target"] == "entry":
+            change["id"] = "web.ticket.create"
+            change["spec"] = {"surface": "web", "path": "/tickets", "target": {"view": "ticket.list"}}
+            break
+    with pytest.raises(ContractError, match="entry surface web requires web"):
+        compile_patch(patch, layers=parse_layers("core,http"))
+
+
+def test_layer_pruned_schema_hides_irrelevant_targets() -> None:
+    from pm_contract.layers import parse_layers, schema_for_layers
+
+    schema = schema_for_layers(parse_layers("core,http"))
+    refs = [item["$ref"] for item in schema["properties"]["changes"]["items"]["oneOf"]]
+    assert any(ref.endswith("add_entry") for ref in refs)
+    assert any(ref.endswith("add_resource") for ref in refs)
+    assert not any(ref.endswith("add_panel") for ref in refs)
+    assert not any(ref.endswith("add_render_case") for ref in refs)

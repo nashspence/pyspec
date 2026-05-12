@@ -9,14 +9,15 @@ from pathlib import Path
 from typing import Any
 
 from .compile import ContractError, compile_patch, validate_against_schema, write_compiled
-from .io import read_yaml
+from .layers import parse_layers
+from .io import assert_yaml_has_no_anchors, read_yaml
 from .project import projection_files
 from .audit import audit_expected_files
 from .guardrails import assert_prod_harness_is_real
 from .projection_validators import validate_generated_projections
 
 
-def validate_project(root: Path, release: bool = False) -> None:
+def validate_project(root: Path, release: bool = False, layers: set[str] | None = None) -> None:
     patch_path = root / "pm.patch.yaml"
     contract_path = root / "contract.yaml"
     if not patch_path.exists():
@@ -24,8 +25,10 @@ def validate_project(root: Path, release: bool = False) -> None:
     if not contract_path.exists():
         raise ContractError("Missing contract.yaml; run python -m pm_contract.compile")
 
+    _assert_yaml_files_are_expanded(root)
+
     patch = read_yaml(patch_path)
-    compiled = compile_patch(patch)
+    compiled = compile_patch(patch, layers=layers)
     on_disk = read_yaml(contract_path)
     validate_against_schema(on_disk, "contract.schema.json")
     if compiled != on_disk:
@@ -52,7 +55,7 @@ def validate_project(root: Path, release: bool = False) -> None:
     with tempfile.TemporaryDirectory() as tmp:
         tmp_root = Path(tmp)
         shutil.copy2(patch_path, tmp_root / "pm.patch.yaml")
-        write_compiled(tmp_root, tmp_root / "pm.patch.yaml", tools_root=root, render_audit=False)
+        write_compiled(tmp_root, tmp_root / "pm.patch.yaml", tools_root=root, render_audit=False, layers=layers)
         expected_without_audit = {"contract.yaml"} | {relative for relative, _, _ in projection_files(compiled)}
         for relative in sorted(expected_without_audit):
             expected_path = tmp_root / relative
@@ -63,6 +66,20 @@ def validate_project(root: Path, release: bool = False) -> None:
                 raise ContractError(f"Generated file is stale or hand-edited: {relative}")
 
     validate_generated_projections(root, compiled)
+
+
+def _assert_yaml_files_are_expanded(root: Path) -> None:
+    yaml_paths = [root / "pm.patch.yaml", root / "contract.yaml"]
+    generated = root / "generated"
+    if generated.exists():
+        yaml_paths.extend(path for path in generated.rglob("*") if path.suffix in {".yaml", ".yml"})
+    for path in yaml_paths:
+        if not path.exists():
+            continue
+        try:
+            assert_yaml_has_no_anchors(path)
+        except ValueError as exc:
+            raise ContractError(str(exc)) from exc
 
 
 def _generated_files(root: Path) -> set[str]:
@@ -110,10 +127,11 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Validate pm.patch.yaml, contract.yaml, and generated projections.")
     parser.add_argument("root", nargs="?", default=".")
     parser.add_argument("--release", action="store_true")
+    parser.add_argument("--layers", default=None, help="Comma-separated authoring layers to enforce while re-compiling pm.patch.yaml")
     args = parser.parse_args(argv)
     try:
-        validate_project(Path(args.root).resolve(), release=args.release)
-    except ContractError as exc:
+        validate_project(Path(args.root).resolve(), release=args.release, layers=parse_layers(args.layers))
+    except (ContractError, ValueError) as exc:
         print(str(exc), file=sys.stderr)
         return 2
     print("contract ok")

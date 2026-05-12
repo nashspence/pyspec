@@ -1,31 +1,18 @@
 # PM contract starter
 
-This starter is a Python-first, contract-to-test system for a PM/spec agent that must turn imprecise intent into precise implementation obligations without drifting into malformed OpenAPI, AsyncAPI, CWL, UI, routing, persistence, or test contracts.
+This starter is a Python-first, contract-to-test system for a PM/spec agent that must turn imprecise intent into precise implementation obligations without drifting into malformed OpenAPI, AsyncAPI, CWL, UI, routing, persistence, content, visual-audit, or test contracts.
 
 The PM agent edits only `pm.patch.yaml`. Everything else is compiler-owned.
 
 ```text
 pm.patch.yaml
   -> contract.yaml
-  -> generated/openapi.yaml
-  -> generated/asyncapi.yaml
-  -> generated/workflows.cwl.yaml
-  -> generated/routes.json
-  -> generated/panels.json
-  -> generated/panels.html
-  -> generated/panel_styles.css
-  -> generated/textual_contract.py
-  -> generated/content_contract.py
-  -> generated/content_stubs.py
-  -> generated/content_cases.yaml
-  -> generated/persistence.json
-  -> generated/persistence.sql
-  -> generated/features/*/*.feature
-  -> generated/scenarios.yaml
-  -> generated/audit/*
+  -> generated projections required by the positive contract graph
+  -> generated pytest-bdd adapter features
+  -> generated full-contract audit renders
 ```
 
-The checked-in canonical example is a small dispatch board app. It is intentionally simple, but it exercises the important surfaces in one coherent contract: HTTP API, event API, workflow execution, composed HTML layout, Textual/TUI view, SQL persistence, generated pytest-bdd scenarios, fixtures, placeholder copy/assets, FSM diagrams, and full visual audit renders.
+The contract is sparse and positive-only. It never says that web, Textual, AsyncAPI, CLI, or any other surface is “not started.” If a surface is absent, it simply has no declarations and no generated projection.
 
 ## Setup
 
@@ -42,6 +29,61 @@ export CONTRACT_AUDIT_CHROMIUM=/usr/bin/chromium
 ```
 
 `node_modules/`, caches, and virtual environments are not part of the artifact.
+
+## Progressive authoring layers
+
+The full contract language supports many surfaces, but the PM agent should only see the vocabulary needed for the current delivery stage. That is handled with authoring layers, not with product roadmap flags in the contract.
+
+```bash
+python -m pm_contract.compile pm.patch.yaml --out . --layers core,http
+python -m pm_contract.validate . --layers core,http
+```
+
+Common layer sets:
+
+```text
+core
+  resource, capability, fixture, scenario
+
+core,http
+  core + API entries -> OpenAPI
+
+core,persistence
+  core + resource.persistence -> SQLite persistence projection
+
+core,http,persistence
+  API entries plus explicit durable resources -> OpenAPI + SQLite persistence
+
+core,events
+  core + webhook/event-surface entries -> AsyncAPI when events are positively exposed
+
+core,workflow
+  core + workflows, CLI/worker/scheduled entries -> CWL/workflow projection
+
+core,ui,textual
+  core + panels, views, copy/assets, render cases, Textual presentation -> Textual SVG audit
+
+core,ui,web
+  core + panels, views, copy/assets, render cases, HTML/CSS presentation -> HTML PNG audit
+
+full
+  all layers, used only when the repo intentionally exercises the whole language
+```
+
+Layer selection is an authoring constraint only. It is not written to `contract.yaml`. Projection generation remains graph-driven: OpenAPI is emitted only when API entries exist; persistence SQL only when a resource explicitly declares `persistence`; AsyncAPI only when event/message surfaces are positively declared; CWL only when workflows/command surfaces exist; Textual only when Textual entries/presentation/render cases exist; HTML/CSS only when web entries/presentation/render cases exist.
+
+For PM-agent tooling, use the layer-pruned schemas under `schemas/layers/`, for example:
+
+```text
+schemas/layers/core_http.pm_patch.schema.json
+schemas/layers/core_http_persistence.pm_patch.schema.json
+schemas/layers/core_workflow.pm_patch.schema.json
+schemas/layers/core_ui_textual.pm_patch.schema.json
+schemas/layers/core_ui_web.pm_patch.schema.json
+schemas/layers/full.pm_patch.schema.json
+```
+
+The full internal schema still exists at `schemas/pm_patch.schema.json`, and the compiler enforces the active layers even if the wrong schema is used.
 
 ## Core rule
 
@@ -63,8 +105,6 @@ The PM agent does not author downstream specs. It writes closed patch operations
     text: Members can create a new dispatch project.
 ```
 
-The compiler normalizes those operations into `contract.yaml` and all projections. Unknown fields, unknown refs, stale generated files, extra generated files, malformed UI composition, invalid scenarios, and fake prod harnesses are rejected.
-
 Patch operations are deliberately whole-object and closed:
 
 ```yaml
@@ -77,9 +117,16 @@ basis: always required
 
 There are no partial JSONPath-style mutations. `delete` is non-cascading; validation fails if anything still references the deleted item.
 
+
+## Canonical YAML is fully expanded
+
+Generated YAML is intentionally written without YAML anchors or aliases such as `&id001` or `*id001`. Those forms are serializer artifacts, not contract semantics, and they make audits and diffs harder to read. Contract references must always be explicit IDs such as `panel.project.list`, `copy.project.detail.heading`, or `entry.api.project.create`.
+
+Validation rejects anchors and aliases in `pm.patch.yaml`, `contract.yaml`, and generated YAML files. Reused concepts should be repeated plainly or referenced through declared contract IDs, never through YAML-level object identity.
+
 ## Canonical example model
 
-The canonical app is a dispatch board for `Project` work items.
+The checked-in canonical example is a small **Project dispatch board**. It intentionally uses the full layer set so the template demonstrates the entire system in one coherent app: HTTP API, event/workflow projection, CLI/workflow entry, composed HTML layout, Textual/TUI view, SQL persistence, pytest-bdd scenarios, fixtures, placeholder copy/assets, typed final content resolvers, FSM diagrams, and visual audit renders.
 
 The root `Project` resource owns fields and lifecycle:
 
@@ -112,14 +159,14 @@ project.archive
 project.send_approval_notice
 ```
 
-Entries expose those meanings on surfaces:
+Entries expose those meanings on positive surfaces:
 
 ```text
-web.project.board          -> generated/routes.json + HTML audit
-textual.project.board      -> generated/textual_contract.py + Textual audit
-api.project.create/list    -> generated/openapi.yaml
-cli.project.approve        -> generated/workflows.cwl.yaml command tool surface
-worker.project.approval_notice -> generated/asyncapi.yaml + generated/workflows.cwl.yaml
+web.project.board                 -> routes + HTML/CSS + HTML PNG audit
+textual.project.board             -> Textual contract + Textual SVG audit
+api.project.create/list           -> OpenAPI
+cli.project.approve               -> CWL command/tool surface
+worker.project.approval_notice    -> AsyncAPI + CWL workflow surface
 ```
 
 ## Composed FSM views
@@ -133,18 +180,7 @@ project.board
   aside -> panel.project.activity
 ```
 
-Each `target: panel` is its own FSM. For example, `panel.project.list` has `loading`, `empty`, `ready`, and `error` states. Each state declares copy slots, asset slots, field slots, actions, and transitions.
-
-The composed `target: view` declares:
-
-```text
-layout      named HTML/Textual slots
-includes    panel instances mounted into slots
-context     shared view context
-sync        explicit event/context synchronization between panel FSMs
-```
-
-A scenario asserts a state vector rather than flattening the screen into fake combined states:
+Each `target: panel` is its own FSM. The composed `target: view` declares layout slots, included panel instances, shared context, and synchronization rules. Scenarios assert a state vector instead of flattening the screen into fake combined states:
 
 ```yaml
 then:
@@ -159,7 +195,7 @@ then:
 
 ## Fixture-backed visual audit
 
-Visual audit is not a change report. There is no generated `review.html`, `change_report.md`, or `manifest.json`. Git diffs show what changed. The compiler always emits the complete full-contract audit set.
+Visual audit is not a change report. There is no generated `review.html`, `change_report.md`, or `manifest.json`. Git diffs show what changed. The compiler always emits the complete audit set implied by the contract graph.
 
 ```text
 generated/audit/
@@ -187,7 +223,7 @@ FSM diagrams            -> SVG only
 composition diagrams    -> SVG only
 ```
 
-The `.html` and `.py` files beside the rendered images are the exact minimal sources used for rendering. They are included for audit reference; the images themselves do not contain metadata labels such as panel id, view id, render case id, project id, asset id, or fixture id.
+The `.html` and `.py` files beside the rendered images are the exact minimal sources used for rendering. The images themselves do not contain metadata labels such as panel id, view id, render case id, project id, asset id, or fixture id.
 
 Placeholder requirements are strict:
 
@@ -197,21 +233,6 @@ asset id used in a rendered surface   -> requires target: asset with placeholder
 field slot rendered from data         -> requires fixture data for the resource
 composed view audit                   -> requires target: render_case with panel state vector
 ```
-
-The canonical example uses fixture records like this:
-
-```yaml
-- resource: Project
-  id: project_alpha
-  title: Replace rooftop condenser fan
-  customer: Atlas Foods
-  status: submitted
-  priority: High
-  assignee: Maya Chen
-  summary: Technician needs approval before ordering the replacement fan motor.
-```
-
-Those fixture values render into field slots in HTML and Textual audit outputs. The fixture JSON is not dumped into a page.
 
 The canonical example uses exactly two breakpoints:
 
@@ -223,8 +244,6 @@ Textual: compact, wide
 ## Final copy and asset resolvers
 
 Placeholders are mandatory from the beginning because they make audits readable before final content exists. Final copy and image assets are still contract-owned; they are added by declaring typed resolver signatures on `target: copy` or `target: asset`, then implementing only the generated resolver obligation in `content/resolvers.py`.
-
-A final copy contract can take typed arguments:
 
 ```yaml
 - op: add
@@ -249,105 +268,14 @@ def project_detail_ready_heading(args: CopyProjectDetailReadyHeadingArgs, ctx: C
     return f"{args.title} · {args.customer}"
 ```
 
-A final image-like asset follows the same pattern and returns an `AssetResult` containing real SVG:
+Validation rejects missing resolvers, unknown resolver refs, wrong function shape, invalid SVG assets, overlong copy, and final content without `content_case` coverage.
 
-```python
-@asset.implements(Asset.ASSET_PROJECT_DETAIL_READY_PRIORITY_BADGE)
-def priority_badge(args: AssetProjectDetailReadyPriorityBadgeArgs, ctx: ContentContext) -> AssetResult:
-    return AssetResult(mime_type="image/svg+xml", body=svg, alt=f"{args.priority} priority")
-```
-
-The PM agent does not invent resolver signatures in Python. It declares `args` and `final` in `pm.patch.yaml`; the compiler generates the required arg dataclasses and refs. Validation rejects missing resolvers, unknown resolver refs, wrong function shape, invalid SVG assets, overlong copy, and final content without `content_case` coverage.
-
-During audit rendering:
-
-```text
-final.status = placeholder   -> render the placeholder
-final.status = final_draft   -> render the resolver output
-final.status = approved      -> render the resolver output; release may require this state
-```
-
-`target: content_case` gives the validator deterministic resolver inputs outside a full view render:
-
-```yaml
-- op: add
-  target: content_case
-  id: content.project.detail.heading.high_priority
-  spec:
-    ref: copy.project.detail.ready.heading
-    args:
-      title: Replace rooftop condenser fan
-      customer: Atlas Foods
-```
-
-View and panel renders bind resolver args from the selected fixture-backed record, render context, or declared fixtures. In the canonical audit, the selected project record feeds the final heading and priority badge in the detail panel.
-
-## Generated Gherkin and pytest-bdd
-
-Gherkin is not the source of truth. `generated/scenarios.yaml` carries the executable scenario contract. The `.feature` files exist as a narrow pytest-bdd adapter.
-
-Generated feature text is intentionally generic:
-
-```gherkin
-Given contract scenario "project.board.ready" is arranged
-When contract scenario "project.board.ready" is executed
-Then contract scenario "project.board.ready" obligations hold
-```
-
-Both harnesses execute the same scenario obligations:
-
-```text
-tests/spec_bdd/  reference/fake spec harness
-tests/prod_bdd/  real product harness; fake shortcuts are rejected
-```
-
-The prod harness must not import `pm_contract.reference_driver`, `unittest.mock`, `pytest_mock`, or use `monkeypatch`/`mocker` fixtures.
-
-## Running
-
-Regenerate everything:
+## Commands
 
 ```bash
-python -m pm_contract.compile pm.patch.yaml --out .
-```
-
-Validate:
-
-```bash
-python -m pm_contract.validate .
-```
-
-Run tests:
-
-```bash
+python -m pm_contract.compile pm.patch.yaml --out . --layers full
+python -m pm_contract.validate . --layers full
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 pytest -q -p pytest_bdd.plugin
 ```
 
-Optional external native validators:
-
-```bash
-python -m pip install -r requirements-dev.txt
-PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 pytest -q -p pytest_bdd.plugin tests/test_external_spec_validators.py
-```
-
-The starter release gate intentionally fails until the contract is approved and blocking review flags are removed:
-
-```bash
-python -m pm_contract.validate . --release
-```
-
-## What each projection means
-
-`OpenAPI` is generated from API entries and capabilities. The PM agent declares product operations; the compiler emits HTTP method, path, parameters, request body, response schemas, policy extensions, and capability traceability.
-
-`AsyncAPI` is generated from emitted events and worker workflows. The PM agent declares events through capabilities/workflows; the compiler emits event channels, messages, and operations.
-
-`CWL` is generated from capabilities and workflows. The PM agent declares commands/workflows; the compiler emits command-line tools and workflow steps.
-
-`HTML/CSS` is generated from view/panel presentation contracts, layout slots, copy slots, asset slots, field slots, actions, and CSS tokens. The PM agent adds specificity in `pm.patch.yaml`, never in `generated/*`.
-
-`Textual` is generated from textual entries, panel/view presentation contracts, widgets, bindings, TCSS-like declarations, and composed view layout.
-
-`SQL/persistence` is generated from resources, fields, IDs, and lifecycle constraints.
-
-`Visual audit` is generated from all panels, all FSMs, all composed views, render cases, placeholders, and fixtures. It is the primary human surface for auditing complex UI/TUI intent.
+For an API-only repo, use `--layers core,http` and the `schemas/layers/core_http.pm_patch.schema.json` authoring schema instead of `full`. Add `persistence` only when durable storage is part of the current contract.

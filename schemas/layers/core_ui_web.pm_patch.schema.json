@@ -548,6 +548,18 @@
     },
     "audit_profile_spec": {
       "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "html"
+          ]
+        },
+        {
+          "required": [
+            "textual"
+          ]
+        }
+      ],
       "properties": {
         "html": {
           "additionalProperties": false,
@@ -589,19 +601,7 @@
         }
       },
       "required": [],
-      "type": "object",
-      "anyOf": [
-        {
-          "required": [
-            "html"
-          ]
-        },
-        {
-          "required": [
-            "textual"
-          ]
-        }
-      ]
+      "type": "object"
     },
     "basis": {
       "additionalProperties": false,
@@ -2364,6 +2364,22 @@
       ],
       "type": "object"
     },
+    "persistence_spec": {
+      "additionalProperties": false,
+      "properties": {
+        "dialect": {
+          "const": "sqlite"
+        },
+        "table": {
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "dialect"
+      ],
+      "type": "object"
+    },
     "presentation_contract": {
       "additionalProperties": false,
       "properties": {
@@ -3978,27 +3994,12 @@
         "steps"
       ],
       "type": "object"
-    },
-    "persistence_spec": {
-      "additionalProperties": false,
-      "properties": {
-        "dialect": {
-          "const": "sqlite"
-        },
-        "table": {
-          "pattern": "^[a-z][a-z0-9_]*$",
-          "type": "string"
-        }
-      },
-      "required": [
-        "dialect"
-      ],
-      "type": "object"
     }
   },
   "$id": "https://example.invalid/pm-patch.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
+  "description": "Layer-pruned authoring schema; runtime layer validation also applies.",
   "properties": {
     "changes": {
       "items": {
@@ -4056,15 +4057,6 @@
           },
           {
             "$ref": "#/$defs/delete_entry"
-          },
-          {
-            "$ref": "#/$defs/add_workflow"
-          },
-          {
-            "$ref": "#/$defs/replace_workflow"
-          },
-          {
-            "$ref": "#/$defs/delete_workflow"
           },
           {
             "$ref": "#/$defs/add_scenario"
@@ -4152,6 +4144,6 @@
     "status",
     "changes"
   ],
-  "title": "PM Spec Patch",
+  "title": "PM patch schema (core,ui,web layers)",
   "type": "object"
 }

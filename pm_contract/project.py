@@ -32,29 +32,150 @@ SQL_TYPES: dict[str, str] = {
 }
 
 
+def projection_paths(contract: dict[str, Any]) -> list[str]:
+    paths = [
+        "generated/__init__.py",
+        "generated/refs.py",
+        "generated/fixtures.yaml",
+        "generated/scenarios.yaml",
+        "generated/test_obligations.yaml",
+        "generated/driver_protocol.py",
+        "generated/bdd_steps.py",
+    ]
+    if _has_api(contract):
+        paths.append("generated/openapi.yaml")
+    if _has_asyncapi(contract):
+        paths.append("generated/asyncapi.yaml")
+    if _has_web_routes(contract):
+        paths.append("generated/routes.json")
+    if _has_ui(contract):
+        paths.append("generated/panels.json")
+    if _has_web_ui(contract):
+        paths.extend(["generated/panels.html", "generated/panel_styles.css"])
+    if _has_textual_ui(contract):
+        paths.append("generated/textual_contract.py")
+    if _has_persistence(contract):
+        paths.extend(["generated/persistence.json", "generated/persistence.sql"])
+    if _has_workflow(contract):
+        paths.append("generated/workflows.cwl.yaml")
+    if _has_content(contract):
+        paths.extend(["generated/content_contract.py", "generated/content_stubs.py", "generated/content_cases.yaml"])
+    paths.extend(sorted(feature_projections(contract)))
+    return paths
+
+
+def validated_projection_paths(contract: dict[str, Any]) -> list[str]:
+    skip = {
+        "generated/__init__.py",
+        "generated/driver_protocol.py",
+        "generated/bdd_steps.py",
+        "generated/test_obligations.yaml",
+    }
+    return [path for path in projection_paths(contract) if path not in skip and not path.startswith("generated/features/")]
+
+
 def projection_files(contract: dict[str, Any]) -> Iterable[tuple[str, Any, str]]:
     yield "generated/__init__.py", "# Generated package. Do not edit.\n", "text"
-    yield "generated/openapi.yaml", openapi_projection(contract), "yaml"
-    yield "generated/asyncapi.yaml", asyncapi_projection(contract), "yaml"
-    yield "generated/routes.json", routes_projection(contract), "json"
-    yield "generated/panels.json", panels_projection(contract), "json"
-    yield "generated/panels.html", panels_html_projection(contract), "text"
-    yield "generated/panel_styles.css", panel_styles_projection(contract), "text"
-    yield "generated/textual_contract.py", textual_contract_projection(contract), "text"
-    yield "generated/persistence.json", persistence_projection(contract), "json"
-    yield "generated/persistence.sql", persistence_sql_projection(contract), "text"
-    yield "generated/workflows.cwl.yaml", workflows_projection(contract), "yaml"
+    if _has_api(contract):
+        yield "generated/openapi.yaml", openapi_projection(contract), "yaml"
+    if _has_asyncapi(contract):
+        yield "generated/asyncapi.yaml", asyncapi_projection(contract), "yaml"
+    if _has_web_routes(contract):
+        yield "generated/routes.json", routes_projection(contract), "json"
+    if _has_ui(contract):
+        yield "generated/panels.json", panels_projection(contract), "json"
+    if _has_web_ui(contract):
+        yield "generated/panels.html", panels_html_projection(contract), "text"
+        yield "generated/panel_styles.css", panel_styles_projection(contract), "text"
+    if _has_textual_ui(contract):
+        yield "generated/textual_contract.py", textual_contract_projection(contract), "text"
+    if _has_persistence(contract):
+        yield "generated/persistence.json", persistence_projection(contract), "json"
+        yield "generated/persistence.sql", persistence_sql_projection(contract), "text"
+    if _has_workflow(contract):
+        yield "generated/workflows.cwl.yaml", workflows_projection(contract), "yaml"
     yield "generated/fixtures.yaml", fixtures_projection(contract), "yaml"
     yield "generated/scenarios.yaml", scenarios_projection(contract), "yaml"
     yield "generated/test_obligations.yaml", test_obligations_projection(contract), "yaml"
     yield "generated/refs.py", refs_py_projection(contract), "text"
-    yield "generated/content_contract.py", content_contract_projection(contract), "text"
-    yield "generated/content_stubs.py", content_stubs_projection(contract), "text"
-    yield "generated/content_cases.yaml", content_cases_projection(contract), "yaml"
+    if _has_content(contract):
+        yield "generated/content_contract.py", content_contract_projection(contract), "text"
+        yield "generated/content_stubs.py", content_stubs_projection(contract), "text"
+        yield "generated/content_cases.yaml", content_cases_projection(contract), "yaml"
     yield "generated/driver_protocol.py", driver_protocol_projection(), "text"
     yield "generated/bdd_steps.py", bdd_steps_projection(), "text"
     for relative, text in feature_projections(contract).items():
         yield relative, text, "text"
+
+
+def _entries_with_surface(contract: dict[str, Any], *surfaces: str) -> list[dict[str, Any]]:
+    wanted = set(surfaces)
+    return [entry for entry in contract.get("entries", {}).values() if entry.get("surface") in wanted]
+
+
+def _has_api(contract: dict[str, Any]) -> bool:
+    return bool(_entries_with_surface(contract, "api"))
+
+
+def _has_asyncapi(contract: dict[str, Any]) -> bool:
+    return bool(contract.get("events")) and (bool(_entries_with_surface(contract, "webhook", "worker")) or any("event" in wf.get("trigger", {}) for wf in contract.get("workflows", {}).values()))
+
+
+def _has_web_routes(contract: dict[str, Any]) -> bool:
+    return bool(_entries_with_surface(contract, "web"))
+
+
+def _has_workflow(contract: dict[str, Any]) -> bool:
+    return bool(contract.get("workflows")) or bool(_entries_with_surface(contract, "cli", "worker", "schedule"))
+
+
+def _has_ui(contract: dict[str, Any]) -> bool:
+    return bool(contract.get("panels") or contract.get("views"))
+
+
+def _state_has_web_presentation(state: dict[str, Any]) -> bool:
+    presentation = state.get("presentation") or {}
+    return "html" in presentation or "css" in presentation
+
+
+def _state_has_textual_presentation(state: dict[str, Any]) -> bool:
+    return "textual" in (state.get("presentation") or {})
+
+
+def _has_web_ui(contract: dict[str, Any]) -> bool:
+    if _entries_with_surface(contract, "web"):
+        return True
+    if any("html" in case.get("surfaces", []) for case in contract.get("render_cases", {}).values()):
+        return True
+    for owner in list(contract.get("panels", {}).values()) + list(contract.get("views", {}).values()):
+        if any(_state_has_web_presentation(state) for state in owner.get("states", {}).values()):
+            return True
+    for view in contract.get("views", {}).values():
+        if "css" in (view.get("layout") or {}):
+            return True
+    return False
+
+
+def _has_textual_ui(contract: dict[str, Any]) -> bool:
+    if _entries_with_surface(contract, "textual"):
+        return True
+    if any("textual" in case.get("surfaces", []) for case in contract.get("render_cases", {}).values()):
+        return True
+    for owner in list(contract.get("panels", {}).values()) + list(contract.get("views", {}).values()):
+        if any(_state_has_textual_presentation(state) for state in owner.get("states", {}).values()):
+            return True
+    for view in contract.get("views", {}).values():
+        if "textual" in (view.get("layout") or {}):
+            return True
+    return False
+
+
+def _has_persistence(contract: dict[str, Any]) -> bool:
+    return any(resource.get("persistence") for resource in contract.get("resources", {}).values())
+
+
+def _has_content(contract: dict[str, Any]) -> bool:
+    return bool(contract.get("copies") or contract.get("assets") or contract.get("content_cases"))
 
 
 def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
@@ -619,7 +740,9 @@ def format_attrs(attrs: dict[str, str]) -> str:
 def persistence_projection(contract: dict[str, Any]) -> dict[str, Any]:
     tables = []
     for resource_id, resource in sorted(contract["resources"].items()):
-        table = snake_case(resource_id)
+        if not resource.get("persistence"):
+            continue
+        table = resource["persistence"].get("table") or snake_case(resource_id)
         columns = []
         for name, type_name in sorted(resource["fields"].items()):
             columns.append({
@@ -641,7 +764,9 @@ def persistence_projection(contract: dict[str, Any]) -> dict[str, Any]:
 def persistence_sql_projection(contract: dict[str, Any]) -> str:
     statements: list[str] = ["-- Generated SQLite persistence contract. Do not edit."]
     for resource_id, resource in sorted(contract["resources"].items()):
-        table = snake_case(resource_id)
+        if not resource.get("persistence"):
+            continue
+        table = resource["persistence"].get("table") or snake_case(resource_id)
         lifecycle = resource.get("lifecycle")
         column_lines = []
         for name, type_name in sorted(resource["fields"].items()):
@@ -702,23 +827,7 @@ def test_obligations_projection(contract: dict[str, Any]) -> dict[str, Any]:
         "contract_version": contract["version"],
         "status": contract["status"],
         "scenarios": contract["scenarios"],
-        "must_validate_projections": [
-            "generated/openapi.yaml",
-            "generated/asyncapi.yaml",
-            "generated/routes.json",
-            "generated/panels.json",
-            "generated/panels.html",
-            "generated/panel_styles.css",
-            "generated/textual_contract.py",
-            "generated/content_contract.py",
-            "generated/content_stubs.py",
-            "generated/content_cases.yaml",
-            "generated/persistence.json",
-            "generated/persistence.sql",
-            "generated/workflows.cwl.yaml",
-            "generated/fixtures.yaml",
-            "generated/scenarios.yaml",
-        ],
+        "must_validate_projections": validated_projection_paths(contract),
         "refs": contract["refs"],
     }
 

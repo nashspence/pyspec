@@ -88,6 +88,9 @@ changes:
       summary: Text
       created_at: Timestamp
       updated_at: Timestamp
+    persistence:
+      dialect: sqlite
+      table: projects
     lifecycle:
       field: status
       initial: draft

@@ -13,7 +13,8 @@ from typing import Any
 import fastjsonschema
 
 from . import rules
-from .io import read_json, read_yaml, write_json, write_yaml
+from .layers import LayerError, parse_layers, validate_patch_layers
+from .io import assert_yaml_has_no_anchors, read_json, read_yaml, write_json, write_yaml
 from .project import projection_files
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -65,8 +66,12 @@ ENTITY_SECTIONS: dict[str, str] = {
 REF_KINDS = ["asset", "command", "copy", "endpoint", "panel", "policy", "query", "route", "screen", "workflow"]
 
 
-def compile_patch(patch: dict[str, Any]) -> dict[str, Any]:
+def compile_patch(patch: dict[str, Any], layers: set[str] | None = None) -> dict[str, Any]:
     validate_against_schema(patch, "pm_patch.schema.json")
+    try:
+        validate_patch_layers(patch, layers)
+    except LayerError as exc:
+        raise ContractError(str(exc)) from exc
 
     contract: dict[str, Any] = {
         "version": 1,
@@ -163,7 +168,11 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
         return item
 
     if entity == "audit_profile":
-        return {"html": spec["html"], "textual": spec["textual"], "basis": spec["basis"]}
+        item = {"basis": spec["basis"]}
+        for field in ["html", "textual"]:
+            if field in spec:
+                item[field] = spec[field]
+        return item
 
     if entity == "render_case":
         item = {
@@ -182,12 +191,15 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
         return {"values": spec["values"], "basis": spec["basis"]}
 
     if entity == "resource":
-        return {
+        item = {
             "kind": spec["kind"],
             "fields": spec["fields"],
             "lifecycle": spec.get("lifecycle"),
             "basis": spec["basis"],
         }
+        if "persistence" in spec:
+            item["persistence"] = spec["persistence"]
+        return item
 
     if entity == "capability":
         capability: dict[str, Any] = {
@@ -457,6 +469,10 @@ def _validate_render_cases(contract: dict[str, Any]) -> None:
             raise ContractError(f"Render case {case_id} references unknown view {view_id}")
         if case["profile"] not in contract.get("audit_profiles", {}):
             raise ContractError(f"Render case {case_id} references unknown audit_profile {case['profile']}")
+        profile = contract["audit_profiles"][case["profile"]]
+        for surface in case.get("surfaces", []):
+            if surface not in profile:
+                raise ContractError(f"Render case {case_id} uses {surface} but audit_profile {case['profile']} does not declare {surface}")
         for fixture_id in case.get("fixtures", []):
             if fixture_id not in contract["fixtures"]:
                 raise ContractError(f"Render case {case_id} references unknown fixture {fixture_id}")
@@ -530,6 +546,11 @@ def _value_contains_resource(value: Any, resource_id: str) -> bool:
 
 def _validate_resources(contract: dict[str, Any]) -> None:
     for rid, resource in contract["resources"].items():
+        persistence = resource.get("persistence")
+        if persistence and persistence.get("dialect") != "sqlite":
+            raise ContractError(f"Resource {rid} persistence dialect must be sqlite")
+        if persistence and "id" not in resource["fields"]:
+            raise ContractError(f"Persisted resource {rid} must declare an id field")
         lifecycle = resource.get("lifecycle")
         if not lifecycle:
             continue
@@ -563,6 +584,11 @@ def _validate_capabilities(contract: dict[str, Any]) -> None:
             if transition["from"] not in lifecycle["states"] or transition["to"] not in lifecycle["states"]:
                 raise ContractError(f"Capability {cid} transition references unknown lifecycle state")
     for rid, resource in resources.items():
+        persistence = resource.get("persistence")
+        if persistence and persistence.get("dialect") != "sqlite":
+            raise ContractError(f"Resource {rid} persistence dialect must be sqlite")
+        if persistence and "id" not in resource["fields"]:
+            raise ContractError(f"Persisted resource {rid} must declare an id field")
         lifecycle = resource.get("lifecycle")
         if not lifecycle:
             continue
@@ -1156,9 +1182,13 @@ def _expand_scenarios(contract: dict[str, Any]) -> None:
             assertions.setdefault("policy", contract["capabilities"][cap_id]["policy"])
 
 
-def write_compiled(root: Path, patch_path: Path, tools_root: Path | None = None, render_audit: bool = True) -> dict[str, Any]:
+def write_compiled(root: Path, patch_path: Path, tools_root: Path | None = None, render_audit: bool = True, layers: set[str] | None = None) -> dict[str, Any]:
+    try:
+        assert_yaml_has_no_anchors(patch_path)
+    except ValueError as exc:
+        raise ContractError(str(exc)) from exc
     patch = read_yaml(patch_path)
-    contract = compile_patch(patch)
+    contract = compile_patch(patch, layers=layers)
     write_yaml(root / "contract.yaml", contract)
     generated = root / "generated"
     if generated.exists():
@@ -1224,11 +1254,12 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Compile pm.patch.yaml into contract.yaml and generated projections.")
     parser.add_argument("patch", nargs="?", default="pm.patch.yaml")
     parser.add_argument("--out", default=".")
+    parser.add_argument("--layers", default=None, help="Comma-separated authoring layers, e.g. core,http or core,ui,textual. Omit for full compatibility mode.")
     args = parser.parse_args(argv)
     try:
-        write_compiled(Path(args.out).resolve(), Path(args.patch).resolve())
+        write_compiled(Path(args.out).resolve(), Path(args.patch).resolve(), layers=parse_layers(args.layers))
         os._exit(0)
-    except ContractError as exc:
+    except (ContractError, ValueError) as exc:
         print(str(exc), file=sys.stderr)
         return 2
     return 0
