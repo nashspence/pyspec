@@ -4,5 +4,5 @@ from pathlib import Path
 
 from pytest_bdd import scenarios
 
-FEATURES = Path(__file__).resolve().parents[2] / "generated" / "features" / "spec"
+FEATURES = Path(__file__).resolve().parents[2] / "generated" / "features"
 scenarios(str(FEATURES))

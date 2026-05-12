@@ -548,6 +548,18 @@
     },
     "audit_profile_spec": {
       "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "html"
+          ]
+        },
+        {
+          "required": [
+            "textual"
+          ]
+        }
+      ],
       "properties": {
         "html": {
           "additionalProperties": false,
@@ -589,19 +601,7 @@
         }
       },
       "required": [],
-      "type": "object",
-      "anyOf": [
-        {
-          "required": [
-            "html"
-          ]
-        },
-        {
-          "required": [
-            "textual"
-          ]
-        }
-      ]
+      "type": "object"
     },
     "basis": {
       "additionalProperties": false,
@@ -3015,9 +3015,6 @@
             "initial"
           ],
           "type": "object"
-        },
-        "persistence": {
-          "$ref": "#/$defs/persistence_spec"
         }
       },
       "required": [
@@ -3080,17 +3077,6 @@
         "given": {
           "$ref": "#/$defs/given"
         },
-        "harnesses": {
-          "items": {
-            "enum": [
-              "spec",
-              "prod"
-            ]
-          },
-          "minItems": 1,
-          "type": "array",
-          "uniqueItems": true
-        },
         "id": {
           "$ref": "#/$defs/dotted_id"
         },
@@ -3110,7 +3096,6 @@
         "feature",
         "title",
         "archetype",
-        "harnesses",
         "given",
         "when",
         "then",
@@ -3139,17 +3124,6 @@
         "given": {
           "$ref": "#/$defs/given"
         },
-        "harnesses": {
-          "items": {
-            "enum": [
-              "spec",
-              "prod"
-            ]
-          },
-          "minItems": 1,
-          "type": "array",
-          "uniqueItems": true
-        },
         "then": {
           "$ref": "#/$defs/then"
         },
@@ -3165,7 +3139,6 @@
         "feature",
         "title",
         "archetype",
-        "harnesses",
         "given",
         "when",
         "then"
@@ -3976,22 +3949,6 @@
       "required": [
         "trigger",
         "steps"
-      ],
-      "type": "object"
-    },
-    "persistence_spec": {
-      "additionalProperties": false,
-      "properties": {
-        "dialect": {
-          "const": "sqlite"
-        },
-        "table": {
-          "pattern": "^[a-z][a-z0-9_]*$",
-          "type": "string"
-        }
-      },
-      "required": [
-        "dialect"
       ],
       "type": "object"
     }

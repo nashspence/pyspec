@@ -794,9 +794,6 @@ resources:
       - by: project.archive
         from: approved
         to: archived
-    persistence:
-      dialect: sqlite
-      table: projects
 review_flags:
 - blocks_release: true
   id: starter.scope
@@ -828,9 +825,6 @@ scenarios:
           project_id: project_submitted_1
         ref: project.approved
     feature: project.approval_notice
-    harnesses:
-    - spec
-    - prod
     title: Approval event sends notice
   project.approve.success:
     archetype: capability_success
@@ -874,9 +868,6 @@ scenarios:
           project_id: project_submitted_1
         ref: project.approve
     feature: project.approve
-    harnesses:
-    - spec
-    - prod
     title: Approve submitted dispatch project
   project.board.empty:
     archetype: composed_view
@@ -899,17 +890,17 @@ scenarios:
         assets:
         - asset.project.list.empty.illustration
         copy:
-        - copy.project.list.empty.heading
-        - copy.project.list.empty.body
-        - copy.project.detail.none.heading
-        - copy.project.detail.none.body
         - copy.project.activity.empty.heading
         - copy.project.activity.empty.body
+        - copy.project.detail.none.heading
+        - copy.project.detail.none.body
+        - copy.project.list.empty.heading
+        - copy.project.list.empty.body
         panel:
         - panel.project.board.ready
-        - panel.project.list.empty
-        - panel.project.detail.none
         - panel.project.activity.empty
+        - panel.project.detail.none
+        - panel.project.list.empty
         queries:
         - query.project.board.list
         - query.project.list.list
@@ -1059,9 +1050,6 @@ scenarios:
           workspace_id: $fixture.workspace.id
         ref: web.project.board
     feature: project.board
-    harnesses:
-    - spec
-    - prod
     title: Empty dispatch board
   project.board.ready:
     archetype: composed_view
@@ -1092,16 +1080,16 @@ scenarios:
         - project.submit
         assets: []
         copy:
-        - copy.project.list.ready.heading
-        - copy.project.detail.none.heading
-        - copy.project.detail.none.body
         - copy.project.activity.empty.heading
         - copy.project.activity.empty.body
+        - copy.project.detail.none.heading
+        - copy.project.detail.none.body
+        - copy.project.list.ready.heading
         panel:
         - panel.project.board.ready
-        - panel.project.list.ready
-        - panel.project.detail.none
         - panel.project.activity.empty
+        - panel.project.detail.none
+        - panel.project.list.ready
         queries:
         - query.project.board.list
         - query.project.list.list
@@ -1251,9 +1239,6 @@ scenarios:
           workspace_id: $fixture.workspace.id
         ref: web.project.board
     feature: project.board
-    harnesses:
-    - spec
-    - prod
     title: Ready dispatch board
   project.create.api.success:
     archetype: api_entry_success
@@ -1293,9 +1278,6 @@ scenarios:
           workspace_id: $fixture.workspace.id
         ref: api.project.create
     feature: project.create
-    harnesses:
-    - spec
-    - prod
     title: Create dispatch project through API
 status: draft
 version: 1

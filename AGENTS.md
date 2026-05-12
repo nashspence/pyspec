@@ -9,8 +9,6 @@ Use the active authoring layer for the current delivery stage. Do not use the fu
 ```text
 core
 core,http
-core,persistence
-core,http,persistence
 core,events
 core,workflow
 core,ui,textual
@@ -18,25 +16,21 @@ core,ui,web
 full
 ```
 
-Use the matching layer-pruned schema from `schemas/layers/`. The layer is an authoring constraint, not a product fact; never add roadmap-like surface flags to `contract.yaml` or `pm.patch.yaml`.
+Never author raw OpenAPI, AsyncAPI, CWL, route manifests, panel manifests, HTML/CSS panel artifacts, Textual projections, pytest-bdd step text, `.feature` files, SQL, migrations, ORM models, or datastore-specific fields. Declare product meaning once in the patch language and let the compiler project only what the positive contract graph requires.
 
-Do not edit `contract.yaml`, `generated/*`, schemas, tests, app code, or Gherkin files. The compiler owns all projections.
+For API-only work, stay in `core,http`: resources, capabilities, fixtures, scenarios, and API entries. Do not introduce UI, content, audit, workflow, or event vocabulary unless that surface is part of the current deliverable.
 
-Do not use YAML anchors or aliases (`&name`, `*name`) in PM patches or generated contract material. They are not part of the DSL. Repeat the value plainly or reference a declared contract ID. Validation rejects YAML anchors and aliases.
-
-Use only the closed patch grammar: `op: add`, `op: replace`, or `op: delete`; one target; one `id`; one `basis`; and, for add/replace only, one closed `spec`. There are no partial mutations. To change one field, replace the whole item. Deletes are non-cascading and must leave no dangling references.
-
-Never author raw OpenAPI, AsyncAPI, CWL, route manifests, panel manifests, HTML/CSS panel artifacts, Textual projections, persistence SQL, pytest-bdd step text, or `.feature` files. Declare product meaning once in the patch language and let the compiler project it.
-
-For API-only work, stay in `core,http`: resources, capabilities, fixtures, scenarios, and API entries. Add `persistence` only when durable storage is explicitly part of the current deliverable. Do not introduce panels, views, copy, assets, render cases, audit profiles, Textual, or HTML/CSS.
-
-For workflow/CI-client work, stay in `core,workflow`: workflows plus CLI/worker/scheduled entries. Do not introduce UI vocabulary unless the requested deliverable is actually a UI.
+For workflow/CI-client work, use `core,workflow`: workflows and CLI/worker/scheduled entries. Do not introduce UI contracts unless the requested deliverable is actually a UI.
 
 For Textual/TUI work, use `core,ui,textual`: panels, composed views, copy/assets, render cases, Textual presentation, and Textual SVG audit. Do not add HTML/CSS requirements.
 
 For web work, use `core,ui,web`: panels, composed views, copy/assets, render cases, HTML/CSS presentation, and HTML PNG audit. Do not add Textual requirements.
 
-Choose scenario archetypes from `patterns.yaml`. Define every fixture through `target: fixture`; do not assume hidden driver fixtures. When the user's intent is uncertain, mark the `basis` as `kind: assumed` or `confidence: low`, add `basis.review: true`, or add a blocking `review_flag`. Do not add ad hoc notes or free-form fields.
+Choose scenario archetypes from `patterns.yaml`. Define every fixture through `target: fixture`; do not assume hidden driver fixtures. Scenarios are pure product scenarios. Do not add harness routing such as `spec`, `prod`, `dev`, or `test` to any scenario.
+
+Resources are pure product data models. Declare fields, lifecycle, and product invariants only. Do not declare persistence dialects, SQL tables, ORM details, storage engines, indexes, migrations, or database-specific constraints in the PM/design contract.
+
+When the user's intent is uncertain, mark the `basis` as `kind: assumed` or `confidence: low`, add `basis.review: true`, or add a blocking `review_flag`. Do not add ad hoc notes or free-form fields.
 
 For exact HTML/CSS or Textual/TCSS requirements, add presentation details inside the relevant `target: view` or `target: panel` state spec only when the active layer permits that surface. For composed product screens, define reusable `target: panel` FSMs first, then mount them through `target: view` layout slots, includes, shared context, and sync rules.
 
@@ -50,9 +44,11 @@ Edit `content/resolvers.py` only after the PM/spec contract declares the resolve
 
 ## Test agent
 
-Do not infer scenarios from prose or implementation. Consume `generated/scenarios.yaml`, `generated/features/{spec,prod}`, `generated/fixtures.yaml`, and `generated/driver_protocol.py`.
+Do not infer scenarios from prose or implementation. Consume `generated/scenarios.yaml`, `generated/features/`, `generated/fixtures.yaml`, and `generated/driver_protocol.py`.
 
 The generated `.feature` files are a pytest-bdd adapter, not a source of product truth. The executable scenario meaning is in `generated/scenarios.yaml`.
+
+There is exactly one generated Gherkin corpus. The spec harness and prod harness must both consume `generated/features/`. The only difference between them is the driver fixture outside the contract.
 
 The spec harness may use the reference/fake driver to prove the scenario is coherent as a specification.
 
@@ -62,7 +58,7 @@ The prod harness must call real product surfaces. It must not import `pm_contrac
 
 Do not change `pm.patch.yaml` to fix implementation failures unless explicitly acting as the PM/spec agent.
 
-Use generated constants and projections. Do not invent routes, strings, panels, CSS selectors, Textual widgets, TCSS rules, events, workflows, policies, operations, fixtures, SQL tables, or scenario IDs outside the contract.
+Use generated constants and projections. Do not invent routes, strings, panels, CSS selectors, Textual widgets, TCSS rules, events, workflows, policies, operations, fixtures, scenario IDs, storage tables, or database migrations outside the contract and implementation layer.
 
 Before claiming completion for the canonical example, run:
 

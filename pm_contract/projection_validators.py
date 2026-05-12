@@ -5,7 +5,6 @@ import importlib.util
 import json
 import py_compile
 import re
-import sqlite3
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any, Iterable
@@ -83,8 +82,6 @@ def validate_generated_projections(root: Path, contract: dict[str, Any]) -> None
         validate_textual_contract(root, contract)
     if "generated/content_contract.py" in expected_paths:
         validate_content_contract(root, contract)
-    if "generated/persistence.json" in expected_paths:
-        validate_persistence(contract, read_json(generated / "persistence.json"), (generated / "persistence.sql").read_text(encoding="utf-8"))
     if "generated/workflows.cwl.yaml" in expected_paths:
         validate_workflows(contract, read_yaml(generated / "workflows.cwl.yaml"))
     validate_fixtures_and_scenarios(root, contract)
@@ -653,50 +650,6 @@ def _sample_value_for_type(type_name: str) -> Any:
         return []
     return "sample"
 
-def validate_persistence(contract: dict[str, Any], doc: dict[str, Any], sql: str) -> None:
-    _require_exact_keys(doc, {"project", "dialect", "tables"}, "persistence.json")
-    if doc["project"] != contract["project"] or doc["dialect"] != "sqlite":
-        raise ContractError("persistence.json project/dialect mismatch")
-    expected_tables = []
-    for resource_id, resource in sorted(contract["resources"].items()):
-        if not resource.get("persistence"):
-            continue
-        table = resource["persistence"].get("table") or _snake_case(resource_id)
-        columns = []
-        for name, type_name in sorted(resource["fields"].items()):
-            columns.append({"name": name, "type": type_name, "storage": _sql_type(type_name), "primary_key": name == "id"})
-        expected_tables.append({"resource": resource_id, "table": table, "columns": columns, "lifecycle": resource.get("lifecycle")})
-    if doc["tables"] != expected_tables:
-        raise ContractError("persistence.json does not match resource fields")
-    if not sql.startswith("-- Generated SQLite persistence contract. Do not edit.\n"):
-        raise ContractError("persistence.sql missing generated-file header")
-    if ";--" in sql.replace("\n", ""):
-        raise ContractError("persistence.sql contains suspicious concatenated statements")
-
-    conn = sqlite3.connect(":memory:")
-    try:
-        conn.executescript(sql)
-        for table in doc["tables"]:
-            info = conn.execute(f"PRAGMA table_info({_quote_sql_ident(table['table'])})").fetchall()
-            if not info:
-                raise ContractError(f"persistence.sql did not create table {table['table']}")
-            actual_columns = {row[1]: row for row in info}
-            expected_names = [column["name"] for column in table["columns"]]
-            if set(actual_columns) != set(expected_names):
-                raise ContractError(f"SQLite table {table['table']} columns do not match persistence.json")
-            for column in table["columns"]:
-                row = actual_columns[column["name"]]
-                if row[2].upper() != column["storage"]:
-                    raise ContractError(f"SQLite column {table['table']}.{column['name']} type mismatch")
-                if column["primary_key"] and row[5] != 1:
-                    raise ContractError(f"SQLite column {table['table']}.{column['name']} must be primary key")
-            lifecycle = table.get("lifecycle")
-            if lifecycle:
-                _assert_sql_lifecycle_check(conn, table, lifecycle)
-    finally:
-        conn.close()
-
-
 def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
     _require_exact_keys(doc, {"cwlVersion", "$graph"}, "workflows.cwl.yaml")
     if doc["cwlVersion"] != "v1.2":
@@ -771,14 +724,15 @@ def validate_fixtures_and_scenarios(root: Path, contract: dict[str, Any]) -> Non
     if obligations["must_validate_projections"] != validated_projection_paths(contract):
         raise ContractError("test_obligations.yaml must_validate_projections does not match active projections")
 
-    expected_by_harness: dict[str, set[str]] = {"spec": set(), "prod": set()}
-    for scenario_id, scenario in contract["scenarios"].items():
-        for harness in scenario["harnesses"]:
-            expected_by_harness[harness].add(scenario_id)
-    for harness in ["spec", "prod"]:
-        actual_ids = _feature_scenario_ids(generated / "features" / harness)
-        if actual_ids != expected_by_harness[harness]:
-            raise ContractError(_diff_message(f"generated {harness} feature scenarios", expected_by_harness[harness], actual_ids))
+    expected_ids = set(contract["scenarios"])
+    actual_ids = _feature_scenario_ids(generated / "features")
+    if actual_ids != expected_ids:
+        raise ContractError(_diff_message("generated feature scenarios", expected_ids, actual_ids))
+
+    forbidden_harness_dirs = [generated / "features" / "spec", generated / "features" / "prod"]
+    for path in forbidden_harness_dirs:
+        if path.exists():
+            raise ContractError(f"Generated features must be single-source; remove {path.relative_to(root)}")
 
 
 
@@ -1215,24 +1169,6 @@ def _textual_selector(panel: dict[str, Any], selector: str) -> str:
     return selector
 
 
-def _assert_sql_lifecycle_check(conn: sqlite3.Connection, table: dict[str, Any], lifecycle: dict[str, Any]) -> None:
-    fields = [column["name"] for column in table["columns"]]
-    valid_values = [_sample_sql_value(column) for column in table["columns"]]
-    field_idx = fields.index(lifecycle["field"])
-    valid_values[field_idx] = lifecycle["initial"]
-    invalid_values = list(valid_values)
-    invalid_values[field_idx] = "__invalid_lifecycle_state__"
-    for idx, column in enumerate(table["columns"]):
-        if column["primary_key"]:
-            invalid_values[idx] = f"{column['name']}-invalid-sample"
-    insert_sql = f"INSERT INTO {_quote_sql_ident(table['table'])} ({', '.join(_quote_sql_ident(f) for f in fields)}) VALUES ({', '.join('?' for _ in fields)})"
-    conn.execute(insert_sql, valid_values)
-    try:
-        conn.execute(insert_sql, invalid_values)
-    except sqlite3.IntegrityError:
-        return
-    raise ContractError(f"SQLite table {table['table']} does not enforce lifecycle state CHECK")
-
 
 def _sample_sql_value(column: dict[str, Any]) -> Any:
     if column["primary_key"]:
@@ -1251,11 +1187,6 @@ def _sample_sql_value(column: dict[str, Any]) -> Any:
         return "2026-01-01T00:00:00Z"
     return "sample"
 
-
-def _quote_sql_ident(value: str) -> str:
-    if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", value):
-        raise ContractError(f"Unsafe SQL identifier in generated persistence projection: {value}")
-    return '"' + value + '"'
 
 
 def _validate_cwl_type(type_spec: Any, label: str) -> None:
@@ -1321,20 +1252,3 @@ def _diff_message(label: str, expected: set[Any], actual: set[Any]) -> str:
     return f"{label} mismatch: " + "; ".join(parts)
 
 
-def _snake_case(value: str) -> str:
-    return re.sub(r"(?<!^)(?=[A-Z])", "_", value).lower()
-
-
-def _sql_type(type_name: str) -> str:
-    base = type_name[5:-1] if type_name.startswith("list[") and type_name.endswith("]") else type_name
-    return {
-        "ID": "TEXT",
-        "Text": "TEXT",
-        "Markdown": "TEXT",
-        "Date": "TEXT",
-        "Timestamp": "TEXT",
-        "Bool": "INTEGER",
-        "Int": "INTEGER",
-        "Decimal": "REAL",
-        "JSON": "TEXT",
-    }.get(base, "TEXT")

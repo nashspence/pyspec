@@ -10,10 +10,6 @@ authoring_layers:
       opens: [entry.surface.api]
       requires: [core]
       projections_when_declared: [generated/openapi.yaml]
-    persistence:
-      opens: [resource.persistence]
-      requires: [core]
-      projections_when_declared: [generated/persistence.json, generated/persistence.sql]
     events:
       opens: [entry.surface.webhook]
       requires: [core]
@@ -36,7 +32,6 @@ authoring_layers:
       projections_when_declared: [generated/routes.json, generated/panels.html, generated/panel_styles.css, generated/audit/html/**/*.png]
   common_sets:
     api_only: core,http
-    api_with_persistence: core,http,persistence
     evented_api: core,events
     ci_client: core,workflow
     textual_app: core,ui,textual
@@ -55,6 +50,11 @@ patch_operations:
     delete:
       required: [op, target, id, basis]
       rule: Non-cascading; all dependents must be deleted or replaced explicitly.
+
+purity_rules:
+  scenarios: Do not include harness, test, dev, or environment routing. The same generated feature corpus is consumed by both spec and prod harnesses.
+  resources: Do not include persistence dialects, SQL tables, ORM details, datastore engines, indexes, or migrations. Resources are product/design data contracts only.
+  generated: Do not edit generated projections or audit renders by hand.
 
 scenario_archetypes:
   empty_collection_view:
@@ -132,7 +132,8 @@ presentation_contracts:
 gherkin_policy:
   source_of_truth: generated/scenarios.yaml
   generated_features: pytest-bdd adapter only
-  rule: PM agents never author raw .feature files; pytest-bdd consumes generated features.
+  corpus: generated/features/*.feature
+  rule: PM agents never author raw .feature files; spec and prod pytest-bdd harnesses consume the same generated corpus.
 
 composition_contracts:
   panel: 'target: panel defines a reusable FSM with context, initial state, states, state-local data, transitions, and emitted events.'

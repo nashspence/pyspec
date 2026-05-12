@@ -19,17 +19,6 @@ SCALAR_JSON_SCHEMA: dict[str, dict[str, Any]] = {
 }
 
 
-SQL_TYPES: dict[str, str] = {
-    "ID": "TEXT",
-    "Text": "TEXT",
-    "Markdown": "TEXT",
-    "Date": "TEXT",
-    "Timestamp": "TEXT",
-    "Bool": "INTEGER",
-    "Int": "INTEGER",
-    "Decimal": "REAL",
-    "JSON": "TEXT",
-}
 
 
 def projection_paths(contract: dict[str, Any]) -> list[str]:
@@ -54,8 +43,6 @@ def projection_paths(contract: dict[str, Any]) -> list[str]:
         paths.extend(["generated/panels.html", "generated/panel_styles.css"])
     if _has_textual_ui(contract):
         paths.append("generated/textual_contract.py")
-    if _has_persistence(contract):
-        paths.extend(["generated/persistence.json", "generated/persistence.sql"])
     if _has_workflow(contract):
         paths.append("generated/workflows.cwl.yaml")
     if _has_content(contract):
@@ -89,9 +76,6 @@ def projection_files(contract: dict[str, Any]) -> Iterable[tuple[str, Any, str]]
         yield "generated/panel_styles.css", panel_styles_projection(contract), "text"
     if _has_textual_ui(contract):
         yield "generated/textual_contract.py", textual_contract_projection(contract), "text"
-    if _has_persistence(contract):
-        yield "generated/persistence.json", persistence_projection(contract), "json"
-        yield "generated/persistence.sql", persistence_sql_projection(contract), "text"
     if _has_workflow(contract):
         yield "generated/workflows.cwl.yaml", workflows_projection(contract), "yaml"
     yield "generated/fixtures.yaml", fixtures_projection(contract), "yaml"
@@ -170,8 +154,6 @@ def _has_textual_ui(contract: dict[str, Any]) -> bool:
     return False
 
 
-def _has_persistence(contract: dict[str, Any]) -> bool:
-    return any(resource.get("persistence") for resource in contract.get("resources", {}).values())
 
 
 def _has_content(contract: dict[str, Any]) -> bool:
@@ -737,50 +719,6 @@ def format_attrs(attrs: dict[str, str]) -> str:
     return " " + " ".join(f'{name}="{html.escape(str(value), quote=True)}"' for name, value in sorted(attrs.items()))
 
 
-def persistence_projection(contract: dict[str, Any]) -> dict[str, Any]:
-    tables = []
-    for resource_id, resource in sorted(contract["resources"].items()):
-        if not resource.get("persistence"):
-            continue
-        table = resource["persistence"].get("table") or snake_case(resource_id)
-        columns = []
-        for name, type_name in sorted(resource["fields"].items()):
-            columns.append({
-                "name": name,
-                "type": type_name,
-                "storage": sql_type(type_name),
-                "primary_key": name == "id",
-            })
-        lifecycle = resource.get("lifecycle")
-        tables.append({
-            "resource": resource_id,
-            "table": table,
-            "columns": columns,
-            "lifecycle": lifecycle,
-        })
-    return {"project": contract["project"], "dialect": "sqlite", "tables": tables}
-
-
-def persistence_sql_projection(contract: dict[str, Any]) -> str:
-    statements: list[str] = ["-- Generated SQLite persistence contract. Do not edit."]
-    for resource_id, resource in sorted(contract["resources"].items()):
-        if not resource.get("persistence"):
-            continue
-        table = resource["persistence"].get("table") or snake_case(resource_id)
-        lifecycle = resource.get("lifecycle")
-        column_lines = []
-        for name, type_name in sorted(resource["fields"].items()):
-            constraints = ["NOT NULL"]
-            if name == "id":
-                constraints.append("PRIMARY KEY")
-            if lifecycle and name == lifecycle["field"]:
-                states = ", ".join(repr(s) for s in lifecycle["states"])
-                constraints.append(f"CHECK ({name} IN ({states}))")
-            column_lines.append(f"  {name} {sql_type(type_name)} {' '.join(constraints)}")
-        statements.append(f"CREATE TABLE IF NOT EXISTS {table} (\n" + ",\n".join(column_lines) + "\n);")
-    return "\n\n".join(statements) + "\n"
-
-
 def workflows_projection(contract: dict[str, Any]) -> dict[str, Any]:
     graph = []
     for workflow_id, workflow in sorted(contract["workflows"].items()):
@@ -967,7 +905,7 @@ from typing import Any, Mapping, Protocol
 
 
 class ContractDriver(Protocol):
-    """Implemented by spec and prod harnesses. Generated; do not edit."""
+    """Implemented by pytest-bdd harness drivers. Generated; do not edit."""
 
     def arrange(self, scenario_id: str, scenario: Mapping[str, Any]) -> None: ...
     def execute(self, scenario_id: str, scenario: Mapping[str, Any]) -> None: ...
@@ -1017,23 +955,21 @@ def assert_contract_scenario(contract_driver, scenario_id: str) -> None:
 
 
 def feature_projections(contract: dict[str, Any]) -> dict[str, str]:
-    by_harness: dict[str, dict[str, list[tuple[str, dict[str, Any]]]]] = {"spec": defaultdict(list), "prod": defaultdict(list)}
+    by_feature: dict[str, list[tuple[str, dict[str, Any]]]] = defaultdict(list)
     for scenario_id, scenario in sorted(contract["scenarios"].items()):
-        for harness in scenario["harnesses"]:
-            by_harness[harness][scenario["feature"]].append((scenario_id, scenario))
+        by_feature[scenario["feature"]].append((scenario_id, scenario))
     files: dict[str, str] = {}
-    for harness, features in by_harness.items():
-        for feature_id, scenarios in sorted(features.items()):
-            files[f"generated/features/{harness}/{safe_id(feature_id)}.feature"] = feature_text(feature_id, scenarios, harness)
+    for feature_id, scenarios in sorted(by_feature.items()):
+        files[f"generated/features/{safe_id(feature_id)}.feature"] = feature_text(feature_id, scenarios)
     return files
 
 
-def feature_text(feature_id: str, scenarios: list[tuple[str, dict[str, Any]]], harness: str) -> str:
+def feature_text(feature_id: str, scenarios: list[tuple[str, dict[str, Any]]]) -> str:
     lines = [f"Feature: {humanize(feature_id)}", ""]
     for scenario_id, scenario in scenarios:
         tag_id = safe_id(scenario_id)
         lines.extend([
-            f"  @contract @{harness} @{tag_id}",
+            f"  @contract @{tag_id}",
             f"  Scenario: {scenario['title']}",
             f"    Given contract scenario \"{scenario_id}\" is arranged",
             f"    When contract scenario \"{scenario_id}\" is executed",
@@ -1111,9 +1047,6 @@ def base_type(type_name: str) -> str:
 def is_scalar(type_name: str) -> bool:
     return type_name in SCALAR_JSON_SCHEMA
 
-
-def sql_type(type_name: str) -> str:
-    return SQL_TYPES.get(base_type(type_name), "TEXT")
 
 
 def snake_case(value: str) -> str:

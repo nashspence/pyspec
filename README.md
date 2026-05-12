@@ -1,18 +1,18 @@
 # PM contract starter
 
-This starter is a Python-first, contract-to-test system for a PM/spec agent that must turn imprecise intent into precise implementation obligations without drifting into malformed OpenAPI, AsyncAPI, CWL, UI, routing, persistence, content, visual-audit, or test contracts.
+This starter is a Python-first, contract-to-test system for a PM/spec agent that must turn imprecise product intent into precise design obligations without drifting into malformed OpenAPI, AsyncAPI, CWL, routing, UI, content, visual-audit, or BDD contracts.
 
-The PM agent edits only `pm.patch.yaml`. Everything else is compiler-owned.
+The PM agent edits only `pm.patch.yaml`. The compiler owns `contract.yaml` and every file under `generated/`.
 
 ```text
 pm.patch.yaml
   -> contract.yaml
-  -> generated projections required by the positive contract graph
-  -> generated pytest-bdd adapter features
-  -> generated full-contract audit renders
+  -> generated projections required by positive contract declarations
+  -> one generated pytest-bdd feature corpus
+  -> generated full-contract visual audit renders
 ```
 
-The contract is sparse and positive-only. It never says that web, Textual, AsyncAPI, CLI, or any other surface is “not started.” If a surface is absent, it simply has no declarations and no generated projection.
+The contract is sparse and positive-only. It never says that web, Textual, AsyncAPI, CLI, storage, or any other surface is “not started.” If a concern is absent, it simply has no declaration and no generated projection.
 
 ## Setup
 
@@ -43,16 +43,10 @@ Common layer sets:
 
 ```text
 core
-  resource, capability, fixture, scenario
+  resource, capability, fixture, scenario, content cases
 
 core,http
   core + API entries -> OpenAPI
-
-core,persistence
-  core + resource.persistence -> SQLite persistence projection
-
-core,http,persistence
-  API entries plus explicit durable resources -> OpenAPI + SQLite persistence
 
 core,events
   core + webhook/event-surface entries -> AsyncAPI when events are positively exposed
@@ -70,13 +64,12 @@ full
   all layers, used only when the repo intentionally exercises the whole language
 ```
 
-Layer selection is an authoring constraint only. It is not written to `contract.yaml`. Projection generation remains graph-driven: OpenAPI is emitted only when API entries exist; persistence SQL only when a resource explicitly declares `persistence`; AsyncAPI only when event/message surfaces are positively declared; CWL only when workflows/command surfaces exist; Textual only when Textual entries/presentation/render cases exist; HTML/CSS only when web entries/presentation/render cases exist.
+Layer selection is an authoring constraint only. It is not written to `contract.yaml`. Projection generation remains graph-driven: OpenAPI is emitted only when API entries exist; AsyncAPI only when event/message surfaces are positively declared; CWL only when workflows/command surfaces exist; Textual only when Textual entries/presentation/render cases exist; HTML/CSS only when web entries/presentation/render cases exist.
 
 For PM-agent tooling, use the layer-pruned schemas under `schemas/layers/`, for example:
 
 ```text
 schemas/layers/core_http.pm_patch.schema.json
-schemas/layers/core_http_persistence.pm_patch.schema.json
 schemas/layers/core_workflow.pm_patch.schema.json
 schemas/layers/core_ui_textual.pm_patch.schema.json
 schemas/layers/core_ui_web.pm_patch.schema.json
@@ -117,16 +110,28 @@ basis: always required
 
 There are no partial JSONPath-style mutations. `delete` is non-cascading; validation fails if anything still references the deleted item.
 
+## Pure PM/design contract
 
-## Canonical YAML is fully expanded
+The contract should describe product meaning, not implementation storage, test routing, or development environment details.
 
-Generated YAML is intentionally written without YAML anchors or aliases such as `&id001` or `*id001`. Those forms are serializer artifacts, not contract semantics, and they make audits and diffs harder to read. Contract references must always be explicit IDs such as `panel.project.list`, `copy.project.detail.heading`, or `entry.api.project.create`.
+Scenarios do not declare `spec`, `prod`, or any other harness. There is exactly one generated Gherkin corpus:
 
-Validation rejects anchors and aliases in `pm.patch.yaml`, `contract.yaml`, and generated YAML files. Reused concepts should be repeated plainly or referenced through declared contract IDs, never through YAML-level object identity.
+```text
+generated/features/*.feature
+```
+
+Both pytest-bdd harnesses consume that same corpus. The difference is only the driver fixture outside the contract:
+
+```text
+tests/spec_bdd/ -> reference/spec driver
+tests/prod_bdd/ -> real product driver
+```
+
+Resources do not declare a persistence dialect, SQL table, ORM model, migration, or datastore. The `resource` contract is the PM/design data model: fields, lifecycle, and product invariants. Concrete storage is an implementation concern and must not be smuggled into `pm.patch.yaml`.
 
 ## Canonical example model
 
-The checked-in canonical example is a small **Project dispatch board**. It intentionally uses the full layer set so the template demonstrates the entire system in one coherent app: HTTP API, event/workflow projection, CLI/workflow entry, composed HTML layout, Textual/TUI view, SQL persistence, pytest-bdd scenarios, fixtures, placeholder copy/assets, typed final content resolvers, FSM diagrams, and visual audit renders.
+The checked-in canonical example is a small **Project dispatch board**. It intentionally uses the full layer set so the template demonstrates the system in one coherent app: HTTP API, event/workflow projection, CLI/workflow entry, composed HTML layout, Textual/TUI view, pytest-bdd scenarios, fixtures, placeholder copy/assets, typed final content resolvers, FSM diagrams, and visual audit renders.
 
 The root `Project` resource owns fields and lifecycle:
 
@@ -278,4 +283,4 @@ python -m pm_contract.validate . --layers full
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 pytest -q -p pytest_bdd.plugin
 ```
 
-For an API-only repo, use `--layers core,http` and the `schemas/layers/core_http.pm_patch.schema.json` authoring schema instead of `full`. Add `persistence` only when durable storage is part of the current contract.
+For an API-only repo, use `--layers core,http` and the `schemas/layers/core_http.pm_patch.schema.json` authoring schema instead of `full`.

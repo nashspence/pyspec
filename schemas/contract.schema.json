@@ -126,6 +126,18 @@
     },
     "audit_profile_item": {
       "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "html"
+          ]
+        },
+        {
+          "required": [
+            "textual"
+          ]
+        }
+      ],
       "properties": {
         "basis": {
           "$ref": "#/$defs/basis"
@@ -172,19 +184,7 @@
       "required": [
         "basis"
       ],
-      "type": "object",
-      "anyOf": [
-        {
-          "required": [
-            "html"
-          ]
-        },
-        {
-          "required": [
-            "textual"
-          ]
-        }
-      ]
+      "type": "object"
     },
     "audit_profile_spec": {
       "additionalProperties": false,
@@ -1812,9 +1812,6 @@
             "object",
             "null"
           ]
-        },
-        "persistence": {
-          "$ref": "#/$defs/persistence_spec"
         }
       },
       "required": [
@@ -1879,15 +1876,6 @@
         "feature": {
           "$ref": "#/$defs/dotted_id"
         },
-        "harnesses": {
-          "items": {
-            "enum": [
-              "spec",
-              "prod"
-            ]
-          },
-          "type": "array"
-        },
         "title": {
           "type": "string"
         }
@@ -1896,7 +1884,6 @@
         "feature",
         "title",
         "archetype",
-        "harnesses",
         "arrange",
         "execute",
         "assert",
@@ -2435,22 +2422,6 @@
         "steps",
         "ref",
         "basis"
-      ],
-      "type": "object"
-    },
-    "persistence_spec": {
-      "additionalProperties": false,
-      "properties": {
-        "dialect": {
-          "const": "sqlite"
-        },
-        "table": {
-          "pattern": "^[a-z][a-z0-9_]*$",
-          "type": "string"
-        }
-      },
-      "required": [
-        "dialect"
       ],
       "type": "object"
     }

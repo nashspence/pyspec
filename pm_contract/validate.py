@@ -10,7 +10,7 @@ from typing import Any
 
 from .compile import ContractError, compile_patch, validate_against_schema, write_compiled
 from .layers import parse_layers
-from .io import assert_yaml_has_no_anchors, read_yaml
+from .io import read_yaml, yaml_contains_anchors
 from .project import projection_files
 from .audit import audit_expected_files
 from .guardrails import assert_prod_harness_is_real
@@ -25,7 +25,7 @@ def validate_project(root: Path, release: bool = False, layers: set[str] | None 
     if not contract_path.exists():
         raise ContractError("Missing contract.yaml; run python -m pm_contract.compile")
 
-    _assert_yaml_files_are_expanded(root)
+    _assert_generated_yaml_is_plain(root)
 
     patch = read_yaml(patch_path)
     compiled = compile_patch(patch, layers=layers)
@@ -37,7 +37,7 @@ def validate_project(root: Path, release: bool = False, layers: set[str] | None 
     if release:
         _release_gate(compiled)
 
-    if any("prod" in sc["harnesses"] for sc in compiled["scenarios"].values()):
+    if compiled["scenarios"]:
         assert_prod_harness_is_real(root)
 
     expected = {"contract.yaml"} | {relative for relative, _, _ in projection_files(compiled)} | audit_expected_files(compiled)
@@ -68,18 +68,14 @@ def validate_project(root: Path, release: bool = False, layers: set[str] | None 
     validate_generated_projections(root, compiled)
 
 
-def _assert_yaml_files_are_expanded(root: Path) -> None:
-    yaml_paths = [root / "pm.patch.yaml", root / "contract.yaml"]
+def _assert_generated_yaml_is_plain(root: Path) -> None:
+    yaml_paths = [root / "contract.yaml"]
     generated = root / "generated"
     if generated.exists():
-        yaml_paths.extend(path for path in generated.rglob("*") if path.suffix in {".yaml", ".yml"})
-    for path in yaml_paths:
-        if not path.exists():
-            continue
-        try:
-            assert_yaml_has_no_anchors(path)
-        except ValueError as exc:
-            raise ContractError(str(exc)) from exc
+        yaml_paths.extend(path for path in generated.rglob("*.yaml") if path.is_file())
+    offenders = [str(path.relative_to(root)) for path in yaml_paths if yaml_contains_anchors(path)]
+    if offenders:
+        raise ContractError("Generated YAML must not contain anchors or aliases: " + ", ".join(sorted(offenders)))
 
 
 def _generated_files(root: Path) -> set[str]:
@@ -118,9 +114,6 @@ def _release_gate(contract: dict[str, Any]) -> None:
     if placeholder_content:
         raise ContractError("Release gate requires approved final content for: " + ", ".join(sorted(placeholder_content)))
 
-    without_prod = [sid for sid, sc in contract["scenarios"].items() if "prod" not in sc["harnesses"]]
-    if without_prod:
-        raise ContractError("Release gate requires prod harness coverage for scenarios: " + ", ".join(without_prod))
 
 
 def main(argv: list[str] | None = None) -> int:

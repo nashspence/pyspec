@@ -39,15 +39,15 @@ def test_canonical_contract_is_fresh_and_complete() -> None:
             assert path.read_text(encoding="utf-8").lstrip().startswith("<svg")
 
 
-def test_canonical_openapi_asyncapi_cwl_and_sql_are_visible() -> None:
+def test_canonical_openapi_asyncapi_and_cwl_are_visible() -> None:
     openapi = read_yaml(ROOT / "generated" / "openapi.yaml")
     assert openapi["paths"]["/workspaces/{workspace_id}/projects"]["post"]["operationId"] == "project.create"
     asyncapi = read_yaml(ROOT / "generated" / "asyncapi.yaml")
     assert any(channel.get("address") == "project.approved" for channel in asyncapi["channels"].values() if isinstance(channel, dict))
     cwl = read_yaml(ROOT / "generated" / "workflows.cwl.yaml")
     assert "#project_approval_notice" in {item["id"] for item in cwl["$graph"]}
-    persistence = read_json(ROOT / "generated" / "persistence.json")
-    assert persistence["tables"][0]["resource"] == "Project"
+    assert not (ROOT / "generated" / "persistence.sql").exists()
+    assert not (ROOT / "generated" / "persistence.json").exists()
 
 
 def test_canonical_textual_contract_imports_and_composes() -> None:

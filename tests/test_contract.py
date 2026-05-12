@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from pm_contract.compile import ContractError, compile_patch
-from pm_contract.io import assert_yaml_has_no_anchors, read_yaml, write_yaml
+from pm_contract.io import read_yaml, write_yaml
 from pm_contract.validate import validate_project
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -28,40 +28,42 @@ def _first_spec(patch: dict, target: str) -> dict:
     return _change(patch, target)["spec"]
 
 
+def test_project_validates() -> None:
+    validate_project(ROOT)
 
 
-def test_write_yaml_expands_repeated_objects_without_aliases(tmp_path: Path) -> None:
-    repeated = {"kind": "explicit", "confidence": "high", "text": "shared basis"}
-    data = {"first": repeated, "second": repeated}
-    path = tmp_path / "expanded.yaml"
-    write_yaml(path, data)
+
+
+def test_yaml_writer_never_emits_anchors_or_aliases(tmp_path: Path) -> None:
+    shared = {"confidence": "high", "kind": "explicit", "text": "shared basis"}
+    path = tmp_path / "contract.yaml"
+    write_yaml(path, {"first": shared, "second": shared})
     text = path.read_text(encoding="utf-8")
     assert "&id" not in text
     assert "*id" not in text
-    assert_yaml_has_no_anchors(path)
     assert text.count("shared basis") == 2
 
 
-def test_generated_yaml_files_are_fully_expanded() -> None:
-    paths = [ROOT / "contract.yaml"] + sorted((ROOT / "generated").rglob("*.yaml"))
-    assert paths
-    for path in paths:
-        assert_yaml_has_no_anchors(path)
+def test_checked_in_yaml_has_no_anchors_or_aliases() -> None:
+    yaml_paths = [ROOT / "contract.yaml"] + sorted((ROOT / "generated").rglob("*.yaml"))
+    offenders = []
+    for path in yaml_paths:
+        text = path.read_text(encoding="utf-8")
+        if "&id" in text or "*id" in text:
+            offenders.append(str(path.relative_to(ROOT)))
+    assert offenders == []
 
 
-def test_validation_rejects_yaml_anchor_or_alias_in_contract(tmp_path: Path) -> None:
+
+def test_validation_rejects_hand_edited_yaml_anchors(tmp_path: Path) -> None:
     project = tmp_path / "project"
     ignore = shutil.ignore_patterns("__pycache__", ".pytest_cache", "*.pyc", "node_modules")
     shutil.copytree(ROOT, project, ignore=ignore)
     contract_path = project / "contract.yaml"
     text = contract_path.read_text(encoding="utf-8")
-    contract_path.write_text(text.replace("project: project_dispatch_board", "project: &project project_dispatch_board", 1), encoding="utf-8")
-    with pytest.raises(ContractError, match="YAML anchor is not allowed"):
+    contract_path.write_text(text.replace("status: draft", "status: &id001 draft", 1), encoding="utf-8")
+    with pytest.raises(ContractError, match="Generated YAML must not contain anchors or aliases"):
         validate_project(project)
-
-def test_project_validates() -> None:
-    validate_project(ROOT)
-
 
 def test_release_gate_blocks_starter_draft() -> None:
     with pytest.raises(ContractError, match="Release gate requires status: approved"):
@@ -278,6 +280,7 @@ def test_authoring_layers_allow_api_only_contract_and_graph_driven_projections()
     paths = set(projection_paths(contract))
     assert "generated/openapi.yaml" in paths
     assert "generated/persistence.sql" not in paths
+    assert "generated/persistence.json" not in paths
     assert "generated/panels.html" not in paths
     assert "generated/textual_contract.py" not in paths
     assert "generated/asyncapi.yaml" not in paths
@@ -332,3 +335,27 @@ def test_layer_pruned_schema_hides_irrelevant_targets() -> None:
     assert any(ref.endswith("add_resource") for ref in refs)
     assert not any(ref.endswith("add_panel") for ref in refs)
     assert not any(ref.endswith("add_render_case") for ref in refs)
+
+
+def test_pm_contract_rejects_scenario_harness_routing() -> None:
+    patch = read_yaml(ROOT / "pm.patch.yaml")
+    scenario = _first_spec(patch, "scenario")
+    scenario["harnesses"] = ["spec", "prod"]
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_patch(patch)
+
+
+def test_pm_contract_rejects_storage_implementation_details_on_resource() -> None:
+    patch = read_yaml(ROOT / "pm.patch.yaml")
+    resource = _first_spec(patch, "resource")
+    resource["persistence"] = {"dialect": "sqlite", "table": "projects"}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_patch(patch)
+
+
+def test_generated_gherkin_is_single_corpus() -> None:
+    features = ROOT / "generated" / "features"
+    assert features.exists()
+    assert not (features / "spec").exists()
+    assert not (features / "prod").exists()
+    assert sorted(path.name for path in features.glob("*.feature"))

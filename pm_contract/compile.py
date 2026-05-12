@@ -14,7 +14,7 @@ import fastjsonschema
 
 from . import rules
 from .layers import LayerError, parse_layers, validate_patch_layers
-from .io import assert_yaml_has_no_anchors, read_json, read_yaml, write_json, write_yaml
+from .io import read_json, read_yaml, write_json, write_yaml
 from .project import projection_files
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -197,8 +197,6 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             "lifecycle": spec.get("lifecycle"),
             "basis": spec["basis"],
         }
-        if "persistence" in spec:
-            item["persistence"] = spec["persistence"]
         return item
 
     if entity == "capability":
@@ -280,7 +278,6 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             "feature": spec["feature"],
             "title": spec["title"],
             "archetype": spec["archetype"],
-            "harnesses": spec["harnesses"],
             "arrange": spec["given"],
             "execute": spec["when"],
             "assert": dict(spec["then"]),
@@ -546,11 +543,6 @@ def _value_contains_resource(value: Any, resource_id: str) -> bool:
 
 def _validate_resources(contract: dict[str, Any]) -> None:
     for rid, resource in contract["resources"].items():
-        persistence = resource.get("persistence")
-        if persistence and persistence.get("dialect") != "sqlite":
-            raise ContractError(f"Resource {rid} persistence dialect must be sqlite")
-        if persistence and "id" not in resource["fields"]:
-            raise ContractError(f"Persisted resource {rid} must declare an id field")
         lifecycle = resource.get("lifecycle")
         if not lifecycle:
             continue
@@ -584,11 +576,6 @@ def _validate_capabilities(contract: dict[str, Any]) -> None:
             if transition["from"] not in lifecycle["states"] or transition["to"] not in lifecycle["states"]:
                 raise ContractError(f"Capability {cid} transition references unknown lifecycle state")
     for rid, resource in resources.items():
-        persistence = resource.get("persistence")
-        if persistence and persistence.get("dialect") != "sqlite":
-            raise ContractError(f"Resource {rid} persistence dialect must be sqlite")
-        if persistence and "id" not in resource["fields"]:
-            raise ContractError(f"Persisted resource {rid} must declare an id field")
         lifecycle = resource.get("lifecycle")
         if not lifecycle:
             continue
@@ -1183,10 +1170,6 @@ def _expand_scenarios(contract: dict[str, Any]) -> None:
 
 
 def write_compiled(root: Path, patch_path: Path, tools_root: Path | None = None, render_audit: bool = True, layers: set[str] | None = None) -> dict[str, Any]:
-    try:
-        assert_yaml_has_no_anchors(patch_path)
-    except ValueError as exc:
-        raise ContractError(str(exc)) from exc
     patch = read_yaml(patch_path)
     contract = compile_patch(patch, layers=layers)
     write_yaml(root / "contract.yaml", contract)

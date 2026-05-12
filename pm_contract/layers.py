@@ -11,7 +11,7 @@ from .io import read_json
 
 ROOT = Path(__file__).resolve().parents[1]
 
-LAYERS = {"core", "persistence", "http", "events", "workflow", "ui", "textual", "web"}
+LAYERS = {"core", "http", "events", "workflow", "ui", "textual", "web"}
 LAYER_ALIASES = {"full": "full", "all": "full", "api": "http", "cli": "workflow", "tui": "textual"}
 
 # Coarse target gates. Field-level surface gates below remain stricter.
@@ -48,8 +48,6 @@ AUDIT_PROFILE_LAYER = {"html": "web", "textual": "textual"}
 COMMON_LAYER_SETS: dict[str, set[str]] = {
     "core": {"core"},
     "core_http": {"core", "http"},
-    "core_persistence": {"core", "persistence"},
-    "core_http_persistence": {"core", "http", "persistence"},
     "core_events": {"core", "events"},
     "core_workflow": {"core", "workflow"},
     "core_ui_textual": {"core", "ui", "textual"},
@@ -127,8 +125,6 @@ def validate_patch_layers(patch: dict[str, Any], layers: set[str] | None) -> Non
 
 def _validate_change_spec_layers(label: str, target: str, spec: dict[str, Any], layers: set[str]) -> None:
     if target == "resource":
-        if "persistence" in spec:
-            _require_layers(label, "resource.persistence", {"persistence"}, layers)
         return
 
     if target == "entry":

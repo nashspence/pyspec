@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import copy
-import re
 import shutil
 from pathlib import Path
 
@@ -16,7 +15,6 @@ from pm_contract.projection_validators import (
     validate_panels_json,
     validate_panel_css,
     validate_panels_html,
-    validate_persistence,
     validate_textual_contract,
     validate_workflows,
 )
@@ -93,19 +91,10 @@ def test_textual_validator_rejects_broken_generated_python(tmp_path: Path) -> No
         validate_textual_contract(project, _contract())
 
 
-def test_persistence_validator_executes_sql_and_rejects_missing_lifecycle_check() -> None:
-    contract = _contract()
-    persistence = read_json(ROOT / "generated" / "persistence.json")
-    sql = (ROOT / "generated" / "persistence.sql").read_text(encoding="utf-8")
-    mutated = re.sub(r" CHECK \(status IN \([^)]*\)\)", "", sql)
-    with pytest.raises(ContractError, match="does not enforce lifecycle"):
-        validate_persistence(contract, persistence, mutated)
-
-
 def test_scenario_validator_rejects_freeform_generated_gherkin(tmp_path: Path) -> None:
     project = tmp_path / "project"
     shutil.copytree(ROOT, project, ignore=shutil.ignore_patterns("__pycache__", ".pytest_cache", "*.pyc", "node_modules"))
-    feature = next((project / "generated" / "features" / "spec").glob("*.feature"))
+    feature = next((project / "generated" / "features").glob("*.feature"))
     text = feature.read_text(encoding="utf-8")
     feature.write_text(text.replace("    Then ", "    And freeform agent prose\n    Then ", 1), encoding="utf-8")
     with pytest.raises(ContractError, match="non-canonical BDD conjunction|canonical When/Then"):
