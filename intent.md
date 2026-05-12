@@ -1,0 +1,1 @@
+Create a minimal but strongly paternalistic contract-first starter for a PM agent. The PM agent converts intent into structured patch operations. The compiler emits the canonical contract, OpenAPI, CWL, routing, panel contracts, generated Gherkin, and two pytest-bdd harnesses.

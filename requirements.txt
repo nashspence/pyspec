@@ -1,0 +1,8 @@
+fastjsonschema>=2,<3
+PyYAML>=6,<7
+jsonschema>=4,<5
+pytest>=8,<10
+pytest-bdd>=8,<9
+Pillow>=10,<13
+playwright>=1.56,<2
+textual>=8,<9

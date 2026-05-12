@@ -1,0 +1,13 @@
+{
+  "name": "pm-contract-canonical-audit",
+  "version": "1.0.0",
+  "description": "Mermaid dependency for full-contract visual audit SVG rendering.",
+  "main": "index.js",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "mermaid": "^11.12.0"
+  }
+}
