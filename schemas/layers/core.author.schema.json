@@ -1,0 +1,4633 @@
+{
+  "$defs": {
+    "add_asset": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "pattern": "^asset\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+          "type": "string"
+        },
+        "op": {
+          "const": "add"
+        },
+        "spec": {
+          "$ref": "#/$defs/asset_spec"
+        },
+        "target": {
+          "const": "asset"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis",
+        "spec"
+      ],
+      "type": "object"
+    },
+    "add_audit_profile": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+          "type": "string"
+        },
+        "op": {
+          "const": "add"
+        },
+        "spec": {
+          "$ref": "#/$defs/audit_profile_spec"
+        },
+        "target": {
+          "const": "audit_profile"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis",
+        "spec"
+      ],
+      "type": "object"
+    },
+    "add_capability": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "op": {
+          "const": "add"
+        },
+        "spec": {
+          "$ref": "#/$defs/capability_spec"
+        },
+        "target": {
+          "const": "capability"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis",
+        "spec"
+      ],
+      "type": "object"
+    },
+    "add_content_case": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+          "type": "string"
+        },
+        "op": {
+          "const": "add"
+        },
+        "spec": {
+          "$ref": "#/$defs/content_case_spec"
+        },
+        "target": {
+          "const": "content_case"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis",
+        "spec"
+      ],
+      "type": "object"
+    },
+    "add_copy": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "pattern": "^copy\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+          "type": "string"
+        },
+        "op": {
+          "const": "add"
+        },
+        "spec": {
+          "$ref": "#/$defs/copy_spec"
+        },
+        "target": {
+          "const": "copy"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis",
+        "spec"
+      ],
+      "type": "object"
+    },
+    "add_entry": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "op": {
+          "const": "add"
+        },
+        "spec": {
+          "$ref": "#/$defs/entry_spec"
+        },
+        "target": {
+          "const": "entry"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis",
+        "spec"
+      ],
+      "type": "object"
+    },
+    "add_fixture": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "pattern": "^fixture\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+          "type": "string"
+        },
+        "op": {
+          "const": "add"
+        },
+        "spec": {
+          "$ref": "#/$defs/fixture_spec"
+        },
+        "target": {
+          "const": "fixture"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis",
+        "spec"
+      ],
+      "type": "object"
+    },
+    "add_panel": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "pattern": "^panel\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+          "type": "string"
+        },
+        "op": {
+          "const": "add"
+        },
+        "spec": {
+          "$ref": "#/$defs/panel_spec"
+        },
+        "target": {
+          "const": "panel"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis",
+        "spec"
+      ],
+      "type": "object"
+    },
+    "add_render_case": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "op": {
+          "const": "add"
+        },
+        "spec": {
+          "$ref": "#/$defs/render_case_spec"
+        },
+        "target": {
+          "const": "render_case"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis",
+        "spec"
+      ],
+      "type": "object"
+    },
+    "add_resource": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "$ref": "#/$defs/resource_id"
+        },
+        "op": {
+          "const": "add"
+        },
+        "spec": {
+          "$ref": "#/$defs/resource_spec"
+        },
+        "target": {
+          "const": "resource"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis",
+        "spec"
+      ],
+      "type": "object"
+    },
+    "add_scenario": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "op": {
+          "const": "add"
+        },
+        "spec": {
+          "$ref": "#/$defs/scenario_spec"
+        },
+        "target": {
+          "const": "scenario"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis",
+        "spec"
+      ],
+      "type": "object"
+    },
+    "add_view": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "op": {
+          "const": "add"
+        },
+        "spec": {
+          "$ref": "#/$defs/view_spec"
+        },
+        "target": {
+          "const": "view"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis",
+        "spec"
+      ],
+      "type": "object"
+    },
+    "add_workflow": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "op": {
+          "const": "add"
+        },
+        "spec": {
+          "$ref": "#/$defs/workflow_spec"
+        },
+        "target": {
+          "const": "workflow"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis",
+        "spec"
+      ],
+      "type": "object"
+    },
+    "aria_role": {
+      "enum": [
+        "alert",
+        "banner",
+        "button",
+        "cell",
+        "columnheader",
+        "complementary",
+        "contentinfo",
+        "form",
+        "heading",
+        "img",
+        "list",
+        "listitem",
+        "main",
+        "navigation",
+        "none",
+        "region",
+        "row",
+        "status",
+        "table"
+      ]
+    },
+    "asset_author": {
+      "additionalProperties": false,
+      "properties": {
+        "alt_copy": {
+          "$ref": "#/$defs/copy_id"
+        },
+        "args": {
+          "$ref": "#/$defs/content_args"
+        },
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "kind": {
+          "enum": [
+            "illustration",
+            "icon",
+            "photo",
+            "logo",
+            "avatar"
+          ]
+        },
+        "placeholder": {
+          "$ref": "#/$defs/asset_placeholder"
+        },
+        "resolver": {
+          "$ref": "#/$defs/content_resolver_id"
+        },
+        "why": {
+          "$ref": "#/$defs/basis"
+        }
+      },
+      "required": [
+        "kind",
+        "placeholder"
+      ],
+      "type": "object"
+    },
+    "asset_id": {
+      "pattern": "^asset\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "type": "string"
+    },
+    "asset_item": {
+      "additionalProperties": false,
+      "properties": {
+        "alt_copy": {
+          "$ref": "#/$defs/copy_id"
+        },
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "kind": {
+          "enum": [
+            "illustration",
+            "icon",
+            "photo",
+            "logo",
+            "avatar"
+          ]
+        },
+        "placeholder": {
+          "$ref": "#/$defs/asset_placeholder"
+        },
+        "resolver": {
+          "$ref": "#/$defs/content_resolver_id"
+        }
+      },
+      "required": [
+        "kind",
+        "placeholder",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "asset_placeholder": {
+      "additionalProperties": false,
+      "properties": {
+        "aspect_ratio": {
+          "pattern": "^[1-9][0-9]*:[1-9][0-9]*$",
+          "type": "string"
+        },
+        "label": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "shape": {
+          "enum": [
+            "folder",
+            "document",
+            "chart",
+            "person",
+            "box",
+            "list",
+            "star",
+            "circle",
+            "square",
+            "card",
+            "terminal"
+          ]
+        }
+      },
+      "required": [
+        "label",
+        "shape"
+      ],
+      "type": "object"
+    },
+    "asset_spec": {
+      "additionalProperties": false,
+      "properties": {
+        "alt_copy": {
+          "$ref": "#/$defs/copy_id"
+        },
+        "args": {
+          "$ref": "#/$defs/content_args"
+        },
+        "kind": {
+          "enum": [
+            "illustration",
+            "icon",
+            "photo",
+            "logo",
+            "avatar"
+          ]
+        },
+        "placeholder": {
+          "$ref": "#/$defs/asset_placeholder"
+        },
+        "resolver": {
+          "$ref": "#/$defs/content_resolver_id"
+        }
+      },
+      "required": [
+        "kind",
+        "placeholder"
+      ],
+      "type": "object"
+    },
+    "audit_profile_author": {
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "html"
+          ]
+        },
+        {
+          "required": [
+            "textual"
+          ]
+        }
+      ],
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "html": {
+          "additionalProperties": false,
+          "properties": {
+            "breakpoints": {
+              "additionalProperties": {
+                "$ref": "#/$defs/html_viewport"
+              },
+              "minProperties": 1,
+              "propertyNames": {
+                "$ref": "#/$defs/breakpoint_id"
+              },
+              "type": "object"
+            }
+          },
+          "required": [
+            "breakpoints"
+          ],
+          "type": "object"
+        },
+        "textual": {
+          "additionalProperties": false,
+          "properties": {
+            "breakpoints": {
+              "additionalProperties": {
+                "$ref": "#/$defs/textual_viewport"
+              },
+              "minProperties": 1,
+              "propertyNames": {
+                "$ref": "#/$defs/breakpoint_id"
+              },
+              "type": "object"
+            }
+          },
+          "required": [
+            "breakpoints"
+          ],
+          "type": "object"
+        },
+        "why": {
+          "$ref": "#/$defs/basis"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "audit_profile_id": {
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "type": "string"
+    },
+    "audit_profile_item": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "html": {
+          "additionalProperties": false,
+          "properties": {
+            "breakpoints": {
+              "additionalProperties": {
+                "$ref": "#/$defs/html_viewport"
+              },
+              "minProperties": 1,
+              "propertyNames": {
+                "$ref": "#/$defs/breakpoint_id"
+              },
+              "type": "object"
+            }
+          },
+          "required": [
+            "breakpoints"
+          ],
+          "type": "object"
+        },
+        "textual": {
+          "additionalProperties": false,
+          "properties": {
+            "breakpoints": {
+              "additionalProperties": {
+                "$ref": "#/$defs/textual_viewport"
+              },
+              "minProperties": 1,
+              "propertyNames": {
+                "$ref": "#/$defs/breakpoint_id"
+              },
+              "type": "object"
+            }
+          },
+          "required": [
+            "breakpoints"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "html",
+        "textual",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "audit_profile_spec": {
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "html"
+          ]
+        },
+        {
+          "required": [
+            "textual"
+          ]
+        }
+      ],
+      "properties": {
+        "html": {
+          "additionalProperties": false,
+          "properties": {
+            "breakpoints": {
+              "additionalProperties": {
+                "$ref": "#/$defs/html_viewport"
+              },
+              "minProperties": 1,
+              "propertyNames": {
+                "$ref": "#/$defs/breakpoint_id"
+              },
+              "type": "object"
+            }
+          },
+          "required": [
+            "breakpoints"
+          ],
+          "type": "object"
+        },
+        "textual": {
+          "additionalProperties": false,
+          "properties": {
+            "breakpoints": {
+              "additionalProperties": {
+                "$ref": "#/$defs/textual_viewport"
+              },
+              "minProperties": 1,
+              "propertyNames": {
+                "$ref": "#/$defs/breakpoint_id"
+              },
+              "type": "object"
+            }
+          },
+          "required": [
+            "breakpoints"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "basis": {
+      "maxLength": 280,
+      "minLength": 1,
+      "type": "string"
+    },
+    "breakpoint_id": {
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "type": "string"
+    },
+    "capability_author": {
+      "additionalProperties": false,
+      "properties": {
+        "archetype": {
+          "enum": [
+            "create",
+            "read",
+            "list",
+            "update",
+            "delete",
+            "transition",
+            "command",
+            "query"
+          ]
+        },
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "emits": {
+          "items": {
+            "$ref": "#/$defs/dotted_id"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "errors": {
+          "items": {
+            "$ref": "#/$defs/dotted_id"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "input": {
+          "$ref": "#/$defs/type_map"
+        },
+        "output": {
+          "$ref": "#/$defs/type_name"
+        },
+        "resource": {
+          "$ref": "#/$defs/resource_id"
+        },
+        "transition": {
+          "additionalProperties": false,
+          "properties": {
+            "field": {
+              "$ref": "#/$defs/field_name"
+            },
+            "from": {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            "to": {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "field",
+            "from",
+            "to"
+          ],
+          "type": "object"
+        },
+        "why": {
+          "$ref": "#/$defs/basis"
+        }
+      },
+      "required": [
+        "archetype",
+        "resource",
+        "input",
+        "output"
+      ],
+      "type": "object"
+    },
+    "capability_item": {
+      "additionalProperties": false,
+      "properties": {
+        "archetype": {
+          "enum": [
+            "create",
+            "read",
+            "list",
+            "update",
+            "delete",
+            "transition",
+            "command",
+            "query"
+          ]
+        },
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "emits": {
+          "items": {
+            "$ref": "#/$defs/dotted_id"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "errors": {
+          "items": {
+            "$ref": "#/$defs/dotted_id"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "id": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "input": {
+          "$ref": "#/$defs/type_map"
+        },
+        "output": {
+          "$ref": "#/$defs/type_name"
+        },
+        "resource": {
+          "$ref": "#/$defs/resource_id"
+        },
+        "transition": {
+          "additionalProperties": false,
+          "properties": {
+            "field": {
+              "$ref": "#/$defs/field_name"
+            },
+            "from": {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            "to": {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "field",
+            "from",
+            "to"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "archetype",
+        "resource",
+        "input",
+        "output",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "capability_spec": {
+      "additionalProperties": false,
+      "properties": {
+        "archetype": {
+          "enum": [
+            "create",
+            "read",
+            "list",
+            "update",
+            "delete",
+            "transition",
+            "command",
+            "query"
+          ]
+        },
+        "emits": {
+          "items": {
+            "$ref": "#/$defs/dotted_id"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "errors": {
+          "items": {
+            "$ref": "#/$defs/dotted_id"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "input": {
+          "$ref": "#/$defs/type_map"
+        },
+        "output": {
+          "$ref": "#/$defs/type_name"
+        },
+        "resource": {
+          "$ref": "#/$defs/resource_id"
+        },
+        "transition": {
+          "additionalProperties": false,
+          "properties": {
+            "field": {
+              "$ref": "#/$defs/field_name"
+            },
+            "from": {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            "to": {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "field",
+            "from",
+            "to"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "archetype",
+        "resource",
+        "input",
+        "output"
+      ],
+      "type": "object"
+    },
+    "condition_contract": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "context_present": {
+              "$ref": "#/$defs/field_name"
+            }
+          },
+          "required": [
+            "context_present"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "context_equals": {
+              "additionalProperties": false,
+              "properties": {
+                "field": {
+                  "$ref": "#/$defs/field_name"
+                },
+                "value": {
+                  "$ref": "#/$defs/scalar"
+                }
+              },
+              "required": [
+                "field",
+                "value"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "context_equals"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "content_arg_values": {
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/scalar"
+          },
+          {
+            "pattern": "^\\$fixture\\.[a-z][A-Za-z0-9_.]*$",
+            "type": "string"
+          }
+        ]
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/field_name"
+      },
+      "type": "object"
+    },
+    "content_args": {
+      "additionalProperties": {
+        "$ref": "#/$defs/type_name"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/field_name"
+      },
+      "type": "object"
+    },
+    "content_case_author": {
+      "additionalProperties": false,
+      "properties": {
+        "args": {
+          "$ref": "#/$defs/content_arg_values"
+        },
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "fixtures": {
+          "items": {
+            "$ref": "#/$defs/fixture_id"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "ref": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/copy_id"
+            },
+            {
+              "$ref": "#/$defs/asset_id"
+            }
+          ]
+        },
+        "why": {
+          "$ref": "#/$defs/basis"
+        }
+      },
+      "required": [
+        "ref",
+        "args"
+      ],
+      "type": "object"
+    },
+    "content_case_id": {
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "type": "string"
+    },
+    "content_case_spec": {
+      "additionalProperties": false,
+      "properties": {
+        "args": {
+          "$ref": "#/$defs/content_arg_values"
+        },
+        "fixtures": {
+          "items": {
+            "$ref": "#/$defs/fixture_id"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "ref": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/copy_id"
+            },
+            {
+              "$ref": "#/$defs/asset_id"
+            }
+          ]
+        }
+      },
+      "required": [
+        "ref",
+        "args"
+      ],
+      "type": "object"
+    },
+    "content_resolver_id": {
+      "pattern": "^(copy|asset)\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "type": "string"
+    },
+    "context_bindings": {
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/scalar"
+          },
+          {
+            "pattern": "^\\$(view|fixture|event)\\.[a-z][A-Za-z0-9_.]*$",
+            "type": "string"
+          }
+        ]
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/field_name"
+      },
+      "type": "object"
+    },
+    "context_set_effect": {
+      "additionalProperties": false,
+      "properties": {
+        "set": {
+          "additionalProperties": false,
+          "oneOf": [
+            {
+              "required": [
+                "from"
+              ]
+            },
+            {
+              "required": [
+                "value"
+              ]
+            }
+          ],
+          "properties": {
+            "context": {
+              "$ref": "#/$defs/field_name"
+            },
+            "from": {
+              "pattern": "^\\$(event|view)\\.[a-z][A-Za-z0-9_.]*$",
+              "type": "string"
+            },
+            "value": {
+              "$ref": "#/$defs/scalar"
+            }
+          },
+          "required": [
+            "context"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "set"
+      ],
+      "type": "object"
+    },
+    "copy_author": {
+      "additionalProperties": false,
+      "properties": {
+        "args": {
+          "$ref": "#/$defs/content_args"
+        },
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "max_chars": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "placeholder": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "resolver": {
+          "$ref": "#/$defs/content_resolver_id"
+        },
+        "tone": {
+          "enum": [
+            "neutral",
+            "instructional",
+            "success",
+            "warning",
+            "error"
+          ]
+        },
+        "why": {
+          "$ref": "#/$defs/basis"
+        }
+      },
+      "required": [
+        "placeholder"
+      ],
+      "type": "object"
+    },
+    "copy_id": {
+      "pattern": "^copy\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "type": "string"
+    },
+    "copy_item": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "max_chars": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "placeholder": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "resolver": {
+          "$ref": "#/$defs/content_resolver_id"
+        },
+        "tone": {
+          "enum": [
+            "neutral",
+            "instructional",
+            "success",
+            "warning",
+            "error"
+          ]
+        }
+      },
+      "required": [
+        "placeholder",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "copy_spec": {
+      "additionalProperties": false,
+      "properties": {
+        "args": {
+          "$ref": "#/$defs/content_args"
+        },
+        "max_chars": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "placeholder": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "resolver": {
+          "$ref": "#/$defs/content_resolver_id"
+        },
+        "tone": {
+          "enum": [
+            "neutral",
+            "instructional",
+            "success",
+            "warning",
+            "error"
+          ]
+        }
+      },
+      "required": [
+        "placeholder"
+      ],
+      "type": "object"
+    },
+    "css_class": {
+      "pattern": "^[a-z][a-z0-9_-]*$",
+      "type": "string"
+    },
+    "css_declarations": {
+      "additionalProperties": {
+        "$ref": "#/$defs/css_value"
+      },
+      "minProperties": 1,
+      "propertyNames": {
+        "$ref": "#/$defs/css_property"
+      },
+      "type": "object"
+    },
+    "css_property": {
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "type": "string"
+    },
+    "css_value": {
+      "maxLength": 160,
+      "minLength": 1,
+      "pattern": "^[^;{}<>]+$",
+      "type": "string"
+    },
+    "delete_asset": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "pattern": "^asset\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+          "type": "string"
+        },
+        "op": {
+          "const": "delete"
+        },
+        "target": {
+          "const": "asset"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "delete_audit_profile": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+          "type": "string"
+        },
+        "op": {
+          "const": "delete"
+        },
+        "target": {
+          "const": "audit_profile"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "delete_capability": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "op": {
+          "const": "delete"
+        },
+        "target": {
+          "const": "capability"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "delete_content_case": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+          "type": "string"
+        },
+        "op": {
+          "const": "delete"
+        },
+        "target": {
+          "const": "content_case"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "delete_copy": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "pattern": "^copy\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+          "type": "string"
+        },
+        "op": {
+          "const": "delete"
+        },
+        "target": {
+          "const": "copy"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "delete_entry": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "op": {
+          "const": "delete"
+        },
+        "target": {
+          "const": "entry"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "delete_fixture": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "pattern": "^fixture\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+          "type": "string"
+        },
+        "op": {
+          "const": "delete"
+        },
+        "target": {
+          "const": "fixture"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "delete_panel": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "pattern": "^panel\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+          "type": "string"
+        },
+        "op": {
+          "const": "delete"
+        },
+        "target": {
+          "const": "panel"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "delete_render_case": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "op": {
+          "const": "delete"
+        },
+        "target": {
+          "const": "render_case"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "delete_resource": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "$ref": "#/$defs/resource_id"
+        },
+        "op": {
+          "const": "delete"
+        },
+        "target": {
+          "const": "resource"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "delete_scenario": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "op": {
+          "const": "delete"
+        },
+        "target": {
+          "const": "scenario"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "delete_view": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "op": {
+          "const": "delete"
+        },
+        "target": {
+          "const": "view"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "delete_workflow": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "op": {
+          "const": "delete"
+        },
+        "target": {
+          "const": "workflow"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "dotted_id": {
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "type": "string"
+    },
+    "entry_author": {
+      "additionalProperties": false,
+      "properties": {
+        "args": {
+          "$ref": "#/$defs/type_map"
+        },
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "command": {
+          "pattern": "^[a-z][a-z0-9_-]*( [a-z][a-z0-9_-]*)*$",
+          "type": "string"
+        },
+        "method": {
+          "enum": [
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE"
+          ]
+        },
+        "params": {
+          "$ref": "#/$defs/type_map"
+        },
+        "path": {
+          "pattern": "^/",
+          "type": "string"
+        },
+        "schedule": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "surface": {
+          "enum": [
+            "web",
+            "textual",
+            "api",
+            "cli",
+            "worker",
+            "schedule",
+            "webhook"
+          ]
+        },
+        "target": {
+          "$ref": "#/$defs/target"
+        },
+        "why": {
+          "$ref": "#/$defs/basis"
+        }
+      },
+      "required": [
+        "surface",
+        "target"
+      ],
+      "type": "object"
+    },
+    "entry_item": {
+      "additionalProperties": false,
+      "properties": {
+        "args": {
+          "$ref": "#/$defs/type_map"
+        },
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "command": {
+          "pattern": "^[a-z][a-z0-9_-]*( [a-z][a-z0-9_-]*)*$",
+          "type": "string"
+        },
+        "id": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "method": {
+          "enum": [
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE"
+          ]
+        },
+        "params": {
+          "$ref": "#/$defs/type_map"
+        },
+        "path": {
+          "pattern": "^/",
+          "type": "string"
+        },
+        "schedule": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "surface": {
+          "enum": [
+            "web",
+            "textual",
+            "api",
+            "cli",
+            "worker",
+            "schedule",
+            "webhook"
+          ]
+        },
+        "target": {
+          "$ref": "#/$defs/target"
+        }
+      },
+      "required": [
+        "id",
+        "surface",
+        "target",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "entry_spec": {
+      "additionalProperties": false,
+      "properties": {
+        "args": {
+          "$ref": "#/$defs/type_map"
+        },
+        "command": {
+          "pattern": "^[a-z][a-z0-9_-]*( [a-z][a-z0-9_-]*)*$",
+          "type": "string"
+        },
+        "method": {
+          "enum": [
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE"
+          ]
+        },
+        "params": {
+          "$ref": "#/$defs/type_map"
+        },
+        "path": {
+          "pattern": "^/",
+          "type": "string"
+        },
+        "schedule": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "surface": {
+          "enum": [
+            "web",
+            "textual",
+            "api",
+            "cli",
+            "worker",
+            "schedule",
+            "webhook"
+          ]
+        },
+        "target": {
+          "$ref": "#/$defs/target"
+        }
+      },
+      "required": [
+        "surface",
+        "target"
+      ],
+      "type": "object"
+    },
+    "expression_map": {
+      "additionalProperties": {
+        "$ref": "#/$defs/scalar"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/field_name"
+      },
+      "type": "object"
+    },
+    "fact": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "absent": {
+              "additionalProperties": false,
+              "properties": {
+                "resource": {
+                  "$ref": "#/$defs/resource_id"
+                },
+                "where": {
+                  "$ref": "#/$defs/value_map"
+                }
+              },
+              "required": [
+                "resource",
+                "where"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "absent"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "present": {
+              "additionalProperties": false,
+              "properties": {
+                "resource": {
+                  "$ref": "#/$defs/resource_id"
+                },
+                "values": {
+                  "$ref": "#/$defs/value_map"
+                }
+              },
+              "required": [
+                "resource",
+                "values"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "present"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "field_name": {
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "type": "string"
+    },
+    "fixture_author": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "values": {
+          "additionalProperties": {
+            "$ref": "#/$defs/json_value"
+          },
+          "minProperties": 1,
+          "type": "object"
+        },
+        "why": {
+          "$ref": "#/$defs/basis"
+        }
+      },
+      "required": [
+        "values"
+      ],
+      "type": "object"
+    },
+    "fixture_id": {
+      "pattern": "^fixture\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "type": "string"
+    },
+    "fixture_item": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "pattern": "^fixture\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+          "type": "string"
+        },
+        "values": {
+          "additionalProperties": {
+            "$ref": "#/$defs/json_value"
+          },
+          "minProperties": 1,
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "values",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "fixture_spec": {
+      "additionalProperties": false,
+      "properties": {
+        "values": {
+          "additionalProperties": {
+            "$ref": "#/$defs/json_value"
+          },
+          "minProperties": 1,
+          "type": "object"
+        }
+      },
+      "required": [
+        "values"
+      ],
+      "type": "object"
+    },
+    "given": {
+      "additionalProperties": false,
+      "properties": {
+        "facts": {
+          "items": {
+            "$ref": "#/$defs/fact"
+          },
+          "type": "array"
+        },
+        "fixtures": {
+          "items": {
+            "pattern": "^fixture\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "type": "object"
+    },
+    "html_action_slot": {
+      "additionalProperties": false,
+      "properties": {
+        "classes": {
+          "items": {
+            "$ref": "#/$defs/css_class"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "element": {
+          "$ref": "#/$defs/html_element"
+        },
+        "kind": {
+          "const": "action"
+        },
+        "ref": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "role": {
+          "$ref": "#/$defs/aria_role"
+        }
+      },
+      "required": [
+        "kind",
+        "ref",
+        "element"
+      ],
+      "type": "object"
+    },
+    "html_asset_slot": {
+      "additionalProperties": false,
+      "properties": {
+        "alt_copy_slot": {
+          "$ref": "#/$defs/field_name"
+        },
+        "classes": {
+          "items": {
+            "$ref": "#/$defs/css_class"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "element": {
+          "$ref": "#/$defs/html_element"
+        },
+        "kind": {
+          "const": "asset"
+        },
+        "role": {
+          "$ref": "#/$defs/aria_role"
+        },
+        "slot": {
+          "$ref": "#/$defs/field_name"
+        }
+      },
+      "required": [
+        "kind",
+        "slot",
+        "element"
+      ],
+      "type": "object"
+    },
+    "html_contract": {
+      "additionalProperties": false,
+      "properties": {
+        "root": {
+          "$ref": "#/$defs/html_root"
+        },
+        "slots": {
+          "items": {
+            "$ref": "#/$defs/html_slot"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "html_copy_slot": {
+      "additionalProperties": false,
+      "properties": {
+        "classes": {
+          "items": {
+            "$ref": "#/$defs/css_class"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "element": {
+          "$ref": "#/$defs/html_element"
+        },
+        "kind": {
+          "const": "copy"
+        },
+        "level": {
+          "maximum": 6,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "role": {
+          "$ref": "#/$defs/aria_role"
+        },
+        "slot": {
+          "$ref": "#/$defs/field_name"
+        }
+      },
+      "required": [
+        "kind",
+        "slot",
+        "element"
+      ],
+      "type": "object"
+    },
+    "html_element": {
+      "enum": [
+        "a",
+        "article",
+        "aside",
+        "button",
+        "div",
+        "footer",
+        "form",
+        "h1",
+        "h2",
+        "h3",
+        "header",
+        "img",
+        "input",
+        "label",
+        "li",
+        "main",
+        "nav",
+        "ol",
+        "p",
+        "section",
+        "span",
+        "table",
+        "tbody",
+        "td",
+        "th",
+        "thead",
+        "tr",
+        "ul"
+      ]
+    },
+    "html_field_slot": {
+      "additionalProperties": false,
+      "properties": {
+        "classes": {
+          "items": {
+            "$ref": "#/$defs/css_class"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "element": {
+          "$ref": "#/$defs/html_element"
+        },
+        "kind": {
+          "const": "field"
+        },
+        "label": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/$defs/aria_role"
+        },
+        "slot": {
+          "$ref": "#/$defs/field_name"
+        }
+      },
+      "required": [
+        "kind",
+        "slot",
+        "element"
+      ],
+      "type": "object"
+    },
+    "html_root": {
+      "additionalProperties": false,
+      "properties": {
+        "classes": {
+          "items": {
+            "$ref": "#/$defs/css_class"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "element": {
+          "$ref": "#/$defs/html_element"
+        },
+        "role": {
+          "$ref": "#/$defs/aria_role"
+        }
+      },
+      "required": [
+        "element"
+      ],
+      "type": "object"
+    },
+    "html_slot": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/html_copy_slot"
+        },
+        {
+          "$ref": "#/$defs/html_asset_slot"
+        },
+        {
+          "$ref": "#/$defs/html_field_slot"
+        },
+        {
+          "$ref": "#/$defs/html_action_slot"
+        }
+      ]
+    },
+    "html_viewport": {
+      "additionalProperties": false,
+      "properties": {
+        "height": {
+          "minimum": 240,
+          "type": "integer"
+        },
+        "width": {
+          "minimum": 240,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "width",
+        "height"
+      ],
+      "type": "object"
+    },
+    "include_item": {
+      "additionalProperties": false,
+      "properties": {
+        "context": {
+          "$ref": "#/$defs/context_bindings"
+        },
+        "id": {
+          "$ref": "#/$defs/instance_id"
+        },
+        "initial": {
+          "$ref": "#/$defs/state_name"
+        },
+        "panel": {
+          "pattern": "^panel\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+          "type": "string"
+        },
+        "selected": {
+          "$ref": "#/$defs/panel_include_selected"
+        },
+        "slot": {
+          "$ref": "#/$defs/field_name"
+        }
+      },
+      "required": [
+        "id",
+        "panel",
+        "slot",
+        "initial",
+        "context"
+      ],
+      "type": "object"
+    },
+    "instance_id": {
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "type": "string"
+    },
+    "json_value": {
+      "oneOf": [
+        {
+          "type": [
+            "string",
+            "number",
+            "integer",
+            "boolean",
+            "null"
+          ]
+        },
+        {
+          "items": {
+            "$ref": "#/$defs/json_value"
+          },
+          "type": "array"
+        },
+        {
+          "additionalProperties": {
+            "$ref": "#/$defs/json_value"
+          },
+          "type": "object"
+        }
+      ]
+    },
+    "layout_container": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/python_identifier"
+        },
+        "kind": {
+          "enum": [
+            "Container",
+            "Vertical",
+            "Horizontal",
+            "Grid",
+            "ScrollableContainer"
+          ]
+        },
+        "slot": {
+          "$ref": "#/$defs/field_name"
+        }
+      },
+      "required": [
+        "slot",
+        "id",
+        "kind"
+      ],
+      "type": "object"
+    },
+    "layout_contract": {
+      "additionalProperties": false,
+      "properties": {
+        "css": {
+          "$ref": "#/$defs/style_contract"
+        },
+        "kind": {
+          "const": "slots"
+        },
+        "root": {
+          "$ref": "#/$defs/layout_root"
+        },
+        "slots": {
+          "additionalProperties": {
+            "$ref": "#/$defs/layout_slot"
+          },
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/$defs/field_name"
+          },
+          "type": "object"
+        },
+        "textual": {
+          "$ref": "#/$defs/layout_textual"
+        }
+      },
+      "required": [
+        "kind",
+        "slots"
+      ],
+      "type": "object"
+    },
+    "layout_root": {
+      "additionalProperties": false,
+      "properties": {
+        "classes": {
+          "items": {
+            "$ref": "#/$defs/css_class"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "element": {
+          "$ref": "#/$defs/html_element"
+        },
+        "role": {
+          "$ref": "#/$defs/aria_role"
+        }
+      },
+      "type": "object"
+    },
+    "layout_slot": {
+      "additionalProperties": false,
+      "properties": {
+        "classes": {
+          "items": {
+            "$ref": "#/$defs/css_class"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "element": {
+          "$ref": "#/$defs/html_element"
+        },
+        "order": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "region": {
+          "enum": [
+            "nav",
+            "main",
+            "aside",
+            "header",
+            "footer",
+            "section"
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "role": {
+          "$ref": "#/$defs/aria_role"
+        }
+      },
+      "required": [
+        "required"
+      ],
+      "type": "object"
+    },
+    "layout_textual": {
+      "additionalProperties": false,
+      "properties": {
+        "containers": {
+          "items": {
+            "$ref": "#/$defs/layout_container"
+          },
+          "type": "array"
+        },
+        "screen_class": {
+          "$ref": "#/$defs/python_class_name"
+        },
+        "tcss": {
+          "$ref": "#/$defs/style_contract"
+        }
+      },
+      "type": "object"
+    },
+    "panel_author": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "context": {
+          "$ref": "#/$defs/type_map"
+        },
+        "data": {
+          "items": {
+            "$ref": "#/$defs/dotted_id"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "events": {
+          "items": {
+            "$ref": "#/$defs/dotted_id"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "initial": {
+          "$ref": "#/$defs/state_name"
+        },
+        "kind": {
+          "const": "fsm"
+        },
+        "resource": {
+          "$ref": "#/$defs/resource_id"
+        },
+        "states": {
+          "additionalProperties": {
+            "$ref": "#/$defs/panel_state_spec"
+          },
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/$defs/state_name"
+          },
+          "type": "object"
+        },
+        "transitions": {
+          "items": {
+            "$ref": "#/$defs/panel_transition"
+          },
+          "type": "array"
+        },
+        "why": {
+          "$ref": "#/$defs/basis"
+        }
+      },
+      "required": [
+        "kind",
+        "resource",
+        "initial",
+        "states"
+      ],
+      "type": "object"
+    },
+    "panel_effect": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "set": {
+              "additionalProperties": false,
+              "oneOf": [
+                {
+                  "required": [
+                    "from"
+                  ]
+                },
+                {
+                  "required": [
+                    "value"
+                  ]
+                }
+              ],
+              "properties": {
+                "context": {
+                  "$ref": "#/$defs/field_name"
+                },
+                "from": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "value": {
+                  "$ref": "#/$defs/json_value"
+                }
+              },
+              "required": [
+                "context"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "set"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "emit": {
+              "$ref": "#/$defs/dotted_id"
+            }
+          },
+          "required": [
+            "emit"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "panel_id": {
+      "pattern": "^panel\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "type": "string"
+    },
+    "panel_include": {
+      "additionalProperties": false,
+      "properties": {
+        "context": {
+          "$ref": "#/$defs/expression_map"
+        },
+        "id": {
+          "$ref": "#/$defs/instance_id"
+        },
+        "initial": {
+          "$ref": "#/$defs/state_name"
+        },
+        "panel": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "selected": {
+          "$ref": "#/$defs/panel_include_selected"
+        },
+        "slot": {
+          "$ref": "#/$defs/field_name"
+        }
+      },
+      "required": [
+        "id",
+        "panel",
+        "slot",
+        "initial"
+      ],
+      "type": "object"
+    },
+    "panel_include_selected": {
+      "additionalProperties": false,
+      "properties": {
+        "state": {
+          "$ref": "#/$defs/state_name"
+        },
+        "when": {
+          "$ref": "#/$defs/condition_contract"
+        }
+      },
+      "required": [
+        "when",
+        "state"
+      ],
+      "type": "object"
+    },
+    "panel_item": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "context": {
+          "$ref": "#/$defs/type_map"
+        },
+        "id": {
+          "pattern": "^panel\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+          "type": "string"
+        },
+        "initial": {
+          "$ref": "#/$defs/state_name"
+        },
+        "kind": {
+          "const": "fsm"
+        },
+        "states": {
+          "additionalProperties": {
+            "$ref": "#/$defs/panel_state_spec"
+          },
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/$defs/state_name"
+          },
+          "type": "object"
+        },
+        "transitions": {
+          "items": {
+            "$ref": "#/$defs/panel_transition"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "initial",
+        "states",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "panel_spec": {
+      "additionalProperties": false,
+      "properties": {
+        "context": {
+          "$ref": "#/$defs/type_map"
+        },
+        "data": {
+          "items": {
+            "$ref": "#/$defs/dotted_id"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "events": {
+          "items": {
+            "$ref": "#/$defs/dotted_id"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "initial": {
+          "$ref": "#/$defs/state_name"
+        },
+        "kind": {
+          "const": "fsm"
+        },
+        "resource": {
+          "$ref": "#/$defs/resource_id"
+        },
+        "states": {
+          "additionalProperties": {
+            "$ref": "#/$defs/panel_state_spec"
+          },
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/$defs/state_name"
+          },
+          "type": "object"
+        },
+        "transitions": {
+          "items": {
+            "$ref": "#/$defs/panel_transition"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "resource",
+        "context",
+        "data",
+        "events",
+        "initial",
+        "states",
+        "transitions"
+      ],
+      "type": "object"
+    },
+    "panel_state_assertion": {
+      "additionalProperties": false,
+      "properties": {
+        "state": {
+          "$ref": "#/$defs/state_name"
+        }
+      },
+      "required": [
+        "state"
+      ],
+      "type": "object"
+    },
+    "panel_state_spec": {
+      "additionalProperties": false,
+      "properties": {
+        "actions": {
+          "items": {
+            "$ref": "#/$defs/dotted_id"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "asset_slots": {
+          "items": {
+            "$ref": "#/$defs/field_name"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "copy_slots": {
+          "items": {
+            "$ref": "#/$defs/field_name"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "data": {
+          "items": {
+            "$ref": "#/$defs/dotted_id"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "field_slots": {
+          "items": {
+            "$ref": "#/$defs/field_name"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "pattern": {
+          "enum": [
+            "none",
+            "loading",
+            "empty",
+            "table",
+            "detail",
+            "form",
+            "error",
+            "success",
+            "summary",
+            "feed"
+          ]
+        },
+        "presentation": {
+          "$ref": "#/$defs/presentation_contract"
+        }
+      },
+      "required": [
+        "pattern"
+      ],
+      "type": "object"
+    },
+    "panel_transition": {
+      "additionalProperties": false,
+      "properties": {
+        "effects": {
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/context_set_effect"
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "emit": {
+                    "$ref": "#/$defs/dotted_id"
+                  }
+                },
+                "required": [
+                  "emit"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "type": "array"
+        },
+        "event": {
+          "pattern": "^([a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+|data\\.[a-z][a-z0-9_]*)$",
+          "type": "string"
+        },
+        "from": {
+          "$ref": "#/$defs/state_name"
+        },
+        "to": {
+          "$ref": "#/$defs/state_name"
+        }
+      },
+      "required": [
+        "from",
+        "to",
+        "event"
+      ],
+      "type": "object"
+    },
+    "presentation_contract": {
+      "additionalProperties": false,
+      "properties": {
+        "css": {
+          "$ref": "#/$defs/style_contract"
+        },
+        "html": {
+          "$ref": "#/$defs/html_contract"
+        },
+        "textual": {
+          "$ref": "#/$defs/textual_contract"
+        }
+      },
+      "type": "object"
+    },
+    "python_class_name": {
+      "pattern": "^[A-Z][A-Za-z0-9]*$",
+      "type": "string"
+    },
+    "python_identifier": {
+      "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$",
+      "type": "string"
+    },
+    "render_case_author": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "context": {
+          "$ref": "#/$defs/context_bindings"
+        },
+        "fixtures": {
+          "items": {
+            "pattern": "^fixture\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "panels": {
+          "additionalProperties": {
+            "$ref": "#/$defs/panel_state_assertion"
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/instance_id"
+          },
+          "type": "object"
+        },
+        "profile": {
+          "$ref": "#/$defs/audit_profile_id"
+        },
+        "state": {
+          "$ref": "#/$defs/state_name"
+        },
+        "surfaces": {
+          "items": {
+            "enum": [
+              "html",
+              "textual"
+            ]
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "view": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "why": {
+          "$ref": "#/$defs/basis"
+        }
+      },
+      "required": [
+        "view",
+        "profile",
+        "surfaces",
+        "fixtures"
+      ],
+      "type": "object"
+    },
+    "render_case_item": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "context": {
+          "$ref": "#/$defs/context_bindings"
+        },
+        "fixtures": {
+          "items": {
+            "pattern": "^fixture\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "panels": {
+          "additionalProperties": {
+            "$ref": "#/$defs/panel_state_assertion"
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/instance_id"
+          },
+          "type": "object"
+        },
+        "profile": {
+          "$ref": "#/$defs/audit_profile_id"
+        },
+        "state": {
+          "$ref": "#/$defs/state_name"
+        },
+        "surfaces": {
+          "items": {
+            "enum": [
+              "html",
+              "textual"
+            ]
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "view": {
+          "$ref": "#/$defs/dotted_id"
+        }
+      },
+      "required": [
+        "view",
+        "profile",
+        "surfaces",
+        "fixtures",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "render_case_spec": {
+      "additionalProperties": false,
+      "properties": {
+        "context": {
+          "$ref": "#/$defs/context_bindings"
+        },
+        "fixtures": {
+          "items": {
+            "pattern": "^fixture\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "panels": {
+          "additionalProperties": {
+            "$ref": "#/$defs/panel_state_assertion"
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/instance_id"
+          },
+          "type": "object"
+        },
+        "profile": {
+          "$ref": "#/$defs/audit_profile_id"
+        },
+        "state": {
+          "$ref": "#/$defs/state_name"
+        },
+        "surfaces": {
+          "items": {
+            "enum": [
+              "html",
+              "textual"
+            ]
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "view": {
+          "$ref": "#/$defs/dotted_id"
+        }
+      },
+      "required": [
+        "view",
+        "profile",
+        "surfaces",
+        "fixtures"
+      ],
+      "type": "object"
+    },
+    "replace_asset": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "pattern": "^asset\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+          "type": "string"
+        },
+        "op": {
+          "const": "replace"
+        },
+        "spec": {
+          "$ref": "#/$defs/asset_spec"
+        },
+        "target": {
+          "const": "asset"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis",
+        "spec"
+      ],
+      "type": "object"
+    },
+    "replace_audit_profile": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+          "type": "string"
+        },
+        "op": {
+          "const": "replace"
+        },
+        "spec": {
+          "$ref": "#/$defs/audit_profile_spec"
+        },
+        "target": {
+          "const": "audit_profile"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis",
+        "spec"
+      ],
+      "type": "object"
+    },
+    "replace_capability": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "op": {
+          "const": "replace"
+        },
+        "spec": {
+          "$ref": "#/$defs/capability_spec"
+        },
+        "target": {
+          "const": "capability"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis",
+        "spec"
+      ],
+      "type": "object"
+    },
+    "replace_content_case": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+          "type": "string"
+        },
+        "op": {
+          "const": "replace"
+        },
+        "spec": {
+          "$ref": "#/$defs/content_case_spec"
+        },
+        "target": {
+          "const": "content_case"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis",
+        "spec"
+      ],
+      "type": "object"
+    },
+    "replace_copy": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "pattern": "^copy\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+          "type": "string"
+        },
+        "op": {
+          "const": "replace"
+        },
+        "spec": {
+          "$ref": "#/$defs/copy_spec"
+        },
+        "target": {
+          "const": "copy"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis",
+        "spec"
+      ],
+      "type": "object"
+    },
+    "replace_entry": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "op": {
+          "const": "replace"
+        },
+        "spec": {
+          "$ref": "#/$defs/entry_spec"
+        },
+        "target": {
+          "const": "entry"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis",
+        "spec"
+      ],
+      "type": "object"
+    },
+    "replace_fixture": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "pattern": "^fixture\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+          "type": "string"
+        },
+        "op": {
+          "const": "replace"
+        },
+        "spec": {
+          "$ref": "#/$defs/fixture_spec"
+        },
+        "target": {
+          "const": "fixture"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis",
+        "spec"
+      ],
+      "type": "object"
+    },
+    "replace_panel": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "pattern": "^panel\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+          "type": "string"
+        },
+        "op": {
+          "const": "replace"
+        },
+        "spec": {
+          "$ref": "#/$defs/panel_spec"
+        },
+        "target": {
+          "const": "panel"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis",
+        "spec"
+      ],
+      "type": "object"
+    },
+    "replace_render_case": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "op": {
+          "const": "replace"
+        },
+        "spec": {
+          "$ref": "#/$defs/render_case_spec"
+        },
+        "target": {
+          "const": "render_case"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis",
+        "spec"
+      ],
+      "type": "object"
+    },
+    "replace_resource": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "$ref": "#/$defs/resource_id"
+        },
+        "op": {
+          "const": "replace"
+        },
+        "spec": {
+          "$ref": "#/$defs/resource_spec"
+        },
+        "target": {
+          "const": "resource"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis",
+        "spec"
+      ],
+      "type": "object"
+    },
+    "replace_scenario": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "op": {
+          "const": "replace"
+        },
+        "spec": {
+          "$ref": "#/$defs/scenario_spec"
+        },
+        "target": {
+          "const": "scenario"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis",
+        "spec"
+      ],
+      "type": "object"
+    },
+    "replace_view": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "op": {
+          "const": "replace"
+        },
+        "spec": {
+          "$ref": "#/$defs/view_spec"
+        },
+        "target": {
+          "const": "view"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis",
+        "spec"
+      ],
+      "type": "object"
+    },
+    "replace_workflow": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "op": {
+          "const": "replace"
+        },
+        "spec": {
+          "$ref": "#/$defs/workflow_spec"
+        },
+        "target": {
+          "const": "workflow"
+        }
+      },
+      "required": [
+        "op",
+        "target",
+        "id",
+        "basis",
+        "spec"
+      ],
+      "type": "object"
+    },
+    "resource_author": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "fields": {
+          "$ref": "#/$defs/type_map"
+        },
+        "kind": {
+          "enum": [
+            "aggregate",
+            "entity",
+            "value_object",
+            "external"
+          ]
+        },
+        "lifecycle": {
+          "additionalProperties": false,
+          "properties": {
+            "field": {
+              "$ref": "#/$defs/field_name"
+            },
+            "initial": {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            "states": {
+              "items": {
+                "pattern": "^[a-z][a-z0-9_]*$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            },
+            "transitions": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "by": {
+                    "$ref": "#/$defs/dotted_id"
+                  },
+                  "from": {
+                    "pattern": "^[a-z][a-z0-9_]*$",
+                    "type": "string"
+                  },
+                  "to": {
+                    "pattern": "^[a-z][a-z0-9_]*$",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "from",
+                  "to",
+                  "by"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "field",
+            "states",
+            "initial"
+          ],
+          "type": "object"
+        },
+        "why": {
+          "$ref": "#/$defs/basis"
+        }
+      },
+      "required": [
+        "kind",
+        "fields"
+      ],
+      "type": "object"
+    },
+    "resource_id": {
+      "pattern": "^[A-Z][A-Za-z0-9]*$",
+      "type": "string"
+    },
+    "resource_item": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "fields": {
+          "$ref": "#/$defs/type_map"
+        },
+        "id": {
+          "$ref": "#/$defs/resource_id"
+        },
+        "kind": {
+          "enum": [
+            "aggregate",
+            "entity",
+            "value_object",
+            "external"
+          ]
+        },
+        "lifecycle": {
+          "additionalProperties": false,
+          "properties": {
+            "field": {
+              "$ref": "#/$defs/field_name"
+            },
+            "initial": {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            "states": {
+              "items": {
+                "pattern": "^[a-z][a-z0-9_]*$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            },
+            "transitions": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "by": {
+                    "$ref": "#/$defs/dotted_id"
+                  },
+                  "from": {
+                    "pattern": "^[a-z][a-z0-9_]*$",
+                    "type": "string"
+                  },
+                  "to": {
+                    "pattern": "^[a-z][a-z0-9_]*$",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "from",
+                  "to",
+                  "by"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "field",
+            "states",
+            "initial"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "fields",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "resource_spec": {
+      "additionalProperties": false,
+      "properties": {
+        "fields": {
+          "$ref": "#/$defs/type_map"
+        },
+        "kind": {
+          "enum": [
+            "aggregate",
+            "entity",
+            "value_object",
+            "external"
+          ]
+        },
+        "lifecycle": {
+          "additionalProperties": false,
+          "properties": {
+            "field": {
+              "$ref": "#/$defs/field_name"
+            },
+            "initial": {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            "states": {
+              "items": {
+                "pattern": "^[a-z][a-z0-9_]*$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            },
+            "transitions": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "by": {
+                    "$ref": "#/$defs/dotted_id"
+                  },
+                  "from": {
+                    "pattern": "^[a-z][a-z0-9_]*$",
+                    "type": "string"
+                  },
+                  "to": {
+                    "pattern": "^[a-z][a-z0-9_]*$",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "from",
+                  "to",
+                  "by"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "field",
+            "states",
+            "initial"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "kind",
+        "fields"
+      ],
+      "type": "object"
+    },
+    "scalar": {
+      "type": [
+        "string",
+        "number",
+        "integer",
+        "boolean",
+        "null"
+      ]
+    },
+    "scenario_author": {
+      "additionalProperties": false,
+      "properties": {
+        "archetype": {
+          "enum": [
+            "api_entry_success",
+            "capability_success",
+            "composed_view",
+            "composed_view_sync",
+            "empty_collection_view",
+            "forbidden_action",
+            "ready_collection_view",
+            "workflow_event_success"
+          ]
+        },
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "feature": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "given": {
+          "$ref": "#/$defs/given"
+        },
+        "then": {
+          "$ref": "#/$defs/then"
+        },
+        "title": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "when": {
+          "$ref": "#/$defs/when"
+        },
+        "why": {
+          "$ref": "#/$defs/basis"
+        }
+      },
+      "required": [
+        "feature",
+        "title",
+        "archetype",
+        "given",
+        "when",
+        "then"
+      ],
+      "type": "object"
+    },
+    "scenario_item": {
+      "additionalProperties": false,
+      "properties": {
+        "archetype": {
+          "enum": [
+            "empty_collection_view",
+            "ready_collection_view",
+            "capability_success",
+            "api_entry_success",
+            "workflow_event_success",
+            "forbidden_action",
+            "composed_view",
+            "composed_view_sync"
+          ]
+        },
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "feature": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "given": {
+          "$ref": "#/$defs/given"
+        },
+        "id": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "then": {
+          "$ref": "#/$defs/then"
+        },
+        "title": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "when": {
+          "$ref": "#/$defs/when"
+        }
+      },
+      "required": [
+        "id",
+        "feature",
+        "title",
+        "archetype",
+        "given",
+        "when",
+        "then",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "scenario_spec": {
+      "additionalProperties": false,
+      "properties": {
+        "archetype": {
+          "enum": [
+            "api_entry_success",
+            "capability_success",
+            "composed_view",
+            "composed_view_sync",
+            "empty_collection_view",
+            "forbidden_action",
+            "ready_collection_view",
+            "workflow_event_success"
+          ]
+        },
+        "feature": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "given": {
+          "$ref": "#/$defs/given"
+        },
+        "then": {
+          "$ref": "#/$defs/then"
+        },
+        "title": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "when": {
+          "$ref": "#/$defs/when"
+        }
+      },
+      "required": [
+        "feature",
+        "title",
+        "archetype",
+        "given",
+        "when",
+        "then"
+      ],
+      "type": "object"
+    },
+    "state_name": {
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "type": "string"
+    },
+    "style_contract": {
+      "additionalProperties": false,
+      "properties": {
+        "rules": {
+          "items": {
+            "$ref": "#/$defs/style_rule"
+          },
+          "type": "array"
+        },
+        "tokens": {
+          "additionalProperties": {
+            "$ref": "#/$defs/css_value"
+          },
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "type": "string"
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "style_rule": {
+      "additionalProperties": false,
+      "properties": {
+        "declarations": {
+          "$ref": "#/$defs/css_declarations"
+        },
+        "selector": {
+          "$ref": "#/$defs/style_selector"
+        }
+      },
+      "required": [
+        "selector",
+        "declarations"
+      ],
+      "type": "object"
+    },
+    "style_selector": {
+      "pattern": "^(root|screen|slot\\.[a-z][a-z0-9_]*|action\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+|instance\\.[a-z][a-z0-9_]*)$",
+      "type": "string"
+    },
+    "sync_action": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/context_set_effect"
+        },
+        {
+          "$ref": "#/$defs/sync_send_effect"
+        }
+      ]
+    },
+    "sync_effect": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "set": {
+              "additionalProperties": false,
+              "oneOf": [
+                {
+                  "required": [
+                    "from"
+                  ]
+                },
+                {
+                  "required": [
+                    "value"
+                  ]
+                }
+              ],
+              "properties": {
+                "context": {
+                  "$ref": "#/$defs/field_name"
+                },
+                "from": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "value": {
+                  "$ref": "#/$defs/json_value"
+                }
+              },
+              "required": [
+                "context"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "set"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "send": {
+              "additionalProperties": false,
+              "properties": {
+                "event": {
+                  "$ref": "#/$defs/dotted_id"
+                },
+                "panel": {
+                  "$ref": "#/$defs/field_name"
+                }
+              },
+              "required": [
+                "panel",
+                "event"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "send"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "sync_rule": {
+      "additionalProperties": false,
+      "properties": {
+        "do": {
+          "items": {
+            "$ref": "#/$defs/sync_action"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "id": {
+          "$ref": "#/$defs/field_name"
+        },
+        "when": {
+          "$ref": "#/$defs/sync_trigger"
+        }
+      },
+      "required": [
+        "id",
+        "when",
+        "do"
+      ],
+      "type": "object"
+    },
+    "sync_send_effect": {
+      "additionalProperties": false,
+      "properties": {
+        "send": {
+          "additionalProperties": false,
+          "properties": {
+            "event": {
+              "pattern": "^([a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+|data\\.[a-z][a-z0-9_]*)$",
+              "type": "string"
+            },
+            "panel": {
+              "$ref": "#/$defs/instance_id"
+            }
+          },
+          "required": [
+            "panel",
+            "event"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "send"
+      ],
+      "type": "object"
+    },
+    "sync_trigger": {
+      "additionalProperties": false,
+      "properties": {
+        "emits": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "panel": {
+          "$ref": "#/$defs/instance_id"
+        }
+      },
+      "required": [
+        "panel",
+        "emits"
+      ],
+      "type": "object"
+    },
+    "target": {
+      "additionalProperties": false,
+      "maxProperties": 1,
+      "minProperties": 1,
+      "properties": {
+        "capability": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "event": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "view": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "workflow": {
+          "$ref": "#/$defs/dotted_id"
+        }
+      },
+      "type": "object"
+    },
+    "textual_bind": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "copy": {
+              "$ref": "#/$defs/field_name"
+            }
+          },
+          "required": [
+            "copy"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "asset": {
+              "$ref": "#/$defs/field_name"
+            }
+          },
+          "required": [
+            "asset"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "action": {
+              "$ref": "#/$defs/dotted_id"
+            }
+          },
+          "required": [
+            "action"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "field": {
+              "$ref": "#/$defs/field_name"
+            }
+          },
+          "required": [
+            "field"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "literal": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "literal"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "textual_contract": {
+      "additionalProperties": false,
+      "properties": {
+        "screen_class": {
+          "$ref": "#/$defs/python_class_name"
+        },
+        "tcss": {
+          "$ref": "#/$defs/style_contract"
+        },
+        "widgets": {
+          "items": {
+            "$ref": "#/$defs/textual_widget"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "textual_viewport": {
+      "additionalProperties": false,
+      "properties": {
+        "columns": {
+          "minimum": 40,
+          "type": "integer"
+        },
+        "rows": {
+          "minimum": 10,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "columns",
+        "rows"
+      ],
+      "type": "object"
+    },
+    "textual_widget": {
+      "additionalProperties": false,
+      "properties": {
+        "bind": {
+          "$ref": "#/$defs/textual_bind"
+        },
+        "classes": {
+          "items": {
+            "$ref": "#/$defs/css_class"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "id": {
+          "$ref": "#/$defs/python_identifier"
+        },
+        "kind": {
+          "enum": [
+            "Static",
+            "Button",
+            "DataTable",
+            "Input",
+            "Label",
+            "Container"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "bind"
+      ],
+      "type": "object"
+    },
+    "then": {
+      "additionalProperties": false,
+      "properties": {
+        "enables": {
+          "items": {
+            "$ref": "#/$defs/dotted_id"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "events": {
+          "additionalProperties": false,
+          "properties": {
+            "emitted": {
+              "items": {
+                "$ref": "#/$defs/dotted_id"
+              },
+              "type": "array",
+              "uniqueItems": true
+            },
+            "not_emitted": {
+              "items": {
+                "$ref": "#/$defs/dotted_id"
+              },
+              "type": "array",
+              "uniqueItems": true
+            }
+          },
+          "type": "object"
+        },
+        "forbids": {
+          "items": {
+            "$ref": "#/$defs/dotted_id"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "invoked": {
+          "items": {
+            "$ref": "#/$defs/dotted_id"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "resource": {
+          "additionalProperties": false,
+          "properties": {
+            "exists": {
+              "additionalProperties": false,
+              "properties": {
+                "resource": {
+                  "$ref": "#/$defs/resource_id"
+                },
+                "where": {
+                  "$ref": "#/$defs/value_map"
+                }
+              },
+              "required": [
+                "resource",
+                "where"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "response": {
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "maximum": 599,
+              "minimum": 100,
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "view": {
+          "additionalProperties": false,
+          "properties": {
+            "context": {
+              "$ref": "#/$defs/value_map"
+            },
+            "panels": {
+              "additionalProperties": {
+                "$ref": "#/$defs/panel_state_assertion"
+              },
+              "propertyNames": {
+                "$ref": "#/$defs/instance_id"
+              },
+              "type": "object"
+            },
+            "ref": {
+              "$ref": "#/$defs/dotted_id"
+            },
+            "state": {
+              "$ref": "#/$defs/state_name"
+            },
+            "sync": {
+              "$ref": "#/$defs/view_sync_assertion"
+            }
+          },
+          "required": [
+            "ref"
+          ],
+          "type": "object"
+        },
+        "workflow": {
+          "additionalProperties": false,
+          "properties": {
+            "ran": {
+              "type": "boolean"
+            },
+            "ref": {
+              "$ref": "#/$defs/dotted_id"
+            }
+          },
+          "required": [
+            "ref",
+            "ran"
+          ],
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "type_map": {
+      "additionalProperties": {
+        "$ref": "#/$defs/type_name"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/field_name"
+      },
+      "type": "object"
+    },
+    "type_name": {
+      "pattern": "^list\\[[A-Z][A-Za-z0-9]*\\]$|^[A-Z][A-Za-z0-9]*$",
+      "type": "string"
+    },
+    "value_map": {
+      "additionalProperties": {
+        "$ref": "#/$defs/scalar"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/field_name"
+      },
+      "type": "object"
+    },
+    "view_author": {
+      "additionalProperties": false,
+      "properties": {
+        "archetype": {
+          "enum": [
+            "collection",
+            "detail",
+            "form",
+            "dashboard",
+            "wizard"
+          ]
+        },
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "context": {
+          "$ref": "#/$defs/type_map"
+        },
+        "data": {
+          "items": {
+            "$ref": "#/$defs/dotted_id"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "includes": {
+          "items": {
+            "$ref": "#/$defs/include_item"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "layout": {
+          "$ref": "#/$defs/layout_contract"
+        },
+        "resource": {
+          "$ref": "#/$defs/resource_id"
+        },
+        "states": {
+          "additionalProperties": {
+            "$ref": "#/$defs/panel_state_spec"
+          },
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/$defs/state_name"
+          },
+          "type": "object"
+        },
+        "sync": {
+          "items": {
+            "$ref": "#/$defs/sync_rule"
+          },
+          "type": "array"
+        },
+        "why": {
+          "$ref": "#/$defs/basis"
+        }
+      },
+      "required": [
+        "archetype",
+        "resource"
+      ],
+      "type": "object"
+    },
+    "view_item": {
+      "additionalProperties": false,
+      "properties": {
+        "archetype": {
+          "enum": [
+            "collection",
+            "detail",
+            "form",
+            "dashboard",
+            "wizard"
+          ]
+        },
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "context": {
+          "$ref": "#/$defs/type_map"
+        },
+        "data": {
+          "items": {
+            "$ref": "#/$defs/dotted_id"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "id": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "includes": {
+          "items": {
+            "$ref": "#/$defs/include_item"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "layout": {
+          "$ref": "#/$defs/layout_contract"
+        },
+        "resource": {
+          "$ref": "#/$defs/resource_id"
+        },
+        "states": {
+          "additionalProperties": {
+            "$ref": "#/$defs/panel_state_spec"
+          },
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/$defs/state_name"
+          },
+          "type": "object"
+        },
+        "sync": {
+          "items": {
+            "$ref": "#/$defs/sync_rule"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "archetype",
+        "resource",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "view_spec": {
+      "additionalProperties": false,
+      "properties": {
+        "archetype": {
+          "enum": [
+            "collection",
+            "detail",
+            "form",
+            "dashboard",
+            "wizard"
+          ]
+        },
+        "context": {
+          "$ref": "#/$defs/type_map"
+        },
+        "data": {
+          "items": {
+            "$ref": "#/$defs/dotted_id"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "includes": {
+          "items": {
+            "$ref": "#/$defs/include_item"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "layout": {
+          "$ref": "#/$defs/layout_contract"
+        },
+        "resource": {
+          "$ref": "#/$defs/resource_id"
+        },
+        "states": {
+          "additionalProperties": {
+            "$ref": "#/$defs/panel_state_spec"
+          },
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/$defs/state_name"
+          },
+          "type": "object"
+        },
+        "sync": {
+          "items": {
+            "$ref": "#/$defs/sync_rule"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "archetype",
+        "resource"
+      ],
+      "type": "object"
+    },
+    "view_sync_assertion": {
+      "additionalProperties": false,
+      "properties": {
+        "observed": {
+          "items": {
+            "$ref": "#/$defs/field_name"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "type": "object"
+    },
+    "when": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "open_entry": {
+              "additionalProperties": false,
+              "properties": {
+                "params": {
+                  "$ref": "#/$defs/value_map"
+                },
+                "ref": {
+                  "$ref": "#/$defs/dotted_id"
+                }
+              },
+              "required": [
+                "ref"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "open_entry"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "call_entry": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {
+                  "$ref": "#/$defs/value_map"
+                },
+                "ref": {
+                  "$ref": "#/$defs/dotted_id"
+                }
+              },
+              "required": [
+                "ref"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "call_entry"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "invoke_capability": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {
+                  "$ref": "#/$defs/value_map"
+                },
+                "ref": {
+                  "$ref": "#/$defs/dotted_id"
+                }
+              },
+              "required": [
+                "ref"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "invoke_capability"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "emit_event": {
+              "additionalProperties": false,
+              "properties": {
+                "payload": {
+                  "$ref": "#/$defs/value_map"
+                },
+                "ref": {
+                  "$ref": "#/$defs/dotted_id"
+                }
+              },
+              "required": [
+                "ref"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "emit_event"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "workflow_author": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "steps": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "capability": {
+                "$ref": "#/$defs/dotted_id"
+              },
+              "id": {
+                "pattern": "^[a-z][a-z0-9_]*$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "capability"
+            ],
+            "type": "object"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "trigger": {
+          "$ref": "#/$defs/target"
+        },
+        "why": {
+          "$ref": "#/$defs/basis"
+        }
+      },
+      "required": [
+        "trigger",
+        "steps"
+      ],
+      "type": "object"
+    },
+    "workflow_item": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "id": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "steps": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "capability": {
+                "$ref": "#/$defs/dotted_id"
+              },
+              "id": {
+                "pattern": "^[a-z][a-z0-9_]*$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "capability"
+            ],
+            "type": "object"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "trigger": {
+          "$ref": "#/$defs/target"
+        }
+      },
+      "required": [
+        "id",
+        "trigger",
+        "steps",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "workflow_spec": {
+      "additionalProperties": false,
+      "properties": {
+        "steps": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "capability": {
+                "$ref": "#/$defs/dotted_id"
+              },
+              "id": {
+                "pattern": "^[a-z][a-z0-9_]*$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "capability"
+            ],
+            "type": "object"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "trigger": {
+          "$ref": "#/$defs/target"
+        }
+      },
+      "required": [
+        "trigger",
+        "steps"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://example.invalid/authored-product-contract.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Layer-pruned direct authoring schema; runtime layer validation also applies.",
+  "properties": {
+    "capabilities": {
+      "additionalProperties": {
+        "$ref": "#/$defs/capability_author"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/dotted_id"
+      },
+      "type": "object"
+    },
+    "fixtures": {
+      "additionalProperties": {
+        "$ref": "#/$defs/fixture_author"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/fixture_id"
+      },
+      "type": "object"
+    },
+    "project": {
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "type": "string"
+    },
+    "resources": {
+      "additionalProperties": {
+        "$ref": "#/$defs/resource_author"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/resource_id"
+      },
+      "type": "object"
+    },
+    "scenarios": {
+      "additionalProperties": {
+        "$ref": "#/$defs/scenario_author"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/dotted_id"
+      },
+      "type": "object"
+    }
+  },
+  "required": [
+    "project"
+  ],
+  "title": "Authored product contract schema (core layers)",
+  "type": "object"
+}

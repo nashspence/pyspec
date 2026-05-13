@@ -7,6 +7,7 @@ import pytest
 from pm_contract.compile import ContractError, compile_patch
 from pm_contract.content import ContentContext, call_asset, call_copy
 from pm_contract.io import read_yaml
+from pm_contract.paths import COMPILED_CONTRACT_PATH
 from pm_contract.projection_validators import validate_content_contract
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -36,7 +37,7 @@ def test_final_asset_resolver_is_contract_declared_and_svg() -> None:
 
 
 def test_content_contract_validator_executes_content_cases() -> None:
-    validate_content_contract(ROOT, read_yaml(ROOT / "contract.yaml"))
+    validate_content_contract(ROOT, read_yaml(ROOT / COMPILED_CONTRACT_PATH))
 
 
 def test_final_content_requires_content_case_coverage() -> None:

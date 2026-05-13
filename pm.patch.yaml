@@ -125,10 +125,6 @@ changes:
       project_id: ID
     output: Project
     resource: Project
-    transition:
-      field: status
-      from: draft
-      to: submitted
   target: capability
 - basis: Reviewers can approve submitted dispatch projects.
   id: project.approve
@@ -141,10 +137,6 @@ changes:
       project_id: ID
     output: Project
     resource: Project
-    transition:
-      field: status
-      from: submitted
-      to: approved
   target: capability
 - basis: Approved dispatch projects can be archived.
   id: project.archive
@@ -157,10 +149,6 @@ changes:
       project_id: ID
     output: Project
     resource: Project
-    transition:
-      field: status
-      from: approved
-      to: archived
   target: capability
 - basis: Approval triggers a notification command for downstream coordination.
   id: project.send_approval_notice

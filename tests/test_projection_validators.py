@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import copy
-import shutil
 from pathlib import Path
 
 import pytest
 
 from pm_contract.compile import ContractError
 from pm_contract.io import read_json, read_yaml
+from pm_contract.paths import COMPILED_CONTRACT_PATH
 from pm_contract.projection_validators import (
     validate_asyncapi,
     validate_fixtures_and_scenarios,
@@ -18,12 +18,13 @@ from pm_contract.projection_validators import (
     validate_textual_contract,
     validate_workflows,
 )
+from tests.helpers import copy_project_tree
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def _contract(root: Path = ROOT) -> dict:
-    return read_yaml(root / "contract.yaml")
+    return read_yaml(root / COMPILED_CONTRACT_PATH)
 
 
 def test_openapi_validator_rejects_response_schema_drift() -> None:
@@ -84,7 +85,7 @@ def test_css_validator_rejects_unresolved_contract_token() -> None:
 
 def test_textual_validator_rejects_broken_generated_python(tmp_path: Path) -> None:
     project = tmp_path / "project"
-    shutil.copytree(ROOT, project, ignore=shutil.ignore_patterns("__pycache__", ".pytest_cache", "*.pyc", "node_modules"))
+    copy_project_tree(ROOT, project)
     path = project / "generated" / "textual_contract.py"
     path.write_text(path.read_text(encoding="utf-8") + "\nthis is not python\n", encoding="utf-8")
     with pytest.raises(ContractError, match="not importable"):
@@ -93,7 +94,7 @@ def test_textual_validator_rejects_broken_generated_python(tmp_path: Path) -> No
 
 def test_scenario_validator_rejects_freeform_generated_gherkin(tmp_path: Path) -> None:
     project = tmp_path / "project"
-    shutil.copytree(ROOT, project, ignore=shutil.ignore_patterns("__pycache__", ".pytest_cache", "*.pyc", "node_modules"))
+    copy_project_tree(ROOT, project)
     feature = next((project / "generated" / "features").glob("*.feature"))
     text = feature.read_text(encoding="utf-8")
     feature.write_text(text.replace("    Then ", "    And freeform agent prose\n    Then ", 1), encoding="utf-8")

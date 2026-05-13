@@ -6,6 +6,7 @@ from pathlib import Path
 from pm_contract.audit import audit_expected_files
 from pm_contract.compile import compile_patch
 from pm_contract.io import read_json, read_yaml
+from pm_contract.paths import COMPILED_CONTRACT_PATH
 from pm_contract.project import projection_files
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -13,8 +14,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def test_canonical_contract_is_fresh_and_complete() -> None:
     compiled = compile_patch(read_yaml(ROOT / "pm.patch.yaml"))
-    assert read_yaml(ROOT / "contract.yaml") == compiled
-    expected = {relative for relative, _, _ in projection_files(compiled)} | audit_expected_files(compiled)
+    assert read_yaml(ROOT / COMPILED_CONTRACT_PATH) == compiled
+    expected = {str(COMPILED_CONTRACT_PATH)} | {relative for relative, _, _ in projection_files(compiled)} | audit_expected_files(compiled)
     actual = {
         str(path.relative_to(ROOT))
         for path in (ROOT / "generated").rglob("*")

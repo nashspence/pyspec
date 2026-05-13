@@ -27,14 +27,14 @@ class _NoAliasSafeDumper(yaml.SafeDumper):
         return True
 
 
-def write_yaml(path: Path, data: Any) -> None:
+def write_yaml(path: Path, data: Any, *, sort_keys: bool = True) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as f:
         yaml.dump(
             data,
             f,
             Dumper=_NoAliasSafeDumper,
-            sort_keys=True,
+            sort_keys=sort_keys,
             allow_unicode=True,
             width=120,
         )

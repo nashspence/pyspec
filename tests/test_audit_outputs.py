@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import shutil
 from pathlib import Path
 
 import pytest
@@ -8,14 +7,16 @@ import pytest
 from pm_contract.audit import audit_expected_files
 from pm_contract.compile import ContractError, compile_patch
 from pm_contract.io import read_yaml
+from pm_contract.paths import COMPILED_CONTRACT_PATH
 from pm_contract.projection_validators import validate_audit_outputs
+from tests.helpers import copy_project_tree
 
 ROOT = Path(__file__).resolve().parents[1]
 PNG_HEADER = bytes([137, 80, 78, 71, 13, 10, 26, 10])
 
 
 def _contract(root: Path = ROOT) -> dict:
-    return read_yaml(root / "contract.yaml")
+    return read_yaml(root / COMPILED_CONTRACT_PATH)
 
 
 def _first_change(patch: dict, target: str) -> dict:
@@ -98,8 +99,8 @@ def test_render_case_coverage_is_required() -> None:
 
 def test_audit_validator_rejects_corrupt_html_png(tmp_path: Path) -> None:
     project = tmp_path / "project"
-    shutil.copytree(ROOT, project, ignore=shutil.ignore_patterns("__pycache__", ".pytest_cache", "*.pyc", "node_modules"))
-    contract = read_yaml(project / "contract.yaml")
+    copy_project_tree(ROOT, project)
+    contract = read_yaml(project / COMPILED_CONTRACT_PATH)
     png = next(project / path for path in audit_expected_files(contract) if path.endswith(".png"))
     png.write_bytes(b"not-a-png")
     with pytest.raises(ContractError, match="not PNG"):
@@ -108,8 +109,8 @@ def test_audit_validator_rejects_corrupt_html_png(tmp_path: Path) -> None:
 
 def test_audit_validator_rejects_missing_fsm_svg(tmp_path: Path) -> None:
     project = tmp_path / "project"
-    shutil.copytree(ROOT, project, ignore=shutil.ignore_patterns("__pycache__", ".pytest_cache", "*.pyc", "node_modules"))
-    contract = read_yaml(project / "contract.yaml")
+    copy_project_tree(ROOT, project)
+    contract = read_yaml(project / COMPILED_CONTRACT_PATH)
     svg = next(project / path for path in audit_expected_files(contract) if "/fsm/" in path)
     svg.unlink()
     with pytest.raises(ContractError, match="audit generated files"):

@@ -1,5 +1,5 @@
 authoring_layers:
-  rule: Layers constrain PM patch vocabulary only. They are never written into contract.yaml and never imply absent surfaces are planned.
+  rule: Layers constrain PM patch vocabulary only. They are never written into generated/contract.complete.yaml and never imply absent surfaces are planned.
   layers:
     core:
       targets: [fixture, resource, capability, scenario]

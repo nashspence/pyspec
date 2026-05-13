@@ -42,6 +42,23 @@ ENTRY_SURFACE_LAYER = {
     "webhook": "events",
 }
 
+AUTHOR_SECTIONS: dict[str, str] = {
+    "copies": "copy",
+    "assets": "asset",
+    "content_cases": "content_case",
+    "audit_profiles": "audit_profile",
+    "render_cases": "render_case",
+    "fixtures": "fixture",
+    "resources": "resource",
+    "capabilities": "capability",
+    "panels": "panel",
+    "views": "view",
+    "entries": "entry",
+    "workflows": "workflow",
+    "scenarios": "scenario",
+}
+
+
 RENDER_SURFACE_LAYER = {"html": "web", "textual": "textual"}
 AUDIT_PROFILE_LAYER = {"html": "web", "textual": "textual"}
 
@@ -96,7 +113,7 @@ def layer_label(layers: set[str] | None) -> str:
 def validate_patch_layers(patch: dict[str, Any], layers: set[str] | None) -> None:
     """Reject PM patch vocabulary outside the active authoring layer set.
 
-    Layers are an authoring guardrail only. They do not appear in contract.yaml and
+    Layers are an authoring guardrail only. They do not appear in generated/contract.complete.yaml and
     they do not create negative product facts about absent surfaces.
     """
     if layers is None:
@@ -121,6 +138,25 @@ def validate_patch_layers(patch: dict[str, Any], layers: set[str] | None) -> Non
             # known without executing the patch.
             if target == "entry" and not any(layer in layers for layer in ENTRY_SURFACE_LAYER.values()):
                 raise LayerError(_blocked(label, target, {"http", "events", "workflow", "textual", "web"}, layers))
+
+
+def validate_author_layers(author: dict[str, Any], layers: set[str] | None) -> None:
+    """Reject authored contract sections or surface details outside active layers."""
+    if layers is None:
+        return
+    layers = normalize_layers(layers) or set(LAYERS)
+    for section_name, target in AUTHOR_SECTIONS.items():
+        for item_id, item in (author.get(section_name) or {}).items():
+            label = f"authored {section_name}.{item_id}"
+            if target not in TARGET_LAYERS:
+                raise LayerError(f"{label} uses unsupported target {target!r}")
+            if target != "entry":
+                required = TARGET_LAYERS[target]
+                if required and not required.issubset(layers):
+                    raise LayerError(_blocked(label, target, required, layers))
+            spec = copy.deepcopy(item)
+            spec.pop("basis", None)
+            _validate_change_spec_layers(label, target, spec, layers)
 
 
 def _validate_change_spec_layers(label: str, target: str, spec: dict[str, Any], layers: set[str]) -> None:
@@ -226,26 +262,49 @@ def _allowed_targets(layers: set[str]) -> set[str]:
     return allowed
 
 
+def author_schema_for_layers(layers: set[str] | None) -> dict[str, Any]:
+    """Return a derived authored-contract schema pruned by layer."""
+    full = read_json(ROOT / "schemas" / "author.schema.json")
+    if layers is None:
+        return full
+    layers = normalize_layers(layers)
+    schema = copy.deepcopy(full)
+    allowed_targets = _allowed_targets(layers or set(LAYERS))
+    allowed_sections = {section for section, target in AUTHOR_SECTIONS.items() if target in allowed_targets}
+    schema["properties"] = {
+        key: value
+        for key, value in schema["properties"].items()
+        if key == "project" or key in allowed_sections
+    }
+    schema["title"] = f"Authored product contract schema ({layer_label(layers)} layers)"
+    schema["description"] = "Layer-pruned direct authoring schema; runtime layer validation also applies."
+    return schema
+
+
 def write_common_layer_schemas(root: Path | None = None) -> None:
     base = root or ROOT
     out = base / "schemas" / "layers"
     out.mkdir(parents=True, exist_ok=True)
     for name, layers in COMMON_LAYER_SETS.items():
-        schema = schema_for_layers(layers)
-        (out / f"{name}.pm_patch.schema.json").write_text(json.dumps(schema, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        patch_schema = schema_for_layers(layers)
+        (out / f"{name}.pm_patch.schema.json").write_text(json.dumps(patch_schema, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        author_schema = author_schema_for_layers(layers)
+        (out / f"{name}.author.schema.json").write_text(json.dumps(author_schema, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Print or write layer-pruned PM patch schemas.")
+    parser = argparse.ArgumentParser(description="Print or write layer-pruned authored-contract and patch-operation schemas.")
     parser.add_argument("layers", nargs="?", default="full", help="Comma-separated layers, e.g. core,http or core,ui,textual")
     parser.add_argument("--write-common", action="store_true", help="Write the common schemas under schemas/layers/")
+    parser.add_argument("--author", action="store_true", help="Print the authored contract.yaml schema instead of the patch-operation schema")
     args = parser.parse_args(argv)
     try:
         if args.write_common:
             write_common_layer_schemas(ROOT)
         else:
             layers = parse_layers(args.layers)
-            print(json.dumps(schema_for_layers(layers), indent=2, sort_keys=True))
+            schema = author_schema_for_layers(layers) if args.author else schema_for_layers(layers)
+            print(json.dumps(schema, indent=2, sort_keys=True))
     except (LayerError, ValueError) as exc:
         print(str(exc), file=sys.stderr)
         return 2

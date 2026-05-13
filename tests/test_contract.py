@@ -1,13 +1,14 @@
 from __future__ import annotations
 
-import shutil
 from pathlib import Path
 
 import pytest
 
-from pm_contract.compile import ContractError, compile_patch, validate_against_schema
+from pm_contract.compile import ContractError, author_from_patch, compile_author, compile_patch, validate_against_schema
 from pm_contract.io import read_yaml, write_yaml
+from pm_contract.paths import COMPILED_CONTRACT_PATH, SOURCE_CONTRACT_PATH
 from pm_contract.validate import validate_project
+from tests.helpers import copy_project_tree
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -45,7 +46,7 @@ def test_yaml_writer_never_emits_anchors_or_aliases(tmp_path: Path) -> None:
 
 
 def test_checked_in_yaml_has_no_anchors_or_aliases() -> None:
-    yaml_paths = [ROOT / "contract.yaml"] + sorted((ROOT / "generated").rglob("*.yaml"))
+    yaml_paths = [ROOT / SOURCE_CONTRACT_PATH] + sorted((ROOT / "generated").rglob("*.yaml"))
     offenders = []
     for path in yaml_paths:
         text = path.read_text(encoding="utf-8")
@@ -57,9 +58,8 @@ def test_checked_in_yaml_has_no_anchors_or_aliases() -> None:
 
 def test_validation_rejects_hand_edited_yaml_anchors(tmp_path: Path) -> None:
     project = tmp_path / "project"
-    ignore = shutil.ignore_patterns("__pycache__", ".pytest_cache", "*.pyc", "node_modules")
-    shutil.copytree(ROOT, project, ignore=ignore)
-    contract_path = project / "contract.yaml"
+    copy_project_tree(ROOT, project)
+    contract_path = project / SOURCE_CONTRACT_PATH
     text = contract_path.read_text(encoding="utf-8")
     contract_path.write_text(text.replace("project: project_dispatch_board", "project: &id001 project_dispatch_board", 1), encoding="utf-8")
     with pytest.raises(ContractError, match="Generated YAML must not contain anchors or aliases"):
@@ -85,10 +85,133 @@ def test_pm_patch_rejects_meta_root_fields() -> None:
 
 def test_contract_schema_rejects_meta_root_fields() -> None:
     for key, value in [("version", 1), ("status", "draft"), ("review_flags", [{"id": "x"}])]:
-        contract = read_yaml(ROOT / "contract.yaml")
+        contract = read_yaml(ROOT / COMPILED_CONTRACT_PATH)
         contract[key] = value
         with pytest.raises(ContractError, match="Schema validation failed"):
             validate_against_schema(contract, "contract.schema.json")
+
+
+def test_author_schema_rejects_meta_root_fields() -> None:
+    for key, value in [("version", 1), ("status", "draft"), ("review_flags", [{"id": "x"}])]:
+        author = read_yaml(ROOT / SOURCE_CONTRACT_PATH)
+        author[key] = value
+        with pytest.raises(ContractError, match="Schema validation failed"):
+            validate_against_schema(author, "author.schema.json")
+
+
+def test_author_yaml_is_direct_source_and_matches_patch_operations() -> None:
+    patch = read_yaml(ROOT / "pm.patch.yaml")
+    author = read_yaml(ROOT / SOURCE_CONTRACT_PATH)
+    assert author_from_patch(patch) == author
+    assert compile_author(author) == read_yaml(ROOT / COMPILED_CONTRACT_PATH)
+
+
+def test_patch_materializes_sparse_author_contract() -> None:
+    patch = read_yaml(ROOT / "pm.patch.yaml")
+    author = author_from_patch(patch)
+    assert "changes" not in author
+    assert "events" not in author
+    assert "refs" not in author
+    assert "transition" not in author["capabilities"]["project.submit"]
+    assert compile_author(author) == compile_patch(patch)
+
+
+def test_transition_capability_derives_state_change_from_resource_lifecycle() -> None:
+    author = {
+        "project": "derived_transition",
+        "resources": {
+            "Ticket": {
+                "kind": "aggregate",
+                "fields": {"id": "ID", "status": "TicketStatus"},
+                "lifecycle": {
+                    "field": "status",
+                    "initial": "draft",
+                    "states": ["draft", "submitted"],
+                    "transitions": [{"by": "ticket.submit", "from": "draft", "to": "submitted"}],
+                },
+                "basis": "Ticket lifecycle owns state transitions.",
+            }
+        },
+        "capabilities": {
+            "ticket.submit": {
+                "archetype": "transition",
+                "resource": "Ticket",
+                "input": {"ticket_id": "ID"},
+                "output": "Ticket",
+                "basis": "Submitting moves a draft ticket forward.",
+            }
+        },
+    }
+    contract = compile_author(author)
+    assert contract["capabilities"]["ticket.submit"]["transition"] == {
+        "field": "status",
+        "from": "draft",
+        "to": "submitted",
+    }
+
+
+def test_author_contract_can_omit_absent_sections() -> None:
+    author = {
+        "project": "author_core",
+        "resources": {
+            "Ticket": {
+                "kind": "aggregate",
+                "fields": {"id": "ID", "title": "Text"},
+            }
+        },
+        "capabilities": {
+            "ticket.create": {
+                "archetype": "create",
+                "resource": "Ticket",
+                "input": {"title": "Text"},
+                "output": "Ticket",
+                "why": "Members can create tickets.",
+            }
+        },
+    }
+    contract = compile_author(author)
+    assert set(contract["resources"]) == {"Ticket"}
+    assert contract["entries"] == {}
+    assert contract["panels"] == {}
+    assert contract["refs"]["policy"] == ["policy.ticket.create"]
+    assert contract["resources"]["Ticket"]["basis"] == "Declared resource Ticket."
+    assert contract["capabilities"]["ticket.create"]["basis"] == "Members can create tickets."
+
+
+def test_author_panel_defaults_empty_collections() -> None:
+    from pm_contract.layers import parse_layers
+
+    author = {
+        "project": "author_ui",
+        "resources": {
+            "Ticket": {
+                "kind": "aggregate",
+                "fields": {"id": "ID", "title": "Text"},
+                "basis": "Ticket is the product work item.",
+            }
+        },
+        "audit_profiles": {
+            "default": {
+                "html": {"breakpoints": {"compact": {"width": 320, "height": 480}}},
+                "basis": "Single breakpoint covers the tiny authored example.",
+            }
+        },
+        "panels": {
+            "panel.ticket.empty": {
+                "kind": "fsm",
+                "resource": "Ticket",
+                "initial": "empty",
+                "states": {"empty": {"pattern": "empty"}},
+                "basis": "Panel can start as a minimal empty-state FSM.",
+            }
+        },
+    }
+    contract = compile_author(author, layers=parse_layers("core,ui,web"))
+    panel = contract["panels"]["panel.ticket.empty"]
+    assert panel["context"] == {}
+    assert panel["data"] == []
+    assert panel["events"] == []
+    assert panel["transitions"] == []
 
 
 def test_basis_is_plain_bounded_text() -> None:
@@ -106,8 +229,7 @@ def test_basis_is_plain_bounded_text() -> None:
 
 def test_generated_tree_is_closed(tmp_path: Path) -> None:
     project = tmp_path / "project"
-    ignore = shutil.ignore_patterns("__pycache__", ".pytest_cache", "*.pyc", "node_modules")
-    shutil.copytree(ROOT, project, ignore=ignore)
+    copy_project_tree(ROOT, project)
     rogue = project / "generated" / "agent_invented.feature"
     rogue.write_text("Feature: Drift\n", encoding="utf-8")
     with pytest.raises(ContractError, match="Generated file set drift"):
@@ -133,8 +255,7 @@ def test_unresolved_fixture_reference_is_rejected() -> None:
 
 def test_prod_harness_cannot_import_spec_fake(tmp_path: Path) -> None:
     project = tmp_path / "project"
-    ignore = shutil.ignore_patterns("__pycache__", ".pytest_cache", "*.pyc", "node_modules")
-    shutil.copytree(ROOT, project, ignore=ignore)
+    copy_project_tree(ROOT, project)
     prod_driver = project / "tests" / "prod_bdd" / "driver.py"
     prod_driver.write_text(
         "from pm_contract.reference_driver import ReferenceSpecDriver\n"
@@ -358,6 +479,16 @@ def test_layer_pruned_schema_hides_irrelevant_targets() -> None:
     assert any(ref.endswith("add_resource") for ref in refs)
     assert not any(ref.endswith("add_panel") for ref in refs)
     assert not any(ref.endswith("add_render_case") for ref in refs)
+
+
+def test_layer_pruned_author_schema_hides_irrelevant_sections() -> None:
+    from pm_contract.layers import author_schema_for_layers, parse_layers
+
+    schema = author_schema_for_layers(parse_layers("core,http"))
+    assert "entries" in schema["properties"]
+    assert "resources" in schema["properties"]
+    assert "panels" not in schema["properties"]
+    assert "render_cases" not in schema["properties"]
 
 
 def test_pm_contract_rejects_scenario_harness_routing() -> None:

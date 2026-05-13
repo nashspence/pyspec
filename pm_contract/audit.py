@@ -725,7 +725,8 @@ def main(argv: list[str] | None = None) -> int:
     root = Path(argv[0]).resolve()
     tools_root = Path(argv[1]).resolve()
     from .io import read_yaml
-    contract = read_yaml(root / "contract.yaml")
+    from .paths import COMPILED_CONTRACT_PATH
+    contract = read_yaml(root / COMPILED_CONTRACT_PATH)
     _render_visual_audit(root, contract, tools_root)
     # Playwright/Textual can leave cleanup state that blocks interpreter shutdown in
     # constrained containers. This worker has completed all file outputs; exit

@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from pm_contract.io import read_json, read_yaml
+from pm_contract.paths import COMPILED_CONTRACT_PATH
 from pm_contract.runtime import fixture_namespace, resolve_map
 
 
@@ -17,7 +18,7 @@ class ProductApp:
 
     def __init__(self, root: Path):
         self.root = root
-        self.contract = read_yaml(root / "contract.yaml")
+        self.contract = read_yaml(root / COMPILED_CONTRACT_PATH)
         self.panels = {p["id"]: p for p in read_json(root / "generated" / "panels.json")["panels"]}
         self.reset()
 
