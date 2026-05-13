@@ -727,6 +727,135 @@
       "type": "object"
     },
     "fact": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "absent": {
+              "additionalProperties": false,
+              "properties": {
+                "resource": {
+                  "$ref": "#/$defs/resource_id"
+                },
+                "where": {
+                  "$ref": "#/$defs/value_map"
+                }
+              },
+              "required": [
+                "resource",
+                "where"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "absent"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "present": {
+              "additionalProperties": false,
+              "properties": {
+                "resource": {
+                  "$ref": "#/$defs/resource_id"
+                },
+                "values": {
+                  "$ref": "#/$defs/value_map"
+                }
+              },
+              "required": [
+                "resource",
+                "values"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "present"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "fact_id": {
+      "pattern": "^fact\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "type": "string"
+    },
+    "fact_item": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "absent": {
+              "additionalProperties": false,
+              "properties": {
+                "resource": {
+                  "$ref": "#/$defs/resource_id"
+                },
+                "where": {
+                  "$ref": "#/$defs/value_map"
+                }
+              },
+              "required": [
+                "resource",
+                "where"
+              ],
+              "type": "object"
+            },
+            "basis": {
+              "$ref": "#/$defs/basis"
+            }
+          },
+          "required": [
+            "absent",
+            "basis"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "basis": {
+              "$ref": "#/$defs/basis"
+            },
+            "present": {
+              "additionalProperties": false,
+              "properties": {
+                "resource": {
+                  "$ref": "#/$defs/resource_id"
+                },
+                "values": {
+                  "$ref": "#/$defs/value_map"
+                }
+              },
+              "required": [
+                "resource",
+                "values"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "present",
+            "basis"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "fact_use": {
+      "additionalProperties": false,
+      "properties": {
+        "use": {
+          "$ref": "#/$defs/fact_id"
+        }
+      },
+      "required": [
+        "use"
+      ],
       "type": "object"
     },
     "field_name": {
@@ -1537,6 +1666,12 @@
         "context": {
           "$ref": "#/$defs/context_bindings"
         },
+        "facts": {
+          "items": {
+            "$ref": "#/$defs/fact_use"
+          },
+          "type": "array"
+        },
         "fixtures": {
           "items": {
             "pattern": "^fixture\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
@@ -1589,6 +1724,12 @@
       "properties": {
         "context": {
           "$ref": "#/$defs/context_bindings"
+        },
+        "facts": {
+          "items": {
+            "$ref": "#/$defs/fact_use"
+          },
+          "type": "array"
         },
         "fixtures": {
           "items": {
@@ -2390,6 +2531,15 @@
       },
       "type": "object"
     },
+    "facts": {
+      "additionalProperties": {
+        "$ref": "#/$defs/fact_item"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/fact_id"
+      },
+      "type": "object"
+    },
     "fixtures": {
       "additionalProperties": {
         "$ref": "#/$defs/fixture"
@@ -2453,6 +2603,7 @@
     "audit_profiles",
     "render_cases",
     "fixtures",
+    "facts",
     "resources",
     "capabilities",
     "events",

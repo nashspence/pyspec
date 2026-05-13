@@ -58,8 +58,11 @@ class Event:
     PROJECT_CREATED = 'project.created'
     PROJECT_SUBMITTED = 'project.submitted'
 
+class Fact:
+    FACT_PROJECT_DRAFT = 'fact.project.draft'
+    FACT_PROJECT_SUBMITTED = 'fact.project.submitted'
+
 class Fixture:
-    FIXTURE_PROJECTS_AUDIT_RECORDS = 'fixture.projects.audit_records'
     FIXTURE_WORKSPACE_MEMBER = 'fixture.workspace.member'
     FIXTURE_WORKSPACE_REVIEWER = 'fixture.workspace.reviewer'
 

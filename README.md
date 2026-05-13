@@ -55,6 +55,8 @@ contract.yaml
 
 The contract is progressive. If a concern is absent, it has no declaration and no generated projection. The contract does not contain storage implementation details, test-harness routing, dev-environment metadata, review state, release state, or schema-version chatter.
 
+Reusable top-level `facts` name preconditions, such as a resource that must already exist. Scenarios can reference them with `given.facts: [{use: fact.project.submitted}]`, and render cases can reference them with `facts: [{use: fact.project.submitted}]`; the compiled contract expands scenario references back into concrete `present` or `absent` facts for the generated BDD harnesses.
+
 ## Layers
 
 Layers are authoring guardrails. They constrain vocabulary during compile/validate but are not written into `generated/contract.complete.yaml`.

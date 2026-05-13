@@ -871,6 +871,7 @@ def refs_py_projection(contract: dict[str, Any]) -> str:
         "ContentCase": sorted(contract.get("content_cases", {})),
         "Entry": sorted(contract["entries"]),
         "Event": sorted(contract["events"]),
+        "Fact": sorted(contract.get("facts", {})),
         "Fixture": sorted(contract["fixtures"]),
         "Panel": sorted(contract.get("panels", {})),
         "RenderCase": sorted(contract.get("render_cases", {})),

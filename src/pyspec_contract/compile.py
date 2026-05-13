@@ -44,7 +44,7 @@ def validate_against_schema(data: dict[str, Any], schema_name: str) -> None:
         raise ContractError("Schema validation failed:\n" + str(exc)) from exc
 
 
-TARGET_ORDER = ("copy", "asset", "content_case", "audit_profile", "fixture", "resource", "capability", "panel", "view", "entry", "workflow", "scenario", "render_case")
+TARGET_ORDER = ("copy", "asset", "content_case", "audit_profile", "fixture", "fact", "resource", "capability", "panel", "view", "entry", "workflow", "scenario", "render_case")
 
 
 
@@ -55,6 +55,7 @@ ENTITY_SECTIONS: dict[str, str] = {
     "audit_profile": "audit_profiles",
     "render_case": "render_cases",
     "fixture": "fixtures",
+    "fact": "facts",
     "resource": "resources",
     "capability": "capabilities",
     "panel": "panels",
@@ -77,6 +78,7 @@ def empty_compiled_contract(project: str) -> dict[str, Any]:
         "audit_profiles": {},
         "render_cases": {},
         "fixtures": {},
+        "facts": {},
         "resources": {},
         "capabilities": {},
         "events": {},
@@ -89,7 +91,7 @@ def empty_compiled_contract(project: str) -> dict[str, Any]:
     }
 
 
-AUTHOR_SECTION_ORDER = ("fixtures", "resources", "capabilities", "panels", "views", "entries", "workflows", "scenarios", "copies", "assets", "content_cases", "audit_profiles", "render_cases")
+AUTHOR_SECTION_ORDER = ("fixtures", "facts", "resources", "capabilities", "panels", "views", "entries", "workflows", "scenarios", "copies", "assets", "content_cases", "audit_profiles", "render_cases")
 
 
 def _prune_empty_author_sections(author: dict[str, Any]) -> dict[str, Any]:
@@ -157,7 +159,8 @@ def compile_author(author: dict[str, Any], layers: set[str] | None = None) -> di
     _derive_capability_transitions(contract)
     contract["events"] = _derive_events(contract)
     contract["refs"] = _derive_refs(contract)
-    _semantic_validate(contract)
+    used_facts = _expand_scenario_fact_uses(contract)
+    _semantic_validate(contract, used_facts)
     _expand_scenarios(contract)
     validate_against_schema(contract, "contract.schema.json")
     return contract
@@ -220,13 +223,17 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             "fixtures": spec["fixtures"],
             "basis": spec["basis"],
         }
-        for field in ["context", "state", "panels"]:
+        for field in ["context", "facts", "state", "panels"]:
             if field in spec:
                 item[field] = spec[field]
         return item
 
     if entity == "fixture":
         return {"values": spec["values"], "basis": spec["basis"]}
+
+    if entity == "fact":
+        kind, body = _one_fact(spec, f"Fact {spec['id']}")
+        return {kind: body, "basis": spec["basis"]}
 
     if entity == "resource":
         item = {
@@ -441,7 +448,7 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
         refs["workflow"].add(workflow["ref"])
     return {kind: sorted(values) for kind, values in sorted(refs.items()) if values}
 
-def _semantic_validate(contract: dict[str, Any]) -> None:
+def _semantic_validate(contract: dict[str, Any], used_facts: set[str]) -> None:
     _validate_copy_assets(contract)
     _validate_content_cases(contract)
     _validate_audit_profiles(contract)
@@ -452,8 +459,10 @@ def _semantic_validate(contract: dict[str, Any]) -> None:
     _validate_entries(contract)
     _validate_workflows(contract)
     _validate_fixtures(contract)
+    _validate_facts(contract)
     _validate_scenarios(contract)
     _validate_render_cases(contract)
+    _validate_facts_are_used(contract, used_facts)
 
 
 
@@ -544,6 +553,9 @@ def _validate_render_cases(contract: dict[str, Any]) -> None:
                 raise ContractError(f"Render case {case_id} references unknown fixture {fixture_id}")
         fixture_values = _fixture_namespace(contract, case.get("fixtures", []), f"render case {case_id}")
         _validate_fixture_templates(case, fixture_values, f"render case {case_id}")
+        for fact_use in case.get("facts", []):
+            fact_id = fact_use["use"]
+            _validate_fixture_templates(contract["facts"][fact_id], fixture_values, f"render case {case_id} fact {fact_id}")
         view = contract["views"][view_id]
         if view.get("states"):
             state = case.get("state")
@@ -552,8 +564,8 @@ def _validate_render_cases(contract: dict[str, Any]) -> None:
             if state not in view["states"]:
                 raise ContractError(f"Render case {case_id} references unknown view state {view_id}.{state}")
             selected_state = view["states"][state]
-            if selected_state.get("fields") and not _fixtures_include_resource(contract, case.get("fixtures", []), view["resource"]):
-                raise ContractError(f"Render case {case_id} renders fields for {view_id}.{state} but does not include a {view['resource']} fixture")
+            if selected_state.get("fields") and not _setup_includes_resource(contract, case.get("fixtures", []), case.get("facts", []), view["resource"]):
+                raise ContractError(f"Render case {case_id} renders fields for {view_id}.{state} but does not include a {view['resource']} fixture or fact")
             coverage_states.setdefault(view_id, set()).add(state)
         if view.get("includes"):
             panels = case.get("panels")
@@ -567,8 +579,8 @@ def _validate_render_cases(contract: dict[str, Any]) -> None:
                 if expected["state"] not in contract["panels"][panel_id]["states"]:
                     raise ContractError(f"Render case {case_id} references unknown panel state {panel_id}.{expected['state']}")
                 selected_state = contract["panels"][panel_id]["states"][expected["state"]]
-                if selected_state.get("fields") and not _fixtures_include_resource(contract, case.get("fixtures", []), contract["panels"][panel_id]["resource"]):
-                    raise ContractError(f"Render case {case_id} renders fields for {panel_id}.{expected['state']} but does not include a {contract['panels'][panel_id]['resource']} fixture")
+                if selected_state.get("fields") and not _setup_includes_resource(contract, case.get("fixtures", []), case.get("facts", []), contract["panels"][panel_id]["resource"]):
+                    raise ContractError(f"Render case {case_id} renders fields for {panel_id}.{expected['state']} but does not include a {contract['panels'][panel_id]['resource']} fixture or fact")
             coverage_composed.add(view_id)
     missing_state_cases = []
     for view_id, states in coverage_states.items():
@@ -585,12 +597,16 @@ def _validate_render_cases(contract: dict[str, Any]) -> None:
 def _validate_panel_state_fixture_coverage(contract: dict[str, Any]) -> None:
     for view_id, view in contract.get("views", {}).items():
         for state_name, state in view.get("states", {}).items():
-            if state.get("fields") and not _fixtures_include_resource(contract, list(contract.get("fixtures", {})), view["resource"]):
-                raise ContractError(f"Rendered fields for {view_id}.{state_name} require at least one {view['resource']} fixture")
+            if state.get("fields") and not _setup_includes_resource(contract, list(contract.get("fixtures", {})), _all_fact_uses(contract), view["resource"]):
+                raise ContractError(f"Rendered fields for {view_id}.{state_name} require at least one {view['resource']} fixture or fact")
     for panel_id, panel in contract.get("panels", {}).items():
         for state_name, state in panel.get("states", {}).items():
-            if state.get("fields") and not _fixtures_include_resource(contract, list(contract.get("fixtures", {})), panel["resource"]):
-                raise ContractError(f"Rendered fields for {panel_id}.{state_name} require at least one {panel['resource']} fixture")
+            if state.get("fields") and not _setup_includes_resource(contract, list(contract.get("fixtures", {})), _all_fact_uses(contract), panel["resource"]):
+                raise ContractError(f"Rendered fields for {panel_id}.{state_name} require at least one {panel['resource']} fixture or fact")
+
+
+def _setup_includes_resource(contract: dict[str, Any], fixture_ids: list[str], fact_uses: list[dict[str, str]], resource_id: str) -> bool:
+    return _fixtures_include_resource(contract, fixture_ids, resource_id) or _fact_uses_include_resource(contract, fact_uses, resource_id)
 
 
 def _fixtures_include_resource(contract: dict[str, Any], fixture_ids: list[str], resource_id: str) -> bool:
@@ -598,6 +614,22 @@ def _fixtures_include_resource(contract: dict[str, Any], fixture_ids: list[str],
         if fixture_id in contract.get("fixtures", {}) and _value_contains_resource(contract["fixtures"][fixture_id]["values"], resource_id):
             return True
     return False
+
+
+def _fact_uses_include_resource(contract: dict[str, Any], fact_uses: list[dict[str, str]], resource_id: str) -> bool:
+    for fact_use in fact_uses:
+        fact_id = fact_use["use"]
+        fact = contract["facts"].get(fact_id)
+        if not fact:
+            continue
+        kind, body = _one_fact(fact, f"Fact {fact_id}")
+        if kind == "present" and body["resource"] == resource_id:
+            return True
+    return False
+
+
+def _all_fact_uses(contract: dict[str, Any]) -> list[dict[str, str]]:
+    return [{"use": fact_id} for fact_id in contract.get("facts", {})]
 
 
 def _value_contains_resource(value: Any, resource_id: str) -> bool:
@@ -1122,6 +1154,13 @@ def _validate_fixtures(contract: dict[str, Any]) -> None:
             raise ContractError(f"Fixture {fixture_id} must declare non-empty values")
 
 
+def _validate_facts(contract: dict[str, Any]) -> None:
+    for fact_id, fact in contract["facts"].items():
+        if not fact_id.startswith("fact."):
+            raise ContractError(f"Fact id must start with fact.: {fact_id}")
+        _validate_fact_body(contract, fact, f"Fact {fact_id}")
+
+
 def _validate_scenarios(contract: dict[str, Any]) -> None:
     for sid, scenario in contract["scenarios"].items():
         fixture_ids = scenario["arrange"].get("fixtures", [])
@@ -1131,18 +1170,28 @@ def _validate_scenarios(contract: dict[str, Any]) -> None:
         fixture_values = _fixture_namespace(contract, fixture_ids, sid)
         _validate_fixture_templates(scenario, fixture_values, sid)
         for fact in scenario["arrange"].get("facts", []):
-            body = next(iter(fact.values()))
-            resource_id = body["resource"]
-            if resource_id not in contract["resources"]:
-                raise ContractError(f"Scenario {sid} references unknown resource {resource_id}")
-            if "values" in body:
-                fields = set(contract["resources"][resource_id]["fields"])
-                unknown = set(body["values"]) - fields
-                if unknown:
-                    raise ContractError(f"Scenario {sid} seeds unknown {resource_id} fields: {sorted(unknown)}")
+            _validate_fact_body(contract, fact, f"Scenario {sid}")
         _validate_scenario_when(contract, sid, scenario)
         _validate_scenario_then(contract, sid, scenario)
         _validate_scenario_archetype(sid, scenario)
+
+
+def _validate_fact_body(contract: dict[str, Any], fact: dict[str, Any], label: str) -> None:
+    kind, body = _one_fact(fact, label)
+    resource_id = body["resource"]
+    if resource_id not in contract["resources"]:
+        raise ContractError(f"{label} references unknown resource {resource_id}")
+    fields = set(contract["resources"][resource_id]["fields"])
+    if kind == "present":
+        unknown = set(body["values"]) - fields
+        if unknown:
+            raise ContractError(f"{label} seeds unknown {resource_id} fields: {sorted(unknown)}")
+    elif kind == "absent":
+        unknown = set(body["where"]) - fields
+        if unknown:
+            raise ContractError(f"{label} filters unknown {resource_id} fields: {sorted(unknown)}")
+    else:  # pragma: no cover - schema prevents this.
+        raise ContractError(f"{label} uses unsupported fact kind {kind}")
 
 
 def _fixture_namespace(contract: dict[str, Any], fixture_ids: list[str], sid: str) -> dict[str, Any]:
@@ -1287,6 +1336,50 @@ def _validate_scenario_archetype(sid: str, scenario: dict[str, Any]) -> None:
             raise ContractError(f"Scenario {sid} forbidden_action requires forbids")
 
 
+def _expand_scenario_fact_uses(contract: dict[str, Any]) -> set[str]:
+    used: set[str] = set()
+    for sid, scenario in contract["scenarios"].items():
+        arrange = scenario["arrange"]
+        expanded: list[dict[str, Any]] = []
+        scenario_uses: set[str] = set()
+        for fact in arrange.get("facts", []):
+            if "use" not in fact:
+                expanded.append(fact)
+                continue
+            fact_id = fact["use"]
+            if fact_id not in contract["facts"]:
+                raise ContractError(f"Scenario {sid} references unknown fact {fact_id}")
+            if fact_id in scenario_uses:
+                raise ContractError(f"Scenario {sid} uses fact {fact_id} more than once")
+            scenario_uses.add(fact_id)
+            used.add(fact_id)
+            expanded.append(_fact_body(contract["facts"][fact_id], fact_id))
+        if "facts" in arrange:
+            arrange["facts"] = expanded
+    for case_id, case in contract.get("render_cases", {}).items():
+        case_uses: set[str] = set()
+        for fact_use in case.get("facts", []):
+            fact_id = fact_use["use"]
+            if fact_id not in contract["facts"]:
+                raise ContractError(f"Render case {case_id} references unknown fact {fact_id}")
+            if fact_id in case_uses:
+                raise ContractError(f"Render case {case_id} uses fact {fact_id} more than once")
+            case_uses.add(fact_id)
+            used.add(fact_id)
+    return used
+
+
+def _fact_body(fact: dict[str, Any], label: str) -> dict[str, Any]:
+    kind, body = _one_fact(fact, f"Fact {label}")
+    return {kind: copy.deepcopy(body)}
+
+
+def _validate_facts_are_used(contract: dict[str, Any], used: set[str]) -> None:
+    unused = sorted(set(contract["facts"]) - used)
+    if unused:
+        raise ContractError("Unused facts: " + ", ".join(unused))
+
+
 def _expand_scenarios(contract: dict[str, Any]) -> None:
     for scenario in contract["scenarios"].values():
         assertions = scenario["assert"]
@@ -1397,6 +1490,13 @@ def _one(mapping: dict[str, Any], label: str) -> tuple[str, Any]:
     if len(mapping) != 1:
         raise ContractError(f"{label} must contain exactly one selector")
     return next(iter(mapping.items()))
+
+
+def _one_fact(mapping: dict[str, Any], label: str) -> tuple[str, Any]:
+    items = [(key, mapping[key]) for key in ("absent", "present") if key in mapping]
+    if len(items) != 1:
+        raise ContractError(f"{label} must contain exactly one fact selector")
+    return items[0]
 
 
 def _require(mapping: dict[str, Any], owner: str, field: str) -> None:

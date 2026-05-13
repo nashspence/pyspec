@@ -1061,11 +1061,13 @@ def records_for_panel(contract: dict[str, Any], panel: dict[str, Any], case: dic
     if case:
         namespace = fixture_namespace(contract, fixtures)
         records.extend(_find_resource_records(namespace, resource_id))
+        records = _apply_fact_uses(contract, case.get("facts", []), namespace, resource_id, records)
         context = _resolved_case_context(contract, case, namespace)
     else:
         context = {}
         for fixture_id in fixtures:
             records.extend(_find_resource_records(contract["fixtures"][fixture_id]["values"], resource_id))
+        records = _apply_facts_with_available_fixtures(contract, resource_id, records)
     selected_id = context.get(resource_key)
     if not selected_id and resource_key in owner_context:
         selected_id = context.get(f"selected_{resource_key}")
@@ -1110,6 +1112,64 @@ def _find_resource_records(value: Any, resource_id: str) -> list[dict[str, Any]]
         for item in value:
             records.extend(_find_resource_records(item, resource_id))
     return records
+
+
+def _apply_facts_with_available_fixtures(contract: dict[str, Any], resource_id: str, records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    current = list(records)
+    namespaces = [{}]
+    for fixture_id in contract.get("fixtures", {}):
+        try:
+            namespaces.append(fixture_namespace(contract, [fixture_id]))
+        except (AssertionError, KeyError, TypeError):
+            continue
+    for fact_id in contract.get("facts", {}):
+        fact_uses = [{"use": fact_id}]
+        for namespace in namespaces:
+            try:
+                next_records = _apply_fact_uses(contract, fact_uses, namespace, resource_id, current)
+            except (AssertionError, KeyError, TypeError):
+                continue
+            current = _dedupe_records(next_records)
+            break
+    return current
+
+
+def _apply_fact_uses(contract: dict[str, Any], fact_uses: list[dict[str, str]], namespace: dict[str, Any], resource_id: str, records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    current = list(records)
+    for fact_use in fact_uses:
+        fact_id = fact_use["use"]
+        kind, body = _fact_selector(contract["facts"][fact_id], fact_id)
+        if body["resource"] != resource_id:
+            continue
+        if kind == "present":
+            current.append(resolve(body["values"], namespace))
+        elif kind == "absent":
+            where = resolve(body["where"], namespace)
+            current = [record for record in current if not _record_matches(record, where)]
+    return _dedupe_records(current)
+
+
+def _fact_selector(fact: dict[str, Any], fact_id: str) -> tuple[str, dict[str, Any]]:
+    items = [(key, fact[key]) for key in ("absent", "present") if key in fact]
+    if len(items) != 1:
+        raise ContractError(f"Fact {fact_id} must contain exactly one fact selector")
+    return items[0]
+
+
+def _record_matches(record: dict[str, Any], where: dict[str, Any]) -> bool:
+    return all(record.get(key) == value for key, value in where.items())
+
+
+def _dedupe_records(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    deduped: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for record in records:
+        key = json.dumps(record, sort_keys=True)
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(record)
+    return deduped
 
 
 def render_namespace(contract: dict[str, Any], case: dict[str, Any] | None) -> dict[str, Any]:

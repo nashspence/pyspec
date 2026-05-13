@@ -1129,6 +1129,88 @@
         }
       ]
     },
+    "fact_author": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "absent": {
+              "additionalProperties": false,
+              "properties": {
+                "resource": {
+                  "$ref": "#/$defs/resource_id"
+                },
+                "where": {
+                  "$ref": "#/$defs/value_map"
+                }
+              },
+              "required": [
+                "resource",
+                "where"
+              ],
+              "type": "object"
+            },
+            "basis": {
+              "$ref": "#/$defs/basis"
+            },
+            "why": {
+              "$ref": "#/$defs/basis"
+            }
+          },
+          "required": [
+            "absent"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "basis": {
+              "$ref": "#/$defs/basis"
+            },
+            "present": {
+              "additionalProperties": false,
+              "properties": {
+                "resource": {
+                  "$ref": "#/$defs/resource_id"
+                },
+                "values": {
+                  "$ref": "#/$defs/value_map"
+                }
+              },
+              "required": [
+                "resource",
+                "values"
+              ],
+              "type": "object"
+            },
+            "why": {
+              "$ref": "#/$defs/basis"
+            }
+          },
+          "required": [
+            "present"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "fact_id": {
+      "pattern": "^fact\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "type": "string"
+    },
+    "fact_use": {
+      "additionalProperties": false,
+      "properties": {
+        "use": {
+          "$ref": "#/$defs/fact_id"
+        }
+      },
+      "required": [
+        "use"
+      ],
+      "type": "object"
+    },
     "field_name": {
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
@@ -1205,7 +1287,14 @@
       "properties": {
         "facts": {
           "items": {
-            "$ref": "#/$defs/fact"
+            "oneOf": [
+              {
+                "$ref": "#/$defs/fact"
+              },
+              {
+                "$ref": "#/$defs/fact_use"
+              }
+            ]
           },
           "type": "array"
         },
@@ -1993,6 +2082,12 @@
         "context": {
           "$ref": "#/$defs/context_bindings"
         },
+        "facts": {
+          "items": {
+            "$ref": "#/$defs/fact_use"
+          },
+          "type": "array"
+        },
         "fixtures": {
           "items": {
             "pattern": "^fixture\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
@@ -2051,6 +2146,12 @@
         "context": {
           "$ref": "#/$defs/context_bindings"
         },
+        "facts": {
+          "items": {
+            "$ref": "#/$defs/fact_use"
+          },
+          "type": "array"
+        },
         "fixtures": {
           "items": {
             "pattern": "^fixture\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
@@ -2103,6 +2204,12 @@
       "properties": {
         "context": {
           "$ref": "#/$defs/context_bindings"
+        },
+        "facts": {
+          "items": {
+            "$ref": "#/$defs/fact_use"
+          },
+          "type": "array"
         },
         "fixtures": {
           "items": {
@@ -3558,6 +3665,15 @@
       },
       "propertyNames": {
         "$ref": "#/$defs/dotted_id"
+      },
+      "type": "object"
+    },
+    "facts": {
+      "additionalProperties": {
+        "$ref": "#/$defs/fact_author"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/fact_id"
       },
       "type": "object"
     },

@@ -877,6 +877,7 @@ def validate_refs_py(root: Path, contract: dict[str, Any]) -> None:
         "ContentCase": sorted(contract.get("content_cases", {})),
         "Entry": sorted(contract["entries"]),
         "Event": sorted(contract["events"]),
+        "Fact": sorted(contract.get("facts", {})),
         "Fixture": sorted(contract["fixtures"]),
         "Panel": sorted(contract.get("panels", {})),
         "RenderCase": sorted(contract.get("render_cases", {})),

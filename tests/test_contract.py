@@ -104,7 +104,90 @@ def test_author_contract_is_sparse_source() -> None:
     assert "events" not in author
     assert "refs" not in author
     assert "transition" not in author["capabilities"]["project.submit"]
+    assert author["scenarios"]["project.approve.success"]["given"]["facts"] == [{"use": "fact.project.submitted"}]
     assert compile_author(author) == read_yaml(ROOT / COMPILED_CONTRACT_PATH)
+
+
+def test_named_fact_expands_into_compiled_scenario() -> None:
+    author = _author()
+    contract = compile_author(author)
+    fact = contract["facts"]["fact.project.submitted"]
+    scenario_fact = contract["scenarios"]["project.approve.success"]["arrange"]["facts"][0]
+    assert "use" not in scenario_fact
+    assert scenario_fact == {"present": fact["present"]}
+    assert contract["render_cases"]["project.board.ready_selected.audit"]["facts"] == [
+        {"use": "fact.project.submitted"},
+        {"use": "fact.project.draft"},
+    ]
+
+
+def test_unknown_fact_use_is_rejected() -> None:
+    author = _author()
+    author["scenarios"]["project.approve.success"]["given"]["facts"] = [{"use": "fact.project.missing"}]
+    with pytest.raises(ContractError, match=r"Scenario project\.approve\.success references unknown fact fact\.project\.missing"):
+        compile_author(author)
+
+
+def test_duplicate_fact_use_in_one_scenario_is_rejected() -> None:
+    author = _author()
+    author["scenarios"]["project.approve.success"]["given"]["facts"] = [
+        {"use": "fact.project.submitted"},
+        {"use": "fact.project.submitted"},
+    ]
+    with pytest.raises(ContractError, match=r"Scenario project\.approve\.success uses fact fact\.project\.submitted more than once"):
+        compile_author(author)
+
+
+def test_unknown_render_case_fact_use_is_rejected() -> None:
+    author = _author()
+    author["render_cases"]["project.board.ready_selected.audit"]["facts"] = [{"use": "fact.project.missing"}]
+    with pytest.raises(ContractError, match=r"Render case project\.board\.ready_selected\.audit references unknown fact fact\.project\.missing"):
+        compile_author(author)
+
+
+def test_duplicate_render_case_fact_use_is_rejected() -> None:
+    author = _author()
+    author["render_cases"]["project.board.ready_selected.audit"]["facts"] = [
+        {"use": "fact.project.submitted"},
+        {"use": "fact.project.submitted"},
+    ]
+    with pytest.raises(ContractError, match=r"Render case project\.board\.ready_selected\.audit uses fact fact\.project\.submitted more than once"):
+        compile_author(author)
+
+
+def test_unused_fact_is_rejected() -> None:
+    author = _author()
+    author["facts"]["fact.project.unused"] = {
+        "present": {
+            "resource": "Project",
+            "values": {
+                "id": "project_unused_1",
+                "status": "submitted",
+                "title": "Unused project",
+                "workspace_id": "$fixture.workspace.id",
+            },
+        },
+        "basis": "Unused facts are dead setup, so they should be removed.",
+    }
+    with pytest.raises(ContractError, match=r"Unused facts: fact\.project\.unused"):
+        compile_author(author)
+
+
+def test_fact_use_requires_declared_fixture_namespace() -> None:
+    author = _author()
+    author["scenarios"]["project.approve.success"]["given"]["fixtures"] = []
+    with pytest.raises(
+        ContractError,
+        match=r"Scenario project\.approve\.success fixture ref \$fixture\.workspace\.id cannot resolve at workspace",
+    ):
+        compile_author(author)
+
+
+def test_fact_template_fields_must_belong_to_resource() -> None:
+    author = _author()
+    author["facts"]["fact.project.submitted"]["present"]["values"]["unknown_field"] = "nope"
+    with pytest.raises(ContractError, match=r"Fact fact\.project\.submitted seeds unknown Project fields: \['unknown_field'\]"):
+        compile_author(author)
 
 
 def test_transition_capability_derives_state_change_from_resource_lifecycle() -> None:
