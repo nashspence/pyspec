@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Mapping
 
-from sample_app.product import ProductApp
+from project_dispatch_board.product import ProductApp
 
 
 class ProdDriver:

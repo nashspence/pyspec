@@ -14,6 +14,6 @@ docs/
   project notes and packaging guidance
 ```
 
-The package is the reusable compiler/tooling. A spec workspace owns its own `spec/spec.yaml`, `spec/spec.py` resolver implementation, product app, tests, and `spec/generated/` artifacts.
+The package is the reusable compiler/tooling. A spec workspace owns its own `spec/spec.yaml`, `spec/spec.py` resolver implementation, product app under an app-local `src/` layout, tests, and `spec/generated/` artifacts.
 
 The canonical example intentionally exercises the full layer set so the package has a living end-to-end fixture.

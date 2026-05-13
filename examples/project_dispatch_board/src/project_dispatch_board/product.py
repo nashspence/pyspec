@@ -37,7 +37,7 @@ class ProductApp:
         for fact in arrange.get("facts", []):
             kind, body = next(iter(fact.items()))
             if body["resource"] != "Project":
-                raise AssertionError("Sample app only implements Project")
+                raise AssertionError("Example app only implements Project")
             if kind == "absent":
                 where = self._resolve_map(body["where"])
                 self.projects = [p for p in self.projects if not _matches(p, where)]

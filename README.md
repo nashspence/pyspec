@@ -11,7 +11,8 @@ examples/project_dispatch_board/
     spec.yaml
     spec.py
     generated/
-  sample_app/
+  src/
+    project_dispatch_board/
   tests/
     spec_bdd/
     prod_bdd/

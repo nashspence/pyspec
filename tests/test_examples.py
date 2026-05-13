@@ -13,6 +13,11 @@ from tests.helpers import EXAMPLE_ROOT
 ROOT = EXAMPLE_ROOT
 
 
+def test_canonical_example_uses_app_src_layout() -> None:
+    assert (ROOT / "src" / "project_dispatch_board" / "product.py").exists()
+    assert not (ROOT / "sample_app").exists()
+
+
 def test_canonical_contract_is_fresh_and_complete() -> None:
     compiled = compile_source(read_yaml(ROOT / SOURCE_SPEC_PATH))
     assert read_yaml(ROOT / COMPILED_SPEC_PATH) == compiled
