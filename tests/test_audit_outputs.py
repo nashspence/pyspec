@@ -56,12 +56,66 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert fsm.count("query.project.list.list") == 4
     assert "<B>resource:</B>" not in fsm
     assert "<B>context:</B>" not in fsm
+    assert "emitted message" in composition
+    assert "sent message" in composition
+    assert "message route" in composition
     assert "selected state: loading" in composition
     assert "send project.selection_changed to detail" in composition
+    assert "Layout / mounted panels" not in composition
+    assert "Message routing" not in composition
+    assert "Sync rules" not in composition
+    assert "layout_region_nav" not in composition
+    assert "fontcolor" not in composition
     for graph_id, dot_source in {"panel_project_list": fsm, "project_board": composition}.items():
         svg = _render_graphviz_svg(dot_source, graph_id)
         assert svg.lstrip().startswith("<svg")
         assert "</svg>" in svg
+
+
+def test_composition_dot_routes_messages_generically() -> None:
+    view = {
+        "archetype": "workspace",
+        "resource": "generic.resource",
+        "context": {"workspace_id": "ID"},
+        "data": [],
+        "layout": {
+            "html": {
+                "regions": {
+                    "target": {"order": 10, "element": "aside", "role": "complementary"},
+                    "source": {"order": 20, "element": "main", "role": "main", "required": True},
+                    "unused": {"order": 30, "element": "footer", "role": "contentinfo"},
+                }
+            }
+        },
+        "includes": [
+            {"id": "publisher", "region": "source", "panel": "panel.alpha", "initial": "idle", "context": {}},
+            {"id": "receiver", "region": "target", "panel": "panel.beta", "initial": "waiting", "context": {"workspace_id": "workspace_id"}},
+        ],
+        "sync": [
+            {
+                "id": "route_alpha_beta",
+                "when": {"panel": "publisher", "emits": "alpha.ready"},
+                "do": [
+                    {"send": {"panel": "receiver", "event": "beta.consume"}},
+                    {"set": {"context": "selected_id", "from": "$event.id"}},
+                ],
+            }
+        ],
+    }
+
+    composition = composition_dot("generic.view", view)
+
+    assert "emitted message" in composition
+    assert "sent message" in composition
+    assert "message route" in composition
+    assert "send beta.consume to receiver" in composition
+    assert '"message_effect_route_alpha_beta_0":e -> "layout_instance_receiver":w' in composition
+    assert "No mounted panels" not in composition
+    assert "layout_region_empty" not in composition
+    assert "project.board" not in composition
+    assert "panel.project" not in composition
+    svg = _render_graphviz_svg(composition, "generic_composition")
+    assert svg.lstrip().startswith("<svg")
 
 
 def test_audit_transition_basis_renders_for_otherwise_sparse_card() -> None:
@@ -118,8 +172,13 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "query.project.activity.read" in activity_fsm
     assert "project_id: ID" in activity_fsm
     assert "set project_id to null" in activity_fsm
+    assert "emitted message" in composition
+    assert "sent message" in composition
     assert "selected state: loading" in composition
     assert "send project.selection_changed to detail" in composition
+    assert "Layout / mounted panels" not in composition
+    assert "Message routing" not in composition
+    assert "Sync rules" not in composition
 
 
 def test_audit_html_sources_render_copy_assets_and_fixture_fields() -> None:

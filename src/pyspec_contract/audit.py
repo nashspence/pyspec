@@ -574,21 +574,20 @@ def panel_fsm_dot(panel_id: str, panel: dict[str, Any], contract: dict[str, Any]
 
 def composition_dot(view_id: str, view: dict[str, Any]) -> str:
     view_node = _dot_node_id("layout_view", view_id)
-    regions = sorted(layout_regions(view["layout"]).items(), key=lambda item: (item[1].get("order", 0), item[0]), reverse=True)
-    region_ids = [_dot_node_id("layout_region", region_name) for region_name, _ in regions]
+    regions = sorted(layout_regions(view["layout"]).items(), key=lambda item: (item[1].get("order", 0), item[0]))
     region_order = {region_name: region.get("order", 0) for region_name, region in layout_regions(view["layout"]).items()}
-    includes = sorted(view.get("includes", []), key=lambda include: (region_order.get(include["region"], 0), include["id"]), reverse=True)
-    instance_ids = [_dot_node_id("layout_instance", include["id"]) for include in includes]
+    includes = sorted(view.get("includes", []), key=lambda include: (region_order.get(include["region"], 0), include["id"]))
+    includes_by_region: dict[str, list[dict[str, Any]]] = {region_name: [] for region_name, _ in regions}
+    for include in includes:
+        includes_by_region.setdefault(include["region"], []).append(include)
+    instance_node_by_id = {include["id"]: _dot_node_id("layout_instance", include["id"]) for include in includes}
+    region_lead_ids: list[str] = []
+    has_sync = bool(view.get("sync"))
     lines = [
         f"digraph {_dot_quote('composition_' + safe_id(view_id))} {{",
-        '  graph [rankdir="LR", bgcolor="transparent", pad="0.25", nodesep="0.35", ranksep="0.78", splines="spline", compound="true"];',
+        '  graph [rankdir="LR", bgcolor="transparent", pad="0.25", nodesep="0.55", ranksep="0.78", splines="spline", compound="true", newrank="true"];',
         '  node [fontname="Arial", fontsize="11"];',
         '  edge [color="#3f3f46", fontname="Arial", fontsize="10", arrowsize="0.8"];',
-        "  subgraph cluster_layout {",
-        '    label="Layout";',
-        '    color="#d4d4d8";',
-        '    fontname="Arial";',
-        '    fontsize="12";',
         _dot_html_node(
             view_node,
             _dot_card(
@@ -603,89 +602,40 @@ def composition_dot(view_id: str, view: dict[str, Any]) -> str:
                 header_bg="#f0fdf4",
                 border="#15803d",
             ),
-            indent="    ",
         ),
     ]
     for region_name, region in regions:
-        region_id = _dot_node_id("layout_region", region_name)
-        lines.append(
-            _dot_html_node(
-                region_id,
-                _dot_card(
-                    f"region: {region_name}",
-                    f"order: {region.get('order', 0)}",
-                    [
-                        ("element", [region.get("element", "")]),
-                        ("role", [region.get("role", "none")]),
-                        ("required", [str(region.get("required", False)).lower()]),
-                    ],
-                    header_bg="#f8fafc",
-                    border="#71717a",
-                ),
-                indent="    ",
-            )
-        )
-        lines.append(f"    {_dot_quote(view_node)} -> {_dot_quote(region_id)};")
-    for include in includes:
-        inst = _dot_node_id("layout_instance", include["id"])
-        region_id = _dot_node_id("layout_region", include["region"])
-        selected = include.get("selected") or {}
-        selected_lines = []
-        if selected:
-            selected_lines.append(f"selected state: {selected['state']}")
-            selected_lines.extend(f"when {key}: {value}" for key, value in selected.get("when", {}).items())
-        lines.append(
-            _dot_html_node(
-                inst,
-                _dot_card(
-                    f"instance: {include['id']}",
-                    include["panel"],
-                    [
-                        ("region", [include["region"]]),
-                        ("initial", [include["initial"]]),
-                        ("context", _format_mapping(include.get("context", {}))),
-                        ("selected", selected_lines),
-                    ],
-                    header_bg="#fff7ed",
-                    border="#c2410c",
-                ),
-                indent="    ",
-            )
-        )
-        lines.append(f"    {_dot_quote(region_id)} -> {_dot_quote(inst)};")
-    if region_ids:
-        lines.append("    { rank=same; " + " ".join(_dot_quote(region_id) for region_id in region_ids) + " }")
-        lines.extend(_dot_invisible_order(region_ids, indent="    "))
-    if instance_ids:
-        lines.append("    { rank=same; " + " ".join(_dot_quote(instance_id) for instance_id in instance_ids) + " }")
-        lines.extend(_dot_invisible_order(instance_ids, indent="    "))
-    lines.append("  }")
-
-    lines.extend(
-        [
-            "  subgraph cluster_sync {",
-            '    label="Sync rules";',
-            '    color="#d4d4d8";',
-            '    fontname="Arial";',
-            '    fontsize="12";',
-        ]
-    )
-    if not view.get("sync"):
-        lines.append(_dot_html_node("sync_none", _dot_card("No sync rules", None, [], header_bg="#f8fafc"), indent="    "))
+        region_includes = includes_by_region.get(region_name, [])
+        for include in region_includes:
+            inst = instance_node_by_id[include["id"]]
+            if not any(node_id == inst for node_id in region_lead_ids):
+                region_lead_ids.append(inst)
+            lines.append(_dot_html_node(inst, _dot_instance_card(include, region)))
+        region_instance_ids = [instance_node_by_id[include["id"]] for include in region_includes]
+        lines.extend(_dot_invisible_order(region_instance_ids, indent="  "))
+    if region_lead_ids:
+        lines.append(f"  {_dot_quote(view_node)} -> {_dot_quote(region_lead_ids[0])} [style=\"invis\", weight=\"10\"];")
+        if not has_sync:
+            lines.extend(_dot_invisible_order(region_lead_ids, indent="  "))
+    if not has_sync:
+        lines.append(_dot_html_node("message_route_none", _dot_card("No message routes", None, [], header_bg="#f8fafc")))
     for rule in view.get("sync", []):
-        source = _dot_node_id("sync_source", rule["id"])
-        sync_id = _dot_node_id("sync_rule", rule["id"])
+        emit_id = _dot_node_id("message_emit", f"{rule['id']}_{rule['when']['panel']}_{rule['when']['emits']}")
+        sync_id = _dot_node_id("message_route", rule["id"])
+        effect_ids = [_dot_node_id("message_effect", f"{rule['id']}_{index}") for index, _ in enumerate(rule.get("do", []))]
         lines.append(
             _dot_html_node(
-                source,
+                emit_id,
                 _dot_card(
-                    f"{rule['when']['panel']} emits",
                     rule["when"]["emits"],
-                    [],
+                    "emitted message",
+                    [
+                        ("from", [rule["when"]["panel"]]),
+                        ("do", [f"{rule['when']['panel']} emits {rule['when']['emits']}"]),
+                    ],
                     header_bg="#eef2ff",
                     border="#4f46e5",
                 ),
-                indent="    ",
             )
         )
         lines.append(
@@ -693,45 +643,107 @@ def composition_dot(view_id: str, view: dict[str, Any]) -> str:
                 sync_id,
                 _dot_card(
                     rule["id"],
-                    "sync rule",
+                    "message route",
                     [
-                        ("when", [f"panel: {rule['when']['panel']}", f"emits: {rule['when']['emits']}"]),
-                        ("do", _format_sync_effects(rule.get("do", []))),
+                        ("trigger", [f"{rule['when']['panel']} emits {rule['when']['emits']}"]),
+                        ("effects", [f"{len(rule.get('do', []))} routed effect(s)"]),
                     ],
                     header_bg="#fefce8",
                     border="#a16207",
                 ),
-                indent="    ",
             )
         )
-        lines.append(f"    {_dot_quote(source)} -> {_dot_quote(sync_id)};")
-        action_ids = []
-        indexed_effects = list(enumerate(rule["do"]))
-        for index, effect in reversed(indexed_effects):
-            action_id = _dot_node_id("sync_action", f"{rule['id']}_{index}")
-            action_ids.append(action_id)
-            if "send" in effect:
-                title = f"send to {effect['send']['panel']}"
-                sections = [("event", [effect["send"]["event"]])]
-                header_bg = "#fff7ed"
-                border = "#c2410c"
-            else:
-                title = "set view context"
-                sections = [("context", [effect["set"]["context"]]), ("from", [effect["set"]["from"]])]
-                header_bg = "#f0fdf4"
-                border = "#15803d"
-            lines.append(_dot_html_node(action_id, _dot_card(title, None, sections, header_bg=header_bg, border=border), indent="    "))
-            lines.append(f"    {_dot_quote(sync_id)} -> {_dot_quote(action_id)};")
-        if action_ids:
-            lines.append("    { rank=same; " + " ".join(_dot_quote(action_id) for action_id in action_ids) + " }")
-            lines.extend(_dot_invisible_order(action_ids, indent="    "))
-    lines.append("  }")
+        for index, effect in enumerate(rule.get("do", [])):
+            effect_id = _dot_node_id("message_effect", f"{rule['id']}_{index}")
+            lines.append(_dot_html_node(effect_id, _dot_sync_effect_card(effect)))
+        if effect_ids:
+            lines.append("  { rank=same; " + " ".join(_dot_quote(effect_id) for effect_id in effect_ids) + " }")
+            lines.extend(_dot_invisible_order(effect_ids, indent="  "))
+    if not has_sync:
+        lines.append(f"  {_dot_quote(view_node)} -> {_dot_quote('message_route_none')} [style=\"invis\", weight=\"10\"];")
+    for rule in view.get("sync", []):
+        emit_id = _dot_node_id("message_emit", f"{rule['id']}_{rule['when']['panel']}_{rule['when']['emits']}")
+        sync_id = _dot_node_id("message_route", rule["id"])
+        source = instance_node_by_id.get(rule["when"]["panel"])
+        if source:
+            lines.append(f"  {_dot_endpoint(source, 'e')} -> {_dot_endpoint(emit_id, 'w')} [color=\"#4f46e5\", penwidth=\"1.4\"];")
+        lines.append(f"  {_dot_endpoint(emit_id, 'e')} -> {_dot_endpoint(sync_id, 'w')} [color=\"#4f46e5\", penwidth=\"1.2\"];")
+        for index, effect in enumerate(rule.get("do", [])):
+            effect_id = _dot_node_id("message_effect", f"{rule['id']}_{index}")
+            edge_attrs = 'color="#c2410c", penwidth="1.3"'
+            if "set" in effect:
+                edge_attrs = 'color="#15803d", penwidth="1.3", style="dotted"'
+            lines.append(f"  {_dot_endpoint(sync_id, 'e')} -> {_dot_endpoint(effect_id, 'w')} [{edge_attrs}];")
+            if "send" not in effect:
+                continue
+            target = instance_node_by_id.get(effect["send"]["panel"])
+            if not target:
+                continue
+            lines.append(f"  {_dot_endpoint(effect_id, 'e')} -> {_dot_endpoint(target, 'w')} [color=\"#c2410c\", penwidth=\"1.4\"];")
     lines.append("}")
     return "\n".join(lines) + "\n"
+
+def _dot_instance_card(include: dict[str, Any], region: dict[str, Any]) -> str:
+    selected = include.get("selected") or {}
+    selected_lines = []
+    if selected:
+        selected_lines.append(f"selected state: {selected['state']}")
+        selected_lines.extend(f"when {key}: {value}" for key, value in selected.get("when", {}).items())
+    return _dot_card(
+        f"instance: {include['id']}",
+        include["panel"],
+        [
+            (
+                "region",
+                [
+                    include["region"],
+                    f"order: {region.get('order', 0)}",
+                    f"element: {region.get('element', '')}",
+                    f"role: {region.get('role', 'none')}",
+                    f"required: {str(region.get('required', False)).lower()}",
+                ],
+            ),
+            ("initial", [include["initial"]]),
+            ("context", _format_mapping(include.get("context", {}))),
+            ("selected", selected_lines),
+        ],
+        header_bg="#fff7ed",
+        border="#c2410c",
+    )
+
+
+def _dot_sync_effect_card(effect: dict[str, Any]) -> str:
+    if "send" in effect:
+        send = effect["send"]
+        return _dot_card(
+            send["event"],
+            "sent message",
+            [
+                ("to", [send["panel"]]),
+                ("do", [f"send {send['event']} to {send['panel']}"]),
+            ],
+            header_bg="#fff7ed",
+            border="#c2410c",
+        )
+    assignment = effect["set"]
+    return _dot_card(
+        f"set {assignment['context']}",
+        "view context",
+        [
+            ("from", [assignment["from"]]),
+            ("do", [f"set {assignment['context']} from {assignment['from']}"]),
+        ],
+        header_bg="#f0fdf4",
+        border="#15803d",
+    )
 
 
 def _dot_node_id(prefix: str, value: str) -> str:
     return f"{prefix}_{safe_id(value)}"
+
+
+def _dot_endpoint(node_id: str, compass: str) -> str:
+    return f"{_dot_quote(node_id)}:{compass}"
 
 
 def _dot_invisible_order(node_ids: list[str], indent: str) -> list[str]:
@@ -1001,16 +1013,6 @@ def _format_scalar(value: Any) -> str:
     if isinstance(value, bool):
         return str(value).lower()
     return str(value)
-
-
-def _format_sync_effects(effects: Iterable[dict[str, Any]]) -> list[str]:
-    lines = []
-    for effect in effects:
-        if "set" in effect:
-            lines.append(f"set {effect['set']['context']} from {effect['set']['from']}")
-        elif "send" in effect:
-            lines.append(f"send {effect['send']['event']} to {effect['send']['panel']}")
-    return lines
 
 
 def _dot_attrs(attrs: dict[str, object]) -> str:
