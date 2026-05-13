@@ -14,7 +14,7 @@ for parent in [ROOT, *ROOT.parents]:
         sys.path.insert(0, str(src))
         break
 
-from generated.bdd_steps import *  # noqa: E402,F401,F403 - registers generated pytest-bdd steps
+from generated.test_adapters.pytest_bdd_steps import *  # noqa: E402,F401,F403 - registers generated pytest-bdd steps
 from pyspec_contract.reference_driver import ReferenceSpecDriver  # noqa: E402
 
 

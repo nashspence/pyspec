@@ -46,12 +46,12 @@ _OPENAPI_OPERATION_KEYS = {
 }
 _CWL_SCALAR_TYPES = {"string", "boolean", "int", "long", "float", "double", "Any", "null"}
 _PYTHON_PROJECTIONS = [
-    g("refs.py"),
-    g("driver_protocol.py"),
-    g("bdd_steps.py"),
-    g("textual_contract.py"),
-    g("content_contract.py"),
-    g("content_stubs.py"),
+    g("test_adapters", "python_refs.py"),
+    g("test_adapters", "driver_protocol.py"),
+    g("test_adapters", "pytest_bdd_steps.py"),
+    g("product_interfaces", "textual.projection.py"),
+    g("content_resolvers", "signatures.py"),
+    g("content_resolvers", "stubs.py"),
 ]
 
 
@@ -68,26 +68,26 @@ def validate_generated_projections(root: Path, contract: dict[str, Any]) -> None
     expected_paths = set(validated_projection_paths(contract))
     _validate_python_projections(root)
     validate_refs_py(root, contract)
-    if g("openapi.yaml") in expected_paths:
-        validate_openapi(contract, read_yaml(generated / "openapi.yaml"))
-    if g("asyncapi.yaml") in expected_paths:
-        validate_asyncapi(contract, read_yaml(generated / "asyncapi.yaml"))
-    if g("routes.json") in expected_paths:
-        validate_routes(contract, read_json(generated / "routes.json"))
-    if g("panels.json") in expected_paths:
-        validate_panels_json(contract, read_json(generated / "panels.json"))
-    if g("panels.html") in expected_paths:
-        validate_panels_html(contract, (generated / "panels.html").read_text(encoding="utf-8"))
-    if g("panel_styles.css") in expected_paths:
-        validate_panel_css(contract, (generated / "panel_styles.css").read_text(encoding="utf-8"))
-    if g("textual_contract.py") in expected_paths:
+    if g("product_interfaces", "http.openapi.yaml") in expected_paths:
+        validate_openapi(contract, read_yaml(generated / "product_interfaces" / "http.openapi.yaml"))
+    if g("product_interfaces", "events.asyncapi.yaml") in expected_paths:
+        validate_asyncapi(contract, read_yaml(generated / "product_interfaces" / "events.asyncapi.yaml"))
+    if g("product_interfaces", "web.routes.json") in expected_paths:
+        validate_routes(contract, read_json(generated / "product_interfaces" / "web.routes.json"))
+    if g("product_interfaces", "web.panels.json") in expected_paths:
+        validate_panels_json(contract, read_json(generated / "product_interfaces" / "web.panels.json"))
+    if g("product_interfaces", "web.panels.preview.html") in expected_paths:
+        validate_panels_html(contract, (generated / "product_interfaces" / "web.panels.preview.html").read_text(encoding="utf-8"))
+    if g("product_interfaces", "web.panels.preview.css") in expected_paths:
+        validate_panel_css(contract, (generated / "product_interfaces" / "web.panels.preview.css").read_text(encoding="utf-8"))
+    if g("product_interfaces", "textual.projection.py") in expected_paths:
         validate_textual_contract(root, contract)
-    if g("content_contract.py") in expected_paths:
+    if g("content_resolvers", "signatures.py") in expected_paths:
         validate_content_contract(root, contract)
-    if g("workflows.cwl.yaml") in expected_paths:
-        validate_workflows(contract, read_yaml(generated / "workflows.cwl.yaml"))
+    if g("product_interfaces", "workflow.cwl.yaml") in expected_paths:
+        validate_workflows(contract, read_yaml(generated / "product_interfaces" / "workflow.cwl.yaml"))
     validate_fixtures_and_scenarios(root, contract)
-    if (root / GENERATED_SPEC_DIR / "audit").exists() or any(path.startswith(g("audit") + "/") for path in audit_expected_files(contract)):
+    if (root / GENERATED_SPEC_DIR / "audit_evidence").exists() or any(path.startswith(g("audit_evidence") + "/") for path in audit_expected_files(contract)):
         validate_audit_outputs(root, contract)
 
 
@@ -467,17 +467,18 @@ def validate_panel_css(contract: dict[str, Any], text: str) -> None:
 
 
 def validate_textual_contract(root: Path, contract: dict[str, Any]) -> None:
-    path = root / GENERATED_SPEC_DIR / "textual_contract.py"
+    label = "textual.projection.py"
+    path = root / GENERATED_SPEC_DIR / "product_interfaces" / label
     module = _load_generated_module(path, "generated_textual_contract")
     panel_projection = panels_projection(contract)
     panels = panel_projection["panels"]
     compositions = panel_projection["compositions"]
     if module.PROJECT != contract["project"]:
-        raise ContractError("textual_contract.py PROJECT does not match contract")
+        raise ContractError(f"{label} PROJECT does not match contract")
     if module.PANELS != panels:
-        raise ContractError("textual_contract.py PANELS does not match panels projection")
+        raise ContractError(f"{label} PANELS does not match panels projection")
     if module.COMPOSITIONS != compositions:
-        raise ContractError("textual_contract.py COMPOSITIONS does not match composition projection")
+        raise ContractError(f"{label} COMPOSITIONS does not match composition projection")
 
     expected_screens = []
     panels_by_owner: dict[str, list[dict[str, Any]]] = {}
@@ -503,30 +504,30 @@ def validate_textual_contract(root: Path, contract: dict[str, Any]) -> None:
             "screen_class": screen_class,
         })
     if module.SCREENS != expected_screens:
-        raise ContractError("textual_contract.py SCREENS does not match textual entries")
+        raise ContractError(f"{label} SCREENS does not match textual entries")
 
     for panel in panels:
         if module.panel(panel["id"]) != panel:
-            raise ContractError(f"textual_contract.py panel lookup failed for {panel['id']}")
+            raise ContractError(f"{label} panel lookup failed for {panel['id']}")
         expected_widgets = _expected_textual_compose(panel)
         if module.compose_contract_panel(panel["id"]) != expected_widgets:
-            raise ContractError(f"textual_contract.py compose_contract_panel mismatch for {panel['id']}")
+            raise ContractError(f"{label} compose_contract_panel mismatch for {panel['id']}")
 
     for composition in compositions:
         if module.composition(composition["id"]) != composition:
-            raise ContractError(f"textual_contract.py composition lookup failed for {composition['id']}")
+            raise ContractError(f"{label} composition lookup failed for {composition['id']}")
         expected = [(instance["region"], instance["id"], instance["panel"]) for instance in composition["instances"]]
         if module.compose_contract_view(composition["id"]) != expected:
-            raise ContractError(f"textual_contract.py compose_contract_view mismatch for {composition['id']}")
+            raise ContractError(f"{label} compose_contract_view mismatch for {composition['id']}")
 
     try:
         module.panel("panel.missing")
     except KeyError:
         pass
     else:  # pragma: no cover
-        raise ContractError("textual_contract.py panel() must raise KeyError for unknown panels")
+        raise ContractError(f"{label} panel() must raise KeyError for unknown panels")
 
-    tcss_rules = _parse_css_rules(module.textual_css(), "textual_contract.py TCSS", textual=True)
+    tcss_rules = _parse_css_rules(module.textual_css(), f"{label} TCSS", textual=True)
     expected_selectors = {"Screen", ".contract-panel"}
     for panel in panels:
         textual = (panel.get("presentation") or {}).get("textual") or {}
@@ -546,9 +547,9 @@ def validate_textual_contract(root: Path, contract: dict[str, Any]) -> None:
 
 def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
     generated = root / GENERATED_SPEC_DIR
-    content_doc = read_yaml(generated / "content_cases.yaml")
+    content_doc = read_yaml(generated / "content_resolvers" / "cases.yaml")
     if content_doc != {"project": contract["project"], "content_cases": contract.get("content_cases", {})}:
-        raise ContractError("content_cases.yaml does not exactly match contract content cases")
+        raise ContractError("content_resolvers/cases.yaml does not exactly match contract content cases")
     try:
         load_resolvers(root)
     except ContentError as exc:
@@ -567,8 +568,8 @@ def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
     import importlib, sys
     sys.path.insert(0, str(root / SPEC_ROOT))
     try:
-        sys.modules.pop("generated.content_contract", None)
-        module = importlib.import_module("generated.content_contract")
+        sys.modules.pop("generated.content_resolvers.signatures", None)
+        module = importlib.import_module("generated.content_resolvers.signatures")
     finally:
         try:
             sys.path.remove(str(root / SPEC_ROOT))
@@ -710,28 +711,30 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
 
 def validate_fixtures_and_scenarios(root: Path, contract: dict[str, Any]) -> None:
     generated = root / GENERATED_SPEC_DIR
-    fixtures = read_yaml(generated / "fixtures.yaml")
-    scenarios = read_yaml(generated / "scenarios.yaml")
-    obligations = read_yaml(generated / "test_obligations.yaml")
+    behavior = generated / "behavior"
+    fixtures = read_yaml(behavior / "fixtures.yaml")
+    scenarios = read_yaml(behavior / "scenarios.yaml")
+    obligations = read_yaml(behavior / "obligations.yaml")
     if fixtures != {"project": contract["project"], "fixtures": contract["fixtures"]}:
         raise ContractError("fixtures.yaml does not match contract fixtures")
     if scenarios != {"project": contract["project"], "scenarios": contract["scenarios"]}:
         raise ContractError("scenarios.yaml does not match spec scenarios")
     expected_obligation_keys = {"project", "scenarios", "must_validate_projections", "refs"}
-    _require_exact_keys(obligations, expected_obligation_keys, "test_obligations.yaml")
+    _require_exact_keys(obligations, expected_obligation_keys, "behavior/obligations.yaml")
     if obligations["project"] != contract["project"]:
-        raise ContractError("test_obligations.yaml metadata mismatch")
+        raise ContractError("behavior/obligations.yaml metadata mismatch")
     if obligations["scenarios"] != contract["scenarios"]:
-        raise ContractError("test_obligations.yaml scenarios mismatch")
+        raise ContractError("behavior/obligations.yaml scenarios mismatch")
     if obligations["must_validate_projections"] != validated_projection_paths(contract):
-        raise ContractError("test_obligations.yaml must_validate_projections does not match active projections")
+        raise ContractError("behavior/obligations.yaml must_validate_projections does not match active projections")
 
     expected_ids = set(contract["scenarios"])
-    actual_ids = _feature_scenario_ids(generated / "features")
+    feature_root = generated / "test_adapters" / "pytest_bdd_features"
+    actual_ids = _feature_scenario_ids(feature_root)
     if actual_ids != expected_ids:
         raise ContractError(_diff_message("generated feature scenarios", expected_ids, actual_ids))
 
-    forbidden_harness_dirs = [generated / "features" / "spec", generated / "features" / "prod"]
+    forbidden_harness_dirs = [feature_root / "spec", feature_root / "prod"]
     for path in forbidden_harness_dirs:
         if path.exists():
             raise ContractError(f"Generated features must be single-source; remove {path.relative_to(root)}")
@@ -739,9 +742,9 @@ def validate_fixtures_and_scenarios(root: Path, contract: dict[str, Any]) -> Non
 
 
 def validate_audit_outputs(root: Path, contract: dict[str, Any]) -> None:
-    audit_root = root / GENERATED_SPEC_DIR / "audit"
+    audit_root = root / GENERATED_SPEC_DIR / "audit_evidence"
     if not audit_root.exists():
-        raise ContractError("Missing spec/generated/audit directory")
+        raise ContractError("Missing spec/generated/audit_evidence directory")
     expected = audit_expected_files(contract)
     actual = {
         str(path.relative_to(root))
@@ -751,15 +754,16 @@ def validate_audit_outputs(root: Path, contract: dict[str, Any]) -> None:
     if actual != expected:
         raise ContractError(_diff_message("audit generated files", expected, actual))
 
-    copy_doc = read_yaml(audit_root / "copy.yaml")
+    inputs_root = audit_root / "inputs"
+    copy_doc = read_yaml(inputs_root / "copy.yaml")
     if copy_doc != {"project": contract["project"], "copy": contract.get("copies", {})}:
         raise ContractError("audit copy.yaml does not match contract copy placeholders")
-    fixtures_doc = read_yaml(audit_root / "fixtures.yaml")
+    fixtures_doc = read_yaml(inputs_root / "fixtures.yaml")
     if fixtures_doc != {"project": contract["project"], "fixtures": contract.get("fixtures", {})}:
         raise ContractError("audit fixtures.yaml does not match contract fixtures")
 
     for asset_id, asset in contract.get("assets", {}).items():
-        path = audit_root / "assets" / f"{safe_id(asset_id)}.svg"
+        path = inputs_root / "assets" / f"{safe_id(asset_id)}.svg"
         text = path.read_text(encoding="utf-8")
         if not text.lstrip().startswith("<svg") or "</svg>" not in text:
             raise ContractError(f"audit asset placeholder is not SVG: {asset_id}")
@@ -769,24 +773,24 @@ def validate_audit_outputs(root: Path, contract: dict[str, Any]) -> None:
             raise ContractError(f"audit asset placeholder must preserve the accessible label: {asset_id}")
 
     for panel_id in contract.get("panels", {}):
-        _assert_svg(audit_root / "fsm" / f"{safe_id(panel_id)}.svg", f"FSM {panel_id}")
+        _assert_svg(audit_root / "diagrams" / "panel_state_machines" / f"{safe_id(panel_id)}.svg", f"FSM {panel_id}")
     for view_id, view in contract.get("views", {}).items():
         if view.get("includes"):
-            _assert_svg(audit_root / "composition" / f"{safe_id(view_id)}.svg", f"composition {view_id}")
+            _assert_svg(audit_root / "diagrams" / "view_compositions" / f"{safe_id(view_id)}.svg", f"composition {view_id}")
 
     projection = panels_projection(contract)
     for panel in projection["panels"]:
         for profile_id, profile in sorted(contract.get("audit_profiles", {}).items()):
             for breakpoint, viewport in profile.get("html", {}).get("breakpoints", {}).items():
                 stem = f"{safe_id(profile_id)}.{safe_id(breakpoint)}"
-                html_path = audit_root / "html" / "panels" / safe_id(panel["id"]) / f"{stem}.html"
-                png_path = audit_root / "html" / "panels" / safe_id(panel["id"]) / f"{stem}.png"
+                html_path = audit_root / "renders" / "html" / "panels" / safe_id(panel["id"]) / f"{stem}.html"
+                png_path = audit_root / "renders" / "html" / "panels" / safe_id(panel["id"]) / f"{stem}.png"
                 _assert_html_source(html_path, f"HTML panel audit {panel['id']}/{breakpoint}")
                 _assert_png(png_path, f"HTML panel audit {panel['id']}/{breakpoint}", viewport)
             for breakpoint in profile.get("textual", {}).get("breakpoints", {}):
                 stem = f"{safe_id(profile_id)}.{safe_id(breakpoint)}"
-                py_path = audit_root / "textual" / "panels" / safe_id(panel["id"]) / f"{stem}.py"
-                svg_path = audit_root / "textual" / "panels" / safe_id(panel["id"]) / f"{stem}.svg"
+                py_path = audit_root / "renders" / "textual" / "panels" / safe_id(panel["id"]) / f"{stem}.py"
+                svg_path = audit_root / "renders" / "textual" / "panels" / safe_id(panel["id"]) / f"{stem}.svg"
                 _assert_textual_source(py_path, f"Textual panel audit {panel['id']}/{breakpoint}")
                 _assert_svg(svg_path, f"Textual panel audit {panel['id']}/{breakpoint}")
                 if "rich-terminal" not in svg_path.read_text(encoding="utf-8"):
@@ -797,15 +801,15 @@ def validate_audit_outputs(root: Path, contract: dict[str, Any]) -> None:
         if "html" in case["surfaces"]:
             for breakpoint, viewport in profile.get("html", {}).get("breakpoints", {}).items():
                 stem = f"{safe_id(case['profile'])}.{safe_id(breakpoint)}.{safe_id(case_id)}"
-                html_path = audit_root / "html" / "views" / safe_id(case["view"]) / f"{stem}.html"
-                png_path = audit_root / "html" / "views" / safe_id(case["view"]) / f"{stem}.png"
+                html_path = audit_root / "renders" / "html" / "views" / safe_id(case["view"]) / f"{stem}.html"
+                png_path = audit_root / "renders" / "html" / "views" / safe_id(case["view"]) / f"{stem}.png"
                 _assert_html_source(html_path, f"HTML view audit {case_id}/{breakpoint}")
                 _assert_png(png_path, f"HTML view audit {case_id}/{breakpoint}", viewport)
         if "textual" in case["surfaces"]:
             for breakpoint in profile.get("textual", {}).get("breakpoints", {}):
                 stem = f"{safe_id(case['profile'])}.{safe_id(breakpoint)}.{safe_id(case_id)}"
-                py_path = audit_root / "textual" / "views" / safe_id(case["view"]) / f"{stem}.py"
-                svg_path = audit_root / "textual" / "views" / safe_id(case["view"]) / f"{stem}.svg"
+                py_path = audit_root / "renders" / "textual" / "views" / safe_id(case["view"]) / f"{stem}.py"
+                svg_path = audit_root / "renders" / "textual" / "views" / safe_id(case["view"]) / f"{stem}.svg"
                 _assert_textual_source(py_path, f"Textual view audit {case_id}/{breakpoint}")
                 _assert_svg(svg_path, f"Textual view audit {case_id}/{breakpoint}")
                 if "rich-terminal" not in svg_path.read_text(encoding="utf-8"):
@@ -869,7 +873,7 @@ def _validate_python_projections(root: Path) -> None:
 
 
 def validate_refs_py(root: Path, contract: dict[str, Any]) -> None:
-    module = _load_generated_module(root / GENERATED_SPEC_DIR / "refs.py", "generated_refs")
+    module = _load_generated_module(root / GENERATED_SPEC_DIR / "test_adapters" / "python_refs.py", "generated_refs")
     expected_groups: dict[str, list[str]] = {
         "Asset": sorted(contract.get("assets", {})),
         "AuditProfile": sorted(contract.get("audit_profiles", {})),
@@ -890,11 +894,11 @@ def validate_refs_py(root: Path, contract: dict[str, Any]) -> None:
     for class_name, values in expected_groups.items():
         cls = getattr(module, class_name, None)
         if cls is None:
-            raise ContractError(f"refs.py missing class {class_name}")
+            raise ContractError(f"python_refs.py missing class {class_name}")
         actual = {name: value for name, value in vars(cls).items() if name.isupper()}
         expected = {constant_name(value): value for value in values}
         if actual != expected:
-            raise ContractError(f"refs.py constants for {class_name} do not match contract refs")
+            raise ContractError(f"python_refs.py constants for {class_name} do not match contract refs")
 
 
 def _validate_json_schema_components(components: dict[str, Any], label: str) -> None:

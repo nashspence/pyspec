@@ -92,8 +92,8 @@ def load_resolvers(root: Path) -> None:
 def _content_contract(root: Path):
     sys.path.insert(0, str(root / SPEC_ROOT))
     try:
-        sys.modules.pop("generated.content_contract", None)
-        return importlib.import_module("generated.content_contract")
+        sys.modules.pop("generated.content_resolvers.signatures", None)
+        return importlib.import_module("generated.content_resolvers.signatures")
     finally:
         try:
             sys.path.remove(str(root / SPEC_ROOT))

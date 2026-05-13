@@ -11,7 +11,7 @@ from pyspec_contract.io import read_yaml
 
 @lru_cache(maxsize=1)
 def _scenarios() -> dict[str, Any]:
-    path = Path(__file__).resolve().parent / "scenarios.yaml"
+    path = Path(__file__).resolve().parents[1] / "behavior" / "scenarios.yaml"
     return read_yaml(path)["scenarios"]
 
 

@@ -27,29 +27,31 @@ SCALAR_JSON_SCHEMA: dict[str, dict[str, Any]] = {
 def projection_paths(contract: dict[str, Any]) -> list[str]:
     paths = [
         g("__init__.py"),
-        g("refs.py"),
-        g("fixtures.yaml"),
-        g("scenarios.yaml"),
-        g("test_obligations.yaml"),
-        g("driver_protocol.py"),
-        g("bdd_steps.py"),
+        g("test_adapters", "__init__.py"),
+        g("content_resolvers", "__init__.py"),
+        g("test_adapters", "python_refs.py"),
+        g("behavior", "fixtures.yaml"),
+        g("behavior", "scenarios.yaml"),
+        g("behavior", "obligations.yaml"),
+        g("test_adapters", "driver_protocol.py"),
+        g("test_adapters", "pytest_bdd_steps.py"),
     ]
     if _has_api(contract):
-        paths.append(g("openapi.yaml"))
+        paths.append(g("product_interfaces", "http.openapi.yaml"))
     if _has_asyncapi(contract):
-        paths.append(g("asyncapi.yaml"))
+        paths.append(g("product_interfaces", "events.asyncapi.yaml"))
     if _has_web_routes(contract):
-        paths.append(g("routes.json"))
+        paths.append(g("product_interfaces", "web.routes.json"))
     if _has_ui(contract):
-        paths.append(g("panels.json"))
+        paths.append(g("product_interfaces", "web.panels.json"))
     if _has_web_ui(contract):
-        paths.extend([g("panels.html"), g("panel_styles.css")])
+        paths.extend([g("product_interfaces", "web.panels.preview.html"), g("product_interfaces", "web.panels.preview.css")])
     if _has_textual_ui(contract):
-        paths.append(g("textual_contract.py"))
+        paths.append(g("product_interfaces", "textual.projection.py"))
     if _has_workflow(contract):
-        paths.append(g("workflows.cwl.yaml"))
+        paths.append(g("product_interfaces", "workflow.cwl.yaml"))
     if _has_content(contract):
-        paths.extend([g("content_contract.py"), g("content_stubs.py"), g("content_cases.yaml")])
+        paths.extend([g("content_resolvers", "__init__.py"), g("content_resolvers", "signatures.py"), g("content_resolvers", "stubs.py"), g("content_resolvers", "cases.yaml")])
     paths.extend(sorted(feature_projections(contract)))
     return paths
 
@@ -57,40 +59,43 @@ def projection_paths(contract: dict[str, Any]) -> list[str]:
 def validated_projection_paths(contract: dict[str, Any]) -> list[str]:
     skip = {
         g("__init__.py"),
-        g("driver_protocol.py"),
-        g("bdd_steps.py"),
-        g("test_obligations.yaml"),
+        g("test_adapters", "__init__.py"),
+        g("test_adapters", "driver_protocol.py"),
+        g("test_adapters", "pytest_bdd_steps.py"),
+        g("behavior", "obligations.yaml"),
     }
-    return [path for path in projection_paths(contract) if path not in skip and not path.startswith(g("features") + "/")]
+    return [path for path in projection_paths(contract) if path not in skip and not path.startswith(g("test_adapters", "pytest_bdd_features") + "/")]
 
 
 def projection_files(contract: dict[str, Any]) -> Iterable[tuple[str, Any, str]]:
     yield g("__init__.py"), "# Generated package. Do not edit.\n", "text"
+    yield g("test_adapters", "__init__.py"), "# Generated package. Do not edit.\n", "text"
     if _has_api(contract):
-        yield g("openapi.yaml"), openapi_projection(contract), "yaml"
+        yield g("product_interfaces", "http.openapi.yaml"), openapi_projection(contract), "yaml"
     if _has_asyncapi(contract):
-        yield g("asyncapi.yaml"), asyncapi_projection(contract), "yaml"
+        yield g("product_interfaces", "events.asyncapi.yaml"), asyncapi_projection(contract), "yaml"
     if _has_web_routes(contract):
-        yield g("routes.json"), routes_projection(contract), "json"
+        yield g("product_interfaces", "web.routes.json"), routes_projection(contract), "json"
     if _has_ui(contract):
-        yield g("panels.json"), panels_projection(contract), "json"
+        yield g("product_interfaces", "web.panels.json"), panels_projection(contract), "json"
     if _has_web_ui(contract):
-        yield g("panels.html"), panels_html_projection(contract), "text"
-        yield g("panel_styles.css"), panel_styles_projection(contract), "text"
+        yield g("product_interfaces", "web.panels.preview.html"), panels_html_projection(contract), "text"
+        yield g("product_interfaces", "web.panels.preview.css"), panel_styles_projection(contract), "text"
     if _has_textual_ui(contract):
-        yield g("textual_contract.py"), textual_contract_projection(contract), "text"
+        yield g("product_interfaces", "textual.projection.py"), textual_contract_projection(contract), "text"
     if _has_workflow(contract):
-        yield g("workflows.cwl.yaml"), workflows_projection(contract), "yaml"
-    yield g("fixtures.yaml"), fixtures_projection(contract), "yaml"
-    yield g("scenarios.yaml"), scenarios_projection(contract), "yaml"
-    yield g("test_obligations.yaml"), test_obligations_projection(contract), "yaml"
-    yield g("refs.py"), refs_py_projection(contract), "text"
+        yield g("product_interfaces", "workflow.cwl.yaml"), workflows_projection(contract), "yaml"
+    yield g("behavior", "fixtures.yaml"), fixtures_projection(contract), "yaml"
+    yield g("behavior", "scenarios.yaml"), scenarios_projection(contract), "yaml"
+    yield g("behavior", "obligations.yaml"), test_obligations_projection(contract), "yaml"
+    yield g("test_adapters", "python_refs.py"), refs_py_projection(contract), "text"
     if _has_content(contract):
-        yield g("content_contract.py"), content_contract_projection(contract), "text"
-        yield g("content_stubs.py"), content_stubs_projection(contract), "text"
-        yield g("content_cases.yaml"), content_cases_projection(contract), "yaml"
-    yield g("driver_protocol.py"), driver_protocol_projection(), "text"
-    yield g("bdd_steps.py"), bdd_steps_projection(), "text"
+        yield g("content_resolvers", "__init__.py"), "# Generated package. Do not edit.\n", "text"
+        yield g("content_resolvers", "signatures.py"), content_contract_projection(contract), "text"
+        yield g("content_resolvers", "stubs.py"), content_stubs_projection(contract), "text"
+        yield g("content_resolvers", "cases.yaml"), content_cases_projection(contract), "yaml"
+    yield g("test_adapters", "driver_protocol.py"), driver_protocol_projection(), "text"
+    yield g("test_adapters", "pytest_bdd_steps.py"), bdd_steps_projection(), "text"
     for relative, text in feature_projections(contract).items():
         yield relative, text, "text"
 
@@ -327,7 +332,7 @@ def panels_html_projection(contract: dict[str, Any]) -> str:
         "<head>",
         '  <meta charset="utf-8">',
         f"  <title>{html.escape(contract['project'])} panel contract</title>",
-        '  <link rel="stylesheet" href="panel_styles.css">',
+        '  <link rel="stylesheet" href="web.panels.preview.css">',
         "</head>",
         "<body>",
         '  <main data-contract-surface="html-css">',
@@ -588,7 +593,7 @@ def render_html_slot(contract: dict[str, Any], panel: dict[str, Any], slot: dict
         label = contract.get("assets", {}).get(asset_ref, {}).get("placeholder", {}).get("label", asset_ref)
         if tag == "img":
             attrs.setdefault("alt", label)
-            attrs.setdefault("src", f"audit/assets/{safe_id(asset_ref)}.svg")
+            attrs.setdefault("src", f"../audit_evidence/inputs/assets/{safe_id(asset_ref)}.svg")
             return [f"{indent}<img{format_attrs(attrs)}>"]
         return [f"{indent}<{tag}{format_attrs(attrs)}>{html.escape(label)}</{tag}>"]
     if kind == "field":
@@ -797,7 +802,7 @@ def _content_signature_items(contract: dict[str, Any], section: str) -> list[tup
 
 def content_contract_projection(contract: dict[str, Any]) -> str:
     lines = [
-        '"""Generated content resolver contract. Do not edit by hand."""',
+        '"""Generated content resolver signatures. Do not edit by hand."""',
         "from __future__ import annotations",
         "",
         "from dataclasses import dataclass",
@@ -834,8 +839,8 @@ def content_stubs_projection(contract: dict[str, Any]) -> str:
         "from __future__ import annotations",
         "",
         "from pyspec_contract.content import AssetResult, ContentContext, asset, copy",
-        "from generated.content_contract import *  # generated arg classes",
-        "from generated.refs import Asset, Copy",
+        "from generated.content_resolvers.signatures import *  # generated arg classes",
+        "from generated.test_adapters.python_refs import Asset, Copy",
         "",
     ]
     for ref, spec, class_name in _content_signature_items(contract, "copies"):
@@ -898,7 +903,7 @@ def driver_protocol_projection() -> str:
 from typing import Any, Mapping, Protocol
 
 
-class ContractDriver(Protocol):
+class SpecDriver(Protocol):
     """Implemented by pytest-bdd harness drivers. Generated; do not edit."""
 
     def arrange(self, scenario_id: str, scenario: Mapping[str, Any]) -> None: ...
@@ -921,7 +926,7 @@ from pyspec_contract.io import read_yaml
 
 @lru_cache(maxsize=1)
 def _scenarios() -> dict[str, Any]:
-    path = Path(__file__).resolve().parent / "scenarios.yaml"
+    path = Path(__file__).resolve().parents[1] / "behavior" / "scenarios.yaml"
     return read_yaml(path)["scenarios"]
 
 
@@ -954,7 +959,7 @@ def feature_projections(contract: dict[str, Any]) -> dict[str, str]:
         by_feature[scenario["feature"]].append((scenario_id, scenario))
     files: dict[str, str] = {}
     for feature_id, scenarios in sorted(by_feature.items()):
-        files[g("features", f"{safe_id(feature_id)}.feature")] = feature_text(feature_id, scenarios)
+        files[g("test_adapters", "pytest_bdd_features", f"{safe_id(feature_id)}.feature")] = feature_text(feature_id, scenarios)
     return files
 
 

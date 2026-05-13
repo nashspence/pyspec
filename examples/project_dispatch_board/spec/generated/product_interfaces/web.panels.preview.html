@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <title>project_dispatch_board panel contract</title>
-  <link rel="stylesheet" href="panel_styles.css">
+  <link rel="stylesheet" href="web.panels.preview.css">
 </head>
 <body>
   <main data-contract-surface="html-css">
@@ -32,7 +32,7 @@
     </section>
     <section class="contract-panel" data-contract-fsm="panel.project.detail" data-contract-owner="panel.project.detail" data-contract-owner-kind="panel" data-contract-panel="panel.project.detail.ready" data-contract-state="ready">
       <p data-contract-slot="heading" data-copy="copy.project.detail.ready.heading">Project detail</p>
-      <img alt="Project priority badge" data-asset="asset.project.detail.ready.priority_badge" data-contract-slot="priority_badge" src="audit/assets/asset_project_detail_ready_priority_badge.svg">
+      <img alt="Project priority badge" data-asset="asset.project.detail.ready.priority_badge" data-contract-slot="priority_badge" src="../audit_evidence/inputs/assets/asset_project_detail_ready_priority_badge.svg">
       <p data-contract-slot="title" data-field="title"><span data-field-label="true">Title</span><span data-field-value="true">{{ title }}</span></p>
       <p data-contract-slot="customer" data-field="customer"><span data-field-label="true">Customer</span><span data-field-value="true">{{ customer }}</span></p>
       <p data-contract-slot="status" data-field="status"><span data-field-label="true">Status</span><span data-field-value="true">{{ status }}</span></p>
@@ -44,7 +44,7 @@
     <section class="contract-panel" data-contract-fsm="panel.project.list" data-contract-owner="panel.project.list" data-contract-owner-kind="panel" data-contract-panel="panel.project.list.empty" data-contract-state="empty">
       <p data-contract-slot="heading" data-copy="copy.project.list.empty.heading">No dispatch projects yet</p>
       <p data-contract-slot="body" data-copy="copy.project.list.empty.body">Create the first project to start coordinating work for this workspace.</p>
-      <img alt="Empty dispatch queue illustration" data-asset="asset.project.list.empty.illustration" data-contract-slot="illustration" src="audit/assets/asset_project_list_empty_illustration.svg">
+      <img alt="Empty dispatch queue illustration" data-asset="asset.project.list.empty.illustration" data-contract-slot="illustration" src="../audit_evidence/inputs/assets/asset_project_list_empty_illustration.svg">
       <button data-action="project.create" data-contract-slot="project.create" type="button">Project Create</button>
     </section>
     <section class="contract-panel" data-contract-fsm="panel.project.list" data-contract-owner="panel.project.list" data-contract-owner-kind="panel" data-contract-panel="panel.project.list.error" data-contract-state="error">

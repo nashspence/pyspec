@@ -29,7 +29,7 @@ def _contract(root: Path = ROOT) -> dict:
 
 def test_openapi_validator_rejects_response_schema_drift() -> None:
     contract = _contract()
-    openapi = read_yaml(ROOT / "spec" / "generated" / "openapi.yaml")
+    openapi = read_yaml(ROOT / "spec" / "generated" / "product_interfaces" / "http.openapi.yaml")
     mutated = copy.deepcopy(openapi)
     op = mutated["paths"]["/workspaces/{workspace_id}/projects"]["post"]
     op["responses"]["200"]["content"]["application/json"]["schema"] = {"type": "string"}
@@ -39,7 +39,7 @@ def test_openapi_validator_rejects_response_schema_drift() -> None:
 
 def test_openapi_validator_rejects_unresolved_component_ref() -> None:
     contract = _contract()
-    openapi = read_yaml(ROOT / "spec" / "generated" / "openapi.yaml")
+    openapi = read_yaml(ROOT / "spec" / "generated" / "product_interfaces" / "http.openapi.yaml")
     mutated = copy.deepcopy(openapi)
     mutated["paths"]["/workspaces/{workspace_id}/projects"]["post"]["responses"]["200"]["content"]["application/json"]["schema"] = {"$ref": "#/components/schemas/Missing"}
     with pytest.raises(ContractError, match="response schema"):
@@ -48,7 +48,7 @@ def test_openapi_validator_rejects_unresolved_component_ref() -> None:
 
 def test_asyncapi_validator_rejects_wrong_channel_message_binding() -> None:
     contract = _contract()
-    asyncapi = read_yaml(ROOT / "spec" / "generated" / "asyncapi.yaml")
+    asyncapi = read_yaml(ROOT / "spec" / "generated" / "product_interfaces" / "events.asyncapi.yaml")
     mutated = copy.deepcopy(asyncapi)
     first_channel = next(value for value in mutated["channels"].values() if isinstance(value, dict) and "messages" in value)
     first_channel["messages"] = {"message_drift": {"$ref": "#/components/messages/message_drift"}}
@@ -58,7 +58,7 @@ def test_asyncapi_validator_rejects_wrong_channel_message_binding() -> None:
 
 def test_workflow_validator_rejects_unknown_cwl_step_target() -> None:
     contract = _contract()
-    cwl = read_yaml(ROOT / "spec" / "generated" / "workflows.cwl.yaml")
+    cwl = read_yaml(ROOT / "spec" / "generated" / "product_interfaces" / "workflow.cwl.yaml")
     mutated = copy.deepcopy(cwl)
     workflow = next(item for item in mutated["$graph"] if item["class"] == "Workflow")
     first_step = next(iter(workflow["steps"].values()))
@@ -69,7 +69,7 @@ def test_workflow_validator_rejects_unknown_cwl_step_target() -> None:
 
 def test_html_validator_rejects_undeclared_copy_ref() -> None:
     contract = _contract()
-    html = (ROOT / "spec" / "generated" / "panels.html").read_text(encoding="utf-8")
+    html = (ROOT / "spec" / "generated" / "product_interfaces" / "web.panels.preview.html").read_text(encoding="utf-8")
     mutated = html.replace("copy.project.list.empty.heading", "copy.project.list.empty.subtitle", 1)
     with pytest.raises(ContractError, match="undeclared copy refs|missing copy slot"):
         validate_panels_html(contract, mutated)
@@ -77,7 +77,7 @@ def test_html_validator_rejects_undeclared_copy_ref() -> None:
 
 def test_css_validator_rejects_unresolved_contract_token() -> None:
     contract = _contract()
-    css = (ROOT / "spec" / "generated" / "panel_styles.css").read_text(encoding="utf-8")
+    css = (ROOT / "spec" / "generated" / "product_interfaces" / "web.panels.preview.css").read_text(encoding="utf-8")
     mutated = css.replace("var(--gap)", "token.gap", 1)
     with pytest.raises(ContractError, match="unresolved"):
         validate_panel_css(contract, mutated)
@@ -86,7 +86,7 @@ def test_css_validator_rejects_unresolved_contract_token() -> None:
 def test_textual_validator_rejects_broken_generated_python(tmp_path: Path) -> None:
     project = tmp_path / "project"
     copy_project_tree(ROOT, project)
-    path = project / "spec" / "generated" / "textual_contract.py"
+    path = project / "spec" / "generated" / "product_interfaces" / "textual.projection.py"
     path.write_text(path.read_text(encoding="utf-8") + "\nthis is not python\n", encoding="utf-8")
     with pytest.raises(ContractError, match="not importable"):
         validate_textual_contract(project, _contract())
@@ -95,7 +95,7 @@ def test_textual_validator_rejects_broken_generated_python(tmp_path: Path) -> No
 def test_scenario_validator_rejects_freeform_generated_gherkin(tmp_path: Path) -> None:
     project = tmp_path / "project"
     copy_project_tree(ROOT, project)
-    feature = next((project / "spec" / "generated" / "features").glob("*.feature"))
+    feature = next((project / "spec" / "generated" / "test_adapters" / "pytest_bdd_features").glob("*.feature"))
     text = feature.read_text(encoding="utf-8")
     feature.write_text(text.replace("    Then ", "    And freeform agent prose\n    Then ", 1), encoding="utf-8")
     with pytest.raises(ContractError, match="non-canonical BDD conjunction|canonical When/Then"):
@@ -104,7 +104,7 @@ def test_scenario_validator_rejects_freeform_generated_gherkin(tmp_path: Path) -
 
 def test_panels_json_validator_rejects_missing_composition() -> None:
     contract = _contract()
-    panels = read_json(ROOT / "spec" / "generated" / "panels.json")
+    panels = read_json(ROOT / "spec" / "generated" / "product_interfaces" / "web.panels.json")
     mutated = copy.deepcopy(panels)
     mutated["compositions"] = []
     with pytest.raises(ContractError, match="panels.json"):
@@ -113,7 +113,7 @@ def test_panels_json_validator_rejects_missing_composition() -> None:
 
 def test_html_validator_rejects_wrong_composed_panel_instance() -> None:
     contract = _contract()
-    html = (ROOT / "spec" / "generated" / "panels.html").read_text(encoding="utf-8")
+    html = (ROOT / "spec" / "generated" / "product_interfaces" / "web.panels.preview.html").read_text(encoding="utf-8")
     mutated = html.replace('data-panel-source="panel.project.list"', 'data-panel-source="panel.project.ghost"', 1)
     with pytest.raises(ContractError, match="wrong source/initial"):
         validate_panels_html(contract, mutated)

@@ -44,15 +44,15 @@ For final copy or image assets, declare the typed content signature in `spec/spe
 
 ## Final content resolver implementer
 
-Edit `spec/spec.py` only after the PM/spec contract declares the resolver. Do not add resolver IDs, args, or asset formats in Python. Import generated arg classes and refs, return plain `str` for copy and `AssetResult` with real SVG for image assets, and keep outputs deterministic for declared content cases and render cases.
+Edit `spec/spec.py` only after the PM/spec contract declares the resolver. Do not add resolver IDs, args, or asset formats in Python. Import generated arg classes from `spec/generated/content_resolvers/signatures.py` and refs from `spec/generated/test_adapters/python_refs.py`, return plain `str` for copy and `AssetResult` with real SVG for image assets, and keep outputs deterministic for declared content cases and render cases.
 
 ## Test agent
 
-Do not infer scenarios from prose or implementation. Consume `spec/generated/scenarios.yaml`, `spec/generated/features/`, `spec/generated/fixtures.yaml`, and `spec/generated/driver_protocol.py`.
+Do not infer scenarios from prose or implementation. Consume `spec/generated/behavior/scenarios.yaml`, `spec/generated/test_adapters/pytest_bdd_features/`, `spec/generated/behavior/fixtures.yaml`, and `spec/generated/test_adapters/driver_protocol.py`.
 
-The generated `.feature` files are a pytest-bdd adapter, not a source of product truth. The executable scenario meaning is in `spec/generated/scenarios.yaml`.
+The generated `.feature` files are a pytest-bdd adapter, not a source of product truth. The executable scenario meaning is in `spec/generated/behavior/scenarios.yaml`.
 
-There is exactly one generated Gherkin corpus. The spec harness and prod harness must both consume `spec/generated/features/`. The only difference between them is the driver fixture outside the spec.
+There is exactly one generated Gherkin corpus. The spec harness and prod harness must both consume `spec/generated/test_adapters/pytest_bdd_features/`. The only difference between them is the driver fixture outside the spec.
 
 The spec harness may use the reference/fake driver to prove the scenario is coherent as a specification.
 

@@ -14,7 +14,7 @@ class ReferenceSpecDriver:
     def __init__(self, root: Path):
         self.root = root
         self.contract = read_yaml(root / COMPILED_SPEC_PATH)
-        self.panels = {p["id"]: p for p in read_json(root / GENERATED_SPEC_DIR / "panels.json")["panels"]}
+        self.panels = {p["id"]: p for p in read_json(root / GENERATED_SPEC_DIR / "product_interfaces" / "web.panels.json")["panels"]}
         self.reset()
 
     def reset(self) -> None:

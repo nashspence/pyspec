@@ -49,7 +49,7 @@ def main(argv: list[str] | None = None) -> int:
     check_parser.add_argument("--no-audit", action="store_true", help="Skip visual audit rendering")
     check_parser.add_argument("--release", action="store_true", help="Apply release gate checks")
 
-    audit_parser = subparsers.add_parser("audit", help="Regenerate visual audit artifacts from spec/generated/spec.complete.yaml")
+    audit_parser = subparsers.add_parser("audit", help="Regenerate visual audit artifacts from spec/generated/compiled/spec.yaml")
     audit_parser.add_argument("root", nargs="?", default=".")
 
     clean_parser = subparsers.add_parser("clean-generated", help="Remove the generated artifact directory")

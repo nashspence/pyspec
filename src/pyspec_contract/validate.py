@@ -24,7 +24,7 @@ def validate_project(root: Path, release: bool = False, layers: set[str] | None 
     if not source_contract_path.exists():
         raise ContractError("Missing spec/spec.yaml")
     if not compiled_contract_path.exists():
-        raise ContractError("Missing spec/generated/spec.complete.yaml; run pyspec compile")
+        raise ContractError("Missing spec/generated/compiled/spec.yaml; run pyspec compile")
 
     _assert_generated_yaml_is_plain(root)
 
@@ -37,7 +37,7 @@ def validate_project(root: Path, release: bool = False, layers: set[str] | None 
     on_disk = read_yaml(compiled_contract_path)
     validate_against_schema(on_disk, "spec.schema.json")
     if compiled != on_disk:
-        raise ContractError("spec/generated/spec.complete.yaml is stale or hand-edited; run pyspec compile")
+        raise ContractError("spec/generated/compiled/spec.yaml is stale or hand-edited; run pyspec compile")
 
     if release:
         _release_gate(compiled)
@@ -113,7 +113,7 @@ def _release_gate(contract: dict[str, Any]) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Validate spec/spec.yaml, spec/generated/spec.complete.yaml, and projections.")
+    parser = argparse.ArgumentParser(description="Validate spec/spec.yaml, spec/generated/compiled/spec.yaml, and projections.")
     parser.add_argument("root", nargs="?", default=".")
     parser.add_argument("--release", action="store_true")
     parser.add_argument("--layers", default=None, help="Comma-separated authoring layers to enforce while re-compiling the authored source")

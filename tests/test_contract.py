@@ -518,13 +518,13 @@ def test_authoring_layers_allow_api_only_contract_and_graph_driven_projections()
 
     contract = compile_author(_api_only_author(), layers=parse_layers("core,http"))
     paths = set(projection_paths(contract))
-    assert "spec/generated/openapi.yaml" in paths
+    assert "spec/generated/product_interfaces/http.openapi.yaml" in paths
     assert "spec/generated/persistence.sql" not in paths
     assert "spec/generated/persistence.json" not in paths
-    assert "spec/generated/panels.html" not in paths
-    assert "spec/generated/textual_contract.py" not in paths
-    assert "spec/generated/asyncapi.yaml" not in paths
-    assert "spec/generated/workflows.cwl.yaml" not in paths
+    assert "spec/generated/product_interfaces/web.panels.preview.html" not in paths
+    assert "spec/generated/product_interfaces/textual.projection.py" not in paths
+    assert "spec/generated/product_interfaces/events.asyncapi.yaml" not in paths
+    assert "spec/generated/product_interfaces/workflow.cwl.yaml" not in paths
 
 
 def test_authoring_layers_reject_irrelevant_ui_targets() -> None:
@@ -601,7 +601,7 @@ def test_pyspec_contract_rejects_storage_implementation_details_on_resource() ->
 
 
 def test_generated_gherkin_is_single_corpus() -> None:
-    features = ROOT / "spec" / "generated" / "features"
+    features = ROOT / "spec" / "generated" / "test_adapters" / "pytest_bdd_features"
     assert features.exists()
     assert not (features / "spec").exists()
     assert not (features / "prod").exists()

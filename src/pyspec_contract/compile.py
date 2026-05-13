@@ -1520,7 +1520,7 @@ def _validate_path_params(entry: dict[str, Any], entry_id: str) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Compile spec/spec.yaml into spec/generated/spec.complete.yaml and projections.")
+    parser = argparse.ArgumentParser(description="Compile spec/spec.yaml into spec/generated/compiled/spec.yaml and projections.")
     parser.add_argument("source", nargs="?", default=None, help="authored spec file; defaults to spec/spec.yaml")
     parser.add_argument("--out", default=".")
     parser.add_argument("--layers", default=None, help="Comma-separated authoring layers, e.g. core,http or core,ui,textual. Omit for unrestricted mode.")

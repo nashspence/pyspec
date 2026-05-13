@@ -21,12 +21,12 @@ def _contract(root: Path = ROOT) -> dict:
 def test_audit_outputs_cover_full_contract() -> None:
     contract = _contract()
     expected = audit_expected_files(contract)
-    assert "spec/generated/audit/copy.yaml" in expected
-    assert any(path.startswith("spec/generated/audit/fsm/") and path.endswith(".svg") for path in expected)
-    assert any(path.startswith("spec/generated/audit/composition/") and path.endswith(".svg") for path in expected)
-    assert any(path.startswith("spec/generated/audit/html/panels/") and path.endswith(".png") for path in expected)
-    assert any(path.startswith("spec/generated/audit/html/views/") and path.endswith(".html") for path in expected)
-    assert any(path.startswith("spec/generated/audit/textual/views/") and path.endswith(".svg") for path in expected)
+    assert "spec/generated/audit_evidence/inputs/copy.yaml" in expected
+    assert any(path.startswith("spec/generated/audit_evidence/diagrams/panel_state_machines/") and path.endswith(".svg") for path in expected)
+    assert any(path.startswith("spec/generated/audit_evidence/diagrams/view_compositions/") and path.endswith(".svg") for path in expected)
+    assert any(path.startswith("spec/generated/audit_evidence/renders/html/panels/") and path.endswith(".png") for path in expected)
+    assert any(path.startswith("spec/generated/audit_evidence/renders/html/views/") and path.endswith(".html") for path in expected)
+    assert any(path.startswith("spec/generated/audit_evidence/renders/textual/views/") and path.endswith(".svg") for path in expected)
     validate_audit_outputs(ROOT, contract)
 
 
@@ -75,10 +75,11 @@ def test_audit_transition_basis_renders_for_otherwise_sparse_card() -> None:
 
 
 def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
-    list_fsm = (ROOT / "spec" / "generated" / "audit" / "fsm" / "panel_project_list.svg").read_text(encoding="utf-8")
-    detail_fsm = (ROOT / "spec" / "generated" / "audit" / "fsm" / "panel_project_detail.svg").read_text(encoding="utf-8")
-    activity_fsm = (ROOT / "spec" / "generated" / "audit" / "fsm" / "panel_project_activity.svg").read_text(encoding="utf-8")
-    composition = (ROOT / "spec" / "generated" / "audit" / "composition" / "project_board.svg").read_text(encoding="utf-8")
+    diagram_root = ROOT / "spec" / "generated" / "audit_evidence" / "diagrams"
+    list_fsm = (diagram_root / "panel_state_machines" / "panel_project_list.svg").read_text(encoding="utf-8")
+    detail_fsm = (diagram_root / "panel_state_machines" / "panel_project_detail.svg").read_text(encoding="utf-8")
+    activity_fsm = (diagram_root / "panel_state_machines" / "panel_project_activity.svg").read_text(encoding="utf-8")
+    composition = (diagram_root / "view_compositions" / "project_board.svg").read_text(encoding="utf-8")
     assert "on data.ready" in list_fsm
     assert "copy.project.list.ready.heading" in list_fsm
     assert "asset.project.list.empty.illustration" in list_fsm
@@ -119,7 +120,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
 
 
 def test_audit_html_sources_render_copy_assets_and_fixture_fields() -> None:
-    ready = ROOT / "spec" / "generated" / "audit" / "html" / "views" / "project_board" / "default.wide.project_board_ready_selected_audit.html"
+    ready = ROOT / "spec" / "generated" / "audit_evidence" / "renders" / "html" / "views" / "project_board" / "default.wide.project_board_ready_selected_audit.html"
     text = ready.read_text(encoding="utf-8")
     assert "Dispatch queue" in text
     assert "Replace rooftop condenser fan · Atlas Foods" in text
@@ -130,7 +131,7 @@ def test_audit_html_sources_render_copy_assets_and_fixture_fields() -> None:
     assert "fixture.projects.audit_records" not in text
     assert "data-audit" not in text
 
-    empty = ROOT / "spec" / "generated" / "audit" / "html" / "views" / "project_board" / "default.compact.project_board_empty_audit.html"
+    empty = ROOT / "spec" / "generated" / "audit_evidence" / "renders" / "html" / "views" / "project_board" / "default.compact.project_board_empty_audit.html"
     empty_text = empty.read_text(encoding="utf-8")
     assert "No dispatch projects yet" in empty_text
     assert "asset.project.list.empty.illustration" in empty_text
@@ -138,7 +139,7 @@ def test_audit_html_sources_render_copy_assets_and_fixture_fields() -> None:
 
 
 def test_audit_asset_placeholder_is_generic_and_not_named() -> None:
-    asset = ROOT / "spec" / "generated" / "audit" / "assets" / "asset_project_list_empty_illustration.svg"
+    asset = ROOT / "spec" / "generated" / "audit_evidence" / "inputs" / "assets" / "asset_project_list_empty_illustration.svg"
     text = asset.read_text(encoding="utf-8")
     assert text.lstrip().startswith("<svg")
     assert "asset.project.list.empty.illustration" not in text
@@ -191,7 +192,7 @@ def test_audit_validator_rejects_missing_fsm_svg(tmp_path: Path) -> None:
     project = tmp_path / "project"
     copy_project_tree(ROOT, project)
     contract = read_yaml(project / COMPILED_SPEC_PATH)
-    svg = next(project / path for path in audit_expected_files(contract) if "/fsm/" in path)
+    svg = next(project / path for path in audit_expected_files(contract) if "/panel_state_machines/" in path)
     svg.unlink()
     with pytest.raises(ContractError, match="audit generated files"):
         validate_audit_outputs(project, contract)

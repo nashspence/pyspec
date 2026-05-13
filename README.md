@@ -48,10 +48,10 @@ The human source is `spec/spec.yaml`. It is sparse, positive-only, and grouped b
 
 ```text
 spec/spec.yaml
-  -> spec/generated/spec.complete.yaml
-  -> spec/generated projections required by positive declarations
-  -> spec/generated pytest-bdd feature corpus
-  -> visual audit artifacts when render cases exist
+  -> spec/generated/compiled/spec.yaml
+  -> product interfaces and behavior projections required by positive declarations
+  -> pytest-bdd adapter files derived from behavior/scenarios.yaml
+  -> audit evidence when render cases exist
 ```
 
 The spec is progressive. If a concern is absent, it has no declaration and no generated projection. The spec does not contain storage implementation details, test-harness routing, dev-environment metadata, review state, release state, or schema-version chatter.
@@ -60,7 +60,7 @@ Reusable top-level `facts` name preconditions, such as a resource that must alre
 
 ## Layers
 
-Layers are authoring guardrails. They constrain vocabulary during compile/validate but are not written into `spec/generated/spec.complete.yaml`.
+Layers are authoring guardrails. They constrain vocabulary during compile/validate but are not written into `spec/generated/compiled/spec.yaml`.
 
 Common layer sets:
 
@@ -95,31 +95,43 @@ A full-surface project can generate:
 
 ```text
 spec/generated/
-  spec.complete.yaml
-  openapi.yaml
-  asyncapi.yaml
-  workflows.cwl.yaml
-  routes.json
-  panels.json
-  panels.html
-  panel_styles.css
-  refs.py
-  driver_protocol.py
-  bdd_steps.py
-  content_contract.py
-  content_stubs.py
-  content_cases.yaml
-  features/*.feature
-  audit/
-    copy.yaml
+  compiled/
+    spec.yaml
+  product_interfaces/
+    http.openapi.yaml
+    events.asyncapi.yaml
+    workflow.cwl.yaml
+    web.routes.json
+    web.panels.json
+    web.panels.preview.html
+    web.panels.preview.css
+    textual.projection.py
+  behavior/
     fixtures.yaml
-    assets/*.svg
-    fsm/*.svg
-    composition/*.svg
-    html/**/*.html
-    html/**/*.png
-    textual/**/*.py
-    textual/**/*.svg
+    scenarios.yaml
+    obligations.yaml
+  content_resolvers/
+    signatures.py
+    stubs.py
+    cases.yaml
+  test_adapters/
+    python_refs.py
+    driver_protocol.py
+    pytest_bdd_steps.py
+    pytest_bdd_features/*.feature
+  audit_evidence/
+    inputs/
+      copy.yaml
+      fixtures.yaml
+      assets/*.svg
+    diagrams/
+      panel_state_machines/*.svg
+      view_compositions/*.svg
+    renders/
+      html/**/*.html
+      html/**/*.png
+      textual/**/*.py
+      textual/**/*.svg
 ```
 
 Validation treats the generated tree as closed: missing files, extra files, hand-edited text projections, corrupt PNGs, invalid SVGs, or stale compiled specs fail validation.
@@ -129,7 +141,7 @@ Validation treats the generated tree as closed: missing files, extra files, hand
 There is exactly one generated Gherkin corpus:
 
 ```text
-spec/generated/features/*.feature
+spec/generated/test_adapters/pytest_bdd_features/*.feature
 ```
 
 Both pytest-bdd harnesses consume that same corpus. The difference is only the driver fixture outside the spec:

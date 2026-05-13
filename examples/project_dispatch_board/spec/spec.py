@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from pyspec_contract.content import AssetResult, ContentContext, asset, copy
-from generated.content_contract import AssetProjectDetailReadyPriorityBadgeArgs, CopyProjectDetailReadyHeadingArgs
-from generated.refs import Asset, Copy
+from generated.content_resolvers.signatures import AssetProjectDetailReadyPriorityBadgeArgs, CopyProjectDetailReadyHeadingArgs
+from generated.test_adapters.python_refs import Asset, Copy
 
 
 @copy.implements(Copy.COPY_PROJECT_DETAIL_READY_HEADING)

@@ -1,18 +1,20 @@
 must_validate_projections:
-- spec/generated/refs.py
-- spec/generated/fixtures.yaml
-- spec/generated/scenarios.yaml
-- spec/generated/openapi.yaml
-- spec/generated/asyncapi.yaml
-- spec/generated/routes.json
-- spec/generated/panels.json
-- spec/generated/panels.html
-- spec/generated/panel_styles.css
-- spec/generated/textual_contract.py
-- spec/generated/workflows.cwl.yaml
-- spec/generated/content_contract.py
-- spec/generated/content_stubs.py
-- spec/generated/content_cases.yaml
+- spec/generated/content_resolvers/__init__.py
+- spec/generated/test_adapters/python_refs.py
+- spec/generated/behavior/fixtures.yaml
+- spec/generated/behavior/scenarios.yaml
+- spec/generated/product_interfaces/http.openapi.yaml
+- spec/generated/product_interfaces/events.asyncapi.yaml
+- spec/generated/product_interfaces/web.routes.json
+- spec/generated/product_interfaces/web.panels.json
+- spec/generated/product_interfaces/web.panels.preview.html
+- spec/generated/product_interfaces/web.panels.preview.css
+- spec/generated/product_interfaces/textual.projection.py
+- spec/generated/product_interfaces/workflow.cwl.yaml
+- spec/generated/content_resolvers/__init__.py
+- spec/generated/content_resolvers/signatures.py
+- spec/generated/content_resolvers/stubs.py
+- spec/generated/content_resolvers/cases.yaml
 project: project_dispatch_board
 refs:
   asset:

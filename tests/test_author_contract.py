@@ -19,7 +19,7 @@ def test_author_contract_schema_validates() -> None:
 
 def test_author_contract_compiles_to_checked_in_machine_contract() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
-    assert compile_source(author) == read_yaml(ROOT / "spec" / "generated" / "spec.complete.yaml")
+    assert compile_source(author) == read_yaml(ROOT / "spec" / "generated" / "compiled" / "spec.yaml")
 
 
 def test_author_contract_can_be_minimal_and_surface_invisible() -> None:

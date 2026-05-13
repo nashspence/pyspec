@@ -42,18 +42,18 @@ def test_canonical_contract_is_fresh_and_complete() -> None:
 
 
 def test_canonical_openapi_asyncapi_and_cwl_are_visible() -> None:
-    openapi = read_yaml(ROOT / "spec" / "generated" / "openapi.yaml")
+    openapi = read_yaml(ROOT / "spec" / "generated" / "product_interfaces" / "http.openapi.yaml")
     assert openapi["paths"]["/workspaces/{workspace_id}/projects"]["post"]["operationId"] == "project.create"
-    asyncapi = read_yaml(ROOT / "spec" / "generated" / "asyncapi.yaml")
+    asyncapi = read_yaml(ROOT / "spec" / "generated" / "product_interfaces" / "events.asyncapi.yaml")
     assert any(channel.get("address") == "project.approved" for channel in asyncapi["channels"].values() if isinstance(channel, dict))
-    cwl = read_yaml(ROOT / "spec" / "generated" / "workflows.cwl.yaml")
+    cwl = read_yaml(ROOT / "spec" / "generated" / "product_interfaces" / "workflow.cwl.yaml")
     assert "#project_approval_notice" in {item["id"] for item in cwl["$graph"]}
     assert not (ROOT / "spec" / "generated" / "persistence.sql").exists()
     assert not (ROOT / "spec" / "generated" / "persistence.json").exists()
 
 
 def test_canonical_textual_contract_imports_and_composes() -> None:
-    path = ROOT / "spec" / "generated" / "textual_contract.py"
+    path = ROOT / "spec" / "generated" / "product_interfaces" / "textual.projection.py"
     spec = importlib.util.spec_from_file_location("canonical_textual_contract", path)
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
@@ -67,9 +67,9 @@ def test_canonical_textual_contract_imports_and_composes() -> None:
 
 
 def test_canonical_audit_contains_real_visual_references() -> None:
-    html = (ROOT / "spec" / "generated" / "audit" / "html" / "views" / "project_board" / "default.wide.project_board_ready_selected_audit.html").read_text(encoding="utf-8")
+    html = (ROOT / "spec" / "generated" / "audit_evidence" / "renders" / "html" / "views" / "project_board" / "default.wide.project_board_ready_selected_audit.html").read_text(encoding="utf-8")
     assert "Replace rooftop condenser fan" in html
     assert "Atlas Foods" in html
     assert "Dispatch queue" in html
-    assert (ROOT / "spec" / "generated" / "audit" / "html" / "views" / "project_board" / "default.wide.project_board_ready_selected_audit.png").exists()
-    assert (ROOT / "spec" / "generated" / "audit" / "textual" / "views" / "project_board" / "default.wide.project_board_ready_selected_audit.svg").exists()
+    assert (ROOT / "spec" / "generated" / "audit_evidence" / "renders" / "html" / "views" / "project_board" / "default.wide.project_board_ready_selected_audit.png").exists()
+    assert (ROOT / "spec" / "generated" / "audit_evidence" / "renders" / "textual" / "views" / "project_board" / "default.wide.project_board_ready_selected_audit.svg").exists()

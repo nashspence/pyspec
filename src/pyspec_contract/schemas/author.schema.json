@@ -3612,7 +3612,7 @@
   "$id": "https://example.invalid/authored-product-spec.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Sparse human-authored spec. Compiles to spec/generated/spec.complete.yaml, where derived events, refs, policies, routes, query refs, endpoints, and empty collections are expanded.",
+  "description": "Sparse human-authored spec. Compiles to spec/generated/compiled/spec.yaml, where derived events, refs, policies, routes, query refs, endpoints, and empty collections are expanded.",
   "properties": {
     "assets": {
       "additionalProperties": {

@@ -16,7 +16,7 @@ PROJECT_ROOTS = [ROOT]
 def test_generated_openapi_passes_official_validator() -> None:
     validator = pytest.importorskip("openapi_spec_validator")
     for project in PROJECT_ROOTS:
-        validator.validate(read_yaml(project / "spec" / "generated" / "openapi.yaml"))
+        validator.validate(read_yaml(project / "spec" / "generated" / "product_interfaces" / "http.openapi.yaml"))
 
 
 def test_generated_cwl_passes_cwltool_validate() -> None:
@@ -25,7 +25,7 @@ def test_generated_cwl_passes_cwltool_validate() -> None:
         pytest.skip("cwltool is not installed; install requirements-dev.txt for external CWL validation")
     for project in PROJECT_ROOTS:
         subprocess.run(
-            [cwltool, "--validate", str(project / "spec" / "generated" / "workflows.cwl.yaml")],
+            [cwltool, "--validate", str(project / "spec" / "generated" / "product_interfaces" / "workflow.cwl.yaml")],
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,

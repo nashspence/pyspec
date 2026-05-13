@@ -1,4 +1,4 @@
-"""Generated content resolver contract. Do not edit by hand."""
+"""Generated content resolver signatures. Do not edit by hand."""
 from __future__ import annotations
 
 from dataclasses import dataclass

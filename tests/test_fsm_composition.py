@@ -43,7 +43,7 @@ def test_composed_fsm_contract_is_closed_and_projected() -> None:
         ("activity", "panel.project.activity", "aside", "empty"),
     ]
 
-    generated = read_json(ROOT / "spec" / "generated" / "panels.json")
+    generated = read_json(ROOT / "spec" / "generated" / "product_interfaces" / "web.panels.json")
     composition = next(item for item in generated["compositions"] if item["id"] == "project.board")
     assert composition["instances"] == view["includes"]
     assert composition["sync"] == view["sync"]

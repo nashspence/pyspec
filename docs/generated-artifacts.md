@@ -2,6 +2,15 @@
 
 `spec/generated/` is durable product evidence, not a disposable cache. The current policy is to check in every generated artifact, including audit PNG renders exactly as produced.
 
+The tree is organized by why an artifact exists:
+
+- `compiled/` contains the compiler-normalized spec.
+- `product_interfaces/` contains product-facing projections such as OpenAPI, AsyncAPI, CWL, routes, panel previews, and Textual projections.
+- `behavior/` contains semantic fixtures, scenarios, and obligations.
+- `content_resolvers/` contains typed signatures, cases, and implementation stubs for `spec/spec.py`.
+- `test_adapters/` contains Python and pytest-bdd glue derived from `behavior/`.
+- `audit_evidence/` contains reviewable inputs, diagrams, and rendered visual evidence.
+
 Validation enforces a closed generated tree:
 
 - every expected projection must exist
