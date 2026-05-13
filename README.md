@@ -42,13 +42,6 @@ pyspec validate examples/project_dispatch_board --layers full
 pyspec check examples/project_dispatch_board --layers full
 ```
 
-The older module entry points still work:
-
-```bash
-python -m pyspec_contract.compile examples/project_dispatch_board/contract.yaml --out examples/project_dispatch_board --layers full
-python -m pyspec_contract.validate examples/project_dispatch_board --layers full
-```
-
 ## Authoring Model
 
 The preferred human source is `contract.yaml`. It is sparse, positive-only, and grouped by product concepts:

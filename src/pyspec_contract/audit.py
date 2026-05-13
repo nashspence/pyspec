@@ -1200,7 +1200,7 @@ def asset_placeholder_svg(asset: dict[str, Any]) -> str:
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     if len(argv) != 2:
-        print("usage: python -m pyspec_contract.audit <root> <tools_root>", file=sys.stderr)
+        print("usage: pyspec audit <root>", file=sys.stderr)
         return 2
     root = Path(argv[0]).resolve()
     tools_root = Path(argv[1]).resolve()

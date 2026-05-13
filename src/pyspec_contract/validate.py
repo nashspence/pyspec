@@ -25,7 +25,7 @@ def validate_project(root: Path, release: bool = False, layers: set[str] | None 
     if not source_contract_path.exists() and not patch_path.exists():
         raise ContractError("Missing contract.yaml or pm.patch.yaml")
     if not compiled_contract_path.exists():
-        raise ContractError("Missing generated/contract.complete.yaml; run python -m pyspec_contract.compile")
+        raise ContractError("Missing generated/contract.complete.yaml; run pyspec compile")
 
     _assert_generated_yaml_is_plain(root)
 
@@ -38,7 +38,7 @@ def validate_project(root: Path, release: bool = False, layers: set[str] | None 
     on_disk = read_yaml(compiled_contract_path)
     validate_against_schema(on_disk, "contract.schema.json")
     if compiled != on_disk:
-        raise ContractError("generated/contract.complete.yaml is stale or hand-edited; run python -m pyspec_contract.compile --out .")
+        raise ContractError("generated/contract.complete.yaml is stale or hand-edited; run pyspec compile")
 
     if release:
         _release_gate(compiled)
