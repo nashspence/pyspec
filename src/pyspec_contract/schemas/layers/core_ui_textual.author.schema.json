@@ -1763,11 +1763,13 @@
           "uniqueItems": true
         },
         "events": {
-          "items": {
+          "additionalProperties": {
+            "$ref": "#/$defs/panel_event"
+          },
+          "propertyNames": {
             "$ref": "#/$defs/dotted_id"
           },
-          "type": "array",
-          "uniqueItems": true
+          "type": "object"
         },
         "initial": {
           "$ref": "#/$defs/state_name"
@@ -1848,7 +1850,20 @@
           "additionalProperties": false,
           "properties": {
             "emit": {
-              "$ref": "#/$defs/dotted_id"
+              "additionalProperties": false,
+              "properties": {
+                "data": {
+                  "$ref": "#/$defs/expression_map"
+                },
+                "event": {
+                  "$ref": "#/$defs/dotted_id"
+                }
+              },
+              "required": [
+                "event",
+                "data"
+              ],
+              "type": "object"
             }
           },
           "required": [
@@ -1857,6 +1872,21 @@
           "type": "object"
         }
       ]
+    },
+    "panel_event": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "payload": {
+          "$ref": "#/$defs/type_map"
+        }
+      },
+      "required": [
+        "payload"
+      ],
+      "type": "object"
     },
     "panel_id": {
       "pattern": "^panel\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
@@ -1962,11 +1992,13 @@
           "uniqueItems": true
         },
         "events": {
-          "items": {
+          "additionalProperties": {
+            "$ref": "#/$defs/panel_event"
+          },
+          "propertyNames": {
             "$ref": "#/$defs/dotted_id"
           },
-          "type": "array",
-          "uniqueItems": true
+          "type": "object"
         },
         "initial": {
           "$ref": "#/$defs/state_name"
@@ -2074,7 +2106,20 @@
                 "additionalProperties": false,
                 "properties": {
                   "emit": {
-                    "$ref": "#/$defs/dotted_id"
+                    "additionalProperties": false,
+                    "properties": {
+                      "data": {
+                        "$ref": "#/$defs/expression_map"
+                      },
+                      "event": {
+                        "$ref": "#/$defs/dotted_id"
+                      }
+                    },
+                    "required": [
+                      "event",
+                      "data"
+                    ],
+                    "type": "object"
                   }
                 },
                 "required": [
@@ -2801,6 +2846,9 @@
             "send": {
               "additionalProperties": false,
               "properties": {
+                "data": {
+                  "$ref": "#/$defs/expression_map"
+                },
                 "event": {
                   "$ref": "#/$defs/dotted_id"
                 },
@@ -2810,7 +2858,8 @@
               },
               "required": [
                 "panel",
-                "event"
+                "event",
+                "data"
               ],
               "type": "object"
             }
@@ -2852,6 +2901,9 @@
         "send": {
           "additionalProperties": false,
           "properties": {
+            "data": {
+              "$ref": "#/$defs/expression_map"
+            },
             "event": {
               "pattern": "^([a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+|data\\.[a-z][a-z0-9_]*)$",
               "type": "string"
@@ -2862,7 +2914,8 @@
           },
           "required": [
             "panel",
-            "event"
+            "event",
+            "data"
           ],
           "type": "object"
         }

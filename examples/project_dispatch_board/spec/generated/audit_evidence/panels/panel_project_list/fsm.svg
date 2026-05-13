@@ -1,5 +1,5 @@
-<svg width="1436pt" height="324pt"
- viewBox="0.00 0.00 1436.00 323.50" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="1432pt" height="324pt"
+ viewBox="0.00 0.00 1432.00 323.50" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 305.5)">
 <title>fsm_panel_project_list</title>
 <!-- initial -->
@@ -159,19 +159,20 @@
 <!-- transition_4_ready_ready_project_select -->
 <g id="node10" class="node">
 <title>transition_4_ready_ready_project_select</title>
-<polygon fill="#ffffff" stroke="transparent" points="1255,-147 1255,-207 1400,-207 1400,-147 1255,-147"/>
-<polygon fill="#2563eb" stroke="transparent" points="1256.5,-196 1256.5,-206 1399.5,-206 1399.5,-196 1256.5,-196"/>
-<polygon fill="#eff6ff" stroke="transparent" points="1256.5,-171 1256.5,-196 1399.5,-196 1399.5,-171 1256.5,-171"/>
-<text text-anchor="start" x="1261.5" y="-180.8" font-family="Arial" font-weight="bold" font-size="14.00">on project.select</text>
-<text text-anchor="start" x="1262.5" y="-158" font-family="Arial" font-weight="bold" font-size="10.00">effects:</text>
-<text text-anchor="start" x="1296.5" y="-158" font-family="Arial" font-size="10.00">  emit project.selected</text>
-<polygon fill="none" stroke="#2563eb" points="1255,-147 1255,-207 1400,-207 1400,-147 1255,-147"/>
+<polygon fill="#ffffff" stroke="transparent" points="1255,-137 1255,-217 1396,-217 1396,-137 1255,-137"/>
+<polygon fill="#2563eb" stroke="transparent" points="1256.5,-206 1256.5,-216 1395.5,-216 1395.5,-206 1256.5,-206"/>
+<polygon fill="#eff6ff" stroke="transparent" points="1256.5,-181 1256.5,-206 1395.5,-206 1395.5,-181 1256.5,-181"/>
+<text text-anchor="start" x="1261.5" y="-190.8" font-family="Arial" font-weight="bold" font-size="14.00">on project.select</text>
+<text text-anchor="start" x="1261.5" y="-169" font-family="Arial" font-weight="bold" font-size="10.00">effects</text>
+<text text-anchor="start" x="1261.5" y="-157" font-family="Arial" font-size="10.00">emit project.selected</text>
+<text text-anchor="start" x="1261.5" y="-146" font-family="Arial" font-size="10.00"> &#160;project_id: $event.project_id</text>
+<polygon fill="none" stroke="#2563eb" points="1255,-137 1255,-217 1396,-217 1396,-137 1255,-137"/>
 </g>
 <!-- state_ready&#45;&gt;transition_4_ready_ready_project_select -->
 <g id="edge10" class="edge">
 <title>state_ready&#45;&gt;transition_4_ready_ready_project_select</title>
-<path fill="none" stroke="#3f3f46" d="M1194.1,-167.43C1211.42,-167.15 1229.5,-167.2 1246.53,-167.58"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1246.73,-170.39 1254.8,-167.8 1246.88,-164.79 1246.73,-170.39"/>
+<path fill="none" stroke="#3f3f46" d="M1194.24,-167.41C1211.55,-167.14 1229.58,-167.21 1246.52,-167.61"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1246.66,-170.42 1254.74,-167.84 1246.82,-164.82 1246.66,-170.42"/>
 </g>
 <!-- transition_0_loading_empty_data_empty&#45;&gt;state_empty -->
 <g id="edge3" class="edge">
@@ -200,8 +201,8 @@
 <!-- transition_4_ready_ready_project_select&#45;&gt;state_ready -->
 <g id="edge11" class="edge">
 <title>transition_4_ready_ready_project_select&#45;&gt;state_ready</title>
-<path fill="none" stroke="#3f3f46" d="M1254.8,-186.91C1238.01,-187.44 1219.85,-187.62 1202.18,-187.42"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1202.14,-184.62 1194.1,-187.31 1202.06,-190.22 1202.14,-184.62"/>
+<path fill="none" stroke="#3f3f46" d="M1254.74,-186.86C1238.06,-187.42 1219.96,-187.61 1202.31,-187.43"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1202.28,-184.63 1194.24,-187.33 1202.2,-190.23 1202.28,-184.63"/>
 </g>
 </g>
 </svg>

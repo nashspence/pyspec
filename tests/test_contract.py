@@ -283,7 +283,7 @@ def test_author_panel_defaults_empty_collections() -> None:
     panel = contract["panels"]["panel.ticket.empty"]
     assert panel["context"] == {}
     assert panel["data"] == []
-    assert panel["events"] == []
+    assert panel["events"] == {}
     assert panel["transitions"] == []
     assert "kind" not in panel
 
@@ -291,7 +291,7 @@ def test_author_panel_defaults_empty_collections() -> None:
 def test_panel_events_must_be_used_by_transition_or_emit() -> None:
     author = _author()
     activity = _item(author, "panels", "panel.project.activity")
-    activity["events"].append("unused.event")
+    activity["events"]["unused.event"] = {"payload": {}}
     with pytest.raises(ContractError, match=r"Panel panel\.project\.activity declares event without transition or emit: .*unused\.event"):
         compile_source(author)
 
@@ -299,8 +299,8 @@ def test_panel_events_must_be_used_by_transition_or_emit() -> None:
 def test_panel_transition_events_must_be_declared() -> None:
     author = _author()
     activity = _item(author, "panels", "panel.project.activity")
-    activity["events"].remove("selection.cleared")
-    with pytest.raises(ContractError, match=r"Panel panel\.project\.activity uses event without declaring it: .*selection\.cleared"):
+    del activity["events"]["selection.cleared"]
+    with pytest.raises(ContractError, match=r"Panel panel\.project\.activity transition event references undeclared panel event: selection\.cleared"):
         compile_source(author)
 
 
@@ -473,6 +473,40 @@ def test_composed_view_rejects_unknown_sync_target_event() -> None:
         compile_source(author)
 
 
+def test_panel_emit_data_must_exactly_match_event_payload() -> None:
+    author = _author()
+    transition = _item(author, "panels", "panel.project.list")["transitions"][-1]
+    transition["effects"][0]["emit"]["data"] = {}
+    with pytest.raises(ContractError, match=r"transition emit project\.selected data must exactly match payload fields: missing: project_id"):
+        compile_source(author)
+
+
+def test_sync_send_data_must_exactly_match_target_event_payload() -> None:
+    author = _author()
+    view = _item(author, "views", "project.board")
+    send = next(effect["send"] for effect in view["sync"][0]["do"] if "send" in effect)
+    send["data"] = {}
+    with pytest.raises(ContractError, match=r"sync send project\.selection_changed to detail data must exactly match payload fields: missing: project_id"):
+        compile_source(author)
+
+
+def test_sync_send_data_must_match_target_event_payload_type() -> None:
+    author = _author()
+    view = _item(author, "views", "project.board")
+    send = next(effect["send"] for effect in view["sync"][0]["do"] if "send" in effect)
+    send["data"]["project_id"] = 1
+    with pytest.raises(ContractError, match=r"sync send project\.selection_changed to detail data\.project_id type mismatch: expected ID, got Int"):
+        compile_source(author)
+
+
+def test_panel_event_payloads_must_be_consistent_across_panels() -> None:
+    author = _author()
+    activity = _item(author, "panels", "panel.project.activity")
+    activity["events"]["project.selection_changed"]["payload"]["project_id"] = "Text"
+    with pytest.raises(ContractError, match=r"Panel event project\.selection_changed payload differs"):
+        compile_source(author)
+
+
 def test_composed_scenario_rejects_unknown_panel_instance() -> None:
     author = _author()
     scenario = _item(author, "scenarios", "project.board.ready")
@@ -537,7 +571,7 @@ def test_authoring_layers_reject_irrelevant_ui_targets() -> None:
             "resource": "Ticket",
             "context": {},
             "data": [],
-            "events": [],
+            "events": {},
             "initial": "empty",
             "states": {"empty": {}},
             "transitions": [],

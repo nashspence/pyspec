@@ -351,8 +351,11 @@ panels:
       project_id: ID
     data: []
     events:
-    - project.selection_changed
-    - selection.cleared
+      project.selection_changed:
+        payload:
+          project_id: ID
+      selection.cleared:
+        payload: {}
     initial: empty
     resource: Project
     states:
@@ -395,10 +398,15 @@ panels:
       project_id: ID
     data: []
     events:
-    - project.selection_changed
-    - selection.cleared
-    - data.ready
-    - data.error
+      data.error:
+        payload: {}
+      data.ready:
+        payload: {}
+      project.selection_changed:
+        payload:
+          project_id: ID
+      selection.cleared:
+        payload: {}
     initial: none
     resource: Project
     states:
@@ -472,11 +480,18 @@ panels:
     - capability: project.list
       query: query.project.list.list
     events:
-    - data.empty
-    - data.ready
-    - data.error
-    - project.select
-    - project.selected
+      data.empty:
+        payload: {}
+      data.error:
+        payload: {}
+      data.ready:
+        payload: {}
+      project.select:
+        payload:
+          project_id: ID
+      project.selected:
+        payload:
+          project_id: ID
     initial: loading
     resource: Project
     states:
@@ -536,7 +551,10 @@ panels:
       from: empty
       to: ready
     - effects:
-      - emit: project.selected
+      - emit:
+          data:
+            project_id: $event.project_id
+          event: project.selected
       event: project.select
       from: ready
       to: ready
@@ -887,9 +905,13 @@ scenarios:
                 context: selected_project_id
                 from: $event.project_id
             - send:
+                data:
+                  project_id: $event.project_id
                 event: project.selection_changed
                 panel: detail
             - send:
+                data:
+                  project_id: $event.project_id
                 event: project.selection_changed
                 panel: activity
             id: select_project_updates_panels
@@ -1079,9 +1101,13 @@ scenarios:
                 context: selected_project_id
                 from: $event.project_id
             - send:
+                data:
+                  project_id: $event.project_id
                 event: project.selection_changed
                 panel: detail
             - send:
+                data:
+                  project_id: $event.project_id
                 event: project.selection_changed
                 panel: activity
             id: select_project_updates_panels
@@ -1282,9 +1308,13 @@ views:
           context: selected_project_id
           from: $event.project_id
       - send:
+          data:
+            project_id: $event.project_id
           event: project.selection_changed
           panel: detail
       - send:
+          data:
+            project_id: $event.project_id
           event: project.selection_changed
           panel: activity
       id: select_project_updates_panels

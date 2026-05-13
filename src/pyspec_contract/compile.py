@@ -174,7 +174,7 @@ def _apply_author_defaults(entity: str, spec: dict[str, Any]) -> None:
     if entity == "panel":
         spec.setdefault("context", {})
         spec.setdefault("data", [])
-        spec.setdefault("events", [])
+        spec.setdefault("events", {})
         spec.setdefault("transitions", [])
     elif entity == "view":
         spec.setdefault("data", [])
@@ -265,7 +265,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             "resource": spec["resource"],
             "context": spec["context"],
             "data": _compile_data(panel_id, spec.get("data", [])),
-            "events": spec.get("events", []),
+            "events": spec.get("events", {}),
             "initial": spec["initial"],
             "states": _compile_states(panel_id, spec.get("states", {})),
             "transitions": spec.get("transitions", []),
@@ -455,6 +455,7 @@ def _semantic_validate(contract: dict[str, Any], used_facts: set[str]) -> None:
     _validate_resources(contract)
     _validate_capabilities(contract)
     _validate_panels(contract)
+    _validate_panel_event_payload_consistency(contract)
     _validate_views(contract)
     _validate_entries(contract)
     _validate_workflows(contract)
@@ -716,7 +717,7 @@ def _validate_panels(contract: dict[str, Any]) -> None:
                 resource=panel["resource"],
             )
         _validate_field_state_data_sources(f"Panel {panel_id}", panel["states"], panel.get("data", []), panel.get("transitions", []))
-        _validate_panel_transitions(panel_id, panel)
+        _validate_panel_transitions(contract, panel_id, panel)
         _validate_panel_events(panel_id, panel)
 
 
@@ -794,7 +795,7 @@ def _state_has_data_source(
     return False
 
 
-def _validate_panel_transitions(panel_id: str, panel: dict[str, Any]) -> None:
+def _validate_panel_transitions(contract: dict[str, Any], panel_id: str, panel: dict[str, Any]) -> None:
     states = set(panel["states"])
     for transition in panel.get("transitions", []):
         if transition["from"] not in states or transition["to"] not in states:
@@ -803,14 +804,21 @@ def _validate_panel_transitions(panel_id: str, panel: dict[str, Any]) -> None:
             raise ContractError(
                 f"Panel {panel_id} transition uses data event without panel or source-state data: {transition['event']}"
             )
+        event_payload = _panel_event_payload(panel, transition["event"], f"Panel {panel_id} transition event")
         for effect in transition.get("effects", []):
             kind, body = _one(effect, f"panel {panel_id} transition effect")
             if kind == "set":
                 if body["context"] not in panel.get("context", {}):
                     raise ContractError(f"Panel {panel_id} transition sets undeclared context: {body['context']}")
             elif kind == "emit":
-                if not isinstance(body, str):
-                    raise ContractError(f"Panel {panel_id} transition emit must name an event: {body!r}")
+                emitted_payload = _panel_event_payload(panel, body["event"], f"Panel {panel_id} transition emit")
+                _validate_data_map(
+                    contract=contract,
+                    label=f"Panel {panel_id} transition emit {body['event']} data",
+                    data=body["data"],
+                    payload=emitted_payload,
+                    scopes={"event": event_payload, "context": panel.get("context", {})},
+                )
             else:  # pragma: no cover - schema prevents this.
                 raise ContractError(f"Panel {panel_id} unsupported transition effect: {kind}")
     for transition in panel.get("transitions", []):
@@ -822,7 +830,7 @@ def _validate_panel_transitions(panel_id: str, panel: dict[str, Any]) -> None:
 
 
 def _validate_panel_events(panel_id: str, panel: dict[str, Any]) -> None:
-    declared = set(panel.get("events", []))
+    declared = set(panel.get("events", {}))
     used = _panel_accepts(panel) | _panel_emits(panel)
     orphan = sorted(declared - used)
     if orphan:
@@ -830,6 +838,24 @@ def _validate_panel_events(panel_id: str, panel: dict[str, Any]) -> None:
     undeclared = sorted(used - declared)
     if undeclared:
         raise ContractError(f"Panel {panel_id} uses event without declaring it: {undeclared}")
+
+
+def _validate_panel_event_payload_consistency(contract: dict[str, Any]) -> None:
+    declared: dict[str, tuple[str, dict[str, str]]] = {}
+    domain_events = set(contract.get("events", {}))
+    for panel_id, panel in contract.get("panels", {}).items():
+        for event_id, event in panel.get("events", {}).items():
+            if event_id in domain_events:
+                raise ContractError(f"Panel event {event_id} conflicts with domain event {event_id}")
+            payload = event["payload"]
+            existing = declared.get(event_id)
+            if existing and existing[1] != payload:
+                first_panel, first_payload = existing
+                raise ContractError(
+                    f"Panel event {event_id} payload differs between {first_panel} and {panel_id}: "
+                    f"{first_payload} vs {payload}"
+                )
+            declared[event_id] = (panel_id, payload)
 
 
 def _validate_views(contract: dict[str, Any]) -> None:
@@ -939,12 +965,103 @@ def _panel_emits(panel: dict[str, Any]) -> set[str]:
         for effect in transition.get("effects", []):
             kind, body = _one(effect, "panel transition effect")
             if kind == "emit":
-                emits.add(body)
+                emits.add(body["event"])
     return emits
 
 
 def _panel_accepts(panel: dict[str, Any]) -> set[str]:
     return {transition["event"] for transition in panel.get("transitions", [])}
+
+
+def _panel_event_payload(panel: dict[str, Any], event_id: str, label: str) -> dict[str, str]:
+    event = panel.get("events", {}).get(event_id)
+    if not event:
+        raise ContractError(f"{label} references undeclared panel event: {event_id}")
+    return event.get("payload", {})
+
+
+def _validate_data_map(
+    contract: dict[str, Any] | None,
+    label: str,
+    data: dict[str, Any],
+    payload: dict[str, str],
+    scopes: dict[str, dict[str, str]],
+) -> None:
+    actual = set(data)
+    expected = set(payload)
+    if actual != expected:
+        missing = sorted(expected - actual)
+        extra = sorted(actual - expected)
+        parts = []
+        if missing:
+            parts.append("missing: " + ", ".join(missing))
+        if extra:
+            parts.append("extra: " + ", ".join(extra))
+        raise ContractError(f"{label} must exactly match payload fields" + (": " + "; ".join(parts) if parts else ""))
+    for field, expected_type in payload.items():
+        _validate_expression_type(contract, f"{label}.{field}", data[field], expected_type, scopes)
+
+
+def _validate_expression_type(
+    contract: dict[str, Any] | None,
+    label: str,
+    expression: Any,
+    expected_type: str,
+    scopes: dict[str, dict[str, str]],
+) -> None:
+    actual_type = _expression_type(contract, expression, scopes, label)
+    if actual_type and actual_type != expected_type:
+        raise ContractError(f"{label} type mismatch: expected {expected_type}, got {actual_type}")
+
+
+def _expression_type(contract: dict[str, Any] | None, expression: Any, scopes: dict[str, dict[str, str]], label: str) -> str | None:
+    if isinstance(expression, str) and expression.startswith("$"):
+        match = re.fullmatch(r"\$(event|view|context)\.([a-z][A-Za-z0-9_.]*)", expression)
+        if not match:
+            raise ContractError(f"{label} references unsupported expression: {expression}")
+        scope, path = match.groups()
+        if scope not in scopes:
+            raise ContractError(f"{label} references unavailable scope: ${scope}")
+        return _resolve_type_path(contract, scopes[scope], path, label, scope)
+    return _literal_type(expression)
+
+
+def _resolve_type_path(
+    contract: dict[str, Any] | None,
+    root_types: dict[str, str],
+    path: str,
+    label: str,
+    scope: str,
+) -> str:
+    parts = path.split(".")
+    field = parts[0]
+    if field not in root_types:
+        raise ContractError(f"{label} references unknown ${scope} field: {field}")
+    type_name = root_types[field]
+    for nested in parts[1:]:
+        if not contract or type_name not in contract.get("resources", {}):
+            raise ContractError(f"{label} cannot dereference non-resource field: ${scope}.{'.'.join(parts)}")
+        fields = contract["resources"][type_name]["fields"]
+        if nested not in fields:
+            raise ContractError(f"{label} references unknown {type_name} field: {nested}")
+        type_name = fields[nested]
+    return type_name
+
+
+def _literal_type(value: Any) -> str | None:
+    if isinstance(value, bool):
+        return "Bool"
+    if isinstance(value, int) and not isinstance(value, bool):
+        return "Int"
+    if isinstance(value, float):
+        return "Decimal"
+    if isinstance(value, dict):
+        return "JSON"
+    if isinstance(value, list):
+        return "JSON"
+    # String/null literals can represent several contract scalar types, so schema
+    # validation accepts them and semantic validation only type-checks references.
+    return None
 
 
 def _is_data_event(event: str) -> bool:
@@ -983,11 +1100,20 @@ def _validate_sync_rules(contract: dict[str, Any], view_id: str, view: dict[str,
         event_id = rule["when"]["emits"]
         if event_id not in _panel_emits(source_panel):
             raise ContractError(f"Composed view {view_id} sync listens for undeclared panel event: {event_id}")
+        source_payload = _panel_event_payload(source_panel, event_id, f"Composed view {view_id} sync trigger")
         for effect in rule["do"]:
             kind, body = _one(effect, f"composed view {view_id} sync effect")
             if kind == "set":
                 if body["context"] not in context:
                     raise ContractError(f"Composed view {view_id} sync sets undeclared context: {body['context']}")
+                if "from" in body:
+                    _validate_expression_type(
+                        contract,
+                        f"Composed view {view_id} sync set {body['context']}",
+                        body["from"],
+                        context[body["context"]],
+                        {"event": source_payload, "view": context},
+                    )
             elif kind == "send":
                 target_id = body["panel"]
                 if target_id not in instances:
@@ -995,6 +1121,14 @@ def _validate_sync_rules(contract: dict[str, Any], view_id: str, view: dict[str,
                 target_panel = contract["panels"][instances[target_id]["panel"]]
                 if body["event"] not in _panel_accepts(target_panel):
                     raise ContractError(f"Composed view {view_id} sync sends undeclared target event: {body['event']}")
+                target_payload = _panel_event_payload(target_panel, body["event"], f"Composed view {view_id} sync send")
+                _validate_data_map(
+                    contract=contract,
+                    label=f"Composed view {view_id} sync send {body['event']} to {target_id} data",
+                    data=body["data"],
+                    payload=target_payload,
+                    scopes={"event": source_payload, "view": context},
+                )
             else:  # pragma: no cover - schema prevents this.
                 raise ContractError(f"Composed view {view_id} unsupported sync effect: {kind}")
 

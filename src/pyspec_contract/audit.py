@@ -626,7 +626,10 @@ def composition_dot(view_id: str, view: dict[str, Any], contract: dict[str, Any]
                 _dot_card(
                     rule["when"]["emits"],
                     "emitted message",
-                    [("transition", _emitting_transition_refs(rule["when"]["panel"], rule["when"]["emits"], include_by_id, contract))],
+                    [
+                        ("transition", _emitting_transition_refs(rule["when"]["panel"], rule["when"]["emits"], include_by_id, contract)),
+                        ("data", _emitted_message_data_lines(rule["when"]["panel"], rule["when"]["emits"], include_by_id, contract)),
+                    ],
                     header_bg="#eef2ff",
                     border="#4f46e5",
                 ),
@@ -638,7 +641,7 @@ def composition_dot(view_id: str, view: dict[str, Any], contract: dict[str, Any]
                 _dot_card(
                     rule["id"],
                     "message route",
-                    [],
+                    [("data", _route_data_lines(rule))],
                     header_bg="#fefce8",
                     border="#a16207",
                 ),
@@ -676,11 +679,6 @@ def composition_dot(view_id: str, view: dict[str, Any], contract: dict[str, Any]
 
 
 def _dot_instance_card(include: dict[str, Any]) -> str:
-    selected = include.get("selected") or {}
-    selected_lines = []
-    if selected:
-        selected_lines.append(f"selected state: {selected['state']}")
-        selected_lines.extend(f"when {key}: {value}" for key, value in selected.get("when", {}).items())
     return _dot_card(
         f"instance: {include['id']}",
         include["panel"],
@@ -688,14 +686,17 @@ def _dot_instance_card(include: dict[str, Any]) -> str:
             ("region", [include["region"]]),
             ("initial", [include["initial"]]),
             ("panel context", _format_mapping(include.get("context", {}))),
-            ("selected", selected_lines),
         ],
         header_bg="#fff7ed",
         border="#c2410c",
     )
 
 
-def _dot_sync_effect_card(effect: dict[str, Any], include_by_id: dict[str, dict[str, Any]], contract: dict[str, Any] | None) -> str:
+def _dot_sync_effect_card(
+    effect: dict[str, Any],
+    include_by_id: dict[str, dict[str, Any]],
+    contract: dict[str, Any] | None,
+) -> str:
     if "send" in effect:
         send = effect["send"]
         return _dot_card(
@@ -703,6 +704,7 @@ def _dot_sync_effect_card(effect: dict[str, Any], include_by_id: dict[str, dict[
             "sent message",
             [
                 ("transition", _receiving_transition_refs(send["panel"], send["event"], include_by_id, contract)),
+                ("data", _sent_message_data_lines(send)),
             ],
             header_bg="#fdf2f8",
             border="#be185d",
@@ -719,12 +721,46 @@ def _dot_sync_effect_card(effect: dict[str, Any], include_by_id: dict[str, dict[
     )
 
 
-def _emitting_transition_refs(
+def _emitted_message_data_lines(
     instance_id: str,
     emitted: str,
     include_by_id: dict[str, dict[str, Any]],
     contract: dict[str, Any] | None,
 ) -> list[str]:
+    lines: list[str] = []
+    seen: set[str] = set()
+    for emit in _emitting_transition_emits(instance_id, emitted, include_by_id, contract):
+        for line in _format_mapping(emit.get("data", {})):
+            if line not in seen:
+                lines.append(line)
+                seen.add(line)
+    return lines
+
+
+def _route_data_lines(rule: dict[str, Any]) -> list[str]:
+    lines = []
+    for effect in rule.get("do", []):
+        assignment = effect.get("set")
+        if not assignment:
+            continue
+        lines.append(f"{assignment['context']}: {_assignment_value(assignment)}")
+    return lines
+
+
+def _sent_message_data_lines(send: dict[str, Any]) -> list[str]:
+    return _format_mapping(send.get("data", {}))
+
+
+def _assignment_value(assignment: dict[str, Any]) -> Any:
+    return assignment.get("from", assignment.get("value", ""))
+
+
+def _emitting_transition_emits(
+    instance_id: str,
+    emitted: str,
+    include_by_id: dict[str, dict[str, Any]],
+    contract: dict[str, Any] | None,
+) -> list[dict[str, Any]]:
     if not contract:
         return []
     include = include_by_id.get(instance_id)
@@ -733,9 +769,32 @@ def _emitting_transition_refs(
     panel = contract.get("panels", {}).get(include["panel"])
     if not panel:
         return []
-    refs = []
+    emits = []
     for transition in panel.get("transitions", []):
-        if any(effect.get("emit") == emitted for effect in transition.get("effects", [])):
+        for effect in transition.get("effects", []):
+            emit = effect.get("emit")
+            if emit and emit["event"] == emitted:
+                emits.append(emit)
+    return emits
+
+
+def _emitting_transition_refs(
+    instance_id: str,
+    emitted: str,
+    include_by_id: dict[str, dict[str, Any]],
+    contract: dict[str, Any] | None,
+) -> list[str]:
+    refs = []
+    if not contract:
+        return refs
+    include = include_by_id.get(instance_id)
+    if not include:
+        return refs
+    panel = contract.get("panels", {}).get(include["panel"])
+    if not panel:
+        return refs
+    for transition in panel.get("transitions", []):
+        if any(effect.get("emit", {}).get("event") == emitted for effect in transition.get("effects", [])):
             refs.append(f"{transition['event']} ({transition['from']} to {transition['to']})")
     return refs
 
@@ -1019,7 +1078,9 @@ def _format_transition_effects(transition: dict[str, Any]) -> list[str]:
     lines = []
     for effect in transition.get("effects", []):
         if "emit" in effect:
-            lines.append(f"emit {effect['emit']}")
+            emit = effect["emit"]
+            lines.append(f"emit {emit['event']}")
+            lines.extend(f"  {line}" for line in _format_mapping(emit.get("data", {})))
         elif "set" in effect:
             assignment = effect["set"]
             if "from" in assignment:

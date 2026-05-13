@@ -213,9 +213,13 @@ scenarios:
                 context: selected_project_id
                 from: $event.project_id
             - send:
+                data:
+                  project_id: $event.project_id
                 event: project.selection_changed
                 panel: detail
             - send:
+                data:
+                  project_id: $event.project_id
                 event: project.selection_changed
                 panel: activity
             id: select_project_updates_panels
@@ -405,9 +409,13 @@ scenarios:
                 context: selected_project_id
                 from: $event.project_id
             - send:
+                data:
+                  project_id: $event.project_id
                 event: project.selection_changed
                 panel: detail
             - send:
+                data:
+                  project_id: $event.project_id
                 event: project.selection_changed
                 panel: activity
             id: select_project_updates_panels

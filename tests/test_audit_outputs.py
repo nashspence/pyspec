@@ -60,7 +60,9 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "sent message" in composition
     assert "message route" in composition
     assert "project.select (ready to ready)" in composition
-    assert "selected state: loading" in composition
+    assert "selected state:" not in composition
+    assert "project_id: $event.project_id" in composition
+    assert "selected_project_id: $event.project_id" in composition
     assert "<B>from:</B>" not in composition
     assert "<B>do:</B>" not in composition
     assert "Layout / mounted panels" not in composition
@@ -86,7 +88,7 @@ def test_composition_dot_routes_messages_generically() -> None:
     view = {
         "archetype": "workspace",
         "resource": "generic.resource",
-        "context": {"workspace_id": "ID"},
+        "context": {"selected_id": "ID", "workspace_id": "ID"},
         "data": [],
         "layout": {
             "html": {
@@ -99,14 +101,14 @@ def test_composition_dot_routes_messages_generically() -> None:
         },
         "includes": [
             {"id": "publisher", "region": "source", "panel": "panel.alpha", "initial": "idle", "context": {}},
-            {"id": "receiver", "region": "target", "panel": "panel.beta", "initial": "waiting", "context": {"workspace_id": "workspace_id"}},
+            {"id": "receiver", "region": "target", "panel": "panel.beta", "initial": "waiting", "context": {"item_id": "$view.selected_id"}},
         ],
         "sync": [
             {
                 "id": "route_alpha_beta",
                 "when": {"panel": "publisher", "emits": "alpha.ready"},
                 "do": [
-                    {"send": {"panel": "receiver", "event": "beta.consume"}},
+                    {"send": {"panel": "receiver", "event": "beta.consume", "data": {"item_id": "$event.id"}}},
                     {"set": {"context": "selected_id", "from": "$event.id"}},
                 ],
             }
@@ -115,16 +117,23 @@ def test_composition_dot_routes_messages_generically() -> None:
     contract = {
         "panels": {
             "panel.alpha": {
+                "events": {
+                    "alpha.ready": {"payload": {"id": "ID"}},
+                    "alpha.submit": {"payload": {"id": "ID"}},
+                },
                 "transitions": [
                     {
                         "event": "alpha.submit",
                         "from": "idle",
                         "to": "ready",
-                        "effects": [{"emit": "alpha.ready"}],
+                        "effects": [{"emit": {"event": "alpha.ready", "data": {"id": "$event.id"}}}],
                     }
                 ]
             },
             "panel.beta": {
+                "events": {
+                    "beta.consume": {"payload": {"item_id": "ID"}},
+                },
                 "transitions": [
                     {
                         "event": "beta.consume",
@@ -144,6 +153,9 @@ def test_composition_dot_routes_messages_generically() -> None:
     assert "alpha.submit (idle to ready)" in composition
     assert "beta.consume" in composition
     assert "<B>transition:</B>&#160;&#160;to consumed" in composition
+    assert "id: $event.id" in composition
+    assert "selected_id: $event.id" in composition
+    assert "item_id: $event.id" in composition
     assert "<B>target:</B>" not in composition
     assert "<B>from:</B>" not in composition
     assert "<B>do:</B>" not in composition
@@ -228,7 +240,9 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "to ready" in composition
     assert "none to loading" not in composition
     assert "empty to ready" not in composition
-    assert "selected state: loading" in composition
+    assert "selected state:" not in composition
+    assert "project_id: $event.project_id" in composition
+    assert "selected_project_id: $event.project_id" in composition
     assert "region:" in composition
     assert "target:" not in composition
     assert "from:" not in composition

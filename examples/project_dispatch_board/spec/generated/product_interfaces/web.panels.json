@@ -179,12 +179,18 @@
             },
             {
               "send": {
+                "data": {
+                  "project_id": "$event.project_id"
+                },
                 "event": "project.selection_changed",
                 "panel": "detail"
               }
             },
             {
               "send": {
+                "data": {
+                  "project_id": "$event.project_id"
+                },
                 "event": "project.selection_changed",
                 "panel": "activity"
               }
@@ -566,7 +572,12 @@
           {
             "effects": [
               {
-                "emit": "project.selected"
+                "emit": {
+                  "data": {
+                    "project_id": "$event.project_id"
+                  },
+                  "event": "project.selected"
+                }
               }
             ],
             "event": "project.select",
@@ -626,7 +637,12 @@
           {
             "effects": [
               {
-                "emit": "project.selected"
+                "emit": {
+                  "data": {
+                    "project_id": "$event.project_id"
+                  },
+                  "event": "project.selected"
+                }
               }
             ],
             "event": "project.select",
@@ -682,7 +698,12 @@
           {
             "effects": [
               {
-                "emit": "project.selected"
+                "emit": {
+                  "data": {
+                    "project_id": "$event.project_id"
+                  },
+                  "event": "project.selected"
+                }
               }
             ],
             "event": "project.select",
@@ -737,7 +758,12 @@
           {
             "effects": [
               {
-                "emit": "project.selected"
+                "emit": {
+                  "data": {
+                    "project_id": "$event.project_id"
+                  },
+                  "event": "project.selected"
+                }
               }
             ],
             "event": "project.select",
