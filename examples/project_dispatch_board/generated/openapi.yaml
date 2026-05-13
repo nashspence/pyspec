@@ -1,0 +1,111 @@
+components:
+  schemas:
+    NoticeResult:
+      additionalProperties: true
+      type: object
+    Project:
+      additionalProperties: false
+      properties:
+        assignee:
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        customer:
+          type: string
+        id:
+          type: string
+        priority:
+          type: string
+        status:
+          $ref: '#/components/schemas/ProjectStatus'
+        summary:
+          type: string
+        title:
+          type: string
+        updated_at:
+          format: date-time
+          type: string
+        workspace_id:
+          type: string
+      required:
+      - assignee
+      - created_at
+      - customer
+      - id
+      - priority
+      - status
+      - summary
+      - title
+      - updated_at
+      - workspace_id
+      type: object
+    ProjectStatus:
+      enum:
+      - draft
+      - submitted
+      - approved
+      - archived
+      type: string
+info:
+  title: project_dispatch_board
+  version: 0.0.0-contract
+openapi: 3.1.0
+paths:
+  /workspaces/{workspace_id}/projects:
+    get:
+      operationId: project.list
+      parameters:
+      - in: path
+        name: workspace_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Project'
+                type: array
+          description: OK
+      x-capability: project.list
+      x-entry: api.project.list
+      x-policy: policy.project.list
+    post:
+      operationId: project.create
+      parameters:
+      - in: path
+        name: workspace_id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: false
+              properties:
+                customer:
+                  type: string
+                priority:
+                  type: string
+                title:
+                  type: string
+              required:
+              - customer
+              - priority
+              - title
+              type: object
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+          description: OK
+      x-capability: project.create
+      x-entry: api.project.create
+      x-policy: policy.project.create

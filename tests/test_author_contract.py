@@ -5,11 +5,12 @@ from pathlib import Path
 
 import pytest
 
-from pm_contract.compile import ContractError, author_from_patch, compile_patch, compile_source, validate_against_schema
-from pm_contract.io import read_yaml
-from pm_contract.paths import SOURCE_CONTRACT_PATH
+from pyspec_contract.compile import ContractError, author_from_patch, compile_patch, compile_source, validate_against_schema
+from pyspec_contract.io import read_yaml
+from pyspec_contract.paths import SOURCE_CONTRACT_PATH
+from tests.helpers import EXAMPLE_ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = EXAMPLE_ROOT
 
 
 def test_author_contract_schema_validates() -> None:

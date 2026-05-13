@@ -1,0 +1,148 @@
+asyncapi: 3.1.0
+channels:
+  event_project_approved:
+    address: project.approved
+    messages:
+      message_project_approved:
+        $ref: '#/components/messages/message_project_approved'
+    x-event: project.approved
+  event_project_archived:
+    address: project.archived
+    messages:
+      message_project_archived:
+        $ref: '#/components/messages/message_project_archived'
+    x-event: project.archived
+  event_project_created:
+    address: project.created
+    messages:
+      message_project_created:
+        $ref: '#/components/messages/message_project_created'
+    x-event: project.created
+  event_project_submitted:
+    address: project.submitted
+    messages:
+      message_project_submitted:
+        $ref: '#/components/messages/message_project_submitted'
+    x-event: project.submitted
+components:
+  messages:
+    message_project_approved:
+      name: project.approved
+      payload:
+        $ref: '#/components/schemas/Project'
+      title: Project Approved
+      x-emitted-by:
+      - project.approve
+    message_project_archived:
+      name: project.archived
+      payload:
+        $ref: '#/components/schemas/Project'
+      title: Project Archived
+      x-emitted-by:
+      - project.archive
+    message_project_created:
+      name: project.created
+      payload:
+        $ref: '#/components/schemas/Project'
+      title: Project Created
+      x-emitted-by:
+      - project.create
+    message_project_submitted:
+      name: project.submitted
+      payload:
+        $ref: '#/components/schemas/Project'
+      title: Project Submitted
+      x-emitted-by:
+      - project.submit
+  schemas:
+    NoticeResult:
+      additionalProperties: true
+      type: object
+    Project:
+      additionalProperties: false
+      properties:
+        assignee:
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        customer:
+          type: string
+        id:
+          type: string
+        priority:
+          type: string
+        status:
+          $ref: '#/components/schemas/ProjectStatus'
+        summary:
+          type: string
+        title:
+          type: string
+        updated_at:
+          format: date-time
+          type: string
+        workspace_id:
+          type: string
+      required:
+      - assignee
+      - created_at
+      - customer
+      - id
+      - priority
+      - status
+      - summary
+      - title
+      - updated_at
+      - workspace_id
+      type: object
+    ProjectStatus:
+      enum:
+      - draft
+      - submitted
+      - approved
+      - archived
+      type: string
+info:
+  title: project_dispatch_board
+  version: 0.0.0-contract
+operations:
+  receive_project_approval_notice:
+    action: receive
+    channel:
+      $ref: '#/channels/event_project_approved'
+    messages:
+    - $ref: '#/components/messages/message_project_approved'
+    x-contract-ref: workflow.project.approval_notice
+    x-workflow: project.approval_notice
+  send_project_approved:
+    action: send
+    channel:
+      $ref: '#/channels/event_project_approved'
+    messages:
+    - $ref: '#/components/messages/message_project_approved'
+    x-emitted-by:
+    - project.approve
+  send_project_archived:
+    action: send
+    channel:
+      $ref: '#/channels/event_project_archived'
+    messages:
+    - $ref: '#/components/messages/message_project_archived'
+    x-emitted-by:
+    - project.archive
+  send_project_created:
+    action: send
+    channel:
+      $ref: '#/channels/event_project_created'
+    messages:
+    - $ref: '#/components/messages/message_project_created'
+    x-emitted-by:
+    - project.create
+  send_project_submitted:
+    action: send
+    channel:
+      $ref: '#/channels/event_project_submitted'
+    messages:
+    - $ref: '#/components/messages/message_project_submitted'
+    x-emitted-by:
+    - project.submit

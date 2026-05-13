@@ -1,0 +1,14 @@
+{
+  "project": "project_dispatch_board",
+  "routes": [
+    {
+      "entry": "web.project.board",
+      "id": "route.project.board",
+      "params": {
+        "workspace_id": "ID"
+      },
+      "path": "/workspaces/{workspace_id}/dispatch",
+      "view": "project.board"
+    }
+  ]
+}

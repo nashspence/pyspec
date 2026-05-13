@@ -4,13 +4,14 @@ from pathlib import Path
 
 import pytest
 
-from pm_contract.compile import ContractError, compile_patch
-from pm_contract.content import ContentContext, call_asset, call_copy
-from pm_contract.io import read_yaml
-from pm_contract.paths import COMPILED_CONTRACT_PATH
-from pm_contract.projection_validators import validate_content_contract
+from pyspec_contract.compile import ContractError, compile_patch
+from pyspec_contract.content import ContentContext, call_asset, call_copy
+from pyspec_contract.io import read_yaml
+from pyspec_contract.paths import COMPILED_CONTRACT_PATH
+from pyspec_contract.projection_validators import validate_content_contract
+from tests.helpers import EXAMPLE_ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = EXAMPLE_ROOT
 
 
 def test_final_copy_resolver_is_contract_declared_and_executable() -> None:

@@ -3,13 +3,14 @@ from __future__ import annotations
 import importlib.util
 from pathlib import Path
 
-from pm_contract.audit import audit_expected_files
-from pm_contract.compile import compile_patch
-from pm_contract.io import read_json, read_yaml
-from pm_contract.paths import COMPILED_CONTRACT_PATH
-from pm_contract.project import projection_files
+from pyspec_contract.audit import audit_expected_files
+from pyspec_contract.compile import compile_patch
+from pyspec_contract.io import read_json, read_yaml
+from pyspec_contract.paths import COMPILED_CONTRACT_PATH
+from pyspec_contract.project import projection_files
+from tests.helpers import EXAMPLE_ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = EXAMPLE_ROOT
 
 
 def test_canonical_contract_is_fresh_and_complete() -> None:

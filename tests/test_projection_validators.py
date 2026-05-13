@@ -5,10 +5,10 @@ from pathlib import Path
 
 import pytest
 
-from pm_contract.compile import ContractError
-from pm_contract.io import read_json, read_yaml
-from pm_contract.paths import COMPILED_CONTRACT_PATH
-from pm_contract.projection_validators import (
+from pyspec_contract.compile import ContractError
+from pyspec_contract.io import read_json, read_yaml
+from pyspec_contract.paths import COMPILED_CONTRACT_PATH
+from pyspec_contract.projection_validators import (
     validate_asyncapi,
     validate_fixtures_and_scenarios,
     validate_openapi,
@@ -18,9 +18,9 @@ from pm_contract.projection_validators import (
     validate_textual_contract,
     validate_workflows,
 )
-from tests.helpers import copy_project_tree
+from tests.helpers import EXAMPLE_ROOT, copy_project_tree
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = EXAMPLE_ROOT
 
 
 def _contract(root: Path = ROOT) -> dict:

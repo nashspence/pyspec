@@ -1,0 +1,27 @@
+/* Generated panel style contract. Do not edit. */
+:root {
+  --contract-space: 1rem;
+  --contract-panel-max-width: 48rem;
+}
+.contract-panel {
+  display: grid;
+  gap: var(--contract-space);
+  max-width: var(--contract-panel-max-width);
+}
+[data-contract-composition="project.board"] {
+  --aside-width: 16rem;
+  --gap: 1rem;
+  --nav-width: 20rem;
+  display: grid;
+  gap: var(--gap);
+  grid-template-columns: var(--nav-width) 1fr var(--aside-width);
+}
+[data-contract-composition="project.board"] [data-layout-region="nav"] {
+  min-width: var(--nav-width);
+}
+[data-contract-composition="project.board"] [data-layout-region="main"] {
+  min-width: 0;
+}
+[data-contract-composition="project.board"] [data-layout-region="aside"] {
+  min-width: var(--aside-width);
+}

@@ -4,10 +4,11 @@ from pathlib import Path
 
 import pytest
 
-from pm_contract.compile import ContractError, compile_patch
-from pm_contract.io import read_json, read_yaml
+from pyspec_contract.compile import ContractError, compile_patch
+from pyspec_contract.io import read_json, read_yaml
+from tests.helpers import EXAMPLE_ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = EXAMPLE_ROOT
 
 
 def _patch() -> dict:

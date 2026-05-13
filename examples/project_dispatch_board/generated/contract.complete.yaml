@@ -1,0 +1,1295 @@
+assets:
+  asset.project.detail.ready.priority_badge:
+    args:
+      priority: Text
+    basis: Selected project detail shows a dynamic priority badge resolved from project fixture data.
+    kind: icon
+    placeholder:
+      aspect_ratio: '1:1'
+      label: Project priority badge
+      shape: square
+    resolver: asset.project.detail.ready.priority_badge
+  asset.project.list.empty.illustration:
+    alt_copy: copy.project.list.empty.heading
+    basis: Generic placeholder illustration used by the empty queue panel.
+    kind: illustration
+    placeholder:
+      aspect_ratio: '4:3'
+      label: Empty dispatch queue illustration
+      shape: square
+audit_profiles:
+  default:
+    basis: Two viewport breakpoints are enough to demonstrate visual audit coverage in the canonical example.
+    html:
+      breakpoints:
+        compact:
+          height: 820
+          width: 420
+        wide:
+          height: 820
+          width: 1280
+    textual:
+      breakpoints:
+        compact:
+          columns: 80
+          rows: 26
+        wide:
+          columns: 120
+          rows: 36
+capabilities:
+  project.approve:
+    archetype: transition
+    basis: Reviewers can approve submitted dispatch projects.
+    emits:
+    - project.approved
+    errors: []
+    input:
+      project_id: ID
+    output: Project
+    policy: policy.project.approve
+    resource: Project
+    transition:
+      field: status
+      from: submitted
+      to: approved
+  project.archive:
+    archetype: transition
+    basis: Approved dispatch projects can be archived.
+    emits:
+    - project.archived
+    errors: []
+    input:
+      project_id: ID
+    output: Project
+    policy: policy.project.archive
+    resource: Project
+    transition:
+      field: status
+      from: approved
+      to: archived
+  project.create:
+    archetype: create
+    basis: Members can create a new dispatch project.
+    emits:
+    - project.created
+    errors: []
+    input:
+      customer: Text
+      priority: Text
+      title: Text
+      workspace_id: ID
+    output: Project
+    policy: policy.project.create
+    resource: Project
+  project.list:
+    archetype: list
+    basis: The board requires a project list query scoped by workspace.
+    emits: []
+    errors: []
+    input:
+      workspace_id: ID
+    output: list[Project]
+    policy: policy.project.list
+    resource: Project
+  project.read:
+    archetype: read
+    basis: The detail panel loads the selected project by id.
+    emits: []
+    errors: []
+    input:
+      project_id: ID
+    output: Project
+    policy: policy.project.read
+    resource: Project
+  project.send_approval_notice:
+    archetype: command
+    basis: Approval triggers a notification command for downstream coordination.
+    emits: []
+    errors: []
+    input:
+      approved_by: ID
+      project_id: ID
+    output: NoticeResult
+    policy: policy.project.send_approval_notice
+    resource: Project
+  project.submit:
+    archetype: transition
+    basis: Draft dispatch projects can be submitted for review.
+    emits:
+    - project.submitted
+    errors: []
+    input:
+      project_id: ID
+    output: Project
+    policy: policy.project.submit
+    resource: Project
+    transition:
+      field: status
+      from: draft
+      to: submitted
+content_cases:
+  content.project.detail.heading.high_priority:
+    args:
+      customer: Atlas Foods
+      title: Replace rooftop condenser fan
+    basis: Exercise final detail heading copy with representative fixture-backed content.
+    ref: copy.project.detail.ready.heading
+  content.project.detail.priority_badge.high_priority:
+    args:
+      priority: High
+    basis: Exercise final dynamic priority badge asset.
+    ref: asset.project.detail.ready.priority_badge
+copies:
+  copy.project.activity.empty.body:
+    basis: Empty activity body.
+    max_chars: 120
+    placeholder: Activity appears after a project is selected.
+    tone: instructional
+  copy.project.activity.empty.heading:
+    basis: Empty activity heading.
+    max_chars: 80
+    placeholder: No project selected
+    tone: neutral
+  copy.project.activity.ready.heading:
+    basis: Ready activity heading.
+    max_chars: 80
+    placeholder: Latest activity
+    tone: neutral
+  copy.project.detail.error.body:
+    basis: Error body for the detail panel.
+    max_chars: 120
+    placeholder: Refresh the selection or return to the queue.
+    tone: error
+  copy.project.detail.error.heading:
+    basis: Error heading for the detail panel.
+    max_chars: 80
+    placeholder: Project detail is unavailable
+    tone: error
+  copy.project.detail.loading.message:
+    basis: Loading message for the detail panel.
+    max_chars: 80
+    placeholder: Loading project detail…
+    tone: neutral
+  copy.project.detail.none.body:
+    basis: No-selection body for the detail panel.
+    max_chars: 160
+    placeholder: Choose a project from the queue to review customer, assignment, and approval details.
+    tone: instructional
+  copy.project.detail.none.heading:
+    basis: No-selection heading for the detail panel.
+    max_chars: 80
+    placeholder: Select a project
+    tone: instructional
+  copy.project.detail.ready.heading:
+    args:
+      customer: Text
+      title: Text
+    basis: Ready heading for the detail panel.
+    max_chars: 80
+    placeholder: Project detail
+    resolver: copy.project.detail.ready.heading
+    tone: neutral
+  copy.project.list.empty.body:
+    basis: Empty body for the project list panel.
+    max_chars: 160
+    placeholder: Create the first project to start coordinating work for this workspace.
+    tone: instructional
+  copy.project.list.empty.heading:
+    basis: Empty heading for the project list panel.
+    max_chars: 80
+    placeholder: No dispatch projects yet
+    tone: neutral
+  copy.project.list.error.body:
+    basis: Error body for the project list panel.
+    max_chars: 120
+    placeholder: Check the workspace connection and try again.
+    tone: error
+  copy.project.list.error.heading:
+    basis: Error heading for the project list panel.
+    max_chars: 80
+    placeholder: Projects could not be loaded
+    tone: error
+  copy.project.list.loading.message:
+    basis: Loading message for the project list panel.
+    max_chars: 80
+    placeholder: Loading dispatch projects…
+    tone: neutral
+  copy.project.list.ready.heading:
+    basis: Ready heading for the project list panel.
+    max_chars: 80
+    placeholder: Dispatch queue
+    tone: neutral
+entries:
+  api.project.create:
+    basis: HTTP endpoint for creating a dispatch project.
+    endpoint: endpoint.project.create
+    method: POST
+    params:
+      workspace_id: ID
+    path: /workspaces/{workspace_id}/projects
+    surface: api
+    target:
+      capability: project.create
+  api.project.list:
+    basis: HTTP endpoint for listing dispatch projects.
+    endpoint: endpoint.project.list
+    method: GET
+    params:
+      workspace_id: ID
+    path: /workspaces/{workspace_id}/projects
+    surface: api
+    target:
+      capability: project.list
+  cli.project.approve:
+    args:
+      project_id: ID
+    basis: CLI entry for approval automation.
+    command: project approve
+    command_ref: command.project.approve
+    surface: cli
+    target:
+      capability: project.approve
+  textual.project.board:
+    basis: Textual entry for the dispatch board.
+    command: project board
+    screen: screen.project.board
+    surface: textual
+    target:
+      view: project.board
+  web.project.board:
+    basis: Web entry for the dispatch board.
+    params:
+      workspace_id: ID
+    path: /workspaces/{workspace_id}/dispatch
+    route: route.project.board
+    surface: web
+    target:
+      view: project.board
+  worker.project.approval_notice:
+    basis: Worker entry exposing the approval notice workflow.
+    surface: worker
+    target:
+      workflow: project.approval_notice
+    workflow_ref: workflow.project.approval_notice
+events:
+  project.approved:
+    basis: Reviewers can approve submitted dispatch projects.
+    emitted_by:
+    - project.approve
+    payload: Project
+  project.archived:
+    basis: Approved dispatch projects can be archived.
+    emitted_by:
+    - project.archive
+    payload: Project
+  project.created:
+    basis: Members can create a new dispatch project.
+    emitted_by:
+    - project.create
+    payload: Project
+  project.submitted:
+    basis: Draft dispatch projects can be submitted for review.
+    emitted_by:
+    - project.submit
+    payload: Project
+fixtures:
+  fixture.projects.audit_records:
+    basis: Render fixtures provide dynamic records for visual audit of ready and detail states.
+    values:
+      projects:
+      - assignee: Maya Chen
+        created_at: '2026-05-10T09:00:00Z'
+        customer: Atlas Foods
+        id: project_alpha
+        priority: High
+        resource: Project
+        status: submitted
+        summary: Technician needs approval before ordering the replacement fan motor.
+        title: Replace rooftop condenser fan
+        updated_at: '2026-05-11T08:45:00Z'
+        workspace_id: workspace_1
+      - assignee: Unassigned
+        created_at: '2026-05-10T11:30:00Z'
+        customer: Harbor Logistics
+        id: project_beta
+        priority: Normal
+        resource: Project
+        status: draft
+        summary: Customer reports intermittent alerts from dock door 3.
+        title: Inspect loading dock sensor
+        updated_at: '2026-05-11T07:15:00Z'
+        workspace_id: workspace_1
+  fixture.workspace.member:
+    basis: Workspace member fixture for web/API/TUI scenarios.
+    values:
+      actor:
+        id: user_member_1
+        roles:
+        - member
+      workspace:
+        id: workspace_1
+        name: North Region Dispatch
+  fixture.workspace.reviewer:
+    basis: Reviewer fixture for approval scenarios.
+    values:
+      actor:
+        id: user_reviewer_1
+        roles:
+        - reviewer
+      workspace:
+        id: workspace_1
+        name: North Region Dispatch
+panels:
+  panel.project.activity:
+    basis: The activity panel summarizes latest status around the selected project.
+    context:
+      project_id: ID
+    data: []
+    events:
+    - project.selection_changed
+    - selection.cleared
+    initial: empty
+    resource: Project
+    states:
+      empty:
+        actions: []
+        assets: []
+        copy:
+        - copy.project.activity.empty.heading
+        - copy.project.activity.empty.body
+        data: []
+        fields: []
+        panel: panel.project.activity.empty
+      ready:
+        actions: []
+        assets: []
+        copy:
+        - copy.project.activity.ready.heading
+        data:
+        - capability: project.read
+          query: query.project.activity.read
+        fields:
+        - updated_at
+        - status
+        - assignee
+        panel: panel.project.activity.ready
+    transitions:
+    - event: project.selection_changed
+      from: empty
+      to: ready
+    - effects:
+      - set:
+          context: project_id
+          value: null
+      event: selection.cleared
+      from: ready
+      to: empty
+  panel.project.detail:
+    basis: The detail panel is independent from the list and reacts to selected project context.
+    context:
+      project_id: ID
+    data: []
+    events:
+    - project.selection_changed
+    - selection.cleared
+    - data.ready
+    - data.error
+    initial: none
+    resource: Project
+    states:
+      error:
+        actions: []
+        assets: []
+        copy:
+        - copy.project.detail.error.heading
+        - copy.project.detail.error.body
+        data: []
+        fields: []
+        panel: panel.project.detail.error
+      loading:
+        actions: []
+        assets: []
+        copy:
+        - copy.project.detail.loading.message
+        data:
+        - capability: project.read
+          query: query.project.detail.read
+        fields: []
+        panel: panel.project.detail.loading
+      none:
+        actions: []
+        assets: []
+        copy:
+        - copy.project.detail.none.heading
+        - copy.project.detail.none.body
+        data: []
+        fields: []
+        panel: panel.project.detail.none
+      ready:
+        actions:
+        - project.approve
+        - project.archive
+        assets:
+        - asset.project.detail.ready.priority_badge
+        copy:
+        - copy.project.detail.ready.heading
+        data: []
+        fields:
+        - title
+        - customer
+        - status
+        - assignee
+        - summary
+        panel: panel.project.detail.ready
+    transitions:
+    - event: project.selection_changed
+      from: none
+      to: loading
+    - event: data.ready
+      from: loading
+      to: ready
+    - event: data.error
+      from: loading
+      to: error
+    - effects:
+      - set:
+          context: project_id
+          value: null
+      event: selection.cleared
+      from: ready
+      to: none
+  panel.project.list:
+    basis: The list panel owns collection loading, empty, ready, error, and selection behavior.
+    context:
+      selected_project_id: ID
+      workspace_id: ID
+    data:
+    - capability: project.list
+      query: query.project.list.list
+    events:
+    - data.empty
+    - data.ready
+    - data.error
+    - project.select
+    - project.selected
+    initial: loading
+    resource: Project
+    states:
+      empty:
+        actions:
+        - project.create
+        assets:
+        - asset.project.list.empty.illustration
+        copy:
+        - copy.project.list.empty.heading
+        - copy.project.list.empty.body
+        data: []
+        fields: []
+        panel: panel.project.list.empty
+      error:
+        actions: []
+        assets: []
+        copy:
+        - copy.project.list.error.heading
+        - copy.project.list.error.body
+        data: []
+        fields: []
+        panel: panel.project.list.error
+      loading:
+        actions: []
+        assets: []
+        copy:
+        - copy.project.list.loading.message
+        data: []
+        fields: []
+        panel: panel.project.list.loading
+      ready:
+        actions:
+        - project.create
+        - project.submit
+        assets: []
+        copy:
+        - copy.project.list.ready.heading
+        data: []
+        fields:
+        - title
+        - customer
+        - priority
+        - status
+        panel: panel.project.list.ready
+    transitions:
+    - event: data.empty
+      from: loading
+      to: empty
+    - event: data.ready
+      from: loading
+      to: ready
+    - event: data.error
+      from: loading
+      to: error
+    - event: data.ready
+      from: empty
+      to: ready
+    - effects:
+      - emit: project.selected
+      event: project.select
+      from: ready
+      to: ready
+project: project_dispatch_board
+refs:
+  asset:
+  - asset.project.detail.ready.priority_badge
+  - asset.project.list.empty.illustration
+  command:
+  - command.project.approve
+  copy:
+  - copy.project.activity.empty.body
+  - copy.project.activity.empty.heading
+  - copy.project.activity.ready.heading
+  - copy.project.detail.error.body
+  - copy.project.detail.error.heading
+  - copy.project.detail.loading.message
+  - copy.project.detail.none.body
+  - copy.project.detail.none.heading
+  - copy.project.detail.ready.heading
+  - copy.project.list.empty.body
+  - copy.project.list.empty.heading
+  - copy.project.list.error.body
+  - copy.project.list.error.heading
+  - copy.project.list.loading.message
+  - copy.project.list.ready.heading
+  endpoint:
+  - endpoint.project.create
+  - endpoint.project.list
+  panel:
+  - panel.project.activity
+  - panel.project.activity.empty
+  - panel.project.activity.ready
+  - panel.project.board.ready
+  - panel.project.detail
+  - panel.project.detail.error
+  - panel.project.detail.loading
+  - panel.project.detail.none
+  - panel.project.detail.ready
+  - panel.project.list
+  - panel.project.list.empty
+  - panel.project.list.error
+  - panel.project.list.loading
+  - panel.project.list.ready
+  policy:
+  - policy.project.approve
+  - policy.project.archive
+  - policy.project.create
+  - policy.project.list
+  - policy.project.read
+  - policy.project.send_approval_notice
+  - policy.project.submit
+  query:
+  - query.project.activity.read
+  - query.project.board.list
+  - query.project.detail.read
+  - query.project.list.list
+  route:
+  - route.project.board
+  screen:
+  - screen.project.board
+  workflow:
+  - workflow.project.approval_notice
+render_cases:
+  project.board.empty.audit:
+    basis: Audit render for empty board state vector.
+    fixtures:
+    - fixture.workspace.member
+    panels:
+      activity:
+        state: empty
+      detail:
+        state: none
+      list:
+        state: empty
+    profile: default
+    state: ready
+    surfaces:
+    - html
+    - textual
+    view: project.board
+  project.board.ready_selected.audit:
+    basis: Audit render for selected-project board state vector using dynamic fixture records.
+    context:
+      selected_project_id: project_alpha
+    fixtures:
+    - fixture.workspace.member
+    - fixture.projects.audit_records
+    panels:
+      activity:
+        state: ready
+      detail:
+        state: ready
+      list:
+        state: ready
+    profile: default
+    state: ready
+    surfaces:
+    - html
+    - textual
+    view: project.board
+resources:
+  Project:
+    basis: A dispatch project is the durable work item displayed and acted on by the board.
+    fields:
+      assignee: Text
+      created_at: Timestamp
+      customer: Text
+      id: ID
+      priority: Text
+      status: ProjectStatus
+      summary: Text
+      title: Text
+      updated_at: Timestamp
+      workspace_id: ID
+    kind: aggregate
+    lifecycle:
+      field: status
+      initial: draft
+      states:
+      - draft
+      - submitted
+      - approved
+      - archived
+      transitions:
+      - by: project.submit
+        from: draft
+        to: submitted
+      - by: project.approve
+        from: submitted
+        to: approved
+      - by: project.archive
+        from: approved
+        to: archived
+scenarios:
+  project.approval_notice.workflow:
+    archetype: workflow_event_success
+    arrange:
+      facts: []
+      fixtures:
+      - fixture.workspace.reviewer
+    assert:
+      events:
+        emitted:
+        - project.approved
+      invoked:
+      - project.send_approval_notice
+      workflow:
+        ran: true
+        ref: project.approval_notice
+    basis: Approval event dispatches the notification workflow.
+    execute:
+      emit_event:
+        payload:
+          approved_by: $fixture.actor.id
+          project_id: project_submitted_1
+        ref: project.approved
+    feature: project.approval_notice
+    title: Approval event sends notice
+  project.approve.success:
+    archetype: capability_success
+    arrange:
+      facts:
+      - present:
+          resource: Project
+          values:
+            assignee: Maya Chen
+            created_at: '2026-05-10T09:00:00Z'
+            customer: Atlas Foods
+            id: project_submitted_1
+            priority: High
+            status: submitted
+            summary: Technician needs approval before ordering the replacement fan motor.
+            title: Replace rooftop condenser fan
+            updated_at: '2026-05-11T08:45:00Z'
+            workspace_id: $fixture.workspace.id
+      fixtures:
+      - fixture.workspace.reviewer
+    assert:
+      events:
+        emitted:
+        - project.approved
+      invoked:
+      - project.approve
+      policy: policy.project.approve
+      resource:
+        exists:
+          resource: Project
+          where:
+            id: project_submitted_1
+            status: approved
+    basis: Approval transitions a submitted project to approved and emits the event.
+    execute:
+      invoke_capability:
+        input:
+          project_id: project_submitted_1
+        ref: project.approve
+    feature: project.approve
+    title: Approve submitted dispatch project
+  project.board.empty:
+    archetype: composed_view
+    arrange:
+      facts:
+      - absent:
+          resource: Project
+          where:
+            workspace_id: $fixture.workspace.id
+      fixtures:
+      - fixture.workspace.member
+    assert:
+      enables:
+      - project.create
+      forbids:
+      - project.approve
+      requires:
+        actions:
+        - project.create
+        assets:
+        - asset.project.list.empty.illustration
+        copy:
+        - copy.project.activity.empty.heading
+        - copy.project.activity.empty.body
+        - copy.project.detail.none.heading
+        - copy.project.detail.none.body
+        - copy.project.list.empty.heading
+        - copy.project.list.empty.body
+        panel:
+        - panel.project.board.ready
+        - panel.project.activity.empty
+        - panel.project.detail.none
+        - panel.project.list.empty
+        queries:
+        - query.project.board.list
+        - query.project.list.list
+      view:
+        composition:
+          includes:
+          - context:
+              selected_project_id: $view.selected_project_id
+              workspace_id: $view.workspace_id
+            id: list
+            initial: loading
+            panel: panel.project.list
+            region: nav
+          - context:
+              project_id: $view.selected_project_id
+            id: detail
+            initial: none
+            panel: panel.project.detail
+            region: main
+            selected:
+              state: loading
+              when:
+                context_present: selected_project_id
+          - context:
+              project_id: $view.selected_project_id
+            id: activity
+            initial: empty
+            panel: panel.project.activity
+            region: aside
+            selected:
+              state: ready
+              when:
+                context_present: selected_project_id
+          layout:
+            html:
+              css:
+                rules:
+                - declarations:
+                    display: grid
+                    gap: token.gap
+                    grid-template-columns: token.nav_width 1fr token.aside_width
+                  selector: root
+                - declarations:
+                    min-width: token.nav_width
+                  selector: region.nav
+                - declarations:
+                    min-width: '0'
+                  selector: region.main
+                - declarations:
+                    min-width: token.aside_width
+                  selector: region.aside
+                tokens:
+                  aside_width: 16rem
+                  gap: 1rem
+                  nav_width: 20rem
+              regions:
+                aside:
+                  classes:
+                  - dispatch-board-aside
+                  element: aside
+                  order: 3
+                  required: true
+                  role: complementary
+                main:
+                  classes:
+                  - dispatch-board-main
+                  element: main
+                  order: 2
+                  required: true
+                  role: main
+                nav:
+                  classes:
+                  - dispatch-board-nav
+                  element: nav
+                  order: 1
+                  required: true
+                  role: navigation
+              root:
+                classes:
+                - dispatch-board
+                element: section
+                role: region
+            textual:
+              containers:
+                aside:
+                  id: aside
+                  kind: Container
+                  order: 3
+                  required: true
+                main:
+                  id: main
+                  kind: Container
+                  order: 2
+                  required: true
+                nav:
+                  id: nav
+                  kind: Container
+                  order: 1
+                  required: true
+              screen_class: ProjectBoardScreen
+              tcss:
+                rules:
+                - declarations:
+                    layout: horizontal
+                  selector: screen
+                - declarations:
+                    width: '32'
+                  selector: region.nav
+                - declarations:
+                    width: '28'
+                  selector: region.aside
+          sync:
+          - do:
+            - set:
+                context: selected_project_id
+                from: $event.project_id
+            - send:
+                event: project.selection_changed
+                panel: detail
+            - send:
+                event: project.selection_changed
+                panel: activity
+            id: select_project_updates_panels
+            when:
+              emits: project.selected
+              panel: list
+        panel: panel.project.board.ready
+        panels:
+          activity:
+            panel: panel.project.activity.empty
+            source: panel.project.activity
+            state: empty
+          detail:
+            panel: panel.project.detail.none
+            source: panel.project.detail
+            state: none
+          list:
+            panel: panel.project.list.empty
+            source: panel.project.list
+            state: empty
+        ref: project.board
+        state: ready
+        sync:
+          observed:
+          - select_project_updates_panels
+    basis: An empty workspace shows empty list, no detail, and no activity.
+    execute:
+      open_entry:
+        params:
+          workspace_id: $fixture.workspace.id
+        ref: web.project.board
+    feature: project.board
+    title: Empty dispatch board
+  project.board.ready:
+    archetype: composed_view
+    arrange:
+      facts:
+      - present:
+          resource: Project
+          values:
+            assignee: Maya Chen
+            created_at: '2026-05-10T09:00:00Z'
+            customer: Atlas Foods
+            id: project_submitted_1
+            priority: High
+            status: submitted
+            summary: Technician needs approval before ordering the replacement fan motor.
+            title: Replace rooftop condenser fan
+            updated_at: '2026-05-11T08:45:00Z'
+            workspace_id: $fixture.workspace.id
+      fixtures:
+      - fixture.workspace.member
+    assert:
+      enables:
+      - project.create
+      - project.submit
+      requires:
+        actions:
+        - project.create
+        - project.submit
+        assets: []
+        copy:
+        - copy.project.activity.empty.heading
+        - copy.project.activity.empty.body
+        - copy.project.detail.none.heading
+        - copy.project.detail.none.body
+        - copy.project.list.ready.heading
+        panel:
+        - panel.project.board.ready
+        - panel.project.activity.empty
+        - panel.project.detail.none
+        - panel.project.list.ready
+        queries:
+        - query.project.board.list
+        - query.project.list.list
+      view:
+        composition:
+          includes:
+          - context:
+              selected_project_id: $view.selected_project_id
+              workspace_id: $view.workspace_id
+            id: list
+            initial: loading
+            panel: panel.project.list
+            region: nav
+          - context:
+              project_id: $view.selected_project_id
+            id: detail
+            initial: none
+            panel: panel.project.detail
+            region: main
+            selected:
+              state: loading
+              when:
+                context_present: selected_project_id
+          - context:
+              project_id: $view.selected_project_id
+            id: activity
+            initial: empty
+            panel: panel.project.activity
+            region: aside
+            selected:
+              state: ready
+              when:
+                context_present: selected_project_id
+          layout:
+            html:
+              css:
+                rules:
+                - declarations:
+                    display: grid
+                    gap: token.gap
+                    grid-template-columns: token.nav_width 1fr token.aside_width
+                  selector: root
+                - declarations:
+                    min-width: token.nav_width
+                  selector: region.nav
+                - declarations:
+                    min-width: '0'
+                  selector: region.main
+                - declarations:
+                    min-width: token.aside_width
+                  selector: region.aside
+                tokens:
+                  aside_width: 16rem
+                  gap: 1rem
+                  nav_width: 20rem
+              regions:
+                aside:
+                  classes:
+                  - dispatch-board-aside
+                  element: aside
+                  order: 3
+                  required: true
+                  role: complementary
+                main:
+                  classes:
+                  - dispatch-board-main
+                  element: main
+                  order: 2
+                  required: true
+                  role: main
+                nav:
+                  classes:
+                  - dispatch-board-nav
+                  element: nav
+                  order: 1
+                  required: true
+                  role: navigation
+              root:
+                classes:
+                - dispatch-board
+                element: section
+                role: region
+            textual:
+              containers:
+                aside:
+                  id: aside
+                  kind: Container
+                  order: 3
+                  required: true
+                main:
+                  id: main
+                  kind: Container
+                  order: 2
+                  required: true
+                nav:
+                  id: nav
+                  kind: Container
+                  order: 1
+                  required: true
+              screen_class: ProjectBoardScreen
+              tcss:
+                rules:
+                - declarations:
+                    layout: horizontal
+                  selector: screen
+                - declarations:
+                    width: '32'
+                  selector: region.nav
+                - declarations:
+                    width: '28'
+                  selector: region.aside
+          sync:
+          - do:
+            - set:
+                context: selected_project_id
+                from: $event.project_id
+            - send:
+                event: project.selection_changed
+                panel: detail
+            - send:
+                event: project.selection_changed
+                panel: activity
+            id: select_project_updates_panels
+            when:
+              emits: project.selected
+              panel: list
+        panel: panel.project.board.ready
+        panels:
+          activity:
+            panel: panel.project.activity.empty
+            source: panel.project.activity
+            state: empty
+          detail:
+            panel: panel.project.detail.none
+            source: panel.project.detail
+            state: none
+          list:
+            panel: panel.project.list.ready
+            source: panel.project.list
+            state: ready
+        ref: project.board
+        state: ready
+        sync:
+          observed:
+          - select_project_updates_panels
+    basis: A populated workspace shows the ready list while detail awaits explicit selection.
+    execute:
+      open_entry:
+        params:
+          workspace_id: $fixture.workspace.id
+        ref: web.project.board
+    feature: project.board
+    title: Ready dispatch board
+  project.create.api.success:
+    archetype: api_entry_success
+    arrange:
+      facts:
+      - absent:
+          resource: Project
+          where:
+            workspace_id: $fixture.workspace.id
+      fixtures:
+      - fixture.workspace.member
+    assert:
+      events:
+        emitted:
+        - project.created
+      invoked:
+      - project.create
+      policy: policy.project.create
+      resource:
+        exists:
+          resource: Project
+          where:
+            title: Replace rooftop condenser fan
+            workspace_id: $fixture.workspace.id
+      response:
+        status: 200
+    basis: The API create endpoint delegates to the create capability and emits project.created.
+    execute:
+      call_entry:
+        input:
+          customer: Atlas Foods
+          priority: High
+          title: Replace rooftop condenser fan
+          workspace_id: $fixture.workspace.id
+        ref: api.project.create
+    feature: project.create
+    title: Create dispatch project through API
+views:
+  project.board:
+    archetype: dashboard
+    basis: The dispatch board composes list, detail, and activity panels through shared selected-project context.
+    context:
+      selected_project_id: ID
+      workspace_id: ID
+    data:
+    - capability: project.list
+      query: query.project.board.list
+    includes:
+    - context:
+        selected_project_id: $view.selected_project_id
+        workspace_id: $view.workspace_id
+      id: list
+      initial: loading
+      panel: panel.project.list
+      region: nav
+    - context:
+        project_id: $view.selected_project_id
+      id: detail
+      initial: none
+      panel: panel.project.detail
+      region: main
+      selected:
+        state: loading
+        when:
+          context_present: selected_project_id
+    - context:
+        project_id: $view.selected_project_id
+      id: activity
+      initial: empty
+      panel: panel.project.activity
+      region: aside
+      selected:
+        state: ready
+        when:
+          context_present: selected_project_id
+    layout:
+      html:
+        css:
+          rules:
+          - declarations:
+              display: grid
+              gap: token.gap
+              grid-template-columns: token.nav_width 1fr token.aside_width
+            selector: root
+          - declarations:
+              min-width: token.nav_width
+            selector: region.nav
+          - declarations:
+              min-width: '0'
+            selector: region.main
+          - declarations:
+              min-width: token.aside_width
+            selector: region.aside
+          tokens:
+            aside_width: 16rem
+            gap: 1rem
+            nav_width: 20rem
+        regions:
+          aside:
+            classes:
+            - dispatch-board-aside
+            element: aside
+            order: 3
+            required: true
+            role: complementary
+          main:
+            classes:
+            - dispatch-board-main
+            element: main
+            order: 2
+            required: true
+            role: main
+          nav:
+            classes:
+            - dispatch-board-nav
+            element: nav
+            order: 1
+            required: true
+            role: navigation
+        root:
+          classes:
+          - dispatch-board
+          element: section
+          role: region
+      textual:
+        containers:
+          aside:
+            id: aside
+            kind: Container
+            order: 3
+            required: true
+          main:
+            id: main
+            kind: Container
+            order: 2
+            required: true
+          nav:
+            id: nav
+            kind: Container
+            order: 1
+            required: true
+        screen_class: ProjectBoardScreen
+        tcss:
+          rules:
+          - declarations:
+              layout: horizontal
+            selector: screen
+          - declarations:
+              width: '32'
+            selector: region.nav
+          - declarations:
+              width: '28'
+            selector: region.aside
+    resource: Project
+    states:
+      ready:
+        actions: []
+        assets: []
+        copy: []
+        data: []
+        fields: []
+        panel: panel.project.board.ready
+    sync:
+    - do:
+      - set:
+          context: selected_project_id
+          from: $event.project_id
+      - send:
+          event: project.selection_changed
+          panel: detail
+      - send:
+          event: project.selection_changed
+          panel: activity
+      id: select_project_updates_panels
+      when:
+        emits: project.selected
+        panel: list
+workflows:
+  project.approval_notice:
+    basis: Approval event sends a downstream notice.
+    ref: workflow.project.approval_notice
+    steps:
+    - capability: project.send_approval_notice
+      id: send_notice
+    trigger:
+      event: project.approved

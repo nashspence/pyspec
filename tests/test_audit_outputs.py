@@ -3,14 +3,14 @@ from pathlib import Path
 
 import pytest
 
-from pm_contract.audit import _render_graphviz_svg, audit_expected_files, composition_dot, panel_fsm_dot
-from pm_contract.compile import ContractError, compile_patch
-from pm_contract.io import read_yaml
-from pm_contract.paths import COMPILED_CONTRACT_PATH
-from pm_contract.projection_validators import validate_audit_outputs
-from tests.helpers import copy_project_tree
+from pyspec_contract.audit import _render_graphviz_svg, audit_expected_files, composition_dot, panel_fsm_dot
+from pyspec_contract.compile import ContractError, compile_patch
+from pyspec_contract.io import read_yaml
+from pyspec_contract.paths import COMPILED_CONTRACT_PATH
+from pyspec_contract.projection_validators import validate_audit_outputs
+from tests.helpers import EXAMPLE_ROOT, copy_project_tree
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = EXAMPLE_ROOT
 PNG_HEADER = bytes([137, 80, 78, 71, 13, 10, 26, 10])
 
 

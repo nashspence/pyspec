@@ -6,9 +6,10 @@ from pathlib import Path
 
 import pytest
 
-from pm_contract.io import read_yaml
+from pyspec_contract.io import read_yaml
+from tests.helpers import EXAMPLE_ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = EXAMPLE_ROOT
 PROJECT_ROOTS = [ROOT]
 
 

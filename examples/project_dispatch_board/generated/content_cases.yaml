@@ -1,0 +1,13 @@
+content_cases:
+  content.project.detail.heading.high_priority:
+    args:
+      customer: Atlas Foods
+      title: Replace rooftop condenser fan
+    basis: Exercise final detail heading copy with representative fixture-backed content.
+    ref: copy.project.detail.ready.heading
+  content.project.detail.priority_badge.high_priority:
+    args:
+      priority: High
+    basis: Exercise final dynamic priority badge asset.
+    ref: asset.project.detail.ready.priority_badge
+project: project_dispatch_board

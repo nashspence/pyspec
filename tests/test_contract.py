@@ -4,13 +4,13 @@ from pathlib import Path
 
 import pytest
 
-from pm_contract.compile import ContractError, author_from_patch, compile_author, compile_patch, validate_against_schema
-from pm_contract.io import read_yaml, write_yaml
-from pm_contract.paths import COMPILED_CONTRACT_PATH, SOURCE_CONTRACT_PATH
-from pm_contract.validate import validate_project
-from tests.helpers import copy_project_tree
+from pyspec_contract.compile import ContractError, author_from_patch, compile_author, compile_patch, validate_against_schema
+from pyspec_contract.io import read_yaml, write_yaml
+from pyspec_contract.paths import COMPILED_CONTRACT_PATH, SOURCE_CONTRACT_PATH
+from pyspec_contract.validate import validate_project
+from tests.helpers import EXAMPLE_ROOT, copy_project_tree
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = EXAMPLE_ROOT
 
 
 def _basis(text: str = "test patch operation") -> str:
@@ -188,7 +188,7 @@ def test_author_contract_can_omit_absent_sections() -> None:
 
 
 def test_author_panel_defaults_empty_collections() -> None:
-    from pm_contract.layers import parse_layers
+    from pyspec_contract.layers import parse_layers
 
     author = {
         "project": "author_ui",
@@ -352,7 +352,7 @@ def test_prod_harness_cannot_import_spec_fake(tmp_path: Path) -> None:
     copy_project_tree(ROOT, project)
     prod_driver = project / "tests" / "prod_bdd" / "driver.py"
     prod_driver.write_text(
-        "from pm_contract.reference_driver import ReferenceSpecDriver\n"
+        "from pyspec_contract.reference_driver import ReferenceSpecDriver\n"
         "class ProdDriver(ReferenceSpecDriver):\n"
         "    pass\n",
         encoding="utf-8",
@@ -511,8 +511,8 @@ def _api_only_patch() -> dict:
 
 
 def test_authoring_layers_allow_api_only_contract_and_graph_driven_projections() -> None:
-    from pm_contract.layers import parse_layers
-    from pm_contract.project import projection_paths
+    from pyspec_contract.layers import parse_layers
+    from pyspec_contract.project import projection_paths
 
     contract = compile_patch(_api_only_patch(), layers=parse_layers("core,http"))
     paths = set(projection_paths(contract))
@@ -526,7 +526,7 @@ def test_authoring_layers_allow_api_only_contract_and_graph_driven_projections()
 
 
 def test_authoring_layers_reject_irrelevant_ui_targets() -> None:
-    from pm_contract.layers import parse_layers
+    from pyspec_contract.layers import parse_layers
 
     patch = _api_only_patch()
     patch["changes"].append(
@@ -551,7 +551,7 @@ def test_authoring_layers_reject_irrelevant_ui_targets() -> None:
 
 
 def test_authoring_layers_reject_wrong_entry_surface() -> None:
-    from pm_contract.layers import parse_layers
+    from pyspec_contract.layers import parse_layers
 
     patch = _api_only_patch()
     for change in patch["changes"]:
@@ -564,7 +564,7 @@ def test_authoring_layers_reject_wrong_entry_surface() -> None:
 
 
 def test_authoring_layers_reject_html_layout_without_web_layer() -> None:
-    from pm_contract.layers import parse_layers
+    from pyspec_contract.layers import parse_layers
 
     patch = _api_only_patch()
     patch["changes"].append(
@@ -586,7 +586,7 @@ def test_authoring_layers_reject_html_layout_without_web_layer() -> None:
 
 
 def test_layer_pruned_schema_hides_irrelevant_targets() -> None:
-    from pm_contract.layers import parse_layers, schema_for_layers
+    from pyspec_contract.layers import parse_layers, schema_for_layers
 
     schema = schema_for_layers(parse_layers("core,http"))
     refs = [item["$ref"] for item in schema["properties"]["changes"]["items"]["oneOf"]]
@@ -597,7 +597,7 @@ def test_layer_pruned_schema_hides_irrelevant_targets() -> None:
 
 
 def test_layer_pruned_author_schema_hides_irrelevant_sections() -> None:
-    from pm_contract.layers import author_schema_for_layers, parse_layers
+    from pyspec_contract.layers import author_schema_for_layers, parse_layers
 
     schema = author_schema_for_layers(parse_layers("core,http"))
     assert "entries" in schema["properties"]
@@ -606,7 +606,7 @@ def test_layer_pruned_author_schema_hides_irrelevant_sections() -> None:
     assert "render_cases" not in schema["properties"]
 
 
-def test_pm_contract_rejects_scenario_harness_routing() -> None:
+def test_pyspec_contract_rejects_scenario_harness_routing() -> None:
     patch = read_yaml(ROOT / "pm.patch.yaml")
     scenario = _first_spec(patch, "scenario")
     scenario["harnesses"] = ["spec", "prod"]
@@ -614,7 +614,7 @@ def test_pm_contract_rejects_scenario_harness_routing() -> None:
         compile_patch(patch)
 
 
-def test_pm_contract_rejects_storage_implementation_details_on_resource() -> None:
+def test_pyspec_contract_rejects_storage_implementation_details_on_resource() -> None:
     patch = read_yaml(ROOT / "pm.patch.yaml")
     resource = _first_spec(patch, "resource")
     resource["persistence"] = {"dialect": "sqlite", "table": "projects"}

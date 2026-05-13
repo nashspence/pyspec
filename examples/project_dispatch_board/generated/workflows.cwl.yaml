@@ -1,0 +1,111 @@
+$graph:
+- class: Workflow
+  doc: 'contract workflow project.approval_notice; trigger={''event'': ''project.approved''}; ref=workflow.project.approval_notice'
+  id: '#project_approval_notice'
+  inputs:
+    event:
+      type: Any
+  label: project.approval_notice
+  outputs: {}
+  steps:
+    send_notice:
+      in:
+        approved_by: event
+        project_id: event
+      out: []
+      run: '#project_send_approval_notice'
+- baseCommand:
+  - contract-capability
+  - project.approve
+  class: CommandLineTool
+  id: '#project_approve'
+  inputs:
+    project_id:
+      type: string
+  label: project.approve
+  outputs:
+    result:
+      type: Any
+- baseCommand:
+  - contract-capability
+  - project.archive
+  class: CommandLineTool
+  id: '#project_archive'
+  inputs:
+    project_id:
+      type: string
+  label: project.archive
+  outputs:
+    result:
+      type: Any
+- baseCommand:
+  - contract-capability
+  - project.create
+  class: CommandLineTool
+  id: '#project_create'
+  inputs:
+    customer:
+      type: string
+    priority:
+      type: string
+    title:
+      type: string
+    workspace_id:
+      type: string
+  label: project.create
+  outputs:
+    result:
+      type: Any
+- baseCommand:
+  - contract-capability
+  - project.list
+  class: CommandLineTool
+  id: '#project_list'
+  inputs:
+    workspace_id:
+      type: string
+  label: project.list
+  outputs:
+    result:
+      type:
+        items: Any
+        type: array
+- baseCommand:
+  - contract-capability
+  - project.read
+  class: CommandLineTool
+  id: '#project_read'
+  inputs:
+    project_id:
+      type: string
+  label: project.read
+  outputs:
+    result:
+      type: Any
+- baseCommand:
+  - contract-capability
+  - project.send_approval_notice
+  class: CommandLineTool
+  id: '#project_send_approval_notice'
+  inputs:
+    approved_by:
+      type: string
+    project_id:
+      type: string
+  label: project.send_approval_notice
+  outputs:
+    result:
+      type: Any
+- baseCommand:
+  - contract-capability
+  - project.submit
+  class: CommandLineTool
+  id: '#project_submit'
+  inputs:
+    project_id:
+      type: string
+  label: project.submit
+  outputs:
+    result:
+      type: Any
+cwlVersion: v1.2
