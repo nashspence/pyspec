@@ -16,6 +16,7 @@ from .content import ContentContext, ContentError, asset as asset_registry, call
 from .runtime import fixture_namespace, resolve
 from .io import read_json, read_yaml
 from .audit import audit_expected_files
+from .layout import layout_html, layout_html_regions, layout_textual
 from .project import (
     components_projection,
     validated_projection_paths,
@@ -344,7 +345,7 @@ def validate_panels_html(contract: dict[str, Any], text: str) -> None:
         if root.attrs.get("data-contract-owner-kind") != panel["owner_kind"] or root.attrs.get("data-contract-owner") != panel["owner"] or root.attrs.get("data-contract-state") != panel["state"]:
             raise ContractError(f"HTML root for {panel['id']} has wrong owner/state")
         classes = set(root.attrs.get("class", "").split())
-        required_classes = {"contract-panel", f"contract-panel--{panel['pattern']}"} | set(root_spec.get("classes", []))
+        required_classes = {"contract-panel"} | set(root_spec.get("classes", []))
         if not required_classes.issubset(classes):
             raise ContractError(f"HTML root for {panel['id']} is missing required classes: {sorted(required_classes - classes)}")
         if root_spec.get("role") and root_spec["role"] != "none" and root.attrs.get("role") != root_spec["role"]:
@@ -364,7 +365,8 @@ def validate_panels_html(contract: dict[str, Any], text: str) -> None:
     for root in composition_nodes:
         composition = composition_by_id[root.attrs["data-contract-composition"]]
         layout = composition["layout"]
-        root_spec = layout.get("root") or {"element": "section"}
+        html_layout = layout_html(layout)
+        root_spec = html_layout.get("root") or {"element": "section"}
         if root.tag != root_spec.get("element", "section"):
             raise ContractError(f"HTML composed view root element for {composition['id']} does not match layout contract")
         root_classes = set(root.attrs.get("class", "").split())
@@ -375,22 +377,22 @@ def validate_panels_html(contract: dict[str, Any], text: str) -> None:
             raise ContractError(f"HTML composed view root for {composition['id']} missing required role {root_spec['role']}")
 
         subtree = parser.subtree(root)
-        slot_nodes = {node.attrs["data-layout-slot"]: node for node in subtree if "data-layout-slot" in node.attrs}
-        expected_slots = set(layout.get("slots", {}))
-        if set(slot_nodes) != expected_slots:
-            raise ContractError(_diff_message(f"HTML layout slots for {composition['id']}", expected_slots, set(slot_nodes)))
-        for slot_name, slot in layout.get("slots", {}).items():
-            node = slot_nodes[slot_name]
-            if node.tag != slot.get("element", "div"):
-                raise ContractError(f"HTML layout slot {composition['id']}.{slot_name} has wrong element")
+        region_nodes = {node.attrs["data-layout-region"]: node for node in subtree if "data-layout-region" in node.attrs}
+        expected_regions = set(layout_html_regions(layout))
+        if set(region_nodes) != expected_regions:
+            raise ContractError(_diff_message(f"HTML layout regions for {composition['id']}", expected_regions, set(region_nodes)))
+        for region_name, region in layout_html_regions(layout).items():
+            node = region_nodes[region_name]
+            if node.tag != region.get("element", "div"):
+                raise ContractError(f"HTML layout region {composition['id']}.{region_name} has wrong element")
             classes = set(node.attrs.get("class", "").split())
-            required_classes = {"contract-layout-slot", f"contract-layout-slot--{slot_name}"} | set(slot.get("classes", []))
+            required_classes = {"contract-layout-region", f"contract-layout-region--{region_name}"} | set(region.get("classes", []))
             if not required_classes.issubset(classes):
-                raise ContractError(f"HTML layout slot {composition['id']}.{slot_name} is missing classes: {sorted(required_classes - classes)}")
-            if node.attrs.get("data-required") != str(slot["required"]).lower():
-                raise ContractError(f"HTML layout slot {composition['id']}.{slot_name} has wrong data-required")
-            if slot.get("role") and slot["role"] != "none" and node.attrs.get("role") != slot["role"]:
-                raise ContractError(f"HTML layout slot {composition['id']}.{slot_name} missing required role {slot['role']}")
+                raise ContractError(f"HTML layout region {composition['id']}.{region_name} is missing classes: {sorted(required_classes - classes)}")
+            if node.attrs.get("data-required") != str(region["required"]).lower():
+                raise ContractError(f"HTML layout region {composition['id']}.{region_name} has wrong data-required")
+            if region.get("role") and region["role"] != "none" and node.attrs.get("role") != region["role"]:
+                raise ContractError(f"HTML layout region {composition['id']}.{region_name} missing required role {region['role']}")
 
         actual_instances = {node.attrs["data-panel-instance"]: node.attrs for node in subtree if "data-panel-instance" in node.attrs}
         expected_instances = {instance["id"]: instance for instance in composition["instances"]}
@@ -411,7 +413,6 @@ def validate_panel_css(contract: dict[str, Any], text: str) -> None:
     panels = projection["panels"]
     compositions = projection["compositions"]
     expected_selectors = {":root", ".contract-panel"}
-    expected_selectors.update({f".contract-panel--{panel['pattern']}" for panel in panels})
     for panel in panels:
         css_contract = (panel.get("presentation") or {}).get("css") or {}
         if css_contract.get("tokens"):
@@ -419,7 +420,7 @@ def validate_panel_css(contract: dict[str, Any], text: str) -> None:
         for rule in css_contract.get("rules", []):
             expected_selectors.add(css_selector(panel, rule["selector"]))
     for composition in compositions:
-        css_contract = (composition.get("layout") or {}).get("css") or {}
+        css_contract = (layout_html(composition.get("layout") or {}).get("css") or {})
         if css_contract.get("tokens"):
             expected_selectors.add(composition_css_selector(composition, "root"))
         for rule in css_contract.get("rules", []):
@@ -513,7 +514,7 @@ def validate_textual_contract(root: Path, contract: dict[str, Any]) -> None:
     for composition in compositions:
         if module.composition(composition["id"]) != composition:
             raise ContractError(f"textual_contract.py composition lookup failed for {composition['id']}")
-        expected = [(instance["slot"], instance["id"], instance["panel"]) for instance in composition["instances"]]
+        expected = [(instance["region"], instance["id"], instance["panel"]) for instance in composition["instances"]]
         if module.compose_contract_view(composition["id"]) != expected:
             raise ContractError(f"textual_contract.py compose_contract_view mismatch for {composition['id']}")
 
@@ -534,7 +535,7 @@ def validate_textual_contract(root: Path, contract: dict[str, Any]) -> None:
         for rule in textual.get("tcss", {}).get("rules", []):
             expected_selectors.add(_textual_selector(panel, rule["selector"]))
     for composition in compositions:
-        textual = (composition.get("layout") or {}).get("textual") or {}
+        textual = layout_textual(composition.get("layout") or {})
         for rule in (textual.get("tcss") or {}).get("rules", []):
             expected_selectors.add(composition_tcss_selector(composition, rule["selector"]))
     actual_selectors = {selector for selector, _ in tcss_rules}
@@ -1250,5 +1251,3 @@ def _diff_message(label: str, expected: set[Any], actual: set[Any]) -> str:
     if extra:
         parts.append("extra " + repr(extra))
     return f"{label} mismatch: " + "; ".join(parts)
-
-

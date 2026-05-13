@@ -15,6 +15,7 @@ from typing import Any, Iterable
 from .compile import ContractError
 from .content import AssetResult, ContentContext, ContentError, call_asset, call_copy
 from .io import write_yaml
+from .layout import layout_html, layout_html_regions, layout_regions
 from .project import css_value, default_html_slots, format_attrs, humanize, panels_projection, panel_styles_projection, safe_id
 from .runtime import fixture_namespace, resolve
 
@@ -326,7 +327,7 @@ def panel_fsm_dot(panel_id: str, panel: dict[str, Any], contract: dict[str, Any]
                 _dot_node_id("state", state_name),
                 _dot_card(
                     state_name,
-                    f"pattern: {state['pattern']}",
+                    None,
                     [
                         ("copy", state.get("copy", [])),
                         (f"{panel['resource']} fields", state.get("fields", [])),
@@ -364,10 +365,10 @@ def panel_fsm_dot(panel_id: str, panel: dict[str, Any], contract: dict[str, Any]
 
 def composition_dot(view_id: str, view: dict[str, Any]) -> str:
     view_node = _dot_node_id("layout_view", view_id)
-    slots = sorted(view["layout"]["slots"].items(), key=lambda item: (item[1].get("order", 0), item[0]), reverse=True)
-    slot_ids = [_dot_node_id("layout_slot", slot_name) for slot_name, _ in slots]
-    slot_order = {slot_name: slot.get("order", 0) for slot_name, slot in view["layout"]["slots"].items()}
-    includes = sorted(view.get("includes", []), key=lambda include: (slot_order.get(include["slot"], 0), include["id"]), reverse=True)
+    regions = sorted(layout_regions(view["layout"]).items(), key=lambda item: (item[1].get("order", 0), item[0]), reverse=True)
+    region_ids = [_dot_node_id("layout_region", region_name) for region_name, _ in regions]
+    region_order = {region_name: region.get("order", 0) for region_name, region in layout_regions(view["layout"]).items()}
+    includes = sorted(view.get("includes", []), key=lambda include: (region_order.get(include["region"], 0), include["id"]), reverse=True)
     instance_ids = [_dot_node_id("layout_instance", include["id"]) for include in includes]
     lines = [
         f"digraph {_dot_quote('composition_' + safe_id(view_id))} {{",
@@ -396,18 +397,18 @@ def composition_dot(view_id: str, view: dict[str, Any]) -> str:
             indent="    ",
         ),
     ]
-    for slot_name, slot in slots:
-        slot_id = _dot_node_id("layout_slot", slot_name)
+    for region_name, region in regions:
+        region_id = _dot_node_id("layout_region", region_name)
         lines.append(
             _dot_html_node(
-                slot_id,
+                region_id,
                 _dot_card(
-                    f"slot: {slot_name}",
-                    f"order: {slot.get('order', 0)}",
+                    f"region: {region_name}",
+                    f"order: {region.get('order', 0)}",
                     [
-                        ("element", [slot.get("element", "")]),
-                        ("role", [slot.get("role", "none")]),
-                        ("required", [str(slot["required"]).lower()]),
+                        ("element", [region.get("element", "")]),
+                        ("role", [region.get("role", "none")]),
+                        ("required", [str(region.get("required", False)).lower()]),
                     ],
                     header_bg="#f8fafc",
                     border="#71717a",
@@ -415,10 +416,10 @@ def composition_dot(view_id: str, view: dict[str, Any]) -> str:
                 indent="    ",
             )
         )
-        lines.append(f"    {_dot_quote(view_node)} -> {_dot_quote(slot_id)};")
+        lines.append(f"    {_dot_quote(view_node)} -> {_dot_quote(region_id)};")
     for include in includes:
         inst = _dot_node_id("layout_instance", include["id"])
-        slot_id = _dot_node_id("layout_slot", include["slot"])
+        region_id = _dot_node_id("layout_region", include["region"])
         selected = include.get("selected") or {}
         selected_lines = []
         if selected:
@@ -431,7 +432,7 @@ def composition_dot(view_id: str, view: dict[str, Any]) -> str:
                     f"instance: {include['id']}",
                     include["panel"],
                     [
-                        ("slot", [include["slot"]]),
+                        ("region", [include["region"]]),
                         ("initial", [include["initial"]]),
                         ("context", _format_mapping(include.get("context", {}))),
                         ("selected", selected_lines),
@@ -442,10 +443,10 @@ def composition_dot(view_id: str, view: dict[str, Any]) -> str:
                 indent="    ",
             )
         )
-        lines.append(f"    {_dot_quote(slot_id)} -> {_dot_quote(inst)};")
-    if slot_ids:
-        lines.append("    { rank=same; " + " ".join(_dot_quote(slot_id) for slot_id in slot_ids) + " }")
-        lines.extend(_dot_invisible_order(slot_ids, indent="    "))
+        lines.append(f"    {_dot_quote(region_id)} -> {_dot_quote(inst)};")
+    if region_ids:
+        lines.append("    { rank=same; " + " ".join(_dot_quote(region_id) for region_id in region_ids) + " }")
+        lines.extend(_dot_invisible_order(region_ids, indent="    "))
     if instance_ids:
         lines.append("    { rank=same; " + " ".join(_dot_quote(instance_id) for instance_id in instance_ids) + " }")
         lines.extend(_dot_invisible_order(instance_ids, indent="    "))
@@ -828,7 +829,7 @@ def audit_html_document(contract: dict[str, Any], body: str) -> str:
     main { padding: 24px; }
     .contract-panel, .contract-composed-view { background: white; border: 1px solid #d0d0d0; border-radius: 12px; padding: 16px; box-sizing: border-box; }
     .contract-composed-view { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(280px, 2fr) minmax(180px, 1fr); gap: 16px; max-width: none; }
-    .contract-layout-slot { min-height: 120px; display: grid; gap: 12px; align-content: start; }
+    .contract-layout-region { min-height: 120px; display: grid; gap: 12px; align-content: start; }
     .audit-records { display: grid; gap: 0.75rem; }
     .audit-record { border: 1px solid #e4e4e7; border-radius: 10px; padding: 0.75rem; display: grid; gap: 0.35rem; }
     .audit-field { display: grid; gap: 0.15rem; }
@@ -868,25 +869,26 @@ def render_composed_case_html(root: Path, contract: dict[str, Any], case: dict[s
     view = contract["views"][case["view"]]
     projection = panels_projection(contract)
     composition = next(item for item in projection["compositions"] if item["id"] == case["view"])
-    root_spec = composition["layout"].get("root") or {"element": "section"}
+    html_layout = layout_html(composition["layout"])
+    root_spec = html_layout.get("root") or {"element": "section"}
     tag = root_spec.get("element", "section")
     classes = " ".join(["contract-composed-view"] + root_spec.get("classes", []))
     attrs = {"class": classes, "data-contract-composition": composition["id"]}
     if root_spec.get("role") and root_spec["role"] != "none":
         attrs["role"] = root_spec["role"]
     parts = [f"<{tag}{format_attrs(attrs)}>"]
-    for slot_name, slot in sorted(view["layout"]["slots"].items(), key=lambda item: item[1].get("order", 0)):
-        slot_tag = slot.get("element", "div")
-        slot_classes = " ".join(["contract-layout-slot", f"contract-layout-slot--{slot_name}"] + slot.get("classes", []))
-        slot_attrs = {"class": slot_classes, "data-layout-slot": slot_name, "data-required": str(slot["required"]).lower()}
-        if slot.get("role") and slot["role"] != "none":
-            slot_attrs["role"] = slot["role"]
-        parts.append(f"<{slot_tag}{format_attrs(slot_attrs)}>")
-        for include in [item for item in view["includes"] if item["slot"] == slot_name]:
+    for region_name, region in sorted(layout_html_regions(view["layout"]).items(), key=lambda item: item[1].get("order", 0)):
+        region_tag = region.get("element", "div")
+        region_classes = " ".join(["contract-layout-region", f"contract-layout-region--{region_name}"] + region.get("classes", []))
+        region_attrs = {"class": region_classes, "data-layout-region": region_name, "data-required": str(region["required"]).lower()}
+        if region.get("role") and region["role"] != "none":
+            region_attrs["role"] = region["role"]
+        parts.append(f"<{region_tag}{format_attrs(region_attrs)}>")
+        for include in [item for item in view["includes"] if item["region"] == region_name]:
             state_name = case["panels"][include["id"]]["state"]
             panel = next(item for item in projection["panels"] if item["owner_kind"] == "panel" and item["owner"] == include["panel"] and item["state"] == state_name)
             parts.append(render_panel_audit_html(root, contract, panel, case))
-        parts.append(f"</{slot_tag}>")
+        parts.append(f"</{region_tag}>")
     parts.append(f"</{tag}>")
     return "\n".join(parts)
 
@@ -896,7 +898,7 @@ def render_panel_audit_html(root: Path, contract: dict[str, Any], panel: dict[st
     html_contract = presentation.get("html") or {}
     root_spec = html_contract.get("root") or {"element": "section"}
     tag = root_spec.get("element", "section")
-    classes = " ".join(["contract-panel", f"contract-panel--{panel['pattern']}"] + root_spec.get("classes", []))
+    classes = " ".join(["contract-panel"] + root_spec.get("classes", []))
     attrs = {
         "class": classes,
         "data-contract-panel": panel["id"],
@@ -1052,6 +1054,8 @@ def panel_textual_lines(root: Path, contract: dict[str, Any], panel: dict[str, A
 
 def records_for_panel(contract: dict[str, Any], panel: dict[str, Any], case: dict[str, Any] | None) -> list[dict[str, Any]]:
     resource_id = panel_resource(contract, panel)
+    resource_key = f"{resource_id.lower()}_id"
+    owner_context = panel_owner_context(contract, panel)
     fixtures = case.get("fixtures", []) if case else list(contract.get("fixtures", {}))
     records: list[dict[str, Any]] = []
     if case:
@@ -1062,12 +1066,14 @@ def records_for_panel(contract: dict[str, Any], panel: dict[str, Any], case: dic
         context = {}
         for fixture_id in fixtures:
             records.extend(_find_resource_records(contract["fixtures"][fixture_id]["values"], resource_id))
-    selected_id = context.get(f"selected_{resource_id.lower()}_id") or context.get("selected_project_id") or context.get("project_id") or context.get("id")
-    if selected_id and panel["pattern"] in {"detail", "summary", "feed"}:
+    selected_id = context.get(resource_key)
+    if not selected_id and resource_key in owner_context:
+        selected_id = context.get(f"selected_{resource_key}")
+    if selected_id and resource_key in owner_context:
         selected = [record for record in records if record.get("id") == selected_id]
         if selected:
             return selected
-    if panel["pattern"] in {"detail", "summary"} and records:
+    if resource_key in owner_context and records:
         return records[:1]
     return records
 
@@ -1076,6 +1082,12 @@ def panel_resource(contract: dict[str, Any], panel: dict[str, Any]) -> str:
     if panel["owner_kind"] == "panel":
         return contract["panels"][panel["owner"]]["resource"]
     return contract["views"][panel["owner"]]["resource"]
+
+
+def panel_owner_context(contract: dict[str, Any], panel: dict[str, Any]) -> dict[str, Any]:
+    if panel["owner_kind"] == "panel":
+        return contract["panels"][panel["owner"]].get("context", {})
+    return contract["views"][panel["owner"]].get("context", {})
 
 
 def _resolved_case_context(contract: dict[str, Any], case: dict[str, Any], namespace: dict[str, Any]) -> dict[str, Any]:

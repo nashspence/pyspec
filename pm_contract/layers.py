@@ -196,8 +196,8 @@ def _validate_change_spec_layers(label: str, target: str, spec: dict[str, Any], 
 
     if target == "view":
         layout = spec.get("layout") or {}
-        if "css" in layout:
-            _require_layers(label, "view layout css", {"web"}, layers)
+        if "html" in layout:
+            _require_layers(label, "view layout html", {"web"}, layers)
         if "textual" in layout:
             _require_layers(label, "view layout textual", {"textual"}, layers)
         for state_name, state in spec.get("states", {}).items():

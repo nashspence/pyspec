@@ -197,16 +197,13 @@ changes:
         copy_slots:
         - heading
         - body
-        pattern: empty
       error:
         copy_slots:
         - heading
         - body
-        pattern: error
       loading:
         copy_slots:
         - message
-        pattern: loading
       ready:
         actions:
         - project.create
@@ -218,7 +215,6 @@ changes:
         - customer
         - priority
         - status
-        pattern: table
     transitions:
     - event: data.empty
       from: loading
@@ -257,18 +253,15 @@ changes:
         copy_slots:
         - heading
         - body
-        pattern: error
       loading:
         copy_slots:
         - message
         data:
         - project.read
-        pattern: loading
       none:
         copy_slots:
         - heading
         - body
-        pattern: none
       ready:
         actions:
         - project.approve
@@ -283,7 +276,6 @@ changes:
         - status
         - assignee
         - summary
-        pattern: detail
     transitions:
     - event: project.selection_changed
       from: none
@@ -294,11 +286,11 @@ changes:
     - event: data.error
       from: loading
       to: error
-    - event: selection.cleared
-      effects:
+    - effects:
       - set:
           context: project_id
           value: null
+      event: selection.cleared
       from: ready
       to: none
   target: panel
@@ -319,7 +311,6 @@ changes:
         copy_slots:
         - heading
         - body
-        pattern: empty
       ready:
         copy_slots:
         - heading
@@ -329,16 +320,15 @@ changes:
         - updated_at
         - status
         - assignee
-        pattern: feed
     transitions:
     - event: project.selection_changed
       from: empty
       to: ready
-    - event: selection.cleared
-      effects:
+    - effects:
       - set:
           context: project_id
           value: null
+      event: selection.cleared
       from: ready
       to: empty
   target: panel
@@ -359,87 +349,93 @@ changes:
       id: list
       initial: loading
       panel: panel.project.list
-      slot: nav
+      region: nav
     - context:
         project_id: $view.selected_project_id
       id: detail
       initial: none
       panel: panel.project.detail
+      region: main
       selected:
         state: loading
         when:
           context_present: selected_project_id
-      slot: main
     - context:
         project_id: $view.selected_project_id
       id: activity
       initial: empty
       panel: panel.project.activity
+      region: aside
       selected:
         state: ready
         when:
           context_present: selected_project_id
-      slot: aside
     layout:
-      css:
-        rules:
-        - declarations:
-            display: grid
-            gap: token.gap
-            grid-template-columns: token.nav_width 1fr token.aside_width
-          selector: root
-        - declarations:
-            min-width: token.nav_width
-          selector: slot.nav
-        - declarations:
-            min-width: '0'
-          selector: slot.main
-        - declarations:
-            min-width: token.aside_width
-          selector: slot.aside
-        tokens:
-          aside_width: 16rem
-          gap: 1rem
-          nav_width: 20rem
-      kind: slots
-      root:
-        classes:
-        - dispatch-board
-        element: section
-        role: region
-      slots:
-        aside:
+      html:
+        css:
+          rules:
+          - declarations:
+              display: grid
+              gap: token.gap
+              grid-template-columns: token.nav_width 1fr token.aside_width
+            selector: root
+          - declarations:
+              min-width: token.nav_width
+            selector: region.nav
+          - declarations:
+              min-width: '0'
+            selector: region.main
+          - declarations:
+              min-width: token.aside_width
+            selector: region.aside
+          tokens:
+            aside_width: 16rem
+            gap: 1rem
+            nav_width: 20rem
+        regions:
+          aside:
+            classes:
+            - dispatch-board-aside
+            element: aside
+            order: 3
+            required: true
+            role: complementary
+          main:
+            classes:
+            - dispatch-board-main
+            element: main
+            order: 2
+            required: true
+            role: main
+          nav:
+            classes:
+            - dispatch-board-nav
+            element: nav
+            order: 1
+            required: true
+            role: navigation
+        root:
           classes:
-          - dispatch-board-aside
-          element: aside
-          order: 3
-          required: true
-          role: complementary
-        main:
-          classes:
-          - dispatch-board-main
-          element: main
-          order: 2
-          required: true
-          role: main
-        nav:
-          classes:
-          - dispatch-board-nav
-          element: nav
-          order: 1
-          required: true
-          role: navigation
+          - dispatch-board
+          element: section
+          role: region
       textual:
         containers:
-        - id: nav
-          kind: Container
-          slot: nav
-        - id: main
-          kind: Container
-          slot: main
-        - id: aside
-          kind: Container
-          slot: aside
+          aside:
+            id: aside
+            kind: Container
+            order: 3
+            required: true
+          main:
+            id: main
+            kind: Container
+            order: 2
+            required: true
+          nav:
+            id: nav
+            kind: Container
+            order: 1
+            required: true
         screen_class: ProjectBoardScreen
         tcss:
           rules:
@@ -448,14 +444,13 @@ changes:
             selector: screen
           - declarations:
               width: '32'
-            selector: slot.nav
+            selector: region.nav
           - declarations:
               width: '28'
-            selector: slot.aside
+            selector: region.aside
     resource: Project
     states:
-      ready:
-        pattern: detail
+      ready: {}
     sync:
     - do:
       - set:

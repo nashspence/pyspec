@@ -2162,14 +2162,14 @@
         "selected": {
           "$ref": "#/$defs/panel_include_selected"
         },
-        "slot": {
+        "region": {
           "$ref": "#/$defs/field_name"
         }
       },
       "required": [
         "id",
         "panel",
-        "slot",
+        "region",
         "initial",
         "context"
       ],
@@ -2219,47 +2219,32 @@
             "ScrollableContainer"
           ]
         },
-        "slot": {
-          "$ref": "#/$defs/field_name"
+        "order": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "required": {
+          "type": "boolean"
         }
       },
       "required": [
-        "slot",
         "id",
-        "kind"
+        "kind",
+        "required"
       ],
       "type": "object"
     },
     "layout_contract": {
       "additionalProperties": false,
+      "minProperties": 1,
       "properties": {
-        "css": {
-          "$ref": "#/$defs/style_contract"
-        },
-        "kind": {
-          "const": "slots"
-        },
-        "root": {
-          "$ref": "#/$defs/layout_root"
-        },
-        "slots": {
-          "additionalProperties": {
-            "$ref": "#/$defs/layout_slot"
-          },
-          "minProperties": 1,
-          "propertyNames": {
-            "$ref": "#/$defs/field_name"
-          },
-          "type": "object"
+        "html": {
+          "$ref": "#/$defs/layout_html"
         },
         "textual": {
           "$ref": "#/$defs/layout_textual"
         }
       },
-      "required": [
-        "kind",
-        "slots"
-      ],
       "type": "object"
     },
     "layout_root": {
@@ -2281,53 +2266,18 @@
       },
       "type": "object"
     },
-    "layout_slot": {
-      "additionalProperties": false,
-      "properties": {
-        "classes": {
-          "items": {
-            "$ref": "#/$defs/css_class"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "element": {
-          "$ref": "#/$defs/html_element"
-        },
-        "order": {
-          "minimum": 0,
-          "type": "integer"
-        },
-        "region": {
-          "enum": [
-            "nav",
-            "main",
-            "aside",
-            "header",
-            "footer",
-            "section"
-          ]
-        },
-        "required": {
-          "type": "boolean"
-        },
-        "role": {
-          "$ref": "#/$defs/aria_role"
-        }
-      },
-      "required": [
-        "required"
-      ],
-      "type": "object"
-    },
     "layout_textual": {
       "additionalProperties": false,
       "properties": {
         "containers": {
-          "items": {
+          "additionalProperties": {
             "$ref": "#/$defs/layout_container"
           },
-          "type": "array"
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/$defs/field_name"
+          },
+          "type": "object"
         },
         "screen_class": {
           "$ref": "#/$defs/python_class_name"
@@ -2336,7 +2286,10 @@
           "$ref": "#/$defs/style_contract"
         }
       },
-      "type": "object"
+      "type": "object",
+      "required": [
+        "containers"
+      ]
     },
     "panel_author": {
       "additionalProperties": false,
@@ -2644,27 +2597,10 @@
           "type": "array",
           "uniqueItems": true
         },
-        "pattern": {
-          "enum": [
-            "none",
-            "loading",
-            "empty",
-            "table",
-            "detail",
-            "form",
-            "error",
-            "success",
-            "summary",
-            "feed"
-          ]
-        },
         "presentation": {
           "$ref": "#/$defs/presentation_contract"
         }
       },
-      "required": [
-        "pattern"
-      ],
       "type": "object"
     },
     "panel_transition": {
@@ -3701,7 +3637,7 @@
       "type": "object"
     },
     "style_selector": {
-      "pattern": "^(root|screen|slot\\.[a-z][a-z0-9_]*|action\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+|instance\\.[a-z][a-z0-9_]*)$",
+      "pattern": "^(root|screen|(slot|region)\\.[a-z][a-z0-9_]*|action\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+|instance\\.[a-z][a-z0-9_]*)$",
       "type": "string"
     },
     "sync_action": {
@@ -4566,6 +4502,60 @@
       "required": [
         "trigger",
         "steps"
+      ],
+      "type": "object"
+    },
+    "layout_region": {
+      "additionalProperties": false,
+      "properties": {
+        "classes": {
+          "items": {
+            "$ref": "#/$defs/css_class"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "element": {
+          "$ref": "#/$defs/html_element"
+        },
+        "order": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "role": {
+          "$ref": "#/$defs/aria_role"
+        }
+      },
+      "required": [
+        "required"
+      ],
+      "type": "object"
+    },
+    "layout_html": {
+      "additionalProperties": false,
+      "properties": {
+        "css": {
+          "$ref": "#/$defs/style_contract"
+        },
+        "regions": {
+          "additionalProperties": {
+            "$ref": "#/$defs/layout_region"
+          },
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/$defs/field_name"
+          },
+          "type": "object"
+        },
+        "root": {
+          "$ref": "#/$defs/layout_root"
+        }
+      },
+      "required": [
+        "regions"
       ],
       "type": "object"
     }

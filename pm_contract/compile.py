@@ -15,6 +15,7 @@ import fastjsonschema
 from . import rules
 from .layers import LayerError, parse_layers, validate_author_layers, validate_patch_layers
 from .io import read_json, read_yaml, write_json, write_yaml
+from .layout import layout_html, layout_html_regions, layout_regions, layout_textual, layout_textual_containers
 from .paths import COMPILED_CONTRACT_PATH, PATCH_CONTRACT_PATH, SOURCE_CONTRACT_PATH
 from .project import projection_files
 
@@ -423,7 +424,6 @@ def _compile_states(owner_id: str, states: dict[str, Any]) -> dict[str, Any]:
     compiled = {}
     for state_name, state in states.items():
         item = {
-            "pattern": state["pattern"],
             "panel": _state_panel_ref(owner_id, state_name),
             "data": _compile_data(owner_id, state.get("data", [])),
             "copy": [rules.copy_ref(subject, state_name, slot) for slot in state.get("copy_slots", [])],
@@ -907,14 +907,16 @@ def _validate_view_composition(contract: dict[str, Any], view_id: str, view: dic
         raise ContractError(f"Composed view {view_id} must declare layout")
     if not view.get("includes"):
         raise ContractError(f"Composed view {view_id} must include at least one panel")
-    slots = set(view["layout"]["slots"])
+    regions = set(layout_regions(view["layout"]))
+    if not regions:
+        raise ContractError(f"Composed view {view_id} must declare layout regions")
     instances: dict[str, dict[str, Any]] = {}
     for include in view["includes"]:
         if include["id"] in instances:
             raise ContractError(f"Composed view {view_id} has duplicate panel instance: {include['id']}")
         instances[include["id"]] = include
-        if include["slot"] not in slots:
-            raise ContractError(f"Composed view {view_id} includes panel in undeclared slot: {include['slot']}")
+        if include["region"] not in regions:
+            raise ContractError(f"Composed view {view_id} includes panel in undeclared region: {include['region']}")
         panel_id = include["panel"]
         if panel_id not in contract["panels"]:
             raise ContractError(f"Composed view {view_id} includes unknown panel: {panel_id}")
@@ -934,28 +936,24 @@ def _validate_view_composition(contract: dict[str, Any], view_id: str, view: dic
                 f"must exactly match panel context {sorted(expected_context)}"
             )
         _validate_view_context_refs(view_id, view.get("context", {}), include_context)
-    used_slots = {include["slot"] for include in view["includes"]}
-    missing_required = [slot for slot, spec in view["layout"]["slots"].items() if spec["required"] and slot not in used_slots]
+    used_regions = {include["region"] for include in view["includes"]}
+    missing_required = [region for region, spec in layout_regions(view["layout"]).items() if spec.get("required") and region not in used_regions]
     if missing_required:
-        raise ContractError(f"Composed view {view_id} missing required layout slots: {missing_required}")
-    _validate_layout_contract(view_id, view["layout"], slots, set(instances))
+        raise ContractError(f"Composed view {view_id} missing required layout regions: {missing_required}")
+    _validate_layout_contract(view_id, view["layout"], regions, set(instances))
     _validate_sync_rules(contract, view_id, view, instances)
 
 
-def _validate_layout_contract(view_id: str, layout: dict[str, Any], slots: set[str], instances: set[str]) -> None:
-    for rule in (layout.get("css") or {}).get("rules", []):
-        _validate_composition_selector(view_id, rule["selector"], slots, instances, "CSS")
-    textual = layout.get("textual") or {}
-    seen_container_slots: set[str] = set()
-    for container in textual.get("containers", []):
-        slot = container["slot"]
-        if slot in seen_container_slots:
-            raise ContractError(f"Composed view {view_id} Textual layout has duplicate container for slot: {slot}")
-        seen_container_slots.add(slot)
-        if slot not in slots:
-            raise ContractError(f"Composed view {view_id} Textual layout references undeclared slot: {slot}")
+def _validate_layout_contract(view_id: str, layout: dict[str, Any], regions: set[str], instances: set[str]) -> None:
+    html_regions = set(layout_html_regions(layout))
+    textual_regions = set(layout_textual_containers(layout))
+    if html_regions and textual_regions and html_regions != textual_regions:
+        raise ContractError(f"Composed view {view_id} layout regions differ between html and textual")
+    for rule in ((layout_html(layout).get("css") or {}).get("rules", [])):
+        _validate_composition_selector(view_id, rule["selector"], regions, instances, "CSS")
+    textual = layout_textual(layout)
     for rule in ((textual.get("tcss") or {}).get("rules", [])):
-        _validate_composition_selector(view_id, rule["selector"], slots, instances, "TCSS")
+        _validate_composition_selector(view_id, rule["selector"], regions, instances, "TCSS")
 
 
 def _validate_condition_context(view_id: str, context: dict[str, str], condition: Any) -> None:
@@ -1129,13 +1127,13 @@ def _validate_style_selector(
     raise ContractError(f"{owner_label}.{state_name} {label} selector is not supported: {selector}")
 
 
-def _validate_composition_selector(view_id: str, selector: str, slots: set[str], instances: set[str], label: str) -> None:
+def _validate_composition_selector(view_id: str, selector: str, regions: set[str], instances: set[str], label: str) -> None:
     if selector in {"root", "screen"}:
         return
-    if selector.startswith("slot."):
-        slot = selector[len("slot."):]
-        if slot not in slots:
-            raise ContractError(f"Composed view {view_id} {label} selector references undeclared layout slot: {selector}")
+    if selector.startswith("region."):
+        region = selector[len("region."):]
+        if region not in regions:
+            raise ContractError(f"Composed view {view_id} {label} selector references undeclared layout region: {selector}")
         return
     if selector.startswith("instance."):
         instance = selector[len("instance."):]

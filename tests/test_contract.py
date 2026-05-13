@@ -83,6 +83,15 @@ def test_pm_patch_rejects_meta_root_fields() -> None:
         with pytest.raises(ContractError, match="Schema validation failed"):
             compile_patch(patch)
 
+
+def test_state_pattern_is_not_a_contract_concept() -> None:
+    patch = read_yaml(ROOT / "pm.patch.yaml")
+    state = _change(patch, "panel", "panel.project.list")["spec"]["states"]["loading"]
+    state["pattern"] = "loading"
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_patch(patch)
+
+
 def test_contract_schema_rejects_meta_root_fields() -> None:
     for key, value in [("version", 1), ("status", "draft"), ("review_flags", [{"id": "x"}])]:
         contract = read_yaml(ROOT / COMPILED_CONTRACT_PATH)
@@ -200,7 +209,7 @@ def test_author_panel_defaults_empty_collections() -> None:
             "panel.ticket.empty": {
                 "resource": "Ticket",
                 "initial": "empty",
-                "states": {"empty": {"pattern": "empty"}},
+                "states": {"empty": {}},
                 "basis": "Panel can start as a minimal empty-state FSM.",
             }
         },
@@ -352,11 +361,11 @@ def test_prod_harness_cannot_import_spec_fake(tmp_path: Path) -> None:
         validate_project(project)
 
 
-def test_presentation_rejects_undeclared_css_slot() -> None:
+def test_presentation_rejects_undeclared_css_region() -> None:
     patch = read_yaml(ROOT / "pm.patch.yaml")
     view = _change(patch, "view", "project.board")["spec"]
-    view["layout"]["css"]["rules"].append({"selector": "slot.ghost", "declarations": {"display": "block"}})
-    with pytest.raises(ContractError, match="undeclared layout slot"):
+    view["layout"]["html"]["css"]["rules"].append({"selector": "region.ghost", "declarations": {"display": "block"}})
+    with pytest.raises(ContractError, match="undeclared layout region"):
         compile_patch(patch)
 
 
@@ -531,7 +540,7 @@ def test_authoring_layers_reject_irrelevant_ui_targets() -> None:
                 "data": [],
                 "events": [],
                 "initial": "empty",
-                "states": {"empty": {"pattern": "empty"}},
+                "states": {"empty": {}},
                 "transitions": [],
             },
             "basis": _basis("UI panel is not part of this API layer"),
@@ -552,6 +561,28 @@ def test_authoring_layers_reject_wrong_entry_surface() -> None:
             break
     with pytest.raises(ContractError, match="entry surface web requires web"):
         compile_patch(patch, layers=parse_layers("core,http"))
+
+
+def test_authoring_layers_reject_html_layout_without_web_layer() -> None:
+    from pm_contract.layers import parse_layers
+
+    patch = _api_only_patch()
+    patch["changes"].append(
+        {
+            "op": "add",
+            "target": "view",
+            "id": "ticket.board",
+            "spec": {
+                "archetype": "dashboard",
+                "resource": "Ticket",
+                "states": {"ready": {}},
+                "layout": {"html": {"regions": {"main": {"required": True}}}},
+            },
+            "basis": _basis("HTML layout is a web surface"),
+        }
+    )
+    with pytest.raises(ContractError, match="view layout html requires web"):
+        compile_patch(patch, layers=parse_layers("core,http,ui,textual"))
 
 
 def test_layer_pruned_schema_hides_irrelevant_targets() -> None:

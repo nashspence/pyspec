@@ -36,8 +36,9 @@ def test_composed_fsm_contract_is_closed_and_projected() -> None:
     ]
 
     view = contract["views"]["project.board"]
-    assert set(view["layout"]["slots"]) == {"nav", "main", "aside"}
-    assert [(item["id"], item["panel"], item["slot"], item["initial"]) for item in view["includes"]] == [
+    assert set(view["layout"]["html"]["regions"]) == {"nav", "main", "aside"}
+    assert set(view["layout"]["textual"]["containers"]) == {"nav", "main", "aside"}
+    assert [(item["id"], item["panel"], item["region"], item["initial"]) for item in view["includes"]] == [
         ("list", "panel.project.list", "nav", "loading"),
         ("detail", "panel.project.detail", "main", "none"),
         ("activity", "panel.project.activity", "aside", "empty"),
@@ -49,11 +50,11 @@ def test_composed_fsm_contract_is_closed_and_projected() -> None:
     assert composition["sync"] == view["sync"]
 
 
-def test_composed_view_rejects_unknown_layout_slot() -> None:
+def test_composed_view_rejects_unknown_layout_region() -> None:
     patch = _patch()
     view = _change(patch, "view", "project.board")["spec"]
-    view["includes"][0]["slot"] = "ghost"
-    with pytest.raises(ContractError, match="undeclared slot"):
+    view["includes"][0]["region"] = "ghost"
+    with pytest.raises(ContractError, match="undeclared region"):
         compile_patch(patch)
 
 

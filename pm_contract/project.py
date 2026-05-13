@@ -5,6 +5,8 @@ import re
 from collections import defaultdict
 from typing import Any, Iterable
 
+from .layout import layout_html, layout_html_regions, layout_textual, layout_textual_containers
+
 
 SCALAR_JSON_SCHEMA: dict[str, dict[str, Any]] = {
     "ID": {"type": "string"},
@@ -135,7 +137,7 @@ def _has_web_ui(contract: dict[str, Any]) -> bool:
         if any(_state_has_web_presentation(state) for state in owner.get("states", {}).values()):
             return True
     for view in contract.get("views", {}).values():
-        if "css" in (view.get("layout") or {}):
+        if "html" in (view.get("layout") or {}):
             return True
     return False
 
@@ -304,7 +306,6 @@ def panel_projection_item(owner_kind: str, owner_id: str, state_name: str, state
         "owner_kind": owner_kind,
         "owner": owner_id,
         "state": state_name,
-        "pattern": state["pattern"],
         "data": state.get("data", []),
         "slots": {
             "copy": state["copy"],
@@ -334,7 +335,7 @@ def panels_html_projection(contract: dict[str, Any]) -> str:
         html_contract = (panel.get("presentation") or {}).get("html") or {}
         root = html_contract.get("root") or {"element": "section"}
         tag = root.get("element", "section")
-        classes = ["contract-panel", f"contract-panel--{panel['pattern']}"] + root.get("classes", [])
+        classes = ["contract-panel"] + root.get("classes", [])
         attrs = {
             "class": " ".join(classes),
             "data-contract-panel": panel["id"],
@@ -361,7 +362,8 @@ def panels_html_projection(contract: dict[str, Any]) -> str:
 
 def render_composed_view_html(composition: dict[str, Any], indent: str) -> list[str]:
     layout = composition["layout"]
-    root = layout.get("root") or {"element": "section"}
+    html_layout = layout_html(layout)
+    root = html_layout.get("root") or {"element": "section"}
     tag = root.get("element", "section")
     classes = ["contract-composed-view"] + root.get("classes", [])
     attrs = {
@@ -371,22 +373,22 @@ def render_composed_view_html(composition: dict[str, Any], indent: str) -> list[
     if root.get("role") and root["role"] != "none":
         attrs["role"] = root["role"]
     lines = [f"{indent}<{tag}{format_attrs(attrs)}>"]
-    slots = layout.get("slots", {})
-    instances_by_slot: dict[str, list[dict[str, Any]]] = {}
+    regions = layout_html_regions(layout)
+    instances_by_region: dict[str, list[dict[str, Any]]] = {}
     for instance in composition["instances"]:
-        instances_by_slot.setdefault(instance["slot"], []).append(instance)
-    for slot_name, slot in sorted(slots.items()):
-        slot_tag = slot.get("element", "div")
-        slot_classes = ["contract-layout-slot", f"contract-layout-slot--{slot_name}"] + slot.get("classes", [])
-        slot_attrs = {
-            "class": " ".join(slot_classes),
-            "data-layout-slot": slot_name,
-            "data-required": str(slot["required"]).lower(),
+        instances_by_region.setdefault(instance["region"], []).append(instance)
+    for region_name, region in sorted(regions.items(), key=lambda item: (item[1].get("order", 0), item[0])):
+        region_tag = region.get("element", "div")
+        region_classes = ["contract-layout-region", f"contract-layout-region--{region_name}"] + region.get("classes", [])
+        region_attrs = {
+            "class": " ".join(region_classes),
+            "data-layout-region": region_name,
+            "data-required": str(region["required"]).lower(),
         }
-        if slot.get("role") and slot["role"] != "none":
-            slot_attrs["role"] = slot["role"]
-        lines.append(f"{indent}  <{slot_tag}{format_attrs(slot_attrs)}>")
-        for instance in instances_by_slot.get(slot_name, []):
+        if region.get("role") and region["role"] != "none":
+            region_attrs["role"] = region["role"]
+        lines.append(f"{indent}  <{region_tag}{format_attrs(region_attrs)}>")
+        for instance in instances_by_region.get(region_name, []):
             panel_attrs = {
                 "data-panel-instance": instance["id"],
                 "data-panel-source": instance["panel"],
@@ -395,7 +397,7 @@ def render_composed_view_html(composition: dict[str, Any], indent: str) -> list[
             if instance.get("selected"):
                 panel_attrs["data-selected-state"] = instance["selected"]["state"]
             lines.append(f"{indent}    <div{format_attrs(panel_attrs)}></div>")
-        lines.append(f"{indent}  </{slot_tag}>")
+        lines.append(f"{indent}  </{region_tag}>")
     lines.append(f"{indent}</{tag}>")
     return lines
 
@@ -414,11 +416,6 @@ def panel_styles_projection(contract: dict[str, Any]) -> str:
         "}",
     ]
     panels = panels_projection(contract)["panels"]
-    patterns = sorted({panel["pattern"] for panel in panels})
-    for pattern in patterns:
-        lines.append(f".contract-panel--{pattern} {{")
-        lines.append(f"  /* pattern: {pattern} */")
-        lines.append("}")
     for panel in panels:
         css_contract = (panel.get("presentation") or {}).get("css") or {}
         grouped: dict[str, dict[str, str]] = {}
@@ -436,7 +433,7 @@ def panel_styles_projection(contract: dict[str, Any]) -> str:
                 lines.append(f"  {name}: {value};")
             lines.append("}")
     for composition in panels_projection(contract)["compositions"]:
-        css_contract = (composition.get("layout") or {}).get("css") or {}
+        css_contract = layout_html(composition.get("layout") or {}).get("css") or {}
         grouped: dict[str, dict[str, str]] = {}
         root_selector = composition_css_selector(composition, "root")
         for name, value in sorted((css_contract.get("tokens") or {}).items()):
@@ -531,7 +528,7 @@ def compose_contract_panel(panel_id: str) -> list[tuple[str, str]]:
 
 def compose_contract_view(view_id: str) -> list[tuple[str, str, str]]:
     item = composition(view_id)
-    return [(instance["slot"], instance["id"], instance["panel"]) for instance in item["instances"]]
+    return [(instance["region"], instance["id"], instance["panel"]) for instance in item["instances"]]
 
 
 def widget_label(widget: dict) -> str:
@@ -633,9 +630,9 @@ def composition_css_selector(composition: dict[str, Any], selector: str) -> str:
     root = f'[data-contract-composition="{composition["id"]}"]'
     if selector in {"root", "screen"}:
         return root
-    if selector.startswith("slot."):
-        slot = selector[len("slot."):]
-        return f'{root} [data-layout-slot="{slot}"]'
+    if selector.startswith("region."):
+        region = selector[len("region."):]
+        return f'{root} [data-layout-region="{region}"]'
     if selector.startswith("instance."):
         instance = selector[len("instance."):]
         return f'{root} [data-panel-instance="{instance}"]'
@@ -655,7 +652,7 @@ def textual_tcss(panels: list[dict[str, Any]], compositions: list[dict[str, Any]
             for name, value in sorted(rule["declarations"].items()):
                 declarations[name] = css_value(value)
     for composition in compositions or []:
-        textual = (composition.get("layout") or {}).get("textual") or {}
+        textual = layout_textual(composition.get("layout") or {})
         for rule in (textual.get("tcss") or {}).get("rules", []):
             selector = composition_tcss_selector(composition, rule["selector"])
             declarations = grouped.setdefault(selector, {})
@@ -693,15 +690,12 @@ def tcss_selector(panel: dict[str, Any], selector: str) -> str:
 
 def composition_tcss_selector(composition: dict[str, Any], selector: str) -> str:
     if selector in {"root", "screen"}:
-        textual = (composition.get("layout") or {}).get("textual") or {}
+        textual = layout_textual(composition.get("layout") or {})
         return textual.get("screen_class") or "Screen"
-    if selector.startswith("slot."):
-        slot = selector[len("slot."):]
-        textual = (composition.get("layout") or {}).get("textual") or {}
-        for container in textual.get("containers", []):
-            if container["slot"] == slot:
-                return "#" + safe_id(container["id"])
-        return "#" + safe_id(slot)
+    if selector.startswith("region."):
+        region = selector[len("region."):]
+        container = layout_textual_containers(composition.get("layout") or {}).get(region, {})
+        return "#" + safe_id(container.get("id", region))
     if selector.startswith("instance."):
         return "#" + safe_id(selector[len("instance."):])
     return selector

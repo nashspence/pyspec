@@ -159,7 +159,7 @@ The compiler enforces the active layers at runtime even if the wrong editor sche
 
 ## Presentation stance
 
-HTML/CSS and Textual/TCSS are committed surfaces, not vague implementation hints. A composed view can declare semantic slots once, then attach concrete web and Textual surface details where the active layer permits them.
+HTML/CSS and Textual/TCSS are committed surfaces, not vague implementation hints. A composed view declares included panel instances by semantic region, then attaches concrete web and Textual surface details under `layout.html` and `layout.textual` where the active layer permits them.
 
 ```yaml
 views:
@@ -170,23 +170,25 @@ views:
     includes:
       - id: list
         panel: panel.project.list
-        slot: nav
+        region: nav
         initial: loading
         context: {workspace_id: $view.workspace_id, selected_project_id: $view.selected_project_id}
     layout:
-      kind: slots
-      root: {element: section, role: region, classes: [dispatch-board]}
-      slots:
-        nav: {element: nav, role: navigation, order: 1, required: true, classes: [dispatch-board-nav]}
-      css:
-        tokens: {gap: 1rem, nav_width: 20rem}
-        rules:
-          - selector: root
-            declarations: {display: grid, gap: token.gap, grid-template-columns: token.nav_width 1fr}
+      html:
+        root: {element: section, role: region, classes: [dispatch-board]}
+        regions:
+          nav: {element: nav, role: navigation, order: 1, required: true, classes: [dispatch-board-nav]}
+        css:
+          tokens: {gap: 1rem, nav_width: 20rem}
+          rules:
+            - selector: root
+              declarations: {display: grid, gap: token.gap, grid-template-columns: token.nav_width 1fr}
+            - selector: region.nav
+              declarations: {min-width: token.nav_width}
       textual:
         screen_class: ProjectBoardScreen
         containers:
-          - {slot: nav, id: nav, kind: Container}
+          nav: {id: nav, kind: Container, order: 1, required: true}
 ```
 
 This keeps visual precision available without requiring projects that have no UI goal to mention UI at all.
@@ -246,7 +248,7 @@ project.board
   aside -> panel.project.activity
 ```
 
-Each mounted panel is its own FSM. The composed view declares layout slots, included panel instances, shared context, and synchronization rules. Scenarios assert a state vector instead of flattening the screen into fake combined states:
+Each mounted panel is its own FSM. The composed view declares layout regions, included panel instances, shared context, and synchronization rules. Scenarios assert a state vector instead of flattening the screen into fake combined states:
 
 ```yaml
 then:
