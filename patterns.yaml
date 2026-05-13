@@ -144,7 +144,7 @@ audit_contracts:
   audit_profile: 'target: audit_profile declares fixed HTML and/or Textual breakpoints.'
   render_case: 'target: render_case binds a view state or composed panel state vector to fixtures, surfaces, and an audit profile.'
   content_case: 'target: content_case exercises every resolver-backed copy/asset with deterministic args.'
-  final_content: 'target: copy or asset may declare args and resolver; generated content stubs constrain content/resolvers.py.'
+  final_content: 'target: copy or asset may declare args and resolver; generated content stubs constrain contract.py.'
   formats:
     fsm: svg
     composition: svg

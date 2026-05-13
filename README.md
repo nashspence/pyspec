@@ -293,7 +293,7 @@ composition diagrams    -> Graphviz SVG only
 
 ## Final copy and asset resolvers
 
-Placeholders are mandatory from the beginning because they make audits readable before final content exists. Final copy and image assets are contract-owned: declare typed resolver signatures on copy or asset items, then implement only the generated resolver obligation in `content/resolvers.py`.
+Placeholders are mandatory from the beginning because they make audits readable before final content exists. Final copy and image assets are contract-owned: declare typed resolver signatures on copy or asset items, then implement only the generated resolver obligation in `contract.py` next to `contract.yaml`.
 
 ```yaml
 copies:

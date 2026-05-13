@@ -829,7 +829,7 @@ def content_contract_projection(contract: dict[str, Any]) -> str:
 
 def content_stubs_projection(contract: dict[str, Any]) -> str:
     lines = [
-        '"""Generated content resolver stubs. Do not edit; copy needed functions into content/resolvers.py."""',
+        '"""Generated content resolver stubs. Do not edit; copy needed functions into contract.py."""',
         "from __future__ import annotations",
         "",
         "from pm_contract.content import AssetResult, ContentContext, asset, copy",

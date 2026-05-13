@@ -49,11 +49,11 @@ For composed product screens, define reusable panel FSMs first, then mount them 
 
 Every rendered copy ref must be backed by a declared copy item. Every rendered asset ref must be backed by a declared asset item. Every view state or composed view state vector must be backed by a render case. Use audit profiles for fixed breakpoints. Do not create review reports or manifests; the compiler derives the full audit set from the contract.
 
-For final copy or image assets, declare the typed content signature in `contract.yaml` through copy or asset items with `args` and `resolver`. Add content-case coverage for every resolver-backed copy or asset. Do not write resolver bodies as a PM/spec agent; resolver bodies live in `content/resolvers.py` and must implement the generated stubs exactly.
+For final copy or image assets, declare the typed content signature in `contract.yaml` through copy or asset items with `args` and `resolver`. Add content-case coverage for every resolver-backed copy or asset. Do not write resolver bodies as a PM/spec agent; resolver bodies live in `contract.py` next to `contract.yaml` and must implement the generated stubs exactly.
 
 ## Final content resolver implementer
 
-Edit `content/resolvers.py` only after the PM/spec contract declares the resolver. Do not add resolver IDs, args, or asset formats in Python. Import generated arg classes and refs, return plain `str` for copy and `AssetResult` with real SVG for image assets, and keep outputs deterministic for declared content cases and render cases.
+Edit `contract.py` only after the PM/spec contract declares the resolver. Do not add resolver IDs, args, or asset formats in Python. Import generated arg classes and refs, return plain `str` for copy and `AssetResult` with real SVG for image assets, and keep outputs deterministic for declared content cases and render cases.
 
 ## Test agent
 

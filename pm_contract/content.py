@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import importlib.util
 import inspect
 import sys
 from dataclasses import dataclass
@@ -55,6 +56,8 @@ class ResolverRegistry:
 copy = ResolverRegistry("copy")
 asset = ResolverRegistry("asset")
 _LOADED_ROOT: Path | None = None
+_RESOLVER_PATH = Path("contract.py")
+_RESOLVER_MODULE_NAME = "_pm_contract_project_contract"
 
 
 def load_resolvers(root: Path) -> None:
@@ -62,17 +65,21 @@ def load_resolvers(root: Path) -> None:
     root = root.resolve()
     if _LOADED_ROOT == root:
         return
+    _LOADED_ROOT = None
     copy.clear()
     asset.clear()
-    for name in ["content.resolvers"]:
-        sys.modules.pop(name, None)
+    resolver_path = root / _RESOLVER_PATH
+    if not resolver_path.is_file():
+        raise ContentError("Missing contract.py for final content resolvers")
+    sys.modules.pop(_RESOLVER_MODULE_NAME, None)
     sys.path.insert(0, str(root))
     try:
-        importlib.import_module("content.resolvers")
-    except ModuleNotFoundError as exc:
-        if exc.name == "content" or exc.name == "content.resolvers":
-            raise ContentError("Missing content/resolvers.py for final content resolvers") from exc
-        raise
+        spec = importlib.util.spec_from_file_location(_RESOLVER_MODULE_NAME, resolver_path)
+        if spec is None or spec.loader is None:
+            raise ContentError("Cannot load contract.py for final content resolvers")
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[_RESOLVER_MODULE_NAME] = module
+        spec.loader.exec_module(module)
     finally:
         try:
             sys.path.remove(str(root))
