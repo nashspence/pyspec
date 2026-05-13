@@ -522,6 +522,7 @@ def test_authoring_layers_allow_api_only_contract_and_graph_driven_projections()
     assert "spec/generated/persistence.sql" not in paths
     assert "spec/generated/persistence.json" not in paths
     assert "spec/generated/product_interfaces/web.panels.preview.html" not in paths
+    assert "spec/generated/product_interfaces/web.panels.preview.css" not in paths
     assert "spec/generated/product_interfaces/textual.projection.py" not in paths
     assert "spec/generated/product_interfaces/events.asyncapi.yaml" not in paths
     assert "spec/generated/product_interfaces/workflow.cwl.yaml" not in paths

@@ -5,7 +5,6 @@ import importlib.util
 import json
 import py_compile
 import re
-from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -16,21 +15,17 @@ from .content import ContentContext, ContentError, asset as asset_registry, call
 from .runtime import fixture_namespace, resolve
 from .io import read_json, read_yaml
 from .audit import audit_expected_files
-from .layout import layout_html, layout_html_regions, layout_textual
+from .layout import layout_textual
 from .paths import GENERATED_SPEC_DIR, SPEC_ROOT, generated_relative as g
 from .project import (
     components_projection,
     validated_projection_paths,
-    composition_css_selector,
     composition_tcss_selector,
     constant_name,
     cwl_type,
-    css_selector,
-    css_value,
     object_schema,
     panels_projection,
     safe_id,
-    tcss_selector,
     type_schema,
 )
 
@@ -76,10 +71,6 @@ def validate_generated_projections(root: Path, contract: dict[str, Any]) -> None
         validate_routes(contract, read_json(generated / "product_interfaces" / "web.routes.json"))
     if g("product_interfaces", "web.panels.json") in expected_paths:
         validate_panels_json(contract, read_json(generated / "product_interfaces" / "web.panels.json"))
-    if g("product_interfaces", "web.panels.preview.html") in expected_paths:
-        validate_panels_html(contract, (generated / "product_interfaces" / "web.panels.preview.html").read_text(encoding="utf-8"))
-    if g("product_interfaces", "web.panels.preview.css") in expected_paths:
-        validate_panel_css(contract, (generated / "product_interfaces" / "web.panels.preview.css").read_text(encoding="utf-8"))
     if g("product_interfaces", "textual.projection.py") in expected_paths:
         validate_textual_contract(root, contract)
     if g("content_resolvers", "signatures.py") in expected_paths:
@@ -297,173 +288,6 @@ def validate_panels_json(contract: dict[str, Any], doc: dict[str, Any]) -> None:
     actual_compositions = {composition["id"] for composition in doc["compositions"]}
     if actual_compositions != expected_compositions:
         raise ContractError(_diff_message("Composed view ids", expected_compositions, actual_compositions))
-
-
-def validate_panels_html(contract: dict[str, Any], text: str) -> None:
-    if not text.startswith("<!doctype html>\n"):
-        raise ContractError("panels.html must start with <!doctype html>")
-    parser = _PanelHTMLParser()
-    parser.feed(text)
-    parser.close()
-    panels = panels_projection(contract)["panels"]
-    panel_by_id = {panel["id"]: panel for panel in panels}
-    root_nodes = [node for node in parser.nodes if node.attrs.get("data-contract-panel")]
-    root_ids = [node.attrs["data-contract-panel"] for node in root_nodes]
-    if set(root_ids) != set(panel_by_id):
-        raise ContractError(_diff_message("HTML panel roots", set(panel_by_id), set(root_ids)))
-    if len(root_ids) != len(set(root_ids)):
-        raise ContractError("panels.html contains duplicate data-contract-panel roots")
-
-    allowed_copy = set()
-    allowed_assets = set()
-    allowed_actions = set()
-    allowed_fields = set()
-    for panel in panels:
-        allowed_copy.update(panel["slots"]["copy"])
-        allowed_assets.update(panel["slots"]["assets"])
-        allowed_actions.update(panel["slots"]["actions"])
-        allowed_fields.update(panel["slots"].get("fields", []))
-
-    actual_copy = {node.attrs["data-copy"] for node in parser.nodes if "data-copy" in node.attrs}
-    actual_assets = {node.attrs["data-asset"] for node in parser.nodes if "data-asset" in node.attrs}
-    actual_actions = {node.attrs["data-action"] for node in parser.nodes if "data-action" in node.attrs}
-    actual_fields = {node.attrs["data-field"] for node in parser.nodes if "data-field" in node.attrs}
-    if not actual_copy.issubset(allowed_copy):
-        raise ContractError(f"panels.html contains undeclared copy refs: {sorted(actual_copy - allowed_copy)}")
-    if not actual_assets.issubset(allowed_assets):
-        raise ContractError(f"panels.html contains undeclared asset refs: {sorted(actual_assets - allowed_assets)}")
-    if not actual_actions.issubset(allowed_actions):
-        raise ContractError(f"panels.html contains undeclared action refs: {sorted(actual_actions - allowed_actions)}")
-    if not actual_fields.issubset(allowed_fields):
-        raise ContractError(f"panels.html contains undeclared field refs: {sorted(actual_fields - allowed_fields)}")
-
-    for root in root_nodes:
-        panel = panel_by_id[root.attrs["data-contract-panel"]]
-        html_contract = (panel.get("presentation") or {}).get("html") or {}
-        root_spec = html_contract.get("root") or {"element": "section"}
-        if root.tag != root_spec.get("element", "section"):
-            raise ContractError(f"HTML root element for {panel['id']} does not match presentation contract")
-        if root.attrs.get("data-contract-owner-kind") != panel["owner_kind"] or root.attrs.get("data-contract-owner") != panel["owner"] or root.attrs.get("data-contract-state") != panel["state"]:
-            raise ContractError(f"HTML root for {panel['id']} has wrong owner/state")
-        classes = set(root.attrs.get("class", "").split())
-        required_classes = {"contract-panel"} | set(root_spec.get("classes", []))
-        if not required_classes.issubset(classes):
-            raise ContractError(f"HTML root for {panel['id']} is missing required classes: {sorted(required_classes - classes)}")
-        if root_spec.get("role") and root_spec["role"] != "none" and root.attrs.get("role") != root_spec["role"]:
-            raise ContractError(f"HTML root for {panel['id']} missing required role {root_spec['role']}")
-
-        subtree = parser.subtree(root)
-        expected_slots = _html_slots_for_panel(panel)
-        for slot in expected_slots:
-            _assert_html_slot_present(panel, slot, subtree)
-
-
-    composition_by_id = {composition["id"]: composition for composition in panels_projection(contract)["compositions"]}
-    composition_nodes = [node for node in parser.nodes if node.attrs.get("data-contract-composition")]
-    actual_composition_ids = {node.attrs["data-contract-composition"] for node in composition_nodes}
-    if actual_composition_ids != set(composition_by_id):
-        raise ContractError(_diff_message("HTML composed view roots", set(composition_by_id), actual_composition_ids))
-    for root in composition_nodes:
-        composition = composition_by_id[root.attrs["data-contract-composition"]]
-        layout = composition["layout"]
-        html_layout = layout_html(layout)
-        root_spec = html_layout.get("root") or {"element": "section"}
-        if root.tag != root_spec.get("element", "section"):
-            raise ContractError(f"HTML composed view root element for {composition['id']} does not match layout contract")
-        root_classes = set(root.attrs.get("class", "").split())
-        required_root_classes = {"contract-composed-view"} | set(root_spec.get("classes", []))
-        if not required_root_classes.issubset(root_classes):
-            raise ContractError(f"HTML composed view root for {composition['id']} is missing classes: {sorted(required_root_classes - root_classes)}")
-        if root_spec.get("role") and root_spec["role"] != "none" and root.attrs.get("role") != root_spec["role"]:
-            raise ContractError(f"HTML composed view root for {composition['id']} missing required role {root_spec['role']}")
-
-        subtree = parser.subtree(root)
-        region_nodes = {node.attrs["data-layout-region"]: node for node in subtree if "data-layout-region" in node.attrs}
-        expected_regions = set(layout_html_regions(layout))
-        if set(region_nodes) != expected_regions:
-            raise ContractError(_diff_message(f"HTML layout regions for {composition['id']}", expected_regions, set(region_nodes)))
-        for region_name, region in layout_html_regions(layout).items():
-            node = region_nodes[region_name]
-            if node.tag != region.get("element", "div"):
-                raise ContractError(f"HTML layout region {composition['id']}.{region_name} has wrong element")
-            classes = set(node.attrs.get("class", "").split())
-            required_classes = {"contract-layout-region", f"contract-layout-region--{region_name}"} | set(region.get("classes", []))
-            if not required_classes.issubset(classes):
-                raise ContractError(f"HTML layout region {composition['id']}.{region_name} is missing classes: {sorted(required_classes - classes)}")
-            if node.attrs.get("data-required") != str(region["required"]).lower():
-                raise ContractError(f"HTML layout region {composition['id']}.{region_name} has wrong data-required")
-            if region.get("role") and region["role"] != "none" and node.attrs.get("role") != region["role"]:
-                raise ContractError(f"HTML layout region {composition['id']}.{region_name} missing required role {region['role']}")
-
-        actual_instances = {node.attrs["data-panel-instance"]: node.attrs for node in subtree if "data-panel-instance" in node.attrs}
-        expected_instances = {instance["id"]: instance for instance in composition["instances"]}
-        if set(actual_instances) != set(expected_instances):
-            raise ContractError(_diff_message(f"HTML panel instances for {composition['id']}", set(expected_instances), set(actual_instances)))
-        for instance_id, instance in expected_instances.items():
-            attrs = actual_instances[instance_id]
-            if attrs.get("data-panel-source") != instance["panel"] or attrs.get("data-initial-state") != instance["initial"]:
-                raise ContractError(f"HTML panel instance {composition['id']}.{instance_id} has wrong source/initial")
-            selected = instance.get("selected")
-            if selected and attrs.get("data-selected-state") != selected["state"]:
-                raise ContractError(f"HTML panel instance {composition['id']}.{instance_id} has wrong selected state")
-
-
-def validate_panel_css(contract: dict[str, Any], text: str) -> None:
-    rules = _parse_css_rules(text, "panel_styles.css")
-    projection = panels_projection(contract)
-    panels = projection["panels"]
-    compositions = projection["compositions"]
-    expected_selectors = {":root", ".contract-panel"}
-    for panel in panels:
-        css_contract = (panel.get("presentation") or {}).get("css") or {}
-        if css_contract.get("tokens"):
-            expected_selectors.add(css_selector(panel, "root"))
-        for rule in css_contract.get("rules", []):
-            expected_selectors.add(css_selector(panel, rule["selector"]))
-    for composition in compositions:
-        css_contract = (layout_html(composition.get("layout") or {}).get("css") or {})
-        if css_contract.get("tokens"):
-            expected_selectors.add(composition_css_selector(composition, "root"))
-        for rule in css_contract.get("rules", []):
-            expected_selectors.add(composition_css_selector(composition, rule["selector"]))
-    actual_selectors = {selector for selector, _ in rules}
-    if actual_selectors != expected_selectors:
-        raise ContractError(_diff_message("panel CSS selectors", expected_selectors, actual_selectors))
-    for selector, declarations in rules:
-        for name, value in declarations.items():
-            _validate_css_property_name(name, f"panel_styles.css selector {selector}")
-            if not value or "token." in value:
-                raise ContractError(f"panel_styles.css selector {selector} has unresolved or empty value for {name}")
-
-    actual_by_selector = dict(rules)
-    for panel in panels:
-        css_contract = (panel.get("presentation") or {}).get("css") or {}
-        expected_by_selector: dict[str, dict[str, str]] = {}
-        root_selector = css_selector(panel, "root")
-        for name, value in sorted((css_contract.get("tokens") or {}).items()):
-            expected_by_selector.setdefault(root_selector, {})["--" + name.replace("_", "-")] = value
-        for rule in css_contract.get("rules", []):
-            selector = css_selector(panel, rule["selector"])
-            expected = expected_by_selector.setdefault(selector, {})
-            for name, value in sorted(rule["declarations"].items()):
-                expected[name] = css_value(value)
-        for selector, expected in expected_by_selector.items():
-            if actual_by_selector.get(selector) != expected:
-                raise ContractError(f"panel_styles.css declarations do not match {panel['id']} selector {selector}")
-    for composition in compositions:
-        css_contract = (composition.get("layout") or {}).get("css") or {}
-        expected_by_selector: dict[str, dict[str, str]] = {}
-        root_selector = composition_css_selector(composition, "root")
-        for name, value in sorted((css_contract.get("tokens") or {}).items()):
-            expected_by_selector.setdefault(root_selector, {})["--" + name.replace("_", "-")] = value
-        for rule in css_contract.get("rules", []):
-            selector = composition_css_selector(composition, rule["selector"])
-            expected = expected_by_selector.setdefault(selector, {})
-            for name, value in sorted(rule["declarations"].items()):
-                expected[name] = css_value(value)
-        for selector, expected in expected_by_selector.items():
-            if actual_by_selector.get(selector) != expected:
-                raise ContractError(f"panel_styles.css declarations do not match composed view {composition['id']} selector {selector}")
 
 
 def validate_textual_contract(root: Path, contract: dict[str, Any]) -> None:
@@ -714,19 +538,10 @@ def validate_fixtures_and_scenarios(root: Path, contract: dict[str, Any]) -> Non
     behavior = generated / "behavior"
     fixtures = read_yaml(behavior / "fixtures.yaml")
     scenarios = read_yaml(behavior / "scenarios.yaml")
-    obligations = read_yaml(behavior / "obligations.yaml")
     if fixtures != {"project": contract["project"], "fixtures": contract["fixtures"]}:
         raise ContractError("fixtures.yaml does not match contract fixtures")
     if scenarios != {"project": contract["project"], "scenarios": contract["scenarios"]}:
         raise ContractError("scenarios.yaml does not match spec scenarios")
-    expected_obligation_keys = {"project", "scenarios", "must_validate_projections", "refs"}
-    _require_exact_keys(obligations, expected_obligation_keys, "behavior/obligations.yaml")
-    if obligations["project"] != contract["project"]:
-        raise ContractError("behavior/obligations.yaml metadata mismatch")
-    if obligations["scenarios"] != contract["scenarios"]:
-        raise ContractError("behavior/obligations.yaml scenarios mismatch")
-    if obligations["must_validate_projections"] != validated_projection_paths(contract):
-        raise ContractError("behavior/obligations.yaml must_validate_projections does not match active projections")
 
     expected_ids = set(contract["scenarios"])
     feature_root = generated / "test_adapters" / "pytest_bdd_features"
@@ -947,130 +762,11 @@ def _find_refs(node: Any) -> Iterable[str]:
             yield from _find_refs(value)
 
 
-def _slot_ref(panel: dict[str, Any], kind: str, slot: str) -> str:
-    key = "copy" if kind == "copy" else "assets"
-    for ref in panel["slots"][key]:
-        if ref.rsplit(".", 1)[-1] == slot:
-            return ref
-    raise ContractError(f"{panel['id']} has no {kind} slot {slot}")
-
-
 def _expect_asyncapi_operation_channel(op: dict[str, Any], channel_id: str, message_id: str, op_id: str) -> None:
     if op.get("channel") != {"$ref": f"#/channels/{channel_id}"}:
         raise ContractError(f"AsyncAPI operation {op_id} references wrong channel")
     if op.get("messages") != [{"$ref": f"#/components/messages/{message_id}"}]:
         raise ContractError(f"AsyncAPI operation {op_id} references wrong message")
-
-
-def _html_slots_for_panel(panel: dict[str, Any]) -> list[dict[str, Any]]:
-    html_contract = (panel.get("presentation") or {}).get("html") or {}
-    if html_contract.get("slots"):
-        return html_contract["slots"]
-    slots: list[dict[str, Any]] = []
-    for copy_ref in panel["slots"]["copy"]:
-        slot = copy_ref.rsplit(".", 1)[-1]
-        item: dict[str, Any] = {"kind": "copy", "slot": slot, "element": "h2" if slot == "title" else "p"}
-        if slot == "title":
-            item.update({"role": "heading", "level": 2})
-        slots.append(item)
-    for asset_ref in panel["slots"]["assets"]:
-        slots.append({"kind": "asset", "slot": asset_ref.rsplit(".", 1)[-1], "element": "img"})
-    for field in panel["slots"].get("fields", []):
-        slots.append({"kind": "field", "slot": field, "element": "p"})
-    for action in panel["slots"]["actions"]:
-        slots.append({"kind": "action", "ref": action, "element": "button"})
-    return slots
-
-
-def _assert_html_slot_present(panel: dict[str, Any], slot: dict[str, Any], nodes: list["_HTMLNode"]) -> None:
-    kind = slot["kind"]
-    if kind == "copy":
-        ref = _slot_ref(panel, "copy", slot["slot"])
-        matches = [node for node in nodes if node.tag == slot["element"] and node.attrs.get("data-copy") == ref]
-        if not matches:
-            raise ContractError(f"panels.html missing copy slot {ref}")
-        node = matches[0]
-        if node.attrs.get("data-contract-slot") != slot["slot"]:
-            raise ContractError(f"panels.html copy slot {ref} has wrong data-contract-slot")
-        if slot.get("role") and slot["role"] != "none" and node.attrs.get("role") != slot["role"]:
-            raise ContractError(f"panels.html copy slot {ref} missing role")
-        if slot.get("level") and node.attrs.get("aria-level") != str(slot["level"]):
-            raise ContractError(f"panels.html copy slot {ref} missing aria-level")
-        return
-    if kind == "asset":
-        ref = _slot_ref(panel, "asset", slot["slot"])
-        tag = "img" if slot["element"] == "img" else slot["element"]
-        matches = [node for node in nodes if node.tag == tag and node.attrs.get("data-asset") == ref]
-        if not matches:
-            raise ContractError(f"panels.html missing asset slot {ref}")
-        node = matches[0]
-        if slot.get("alt_copy_slot"):
-            alt = _slot_ref(panel, "copy", slot["alt_copy_slot"])
-            if node.attrs.get("data-alt-copy") != alt:
-                raise ContractError(f"panels.html asset slot {ref} missing data-alt-copy")
-        return
-    if kind == "field":
-        field = slot["slot"]
-        if field not in panel["slots"].get("fields", []):
-            raise ContractError(f"panels.html field slot is not declared: {field}")
-        matches = [node for node in nodes if node.tag == slot["element"] and node.attrs.get("data-field") == field]
-        if not matches:
-            raise ContractError(f"panels.html missing field slot {field}")
-        if matches[0].attrs.get("data-contract-slot") != field:
-            raise ContractError(f"panels.html field slot {field} has wrong data-contract-slot")
-        return
-    action = slot["ref"]
-    matches = [node for node in nodes if node.tag == slot["element"] and node.attrs.get("data-action") == action]
-    if not matches:
-        raise ContractError(f"panels.html missing action slot {action}")
-    node = matches[0]
-    if slot["element"] == "button" and node.attrs.get("type") != "button":
-        raise ContractError(f"panels.html action button {action} must declare type=button")
-
-
-class _HTMLNode:
-    def __init__(self, tag: str, attrs: dict[str, str], parent: int | None):
-        self.tag = tag
-        self.attrs = attrs
-        self.parent = parent
-
-
-class _PanelHTMLParser(HTMLParser):
-    def __init__(self) -> None:
-        super().__init__(convert_charrefs=True)
-        self.nodes: list[_HTMLNode] = []
-        self.stack: list[int] = []
-
-    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        attr_map = {name: "" if value is None else value for name, value in attrs}
-        parent = self.stack[-1] if self.stack else None
-        self.nodes.append(_HTMLNode(tag, attr_map, parent))
-        idx = len(self.nodes) - 1
-        if tag not in {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"}:
-            self.stack.append(idx)
-
-    def handle_endtag(self, tag: str) -> None:
-        if not self.stack:
-            return
-        # Generated HTML is regular enough that the top element should match.
-        top = self.nodes[self.stack[-1]]
-        if top.tag == tag:
-            self.stack.pop()
-
-    def subtree(self, root: _HTMLNode) -> list[_HTMLNode]:
-        try:
-            root_idx = self.nodes.index(root)
-        except ValueError:  # pragma: no cover
-            return []
-        descendants = []
-        for idx, node in enumerate(self.nodes):
-            current = node.parent
-            while current is not None:
-                if current == root_idx:
-                    descendants.append(node)
-                    break
-                current = self.nodes[current].parent
-        return descendants
 
 
 def _parse_css_rules(text: str, label: str, textual: bool = False) -> list[tuple[str, dict[str, str]]]:

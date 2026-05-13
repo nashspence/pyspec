@@ -1,6 +1,6 @@
 # pyspec-contract
 
-`pyspec-contract` is a Python-first, spec-to-artifact tool for whole-app product specifications. It turns a sparse human-authored `spec/spec.yaml` into a strict compiled spec, protocol projections, BDD fixtures/features, generated Python obligations, and visual audit artifacts.
+`pyspec-contract` is a Python-first, spec-to-artifact tool for whole-app product specifications. It turns a sparse human-authored `spec/spec.yaml` into a strict compiled spec, protocol projections, BDD fixtures/features, generated Python adapters, and visual audit artifacts.
 
 The reusable tool lives in `src/pyspec_contract/`. Product specifications live in project workspaces. The canonical example workspace is:
 
@@ -103,13 +103,10 @@ spec/generated/
     workflow.cwl.yaml
     web.routes.json
     web.panels.json
-    web.panels.preview.html
-    web.panels.preview.css
     textual.projection.py
   behavior/
     fixtures.yaml
     scenarios.yaml
-    obligations.yaml
   content_resolvers/
     signatures.py
     stubs.py

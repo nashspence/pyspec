@@ -5,7 +5,7 @@ import re
 from collections import defaultdict
 from typing import Any, Iterable
 
-from .layout import layout_html, layout_html_regions, layout_textual, layout_textual_containers
+from .layout import layout_html, layout_textual, layout_textual_containers
 from .paths import generated_relative as g
 
 
@@ -32,7 +32,6 @@ def projection_paths(contract: dict[str, Any]) -> list[str]:
         g("test_adapters", "python_refs.py"),
         g("behavior", "fixtures.yaml"),
         g("behavior", "scenarios.yaml"),
-        g("behavior", "obligations.yaml"),
         g("test_adapters", "driver_protocol.py"),
         g("test_adapters", "pytest_bdd_steps.py"),
     ]
@@ -44,8 +43,6 @@ def projection_paths(contract: dict[str, Any]) -> list[str]:
         paths.append(g("product_interfaces", "web.routes.json"))
     if _has_ui(contract):
         paths.append(g("product_interfaces", "web.panels.json"))
-    if _has_web_ui(contract):
-        paths.extend([g("product_interfaces", "web.panels.preview.html"), g("product_interfaces", "web.panels.preview.css")])
     if _has_textual_ui(contract):
         paths.append(g("product_interfaces", "textual.projection.py"))
     if _has_workflow(contract):
@@ -62,7 +59,6 @@ def validated_projection_paths(contract: dict[str, Any]) -> list[str]:
         g("test_adapters", "__init__.py"),
         g("test_adapters", "driver_protocol.py"),
         g("test_adapters", "pytest_bdd_steps.py"),
-        g("behavior", "obligations.yaml"),
     }
     return [path for path in projection_paths(contract) if path not in skip and not path.startswith(g("test_adapters", "pytest_bdd_features") + "/")]
 
@@ -78,16 +74,12 @@ def projection_files(contract: dict[str, Any]) -> Iterable[tuple[str, Any, str]]
         yield g("product_interfaces", "web.routes.json"), routes_projection(contract), "json"
     if _has_ui(contract):
         yield g("product_interfaces", "web.panels.json"), panels_projection(contract), "json"
-    if _has_web_ui(contract):
-        yield g("product_interfaces", "web.panels.preview.html"), panels_html_projection(contract), "text"
-        yield g("product_interfaces", "web.panels.preview.css"), panel_styles_projection(contract), "text"
     if _has_textual_ui(contract):
         yield g("product_interfaces", "textual.projection.py"), textual_contract_projection(contract), "text"
     if _has_workflow(contract):
         yield g("product_interfaces", "workflow.cwl.yaml"), workflows_projection(contract), "yaml"
     yield g("behavior", "fixtures.yaml"), fixtures_projection(contract), "yaml"
     yield g("behavior", "scenarios.yaml"), scenarios_projection(contract), "yaml"
-    yield g("behavior", "obligations.yaml"), test_obligations_projection(contract), "yaml"
     yield g("test_adapters", "python_refs.py"), refs_py_projection(contract), "text"
     if _has_content(contract):
         yield g("content_resolvers", "__init__.py"), "# Generated package. Do not edit.\n", "text"
@@ -125,27 +117,8 @@ def _has_ui(contract: dict[str, Any]) -> bool:
     return bool(contract.get("panels") or contract.get("views"))
 
 
-def _state_has_web_presentation(state: dict[str, Any]) -> bool:
-    presentation = state.get("presentation") or {}
-    return "html" in presentation or "css" in presentation
-
-
 def _state_has_textual_presentation(state: dict[str, Any]) -> bool:
     return "textual" in (state.get("presentation") or {})
-
-
-def _has_web_ui(contract: dict[str, Any]) -> bool:
-    if _entries_with_surface(contract, "web"):
-        return True
-    if any("html" in case.get("surfaces", []) for case in contract.get("render_cases", {}).values()):
-        return True
-    for owner in list(contract.get("panels", {}).values()) + list(contract.get("views", {}).values()):
-        if any(_state_has_web_presentation(state) for state in owner.get("states", {}).values()):
-            return True
-    for view in contract.get("views", {}).values():
-        if "html" in (view.get("layout") or {}):
-            return True
-    return False
 
 
 def _has_textual_ui(contract: dict[str, Any]) -> bool:
@@ -323,91 +296,6 @@ def panel_projection_item(owner_kind: str, owner_id: str, state_name: str, state
     }
 
 
-def panels_html_projection(contract: dict[str, Any]) -> str:
-    projection = panels_projection(contract)
-    panels = projection["panels"]
-    lines = [
-        "<!doctype html>",
-        '<html lang="en">',
-        "<head>",
-        '  <meta charset="utf-8">',
-        f"  <title>{html.escape(contract['project'])} panel contract</title>",
-        '  <link rel="stylesheet" href="web.panels.preview.css">',
-        "</head>",
-        "<body>",
-        '  <main data-contract-surface="html-css">',
-    ]
-    for panel in panels:
-        html_contract = (panel.get("presentation") or {}).get("html") or {}
-        root = html_contract.get("root") or {"element": "section"}
-        tag = root.get("element", "section")
-        classes = ["contract-panel"] + root.get("classes", [])
-        attrs = {
-            "class": " ".join(classes),
-            "data-contract-panel": panel["id"],
-            "data-contract-owner-kind": panel["owner_kind"],
-            "data-contract-owner": panel["owner"],
-            "data-contract-state": panel["state"],
-        }
-        if panel["owner_kind"] == "view":
-            attrs["data-contract-view"] = panel["owner"]
-        else:
-            attrs["data-contract-fsm"] = panel["owner"]
-        if root.get("role") and root["role"] != "none":
-            attrs["role"] = root["role"]
-        lines.append(f"    <{tag}{format_attrs(attrs)}>")
-        slots = html_contract.get("slots") or default_html_slots(panel)
-        for slot in slots:
-            lines.extend(render_html_slot(contract, panel, slot, indent="      "))
-        lines.append(f"    </{tag}>")
-    for composition in projection["compositions"]:
-        lines.extend(render_composed_view_html(composition, indent="    "))
-    lines.extend(["  </main>", "</body>", "</html>", ""])
-    return "\n".join(lines)
-
-
-def render_composed_view_html(composition: dict[str, Any], indent: str) -> list[str]:
-    layout = composition["layout"]
-    html_layout = layout_html(layout)
-    root = html_layout.get("root") or {"element": "section"}
-    tag = root.get("element", "section")
-    classes = ["contract-composed-view"] + root.get("classes", [])
-    attrs = {
-        "class": " ".join(classes),
-        "data-contract-composition": composition["id"],
-    }
-    if root.get("role") and root["role"] != "none":
-        attrs["role"] = root["role"]
-    lines = [f"{indent}<{tag}{format_attrs(attrs)}>"]
-    regions = layout_html_regions(layout)
-    instances_by_region: dict[str, list[dict[str, Any]]] = {}
-    for instance in composition["instances"]:
-        instances_by_region.setdefault(instance["region"], []).append(instance)
-    for region_name, region in sorted(regions.items(), key=lambda item: (item[1].get("order", 0), item[0])):
-        region_tag = region.get("element", "div")
-        region_classes = ["contract-layout-region", f"contract-layout-region--{region_name}"] + region.get("classes", [])
-        region_attrs = {
-            "class": " ".join(region_classes),
-            "data-layout-region": region_name,
-            "data-required": str(region["required"]).lower(),
-        }
-        if region.get("role") and region["role"] != "none":
-            region_attrs["role"] = region["role"]
-        lines.append(f"{indent}  <{region_tag}{format_attrs(region_attrs)}>")
-        for instance in instances_by_region.get(region_name, []):
-            panel_attrs = {
-                "data-panel-instance": instance["id"],
-                "data-panel-source": instance["panel"],
-                "data-initial-state": instance["initial"],
-            }
-            if instance.get("selected"):
-                panel_attrs["data-selected-state"] = instance["selected"]["state"]
-            lines.append(f"{indent}    <div{format_attrs(panel_attrs)}></div>")
-        lines.append(f"{indent}  </{region_tag}>")
-    lines.append(f"{indent}</{tag}>")
-    return lines
-
-
 def panel_styles_projection(contract: dict[str, Any]) -> str:
     lines = [
         "/* Generated panel style contract. Do not edit. */",
@@ -569,56 +457,6 @@ def default_html_slots(panel: dict[str, Any]) -> list[dict[str, Any]]:
     return slots
 
 
-def render_html_slot(contract: dict[str, Any], panel: dict[str, Any], slot: dict[str, Any], indent: str) -> list[str]:
-    kind = slot["kind"]
-    tag = slot["element"]
-    classes = slot.get("classes", [])
-    attrs: dict[str, str] = {"data-contract-slot": slot.get("slot", slot.get("ref", "action"))}
-    if classes:
-        attrs["class"] = " ".join(classes)
-    if slot.get("role") and slot["role"] != "none":
-        attrs["role"] = slot["role"]
-    if kind == "copy":
-        copy_ref = slot_ref(panel, "copy", slot["slot"])
-        attrs["data-copy"] = copy_ref
-        if slot.get("level"):
-            attrs["aria-level"] = str(slot["level"])
-        text = contract.get("copies", {}).get(copy_ref, {}).get("placeholder", copy_ref)
-        return [f"{indent}<{tag}{format_attrs(attrs)}>{html.escape(text)}</{tag}>"]
-    if kind == "asset":
-        asset_ref = slot_ref(panel, "asset", slot["slot"])
-        attrs["data-asset"] = asset_ref
-        if slot.get("alt_copy_slot"):
-            attrs["data-alt-copy"] = slot_ref(panel, "copy", slot["alt_copy_slot"])
-        label = contract.get("assets", {}).get(asset_ref, {}).get("placeholder", {}).get("label", asset_ref)
-        if tag == "img":
-            attrs.setdefault("alt", label)
-            attrs.setdefault("src", f"../audit_evidence/inputs/assets/{safe_id(asset_ref)}.svg")
-            return [f"{indent}<img{format_attrs(attrs)}>"]
-        return [f"{indent}<{tag}{format_attrs(attrs)}>{html.escape(label)}</{tag}>"]
-    if kind == "field":
-        field = slot["slot"]
-        attrs["data-field"] = field
-        label = slot.get("label") or humanize(field)
-        return [f'{indent}<{tag}{format_attrs(attrs)}><span data-field-label="true">{html.escape(label)}</span><span data-field-value="true">{{{{ {html.escape(field)} }}}}</span></{tag}>']
-    action = slot["ref"]
-    attrs["data-action"] = action
-    if tag == "a":
-        attrs.setdefault("href", "#")
-    if tag == "button":
-        attrs.setdefault("type", "button")
-    text = humanize(action)
-    return [f"{indent}<{tag}{format_attrs(attrs)}>{html.escape(text)}</{tag}>"]
-
-
-def slot_ref(panel: dict[str, Any], kind: str, slot: str) -> str:
-    key = "copy" if kind == "copy" else "assets"
-    for ref in panel["slots"][key]:
-        if ref.rsplit(".", 1)[-1] == slot:
-            return ref
-    raise KeyError(f"{panel['id']} has no {kind} slot {slot}")
-
-
 def css_selector(panel: dict[str, Any], selector: str) -> str:
     root = f'[data-contract-panel="{panel["id"]}"]'
     if selector in {"root", "screen"}:
@@ -757,15 +595,6 @@ def fixtures_projection(contract: dict[str, Any]) -> dict[str, Any]:
 
 def scenarios_projection(contract: dict[str, Any]) -> dict[str, Any]:
     return {"project": contract["project"], "scenarios": contract["scenarios"]}
-
-
-def test_obligations_projection(contract: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "project": contract["project"],
-        "scenarios": contract["scenarios"],
-        "must_validate_projections": validated_projection_paths(contract),
-        "refs": contract["refs"],
-    }
 
 
 def content_cases_projection(contract: dict[str, Any]) -> dict[str, Any]:

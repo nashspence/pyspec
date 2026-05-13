@@ -56,7 +56,7 @@ There is exactly one generated Gherkin corpus. The spec harness and prod harness
 
 The spec harness may use the reference/fake driver to prove the scenario is coherent as a specification.
 
-The prod harness must call real product surfaces. It must not import `pyspec_contract.reference_driver`, monkeypatch policy answers, fake emitted events, fake rendered panels, or mutate generated obligations to make tests pass. Validation rejects obvious fake/spec shortcuts in `tests/prod_bdd`.
+The prod harness must call real product surfaces. It must not import `pyspec_contract.reference_driver`, monkeypatch policy answers, fake emitted events, fake rendered panels, or mutate generated scenarios to make tests pass. Validation rejects obvious fake/spec shortcuts in `tests/prod_bdd`.
 
 ## Coding agent
 

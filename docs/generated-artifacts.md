@@ -5,8 +5,8 @@
 The tree is organized by why an artifact exists:
 
 - `compiled/` contains the compiler-normalized spec.
-- `product_interfaces/` contains product-facing projections such as OpenAPI, AsyncAPI, CWL, routes, panel previews, and Textual projections.
-- `behavior/` contains semantic fixtures, scenarios, and obligations.
+- `product_interfaces/` contains product-facing projections such as OpenAPI, AsyncAPI, CWL, routes, panel manifests, and Textual projections.
+- `behavior/` contains semantic fixtures and scenarios.
 - `content_resolvers/` contains typed signatures, cases, and implementation stubs for `spec/spec.py`.
 - `test_adapters/` contains Python and pytest-bdd glue derived from `behavior/`.
 - `audit_evidence/` contains reviewable inputs, diagrams, and rendered visual evidence.

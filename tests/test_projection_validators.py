@@ -13,8 +13,6 @@ from pyspec_contract.projection_validators import (
     validate_fixtures_and_scenarios,
     validate_openapi,
     validate_panels_json,
-    validate_panel_css,
-    validate_panels_html,
     validate_textual_contract,
     validate_workflows,
 )
@@ -67,22 +65,6 @@ def test_workflow_validator_rejects_unknown_cwl_step_target() -> None:
         validate_workflows(contract, mutated)
 
 
-def test_html_validator_rejects_undeclared_copy_ref() -> None:
-    contract = _contract()
-    html = (ROOT / "spec" / "generated" / "product_interfaces" / "web.panels.preview.html").read_text(encoding="utf-8")
-    mutated = html.replace("copy.project.list.empty.heading", "copy.project.list.empty.subtitle", 1)
-    with pytest.raises(ContractError, match="undeclared copy refs|missing copy slot"):
-        validate_panels_html(contract, mutated)
-
-
-def test_css_validator_rejects_unresolved_contract_token() -> None:
-    contract = _contract()
-    css = (ROOT / "spec" / "generated" / "product_interfaces" / "web.panels.preview.css").read_text(encoding="utf-8")
-    mutated = css.replace("var(--gap)", "token.gap", 1)
-    with pytest.raises(ContractError, match="unresolved"):
-        validate_panel_css(contract, mutated)
-
-
 def test_textual_validator_rejects_broken_generated_python(tmp_path: Path) -> None:
     project = tmp_path / "project"
     copy_project_tree(ROOT, project)
@@ -110,10 +92,3 @@ def test_panels_json_validator_rejects_missing_composition() -> None:
     with pytest.raises(ContractError, match="panels.json"):
         validate_panels_json(contract, mutated)
 
-
-def test_html_validator_rejects_wrong_composed_panel_instance() -> None:
-    contract = _contract()
-    html = (ROOT / "spec" / "generated" / "product_interfaces" / "web.panels.preview.html").read_text(encoding="utf-8")
-    mutated = html.replace('data-panel-source="panel.project.list"', 'data-panel-source="panel.project.ghost"', 1)
-    with pytest.raises(ContractError, match="wrong source/initial"):
-        validate_panels_html(contract, mutated)
