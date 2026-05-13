@@ -11,7 +11,7 @@ from typing import Any
 from .compile import ContractError, author_from_source, compile_author, default_source_path, validate_against_schema, write_compiled
 from .layers import parse_layers
 from .io import read_yaml, yaml_contains_anchors
-from .paths import COMPILED_CONTRACT_PATH, SOURCE_CONTRACT_PATH
+from .paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR, SOURCE_SPEC_PATH
 from .project import projection_files
 from .audit import audit_expected_files
 from .guardrails import assert_prod_harness_is_real
@@ -19,12 +19,12 @@ from .projection_validators import validate_generated_projections
 
 
 def validate_project(root: Path, release: bool = False, layers: set[str] | None = None) -> None:
-    source_contract_path = root / SOURCE_CONTRACT_PATH
-    compiled_contract_path = root / COMPILED_CONTRACT_PATH
+    source_contract_path = root / SOURCE_SPEC_PATH
+    compiled_contract_path = root / COMPILED_SPEC_PATH
     if not source_contract_path.exists():
-        raise ContractError("Missing contract.yaml")
+        raise ContractError("Missing spec/spec.yaml")
     if not compiled_contract_path.exists():
-        raise ContractError("Missing generated/contract.complete.yaml; run pyspec compile")
+        raise ContractError("Missing spec/generated/spec.complete.yaml; run pyspec compile")
 
     _assert_generated_yaml_is_plain(root)
 
@@ -35,9 +35,9 @@ def validate_project(root: Path, release: bool = False, layers: set[str] | None 
 
     compiled = compile_author(author, layers=layers)
     on_disk = read_yaml(compiled_contract_path)
-    validate_against_schema(on_disk, "contract.schema.json")
+    validate_against_schema(on_disk, "spec.schema.json")
     if compiled != on_disk:
-        raise ContractError("generated/contract.complete.yaml is stale or hand-edited; run pyspec compile")
+        raise ContractError("spec/generated/spec.complete.yaml is stale or hand-edited; run pyspec compile")
 
     if release:
         _release_gate(compiled)
@@ -45,7 +45,7 @@ def validate_project(root: Path, release: bool = False, layers: set[str] | None 
     if compiled["scenarios"]:
         assert_prod_harness_is_real(root)
 
-    expected = {str(COMPILED_CONTRACT_PATH)} | {relative for relative, _, _ in projection_files(compiled)} | audit_expected_files(compiled)
+    expected = {str(COMPILED_SPEC_PATH)} | {relative for relative, _, _ in projection_files(compiled)} | audit_expected_files(compiled)
     actual = _generated_files(root)
     if actual != expected:
         extra = sorted(actual - expected)
@@ -62,7 +62,7 @@ def validate_project(root: Path, release: bool = False, layers: set[str] | None 
         tmp_source = tmp_root / source_path.name
         tmp_source.write_text(source_path.read_text(encoding="utf-8"), encoding="utf-8")
         write_compiled(tmp_root, tmp_source, tools_root=root, render_audit=False, layers=layers)
-        expected_without_audit = {str(COMPILED_CONTRACT_PATH)} | {relative for relative, _, _ in projection_files(compiled)}
+        expected_without_audit = {str(COMPILED_SPEC_PATH)} | {relative for relative, _, _ in projection_files(compiled)}
         for relative in sorted(expected_without_audit):
             expected_path = tmp_root / relative
             actual_path = root / relative
@@ -76,9 +76,9 @@ def validate_project(root: Path, release: bool = False, layers: set[str] | None 
 
 def _assert_generated_yaml_is_plain(root: Path) -> None:
     yaml_paths = []
-    if (root / SOURCE_CONTRACT_PATH).exists():
-        yaml_paths.append(root / SOURCE_CONTRACT_PATH)
-    generated = root / "generated"
+    if (root / SOURCE_SPEC_PATH).exists():
+        yaml_paths.append(root / SOURCE_SPEC_PATH)
+    generated = root / GENERATED_SPEC_DIR
     if generated.exists():
         yaml_paths.extend(path for path in generated.rglob("*.yaml") if path.is_file())
     offenders = [str(path.relative_to(root)) for path in yaml_paths if yaml_contains_anchors(path)]
@@ -87,7 +87,7 @@ def _assert_generated_yaml_is_plain(root: Path) -> None:
 
 
 def _generated_files(root: Path) -> set[str]:
-    generated = root / "generated"
+    generated = root / GENERATED_SPEC_DIR
     if not generated.exists():
         return set()
     files = set()
@@ -113,7 +113,7 @@ def _release_gate(contract: dict[str, Any]) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Validate contract.yaml, generated/contract.complete.yaml, and projections.")
+    parser = argparse.ArgumentParser(description="Validate spec/spec.yaml, spec/generated/spec.complete.yaml, and projections.")
     parser.add_argument("root", nargs="?", default=".")
     parser.add_argument("--release", action="store_true")
     parser.add_argument("--layers", default=None, help="Comma-separated authoring layers to enforce while re-compiling the authored source")
@@ -123,7 +123,7 @@ def main(argv: list[str] | None = None) -> int:
     except (ContractError, ValueError) as exc:
         print(str(exc), file=sys.stderr)
         return 2
-    print("contract ok")
+    print("spec ok")
     return 0
 
 

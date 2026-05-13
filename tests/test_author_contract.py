@@ -7,19 +7,19 @@ import pytest
 
 from pyspec_contract.compile import ContractError, compile_source, validate_against_schema
 from pyspec_contract.io import read_yaml
-from pyspec_contract.paths import SOURCE_CONTRACT_PATH
+from pyspec_contract.paths import SOURCE_SPEC_PATH
 from tests.helpers import EXAMPLE_ROOT
 
 ROOT = EXAMPLE_ROOT
 
 
 def test_author_contract_schema_validates() -> None:
-    validate_against_schema(read_yaml(ROOT / SOURCE_CONTRACT_PATH), "author.schema.json")
+    validate_against_schema(read_yaml(ROOT / SOURCE_SPEC_PATH), "author.schema.json")
 
 
 def test_author_contract_compiles_to_checked_in_machine_contract() -> None:
-    author = read_yaml(ROOT / SOURCE_CONTRACT_PATH)
-    assert compile_source(author) == read_yaml(ROOT / "generated" / "contract.complete.yaml")
+    author = read_yaml(ROOT / SOURCE_SPEC_PATH)
+    assert compile_source(author) == read_yaml(ROOT / "spec" / "generated" / "spec.complete.yaml")
 
 
 def test_author_contract_can_be_minimal_and_surface_invisible() -> None:
@@ -56,7 +56,7 @@ def test_author_contract_reuses_layer_guardrails() -> None:
 
 
 def test_author_schema_rejects_meta_root_fields() -> None:
-    author = copy.deepcopy(read_yaml(ROOT / SOURCE_CONTRACT_PATH))
+    author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
     author["status"] = "draft"
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)

@@ -7,7 +7,7 @@ import pytest
 from pyspec_contract.compile import ContractError, compile_source
 from pyspec_contract.content import ContentContext, call_asset, call_copy
 from pyspec_contract.io import read_yaml
-from pyspec_contract.paths import COMPILED_CONTRACT_PATH, SOURCE_CONTRACT_PATH
+from pyspec_contract.paths import COMPILED_SPEC_PATH, SOURCE_SPEC_PATH
 from pyspec_contract.projection_validators import validate_content_contract
 from tests.helpers import EXAMPLE_ROOT
 
@@ -38,18 +38,18 @@ def test_final_asset_resolver_is_contract_declared_and_svg() -> None:
 
 
 def test_content_contract_validator_executes_content_cases() -> None:
-    validate_content_contract(ROOT, read_yaml(ROOT / COMPILED_CONTRACT_PATH))
+    validate_content_contract(ROOT, read_yaml(ROOT / COMPILED_SPEC_PATH))
 
 
 def test_final_content_requires_content_case_coverage() -> None:
-    author = read_yaml(ROOT / SOURCE_CONTRACT_PATH)
+    author = read_yaml(ROOT / SOURCE_SPEC_PATH)
     author.pop("content_cases")
     with pytest.raises(ContractError, match="content_case coverage"):
         compile_source(author)
 
 
 def test_content_case_args_must_match_declared_signature() -> None:
-    author = read_yaml(ROOT / SOURCE_CONTRACT_PATH)
+    author = read_yaml(ROOT / SOURCE_SPEC_PATH)
     del author["content_cases"]["content.project.detail.heading.high_priority"]["args"]["customer"]
     with pytest.raises(ContractError, match="args"):
         compile_source(author)

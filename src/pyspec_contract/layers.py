@@ -210,7 +210,7 @@ def _allowed_targets(layers: set[str]) -> set[str]:
 
 
 def author_schema_for_layers(layers: set[str] | None) -> dict[str, Any]:
-    """Return a derived authored-contract schema pruned by layer."""
+    """Return a derived authored-spec schema pruned by layer."""
     full = read_json(ROOT / "schemas" / "author.schema.json")
     if layers is None:
         return full
@@ -223,7 +223,7 @@ def author_schema_for_layers(layers: set[str] | None) -> dict[str, Any]:
         for key, value in schema["properties"].items()
         if key == "project" or key in allowed_sections
     }
-    schema["title"] = f"Authored product contract schema ({layer_label(layers)} layers)"
+    schema["title"] = f"Authored product spec schema ({layer_label(layers)} layers)"
     schema["description"] = "Layer-pruned direct authoring schema; runtime layer validation also applies."
     return schema
 
@@ -238,7 +238,7 @@ def write_common_layer_schemas(root: Path | None = None) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Print or write layer-pruned authored-contract schemas.")
+    parser = argparse.ArgumentParser(description="Print or write layer-pruned authored-spec schemas.")
     parser.add_argument("layers", nargs="?", default="full", help="Comma-separated layers, e.g. core,http or core,ui,textual")
     parser.add_argument("--write-common", action="store_true", help="Write the common schemas under schemas/layers/")
     args = parser.parse_args(argv)

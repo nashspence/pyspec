@@ -3609,7 +3609,7 @@
       "type": "object"
     }
   },
-  "$id": "https://example.invalid/authored-product-contract.schema.json",
+  "$id": "https://example.invalid/authored-product-spec.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "Layer-pruned direct authoring schema; runtime layer validation also applies.",
@@ -3667,6 +3667,6 @@
   "required": [
     "project"
   ],
-  "title": "Authored product contract schema (core layers)",
+  "title": "Authored product spec schema (core layers)",
   "type": "object"
 }

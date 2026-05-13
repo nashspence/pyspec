@@ -6,6 +6,7 @@ from collections import defaultdict
 from typing import Any, Iterable
 
 from .layout import layout_html, layout_html_regions, layout_textual, layout_textual_containers
+from .paths import generated_relative as g
 
 
 SCALAR_JSON_SCHEMA: dict[str, dict[str, Any]] = {
@@ -25,71 +26,71 @@ SCALAR_JSON_SCHEMA: dict[str, dict[str, Any]] = {
 
 def projection_paths(contract: dict[str, Any]) -> list[str]:
     paths = [
-        "generated/__init__.py",
-        "generated/refs.py",
-        "generated/fixtures.yaml",
-        "generated/scenarios.yaml",
-        "generated/test_obligations.yaml",
-        "generated/driver_protocol.py",
-        "generated/bdd_steps.py",
+        g("__init__.py"),
+        g("refs.py"),
+        g("fixtures.yaml"),
+        g("scenarios.yaml"),
+        g("test_obligations.yaml"),
+        g("driver_protocol.py"),
+        g("bdd_steps.py"),
     ]
     if _has_api(contract):
-        paths.append("generated/openapi.yaml")
+        paths.append(g("openapi.yaml"))
     if _has_asyncapi(contract):
-        paths.append("generated/asyncapi.yaml")
+        paths.append(g("asyncapi.yaml"))
     if _has_web_routes(contract):
-        paths.append("generated/routes.json")
+        paths.append(g("routes.json"))
     if _has_ui(contract):
-        paths.append("generated/panels.json")
+        paths.append(g("panels.json"))
     if _has_web_ui(contract):
-        paths.extend(["generated/panels.html", "generated/panel_styles.css"])
+        paths.extend([g("panels.html"), g("panel_styles.css")])
     if _has_textual_ui(contract):
-        paths.append("generated/textual_contract.py")
+        paths.append(g("textual_contract.py"))
     if _has_workflow(contract):
-        paths.append("generated/workflows.cwl.yaml")
+        paths.append(g("workflows.cwl.yaml"))
     if _has_content(contract):
-        paths.extend(["generated/content_contract.py", "generated/content_stubs.py", "generated/content_cases.yaml"])
+        paths.extend([g("content_contract.py"), g("content_stubs.py"), g("content_cases.yaml")])
     paths.extend(sorted(feature_projections(contract)))
     return paths
 
 
 def validated_projection_paths(contract: dict[str, Any]) -> list[str]:
     skip = {
-        "generated/__init__.py",
-        "generated/driver_protocol.py",
-        "generated/bdd_steps.py",
-        "generated/test_obligations.yaml",
+        g("__init__.py"),
+        g("driver_protocol.py"),
+        g("bdd_steps.py"),
+        g("test_obligations.yaml"),
     }
-    return [path for path in projection_paths(contract) if path not in skip and not path.startswith("generated/features/")]
+    return [path for path in projection_paths(contract) if path not in skip and not path.startswith(g("features") + "/")]
 
 
 def projection_files(contract: dict[str, Any]) -> Iterable[tuple[str, Any, str]]:
-    yield "generated/__init__.py", "# Generated package. Do not edit.\n", "text"
+    yield g("__init__.py"), "# Generated package. Do not edit.\n", "text"
     if _has_api(contract):
-        yield "generated/openapi.yaml", openapi_projection(contract), "yaml"
+        yield g("openapi.yaml"), openapi_projection(contract), "yaml"
     if _has_asyncapi(contract):
-        yield "generated/asyncapi.yaml", asyncapi_projection(contract), "yaml"
+        yield g("asyncapi.yaml"), asyncapi_projection(contract), "yaml"
     if _has_web_routes(contract):
-        yield "generated/routes.json", routes_projection(contract), "json"
+        yield g("routes.json"), routes_projection(contract), "json"
     if _has_ui(contract):
-        yield "generated/panels.json", panels_projection(contract), "json"
+        yield g("panels.json"), panels_projection(contract), "json"
     if _has_web_ui(contract):
-        yield "generated/panels.html", panels_html_projection(contract), "text"
-        yield "generated/panel_styles.css", panel_styles_projection(contract), "text"
+        yield g("panels.html"), panels_html_projection(contract), "text"
+        yield g("panel_styles.css"), panel_styles_projection(contract), "text"
     if _has_textual_ui(contract):
-        yield "generated/textual_contract.py", textual_contract_projection(contract), "text"
+        yield g("textual_contract.py"), textual_contract_projection(contract), "text"
     if _has_workflow(contract):
-        yield "generated/workflows.cwl.yaml", workflows_projection(contract), "yaml"
-    yield "generated/fixtures.yaml", fixtures_projection(contract), "yaml"
-    yield "generated/scenarios.yaml", scenarios_projection(contract), "yaml"
-    yield "generated/test_obligations.yaml", test_obligations_projection(contract), "yaml"
-    yield "generated/refs.py", refs_py_projection(contract), "text"
+        yield g("workflows.cwl.yaml"), workflows_projection(contract), "yaml"
+    yield g("fixtures.yaml"), fixtures_projection(contract), "yaml"
+    yield g("scenarios.yaml"), scenarios_projection(contract), "yaml"
+    yield g("test_obligations.yaml"), test_obligations_projection(contract), "yaml"
+    yield g("refs.py"), refs_py_projection(contract), "text"
     if _has_content(contract):
-        yield "generated/content_contract.py", content_contract_projection(contract), "text"
-        yield "generated/content_stubs.py", content_stubs_projection(contract), "text"
-        yield "generated/content_cases.yaml", content_cases_projection(contract), "yaml"
-    yield "generated/driver_protocol.py", driver_protocol_projection(), "text"
-    yield "generated/bdd_steps.py", bdd_steps_projection(), "text"
+        yield g("content_contract.py"), content_contract_projection(contract), "text"
+        yield g("content_stubs.py"), content_stubs_projection(contract), "text"
+        yield g("content_cases.yaml"), content_cases_projection(contract), "yaml"
+    yield g("driver_protocol.py"), driver_protocol_projection(), "text"
+    yield g("bdd_steps.py"), bdd_steps_projection(), "text"
     for relative, text in feature_projections(contract).items():
         yield relative, text, "text"
 
@@ -829,7 +830,7 @@ def content_contract_projection(contract: dict[str, Any]) -> str:
 
 def content_stubs_projection(contract: dict[str, Any]) -> str:
     lines = [
-        '"""Generated content resolver stubs. Do not edit; copy needed functions into contract.py."""',
+        '"""Generated content resolver stubs. Do not edit; copy needed functions into spec.py."""',
         "from __future__ import annotations",
         "",
         "from pyspec_contract.content import AssetResult, ContentContext, asset, copy",
@@ -928,22 +929,22 @@ def _scenario(scenario_id: str) -> dict[str, Any]:
     try:
         return _scenarios()[scenario_id]
     except KeyError as exc:  # pragma: no cover - generated features should prevent this.
-        raise AssertionError(f"Unknown contract scenario: {scenario_id}") from exc
+        raise AssertionError(f"Unknown spec scenario: {scenario_id}") from exc
 
 
-@given(parsers.parse('contract scenario "{scenario_id}" is arranged'))
-def arrange_contract_scenario(contract_driver, scenario_id: str) -> None:
-    contract_driver.arrange(scenario_id, _scenario(scenario_id))
+@given(parsers.parse('spec scenario "{scenario_id}" is arranged'))
+def arrange_spec_scenario(spec_driver, scenario_id: str) -> None:
+    spec_driver.arrange(scenario_id, _scenario(scenario_id))
 
 
-@when(parsers.parse('contract scenario "{scenario_id}" is executed'))
-def execute_contract_scenario(contract_driver, scenario_id: str) -> None:
-    contract_driver.execute(scenario_id, _scenario(scenario_id))
+@when(parsers.parse('spec scenario "{scenario_id}" is executed'))
+def execute_spec_scenario(spec_driver, scenario_id: str) -> None:
+    spec_driver.execute(scenario_id, _scenario(scenario_id))
 
 
-@then(parsers.parse('contract scenario "{scenario_id}" obligations hold'))
-def assert_contract_scenario(contract_driver, scenario_id: str) -> None:
-    contract_driver.assert_obligations(scenario_id, _scenario(scenario_id))
+@then(parsers.parse('spec scenario "{scenario_id}" obligations hold'))
+def assert_spec_scenario(spec_driver, scenario_id: str) -> None:
+    spec_driver.assert_obligations(scenario_id, _scenario(scenario_id))
 '''
 
 
@@ -953,7 +954,7 @@ def feature_projections(contract: dict[str, Any]) -> dict[str, str]:
         by_feature[scenario["feature"]].append((scenario_id, scenario))
     files: dict[str, str] = {}
     for feature_id, scenarios in sorted(by_feature.items()):
-        files[f"generated/features/{safe_id(feature_id)}.feature"] = feature_text(feature_id, scenarios)
+        files[g("features", f"{safe_id(feature_id)}.feature")] = feature_text(feature_id, scenarios)
     return files
 
 
@@ -962,11 +963,11 @@ def feature_text(feature_id: str, scenarios: list[tuple[str, dict[str, Any]]]) -
     for scenario_id, scenario in scenarios:
         tag_id = safe_id(scenario_id)
         lines.extend([
-            f"  @contract @{tag_id}",
+            f"  @spec @{tag_id}",
             f"  Scenario: {scenario['title']}",
-            f"    Given contract scenario \"{scenario_id}\" is arranged",
-            f"    When contract scenario \"{scenario_id}\" is executed",
-            f"    Then contract scenario \"{scenario_id}\" obligations hold",
+            f"    Given spec scenario \"{scenario_id}\" is arranged",
+            f"    When spec scenario \"{scenario_id}\" is executed",
+            f"    Then spec scenario \"{scenario_id}\" obligations hold",
             "",
         ])
     return "\n".join(lines).rstrip() + "\n"

@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "spec"))
 sys.path.insert(0, str(ROOT))
 for parent in [ROOT, *ROOT.parents]:
     src = parent / "src"
@@ -18,5 +19,5 @@ from pyspec_contract.reference_driver import ReferenceSpecDriver  # noqa: E402
 
 
 @pytest.fixture
-def contract_driver() -> ReferenceSpecDriver:
+def spec_driver() -> ReferenceSpecDriver:
     return ReferenceSpecDriver(ROOT)

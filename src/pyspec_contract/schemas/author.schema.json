@@ -3609,10 +3609,10 @@
       "type": "object"
     }
   },
-  "$id": "https://example.invalid/authored-product-contract.schema.json",
+  "$id": "https://example.invalid/authored-product-spec.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Sparse human-authored contract. Compiles to generated/contract.complete.yaml, where derived events, refs, policies, routes, query refs, endpoints, and empty collections are expanded.",
+  "description": "Sparse human-authored spec. Compiles to spec/generated/spec.complete.yaml, where derived events, refs, policies, routes, query refs, endpoints, and empty collections are expanded.",
   "properties": {
     "assets": {
       "additionalProperties": {
@@ -3748,6 +3748,6 @@
   "required": [
     "project"
   ],
-  "title": "Authored Product Contract",
+  "title": "Authored Product Spec",
   "type": "object"
 }

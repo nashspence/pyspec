@@ -17,6 +17,7 @@ from .runtime import fixture_namespace, resolve
 from .io import read_json, read_yaml
 from .audit import audit_expected_files
 from .layout import layout_html, layout_html_regions, layout_textual
+from .paths import GENERATED_SPEC_DIR, SPEC_ROOT, generated_relative as g
 from .project import (
     components_projection,
     validated_projection_paths,
@@ -45,12 +46,12 @@ _OPENAPI_OPERATION_KEYS = {
 }
 _CWL_SCALAR_TYPES = {"string", "boolean", "int", "long", "float", "double", "Any", "null"}
 _PYTHON_PROJECTIONS = [
-    "generated/refs.py",
-    "generated/driver_protocol.py",
-    "generated/bdd_steps.py",
-    "generated/textual_contract.py",
-    "generated/content_contract.py",
-    "generated/content_stubs.py",
+    g("refs.py"),
+    g("driver_protocol.py"),
+    g("bdd_steps.py"),
+    g("textual_contract.py"),
+    g("content_contract.py"),
+    g("content_stubs.py"),
 ]
 
 
@@ -60,33 +61,33 @@ def validate_generated_projections(root: Path, contract: dict[str, Any]) -> None
     These checks intentionally do not trust the generated artifacts just because they are fresh.
     They parse each native surface and cross-check it against the canonical contract graph.
     """
-    generated = root / "generated"
+    generated = root / GENERATED_SPEC_DIR
     if not generated.exists():
-        raise ContractError("Missing generated directory")
+        raise ContractError("Missing spec/generated directory")
 
     expected_paths = set(validated_projection_paths(contract))
     _validate_python_projections(root)
     validate_refs_py(root, contract)
-    if "generated/openapi.yaml" in expected_paths:
+    if g("openapi.yaml") in expected_paths:
         validate_openapi(contract, read_yaml(generated / "openapi.yaml"))
-    if "generated/asyncapi.yaml" in expected_paths:
+    if g("asyncapi.yaml") in expected_paths:
         validate_asyncapi(contract, read_yaml(generated / "asyncapi.yaml"))
-    if "generated/routes.json" in expected_paths:
+    if g("routes.json") in expected_paths:
         validate_routes(contract, read_json(generated / "routes.json"))
-    if "generated/panels.json" in expected_paths:
+    if g("panels.json") in expected_paths:
         validate_panels_json(contract, read_json(generated / "panels.json"))
-    if "generated/panels.html" in expected_paths:
+    if g("panels.html") in expected_paths:
         validate_panels_html(contract, (generated / "panels.html").read_text(encoding="utf-8"))
-    if "generated/panel_styles.css" in expected_paths:
+    if g("panel_styles.css") in expected_paths:
         validate_panel_css(contract, (generated / "panel_styles.css").read_text(encoding="utf-8"))
-    if "generated/textual_contract.py" in expected_paths:
+    if g("textual_contract.py") in expected_paths:
         validate_textual_contract(root, contract)
-    if "generated/content_contract.py" in expected_paths:
+    if g("content_contract.py") in expected_paths:
         validate_content_contract(root, contract)
-    if "generated/workflows.cwl.yaml" in expected_paths:
+    if g("workflows.cwl.yaml") in expected_paths:
         validate_workflows(contract, read_yaml(generated / "workflows.cwl.yaml"))
     validate_fixtures_and_scenarios(root, contract)
-    if (root / "generated" / "audit").exists() or any(path.startswith("generated/audit/") for path in audit_expected_files(contract)):
+    if (root / GENERATED_SPEC_DIR / "audit").exists() or any(path.startswith(g("audit") + "/") for path in audit_expected_files(contract)):
         validate_audit_outputs(root, contract)
 
 
@@ -466,7 +467,7 @@ def validate_panel_css(contract: dict[str, Any], text: str) -> None:
 
 
 def validate_textual_contract(root: Path, contract: dict[str, Any]) -> None:
-    path = root / "generated" / "textual_contract.py"
+    path = root / GENERATED_SPEC_DIR / "textual_contract.py"
     module = _load_generated_module(path, "generated_textual_contract")
     panel_projection = panels_projection(contract)
     panels = panel_projection["panels"]
@@ -544,7 +545,7 @@ def validate_textual_contract(root: Path, contract: dict[str, Any]) -> None:
 
 
 def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
-    generated = root / "generated"
+    generated = root / GENERATED_SPEC_DIR
     content_doc = read_yaml(generated / "content_cases.yaml")
     if content_doc != {"project": contract["project"], "content_cases": contract.get("content_cases", {})}:
         raise ContractError("content_cases.yaml does not exactly match contract content cases")
@@ -564,13 +565,13 @@ def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
         raise ContractError("Unknown asset resolvers: " + ", ".join(sorted(unknown_assets)))
 
     import importlib, sys
-    sys.path.insert(0, str(root))
+    sys.path.insert(0, str(root / SPEC_ROOT))
     try:
         sys.modules.pop("generated.content_contract", None)
         module = importlib.import_module("generated.content_contract")
     finally:
         try:
-            sys.path.remove(str(root))
+            sys.path.remove(str(root / SPEC_ROOT))
         except ValueError:
             pass
     for ref, item in contract.get("copies", {}).items():
@@ -708,14 +709,14 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
 
 
 def validate_fixtures_and_scenarios(root: Path, contract: dict[str, Any]) -> None:
-    generated = root / "generated"
+    generated = root / GENERATED_SPEC_DIR
     fixtures = read_yaml(generated / "fixtures.yaml")
     scenarios = read_yaml(generated / "scenarios.yaml")
     obligations = read_yaml(generated / "test_obligations.yaml")
     if fixtures != {"project": contract["project"], "fixtures": contract["fixtures"]}:
         raise ContractError("fixtures.yaml does not match contract fixtures")
     if scenarios != {"project": contract["project"], "scenarios": contract["scenarios"]}:
-        raise ContractError("scenarios.yaml does not match contract scenarios")
+        raise ContractError("scenarios.yaml does not match spec scenarios")
     expected_obligation_keys = {"project", "scenarios", "must_validate_projections", "refs"}
     _require_exact_keys(obligations, expected_obligation_keys, "test_obligations.yaml")
     if obligations["project"] != contract["project"]:
@@ -738,9 +739,9 @@ def validate_fixtures_and_scenarios(root: Path, contract: dict[str, Any]) -> Non
 
 
 def validate_audit_outputs(root: Path, contract: dict[str, Any]) -> None:
-    audit_root = root / "generated" / "audit"
+    audit_root = root / GENERATED_SPEC_DIR / "audit"
     if not audit_root.exists():
-        raise ContractError("Missing generated/audit directory")
+        raise ContractError("Missing spec/generated/audit directory")
     expected = audit_expected_files(contract)
     actual = {
         str(path.relative_to(root))
@@ -868,7 +869,7 @@ def _validate_python_projections(root: Path) -> None:
 
 
 def validate_refs_py(root: Path, contract: dict[str, Any]) -> None:
-    module = _load_generated_module(root / "generated" / "refs.py", "generated_refs")
+    module = _load_generated_module(root / GENERATED_SPEC_DIR / "refs.py", "generated_refs")
     expected_groups: dict[str, list[str]] = {
         "Asset": sorted(contract.get("assets", {})),
         "AuditProfile": sorted(contract.get("audit_profiles", {})),
@@ -1216,13 +1217,13 @@ def _feature_scenario_ids(folder: Path) -> set[str]:
         for idx, line in enumerate(lines):
             stripped = line.strip()
             if stripped.startswith("Given "):
-                match = re.fullmatch(r'Given contract scenario "([a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)+)" is arranged', stripped)
+                match = re.fullmatch(r'Given spec scenario "([a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)+)" is arranged', stripped)
                 if not match:
-                    raise ContractError(f"Generated feature has non-contract Given step: {path}: {stripped}")
+                    raise ContractError(f"Generated feature has non-spec Given step: {path}: {stripped}")
                 sid = match.group(1)
                 ids.add(sid)
-                expected_when = f'When contract scenario "{sid}" is executed'
-                expected_then = f'Then contract scenario "{sid}" obligations hold'
+                expected_when = f'When spec scenario "{sid}" is executed'
+                expected_then = f'Then spec scenario "{sid}" obligations hold'
                 if idx + 2 >= len(lines) or lines[idx + 1].strip() != expected_when or lines[idx + 2].strip() != expected_then:
                     raise ContractError(f"Generated feature scenario {sid} does not use canonical When/Then steps")
             elif stripped.startswith(("When ", "Then ")):

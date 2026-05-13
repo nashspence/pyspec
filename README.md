@@ -1,22 +1,23 @@
 # pyspec-contract
 
-`pyspec-contract` is a Python-first, contract-to-artifact tool for whole-app product specifications. It turns a sparse human-authored `contract.yaml` into a strict compiled contract, protocol projections, BDD fixtures/features, generated Python obligations, and visual audit artifacts.
+`pyspec-contract` is a Python-first, spec-to-artifact tool for whole-app product specifications. It turns a sparse human-authored `spec/spec.yaml` into a strict compiled spec, protocol projections, BDD fixtures/features, generated Python obligations, and visual audit artifacts.
 
 The reusable tool lives in `src/pyspec_contract/`. Product specifications live in project workspaces. The canonical example workspace is:
 
 ```text
 examples/project_dispatch_board/
   AGENTS.md
-  contract.yaml
-  contract.py
+  spec/
+    spec.yaml
+    spec.py
+    generated/
   sample_app/
-  generated/
   tests/
     spec_bdd/
     prod_bdd/
 ```
 
-`generated/` is intended to be checked in as reviewable product evidence. For now, audit PNGs are retained exactly as generated.
+`spec/generated/` is intended to be checked in as reviewable product evidence. For now, audit PNGs are retained exactly as generated.
 
 ## Install
 
@@ -43,23 +44,23 @@ pyspec check examples/project_dispatch_board --layers full
 
 ## Authoring Model
 
-The human source is `contract.yaml`. It is sparse, positive-only, and grouped by product concepts:
+The human source is `spec/spec.yaml`. It is sparse, positive-only, and grouped by product concepts:
 
 ```text
-contract.yaml
-  -> generated/contract.complete.yaml
-  -> generated projections required by positive declarations
-  -> generated pytest-bdd feature corpus
+spec/spec.yaml
+  -> spec/generated/spec.complete.yaml
+  -> spec/generated projections required by positive declarations
+  -> spec/generated pytest-bdd feature corpus
   -> visual audit artifacts when render cases exist
 ```
 
-The contract is progressive. If a concern is absent, it has no declaration and no generated projection. The contract does not contain storage implementation details, test-harness routing, dev-environment metadata, review state, release state, or schema-version chatter.
+The spec is progressive. If a concern is absent, it has no declaration and no generated projection. The spec does not contain storage implementation details, test-harness routing, dev-environment metadata, review state, release state, or schema-version chatter.
 
-Reusable top-level `facts` name preconditions, such as a resource that must already exist. Scenarios can reference them with `given.facts: [{use: fact.project.submitted}]`, and render cases can reference them with `facts: [{use: fact.project.submitted}]`; the compiled contract expands scenario references back into concrete `present` or `absent` facts for the generated BDD harnesses.
+Reusable top-level `facts` name preconditions, such as a resource that must already exist. Scenarios can reference them with `given.facts: [{use: fact.project.submitted}]`, and render cases can reference them with `facts: [{use: fact.project.submitted}]`; the compiled spec expands scenario references back into concrete `present` or `absent` facts for the generated BDD harnesses.
 
 ## Layers
 
-Layers are authoring guardrails. They constrain vocabulary during compile/validate but are not written into `generated/contract.complete.yaml`.
+Layers are authoring guardrails. They constrain vocabulary during compile/validate but are not written into `spec/generated/spec.complete.yaml`.
 
 Common layer sets:
 
@@ -93,8 +94,8 @@ full.author.schema.json
 A full-surface project can generate:
 
 ```text
-generated/
-  contract.complete.yaml
+spec/generated/
+  spec.complete.yaml
   openapi.yaml
   asyncapi.yaml
   workflows.cwl.yaml
@@ -121,17 +122,17 @@ generated/
     textual/**/*.svg
 ```
 
-Validation treats the generated tree as closed: missing files, extra files, hand-edited text projections, corrupt PNGs, invalid SVGs, or stale compiled contracts fail validation.
+Validation treats the generated tree as closed: missing files, extra files, hand-edited text projections, corrupt PNGs, invalid SVGs, or stale compiled specs fail validation.
 
 ## BDD Harnesses
 
 There is exactly one generated Gherkin corpus:
 
 ```text
-generated/features/*.feature
+spec/generated/features/*.feature
 ```
 
-Both pytest-bdd harnesses consume that same corpus. The difference is only the driver fixture outside the contract:
+Both pytest-bdd harnesses consume that same corpus. The difference is only the driver fixture outside the spec:
 
 ```text
 tests/spec_bdd/ -> reference/spec driver

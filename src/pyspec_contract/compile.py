@@ -16,7 +16,7 @@ from . import rules
 from .layers import LayerError, parse_layers, validate_author_layers
 from .io import read_json, read_yaml, write_json, write_yaml
 from .layout import layout_html, layout_html_regions, layout_regions, layout_textual, layout_textual_containers
-from .paths import COMPILED_CONTRACT_PATH, SOURCE_CONTRACT_PATH
+from .paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR, SOURCE_SPEC_PATH
 from .project import projection_files
 
 ROOT = Path(__file__).resolve().parent
@@ -162,7 +162,7 @@ def compile_author(author: dict[str, Any], layers: set[str] | None = None) -> di
     used_facts = _expand_scenario_fact_uses(contract)
     _semantic_validate(contract, used_facts)
     _expand_scenarios(contract)
-    validate_against_schema(contract, "contract.schema.json")
+    validate_against_schema(contract, "spec.schema.json")
     return contract
 
 
@@ -1444,11 +1444,13 @@ def write_compiled(root: Path, source_path: Path, tools_root: Path | None = None
     source = read_yaml(source_path)
     author = author_from_source(source, layers=layers)
     contract = compile_author(author, layers=layers)
-    generated = root / "generated"
+    generated = root / GENERATED_SPEC_DIR
     if generated.exists():
         shutil.rmtree(generated)
-    write_yaml(root / SOURCE_CONTRACT_PATH, author, sort_keys=False)
-    compiled_path = root / COMPILED_CONTRACT_PATH
+    source_output = root / SOURCE_SPEC_PATH
+    source_output.parent.mkdir(parents=True, exist_ok=True)
+    write_yaml(source_output, author, sort_keys=False)
+    compiled_path = root / COMPILED_SPEC_PATH
     compiled_path.parent.mkdir(parents=True, exist_ok=True)
     write_yaml(compiled_path, contract)
     for relative, content, kind in projection_files(contract):
@@ -1469,10 +1471,10 @@ def write_compiled(root: Path, source_path: Path, tools_root: Path | None = None
 
 
 def default_source_path(root: Path) -> Path:
-    authored = root / SOURCE_CONTRACT_PATH
+    authored = root / SOURCE_SPEC_PATH
     if authored.exists():
         return authored
-    raise ContractError(f"Missing {SOURCE_CONTRACT_PATH}")
+    raise ContractError(f"Missing {SOURCE_SPEC_PATH}")
 
 
 
@@ -1518,11 +1520,11 @@ def _validate_path_params(entry: dict[str, Any], entry_id: str) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Compile contract.yaml into generated/contract.complete.yaml and projections.")
-    parser.add_argument("source", nargs="?", default=None, help="authored contract file; defaults to contract.yaml")
+    parser = argparse.ArgumentParser(description="Compile spec/spec.yaml into spec/generated/spec.complete.yaml and projections.")
+    parser.add_argument("source", nargs="?", default=None, help="authored spec file; defaults to spec/spec.yaml")
     parser.add_argument("--out", default=".")
     parser.add_argument("--layers", default=None, help="Comma-separated authoring layers, e.g. core,http or core,ui,textual. Omit for unrestricted mode.")
-    parser.add_argument("--no-audit", action="store_true", help="Regenerate contract/projections without visual audit renders.")
+    parser.add_argument("--no-audit", action="store_true", help="Regenerate spec/projections without visual audit renders.")
     args = parser.parse_args(argv)
     try:
         out = Path(args.out).resolve()

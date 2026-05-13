@@ -6,14 +6,14 @@ import pytest
 
 from pyspec_contract.compile import ContractError, compile_source
 from pyspec_contract.io import read_json, read_yaml
-from pyspec_contract.paths import SOURCE_CONTRACT_PATH
+from pyspec_contract.paths import SOURCE_SPEC_PATH
 from tests.helpers import EXAMPLE_ROOT
 
 ROOT = EXAMPLE_ROOT
 
 
 def _author() -> dict:
-    return read_yaml(ROOT / SOURCE_CONTRACT_PATH)
+    return read_yaml(ROOT / SOURCE_SPEC_PATH)
 
 
 def _item(author: dict, section: str, item_id: str) -> dict:
@@ -43,7 +43,7 @@ def test_composed_fsm_contract_is_closed_and_projected() -> None:
         ("activity", "panel.project.activity", "aside", "empty"),
     ]
 
-    generated = read_json(ROOT / "generated" / "panels.json")
+    generated = read_json(ROOT / "spec" / "generated" / "panels.json")
     composition = next(item for item in generated["compositions"] if item["id"] == "project.board")
     assert composition["instances"] == view["includes"]
     assert composition["sync"] == view["sync"]

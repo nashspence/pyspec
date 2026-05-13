@@ -40,7 +40,6 @@ filterwarnings = [
   "ignore:'maxsplit' is passed as positional argument:DeprecationWarning:gherkin.gherkin_line",
 ]
 markers = [
-  "contract: generated contract scenario",
   "spec: generated spec harness scenario",
   "prod: generated prod harness scenario",
   "project_board_empty: generated scenario tag",

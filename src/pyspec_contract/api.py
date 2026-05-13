@@ -9,7 +9,7 @@ from .audit import audit_expected_files, generate_audit
 from .compile import compile_author, compile_source, default_source_path, write_compiled
 from .io import write_json, write_yaml
 from .layers import parse_layers
-from .paths import COMPILED_CONTRACT_PATH
+from .paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR
 from .project import projection_files
 from .validate import validate_project as _validate_project
 
@@ -70,7 +70,7 @@ def expected_artifacts(contract: dict[str, Any], artifact_policy: ArtifactPolicy
     """Return the generated artifact paths implied by a compiled contract."""
 
     policy = artifact_policy or ArtifactPolicy()
-    paths = {str(COMPILED_CONTRACT_PATH)} | {relative for relative, _, _ in projection_files(contract)} | audit_expected_files(contract)
+    paths = {str(COMPILED_SPEC_PATH)} | {relative for relative, _, _ in projection_files(contract)} | audit_expected_files(contract)
     return policy.filter(paths)
 
 
@@ -84,10 +84,10 @@ def write_generated(
     """Write generated artifacts for an already compiled contract."""
 
     project_root = Path(root).resolve()
-    generated = project_root / "generated"
+    generated = project_root / GENERATED_SPEC_DIR
     if generated.exists():
         shutil.rmtree(generated)
-    compiled_path = project_root / COMPILED_CONTRACT_PATH
+    compiled_path = project_root / COMPILED_SPEC_PATH
     compiled_path.parent.mkdir(parents=True, exist_ok=True)
     write_yaml(compiled_path, contract)
     for relative, content, kind in projection_files(contract):

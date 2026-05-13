@@ -6,7 +6,7 @@ import pytest
 from pyspec_contract.audit import _render_graphviz_svg, audit_expected_files, composition_dot, panel_fsm_dot
 from pyspec_contract.compile import ContractError, compile_source
 from pyspec_contract.io import read_yaml
-from pyspec_contract.paths import COMPILED_CONTRACT_PATH, SOURCE_CONTRACT_PATH
+from pyspec_contract.paths import COMPILED_SPEC_PATH, SOURCE_SPEC_PATH
 from pyspec_contract.projection_validators import validate_audit_outputs
 from tests.helpers import EXAMPLE_ROOT, copy_project_tree
 
@@ -15,18 +15,18 @@ PNG_HEADER = bytes([137, 80, 78, 71, 13, 10, 26, 10])
 
 
 def _contract(root: Path = ROOT) -> dict:
-    return read_yaml(root / COMPILED_CONTRACT_PATH)
+    return read_yaml(root / COMPILED_SPEC_PATH)
 
 
 def test_audit_outputs_cover_full_contract() -> None:
     contract = _contract()
     expected = audit_expected_files(contract)
-    assert "generated/audit/copy.yaml" in expected
-    assert any(path.startswith("generated/audit/fsm/") and path.endswith(".svg") for path in expected)
-    assert any(path.startswith("generated/audit/composition/") and path.endswith(".svg") for path in expected)
-    assert any(path.startswith("generated/audit/html/panels/") and path.endswith(".png") for path in expected)
-    assert any(path.startswith("generated/audit/html/views/") and path.endswith(".html") for path in expected)
-    assert any(path.startswith("generated/audit/textual/views/") and path.endswith(".svg") for path in expected)
+    assert "spec/generated/audit/copy.yaml" in expected
+    assert any(path.startswith("spec/generated/audit/fsm/") and path.endswith(".svg") for path in expected)
+    assert any(path.startswith("spec/generated/audit/composition/") and path.endswith(".svg") for path in expected)
+    assert any(path.startswith("spec/generated/audit/html/panels/") and path.endswith(".png") for path in expected)
+    assert any(path.startswith("spec/generated/audit/html/views/") and path.endswith(".html") for path in expected)
+    assert any(path.startswith("spec/generated/audit/textual/views/") and path.endswith(".svg") for path in expected)
     validate_audit_outputs(ROOT, contract)
 
 
@@ -61,7 +61,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
 
 
 def test_audit_transition_basis_renders_for_otherwise_sparse_card() -> None:
-    author = read_yaml(ROOT / SOURCE_CONTRACT_PATH)
+    author = read_yaml(ROOT / SOURCE_SPEC_PATH)
     activity = author["panels"]["panel.project.activity"]
     cleared = next(transition for transition in activity["transitions"] if transition["event"] == "selection.cleared")
     cleared.pop("effects")
@@ -75,10 +75,10 @@ def test_audit_transition_basis_renders_for_otherwise_sparse_card() -> None:
 
 
 def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
-    list_fsm = (ROOT / "generated" / "audit" / "fsm" / "panel_project_list.svg").read_text(encoding="utf-8")
-    detail_fsm = (ROOT / "generated" / "audit" / "fsm" / "panel_project_detail.svg").read_text(encoding="utf-8")
-    activity_fsm = (ROOT / "generated" / "audit" / "fsm" / "panel_project_activity.svg").read_text(encoding="utf-8")
-    composition = (ROOT / "generated" / "audit" / "composition" / "project_board.svg").read_text(encoding="utf-8")
+    list_fsm = (ROOT / "spec" / "generated" / "audit" / "fsm" / "panel_project_list.svg").read_text(encoding="utf-8")
+    detail_fsm = (ROOT / "spec" / "generated" / "audit" / "fsm" / "panel_project_detail.svg").read_text(encoding="utf-8")
+    activity_fsm = (ROOT / "spec" / "generated" / "audit" / "fsm" / "panel_project_activity.svg").read_text(encoding="utf-8")
+    composition = (ROOT / "spec" / "generated" / "audit" / "composition" / "project_board.svg").read_text(encoding="utf-8")
     assert "on data.ready" in list_fsm
     assert "copy.project.list.ready.heading" in list_fsm
     assert "asset.project.list.empty.illustration" in list_fsm
@@ -119,7 +119,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
 
 
 def test_audit_html_sources_render_copy_assets_and_fixture_fields() -> None:
-    ready = ROOT / "generated" / "audit" / "html" / "views" / "project_board" / "default.wide.project_board_ready_selected_audit.html"
+    ready = ROOT / "spec" / "generated" / "audit" / "html" / "views" / "project_board" / "default.wide.project_board_ready_selected_audit.html"
     text = ready.read_text(encoding="utf-8")
     assert "Dispatch queue" in text
     assert "Replace rooftop condenser fan · Atlas Foods" in text
@@ -130,7 +130,7 @@ def test_audit_html_sources_render_copy_assets_and_fixture_fields() -> None:
     assert "fixture.projects.audit_records" not in text
     assert "data-audit" not in text
 
-    empty = ROOT / "generated" / "audit" / "html" / "views" / "project_board" / "default.compact.project_board_empty_audit.html"
+    empty = ROOT / "spec" / "generated" / "audit" / "html" / "views" / "project_board" / "default.compact.project_board_empty_audit.html"
     empty_text = empty.read_text(encoding="utf-8")
     assert "No dispatch projects yet" in empty_text
     assert "asset.project.list.empty.illustration" in empty_text
@@ -138,7 +138,7 @@ def test_audit_html_sources_render_copy_assets_and_fixture_fields() -> None:
 
 
 def test_audit_asset_placeholder_is_generic_and_not_named() -> None:
-    asset = ROOT / "generated" / "audit" / "assets" / "asset_project_list_empty_illustration.svg"
+    asset = ROOT / "spec" / "generated" / "audit" / "assets" / "asset_project_list_empty_illustration.svg"
     text = asset.read_text(encoding="utf-8")
     assert text.lstrip().startswith("<svg")
     assert "asset.project.list.empty.illustration" not in text
@@ -155,7 +155,7 @@ def test_audit_pngs_are_real_pngs() -> None:
 
 
 def test_copy_placeholder_is_required_for_used_copy_ref() -> None:
-    author = read_yaml(ROOT / SOURCE_CONTRACT_PATH)
+    author = read_yaml(ROOT / SOURCE_SPEC_PATH)
     copy_id = next(iter(author["copies"]))
     del author["copies"][copy_id]
     with pytest.raises(ContractError, match="copy placeholders drift"):
@@ -163,7 +163,7 @@ def test_copy_placeholder_is_required_for_used_copy_ref() -> None:
 
 
 def test_asset_placeholder_schema_rejects_missing_visual_intent() -> None:
-    author = read_yaml(ROOT / SOURCE_CONTRACT_PATH)
+    author = read_yaml(ROOT / SOURCE_SPEC_PATH)
     asset_id = next(iter(author["assets"]))
     del author["assets"][asset_id]["placeholder"]
     with pytest.raises(ContractError, match="Schema validation failed"):
@@ -171,7 +171,7 @@ def test_asset_placeholder_schema_rejects_missing_visual_intent() -> None:
 
 
 def test_render_case_coverage_is_required() -> None:
-    author = read_yaml(ROOT / SOURCE_CONTRACT_PATH)
+    author = read_yaml(ROOT / SOURCE_SPEC_PATH)
     author.pop("render_cases")
     with pytest.raises(ContractError, match="At least one render_case|Missing render_case coverage"):
         compile_source(author)
@@ -180,7 +180,7 @@ def test_render_case_coverage_is_required() -> None:
 def test_audit_validator_rejects_corrupt_html_png(tmp_path: Path) -> None:
     project = tmp_path / "project"
     copy_project_tree(ROOT, project)
-    contract = read_yaml(project / COMPILED_CONTRACT_PATH)
+    contract = read_yaml(project / COMPILED_SPEC_PATH)
     png = next(project / path for path in audit_expected_files(contract) if path.endswith(".png"))
     png.write_bytes(b"not-a-png")
     with pytest.raises(ContractError, match="not PNG"):
@@ -190,7 +190,7 @@ def test_audit_validator_rejects_corrupt_html_png(tmp_path: Path) -> None:
 def test_audit_validator_rejects_missing_fsm_svg(tmp_path: Path) -> None:
     project = tmp_path / "project"
     copy_project_tree(ROOT, project)
-    contract = read_yaml(project / COMPILED_CONTRACT_PATH)
+    contract = read_yaml(project / COMPILED_SPEC_PATH)
     svg = next(project / path for path in audit_expected_files(contract) if "/fsm/" in path)
     svg.unlink()
     with pytest.raises(ContractError, match="audit generated files"):

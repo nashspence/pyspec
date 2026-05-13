@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Mapping
 
+from .paths import RESOLVER_SPEC_PATH, SPEC_ROOT
+
 
 class ContentError(ValueError):
     pass
@@ -56,8 +58,7 @@ class ResolverRegistry:
 copy = ResolverRegistry("copy")
 asset = ResolverRegistry("asset")
 _LOADED_ROOT: Path | None = None
-_RESOLVER_PATH = Path("contract.py")
-_RESOLVER_MODULE_NAME = "_pyspec_contract_project_contract"
+_RESOLVER_MODULE_NAME = "_pyspec_contract_project_spec"
 
 
 def load_resolvers(root: Path) -> None:
@@ -68,34 +69,34 @@ def load_resolvers(root: Path) -> None:
     _LOADED_ROOT = None
     copy.clear()
     asset.clear()
-    resolver_path = root / _RESOLVER_PATH
+    resolver_path = root / RESOLVER_SPEC_PATH
     if not resolver_path.is_file():
-        raise ContentError("Missing contract.py for final content resolvers")
+        raise ContentError("Missing spec/spec.py for final content resolvers")
     sys.modules.pop(_RESOLVER_MODULE_NAME, None)
-    sys.path.insert(0, str(root))
+    sys.path.insert(0, str(root / SPEC_ROOT))
     try:
         spec = importlib.util.spec_from_file_location(_RESOLVER_MODULE_NAME, resolver_path)
         if spec is None or spec.loader is None:
-            raise ContentError("Cannot load contract.py for final content resolvers")
+            raise ContentError("Cannot load spec/spec.py for final content resolvers")
         module = importlib.util.module_from_spec(spec)
         sys.modules[_RESOLVER_MODULE_NAME] = module
         spec.loader.exec_module(module)
     finally:
         try:
-            sys.path.remove(str(root))
+            sys.path.remove(str(root / SPEC_ROOT))
         except ValueError:
             pass
     _LOADED_ROOT = root
 
 
 def _content_contract(root: Path):
-    sys.path.insert(0, str(root))
+    sys.path.insert(0, str(root / SPEC_ROOT))
     try:
         sys.modules.pop("generated.content_contract", None)
         return importlib.import_module("generated.content_contract")
     finally:
         try:
-            sys.path.remove(str(root))
+            sys.path.remove(str(root / SPEC_ROOT))
         except ValueError:
             pass
 

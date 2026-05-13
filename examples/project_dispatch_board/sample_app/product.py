@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from pyspec_contract.io import read_json, read_yaml
-from pyspec_contract.paths import COMPILED_CONTRACT_PATH
+from pyspec_contract.paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR
 from pyspec_contract.runtime import fixture_namespace, resolve_map
 
 
@@ -18,8 +18,8 @@ class ProductApp:
 
     def __init__(self, root: Path):
         self.root = root
-        self.contract = read_yaml(root / COMPILED_CONTRACT_PATH)
-        self.panels = {p["id"]: p for p in read_json(root / "generated" / "panels.json")["panels"]}
+        self.contract = read_yaml(root / COMPILED_SPEC_PATH)
+        self.panels = {p["id"]: p for p in read_json(root / GENERATED_SPEC_DIR / "panels.json")["panels"]}
         self.reset()
 
     def reset(self) -> None:

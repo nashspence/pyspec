@@ -1,6 +1,6 @@
 # Generated Artifacts
 
-`generated/` is durable product evidence, not a disposable cache. The current policy is to check in every generated artifact, including audit PNG renders exactly as produced.
+`spec/generated/` is durable product evidence, not a disposable cache. The current policy is to check in every generated artifact, including audit PNG renders exactly as produced.
 
 Validation enforces a closed generated tree:
 

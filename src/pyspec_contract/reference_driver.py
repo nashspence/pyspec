@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from .io import read_json, read_yaml
-from .paths import COMPILED_CONTRACT_PATH
+from .paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR
 from .runtime import fixture_namespace, resolve_map
 
 
@@ -13,8 +13,8 @@ class ReferenceSpecDriver:
 
     def __init__(self, root: Path):
         self.root = root
-        self.contract = read_yaml(root / COMPILED_CONTRACT_PATH)
-        self.panels = {p["id"]: p for p in read_json(root / "generated" / "panels.json")["panels"]}
+        self.contract = read_yaml(root / COMPILED_SPEC_PATH)
+        self.panels = {p["id"]: p for p in read_json(root / GENERATED_SPEC_DIR / "panels.json")["panels"]}
         self.reset()
 
     def reset(self) -> None:

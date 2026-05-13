@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "spec"))
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 for parent in [ROOT, *ROOT.parents]:
@@ -19,5 +20,5 @@ from driver import ProdDriver  # noqa: E402
 
 
 @pytest.fixture
-def contract_driver() -> ProdDriver:
+def spec_driver() -> ProdDriver:
     return ProdDriver(ROOT)

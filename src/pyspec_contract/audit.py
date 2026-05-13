@@ -16,6 +16,7 @@ from .compile import ContractError
 from .content import AssetResult, ContentContext, ContentError, call_asset, call_copy
 from .io import write_yaml
 from .layout import layout_html, layout_html_regions, layout_regions
+from .paths import GENERATED_SPEC_DIR, generated_relative as g
 from .project import css_value, default_html_slots, format_attrs, humanize, panels_projection, panel_styles_projection, safe_id
 from .runtime import fixture_namespace, resolve
 
@@ -24,16 +25,16 @@ ROOT = Path(__file__).resolve().parent
 
 def audit_expected_files(contract: dict[str, Any]) -> set[str]:
     files: set[str] = {
-        "generated/audit/copy.yaml",
-        "generated/audit/fixtures.yaml",
+        g("audit", "copy.yaml"),
+        g("audit", "fixtures.yaml"),
     }
     for asset_id in contract.get("assets", {}):
-        files.add(f"generated/audit/assets/{safe_id(asset_id)}.svg")
+        files.add(g("audit", "assets", f"{safe_id(asset_id)}.svg"))
     for panel_id in contract.get("panels", {}):
-        files.add(f"generated/audit/fsm/{safe_id(panel_id)}.svg")
+        files.add(g("audit", "fsm", f"{safe_id(panel_id)}.svg"))
     for view_id, view in contract.get("views", {}).items():
         if view.get("includes"):
-            files.add(f"generated/audit/composition/{safe_id(view_id)}.svg")
+            files.add(g("audit", "composition", f"{safe_id(view_id)}.svg"))
 
     projection = panels_projection(contract)
     for panel in projection["panels"]:
@@ -41,12 +42,12 @@ def audit_expected_files(contract: dict[str, Any]) -> set[str]:
             panel_path = safe_id(panel["id"])
             for breakpoint in profile.get("html", {}).get("breakpoints", {}):
                 stem = f"{safe_id(profile_id)}.{safe_id(breakpoint)}"
-                files.add(f"generated/audit/html/panels/{panel_path}/{stem}.html")
-                files.add(f"generated/audit/html/panels/{panel_path}/{stem}.png")
+                files.add(g("audit", "html", "panels", panel_path, f"{stem}.html"))
+                files.add(g("audit", "html", "panels", panel_path, f"{stem}.png"))
             for breakpoint in profile.get("textual", {}).get("breakpoints", {}):
                 stem = f"{safe_id(profile_id)}.{safe_id(breakpoint)}"
-                files.add(f"generated/audit/textual/panels/{panel_path}/{stem}.py")
-                files.add(f"generated/audit/textual/panels/{panel_path}/{stem}.svg")
+                files.add(g("audit", "textual", "panels", panel_path, f"{stem}.py"))
+                files.add(g("audit", "textual", "panels", panel_path, f"{stem}.svg"))
 
     for case_id, case in contract.get("render_cases", {}).items():
         profile = contract["audit_profiles"][case["profile"]]
@@ -56,18 +57,18 @@ def audit_expected_files(contract: dict[str, Any]) -> set[str]:
         if "html" in case["surfaces"]:
             for breakpoint in profile.get("html", {}).get("breakpoints", {}):
                 stem = f"{profile_path}.{safe_id(breakpoint)}.{case_path}"
-                files.add(f"generated/audit/html/views/{view_path}/{stem}.html")
-                files.add(f"generated/audit/html/views/{view_path}/{stem}.png")
+                files.add(g("audit", "html", "views", view_path, f"{stem}.html"))
+                files.add(g("audit", "html", "views", view_path, f"{stem}.png"))
         if "textual" in case["surfaces"]:
             for breakpoint in profile.get("textual", {}).get("breakpoints", {}):
                 stem = f"{profile_path}.{safe_id(breakpoint)}.{case_path}"
-                files.add(f"generated/audit/textual/views/{view_path}/{stem}.py")
-                files.add(f"generated/audit/textual/views/{view_path}/{stem}.svg")
+                files.add(g("audit", "textual", "views", view_path, f"{stem}.py"))
+                files.add(g("audit", "textual", "views", view_path, f"{stem}.svg"))
     return files
 
 
 def generate_audit(root: Path, contract: dict[str, Any], tools_root: Path | None = None) -> None:
-    audit_root = root / "generated" / "audit"
+    audit_root = root / GENERATED_SPEC_DIR / "audit"
     if audit_root.exists():
         shutil.rmtree(audit_root)
     audit_root.mkdir(parents=True, exist_ok=True)
@@ -98,12 +99,12 @@ def _render_visual_audit(root: Path, contract: dict[str, Any], _tools_root: Path
     projection = panels_projection(contract)
 
     for panel_id, panel in sorted(contract.get("panels", {}).items()):
-        path = root / "generated" / "audit" / "fsm" / f"{safe_id(panel_id)}.svg"
+        path = root / GENERATED_SPEC_DIR / "audit" / "fsm" / f"{safe_id(panel_id)}.svg"
         _write_graphviz_svg(path, panel_fsm_dot(panel_id, panel, contract))
     for view_id, view in sorted(contract.get("views", {}).items()):
         if not view.get("includes"):
             continue
-        path = root / "generated" / "audit" / "composition" / f"{safe_id(view_id)}.svg"
+        path = root / GENERATED_SPEC_DIR / "audit" / "composition" / f"{safe_id(view_id)}.svg"
         _write_graphviz_svg(path, composition_dot(view_id, view))
 
     has_html_audit = bool(
@@ -123,7 +124,7 @@ def _render_visual_audit(root: Path, contract: dict[str, Any], _tools_root: Path
             for profile_id, profile in sorted(contract.get("audit_profiles", {}).items()):
                 for name, viewport in sorted(profile.get("textual", {}).get("breakpoints", {}).items()):
                     stem = f"{safe_id(profile_id)}.{safe_id(name)}"
-                    base = root / "generated" / "audit" / "textual" / "panels" / safe_id(panel["id"]) / stem
+                    base = root / GENERATED_SPEC_DIR / "audit" / "textual" / "panels" / safe_id(panel["id"]) / stem
                     _write_textual_source(Path(str(base) + ".py"), lines)
                     textual_jobs.append((Path(str(base) + ".svg"), lines, viewport))
         for case_id, case in sorted(contract.get("render_cases", {}).items()):
@@ -133,7 +134,7 @@ def _render_visual_audit(root: Path, contract: dict[str, Any], _tools_root: Path
             lines = textual_audit_lines(root, contract, case_id, case)
             for name, viewport in sorted(profile.get("textual", {}).get("breakpoints", {}).items()):
                 stem = f"{safe_id(case['profile'])}.{safe_id(name)}.{safe_id(case_id)}"
-                base = root / "generated" / "audit" / "textual" / "views" / safe_id(case["view"]) / stem
+                base = root / GENERATED_SPEC_DIR / "audit" / "textual" / "views" / safe_id(case["view"]) / stem
                 _write_textual_source(Path(str(base) + ".py"), lines)
                 textual_jobs.append((Path(str(base) + ".svg"), lines, viewport))
         asyncio.run(_render_textual_batch(textual_jobs))
@@ -158,7 +159,7 @@ def _render_html_audit(root: Path, contract: dict[str, Any], projection: dict[st
                         html_doc = audit_html_document(contract, render_panel_audit_html(root, contract, panel, None))
                         for name, viewport in sorted(html_profile["breakpoints"].items()):
                             stem = f"{safe_id(profile_id)}.{safe_id(name)}"
-                            base = root / "generated" / "audit" / "html" / "panels" / safe_id(panel["id"]) / stem
+                            base = root / GENERATED_SPEC_DIR / "audit" / "html" / "panels" / safe_id(panel["id"]) / stem
                             _write_html_and_png_page(page, html_doc, base, viewport)
                 for case_id, case in sorted(contract.get("render_cases", {}).items()):
                     profile = contract["audit_profiles"][case["profile"]]
@@ -166,7 +167,7 @@ def _render_html_audit(root: Path, contract: dict[str, Any], projection: dict[st
                         html_doc = audit_html_document(contract, render_case_html(root, contract, case_id, case))
                         for name, viewport in sorted(profile.get("html", {}).get("breakpoints", {}).items()):
                             stem = f"{safe_id(case['profile'])}.{safe_id(name)}.{safe_id(case_id)}"
-                            base = root / "generated" / "audit" / "html" / "views" / safe_id(case["view"]) / stem
+                            base = root / GENERATED_SPEC_DIR / "audit" / "html" / "views" / safe_id(case["view"]) / stem
                             _write_html_and_png_page(page, html_doc, base, viewport)
             finally:
                 page.close()
@@ -844,7 +845,7 @@ def audit_html_document(contract: dict[str, Any], body: str) -> str:
         '<html lang="en">',
         "<head>",
         '<meta charset="utf-8">',
-        "<title>contract audit render</title>",
+        "<title>spec audit render</title>",
         "<style>", css, extra_css, "</style>",
         "</head>",
         "<body>",
@@ -1265,8 +1266,8 @@ def main(argv: list[str] | None = None) -> int:
     root = Path(argv[0]).resolve()
     tools_root = Path(argv[1]).resolve()
     from .io import read_yaml
-    from .paths import COMPILED_CONTRACT_PATH
-    contract = read_yaml(root / COMPILED_CONTRACT_PATH)
+    from .paths import COMPILED_SPEC_PATH
+    contract = read_yaml(root / COMPILED_SPEC_PATH)
     _render_visual_audit(root, contract, tools_root)
     # Playwright/Textual can leave cleanup state that blocks interpreter shutdown in
     # constrained containers. This worker has completed all file outputs; exit

@@ -1,33 +1,33 @@
 authoring_layers:
-  rule: Layers constrain authored contract vocabulary only. They are never written into generated/contract.complete.yaml and never imply absent surfaces are planned.
+  rule: Layers constrain authored spec vocabulary only. They are never written into spec/generated/spec.complete.yaml and never imply absent surfaces are planned.
   layers:
     core:
       targets: [fixture, resource, capability, scenario]
-      projections: [generated/fixtures.yaml, generated/scenarios.yaml, generated/features, generated/refs.py]
+      projections: [spec/generated/fixtures.yaml, spec/generated/scenarios.yaml, spec/generated/features, spec/generated/refs.py]
     http:
       opens: [entry.surface.api]
       requires: [core]
-      projections_when_declared: [generated/openapi.yaml]
+      projections_when_declared: [spec/generated/openapi.yaml]
     events:
       opens: [entry.surface.webhook]
       requires: [core]
-      projections_when_declared: [generated/asyncapi.yaml]
+      projections_when_declared: [spec/generated/asyncapi.yaml]
     workflow:
       opens: [workflow, entry.surface.cli, entry.surface.worker, entry.surface.schedule]
       requires: [core]
-      projections_when_declared: [generated/workflows.cwl.yaml, generated/asyncapi.yaml]
+      projections_when_declared: [spec/generated/workflows.cwl.yaml, spec/generated/asyncapi.yaml]
     ui:
       opens: [panel, view, copy, asset, content_case, audit_profile, render_case]
       requires: [core]
-      projections_when_declared: [generated/panels.json, generated/audit]
+      projections_when_declared: [spec/generated/panels.json, spec/generated/audit]
     textual:
       opens: [entry.surface.textual, presentation.textual, render_case.surface.textual, audit_profile.textual]
       requires: [core, ui]
-      projections_when_declared: [generated/textual_contract.py, generated/audit/textual/**/*.svg]
+      projections_when_declared: [spec/generated/textual_contract.py, spec/generated/audit/textual/**/*.svg]
     web:
       opens: [entry.surface.web, presentation.html, presentation.css, render_case.surface.html, audit_profile.html]
       requires: [core, ui]
-      projections_when_declared: [generated/routes.json, generated/panels.html, generated/panel_styles.css, generated/audit/html/**/*.png]
+      projections_when_declared: [spec/generated/routes.json, spec/generated/panels.html, spec/generated/panel_styles.css, spec/generated/audit/html/**/*.png]
   common_sets:
     api_only: core,http
     evented_api: core,events
@@ -115,9 +115,9 @@ presentation_contracts:
     selectors_allowed: [screen, slot.<declared_slot>, action.<declared_action>, instance.<declared_instance>]
 
 gherkin_policy:
-  source_of_truth: generated/scenarios.yaml
+  source_of_truth: spec/generated/scenarios.yaml
   generated_features: pytest-bdd adapter only
-  corpus: generated/features/*.feature
+  corpus: spec/generated/features/*.feature
   rule: PM agents never author raw .feature files; spec and prod pytest-bdd harnesses consume the same generated corpus.
 
 composition_contracts:
@@ -131,10 +131,10 @@ audit_contracts:
   audit_profile: 'target: audit_profile declares fixed HTML and/or Textual breakpoints.'
   render_case: 'target: render_case binds a view state or composed panel state vector to fixtures, surfaces, and an audit profile.'
   content_case: 'target: content_case exercises every resolver-backed copy/asset with deterministic args.'
-  final_content: 'target: copy or asset may declare args and resolver; generated content stubs constrain contract.py.'
+  final_content: 'target: copy or asset may declare args and resolver; generated content stubs constrain spec/spec.py.'
   formats:
     fsm: svg
     composition: svg
     textual: svg
     html: png
-  forbidden: [generated/audit/review.html, generated/audit/change_report.md, generated/audit/manifest.json]
+  forbidden: [spec/generated/audit/review.html, spec/generated/audit/change_report.md, spec/generated/audit/manifest.json]

@@ -6,7 +6,7 @@ import pytest
 
 from pyspec_contract.compile import ContractError, compile_author, compile_source, validate_against_schema
 from pyspec_contract.io import read_yaml, write_yaml
-from pyspec_contract.paths import COMPILED_CONTRACT_PATH, SOURCE_CONTRACT_PATH
+from pyspec_contract.paths import COMPILED_SPEC_PATH, SOURCE_SPEC_PATH
 from pyspec_contract.validate import validate_project
 from tests.helpers import EXAMPLE_ROOT, copy_project_tree
 
@@ -18,7 +18,7 @@ def _basis(text: str = "test contract declaration") -> str:
 
 
 def _author() -> dict:
-    return read_yaml(ROOT / SOURCE_CONTRACT_PATH)
+    return read_yaml(ROOT / SOURCE_SPEC_PATH)
 
 
 def _item(author: dict, section: str, item_id: str) -> dict:
@@ -37,7 +37,7 @@ def test_project_validates() -> None:
 
 def test_yaml_writer_never_emits_anchors_or_aliases(tmp_path: Path) -> None:
     shared = {"text": "shared basis"}
-    path = tmp_path / "contract.yaml"
+    path = tmp_path / "spec.yaml"
     write_yaml(path, {"first": shared, "second": shared})
     text = path.read_text(encoding="utf-8")
     assert "&id" not in text
@@ -46,7 +46,7 @@ def test_yaml_writer_never_emits_anchors_or_aliases(tmp_path: Path) -> None:
 
 
 def test_checked_in_yaml_has_no_anchors_or_aliases() -> None:
-    yaml_paths = [ROOT / SOURCE_CONTRACT_PATH] + sorted((ROOT / "generated").rglob("*.yaml"))
+    yaml_paths = [ROOT / SOURCE_SPEC_PATH] + sorted((ROOT / "spec" / "generated").rglob("*.yaml"))
     offenders = []
     for path in yaml_paths:
         text = path.read_text(encoding="utf-8")
@@ -59,7 +59,7 @@ def test_checked_in_yaml_has_no_anchors_or_aliases() -> None:
 def test_validation_rejects_hand_edited_yaml_anchors(tmp_path: Path) -> None:
     project = tmp_path / "project"
     copy_project_tree(ROOT, project)
-    contract_path = project / SOURCE_CONTRACT_PATH
+    contract_path = project / SOURCE_SPEC_PATH
     text = contract_path.read_text(encoding="utf-8")
     contract_path.write_text(text.replace("project: project_dispatch_board", "project: &id001 project_dispatch_board", 1), encoding="utf-8")
     with pytest.raises(ContractError, match="Generated YAML must not contain anchors or aliases"):
@@ -80,32 +80,32 @@ def test_state_pattern_is_not_a_contract_concept() -> None:
 
 def test_contract_schema_rejects_meta_root_fields() -> None:
     for key, value in [("version", 1), ("status", "draft"), ("review_flags", [{"id": "x"}])]:
-        contract = read_yaml(ROOT / COMPILED_CONTRACT_PATH)
+        contract = read_yaml(ROOT / COMPILED_SPEC_PATH)
         contract[key] = value
         with pytest.raises(ContractError, match="Schema validation failed"):
-            validate_against_schema(contract, "contract.schema.json")
+            validate_against_schema(contract, "spec.schema.json")
 
 
 def test_author_schema_rejects_meta_root_fields() -> None:
     for key, value in [("version", 1), ("status", "draft"), ("review_flags", [{"id": "x"}])]:
-        author = read_yaml(ROOT / SOURCE_CONTRACT_PATH)
+        author = read_yaml(ROOT / SOURCE_SPEC_PATH)
         author[key] = value
         with pytest.raises(ContractError, match="Schema validation failed"):
             validate_against_schema(author, "author.schema.json")
 
 
 def test_author_yaml_is_direct_source() -> None:
-    author = read_yaml(ROOT / SOURCE_CONTRACT_PATH)
-    assert compile_author(author) == read_yaml(ROOT / COMPILED_CONTRACT_PATH)
+    author = read_yaml(ROOT / SOURCE_SPEC_PATH)
+    assert compile_author(author) == read_yaml(ROOT / COMPILED_SPEC_PATH)
 
 
 def test_author_contract_is_sparse_source() -> None:
-    author = read_yaml(ROOT / SOURCE_CONTRACT_PATH)
+    author = read_yaml(ROOT / SOURCE_SPEC_PATH)
     assert "events" not in author
     assert "refs" not in author
     assert "transition" not in author["capabilities"]["project.submit"]
     assert author["scenarios"]["project.approve.success"]["given"]["facts"] == [{"use": "fact.project.submitted"}]
-    assert compile_author(author) == read_yaml(ROOT / COMPILED_CONTRACT_PATH)
+    assert compile_author(author) == read_yaml(ROOT / COMPILED_SPEC_PATH)
 
 
 def test_named_fact_expands_into_compiled_scenario() -> None:
@@ -389,7 +389,7 @@ def test_basis_is_plain_bounded_text() -> None:
 def test_generated_tree_is_closed(tmp_path: Path) -> None:
     project = tmp_path / "project"
     copy_project_tree(ROOT, project)
-    rogue = project / "generated" / "agent_invented.feature"
+    rogue = project / "spec" / "generated" / "agent_invented.feature"
     rogue.write_text("Feature: Drift\n", encoding="utf-8")
     with pytest.raises(ContractError, match="Generated file set drift"):
         validate_project(project)
@@ -518,13 +518,13 @@ def test_authoring_layers_allow_api_only_contract_and_graph_driven_projections()
 
     contract = compile_author(_api_only_author(), layers=parse_layers("core,http"))
     paths = set(projection_paths(contract))
-    assert "generated/openapi.yaml" in paths
-    assert "generated/persistence.sql" not in paths
-    assert "generated/persistence.json" not in paths
-    assert "generated/panels.html" not in paths
-    assert "generated/textual_contract.py" not in paths
-    assert "generated/asyncapi.yaml" not in paths
-    assert "generated/workflows.cwl.yaml" not in paths
+    assert "spec/generated/openapi.yaml" in paths
+    assert "spec/generated/persistence.sql" not in paths
+    assert "spec/generated/persistence.json" not in paths
+    assert "spec/generated/panels.html" not in paths
+    assert "spec/generated/textual_contract.py" not in paths
+    assert "spec/generated/asyncapi.yaml" not in paths
+    assert "spec/generated/workflows.cwl.yaml" not in paths
 
 
 def test_authoring_layers_reject_irrelevant_ui_targets() -> None:
@@ -601,7 +601,7 @@ def test_pyspec_contract_rejects_storage_implementation_details_on_resource() ->
 
 
 def test_generated_gherkin_is_single_corpus() -> None:
-    features = ROOT / "generated" / "features"
+    features = ROOT / "spec" / "generated" / "features"
     assert features.exists()
     assert not (features / "spec").exists()
     assert not (features / "prod").exists()
