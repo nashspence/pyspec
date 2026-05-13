@@ -1,0 +1,12 @@
+copy:
+  copy.project.activity.empty.body:
+    basis: Empty activity body.
+    max_chars: 120
+    placeholder: Activity appears after a project is selected.
+    tone: instructional
+  copy.project.activity.empty.heading:
+    basis: Empty activity heading.
+    max_chars: 80
+    placeholder: No project selected
+    tone: neutral
+project: project_dispatch_board

@@ -15,7 +15,23 @@ from .compile import ContractError
 from .content import ContentContext, ContentError, asset as asset_registry, call_asset, call_copy, copy as copy_registry, instantiate_args, load_resolvers, validate_resolver_function
 from .runtime import fixture_namespace, resolve
 from .io import read_json, read_yaml
-from .audit import audit_expected_files
+from .audit import (
+    _case_file,
+    _case_root,
+    _case_scope_inputs,
+    _audit_projection_panels,
+    _copy_doc,
+    _fixtures_doc,
+    _panel_scope_inputs,
+    _projection_panel_file,
+    _projection_panel_root,
+    _scope_asset_file,
+    _scope_copy_file,
+    _scope_fixtures_file,
+    audit_expected_files,
+    composition_file,
+    panel_fsm_file,
+)
 from .layout import layout_textual
 from .paths import GENERATED_SPEC_DIR, SPEC_ROOT, generated_relative as g
 from .project import (
@@ -581,66 +597,73 @@ def validate_audit_outputs(root: Path, contract: dict[str, Any]) -> None:
     if actual != expected:
         raise ContractError(_diff_message("audit generated files", expected, actual))
 
-    inputs_root = audit_root / "inputs"
-    copy_doc = read_yaml(inputs_root / "copy.yaml")
-    if copy_doc != {"project": contract["project"], "copy": contract.get("copies", {})}:
-        raise ContractError("audit copy.yaml does not match contract copy placeholders")
-    fixtures_doc = read_yaml(inputs_root / "fixtures.yaml")
-    if fixtures_doc != {"project": contract["project"], "fixtures": contract.get("fixtures", {})}:
-        raise ContractError("audit fixtures.yaml does not match contract fixtures")
-
-    for asset_id, asset in contract.get("assets", {}).items():
-        path = inputs_root / "assets" / f"{safe_id(asset_id)}.svg"
-        text = path.read_text(encoding="utf-8")
-        if not text.lstrip().startswith("<svg") or "</svg>" not in text:
-            raise ContractError(f"audit asset placeholder is not SVG: {asset_id}")
-        if asset_id in text:
-            raise ContractError(f"audit asset placeholder must not render or embed the asset id: {asset_id}")
-        if asset["placeholder"]["label"] not in text:
-            raise ContractError(f"audit asset placeholder must preserve the accessible label: {asset_id}")
-
     for panel_id in contract.get("panels", {}):
-        _assert_svg(audit_root / "diagrams" / "panel_state_machines" / f"{safe_id(panel_id)}.svg", f"FSM {panel_id}")
+        _assert_svg(root / panel_fsm_file(panel_id), f"FSM {panel_id}")
     for view_id, view in contract.get("views", {}).items():
         if view.get("includes"):
-            _assert_svg(audit_root / "diagrams" / "view_compositions" / f"{safe_id(view_id)}.svg", f"composition {view_id}")
+            _assert_svg(root / composition_file(view_id), f"composition {view_id}")
 
     projection = panels_projection(contract)
-    for panel in projection["panels"]:
+    for panel in _audit_projection_panels(contract, projection):
+        _validate_audit_scope_inputs(root, contract, _projection_panel_root(panel), *_panel_scope_inputs(contract, panel))
         for profile_id, profile in sorted(contract.get("audit_profiles", {}).items()):
             for breakpoint, viewport in profile.get("html", {}).get("breakpoints", {}).items():
-                stem = f"{safe_id(profile_id)}.{safe_id(breakpoint)}"
-                html_path = audit_root / "renders" / "html" / "panels" / safe_id(panel["id"]) / f"{stem}.html"
-                png_path = audit_root / "renders" / "html" / "panels" / safe_id(panel["id"]) / f"{stem}.png"
+                html_path = root / _projection_panel_file(panel, profile_id, breakpoint, "html")
+                png_path = root / _projection_panel_file(panel, profile_id, breakpoint, "png")
                 _assert_html_source(html_path, f"HTML panel audit {panel['id']}/{breakpoint}")
                 _assert_png(png_path, f"HTML panel audit {panel['id']}/{breakpoint}", viewport)
             for breakpoint in profile.get("textual", {}).get("breakpoints", {}):
-                stem = f"{safe_id(profile_id)}.{safe_id(breakpoint)}"
-                py_path = audit_root / "renders" / "textual" / "panels" / safe_id(panel["id"]) / f"{stem}.py"
-                svg_path = audit_root / "renders" / "textual" / "panels" / safe_id(panel["id"]) / f"{stem}.svg"
+                py_path = root / _projection_panel_file(panel, profile_id, breakpoint, "py")
+                svg_path = root / _projection_panel_file(panel, profile_id, breakpoint, "svg")
                 _assert_textual_source(py_path, f"Textual panel audit {panel['id']}/{breakpoint}")
                 _assert_svg(svg_path, f"Textual panel audit {panel['id']}/{breakpoint}")
                 if "rich-terminal" not in svg_path.read_text(encoding="utf-8"):
                     raise ContractError(f"Textual audit SVG does not look like a Textual terminal capture: {panel['id']}/{breakpoint}")
 
     for case_id, case in contract.get("render_cases", {}).items():
+        _validate_audit_scope_inputs(root, contract, _case_root(contract, case_id, case), *_case_scope_inputs(contract, case))
         profile = contract["audit_profiles"][case["profile"]]
         if "html" in case["surfaces"]:
             for breakpoint, viewport in profile.get("html", {}).get("breakpoints", {}).items():
-                stem = f"{safe_id(case['profile'])}.{safe_id(breakpoint)}.{safe_id(case_id)}"
-                html_path = audit_root / "renders" / "html" / "views" / safe_id(case["view"]) / f"{stem}.html"
-                png_path = audit_root / "renders" / "html" / "views" / safe_id(case["view"]) / f"{stem}.png"
+                html_path = root / _case_file(contract, case_id, case, breakpoint, "html")
+                png_path = root / _case_file(contract, case_id, case, breakpoint, "png")
                 _assert_html_source(html_path, f"HTML view audit {case_id}/{breakpoint}")
                 _assert_png(png_path, f"HTML view audit {case_id}/{breakpoint}", viewport)
         if "textual" in case["surfaces"]:
             for breakpoint in profile.get("textual", {}).get("breakpoints", {}):
-                stem = f"{safe_id(case['profile'])}.{safe_id(breakpoint)}.{safe_id(case_id)}"
-                py_path = audit_root / "renders" / "textual" / "views" / safe_id(case["view"]) / f"{stem}.py"
-                svg_path = audit_root / "renders" / "textual" / "views" / safe_id(case["view"]) / f"{stem}.svg"
+                py_path = root / _case_file(contract, case_id, case, breakpoint, "py")
+                svg_path = root / _case_file(contract, case_id, case, breakpoint, "svg")
                 _assert_textual_source(py_path, f"Textual view audit {case_id}/{breakpoint}")
                 _assert_svg(svg_path, f"Textual view audit {case_id}/{breakpoint}")
                 if "rich-terminal" not in svg_path.read_text(encoding="utf-8"):
                     raise ContractError(f"Textual audit SVG does not look like a Textual terminal capture: {case_id}/{breakpoint}")
+
+
+def _validate_audit_scope_inputs(
+    root: Path,
+    contract: dict[str, Any],
+    scope_root: str,
+    copy_refs: set[str],
+    asset_refs: set[str],
+    fixture_ids: set[str],
+    fact_ids: set[str],
+    context: dict[str, Any],
+) -> None:
+    copy_doc = read_yaml(root / _scope_copy_file(scope_root))
+    if copy_doc != _copy_doc(contract, copy_refs):
+        raise ContractError(f"audit copy.yaml does not match scoped copy placeholders: {scope_root}")
+    fixtures_doc = read_yaml(root / _scope_fixtures_file(scope_root))
+    if fixtures_doc != _fixtures_doc(contract, fixture_ids, fact_ids, context):
+        raise ContractError(f"audit fixtures.yaml does not match scoped fixtures: {scope_root}")
+    for asset_id in asset_refs:
+        path = root / _scope_asset_file(scope_root, asset_id)
+        text = path.read_text(encoding="utf-8")
+        if not text.lstrip().startswith("<svg") or "</svg>" not in text:
+            raise ContractError(f"audit asset placeholder is not SVG: {asset_id}")
+        if asset_id in text:
+            raise ContractError(f"audit asset placeholder must not render or embed the asset id: {asset_id}")
+        if contract["assets"][asset_id]["placeholder"]["label"] not in text:
+            raise ContractError(f"audit asset placeholder must preserve the accessible label: {asset_id}")
 
 
 def _assert_html_source(path: Path, label: str) -> None:

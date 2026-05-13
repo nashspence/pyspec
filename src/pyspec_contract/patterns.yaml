@@ -23,11 +23,11 @@ authoring_layers:
     textual:
       opens: [entry.surface.textual, presentation.textual, render_case.surface.textual, audit_profile.textual]
       requires: [core, ui]
-      projections_when_declared: [spec/generated/product_interfaces/textual.projection.py, spec/generated/audit_evidence/renders/textual/**/*.svg]
+      projections_when_declared: [spec/generated/product_interfaces/textual.projection.py, spec/generated/audit_evidence/**/renders/*.svg]
     web:
       opens: [entry.surface.web, presentation.html, presentation.css, render_case.surface.html, audit_profile.html]
       requires: [core, ui]
-      projections_when_declared: [spec/generated/product_interfaces/web.routes.json, spec/generated/audit_evidence/renders/html/**/*.png]
+      projections_when_declared: [spec/generated/product_interfaces/web.routes.json, spec/generated/audit_evidence/**/renders/*.png]
   common_sets:
     api_only: core,http
     evented_api: core,events

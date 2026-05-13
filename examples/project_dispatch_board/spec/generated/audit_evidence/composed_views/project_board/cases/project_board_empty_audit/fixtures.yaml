@@ -1,0 +1,14 @@
+context: {}
+facts: {}
+fixtures:
+  fixture.workspace.member:
+    basis: Workspace member fixture for web/API/TUI scenarios.
+    values:
+      actor:
+        id: user_member_1
+        roles:
+        - member
+      workspace:
+        id: workspace_1
+        name: North Region Dispatch
+project: project_dispatch_board

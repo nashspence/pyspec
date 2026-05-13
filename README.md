@@ -124,18 +124,26 @@ spec/generated/
     pytest_bdd_steps.py
     pytest_bdd_features/*.feature
   audit_evidence/
-    inputs/
-      copy.yaml
-      fixtures.yaml
-      assets/*.svg
-    diagrams/
-      panel_state_machines/*.svg
-      view_compositions/*.svg
-    renders/
-      html/**/*.html
-      html/**/*.png
-      textual/**/*.py
-      textual/**/*.svg
+    panels/<panel>/
+      fsm.svg
+      states/<state>/
+        copy.yaml
+        fixtures.yaml
+        assets/*.svg
+        renders/html.<profile>.<breakpoint>.source.html
+        renders/html.<profile>.<breakpoint>.screenshot.png
+        renders/textual.<profile>.<breakpoint>.source.py
+        renders/textual.<profile>.<breakpoint>.capture.svg
+    composed_views/<view>/
+      composition.svg
+      cases/<render_case>/
+        copy.yaml
+        fixtures.yaml
+        assets/*.svg
+        renders/html.<profile>.<breakpoint>.source.html
+        renders/html.<profile>.<breakpoint>.screenshot.png
+        renders/textual.<profile>.<breakpoint>.source.py
+        renders/textual.<profile>.<breakpoint>.capture.svg
 ```
 
 The role prompt templates are standalone, layer-specific prompts with a stable

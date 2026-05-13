@@ -1,0 +1,45 @@
+context:
+  selected_project_id: project_submitted_1
+facts:
+  fact.project.draft:
+    basis: Draft dispatch project used as a secondary row in ready-board audit renders.
+    present:
+      resource: Project
+      values:
+        assignee: Unassigned
+        created_at: '2026-05-10T11:30:00Z'
+        customer: Harbor Logistics
+        id: project_beta
+        priority: Normal
+        status: draft
+        summary: Customer reports intermittent alerts from dock door 3.
+        title: Inspect loading dock sensor
+        updated_at: '2026-05-11T07:15:00Z'
+        workspace_id: $fixture.workspace.id
+  fact.project.submitted:
+    basis: Submitted dispatch project shared by approval, ready-board, and visual audit scenarios.
+    present:
+      resource: Project
+      values:
+        assignee: Maya Chen
+        created_at: '2026-05-10T09:00:00Z'
+        customer: Atlas Foods
+        id: project_submitted_1
+        priority: High
+        status: submitted
+        summary: Technician needs approval before ordering the replacement fan motor.
+        title: Replace rooftop condenser fan
+        updated_at: '2026-05-11T08:45:00Z'
+        workspace_id: $fixture.workspace.id
+fixtures:
+  fixture.workspace.member:
+    basis: Workspace member fixture for web/API/TUI scenarios.
+    values:
+      actor:
+        id: user_member_1
+        roles:
+        - member
+      workspace:
+        id: workspace_1
+        name: North Region Dispatch
+project: project_dispatch_board

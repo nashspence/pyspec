@@ -23,47 +23,261 @@ from .runtime import fixture_namespace, resolve
 ROOT = Path(__file__).resolve().parent
 
 
-def audit_expected_files(contract: dict[str, Any]) -> set[str]:
-    files: set[str] = {
-        g("audit_evidence", "inputs", "copy.yaml"),
-        g("audit_evidence", "inputs", "fixtures.yaml"),
+def _under(relative: str, *parts: str) -> str:
+    return "/".join([relative, *parts])
+
+
+def panel_fsm_file(panel_id: str) -> str:
+    return g("audit_evidence", "panels", safe_id(panel_id), "fsm.svg")
+
+
+def panel_state_root(panel_id: str, state_name: str) -> str:
+    return g("audit_evidence", "panels", safe_id(panel_id), "states", safe_id(state_name))
+
+
+def view_state_root(view_id: str, state_name: str) -> str:
+    return g("audit_evidence", "views", safe_id(view_id), "states", safe_id(state_name))
+
+
+def composition_file(view_id: str) -> str:
+    return g("audit_evidence", "composed_views", safe_id(view_id), "composition.svg")
+
+
+def composed_case_root(view_id: str, case_id: str) -> str:
+    return g("audit_evidence", "composed_views", safe_id(view_id), "cases", safe_id(case_id))
+
+
+def view_case_root(view_id: str, case_id: str) -> str:
+    return g("audit_evidence", "views", safe_id(view_id), "cases", safe_id(case_id))
+
+
+def _render_filename(profile_id: str, breakpoint_id: str, extension: str) -> str:
+    stem = f"{safe_id(profile_id)}.{safe_id(breakpoint_id)}"
+    if extension == "html":
+        return f"html.{stem}.source.html"
+    if extension == "png":
+        return f"html.{stem}.screenshot.png"
+    if extension == "py":
+        return f"textual.{stem}.source.py"
+    if extension == "svg":
+        return f"textual.{stem}.capture.svg"
+    raise ContractError(f"Unknown audit render extension: {extension}")
+
+
+def render_panel_file(panel_id: str, state_name: str, profile_id: str, breakpoint_id: str, extension: str) -> str:
+    return _under(panel_state_root(panel_id, state_name), "renders", _render_filename(profile_id, breakpoint_id, extension))
+
+
+def render_case_file(view_id: str, case_id: str, profile_id: str, breakpoint_id: str, extension: str) -> str:
+    return _under(composed_case_root(view_id, case_id), "renders", _render_filename(profile_id, breakpoint_id, extension))
+
+
+def render_view_state_file(view_id: str, state_name: str, profile_id: str, breakpoint_id: str, extension: str) -> str:
+    return _under(view_state_root(view_id, state_name), "renders", _render_filename(profile_id, breakpoint_id, extension))
+
+
+def render_view_case_file(view_id: str, case_id: str, profile_id: str, breakpoint_id: str, extension: str) -> str:
+    return _under(view_case_root(view_id, case_id), "renders", _render_filename(profile_id, breakpoint_id, extension))
+
+
+def _projection_panel_root(panel: dict[str, Any]) -> str:
+    if panel["owner_kind"] == "panel":
+        return panel_state_root(panel["owner"], panel["state"])
+    return view_state_root(panel["owner"], panel["state"])
+
+
+def _projection_panel_file(panel: dict[str, Any], profile_id: str, breakpoint_id: str, extension: str) -> str:
+    if panel["owner_kind"] == "panel":
+        return render_panel_file(panel["owner"], panel["state"], profile_id, breakpoint_id, extension)
+    return render_view_state_file(panel["owner"], panel["state"], profile_id, breakpoint_id, extension)
+
+
+def _case_root(contract: dict[str, Any], case_id: str, case: dict[str, Any]) -> str:
+    if contract["views"][case["view"]].get("includes"):
+        return composed_case_root(case["view"], case_id)
+    return view_case_root(case["view"], case_id)
+
+
+def _case_file(contract: dict[str, Any], case_id: str, case: dict[str, Any], breakpoint_id: str, extension: str) -> str:
+    if contract["views"][case["view"]].get("includes"):
+        return render_case_file(case["view"], case_id, case["profile"], breakpoint_id, extension)
+    return render_view_case_file(case["view"], case_id, case["profile"], breakpoint_id, extension)
+
+
+def _scope_copy_file(scope_root: str) -> str:
+    return _under(scope_root, "copy.yaml")
+
+
+def _scope_fixtures_file(scope_root: str) -> str:
+    return _under(scope_root, "fixtures.yaml")
+
+
+def _scope_asset_file(scope_root: str, asset_id: str) -> str:
+    return _under(scope_root, "assets", f"{safe_id(asset_id)}.svg")
+
+
+def _copy_doc(contract: dict[str, Any], copy_refs: Iterable[str]) -> dict[str, Any]:
+    return {"project": contract["project"], "copy": {ref: contract["copies"][ref] for ref in sorted(copy_refs)}}
+
+
+def _fixtures_doc(
+    contract: dict[str, Any],
+    fixture_ids: Iterable[str],
+    fact_ids: Iterable[str],
+    context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    return {
+        "project": contract["project"],
+        "fixtures": {fixture_id: contract["fixtures"][fixture_id] for fixture_id in sorted(fixture_ids)},
+        "facts": {fact_id: contract["facts"][fact_id] for fact_id in sorted(fact_ids)},
+        "context": context or {},
     }
-    for asset_id in contract.get("assets", {}):
-        files.add(g("audit_evidence", "inputs", "assets", f"{safe_id(asset_id)}.svg"))
+
+
+def _state_needs_data(contract: dict[str, Any], panel: dict[str, Any]) -> bool:
+    if panel.get("data") or panel["slots"].get("fields"):
+        return True
+    copy_refs = panel["slots"].get("copy", [])
+    asset_refs = panel["slots"].get("assets", [])
+    return any(contract["copies"][ref].get("args") for ref in copy_refs) or any(contract["assets"][ref].get("args") for ref in asset_refs)
+
+
+def _fixture_ids_for_resource(contract: dict[str, Any], resource_id: str) -> set[str]:
+    return {
+        fixture_id
+        for fixture_id, fixture in contract.get("fixtures", {}).items()
+        if _find_resource_records(fixture.get("values", {}), resource_id)
+    }
+
+
+def _fact_ids_for_resource(contract: dict[str, Any], resource_id: str) -> set[str]:
+    fact_ids = set()
+    for fact_id, fact in contract.get("facts", {}).items():
+        _, body = _fact_selector(fact, fact_id)
+        if body["resource"] == resource_id:
+            fact_ids.add(fact_id)
+    return fact_ids
+
+
+def _fixture_ids_for_facts(contract: dict[str, Any], fact_ids: Iterable[str], resource_id: str) -> set[str]:
+    fixture_ids: set[str] = set()
+    for fact_id in sorted(fact_ids):
+        fact_uses = [{"use": fact_id}]
+        try:
+            _apply_fact_uses(contract, fact_uses, {}, resource_id, [])
+            continue
+        except (AssertionError, KeyError, TypeError):
+            pass
+        for fixture_id in contract.get("fixtures", {}):
+            try:
+                namespace = fixture_namespace(contract, [fixture_id])
+                _apply_fact_uses(contract, fact_uses, namespace, resource_id, [])
+            except (AssertionError, KeyError, TypeError):
+                continue
+            fixture_ids.add(fixture_id)
+            break
+    return fixture_ids
+
+
+def _panel_scope_inputs(contract: dict[str, Any], panel: dict[str, Any]) -> tuple[set[str], set[str], set[str], set[str], dict[str, Any]]:
+    copy_refs = set(panel["slots"].get("copy", []))
+    asset_refs = set(panel["slots"].get("assets", []))
+    fixture_ids: set[str] = set()
+    fact_ids: set[str] = set()
+    if _state_needs_data(contract, panel):
+        resource_id = panel_resource(contract, panel)
+        fixture_ids = _fixture_ids_for_resource(contract, resource_id)
+        fact_ids = _fact_ids_for_resource(contract, resource_id)
+        fixture_ids.update(_fixture_ids_for_facts(contract, fact_ids, resource_id))
+    return copy_refs, asset_refs, fixture_ids, fact_ids, {}
+
+
+def _case_scope_inputs(contract: dict[str, Any], case: dict[str, Any]) -> tuple[set[str], set[str], set[str], set[str], dict[str, Any]]:
+    panels = case_render_panels(contract, case)
+    copy_refs = {copy_ref for panel in panels for copy_ref in panel["slots"].get("copy", [])}
+    asset_refs = {asset_ref for panel in panels for asset_ref in panel["slots"].get("assets", [])}
+    fixture_ids = set(case.get("fixtures", []))
+    fact_ids = {fact_use["use"] for fact_use in case.get("facts", [])}
+    return copy_refs, asset_refs, fixture_ids, fact_ids, case.get("context") or {}
+
+
+def _audit_scope_expected_files(scope_root: str, asset_refs: Iterable[str]) -> set[str]:
+    files = {_scope_copy_file(scope_root), _scope_fixtures_file(scope_root)}
+    files.update(_scope_asset_file(scope_root, asset_id) for asset_id in asset_refs)
+    return files
+
+
+def _write_audit_scope_inputs(
+    root: Path,
+    contract: dict[str, Any],
+    scope_root: str,
+    copy_refs: Iterable[str],
+    asset_refs: Iterable[str],
+    fixture_ids: Iterable[str],
+    fact_ids: Iterable[str],
+    context: dict[str, Any] | None = None,
+) -> None:
+    copy_path = root / _scope_copy_file(scope_root)
+    copy_path.parent.mkdir(parents=True, exist_ok=True)
+    write_yaml(copy_path, _copy_doc(contract, copy_refs))
+    fixtures_path = root / _scope_fixtures_file(scope_root)
+    fixtures_path.parent.mkdir(parents=True, exist_ok=True)
+    write_yaml(fixtures_path, _fixtures_doc(contract, fixture_ids, fact_ids, context))
+    for asset_id in sorted(asset_refs):
+        asset_path = root / _scope_asset_file(scope_root, asset_id)
+        asset_path.parent.mkdir(parents=True, exist_ok=True)
+        asset_path.write_text(asset_placeholder_svg(contract["assets"][asset_id]), encoding="utf-8")
+
+
+def _write_audit_inputs(root: Path, contract: dict[str, Any], projection: dict[str, Any]) -> None:
+    for panel in _audit_projection_panels(contract, projection):
+        _write_audit_scope_inputs(root, contract, _projection_panel_root(panel), *_panel_scope_inputs(contract, panel))
+    for case_id, case in sorted(contract.get("render_cases", {}).items()):
+        _write_audit_scope_inputs(root, contract, _case_root(contract, case_id, case), *_case_scope_inputs(contract, case))
+
+
+def _audit_projection_panels(contract: dict[str, Any], projection: dict[str, Any]) -> list[dict[str, Any]]:
+    return [
+        panel
+        for panel in projection["panels"]
+        if not (panel["owner_kind"] == "view" and contract["views"][panel["owner"]].get("includes"))
+    ]
+
+
+def audit_expected_files(contract: dict[str, Any]) -> set[str]:
+    files: set[str] = set()
     for panel_id in contract.get("panels", {}):
-        files.add(g("audit_evidence", "diagrams", "panel_state_machines", f"{safe_id(panel_id)}.svg"))
+        files.add(panel_fsm_file(panel_id))
     for view_id, view in contract.get("views", {}).items():
         if view.get("includes"):
-            files.add(g("audit_evidence", "diagrams", "view_compositions", f"{safe_id(view_id)}.svg"))
+            files.add(composition_file(view_id))
 
     projection = panels_projection(contract)
-    for panel in projection["panels"]:
+    for panel in _audit_projection_panels(contract, projection):
+        scope_root = _projection_panel_root(panel)
+        _, asset_refs, _, _, _ = _panel_scope_inputs(contract, panel)
+        files.update(_audit_scope_expected_files(scope_root, asset_refs))
         for profile_id, profile in sorted(contract.get("audit_profiles", {}).items()):
-            panel_path = safe_id(panel["id"])
             for breakpoint in profile.get("html", {}).get("breakpoints", {}):
-                stem = f"{safe_id(profile_id)}.{safe_id(breakpoint)}"
-                files.add(g("audit_evidence", "renders", "html", "panels", panel_path, f"{stem}.html"))
-                files.add(g("audit_evidence", "renders", "html", "panels", panel_path, f"{stem}.png"))
+                files.add(_projection_panel_file(panel, profile_id, breakpoint, "html"))
+                files.add(_projection_panel_file(panel, profile_id, breakpoint, "png"))
             for breakpoint in profile.get("textual", {}).get("breakpoints", {}):
-                stem = f"{safe_id(profile_id)}.{safe_id(breakpoint)}"
-                files.add(g("audit_evidence", "renders", "textual", "panels", panel_path, f"{stem}.py"))
-                files.add(g("audit_evidence", "renders", "textual", "panels", panel_path, f"{stem}.svg"))
+                files.add(_projection_panel_file(panel, profile_id, breakpoint, "py"))
+                files.add(_projection_panel_file(panel, profile_id, breakpoint, "svg"))
 
     for case_id, case in contract.get("render_cases", {}).items():
         profile = contract["audit_profiles"][case["profile"]]
-        view_path = safe_id(case["view"])
-        case_path = safe_id(case_id)
-        profile_path = safe_id(case["profile"])
+        scope_root = _case_root(contract, case_id, case)
+        _, asset_refs, _, _, _ = _case_scope_inputs(contract, case)
+        files.update(_audit_scope_expected_files(scope_root, asset_refs))
         if "html" in case["surfaces"]:
             for breakpoint in profile.get("html", {}).get("breakpoints", {}):
-                stem = f"{profile_path}.{safe_id(breakpoint)}.{case_path}"
-                files.add(g("audit_evidence", "renders", "html", "views", view_path, f"{stem}.html"))
-                files.add(g("audit_evidence", "renders", "html", "views", view_path, f"{stem}.png"))
+                files.add(_case_file(contract, case_id, case, breakpoint, "html"))
+                files.add(_case_file(contract, case_id, case, breakpoint, "png"))
         if "textual" in case["surfaces"]:
             for breakpoint in profile.get("textual", {}).get("breakpoints", {}):
-                stem = f"{profile_path}.{safe_id(breakpoint)}.{case_path}"
-                files.add(g("audit_evidence", "renders", "textual", "views", view_path, f"{stem}.py"))
-                files.add(g("audit_evidence", "renders", "textual", "views", view_path, f"{stem}.svg"))
+                files.add(_case_file(contract, case_id, case, breakpoint, "py"))
+                files.add(_case_file(contract, case_id, case, breakpoint, "svg"))
     return files
 
 
@@ -73,19 +287,12 @@ def generate_audit(root: Path, contract: dict[str, Any], tools_root: Path | None
         shutil.rmtree(audit_root)
     audit_root.mkdir(parents=True, exist_ok=True)
 
-    inputs_root = audit_root / "inputs"
-    inputs_root.mkdir(parents=True, exist_ok=True)
-    write_yaml(inputs_root / "copy.yaml", {"project": contract["project"], "copy": contract.get("copies", {})})
-    write_yaml(inputs_root / "fixtures.yaml", {"project": contract["project"], "fixtures": contract.get("fixtures", {})})
-
-    for asset_id, asset in sorted(contract.get("assets", {}).items()):
-        path = inputs_root / "assets" / f"{safe_id(asset_id)}.svg"
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(asset_placeholder_svg(asset), encoding="utf-8")
+    projection = panels_projection(contract)
+    _write_audit_inputs(root, contract, projection)
 
     if not contract.get("panels") and not contract.get("render_cases"):
         return
-    _render_visual_audit(root, contract, tools_root or root)
+    _render_visual_audit(root, contract, tools_root or root, projection)
 
 
 def _render_visual_audit_subprocess(root: Path, tools_root: Path) -> None:
@@ -97,48 +304,48 @@ def _render_visual_audit_subprocess(root: Path, tools_root: Path) -> None:
         raise ContractError(f"Visual audit renderer failed with exit code {result.returncode}")
 
 
-def _render_visual_audit(root: Path, contract: dict[str, Any], _tools_root: Path) -> None:
-    projection = panels_projection(contract)
-
+def _render_visual_audit(root: Path, contract: dict[str, Any], _tools_root: Path, projection: dict[str, Any] | None = None) -> None:
+    projection = projection or panels_projection(contract)
     for panel_id, panel in sorted(contract.get("panels", {}).items()):
-        path = root / GENERATED_SPEC_DIR / "audit_evidence" / "diagrams" / "panel_state_machines" / f"{safe_id(panel_id)}.svg"
+        path = root / panel_fsm_file(panel_id)
         _write_graphviz_svg(path, panel_fsm_dot(panel_id, panel, contract))
     for view_id, view in sorted(contract.get("views", {}).items()):
         if not view.get("includes"):
             continue
-        path = root / GENERATED_SPEC_DIR / "audit_evidence" / "diagrams" / "view_compositions" / f"{safe_id(view_id)}.svg"
+        path = root / composition_file(view_id)
         _write_graphviz_svg(path, composition_dot(view_id, view))
 
     has_html_audit = bool(
-        projection["panels"] and any(profile.get("html") for profile in contract.get("audit_profiles", {}).values())
+        _audit_projection_panels(contract, projection) and any(profile.get("html") for profile in contract.get("audit_profiles", {}).values())
     ) or any("html" in case["surfaces"] for case in contract.get("render_cases", {}).values())
     if has_html_audit:
         _render_html_audit(root, contract, projection)
 
-    if projection["panels"] or any("textual" in case["surfaces"] for case in contract.get("render_cases", {}).values()):
+    audit_panels = _audit_projection_panels(contract, projection)
+    if audit_panels or any("textual" in case["surfaces"] for case in contract.get("render_cases", {}).values()):
         try:
             import textual  # noqa: F401
         except Exception as exc:  # pragma: no cover - dependency absence is environment-specific.
             raise ContractError("Missing Textual dependency; install requirements.txt") from exc
         textual_jobs: list[tuple[Path, list[tuple[str, str]], dict[str, int]]] = []
-        for panel in sorted(projection["panels"], key=lambda p: p["id"]):
+        for panel in sorted(audit_panels, key=lambda p: p["id"]):
             lines = panel_textual_lines(root, contract, panel, None)
             for profile_id, profile in sorted(contract.get("audit_profiles", {}).items()):
                 for name, viewport in sorted(profile.get("textual", {}).get("breakpoints", {}).items()):
-                    stem = f"{safe_id(profile_id)}.{safe_id(name)}"
-                    base = root / GENERATED_SPEC_DIR / "audit_evidence" / "renders" / "textual" / "panels" / safe_id(panel["id"]) / stem
-                    _write_textual_source(Path(str(base) + ".py"), lines)
-                    textual_jobs.append((Path(str(base) + ".svg"), lines, viewport))
+                    py_path = root / _projection_panel_file(panel, profile_id, name, "py")
+                    svg_path = root / _projection_panel_file(panel, profile_id, name, "svg")
+                    _write_textual_source(py_path, lines)
+                    textual_jobs.append((svg_path, lines, viewport))
         for case_id, case in sorted(contract.get("render_cases", {}).items()):
             if "textual" not in case["surfaces"]:
                 continue
             profile = contract["audit_profiles"][case["profile"]]
             lines = textual_audit_lines(root, contract, case_id, case)
             for name, viewport in sorted(profile.get("textual", {}).get("breakpoints", {}).items()):
-                stem = f"{safe_id(case['profile'])}.{safe_id(name)}.{safe_id(case_id)}"
-                base = root / GENERATED_SPEC_DIR / "audit_evidence" / "renders" / "textual" / "views" / safe_id(case["view"]) / stem
-                _write_textual_source(Path(str(base) + ".py"), lines)
-                textual_jobs.append((Path(str(base) + ".svg"), lines, viewport))
+                py_path = root / _case_file(contract, case_id, case, name, "py")
+                svg_path = root / _case_file(contract, case_id, case, name, "svg")
+                _write_textual_source(py_path, lines)
+                textual_jobs.append((svg_path, lines, viewport))
         asyncio.run(_render_textual_batch(textual_jobs))
 
 
@@ -153,34 +360,33 @@ def _render_html_audit(root: Path, contract: dict[str, Any], projection: dict[st
         try:
             page = browser.new_page()
             try:
-                for panel in sorted(projection["panels"], key=lambda p: p["id"]):
+                for panel in sorted(_audit_projection_panels(contract, projection), key=lambda p: p["id"]):
                     for profile_id, profile in sorted(contract.get("audit_profiles", {}).items()):
                         html_profile = profile.get("html")
                         if not html_profile:
                             continue
                         html_doc = audit_html_document(contract, render_panel_audit_html(root, contract, panel, None))
                         for name, viewport in sorted(html_profile["breakpoints"].items()):
-                            stem = f"{safe_id(profile_id)}.{safe_id(name)}"
-                            base = root / GENERATED_SPEC_DIR / "audit_evidence" / "renders" / "html" / "panels" / safe_id(panel["id"]) / stem
-                            _write_html_and_png_page(page, html_doc, base, viewport)
+                            html_path = root / _projection_panel_file(panel, profile_id, name, "html")
+                            png_path = root / _projection_panel_file(panel, profile_id, name, "png")
+                            _write_html_and_png_page(page, html_doc, html_path, png_path, viewport)
                 for case_id, case in sorted(contract.get("render_cases", {}).items()):
                     profile = contract["audit_profiles"][case["profile"]]
                     if "html" in case["surfaces"]:
                         html_doc = audit_html_document(contract, render_case_html(root, contract, case_id, case))
                         for name, viewport in sorted(profile.get("html", {}).get("breakpoints", {}).items()):
-                            stem = f"{safe_id(case['profile'])}.{safe_id(name)}.{safe_id(case_id)}"
-                            base = root / GENERATED_SPEC_DIR / "audit_evidence" / "renders" / "html" / "views" / safe_id(case["view"]) / stem
-                            _write_html_and_png_page(page, html_doc, base, viewport)
+                            html_path = root / _case_file(contract, case_id, case, name, "html")
+                            png_path = root / _case_file(contract, case_id, case, name, "png")
+                            _write_html_and_png_page(page, html_doc, html_path, png_path, viewport)
             finally:
                 page.close()
         finally:
             browser.close()
 
 
-def _write_html_and_png_page(page: Any, html_doc: str, base: Path, viewport: dict[str, int]) -> None:
-    html_path = Path(str(base) + ".html")
-    png_path = Path(str(base) + ".png")
+def _write_html_and_png_page(page: Any, html_doc: str, html_path: Path, png_path: Path, viewport: dict[str, int]) -> None:
     html_path.parent.mkdir(parents=True, exist_ok=True)
+    png_path.parent.mkdir(parents=True, exist_ok=True)
     html_path.write_text(html_doc, encoding="utf-8")
     page.set_viewport_size({"width": viewport["width"], "height": viewport["height"]})
     page.set_content(html_doc, wait_until="load")
@@ -866,6 +1072,18 @@ def render_case_html(root: Path, contract: dict[str, Any], case_id: str, case: d
     projection = panels_projection(contract)
     panel = next(item for item in projection["panels"] if item["owner_kind"] == "view" and item["owner"] == case["view"] and item["state"] == case["state"])
     return render_panel_audit_html(root, contract, panel, case)
+
+
+def case_render_panels(contract: dict[str, Any], case: dict[str, Any]) -> list[dict[str, Any]]:
+    projection = panels_projection(contract)
+    view = contract["views"][case["view"]]
+    if view.get("includes"):
+        panels = []
+        for include in view["includes"]:
+            state_name = case["panels"][include["id"]]["state"]
+            panels.append(next(item for item in projection["panels"] if item["owner_kind"] == "panel" and item["owner"] == include["panel"] and item["state"] == state_name))
+        return panels
+    return [next(item for item in projection["panels"] if item["owner_kind"] == "view" and item["owner"] == case["view"] and item["state"] == case["state"])]
 
 
 def render_composed_case_html(root: Path, contract: dict[str, Any], case: dict[str, Any]) -> str:

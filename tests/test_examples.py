@@ -3,7 +3,7 @@ from __future__ import annotations
 import importlib.util
 from pathlib import Path
 
-from pyspec_contract.audit import audit_expected_files
+from pyspec_contract.audit import audit_expected_files, render_case_file
 from pyspec_contract.compile import compile_source
 from pyspec_contract.io import read_json, read_yaml
 from pyspec_contract.paths import COMPILED_SPEC_PATH, SOURCE_SPEC_PATH
@@ -72,9 +72,9 @@ def test_canonical_textual_contract_imports_and_composes() -> None:
 
 
 def test_canonical_audit_contains_real_visual_references() -> None:
-    html = (ROOT / "spec" / "generated" / "audit_evidence" / "renders" / "html" / "views" / "project_board" / "default.wide.project_board_ready_selected_audit.html").read_text(encoding="utf-8")
+    html = (ROOT / render_case_file("project.board", "project.board.ready_selected.audit", "default", "wide", "html")).read_text(encoding="utf-8")
     assert "Replace rooftop condenser fan" in html
     assert "Atlas Foods" in html
     assert "Dispatch queue" in html
-    assert (ROOT / "spec" / "generated" / "audit_evidence" / "renders" / "html" / "views" / "project_board" / "default.wide.project_board_ready_selected_audit.png").exists()
-    assert (ROOT / "spec" / "generated" / "audit_evidence" / "renders" / "textual" / "views" / "project_board" / "default.wide.project_board_ready_selected_audit.svg").exists()
+    assert (ROOT / render_case_file("project.board", "project.board.ready_selected.audit", "default", "wide", "png")).exists()
+    assert (ROOT / render_case_file("project.board", "project.board.ready_selected.audit", "default", "wide", "svg")).exists()

@@ -1,0 +1,7 @@
+copy:
+  copy.project.list.ready.heading:
+    basis: Ready heading for the project list panel.
+    max_chars: 80
+    placeholder: Dispatch queue
+    tone: neutral
+project: project_dispatch_board

@@ -1,0 +1,11 @@
+copy:
+  copy.project.detail.ready.heading:
+    args:
+      customer: Text
+      title: Text
+    basis: Ready heading for the detail panel.
+    max_chars: 80
+    placeholder: Project detail
+    resolver: copy.project.detail.ready.heading
+    tone: neutral
+project: project_dispatch_board

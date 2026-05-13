@@ -1,0 +1,12 @@
+copy:
+  copy.project.detail.none.body:
+    basis: No-selection body for the detail panel.
+    max_chars: 160
+    placeholder: Choose a project from the queue to review customer, assignment, and approval details.
+    tone: instructional
+  copy.project.detail.none.heading:
+    basis: No-selection heading for the detail panel.
+    max_chars: 80
+    placeholder: Select a project
+    tone: instructional
+project: project_dispatch_board
