@@ -745,14 +745,19 @@ def _validate_panels(contract: dict[str, Any]) -> None:
             raise ContractError(f"Panel id must start with panel.: {panel_id}")
         if panel["resource"] not in contract["resources"]:
             raise ContractError(f"Panel {panel_id} references unknown resource {panel['resource']}")
-        for datum in panel.get("data", []):
-            if datum["capability"] not in contract["capabilities"]:
-                raise ContractError(f"Panel {panel_id} data references unknown capability {datum['capability']}")
+        _validate_data_bindings(contract, f"Panel {panel_id}", panel.get("data", []), panel.get("context", {}))
         if panel["initial"] not in panel["states"]:
             raise ContractError(f"Panel {panel_id} initial state is not declared: {panel['initial']}")
         resource_fields = set(contract["resources"][panel["resource"]]["fields"])
         for state_name, state in panel["states"].items():
-            _validate_panelish_state(contract, f"Panel {panel_id}", state_name, state, field_names=resource_fields)
+            _validate_panelish_state(
+                contract,
+                f"Panel {panel_id}",
+                state_name,
+                state,
+                field_names=resource_fields,
+                data_context=panel.get("context", {}),
+            )
         _validate_panel_transitions(panel_id, panel)
         _validate_panel_events(panel_id, panel)
 
@@ -763,10 +768,9 @@ def _validate_panelish_state(
     state_name: str,
     state: dict[str, Any],
     field_names: set[str],
+    data_context: dict[str, Any] | None = None,
 ) -> None:
-    for datum in state.get("data", []):
-        if datum["capability"] not in contract["capabilities"]:
-            raise ContractError(f"{owner_label}.{state_name} data references unknown capability {datum['capability']}")
+    _validate_data_bindings(contract, f"{owner_label}.{state_name}", state.get("data", []), data_context)
     for field in state.get("fields", []):
         if field not in field_names:
             raise ContractError(f"{owner_label}.{state_name} field slot is not declared on the resource/context: {field}")
@@ -774,6 +778,25 @@ def _validate_panelish_state(
         if action not in contract["capabilities"]:
             raise ContractError(f"{owner_label}.{state_name} action references unknown capability {action}")
     _validate_presentation(contract, owner_label, field_names, state_name, state)
+
+
+def _validate_data_bindings(
+    contract: dict[str, Any],
+    owner_label: str,
+    data: list[dict[str, Any]],
+    context: dict[str, Any] | None,
+) -> None:
+    context_keys = set((context or {}).keys())
+    for datum in data:
+        capability_id = datum["capability"]
+        if capability_id not in contract["capabilities"]:
+            raise ContractError(f"{owner_label} data references unknown capability {capability_id}")
+        input_keys = set((contract["capabilities"][capability_id].get("input") or {}).keys())
+        missing = sorted(input_keys - context_keys)
+        if missing:
+            raise ContractError(
+                f"{owner_label} data capability {capability_id} input not provided by context: {missing}"
+            )
 
 
 def _validate_panel_transitions(panel_id: str, panel: dict[str, Any]) -> None:
@@ -815,11 +838,17 @@ def _validate_views(contract: dict[str, Any]) -> None:
         if not view.get("states") and not view.get("includes"):
             raise ContractError(f"View {vid} must declare atomic states or composed panel includes")
         for datum in view.get("data", []):
-            if datum["capability"] not in contract["capabilities"]:
-                raise ContractError(f"View {vid} data references unknown capability {datum['capability']}")
+            _validate_data_bindings(contract, f"View {vid}", [datum], view.get("context", {}))
         resource_fields = set(contract["resources"][view["resource"]]["fields"])
         for state_name, state in view.get("states", {}).items():
-            _validate_panelish_state(contract, f"View {vid}", state_name, state, field_names=resource_fields)
+            _validate_panelish_state(
+                contract,
+                f"View {vid}",
+                state_name,
+                state,
+                field_names=resource_fields,
+                data_context=view.get("context", {}),
+            )
         if view.get("includes") or view.get("layout") or view.get("sync"):
             _validate_view_composition(contract, vid, view)
 

@@ -238,6 +238,17 @@ def test_panel_data_events_require_data_binding() -> None:
         compile_patch(patch)
 
 
+def test_panel_data_inputs_must_come_from_context() -> None:
+    patch = read_yaml(ROOT / "pm.patch.yaml")
+    panel = _change(patch, "panel", "panel.project.list")["spec"]
+    del panel["context"]["workspace_id"]
+    with pytest.raises(
+        ContractError,
+        match=r"Panel panel\.project\.list data capability project\.list input not provided by context: .*workspace_id",
+    ):
+        compile_patch(patch)
+
+
 def test_basis_is_plain_bounded_text() -> None:
     patch = read_yaml(ROOT / "pm.patch.yaml")
     assert isinstance(patch["changes"][0]["basis"], str)

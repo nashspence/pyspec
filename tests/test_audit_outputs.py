@@ -39,7 +39,7 @@ def test_audit_outputs_cover_full_contract() -> None:
 
 def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     contract = _contract()
-    fsm = panel_fsm_dot("panel.project.list", contract["panels"]["panel.project.list"])
+    fsm = panel_fsm_dot("panel.project.list", contract["panels"]["panel.project.list"], contract)
     composition = composition_dot("project.board", contract["views"]["project.board"])
     assert fsm.startswith("digraph ")
     assert composition.startswith("digraph ")
@@ -51,7 +51,11 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "emit project.selected" in fsm
     assert "<B>data:</B>&#160;&#160;project.list" in fsm
     assert "<B>query:</B>&#160;&#160;query.project.list.list" in fsm
+    assert "<B>input:</B>&#160;&#160;workspace_id: ID" in fsm
+    assert "<B>Project fields</B>" in fsm
     assert fsm.count("query.project.list.list") == 4
+    assert "<B>resource:</B>" not in fsm
+    assert "<B>context:</B>" not in fsm
     assert "selected state: loading" in composition
     assert "send project.selection_changed to detail" in composition
     for graph_id, dot_source in {"panel_project_list": fsm, "project_board": composition}.items():
@@ -71,6 +75,10 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "emit project.selected" in list_fsm
     assert "capability: project.list" not in list_fsm
     assert "query.project.list.list" in list_fsm
+    assert "workspace_id: ID" in list_fsm
+    assert "Project fields" in list_fsm
+    assert "resource:" not in list_fsm
+    assert "context:" not in list_fsm
     assert "&#45; data.ready" not in list_fsm
     assert "&#45; copy.project" not in list_fsm
     assert "&#45; none" not in list_fsm
@@ -85,6 +93,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "panel.project.detail.ready" in detail_fsm
     assert "project.approve" in detail_fsm
     assert "query.project.detail.read" in detail_fsm
+    assert "project_id: ID" in detail_fsm
     assert "capability: project.read" not in detail_fsm
     assert "data.ready" not in activity_fsm
     assert "selected state: loading" in composition

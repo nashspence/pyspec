@@ -98,7 +98,7 @@ def _render_visual_audit(root: Path, contract: dict[str, Any], _tools_root: Path
 
     for panel_id, panel in sorted(contract.get("panels", {}).items()):
         path = root / "generated" / "audit" / "fsm" / f"{safe_id(panel_id)}.svg"
-        _write_graphviz_svg(path, panel_fsm_dot(panel_id, panel))
+        _write_graphviz_svg(path, panel_fsm_dot(panel_id, panel, contract))
     for view_id, view in sorted(contract.get("views", {}).items()):
         if not view.get("includes"):
             continue
@@ -311,27 +311,12 @@ async def _render_textual_svg(path: Path, lines: list[tuple[str, str]], viewport
     path.write_text(svg, encoding="utf-8")
 
 
-def panel_fsm_dot(panel_id: str, panel: dict[str, Any]) -> str:
-    contract_node = _dot_node_id("contract", panel_id)
+def panel_fsm_dot(panel_id: str, panel: dict[str, Any], contract: dict[str, Any] | None = None) -> str:
     lines = [
         f"digraph {_dot_quote('fsm_' + safe_id(panel_id))} {{",
         '  graph [rankdir="LR", bgcolor="transparent", pad="0.25", nodesep="0.38", ranksep="0.85", splines="spline"];',
         '  node [fontname="Arial", fontsize="11"];',
         '  edge [color="#3f3f46", fontname="Arial", fontsize="10", arrowsize="0.8"];',
-        _dot_html_node(
-            contract_node,
-            _dot_card(
-                panel_id,
-                None,
-                [
-                    ("resource", [panel["resource"]]),
-                    ("context", _format_mapping(panel.get("context", {}))),
-                ],
-                basis=panel.get("basis", ""),
-                header_bg="#eef2ff",
-                border="#4f46e5",
-            ),
-        ),
         f"  {_dot_quote('initial')} [shape=\"circle\", label=\"initial\", width=\"0.58\", fixedsize=\"true\", color=\"#0891b2\", fontcolor=\"#155e75\", fontsize=\"9\"];",
     ]
     for state_name in sorted(panel["states"]):
@@ -345,7 +330,7 @@ def panel_fsm_dot(panel_id: str, panel: dict[str, Any]) -> str:
                     [
                         ("projection", [state["panel"]]),
                         ("copy", state.get("copy", [])),
-                        ("fields", state.get("fields", [])),
+                        (f"{panel['resource']} fields", state.get("fields", [])),
                         ("assets", state.get("assets", [])),
                         ("actions", state.get("actions", [])),
                     ],
@@ -354,7 +339,6 @@ def panel_fsm_dot(panel_id: str, panel: dict[str, Any]) -> str:
                 ),
             )
         )
-    lines.append(f"  {_dot_quote(contract_node)} -> {_dot_quote('initial')} [style=\"invis\", weight=\"3\"];")
     lines.append(f"  {_dot_quote('initial')} -> {_dot_quote(_dot_node_id('state', panel['initial']))};")
     for index, transition in enumerate(panel.get("transitions", [])):
         source = _dot_node_id("state", transition["from"])
@@ -366,7 +350,7 @@ def panel_fsm_dot(panel_id: str, panel: dict[str, Any]) -> str:
                 _dot_card(
                     f"on {transition['event']}",
                     None,
-                    _format_transition_sections(panel, transition),
+                    _format_transition_sections(panel, transition, contract),
                     header_bg="#eff6ff",
                     border="#2563eb",
                 ),
@@ -686,20 +670,46 @@ def _format_data_bindings(bindings: Iterable[dict[str, Any]]) -> list[str]:
     return lines
 
 
-def _format_transition_sections(panel: dict[str, Any], transition: dict[str, Any]) -> list[tuple[str, list[str]]]:
+def _format_transition_sections(
+    panel: dict[str, Any], transition: dict[str, Any], contract: dict[str, Any] | None = None
+) -> list[tuple[str, list[str]]]:
     sections: list[tuple[str, list[str]]] = []
     if _is_data_event(transition["event"]):
         bindings = _transition_data_bindings(panel, transition)
         data_sources = [binding["capability"] for binding in bindings]
         queries = [binding["query"] for binding in bindings]
+        inputs = _format_data_inputs(panel, bindings, contract)
         if data_sources:
             sections.append(("data", data_sources))
         if queries:
             sections.append(("query", queries))
+        if inputs:
+            sections.append(("input", inputs))
     effects = _format_transition_effects(transition)
     if effects:
         sections.append(("effects", effects))
     return sections
+
+
+def _format_data_inputs(
+    panel: dict[str, Any], bindings: Iterable[dict[str, Any]], contract: dict[str, Any] | None
+) -> list[str]:
+    if not contract:
+        return []
+    context = panel.get("context", {})
+    capabilities = contract.get("capabilities", {})
+    inputs: list[str] = []
+    seen: set[str] = set()
+    for binding in bindings:
+        capability = capabilities.get(binding.get("capability"), {})
+        for key, value_type in sorted((capability.get("input") or {}).items()):
+            if key not in context:
+                continue
+            line = f"{key}: {context.get(key, value_type)}"
+            if line not in seen:
+                inputs.append(line)
+                seen.add(line)
+    return inputs
 
 
 def _is_data_event(event: str) -> bool:
