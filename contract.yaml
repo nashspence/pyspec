@@ -99,6 +99,13 @@ capabilities:
     output: list[Project]
     resource: Project
     basis: The board requires a project list query scoped by workspace.
+  project.read:
+    archetype: read
+    input:
+      project_id: ID
+    output: Project
+    resource: Project
+    basis: The detail panel loads the selected project by id.
   project.submit:
     archetype: transition
     emits:
@@ -219,6 +226,8 @@ panels:
       loading:
         copy_slots:
         - message
+        data:
+        - project.read
         pattern: loading
       none:
         copy_slots:

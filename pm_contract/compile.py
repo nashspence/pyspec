@@ -781,6 +781,10 @@ def _validate_panel_transitions(panel_id: str, panel: dict[str, Any]) -> None:
     for transition in panel.get("transitions", []):
         if transition["from"] not in states or transition["to"] not in states:
             raise ContractError(f"Panel {panel_id} transition uses unknown state: {transition}")
+        if _is_data_event(transition["event"]) and not _transition_data_bindings(panel, transition):
+            raise ContractError(
+                f"Panel {panel_id} transition uses data event without panel or source-state data: {transition['event']}"
+            )
         for effect in transition.get("effects", []):
             kind, body = _one(effect, f"panel {panel_id} transition effect")
             if kind == "set":
@@ -911,6 +915,15 @@ def _panel_emits(panel: dict[str, Any]) -> set[str]:
 
 def _panel_accepts(panel: dict[str, Any]) -> set[str]:
     return {transition["event"] for transition in panel.get("transitions", [])}
+
+
+def _is_data_event(event: str) -> bool:
+    return event.startswith("data.")
+
+
+def _transition_data_bindings(panel: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
+    source_state = panel.get("states", {}).get(transition["from"], {})
+    return source_state.get("data", []) or panel.get("data", [])
 
 
 def _validate_sync_rules(contract: dict[str, Any], view_id: str, view: dict[str, Any], instances: dict[str, dict[str, Any]]) -> None:

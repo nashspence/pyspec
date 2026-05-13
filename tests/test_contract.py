@@ -230,6 +230,14 @@ def test_panel_transition_events_must_be_declared() -> None:
         compile_patch(patch)
 
 
+def test_panel_data_events_require_data_binding() -> None:
+    patch = read_yaml(ROOT / "pm.patch.yaml")
+    detail = _change(patch, "panel", "panel.project.detail")["spec"]
+    detail["states"]["loading"]["data"] = []
+    with pytest.raises(ContractError, match=r"Panel panel\.project\.detail transition uses data event without panel or source-state data: data\.ready"):
+        compile_patch(patch)
+
+
 def test_basis_is_plain_bounded_text() -> None:
     patch = read_yaml(ROOT / "pm.patch.yaml")
     assert isinstance(patch["changes"][0]["basis"], str)

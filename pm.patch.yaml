@@ -114,6 +114,16 @@ changes:
     output: list[Project]
     resource: Project
   target: capability
+- basis: The detail panel loads the selected project by id.
+  id: project.read
+  op: add
+  spec:
+    archetype: read
+    input:
+      project_id: ID
+    output: Project
+    resource: Project
+  target: capability
 - basis: Draft dispatch projects can be submitted for review.
   id: project.submit
   op: add
@@ -251,6 +261,8 @@ changes:
       loading:
         copy_slots:
         - message
+        data:
+        - project.read
         pattern: loading
       none:
         copy_slots:

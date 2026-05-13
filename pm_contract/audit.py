@@ -326,7 +326,6 @@ def panel_fsm_dot(panel_id: str, panel: dict[str, Any]) -> str:
                 [
                     ("resource", [panel["resource"]]),
                     ("context", _format_mapping(panel.get("context", {}))),
-                    ("data", _format_data_bindings(panel.get("data", []))),
                 ],
                 basis=panel.get("basis", ""),
                 header_bg="#eef2ff",
@@ -349,7 +348,6 @@ def panel_fsm_dot(panel_id: str, panel: dict[str, Any]) -> str:
                         ("fields", state.get("fields", [])),
                         ("assets", state.get("assets", [])),
                         ("actions", state.get("actions", [])),
-                        ("data", _format_data_bindings(state.get("data", []))),
                     ],
                     header_bg="#ecfeff" if state_name == panel["initial"] else "#f8fafc",
                     border="#0891b2" if state_name == panel["initial"] else "#71717a",
@@ -368,7 +366,7 @@ def panel_fsm_dot(panel_id: str, panel: dict[str, Any]) -> str:
                 _dot_card(
                     f"on {transition['event']}",
                     None,
-                    [("effects", _format_transition_effects(transition))],
+                    _format_transition_sections(panel, transition),
                     header_bg="#eff6ff",
                     border="#2563eb",
                 ),
@@ -686,6 +684,39 @@ def _format_data_bindings(bindings: Iterable[dict[str, Any]]) -> list[str]:
             lines.append(f"binding {index}")
         lines.extend(f"{key}: {value}" for key, value in sorted(binding.items()))
     return lines
+
+
+def _format_transition_sections(panel: dict[str, Any], transition: dict[str, Any]) -> list[tuple[str, list[str]]]:
+    sections: list[tuple[str, list[str]]] = []
+    if _is_data_event(transition["event"]):
+        bindings = _transition_data_bindings(panel, transition)
+        data_sources = [binding["capability"] for binding in bindings]
+        queries = [binding["query"] for binding in bindings]
+        if data_sources:
+            sections.append(("data", data_sources))
+        if queries:
+            sections.append(("query", queries))
+    effects = _format_transition_effects(transition)
+    if effects:
+        sections.append(("effects", effects))
+    return sections
+
+
+def _is_data_event(event: str) -> bool:
+    return event.startswith("data.")
+
+
+def _transition_data_bindings(panel: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
+    source_state = panel.get("states", {}).get(transition["from"], {})
+    bindings = source_state.get("data", []) or panel.get("data", [])
+    unique: list[dict[str, Any]] = []
+    seen: set[tuple[Any, Any]] = set()
+    for binding in bindings:
+        key = (binding.get("capability"), binding.get("query"))
+        if key not in seen:
+            unique.append(binding)
+            seen.add(key)
+    return unique
 
 
 def _format_transition_effects(transition: dict[str, Any]) -> list[str]:

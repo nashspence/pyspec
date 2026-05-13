@@ -49,8 +49,9 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "copy.project.list.ready.heading" in fsm
     assert "asset.project.list.empty.illustration" in fsm
     assert "emit project.selected" in fsm
-    assert "capability: project.list" in fsm
-    assert "query: query.project.list.list" in fsm
+    assert "<B>data:</B>&#160;&#160;project.list" in fsm
+    assert "<B>query:</B>&#160;&#160;query.project.list.list" in fsm
+    assert fsm.count("query.project.list.list") == 4
     assert "selected state: loading" in composition
     assert "send project.selection_changed to detail" in composition
     for graph_id, dot_source in {"panel_project_list": fsm, "project_board": composition}.items():
@@ -68,8 +69,8 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "copy.project.list.ready.heading" in list_fsm
     assert "asset.project.list.empty.illustration" in list_fsm
     assert "emit project.selected" in list_fsm
-    assert "capability: project.list" in list_fsm
-    assert "query: query.project.list.list" in list_fsm
+    assert "capability: project.list" not in list_fsm
+    assert "query.project.list.list" in list_fsm
     assert "&#45; data.ready" not in list_fsm
     assert "&#45; copy.project" not in list_fsm
     assert "&#45; none" not in list_fsm
@@ -83,6 +84,8 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "emitted events" not in list_fsm
     assert "panel.project.detail.ready" in detail_fsm
     assert "project.approve" in detail_fsm
+    assert "query.project.detail.read" in detail_fsm
+    assert "capability: project.read" not in detail_fsm
     assert "data.ready" not in activity_fsm
     assert "selected state: loading" in composition
     assert "send project.selection_changed to detail" in composition
