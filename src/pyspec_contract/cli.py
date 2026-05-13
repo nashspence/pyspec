@@ -31,7 +31,7 @@ def main(argv: list[str] | None = None) -> int:
     init_parser.add_argument("root", nargs="?", default=".")
     init_parser.add_argument("--force", action="store_true", help="Overwrite an existing contract.yaml")
 
-    compile_parser = subparsers.add_parser("compile", help="Compile contract.yaml or pm.patch.yaml into generated artifacts")
+    compile_parser = subparsers.add_parser("compile", help="Compile contract.yaml into generated artifacts")
     compile_parser.add_argument("root", nargs="?", default=".")
     compile_parser.add_argument("--source", default=None, help="Source file relative to the project root")
     compile_parser.add_argument("--layers", default=None, help="Comma-separated authoring layers")

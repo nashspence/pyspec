@@ -8,7 +8,6 @@ The reusable tool lives in `src/pyspec_contract/`. Product specifications live i
 examples/project_dispatch_board/
   AGENTS.md
   contract.yaml
-  pm.patch.yaml
   contract.py
   sample_app/
   generated/
@@ -44,7 +43,7 @@ pyspec check examples/project_dispatch_board --layers full
 
 ## Authoring Model
 
-The preferred human source is `contract.yaml`. It is sparse, positive-only, and grouped by product concepts:
+The human source is `contract.yaml`. It is sparse, positive-only, and grouped by product concepts:
 
 ```text
 contract.yaml
@@ -52,12 +51,6 @@ contract.yaml
   -> generated projections required by positive declarations
   -> generated pytest-bdd feature corpus
   -> visual audit artifacts when render cases exist
-```
-
-`pm.patch.yaml` is still supported as a constrained agent-edit protocol. Patch operations can materialize the direct authored contract:
-
-```text
-pm.patch.yaml --compile/apply--> contract.yaml --compile--> generated/contract.complete.yaml
 ```
 
 The contract is progressive. If a concern is absent, it has no declaration and no generated projection. The contract does not contain storage implementation details, test-harness routing, dev-environment metadata, review state, release state, or schema-version chatter.
@@ -89,11 +82,8 @@ The package ships layer-pruned schemas under `pyspec_contract/schemas/layers/`, 
 
 ```text
 core_http.author.schema.json
-core_http.pm_patch.schema.json
 core_ui_web.author.schema.json
-core_ui_web.pm_patch.schema.json
 full.author.schema.json
-full.pm_patch.schema.json
 ```
 
 ## Generated Artifacts
@@ -165,7 +155,6 @@ Lower-level helpers are also exposed for tooling:
 from pyspec_contract import (
     ArtifactPolicy,
     ProjectConfig,
-    author_from_patch,
     compile_author,
     compile_source,
     expected_artifacts,

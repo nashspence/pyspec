@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from pyspec_contract.compile import ContractError, author_from_patch, compile_patch, compile_source, validate_against_schema
+from pyspec_contract.compile import ContractError, compile_source, validate_against_schema
 from pyspec_contract.io import read_yaml
 from pyspec_contract.paths import SOURCE_CONTRACT_PATH
 from tests.helpers import EXAMPLE_ROOT
@@ -17,15 +17,9 @@ def test_author_contract_schema_validates() -> None:
     validate_against_schema(read_yaml(ROOT / SOURCE_CONTRACT_PATH), "author.schema.json")
 
 
-def test_author_contract_compiles_to_same_machine_contract_as_patch() -> None:
+def test_author_contract_compiles_to_checked_in_machine_contract() -> None:
     author = read_yaml(ROOT / SOURCE_CONTRACT_PATH)
-    patch = read_yaml(ROOT / "pm.patch.yaml")
-    assert compile_source(author) == compile_patch(patch)
-
-
-def test_patch_operations_can_create_authored_contract() -> None:
-    patch = read_yaml(ROOT / "pm.patch.yaml")
-    assert author_from_patch(patch) == read_yaml(ROOT / SOURCE_CONTRACT_PATH)
+    assert compile_source(author) == read_yaml(ROOT / "generated" / "contract.complete.yaml")
 
 
 def test_author_contract_can_be_minimal_and_surface_invisible() -> None:

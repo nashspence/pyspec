@@ -74,7 +74,7 @@ COMMON_LAYER_SETS: dict[str, set[str]] = {
 
 
 def parse_layers(value: str | None) -> set[str] | None:
-    """Parse a layer list. None means unrestricted/full compatibility mode."""
+    """Parse a layer list. None means unrestricted mode."""
     if not value:
         return None
     raw = [part.strip() for part in value.split(",") if part.strip()]
@@ -110,36 +110,6 @@ def layer_label(layers: set[str] | None) -> str:
     return ",".join(sorted(layers))
 
 
-def validate_patch_layers(patch: dict[str, Any], layers: set[str] | None) -> None:
-    """Reject PM patch vocabulary outside the active authoring layer set.
-
-    Layers are an authoring guardrail only. They do not appear in generated/contract.complete.yaml and
-    they do not create negative product facts about absent surfaces.
-    """
-    if layers is None:
-        return
-    layers = normalize_layers(layers) or set(LAYERS)
-    for index, change in enumerate(patch.get("changes", []), start=1):
-        target = change.get("target")
-        op = change.get("op")
-        label = f"change {index} ({op} {target} {change.get('id')})"
-        if target not in TARGET_LAYERS:
-            raise LayerError(f"{label} uses unsupported target {target!r}")
-        if target != "entry":
-            required = TARGET_LAYERS[target]
-            if required and not required.issubset(layers):
-                raise LayerError(_blocked(label, target, required, layers))
-        if op in {"add", "replace"}:
-            spec = change.get("spec", {})
-            _validate_change_spec_layers(label, target, spec, layers)
-        elif op == "delete":
-            # Deletes are target-gated. The deleted object may have been introduced
-            # earlier in the same patch, so surface-specific entry deletes cannot be
-            # known without executing the patch.
-            if target == "entry" and not any(layer in layers for layer in ENTRY_SURFACE_LAYER.values()):
-                raise LayerError(_blocked(label, target, {"http", "events", "workflow", "textual", "web"}, layers))
-
-
 def validate_author_layers(author: dict[str, Any], layers: set[str] | None) -> None:
     """Reject authored contract sections or surface details outside active layers."""
     if layers is None:
@@ -156,10 +126,10 @@ def validate_author_layers(author: dict[str, Any], layers: set[str] | None) -> N
                     raise LayerError(_blocked(label, target, required, layers))
             spec = copy.deepcopy(item)
             spec.pop("basis", None)
-            _validate_change_spec_layers(label, target, spec, layers)
+            _validate_author_spec_layers(label, target, spec, layers)
 
 
-def _validate_change_spec_layers(label: str, target: str, spec: dict[str, Any], layers: set[str]) -> None:
+def _validate_author_spec_layers(label: str, target: str, spec: dict[str, Any], layers: set[str]) -> None:
     if target == "resource":
         return
 
@@ -230,31 +200,6 @@ class LayerError(ValueError):
     pass
 
 
-def schema_for_layers(layers: set[str] | None) -> dict[str, Any]:
-    """Return a derived PM patch schema with target operations pruned by layer.
-
-    This is for PM-agent authoring. The compiler still enforces the same policy at
-    runtime because schemas alone cannot express all surface-specific field gates.
-    """
-    full = read_json(ROOT / "schemas" / "pm_patch.schema.json")
-    if layers is None:
-        return full
-    layers = normalize_layers(layers)
-    schema = copy.deepcopy(full)
-    allowed_targets = _allowed_targets(layers or set(LAYERS))
-    one_of = []
-    for item in full["properties"]["changes"]["items"]["oneOf"]:
-        ref = item.get("$ref", "")
-        name = ref.rsplit("/", 1)[-1]
-        parts = name.split("_", 1)
-        if len(parts) == 2 and parts[1] in allowed_targets:
-            one_of.append(item)
-    schema["properties"]["changes"]["items"]["oneOf"] = one_of
-    schema["title"] = f"PM patch schema ({layer_label(layers)} layers)"
-    schema["description"] = "Layer-pruned authoring schema; runtime layer validation also applies."
-    return schema
-
-
 def _allowed_targets(layers: set[str]) -> set[str]:
     allowed = {target for target, required in TARGET_LAYERS.items() if target != "entry" and required.issubset(layers)}
     if any(layer in layers for layer in ENTRY_SURFACE_LAYER.values()):
@@ -286,25 +231,21 @@ def write_common_layer_schemas(root: Path | None = None) -> None:
     out = base / "schemas" / "layers"
     out.mkdir(parents=True, exist_ok=True)
     for name, layers in COMMON_LAYER_SETS.items():
-        patch_schema = schema_for_layers(layers)
-        (out / f"{name}.pm_patch.schema.json").write_text(json.dumps(patch_schema, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         author_schema = author_schema_for_layers(layers)
         (out / f"{name}.author.schema.json").write_text(json.dumps(author_schema, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Print or write layer-pruned authored-contract and patch-operation schemas.")
+    parser = argparse.ArgumentParser(description="Print or write layer-pruned authored-contract schemas.")
     parser.add_argument("layers", nargs="?", default="full", help="Comma-separated layers, e.g. core,http or core,ui,textual")
     parser.add_argument("--write-common", action="store_true", help="Write the common schemas under schemas/layers/")
-    parser.add_argument("--author", action="store_true", help="Print the authored contract.yaml schema instead of the patch-operation schema")
     args = parser.parse_args(argv)
     try:
         if args.write_common:
             write_common_layer_schemas(ROOT)
         else:
             layers = parse_layers(args.layers)
-            schema = author_schema_for_layers(layers) if args.author else schema_for_layers(layers)
-            print(json.dumps(schema, indent=2, sort_keys=True))
+            print(json.dumps(author_schema_for_layers(layers), indent=2, sort_keys=True))
     except (LayerError, ValueError) as exc:
         print(str(exc), file=sys.stderr)
         return 2

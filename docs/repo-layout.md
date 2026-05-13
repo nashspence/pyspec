@@ -14,6 +14,6 @@ docs/
   project notes and packaging guidance
 ```
 
-The package is the reusable compiler/tooling. A spec workspace owns its own `contract.yaml`, optional `pm.patch.yaml`, resolver implementation, product app, tests, and `generated/` artifacts.
+The package is the reusable compiler/tooling. A spec workspace owns its own `contract.yaml`, resolver implementation, product app, tests, and `generated/` artifacts.
 
 The canonical example intentionally exercises the full layer set so the package has a living end-to-end fixture.

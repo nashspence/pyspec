@@ -13,10 +13,10 @@ from typing import Any
 import fastjsonschema
 
 from . import rules
-from .layers import LayerError, parse_layers, validate_author_layers, validate_patch_layers
+from .layers import LayerError, parse_layers, validate_author_layers
 from .io import read_json, read_yaml, write_json, write_yaml
 from .layout import layout_html, layout_html_regions, layout_regions, layout_textual, layout_textual_containers
-from .paths import COMPILED_CONTRACT_PATH, PATCH_CONTRACT_PATH, SOURCE_CONTRACT_PATH
+from .paths import COMPILED_CONTRACT_PATH, SOURCE_CONTRACT_PATH
 from .project import projection_files
 
 ROOT = Path(__file__).resolve().parent
@@ -122,60 +122,7 @@ def _prune_redundant_author_transitions(author: dict[str, Any]) -> None:
                 capability.pop("transition", None)
 
 
-def author_from_patch(patch: dict[str, Any], layers: set[str] | None = None) -> dict[str, Any]:
-    """Apply whole-object patch operations into the sparse authored contract shape.
-
-    Patch operations remain useful as an agent-safe editing protocol, but the
-    result is a normal human-authored contract document: section maps keyed by
-    object id, with no operation log and no compiled-only derived fields.
-    """
-    validate_against_schema(patch, "pm_patch.schema.json")
-    try:
-        validate_patch_layers(patch, layers)
-    except LayerError as exc:
-        raise ContractError(str(exc)) from exc
-
-    author: dict[str, Any] = {"project": patch["project"]}
-    for index, change in enumerate(patch["changes"], start=1):
-        verb, entity, entity_id, spec = _normalize_patch_change(change)
-        section_name = ENTITY_SECTIONS[entity]
-        section = author.setdefault(section_name, {})
-
-        if verb == "add":
-            _unique(section, entity_id, entity)
-            section[entity_id] = _author_item_from_patch_spec(spec)
-        elif verb == "replace":
-            if entity_id not in section:
-                raise ContractError(f"Cannot replace missing {entity}: {entity_id}")
-            section[entity_id] = _author_item_from_patch_spec(spec)
-        elif verb == "delete":
-            if entity_id not in section:
-                raise ContractError(f"Cannot delete missing {entity}: {entity_id}")
-            del section[entity_id]
-        else:  # pragma: no cover - schema should prevent this.
-            raise ContractError(f"Unsupported patch verb at change {index}: {verb}")
-
-    author = _prune_empty_author_sections(author)
-    _prune_redundant_author_transitions(author)
-    validate_against_schema(author, "author.schema.json")
-    try:
-        validate_author_layers(author, layers)
-    except LayerError as exc:
-        raise ContractError(str(exc)) from exc
-    return author
-
-
-def _author_item_from_patch_spec(spec: dict[str, Any] | None) -> dict[str, Any]:
-    if spec is None:  # pragma: no cover - delete never stores an item.
-        raise ContractError("Cannot author missing patch spec")
-    item = copy.deepcopy(spec)
-    item.pop("id", None)
-    return item
-
-
 def author_from_source(source: dict[str, Any], layers: set[str] | None = None) -> dict[str, Any]:
-    if "changes" in source:
-        return author_from_patch(source, layers=layers)
     validate_against_schema(source, "author.schema.json")
     try:
         validate_author_layers(source, layers)
@@ -188,10 +135,6 @@ def author_from_source(source: dict[str, Any], layers: set[str] | None = None) -
 
 def compile_source(source: dict[str, Any], layers: set[str] | None = None) -> dict[str, Any]:
     return compile_author(author_from_source(source, layers=layers), layers=layers)
-
-
-def compile_patch(patch: dict[str, Any], layers: set[str] | None = None) -> dict[str, Any]:
-    return compile_author(author_from_patch(patch, layers=layers), layers=layers)
 
 
 def compile_author(author: dict[str, Any], layers: set[str] | None = None) -> dict[str, Any]:
@@ -236,27 +179,6 @@ def _apply_author_defaults(entity: str, spec: dict[str, Any]) -> None:
     elif entity == "capability":
         spec.setdefault("emits", [])
         spec.setdefault("errors", [])
-
-
-def _normalize_patch_change(change: dict[str, Any]) -> tuple[str, str, str, dict[str, Any] | None]:
-    op = change["op"]
-    if op in {"add", "replace"}:
-        entity = change["target"]
-        spec = copy.deepcopy(change["spec"])
-        spec["id"] = change["id"]
-        spec["basis"] = change["basis"]
-        return op, entity, change["id"], spec
-
-    if op == "delete":
-        return op, change["target"], change["id"], None
-
-    raise ContractError(f"Unknown operation: {op}")
-
-def _one_entity_payload(change: dict[str, Any], label: str) -> tuple[str, Any]:
-    present = [(entity, change[entity]) for entity in ENTITY_SECTIONS if entity in change]
-    if len(present) != 1:
-        raise ContractError(f"{label} must contain exactly one subject: {sorted(ENTITY_SECTIONS)}")
-    return present[0]
 
 
 def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str, Any]) -> dict[str, Any]:
@@ -1457,7 +1379,7 @@ def default_source_path(root: Path) -> Path:
     authored = root / SOURCE_CONTRACT_PATH
     if authored.exists():
         return authored
-    return root / PATCH_CONTRACT_PATH
+    raise ContractError(f"Missing {SOURCE_CONTRACT_PATH}")
 
 
 
@@ -1475,11 +1397,6 @@ def _one(mapping: dict[str, Any], label: str) -> tuple[str, Any]:
     if len(mapping) != 1:
         raise ContractError(f"{label} must contain exactly one selector")
     return next(iter(mapping.items()))
-
-
-def _unique(mapping: dict[str, Any], key: str, kind: str) -> None:
-    if key in mapping:
-        raise ContractError(f"Duplicate {kind}: {key}")
 
 
 def _require(mapping: dict[str, Any], owner: str, field: str) -> None:
@@ -1501,10 +1418,10 @@ def _validate_path_params(entry: dict[str, Any], entry_id: str) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Compile contract.yaml or pm.patch.yaml into generated/contract.complete.yaml and projections.")
-    parser.add_argument("source", nargs="?", default=None, help="authored contract or patch operation file; defaults to contract.yaml when present, otherwise pm.patch.yaml")
+    parser = argparse.ArgumentParser(description="Compile contract.yaml into generated/contract.complete.yaml and projections.")
+    parser.add_argument("source", nargs="?", default=None, help="authored contract file; defaults to contract.yaml")
     parser.add_argument("--out", default=".")
-    parser.add_argument("--layers", default=None, help="Comma-separated authoring layers, e.g. core,http or core,ui,textual. Omit for full compatibility mode.")
+    parser.add_argument("--layers", default=None, help="Comma-separated authoring layers, e.g. core,http or core,ui,textual. Omit for unrestricted mode.")
     parser.add_argument("--no-audit", action="store_true", help="Regenerate contract/projections without visual audit renders.")
     args = parser.parse_args(argv)
     try:

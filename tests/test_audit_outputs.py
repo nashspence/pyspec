@@ -4,9 +4,9 @@ from pathlib import Path
 import pytest
 
 from pyspec_contract.audit import _render_graphviz_svg, audit_expected_files, composition_dot, panel_fsm_dot
-from pyspec_contract.compile import ContractError, compile_patch
+from pyspec_contract.compile import ContractError, compile_source
 from pyspec_contract.io import read_yaml
-from pyspec_contract.paths import COMPILED_CONTRACT_PATH
+from pyspec_contract.paths import COMPILED_CONTRACT_PATH, SOURCE_CONTRACT_PATH
 from pyspec_contract.projection_validators import validate_audit_outputs
 from tests.helpers import EXAMPLE_ROOT, copy_project_tree
 
@@ -16,13 +16,6 @@ PNG_HEADER = bytes([137, 80, 78, 71, 13, 10, 26, 10])
 
 def _contract(root: Path = ROOT) -> dict:
     return read_yaml(root / COMPILED_CONTRACT_PATH)
-
-
-def _first_change(patch: dict, target: str) -> dict:
-    for change in patch["changes"]:
-        if change.get("target") == target and change["op"] in {"add", "replace"}:
-            return change
-    raise AssertionError(f"missing {target} change")
 
 
 def test_audit_outputs_cover_full_contract() -> None:
@@ -68,16 +61,12 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
 
 
 def test_audit_transition_basis_renders_for_otherwise_sparse_card() -> None:
-    patch = read_yaml(ROOT / "pm.patch.yaml")
-    activity = next(
-        change["spec"]
-        for change in patch["changes"]
-        if change.get("target") == "panel" and change.get("id") == "panel.project.activity"
-    )
+    author = read_yaml(ROOT / SOURCE_CONTRACT_PATH)
+    activity = author["panels"]["panel.project.activity"]
     cleared = next(transition for transition in activity["transitions"] if transition["event"] == "selection.cleared")
     cleared.pop("effects")
     cleared["basis"] = "Clearing the selection returns the activity panel to its empty state."
-    contract = compile_patch(patch)
+    contract = compile_source(author)
 
     fsm = panel_fsm_dot("panel.project.activity", contract["panels"]["panel.project.activity"], contract)
 
@@ -166,26 +155,26 @@ def test_audit_pngs_are_real_pngs() -> None:
 
 
 def test_copy_placeholder_is_required_for_used_copy_ref() -> None:
-    patch = read_yaml(ROOT / "pm.patch.yaml")
-    change = _first_change(patch, "copy")
-    patch["changes"].remove(change)
+    author = read_yaml(ROOT / SOURCE_CONTRACT_PATH)
+    copy_id = next(iter(author["copies"]))
+    del author["copies"][copy_id]
     with pytest.raises(ContractError, match="copy placeholders drift"):
-        compile_patch(patch)
+        compile_source(author)
 
 
 def test_asset_placeholder_schema_rejects_missing_visual_intent() -> None:
-    patch = read_yaml(ROOT / "pm.patch.yaml")
-    change = _first_change(patch, "asset")
-    del change["spec"]["placeholder"]
+    author = read_yaml(ROOT / SOURCE_CONTRACT_PATH)
+    asset_id = next(iter(author["assets"]))
+    del author["assets"][asset_id]["placeholder"]
     with pytest.raises(ContractError, match="Schema validation failed"):
-        compile_patch(patch)
+        compile_source(author)
 
 
 def test_render_case_coverage_is_required() -> None:
-    patch = read_yaml(ROOT / "pm.patch.yaml")
-    patch["changes"] = [change for change in patch["changes"] if change.get("target") != "render_case"]
+    author = read_yaml(ROOT / SOURCE_CONTRACT_PATH)
+    author.pop("render_cases")
     with pytest.raises(ContractError, match="At least one render_case|Missing render_case coverage"):
-        compile_patch(patch)
+        compile_source(author)
 
 
 def test_audit_validator_rejects_corrupt_html_png(tmp_path: Path) -> None:

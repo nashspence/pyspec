@@ -11,7 +11,7 @@ from typing import Any
 from .compile import ContractError, author_from_source, compile_author, default_source_path, validate_against_schema, write_compiled
 from .layers import parse_layers
 from .io import read_yaml, yaml_contains_anchors
-from .paths import COMPILED_CONTRACT_PATH, PATCH_CONTRACT_PATH, SOURCE_CONTRACT_PATH
+from .paths import COMPILED_CONTRACT_PATH, SOURCE_CONTRACT_PATH
 from .project import projection_files
 from .audit import audit_expected_files
 from .guardrails import assert_prod_harness_is_real
@@ -19,11 +19,10 @@ from .projection_validators import validate_generated_projections
 
 
 def validate_project(root: Path, release: bool = False, layers: set[str] | None = None) -> None:
-    patch_path = root / PATCH_CONTRACT_PATH
     source_contract_path = root / SOURCE_CONTRACT_PATH
     compiled_contract_path = root / COMPILED_CONTRACT_PATH
-    if not source_contract_path.exists() and not patch_path.exists():
-        raise ContractError("Missing contract.yaml or pm.patch.yaml")
+    if not source_contract_path.exists():
+        raise ContractError("Missing contract.yaml")
     if not compiled_contract_path.exists():
         raise ContractError("Missing generated/contract.complete.yaml; run pyspec compile")
 
@@ -114,7 +113,7 @@ def _release_gate(contract: dict[str, Any]) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Validate contract.yaml or pm.patch.yaml, generated/contract.complete.yaml, and projections.")
+    parser = argparse.ArgumentParser(description="Validate contract.yaml, generated/contract.complete.yaml, and projections.")
     parser.add_argument("root", nargs="?", default=".")
     parser.add_argument("--release", action="store_true")
     parser.add_argument("--layers", default=None, help="Comma-separated authoring layers to enforce while re-compiling the authored source")

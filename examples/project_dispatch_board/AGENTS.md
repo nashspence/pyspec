@@ -2,16 +2,7 @@
 
 ## PM/spec agent
 
-Prefer editing `contract.yaml`. It is the human-authored source contract: sparse, positive-only, and grouped by product concepts.
-
-When the task benefits from a tighter safety rail, write a whole-object patch batch in `pm.patch.yaml` and compile it into the authored contract:
-
-```bash
-pyspec compile . --source pm.patch.yaml --layers full
-pyspec validate . --layers full
-```
-
-Patch operations are allowed only as `add`, `replace`, or `delete` operations over complete contract objects. Do not use partial JSONPath-style mutations.
+Edit `contract.yaml`. It is the human-authored source contract: sparse, positive-only, and grouped by product concepts.
 
 Use the active authoring layer for the current delivery stage. Do not use the full vocabulary unless the repo is intentionally delivering a full-surface contract. Common layers are:
 
@@ -25,7 +16,7 @@ core,ui,web
 full
 ```
 
-Never author raw OpenAPI, AsyncAPI, CWL, route manifests, panel manifests, HTML/CSS panel artifacts, Textual projections, pytest-bdd step text, `.feature` files, SQL, migrations, ORM models, or datastore-specific fields. Declare product meaning once in `contract.yaml` or in a patch batch and let the compiler project only what the positive contract graph requires.
+Never author raw OpenAPI, AsyncAPI, CWL, route manifests, panel manifests, HTML/CSS panel artifacts, Textual projections, pytest-bdd step text, `.feature` files, SQL, migrations, ORM models, or datastore-specific fields. Declare product meaning once in `contract.yaml` and let the compiler project only what the positive contract graph requires.
 
 For API-only work, stay in `core,http`: resources, capabilities, fixtures, scenarios, and API entries. Do not introduce UI, content, audit, workflow, or event vocabulary unless that surface is part of the current deliverable.
 
@@ -41,7 +32,7 @@ Resources are pure product data models. Declare fields, lifecycle, and product i
 
 For lifecycle state changes, prefer the resource lifecycle as the source of truth. A transition capability may omit `transition.field`, `transition.from`, and `transition.to` when the lifecycle transition names that capability through `by`. The compiled contract expands the details for validators and projections.
 
-Use `basis` or `why` sparingly in `contract.yaml`: include it when a decision is not obvious or when it preserves product intent for future edits. Patch operations still require `basis` because they are agent-facing edit records. Do not add confidence fields, review flags, status fields, version fields, notes, or other meta-specification content.
+Use `basis` or `why` sparingly in `contract.yaml`: include it when a decision is not obvious or when it preserves product intent for future edits. Do not add confidence fields, review flags, status fields, version fields, notes, or other meta-specification content.
 
 For exact HTML/CSS or Textual/TCSS requirements, add presentation details inside the relevant view or panel state only when the active layer permits that surface. HTML/CSS and Textual/TCSS are first-class surface contracts; do not replace precise surface requirements with vague implementation hints.
 
@@ -69,7 +60,7 @@ The prod harness must call real product surfaces. It must not import `pyspec_con
 
 ## Coding agent
 
-Do not change `contract.yaml` or `pm.patch.yaml` to fix implementation failures unless explicitly acting as the PM/spec agent.
+Do not change `contract.yaml` to fix implementation failures unless explicitly acting as the PM/spec agent.
 
 Use generated constants and projections. Do not invent routes, strings, panels, CSS selectors, Textual widgets, TCSS rules, events, workflows, policies, operations, fixtures, scenario IDs, storage tables, or database migrations outside the contract and implementation layer.
 

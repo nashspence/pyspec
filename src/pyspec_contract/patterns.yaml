@@ -1,5 +1,5 @@
 authoring_layers:
-  rule: Layers constrain PM patch vocabulary only. They are never written into generated/contract.complete.yaml and never imply absent surfaces are planned.
+  rule: Layers constrain authored contract vocabulary only. They are never written into generated/contract.complete.yaml and never imply absent surfaces are planned.
   layers:
     core:
       targets: [fixture, resource, capability, scenario]
@@ -35,19 +35,6 @@ authoring_layers:
     textual_app: core,ui,textual
     web_app: core,ui,web
     full: full
-
-patch_operations:
-  verbs: [add, replace, delete]
-  targets: [fixture, resource, capability, panel, view, entry, workflow, scenario, copy, asset, content_case, audit_profile, render_case]
-  shape:
-    add:
-      required: [op, target, id, spec, basis]
-    replace:
-      required: [op, target, id, spec, basis]
-      rule: Replace the whole item; no partial mutations.
-    delete:
-      required: [op, target, id, basis]
-      rule: Non-cascading; all dependents must be deleted or replaced explicitly.
 
 purity_rules:
   scenarios: Do not include harness, test, dev, or environment routing. The same generated feature corpus is consumed by both spec and prod harnesses.

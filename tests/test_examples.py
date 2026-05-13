@@ -4,9 +4,9 @@ import importlib.util
 from pathlib import Path
 
 from pyspec_contract.audit import audit_expected_files
-from pyspec_contract.compile import compile_patch
+from pyspec_contract.compile import compile_source
 from pyspec_contract.io import read_json, read_yaml
-from pyspec_contract.paths import COMPILED_CONTRACT_PATH
+from pyspec_contract.paths import COMPILED_CONTRACT_PATH, SOURCE_CONTRACT_PATH
 from pyspec_contract.project import projection_files
 from tests.helpers import EXAMPLE_ROOT
 
@@ -14,7 +14,7 @@ ROOT = EXAMPLE_ROOT
 
 
 def test_canonical_contract_is_fresh_and_complete() -> None:
-    compiled = compile_patch(read_yaml(ROOT / "pm.patch.yaml"))
+    compiled = compile_source(read_yaml(ROOT / SOURCE_CONTRACT_PATH))
     assert read_yaml(ROOT / COMPILED_CONTRACT_PATH) == compiled
     expected = {str(COMPILED_CONTRACT_PATH)} | {relative for relative, _, _ in projection_files(compiled)} | audit_expected_files(compiled)
     actual = {

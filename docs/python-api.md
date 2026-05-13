@@ -15,7 +15,6 @@ Useful lower-level entry points:
 from pyspec_contract import (
     ArtifactPolicy,
     ProjectConfig,
-    author_from_patch,
     compile_author,
     compile_source,
     expected_artifacts,

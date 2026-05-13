@@ -4,26 +4,24 @@ from pathlib import Path
 
 import pytest
 
-from pyspec_contract.compile import ContractError, compile_patch
+from pyspec_contract.compile import ContractError, compile_source
 from pyspec_contract.io import read_json, read_yaml
+from pyspec_contract.paths import SOURCE_CONTRACT_PATH
 from tests.helpers import EXAMPLE_ROOT
 
 ROOT = EXAMPLE_ROOT
 
 
-def _patch() -> dict:
-    return read_yaml(ROOT / "pm.patch.yaml")
+def _author() -> dict:
+    return read_yaml(ROOT / SOURCE_CONTRACT_PATH)
 
 
-def _change(patch: dict, target: str, item_id: str) -> dict:
-    for change in patch["changes"]:
-        if change.get("target") == target and change.get("id") == item_id:
-            return change
-    raise AssertionError(f"Missing {target} patch: {item_id}")
+def _item(author: dict, section: str, item_id: str) -> dict:
+    return author[section][item_id]
 
 
 def test_composed_fsm_contract_is_closed_and_projected() -> None:
-    contract = compile_patch(_patch())
+    contract = compile_source(_author())
     list_panel = contract["panels"]["panel.project.list"]
     assert set(list_panel) == {"resource", "context", "data", "events", "initial", "states", "transitions", "basis"}
     assert list_panel["initial"] == "loading"
@@ -52,32 +50,32 @@ def test_composed_fsm_contract_is_closed_and_projected() -> None:
 
 
 def test_composed_view_rejects_unknown_layout_region() -> None:
-    patch = _patch()
-    view = _change(patch, "view", "project.board")["spec"]
+    author = _author()
+    view = _item(author, "views", "project.board")
     view["includes"][0]["region"] = "ghost"
     with pytest.raises(ContractError, match="undeclared region"):
-        compile_patch(patch)
+        compile_source(author)
 
 
 def test_composed_view_rejects_context_binding_drift() -> None:
-    patch = _patch()
-    view = _change(patch, "view", "project.board")["spec"]
+    author = _author()
+    view = _item(author, "views", "project.board")
     del view["includes"][0]["context"]["selected_project_id"]
     with pytest.raises(ContractError, match="context keys"):
-        compile_patch(patch)
+        compile_source(author)
 
 
 def test_composed_view_rejects_sync_event_not_emitted_by_source_panel() -> None:
-    patch = _patch()
-    view = _change(patch, "view", "project.board")["spec"]
+    author = _author()
+    view = _item(author, "views", "project.board")
     view["sync"][0]["when"]["emits"] = "project.unannounced"
     with pytest.raises(ContractError, match="undeclared panel event"):
-        compile_patch(patch)
+        compile_source(author)
 
 
 def test_composed_scenario_rejects_unknown_panel_state() -> None:
-    patch = _patch()
-    scenario = _change(patch, "scenario", "project.board.ready")["spec"]
+    author = _author()
+    scenario = _item(author, "scenarios", "project.board.ready")
     scenario["then"]["view"]["panels"]["detail"]["state"] = "ghost"
     with pytest.raises(ContractError, match="unknown panel state"):
-        compile_patch(patch)
+        compile_source(author)

@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from pyspec_contract.compile import ContractError, author_from_patch, compile_author, compile_patch, validate_against_schema
+from pyspec_contract.compile import ContractError, compile_author, compile_source, validate_against_schema
 from pyspec_contract.io import read_yaml, write_yaml
 from pyspec_contract.paths import COMPILED_CONTRACT_PATH, SOURCE_CONTRACT_PATH
 from pyspec_contract.validate import validate_project
@@ -13,20 +13,20 @@ from tests.helpers import EXAMPLE_ROOT, copy_project_tree
 ROOT = EXAMPLE_ROOT
 
 
-def _basis(text: str = "test patch operation") -> str:
+def _basis(text: str = "test contract declaration") -> str:
     return text
 
 
-def _change(patch: dict, target: str, item_id: str | None = None) -> dict:
-    for change in patch["changes"]:
-        if change.get("target") == target and change.get("op") in {"add", "replace"}:
-            if item_id is None or change.get("id") == item_id:
-                return change
-    raise AssertionError(f"missing {target} change {item_id or ''}")
+def _author() -> dict:
+    return read_yaml(ROOT / SOURCE_CONTRACT_PATH)
 
 
-def _first_spec(patch: dict, target: str) -> dict:
-    return _change(patch, target)["spec"]
+def _item(author: dict, section: str, item_id: str) -> dict:
+    return author[section][item_id]
+
+
+def _first_item(author: dict, section: str) -> dict:
+    return next(iter(author[section].values()))
 
 
 def test_project_validates() -> None:
@@ -70,26 +70,12 @@ def test_release_gate_requires_final_content_resolvers() -> None:
         validate_project(ROOT, release=True)
 
 
-def test_pm_patch_schema_rejects_unknown_fields() -> None:
-    patch = read_yaml(ROOT / "pm.patch.yaml")
-    patch["changes"][0]["invented_by_agent"] = True
-    with pytest.raises(ContractError, match="Schema validation failed"):
-        compile_patch(patch)
-
-def test_pm_patch_rejects_meta_root_fields() -> None:
-    for key, value in [("version", 1), ("status", "draft"), ("review_flags", [{"id": "x"}])]:
-        patch = read_yaml(ROOT / "pm.patch.yaml")
-        patch[key] = value
-        with pytest.raises(ContractError, match="Schema validation failed"):
-            compile_patch(patch)
-
-
 def test_state_pattern_is_not_a_contract_concept() -> None:
-    patch = read_yaml(ROOT / "pm.patch.yaml")
-    state = _change(patch, "panel", "panel.project.list")["spec"]["states"]["loading"]
+    author = _author()
+    state = _item(author, "panels", "panel.project.list")["states"]["loading"]
     state["pattern"] = "loading"
     with pytest.raises(ContractError, match="Schema validation failed"):
-        compile_patch(patch)
+        compile_source(author)
 
 
 def test_contract_schema_rejects_meta_root_fields() -> None:
@@ -108,21 +94,17 @@ def test_author_schema_rejects_meta_root_fields() -> None:
             validate_against_schema(author, "author.schema.json")
 
 
-def test_author_yaml_is_direct_source_and_matches_patch_operations() -> None:
-    patch = read_yaml(ROOT / "pm.patch.yaml")
+def test_author_yaml_is_direct_source() -> None:
     author = read_yaml(ROOT / SOURCE_CONTRACT_PATH)
-    assert author_from_patch(patch) == author
     assert compile_author(author) == read_yaml(ROOT / COMPILED_CONTRACT_PATH)
 
 
-def test_patch_materializes_sparse_author_contract() -> None:
-    patch = read_yaml(ROOT / "pm.patch.yaml")
-    author = author_from_patch(patch)
-    assert "changes" not in author
+def test_author_contract_is_sparse_source() -> None:
+    author = read_yaml(ROOT / SOURCE_CONTRACT_PATH)
     assert "events" not in author
     assert "refs" not in author
     assert "transition" not in author["capabilities"]["project.submit"]
-    assert compile_author(author) == compile_patch(patch)
+    assert compile_author(author) == read_yaml(ROOT / COMPILED_CONTRACT_PATH)
 
 
 def test_transition_capability_derives_state_change_from_resource_lifecycle() -> None:
@@ -224,49 +206,49 @@ def test_author_panel_defaults_empty_collections() -> None:
 
 
 def test_panel_events_must_be_used_by_transition_or_emit() -> None:
-    patch = read_yaml(ROOT / "pm.patch.yaml")
-    activity = _change(patch, "panel", "panel.project.activity")["spec"]
+    author = _author()
+    activity = _item(author, "panels", "panel.project.activity")
     activity["events"].append("unused.event")
     with pytest.raises(ContractError, match=r"Panel panel\.project\.activity declares event without transition or emit: .*unused\.event"):
-        compile_patch(patch)
+        compile_source(author)
 
 
 def test_panel_transition_events_must_be_declared() -> None:
-    patch = read_yaml(ROOT / "pm.patch.yaml")
-    activity = _change(patch, "panel", "panel.project.activity")["spec"]
+    author = _author()
+    activity = _item(author, "panels", "panel.project.activity")
     activity["events"].remove("selection.cleared")
     with pytest.raises(ContractError, match=r"Panel panel\.project\.activity uses event without declaring it: .*selection\.cleared"):
-        compile_patch(patch)
+        compile_source(author)
 
 
 def test_panel_data_events_require_data_binding() -> None:
-    patch = read_yaml(ROOT / "pm.patch.yaml")
-    detail = _change(patch, "panel", "panel.project.detail")["spec"]
+    author = _author()
+    detail = _item(author, "panels", "panel.project.detail")
     detail["states"]["loading"]["data"] = []
     detail["states"]["ready"].pop("field_slots")
     with pytest.raises(ContractError, match=r"Panel panel\.project\.detail transition uses data event without panel or source-state data: data\.ready"):
-        compile_patch(patch)
+        compile_source(author)
 
 
 def test_panel_transition_requires_basis_when_audit_card_would_be_empty() -> None:
-    patch = read_yaml(ROOT / "pm.patch.yaml")
-    activity = _change(patch, "panel", "panel.project.activity")["spec"]
+    author = _author()
+    activity = _item(author, "panels", "panel.project.activity")
     cleared = next(transition for transition in activity["transitions"] if transition["event"] == "selection.cleared")
     cleared.pop("effects")
     with pytest.raises(
         ContractError,
         match=r"Panel panel\.project\.activity transition selection\.cleared from ready to empty must declare basis, data, or effects",
     ):
-        compile_patch(patch)
+        compile_source(author)
 
 
 def test_panel_transition_basis_can_explain_otherwise_empty_audit_card() -> None:
-    patch = read_yaml(ROOT / "pm.patch.yaml")
-    activity = _change(patch, "panel", "panel.project.activity")["spec"]
+    author = _author()
+    activity = _item(author, "panels", "panel.project.activity")
     cleared = next(transition for transition in activity["transitions"] if transition["event"] == "selection.cleared")
     cleared.pop("effects")
     cleared["basis"] = "Clearing the selection returns the activity panel to its empty state."
-    contract = compile_patch(patch)
+    contract = compile_source(author)
     compiled = next(
         transition
         for transition in contract["panels"]["panel.project.activity"]["transitions"]
@@ -276,49 +258,49 @@ def test_panel_transition_basis_can_explain_otherwise_empty_audit_card() -> None
 
 
 def test_panel_data_inputs_must_come_from_context() -> None:
-    patch = read_yaml(ROOT / "pm.patch.yaml")
-    panel = _change(patch, "panel", "panel.project.list")["spec"]
+    author = _author()
+    panel = _item(author, "panels", "panel.project.list")
     del panel["context"]["workspace_id"]
     with pytest.raises(
         ContractError,
         match=r"Panel panel\.project\.list data capability project\.list input not provided by context: .*workspace_id",
     ):
-        compile_patch(patch)
+        compile_source(author)
 
 
 def test_panel_field_slots_require_data_source() -> None:
-    patch = read_yaml(ROOT / "pm.patch.yaml")
-    activity = _change(patch, "panel", "panel.project.activity")["spec"]
+    author = _author()
+    activity = _item(author, "panels", "panel.project.activity")
     del activity["states"]["ready"]["data"]
     with pytest.raises(
         ContractError,
         match=r"Panel panel\.project\.activity\.ready declares field slots without data source",
     ):
-        compile_patch(patch)
+        compile_source(author)
 
 
 def test_panel_data_source_must_be_query_like_capability() -> None:
-    patch = read_yaml(ROOT / "pm.patch.yaml")
-    activity = _change(patch, "panel", "panel.project.activity")["spec"]
+    author = _author()
+    activity = _item(author, "panels", "panel.project.activity")
     activity["states"]["ready"]["data"] = ["project.submit"]
     with pytest.raises(
         ContractError,
         match=r"Panel panel\.project\.activity\.ready data capability must be read, list, or query: project\.submit",
     ):
-        compile_patch(patch)
+        compile_source(author)
 
 
 def test_basis_is_plain_bounded_text() -> None:
-    patch = read_yaml(ROOT / "pm.patch.yaml")
-    assert isinstance(patch["changes"][0]["basis"], str)
-    bad = read_yaml(ROOT / "pm.patch.yaml")
-    bad["changes"][0]["basis"] = {"text": "object basis", "kind": "explicit", "confidence": "high"}
+    author = _author()
+    assert isinstance(author["resources"]["Project"]["basis"], str)
+    bad = _author()
+    bad["resources"]["Project"]["basis"] = {"text": "object basis", "kind": "explicit", "confidence": "high"}
     with pytest.raises(ContractError, match="Schema validation failed"):
-        compile_patch(bad)
-    bad = read_yaml(ROOT / "pm.patch.yaml")
-    bad["changes"][0]["basis"] = "x" * 281
+        compile_source(bad)
+    bad = _author()
+    bad["resources"]["Project"]["basis"] = "x" * 281
     with pytest.raises(ContractError, match="Schema validation failed"):
-        compile_patch(bad)
+        compile_source(bad)
 
 
 def test_generated_tree_is_closed(tmp_path: Path) -> None:
@@ -331,20 +313,20 @@ def test_generated_tree_is_closed(tmp_path: Path) -> None:
 
 
 def test_unknown_fixture_is_rejected() -> None:
-    patch = read_yaml(ROOT / "pm.patch.yaml")
-    scenario = _first_spec(patch, "scenario")
+    author = _author()
+    scenario = _first_item(author, "scenarios")
     scenario["given"]["fixtures"] = ["fixture.workspace.ghost"]
     with pytest.raises(ContractError, match="unknown fixture"):
-        compile_patch(patch)
+        compile_source(author)
 
 
 def test_unresolved_fixture_reference_is_rejected() -> None:
-    patch = read_yaml(ROOT / "pm.patch.yaml")
-    scenario = _first_spec(patch, "scenario")
+    author = _author()
+    scenario = _item(author, "scenarios", "project.board.empty")
     _, body = next(iter(scenario["when"].items()))
     body.setdefault("params", {})["workspace_id"] = "$fixture.workspace.missing"
     with pytest.raises(ContractError, match="cannot resolve"):
-        compile_patch(patch)
+        compile_source(author)
 
 
 def test_prod_harness_cannot_import_spec_fake(tmp_path: Path) -> None:
@@ -362,16 +344,16 @@ def test_prod_harness_cannot_import_spec_fake(tmp_path: Path) -> None:
 
 
 def test_presentation_rejects_undeclared_css_region() -> None:
-    patch = read_yaml(ROOT / "pm.patch.yaml")
-    view = _change(patch, "view", "project.board")["spec"]
+    author = _author()
+    view = _item(author, "views", "project.board")
     view["layout"]["html"]["css"]["rules"].append({"selector": "region.ghost", "declarations": {"display": "block"}})
     with pytest.raises(ContractError, match="undeclared layout region"):
-        compile_patch(patch)
+        compile_source(author)
 
 
 def test_presentation_rejects_undeclared_textual_action() -> None:
-    patch = read_yaml(ROOT / "pm.patch.yaml")
-    state = _change(patch, "panel", "panel.project.list")["spec"]["states"]["ready"]
+    author = _author()
+    state = _item(author, "panels", "panel.project.list")["states"]["ready"]
     state["presentation"] = {
         "textual": {
             "screen_class": "ProjectListState",
@@ -379,134 +361,71 @@ def test_presentation_rejects_undeclared_textual_action() -> None:
         }
     }
     with pytest.raises(ContractError, match="action bind is not declared"):
-        compile_patch(patch)
+        compile_source(author)
 
 
-def _fixture_change(op: str, fixture_id: str, actor_id: str = "u1") -> dict[str, object]:
-    return {
-        "op": op,
-        "target": "fixture",
-        "id": fixture_id,
-        "basis": _basis(f"{op} {fixture_id}"),
-        "spec": {"values": {"actor": {"id": actor_id}}},
-    }
-
-
-def test_patch_operations_allow_add_replace_delete() -> None:
-    patch = {
-        "project": "patch_ops",
-        "changes": [
-            _fixture_change("add", "fixture.actor", "u1"),
-            _fixture_change("replace", "fixture.actor", "u2"),
-            {"op": "delete", "target": "fixture", "id": "fixture.actor", "basis": _basis("delete fixture")},
-            _fixture_change("add", "fixture.final", "u3"),
-        ],
-    }
-    contract = compile_patch(patch)
-    assert "fixture.actor" not in contract["fixtures"]
-    assert contract["fixtures"]["fixture.final"]["values"]["actor"]["id"] == "u3"
-
-
-def test_add_existing_item_is_rejected() -> None:
-    patch = {"project": "patch_ops", "changes": [_fixture_change("add", "fixture.actor", "u1"), _fixture_change("add", "fixture.actor", "u2")]}
-    with pytest.raises(ContractError, match="Duplicate fixture"):
-        compile_patch(patch)
-
-
-def test_replace_missing_item_is_rejected() -> None:
-    patch = {"project": "patch_ops", "changes": [_fixture_change("replace", "fixture.missing", "u1")]}
-    with pytest.raises(ContractError, match="replace missing fixture|Cannot replace missing fixture"):
-        compile_patch(patch)
-
-
-def test_delete_missing_item_is_rejected() -> None:
-    patch = {"project": "patch_ops", "changes": [{"op": "delete", "target": "fixture", "id": "fixture.missing", "basis": _basis()}]}
-    with pytest.raises(ContractError, match="delete missing fixture"):
-        compile_patch(patch)
-
-
-def test_delete_with_remaining_references_is_rejected() -> None:
-    patch = read_yaml(ROOT / "pm.patch.yaml")
-    patch["changes"].append({"op": "delete", "target": "capability", "id": "project.create", "basis": _basis("delete referenced capability")})
+def test_missing_referenced_capability_is_rejected() -> None:
+    author = _author()
+    del author["capabilities"]["project.create"]
     with pytest.raises(ContractError, match="unknown capability|action references"):
-        compile_patch(patch)
-
-
-def test_legacy_define_operations_are_schema_rejected() -> None:
-    patch = {"project": "patch_ops", "changes": [{"op": "define_fixture", "id": "fixture.actor", "values": {"actor": {"id": "u1"}}, "basis": _basis("legacy define operation")}]} 
-    with pytest.raises(ContractError, match="Schema validation failed"):
-        compile_patch(patch)
-
-
-def test_nested_subject_mutations_are_schema_rejected() -> None:
-    patch = {"project": "patch_ops", "changes": [{"op": "add", "fixture": {"id": "fixture.actor", "values": {"actor": {"id": "u1"}}, "basis": _basis("nested old mutation shape")}}]}
-    with pytest.raises(ContractError, match="Schema validation failed"):
-        compile_patch(patch)
+        compile_source(author)
 
 
 def test_composed_view_rejects_unknown_included_panel() -> None:
-    patch = read_yaml(ROOT / "pm.patch.yaml")
-    view = _change(patch, "view", "project.board")["spec"]
+    author = _author()
+    view = _item(author, "views", "project.board")
     view["includes"][0]["panel"] = "panel.project.ghost"
     with pytest.raises(ContractError, match="includes unknown panel"):
-        compile_patch(patch)
+        compile_source(author)
 
 
 def test_composed_view_rejects_unknown_sync_target_event() -> None:
-    patch = read_yaml(ROOT / "pm.patch.yaml")
-    view = _change(patch, "view", "project.board")["spec"]
+    author = _author()
+    view = _item(author, "views", "project.board")
     for effect in view["sync"][0]["do"]:
         if "send" in effect:
             effect["send"]["event"] = "project.ghost_event"
             break
     with pytest.raises(ContractError, match="sync sends undeclared target event"):
-        compile_patch(patch)
+        compile_source(author)
 
 
 def test_composed_scenario_rejects_unknown_panel_instance() -> None:
-    patch = read_yaml(ROOT / "pm.patch.yaml")
-    scenario = _change(patch, "scenario", "project.board.ready")["spec"]
+    author = _author()
+    scenario = _item(author, "scenarios", "project.board.ready")
     scenario["then"]["view"]["panels"]["ghost"] = {"state": "ready"}
     with pytest.raises(ContractError, match="unknown panel instance"):
-        compile_patch(patch)
+        compile_source(author)
 
 
-def _api_only_patch() -> dict:
+def _api_only_author() -> dict:
     return {
         "project": "api_only",
-        "changes": [
-            {
-                "op": "add",
-                "target": "resource",
-                "id": "Ticket",
-                "spec": {"kind": "aggregate", "fields": {"id": "ID", "title": "Text"}},
+        "resources": {
+            "Ticket": {
+                "kind": "aggregate",
+                "fields": {"id": "ID", "title": "Text"},
                 "basis": _basis("ticket resource"),
-            },
-            {
-                "op": "add",
-                "target": "capability",
-                "id": "ticket.create",
-                "spec": {
-                    "archetype": "create",
-                    "resource": "Ticket",
-                    "input": {"title": "Text"},
-                    "output": "Ticket",
-                },
+            }
+        },
+        "capabilities": {
+            "ticket.create": {
+                "archetype": "create",
+                "resource": "Ticket",
+                "input": {"title": "Text"},
+                "output": "Ticket",
                 "basis": _basis("create ticket"),
-            },
-            {
-                "op": "add",
-                "target": "entry",
-                "id": "api.ticket.create",
-                "spec": {
-                    "surface": "api",
-                    "method": "POST",
-                    "path": "/tickets",
-                    "target": {"capability": "ticket.create"},
-                },
+            }
+        },
+        "entries": {
+            "api.ticket.create": {
+                "surface": "api",
+                "method": "POST",
+                "path": "/tickets",
+                "target": {"capability": "ticket.create"},
                 "basis": _basis("HTTP create ticket entry"),
-            },
-        ],
+            }
+        },
     }
 
 
@@ -514,7 +433,7 @@ def test_authoring_layers_allow_api_only_contract_and_graph_driven_projections()
     from pyspec_contract.layers import parse_layers
     from pyspec_contract.project import projection_paths
 
-    contract = compile_patch(_api_only_patch(), layers=parse_layers("core,http"))
+    contract = compile_author(_api_only_author(), layers=parse_layers("core,http"))
     paths = set(projection_paths(contract))
     assert "generated/openapi.yaml" in paths
     assert "generated/persistence.sql" not in paths
@@ -528,72 +447,48 @@ def test_authoring_layers_allow_api_only_contract_and_graph_driven_projections()
 def test_authoring_layers_reject_irrelevant_ui_targets() -> None:
     from pyspec_contract.layers import parse_layers
 
-    patch = _api_only_patch()
-    patch["changes"].append(
-        {
-            "op": "add",
-            "target": "panel",
-            "id": "panel.ticket.list",
-            "spec": {
-                "resource": "Ticket",
-                "context": {},
-                "data": [],
-                "events": [],
-                "initial": "empty",
-                "states": {"empty": {}},
-                "transitions": [],
-            },
+    author = _api_only_author()
+    author["panels"] = {
+        "panel.ticket.list": {
+            "resource": "Ticket",
+            "context": {},
+            "data": [],
+            "events": [],
+            "initial": "empty",
+            "states": {"empty": {}},
+            "transitions": [],
             "basis": _basis("UI panel is not part of this API layer"),
         }
-    )
+    }
     with pytest.raises(ContractError, match="outside active authoring layers"):
-        compile_patch(patch, layers=parse_layers("core,http"))
+        compile_author(author, layers=parse_layers("core,http"))
 
 
 def test_authoring_layers_reject_wrong_entry_surface() -> None:
     from pyspec_contract.layers import parse_layers
 
-    patch = _api_only_patch()
-    for change in patch["changes"]:
-        if change["target"] == "entry":
-            change["id"] = "web.ticket.create"
-            change["spec"] = {"surface": "web", "path": "/tickets", "target": {"view": "ticket.list"}}
-            break
+    author = _api_only_author()
+    del author["entries"]["api.ticket.create"]
+    author["entries"]["web.ticket.create"] = {"surface": "web", "path": "/tickets", "target": {"view": "ticket.list"}}
     with pytest.raises(ContractError, match="entry surface web requires web"):
-        compile_patch(patch, layers=parse_layers("core,http"))
+        compile_author(author, layers=parse_layers("core,http"))
 
 
 def test_authoring_layers_reject_html_layout_without_web_layer() -> None:
     from pyspec_contract.layers import parse_layers
 
-    patch = _api_only_patch()
-    patch["changes"].append(
-        {
-            "op": "add",
-            "target": "view",
-            "id": "ticket.board",
-            "spec": {
-                "archetype": "dashboard",
-                "resource": "Ticket",
-                "states": {"ready": {}},
-                "layout": {"html": {"regions": {"main": {"required": True}}}},
-            },
+    author = _api_only_author()
+    author["views"] = {
+        "ticket.board": {
+            "archetype": "dashboard",
+            "resource": "Ticket",
+            "states": {"ready": {}},
+            "layout": {"html": {"regions": {"main": {"required": True}}}},
             "basis": _basis("HTML layout is a web surface"),
         }
-    )
+    }
     with pytest.raises(ContractError, match="view layout html requires web"):
-        compile_patch(patch, layers=parse_layers("core,http,ui,textual"))
-
-
-def test_layer_pruned_schema_hides_irrelevant_targets() -> None:
-    from pyspec_contract.layers import parse_layers, schema_for_layers
-
-    schema = schema_for_layers(parse_layers("core,http"))
-    refs = [item["$ref"] for item in schema["properties"]["changes"]["items"]["oneOf"]]
-    assert any(ref.endswith("add_entry") for ref in refs)
-    assert any(ref.endswith("add_resource") for ref in refs)
-    assert not any(ref.endswith("add_panel") for ref in refs)
-    assert not any(ref.endswith("add_render_case") for ref in refs)
+        compile_author(author, layers=parse_layers("core,http,ui,textual"))
 
 
 def test_layer_pruned_author_schema_hides_irrelevant_sections() -> None:
@@ -607,19 +502,19 @@ def test_layer_pruned_author_schema_hides_irrelevant_sections() -> None:
 
 
 def test_pyspec_contract_rejects_scenario_harness_routing() -> None:
-    patch = read_yaml(ROOT / "pm.patch.yaml")
-    scenario = _first_spec(patch, "scenario")
+    author = _author()
+    scenario = _first_item(author, "scenarios")
     scenario["harnesses"] = ["spec", "prod"]
     with pytest.raises(ContractError, match="Schema validation failed"):
-        compile_patch(patch)
+        compile_source(author)
 
 
 def test_pyspec_contract_rejects_storage_implementation_details_on_resource() -> None:
-    patch = read_yaml(ROOT / "pm.patch.yaml")
-    resource = _first_spec(patch, "resource")
+    author = _author()
+    resource = _first_item(author, "resources")
     resource["persistence"] = {"dialect": "sqlite", "table": "projects"}
     with pytest.raises(ContractError, match="Schema validation failed"):
-        compile_patch(patch)
+        compile_source(author)
 
 
 def test_generated_gherkin_is_single_corpus() -> None:
