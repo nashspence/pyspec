@@ -573,10 +573,10 @@ def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
         except ValueError:
             pass
     for ref, item in contract.get("copies", {}).items():
-        final = item.get("final") or {"status": "placeholder", "resolver": ref}
+        resolver = item.get("resolver")
         arg_cls = module.COPY_ARG_CLASSES[ref]
         instantiate_args(root, "copy", ref, {name: _sample_value_for_type(type_name) for name, type_name in item.get("args", {}).items()})
-        if final["status"] != "placeholder":
+        if resolver:
             if ref not in copy_registry.refs:
                 raise ContractError(f"Missing final copy resolver: {ref}")
             try:
@@ -584,10 +584,10 @@ def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
             except ContentError as exc:
                 raise ContractError(str(exc)) from exc
     for ref, item in contract.get("assets", {}).items():
-        final = item.get("final") or {"status": "placeholder", "resolver": ref}
+        resolver = item.get("resolver")
         arg_cls = module.ASSET_ARG_CLASSES[ref]
         instantiate_args(root, "asset", ref, {name: _sample_value_for_type(type_name) for name, type_name in item.get("args", {}).items()})
-        if final["status"] != "placeholder":
+        if resolver:
             if ref not in asset_registry.refs:
                 raise ContractError(f"Missing final asset resolver: {ref}")
             try:
@@ -602,7 +602,7 @@ def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
         ref = case["ref"]
         if ref.startswith("copy."):
             item = contract["copies"][ref]
-            if (item.get("final") or {}).get("status") == "placeholder":
+            if not item.get("resolver"):
                 result = item["placeholder"]
             else:
                 try:
@@ -615,7 +615,7 @@ def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
                 raise ContractError(f"Content case {case_id} copy result exceeds max_chars")
         else:
             item = contract["assets"][ref]
-            if (item.get("final") or {}).get("status") != "placeholder":
+            if item.get("resolver"):
                 try:
                     result = call_asset(root, ref, args, ContentContext(surface="content_case"))
                 except ContentError as exc:
@@ -632,7 +632,7 @@ def _final_content_refs(contract: dict[str, Any]) -> set[str]:
     refs: set[str] = set()
     for section in ["copies", "assets"]:
         for ref, item in contract.get(section, {}).items():
-            if (item.get("final") or {}).get("status") in {"final_draft", "approved"}:
+            if item.get("resolver"):
                 refs.add(ref)
     return refs
 
@@ -715,9 +715,9 @@ def validate_fixtures_and_scenarios(root: Path, contract: dict[str, Any]) -> Non
         raise ContractError("fixtures.yaml does not match contract fixtures")
     if scenarios != {"project": contract["project"], "scenarios": contract["scenarios"]}:
         raise ContractError("scenarios.yaml does not match contract scenarios")
-    expected_obligation_keys = {"project", "contract_version", "status", "scenarios", "must_validate_projections", "refs"}
+    expected_obligation_keys = {"project", "scenarios", "must_validate_projections", "refs"}
     _require_exact_keys(obligations, expected_obligation_keys, "test_obligations.yaml")
-    if obligations["project"] != contract["project"] or obligations["contract_version"] != contract["version"]:
+    if obligations["project"] != contract["project"]:
         raise ContractError("test_obligations.yaml metadata mismatch")
     if obligations["scenarios"] != contract["scenarios"]:
         raise ContractError("test_obligations.yaml scenarios mismatch")

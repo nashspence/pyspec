@@ -762,8 +762,6 @@ def scenarios_projection(contract: dict[str, Any]) -> dict[str, Any]:
 def test_obligations_projection(contract: dict[str, Any]) -> dict[str, Any]:
     return {
         "project": contract["project"],
-        "contract_version": contract["version"],
-        "status": contract["status"],
         "scenarios": contract["scenarios"],
         "must_validate_projections": validated_projection_paths(contract),
         "refs": contract["refs"],
@@ -827,8 +825,8 @@ def content_contract_projection(contract: dict[str, Any]) -> str:
             else:
                 lines.append("    pass")
             lines.append("")
-    lines.append(f"COPY_SIGNATURES = { {ref: {'args': spec.get('args', {}), 'final': spec.get('final', {'status':'placeholder','resolver':ref}), 'arg_class': copy_classes[ref]} for ref, spec, _ in _content_signature_items(contract, 'copies')}!r}")
-    lines.append(f"ASSET_SIGNATURES = { {ref: {'args': spec.get('args', {}), 'final': spec.get('final', {'status':'placeholder','resolver':ref}), 'arg_class': asset_classes[ref]} for ref, spec, _ in _content_signature_items(contract, 'assets')}!r}")
+    lines.append(f"COPY_SIGNATURES = { {ref: {'args': spec.get('args', {}), 'resolver': spec.get('resolver'), 'arg_class': copy_classes[ref]} for ref, spec, _ in _content_signature_items(contract, 'copies')}!r}")
+    lines.append(f"ASSET_SIGNATURES = { {ref: {'args': spec.get('args', {}), 'resolver': spec.get('resolver'), 'arg_class': asset_classes[ref]} for ref, spec, _ in _content_signature_items(contract, 'assets')}!r}")
     lines.append(f"COPY_ARG_CLASSES = {{{', '.join(f'{ref!r}: {cls}' for ref, cls in copy_classes.items())}}}")
     lines.append(f"ASSET_ARG_CLASSES = {{{', '.join(f'{ref!r}: {cls}' for ref, cls in asset_classes.items())}}}")
     lines.append("")
@@ -846,8 +844,8 @@ def content_stubs_projection(contract: dict[str, Any]) -> str:
         "",
     ]
     for ref, spec, class_name in _content_signature_items(contract, "copies"):
-        final = spec.get("final") or {"status": "placeholder", "resolver": ref}
-        if final["status"] == "placeholder":
+        resolver = spec.get("resolver")
+        if not resolver:
             continue
         lines.extend([
             f"@copy.implements(Copy.{constant_name(ref)})",
@@ -856,8 +854,8 @@ def content_stubs_projection(contract: dict[str, Any]) -> str:
             "",
         ])
     for ref, spec, class_name in _content_signature_items(contract, "assets"):
-        final = spec.get("final") or {"status": "placeholder", "resolver": ref}
-        if final["status"] == "placeholder":
+        resolver = spec.get("resolver")
+        if not resolver:
             continue
         lines.extend([
             f"@asset.implements(Asset.{constant_name(ref)})",

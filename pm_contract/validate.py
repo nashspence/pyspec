@@ -93,26 +93,14 @@ def _generated_files(root: Path) -> set[str]:
 
 
 def _release_gate(contract: dict[str, Any]) -> None:
-    if contract["status"] != "approved":
-        raise ContractError("Release gate requires status: approved")
-    blockers = [flag for flag in contract.get("review_flags", []) if flag.get("blocks_release")]
-    if blockers:
-        raise ContractError("Release gate blocked by review_flags: " + ", ".join(flag["id"] for flag in blockers))
-    reviewed = []
-    for section in ["resources", "capabilities", "views", "entries", "workflows", "scenarios"]:
-        for item_id, item in contract.get(section, {}).items():
-            basis = item.get("basis") if isinstance(item, dict) else None
-            if isinstance(basis, dict) and basis.get("review"):
-                reviewed.append(f"{section}.{item_id}")
-    if reviewed:
-        raise ContractError("Release gate blocked by basis.review=true: " + ", ".join(reviewed))
+    """External release policy; does not rely on contract metadata fields."""
     placeholder_content = []
     for section in ["copies", "assets"]:
         for ref, item in contract.get(section, {}).items():
-            if (item.get("final") or {}).get("status") != "approved":
+            if not item.get("resolver"):
                 placeholder_content.append(ref)
     if placeholder_content:
-        raise ContractError("Release gate requires approved final content for: " + ", ".join(sorted(placeholder_content)))
+        raise ContractError("Release gate requires final content resolvers for: " + ", ".join(sorted(placeholder_content)))
 
 
 

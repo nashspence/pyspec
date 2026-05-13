@@ -76,7 +76,7 @@ schemas/layers/core_ui_web.pm_patch.schema.json
 schemas/layers/full.pm_patch.schema.json
 ```
 
-The full internal schema still exists at `schemas/pm_patch.schema.json`, and the compiler enforces the active layers even if the wrong schema is used.
+The full internal schema still exists at `schemas/pm_patch.schema.json`, and the compiler enforces the active layers even if the wrong schema is used. Both patch and contract schemas are closed-world and reject metadata fields such as `version`, `status`, or `review_flags`.
 
 ## Core rule
 
@@ -92,10 +92,7 @@ The PM agent does not author downstream specs. It writes closed patch operations
     input: {workspace_id: ID, title: Text, customer: Text, priority: Text}
     output: Project
     emits: [project.created]
-  basis:
-    kind: explicit
-    confidence: high
-    text: Members can create a new dispatch project.
+  basis: Members can create a new dispatch project.
 ```
 
 Patch operations are deliberately whole-object and closed:
@@ -105,14 +102,14 @@ op: add | replace | delete
 target: copy | asset | content_case | audit_profile | fixture | resource | capability | panel | view | entry | workflow | scenario | render_case
 id: exact item id
 spec: required for add/replace, forbidden for delete
-basis: always required
+basis: always required, plain text, max 280 characters
 ```
 
 There are no partial JSONPath-style mutations. `delete` is non-cascading; validation fails if anything still references the deleted item.
 
 ## Pure PM/design contract
 
-The contract should describe product meaning, not implementation storage, test routing, or development environment details.
+The contract should describe product meaning, not implementation storage, test routing, development environment details, review workflow, release status, or schema version metadata. Source control owns history and review state; `contract.yaml` stays pure specification.
 
 Scenarios do not declare `spec`, `prod`, or any other harness. There is exactly one generated Gherkin corpus:
 
@@ -131,7 +128,7 @@ Resources do not declare a persistence dialect, SQL table, ORM model, migration,
 
 ## Canonical example model
 
-The checked-in canonical example is a small **Project dispatch board**. It intentionally uses the full layer set so the template demonstrates the system in one coherent app: HTTP API, event/workflow projection, CLI/workflow entry, composed HTML layout, Textual/TUI view, pytest-bdd scenarios, fixtures, placeholder copy/assets, typed final content resolvers, FSM diagrams, and visual audit renders.
+The checked-in canonical example is a small **Project dispatch board**. It intentionally uses the full layer set so the template demonstrates the system in one coherent app: HTTP API, event/workflow projection, CLI/workflow entry, composed HTML layout, Textual/TUI view, pytest-bdd scenarios, fixtures, placeholder copy/assets, typed content resolvers, FSM diagrams, and visual audit renders.
 
 The root `Project` resource owns fields and lifecycle:
 
@@ -248,7 +245,7 @@ Textual: compact, wide
 
 ## Final copy and asset resolvers
 
-Placeholders are mandatory from the beginning because they make audits readable before final content exists. Final copy and image assets are still contract-owned; they are added by declaring typed resolver signatures on `target: copy` or `target: asset`, then implementing only the generated resolver obligation in `content/resolvers.py`.
+Placeholders are mandatory from the beginning because they make audits readable before final content exists. Final copy and image assets are still contract-owned; they are added by declaring typed resolver signatures directly on `target: copy` or `target: asset`, then implementing only the generated resolver obligation in `content/resolvers.py`. Presence of `resolver` means the contract expects executable final content; absence means the audit uses the placeholder.
 
 ```yaml
 - op: add
@@ -260,9 +257,7 @@ Placeholders are mandatory from the beginning because they make audits readable 
     args:
       title: Text
       customer: Text
-    final:
-      status: final_draft
-      resolver: copy.project.detail.ready.heading
+    resolver: copy.project.detail.ready.heading
 ```
 
 The compiler generates `generated/content_contract.py` and `generated/content_stubs.py`. The editable implementation is small and explicit:
@@ -273,7 +268,7 @@ def project_detail_ready_heading(args: CopyProjectDetailReadyHeadingArgs, ctx: C
     return f"{args.title} · {args.customer}"
 ```
 
-Validation rejects missing resolvers, unknown resolver refs, wrong function shape, invalid SVG assets, overlong copy, and final content without `content_case` coverage.
+Validation rejects missing resolvers, unknown resolver refs, wrong function shape, invalid SVG assets, overlong copy, and resolver-backed content without `content_case` coverage.
 
 ## Commands
 

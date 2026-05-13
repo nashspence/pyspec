@@ -417,6 +417,9 @@
         },
         "placeholder": {
           "$ref": "#/$defs/asset_placeholder"
+        },
+        "resolver": {
+          "$ref": "#/$defs/content_resolver_id"
         }
       },
       "required": [
@@ -468,9 +471,6 @@
         "args": {
           "$ref": "#/$defs/content_args"
         },
-        "final": {
-          "$ref": "#/$defs/content_final"
-        },
         "kind": {
           "enum": [
             "illustration",
@@ -482,6 +482,9 @@
         },
         "placeholder": {
           "$ref": "#/$defs/asset_placeholder"
+        },
+        "resolver": {
+          "$ref": "#/$defs/content_resolver_id"
         }
       },
       "required": [
@@ -604,36 +607,9 @@
       "type": "object"
     },
     "basis": {
-      "additionalProperties": false,
-      "properties": {
-        "confidence": {
-          "enum": [
-            "low",
-            "medium",
-            "high"
-          ]
-        },
-        "kind": {
-          "enum": [
-            "explicit",
-            "inferred",
-            "assumed"
-          ]
-        },
-        "review": {
-          "type": "boolean"
-        },
-        "text": {
-          "minLength": 1,
-          "type": "string"
-        }
-      },
-      "required": [
-        "kind",
-        "confidence",
-        "text"
-      ],
-      "type": "object"
+      "maxLength": 280,
+      "minLength": 1,
+      "type": "string"
     },
     "breakpoint_id": {
       "pattern": "^[a-z][a-z0-9_]*$",
@@ -882,26 +858,9 @@
       ],
       "type": "object"
     },
-    "content_final": {
-      "additionalProperties": false,
-      "properties": {
-        "resolver": {
-          "pattern": "^(copy|asset)\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
-          "type": "string"
-        },
-        "status": {
-          "enum": [
-            "placeholder",
-            "final_draft",
-            "approved"
-          ]
-        }
-      },
-      "required": [
-        "status",
-        "resolver"
-      ],
-      "type": "object"
+    "content_resolver_id": {
+      "pattern": "^(copy|asset)\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "type": "string"
     },
     "context_bindings": {
       "additionalProperties": {
@@ -978,6 +937,9 @@
           "minLength": 1,
           "type": "string"
         },
+        "resolver": {
+          "$ref": "#/$defs/content_resolver_id"
+        },
         "tone": {
           "enum": [
             "neutral",
@@ -1000,9 +962,6 @@
         "args": {
           "$ref": "#/$defs/content_args"
         },
-        "final": {
-          "$ref": "#/$defs/content_final"
-        },
         "max_chars": {
           "minimum": 1,
           "type": "integer"
@@ -1010,6 +969,9 @@
         "placeholder": {
           "minLength": 1,
           "type": "string"
+        },
+        "resolver": {
+          "$ref": "#/$defs/content_resolver_id"
         },
         "tone": {
           "enum": [
@@ -3023,27 +2985,6 @@
       ],
       "type": "object"
     },
-    "review_flag": {
-      "additionalProperties": false,
-      "properties": {
-        "blocks_release": {
-          "type": "boolean"
-        },
-        "id": {
-          "$ref": "#/$defs/dotted_id"
-        },
-        "text": {
-          "minLength": 1,
-          "type": "string"
-        }
-      },
-      "required": [
-        "id",
-        "text",
-        "blocks_release"
-      ],
-      "type": "object"
-    },
     "scalar": {
       "type": [
         "string",
@@ -4023,28 +3964,10 @@
     "project": {
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
-    },
-    "review_flags": {
-      "items": {
-        "$ref": "#/$defs/review_flag"
-      },
-      "type": "array"
-    },
-    "status": {
-      "enum": [
-        "draft",
-        "review",
-        "approved"
-      ]
-    },
-    "version": {
-      "const": 1
     }
   },
   "required": [
-    "version",
     "project",
-    "status",
     "changes"
   ],
   "title": "PM patch schema (core,workflow layers)",

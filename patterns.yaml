@@ -1,5 +1,3 @@
-version: 1
-
 authoring_layers:
   rule: Layers constrain PM patch vocabulary only. They are never written into contract.yaml and never imply absent surfaces are planned.
   layers:
@@ -145,8 +143,8 @@ audit_contracts:
   asset: 'target: asset declares placeholder visual intent; the compiler emits generic SVG placeholder assets.'
   audit_profile: 'target: audit_profile declares fixed HTML and/or Textual breakpoints.'
   render_case: 'target: render_case binds a view state or composed panel state vector to fixtures, surfaces, and an audit profile.'
-  content_case: 'target: content_case exercises every final copy/asset resolver with deterministic args.'
-  final_content: 'target: copy or asset may declare args and final.status/resolver; generated content stubs constrain content/resolvers.py.'
+  content_case: 'target: content_case exercises every resolver-backed copy/asset with deterministic args.'
+  final_content: 'target: copy or asset may declare args and resolver; generated content stubs constrain content/resolvers.py.'
   formats:
     fsm: svg
     composition: svg

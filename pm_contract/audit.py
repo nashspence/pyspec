@@ -117,32 +117,30 @@ def _render_visual_audit(root: Path, contract: dict[str, Any], tools_root: Path)
                 path = root / "generated" / "audit" / "composition" / f"{safe_id(view_id)}.svg"
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_text(svg, encoding="utf-8")
-        finally:
-            browser.close()
 
-        browser = _launch_chromium(pw)
-        page = browser.new_page()
-        try:
-            for panel in sorted(projection["panels"], key=lambda p: p["id"]):
-                for profile_id, profile in sorted(contract.get("audit_profiles", {}).items()):
-                    html_profile = profile.get("html")
-                    if not html_profile:
-                        continue
-                    html_doc = audit_html_document(contract, render_panel_audit_html(root, contract, panel, None))
-                    for name, viewport in sorted(html_profile["breakpoints"].items()):
-                        stem = f"{safe_id(profile_id)}.{safe_id(name)}"
-                        base = root / "generated" / "audit" / "html" / "panels" / safe_id(panel["id"]) / stem
-                        _write_html_and_png_page(page, html_doc, base, viewport)
-            for case_id, case in sorted(contract.get("render_cases", {}).items()):
-                profile = contract["audit_profiles"][case["profile"]]
-                if "html" in case["surfaces"]:
-                    html_doc = audit_html_document(contract, render_case_html(root, contract, case_id, case))
-                    for name, viewport in sorted(profile.get("html", {}).get("breakpoints", {}).items()):
-                        stem = f"{safe_id(case['profile'])}.{safe_id(name)}.{safe_id(case_id)}"
-                        base = root / "generated" / "audit" / "html" / "views" / safe_id(case["view"]) / stem
-                        _write_html_and_png_page(page, html_doc, base, viewport)
+            page = browser.new_page()
+            try:
+                for panel in sorted(projection["panels"], key=lambda p: p["id"]):
+                    for profile_id, profile in sorted(contract.get("audit_profiles", {}).items()):
+                        html_profile = profile.get("html")
+                        if not html_profile:
+                            continue
+                        html_doc = audit_html_document(contract, render_panel_audit_html(root, contract, panel, None))
+                        for name, viewport in sorted(html_profile["breakpoints"].items()):
+                            stem = f"{safe_id(profile_id)}.{safe_id(name)}"
+                            base = root / "generated" / "audit" / "html" / "panels" / safe_id(panel["id"]) / stem
+                            _write_html_and_png_page(page, html_doc, base, viewport)
+                for case_id, case in sorted(contract.get("render_cases", {}).items()):
+                    profile = contract["audit_profiles"][case["profile"]]
+                    if "html" in case["surfaces"]:
+                        html_doc = audit_html_document(contract, render_case_html(root, contract, case_id, case))
+                        for name, viewport in sorted(profile.get("html", {}).get("breakpoints", {}).items()):
+                            stem = f"{safe_id(case['profile'])}.{safe_id(name)}.{safe_id(case_id)}"
+                            base = root / "generated" / "audit" / "html" / "views" / safe_id(case["view"]) / stem
+                            _write_html_and_png_page(page, html_doc, base, viewport)
+            finally:
+                page.close()
         finally:
-            page.close()
             browser.close()
 
     if projection["panels"] or any("textual" in case["surfaces"] for case in contract.get("render_cases", {}).values()):
@@ -663,8 +661,8 @@ def content_args(contract: dict[str, Any], ref: str, item: dict[str, Any], recor
 
 def resolve_copy_text(root: Path, contract: dict[str, Any], ref: str, record: dict[str, Any], context: dict[str, Any], namespace: dict[str, Any]) -> str:
     item = contract["copies"][ref]
-    final = item.get("final") or {"status": "placeholder", "resolver": ref}
-    if final["status"] == "placeholder":
+    resolver = item.get("resolver")
+    if not resolver:
         text = item["placeholder"]
     else:
         try:
@@ -681,8 +679,8 @@ def resolve_copy_text(root: Path, contract: dict[str, Any], ref: str, record: di
 
 def resolve_asset_result(root: Path, contract: dict[str, Any], ref: str, record: dict[str, Any], context: dict[str, Any], namespace: dict[str, Any]) -> AssetResult:
     item = contract["assets"][ref]
-    final = item.get("final") or {"status": "placeholder", "resolver": ref}
-    if final["status"] == "placeholder":
+    resolver = item.get("resolver")
+    if not resolver:
         return AssetResult(mime_type="image/svg+xml", body=asset_placeholder_svg(item), alt=item["placeholder"]["label"])
     try:
         result = call_asset(root, ref, content_args(contract, ref, item, record, context, namespace), ContentContext(surface="audit"))

@@ -2,24 +2,16 @@ assets:
   asset.project.detail.ready.priority_badge:
     args:
       priority: Text
-    basis:
-      confidence: high
-      kind: explicit
-      text: Selected project detail shows a dynamic priority badge resolved from project fixture data.
-    final:
-      resolver: asset.project.detail.ready.priority_badge
-      status: final_draft
+    basis: Selected project detail shows a dynamic priority badge resolved from project fixture data.
     kind: icon
     placeholder:
       aspect_ratio: '1:1'
       label: Project priority badge
       shape: square
+    resolver: asset.project.detail.ready.priority_badge
   asset.project.list.empty.illustration:
     alt_copy: copy.project.list.empty.heading
-    basis:
-      confidence: high
-      kind: explicit
-      text: Generic placeholder illustration used by the empty queue panel.
+    basis: Generic placeholder illustration used by the empty queue panel.
     kind: illustration
     placeholder:
       aspect_ratio: '4:3'
@@ -27,10 +19,7 @@ assets:
       shape: square
 audit_profiles:
   default:
-    basis:
-      confidence: high
-      kind: explicit
-      text: Two viewport breakpoints are enough to demonstrate visual audit coverage in the canonical example.
+    basis: Two viewport breakpoints are enough to demonstrate visual audit coverage in the canonical example.
     html:
       breakpoints:
         compact:
@@ -50,10 +39,7 @@ audit_profiles:
 capabilities:
   project.approve:
     archetype: transition
-    basis:
-      confidence: high
-      kind: explicit
-      text: Reviewers can approve submitted dispatch projects.
+    basis: Reviewers can approve submitted dispatch projects.
     emits:
     - project.approved
     errors: []
@@ -68,10 +54,7 @@ capabilities:
       to: approved
   project.archive:
     archetype: transition
-    basis:
-      confidence: high
-      kind: explicit
-      text: Approved dispatch projects can be archived.
+    basis: Approved dispatch projects can be archived.
     emits:
     - project.archived
     errors: []
@@ -86,10 +69,7 @@ capabilities:
       to: archived
   project.create:
     archetype: create
-    basis:
-      confidence: high
-      kind: explicit
-      text: Members can create a new dispatch project.
+    basis: Members can create a new dispatch project.
     emits:
     - project.created
     errors: []
@@ -103,10 +83,7 @@ capabilities:
     resource: Project
   project.list:
     archetype: list
-    basis:
-      confidence: high
-      kind: explicit
-      text: The board requires a project list query scoped by workspace.
+    basis: The board requires a project list query scoped by workspace.
     emits: []
     errors: []
     input:
@@ -116,10 +93,7 @@ capabilities:
     resource: Project
   project.send_approval_notice:
     archetype: command
-    basis:
-      confidence: high
-      kind: inferred
-      text: Approval triggers a notification command for downstream coordination.
+    basis: Approval triggers a notification command for downstream coordination.
     emits: []
     errors: []
     input:
@@ -130,10 +104,7 @@ capabilities:
     resource: Project
   project.submit:
     archetype: transition
-    basis:
-      confidence: high
-      kind: explicit
-      text: Draft dispatch projects can be submitted for review.
+    basis: Draft dispatch projects can be submitted for review.
     emits:
     - project.submitted
     errors: []
@@ -151,81 +122,51 @@ content_cases:
     args:
       customer: Atlas Foods
       title: Replace rooftop condenser fan
-    basis:
-      confidence: high
-      kind: explicit
-      text: Exercise final detail heading copy with representative fixture-backed content.
+    basis: Exercise final detail heading copy with representative fixture-backed content.
     ref: copy.project.detail.ready.heading
   content.project.detail.priority_badge.high_priority:
     args:
       priority: High
-    basis:
-      confidence: high
-      kind: explicit
-      text: Exercise final dynamic priority badge asset.
+    basis: Exercise final dynamic priority badge asset.
     ref: asset.project.detail.ready.priority_badge
 copies:
   copy.project.activity.empty.body:
-    basis:
-      confidence: high
-      kind: explicit
-      text: Empty activity body.
+    basis: Empty activity body.
     max_chars: 120
     placeholder: Activity appears after a project is selected.
     tone: instructional
   copy.project.activity.empty.heading:
-    basis:
-      confidence: high
-      kind: explicit
-      text: Empty activity heading.
+    basis: Empty activity heading.
     max_chars: 80
     placeholder: No project selected
     tone: neutral
   copy.project.activity.ready.heading:
-    basis:
-      confidence: high
-      kind: explicit
-      text: Ready activity heading.
+    basis: Ready activity heading.
     max_chars: 80
     placeholder: Latest activity
     tone: neutral
   copy.project.detail.error.body:
-    basis:
-      confidence: high
-      kind: explicit
-      text: Error body for the detail panel.
+    basis: Error body for the detail panel.
     max_chars: 120
     placeholder: Refresh the selection or return to the queue.
     tone: error
   copy.project.detail.error.heading:
-    basis:
-      confidence: high
-      kind: explicit
-      text: Error heading for the detail panel.
+    basis: Error heading for the detail panel.
     max_chars: 80
     placeholder: Project detail is unavailable
     tone: error
   copy.project.detail.loading.message:
-    basis:
-      confidence: high
-      kind: explicit
-      text: Loading message for the detail panel.
+    basis: Loading message for the detail panel.
     max_chars: 80
     placeholder: Loading project detail…
     tone: neutral
   copy.project.detail.none.body:
-    basis:
-      confidence: high
-      kind: explicit
-      text: No-selection body for the detail panel.
+    basis: No-selection body for the detail panel.
     max_chars: 160
     placeholder: Choose a project from the queue to review customer, assignment, and approval details.
     tone: instructional
   copy.project.detail.none.heading:
-    basis:
-      confidence: high
-      kind: explicit
-      text: No-selection heading for the detail panel.
+    basis: No-selection heading for the detail panel.
     max_chars: 80
     placeholder: Select a project
     tone: instructional
@@ -233,70 +174,44 @@ copies:
     args:
       customer: Text
       title: Text
-    basis:
-      confidence: high
-      kind: explicit
-      text: Ready heading for the detail panel.
-    final:
-      resolver: copy.project.detail.ready.heading
-      status: final_draft
+    basis: Ready heading for the detail panel.
     max_chars: 80
     placeholder: Project detail
+    resolver: copy.project.detail.ready.heading
     tone: neutral
   copy.project.list.empty.body:
-    basis:
-      confidence: high
-      kind: explicit
-      text: Empty body for the project list panel.
+    basis: Empty body for the project list panel.
     max_chars: 160
     placeholder: Create the first project to start coordinating work for this workspace.
     tone: instructional
   copy.project.list.empty.heading:
-    basis:
-      confidence: high
-      kind: explicit
-      text: Empty heading for the project list panel.
+    basis: Empty heading for the project list panel.
     max_chars: 80
     placeholder: No dispatch projects yet
     tone: neutral
   copy.project.list.error.body:
-    basis:
-      confidence: high
-      kind: explicit
-      text: Error body for the project list panel.
+    basis: Error body for the project list panel.
     max_chars: 120
     placeholder: Check the workspace connection and try again.
     tone: error
   copy.project.list.error.heading:
-    basis:
-      confidence: high
-      kind: explicit
-      text: Error heading for the project list panel.
+    basis: Error heading for the project list panel.
     max_chars: 80
     placeholder: Projects could not be loaded
     tone: error
   copy.project.list.loading.message:
-    basis:
-      confidence: high
-      kind: explicit
-      text: Loading message for the project list panel.
+    basis: Loading message for the project list panel.
     max_chars: 80
     placeholder: Loading dispatch projects…
     tone: neutral
   copy.project.list.ready.heading:
-    basis:
-      confidence: high
-      kind: explicit
-      text: Ready heading for the project list panel.
+    basis: Ready heading for the project list panel.
     max_chars: 80
     placeholder: Dispatch queue
     tone: neutral
 entries:
   api.project.create:
-    basis:
-      confidence: high
-      kind: explicit
-      text: HTTP endpoint for creating a dispatch project.
+    basis: HTTP endpoint for creating a dispatch project.
     endpoint: endpoint.project.create
     method: POST
     params:
@@ -306,10 +221,7 @@ entries:
     target:
       capability: project.create
   api.project.list:
-    basis:
-      confidence: high
-      kind: explicit
-      text: HTTP endpoint for listing dispatch projects.
+    basis: HTTP endpoint for listing dispatch projects.
     endpoint: endpoint.project.list
     method: GET
     params:
@@ -321,30 +233,21 @@ entries:
   cli.project.approve:
     args:
       project_id: ID
-    basis:
-      confidence: high
-      kind: explicit
-      text: CLI entry for approval automation.
+    basis: CLI entry for approval automation.
     command: project approve
     command_ref: command.project.approve
     surface: cli
     target:
       capability: project.approve
   textual.project.board:
-    basis:
-      confidence: high
-      kind: explicit
-      text: Textual entry for the dispatch board.
+    basis: Textual entry for the dispatch board.
     command: project board
     screen: screen.project.board
     surface: textual
     target:
       view: project.board
   web.project.board:
-    basis:
-      confidence: high
-      kind: explicit
-      text: Web entry for the dispatch board.
+    basis: Web entry for the dispatch board.
     params:
       workspace_id: ID
     path: /workspaces/{workspace_id}/dispatch
@@ -353,53 +256,35 @@ entries:
     target:
       view: project.board
   worker.project.approval_notice:
-    basis:
-      confidence: high
-      kind: inferred
-      text: Worker entry exposing the approval notice workflow.
+    basis: Worker entry exposing the approval notice workflow.
     surface: worker
     target:
       workflow: project.approval_notice
     workflow_ref: workflow.project.approval_notice
 events:
   project.approved:
-    basis:
-      confidence: high
-      kind: explicit
-      text: Reviewers can approve submitted dispatch projects.
+    basis: Reviewers can approve submitted dispatch projects.
     emitted_by:
     - project.approve
     payload: Project
   project.archived:
-    basis:
-      confidence: high
-      kind: explicit
-      text: Approved dispatch projects can be archived.
+    basis: Approved dispatch projects can be archived.
     emitted_by:
     - project.archive
     payload: Project
   project.created:
-    basis:
-      confidence: high
-      kind: explicit
-      text: Members can create a new dispatch project.
+    basis: Members can create a new dispatch project.
     emitted_by:
     - project.create
     payload: Project
   project.submitted:
-    basis:
-      confidence: high
-      kind: explicit
-      text: Draft dispatch projects can be submitted for review.
+    basis: Draft dispatch projects can be submitted for review.
     emitted_by:
     - project.submit
     payload: Project
 fixtures:
   fixture.projects.audit_records:
-    basis:
-      confidence: high
-      kind: explicit
-      text: Render fixtures provide dynamic records for visual audit of ready and detail states.
+    basis: Render fixtures provide dynamic records for visual audit of ready and detail states.
     values:
       projects:
       - assignee: Maya Chen
@@ -425,10 +310,7 @@ fixtures:
         updated_at: '2026-05-11T07:15:00Z'
         workspace_id: workspace_1
   fixture.workspace.member:
-    basis:
-      confidence: high
-      kind: explicit
-      text: Workspace member fixture for web/API/TUI scenarios.
+    basis: Workspace member fixture for web/API/TUI scenarios.
     values:
       actor:
         id: user_member_1
@@ -438,10 +320,7 @@ fixtures:
         id: workspace_1
         name: North Region Dispatch
   fixture.workspace.reviewer:
-    basis:
-      confidence: high
-      kind: explicit
-      text: Reviewer fixture for approval scenarios.
+    basis: Reviewer fixture for approval scenarios.
     values:
       actor:
         id: user_reviewer_1
@@ -452,10 +331,7 @@ fixtures:
         name: North Region Dispatch
 panels:
   panel.project.activity:
-    basis:
-      confidence: high
-      kind: explicit
-      text: The activity panel summarizes latest status around the selected project.
+    basis: The activity panel summarizes latest status around the selected project.
     context:
       project_id: ID
     data: []
@@ -497,10 +373,7 @@ panels:
       from: ready
       to: empty
   panel.project.detail:
-    basis:
-      confidence: high
-      kind: explicit
-      text: The detail panel is independent from the list and reacts to selected project context.
+    basis: The detail panel is independent from the list and reacts to selected project context.
     context:
       project_id: ID
     data: []
@@ -573,10 +446,7 @@ panels:
       from: ready
       to: none
   panel.project.list:
-    basis:
-      confidence: high
-      kind: explicit
-      text: The list panel owns collection loading, empty, ready, error, and selection behavior.
+    basis: The list panel owns collection loading, empty, ready, error, and selection behavior.
     context:
       selected_project_id: ID
       workspace_id: ID
@@ -716,10 +586,7 @@ refs:
   - workflow.project.approval_notice
 render_cases:
   project.board.empty.audit:
-    basis:
-      confidence: high
-      kind: explicit
-      text: Audit render for empty board state vector.
+    basis: Audit render for empty board state vector.
     fixtures:
     - fixture.workspace.member
     panels:
@@ -736,10 +603,7 @@ render_cases:
     - textual
     view: project.board
   project.board.ready_selected.audit:
-    basis:
-      confidence: high
-      kind: explicit
-      text: Audit render for selected-project board state vector using dynamic fixture records.
+    basis: Audit render for selected-project board state vector using dynamic fixture records.
     context:
       selected_project_id: project_alpha
     fixtures:
@@ -760,10 +624,7 @@ render_cases:
     view: project.board
 resources:
   Project:
-    basis:
-      confidence: high
-      kind: explicit
-      text: A dispatch project is the durable work item displayed and acted on by the board.
+    basis: A dispatch project is the durable work item displayed and acted on by the board.
     fields:
       assignee: Text
       created_at: Timestamp
@@ -794,10 +655,6 @@ resources:
       - by: project.archive
         from: approved
         to: archived
-review_flags:
-- blocks_release: true
-  id: starter.scope
-  text: Canonical starter example; replace with the product-specific intent before release.
 scenarios:
   project.approval_notice.workflow:
     archetype: workflow_event_success
@@ -814,10 +671,7 @@ scenarios:
       workflow:
         ran: true
         ref: project.approval_notice
-    basis:
-      confidence: high
-      kind: inferred
-      text: Approval event dispatches the notification workflow.
+    basis: Approval event dispatches the notification workflow.
     execute:
       emit_event:
         payload:
@@ -858,10 +712,7 @@ scenarios:
           where:
             id: project_submitted_1
             status: approved
-    basis:
-      confidence: high
-      kind: explicit
-      text: Approval transitions a submitted project to approved and emits the event.
+    basis: Approval transitions a submitted project to approved and emits the event.
     execute:
       invoke_capability:
         input:
@@ -1040,10 +891,7 @@ scenarios:
         sync:
           observed:
           - select_project_updates_panels
-    basis:
-      confidence: high
-      kind: explicit
-      text: An empty workspace shows empty list, no detail, and no activity.
+    basis: An empty workspace shows empty list, no detail, and no activity.
     execute:
       open_entry:
         params:
@@ -1229,10 +1077,7 @@ scenarios:
         sync:
           observed:
           - select_project_updates_panels
-    basis:
-      confidence: high
-      kind: explicit
-      text: A populated workspace shows the ready list while detail awaits explicit selection.
+    basis: A populated workspace shows the ready list while detail awaits explicit selection.
     execute:
       open_entry:
         params:
@@ -1265,10 +1110,7 @@ scenarios:
             workspace_id: $fixture.workspace.id
       response:
         status: 200
-    basis:
-      confidence: high
-      kind: explicit
-      text: The API create endpoint delegates to the create capability and emits project.created.
+    basis: The API create endpoint delegates to the create capability and emits project.created.
     execute:
       call_entry:
         input:
@@ -1279,15 +1121,10 @@ scenarios:
         ref: api.project.create
     feature: project.create
     title: Create dispatch project through API
-status: draft
-version: 1
 views:
   project.board:
     archetype: dashboard
-    basis:
-      confidence: high
-      kind: explicit
-      text: The dispatch board composes list, detail, and activity FSM panels through shared selected-project context.
+    basis: The dispatch board composes list, detail, and activity FSM panels through shared selected-project context.
     context:
       selected_project_id: ID
       workspace_id: ID
@@ -1421,10 +1258,7 @@ views:
         panel: list
 workflows:
   project.approval_notice:
-    basis:
-      confidence: high
-      kind: inferred
-      text: Approval event sends a downstream notice.
+    basis: Approval event sends a downstream notice.
     ref: workflow.project.approval_notice
     steps:
     - capability: project.send_approval_notice

@@ -30,13 +30,13 @@ Choose scenario archetypes from `patterns.yaml`. Define every fixture through `t
 
 Resources are pure product data models. Declare fields, lifecycle, and product invariants only. Do not declare persistence dialects, SQL tables, ORM details, storage engines, indexes, migrations, or database-specific constraints in the PM/design contract.
 
-When the user's intent is uncertain, mark the `basis` as `kind: assumed` or `confidence: low`, add `basis.review: true`, or add a blocking `review_flag`. Do not add ad hoc notes or free-form fields.
+When the user's intent is uncertain, write a clear bounded `basis` sentence explaining the product reason. Do not add confidence fields, review flags, status fields, version fields, notes, or other meta-specification content.
 
 For exact HTML/CSS or Textual/TCSS requirements, add presentation details inside the relevant `target: view` or `target: panel` state spec only when the active layer permits that surface. For composed product screens, define reusable `target: panel` FSMs first, then mount them through `target: view` layout slots, includes, shared context, and sync rules.
 
 Every rendered copy ref must be backed by `target: copy`. Every rendered asset ref must be backed by `target: asset`. Every view state or composed view state vector must be backed by `target: render_case`. Use `target: audit_profile` for fixed breakpoints. Do not create review reports or manifests; the compiler derives the full audit set from the contract.
 
-For final copy or image assets, declare the typed content signature in `pm.patch.yaml` through `target: copy` or `target: asset` with `args` and `final`. Add `target: content_case` coverage for every final resolver. Do not write resolver bodies as a PM/spec agent; resolver bodies live in `content/resolvers.py` and must implement the generated stubs exactly.
+For final copy or image assets, declare the typed content signature in `pm.patch.yaml` through `target: copy` or `target: asset` with `args` and `resolver`. Add `target: content_case` coverage for every resolver-backed copy or asset. Do not write resolver bodies as a PM/spec agent; resolver bodies live in `content/resolvers.py` and must implement the generated stubs exactly.
 
 ## Final content resolver implementer
 

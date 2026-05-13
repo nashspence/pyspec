@@ -5,15 +5,15 @@ from pathlib import Path
 
 import pytest
 
-from pm_contract.compile import ContractError, compile_patch
+from pm_contract.compile import ContractError, compile_patch, validate_against_schema
 from pm_contract.io import read_yaml, write_yaml
 from pm_contract.validate import validate_project
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def _basis(text: str = "test patch operation") -> dict[str, str]:
-    return {"kind": "explicit", "confidence": "high", "text": text}
+def _basis(text: str = "test patch operation") -> str:
+    return text
 
 
 def _change(patch: dict, target: str, item_id: str | None = None) -> dict:
@@ -35,7 +35,7 @@ def test_project_validates() -> None:
 
 
 def test_yaml_writer_never_emits_anchors_or_aliases(tmp_path: Path) -> None:
-    shared = {"confidence": "high", "kind": "explicit", "text": "shared basis"}
+    shared = {"text": "shared basis"}
     path = tmp_path / "contract.yaml"
     write_yaml(path, {"first": shared, "second": shared})
     text = path.read_text(encoding="utf-8")
@@ -61,12 +61,12 @@ def test_validation_rejects_hand_edited_yaml_anchors(tmp_path: Path) -> None:
     shutil.copytree(ROOT, project, ignore=ignore)
     contract_path = project / "contract.yaml"
     text = contract_path.read_text(encoding="utf-8")
-    contract_path.write_text(text.replace("status: draft", "status: &id001 draft", 1), encoding="utf-8")
+    contract_path.write_text(text.replace("project: project_dispatch_board", "project: &id001 project_dispatch_board", 1), encoding="utf-8")
     with pytest.raises(ContractError, match="Generated YAML must not contain anchors or aliases"):
         validate_project(project)
 
-def test_release_gate_blocks_starter_draft() -> None:
-    with pytest.raises(ContractError, match="Release gate requires status: approved"):
+def test_release_gate_requires_final_content_resolvers() -> None:
+    with pytest.raises(ContractError, match="Release gate requires final content resolvers"):
         validate_project(ROOT, release=True)
 
 
@@ -75,6 +75,33 @@ def test_pm_patch_schema_rejects_unknown_fields() -> None:
     patch["changes"][0]["invented_by_agent"] = True
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_patch(patch)
+
+def test_pm_patch_rejects_meta_root_fields() -> None:
+    for key, value in [("version", 1), ("status", "draft"), ("review_flags", [{"id": "x"}])]:
+        patch = read_yaml(ROOT / "pm.patch.yaml")
+        patch[key] = value
+        with pytest.raises(ContractError, match="Schema validation failed"):
+            compile_patch(patch)
+
+def test_contract_schema_rejects_meta_root_fields() -> None:
+    for key, value in [("version", 1), ("status", "draft"), ("review_flags", [{"id": "x"}])]:
+        contract = read_yaml(ROOT / "contract.yaml")
+        contract[key] = value
+        with pytest.raises(ContractError, match="Schema validation failed"):
+            validate_against_schema(contract, "contract.schema.json")
+
+
+def test_basis_is_plain_bounded_text() -> None:
+    patch = read_yaml(ROOT / "pm.patch.yaml")
+    assert isinstance(patch["changes"][0]["basis"], str)
+    bad = read_yaml(ROOT / "pm.patch.yaml")
+    bad["changes"][0]["basis"] = {"text": "object basis", "kind": "explicit", "confidence": "high"}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_patch(bad)
+    bad = read_yaml(ROOT / "pm.patch.yaml")
+    bad["changes"][0]["basis"] = "x" * 281
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_patch(bad)
 
 
 def test_generated_tree_is_closed(tmp_path: Path) -> None:
@@ -152,9 +179,7 @@ def _fixture_change(op: str, fixture_id: str, actor_id: str = "u1") -> dict[str,
 
 def test_patch_operations_allow_add_replace_delete() -> None:
     patch = {
-        "version": 1,
         "project": "patch_ops",
-        "status": "draft",
         "changes": [
             _fixture_change("add", "fixture.actor", "u1"),
             _fixture_change("replace", "fixture.actor", "u2"),
@@ -168,19 +193,19 @@ def test_patch_operations_allow_add_replace_delete() -> None:
 
 
 def test_add_existing_item_is_rejected() -> None:
-    patch = {"version": 1, "project": "patch_ops", "status": "draft", "changes": [_fixture_change("add", "fixture.actor", "u1"), _fixture_change("add", "fixture.actor", "u2")]}
+    patch = {"project": "patch_ops", "changes": [_fixture_change("add", "fixture.actor", "u1"), _fixture_change("add", "fixture.actor", "u2")]}
     with pytest.raises(ContractError, match="Duplicate fixture"):
         compile_patch(patch)
 
 
 def test_replace_missing_item_is_rejected() -> None:
-    patch = {"version": 1, "project": "patch_ops", "status": "draft", "changes": [_fixture_change("replace", "fixture.missing", "u1")]}
+    patch = {"project": "patch_ops", "changes": [_fixture_change("replace", "fixture.missing", "u1")]}
     with pytest.raises(ContractError, match="replace missing fixture|Cannot replace missing fixture"):
         compile_patch(patch)
 
 
 def test_delete_missing_item_is_rejected() -> None:
-    patch = {"version": 1, "project": "patch_ops", "status": "draft", "changes": [{"op": "delete", "target": "fixture", "id": "fixture.missing", "basis": _basis()}]}
+    patch = {"project": "patch_ops", "changes": [{"op": "delete", "target": "fixture", "id": "fixture.missing", "basis": _basis()}]}
     with pytest.raises(ContractError, match="delete missing fixture"):
         compile_patch(patch)
 
@@ -193,13 +218,13 @@ def test_delete_with_remaining_references_is_rejected() -> None:
 
 
 def test_legacy_define_operations_are_schema_rejected() -> None:
-    patch = {"version": 1, "project": "patch_ops", "status": "draft", "changes": [{"op": "define_fixture", "id": "fixture.actor", "values": {"actor": {"id": "u1"}}, "basis": _basis("legacy define operation")}]} 
+    patch = {"project": "patch_ops", "changes": [{"op": "define_fixture", "id": "fixture.actor", "values": {"actor": {"id": "u1"}}, "basis": _basis("legacy define operation")}]} 
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_patch(patch)
 
 
 def test_nested_subject_mutations_are_schema_rejected() -> None:
-    patch = {"version": 1, "project": "patch_ops", "status": "draft", "changes": [{"op": "add", "fixture": {"id": "fixture.actor", "values": {"actor": {"id": "u1"}}, "basis": _basis("nested old mutation shape")}}]}
+    patch = {"project": "patch_ops", "changes": [{"op": "add", "fixture": {"id": "fixture.actor", "values": {"actor": {"id": "u1"}}, "basis": _basis("nested old mutation shape")}}]}
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_patch(patch)
 
@@ -233,9 +258,7 @@ def test_composed_scenario_rejects_unknown_panel_instance() -> None:
 
 def _api_only_patch() -> dict:
     return {
-        "version": 1,
         "project": "api_only",
-        "status": "draft",
         "changes": [
             {
                 "op": "add",

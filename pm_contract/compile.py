@@ -74,10 +74,7 @@ def compile_patch(patch: dict[str, Any], layers: set[str] | None = None) -> dict
         raise ContractError(str(exc)) from exc
 
     contract: dict[str, Any] = {
-        "version": 1,
         "project": patch["project"],
-        "status": patch["status"],
-        "review_flags": patch.get("review_flags", []),
         "copies": {},
         "assets": {},
         "content_cases": {},
@@ -128,7 +125,7 @@ def _normalize_patch_change(change: dict[str, Any]) -> tuple[str, str, str, dict
         entity = change["target"]
         spec = copy.deepcopy(change["spec"])
         spec["id"] = change["id"]
-        spec["basis"] = copy.deepcopy(change["basis"])
+        spec["basis"] = change["basis"]
         return op, entity, change["id"], spec
 
     if op == "delete":
@@ -149,14 +146,14 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
 
     if entity == "copy":
         item = {"placeholder": spec["placeholder"], "basis": spec["basis"]}
-        for field in ["max_chars", "tone", "args", "final"]:
+        for field in ["max_chars", "tone", "args", "resolver"]:
             if field in spec:
                 item[field] = spec[field]
         return item
 
     if entity == "asset":
         item = {"kind": spec["kind"], "placeholder": spec["placeholder"], "basis": spec["basis"]}
-        for field in ["alt_copy", "args", "final"]:
+        for field in ["alt_copy", "args", "resolver"]:
             if field in spec:
                 item[field] = spec[field]
         return item
@@ -418,16 +415,16 @@ def _validate_content_cases(contract: dict[str, Any]) -> None:
         ref
         for section in ["copies", "assets"]
         for ref, item in contract.get(section, {}).items()
-        if (item.get("final") or {}).get("status") in {"final_draft", "approved"}
+        if item.get("resolver")
     }
     declared_case_refs: set[str] = set()
     for ref, item in list(contract.get("copies", {}).items()) + list(contract.get("assets", {}).items()):
-        final = item.get("final")
-        if final:
-            if final["resolver"] != ref:
-                raise ContractError(f"Content final resolver for {ref} must equal the content id")
-            if final["status"] != "placeholder" and not item.get("args"):
-                # Arg-less final resolvers are allowed, but declaring args is preferred for dynamic content.
+        resolver = item.get("resolver")
+        if resolver:
+            if resolver != ref:
+                raise ContractError(f"Content resolver for {ref} must equal the content id")
+            if not item.get("args"):
+                # Arg-less resolvers are allowed, but declaring args is preferred for dynamic content.
                 pass
     for case_id, case in contract.get("content_cases", {}).items():
         ref = case["ref"]

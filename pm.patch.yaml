@@ -1,8 +1,5 @@
 changes:
-- basis:
-    confidence: high
-    kind: explicit
-    text: Workspace member fixture for web/API/TUI scenarios.
+- basis: Workspace member fixture for web/API/TUI scenarios.
   id: fixture.workspace.member
   op: add
   spec:
@@ -15,10 +12,7 @@ changes:
         id: workspace_1
         name: North Region Dispatch
   target: fixture
-- basis:
-    confidence: high
-    kind: explicit
-    text: Reviewer fixture for approval scenarios.
+- basis: Reviewer fixture for approval scenarios.
   id: fixture.workspace.reviewer
   op: add
   spec:
@@ -31,10 +25,7 @@ changes:
         id: workspace_1
         name: North Region Dispatch
   target: fixture
-- basis:
-    confidence: high
-    kind: explicit
-    text: Render fixtures provide dynamic records for visual audit of ready and detail states.
+- basis: Render fixtures provide dynamic records for visual audit of ready and detail states.
   id: fixture.projects.audit_records
   op: add
   spec:
@@ -63,10 +54,7 @@ changes:
         updated_at: '2026-05-11T07:15:00Z'
         workspace_id: workspace_1
   target: fixture
-- basis:
-    confidence: high
-    kind: explicit
-    text: A dispatch project is the durable work item displayed and acted on by the board.
+- basis: A dispatch project is the durable work item displayed and acted on by the board.
   id: Project
   op: add
   spec:
@@ -101,10 +89,7 @@ changes:
         from: approved
         to: archived
   target: resource
-- basis:
-    confidence: high
-    kind: explicit
-    text: Members can create a new dispatch project.
+- basis: Members can create a new dispatch project.
   id: project.create
   op: add
   spec:
@@ -119,10 +104,7 @@ changes:
     output: Project
     resource: Project
   target: capability
-- basis:
-    confidence: high
-    kind: explicit
-    text: The board requires a project list query scoped by workspace.
+- basis: The board requires a project list query scoped by workspace.
   id: project.list
   op: add
   spec:
@@ -132,10 +114,7 @@ changes:
     output: list[Project]
     resource: Project
   target: capability
-- basis:
-    confidence: high
-    kind: explicit
-    text: Draft dispatch projects can be submitted for review.
+- basis: Draft dispatch projects can be submitted for review.
   id: project.submit
   op: add
   spec:
@@ -151,10 +130,7 @@ changes:
       from: draft
       to: submitted
   target: capability
-- basis:
-    confidence: high
-    kind: explicit
-    text: Reviewers can approve submitted dispatch projects.
+- basis: Reviewers can approve submitted dispatch projects.
   id: project.approve
   op: add
   spec:
@@ -170,10 +146,7 @@ changes:
       from: submitted
       to: approved
   target: capability
-- basis:
-    confidence: high
-    kind: explicit
-    text: Approved dispatch projects can be archived.
+- basis: Approved dispatch projects can be archived.
   id: project.archive
   op: add
   spec:
@@ -189,10 +162,7 @@ changes:
       from: approved
       to: archived
   target: capability
-- basis:
-    confidence: high
-    kind: inferred
-    text: Approval triggers a notification command for downstream coordination.
+- basis: Approval triggers a notification command for downstream coordination.
   id: project.send_approval_notice
   op: add
   spec:
@@ -203,10 +173,7 @@ changes:
     output: NoticeResult
     resource: Project
   target: capability
-- basis:
-    confidence: high
-    kind: explicit
-    text: The list panel owns collection loading, empty, ready, error, and selection behavior.
+- basis: The list panel owns collection loading, empty, ready, error, and selection behavior.
   id: panel.project.list
   op: add
   spec:
@@ -274,10 +241,7 @@ changes:
       from: ready
       to: ready
   target: panel
-- basis:
-    confidence: high
-    kind: explicit
-    text: The detail panel is independent from the list and reacts to selected project context.
+- basis: The detail panel is independent from the list and reacts to selected project context.
   id: panel.project.detail
   op: add
   spec:
@@ -336,10 +300,7 @@ changes:
       from: ready
       to: none
   target: panel
-- basis:
-    confidence: high
-    kind: explicit
-    text: The activity panel summarizes latest status around the selected project.
+- basis: The activity panel summarizes latest status around the selected project.
   id: panel.project.activity
   op: add
   spec:
@@ -375,10 +336,7 @@ changes:
       from: ready
       to: empty
   target: panel
-- basis:
-    confidence: high
-    kind: explicit
-    text: The dispatch board composes list, detail, and activity FSM panels through shared selected-project context.
+- basis: The dispatch board composes list, detail, and activity FSM panels through shared selected-project context.
   id: project.board
   op: add
   spec:
@@ -508,10 +466,7 @@ changes:
         emits: project.selected
         panel: list
   target: view
-- basis:
-    confidence: high
-    kind: explicit
-    text: Web entry for the dispatch board.
+- basis: Web entry for the dispatch board.
   id: web.project.board
   op: add
   spec:
@@ -522,10 +477,7 @@ changes:
     target:
       view: project.board
   target: entry
-- basis:
-    confidence: high
-    kind: explicit
-    text: Textual entry for the dispatch board.
+- basis: Textual entry for the dispatch board.
   id: textual.project.board
   op: add
   spec:
@@ -534,10 +486,7 @@ changes:
     target:
       view: project.board
   target: entry
-- basis:
-    confidence: high
-    kind: explicit
-    text: HTTP endpoint for creating a dispatch project.
+- basis: HTTP endpoint for creating a dispatch project.
   id: api.project.create
   op: add
   spec:
@@ -549,10 +498,7 @@ changes:
     target:
       capability: project.create
   target: entry
-- basis:
-    confidence: high
-    kind: explicit
-    text: HTTP endpoint for listing dispatch projects.
+- basis: HTTP endpoint for listing dispatch projects.
   id: api.project.list
   op: add
   spec:
@@ -564,10 +510,7 @@ changes:
     target:
       capability: project.list
   target: entry
-- basis:
-    confidence: high
-    kind: explicit
-    text: CLI entry for approval automation.
+- basis: CLI entry for approval automation.
   id: cli.project.approve
   op: add
   spec:
@@ -578,10 +521,7 @@ changes:
     target:
       capability: project.approve
   target: entry
-- basis:
-    confidence: high
-    kind: inferred
-    text: Approval event sends a downstream notice.
+- basis: Approval event sends a downstream notice.
   id: project.approval_notice
   op: add
   spec:
@@ -591,10 +531,7 @@ changes:
     trigger:
       event: project.approved
   target: workflow
-- basis:
-    confidence: high
-    kind: inferred
-    text: Worker entry exposing the approval notice workflow.
+- basis: Worker entry exposing the approval notice workflow.
   id: worker.project.approval_notice
   op: add
   spec:
@@ -602,10 +539,7 @@ changes:
     target:
       workflow: project.approval_notice
   target: entry
-- basis:
-    confidence: high
-    kind: explicit
-    text: An empty workspace shows empty list, no detail, and no activity.
+- basis: An empty workspace shows empty list, no detail, and no activity.
   id: project.board.empty
   op: add
   spec:
@@ -644,10 +578,7 @@ changes:
           workspace_id: $fixture.workspace.id
         ref: web.project.board
   target: scenario
-- basis:
-    confidence: high
-    kind: explicit
-    text: A populated workspace shows the ready list while detail awaits explicit selection.
+- basis: A populated workspace shows the ready list while detail awaits explicit selection.
   id: project.board.ready
   op: add
   spec:
@@ -694,10 +625,7 @@ changes:
           workspace_id: $fixture.workspace.id
         ref: web.project.board
   target: scenario
-- basis:
-    confidence: high
-    kind: explicit
-    text: The API create endpoint delegates to the create capability and emits project.created.
+- basis: The API create endpoint delegates to the create capability and emits project.created.
   id: project.create.api.success
   op: add
   spec:
@@ -735,10 +663,7 @@ changes:
           workspace_id: $fixture.workspace.id
         ref: api.project.create
   target: scenario
-- basis:
-    confidence: high
-    kind: explicit
-    text: Approval transitions a submitted project to approved and emits the event.
+- basis: Approval transitions a submitted project to approved and emits the event.
   id: project.approve.success
   op: add
   spec:
@@ -780,10 +705,7 @@ changes:
           project_id: project_submitted_1
         ref: project.approve
   target: scenario
-- basis:
-    confidence: high
-    kind: inferred
-    text: Approval event dispatches the notification workflow.
+- basis: Approval event dispatches the notification workflow.
   id: project.approval_notice.workflow
   op: add
   spec:
@@ -810,10 +732,7 @@ changes:
           project_id: project_submitted_1
         ref: project.approved
   target: scenario
-- basis:
-    confidence: high
-    kind: explicit
-    text: Loading message for the project list panel.
+- basis: Loading message for the project list panel.
   id: copy.project.list.loading.message
   op: add
   spec:
@@ -821,10 +740,7 @@ changes:
     placeholder: Loading dispatch projects…
     tone: neutral
   target: copy
-- basis:
-    confidence: high
-    kind: explicit
-    text: Empty heading for the project list panel.
+- basis: Empty heading for the project list panel.
   id: copy.project.list.empty.heading
   op: add
   spec:
@@ -832,10 +748,7 @@ changes:
     placeholder: No dispatch projects yet
     tone: neutral
   target: copy
-- basis:
-    confidence: high
-    kind: explicit
-    text: Empty body for the project list panel.
+- basis: Empty body for the project list panel.
   id: copy.project.list.empty.body
   op: add
   spec:
@@ -843,10 +756,7 @@ changes:
     placeholder: Create the first project to start coordinating work for this workspace.
     tone: instructional
   target: copy
-- basis:
-    confidence: high
-    kind: explicit
-    text: Ready heading for the project list panel.
+- basis: Ready heading for the project list panel.
   id: copy.project.list.ready.heading
   op: add
   spec:
@@ -854,10 +764,7 @@ changes:
     placeholder: Dispatch queue
     tone: neutral
   target: copy
-- basis:
-    confidence: high
-    kind: explicit
-    text: Error heading for the project list panel.
+- basis: Error heading for the project list panel.
   id: copy.project.list.error.heading
   op: add
   spec:
@@ -865,10 +772,7 @@ changes:
     placeholder: Projects could not be loaded
     tone: error
   target: copy
-- basis:
-    confidence: high
-    kind: explicit
-    text: Error body for the project list panel.
+- basis: Error body for the project list panel.
   id: copy.project.list.error.body
   op: add
   spec:
@@ -876,10 +780,7 @@ changes:
     placeholder: Check the workspace connection and try again.
     tone: error
   target: copy
-- basis:
-    confidence: high
-    kind: explicit
-    text: No-selection heading for the detail panel.
+- basis: No-selection heading for the detail panel.
   id: copy.project.detail.none.heading
   op: add
   spec:
@@ -887,10 +788,7 @@ changes:
     placeholder: Select a project
     tone: instructional
   target: copy
-- basis:
-    confidence: high
-    kind: explicit
-    text: No-selection body for the detail panel.
+- basis: No-selection body for the detail panel.
   id: copy.project.detail.none.body
   op: add
   spec:
@@ -898,10 +796,7 @@ changes:
     placeholder: Choose a project from the queue to review customer, assignment, and approval details.
     tone: instructional
   target: copy
-- basis:
-    confidence: high
-    kind: explicit
-    text: Loading message for the detail panel.
+- basis: Loading message for the detail panel.
   id: copy.project.detail.loading.message
   op: add
   spec:
@@ -909,27 +804,19 @@ changes:
     placeholder: Loading project detail…
     tone: neutral
   target: copy
-- basis:
-    confidence: high
-    kind: explicit
-    text: Ready heading for the detail panel.
+- basis: Ready heading for the detail panel.
   id: copy.project.detail.ready.heading
   op: add
   spec:
     args:
       customer: Text
       title: Text
-    final:
-      resolver: copy.project.detail.ready.heading
-      status: final_draft
     max_chars: 80
     placeholder: Project detail
+    resolver: copy.project.detail.ready.heading
     tone: neutral
   target: copy
-- basis:
-    confidence: high
-    kind: explicit
-    text: Error heading for the detail panel.
+- basis: Error heading for the detail panel.
   id: copy.project.detail.error.heading
   op: add
   spec:
@@ -937,10 +824,7 @@ changes:
     placeholder: Project detail is unavailable
     tone: error
   target: copy
-- basis:
-    confidence: high
-    kind: explicit
-    text: Error body for the detail panel.
+- basis: Error body for the detail panel.
   id: copy.project.detail.error.body
   op: add
   spec:
@@ -948,10 +832,7 @@ changes:
     placeholder: Refresh the selection or return to the queue.
     tone: error
   target: copy
-- basis:
-    confidence: high
-    kind: explicit
-    text: Empty activity heading.
+- basis: Empty activity heading.
   id: copy.project.activity.empty.heading
   op: add
   spec:
@@ -959,10 +840,7 @@ changes:
     placeholder: No project selected
     tone: neutral
   target: copy
-- basis:
-    confidence: high
-    kind: explicit
-    text: Empty activity body.
+- basis: Empty activity body.
   id: copy.project.activity.empty.body
   op: add
   spec:
@@ -970,10 +848,7 @@ changes:
     placeholder: Activity appears after a project is selected.
     tone: instructional
   target: copy
-- basis:
-    confidence: high
-    kind: explicit
-    text: Ready activity heading.
+- basis: Ready activity heading.
   id: copy.project.activity.ready.heading
   op: add
   spec:
@@ -981,10 +856,7 @@ changes:
     placeholder: Latest activity
     tone: neutral
   target: copy
-- basis:
-    confidence: high
-    kind: explicit
-    text: Generic placeholder illustration used by the empty queue panel.
+- basis: Generic placeholder illustration used by the empty queue panel.
   id: asset.project.list.empty.illustration
   op: add
   spec:
@@ -995,28 +867,20 @@ changes:
       label: Empty dispatch queue illustration
       shape: square
   target: asset
-- basis:
-    confidence: high
-    kind: explicit
-    text: Selected project detail shows a dynamic priority badge resolved from project fixture data.
+- basis: Selected project detail shows a dynamic priority badge resolved from project fixture data.
   id: asset.project.detail.ready.priority_badge
   op: add
   spec:
     args:
       priority: Text
-    final:
-      resolver: asset.project.detail.ready.priority_badge
-      status: final_draft
     kind: icon
     placeholder:
       aspect_ratio: '1:1'
       label: Project priority badge
       shape: square
+    resolver: asset.project.detail.ready.priority_badge
   target: asset
-- basis:
-    confidence: high
-    kind: explicit
-    text: Exercise final detail heading copy with representative fixture-backed content.
+- basis: Exercise final detail heading copy with representative fixture-backed content.
   id: content.project.detail.heading.high_priority
   op: add
   spec:
@@ -1025,10 +889,7 @@ changes:
       title: Replace rooftop condenser fan
     ref: copy.project.detail.ready.heading
   target: content_case
-- basis:
-    confidence: high
-    kind: explicit
-    text: Exercise final dynamic priority badge asset.
+- basis: Exercise final dynamic priority badge asset.
   id: content.project.detail.priority_badge.high_priority
   op: add
   spec:
@@ -1036,10 +897,7 @@ changes:
       priority: High
     ref: asset.project.detail.ready.priority_badge
   target: content_case
-- basis:
-    confidence: high
-    kind: explicit
-    text: Two viewport breakpoints are enough to demonstrate visual audit coverage in the canonical example.
+- basis: Two viewport breakpoints are enough to demonstrate visual audit coverage in the canonical example.
   id: default
   op: add
   spec:
@@ -1060,10 +918,7 @@ changes:
           columns: 120
           rows: 36
   target: audit_profile
-- basis:
-    confidence: high
-    kind: explicit
-    text: Audit render for empty board state vector.
+- basis: Audit render for empty board state vector.
   id: project.board.empty.audit
   op: add
   spec:
@@ -1083,10 +938,7 @@ changes:
     - textual
     view: project.board
   target: render_case
-- basis:
-    confidence: high
-    kind: explicit
-    text: Audit render for selected-project board state vector using dynamic fixture records.
+- basis: Audit render for selected-project board state vector using dynamic fixture records.
   id: project.board.ready_selected.audit
   op: add
   spec:
@@ -1110,9 +962,3 @@ changes:
     view: project.board
   target: render_case
 project: project_dispatch_board
-review_flags:
-- blocks_release: true
-  id: starter.scope
-  text: Canonical starter example; replace with the product-specific intent before release.
-status: draft
-version: 1
