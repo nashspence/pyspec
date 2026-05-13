@@ -2364,9 +2364,6 @@
         "initial": {
           "$ref": "#/$defs/state_name"
         },
-        "kind": {
-          "const": "fsm"
-        },
         "resource": {
           "$ref": "#/$defs/resource_id"
         },
@@ -2391,7 +2388,6 @@
         }
       },
       "required": [
-        "kind",
         "resource",
         "initial",
         "states"
@@ -2520,9 +2516,6 @@
         "initial": {
           "$ref": "#/$defs/state_name"
         },
-        "kind": {
-          "const": "fsm"
-        },
         "states": {
           "additionalProperties": {
             "$ref": "#/$defs/panel_state_spec"
@@ -2541,7 +2534,6 @@
         }
       },
       "required": [
-        "kind",
         "initial",
         "states",
         "basis"
@@ -2571,9 +2563,6 @@
         "initial": {
           "$ref": "#/$defs/state_name"
         },
-        "kind": {
-          "const": "fsm"
-        },
         "resource": {
           "$ref": "#/$defs/resource_id"
         },
@@ -2595,7 +2584,6 @@
         }
       },
       "required": [
-        "kind",
         "resource",
         "context",
         "data",

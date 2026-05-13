@@ -24,8 +24,13 @@ The contract is progressive. It never says that web, Textual, HTTP, events, work
 
 ```bash
 python -m pip install -r requirements.txt
-npm install
 python -m playwright install chromium
+```
+
+FSM and composition audit diagrams are rendered with Graphviz. Install Graphviz so `dot` is on `PATH`; the devcontainer already includes it. If `dot` lives elsewhere, set:
+
+```bash
+export CONTRACT_AUDIT_GRAPHVIZ_DOT=/path/to/dot
 ```
 
 When system Chromium is available, this is also supported:
@@ -34,7 +39,7 @@ When system Chromium is available, this is also supported:
 export CONTRACT_AUDIT_CHROMIUM=/usr/bin/chromium
 ```
 
-`node_modules/`, caches, and virtual environments are not part of the artifact.
+Caches and virtual environments are not part of the artifact.
 
 ## Authoring formats
 
@@ -280,8 +285,8 @@ Format rules are fixed:
 ```text
 HTML visual audit       -> PNG only
 Textual visual audit    -> SVG only
-FSM diagrams            -> SVG only
-composition diagrams    -> SVG only
+FSM diagrams            -> Graphviz SVG only
+composition diagrams    -> Graphviz SVG only
 ```
 
 ## Final copy and asset resolvers

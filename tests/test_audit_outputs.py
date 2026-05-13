@@ -1,10 +1,9 @@
 from __future__ import annotations
-
 from pathlib import Path
 
 import pytest
 
-from pm_contract.audit import audit_expected_files
+from pm_contract.audit import _render_graphviz_svg, audit_expected_files, composition_dot, panel_fsm_dot
 from pm_contract.compile import ContractError, compile_patch
 from pm_contract.io import read_yaml
 from pm_contract.paths import COMPILED_CONTRACT_PATH
@@ -36,6 +35,57 @@ def test_audit_outputs_cover_full_contract() -> None:
     assert any(path.startswith("generated/audit/html/views/") and path.endswith(".html") for path in expected)
     assert any(path.startswith("generated/audit/textual/views/") and path.endswith(".svg") for path in expected)
     validate_audit_outputs(ROOT, contract)
+
+
+def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
+    contract = _contract()
+    fsm = panel_fsm_dot("panel.project.list", contract["panels"]["panel.project.list"])
+    composition = composition_dot("project.board", contract["views"]["project.board"])
+    assert fsm.startswith("digraph ")
+    assert composition.startswith("digraph ")
+    assert "stateDiagram" not in fsm
+    assert "flowchart" not in composition
+    assert "on data.ready" in fsm
+    assert "copy.project.list.ready.heading" in fsm
+    assert "asset.project.list.empty.illustration" in fsm
+    assert "emit project.selected" in fsm
+    assert "capability: project.list" in fsm
+    assert "query: query.project.list.list" in fsm
+    assert "selected state: loading" in composition
+    assert "send project.selection_changed to detail" in composition
+    for graph_id, dot_source in {"panel_project_list": fsm, "project_board": composition}.items():
+        svg = _render_graphviz_svg(dot_source, graph_id)
+        assert svg.lstrip().startswith("<svg")
+        assert "</svg>" in svg
+
+
+def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
+    list_fsm = (ROOT / "generated" / "audit" / "fsm" / "panel_project_list.svg").read_text(encoding="utf-8")
+    detail_fsm = (ROOT / "generated" / "audit" / "fsm" / "panel_project_detail.svg").read_text(encoding="utf-8")
+    activity_fsm = (ROOT / "generated" / "audit" / "fsm" / "panel_project_activity.svg").read_text(encoding="utf-8")
+    composition = (ROOT / "generated" / "audit" / "composition" / "project_board.svg").read_text(encoding="utf-8")
+    assert "on data.ready" in list_fsm
+    assert "copy.project.list.ready.heading" in list_fsm
+    assert "asset.project.list.empty.illustration" in list_fsm
+    assert "emit project.selected" in list_fsm
+    assert "capability: project.list" in list_fsm
+    assert "query: query.project.list.list" in list_fsm
+    assert "&#45; data.ready" not in list_fsm
+    assert "&#45; copy.project" not in list_fsm
+    assert "&#45; none" not in list_fsm
+    assert ">basis<" not in list_fsm
+    assert "loading &#45;&gt; empty" not in list_fsm
+    assert "(initial)" not in list_fsm
+    assert "initial:" not in list_fsm
+    assert "FSM panel" not in list_fsm
+    assert "declared, no arrow" not in list_fsm
+    assert "transition events" not in list_fsm
+    assert "emitted events" not in list_fsm
+    assert "panel.project.detail.ready" in detail_fsm
+    assert "project.approve" in detail_fsm
+    assert "data.ready" not in activity_fsm
+    assert "selected state: loading" in composition
+    assert "send project.selection_changed to detail" in composition
 
 
 def test_audit_html_sources_render_copy_assets_and_fixture_fields() -> None:

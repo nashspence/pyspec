@@ -198,7 +198,6 @@ def test_author_panel_defaults_empty_collections() -> None:
         },
         "panels": {
             "panel.ticket.empty": {
-                "kind": "fsm",
                 "resource": "Ticket",
                 "initial": "empty",
                 "states": {"empty": {"pattern": "empty"}},
@@ -212,6 +211,23 @@ def test_author_panel_defaults_empty_collections() -> None:
     assert panel["data"] == []
     assert panel["events"] == []
     assert panel["transitions"] == []
+    assert "kind" not in panel
+
+
+def test_panel_events_must_be_used_by_transition_or_emit() -> None:
+    patch = read_yaml(ROOT / "pm.patch.yaml")
+    activity = _change(patch, "panel", "panel.project.activity")["spec"]
+    activity["events"].append("unused.event")
+    with pytest.raises(ContractError, match=r"Panel panel\.project\.activity declares event without transition or emit: .*unused\.event"):
+        compile_patch(patch)
+
+
+def test_panel_transition_events_must_be_declared() -> None:
+    patch = read_yaml(ROOT / "pm.patch.yaml")
+    activity = _change(patch, "panel", "panel.project.activity")["spec"]
+    activity["events"].remove("selection.cleared")
+    with pytest.raises(ContractError, match=r"Panel panel\.project\.activity uses event without declaring it: .*selection\.cleared"):
+        compile_patch(patch)
 
 
 def test_basis_is_plain_bounded_text() -> None:
@@ -441,7 +457,6 @@ def test_authoring_layers_reject_irrelevant_ui_targets() -> None:
             "target": "panel",
             "id": "panel.ticket.list",
             "spec": {
-                "kind": "fsm",
                 "resource": "Ticket",
                 "context": {},
                 "data": [],

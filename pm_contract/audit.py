@@ -8,6 +8,7 @@ import os
 import shutil
 import subprocess
 import sys
+import textwrap
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -92,56 +93,23 @@ def _render_visual_audit_subprocess(root: Path, tools_root: Path) -> None:
         raise ContractError(f"Visual audit renderer failed with exit code {result.returncode}")
 
 
-def _render_visual_audit(root: Path, contract: dict[str, Any], tools_root: Path) -> None:
-    try:
-        from playwright.sync_api import sync_playwright
-    except Exception as exc:  # pragma: no cover - dependency absence is environment-specific.
-        raise ContractError("Missing Playwright dependency; install requirements.txt and run python -m playwright install chromium, or provide system Chromium") from exc
-
-    mermaid_js = _mermaid_js_path(tools_root, root)
+def _render_visual_audit(root: Path, contract: dict[str, Any], _tools_root: Path) -> None:
     projection = panels_projection(contract)
-    with sync_playwright() as pw:
-        browser = _launch_chromium(pw)
-        try:
-            for panel_id, panel in sorted(contract.get("panels", {}).items()):
-                diagram = panel_fsm_mermaid(panel_id, panel)
-                svg = _render_mermaid_svg(browser, mermaid_js, diagram, safe_id(panel_id))
-                path = root / "generated" / "audit" / "fsm" / f"{safe_id(panel_id)}.svg"
-                path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_text(svg, encoding="utf-8")
-            for view_id, view in sorted(contract.get("views", {}).items()):
-                if not view.get("includes"):
-                    continue
-                diagram = composition_mermaid(view_id, view)
-                svg = _render_mermaid_svg(browser, mermaid_js, diagram, safe_id(view_id))
-                path = root / "generated" / "audit" / "composition" / f"{safe_id(view_id)}.svg"
-                path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_text(svg, encoding="utf-8")
 
-            page = browser.new_page()
-            try:
-                for panel in sorted(projection["panels"], key=lambda p: p["id"]):
-                    for profile_id, profile in sorted(contract.get("audit_profiles", {}).items()):
-                        html_profile = profile.get("html")
-                        if not html_profile:
-                            continue
-                        html_doc = audit_html_document(contract, render_panel_audit_html(root, contract, panel, None))
-                        for name, viewport in sorted(html_profile["breakpoints"].items()):
-                            stem = f"{safe_id(profile_id)}.{safe_id(name)}"
-                            base = root / "generated" / "audit" / "html" / "panels" / safe_id(panel["id"]) / stem
-                            _write_html_and_png_page(page, html_doc, base, viewport)
-                for case_id, case in sorted(contract.get("render_cases", {}).items()):
-                    profile = contract["audit_profiles"][case["profile"]]
-                    if "html" in case["surfaces"]:
-                        html_doc = audit_html_document(contract, render_case_html(root, contract, case_id, case))
-                        for name, viewport in sorted(profile.get("html", {}).get("breakpoints", {}).items()):
-                            stem = f"{safe_id(case['profile'])}.{safe_id(name)}.{safe_id(case_id)}"
-                            base = root / "generated" / "audit" / "html" / "views" / safe_id(case["view"]) / stem
-                            _write_html_and_png_page(page, html_doc, base, viewport)
-            finally:
-                page.close()
-        finally:
-            browser.close()
+    for panel_id, panel in sorted(contract.get("panels", {}).items()):
+        path = root / "generated" / "audit" / "fsm" / f"{safe_id(panel_id)}.svg"
+        _write_graphviz_svg(path, panel_fsm_dot(panel_id, panel))
+    for view_id, view in sorted(contract.get("views", {}).items()):
+        if not view.get("includes"):
+            continue
+        path = root / "generated" / "audit" / "composition" / f"{safe_id(view_id)}.svg"
+        _write_graphviz_svg(path, composition_dot(view_id, view))
+
+    has_html_audit = bool(
+        projection["panels"] and any(profile.get("html") for profile in contract.get("audit_profiles", {}).values())
+    ) or any("html" in case["surfaces"] for case in contract.get("render_cases", {}).values())
+    if has_html_audit:
+        _render_html_audit(root, contract, projection)
 
     if projection["panels"] or any("textual" in case["surfaces"] for case in contract.get("render_cases", {}).values()):
         try:
@@ -170,6 +138,41 @@ def _render_visual_audit(root: Path, contract: dict[str, Any], tools_root: Path)
         asyncio.run(_render_textual_batch(textual_jobs))
 
 
+def _render_html_audit(root: Path, contract: dict[str, Any], projection: dict[str, Any]) -> None:
+    try:
+        from playwright.sync_api import sync_playwright
+    except Exception as exc:  # pragma: no cover - dependency absence is environment-specific.
+        raise ContractError("Missing Playwright dependency; install requirements.txt and run python -m playwright install chromium, or provide system Chromium") from exc
+
+    with sync_playwright() as pw:
+        browser = _launch_chromium(pw)
+        try:
+            page = browser.new_page()
+            try:
+                for panel in sorted(projection["panels"], key=lambda p: p["id"]):
+                    for profile_id, profile in sorted(contract.get("audit_profiles", {}).items()):
+                        html_profile = profile.get("html")
+                        if not html_profile:
+                            continue
+                        html_doc = audit_html_document(contract, render_panel_audit_html(root, contract, panel, None))
+                        for name, viewport in sorted(html_profile["breakpoints"].items()):
+                            stem = f"{safe_id(profile_id)}.{safe_id(name)}"
+                            base = root / "generated" / "audit" / "html" / "panels" / safe_id(panel["id"]) / stem
+                            _write_html_and_png_page(page, html_doc, base, viewport)
+                for case_id, case in sorted(contract.get("render_cases", {}).items()):
+                    profile = contract["audit_profiles"][case["profile"]]
+                    if "html" in case["surfaces"]:
+                        html_doc = audit_html_document(contract, render_case_html(root, contract, case_id, case))
+                        for name, viewport in sorted(profile.get("html", {}).get("breakpoints", {}).items()):
+                            stem = f"{safe_id(case['profile'])}.{safe_id(name)}.{safe_id(case_id)}"
+                            base = root / "generated" / "audit" / "html" / "views" / safe_id(case["view"]) / stem
+                            _write_html_and_png_page(page, html_doc, base, viewport)
+            finally:
+                page.close()
+        finally:
+            browser.close()
+
+
 def _write_html_and_png_page(page: Any, html_doc: str, base: Path, viewport: dict[str, int]) -> None:
     html_path = Path(str(base) + ".html")
     png_path = Path(str(base) + ".png")
@@ -181,16 +184,6 @@ def _write_html_and_png_page(page: Any, html_doc: str, base: Path, viewport: dic
     if png_path.read_bytes()[:8] != b"\x89PNG\r\n\x1a\n":
         raise ContractError(f"HTML renderer did not produce a PNG: {png_path}")
 
-
-def _render_html_png(browser: Any, html_doc: str, path: Path, viewport: dict[str, int]) -> None:
-    page = browser.new_page(viewport={"width": viewport["width"], "height": viewport["height"]})
-    try:
-        page.set_content(html_doc, wait_until="load")
-        page.screenshot(path=str(path), full_page=False, type="png", timeout=10000)
-    finally:
-        page.close()
-    if path.read_bytes()[:8] != b"\x89PNG\r\n\x1a\n":
-        raise ContractError(f"HTML renderer did not produce a PNG: {path}")
 
 def _chromium_executable() -> str | None:
     return os.environ.get("CONTRACT_AUDIT_CHROMIUM") or shutil.which("chromium") or shutil.which("chromium-browser") or shutil.which("google-chrome") or shutil.which("google-chrome-stable")
@@ -204,49 +197,46 @@ def _launch_chromium(pw: Any) -> Any:
     return pw.chromium.launch(args=args)
 
 
-def _mermaid_js_path(tools_root: Path, root: Path) -> Path:
-    candidates = [
-        tools_root / "node_modules" / "mermaid" / "dist" / "mermaid.min.js",
-        root / "node_modules" / "mermaid" / "dist" / "mermaid.min.js",
-        Path.cwd() / "node_modules" / "mermaid" / "dist" / "mermaid.min.js",
-        ROOT / "node_modules" / "mermaid" / "dist" / "mermaid.min.js",
-    ]
-    for candidate in candidates:
-        if candidate.exists():
-            return candidate
-    raise ContractError("Missing Mermaid dependency; run npm install from the contract project root")
+def _graphviz_dot_executable() -> str:
+    executable = os.environ.get("CONTRACT_AUDIT_GRAPHVIZ_DOT") or shutil.which("dot")
+    if not executable:
+        raise ContractError("Missing Graphviz dependency; install graphviz so the dot executable is available")
+    return executable
 
 
-def _render_mermaid_svg(browser: Any, mermaid_js: Path, diagram: str, element_id: str) -> str:
-    page = browser.new_page()
+def _write_graphviz_svg(path: Path, dot_source: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(_render_graphviz_svg(dot_source, path.stem), encoding="utf-8")
+
+
+def _render_graphviz_svg(dot_source: str, graph_id: str) -> str:
     try:
-        page.set_content('<!doctype html><html><body><div id="out"></div></body></html>')
-        page.add_script_tag(content=mermaid_js.read_text(encoding="utf-8"))
-        svg = page.evaluate(
-            """async ({diagram, elementId}) => {
-                mermaid.initialize({startOnLoad:false, securityLevel:'loose', theme:'default'});
-                const result = await mermaid.render(elementId, diagram);
-                document.getElementById('out').innerHTML = result.svg;
-                return result.svg;
-            }""",
-            {"diagram": diagram, "elementId": element_id},
+        result = subprocess.run(
+            [_graphviz_dot_executable(), "-Tsvg"],
+            input=dot_source,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=30,
+            check=False,
         )
-    finally:
-        page.close()
-    if not isinstance(svg, str) or "<svg" not in svg:
-        raise ContractError("Mermaid renderer did not produce SVG")
+    except subprocess.TimeoutExpired as exc:
+        raise ContractError(f"Graphviz renderer timed out for {graph_id}") from exc
+    if result.returncode != 0:
+        detail = result.stderr.strip() or f"exit code {result.returncode}"
+        raise ContractError(f"Graphviz renderer failed for {graph_id}: {detail}")
+    svg = _strip_svg_preamble(result.stdout)
+    if not svg.lstrip().startswith("<svg") or "</svg>" not in svg:
+        raise ContractError("Graphviz renderer did not produce SVG")
     return svg
 
 
-def _render_html_png(browser: Any, html_doc: str, path: Path, viewport: dict[str, int]) -> None:
-    page = browser.new_page(viewport={"width": viewport["width"], "height": viewport["height"]})
-    try:
-        page.set_content(html_doc, wait_until="load")
-        page.screenshot(path=str(path), full_page=False, type="png", timeout=10000)
-    finally:
-        page.close()
-    if path.read_bytes()[:8] != b"\x89PNG\r\n\x1a\n":
-        raise ContractError(f"HTML renderer did not produce a PNG: {path}")
+def _strip_svg_preamble(svg: str) -> str:
+    start = svg.find("<svg")
+    end = svg.rfind("</svg>")
+    if start == -1 or end == -1:
+        return svg
+    return svg[start : end + len("</svg>")] + "\n"
 
 
 def _write_textual_source(path: Path, lines: list[tuple[str, str]]) -> None:
@@ -321,36 +311,417 @@ async def _render_textual_svg(path: Path, lines: list[tuple[str, str]], viewport
     path.write_text(svg, encoding="utf-8")
 
 
-def panel_fsm_mermaid(panel_id: str, panel: dict[str, Any]) -> str:
-    lines = ["stateDiagram-v2", f"  [*] --> {safe_id(panel['initial'])}"]
+def panel_fsm_dot(panel_id: str, panel: dict[str, Any]) -> str:
+    contract_node = _dot_node_id("contract", panel_id)
+    lines = [
+        f"digraph {_dot_quote('fsm_' + safe_id(panel_id))} {{",
+        '  graph [rankdir="LR", bgcolor="transparent", pad="0.25", nodesep="0.38", ranksep="0.85", splines="spline"];',
+        '  node [fontname="Arial", fontsize="11"];',
+        '  edge [color="#3f3f46", fontname="Arial", fontsize="10", arrowsize="0.8"];',
+        _dot_html_node(
+            contract_node,
+            _dot_card(
+                panel_id,
+                None,
+                [
+                    ("resource", [panel["resource"]]),
+                    ("context", _format_mapping(panel.get("context", {}))),
+                    ("data", _format_data_bindings(panel.get("data", []))),
+                ],
+                basis=panel.get("basis", ""),
+                header_bg="#eef2ff",
+                border="#4f46e5",
+            ),
+        ),
+        f"  {_dot_quote('initial')} [shape=\"circle\", label=\"initial\", width=\"0.58\", fixedsize=\"true\", color=\"#0891b2\", fontcolor=\"#155e75\", fontsize=\"9\"];",
+    ]
     for state_name in sorted(panel["states"]):
-        lines.append(f"  state \"{state_name}\" as {safe_id(state_name)}")
-    for transition in panel.get("transitions", []):
-        lines.append(f"  {safe_id(transition['from'])} --> {safe_id(transition['to'])}: {transition['event']}")
+        state = panel["states"][state_name]
+        lines.append(
+            _dot_html_node(
+                _dot_node_id("state", state_name),
+                _dot_card(
+                    state_name,
+                    f"pattern: {state['pattern']}",
+                    [
+                        ("projection", [state["panel"]]),
+                        ("copy", state.get("copy", [])),
+                        ("fields", state.get("fields", [])),
+                        ("assets", state.get("assets", [])),
+                        ("actions", state.get("actions", [])),
+                        ("data", _format_data_bindings(state.get("data", []))),
+                    ],
+                    header_bg="#ecfeff" if state_name == panel["initial"] else "#f8fafc",
+                    border="#0891b2" if state_name == panel["initial"] else "#71717a",
+                ),
+            )
+        )
+    lines.append(f"  {_dot_quote(contract_node)} -> {_dot_quote('initial')} [style=\"invis\", weight=\"3\"];")
+    lines.append(f"  {_dot_quote('initial')} -> {_dot_quote(_dot_node_id('state', panel['initial']))};")
+    for index, transition in enumerate(panel.get("transitions", [])):
+        source = _dot_node_id("state", transition["from"])
+        target = _dot_node_id("state", transition["to"])
+        transition_id = _dot_node_id("transition", f"{index}_{transition['from']}_{transition['to']}_{transition['event']}")
+        lines.append(
+            _dot_html_node(
+                transition_id,
+                _dot_card(
+                    f"on {transition['event']}",
+                    None,
+                    [("effects", _format_transition_effects(transition))],
+                    header_bg="#eff6ff",
+                    border="#2563eb",
+                ),
+            )
+        )
+        lines.append(f"  {_dot_quote(source)} -> {_dot_quote(transition_id)};")
+        lines.append(f"  {_dot_quote(transition_id)} -> {_dot_quote(target)};")
+    lines.append("}")
     return "\n".join(lines) + "\n"
 
 
-def composition_mermaid(view_id: str, view: dict[str, Any]) -> str:
-    lines = ["flowchart LR", "  view((view context))"]
-    for slot_name in sorted(view["layout"]["slots"]):
-        lines.append(f"  slot_{safe_id(slot_name)}[\"slot: {slot_name}\"]")
-        lines.append(f"  view --> slot_{safe_id(slot_name)}")
-    for include in view.get("includes", []):
-        inst = safe_id(include["id"])
-        lines.append(f"  instance_{inst}[\"{include['id']}\"]")
-        lines.append(f"  slot_{safe_id(include['slot'])} --> instance_{inst}")
+def composition_dot(view_id: str, view: dict[str, Any]) -> str:
+    view_node = _dot_node_id("layout_view", view_id)
+    slots = sorted(view["layout"]["slots"].items(), key=lambda item: (item[1].get("order", 0), item[0]), reverse=True)
+    slot_ids = [_dot_node_id("layout_slot", slot_name) for slot_name, _ in slots]
+    slot_order = {slot_name: slot.get("order", 0) for slot_name, slot in view["layout"]["slots"].items()}
+    includes = sorted(view.get("includes", []), key=lambda include: (slot_order.get(include["slot"], 0), include["id"]), reverse=True)
+    instance_ids = [_dot_node_id("layout_instance", include["id"]) for include in includes]
+    lines = [
+        f"digraph {_dot_quote('composition_' + safe_id(view_id))} {{",
+        '  graph [rankdir="LR", bgcolor="transparent", pad="0.25", nodesep="0.35", ranksep="0.78", splines="spline", compound="true"];',
+        '  node [fontname="Arial", fontsize="11"];',
+        '  edge [color="#3f3f46", fontname="Arial", fontsize="10", arrowsize="0.8"];',
+        "  subgraph cluster_layout {",
+        '    label="Layout";',
+        '    color="#d4d4d8";',
+        '    fontname="Arial";',
+        '    fontsize="12";',
+        _dot_html_node(
+            view_node,
+            _dot_card(
+                view_id,
+                f"{view['archetype']} view",
+                [
+                    ("resource", [view["resource"]]),
+                    ("context", _format_mapping(view.get("context", {}))),
+                    ("data", _format_data_bindings(view.get("data", []))),
+                ],
+                basis=view.get("basis", ""),
+                header_bg="#f0fdf4",
+                border="#15803d",
+            ),
+            indent="    ",
+        ),
+    ]
+    for slot_name, slot in slots:
+        slot_id = _dot_node_id("layout_slot", slot_name)
+        lines.append(
+            _dot_html_node(
+                slot_id,
+                _dot_card(
+                    f"slot: {slot_name}",
+                    f"order: {slot.get('order', 0)}",
+                    [
+                        ("element", [slot.get("element", "")]),
+                        ("role", [slot.get("role", "none")]),
+                        ("required", [str(slot["required"]).lower()]),
+                    ],
+                    header_bg="#f8fafc",
+                    border="#71717a",
+                ),
+                indent="    ",
+            )
+        )
+        lines.append(f"    {_dot_quote(view_node)} -> {_dot_quote(slot_id)};")
+    for include in includes:
+        inst = _dot_node_id("layout_instance", include["id"])
+        slot_id = _dot_node_id("layout_slot", include["slot"])
+        selected = include.get("selected") or {}
+        selected_lines = []
+        if selected:
+            selected_lines.append(f"selected state: {selected['state']}")
+            selected_lines.extend(f"when {key}: {value}" for key, value in selected.get("when", {}).items())
+        lines.append(
+            _dot_html_node(
+                inst,
+                _dot_card(
+                    f"instance: {include['id']}",
+                    include["panel"],
+                    [
+                        ("slot", [include["slot"]]),
+                        ("initial", [include["initial"]]),
+                        ("context", _format_mapping(include.get("context", {}))),
+                        ("selected", selected_lines),
+                    ],
+                    header_bg="#fff7ed",
+                    border="#c2410c",
+                ),
+                indent="    ",
+            )
+        )
+        lines.append(f"    {_dot_quote(slot_id)} -> {_dot_quote(inst)};")
+    if slot_ids:
+        lines.append("    { rank=same; " + " ".join(_dot_quote(slot_id) for slot_id in slot_ids) + " }")
+        lines.extend(_dot_invisible_order(slot_ids, indent="    "))
+    if instance_ids:
+        lines.append("    { rank=same; " + " ".join(_dot_quote(instance_id) for instance_id in instance_ids) + " }")
+        lines.extend(_dot_invisible_order(instance_ids, indent="    "))
+    lines.append("  }")
+
+    lines.extend(
+        [
+            "  subgraph cluster_sync {",
+            '    label="Sync rules";',
+            '    color="#d4d4d8";',
+            '    fontname="Arial";',
+            '    fontsize="12";',
+        ]
+    )
+    if not view.get("sync"):
+        lines.append(_dot_html_node("sync_none", _dot_card("No sync rules", None, [], header_bg="#f8fafc"), indent="    "))
     for rule in view.get("sync", []):
-        sync_id = safe_id(rule["id"])
-        source = safe_id(rule["when"]["panel"])
-        lines.append(f"  sync_{sync_id}{{\"{rule['when']['emits']}\"}}")
-        lines.append(f"  instance_{source} --> sync_{sync_id}")
-        for effect in rule["do"]:
+        source = _dot_node_id("sync_source", rule["id"])
+        sync_id = _dot_node_id("sync_rule", rule["id"])
+        lines.append(
+            _dot_html_node(
+                source,
+                _dot_card(
+                    f"{rule['when']['panel']} emits",
+                    rule["when"]["emits"],
+                    [],
+                    header_bg="#eef2ff",
+                    border="#4f46e5",
+                ),
+                indent="    ",
+            )
+        )
+        lines.append(
+            _dot_html_node(
+                sync_id,
+                _dot_card(
+                    rule["id"],
+                    "sync rule",
+                    [
+                        ("when", [f"panel: {rule['when']['panel']}", f"emits: {rule['when']['emits']}"]),
+                        ("do", _format_sync_effects(rule.get("do", []))),
+                    ],
+                    header_bg="#fefce8",
+                    border="#a16207",
+                ),
+                indent="    ",
+            )
+        )
+        lines.append(f"    {_dot_quote(source)} -> {_dot_quote(sync_id)};")
+        action_ids = []
+        indexed_effects = list(enumerate(rule["do"]))
+        for index, effect in reversed(indexed_effects):
+            action_id = _dot_node_id("sync_action", f"{rule['id']}_{index}")
+            action_ids.append(action_id)
             if "send" in effect:
-                target = safe_id(effect["send"]["panel"])
-                lines.append(f"  sync_{sync_id} -->|{effect['send']['event']}| instance_{target}")
-            if "set" in effect:
-                lines.append(f"  sync_{sync_id} -. set {effect['set']['context']} .-> view")
+                title = f"send to {effect['send']['panel']}"
+                sections = [("event", [effect["send"]["event"]])]
+                header_bg = "#fff7ed"
+                border = "#c2410c"
+            else:
+                title = "set view context"
+                sections = [("context", [effect["set"]["context"]]), ("from", [effect["set"]["from"]])]
+                header_bg = "#f0fdf4"
+                border = "#15803d"
+            lines.append(_dot_html_node(action_id, _dot_card(title, None, sections, header_bg=header_bg, border=border), indent="    "))
+            lines.append(f"    {_dot_quote(sync_id)} -> {_dot_quote(action_id)};")
+        if action_ids:
+            lines.append("    { rank=same; " + " ".join(_dot_quote(action_id) for action_id in action_ids) + " }")
+            lines.extend(_dot_invisible_order(action_ids, indent="    "))
+    lines.append("  }")
+    lines.append("}")
     return "\n".join(lines) + "\n"
+
+
+def _dot_node_id(prefix: str, value: str) -> str:
+    return f"{prefix}_{safe_id(value)}"
+
+
+def _dot_invisible_order(node_ids: list[str], indent: str) -> list[str]:
+    return [
+        f"{indent}{_dot_quote(source)} -> {_dot_quote(target)} [style=\"invis\", weight=\"100\"];"
+        for source, target in zip(node_ids, node_ids[1:])
+    ]
+
+
+class _DotHtml(str):
+    pass
+
+
+def _dot_html_node(node_id: str, label: str, attrs: dict[str, object] | None = None, indent: str = "  ") -> str:
+    node_attrs: dict[str, object] = {"shape": "plain", "label": _DotHtml(label)}
+    node_attrs.update(attrs or {})
+    return f"{indent}{_dot_quote(node_id)}{_dot_attrs(node_attrs)};"
+
+
+def _dot_card(
+    title: str,
+    subtitle: str | None,
+    sections: Iterable[tuple[str, Iterable[object]]],
+    *,
+    basis: str | None = None,
+    header_bg: str,
+    border: str = "#71717a",
+) -> str:
+    rows = [
+        f'<TR><TD BGCOLOR="{border}" HEIGHT="3" FIXEDSIZE="false"></TD></TR>',
+        f'<TR><TD BGCOLOR="{header_bg}" ALIGN="LEFT"><FONT POINT-SIZE="14"><B>{_dot_html_text(title)}</B></FONT></TD></TR>',
+    ]
+    if subtitle:
+        rows.extend(_dot_text_rows(_wrap_dot_text(subtitle), point_size=10))
+    if basis:
+        rows.extend(_dot_text_rows(_wrap_dot_text(basis, width=50), point_size=10, italic=True, color="#3f3f46"))
+    for section_title, values in sections:
+        rows.extend(_dot_section_rows(section_title, values))
+    return (
+        f'<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5" COLOR="{border}" BGCOLOR="#ffffff">'
+        + "".join(rows)
+        + "</TABLE>"
+    )
+
+
+def _dot_text_rows(lines: Iterable[str], *, point_size: int, italic: bool = False, color: str | None = None) -> list[str]:
+    inner_rows = []
+    font_attrs = [f'POINT-SIZE="{point_size}"']
+    if color:
+        font_attrs.append(f'COLOR="{color}"')
+    open_font = "<FONT " + " ".join(font_attrs) + ">"
+    for line in lines:
+        text = _dot_html_text(line)
+        if italic:
+            text = f"<I>{text}</I>"
+        inner_rows.append(f'<TR><TD ALIGN="LEFT">{open_font}{text}</FONT></TD></TR>')
+    if not inner_rows:
+        return []
+    return [_dot_nested_rows(inner_rows)]
+
+
+def _dot_section_rows(title: str, values: Iterable[object]) -> list[str]:
+    wrapped_values = [wrapped for value in values if (wrapped := _wrap_dot_text(value))]
+    if not wrapped_values:
+        return []
+    inner_rows: list[str] = []
+    if len(wrapped_values) == 1:
+        wrapped = wrapped_values[0]
+        inner_rows.append(_dot_key_value_row(title, wrapped[0]))
+        for line in wrapped[1:]:
+            inner_rows.append(_dot_key_value_row("", line))
+        return [_dot_nested_rows(inner_rows)]
+    for wrapped in wrapped_values:
+        if not inner_rows:
+            inner_rows.append(f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10"><B>{_dot_html_text(title)}</B></FONT></TD></TR>')
+        inner_rows.append(f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">{_dot_html_text(wrapped[0])}</FONT></TD></TR>')
+        for line in wrapped[1:]:
+            inner_rows.append(f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">{_dot_html_text(line)}</FONT></TD></TR>')
+    if not inner_rows:
+        return []
+    return [_dot_nested_rows(inner_rows)]
+
+
+def _dot_key_value_row(title: str, value: str) -> str:
+    key = f"<B>{_dot_html_text(title)}:</B>&#160;&#160;" if title else "&#160;&#160;"
+    return (
+        '<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">'
+        f"{key}{_dot_html_text(value)}</FONT></TD></TR>"
+    )
+
+
+def _dot_nested_rows(inner_rows: list[str], *, cell_spacing: int = 0) -> str:
+    inner = (
+        f'<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="{cell_spacing}" CELLPADDING="0">'
+        + "".join(inner_rows)
+        + "</TABLE>"
+    )
+    return f'<TR><TD ALIGN="LEFT">{inner}</TD></TR>'
+
+
+def _wrap_dot_text(value: object, width: int = 58) -> list[str]:
+    text = str(value)
+    if not text:
+        return []
+    chunks: list[str] = []
+    for chunk in textwrap.wrap(text, width=width, break_long_words=False, break_on_hyphens=False):
+        if len(chunk) <= width:
+            chunks.append(chunk)
+        else:
+            chunks.extend(_wrap_dot_token(chunk, width))
+    if chunks:
+        return chunks
+    return _wrap_dot_token(text, width)
+
+
+def _wrap_dot_token(text: str, width: int) -> list[str]:
+    if len(text) <= width:
+        return [text]
+    parts = text.split(".")
+    lines: list[str] = []
+    current = ""
+    for part in parts:
+        candidate = part if not current else f"{current}.{part}"
+        if len(candidate) <= width:
+            current = candidate
+        else:
+            if current:
+                lines.append(current)
+            current = part
+    if current:
+        lines.append(current)
+    return lines or [text]
+
+
+def _format_mapping(mapping: dict[str, Any]) -> list[str]:
+    return [f"{key}: {value}" for key, value in sorted(mapping.items())]
+
+
+def _format_data_bindings(bindings: Iterable[dict[str, Any]]) -> list[str]:
+    bindings = list(bindings)
+    lines: list[str] = []
+    for index, binding in enumerate(bindings, start=1):
+        if len(bindings) > 1:
+            lines.append(f"binding {index}")
+        lines.extend(f"{key}: {value}" for key, value in sorted(binding.items()))
+    return lines
+
+
+def _format_transition_effects(transition: dict[str, Any]) -> list[str]:
+    lines = []
+    for effect in transition.get("effects", []):
+        if "emit" in effect:
+            lines.append(f"emit {effect['emit']}")
+    return lines
+
+
+def _format_sync_effects(effects: Iterable[dict[str, Any]]) -> list[str]:
+    lines = []
+    for effect in effects:
+        if "set" in effect:
+            lines.append(f"set {effect['set']['context']} from {effect['set']['from']}")
+        elif "send" in effect:
+            lines.append(f"send {effect['send']['event']} to {effect['send']['panel']}")
+    return lines
+
+
+def _dot_attrs(attrs: dict[str, object]) -> str:
+    return " [" + ", ".join(f"{name}={_dot_attr_value(value)}" for name, value in attrs.items()) + "]"
+
+
+def _dot_attr_value(value: object) -> str:
+    if isinstance(value, _DotHtml):
+        return f"<{value}>"
+    return _dot_quote(value)
+
+
+def _dot_html_text(value: object) -> str:
+    return html.escape(str(value), quote=False)
+
+
+def _dot_quote(value: object) -> str:
+    return '"' + str(value).replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n") + '"'
 
 
 def audit_html_document(contract: dict[str, Any], body: str) -> str:

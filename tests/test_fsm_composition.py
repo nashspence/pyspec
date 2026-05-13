@@ -24,7 +24,7 @@ def _change(patch: dict, target: str, item_id: str) -> dict:
 def test_composed_fsm_contract_is_closed_and_projected() -> None:
     contract = compile_patch(_patch())
     list_panel = contract["panels"]["panel.project.list"]
-    assert set(list_panel) == {"kind", "resource", "context", "data", "events", "initial", "states", "transitions", "basis"}
+    assert set(list_panel) == {"resource", "context", "data", "events", "initial", "states", "transitions", "basis"}
     assert list_panel["initial"] == "loading"
     assert list_panel["data"] == [{"query": "query.project.list.list", "capability": "project.list"}]
     assert list_panel["states"]["ready"]["fields"] == ["title", "customer", "priority", "status"]

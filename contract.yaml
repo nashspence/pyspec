@@ -148,7 +148,6 @@ panels:
     - project.select
     - project.selected
     initial: loading
-    kind: fsm
     resource: Project
     states:
       empty:
@@ -210,7 +209,6 @@ panels:
     - data.ready
     - data.error
     initial: none
-    kind: fsm
     resource: Project
     states:
       error:
@@ -263,9 +261,7 @@ panels:
     events:
     - project.selection_changed
     - selection.cleared
-    - data.ready
     initial: empty
-    kind: fsm
     resource: Project
     states:
       empty:
@@ -416,7 +412,7 @@ views:
       when:
         emits: project.selected
         panel: list
-    basis: The dispatch board composes list, detail, and activity FSM panels through shared selected-project context.
+    basis: The dispatch board composes list, detail, and activity panels through shared selected-project context.
 entries:
   web.project.board:
     params:

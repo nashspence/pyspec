@@ -177,7 +177,6 @@ changes:
     - project.select
     - project.selected
     initial: loading
-    kind: fsm
     resource: Project
     states:
       empty:
@@ -242,7 +241,6 @@ changes:
     - data.ready
     - data.error
     initial: none
-    kind: fsm
     resource: Project
     states:
       error:
@@ -298,9 +296,7 @@ changes:
     events:
     - project.selection_changed
     - selection.cleared
-    - data.ready
     initial: empty
-    kind: fsm
     resource: Project
     states:
       empty:
@@ -324,7 +320,7 @@ changes:
       from: ready
       to: empty
   target: panel
-- basis: The dispatch board composes list, detail, and activity FSM panels through shared selected-project context.
+- basis: The dispatch board composes list, detail, and activity panels through shared selected-project context.
   id: project.board
   op: add
   spec:

@@ -332,7 +332,6 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
     if entity == "panel":
         panel_id = spec["id"]
         return {
-            "kind": spec["kind"],
             "resource": spec["resource"],
             "context": spec["context"],
             "data": _compile_data(panel_id, spec.get("data", [])),
@@ -755,6 +754,7 @@ def _validate_panels(contract: dict[str, Any]) -> None:
         for state_name, state in panel["states"].items():
             _validate_panelish_state(contract, f"Panel {panel_id}", state_name, state, field_names=resource_fields)
         _validate_panel_transitions(panel_id, panel)
+        _validate_panel_events(panel_id, panel)
 
 
 def _validate_panelish_state(
@@ -791,6 +791,17 @@ def _validate_panel_transitions(panel_id: str, panel: dict[str, Any]) -> None:
                     raise ContractError(f"Panel {panel_id} transition emit must name an event: {body!r}")
             else:  # pragma: no cover - schema prevents this.
                 raise ContractError(f"Panel {panel_id} unsupported transition effect: {kind}")
+
+
+def _validate_panel_events(panel_id: str, panel: dict[str, Any]) -> None:
+    declared = set(panel.get("events", []))
+    used = _panel_accepts(panel) | _panel_emits(panel)
+    orphan = sorted(declared - used)
+    if orphan:
+        raise ContractError(f"Panel {panel_id} declares event without transition or emit: {orphan}")
+    undeclared = sorted(used - declared)
+    if undeclared:
+        raise ContractError(f"Panel {panel_id} uses event without declaring it: {undeclared}")
 
 
 def _validate_views(contract: dict[str, Any]) -> None:
@@ -889,7 +900,7 @@ def _validate_view_context_refs(view_id: str, context: dict[str, str], mapping: 
 
 
 def _panel_emits(panel: dict[str, Any]) -> set[str]:
-    emits: set[str] = set(panel.get("events", []))
+    emits: set[str] = set()
     for transition in panel.get("transitions", []):
         for effect in transition.get("effects", []):
             kind, body = _one(effect, "panel transition effect")
@@ -899,12 +910,7 @@ def _panel_emits(panel: dict[str, Any]) -> set[str]:
 
 
 def _panel_accepts(panel: dict[str, Any]) -> set[str]:
-    accepts: set[str] = set(panel.get("events", []))
-    for transition in panel.get("transitions", []):
-        event = transition["event"]
-        if not event.startswith("data."):
-            accepts.add(event)
-    return accepts
+    return {transition["event"] for transition in panel.get("transitions", [])}
 
 
 def _validate_sync_rules(contract: dict[str, Any], view_id: str, view: dict[str, Any], instances: dict[str, dict[str, Any]]) -> None:
