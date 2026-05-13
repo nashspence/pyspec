@@ -37,7 +37,7 @@ def test_audit_outputs_cover_full_contract() -> None:
 def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     contract = _contract()
     fsm = panel_fsm_dot("panel.project.list", contract["panels"]["panel.project.list"], contract)
-    composition = composition_dot("project.board", contract["views"]["project.board"])
+    composition = composition_dot("project.board", contract["views"]["project.board"], contract)
     assert fsm.startswith("digraph ")
     assert composition.startswith("digraph ")
     assert "stateDiagram" not in fsm
@@ -59,11 +59,21 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "emitted message" in composition
     assert "sent message" in composition
     assert "message route" in composition
+    assert "project.select (ready to ready)" in composition
     assert "selected state: loading" in composition
-    assert "send project.selection_changed to detail" in composition
+    assert "<B>from:</B>" not in composition
+    assert "<B>do:</B>" not in composition
     assert "Layout / mounted panels" not in composition
     assert "Message routing" not in composition
     assert "Sync rules" not in composition
+    assert "<B>region:</B>" in composition
+    assert "<B>region:</B>&#160;&#160;nav" in composition
+    assert "<B>region:</B>&#160;&#160;main" in composition
+    assert "<B>transition:</B>&#160;&#160;to loading" in composition
+    assert "order:" not in composition
+    assert "element:" not in composition
+    assert "role:" not in composition
+    assert "required:" not in composition
     assert "layout_region_nav" not in composition
     assert "fontcolor" not in composition
     for graph_id, dot_source in {"panel_project_list": fsm, "project_board": composition}.items():
@@ -102,15 +112,53 @@ def test_composition_dot_routes_messages_generically() -> None:
             }
         ],
     }
+    contract = {
+        "panels": {
+            "panel.alpha": {
+                "transitions": [
+                    {
+                        "event": "alpha.submit",
+                        "from": "idle",
+                        "to": "ready",
+                        "effects": [{"emit": "alpha.ready"}],
+                    }
+                ]
+            },
+            "panel.beta": {
+                "transitions": [
+                    {
+                        "event": "beta.consume",
+                        "from": "waiting",
+                        "to": "consumed",
+                    }
+                ]
+            }
+        }
+    }
 
-    composition = composition_dot("generic.view", view)
+    composition = composition_dot("generic.view", view, contract)
 
     assert "emitted message" in composition
     assert "sent message" in composition
     assert "message route" in composition
-    assert "send beta.consume to receiver" in composition
-    assert '"message_effect_route_alpha_beta_0":e -> "layout_instance_receiver":w' in composition
+    assert "alpha.submit (idle to ready)" in composition
+    assert "beta.consume" in composition
+    assert "<B>transition:</B>&#160;&#160;to consumed" in composition
+    assert "<B>target:</B>" not in composition
+    assert "<B>from:</B>" not in composition
+    assert "<B>do:</B>" not in composition
+    assert '"message_effect_route_alpha_beta_0" -> "panel_instance_receiver"' in composition
+    assert '#fff7ed' in composition
+    assert '#fdf2f8' in composition
     assert "No mounted panels" not in composition
+    assert "<B>region:</B>&#160;&#160;source" in composition
+    assert "<B>region:</B>&#160;&#160;target" in composition
+    assert "unused" not in composition
+    assert "order:" not in composition
+    assert "element:" not in composition
+    assert "role:" not in composition
+    assert "required:" not in composition
+    assert "layout_instance" not in composition
     assert "layout_region_empty" not in composition
     assert "project.board" not in composition
     assert "panel.project" not in composition
@@ -174,11 +222,28 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "set project_id to null" in activity_fsm
     assert "emitted message" in composition
     assert "sent message" in composition
+    assert "project.select" in composition
+    assert "project.selection_changed" in composition
+    assert "to loading" in composition
+    assert "to ready" in composition
+    assert "none to loading" not in composition
+    assert "empty to ready" not in composition
     assert "selected state: loading" in composition
-    assert "send project.selection_changed to detail" in composition
+    assert "region:" in composition
+    assert "target:" not in composition
+    assert "from:" not in composition
+    assert "do:" not in composition
     assert "Layout / mounted panels" not in composition
     assert "Message routing" not in composition
     assert "Sync rules" not in composition
+    assert "region" in composition
+    assert "nav" in composition
+    assert "main" in composition
+    assert "aside" in composition
+    assert "order:" not in composition
+    assert "element:" not in composition
+    assert "role:" not in composition
+    assert "required:" not in composition
 
 
 def test_audit_html_sources_render_copy_assets_and_fixture_fields() -> None:

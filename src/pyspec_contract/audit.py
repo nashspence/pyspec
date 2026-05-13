@@ -15,7 +15,7 @@ from typing import Any, Iterable
 from .compile import ContractError
 from .content import AssetResult, ContentContext, ContentError, call_asset, call_copy
 from .io import write_yaml
-from .layout import layout_html, layout_html_regions, layout_regions
+from .layout import layout_html, layout_html_regions
 from .paths import GENERATED_SPEC_DIR, generated_relative as g
 from .project import css_value, default_html_slots, format_attrs, humanize, panels_projection, panel_styles_projection, safe_id
 from .runtime import fixture_namespace, resolve
@@ -313,7 +313,7 @@ def _render_visual_audit(root: Path, contract: dict[str, Any], _tools_root: Path
         if not view.get("includes"):
             continue
         path = root / composition_file(view_id)
-        _write_graphviz_svg(path, composition_dot(view_id, view))
+        _write_graphviz_svg(path, composition_dot(view_id, view, contract))
 
     has_html_audit = bool(
         _audit_projection_panels(contract, projection) and any(profile.get("html") for profile in contract.get("audit_profiles", {}).values())
@@ -572,20 +572,24 @@ def panel_fsm_dot(panel_id: str, panel: dict[str, Any], contract: dict[str, Any]
     return "\n".join(lines) + "\n"
 
 
-def composition_dot(view_id: str, view: dict[str, Any]) -> str:
-    view_node = _dot_node_id("layout_view", view_id)
-    regions = sorted(layout_regions(view["layout"]).items(), key=lambda item: (item[1].get("order", 0), item[0]))
-    region_order = {region_name: region.get("order", 0) for region_name, region in layout_regions(view["layout"]).items()}
-    includes = sorted(view.get("includes", []), key=lambda include: (region_order.get(include["region"], 0), include["id"]))
-    includes_by_region: dict[str, list[dict[str, Any]]] = {region_name: [] for region_name, _ in regions}
-    for include in includes:
-        includes_by_region.setdefault(include["region"], []).append(include)
-    instance_node_by_id = {include["id"]: _dot_node_id("layout_instance", include["id"]) for include in includes}
-    region_lead_ids: list[str] = []
+def composition_dot(view_id: str, view: dict[str, Any], contract: dict[str, Any] | None = None) -> str:
+    view_node = _dot_node_id("view", view_id)
+    route_panel_order: list[str] = []
+    for rule in view.get("sync", []):
+        route_panel_order.append(rule["when"]["panel"])
+        route_panel_order.extend(effect["send"]["panel"] for effect in rule.get("do", []) if "send" in effect)
+    route_panel_index = {panel_id: index for index, panel_id in enumerate(dict.fromkeys(route_panel_order))}
+    includes = sorted(
+        view.get("includes", []),
+        key=lambda include: (route_panel_index.get(include["id"], len(route_panel_index)), include["id"]),
+    )
+    include_by_id = {include["id"]: include for include in includes}
+    instance_node_by_id = {include["id"]: _dot_node_id("panel_instance", include["id"]) for include in includes}
+    instance_node_ids = [instance_node_by_id[include["id"]] for include in includes]
     has_sync = bool(view.get("sync"))
     lines = [
         f"digraph {_dot_quote('composition_' + safe_id(view_id))} {{",
-        '  graph [rankdir="LR", bgcolor="transparent", pad="0.25", nodesep="0.55", ranksep="0.78", splines="spline", compound="true", newrank="true"];',
+        '  graph [rankdir="LR", bgcolor="transparent", pad="0.25", nodesep="0.38", ranksep="0.85", splines="spline"];',
         '  node [fontname="Arial", fontsize="11"];',
         '  edge [color="#3f3f46", fontname="Arial", fontsize="10", arrowsize="0.8"];',
         _dot_html_node(
@@ -604,19 +608,12 @@ def composition_dot(view_id: str, view: dict[str, Any]) -> str:
             ),
         ),
     ]
-    for region_name, region in regions:
-        region_includes = includes_by_region.get(region_name, [])
-        for include in region_includes:
-            inst = instance_node_by_id[include["id"]]
-            if not any(node_id == inst for node_id in region_lead_ids):
-                region_lead_ids.append(inst)
-            lines.append(_dot_html_node(inst, _dot_instance_card(include, region)))
-        region_instance_ids = [instance_node_by_id[include["id"]] for include in region_includes]
-        lines.extend(_dot_invisible_order(region_instance_ids, indent="  "))
-    if region_lead_ids:
-        lines.append(f"  {_dot_quote(view_node)} -> {_dot_quote(region_lead_ids[0])} [style=\"invis\", weight=\"10\"];")
+    for include in includes:
+        lines.append(_dot_html_node(instance_node_by_id[include["id"]], _dot_instance_card(include)))
+    if instance_node_ids:
+        lines.append(f"  {_dot_quote(view_node)} -> {_dot_quote(instance_node_ids[0])} [style=\"invis\", weight=\"10\"];")
         if not has_sync:
-            lines.extend(_dot_invisible_order(region_lead_ids, indent="  "))
+            lines.extend(_dot_invisible_order(instance_node_ids, indent="  "))
     if not has_sync:
         lines.append(_dot_html_node("message_route_none", _dot_card("No message routes", None, [], header_bg="#f8fafc")))
     for rule in view.get("sync", []):
@@ -629,10 +626,7 @@ def composition_dot(view_id: str, view: dict[str, Any]) -> str:
                 _dot_card(
                     rule["when"]["emits"],
                     "emitted message",
-                    [
-                        ("from", [rule["when"]["panel"]]),
-                        ("do", [f"{rule['when']['panel']} emits {rule['when']['emits']}"]),
-                    ],
+                    [("transition", _emitting_transition_refs(rule["when"]["panel"], rule["when"]["emits"], include_by_id, contract))],
                     header_bg="#eef2ff",
                     border="#4f46e5",
                 ),
@@ -644,10 +638,7 @@ def composition_dot(view_id: str, view: dict[str, Any]) -> str:
                 _dot_card(
                     rule["id"],
                     "message route",
-                    [
-                        ("trigger", [f"{rule['when']['panel']} emits {rule['when']['emits']}"]),
-                        ("effects", [f"{len(rule.get('do', []))} routed effect(s)"]),
-                    ],
+                    [],
                     header_bg="#fefce8",
                     border="#a16207",
                 ),
@@ -655,7 +646,7 @@ def composition_dot(view_id: str, view: dict[str, Any]) -> str:
         )
         for index, effect in enumerate(rule.get("do", [])):
             effect_id = _dot_node_id("message_effect", f"{rule['id']}_{index}")
-            lines.append(_dot_html_node(effect_id, _dot_sync_effect_card(effect)))
+            lines.append(_dot_html_node(effect_id, _dot_sync_effect_card(effect, include_by_id, contract)))
         if effect_ids:
             lines.append("  { rank=same; " + " ".join(_dot_quote(effect_id) for effect_id in effect_ids) + " }")
             lines.extend(_dot_invisible_order(effect_ids, indent="  "))
@@ -666,24 +657,25 @@ def composition_dot(view_id: str, view: dict[str, Any]) -> str:
         sync_id = _dot_node_id("message_route", rule["id"])
         source = instance_node_by_id.get(rule["when"]["panel"])
         if source:
-            lines.append(f"  {_dot_endpoint(source, 'e')} -> {_dot_endpoint(emit_id, 'w')} [color=\"#4f46e5\", penwidth=\"1.4\"];")
-        lines.append(f"  {_dot_endpoint(emit_id, 'e')} -> {_dot_endpoint(sync_id, 'w')} [color=\"#4f46e5\", penwidth=\"1.2\"];")
+            lines.append(f"  {_dot_quote(source)} -> {_dot_quote(emit_id)} [color=\"#4f46e5\", penwidth=\"1.4\"];")
+        lines.append(f"  {_dot_quote(emit_id)} -> {_dot_quote(sync_id)} [color=\"#4f46e5\", penwidth=\"1.2\"];")
         for index, effect in enumerate(rule.get("do", [])):
             effect_id = _dot_node_id("message_effect", f"{rule['id']}_{index}")
-            edge_attrs = 'color="#c2410c", penwidth="1.3"'
+            edge_attrs = 'color="#be185d", penwidth="1.3"'
             if "set" in effect:
                 edge_attrs = 'color="#15803d", penwidth="1.3", style="dotted"'
-            lines.append(f"  {_dot_endpoint(sync_id, 'e')} -> {_dot_endpoint(effect_id, 'w')} [{edge_attrs}];")
+            lines.append(f"  {_dot_quote(sync_id)} -> {_dot_quote(effect_id)} [{edge_attrs}];")
             if "send" not in effect:
                 continue
             target = instance_node_by_id.get(effect["send"]["panel"])
             if not target:
                 continue
-            lines.append(f"  {_dot_endpoint(effect_id, 'e')} -> {_dot_endpoint(target, 'w')} [color=\"#c2410c\", penwidth=\"1.4\"];")
+            lines.append(f"  {_dot_quote(effect_id)} -> {_dot_quote(target)} [color=\"#be185d\", penwidth=\"1.4\"];")
     lines.append("}")
     return "\n".join(lines) + "\n"
 
-def _dot_instance_card(include: dict[str, Any], region: dict[str, Any]) -> str:
+
+def _dot_instance_card(include: dict[str, Any]) -> str:
     selected = include.get("selected") or {}
     selected_lines = []
     if selected:
@@ -693,18 +685,9 @@ def _dot_instance_card(include: dict[str, Any], region: dict[str, Any]) -> str:
         f"instance: {include['id']}",
         include["panel"],
         [
-            (
-                "region",
-                [
-                    include["region"],
-                    f"order: {region.get('order', 0)}",
-                    f"element: {region.get('element', '')}",
-                    f"role: {region.get('role', 'none')}",
-                    f"required: {str(region.get('required', False)).lower()}",
-                ],
-            ),
+            ("region", [include["region"]]),
             ("initial", [include["initial"]]),
-            ("context", _format_mapping(include.get("context", {}))),
+            ("panel context", _format_mapping(include.get("context", {}))),
             ("selected", selected_lines),
         ],
         header_bg="#fff7ed",
@@ -712,38 +695,77 @@ def _dot_instance_card(include: dict[str, Any], region: dict[str, Any]) -> str:
     )
 
 
-def _dot_sync_effect_card(effect: dict[str, Any]) -> str:
+def _dot_sync_effect_card(effect: dict[str, Any], include_by_id: dict[str, dict[str, Any]], contract: dict[str, Any] | None) -> str:
     if "send" in effect:
         send = effect["send"]
         return _dot_card(
             send["event"],
             "sent message",
             [
-                ("to", [send["panel"]]),
-                ("do", [f"send {send['event']} to {send['panel']}"]),
+                ("transition", _receiving_transition_refs(send["panel"], send["event"], include_by_id, contract)),
             ],
-            header_bg="#fff7ed",
-            border="#c2410c",
+            header_bg="#fdf2f8",
+            border="#be185d",
         )
     assignment = effect["set"]
     return _dot_card(
         f"set {assignment['context']}",
         "view context",
         [
-            ("from", [assignment["from"]]),
-            ("do", [f"set {assignment['context']} from {assignment['from']}"]),
+            ("value", [assignment.get("from", assignment.get("value", ""))]),
         ],
         header_bg="#f0fdf4",
         border="#15803d",
     )
 
 
+def _emitting_transition_refs(
+    instance_id: str,
+    emitted: str,
+    include_by_id: dict[str, dict[str, Any]],
+    contract: dict[str, Any] | None,
+) -> list[str]:
+    if not contract:
+        return []
+    include = include_by_id.get(instance_id)
+    if not include:
+        return []
+    panel = contract.get("panels", {}).get(include["panel"])
+    if not panel:
+        return []
+    refs = []
+    for transition in panel.get("transitions", []):
+        if any(effect.get("emit") == emitted for effect in transition.get("effects", [])):
+            refs.append(f"{transition['event']} ({transition['from']} to {transition['to']})")
+    return refs
+
+
+def _receiving_transition_refs(
+    instance_id: str,
+    event: str,
+    include_by_id: dict[str, dict[str, Any]],
+    contract: dict[str, Any] | None,
+) -> list[str]:
+    if not contract:
+        return []
+    include = include_by_id.get(instance_id)
+    if not include:
+        return []
+    panel = contract.get("panels", {}).get(include["panel"])
+    if not panel:
+        return []
+    target_sources: dict[str, list[str]] = {}
+    for transition in panel.get("transitions", []):
+        if transition["event"] == event:
+            target_sources.setdefault(transition["to"], []).append(transition["from"])
+    if len(target_sources) == 1:
+        target = next(iter(target_sources))
+        return [f"to {target}"]
+    return [f"to {target} (from {', '.join(sorted(sources))})" for target, sources in sorted(target_sources.items())]
+
+
 def _dot_node_id(prefix: str, value: str) -> str:
     return f"{prefix}_{safe_id(value)}"
-
-
-def _dot_endpoint(node_id: str, compass: str) -> str:
-    return f"{_dot_quote(node_id)}:{compass}"
 
 
 def _dot_invisible_order(node_ids: list[str], indent: str) -> list[str]:
