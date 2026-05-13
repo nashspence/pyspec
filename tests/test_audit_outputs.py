@@ -49,9 +49,12 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "copy.project.list.ready.heading" in fsm
     assert "asset.project.list.empty.illustration" in fsm
     assert "emit project.selected" in fsm
+    assert "<B>projection:</B>" not in fsm
     assert "<B>data:</B>&#160;&#160;project.list" in fsm
     assert "<B>query:</B>&#160;&#160;query.project.list.list" in fsm
     assert "<B>input:</B>&#160;&#160;workspace_id: ID" in fsm
+    assert fsm.index("<B>input:</B>&#160;&#160;workspace_id: ID") < fsm.index("<B>query:</B>&#160;&#160;query.project.list.list")
+    assert fsm.index("<B>query:</B>&#160;&#160;query.project.list.list") < fsm.index("<B>data:</B>&#160;&#160;project.list")
     assert "<B>Project fields</B>" in fsm
     assert fsm.count("query.project.list.list") == 4
     assert "<B>resource:</B>" not in fsm
@@ -95,6 +98,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "query.project.list.list" in list_fsm
     assert "workspace_id: ID" in list_fsm
     assert "Project fields" in list_fsm
+    assert "projection:" not in list_fsm
     assert "resource:" not in list_fsm
     assert "context:" not in list_fsm
     assert "&#45; data.ready" not in list_fsm
@@ -108,7 +112,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "declared, no arrow" not in list_fsm
     assert "transition events" not in list_fsm
     assert "emitted events" not in list_fsm
-    assert "panel.project.detail.ready" in detail_fsm
+    assert "copy.project.detail.ready.heading" in detail_fsm
     assert "project.approve" in detail_fsm
     assert "requires context" in detail_fsm
     assert "query.project.detail.read" in detail_fsm

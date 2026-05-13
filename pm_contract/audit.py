@@ -328,7 +328,6 @@ def panel_fsm_dot(panel_id: str, panel: dict[str, Any], contract: dict[str, Any]
                     state_name,
                     f"pattern: {state['pattern']}",
                     [
-                        ("projection", [state["panel"]]),
                         ("copy", state.get("copy", [])),
                         (f"{panel['resource']} fields", state.get("fields", [])),
                         ("assets", state.get("assets", [])),
@@ -559,8 +558,7 @@ def _dot_card(
         rows.extend(_dot_text_rows(_wrap_dot_text(subtitle), point_size=10))
     if basis:
         rows.extend(_dot_text_rows(_wrap_dot_text(basis, width=50), point_size=10, italic=True, color="#3f3f46"))
-    for section_title, values in sections:
-        rows.extend(_dot_section_rows(section_title, values))
+    rows.extend(_dot_section_rows(sections))
     return (
         f'<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5" COLOR="{border}" BGCOLOR="#ffffff">'
         + "".join(rows)
@@ -584,33 +582,56 @@ def _dot_text_rows(lines: Iterable[str], *, point_size: int, italic: bool = Fals
     return [_dot_nested_rows(inner_rows)]
 
 
-def _dot_section_rows(title: str, values: Iterable[object]) -> list[str]:
+def _dot_section_rows(sections: Iterable[tuple[str, Iterable[object]]]) -> list[str]:
+    rows: list[str] = []
+    compact_rows: list[str] = []
+    for title, values in sections:
+        section = _dot_section_inner_rows(title, values)
+        if not section:
+            continue
+        is_compact, inner_rows = section
+        if is_compact:
+            compact_rows.extend(inner_rows)
+            continue
+        if compact_rows:
+            rows.append(_dot_nested_rows(compact_rows, cell_spacing=1))
+            compact_rows = []
+        rows.append(_dot_nested_rows(inner_rows))
+    if compact_rows:
+        rows.append(_dot_nested_rows(compact_rows, cell_spacing=1))
+    return rows
+
+
+def _dot_section_inner_rows(title: str, values: Iterable[object]) -> tuple[bool, list[str]] | None:
     wrapped_values = [wrapped for value in values if (wrapped := _wrap_dot_text(value))]
     if not wrapped_values:
-        return []
+        return None
     inner_rows: list[str] = []
+    is_compact = len(wrapped_values) == 1 and len(wrapped_values[0]) == 1
     if len(wrapped_values) == 1:
         wrapped = wrapped_values[0]
         inner_rows.append(_dot_key_value_row(title, wrapped[0]))
         for line in wrapped[1:]:
             inner_rows.append(_dot_key_value_row("", line))
-        return [_dot_nested_rows(inner_rows)]
+        return is_compact, inner_rows
     for wrapped in wrapped_values:
         if not inner_rows:
             inner_rows.append(f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10"><B>{_dot_html_text(title)}</B></FONT></TD></TR>')
         inner_rows.append(f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">{_dot_html_text(wrapped[0])}</FONT></TD></TR>')
         for line in wrapped[1:]:
             inner_rows.append(f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">{_dot_html_text(line)}</FONT></TD></TR>')
-    if not inner_rows:
-        return []
-    return [_dot_nested_rows(inner_rows)]
+    return False, inner_rows
+
+
+def _dot_key_value_text(title: str, value: str) -> str:
+    key = f"<B>{_dot_html_text(title)}:</B>&#160;&#160;" if title else "&#160;&#160;"
+    return f"{key}{_dot_html_text(value)}"
 
 
 def _dot_key_value_row(title: str, value: str) -> str:
-    key = f"<B>{_dot_html_text(title)}:</B>&#160;&#160;" if title else "&#160;&#160;"
     return (
-        '<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">'
-        f"{key}{_dot_html_text(value)}</FONT></TD></TR>"
+        '<TR><TD ALIGN="LEFT" VALIGN="MIDDLE" HEIGHT="11"><FONT POINT-SIZE="10">'
+        f"{_dot_key_value_text(title, value)}</FONT></TD></TR>"
     )
 
 
@@ -680,12 +701,12 @@ def _format_transition_sections(
         data_sources = [binding["capability"] for binding in bindings]
         queries = [binding["query"] for binding in bindings]
         inputs = _format_data_inputs(panel, bindings, contract)
-        if data_sources:
-            sections.append(("data", data_sources))
-        if queries:
-            sections.append(("query", queries))
         if inputs:
             sections.append(("input", inputs))
+        if queries:
+            sections.append(("query", queries))
+        if data_sources:
+            sections.append(("data", data_sources))
     else:
         target_bindings = _transition_target_data_bindings(panel, transition)
         data_sources = [binding["capability"] for binding in target_bindings]
