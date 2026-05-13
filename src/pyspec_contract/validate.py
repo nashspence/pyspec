@@ -45,7 +45,7 @@ def validate_project(root: Path, release: bool = False, layers: set[str] | None 
     if compiled["scenarios"]:
         assert_prod_harness_is_real(root)
 
-    expected = {str(COMPILED_SPEC_PATH)} | {relative for relative, _, _ in projection_files(compiled)} | audit_expected_files(compiled)
+    expected = {str(COMPILED_SPEC_PATH)} | {relative for relative, _, _ in projection_files(compiled, layers=layers)} | audit_expected_files(compiled)
     actual = _generated_files(root)
     if actual != expected:
         extra = sorted(actual - expected)
@@ -62,7 +62,7 @@ def validate_project(root: Path, release: bool = False, layers: set[str] | None 
         tmp_source = tmp_root / source_path.name
         tmp_source.write_text(source_path.read_text(encoding="utf-8"), encoding="utf-8")
         write_compiled(tmp_root, tmp_source, tools_root=root, render_audit=False, layers=layers)
-        expected_without_audit = {str(COMPILED_SPEC_PATH)} | {relative for relative, _, _ in projection_files(compiled)}
+        expected_without_audit = {str(COMPILED_SPEC_PATH)} | {relative for relative, _, _ in projection_files(compiled, layers=layers)}
         for relative in sorted(expected_without_audit):
             expected_path = tmp_root / relative
             actual_path = root / relative

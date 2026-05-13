@@ -41,6 +41,7 @@ The package exposes the `pyspec` command:
 pyspec compile examples/project_dispatch_board --layers full
 pyspec validate examples/project_dispatch_board --layers full
 pyspec check examples/project_dispatch_board --layers full
+pyspec prompts examples/new_project --layers core,http
 ```
 
 ## Authoring Model
@@ -96,6 +97,11 @@ A full-surface project can generate:
 
 ```text
 spec/generated/
+  agent_prompts/
+    pm_design.md
+    test.md
+    dev.md
+    review.md
   compiled/
     spec.yaml
   product_interfaces/
@@ -131,6 +137,14 @@ spec/generated/
       textual/**/*.py
       textual/**/*.svg
 ```
+
+The role prompt templates are standalone, layer-specific prompts with a stable
+`{{USER_PROMPT}}` substitution point. PM/design, test, and dev prompts guide the
+slice work; `review.md` checks a completed vertical slice for merge readiness.
+`pyspec compile` regenerates them with the rest of the closed generated tree,
+and `pyspec prompts . --layers core,http` can write just the prompts before an
+authored spec exists. `pyspec init --layers ...` also writes starter prompts
+unless `--no-prompts` is passed.
 
 Validation treats the generated tree as closed: missing files, extra files, hand-edited text projections, corrupt PNGs, invalid SVGs, or stale compiled specs fail validation.
 

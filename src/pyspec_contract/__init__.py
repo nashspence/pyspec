@@ -15,6 +15,7 @@ _EXPORTS = {
     "compile_source": ("pyspec_contract.compile", "compile_source"),
     "expected_artifacts": ("pyspec_contract.api", "expected_artifacts"),
     "validate_project": ("pyspec_contract.api", "validate_project"),
+    "write_agent_prompts": ("pyspec_contract.agent_prompts", "write_agent_prompts"),
     "write_generated": ("pyspec_contract.api", "write_generated"),
 }
 

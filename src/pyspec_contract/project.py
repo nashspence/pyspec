@@ -5,6 +5,7 @@ import re
 from collections import defaultdict
 from typing import Any, Iterable
 
+from .agent_prompts import agent_prompt_paths, agent_prompt_projection_files
 from .layout import layout_html, layout_textual, layout_textual_containers
 from .paths import generated_relative as g
 
@@ -50,6 +51,7 @@ def projection_paths(contract: dict[str, Any]) -> list[str]:
     if _has_content(contract):
         paths.extend([g("content_resolvers", "__init__.py"), g("content_resolvers", "signatures.py"), g("content_resolvers", "stubs.py"), g("content_resolvers", "cases.yaml")])
     paths.extend(sorted(feature_projections(contract)))
+    paths.extend(agent_prompt_paths())
     return paths
 
 
@@ -63,7 +65,7 @@ def validated_projection_paths(contract: dict[str, Any]) -> list[str]:
     return [path for path in projection_paths(contract) if path not in skip and not path.startswith(g("test_adapters", "pytest_bdd_features") + "/")]
 
 
-def projection_files(contract: dict[str, Any]) -> Iterable[tuple[str, Any, str]]:
+def projection_files(contract: dict[str, Any], *, layers: str | set[str] | None = None) -> Iterable[tuple[str, Any, str]]:
     yield g("__init__.py"), "# Generated package. Do not edit.\n", "text"
     yield g("test_adapters", "__init__.py"), "# Generated package. Do not edit.\n", "text"
     if _has_api(contract):
@@ -90,6 +92,7 @@ def projection_files(contract: dict[str, Any]) -> Iterable[tuple[str, Any, str]]
     yield g("test_adapters", "pytest_bdd_steps.py"), bdd_steps_projection(), "text"
     for relative, text in feature_projections(contract).items():
         yield relative, text, "text"
+    yield from agent_prompt_projection_files(contract, layers=layers)
 
 
 def _entries_with_surface(contract: dict[str, Any], *surfaces: str) -> list[dict[str, Any]]:

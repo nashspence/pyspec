@@ -80,6 +80,7 @@ def write_generated(
     *,
     artifact_policy: ArtifactPolicy | None = None,
     render_audit: bool = True,
+    layers: str | set[str] | None = None,
 ) -> set[str]:
     """Write generated artifacts for an already compiled contract."""
 
@@ -90,7 +91,7 @@ def write_generated(
     compiled_path = project_root / COMPILED_SPEC_PATH
     compiled_path.parent.mkdir(parents=True, exist_ok=True)
     write_yaml(compiled_path, contract)
-    for relative, content, kind in projection_files(contract):
+    for relative, content, kind in projection_files(contract, layers=_coerce_layers(layers)):
         path = project_root / relative
         path.parent.mkdir(parents=True, exist_ok=True)
         if kind == "json":

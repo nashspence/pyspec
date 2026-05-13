@@ -4,6 +4,7 @@
 
 The tree is organized by why an artifact exists:
 
+- `agent_prompts/` contains standalone layer-specific role prompts for PM/design, test, dev, and review agents.
 - `compiled/` contains the compiler-normalized spec.
 - `product_interfaces/` contains product-facing projections such as OpenAPI, AsyncAPI, CWL, routes, panel manifests, and Textual projections.
 - `behavior/` contains semantic fixtures and scenarios.
@@ -19,5 +20,6 @@ Validation enforces a closed generated tree:
 - audit SVG files must be valid SVG
 - audit PNG files must have a PNG header
 - BDD features must be the single canonical generated corpus
+- agent prompt templates must match the active layers and include the `{{USER_PROMPT}}` substitution point
 
 Future work can add compression or retention knobs, but the default package API already models that decision through `ArtifactPolicy`.

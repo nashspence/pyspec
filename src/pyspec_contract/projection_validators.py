@@ -10,6 +10,7 @@ from typing import Any, Iterable
 
 from jsonschema import Draft202012Validator
 
+from .agent_prompts import USER_PROMPT_PLACEHOLDER, agent_prompt_paths
 from .compile import ContractError
 from .content import ContentContext, ContentError, asset as asset_registry, call_asset, call_copy, copy as copy_registry, instantiate_args, load_resolvers, validate_resolver_function
 from .runtime import fixture_namespace, resolve
@@ -77,6 +78,7 @@ def validate_generated_projections(root: Path, contract: dict[str, Any]) -> None
         validate_content_contract(root, contract)
     if g("product_interfaces", "workflow.cwl.yaml") in expected_paths:
         validate_workflows(contract, read_yaml(generated / "product_interfaces" / "workflow.cwl.yaml"))
+    validate_agent_prompts(root)
     validate_fixtures_and_scenarios(root, contract)
     if (root / GENERATED_SPEC_DIR / "audit_evidence").exists() or any(path.startswith(g("audit_evidence") + "/") for path in audit_expected_files(contract)):
         validate_audit_outputs(root, contract)
@@ -171,6 +173,16 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
         _validate_refs_resolve(operation, doc, f"OpenAPI operation {entry_id}")
 
     _validate_refs_resolve(doc["components"], doc, "OpenAPI components")
+
+
+def validate_agent_prompts(root: Path) -> None:
+    for relative in agent_prompt_paths():
+        path = root / relative
+        if not path.exists():
+            raise ContractError(f"Missing generated agent prompt: {relative}")
+        text = path.read_text(encoding="utf-8")
+        if text.count(USER_PROMPT_PLACEHOLDER) != 1:
+            raise ContractError(f"Generated agent prompt must contain exactly one {USER_PROMPT_PLACEHOLDER} placeholder: {relative}")
 
 
 def validate_asyncapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:

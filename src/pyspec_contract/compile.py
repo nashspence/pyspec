@@ -1453,7 +1453,7 @@ def write_compiled(root: Path, source_path: Path, tools_root: Path | None = None
     compiled_path = root / COMPILED_SPEC_PATH
     compiled_path.parent.mkdir(parents=True, exist_ok=True)
     write_yaml(compiled_path, contract)
-    for relative, content, kind in projection_files(contract):
+    for relative, content, kind in projection_files(contract, layers=layers):
         path = root / relative
         path.parent.mkdir(parents=True, exist_ok=True)
         if kind == "json":
