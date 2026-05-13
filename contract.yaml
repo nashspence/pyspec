@@ -260,6 +260,10 @@ panels:
       from: loading
       to: error
     - event: selection.cleared
+      effects:
+      - set:
+          context: project_id
+          value: null
       from: ready
       to: none
     basis: The detail panel is independent from the list and reacts to selected project context.
@@ -281,6 +285,8 @@ panels:
       ready:
         copy_slots:
         - heading
+        data:
+        - project.read
         field_slots:
         - updated_at
         - status
@@ -291,6 +297,10 @@ panels:
       from: empty
       to: ready
     - event: selection.cleared
+      effects:
+      - set:
+          context: project_id
+          value: null
       from: ready
       to: empty
     basis: The activity panel summarizes latest status around the selected project.

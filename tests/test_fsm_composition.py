@@ -31,6 +31,9 @@ def test_composed_fsm_contract_is_closed_and_projected() -> None:
     detail_panel = contract["panels"]["panel.project.detail"]
     assert detail_panel["data"] == []
     assert detail_panel["states"]["loading"]["data"] == [{"query": "query.project.detail.read", "capability": "project.read"}]
+    assert contract["panels"]["panel.project.activity"]["states"]["ready"]["data"] == [
+        {"query": "query.project.activity.read", "capability": "project.read"}
+    ]
 
     view = contract["views"]["project.board"]
     assert set(view["layout"]["slots"]) == {"nav", "main", "aside"}

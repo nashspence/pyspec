@@ -295,6 +295,10 @@ changes:
       from: loading
       to: error
     - event: selection.cleared
+      effects:
+      - set:
+          context: project_id
+          value: null
       from: ready
       to: none
   target: panel
@@ -319,6 +323,8 @@ changes:
       ready:
         copy_slots:
         - heading
+        data:
+        - project.read
         field_slots:
         - updated_at
         - status
@@ -329,6 +335,10 @@ changes:
       from: empty
       to: ready
     - event: selection.cleared
+      effects:
+      - set:
+          context: project_id
+          value: null
       from: ready
       to: empty
   target: panel

@@ -234,8 +234,36 @@ def test_panel_data_events_require_data_binding() -> None:
     patch = read_yaml(ROOT / "pm.patch.yaml")
     detail = _change(patch, "panel", "panel.project.detail")["spec"]
     detail["states"]["loading"]["data"] = []
+    detail["states"]["ready"].pop("field_slots")
     with pytest.raises(ContractError, match=r"Panel panel\.project\.detail transition uses data event without panel or source-state data: data\.ready"):
         compile_patch(patch)
+
+
+def test_panel_transition_requires_basis_when_audit_card_would_be_empty() -> None:
+    patch = read_yaml(ROOT / "pm.patch.yaml")
+    activity = _change(patch, "panel", "panel.project.activity")["spec"]
+    cleared = next(transition for transition in activity["transitions"] if transition["event"] == "selection.cleared")
+    cleared.pop("effects")
+    with pytest.raises(
+        ContractError,
+        match=r"Panel panel\.project\.activity transition selection\.cleared from ready to empty must declare basis, data, or effects",
+    ):
+        compile_patch(patch)
+
+
+def test_panel_transition_basis_can_explain_otherwise_empty_audit_card() -> None:
+    patch = read_yaml(ROOT / "pm.patch.yaml")
+    activity = _change(patch, "panel", "panel.project.activity")["spec"]
+    cleared = next(transition for transition in activity["transitions"] if transition["event"] == "selection.cleared")
+    cleared.pop("effects")
+    cleared["basis"] = "Clearing the selection returns the activity panel to its empty state."
+    contract = compile_patch(patch)
+    compiled = next(
+        transition
+        for transition in contract["panels"]["panel.project.activity"]["transitions"]
+        if transition["event"] == "selection.cleared"
+    )
+    assert compiled["basis"] == "Clearing the selection returns the activity panel to its empty state."
 
 
 def test_panel_data_inputs_must_come_from_context() -> None:
@@ -245,6 +273,28 @@ def test_panel_data_inputs_must_come_from_context() -> None:
     with pytest.raises(
         ContractError,
         match=r"Panel panel\.project\.list data capability project\.list input not provided by context: .*workspace_id",
+    ):
+        compile_patch(patch)
+
+
+def test_panel_field_slots_require_data_source() -> None:
+    patch = read_yaml(ROOT / "pm.patch.yaml")
+    activity = _change(patch, "panel", "panel.project.activity")["spec"]
+    del activity["states"]["ready"]["data"]
+    with pytest.raises(
+        ContractError,
+        match=r"Panel panel\.project\.activity\.ready declares field slots without data source",
+    ):
+        compile_patch(patch)
+
+
+def test_panel_data_source_must_be_query_like_capability() -> None:
+    patch = read_yaml(ROOT / "pm.patch.yaml")
+    activity = _change(patch, "panel", "panel.project.activity")["spec"]
+    activity["states"]["ready"]["data"] = ["project.submit"]
+    with pytest.raises(
+        ContractError,
+        match=r"Panel panel\.project\.activity\.ready data capability must be read, list, or query: project\.submit",
     ):
         compile_patch(patch)
 

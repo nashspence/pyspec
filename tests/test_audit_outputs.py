@@ -64,6 +64,24 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
         assert "</svg>" in svg
 
 
+def test_audit_transition_basis_renders_for_otherwise_sparse_card() -> None:
+    patch = read_yaml(ROOT / "pm.patch.yaml")
+    activity = next(
+        change["spec"]
+        for change in patch["changes"]
+        if change.get("target") == "panel" and change.get("id") == "panel.project.activity"
+    )
+    cleared = next(transition for transition in activity["transitions"] if transition["event"] == "selection.cleared")
+    cleared.pop("effects")
+    cleared["basis"] = "Clearing the selection returns the activity panel to its empty state."
+    contract = compile_patch(patch)
+
+    fsm = panel_fsm_dot("panel.project.activity", contract["panels"]["panel.project.activity"], contract)
+
+    assert "Clearing the selection returns the activity panel" in fsm
+    assert "to its empty state." in fsm
+
+
 def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     list_fsm = (ROOT / "generated" / "audit" / "fsm" / "panel_project_list.svg").read_text(encoding="utf-8")
     detail_fsm = (ROOT / "generated" / "audit" / "fsm" / "panel_project_detail.svg").read_text(encoding="utf-8")
@@ -92,10 +110,17 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "emitted events" not in list_fsm
     assert "panel.project.detail.ready" in detail_fsm
     assert "project.approve" in detail_fsm
+    assert "requires context" in detail_fsm
     assert "query.project.detail.read" in detail_fsm
     assert "project_id: ID" in detail_fsm
     assert "capability: project.read" not in detail_fsm
+    assert "set project_id to null" in detail_fsm
+    assert "select_project_updates_panels" not in detail_fsm
     assert "data.ready" not in activity_fsm
+    assert "requires context" in activity_fsm
+    assert "query.project.activity.read" in activity_fsm
+    assert "project_id: ID" in activity_fsm
+    assert "set project_id to null" in activity_fsm
     assert "selected state: loading" in composition
     assert "send project.selection_changed to detail" in composition
 

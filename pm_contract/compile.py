@@ -745,7 +745,9 @@ def _validate_panels(contract: dict[str, Any]) -> None:
             raise ContractError(f"Panel id must start with panel.: {panel_id}")
         if panel["resource"] not in contract["resources"]:
             raise ContractError(f"Panel {panel_id} references unknown resource {panel['resource']}")
-        _validate_data_bindings(contract, f"Panel {panel_id}", panel.get("data", []), panel.get("context", {}))
+        _validate_data_bindings(
+            contract, f"Panel {panel_id}", panel.get("data", []), panel.get("context", {}), resource=panel["resource"]
+        )
         if panel["initial"] not in panel["states"]:
             raise ContractError(f"Panel {panel_id} initial state is not declared: {panel['initial']}")
         resource_fields = set(contract["resources"][panel["resource"]]["fields"])
@@ -757,7 +759,9 @@ def _validate_panels(contract: dict[str, Any]) -> None:
                 state,
                 field_names=resource_fields,
                 data_context=panel.get("context", {}),
+                resource=panel["resource"],
             )
+        _validate_field_state_data_sources(f"Panel {panel_id}", panel["states"], panel.get("data", []), panel.get("transitions", []))
         _validate_panel_transitions(panel_id, panel)
         _validate_panel_events(panel_id, panel)
 
@@ -769,8 +773,9 @@ def _validate_panelish_state(
     state: dict[str, Any],
     field_names: set[str],
     data_context: dict[str, Any] | None = None,
+    resource: str | None = None,
 ) -> None:
-    _validate_data_bindings(contract, f"{owner_label}.{state_name}", state.get("data", []), data_context)
+    _validate_data_bindings(contract, f"{owner_label}.{state_name}", state.get("data", []), data_context, resource=resource)
     for field in state.get("fields", []):
         if field not in field_names:
             raise ContractError(f"{owner_label}.{state_name} field slot is not declared on the resource/context: {field}")
@@ -785,18 +790,54 @@ def _validate_data_bindings(
     owner_label: str,
     data: list[dict[str, Any]],
     context: dict[str, Any] | None,
+    *,
+    resource: str | None = None,
 ) -> None:
     context_keys = set((context or {}).keys())
     for datum in data:
         capability_id = datum["capability"]
         if capability_id not in contract["capabilities"]:
             raise ContractError(f"{owner_label} data references unknown capability {capability_id}")
-        input_keys = set((contract["capabilities"][capability_id].get("input") or {}).keys())
+        capability = contract["capabilities"][capability_id]
+        if capability["archetype"] not in {"read", "list", "query"}:
+            raise ContractError(f"{owner_label} data capability must be read, list, or query: {capability_id}")
+        if resource and capability["resource"] != resource:
+            raise ContractError(f"{owner_label} data capability {capability_id} resource does not match {resource}")
+        input_keys = set((capability.get("input") or {}).keys())
         missing = sorted(input_keys - context_keys)
         if missing:
             raise ContractError(
                 f"{owner_label} data capability {capability_id} input not provided by context: {missing}"
             )
+
+
+def _validate_field_state_data_sources(
+    owner_label: str,
+    states: dict[str, Any],
+    owner_data: list[dict[str, Any]],
+    transitions: list[dict[str, Any]],
+) -> None:
+    for state_name, state in states.items():
+        if not state.get("fields") or _state_has_data_source(state_name, states, owner_data, transitions):
+            continue
+        raise ContractError(f"{owner_label}.{state_name} declares field slots without data source")
+
+
+def _state_has_data_source(
+    state_name: str,
+    states: dict[str, Any],
+    owner_data: list[dict[str, Any]],
+    transitions: list[dict[str, Any]],
+) -> bool:
+    if owner_data or states[state_name].get("data"):
+        return True
+    for transition in transitions:
+        if transition["to"] != state_name or not _is_data_event(transition["event"]):
+            continue
+        source_state = states.get(transition["from"], {})
+        if owner_data or source_state.get("data"):
+            return True
+    return False
 
 
 def _validate_panel_transitions(panel_id: str, panel: dict[str, Any]) -> None:
@@ -818,6 +859,12 @@ def _validate_panel_transitions(panel_id: str, panel: dict[str, Any]) -> None:
                     raise ContractError(f"Panel {panel_id} transition emit must name an event: {body!r}")
             else:  # pragma: no cover - schema prevents this.
                 raise ContractError(f"Panel {panel_id} unsupported transition effect: {kind}")
+    for transition in panel.get("transitions", []):
+        if not _transition_has_audit_content(panel, transition):
+            raise ContractError(
+                f"Panel {panel_id} transition {transition['event']} from {transition['from']} "
+                f"to {transition['to']} must declare basis, data, or effects"
+            )
 
 
 def _validate_panel_events(panel_id: str, panel: dict[str, Any]) -> None:
@@ -838,7 +885,7 @@ def _validate_views(contract: dict[str, Any]) -> None:
         if not view.get("states") and not view.get("includes"):
             raise ContractError(f"View {vid} must declare atomic states or composed panel includes")
         for datum in view.get("data", []):
-            _validate_data_bindings(contract, f"View {vid}", [datum], view.get("context", {}))
+            _validate_data_bindings(contract, f"View {vid}", [datum], view.get("context", {}), resource=view["resource"])
         resource_fields = set(contract["resources"][view["resource"]]["fields"])
         for state_name, state in view.get("states", {}).items():
             _validate_panelish_state(
@@ -848,7 +895,9 @@ def _validate_views(contract: dict[str, Any]) -> None:
                 state,
                 field_names=resource_fields,
                 data_context=view.get("context", {}),
+                resource=view["resource"],
             )
+        _validate_field_state_data_sources(f"View {vid}", view.get("states", {}), view.get("data", []), [])
         if view.get("includes") or view.get("layout") or view.get("sync"):
             _validate_view_composition(contract, vid, view)
 
@@ -953,6 +1002,19 @@ def _is_data_event(event: str) -> bool:
 def _transition_data_bindings(panel: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
     source_state = panel.get("states", {}).get(transition["from"], {})
     return source_state.get("data", []) or panel.get("data", [])
+
+
+def _transition_target_data_bindings(panel: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
+    target_state = panel.get("states", {}).get(transition["to"], {})
+    return target_state.get("data", [])
+
+
+def _transition_has_audit_content(panel: dict[str, Any], transition: dict[str, Any]) -> bool:
+    if transition.get("basis") or transition.get("effects"):
+        return True
+    if _is_data_event(transition["event"]):
+        return bool(_transition_data_bindings(panel, transition))
+    return bool(_transition_target_data_bindings(panel, transition))
 
 
 def _validate_sync_rules(contract: dict[str, Any], view_id: str, view: dict[str, Any], instances: dict[str, dict[str, Any]]) -> None:

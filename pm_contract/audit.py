@@ -351,6 +351,7 @@ def panel_fsm_dot(panel_id: str, panel: dict[str, Any], contract: dict[str, Any]
                     f"on {transition['event']}",
                     None,
                     _format_transition_sections(panel, transition, contract),
+                    basis=transition.get("basis", ""),
                     header_bg="#eff6ff",
                     border="#2563eb",
                 ),
@@ -685,10 +686,26 @@ def _format_transition_sections(
             sections.append(("query", queries))
         if inputs:
             sections.append(("input", inputs))
+    else:
+        target_bindings = _transition_target_data_bindings(panel, transition)
+        data_sources = [binding["capability"] for binding in target_bindings]
+        queries = [binding["query"] for binding in target_bindings]
+        required_context = _format_data_inputs(panel, target_bindings, contract)
+        if data_sources:
+            sections.append(("data", data_sources))
+        if queries:
+            sections.append(("query", queries))
+        if required_context:
+            sections.append(("requires context", required_context))
     effects = _format_transition_effects(transition)
     if effects:
         sections.append(("effects", effects))
     return sections
+
+
+def _transition_target_data_bindings(panel: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
+    target_state = panel.get("states", {}).get(transition["to"], {})
+    return _unique_data_bindings(target_state.get("data", []))
 
 
 def _format_data_inputs(
@@ -719,6 +736,10 @@ def _is_data_event(event: str) -> bool:
 def _transition_data_bindings(panel: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
     source_state = panel.get("states", {}).get(transition["from"], {})
     bindings = source_state.get("data", []) or panel.get("data", [])
+    return _unique_data_bindings(bindings)
+
+
+def _unique_data_bindings(bindings: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
     unique: list[dict[str, Any]] = []
     seen: set[tuple[Any, Any]] = set()
     for binding in bindings:
@@ -734,7 +755,21 @@ def _format_transition_effects(transition: dict[str, Any]) -> list[str]:
     for effect in transition.get("effects", []):
         if "emit" in effect:
             lines.append(f"emit {effect['emit']}")
+        elif "set" in effect:
+            assignment = effect["set"]
+            if "from" in assignment:
+                lines.append(f"set {assignment['context']} from {assignment['from']}")
+            else:
+                lines.append(f"set {assignment['context']} to {_format_scalar(assignment['value'])}")
     return lines
+
+
+def _format_scalar(value: Any) -> str:
+    if value is None:
+        return "null"
+    if isinstance(value, bool):
+        return str(value).lower()
+    return str(value)
 
 
 def _format_sync_effects(effects: Iterable[dict[str, Any]]) -> list[str]:

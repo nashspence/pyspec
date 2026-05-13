@@ -97,8 +97,10 @@ class ProductApp:
 
     def _choose_panel_state(self, panel: dict[str, Any], include: dict[str, Any], records: list[dict[str, Any]], context: dict[str, Any]) -> str:
         selected = include.get("selected")
-        if selected and _condition_matches(selected["when"], context):
-            return selected["state"]
+        if selected:
+            if _condition_matches(selected["when"], context):
+                return selected["state"]
+            return include["initial"]
         if records and "ready" in panel["states"] and (panel.get("data") or panel["states"]["ready"].get("data")):
             return "ready"
         if not records and "empty" in panel["states"]:

@@ -1530,6 +1530,9 @@
     "panel_transition": {
       "additionalProperties": false,
       "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
         "effects": {
           "items": {
             "oneOf": [
