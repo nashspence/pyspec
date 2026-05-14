@@ -159,14 +159,15 @@
 <!-- transition_4_ready_ready_project_select -->
 <g id="node10" class="node">
 <title>transition_4_ready_ready_project_select</title>
-<polygon fill="#ffffff" stroke="transparent" points="1255,-137 1255,-217 1375,-217 1375,-137 1255,-137"/>
-<polygon fill="#2563eb" stroke="transparent" points="1256,-206 1256,-216 1374,-216 1374,-206 1256,-206"/>
-<polygon fill="#eff6ff" stroke="transparent" points="1256,-181 1256,-206 1374,-206 1374,-181 1256,-181"/>
-<text text-anchor="start" x="1261" y="-190.8" font-family="Arial" font-weight="bold" font-size="14.00">on project.select</text>
-<text text-anchor="start" x="1261" y="-169" font-family="Arial" font-weight="bold" font-size="10.00">effects</text>
-<text text-anchor="start" x="1261" y="-157" font-family="Arial" font-size="10.00">emit project.selected</text>
-<text text-anchor="start" x="1261" y="-146" font-family="Arial" font-size="10.00"> &#160;project_id</text>
-<polygon fill="none" stroke="#2563eb" points="1255,-137 1255,-217 1375,-217 1375,-137 1255,-137"/>
+<polygon fill="#ffffff" stroke="transparent" points="1255,-141 1255,-213 1375,-213 1375,-141 1255,-141"/>
+<polygon fill="#2563eb" stroke="transparent" points="1256,-202 1256,-212 1374,-212 1374,-202 1256,-202"/>
+<polygon fill="#eff6ff" stroke="transparent" points="1256,-177 1256,-202 1374,-202 1374,-177 1256,-177"/>
+<text text-anchor="start" x="1261" y="-186.8" font-family="Arial" font-weight="bold" font-size="14.00">on project.select</text>
+<text text-anchor="start" x="1262" y="-164" font-family="Arial" font-weight="bold" font-size="10.00">emit:</text>
+<text text-anchor="start" x="1286" y="-164" font-family="Arial" font-size="10.00">  project.selected</text>
+<text text-anchor="start" x="1262" y="-152" font-family="Arial" font-weight="bold" font-size="10.00">payload:</text>
+<text text-anchor="start" x="1302" y="-152" font-family="Arial" font-size="10.00">  project_id</text>
+<polygon fill="none" stroke="#2563eb" points="1255,-141 1255,-213 1375,-213 1375,-141 1255,-141"/>
 </g>
 <!-- state_ready&#45;&gt;transition_4_ready_ready_project_select -->
 <g id="edge10" class="edge">

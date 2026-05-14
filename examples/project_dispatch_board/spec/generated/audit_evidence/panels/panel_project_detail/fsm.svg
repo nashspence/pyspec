@@ -141,8 +141,8 @@
 <polygon fill="#2563eb" stroke="transparent" points="1346,-150.08 1346,-160.08 1486,-160.08 1486,-150.08 1346,-150.08"/>
 <polygon fill="#eff6ff" stroke="transparent" points="1346,-125.08 1346,-150.08 1486,-150.08 1486,-125.08 1346,-125.08"/>
 <text text-anchor="start" x="1351" y="-134.88" font-family="Arial" font-weight="bold" font-size="14.00">on selection.cleared</text>
-<text text-anchor="start" x="1352" y="-112.08" font-family="Arial" font-weight="bold" font-size="10.00">effects:</text>
-<text text-anchor="start" x="1386" y="-112.08" font-family="Arial" font-size="10.00">  project_id &lt;&#45; null</text>
+<text text-anchor="start" x="1352" y="-112.08" font-family="Arial" font-weight="bold" font-size="10.00">set:</text>
+<text text-anchor="start" x="1369" y="-112.08" font-family="Arial" font-size="10.00">  project_id &lt;&#45; null</text>
 <polygon fill="none" stroke="#2563eb" points="1345,-101.08 1345,-161.08 1487,-161.08 1487,-101.08 1345,-101.08"/>
 </g>
 <!-- state_ready&#45;&gt;transition_3_ready_none_selection_cleared -->

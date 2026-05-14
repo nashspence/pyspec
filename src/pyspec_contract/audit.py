@@ -685,7 +685,6 @@ def _dot_instance_card(include: dict[str, Any]) -> str:
         [
             ("region", [include["region"]]),
             ("initial", [include["initial"]]),
-            ("context binding", _format_data_flow(include.get("context", {}), identity_scope=None)),
         ],
         header_bg="#fff7ed",
         border="#c2410c",
@@ -1040,9 +1039,7 @@ def _format_transition_sections(
             sections.append(("query", queries))
         if data_sources:
             sections.append(("load", data_sources))
-    effects = _format_transition_effects(transition)
-    if effects:
-        sections.append(("effects", effects))
+    sections.extend(_format_transition_effect_sections(transition))
     return sections
 
 
@@ -1093,17 +1090,19 @@ def _unique_data_bindings(bindings: Iterable[dict[str, Any]]) -> list[dict[str, 
     return unique
 
 
-def _format_transition_effects(transition: dict[str, Any]) -> list[str]:
-    lines = []
+def _format_transition_effect_sections(transition: dict[str, Any]) -> list[tuple[str, list[str]]]:
+    sections: list[tuple[str, list[str]]] = []
     for effect in transition.get("effects", []):
         if "emit" in effect:
             emit = effect["emit"]
-            lines.append(f"emit {emit['message']}")
-            lines.extend(f"  {line}" for line in _format_data_flow(emit.get("data", {})))
+            sections.append(("emit", [emit["message"]]))
+            payload = _format_data_flow(emit.get("data", {}))
+            if payload:
+                sections.append(("payload", payload))
         elif "set" in effect:
             assignment = effect["set"]
-            lines.append(_format_flow_assignment(assignment["context"], _assignment_value(assignment), identity_scope=None))
-    return lines
+            sections.append(("set", [_format_flow_assignment(assignment["context"], _assignment_value(assignment), identity_scope=None)]))
+    return sections
 
 
 def _format_scalar(value: Any) -> str:

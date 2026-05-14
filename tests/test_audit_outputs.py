@@ -45,7 +45,10 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "on data.ready" in fsm
     assert "copy.project.list.ready.heading" in fsm
     assert "asset.project.list.empty.illustration" in fsm
-    assert "emit project.selected" in fsm
+    assert "<B>emit:</B>&#160;&#160;project.selected" in fsm
+    assert "<B>payload:</B>&#160;&#160;project_id" in fsm
+    assert "<B>effects:</B>" not in fsm
+    assert "emit project.selected" not in fsm
     assert "<B>projection:</B>" not in fsm
     assert "<B>load:</B>&#160;&#160;project.list" in fsm
     assert "<B>query:</B>&#160;&#160;query.project.list.list" in fsm
@@ -83,7 +86,8 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>region:</B>&#160;&#160;nav" in composition
     assert "<B>region:</B>&#160;&#160;main" in composition
     assert "<B>causes:</B>&#160;&#160;to loading" in composition
-    assert "context binding" in composition
+    assert "context binding" not in composition
+    assert "view.selected_project_id" not in composition
     assert "panel context" not in composition
     assert "order:" not in composition
     assert "element:" not in composition
@@ -178,7 +182,8 @@ def test_composition_dot_routes_messages_generically() -> None:
     assert "<B>data:</B>&#160;&#160;id" in composition
     assert "selected_id &lt;- id" in composition
     assert "item_id &lt;- id" in composition
-    assert "item_id &lt;- view.selected_id" in composition
+    assert "item_id &lt;- view.selected_id" not in composition
+    assert "context binding" not in composition
     assert "$message." not in composition
     assert "$event." not in composition
     assert "$view." not in composition
@@ -226,7 +231,11 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "on data.ready" in list_fsm
     assert "copy.project.list.ready.heading" in list_fsm
     assert "asset.project.list.empty.illustration" in list_fsm
-    assert "emit project.selected" in list_fsm
+    assert "emit:" in list_fsm
+    assert "project.selected" in list_fsm
+    assert "payload:" in list_fsm
+    assert "emit project.selected" not in list_fsm
+    assert "effects:" not in list_fsm
     assert "capability: project.list" not in list_fsm
     assert "query.project.list.list" in list_fsm
     assert "workspace_id: ID" in list_fsm
@@ -253,12 +262,14 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "query.project.detail.read" in detail_fsm
     assert "project_id: ID" in detail_fsm
     assert "capability: project.read" not in detail_fsm
+    assert "set:" in detail_fsm
     assert "project_id &lt;&#45; null" in detail_fsm
     assert "select_project_updates_panels" not in detail_fsm
     assert "data.ready" not in activity_fsm
     assert "input:" in activity_fsm
     assert "query.project.activity.read" in activity_fsm
     assert "project_id: ID" in activity_fsm
+    assert "set:" in activity_fsm
     assert "project_id &lt;&#45; null" in activity_fsm
     assert "emitted message" in composition
     assert "sent message" in composition
@@ -270,7 +281,8 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "empty to ready" not in composition
     assert "selected state:" not in composition
     assert "selected_project_id &lt;&#45; project_id" in composition
-    assert "context binding" in composition
+    assert "context binding" not in composition
+    assert "view.selected_project_id" not in composition
     assert "panel context" not in composition
     assert "$message." not in composition
     assert "$event." not in composition

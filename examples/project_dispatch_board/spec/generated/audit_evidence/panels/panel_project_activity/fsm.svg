@@ -69,8 +69,8 @@
 <polygon fill="#2563eb" stroke="transparent" points="851,-67 851,-77 991,-77 991,-67 851,-67"/>
 <polygon fill="#eff6ff" stroke="transparent" points="851,-42 851,-67 991,-67 991,-42 851,-42"/>
 <text text-anchor="start" x="856" y="-51.8" font-family="Arial" font-weight="bold" font-size="14.00">on selection.cleared</text>
-<text text-anchor="start" x="857" y="-29" font-family="Arial" font-weight="bold" font-size="10.00">effects:</text>
-<text text-anchor="start" x="891" y="-29" font-family="Arial" font-size="10.00">  project_id &lt;&#45; null</text>
+<text text-anchor="start" x="857" y="-29" font-family="Arial" font-weight="bold" font-size="10.00">set:</text>
+<text text-anchor="start" x="874" y="-29" font-family="Arial" font-size="10.00">  project_id &lt;&#45; null</text>
 <polygon fill="none" stroke="#2563eb" points="850,-18 850,-78 992,-78 992,-18 850,-18"/>
 </g>
 <!-- state_ready&#45;&gt;transition_1_ready_empty_selection_cleared -->
