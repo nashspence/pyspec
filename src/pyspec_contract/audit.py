@@ -552,12 +552,12 @@ def panel_fsm_dot(panel_id: str, panel: dict[str, Any], contract: dict[str, Any]
     for index, transition in enumerate(panel.get("transitions", [])):
         source = _dot_node_id("state", transition["from"])
         target = _dot_node_id("state", transition["to"])
-        transition_id = _dot_node_id("transition", f"{index}_{transition['from']}_{transition['to']}_{transition['event']}")
+        transition_id = _dot_node_id("transition", f"{index}_{transition['from']}_{transition['to']}_{transition['on']}")
         lines.append(
             _dot_html_node(
                 transition_id,
                 _dot_card(
-                    f"on {transition['event']}",
+                    f"on {transition['on']}",
                     None,
                     _format_transition_sections(panel, transition, contract),
                     basis=transition.get("basis", ""),
@@ -576,7 +576,7 @@ def composition_dot(view_id: str, view: dict[str, Any], contract: dict[str, Any]
     view_node = _dot_node_id("view", view_id)
     route_panel_order: list[str] = []
     for rule in view.get("sync", []):
-        route_panel_order.append(rule["when"]["panel"])
+        route_panel_order.append(rule["when"]["instance"])
         route_panel_order.extend(effect["send"]["panel"] for effect in rule.get("do", []) if "send" in effect)
     route_panel_index = {panel_id: index for index, panel_id in enumerate(dict.fromkeys(route_panel_order))}
     includes = sorted(
@@ -617,18 +617,18 @@ def composition_dot(view_id: str, view: dict[str, Any], contract: dict[str, Any]
     if not has_sync:
         lines.append(_dot_html_node("message_route_none", _dot_card("No message routes", None, [], header_bg="#f8fafc")))
     for rule in view.get("sync", []):
-        emit_id = _dot_node_id("message_emit", f"{rule['id']}_{rule['when']['panel']}_{rule['when']['emits']}")
+        emit_id = _dot_node_id("message_emit", f"{rule['id']}_{rule['when']['instance']}_{rule['when']['message']}")
         sync_id = _dot_node_id("message_route", rule["id"])
         effect_ids = [_dot_node_id("message_effect", f"{rule['id']}_{index}") for index, _ in enumerate(rule.get("do", []))]
         lines.append(
             _dot_html_node(
                 emit_id,
                 _dot_card(
-                    rule["when"]["emits"],
+                    rule["when"]["message"],
                     "emitted message",
                     [
-                        ("transition", _emitting_transition_refs(rule["when"]["panel"], rule["when"]["emits"], include_by_id, contract)),
-                        ("data", _emitted_message_data_lines(rule["when"]["panel"], rule["when"]["emits"], include_by_id, contract)),
+                        ("source", _emitting_transition_refs(rule["when"]["instance"], rule["when"]["message"], include_by_id, contract)),
+                        ("data", _emitted_message_data_lines(rule["when"]["instance"], rule["when"]["message"], include_by_id, contract)),
                     ],
                     header_bg="#eef2ff",
                     border="#4f46e5",
@@ -656,9 +656,9 @@ def composition_dot(view_id: str, view: dict[str, Any], contract: dict[str, Any]
     if not has_sync:
         lines.append(f"  {_dot_quote(view_node)} -> {_dot_quote('message_route_none')} [style=\"invis\", weight=\"10\"];")
     for rule in view.get("sync", []):
-        emit_id = _dot_node_id("message_emit", f"{rule['id']}_{rule['when']['panel']}_{rule['when']['emits']}")
+        emit_id = _dot_node_id("message_emit", f"{rule['id']}_{rule['when']['instance']}_{rule['when']['message']}")
         sync_id = _dot_node_id("message_route", rule["id"])
-        source = instance_node_by_id.get(rule["when"]["panel"])
+        source = instance_node_by_id.get(rule["when"]["instance"])
         if source:
             lines.append(f"  {_dot_quote(source)} -> {_dot_quote(emit_id)} [color=\"#4f46e5\", penwidth=\"1.4\"];")
         lines.append(f"  {_dot_quote(emit_id)} -> {_dot_quote(sync_id)} [color=\"#4f46e5\", penwidth=\"1.2\"];")
@@ -700,10 +700,10 @@ def _dot_sync_effect_card(
     if "send" in effect:
         send = effect["send"]
         return _dot_card(
-            send["event"],
+            send["message"],
             "sent message",
             [
-                ("causes", _receiving_transition_refs(send["panel"], send["event"], include_by_id, contract)),
+                ("causes", _receiving_transition_refs(send["panel"], send["message"], include_by_id, contract)),
                 ("data", _sent_message_data_lines(send)),
             ],
             header_bg="#fdf2f8",
@@ -773,7 +773,7 @@ def _emitting_transition_emits(
     for transition in panel.get("transitions", []):
         for effect in transition.get("effects", []):
             emit = effect.get("emit")
-            if emit and emit["event"] == emitted:
+            if emit and emit["message"] == emitted:
                 emits.append(emit)
     return emits
 
@@ -794,14 +794,14 @@ def _emitting_transition_refs(
     if not panel:
         return refs
     for transition in panel.get("transitions", []):
-        if any(effect.get("emit", {}).get("event") == emitted for effect in transition.get("effects", [])):
-            refs.append(f"{transition['event']} ({transition['from']} to {transition['to']})")
+        if any(effect.get("emit", {}).get("message") == emitted for effect in transition.get("effects", [])):
+            refs.append(transition["on"])
     return refs
 
 
 def _receiving_transition_refs(
     instance_id: str,
-    event: str,
+    message: str,
     include_by_id: dict[str, dict[str, Any]],
     contract: dict[str, Any] | None,
 ) -> list[str]:
@@ -815,7 +815,7 @@ def _receiving_transition_refs(
         return []
     target_sources: dict[str, list[str]] = {}
     for transition in panel.get("transitions", []):
-        if transition["event"] == event:
+        if transition["on"] == message:
             target_sources.setdefault(transition["to"], []).append(transition["from"])
     if len(target_sources) == 1:
         target = next(iter(target_sources))
@@ -985,16 +985,16 @@ def _format_mapping(mapping: dict[str, Any]) -> list[str]:
     return [f"{key}: {value}" for key, value in sorted(mapping.items())]
 
 
-def _format_data_flow(mapping: dict[str, Any], *, identity_scope: str | None = "event") -> list[str]:
+def _format_data_flow(mapping: dict[str, Any], *, identity_scope: str | None = "message") -> list[str]:
     return [_format_flow_assignment(key, value, identity_scope=identity_scope) for key, value in sorted(mapping.items())]
 
 
-def _format_flow_assignment(target: str, value: Any, *, identity_scope: str | None = "event") -> str:
+def _format_flow_assignment(target: str, value: Any, *, identity_scope: str | None = "message") -> str:
     source = _format_flow_source(value)
     if identity_scope and source == f"{identity_scope}.{target}":
         return target
-    if source.startswith("event."):
-        source = source[len("event.") :]
+    if source.startswith("message."):
+        source = source[len("message.") :]
     return f"{target} <- {source}"
 
 
@@ -1018,7 +1018,7 @@ def _format_transition_sections(
     panel: dict[str, Any], transition: dict[str, Any], contract: dict[str, Any] | None = None
 ) -> list[tuple[str, list[str]]]:
     sections: list[tuple[str, list[str]]] = []
-    if _is_data_event(transition["event"]):
+    if _is_data_event(transition["on"]):
         bindings = _transition_data_bindings(panel, transition)
         data_sources = [binding["capability"] for binding in bindings]
         queries = [binding["query"] for binding in bindings]
@@ -1098,7 +1098,7 @@ def _format_transition_effects(transition: dict[str, Any]) -> list[str]:
     for effect in transition.get("effects", []):
         if "emit" in effect:
             emit = effect["emit"]
-            lines.append(f"emit {emit['event']}")
+            lines.append(f"emit {emit['message']}")
             lines.extend(f"  {line}" for line in _format_data_flow(emit.get("data", {})))
         elif "set" in effect:
             assignment = effect["set"]

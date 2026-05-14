@@ -350,13 +350,15 @@ panels:
     context:
       project_id: ID
     data: []
-    events:
-      project.selection_changed:
-        payload:
-          project_id: ID
-      selection.cleared:
-        payload: {}
     initial: empty
+    messages:
+      accepts:
+        project.selection_changed:
+          payload:
+            project_id: ID
+        selection.cleared:
+          payload: {}
+      emits: {}
     resource: Project
     states:
       empty:
@@ -382,32 +384,34 @@ panels:
         - assignee
         panel: panel.project.activity.ready
     transitions:
-    - event: project.selection_changed
-      from: empty
+    - from: empty
+      on: project.selection_changed
       to: ready
     - effects:
       - set:
           context: project_id
           value: null
-      event: selection.cleared
       from: ready
+      on: selection.cleared
       to: empty
   panel.project.detail:
     basis: The detail panel is independent from the list and reacts to selected project context.
     context:
       project_id: ID
     data: []
-    events:
-      data.error:
-        payload: {}
-      data.ready:
-        payload: {}
-      project.selection_changed:
-        payload:
-          project_id: ID
-      selection.cleared:
-        payload: {}
     initial: none
+    messages:
+      accepts:
+        data.error:
+          payload: {}
+        data.ready:
+          payload: {}
+        project.selection_changed:
+          payload:
+            project_id: ID
+        selection.cleared:
+          payload: {}
+      emits: {}
     resource: Project
     states:
       error:
@@ -455,21 +459,21 @@ panels:
         - summary
         panel: panel.project.detail.ready
     transitions:
-    - event: project.selection_changed
-      from: none
+    - from: none
+      on: project.selection_changed
       to: loading
-    - event: data.ready
-      from: loading
+    - from: loading
+      on: data.ready
       to: ready
-    - event: data.error
-      from: loading
+    - from: loading
+      on: data.error
       to: error
     - effects:
       - set:
           context: project_id
           value: null
-      event: selection.cleared
       from: ready
+      on: selection.cleared
       to: none
   panel.project.list:
     basis: The list panel owns collection loading, empty, ready, error, and selection behavior.
@@ -479,20 +483,22 @@ panels:
     data:
     - capability: project.list
       query: query.project.list.list
-    events:
-      data.empty:
-        payload: {}
-      data.error:
-        payload: {}
-      data.ready:
-        payload: {}
-      project.select:
-        payload:
-          project_id: ID
-      project.selected:
-        payload:
-          project_id: ID
     initial: loading
+    messages:
+      accepts:
+        data.empty:
+          payload: {}
+        data.error:
+          payload: {}
+        data.ready:
+          payload: {}
+        project.select:
+          payload:
+            project_id: ID
+      emits:
+        project.selected:
+          payload:
+            project_id: ID
     resource: Project
     states:
       empty:
@@ -538,25 +544,25 @@ panels:
         - status
         panel: panel.project.list.ready
     transitions:
-    - event: data.empty
-      from: loading
+    - from: loading
+      on: data.empty
       to: empty
-    - event: data.ready
-      from: loading
+    - from: loading
+      on: data.ready
       to: ready
-    - event: data.error
-      from: loading
+    - from: loading
+      on: data.error
       to: error
-    - event: data.ready
-      from: empty
+    - from: empty
+      on: data.ready
       to: ready
     - effects:
       - emit:
           data:
-            project_id: $event.project_id
-          event: project.selected
-      event: project.select
+            project_id: $message.project_id
+          message: project.selected
       from: ready
+      on: project.select
       to: ready
 project: project_dispatch_board
 refs:
@@ -903,21 +909,21 @@ scenarios:
           - do:
             - set:
                 context: selected_project_id
-                from: $event.project_id
+                from: $message.project_id
             - send:
                 data:
-                  project_id: $event.project_id
-                event: project.selection_changed
+                  project_id: $message.project_id
+                message: project.selection_changed
                 panel: detail
             - send:
                 data:
-                  project_id: $event.project_id
-                event: project.selection_changed
+                  project_id: $message.project_id
+                message: project.selection_changed
                 panel: activity
             id: select_project_updates_panels
             when:
-              emits: project.selected
-              panel: list
+              instance: list
+              message: project.selected
         panel: panel.project.board.ready
         panels:
           activity:
@@ -1099,21 +1105,21 @@ scenarios:
           - do:
             - set:
                 context: selected_project_id
-                from: $event.project_id
+                from: $message.project_id
             - send:
                 data:
-                  project_id: $event.project_id
-                event: project.selection_changed
+                  project_id: $message.project_id
+                message: project.selection_changed
                 panel: detail
             - send:
                 data:
-                  project_id: $event.project_id
-                event: project.selection_changed
+                  project_id: $message.project_id
+                message: project.selection_changed
                 panel: activity
             id: select_project_updates_panels
             when:
-              emits: project.selected
-              panel: list
+              instance: list
+              message: project.selected
         panel: panel.project.board.ready
         panels:
           activity:
@@ -1306,21 +1312,21 @@ views:
     - do:
       - set:
           context: selected_project_id
-          from: $event.project_id
+          from: $message.project_id
       - send:
           data:
-            project_id: $event.project_id
-          event: project.selection_changed
+            project_id: $message.project_id
+          message: project.selection_changed
           panel: detail
       - send:
           data:
-            project_id: $event.project_id
-          event: project.selection_changed
+            project_id: $message.project_id
+          message: project.selection_changed
           panel: activity
       id: select_project_updates_panels
       when:
-        emits: project.selected
-        panel: list
+        instance: list
+        message: project.selected
 workflows:
   project.approval_notice:
     basis: Approval event sends a downstream notice.

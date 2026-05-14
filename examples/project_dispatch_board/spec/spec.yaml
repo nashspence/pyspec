@@ -152,12 +152,12 @@ panels:
     context:
       project_id: ID
     data: []
-    events:
-      project.selection_changed:
-        payload:
-          project_id: ID
-      selection.cleared:
-        payload: {}
+    messages:
+      accepts:
+        project.selection_changed:
+          payload:
+            project_id: ID
+        selection.cleared: {}
     initial: empty
     resource: Project
     states:
@@ -175,14 +175,14 @@ panels:
         - status
         - assignee
     transitions:
-    - event: project.selection_changed
+    - on: project.selection_changed
       from: empty
       to: ready
     - effects:
       - set:
           context: project_id
           value: null
-      event: selection.cleared
+      on: selection.cleared
       from: ready
       to: empty
   panel.project.detail:
@@ -190,16 +190,14 @@ panels:
     context:
       project_id: ID
     data: []
-    events:
-      data.error:
-        payload: {}
-      data.ready:
-        payload: {}
-      project.selection_changed:
-        payload:
-          project_id: ID
-      selection.cleared:
-        payload: {}
+    messages:
+      accepts:
+        data.error: {}
+        data.ready: {}
+        project.selection_changed:
+          payload:
+            project_id: ID
+        selection.cleared: {}
     initial: none
     resource: Project
     states:
@@ -231,20 +229,20 @@ panels:
         - assignee
         - summary
     transitions:
-    - event: project.selection_changed
+    - on: project.selection_changed
       from: none
       to: loading
-    - event: data.ready
+    - on: data.ready
       from: loading
       to: ready
-    - event: data.error
+    - on: data.error
       from: loading
       to: error
     - effects:
       - set:
           context: project_id
           value: null
-      event: selection.cleared
+      on: selection.cleared
       from: ready
       to: none
   panel.project.list:
@@ -254,19 +252,18 @@ panels:
       workspace_id: ID
     data:
     - project.list
-    events:
-      data.empty:
-        payload: {}
-      data.error:
-        payload: {}
-      data.ready:
-        payload: {}
-      project.select:
-        payload:
-          project_id: ID
-      project.selected:
-        payload:
-          project_id: ID
+    messages:
+      accepts:
+        data.empty: {}
+        data.error: {}
+        data.ready: {}
+        project.select:
+          payload:
+            project_id: ID
+      emits:
+        project.selected:
+          payload:
+            project_id: ID
     initial: loading
     resource: Project
     states:
@@ -297,24 +294,24 @@ panels:
         - priority
         - status
     transitions:
-    - event: data.empty
+    - on: data.empty
       from: loading
       to: empty
-    - event: data.ready
+    - on: data.ready
       from: loading
       to: ready
-    - event: data.error
+    - on: data.error
       from: loading
       to: error
-    - event: data.ready
+    - on: data.ready
       from: empty
       to: ready
     - effects:
       - emit:
           data:
-            project_id: $event.project_id
-          event: project.selected
-      event: project.select
+            project_id: $message.project_id
+          message: project.selected
+      on: project.select
       from: ready
       to: ready
 views:
@@ -439,21 +436,21 @@ views:
     - do:
       - set:
           context: selected_project_id
-          from: $event.project_id
+          from: $message.project_id
       - send:
           data:
-            project_id: $event.project_id
-          event: project.selection_changed
+            project_id: $message.project_id
+          message: project.selection_changed
           panel: detail
       - send:
           data:
-            project_id: $event.project_id
-          event: project.selection_changed
+            project_id: $message.project_id
+          message: project.selection_changed
           panel: activity
       id: select_project_updates_panels
       when:
-        emits: project.selected
-        panel: list
+        instance: list
+        message: project.selected
 entries:
   api.project.create:
     basis: HTTP endpoint for creating a dispatch project.

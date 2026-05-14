@@ -1,16 +1,34 @@
 from __future__ import annotations
 
+import copy
 import json
+import re
 from pathlib import Path
 from typing import Any
 
 import yaml
 
 
-def read_yaml(path: Path) -> dict[str, Any]:
-    with path.open("r", encoding="utf-8") as f:
-        data = yaml.safe_load(f)
-    return data or {}
+class _Yaml12SafeLoader(yaml.SafeLoader):
+    pass
+
+
+def _install_yaml12_bool_resolver(yaml_type: type[Any]) -> None:
+    yaml_type.yaml_implicit_resolvers = copy.deepcopy(yaml_type.yaml_implicit_resolvers)
+    for first_char, resolvers in list(yaml_type.yaml_implicit_resolvers.items()):
+        yaml_type.yaml_implicit_resolvers[first_char] = [
+            (tag, regexp)
+            for tag, regexp in resolvers
+            if tag != "tag:yaml.org,2002:bool"
+        ]
+    yaml_type.add_implicit_resolver(
+        "tag:yaml.org,2002:bool",
+        re.compile(r"^(?:true|True|TRUE|false|False|FALSE)$"),
+        list("tTfF"),
+    )
+
+
+_install_yaml12_bool_resolver(_Yaml12SafeLoader)
 
 
 class _NoAliasSafeDumper(yaml.SafeDumper):
@@ -25,6 +43,15 @@ class _NoAliasSafeDumper(yaml.SafeDumper):
 
     def ignore_aliases(self, data: Any) -> bool:  # pragma: no cover - exercised through write_yaml
         return True
+
+
+_install_yaml12_bool_resolver(_NoAliasSafeDumper)
+
+
+def read_yaml(path: Path) -> dict[str, Any]:
+    with path.open("r", encoding="utf-8") as f:
+        data = yaml.load(f, Loader=_Yaml12SafeLoader)
+    return data or {}
 
 
 def write_yaml(path: Path, data: Any, *, sort_keys: bool = True) -> None:

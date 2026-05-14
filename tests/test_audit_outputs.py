@@ -60,14 +60,18 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert fsm.count("query.project.list.list") == 4
     assert "<B>resource:</B>" not in fsm
     assert "<B>context:</B>" not in fsm
+    assert "$message." not in fsm
     assert "$event." not in fsm
     assert "emitted message" in composition
     assert "sent message" in composition
     assert "message route" in composition
-    assert "project.select (ready to ready)" in composition
+    assert "<B>source:</B>&#160;&#160;project.select" in composition
+    assert "ready to ready" not in composition
+    assert "<B>transition:</B>" not in composition
     assert "selected state:" not in composition
     assert "<B>data:</B>&#160;&#160;project_id" in composition
     assert "selected_project_id &lt;- project_id" in composition
+    assert "$message." not in composition
     assert "$event." not in composition
     assert "$view." not in composition
     assert "<B>from:</B>" not in composition
@@ -115,10 +119,10 @@ def test_composition_dot_routes_messages_generically() -> None:
         "sync": [
             {
                 "id": "route_alpha_beta",
-                "when": {"panel": "publisher", "emits": "alpha.ready"},
+                "when": {"instance": "publisher", "message": "alpha.ready"},
                 "do": [
-                    {"send": {"panel": "receiver", "event": "beta.consume", "data": {"item_id": "$event.id"}}},
-                    {"set": {"context": "selected_id", "from": "$event.id"}},
+                    {"send": {"panel": "receiver", "message": "beta.consume", "data": {"item_id": "$message.id"}}},
+                    {"set": {"context": "selected_id", "from": "$message.id"}},
                 ],
             }
         ],
@@ -126,26 +130,33 @@ def test_composition_dot_routes_messages_generically() -> None:
     contract = {
         "panels": {
             "panel.alpha": {
-                "events": {
-                    "alpha.ready": {"payload": {"id": "ID"}},
-                    "alpha.submit": {"payload": {"id": "ID"}},
+                "messages": {
+                    "accepts": {
+                        "alpha.submit": {"payload": {"id": "ID"}},
+                    },
+                    "emits": {
+                        "alpha.ready": {"payload": {"id": "ID"}},
+                    },
                 },
                 "transitions": [
                     {
-                        "event": "alpha.submit",
+                        "on": "alpha.submit",
                         "from": "idle",
                         "to": "ready",
-                        "effects": [{"emit": {"event": "alpha.ready", "data": {"id": "$event.id"}}}],
+                        "effects": [{"emit": {"message": "alpha.ready", "data": {"id": "$message.id"}}}],
                     }
                 ]
             },
             "panel.beta": {
-                "events": {
-                    "beta.consume": {"payload": {"item_id": "ID"}},
+                "messages": {
+                    "accepts": {
+                        "beta.consume": {"payload": {"item_id": "ID"}},
+                    },
+                    "emits": {},
                 },
                 "transitions": [
                     {
-                        "event": "beta.consume",
+                        "on": "beta.consume",
                         "from": "waiting",
                         "to": "consumed",
                     }
@@ -159,13 +170,16 @@ def test_composition_dot_routes_messages_generically() -> None:
     assert "emitted message" in composition
     assert "sent message" in composition
     assert "message route" in composition
-    assert "alpha.submit (idle to ready)" in composition
+    assert "<B>source:</B>&#160;&#160;alpha.submit" in composition
+    assert "idle to ready" not in composition
+    assert "<B>transition:</B>" not in composition
     assert "beta.consume" in composition
     assert "<B>causes:</B>&#160;&#160;to consumed" in composition
     assert "<B>data:</B>&#160;&#160;id" in composition
     assert "selected_id &lt;- id" in composition
     assert "item_id &lt;- id" in composition
     assert "item_id &lt;- view.selected_id" in composition
+    assert "$message." not in composition
     assert "$event." not in composition
     assert "$view." not in composition
     assert "<B>target:</B>" not in composition
@@ -193,7 +207,7 @@ def test_composition_dot_routes_messages_generically() -> None:
 def test_audit_transition_basis_renders_for_otherwise_sparse_card() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
     activity = author["panels"]["panel.project.activity"]
-    cleared = next(transition for transition in activity["transitions"] if transition["event"] == "selection.cleared")
+    cleared = next(transition for transition in activity["transitions"] if transition["on"] == "selection.cleared")
     cleared.pop("effects")
     cleared["basis"] = "Clearing the selection returns the activity panel to its empty state."
     contract = compile_source(author)
@@ -231,6 +245,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "declared, no arrow" not in list_fsm
     assert "transition events" not in list_fsm
     assert "emitted events" not in list_fsm
+    assert "$message." not in list_fsm
     assert "$event." not in list_fsm
     assert "copy.project.detail.ready.heading" in detail_fsm
     assert "project.approve" in detail_fsm
@@ -257,6 +272,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "selected_project_id &lt;&#45; project_id" in composition
     assert "context binding" in composition
     assert "panel context" not in composition
+    assert "$message." not in composition
     assert "$event." not in composition
     assert "$view." not in composition
     assert "region:" in composition

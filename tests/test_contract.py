@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from pyspec_contract.compile import ContractError, compile_author, compile_source, validate_against_schema
+from pyspec_contract.compile import ContractError, author_from_source, compile_author, compile_source, validate_against_schema
 from pyspec_contract.io import read_yaml, write_yaml
 from pyspec_contract.paths import COMPILED_SPEC_PATH, SOURCE_SPEC_PATH
 from pyspec_contract.validate import validate_project
@@ -43,6 +43,20 @@ def test_yaml_writer_never_emits_anchors_or_aliases(tmp_path: Path) -> None:
     assert "&id" not in text
     assert "*id" not in text
     assert text.count("shared basis") == 2
+
+
+def test_yaml_reader_treats_on_as_a_string_key(tmp_path: Path) -> None:
+    path = tmp_path / "spec.yaml"
+    write_yaml(path, {"transition": {"on": "data.ready", "required": True}}, sort_keys=False)
+
+    text = path.read_text(encoding="utf-8")
+    data = read_yaml(path)
+
+    assert "  on: data.ready" in text
+    assert "'on':" not in text
+    assert data["transition"]["on"] == "data.ready"
+    assert True not in data["transition"]
+    assert data["transition"]["required"] is True
 
 
 def test_checked_in_yaml_has_no_anchors_or_aliases() -> None:
@@ -283,24 +297,64 @@ def test_author_panel_defaults_empty_collections() -> None:
     panel = contract["panels"]["panel.ticket.empty"]
     assert panel["context"] == {}
     assert panel["data"] == []
-    assert panel["events"] == {}
+    assert panel["messages"] == {"accepts": {}, "emits": {}}
     assert panel["transitions"] == []
     assert "kind" not in panel
 
 
-def test_panel_events_must_be_used_by_transition_or_emit() -> None:
+def test_panel_empty_message_directions_can_be_omitted() -> None:
     author = _author()
     activity = _item(author, "panels", "panel.project.activity")
-    activity["events"]["unused.event"] = {"payload": {}}
-    with pytest.raises(ContractError, match=r"Panel panel\.project\.activity declares event without transition or emit: .*unused\.event"):
+
+    assert "emits" not in activity["messages"]
+    contract = compile_source(author)
+
+    assert contract["panels"]["panel.project.activity"]["messages"]["emits"] == {}
+
+
+def test_author_source_prunes_empty_message_directions() -> None:
+    author = _author()
+    activity = _item(author, "panels", "panel.project.activity")
+    activity["messages"]["emits"] = {}
+
+    pruned = author_from_source(author)
+
+    assert "emits" not in pruned["panels"]["panel.project.activity"]["messages"]
+
+
+def test_empty_panel_message_payloads_can_be_omitted() -> None:
+    author = _author()
+    activity = _item(author, "panels", "panel.project.activity")
+
+    assert activity["messages"]["accepts"]["selection.cleared"] == {}
+    contract = compile_source(author)
+
+    assert contract["panels"]["panel.project.activity"]["messages"]["accepts"]["selection.cleared"]["payload"] == {}
+
+
+def test_author_source_prunes_empty_message_payloads() -> None:
+    author = _author()
+    activity = _item(author, "panels", "panel.project.activity")
+    activity["messages"]["accepts"]["selection.cleared"]["payload"] = {}
+
+    pruned = author_from_source(author)
+
+    assert pruned["panels"]["panel.project.activity"]["messages"]["accepts"]["selection.cleared"] == {}
+
+
+def test_panel_accepted_messages_must_be_used_by_transition() -> None:
+    author = _author()
+    activity = _item(author, "panels", "panel.project.activity")
+    activity["messages"]["accepts"]["unused.message"] = {}
+    with pytest.raises(ContractError, match=r"Panel panel\.project\.activity declares accepted message without transition: .*unused\.message"):
         compile_source(author)
 
 
-def test_panel_transition_events_must_be_declared() -> None:
+def test_panel_transition_messages_must_be_declared_as_accepted() -> None:
     author = _author()
     activity = _item(author, "panels", "panel.project.activity")
-    del activity["events"]["selection.cleared"]
-    with pytest.raises(ContractError, match=r"Panel panel\.project\.activity transition event references undeclared panel event: selection\.cleared"):
+    del activity["messages"]["accepts"]["selection.cleared"]
+    with pytest.raises(ContractError, match=r"Panel panel\.project\.activity transition message references undeclared panel message: selection\.cleared"):
         compile_source(author)
 
 
@@ -309,14 +363,14 @@ def test_panel_data_events_require_data_binding() -> None:
     detail = _item(author, "panels", "panel.project.detail")
     detail["states"]["loading"]["data"] = []
     detail["states"]["ready"].pop("field_slots")
-    with pytest.raises(ContractError, match=r"Panel panel\.project\.detail transition uses data event without panel or source-state data: data\.ready"):
+    with pytest.raises(ContractError, match=r"Panel panel\.project\.detail transition uses data message without panel or source-state data: data\.ready"):
         compile_source(author)
 
 
 def test_panel_transition_requires_basis_when_audit_card_would_be_empty() -> None:
     author = _author()
     activity = _item(author, "panels", "panel.project.activity")
-    cleared = next(transition for transition in activity["transitions"] if transition["event"] == "selection.cleared")
+    cleared = next(transition for transition in activity["transitions"] if transition["on"] == "selection.cleared")
     cleared.pop("effects")
     with pytest.raises(
         ContractError,
@@ -328,14 +382,14 @@ def test_panel_transition_requires_basis_when_audit_card_would_be_empty() -> Non
 def test_panel_transition_basis_can_explain_otherwise_empty_audit_card() -> None:
     author = _author()
     activity = _item(author, "panels", "panel.project.activity")
-    cleared = next(transition for transition in activity["transitions"] if transition["event"] == "selection.cleared")
+    cleared = next(transition for transition in activity["transitions"] if transition["on"] == "selection.cleared")
     cleared.pop("effects")
     cleared["basis"] = "Clearing the selection returns the activity panel to its empty state."
     contract = compile_source(author)
     compiled = next(
         transition
         for transition in contract["panels"]["panel.project.activity"]["transitions"]
-        if transition["event"] == "selection.cleared"
+        if transition["on"] == "selection.cleared"
     )
     assert compiled["basis"] == "Clearing the selection returns the activity panel to its empty state."
 
@@ -462,18 +516,18 @@ def test_composed_view_rejects_unknown_included_panel() -> None:
         compile_source(author)
 
 
-def test_composed_view_rejects_unknown_sync_target_event() -> None:
+def test_composed_view_rejects_unknown_sync_target_message() -> None:
     author = _author()
     view = _item(author, "views", "project.board")
     for effect in view["sync"][0]["do"]:
         if "send" in effect:
-            effect["send"]["event"] = "project.ghost_event"
+            effect["send"]["message"] = "project.ghost_message"
             break
-    with pytest.raises(ContractError, match="sync sends undeclared target event"):
+    with pytest.raises(ContractError, match="sync sends message the target does not accept"):
         compile_source(author)
 
 
-def test_panel_emit_data_must_exactly_match_event_payload() -> None:
+def test_panel_emit_data_must_exactly_match_emitted_message_payload() -> None:
     author = _author()
     transition = _item(author, "panels", "panel.project.list")["transitions"][-1]
     transition["effects"][0]["emit"]["data"] = {}
@@ -481,7 +535,7 @@ def test_panel_emit_data_must_exactly_match_event_payload() -> None:
         compile_source(author)
 
 
-def test_sync_send_data_must_exactly_match_target_event_payload() -> None:
+def test_sync_send_data_must_exactly_match_target_message_payload() -> None:
     author = _author()
     view = _item(author, "views", "project.board")
     send = next(effect["send"] for effect in view["sync"][0]["do"] if "send" in effect)
@@ -490,7 +544,7 @@ def test_sync_send_data_must_exactly_match_target_event_payload() -> None:
         compile_source(author)
 
 
-def test_sync_send_data_must_match_target_event_payload_type() -> None:
+def test_sync_send_data_must_match_target_message_payload_type() -> None:
     author = _author()
     view = _item(author, "views", "project.board")
     send = next(effect["send"] for effect in view["sync"][0]["do"] if "send" in effect)
@@ -499,11 +553,19 @@ def test_sync_send_data_must_match_target_event_payload_type() -> None:
         compile_source(author)
 
 
-def test_panel_event_payloads_must_be_consistent_across_panels() -> None:
+def test_panel_message_payloads_must_be_consistent_across_panels() -> None:
     author = _author()
     activity = _item(author, "panels", "panel.project.activity")
-    activity["events"]["project.selection_changed"]["payload"]["project_id"] = "Text"
-    with pytest.raises(ContractError, match=r"Panel event project\.selection_changed payload differs"):
+    activity["messages"]["accepts"]["project.selection_changed"]["payload"]["project_id"] = "Text"
+    with pytest.raises(ContractError, match=r"Panel message project\.selection_changed payload differs"):
+        compile_source(author)
+
+
+def test_panel_message_direction_must_be_unambiguous() -> None:
+    author = _author()
+    panel = _item(author, "panels", "panel.project.list")
+    panel["messages"]["emits"]["project.select"] = {"payload": {"project_id": "ID"}}
+    with pytest.raises(ContractError, match=r"declares message as both accepted and emitted: .*project\.select"):
         compile_source(author)
 
 
@@ -571,7 +633,6 @@ def test_authoring_layers_reject_irrelevant_ui_targets() -> None:
             "resource": "Ticket",
             "context": {},
             "data": [],
-            "events": {},
             "initial": "empty",
             "states": {"empty": {}},
             "transitions": [],

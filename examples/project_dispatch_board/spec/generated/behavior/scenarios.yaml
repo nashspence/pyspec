@@ -211,21 +211,21 @@ scenarios:
           - do:
             - set:
                 context: selected_project_id
-                from: $event.project_id
+                from: $message.project_id
             - send:
                 data:
-                  project_id: $event.project_id
-                event: project.selection_changed
+                  project_id: $message.project_id
+                message: project.selection_changed
                 panel: detail
             - send:
                 data:
-                  project_id: $event.project_id
-                event: project.selection_changed
+                  project_id: $message.project_id
+                message: project.selection_changed
                 panel: activity
             id: select_project_updates_panels
             when:
-              emits: project.selected
-              panel: list
+              instance: list
+              message: project.selected
         panel: panel.project.board.ready
         panels:
           activity:
@@ -407,21 +407,21 @@ scenarios:
           - do:
             - set:
                 context: selected_project_id
-                from: $event.project_id
+                from: $message.project_id
             - send:
                 data:
-                  project_id: $event.project_id
-                event: project.selection_changed
+                  project_id: $message.project_id
+                message: project.selection_changed
                 panel: detail
             - send:
                 data:
-                  project_id: $event.project_id
-                event: project.selection_changed
+                  project_id: $message.project_id
+                message: project.selection_changed
                 panel: activity
             id: select_project_updates_panels
             when:
-              emits: project.selected
-              panel: list
+              instance: list
+              message: project.selected
         panel: panel.project.board.ready
         panels:
           activity:

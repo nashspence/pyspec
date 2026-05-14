@@ -746,7 +746,7 @@
               "$ref": "#/$defs/field_name"
             },
             "from": {
-              "pattern": "^\\$(event|view)\\.[a-z][A-Za-z0-9_.]*$",
+              "pattern": "^\\$(message|view)\\.[a-z][A-Za-z0-9_.]*$",
               "type": "string"
             },
             "value": {
@@ -1762,17 +1762,11 @@
           "type": "array",
           "uniqueItems": true
         },
-        "events": {
-          "additionalProperties": {
-            "$ref": "#/$defs/panel_event"
-          },
-          "propertyNames": {
-            "$ref": "#/$defs/dotted_id"
-          },
-          "type": "object"
-        },
         "initial": {
           "$ref": "#/$defs/state_name"
+        },
+        "messages": {
+          "$ref": "#/$defs/panel_messages"
         },
         "resource": {
           "$ref": "#/$defs/resource_id"
@@ -1855,12 +1849,12 @@
                 "data": {
                   "$ref": "#/$defs/expression_map"
                 },
-                "event": {
+                "message": {
                   "$ref": "#/$defs/dotted_id"
                 }
               },
               "required": [
-                "event",
+                "message",
                 "data"
               ],
               "type": "object"
@@ -1872,21 +1866,6 @@
           "type": "object"
         }
       ]
-    },
-    "panel_event": {
-      "additionalProperties": false,
-      "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "payload": {
-          "$ref": "#/$defs/type_map"
-        }
-      },
-      "required": [
-        "payload"
-      ],
-      "type": "object"
     },
     "panel_id": {
       "pattern": "^panel\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
@@ -1978,6 +1957,42 @@
       ],
       "type": "object"
     },
+    "panel_message": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "payload": {
+          "$ref": "#/$defs/type_map"
+        }
+      },
+      "type": "object"
+    },
+    "panel_messages": {
+      "additionalProperties": false,
+      "properties": {
+        "accepts": {
+          "additionalProperties": {
+            "$ref": "#/$defs/panel_message"
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/dotted_id"
+          },
+          "type": "object"
+        },
+        "emits": {
+          "additionalProperties": {
+            "$ref": "#/$defs/panel_message"
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/dotted_id"
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
     "panel_spec": {
       "additionalProperties": false,
       "properties": {
@@ -1991,17 +2006,11 @@
           "type": "array",
           "uniqueItems": true
         },
-        "events": {
-          "additionalProperties": {
-            "$ref": "#/$defs/panel_event"
-          },
-          "propertyNames": {
-            "$ref": "#/$defs/dotted_id"
-          },
-          "type": "object"
-        },
         "initial": {
           "$ref": "#/$defs/state_name"
+        },
+        "messages": {
+          "$ref": "#/$defs/panel_messages"
         },
         "resource": {
           "$ref": "#/$defs/resource_id"
@@ -2027,7 +2036,7 @@
         "resource",
         "context",
         "data",
-        "events",
+        "messages",
         "initial",
         "states",
         "transitions"
@@ -2111,12 +2120,12 @@
                       "data": {
                         "$ref": "#/$defs/expression_map"
                       },
-                      "event": {
+                      "message": {
                         "$ref": "#/$defs/dotted_id"
                       }
                     },
                     "required": [
-                      "event",
+                      "message",
                       "data"
                     ],
                     "type": "object"
@@ -2131,12 +2140,12 @@
           },
           "type": "array"
         },
-        "event": {
-          "pattern": "^([a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+|data\\.[a-z][a-z0-9_]*)$",
-          "type": "string"
-        },
         "from": {
           "$ref": "#/$defs/state_name"
+        },
+        "on": {
+          "pattern": "^([a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+|data\\.[a-z][a-z0-9_]*)$",
+          "type": "string"
         },
         "to": {
           "$ref": "#/$defs/state_name"
@@ -2145,7 +2154,7 @@
       "required": [
         "from",
         "to",
-        "event"
+        "on"
       ],
       "type": "object"
     },
@@ -2849,7 +2858,7 @@
                 "data": {
                   "$ref": "#/$defs/expression_map"
                 },
-                "event": {
+                "message": {
                   "$ref": "#/$defs/dotted_id"
                 },
                 "panel": {
@@ -2858,7 +2867,7 @@
               },
               "required": [
                 "panel",
-                "event",
+                "message",
                 "data"
               ],
               "type": "object"
@@ -2904,7 +2913,7 @@
             "data": {
               "$ref": "#/$defs/expression_map"
             },
-            "event": {
+            "message": {
               "pattern": "^([a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+|data\\.[a-z][a-z0-9_]*)$",
               "type": "string"
             },
@@ -2914,7 +2923,7 @@
           },
           "required": [
             "panel",
-            "event",
+            "message",
             "data"
           ],
           "type": "object"
@@ -2928,16 +2937,16 @@
     "sync_trigger": {
       "additionalProperties": false,
       "properties": {
-        "emits": {
-          "$ref": "#/$defs/dotted_id"
-        },
-        "panel": {
+        "instance": {
           "$ref": "#/$defs/instance_id"
+        },
+        "message": {
+          "$ref": "#/$defs/dotted_id"
         }
       },
       "required": [
-        "panel",
-        "emits"
+        "instance",
+        "message"
       ],
       "type": "object"
     },

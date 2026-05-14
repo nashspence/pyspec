@@ -23,7 +23,7 @@ def _item(author: dict, section: str, item_id: str) -> dict:
 def test_composed_fsm_contract_is_closed_and_projected() -> None:
     contract = compile_source(_author())
     list_panel = contract["panels"]["panel.project.list"]
-    assert set(list_panel) == {"resource", "context", "data", "events", "initial", "states", "transitions", "basis"}
+    assert set(list_panel) == {"resource", "context", "data", "messages", "initial", "states", "transitions", "basis"}
     assert list_panel["initial"] == "loading"
     assert list_panel["data"] == [{"query": "query.project.list.list", "capability": "project.list"}]
     assert list_panel["states"]["ready"]["fields"] == ["title", "customer", "priority", "status"]
@@ -65,11 +65,11 @@ def test_composed_view_rejects_context_binding_drift() -> None:
         compile_source(author)
 
 
-def test_composed_view_rejects_sync_event_not_emitted_by_source_panel() -> None:
+def test_composed_view_rejects_sync_message_not_emitted_by_source_instance() -> None:
     author = _author()
     view = _item(author, "views", "project.board")
-    view["sync"][0]["when"]["emits"] = "project.unannounced"
-    with pytest.raises(ContractError, match="undeclared panel event"):
+    view["sync"][0]["when"]["message"] = "project.unannounced"
+    with pytest.raises(ContractError, match="sync listens for message the source does not emit"):
         compile_source(author)
 
 
