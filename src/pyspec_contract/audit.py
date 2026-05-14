@@ -685,7 +685,7 @@ def _dot_instance_card(include: dict[str, Any]) -> str:
         [
             ("region", [include["region"]]),
             ("initial", [include["initial"]]),
-            ("panel context", _format_mapping(include.get("context", {}))),
+            ("context binding", _format_data_flow(include.get("context", {}), identity_scope=None)),
         ],
         header_bg="#fff7ed",
         border="#c2410c",
@@ -703,7 +703,7 @@ def _dot_sync_effect_card(
             send["event"],
             "sent message",
             [
-                ("transition", _receiving_transition_refs(send["panel"], send["event"], include_by_id, contract)),
+                ("causes", _receiving_transition_refs(send["panel"], send["event"], include_by_id, contract)),
                 ("data", _sent_message_data_lines(send)),
             ],
             header_bg="#fdf2f8",
@@ -714,7 +714,7 @@ def _dot_sync_effect_card(
         f"set {assignment['context']}",
         "view context",
         [
-            ("value", [assignment.get("from", assignment.get("value", ""))]),
+            ("flow", [_format_flow_assignment(assignment["context"], _assignment_value(assignment))]),
         ],
         header_bg="#f0fdf4",
         border="#15803d",
@@ -730,7 +730,7 @@ def _emitted_message_data_lines(
     lines: list[str] = []
     seen: set[str] = set()
     for emit in _emitting_transition_emits(instance_id, emitted, include_by_id, contract):
-        for line in _format_mapping(emit.get("data", {})):
+        for line in _format_data_flow(emit.get("data", {})):
             if line not in seen:
                 lines.append(line)
                 seen.add(line)
@@ -743,12 +743,12 @@ def _route_data_lines(rule: dict[str, Any]) -> list[str]:
         assignment = effect.get("set")
         if not assignment:
             continue
-        lines.append(f"{assignment['context']}: {_assignment_value(assignment)}")
+        lines.append(_format_flow_assignment(assignment["context"], _assignment_value(assignment)))
     return lines
 
 
 def _sent_message_data_lines(send: dict[str, Any]) -> list[str]:
-    return _format_mapping(send.get("data", {}))
+    return _format_data_flow(send.get("data", {}))
 
 
 def _assignment_value(assignment: dict[str, Any]) -> Any:
@@ -985,6 +985,25 @@ def _format_mapping(mapping: dict[str, Any]) -> list[str]:
     return [f"{key}: {value}" for key, value in sorted(mapping.items())]
 
 
+def _format_data_flow(mapping: dict[str, Any], *, identity_scope: str | None = "event") -> list[str]:
+    return [_format_flow_assignment(key, value, identity_scope=identity_scope) for key, value in sorted(mapping.items())]
+
+
+def _format_flow_assignment(target: str, value: Any, *, identity_scope: str | None = "event") -> str:
+    source = _format_flow_source(value)
+    if identity_scope and source == f"{identity_scope}.{target}":
+        return target
+    if source.startswith("event."):
+        source = source[len("event.") :]
+    return f"{target} <- {source}"
+
+
+def _format_flow_source(value: Any) -> str:
+    if isinstance(value, str) and value.startswith("$"):
+        return value[1:]
+    return _format_scalar(value)
+
+
 def _format_data_bindings(bindings: Iterable[dict[str, Any]]) -> list[str]:
     bindings = list(bindings)
     lines: list[str] = []
@@ -1009,18 +1028,18 @@ def _format_transition_sections(
         if queries:
             sections.append(("query", queries))
         if data_sources:
-            sections.append(("data", data_sources))
+            sections.append(("load", data_sources))
     else:
         target_bindings = _transition_target_data_bindings(panel, transition)
         data_sources = [binding["capability"] for binding in target_bindings]
         queries = [binding["query"] for binding in target_bindings]
         required_context = _format_data_inputs(panel, target_bindings, contract)
-        if data_sources:
-            sections.append(("data", data_sources))
+        if required_context:
+            sections.append(("input", required_context))
         if queries:
             sections.append(("query", queries))
-        if required_context:
-            sections.append(("requires context", required_context))
+        if data_sources:
+            sections.append(("load", data_sources))
     effects = _format_transition_effects(transition)
     if effects:
         sections.append(("effects", effects))
@@ -1080,13 +1099,10 @@ def _format_transition_effects(transition: dict[str, Any]) -> list[str]:
         if "emit" in effect:
             emit = effect["emit"]
             lines.append(f"emit {emit['event']}")
-            lines.extend(f"  {line}" for line in _format_mapping(emit.get("data", {})))
+            lines.extend(f"  {line}" for line in _format_data_flow(emit.get("data", {})))
         elif "set" in effect:
             assignment = effect["set"]
-            if "from" in assignment:
-                lines.append(f"set {assignment['context']} from {assignment['from']}")
-            else:
-                lines.append(f"set {assignment['context']} to {_format_scalar(assignment['value'])}")
+            lines.append(_format_flow_assignment(assignment["context"], _assignment_value(assignment), identity_scope=None))
     return lines
 
 

@@ -33,12 +33,12 @@
 <polygon fill="#2563eb" stroke="transparent" points="330.5,-120 330.5,-130 531.5,-130 531.5,-120 330.5,-120"/>
 <polygon fill="#eff6ff" stroke="transparent" points="330.5,-95 330.5,-120 531.5,-120 531.5,-95 330.5,-95"/>
 <text text-anchor="start" x="335.5" y="-104.8" font-family="Arial" font-weight="bold" font-size="14.00">on project.selection_changed</text>
-<text text-anchor="start" x="336.5" y="-82" font-family="Arial" font-weight="bold" font-size="10.00">data:</text>
-<text text-anchor="start" x="359.5" y="-82" font-family="Arial" font-size="10.00">  project.read</text>
+<text text-anchor="start" x="336.5" y="-82" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
+<text text-anchor="start" x="364.5" y="-82" font-family="Arial" font-size="10.00">  project_id: ID</text>
 <text text-anchor="start" x="336.5" y="-70" font-family="Arial" font-weight="bold" font-size="10.00">query:</text>
 <text text-anchor="start" x="366.5" y="-70" font-family="Arial" font-size="10.00">  query.project.activity.read</text>
-<text text-anchor="start" x="336.5" y="-58" font-family="Arial" font-weight="bold" font-size="10.00">requires context:</text>
-<text text-anchor="start" x="415.5" y="-58" font-family="Arial" font-size="10.00">  project_id: ID</text>
+<text text-anchor="start" x="336.5" y="-58" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
+<text text-anchor="start" x="360.5" y="-58" font-family="Arial" font-size="10.00">  project.read</text>
 <polygon fill="none" stroke="#2563eb" points="329,-47 329,-131 532,-131 532,-47 329,-47"/>
 </g>
 <!-- state_empty&#45;&gt;transition_0_empty_ready_project_selection_changed -->
@@ -70,7 +70,7 @@
 <polygon fill="#eff6ff" stroke="transparent" points="851,-42 851,-67 991,-67 991,-42 851,-42"/>
 <text text-anchor="start" x="856" y="-51.8" font-family="Arial" font-weight="bold" font-size="14.00">on selection.cleared</text>
 <text text-anchor="start" x="857" y="-29" font-family="Arial" font-weight="bold" font-size="10.00">effects:</text>
-<text text-anchor="start" x="891" y="-29" font-family="Arial" font-size="10.00">  set project_id to null</text>
+<text text-anchor="start" x="891" y="-29" font-family="Arial" font-size="10.00">  project_id &lt;&#45; null</text>
 <polygon fill="none" stroke="#2563eb" points="850,-18 850,-78 992,-78 992,-18 850,-18"/>
 </g>
 <!-- state_ready&#45;&gt;transition_1_ready_empty_selection_cleared -->

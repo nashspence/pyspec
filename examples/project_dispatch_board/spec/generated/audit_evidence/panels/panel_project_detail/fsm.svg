@@ -60,8 +60,8 @@
 <text text-anchor="start" x="878" y="-221.08" font-family="Arial" font-size="10.00">  project_id: ID</text>
 <text text-anchor="start" x="850" y="-209.08" font-family="Arial" font-weight="bold" font-size="10.00">query:</text>
 <text text-anchor="start" x="880" y="-209.08" font-family="Arial" font-size="10.00">  query.project.detail.read</text>
-<text text-anchor="start" x="850" y="-197.08" font-family="Arial" font-weight="bold" font-size="10.00">data:</text>
-<text text-anchor="start" x="873" y="-197.08" font-family="Arial" font-size="10.00">  project.read</text>
+<text text-anchor="start" x="850" y="-197.08" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
+<text text-anchor="start" x="874" y="-197.08" font-family="Arial" font-size="10.00">  project.read</text>
 <polygon fill="none" stroke="#2563eb" points="843,-186.08 843,-270.08 997,-270.08 997,-186.08 843,-186.08"/>
 </g>
 <!-- state_loading&#45;&gt;transition_1_loading_ready_data_ready -->
@@ -81,8 +81,8 @@
 <text text-anchor="start" x="878" y="-83.08" font-family="Arial" font-size="10.00">  project_id: ID</text>
 <text text-anchor="start" x="850" y="-71.08" font-family="Arial" font-weight="bold" font-size="10.00">query:</text>
 <text text-anchor="start" x="880" y="-71.08" font-family="Arial" font-size="10.00">  query.project.detail.read</text>
-<text text-anchor="start" x="850" y="-59.08" font-family="Arial" font-weight="bold" font-size="10.00">data:</text>
-<text text-anchor="start" x="873" y="-59.08" font-family="Arial" font-size="10.00">  project.read</text>
+<text text-anchor="start" x="850" y="-59.08" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
+<text text-anchor="start" x="874" y="-59.08" font-family="Arial" font-size="10.00">  project.read</text>
 <polygon fill="none" stroke="#2563eb" points="843,-48.08 843,-132.08 997,-132.08 997,-48.08 843,-48.08"/>
 </g>
 <!-- state_loading&#45;&gt;transition_2_loading_error_data_error -->
@@ -98,12 +98,12 @@
 <polygon fill="#2563eb" stroke="transparent" points="317.5,-121.08 317.5,-131.08 518.5,-131.08 518.5,-121.08 317.5,-121.08"/>
 <polygon fill="#eff6ff" stroke="transparent" points="317.5,-96.08 317.5,-121.08 518.5,-121.08 518.5,-96.08 317.5,-96.08"/>
 <text text-anchor="start" x="322.5" y="-105.88" font-family="Arial" font-weight="bold" font-size="14.00">on project.selection_changed</text>
-<text text-anchor="start" x="323.5" y="-83.08" font-family="Arial" font-weight="bold" font-size="10.00">data:</text>
-<text text-anchor="start" x="346.5" y="-83.08" font-family="Arial" font-size="10.00">  project.read</text>
+<text text-anchor="start" x="323.5" y="-83.08" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
+<text text-anchor="start" x="351.5" y="-83.08" font-family="Arial" font-size="10.00">  project_id: ID</text>
 <text text-anchor="start" x="323.5" y="-71.08" font-family="Arial" font-weight="bold" font-size="10.00">query:</text>
 <text text-anchor="start" x="353.5" y="-71.08" font-family="Arial" font-size="10.00">  query.project.detail.read</text>
-<text text-anchor="start" x="323.5" y="-59.08" font-family="Arial" font-weight="bold" font-size="10.00">requires context:</text>
-<text text-anchor="start" x="402.5" y="-59.08" font-family="Arial" font-size="10.00">  project_id: ID</text>
+<text text-anchor="start" x="323.5" y="-59.08" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
+<text text-anchor="start" x="347.5" y="-59.08" font-family="Arial" font-size="10.00">  project.read</text>
 <polygon fill="none" stroke="#2563eb" points="316,-48.08 316,-132.08 519,-132.08 519,-48.08 316,-48.08"/>
 </g>
 <!-- state_none&#45;&gt;transition_0_none_loading_project_selection_changed -->
@@ -142,7 +142,7 @@
 <polygon fill="#eff6ff" stroke="transparent" points="1346,-125.08 1346,-150.08 1486,-150.08 1486,-125.08 1346,-125.08"/>
 <text text-anchor="start" x="1351" y="-134.88" font-family="Arial" font-weight="bold" font-size="14.00">on selection.cleared</text>
 <text text-anchor="start" x="1352" y="-112.08" font-family="Arial" font-weight="bold" font-size="10.00">effects:</text>
-<text text-anchor="start" x="1386" y="-112.08" font-family="Arial" font-size="10.00">  set project_id to null</text>
+<text text-anchor="start" x="1386" y="-112.08" font-family="Arial" font-size="10.00">  project_id &lt;&#45; null</text>
 <polygon fill="none" stroke="#2563eb" points="1345,-101.08 1345,-161.08 1487,-161.08 1487,-101.08 1345,-101.08"/>
 </g>
 <!-- state_ready&#45;&gt;transition_3_ready_none_selection_cleared -->

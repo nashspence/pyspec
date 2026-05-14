@@ -47,22 +47,29 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "asset.project.list.empty.illustration" in fsm
     assert "emit project.selected" in fsm
     assert "<B>projection:</B>" not in fsm
-    assert "<B>data:</B>&#160;&#160;project.list" in fsm
+    assert "<B>load:</B>&#160;&#160;project.list" in fsm
     assert "<B>query:</B>&#160;&#160;query.project.list.list" in fsm
     assert "<B>input:</B>&#160;&#160;workspace_id: ID" in fsm
     assert fsm.index("<B>input:</B>&#160;&#160;workspace_id: ID") < fsm.index("<B>query:</B>&#160;&#160;query.project.list.list")
-    assert fsm.index("<B>query:</B>&#160;&#160;query.project.list.list") < fsm.index("<B>data:</B>&#160;&#160;project.list")
+    assert fsm.index("<B>query:</B>&#160;&#160;query.project.list.list") < fsm.index("<B>load:</B>&#160;&#160;project.list")
+    detail_transition = panel_fsm_dot("panel.project.detail", contract["panels"]["panel.project.detail"], contract)
+    selection_card = detail_transition[detail_transition.index("on project.selection_changed") :]
+    assert selection_card.index("<B>input:</B>&#160;&#160;project_id: ID") < selection_card.index("<B>query:</B>&#160;&#160;query.project.detail.read")
+    assert selection_card.index("<B>query:</B>&#160;&#160;query.project.detail.read") < selection_card.index("<B>load:</B>&#160;&#160;project.read")
     assert "<B>Project fields</B>" in fsm
     assert fsm.count("query.project.list.list") == 4
     assert "<B>resource:</B>" not in fsm
     assert "<B>context:</B>" not in fsm
+    assert "$event." not in fsm
     assert "emitted message" in composition
     assert "sent message" in composition
     assert "message route" in composition
     assert "project.select (ready to ready)" in composition
     assert "selected state:" not in composition
-    assert "project_id: $event.project_id" in composition
-    assert "selected_project_id: $event.project_id" in composition
+    assert "<B>data:</B>&#160;&#160;project_id" in composition
+    assert "selected_project_id &lt;- project_id" in composition
+    assert "$event." not in composition
+    assert "$view." not in composition
     assert "<B>from:</B>" not in composition
     assert "<B>do:</B>" not in composition
     assert "Layout / mounted panels" not in composition
@@ -71,7 +78,9 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>region:</B>" in composition
     assert "<B>region:</B>&#160;&#160;nav" in composition
     assert "<B>region:</B>&#160;&#160;main" in composition
-    assert "<B>transition:</B>&#160;&#160;to loading" in composition
+    assert "<B>causes:</B>&#160;&#160;to loading" in composition
+    assert "context binding" in composition
+    assert "panel context" not in composition
     assert "order:" not in composition
     assert "element:" not in composition
     assert "role:" not in composition
@@ -152,10 +161,13 @@ def test_composition_dot_routes_messages_generically() -> None:
     assert "message route" in composition
     assert "alpha.submit (idle to ready)" in composition
     assert "beta.consume" in composition
-    assert "<B>transition:</B>&#160;&#160;to consumed" in composition
-    assert "id: $event.id" in composition
-    assert "selected_id: $event.id" in composition
-    assert "item_id: $event.id" in composition
+    assert "<B>causes:</B>&#160;&#160;to consumed" in composition
+    assert "<B>data:</B>&#160;&#160;id" in composition
+    assert "selected_id &lt;- id" in composition
+    assert "item_id &lt;- id" in composition
+    assert "item_id &lt;- view.selected_id" in composition
+    assert "$event." not in composition
+    assert "$view." not in composition
     assert "<B>target:</B>" not in composition
     assert "<B>from:</B>" not in composition
     assert "<B>do:</B>" not in composition
@@ -219,19 +231,20 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "declared, no arrow" not in list_fsm
     assert "transition events" not in list_fsm
     assert "emitted events" not in list_fsm
+    assert "$event." not in list_fsm
     assert "copy.project.detail.ready.heading" in detail_fsm
     assert "project.approve" in detail_fsm
-    assert "requires context" in detail_fsm
+    assert "input:" in detail_fsm
     assert "query.project.detail.read" in detail_fsm
     assert "project_id: ID" in detail_fsm
     assert "capability: project.read" not in detail_fsm
-    assert "set project_id to null" in detail_fsm
+    assert "project_id &lt;&#45; null" in detail_fsm
     assert "select_project_updates_panels" not in detail_fsm
     assert "data.ready" not in activity_fsm
-    assert "requires context" in activity_fsm
+    assert "input:" in activity_fsm
     assert "query.project.activity.read" in activity_fsm
     assert "project_id: ID" in activity_fsm
-    assert "set project_id to null" in activity_fsm
+    assert "project_id &lt;&#45; null" in activity_fsm
     assert "emitted message" in composition
     assert "sent message" in composition
     assert "project.select" in composition
@@ -241,8 +254,11 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "none to loading" not in composition
     assert "empty to ready" not in composition
     assert "selected state:" not in composition
-    assert "project_id: $event.project_id" in composition
-    assert "selected_project_id: $event.project_id" in composition
+    assert "selected_project_id &lt;&#45; project_id" in composition
+    assert "context binding" in composition
+    assert "panel context" not in composition
+    assert "$event." not in composition
+    assert "$view." not in composition
     assert "region:" in composition
     assert "target:" not in composition
     assert "from:" not in composition
