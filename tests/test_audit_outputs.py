@@ -60,14 +60,21 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>projection:</B>" not in fsm
     assert "<B>load:</B>&#160;&#160;project.list" in fsm
     assert "<B>query:</B>&#160;&#160;query.project.list.list" in fsm
-    assert "<B>input:</B>&#160;&#160;workspace_id: ID" in fsm
-    assert fsm.index("<B>input:</B>&#160;&#160;workspace_id: ID") < fsm.index("<B>query:</B>&#160;&#160;query.project.list.list")
+    input_workspace = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
+    assert input_workspace in fsm
+    assert fsm.index(input_workspace) < fsm.index("<B>query:</B>&#160;&#160;query.project.list.list")
     assert fsm.index("<B>query:</B>&#160;&#160;query.project.list.list") < fsm.index("<B>load:</B>&#160;&#160;project.list")
     detail_transition = panel_fsm_dot("panel.project.detail", contract["panels"]["panel.project.detail"], contract)
     selection_card = detail_transition[detail_transition.index("project.selection_changed") :]
-    assert selection_card.index("<B>input:</B>&#160;&#160;project_id: ID") < selection_card.index("<B>query:</B>&#160;&#160;query.project.detail.read")
+    input_project = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
+    assert selection_card.index(input_project) < selection_card.index("<B>query:</B>&#160;&#160;query.project.detail.read")
     assert selection_card.index("<B>query:</B>&#160;&#160;query.project.detail.read") < selection_card.index("<B>load:</B>&#160;&#160;project.read")
     assert "<B>project.list fields</B>" in fsm
+    assert '<FONT POINT-SIZE="10">title</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Text</FONT>' in fsm
+    assert '<FONT POINT-SIZE="10">status</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ProjectStatus</FONT>' in fsm
+    assert '<FONT POINT-SIZE="10">summary</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Text</FONT>' in detail_transition
+    assert "title: Text" not in fsm
+    assert "status: ProjectStatus" not in fsm
     assert "<B>Project fields</B>" not in fsm
     assert fsm.count("query.project.list.list") == 4
     assert "<B>resource:</B>" not in fsm
@@ -268,8 +275,14 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "effects:" not in list_fsm
     assert "capability: project.list" not in list_fsm
     assert "query.project.list.list" in list_fsm
-    assert "workspace_id: ID" in list_fsm
+    assert "workspace_id: ID" not in list_fsm
+    assert 'workspace_id</text>' in list_fsm
+    assert 'fill="#94a3b8">\xa0\xa0ID</text>' in list_fsm
     assert "project.list fields" in list_fsm
+    assert "title: Text" not in list_fsm
+    assert "status: ProjectStatus" not in list_fsm
+    assert 'fill="#94a3b8">\xa0\xa0Text</text>' in list_fsm
+    assert 'fill="#94a3b8">\xa0\xa0ProjectStatus</text>' in list_fsm
     assert "Project fields" not in list_fsm
     assert "projection:" not in list_fsm
     assert "resource:" not in list_fsm
@@ -289,11 +302,18 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "$event." not in list_fsm
     assert "copy.project.detail.ready.heading" in detail_fsm
     assert "project.read fields" in detail_fsm
+    assert "summary: Text" not in detail_fsm
+    assert 'fill="#94a3b8">\xa0\xa0Text</text>' in detail_fsm
     assert "project.approve" in detail_fsm
     assert "project.read fields" in activity_fsm
+    assert "updated_at: Timestamp" not in activity_fsm
+    assert "assignee: Text" not in activity_fsm
+    assert 'fill="#94a3b8">\xa0\xa0Timestamp</text>' in activity_fsm
     assert "input:" in detail_fsm
     assert "query.project.detail.read" in detail_fsm
-    assert "project_id: ID" in detail_fsm
+    assert "project_id: ID" not in detail_fsm
+    assert 'project_id</text>' in detail_fsm
+    assert 'fill="#94a3b8">\xa0\xa0ID</text>' in detail_fsm
     assert "capability: project.read" not in detail_fsm
     assert "set:" in detail_fsm
     assert "project_id &lt;&#45; null" in detail_fsm
@@ -301,7 +321,9 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "data.ready" not in activity_fsm
     assert "input:" in activity_fsm
     assert "query.project.activity.read" in activity_fsm
-    assert "project_id: ID" in activity_fsm
+    assert "project_id: ID" not in activity_fsm
+    assert 'project_id</text>' in activity_fsm
+    assert 'fill="#94a3b8">\xa0\xa0ID</text>' in activity_fsm
     assert "set:" in activity_fsm
     assert "project_id &lt;&#45; null" in activity_fsm
     assert "emitted message" in composition

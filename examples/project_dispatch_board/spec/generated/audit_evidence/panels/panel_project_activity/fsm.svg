@@ -36,7 +36,8 @@
 <text text-anchor="start" x="332.5" y="-110.6" font-family="Arial" font-weight="bold" font-size="13.00">project.selection_changed</text>
 <text text-anchor="start" x="332.5" y="-99.6" font-family="Arial" font-size="8.00" fill="#64748b">transition event</text>
 <text text-anchor="start" x="333.5" y="-81" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
-<text text-anchor="start" x="361.5" y="-81" font-family="Arial" font-size="10.00">  project_id: ID</text>
+<text text-anchor="start" x="361.5" y="-81" font-family="Arial" font-size="10.00">  project_id</text>
+<text text-anchor="start" x="410.5" y="-81" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
 <text text-anchor="start" x="333.5" y="-69" font-family="Arial" font-weight="bold" font-size="10.00">query:</text>
 <text text-anchor="start" x="363.5" y="-69" font-family="Arial" font-size="10.00">  query.project.activity.read</text>
 <text text-anchor="start" x="333.5" y="-57" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
@@ -60,9 +61,12 @@
 <text text-anchor="start" x="575" y="-102" font-family="Arial" font-weight="bold" font-size="10.00">copy:</text>
 <text text-anchor="start" x="601" y="-102" font-family="Arial" font-size="10.00">  copy.project.activity.ready.heading</text>
 <text text-anchor="start" x="574" y="-82" font-family="Arial" font-weight="bold" font-size="10.00">project.read fields</text>
-<text text-anchor="start" x="574" y="-70" font-family="Arial" font-size="10.00">updated_at</text>
-<text text-anchor="start" x="574" y="-59" font-family="Arial" font-size="10.00">status</text>
-<text text-anchor="start" x="574" y="-48" font-family="Arial" font-size="10.00">assignee</text>
+<text text-anchor="start" x="574" y="-71" font-family="Arial" font-size="10.00">updated_at</text>
+<text text-anchor="start" x="623" y="-71" font-family="Arial" font-size="8.00" fill="#94a3b8">  Timestamp</text>
+<text text-anchor="start" x="574" y="-60" font-family="Arial" font-size="10.00">status</text>
+<text text-anchor="start" x="602" y="-60" font-family="Arial" font-size="8.00" fill="#94a3b8">  ProjectStatus</text>
+<text text-anchor="start" x="574" y="-49" font-family="Arial" font-size="10.00">assignee</text>
+<text text-anchor="start" x="614" y="-49" font-family="Arial" font-size="8.00" fill="#94a3b8">  Text</text>
 <polygon fill="none" stroke="#71717a" points="569,-40 569,-154 763,-154 763,-40 569,-40"/>
 </g>
 <!-- transition_1_ready_empty_selection_cleared -->

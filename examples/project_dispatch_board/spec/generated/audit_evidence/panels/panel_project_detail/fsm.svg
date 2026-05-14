@@ -61,7 +61,8 @@
 <text text-anchor="start" x="822" y="-249.49" font-family="Arial" font-weight="bold" font-size="13.00">data.ready</text>
 <text text-anchor="start" x="822" y="-238.49" font-family="Arial" font-size="8.00" fill="#64748b">transition event</text>
 <text text-anchor="start" x="823" y="-219.89" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
-<text text-anchor="start" x="851" y="-219.89" font-family="Arial" font-size="10.00">  project_id: ID</text>
+<text text-anchor="start" x="851" y="-219.89" font-family="Arial" font-size="10.00">  project_id</text>
+<text text-anchor="start" x="900" y="-219.89" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
 <text text-anchor="start" x="823" y="-207.89" font-family="Arial" font-weight="bold" font-size="10.00">query:</text>
 <text text-anchor="start" x="853" y="-207.89" font-family="Arial" font-size="10.00">  query.project.detail.read</text>
 <text text-anchor="start" x="823" y="-195.89" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
@@ -83,7 +84,8 @@
 <text text-anchor="start" x="822" y="-112.49" font-family="Arial" font-weight="bold" font-size="13.00">data.error</text>
 <text text-anchor="start" x="822" y="-101.49" font-family="Arial" font-size="8.00" fill="#64748b">transition event</text>
 <text text-anchor="start" x="823" y="-82.89" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
-<text text-anchor="start" x="851" y="-82.89" font-family="Arial" font-size="10.00">  project_id: ID</text>
+<text text-anchor="start" x="851" y="-82.89" font-family="Arial" font-size="10.00">  project_id</text>
+<text text-anchor="start" x="900" y="-82.89" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
 <text text-anchor="start" x="823" y="-70.89" font-family="Arial" font-weight="bold" font-size="10.00">query:</text>
 <text text-anchor="start" x="853" y="-70.89" font-family="Arial" font-size="10.00">  query.project.detail.read</text>
 <text text-anchor="start" x="823" y="-58.89" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
@@ -105,7 +107,8 @@
 <text text-anchor="start" x="319.5" y="-112.49" font-family="Arial" font-weight="bold" font-size="13.00">project.selection_changed</text>
 <text text-anchor="start" x="319.5" y="-101.49" font-family="Arial" font-size="8.00" fill="#64748b">transition event</text>
 <text text-anchor="start" x="320.5" y="-82.89" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
-<text text-anchor="start" x="348.5" y="-82.89" font-family="Arial" font-size="10.00">  project_id: ID</text>
+<text text-anchor="start" x="348.5" y="-82.89" font-family="Arial" font-size="10.00">  project_id</text>
+<text text-anchor="start" x="397.5" y="-82.89" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
 <text text-anchor="start" x="320.5" y="-70.89" font-family="Arial" font-weight="bold" font-size="10.00">query:</text>
 <text text-anchor="start" x="350.5" y="-70.89" font-family="Arial" font-size="10.00">  query.project.detail.read</text>
 <text text-anchor="start" x="320.5" y="-58.89" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
@@ -131,11 +134,16 @@
 <text text-anchor="start" x="1036" y="-282.89" font-family="Arial" font-weight="bold" font-size="10.00">assets:</text>
 <text text-anchor="start" x="1069" y="-282.89" font-family="Arial" font-size="10.00">  asset.project.detail.ready.priority_badge</text>
 <text text-anchor="start" x="1035" y="-262.89" font-family="Arial" font-weight="bold" font-size="10.00">project.read fields</text>
-<text text-anchor="start" x="1035" y="-250.89" font-family="Arial" font-size="10.00">title</text>
-<text text-anchor="start" x="1035" y="-239.89" font-family="Arial" font-size="10.00">customer</text>
-<text text-anchor="start" x="1035" y="-228.89" font-family="Arial" font-size="10.00">status</text>
-<text text-anchor="start" x="1035" y="-217.89" font-family="Arial" font-size="10.00">assignee</text>
-<text text-anchor="start" x="1035" y="-206.89" font-family="Arial" font-size="10.00">summary</text>
+<text text-anchor="start" x="1035" y="-251.89" font-family="Arial" font-size="10.00">title</text>
+<text text-anchor="start" x="1051" y="-251.89" font-family="Arial" font-size="8.00" fill="#94a3b8">  Text</text>
+<text text-anchor="start" x="1035" y="-240.89" font-family="Arial" font-size="10.00">customer</text>
+<text text-anchor="start" x="1076" y="-240.89" font-family="Arial" font-size="8.00" fill="#94a3b8">  Text</text>
+<text text-anchor="start" x="1035" y="-229.89" font-family="Arial" font-size="10.00">status</text>
+<text text-anchor="start" x="1063" y="-229.89" font-family="Arial" font-size="8.00" fill="#94a3b8">  ProjectStatus</text>
+<text text-anchor="start" x="1035" y="-218.89" font-family="Arial" font-size="10.00">assignee</text>
+<text text-anchor="start" x="1075" y="-218.89" font-family="Arial" font-size="8.00" fill="#94a3b8">  Text</text>
+<text text-anchor="start" x="1035" y="-207.89" font-family="Arial" font-size="10.00">summary</text>
+<text text-anchor="start" x="1076" y="-207.89" font-family="Arial" font-size="8.00" fill="#94a3b8">  Text</text>
 <text text-anchor="start" x="1035" y="-188.89" font-family="Arial" font-weight="bold" font-size="10.00">actions</text>
 <text text-anchor="start" x="1035" y="-176.89" font-family="Arial" font-size="10.00">project.approve</text>
 <text text-anchor="start" x="1035" y="-165.89" font-family="Arial" font-size="10.00">project.archive</text>

@@ -521,7 +521,7 @@ async def _render_textual_svg(path: Path, lines: list[tuple[str, str]], viewport
     path.write_text(svg, encoding="utf-8")
 
 
-def panel_fsm_dot(panel_id: str, panel: dict[str, Any], contract: dict[str, Any] | None = None) -> str:
+def panel_fsm_dot(panel_id: str, panel: dict[str, Any], contract: dict[str, Any]) -> str:
     lines = [
         f"digraph {_dot_quote('fsm_' + safe_id(panel_id))} {{",
         '  graph [rankdir="LR", bgcolor="transparent", pad="0.25", nodesep="0.38", ranksep="0.85", splines="spline"];',
@@ -540,7 +540,7 @@ def panel_fsm_dot(panel_id: str, panel: dict[str, Any], contract: dict[str, Any]
                     [
                         ("copy", state.get("copy", [])),
                         ("assets", state.get("assets", [])),
-                        (_state_field_section_title(panel, state_name, state), state.get("fields", [])),
+                        (_state_field_section_title(panel, state_name, state), _format_state_fields(panel, state, contract)),
                         ("actions", state.get("actions", [])),
                     ],
                     header_bg="#ecfeff" if state_name == panel["initial"] else "#f8fafc",
@@ -815,6 +815,15 @@ class _DotHtml(str):
     pass
 
 
+class _DotTypedField:
+    def __init__(self, field: str, type_name: str) -> None:
+        self.field = field
+        self.type_name = type_name
+
+    def __str__(self) -> str:
+        return f"{self.field} {self.type_name}"
+
+
 def _dot_html_node(node_id: str, label: str, attrs: dict[str, object] | None = None, indent: str = "  ") -> str:
     node_attrs: dict[str, object] = {"shape": "plain", "label": _DotHtml(label)}
     node_attrs.update(attrs or {})
@@ -901,6 +910,9 @@ def _dot_section_rows(sections: Iterable[tuple[str, Iterable[object]]]) -> list[
 
 
 def _dot_section_inner_rows(title: str, values: Iterable[object]) -> tuple[bool, list[str]] | None:
+    values = list(values)
+    if values and all(isinstance(value, _DotTypedField) for value in values):
+        return _dot_typed_field_section_inner_rows(title, values)
     wrapped_values = [wrapped for value in values if (wrapped := _wrap_dot_text(value))]
     if not wrapped_values:
         return None
@@ -919,6 +931,37 @@ def _dot_section_inner_rows(title: str, values: Iterable[object]) -> tuple[bool,
         for line in wrapped[1:]:
             inner_rows.append(f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">{_dot_html_text(line)}</FONT></TD></TR>')
     return False, inner_rows
+
+
+def _dot_typed_field_section_inner_rows(title: str, values: list[object]) -> tuple[bool, list[str]]:
+    if title == "input":
+        rows = []
+        for index, value in enumerate(values):
+            if isinstance(value, _DotTypedField):
+                rows.append(_dot_typed_field_key_value_row(title if index == 0 else "", value))
+        return True, rows
+    inner_rows = [f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10"><B>{_dot_html_text(title)}</B></FONT></TD></TR>']
+    inner_rows.extend(_dot_typed_field_row(value) for value in values if isinstance(value, _DotTypedField))
+    return False, inner_rows
+
+
+def _dot_typed_field_row(value: _DotTypedField) -> str:
+    return (
+        '<TR><TD ALIGN="LEFT" VALIGN="MIDDLE" HEIGHT="11">'
+        f'<FONT POINT-SIZE="10">{_dot_html_text(value.field)}</FONT>'
+        f'<FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;{_dot_html_text(value.type_name)}</FONT>'
+        "</TD></TR>"
+    )
+
+
+def _dot_typed_field_key_value_row(title: str, value: _DotTypedField) -> str:
+    key = f"<B>{_dot_html_text(title)}:</B>&#160;&#160;" if title else "&#160;&#160;"
+    return (
+        '<TR><TD ALIGN="LEFT" VALIGN="MIDDLE" HEIGHT="11">'
+        f'<FONT POINT-SIZE="10">{key}{_dot_html_text(value.field)}</FONT>'
+        f'<FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;{_dot_html_text(value.type_name)}</FONT>'
+        "</TD></TR>"
+    )
 
 
 def _dot_key_value_text(title: str, value: str) -> str:
@@ -996,9 +1039,9 @@ def _format_flow_source(value: Any) -> str:
 
 
 def _format_transition_sections(
-    panel: dict[str, Any], transition: dict[str, Any], contract: dict[str, Any] | None = None
-) -> list[tuple[str, list[str]]]:
-    sections: list[tuple[str, list[str]]] = []
+    panel: dict[str, Any], transition: dict[str, Any], contract: dict[str, Any]
+) -> list[tuple[str, list[object]]]:
+    sections: list[tuple[str, list[object]]] = []
     if _is_data_event(transition["on"]):
         bindings = _transition_data_bindings(panel, transition)
         data_sources = [binding["capability"] for binding in bindings]
@@ -1053,24 +1096,25 @@ def _state_field_data_bindings(panel: dict[str, Any], state_name: str, state: di
     return _unique_data_bindings(panel.get("data", []))
 
 
+def _format_state_fields(panel: dict[str, Any], state: dict[str, Any], contract: dict[str, Any]) -> list[_DotTypedField]:
+    resource_fields = contract["resources"][panel["resource"]]["fields"]
+    return [_DotTypedField(field, resource_fields[field]) for field in state["fields"]]
+
+
 def _format_data_inputs(
-    panel: dict[str, Any], bindings: Iterable[dict[str, Any]], contract: dict[str, Any] | None
-) -> list[str]:
-    if not contract:
-        return []
-    context = panel.get("context", {})
-    capabilities = contract.get("capabilities", {})
-    inputs: list[str] = []
+    panel: dict[str, Any], bindings: Iterable[dict[str, Any]], contract: dict[str, Any]
+) -> list[_DotTypedField]:
+    context = panel["context"]
+    capabilities = contract["capabilities"]
+    inputs: list[_DotTypedField] = []
     seen: set[str] = set()
     for binding in bindings:
-        capability = capabilities.get(binding.get("capability"), {})
-        for key, value_type in sorted((capability.get("input") or {}).items()):
-            if key not in context:
-                continue
-            line = f"{key}: {context.get(key, value_type)}"
-            if line not in seen:
-                inputs.append(line)
-                seen.add(line)
+        capability = capabilities[binding["capability"]]
+        for key in sorted(capability["input"]):
+            signature = f"{key} {context[key]}"
+            if signature not in seen:
+                inputs.append(_DotTypedField(key, context[key]))
+                seen.add(signature)
     return inputs
 
 

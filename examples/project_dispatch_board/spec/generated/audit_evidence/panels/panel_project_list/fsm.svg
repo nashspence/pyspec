@@ -52,7 +52,8 @@
 <text text-anchor="start" x="816" y="-257.6" font-family="Arial" font-weight="bold" font-size="13.00">data.ready</text>
 <text text-anchor="start" x="816" y="-246.6" font-family="Arial" font-size="8.00" fill="#64748b">transition event</text>
 <text text-anchor="start" x="817" y="-228" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
-<text text-anchor="start" x="845" y="-228" font-family="Arial" font-size="10.00">  workspace_id: ID</text>
+<text text-anchor="start" x="845" y="-228" font-family="Arial" font-size="10.00">  workspace_id</text>
+<text text-anchor="start" x="912" y="-228" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
 <text text-anchor="start" x="817" y="-216" font-family="Arial" font-weight="bold" font-size="10.00">query:</text>
 <text text-anchor="start" x="847" y="-216" font-family="Arial" font-size="10.00">  query.project.list.list</text>
 <text text-anchor="start" x="817" y="-204" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
@@ -87,7 +88,8 @@
 <text text-anchor="start" x="358" y="-238.6" font-family="Arial" font-weight="bold" font-size="13.00">data.empty</text>
 <text text-anchor="start" x="358" y="-227.6" font-family="Arial" font-size="8.00" fill="#64748b">transition event</text>
 <text text-anchor="start" x="359" y="-209" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
-<text text-anchor="start" x="387" y="-209" font-family="Arial" font-size="10.00">  workspace_id: ID</text>
+<text text-anchor="start" x="387" y="-209" font-family="Arial" font-size="10.00">  workspace_id</text>
+<text text-anchor="start" x="454" y="-209" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
 <text text-anchor="start" x="359" y="-197" font-family="Arial" font-weight="bold" font-size="10.00">query:</text>
 <text text-anchor="start" x="389" y="-197" font-family="Arial" font-size="10.00">  query.project.list.list</text>
 <text text-anchor="start" x="359" y="-185" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
@@ -109,7 +111,8 @@
 <text text-anchor="start" x="816" y="-144.6" font-family="Arial" font-weight="bold" font-size="13.00">data.ready</text>
 <text text-anchor="start" x="816" y="-133.6" font-family="Arial" font-size="8.00" fill="#64748b">transition event</text>
 <text text-anchor="start" x="817" y="-115" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
-<text text-anchor="start" x="845" y="-115" font-family="Arial" font-size="10.00">  workspace_id: ID</text>
+<text text-anchor="start" x="845" y="-115" font-family="Arial" font-size="10.00">  workspace_id</text>
+<text text-anchor="start" x="912" y="-115" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
 <text text-anchor="start" x="817" y="-103" font-family="Arial" font-weight="bold" font-size="10.00">query:</text>
 <text text-anchor="start" x="847" y="-103" font-family="Arial" font-size="10.00">  query.project.list.list</text>
 <text text-anchor="start" x="817" y="-91" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
@@ -131,7 +134,8 @@
 <text text-anchor="start" x="358" y="-63.6" font-family="Arial" font-weight="bold" font-size="13.00">data.error</text>
 <text text-anchor="start" x="358" y="-52.6" font-family="Arial" font-size="8.00" fill="#64748b">transition event</text>
 <text text-anchor="start" x="359" y="-34" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
-<text text-anchor="start" x="387" y="-34" font-family="Arial" font-size="10.00">  workspace_id: ID</text>
+<text text-anchor="start" x="387" y="-34" font-family="Arial" font-size="10.00">  workspace_id</text>
+<text text-anchor="start" x="454" y="-34" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
 <text text-anchor="start" x="359" y="-22" font-family="Arial" font-weight="bold" font-size="10.00">query:</text>
 <text text-anchor="start" x="389" y="-22" font-family="Arial" font-size="10.00">  query.project.list.list</text>
 <text text-anchor="start" x="359" y="-10" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
@@ -155,10 +159,14 @@
 <text text-anchor="start" x="1014" y="-211" font-family="Arial" font-weight="bold" font-size="10.00">copy:</text>
 <text text-anchor="start" x="1040" y="-211" font-family="Arial" font-size="10.00">  copy.project.list.ready.heading</text>
 <text text-anchor="start" x="1013" y="-191" font-family="Arial" font-weight="bold" font-size="10.00">project.list fields</text>
-<text text-anchor="start" x="1013" y="-179" font-family="Arial" font-size="10.00">title</text>
-<text text-anchor="start" x="1013" y="-168" font-family="Arial" font-size="10.00">customer</text>
-<text text-anchor="start" x="1013" y="-157" font-family="Arial" font-size="10.00">priority</text>
-<text text-anchor="start" x="1013" y="-146" font-family="Arial" font-size="10.00">status</text>
+<text text-anchor="start" x="1013" y="-180" font-family="Arial" font-size="10.00">title</text>
+<text text-anchor="start" x="1029" y="-180" font-family="Arial" font-size="8.00" fill="#94a3b8">  Text</text>
+<text text-anchor="start" x="1013" y="-169" font-family="Arial" font-size="10.00">customer</text>
+<text text-anchor="start" x="1054" y="-169" font-family="Arial" font-size="8.00" fill="#94a3b8">  Text</text>
+<text text-anchor="start" x="1013" y="-158" font-family="Arial" font-size="10.00">priority</text>
+<text text-anchor="start" x="1043" y="-158" font-family="Arial" font-size="8.00" fill="#94a3b8">  Text</text>
+<text text-anchor="start" x="1013" y="-147" font-family="Arial" font-size="10.00">status</text>
+<text text-anchor="start" x="1041" y="-147" font-family="Arial" font-size="8.00" fill="#94a3b8">  ProjectStatus</text>
 <text text-anchor="start" x="1013" y="-128" font-family="Arial" font-weight="bold" font-size="10.00">actions</text>
 <text text-anchor="start" x="1013" y="-116" font-family="Arial" font-size="10.00">project.create</text>
 <text text-anchor="start" x="1013" y="-105" font-family="Arial" font-size="10.00">project.submit</text>
