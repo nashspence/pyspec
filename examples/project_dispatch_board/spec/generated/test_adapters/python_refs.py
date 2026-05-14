@@ -4,6 +4,10 @@ class Asset:
     ASSET_PROJECT_DETAIL_READY_PRIORITY_BADGE = 'asset.project.detail.ready.priority_badge'
     ASSET_PROJECT_LIST_EMPTY_ILLUSTRATION = 'asset.project.list.empty.illustration'
 
+class AuditCase:
+    FSM_PROJECT_BOARD_READY_EMPTY_AUDIT = 'fsm.project.board.ready.empty.audit'
+    FSM_PROJECT_BOARD_READY_READY_SELECTED_AUDIT = 'fsm.project.board.ready.ready_selected.audit'
+
 class AuditProfile:
     DEFAULT = 'default'
 
@@ -17,8 +21,8 @@ class Capability:
     PROJECT_SUBMIT = 'project.submit'
 
 class Command:
+    COMMAND_FSM_PROJECT_BOARD = 'command.fsm.project.board'
     COMMAND_PROJECT_APPROVE = 'command.project.approve'
-    COMMAND_PROJECT_BOARD = 'command.project.board'
 
 class ContentCase:
     CONTENT_PROJECT_DETAIL_HEADING_HIGH_PRIORITY = 'content.project.detail.heading.high_priority'
@@ -59,6 +63,12 @@ class Event:
     PROJECT_CREATED = 'project.created'
     PROJECT_SUBMITTED = 'project.submitted'
 
+class FSM:
+    FSM_PROJECT_ACTIVITY = 'fsm.project.activity'
+    FSM_PROJECT_BOARD = 'fsm.project.board'
+    FSM_PROJECT_DETAIL = 'fsm.project.detail'
+    FSM_PROJECT_LIST = 'fsm.project.list'
+
 class Fact:
     FACT_PROJECT_DRAFT = 'fact.project.draft'
     FACT_PROJECT_SUBMITTED = 'fact.project.submitted'
@@ -67,21 +77,11 @@ class Fixture:
     FIXTURE_WORKSPACE_MEMBER = 'fixture.workspace.member'
     FIXTURE_WORKSPACE_REVIEWER = 'fixture.workspace.reviewer'
 
-class Panel:
-    PANEL_PROJECT_ACTIVITY = 'panel.project.activity'
-    PANEL_PROJECT_ACTIVITY_EMPTY = 'panel.project.activity.empty'
-    PANEL_PROJECT_ACTIVITY_READY = 'panel.project.activity.ready'
-    PANEL_PROJECT_BOARD_READY = 'panel.project.board.ready'
-    PANEL_PROJECT_DETAIL = 'panel.project.detail'
-    PANEL_PROJECT_DETAIL_ERROR = 'panel.project.detail.error'
-    PANEL_PROJECT_DETAIL_LOADING = 'panel.project.detail.loading'
-    PANEL_PROJECT_DETAIL_NONE = 'panel.project.detail.none'
-    PANEL_PROJECT_DETAIL_READY = 'panel.project.detail.ready'
-    PANEL_PROJECT_LIST = 'panel.project.list'
-    PANEL_PROJECT_LIST_EMPTY = 'panel.project.list.empty'
-    PANEL_PROJECT_LIST_ERROR = 'panel.project.list.error'
-    PANEL_PROJECT_LIST_LOADING = 'panel.project.list.loading'
-    PANEL_PROJECT_LIST_READY = 'panel.project.list.ready'
+class Fsm:
+    FSM_PROJECT_ACTIVITY = 'fsm.project.activity'
+    FSM_PROJECT_BOARD = 'fsm.project.board'
+    FSM_PROJECT_DETAIL = 'fsm.project.detail'
+    FSM_PROJECT_LIST = 'fsm.project.list'
 
 class Policy:
     POLICY_PROJECT_APPROVE = 'policy.project.approve'
@@ -98,12 +98,8 @@ class Query:
     QUERY_PROJECT_DETAIL_READ = 'query.project.detail.read'
     QUERY_PROJECT_LIST_LIST = 'query.project.list.list'
 
-class RenderCase:
-    PROJECT_BOARD_EMPTY_AUDIT = 'project.board.empty.audit'
-    PROJECT_BOARD_READY_SELECTED_AUDIT = 'project.board.ready_selected.audit'
-
 class Route:
-    ROUTE_PROJECT_BOARD = 'route.project.board'
+    ROUTE_FSM_PROJECT_BOARD = 'route.fsm.project.board'
 
 class Scenario:
     PROJECT_APPROVAL_NOTICE_WORKFLOW = 'project.approval_notice.workflow'
@@ -113,10 +109,20 @@ class Scenario:
     PROJECT_CREATE_API_SUCCESS = 'project.create.api.success'
 
 class Screen:
-    SCREEN_PROJECT_BOARD = 'screen.project.board'
+    SCREEN_FSM_PROJECT_BOARD = 'screen.fsm.project.board'
 
-class View:
-    PROJECT_BOARD = 'project.board'
+class Surface:
+    FSM_PROJECT_ACTIVITY_EMPTY = 'fsm.project.activity.empty'
+    FSM_PROJECT_ACTIVITY_READY = 'fsm.project.activity.ready'
+    FSM_PROJECT_BOARD_READY = 'fsm.project.board.ready'
+    FSM_PROJECT_DETAIL_ERROR = 'fsm.project.detail.error'
+    FSM_PROJECT_DETAIL_LOADING = 'fsm.project.detail.loading'
+    FSM_PROJECT_DETAIL_NONE = 'fsm.project.detail.none'
+    FSM_PROJECT_DETAIL_READY = 'fsm.project.detail.ready'
+    FSM_PROJECT_LIST_EMPTY = 'fsm.project.list.empty'
+    FSM_PROJECT_LIST_ERROR = 'fsm.project.list.error'
+    FSM_PROJECT_LIST_LOADING = 'fsm.project.list.loading'
+    FSM_PROJECT_LIST_READY = 'fsm.project.list.ready'
 
 class Workflow:
     WORKFLOW_PROJECT_APPROVAL_NOTICE = 'workflow.project.approval_notice'

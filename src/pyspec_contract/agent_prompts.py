@@ -80,13 +80,11 @@ def _coerce_layers(layers: str | set[str] | None) -> set[str] | None:
 
 def _contract_has_ui(contract: dict[str, Any]) -> bool:
     return bool(
-        contract.get("panels")
-        or contract.get("views")
+        contract.get("fsms")
         or contract.get("copies")
         or contract.get("assets")
         or contract.get("content_cases")
         or contract.get("audit_profiles")
-        or contract.get("render_cases")
     )
 
 
@@ -94,14 +92,14 @@ def _contract_has_web(contract: dict[str, Any]) -> bool:
     entries = contract.get("entries") or {}
     if any(entry.get("surface") == "web" for entry in entries.values()):
         return True
-    if any("html" in case.get("surfaces", []) for case in (contract.get("render_cases") or {}).values()):
+    if any("html" in case.get("surfaces", []) for case in _contract_audit_cases(contract)):
         return True
     if any("html" in profile for profile in (contract.get("audit_profiles") or {}).values()):
         return True
-    for owner in list((contract.get("panels") or {}).values()) + list((contract.get("views") or {}).values()):
-        if "html" in (owner.get("layout") or {}):
-            return True
+    for owner in (contract.get("fsms") or {}).values():
         for state in (owner.get("states") or {}).values():
+            if "html" in (state.get("layout") or {}):
+                return True
             presentation = state.get("presentation") or {}
             if "html" in presentation or "css" in presentation:
                 return True
@@ -109,17 +107,25 @@ def _contract_has_web(contract: dict[str, Any]) -> bool:
 
 
 def _contract_has_textual(contract: dict[str, Any]) -> bool:
-    if any("textual" in case.get("surfaces", []) for case in (contract.get("render_cases") or {}).values()):
+    if any("textual" in case.get("surfaces", []) for case in _contract_audit_cases(contract)):
         return True
     if any("textual" in profile for profile in (contract.get("audit_profiles") or {}).values()):
         return True
-    for owner in list((contract.get("panels") or {}).values()) + list((contract.get("views") or {}).values()):
-        if "textual" in (owner.get("layout") or {}):
-            return True
+    for owner in (contract.get("fsms") or {}).values():
         for state in (owner.get("states") or {}).values():
+            if "textual" in (state.get("layout") or {}):
+                return True
             if "textual" in (state.get("presentation") or {}):
                 return True
     return False
+
+
+def _contract_audit_cases(contract: dict[str, Any]) -> list[dict[str, Any]]:
+    cases = []
+    for fsm in (contract.get("fsms") or {}).values():
+        for state in (fsm.get("states") or {}).values():
+            cases.extend((state.get("audit") or {}).values())
+    return cases
 
 
 class _PromptContext:
@@ -153,8 +159,7 @@ class _PromptContext:
             ("capabilities", self.contract.get("capabilities") or {}),
             ("entries", self.contract.get("entries") or {}),
             ("workflows", self.contract.get("workflows") or {}),
-            ("panels", self.contract.get("panels") or {}),
-            ("views", self.contract.get("views") or {}),
+            ("fsms", self.contract.get("fsms") or {}),
             ("scenarios", self.contract.get("scenarios") or {}),
         ]
         counts = ", ".join(f"{name}={len(value)}" for name, value in sections if value)
@@ -191,9 +196,9 @@ def _pm_design_prompt(context: _PromptContext) -> str:
     else:
         lines.append("- Do not add workflow, CLI, worker, or schedule vocabulary.")
     if "ui" in context.layers:
-        lines.append("- UI: panels, composed views, copy/assets, content cases, audit profiles, and render cases.")
+        lines.append("- UI: FSMs with state-local layouts, includes, audit cases, copy/assets, content cases, and audit profiles.")
     else:
-        lines.append("- Do not author UI panels, views, copy/assets, render cases, or surface presentation.")
+        lines.append("- Do not author UI FSMs, copy/assets, audit cases, or surface presentation.")
     if "web" in context.layers:
         lines.append("- Web UI: HTML/CSS presentation, web entries, routes, and HTML audit surfaces.")
     elif "ui" in context.layers:
@@ -212,9 +217,9 @@ def _pm_design_prompt(context: _PromptContext) -> str:
             "- Use scenario archetypes from `src/pyspec_contract/patterns.yaml`; define every fixture explicitly.",
             "- Resources are product data models: fields, lifecycle, and invariants only.",
             "- Use `basis` or `why` only when it preserves non-obvious product intent.",
-            "- For view entries, keep invocation and rendering separate: `surface` is the entry surface, while `target.view.surface` is `html` or `textual`.",
+            "- For FSM entries, keep invocation and rendering separate: `surface` is the entry surface, while `target.fsm.surface` is `html` or `textual`.",
             "- For workflow entries, bind the entry to the workflow trigger with `target.workflow.name` and `target.workflow.trigger`.",
-            "- For composed screens, define reusable panel FSMs first, then mount them through view layout, includes, context, and sync rules.",
+            "- For composed screens, mount FSM instances through state-local layout, includes, context, and sync rules.",
             "- Every rendered copy or asset ref must be backed by a declared copy or asset item.",
         ]
     )
@@ -248,7 +253,7 @@ def _test_prompt(context: _PromptContext) -> str:
         "Rules:",
         "- There is exactly one generated Gherkin corpus; both spec and prod harnesses consume `spec/generated/test_adapters/pytest_bdd_features/`.",
         "- The spec harness may use the generated/reference driver to prove scenario coherence.",
-        "- The prod harness must call real product surfaces and must not import the reference driver, fake policy answers, fake emitted events, fake rendered panels, or mutate generated scenarios.",
+        "- The prod harness must call real product surfaces and must not import the reference driver, fake policy answers, fake emitted events, fake rendered FSM surfaces, or mutate generated scenarios.",
         "- If generated behavior files are missing, ask for PM/design authoring and `pyspec compile` before inventing tests.",
         f"- Check freshness with `pyspec validate . --layers {context.layer_arg}`.",
     ]
@@ -278,7 +283,7 @@ def _review_prompt(context: _PromptContext) -> str:
         "",
         "Test audit:",
         "- Check whether tests consume generated behavior and exercise real prod surfaces where required.",
-        "- Reject tests that mutate generated scenarios, fake policy answers, fake emitted events, fake rendered panels, duplicate generated behavior, or mask missing spec coverage.",
+        "- Reject tests that mutate generated scenarios, fake policy answers, fake emitted events, fake rendered FSM surfaces, duplicate generated behavior, or mask missing spec coverage.",
         "- For every test issue, provide a recommended prompt for `test.md` that asks for the smallest harness/test fix, or asks the test agent to report a PM/design gap when the spec is wrong.",
         "",
         "Dev audit:",
@@ -316,7 +321,7 @@ def _dev_prompt(context: _PromptContext) -> str:
         context.compiled_summary(),
         "",
         "Do not change `spec/spec.yaml` to fix implementation failures unless the user explicitly switches you into PM/design work.",
-        "Use generated constants and projections; do not invent routes, strings, panels, CSS selectors, Textual widgets, TCSS rules, events, workflows, policies, operations, fixtures, scenario IDs, storage tables, or migrations outside the spec and implementation layer.",
+        "Use generated constants and projections; do not invent routes, strings, FSM surfaces, CSS selectors, Textual widgets, TCSS rules, events, workflows, policies, operations, fixtures, scenario IDs, storage tables, or migrations outside the spec and implementation layer.",
         "",
         "Generated interfaces to consume:",
         "- `spec/generated/behavior/scenarios.yaml` and `spec/generated/behavior/fixtures.yaml`",
@@ -329,9 +334,9 @@ def _dev_prompt(context: _PromptContext) -> str:
     if "workflow" in context.layers:
         lines.append("- `spec/generated/product_interfaces/workflow.cwl.yaml`")
     if "web" in context.layers:
-        lines.append("- `spec/generated/product_interfaces/web.routes.json`, `spec/generated/product_interfaces/web.panels.json`, and HTML audit evidence")
+        lines.append("- `spec/generated/product_interfaces/web.routes.json`, `spec/generated/product_interfaces/web.fsms.json`, and HTML audit evidence")
     elif "ui" in context.layers:
-        lines.append("- `spec/generated/product_interfaces/web.panels.json` when panels or views are declared")
+        lines.append("- `spec/generated/product_interfaces/web.fsms.json` when FSMs are declared")
     if "textual" in context.layers:
         lines.append("- `spec/generated/product_interfaces/textual.projection.py` and Textual audit evidence")
     if "ui" in context.layers:

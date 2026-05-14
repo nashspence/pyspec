@@ -65,7 +65,7 @@ scenarios:
     feature: project.approve
     title: Approve submitted dispatch project
   project.board.empty:
-    archetype: composed_view
+    archetype: fsm_composition
     arrange:
       facts:
       - absent:
@@ -79,6 +79,30 @@ scenarios:
       - project.create
       forbids:
       - project.approve
+      fsm:
+        composition:
+          includes: []
+          layout: {}
+          sync: []
+        instances:
+          activity:
+            source: fsm.project.activity
+            state: empty
+            surface: fsm.project.activity.empty
+          detail:
+            source: fsm.project.detail
+            state: none
+            surface: fsm.project.detail.none
+          list:
+            source: fsm.project.list
+            state: empty
+            surface: fsm.project.list.empty
+        ref: fsm.project.board
+        state: ready
+        surface: fsm.project.board.ready
+        sync:
+          observed:
+          - select_project_updates_fsms
       requires:
         actions:
         - project.create
@@ -91,160 +115,14 @@ scenarios:
         - copy.project.detail.none.body
         - copy.project.list.empty.heading
         - copy.project.list.empty.body
-        panel:
-        - panel.project.board.ready
-        - panel.project.activity.empty
-        - panel.project.detail.none
-        - panel.project.list.empty
         queries:
         - query.project.board.list
         - query.project.list.list
-      view:
-        composition:
-          includes:
-          - context:
-              selected_project_id: $view.selected_project_id
-              workspace_id: $view.workspace_id
-            id: list
-            initial: loading
-            panel: panel.project.list
-            region: nav
-          - context:
-              project_id: $view.selected_project_id
-            id: detail
-            initial: none
-            panel: panel.project.detail
-            region: main
-            selected:
-              state: loading
-              when:
-                context_present: selected_project_id
-          - context:
-              project_id: $view.selected_project_id
-            id: activity
-            initial: empty
-            panel: panel.project.activity
-            region: aside
-            selected:
-              state: ready
-              when:
-                context_present: selected_project_id
-          layout:
-            html:
-              css:
-                rules:
-                - declarations:
-                    display: grid
-                    gap: token.gap
-                    grid-template-columns: token.nav_width 1fr token.aside_width
-                  selector: root
-                - declarations:
-                    min-width: token.nav_width
-                  selector: region.nav
-                - declarations:
-                    min-width: '0'
-                  selector: region.main
-                - declarations:
-                    min-width: token.aside_width
-                  selector: region.aside
-                tokens:
-                  aside_width: 16rem
-                  gap: 1rem
-                  nav_width: 20rem
-              regions:
-                aside:
-                  classes:
-                  - dispatch-board-aside
-                  element: aside
-                  order: 3
-                  required: true
-                  role: complementary
-                main:
-                  classes:
-                  - dispatch-board-main
-                  element: main
-                  order: 2
-                  required: true
-                  role: main
-                nav:
-                  classes:
-                  - dispatch-board-nav
-                  element: nav
-                  order: 1
-                  required: true
-                  role: navigation
-              root:
-                classes:
-                - dispatch-board
-                element: section
-                role: region
-            textual:
-              containers:
-                aside:
-                  id: aside
-                  kind: Container
-                  order: 3
-                  required: true
-                main:
-                  id: main
-                  kind: Container
-                  order: 2
-                  required: true
-                nav:
-                  id: nav
-                  kind: Container
-                  order: 1
-                  required: true
-              screen_class: ProjectBoardScreen
-              tcss:
-                rules:
-                - declarations:
-                    layout: horizontal
-                  selector: screen
-                - declarations:
-                    width: '32'
-                  selector: region.nav
-                - declarations:
-                    width: '28'
-                  selector: region.aside
-          sync:
-          - do:
-            - set:
-                context: selected_project_id
-                from: $message.project_id
-            - send:
-                data:
-                  project_id: $message.project_id
-                message: project.selection_changed
-                panel: detail
-            - send:
-                data:
-                  project_id: $message.project_id
-                message: project.selection_changed
-                panel: activity
-            id: select_project_updates_panels
-            when:
-              instance: list
-              message: project.selected
-        panel: panel.project.board.ready
-        panels:
-          activity:
-            panel: panel.project.activity.empty
-            source: panel.project.activity
-            state: empty
-          detail:
-            panel: panel.project.detail.none
-            source: panel.project.detail
-            state: none
-          list:
-            panel: panel.project.list.empty
-            source: panel.project.list
-            state: empty
-        ref: project.board
-        state: ready
-        sync:
-          observed:
-          - select_project_updates_panels
+        surfaces:
+        - fsm.project.board.ready
+        - fsm.project.activity.empty
+        - fsm.project.detail.none
+        - fsm.project.list.empty
     basis: An empty workspace shows empty list, no detail, and no activity.
     execute:
       open_entry:
@@ -254,7 +132,7 @@ scenarios:
     feature: project.board
     title: Empty dispatch board
   project.board.ready:
-    archetype: composed_view
+    archetype: fsm_composition
     arrange:
       facts:
       - present:
@@ -276,6 +154,30 @@ scenarios:
       enables:
       - project.create
       - project.submit
+      fsm:
+        composition:
+          includes: []
+          layout: {}
+          sync: []
+        instances:
+          activity:
+            source: fsm.project.activity
+            state: empty
+            surface: fsm.project.activity.empty
+          detail:
+            source: fsm.project.detail
+            state: none
+            surface: fsm.project.detail.none
+          list:
+            source: fsm.project.list
+            state: ready
+            surface: fsm.project.list.ready
+        ref: fsm.project.board
+        state: ready
+        surface: fsm.project.board.ready
+        sync:
+          observed:
+          - select_project_updates_fsms
       requires:
         actions:
         - project.create
@@ -287,160 +189,14 @@ scenarios:
         - copy.project.detail.none.heading
         - copy.project.detail.none.body
         - copy.project.list.ready.heading
-        panel:
-        - panel.project.board.ready
-        - panel.project.activity.empty
-        - panel.project.detail.none
-        - panel.project.list.ready
         queries:
         - query.project.board.list
         - query.project.list.list
-      view:
-        composition:
-          includes:
-          - context:
-              selected_project_id: $view.selected_project_id
-              workspace_id: $view.workspace_id
-            id: list
-            initial: loading
-            panel: panel.project.list
-            region: nav
-          - context:
-              project_id: $view.selected_project_id
-            id: detail
-            initial: none
-            panel: panel.project.detail
-            region: main
-            selected:
-              state: loading
-              when:
-                context_present: selected_project_id
-          - context:
-              project_id: $view.selected_project_id
-            id: activity
-            initial: empty
-            panel: panel.project.activity
-            region: aside
-            selected:
-              state: ready
-              when:
-                context_present: selected_project_id
-          layout:
-            html:
-              css:
-                rules:
-                - declarations:
-                    display: grid
-                    gap: token.gap
-                    grid-template-columns: token.nav_width 1fr token.aside_width
-                  selector: root
-                - declarations:
-                    min-width: token.nav_width
-                  selector: region.nav
-                - declarations:
-                    min-width: '0'
-                  selector: region.main
-                - declarations:
-                    min-width: token.aside_width
-                  selector: region.aside
-                tokens:
-                  aside_width: 16rem
-                  gap: 1rem
-                  nav_width: 20rem
-              regions:
-                aside:
-                  classes:
-                  - dispatch-board-aside
-                  element: aside
-                  order: 3
-                  required: true
-                  role: complementary
-                main:
-                  classes:
-                  - dispatch-board-main
-                  element: main
-                  order: 2
-                  required: true
-                  role: main
-                nav:
-                  classes:
-                  - dispatch-board-nav
-                  element: nav
-                  order: 1
-                  required: true
-                  role: navigation
-              root:
-                classes:
-                - dispatch-board
-                element: section
-                role: region
-            textual:
-              containers:
-                aside:
-                  id: aside
-                  kind: Container
-                  order: 3
-                  required: true
-                main:
-                  id: main
-                  kind: Container
-                  order: 2
-                  required: true
-                nav:
-                  id: nav
-                  kind: Container
-                  order: 1
-                  required: true
-              screen_class: ProjectBoardScreen
-              tcss:
-                rules:
-                - declarations:
-                    layout: horizontal
-                  selector: screen
-                - declarations:
-                    width: '32'
-                  selector: region.nav
-                - declarations:
-                    width: '28'
-                  selector: region.aside
-          sync:
-          - do:
-            - set:
-                context: selected_project_id
-                from: $message.project_id
-            - send:
-                data:
-                  project_id: $message.project_id
-                message: project.selection_changed
-                panel: detail
-            - send:
-                data:
-                  project_id: $message.project_id
-                message: project.selection_changed
-                panel: activity
-            id: select_project_updates_panels
-            when:
-              instance: list
-              message: project.selected
-        panel: panel.project.board.ready
-        panels:
-          activity:
-            panel: panel.project.activity.empty
-            source: panel.project.activity
-            state: empty
-          detail:
-            panel: panel.project.detail.none
-            source: panel.project.detail
-            state: none
-          list:
-            panel: panel.project.list.ready
-            source: panel.project.list
-            state: ready
-        ref: project.board
-        state: ready
-        sync:
-          observed:
-          - select_project_updates_panels
+        surfaces:
+        - fsm.project.board.ready
+        - fsm.project.activity.empty
+        - fsm.project.detail.none
+        - fsm.project.list.ready
     basis: A populated workspace shows the ready list while detail awaits explicit selection.
     execute:
       open_entry:

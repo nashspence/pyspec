@@ -22,13 +22,13 @@ def test_agent_prompts_can_be_generated_from_layers_without_spec(tmp_path: Path)
     review = (tmp_path / "spec" / "generated" / "agent_prompts" / "review.md").read_text(encoding="utf-8")
     assert f"User request:\n{USER_PROMPT_PLACEHOLDER}" in pm_design
     assert "Active layers: core,http" in pm_design
-    assert "Do not author UI panels" in pm_design
+    assert "Do not author UI FSMs" in pm_design
     assert "SQL" not in pm_design
     assert "migrations" not in pm_design
     assert "Do not edit `spec/spec.yaml` as the test agent." in test
     assert "report the exact needed spec change" in test
     assert "http.openapi.yaml" in dev
-    assert "web.panels.json" not in dev
+    assert "web.fsms.json" not in dev
     assert f"User request:\n{USER_PROMPT_PLACEHOLDER}" in review
     assert "very strict independent third-party auditor" in review
     assert "PM/design audit:" in review

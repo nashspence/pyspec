@@ -18,7 +18,7 @@ from .io import read_json, read_yaml, write_json, write_yaml
 from .layout import layout_html, layout_html_regions, layout_regions, layout_textual, layout_textual_containers
 from .paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR, SOURCE_SPEC_PATH
 from .project import projection_files
-from .targets import VIEW_RENDER_SURFACES, entry_target_pair, entry_view_surface, entry_workflow_trigger
+from .targets import FSM_RENDER_SURFACES, entry_fsm_surface, entry_target_pair, entry_workflow_trigger
 
 ROOT = Path(__file__).resolve().parent
 
@@ -45,7 +45,7 @@ def validate_against_schema(data: dict[str, Any], schema_name: str) -> None:
         raise ContractError("Schema validation failed:\n" + str(exc)) from exc
 
 
-TARGET_ORDER = ("copy", "asset", "content_case", "audit_profile", "fixture", "fact", "resource", "capability", "panel", "view", "entry", "workflow", "scenario", "render_case")
+TARGET_ORDER = ("copy", "asset", "content_case", "audit_profile", "fixture", "fact", "resource", "capability", "fsm", "entry", "workflow", "scenario")
 
 
 
@@ -54,20 +54,18 @@ ENTITY_SECTIONS: dict[str, str] = {
     "asset": "assets",
     "content_case": "content_cases",
     "audit_profile": "audit_profiles",
-    "render_case": "render_cases",
     "fixture": "fixtures",
     "fact": "facts",
     "resource": "resources",
     "capability": "capabilities",
-    "panel": "panels",
-    "view": "views",
+    "fsm": "fsms",
     "entry": "entries",
     "workflow": "workflows",
     "scenario": "scenarios",
 }
 
 
-REF_KINDS = ["asset", "command", "copy", "endpoint", "panel", "policy", "query", "route", "screen", "workflow"]
+REF_KINDS = ["asset", "command", "copy", "endpoint", "fsm", "surface", "policy", "query", "route", "screen", "workflow"]
 
 
 def empty_compiled_contract(project: str) -> dict[str, Any]:
@@ -77,14 +75,12 @@ def empty_compiled_contract(project: str) -> dict[str, Any]:
         "assets": {},
         "content_cases": {},
         "audit_profiles": {},
-        "render_cases": {},
         "fixtures": {},
         "facts": {},
         "resources": {},
         "capabilities": {},
         "events": {},
-        "panels": {},
-        "views": {},
+        "fsms": {},
         "entries": {},
         "workflows": {},
         "scenarios": {},
@@ -92,7 +88,7 @@ def empty_compiled_contract(project: str) -> dict[str, Any]:
     }
 
 
-AUTHOR_SECTION_ORDER = ("fixtures", "facts", "resources", "capabilities", "panels", "views", "entries", "workflows", "scenarios", "copies", "assets", "content_cases", "audit_profiles", "render_cases")
+AUTHOR_SECTION_ORDER = ("fixtures", "facts", "resources", "capabilities", "fsms", "entries", "workflows", "scenarios", "copies", "assets", "content_cases", "audit_profiles")
 
 
 def _prune_empty_author_sections(author: dict[str, Any]) -> dict[str, Any]:
@@ -108,11 +104,11 @@ def _default_basis(entity: str, entity_id: str) -> str:
     return f"Declared {entity} {entity_id}."[:280]
 
 
-def _empty_panel_messages() -> dict[str, dict[str, Any]]:
+def _empty_fsm_messages() -> dict[str, dict[str, Any]]:
     return {"accepts": {}, "emits": {}}
 
 
-def _normalize_panel_messages(messages: dict[str, Any] | None) -> dict[str, dict[str, Any]]:
+def _normalize_fsm_messages(messages: dict[str, Any] | None) -> dict[str, dict[str, Any]]:
     messages = messages or {}
     normalized: dict[str, dict[str, Any]] = {}
     for direction in ("accepts", "emits"):
@@ -144,9 +140,9 @@ def _prune_redundant_author_transitions(author: dict[str, Any]) -> None:
                 capability.pop("transition", None)
 
 
-def _prune_empty_author_panel_message_directions(author: dict[str, Any]) -> None:
-    for panel in (author.get("panels") or {}).values():
-        messages = panel.get("messages")
+def _prune_empty_author_fsm_message_directions(author: dict[str, Any]) -> None:
+    for fsm in (author.get("fsms") or {}).values():
+        messages = fsm.get("messages")
         if not isinstance(messages, dict):
             continue
         for direction in ("accepts", "emits"):
@@ -156,7 +152,7 @@ def _prune_empty_author_panel_message_directions(author: dict[str, Any]) -> None
             if messages.get(direction) == {}:
                 messages.pop(direction)
         if not messages:
-            panel.pop("messages", None)
+            fsm.pop("messages", None)
 
 
 def author_from_source(source: dict[str, Any], layers: set[str] | None = None) -> dict[str, Any]:
@@ -167,7 +163,7 @@ def author_from_source(source: dict[str, Any], layers: set[str] | None = None) -
         raise ContractError(str(exc)) from exc
     author = _prune_empty_author_sections(copy.deepcopy(source))
     _prune_redundant_author_transitions(author)
-    _prune_empty_author_panel_message_directions(author)
+    _prune_empty_author_fsm_message_directions(author)
     return author
 
 
@@ -207,14 +203,11 @@ def _apply_author_defaults(entity: str, spec: dict[str, Any]) -> None:
     if why and "basis" in spec:
         raise ContractError(f"Authored {entity} {spec['id']} must use either basis or why, not both")
     spec.setdefault("basis", why or _default_basis(entity, spec["id"]))
-    if entity == "panel":
+    if entity == "fsm":
         spec.setdefault("context", {})
         spec.setdefault("data", [])
-        spec["messages"] = _normalize_panel_messages(spec.get("messages"))
+        spec["messages"] = _normalize_fsm_messages(spec.get("messages"))
         spec.setdefault("transitions", [])
-    elif entity == "view":
-        spec.setdefault("data", [])
-        spec.setdefault("states", {})
     elif entity == "capability":
         spec.setdefault("emits", [])
         spec.setdefault("errors", [])
@@ -251,19 +244,6 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
                 item[field] = spec[field]
         return item
 
-    if entity == "render_case":
-        item = {
-            "view": spec["view"],
-            "profile": spec["profile"],
-            "surfaces": spec["surfaces"],
-            "fixtures": spec["fixtures"],
-            "basis": spec["basis"],
-        }
-        for field in ["context", "facts", "state", "panels"]:
-            if field in spec:
-                item[field] = spec[field]
-        return item
-
     if entity == "fixture":
         return {"values": spec["values"], "basis": spec["basis"]}
 
@@ -295,32 +275,21 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             capability["transition"] = spec["transition"]
         return capability
 
-    if entity == "panel":
-        panel_id = spec["id"]
-        return {
+    if entity == "fsm":
+        fsm_id = spec["id"]
+        fsm: dict[str, Any] = {
             "resource": spec["resource"],
             "context": spec["context"],
-            "data": _compile_data(panel_id, spec.get("data", [])),
-            "messages": _normalize_panel_messages(spec.get("messages")),
+            "data": _compile_data(fsm_id, spec.get("data", [])),
+            "messages": _normalize_fsm_messages(spec.get("messages")),
             "initial": spec["initial"],
-            "states": _compile_states(panel_id, spec.get("states", {})),
+            "states": _compile_states(fsm_id, spec.get("states", {})),
             "transitions": spec.get("transitions", []),
             "basis": spec["basis"],
         }
-
-    if entity == "view":
-        view_id = spec["id"]
-        view: dict[str, Any] = {
-            "archetype": spec["archetype"],
-            "resource": spec["resource"],
-            "data": _compile_data(view_id, spec.get("data", [])),
-            "states": _compile_states(view_id, spec.get("states", {})),
-            "basis": spec["basis"],
-        }
-        for field in ["context", "layout", "includes", "sync"]:
-            if field in spec:
-                view[field] = spec[field]
-        return view
+        if "archetype" in spec:
+            fsm["archetype"] = spec["archetype"]
+        return fsm
 
     if entity == "entry":
         entry_id = spec["id"]
@@ -333,7 +302,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             if field in spec:
                 entry[field] = spec[field]
         kind, value = entry_target_pair(spec["target"])
-        if spec["surface"] == "web" and kind == "view":
+        if spec["surface"] == "web" and kind == "fsm":
             entry["route"] = rules.route_ref(value)
         elif spec["surface"] == "api" and kind == "capability":
             entry["endpoint"] = rules.endpoint_ref(value)
@@ -366,11 +335,15 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
 
 
 def _ref_subject(owner_id: str) -> str:
-    return owner_id[len("panel."):] if owner_id.startswith("panel.") else owner_id
+    if owner_id.startswith("fsm."):
+        return owner_id[len("fsm."):]
+    return owner_id
 
 
-def _state_panel_ref(owner_id: str, state_name: str) -> str:
-    return f"{owner_id}.{state_name}" if owner_id.startswith("panel.") else rules.panel_ref(owner_id, state_name)
+def _state_surface_ref(owner_id: str, state_name: str) -> str:
+    if owner_id.startswith("fsm."):
+        return f"{owner_id}.{state_name}"
+    return rules.fsm_ref(owner_id, state_name)
 
 
 def _compile_data(owner_id: str, capability_ids: list[str]) -> list[dict[str, str]]:
@@ -387,7 +360,7 @@ def _compile_states(owner_id: str, states: dict[str, Any]) -> dict[str, Any]:
     compiled = {}
     for state_name, state in states.items():
         item = {
-            "panel": _state_panel_ref(owner_id, state_name),
+            "surface": _state_surface_ref(owner_id, state_name),
             "data": _compile_data(owner_id, state.get("data", [])),
             "copy": [rules.copy_ref(subject, state_name, slot) for slot in state.get("copy_slots", [])],
             "assets": [rules.asset_ref(subject, state_name, slot) for slot in state.get("asset_slots", [])],
@@ -396,8 +369,39 @@ def _compile_states(owner_id: str, states: dict[str, Any]) -> dict[str, Any]:
         }
         if "presentation" in state:
             item["presentation"] = state["presentation"]
+        for field in ["layout", "includes", "sync"]:
+            if field in state:
+                item[field] = state[field]
+        if state.get("audit"):
+            item["audit"] = {
+                case_name: _compile_audit_case(owner_id, state_name, case_name, case)
+                for case_name, case in state["audit"].items()
+            }
         compiled[state_name] = item
     return compiled
+
+
+def _compile_audit_case(fsm_id: str, state_name: str, case_name: str, case: dict[str, Any]) -> dict[str, Any]:
+    item = {
+        "profile": case["profile"],
+        "surfaces": case["surfaces"],
+        "fixtures": case["fixtures"],
+        "basis": case.get("basis", _default_basis("audit_case", f"{fsm_id}.{state_name}.{case_name}")),
+    }
+    for field in ["context", "facts", "instances"]:
+        if field in case:
+            item[field] = case[field]
+    return item
+
+
+def audit_cases(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    cases: dict[str, dict[str, Any]] = {}
+    for fsm_id, fsm in sorted(contract.get("fsms", {}).items()):
+        for state_name, state in sorted(fsm.get("states", {}).items()):
+            for case_name, case in sorted((state.get("audit") or {}).items()):
+                case_id = f"{fsm_id}.{state_name}.{case_name}.audit"
+                cases[case_id] = {"fsm": fsm_id, "state": state_name, "name": case_name, **case}
+    return cases
 
 
 def _derive_capability_transitions(contract: dict[str, Any]) -> None:
@@ -457,15 +461,15 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
         refs["policy"].add(capability["policy"])
     refs["copy"].update(contract.get("copies", {}))
     refs["asset"].update(contract.get("assets", {}))
-    for panel_id in contract["panels"]:
-        refs["panel"].add(panel_id)
-    for owner in list(contract["panels"].values()) + list(contract["views"].values()):
+    for fsm_id in contract["fsms"]:
+        refs["fsm"].add(fsm_id)
+    for owner in contract["fsms"].values():
         for datum in owner.get("data", []):
             refs["query"].add(datum["query"])
         for state in owner.get("states", {}).values():
             for datum in state.get("data", []):
                 refs["query"].add(datum["query"])
-            refs["panel"].add(state["panel"])
+            refs["surface"].add(state["surface"])
             refs["copy"].update(state["copy"])
             refs["asset"].update(state["assets"])
     for entry in contract["entries"].values():
@@ -477,18 +481,19 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
         ]:
             if field in entry:
                 refs[ref_kind].add(entry[field])
-    for view_id, view in contract["views"].items():
-        if _view_has_textual_screen(view):
-            refs["screen"].add(rules.screen_ref(view_id))
+    for fsm_id, fsm in contract["fsms"].items():
+        if _fsm_has_textual_screen(fsm):
+            refs["screen"].add(rules.screen_ref(fsm_id))
     for workflow in contract["workflows"].values():
         refs["workflow"].add(workflow["ref"])
     return {kind: sorted(values) for kind, values in sorted(refs.items()) if values}
 
 
-def _view_has_textual_screen(view: dict[str, Any]) -> bool:
-    if "textual" in (view.get("layout") or {}):
-        return True
-    return any("textual" in (state.get("presentation") or {}) for state in view.get("states", {}).values())
+def _fsm_has_textual_screen(fsm: dict[str, Any]) -> bool:
+    return any(
+        "textual" in (state.get("layout") or {}) or "textual" in (state.get("presentation") or {})
+        for state in fsm.get("states", {}).values()
+    )
 
 
 def _semantic_validate(contract: dict[str, Any], used_facts: set[str]) -> None:
@@ -497,15 +502,14 @@ def _semantic_validate(contract: dict[str, Any], used_facts: set[str]) -> None:
     _validate_audit_profiles(contract)
     _validate_resources(contract)
     _validate_capabilities(contract)
-    _validate_panels(contract)
-    _validate_panel_message_payload_consistency(contract)
-    _validate_views(contract)
+    _validate_fsms(contract)
+    _validate_fsm_message_payload_consistency(contract)
     _validate_entries(contract)
     _validate_workflows(contract)
     _validate_fixtures(contract)
     _validate_facts(contract)
     _validate_scenarios(contract)
-    _validate_render_cases(contract)
+    _validate_audit_cases(contract)
     _validate_facts_are_used(contract, used_facts)
 
 
@@ -513,7 +517,7 @@ def _semantic_validate(contract: dict[str, Any], used_facts: set[str]) -> None:
 def _validate_copy_assets(contract: dict[str, Any]) -> None:
     used_copy: set[str] = set()
     used_assets: set[str] = set()
-    for owner in list(contract.get("panels", {}).values()) + list(contract.get("views", {}).values()):
+    for owner in contract.get("fsms", {}).values():
         for state in owner.get("states", {}).values():
             used_copy.update(state.get("copy", []))
             used_assets.update(state.get("assets", []))
@@ -572,81 +576,66 @@ def _validate_content_cases(contract: dict[str, Any]) -> None:
 
 
 def _validate_audit_profiles(contract: dict[str, Any]) -> None:
-    if (contract.get("views") or contract.get("panels")) and not contract.get("audit_profiles"):
-        raise ContractError("At least one audit_profile is required when views or panels are declared")
+    if contract.get("fsms") and not contract.get("audit_profiles"):
+        raise ContractError("At least one audit_profile is required when fsms are declared")
 
 
-def _validate_render_cases(contract: dict[str, Any]) -> None:
-    cases = contract.get("render_cases", {})
-    if contract.get("views") and not cases:
-        raise ContractError("At least one render_case is required when views are declared")
-    coverage_states: dict[str, set[str]] = {view_id: set() for view_id, view in contract.get("views", {}).items() if view.get("states")}
-    coverage_composed: set[str] = set()
+def _validate_audit_cases(contract: dict[str, Any]) -> None:
+    cases = audit_cases(contract)
+    composable_states = {
+        (fsm_id, state_name)
+        for fsm_id, fsm in contract.get("fsms", {}).items()
+        for state_name, state in fsm.get("states", {}).items()
+        if state.get("layout") or state.get("includes")
+    }
+    covered_composable_states: set[tuple[str, str]] = set()
     for case_id, case in cases.items():
-        view_id = case["view"]
-        if view_id not in contract["views"]:
-            raise ContractError(f"Render case {case_id} references unknown view {view_id}")
+        fsm_id = case["fsm"]
+        state_name = case["state"]
+        fsm = contract["fsms"][fsm_id]
+        state = fsm["states"][state_name]
         if case["profile"] not in contract.get("audit_profiles", {}):
-            raise ContractError(f"Render case {case_id} references unknown audit_profile {case['profile']}")
+            raise ContractError(f"Audit case {case_id} references unknown audit_profile {case['profile']}")
         profile = contract["audit_profiles"][case["profile"]]
         for surface in case.get("surfaces", []):
             if surface not in profile:
-                raise ContractError(f"Render case {case_id} uses {surface} but audit_profile {case['profile']} does not declare {surface}")
+                raise ContractError(f"Audit case {case_id} uses {surface} but audit_profile {case['profile']} does not declare {surface}")
         for fixture_id in case.get("fixtures", []):
             if fixture_id not in contract["fixtures"]:
-                raise ContractError(f"Render case {case_id} references unknown fixture {fixture_id}")
-        fixture_values = _fixture_namespace(contract, case.get("fixtures", []), f"render case {case_id}")
-        _validate_fixture_templates(case, fixture_values, f"render case {case_id}")
+                raise ContractError(f"Audit case {case_id} references unknown fixture {fixture_id}")
+        fixture_values = _fixture_namespace(contract, case.get("fixtures", []), f"audit case {case_id}")
+        _validate_fixture_templates(case, fixture_values, f"audit case {case_id}")
         for fact_use in case.get("facts", []):
             fact_id = fact_use["use"]
-            _validate_fixture_templates(contract["facts"][fact_id], fixture_values, f"render case {case_id} fact {fact_id}")
-        view = contract["views"][view_id]
-        if view.get("states"):
-            state = case.get("state")
-            if not state:
-                raise ContractError(f"Render case {case_id} for atomic view {view_id} must declare state")
-            if state not in view["states"]:
-                raise ContractError(f"Render case {case_id} references unknown view state {view_id}.{state}")
-            selected_state = view["states"][state]
-            if selected_state.get("fields") and not _setup_includes_resource(contract, case.get("fixtures", []), case.get("facts", []), view["resource"]):
-                raise ContractError(f"Render case {case_id} renders fields for {view_id}.{state} but does not include a {view['resource']} fixture or fact")
-            coverage_states.setdefault(view_id, set()).add(state)
-        if view.get("includes"):
-            panels = case.get("panels")
-            if not panels:
-                raise ContractError(f"Render case {case_id} for composed view {view_id} must declare panels")
-            instances = {include["id"]: include for include in view["includes"]}
-            if set(panels) != set(instances):
-                raise ContractError(f"Render case {case_id} panel state vector must exactly cover composed view instances")
-            for instance_id, expected in panels.items():
-                panel_id = instances[instance_id]["panel"]
-                if expected["state"] not in contract["panels"][panel_id]["states"]:
-                    raise ContractError(f"Render case {case_id} references unknown panel state {panel_id}.{expected['state']}")
-                selected_state = contract["panels"][panel_id]["states"][expected["state"]]
-                if selected_state.get("fields") and not _setup_includes_resource(contract, case.get("fixtures", []), case.get("facts", []), contract["panels"][panel_id]["resource"]):
-                    raise ContractError(f"Render case {case_id} renders fields for {panel_id}.{expected['state']} but does not include a {contract['panels'][panel_id]['resource']} fixture or fact")
-            coverage_composed.add(view_id)
-    missing_state_cases = []
-    for view_id, states in coverage_states.items():
-        missing = set(contract["views"][view_id].get("states", {})) - states
-        missing_state_cases.extend(f"{view_id}.{state}" for state in sorted(missing))
-    if missing_state_cases:
-        raise ContractError("Missing render_case coverage for view states: " + ", ".join(missing_state_cases))
-    missing_composed = [view_id for view_id, view in contract.get("views", {}).items() if view.get("includes") and view_id not in coverage_composed]
+            _validate_fixture_templates(contract["facts"][fact_id], fixture_values, f"audit case {case_id} fact {fact_id}")
+        if state.get("fields") and not _setup_includes_resource(contract, case.get("fixtures", []), case.get("facts", []), fsm["resource"]):
+            raise ContractError(f"Audit case {case_id} renders fields for {fsm_id}.{state_name} but does not include a {fsm['resource']} fixture or fact")
+        if state.get("includes"):
+            instances = {include["id"]: include for include in state["includes"]}
+            expected_instances = case.get("instances")
+            if not expected_instances:
+                raise ContractError(f"Audit case {case_id} for composed FSM state {fsm_id}.{state_name} must declare instances")
+            if set(expected_instances) != set(instances):
+                raise ContractError(f"Audit case {case_id} instance state vector must exactly cover FSM state instances")
+            for instance_id, expected in expected_instances.items():
+                child_fsm_id = instances[instance_id]["fsm"]
+                if expected["state"] not in contract["fsms"][child_fsm_id]["states"]:
+                    raise ContractError(f"Audit case {case_id} references unknown FSM state {child_fsm_id}.{expected['state']}")
+                selected_state = contract["fsms"][child_fsm_id]["states"][expected["state"]]
+                if selected_state.get("fields") and not _setup_includes_resource(contract, case.get("fixtures", []), case.get("facts", []), contract["fsms"][child_fsm_id]["resource"]):
+                    raise ContractError(f"Audit case {case_id} renders fields for {child_fsm_id}.{expected['state']} but does not include a {contract['fsms'][child_fsm_id]['resource']} fixture or fact")
+            covered_composable_states.add((fsm_id, state_name))
+    missing_composed = sorted(f"{fsm_id}.{state_name}" for fsm_id, state_name in composable_states - covered_composable_states)
     if missing_composed:
-        raise ContractError("Missing render_case coverage for composed views: " + ", ".join(sorted(missing_composed)))
-    _validate_panel_state_fixture_coverage(contract)
+        raise ContractError("Missing audit coverage for composed FSM states: " + ", ".join(missing_composed))
+    _validate_fsm_state_fixture_coverage(contract)
 
 
-def _validate_panel_state_fixture_coverage(contract: dict[str, Any]) -> None:
-    for view_id, view in contract.get("views", {}).items():
-        for state_name, state in view.get("states", {}).items():
-            if state.get("fields") and not _setup_includes_resource(contract, list(contract.get("fixtures", {})), _all_fact_uses(contract), view["resource"]):
-                raise ContractError(f"Rendered fields for {view_id}.{state_name} require at least one {view['resource']} fixture or fact")
-    for panel_id, panel in contract.get("panels", {}).items():
-        for state_name, state in panel.get("states", {}).items():
-            if state.get("fields") and not _setup_includes_resource(contract, list(contract.get("fixtures", {})), _all_fact_uses(contract), panel["resource"]):
-                raise ContractError(f"Rendered fields for {panel_id}.{state_name} require at least one {panel['resource']} fixture or fact")
+def _validate_fsm_state_fixture_coverage(contract: dict[str, Any]) -> None:
+    for fsm_id, fsm in contract.get("fsms", {}).items():
+        for state_name, state in fsm.get("states", {}).items():
+            if state.get("fields") and not _setup_includes_resource(contract, list(contract.get("fixtures", {})), _all_fact_uses(contract), fsm["resource"]):
+                raise ContractError(f"Rendered fields for {fsm_id}.{state_name} require at least one {fsm['resource']} fixture or fact")
 
 
 def _setup_includes_resource(contract: dict[str, Any], fixture_ids: list[str], fact_uses: list[dict[str, str]], resource_id: str) -> bool:
@@ -737,34 +726,36 @@ def _validate_capabilities(contract: dict[str, Any]) -> None:
                 raise ContractError(f"Event {event_id} emitted by unknown capability {cap_id}")
 
 
-def _validate_panels(contract: dict[str, Any]) -> None:
-    for panel_id, panel in contract["panels"].items():
-        if not panel_id.startswith("panel."):
-            raise ContractError(f"Panel id must start with panel.: {panel_id}")
-        if panel["resource"] not in contract["resources"]:
-            raise ContractError(f"Panel {panel_id} references unknown resource {panel['resource']}")
+def _validate_fsms(contract: dict[str, Any]) -> None:
+    for fsm_id, fsm in contract["fsms"].items():
+        if not fsm_id.startswith("fsm."):
+            raise ContractError(f"FSM id must start with fsm.: {fsm_id}")
+        if fsm["resource"] not in contract["resources"]:
+            raise ContractError(f"FSM {fsm_id} references unknown resource {fsm['resource']}")
         _validate_data_bindings(
-            contract, f"Panel {panel_id}", panel.get("data", []), panel.get("context", {}), resource=panel["resource"]
+            contract, f"FSM {fsm_id}", fsm.get("data", []), fsm.get("context", {}), resource=fsm["resource"]
         )
-        if panel["initial"] not in panel["states"]:
-            raise ContractError(f"Panel {panel_id} initial state is not declared: {panel['initial']}")
-        resource_fields = set(contract["resources"][panel["resource"]]["fields"])
-        for state_name, state in panel["states"].items():
-            _validate_panelish_state(
+        if fsm["initial"] not in fsm["states"]:
+            raise ContractError(f"FSM {fsm_id} initial state is not declared: {fsm['initial']}")
+        resource_fields = set(contract["resources"][fsm["resource"]]["fields"])
+        for state_name, state in fsm["states"].items():
+            _validate_fsm_state(
                 contract,
-                f"Panel {panel_id}",
+                f"FSM {fsm_id}",
                 state_name,
                 state,
                 field_names=resource_fields,
-                data_context=panel.get("context", {}),
-                resource=panel["resource"],
+                data_context=fsm.get("context", {}),
+                resource=fsm["resource"],
             )
-        _validate_field_state_data_sources(f"Panel {panel_id}", panel["states"], panel.get("data", []), panel.get("transitions", []))
-        _validate_panel_transitions(contract, panel_id, panel)
-        _validate_panel_messages(panel_id, panel)
+            if state.get("includes") or state.get("layout") or state.get("sync"):
+                _validate_state_composition(contract, fsm_id, fsm, state_name, state)
+        _validate_field_state_data_sources(f"FSM {fsm_id}", fsm["states"], fsm.get("data", []), fsm.get("transitions", []))
+        _validate_fsm_transitions(contract, fsm_id, fsm)
+        _validate_fsm_messages(fsm_id, fsm)
 
 
-def _validate_panelish_state(
+def _validate_fsm_state(
     contract: dict[str, Any],
     owner_label: str,
     state_name: str,
@@ -838,162 +829,141 @@ def _state_has_data_source(
     return False
 
 
-def _validate_panel_transitions(contract: dict[str, Any], panel_id: str, panel: dict[str, Any]) -> None:
-    states = set(panel["states"])
-    for transition in panel.get("transitions", []):
+def _validate_fsm_transitions(contract: dict[str, Any], fsm_id: str, fsm: dict[str, Any]) -> None:
+    states = set(fsm["states"])
+    for transition in fsm.get("transitions", []):
         if transition["from"] not in states or transition["to"] not in states:
-            raise ContractError(f"Panel {panel_id} transition uses unknown state: {transition}")
-        if _is_data_event(transition["on"]) and not _transition_data_bindings(panel, transition):
+            raise ContractError(f"FSM {fsm_id} transition uses unknown state: {transition}")
+        if _is_data_event(transition["on"]) and not _transition_data_bindings(fsm, transition):
             raise ContractError(
-                f"Panel {panel_id} transition uses data message without panel or source-state data: {transition['on']}"
+                f"FSM {fsm_id} transition uses data message without FSM or source-state data: {transition['on']}"
             )
-        message_payload = _panel_message_payload(panel, "accepts", transition["on"], f"Panel {panel_id} transition message")
+        message_payload = _fsm_message_payload(fsm, "accepts", transition["on"], f"FSM {fsm_id} transition message")
         for effect in transition.get("effects", []):
-            kind, body = _one(effect, f"panel {panel_id} transition effect")
+            kind, body = _one(effect, f"FSM {fsm_id} transition effect")
             if kind == "set":
-                if body["context"] not in panel.get("context", {}):
-                    raise ContractError(f"Panel {panel_id} transition sets undeclared context: {body['context']}")
+                if body["context"] not in fsm.get("context", {}):
+                    raise ContractError(f"FSM {fsm_id} transition sets undeclared context: {body['context']}")
             elif kind == "emit":
-                emitted_payload = _panel_message_payload(panel, "emits", body["message"], f"Panel {panel_id} transition emit")
+                emitted_payload = _fsm_message_payload(fsm, "emits", body["message"], f"FSM {fsm_id} transition emit")
                 _validate_data_map(
                     contract=contract,
-                    label=f"Panel {panel_id} transition emit {body['message']} data",
+                    label=f"FSM {fsm_id} transition emit {body['message']} data",
                     data=body["data"],
                     payload=emitted_payload,
-                    scopes={"message": message_payload, "context": panel.get("context", {})},
+                    scopes={"message": message_payload, "context": fsm.get("context", {})},
                 )
             else:  # pragma: no cover - schema prevents this.
-                raise ContractError(f"Panel {panel_id} unsupported transition effect: {kind}")
-    for transition in panel.get("transitions", []):
-        if not _transition_has_audit_content(panel, transition):
+                raise ContractError(f"FSM {fsm_id} unsupported transition effect: {kind}")
+    for transition in fsm.get("transitions", []):
+        if not _transition_has_audit_content(fsm, transition):
             raise ContractError(
-                f"Panel {panel_id} transition {transition['on']} from {transition['from']} "
+                f"FSM {fsm_id} transition {transition['on']} from {transition['from']} "
                 f"to {transition['to']} must declare basis, data, or effects"
             )
 
 
-def _validate_panel_messages(panel_id: str, panel: dict[str, Any]) -> None:
-    messages = panel.get("messages", _empty_panel_messages())
+def _validate_fsm_messages(fsm_id: str, fsm: dict[str, Any]) -> None:
+    messages = fsm.get("messages", _empty_fsm_messages())
     declared_accepts = set(messages.get("accepts", {}))
     declared_emits = set(messages.get("emits", {}))
     ambiguous = sorted(declared_accepts & declared_emits)
     if ambiguous:
-        raise ContractError(f"Panel {panel_id} declares message as both accepted and emitted: {ambiguous}")
-    accepted = _panel_accepts(panel)
-    emitted = _panel_emits(panel)
+        raise ContractError(f"FSM {fsm_id} declares message as both accepted and emitted: {ambiguous}")
+    accepted = _fsm_accepts(fsm)
+    emitted = _fsm_emits(fsm)
     orphan_accepts = sorted(declared_accepts - accepted)
     if orphan_accepts:
-        raise ContractError(f"Panel {panel_id} declares accepted message without transition: {orphan_accepts}")
+        raise ContractError(f"FSM {fsm_id} declares accepted message without transition: {orphan_accepts}")
     orphan_emits = sorted(declared_emits - emitted)
     if orphan_emits:
-        raise ContractError(f"Panel {panel_id} declares emitted message without emit effect: {orphan_emits}")
+        raise ContractError(f"FSM {fsm_id} declares emitted message without emit effect: {orphan_emits}")
     undeclared_accepts = sorted(accepted - declared_accepts)
     if undeclared_accepts:
-        raise ContractError(f"Panel {panel_id} accepts message without declaring it: {undeclared_accepts}")
+        raise ContractError(f"FSM {fsm_id} accepts message without declaring it: {undeclared_accepts}")
     undeclared_emits = sorted(emitted - declared_emits)
     if undeclared_emits:
-        raise ContractError(f"Panel {panel_id} emits message without declaring it: {undeclared_emits}")
+        raise ContractError(f"FSM {fsm_id} emits message without declaring it: {undeclared_emits}")
 
 
-def _validate_panel_message_payload_consistency(contract: dict[str, Any]) -> None:
+def _validate_fsm_message_payload_consistency(contract: dict[str, Any]) -> None:
     declared: dict[str, tuple[str, str, dict[str, str]]] = {}
     domain_events = set(contract.get("events", {}))
-    for panel_id, panel in contract.get("panels", {}).items():
-        messages = panel.get("messages", _empty_panel_messages())
+    for fsm_id, fsm in contract.get("fsms", {}).items():
+        messages = fsm.get("messages", _empty_fsm_messages())
         for direction in ("accepts", "emits"):
             for message_id, message in messages.get(direction, {}).items():
                 if message_id in domain_events:
-                    raise ContractError(f"Panel message {message_id} conflicts with domain event {message_id}")
+                    raise ContractError(f"FSM message {message_id} conflicts with domain event {message_id}")
                 payload = message["payload"]
                 existing = declared.get(message_id)
                 if existing and existing[2] != payload:
-                    first_panel, first_direction, first_payload = existing
+                    first_fsm, first_direction, first_payload = existing
                     raise ContractError(
-                        f"Panel message {message_id} payload differs between {first_panel}.{first_direction} "
-                        f"and {panel_id}.{direction}: {first_payload} vs {payload}"
+                        f"FSM message {message_id} payload differs between {first_fsm}.{first_direction} "
+                        f"and {fsm_id}.{direction}: {first_payload} vs {payload}"
                     )
-                declared[message_id] = (panel_id, direction, payload)
+                declared[message_id] = (fsm_id, direction, payload)
 
 
-def _validate_views(contract: dict[str, Any]) -> None:
-    for vid, view in contract["views"].items():
-        if view["resource"] not in contract["resources"]:
-            raise ContractError(f"View {vid} references unknown resource {view['resource']}")
-        if not view.get("states") and not view.get("includes"):
-            raise ContractError(f"View {vid} must declare atomic states or composed panel includes")
-        for datum in view.get("data", []):
-            _validate_data_bindings(contract, f"View {vid}", [datum], view.get("context", {}), resource=view["resource"])
-        resource_fields = set(contract["resources"][view["resource"]]["fields"])
-        for state_name, state in view.get("states", {}).items():
-            _validate_panelish_state(
-                contract,
-                f"View {vid}",
-                state_name,
-                state,
-                field_names=resource_fields,
-                data_context=view.get("context", {}),
-                resource=view["resource"],
-            )
-        _validate_field_state_data_sources(f"View {vid}", view.get("states", {}), view.get("data", []), [])
-        if view.get("includes") or view.get("layout") or view.get("sync"):
-            _validate_view_composition(contract, vid, view)
-
-
-def _validate_view_composition(contract: dict[str, Any], view_id: str, view: dict[str, Any]) -> None:
-    if not view.get("layout"):
-        raise ContractError(f"Composed view {view_id} must declare layout")
-    if not view.get("includes"):
-        raise ContractError(f"Composed view {view_id} must include at least one panel")
-    regions = set(layout_regions(view["layout"]))
+def _validate_state_composition(contract: dict[str, Any], fsm_id: str, fsm: dict[str, Any], state_name: str, state: dict[str, Any]) -> None:
+    label = f"{fsm_id}.{state_name}"
+    parent_fsm_id = fsm_id
+    parent_fsm = fsm
+    if not state.get("layout"):
+        raise ContractError(f"Composed FSM state {label} must declare layout")
+    if not state.get("includes"):
+        raise ContractError(f"Composed FSM state {label} must include at least one FSM")
+    regions = set(layout_regions(state["layout"]))
     if not regions:
-        raise ContractError(f"Composed view {view_id} must declare layout regions")
+        raise ContractError(f"Composed FSM state {label} must declare layout regions")
     instances: dict[str, dict[str, Any]] = {}
-    for include in view["includes"]:
+    for include in state["includes"]:
         if include["id"] in instances:
-            raise ContractError(f"Composed view {view_id} has duplicate panel instance: {include['id']}")
+            raise ContractError(f"Composed FSM state {label} has duplicate FSM instance: {include['id']}")
         instances[include["id"]] = include
         if include["region"] not in regions:
-            raise ContractError(f"Composed view {view_id} includes panel in undeclared region: {include['region']}")
-        panel_id = include["panel"]
-        if panel_id not in contract["panels"]:
-            raise ContractError(f"Composed view {view_id} includes unknown panel: {panel_id}")
-        panel = contract["panels"][panel_id]
-        if include["initial"] not in panel["states"]:
-            raise ContractError(f"Composed view {view_id}.{include['id']} initial state is unknown: {include['initial']}")
+            raise ContractError(f"Composed FSM state {label} includes FSM in undeclared region: {include['region']}")
+        child_fsm_id = include["fsm"]
+        if child_fsm_id not in contract["fsms"]:
+            raise ContractError(f"Composed FSM state {label} includes unknown FSM: {child_fsm_id}")
+        child_fsm = contract["fsms"][child_fsm_id]
+        if include["initial"] not in child_fsm["states"]:
+            raise ContractError(f"Composed FSM state {label}.{include['id']} initial state is unknown: {include['initial']}")
         selected = include.get("selected")
-        if selected and selected["state"] not in panel["states"]:
-            raise ContractError(f"Composed view {view_id}.{include['id']} selected state is unknown: {selected['state']}")
+        if selected and selected["state"] not in child_fsm["states"]:
+            raise ContractError(f"Composed FSM state {label}.{include['id']} selected state is unknown: {selected['state']}")
         if selected:
-            _validate_condition_context(view_id, view.get("context", {}), selected["when"])
+            _validate_condition_context(label, parent_fsm.get("context", {}), selected["when"])
         include_context = include.get("context", {})
-        expected_context = set(panel.get("context", {}))
+        expected_context = set(child_fsm.get("context", {}))
         if set(include_context) != expected_context:
             raise ContractError(
-                f"Composed view {view_id}.{include['id']} context keys {sorted(include_context)} "
-                f"must exactly match panel context {sorted(expected_context)}"
+                f"Composed FSM state {label}.{include['id']} context keys {sorted(include_context)} "
+                f"must exactly match FSM context {sorted(expected_context)}"
             )
-        _validate_view_context_refs(view_id, view.get("context", {}), include_context)
-    used_regions = {include["region"] for include in view["includes"]}
-    missing_required = [region for region, spec in layout_regions(view["layout"]).items() if spec.get("required") and region not in used_regions]
+        _validate_fsm_context_refs(label, parent_fsm.get("context", {}), include_context)
+    used_regions = {include["region"] for include in state["includes"]}
+    missing_required = [region for region, spec in layout_regions(state["layout"]).items() if spec.get("required") and region not in used_regions]
     if missing_required:
-        raise ContractError(f"Composed view {view_id} missing required layout regions: {missing_required}")
-    _validate_layout_contract(view_id, view["layout"], regions, set(instances))
-    _validate_sync_rules(contract, view_id, view, instances)
+        raise ContractError(f"Composed FSM state {label} missing required layout regions: {missing_required}")
+    _validate_layout_contract(label, state["layout"], regions, set(instances))
+    _validate_sync_rules(contract, parent_fsm_id, state_name, parent_fsm, state, instances)
 
 
-def _validate_layout_contract(view_id: str, layout: dict[str, Any], regions: set[str], instances: set[str]) -> None:
+def _validate_layout_contract(fsm_id: str, layout: dict[str, Any], regions: set[str], instances: set[str]) -> None:
     html_regions = set(layout_html_regions(layout))
     textual_regions = set(layout_textual_containers(layout))
     if html_regions and textual_regions and html_regions != textual_regions:
-        raise ContractError(f"Composed view {view_id} layout regions differ between html and textual")
+        raise ContractError(f"Composed FSM {fsm_id} layout regions differ between html and textual")
     for rule in ((layout_html(layout).get("css") or {}).get("rules", [])):
-        _validate_composition_selector(view_id, rule["selector"], regions, instances, "CSS")
+        _validate_composition_selector(fsm_id, rule["selector"], regions, instances, "CSS")
     textual = layout_textual(layout)
     for rule in ((textual.get("tcss") or {}).get("rules", [])):
-        _validate_composition_selector(view_id, rule["selector"], regions, instances, "TCSS")
+        _validate_composition_selector(fsm_id, rule["selector"], regions, instances, "TCSS")
 
 
-def _validate_condition_context(view_id: str, context: dict[str, str], condition: Any) -> None:
+def _validate_condition_context(fsm_id: str, context: dict[str, str], condition: Any) -> None:
     if isinstance(condition, dict):
         if "context_present" in condition:
             keys = [condition["context_present"]]
@@ -1002,38 +972,38 @@ def _validate_condition_context(view_id: str, context: dict[str, str], condition
         else:
             keys = []
     else:
-        keys = re.findall(r"\$view\.([a-z][a-z0-9_]*)", str(condition))
+        keys = re.findall(r"\$fsm\.([a-z][a-z0-9_]*)", str(condition))
     for key in keys:
         if key not in context:
-            raise ContractError(f"Composed view {view_id} condition references undeclared context: {key}")
+            raise ContractError(f"Composed FSM {fsm_id} condition references undeclared context: {key}")
 
 
-def _validate_view_context_refs(view_id: str, context: dict[str, str], mapping: dict[str, Any]) -> None:
+def _validate_fsm_context_refs(fsm_id: str, context: dict[str, str], mapping: dict[str, Any]) -> None:
     for value in mapping.values():
-        if isinstance(value, str) and value.startswith("$view."):
-            key = value[len("$view."):]
+        if isinstance(value, str) and value.startswith("$fsm."):
+            key = value[len("$fsm."):]
             if key not in context:
-                raise ContractError(f"Composed view {view_id} references undeclared view context: {value}")
+                raise ContractError(f"Composed FSM {fsm_id} references undeclared FSM context: {value}")
 
 
-def _panel_emits(panel: dict[str, Any]) -> set[str]:
+def _fsm_emits(fsm: dict[str, Any]) -> set[str]:
     emits: set[str] = set()
-    for transition in panel.get("transitions", []):
+    for transition in fsm.get("transitions", []):
         for effect in transition.get("effects", []):
-            kind, body = _one(effect, "panel transition effect")
+            kind, body = _one(effect, "fsm transition effect")
             if kind == "emit":
                 emits.add(body["message"])
     return emits
 
 
-def _panel_accepts(panel: dict[str, Any]) -> set[str]:
-    return {transition["on"] for transition in panel.get("transitions", [])}
+def _fsm_accepts(fsm: dict[str, Any]) -> set[str]:
+    return {transition["on"] for transition in fsm.get("transitions", [])}
 
 
-def _panel_message_payload(panel: dict[str, Any], direction: str, message_id: str, label: str) -> dict[str, str]:
-    message = panel.get("messages", {}).get(direction, {}).get(message_id)
+def _fsm_message_payload(fsm: dict[str, Any], direction: str, message_id: str, label: str) -> dict[str, str]:
+    message = fsm.get("messages", {}).get(direction, {}).get(message_id)
     if not message:
-        raise ContractError(f"{label} references undeclared panel message: {message_id}")
+        raise ContractError(f"{label} references undeclared FSM message: {message_id}")
     return message.get("payload", {})
 
 
@@ -1073,7 +1043,7 @@ def _validate_expression_type(
 
 def _expression_type(contract: dict[str, Any] | None, expression: Any, scopes: dict[str, dict[str, str]], label: str) -> str | None:
     if isinstance(expression, str) and expression.startswith("$"):
-        match = re.fullmatch(r"\$(message|view|context)\.([a-z][A-Za-z0-9_.]*)", expression)
+        match = re.fullmatch(r"\$(message|fsm|context)\.([a-z][A-Za-z0-9_.]*)", expression)
         if not match:
             raise ContractError(f"{label} references unsupported expression: {expression}")
         scope, path = match.groups()
@@ -1125,69 +1095,77 @@ def _is_data_event(message: str) -> bool:
     return message.startswith("data.")
 
 
-def _transition_data_bindings(panel: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
-    source_state = panel.get("states", {}).get(transition["from"], {})
-    return source_state.get("data", []) or panel.get("data", [])
+def _transition_data_bindings(fsm: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
+    source_state = fsm.get("states", {}).get(transition["from"], {})
+    return source_state.get("data", []) or fsm.get("data", [])
 
 
-def _transition_target_data_bindings(panel: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
-    target_state = panel.get("states", {}).get(transition["to"], {})
+def _transition_target_data_bindings(fsm: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
+    target_state = fsm.get("states", {}).get(transition["to"], {})
     return target_state.get("data", [])
 
 
-def _transition_has_audit_content(panel: dict[str, Any], transition: dict[str, Any]) -> bool:
+def _transition_has_audit_content(fsm: dict[str, Any], transition: dict[str, Any]) -> bool:
     if transition.get("basis") or transition.get("effects"):
         return True
     if _is_data_event(transition["on"]):
-        return bool(_transition_data_bindings(panel, transition))
-    return bool(_transition_target_data_bindings(panel, transition))
+        return bool(_transition_data_bindings(fsm, transition))
+    return bool(_transition_target_data_bindings(fsm, transition))
 
 
-def _validate_sync_rules(contract: dict[str, Any], view_id: str, view: dict[str, Any], instances: dict[str, dict[str, Any]]) -> None:
+def _validate_sync_rules(
+    contract: dict[str, Any],
+    fsm_id: str,
+    state_name: str,
+    fsm: dict[str, Any],
+    state: dict[str, Any],
+    instances: dict[str, dict[str, Any]],
+) -> None:
+    label = f"{fsm_id}.{state_name}"
     seen: set[str] = set()
-    context = view.get("context", {})
-    for rule in view.get("sync", []):
+    context = fsm.get("context", {})
+    for rule in state.get("sync", []):
         if rule["id"] in seen:
-            raise ContractError(f"Composed view {view_id} has duplicate sync rule: {rule['id']}")
+            raise ContractError(f"Composed FSM state {label} has duplicate sync rule: {rule['id']}")
         seen.add(rule["id"])
         source_id = rule["when"]["instance"]
         if source_id not in instances:
-            raise ContractError(f"Composed view {view_id} sync source instance is unknown: {source_id}")
-        source_panel = contract["panels"][instances[source_id]["panel"]]
+            raise ContractError(f"Composed FSM state {label} sync source instance is unknown: {source_id}")
+        source_fsm = contract["fsms"][instances[source_id]["fsm"]]
         message_id = rule["when"]["message"]
-        if message_id not in _panel_emits(source_panel):
-            raise ContractError(f"Composed view {view_id} sync listens for message the source does not emit: {message_id}")
-        source_payload = _panel_message_payload(source_panel, "emits", message_id, f"Composed view {view_id} sync trigger")
+        if message_id not in _fsm_emits(source_fsm):
+            raise ContractError(f"Composed FSM state {label} sync listens for message the source does not emit: {message_id}")
+        source_payload = _fsm_message_payload(source_fsm, "emits", message_id, f"Composed FSM state {label} sync trigger")
         for effect in rule["do"]:
-            kind, body = _one(effect, f"composed view {view_id} sync effect")
+            kind, body = _one(effect, f"composed FSM state {label} sync effect")
             if kind == "set":
                 if body["context"] not in context:
-                    raise ContractError(f"Composed view {view_id} sync sets undeclared context: {body['context']}")
+                    raise ContractError(f"Composed FSM state {label} sync sets undeclared context: {body['context']}")
                 if "from" in body:
                     _validate_expression_type(
                         contract,
-                        f"Composed view {view_id} sync set {body['context']}",
+                        f"Composed FSM state {label} sync set {body['context']}",
                         body["from"],
                         context[body["context"]],
-                        {"message": source_payload, "view": context},
+                        {"message": source_payload, "fsm": context},
                     )
             elif kind == "send":
-                target_id = body["panel"]
+                target_id = body["instance"]
                 if target_id not in instances:
-                    raise ContractError(f"Composed view {view_id} sync sends to unknown instance: {target_id}")
-                target_panel = contract["panels"][instances[target_id]["panel"]]
-                if body["message"] not in _panel_accepts(target_panel):
-                    raise ContractError(f"Composed view {view_id} sync sends message the target does not accept: {body['message']}")
-                target_payload = _panel_message_payload(target_panel, "accepts", body["message"], f"Composed view {view_id} sync send")
+                    raise ContractError(f"Composed FSM state {label} sync sends to unknown instance: {target_id}")
+                target_fsm = contract["fsms"][instances[target_id]["fsm"]]
+                if body["message"] not in _fsm_accepts(target_fsm):
+                    raise ContractError(f"Composed FSM state {label} sync sends message the target does not accept: {body['message']}")
+                target_payload = _fsm_message_payload(target_fsm, "accepts", body["message"], f"Composed FSM state {label} sync send")
                 _validate_data_map(
                     contract=contract,
-                    label=f"Composed view {view_id} sync send {body['message']} to {target_id} data",
+                    label=f"Composed FSM state {label} sync send {body['message']} to {target_id} data",
                     data=body["data"],
                     payload=target_payload,
-                    scopes={"message": source_payload, "view": context},
+                    scopes={"message": source_payload, "fsm": context},
                 )
             else:  # pragma: no cover - schema prevents this.
-                raise ContractError(f"Composed view {view_id} unsupported sync effect: {kind}")
+                raise ContractError(f"Composed FSM state {label} unsupported sync effect: {kind}")
 
 
 def _validate_presentation(contract: dict[str, Any], owner_label: str, field_names: set[str], state_name: str, state: dict[str, Any]) -> None:
@@ -1272,20 +1250,20 @@ def _validate_style_selector(
     raise ContractError(f"{owner_label}.{state_name} {label} selector is not supported: {selector}")
 
 
-def _validate_composition_selector(view_id: str, selector: str, regions: set[str], instances: set[str], label: str) -> None:
+def _validate_composition_selector(fsm_id: str, selector: str, regions: set[str], instances: set[str], label: str) -> None:
     if selector in {"root", "screen"}:
         return
     if selector.startswith("region."):
         region = selector[len("region."):]
         if region not in regions:
-            raise ContractError(f"Composed view {view_id} {label} selector references undeclared layout region: {selector}")
+            raise ContractError(f"Composed FSM {fsm_id} {label} selector references undeclared layout region: {selector}")
         return
     if selector.startswith("instance."):
         instance = selector[len("instance."):]
         if instance not in instances:
-            raise ContractError(f"Composed view {view_id} {label} selector references undeclared panel instance: {selector}")
+            raise ContractError(f"Composed FSM {fsm_id} {label} selector references undeclared FSM instance: {selector}")
         return
-    raise ContractError(f"Composed view {view_id} {label} selector is not supported: {selector}")
+    raise ContractError(f"Composed FSM {fsm_id} {label} selector is not supported: {selector}")
 
 
 def _validate_entries(contract: dict[str, Any]) -> None:
@@ -1294,12 +1272,12 @@ def _validate_entries(contract: dict[str, Any]) -> None:
         _validate_entry_surface_fields(eid, entry)
         kind, value = entry_target_pair(entry["target"])
         if surface == "web":
-            if kind != "view" or value not in contract["views"]:
-                raise ContractError(f"Web entry {eid} must target a known view")
-            _validate_view_target_surface(contract, eid, entry, value, allowed_surfaces={"html"})
+            if kind != "fsm" or value not in contract["fsms"]:
+                raise ContractError(f"Web entry {eid} must target a known FSM")
+            _validate_fsm_target_surface(contract, eid, entry, value, allowed_surfaces={"html"})
             _require(entry, eid, "path")
             _validate_path_params(entry, eid)
-            _validate_view_entry_inputs(contract, eid, entry, value, input_field="params")
+            _validate_fsm_entry_inputs(contract, eid, entry, value, input_field="params")
         elif surface == "api":
             if kind != "capability" or value not in contract["capabilities"]:
                 raise ContractError(f"API entry {eid} must target a known capability")
@@ -1322,11 +1300,11 @@ def _validate_entries(contract: dict[str, Any]) -> None:
                     raise ContractError(f"CLI entry {eid} must target a known capability")
                 capability = contract["capabilities"][value]
                 _validate_exact_entry_inputs(eid, "args", entry.get("args", {}), capability["input"])
-            elif kind == "view":
-                if value not in contract["views"]:
-                    raise ContractError(f"CLI entry {eid} must target a known view")
-                _validate_view_target_surface(contract, eid, entry, value, allowed_surfaces=set(VIEW_RENDER_SURFACES))
-                _validate_view_entry_inputs(contract, eid, entry, value, input_field="args")
+            elif kind == "fsm":
+                if value not in contract["fsms"]:
+                    raise ContractError(f"CLI entry {eid} must target a known FSM")
+                _validate_fsm_target_surface(contract, eid, entry, value, allowed_surfaces=set(FSM_RENDER_SURFACES))
+                _validate_fsm_entry_inputs(contract, eid, entry, value, input_field="args")
             elif kind == "workflow":
                 if value not in contract["workflows"]:
                     raise ContractError(f"CLI entry {eid} must target a known workflow")
@@ -1363,27 +1341,28 @@ def _validate_entry_surface_fields(entry_id: str, entry: dict[str, Any]) -> None
         raise ContractError(f"Entry {entry_id} surface {entry['surface']} has unsupported fields: {extra}")
 
 
-def _validate_view_target_surface(
+def _validate_fsm_target_surface(
     contract: dict[str, Any],
     entry_id: str,
     entry: dict[str, Any],
-    view_id: str,
+    fsm_id: str,
     *,
     allowed_surfaces: set[str],
 ) -> None:
-    surface = entry_view_surface(entry)
+    surface = entry_fsm_surface(entry)
     if surface is None:
-        raise ContractError(f"Entry {entry_id} view target must declare surface")
+        raise ContractError(f"Entry {entry_id} FSM target must declare surface")
     if surface not in allowed_surfaces:
-        raise ContractError(f"Entry {entry_id} cannot target view surface {surface!r}")
-    if not _view_supports_render_surface(contract["views"][view_id], surface):
-        raise ContractError(f"Entry {entry_id} targets view {view_id} surface {surface} but that view does not declare it")
+        raise ContractError(f"Entry {entry_id} cannot target FSM surface {surface!r}")
+    if not _fsm_supports_render_surface(contract["fsms"][fsm_id], surface):
+        raise ContractError(f"Entry {entry_id} targets FSM {fsm_id} surface {surface} but that FSM does not declare it")
 
 
-def _view_supports_render_surface(view: dict[str, Any], surface: str) -> bool:
-    if surface in (view.get("layout") or {}):
-        return True
-    return any(surface in (state.get("presentation") or {}) for state in view.get("states", {}).values())
+def _fsm_supports_render_surface(fsm: dict[str, Any], surface: str) -> bool:
+    return any(
+        surface in (state.get("layout") or {}) or surface in (state.get("presentation") or {})
+        for state in fsm.get("states", {}).values()
+    )
 
 
 def _validate_workflow_entry_trigger(contract: dict[str, Any], entry_id: str, entry: dict[str, Any], workflow_id: str) -> None:
@@ -1395,38 +1374,38 @@ def _validate_workflow_entry_trigger(contract: dict[str, Any], entry_id: str, en
         raise ContractError(f"Entry {entry_id} workflow trigger must match workflow {workflow_id} trigger")
 
 
-def _validate_view_entry_inputs(
+def _validate_fsm_entry_inputs(
     contract: dict[str, Any],
     entry_id: str,
     entry: dict[str, Any],
-    view_id: str,
+    fsm_id: str,
     *,
     input_field: str,
 ) -> None:
-    view = contract["views"][view_id]
+    fsm = contract["fsms"][fsm_id]
     declared = entry.get(input_field, {})
-    view_context = view.get("context", {})
-    extra = sorted(set(declared) - set(view_context))
+    fsm_context = fsm.get("context", {})
+    extra = sorted(set(declared) - set(fsm_context))
     if extra:
-        raise ContractError(f"Entry {entry_id} {input_field} must be declared view context fields: {extra}")
-    _validate_entry_input_types(entry_id, input_field, declared, view_context)
-    required = _required_entry_view_context(contract, view_id)
+        raise ContractError(f"Entry {entry_id} {input_field} must be declared FSM context fields: {extra}")
+    _validate_entry_input_types(entry_id, input_field, declared, fsm_context)
+    required = _required_entry_fsm_context(contract, fsm_id)
     missing = sorted(set(required) - set(declared))
     if missing:
-        raise ContractError(f"Entry {entry_id} {input_field} must include required view context inputs: {missing}")
+        raise ContractError(f"Entry {entry_id} {input_field} must include required FSM context inputs: {missing}")
 
 
-def _required_entry_view_context(contract: dict[str, Any], view_id: str) -> dict[str, str]:
-    view = contract["views"][view_id]
+def _required_entry_fsm_context(contract: dict[str, Any], fsm_id: str) -> dict[str, str]:
+    fsm = contract["fsms"][fsm_id]
     required: dict[str, str] = {}
-    _add_data_context_requirements(contract, f"View {view_id}", view.get("data", []), view.get("context", {}), required)
-    for state_name, state in view.get("states", {}).items():
-        _add_data_context_requirements(contract, f"View {view_id}.{state_name}", state.get("data", []), view.get("context", {}), required)
-    for include in view.get("includes", []):
-        panel = contract["panels"][include["panel"]]
-        initial_state = panel["states"][include["initial"]]
-        _add_include_context_requirements(contract, view_id, include, panel, panel.get("data", []), required)
-        _add_include_context_requirements(contract, view_id, include, panel, initial_state.get("data", []), required)
+    _add_data_context_requirements(contract, f"FSM {fsm_id}", fsm.get("data", []), fsm.get("context", {}), required)
+    for state_name, state in fsm.get("states", {}).items():
+        _add_data_context_requirements(contract, f"FSM {fsm_id}.{state_name}", state.get("data", []), fsm.get("context", {}), required)
+        for include in state.get("includes", []):
+            fsm = contract["fsms"][include["fsm"]]
+            initial_state = fsm["states"][include["initial"]]
+            _add_include_context_requirements(contract, fsm_id, include, fsm, fsm.get("data", []), required)
+            _add_include_context_requirements(contract, fsm_id, include, fsm, initial_state.get("data", []), required)
     return required
 
 
@@ -1448,28 +1427,28 @@ def _add_data_context_requirements(
 
 def _add_include_context_requirements(
     contract: dict[str, Any],
-    view_id: str,
+    fsm_id: str,
     include: dict[str, Any],
-    panel: dict[str, Any],
+    fsm: dict[str, Any],
     data: list[dict[str, Any]],
     required: dict[str, str],
 ) -> None:
     include_context = include.get("context", {})
-    panel_context = panel.get("context", {})
-    view_context = contract["views"][view_id].get("context", {})
+    child_fsm_context = fsm.get("context", {})
+    parent_fsm_context = contract["fsms"][fsm_id].get("context", {})
     for datum in data:
         capability = contract["capabilities"][datum["capability"]]
-        for panel_key, expected_type in capability["input"].items():
-            if panel_context.get(panel_key) != expected_type:
-                raise ContractError(f"Composed view {view_id}.{include['id']} panel context {panel_key} type must be {expected_type}")
-            value = include_context.get(panel_key)
-            if not (isinstance(value, str) and value.startswith("$view.")):
+        for child_key, expected_type in capability["input"].items():
+            if child_fsm_context.get(child_key) != expected_type:
+                raise ContractError(f"Composed FSM {fsm_id}.{include['id']} FSM context {child_key} type must be {expected_type}")
+            value = include_context.get(child_key)
+            if not (isinstance(value, str) and value.startswith("$fsm.")):
                 continue
-            view_key = value[len("$view."):]
-            actual_type = view_context.get(view_key)
+            parent_key = value[len("$fsm."):]
+            actual_type = parent_fsm_context.get(parent_key)
             if actual_type != expected_type:
-                raise ContractError(f"Composed view {view_id}.{include['id']} view context {view_key} type must be {expected_type}, got {actual_type}")
-            _add_required_entry_context(required, view_key, expected_type, f"Composed view {view_id}.{include['id']}")
+                raise ContractError(f"Composed FSM {fsm_id}.{include['id']} parent context {parent_key} type must be {expected_type}, got {actual_type}")
+            _add_required_entry_context(required, parent_key, expected_type, f"Composed FSM {fsm_id}.{include['id']}")
 
 
 def _add_required_entry_context(required: dict[str, str], key: str, type_name: str, label: str) -> None:
@@ -1620,8 +1599,8 @@ def _validate_scenario_when(contract: dict[str, Any], sid: str, scenario: dict[s
             raise ContractError(f"Scenario {sid} references unknown entry {ref}")
         entry = contract["entries"][ref]
         entry_target_kind, _ = entry_target_pair(entry["target"])
-        if kind == "open_entry" and not (entry["surface"] in {"web", "cli"} and entry_target_kind == "view"):
-            raise ContractError(f"Scenario {sid} open_entry must reference a web or cli view entry")
+        if kind == "open_entry" and not (entry["surface"] in {"web", "cli"} and entry_target_kind == "fsm"):
+            raise ContractError(f"Scenario {sid} open_entry must reference a web or cli FSM entry")
         if kind == "call_entry" and not (entry["surface"] in {"api", "cli"} and entry_target_kind == "capability"):
             raise ContractError(f"Scenario {sid} call_entry must reference an api or cli capability entry")
     elif kind == "invoke_capability":
@@ -1634,32 +1613,36 @@ def _validate_scenario_when(contract: dict[str, Any], sid: str, scenario: dict[s
 
 def _validate_scenario_then(contract: dict[str, Any], sid: str, scenario: dict[str, Any]) -> None:
     then = scenario["assert"]
-    if "view" in then:
-        expected_view = then["view"]
-        view_id = expected_view["ref"]
-        if view_id not in contract["views"]:
-            raise ContractError(f"Scenario {sid} references unknown view {view_id}")
-        view = contract["views"][view_id]
-        if "state" in expected_view:
-            state = expected_view["state"]
-            if state not in view.get("states", {}):
-                raise ContractError(f"Scenario {sid} references unknown view state {view_id}.{state}")
-        if "panels" in expected_view:
-            instances = {include["id"]: include for include in view.get("includes", [])}
+    if "fsm" in then:
+        expected_fsm = then["fsm"]
+        fsm_id = expected_fsm["ref"]
+        if fsm_id not in contract["fsms"]:
+            raise ContractError(f"Scenario {sid} references unknown FSM {fsm_id}")
+        fsm = contract["fsms"][fsm_id]
+        if "state" in expected_fsm:
+            state = expected_fsm["state"]
+            if state not in fsm.get("states", {}):
+                raise ContractError(f"Scenario {sid} references unknown FSM state {fsm_id}.{state}")
+        if "instances" in expected_fsm:
+            state_name = expected_fsm.get("state")
+            selected_state = fsm.get("states", {}).get(state_name, {}) if state_name else {}
+            instances = {include["id"]: include for include in selected_state.get("includes", [])}
             if not instances:
-                raise ContractError(f"Scenario {sid} asserts panel states for non-composed view {view_id}")
-            for instance_id, expectation in expected_view["panels"].items():
+                raise ContractError(f"Scenario {sid} asserts instance states for non-composed FSM state {fsm_id}.{state_name}")
+            for instance_id, expectation in expected_fsm["instances"].items():
                 if instance_id not in instances:
-                    raise ContractError(f"Scenario {sid} references unknown panel instance {view_id}.{instance_id}")
-                panel_id = instances[instance_id]["panel"]
-                if expectation["state"] not in contract["panels"][panel_id]["states"]:
-                    raise ContractError(f"Scenario {sid} references unknown panel state {panel_id}.{expectation['state']}")
-        for sync_id in (expected_view.get("sync") or {}).get("observed", []):
-            if sync_id not in {rule["id"] for rule in view.get("sync", [])}:
-                raise ContractError(f"Scenario {sid} references unknown sync rule {view_id}.{sync_id}")
-        for key in (expected_view.get("context") or {}):
-            if key not in view.get("context", {}):
-                raise ContractError(f"Scenario {sid} asserts undeclared view context {view_id}.{key}")
+                    raise ContractError(f"Scenario {sid} references unknown FSM instance {fsm_id}.{instance_id}")
+                fsm_id = instances[instance_id]["fsm"]
+                if expectation["state"] not in contract["fsms"][fsm_id]["states"]:
+                    raise ContractError(f"Scenario {sid} references unknown FSM state {fsm_id}.{expectation['state']}")
+        for sync_id in (expected_fsm.get("sync") or {}).get("observed", []):
+            state_name = expected_fsm.get("state")
+            selected_state = fsm.get("states", {}).get(state_name, {}) if state_name else {}
+            if sync_id not in {rule["id"] for rule in selected_state.get("sync", [])}:
+                raise ContractError(f"Scenario {sid} references unknown sync rule {fsm_id}.{sync_id}")
+        for key in (expected_fsm.get("context") or {}):
+            if key not in fsm.get("context", {}):
+                raise ContractError(f"Scenario {sid} asserts undeclared FSM context {fsm_id}.{key}")
     for field in ["enables", "forbids", "invoked"]:
         for cap_id in then.get(field, []):
             if cap_id not in contract["capabilities"]:
@@ -1679,16 +1662,20 @@ def _validate_scenario_archetype(sid: str, scenario: dict[str, Any]) -> None:
     archetype = scenario["archetype"]
     when_kind, _ = _one(scenario["execute"], f"scenario {sid} when")
     then = scenario["assert"]
-    if archetype == "empty_collection_view":
-        if when_kind != "open_entry" or then.get("view", {}).get("state") != "empty":
-            raise ContractError(f"Scenario {sid} empty_collection_view requires open_entry and view.state=empty")
-    elif archetype == "ready_collection_view":
-        if when_kind != "open_entry" or then.get("view", {}).get("state") != "ready":
-            raise ContractError(f"Scenario {sid} ready_collection_view requires open_entry and view.state=ready")
-    elif archetype == "composed_view_sync":
-        view_assert = then.get("view", {})
-        if when_kind != "open_entry" or not view_assert.get("panels"):
-            raise ContractError(f"Scenario {sid} composed_view_sync requires open_entry and view.panels")
+    if archetype == "empty_collection_fsm":
+        if when_kind != "open_entry" or then.get("fsm", {}).get("state") != "empty":
+            raise ContractError(f"Scenario {sid} empty_collection_fsm requires open_entry and fsm.state=empty")
+    elif archetype == "ready_collection_fsm":
+        if when_kind != "open_entry" or then.get("fsm", {}).get("state") != "ready":
+            raise ContractError(f"Scenario {sid} ready_collection_fsm requires open_entry and fsm.state=ready")
+    elif archetype == "fsm_composition_sync":
+        fsm_assert = then.get("fsm", {})
+        if when_kind != "open_entry" or not fsm_assert.get("instances"):
+            raise ContractError(f"Scenario {sid} fsm_composition_sync requires open_entry and fsm.instances")
+    elif archetype == "fsm_composition":
+        fsm_assert = then.get("fsm", {})
+        if when_kind != "open_entry" or not fsm_assert.get("instances"):
+            raise ContractError(f"Scenario {sid} fsm_composition requires open_entry and fsm.instances")
     elif archetype == "capability_success":
         if when_kind != "invoke_capability":
             raise ContractError(f"Scenario {sid} capability_success requires invoke_capability")
@@ -1723,14 +1710,14 @@ def _expand_scenario_fact_uses(contract: dict[str, Any]) -> set[str]:
             expanded.append(_fact_body(contract["facts"][fact_id], fact_id))
         if "facts" in arrange:
             arrange["facts"] = expanded
-    for case_id, case in contract.get("render_cases", {}).items():
+    for case_id, case in audit_cases(contract).items():
         case_uses: set[str] = set()
         for fact_use in case.get("facts", []):
             fact_id = fact_use["use"]
             if fact_id not in contract["facts"]:
-                raise ContractError(f"Render case {case_id} references unknown fact {fact_id}")
+                raise ContractError(f"Audit case {case_id} references unknown fact {fact_id}")
             if fact_id in case_uses:
-                raise ContractError(f"Render case {case_id} uses fact {fact_id} more than once")
+                raise ContractError(f"Audit case {case_id} uses fact {fact_id} more than once")
             case_uses.add(fact_id)
             used.add(fact_id)
     return used
@@ -1750,47 +1737,46 @@ def _validate_facts_are_used(contract: dict[str, Any], used: set[str]) -> None:
 def _expand_scenarios(contract: dict[str, Any]) -> None:
     for scenario in contract["scenarios"].values():
         assertions = scenario["assert"]
-        if "view" in assertions:
-            view_assert = assertions["view"]
-            view_id = view_assert["ref"]
-            view = contract["views"][view_id]
-            if "panels" in view_assert:
-                includes = {include["id"]: include for include in view.get("includes", [])}
-                required = {"queries": [datum["query"] for datum in view.get("data", [])], "panel": [], "copy": [], "assets": [], "actions": []}
-                if "state" in view_assert:
-                    state_name = view_assert["state"]
-                    state = view["states"][state_name]
-                    view_assert["panel"] = state["panel"]
-                    required["panel"].append(state["panel"])
-                    required["queries"].extend(datum["query"] for datum in state.get("data", []))
-                    required["copy"].extend(state["copy"])
-                    required["assets"].extend(state["assets"])
-                    required["actions"].extend(state["actions"])
-                for instance_id, expected in view_assert["panels"].items():
+        if "fsm" in assertions:
+            fsm_assert = assertions["fsm"]
+            fsm_id = fsm_assert["ref"]
+            fsm = contract["fsms"][fsm_id]
+            if "instances" in fsm_assert:
+                state_name = fsm_assert["state"]
+                state = fsm["states"][state_name]
+                includes = {include["id"]: include for include in state.get("includes", [])}
+                required = {"queries": [datum["query"] for datum in fsm.get("data", [])], "surfaces": [], "copy": [], "assets": [], "actions": []}
+                fsm_assert["surface"] = state["surface"]
+                required["surfaces"].append(state["surface"])
+                required["queries"].extend(datum["query"] for datum in state.get("data", []))
+                required["copy"].extend(state["copy"])
+                required["assets"].extend(state["assets"])
+                required["actions"].extend(state["actions"])
+                for instance_id, expected in fsm_assert["instances"].items():
                     include = includes[instance_id]
-                    panel = contract["panels"][include["panel"]]
-                    state = panel["states"][expected["state"]]
-                    expected["panel"] = state["panel"]
-                    expected["source"] = include["panel"]
-                    required["queries"].extend(datum["query"] for datum in panel.get("data", []))
+                    fsm = contract["fsms"][include["fsm"]]
+                    state = fsm["states"][expected["state"]]
+                    expected["surface"] = state["surface"]
+                    expected["source"] = include["fsm"]
+                    required["queries"].extend(datum["query"] for datum in fsm.get("data", []))
                     required["queries"].extend(datum["query"] for datum in state.get("data", []))
-                    required["panel"].append(state["panel"])
+                    required["surfaces"].append(state["surface"])
                     required["copy"].extend(state["copy"])
                     required["assets"].extend(state["assets"])
                     required["actions"].extend(state["actions"])
-                view_assert["composition"] = {
-                    "layout": view.get("layout", {}),
-                    "includes": view.get("includes", []),
-                    "sync": view.get("sync", []),
+                fsm_assert["composition"] = {
+                    "layout": fsm["states"][state_name].get("layout", {}),
+                    "includes": fsm["states"][state_name].get("includes", []),
+                    "sync": fsm["states"][state_name].get("sync", []),
                 }
                 assertions["requires"] = {key: list(dict.fromkeys(values)) for key, values in required.items()}
-            elif "state" in view_assert:
-                state_name = view_assert["state"]
-                state = view["states"][state_name]
-                view_assert["panel"] = state["panel"]
+            elif "state" in fsm_assert:
+                state_name = fsm_assert["state"]
+                state = fsm["states"][state_name]
+                fsm_assert["surface"] = state["surface"]
                 assertions["requires"] = {
-                    "queries": [datum["query"] for datum in view.get("data", [])] + [datum["query"] for datum in state.get("data", [])],
-                    "panel": [state["panel"]],
+                    "queries": [datum["query"] for datum in fsm.get("data", [])] + [datum["query"] for datum in state.get("data", [])],
+                    "surfaces": [state["surface"]],
                     "copy": list(state["copy"]),
                     "assets": list(state["assets"]),
                     "actions": list(state["actions"]),

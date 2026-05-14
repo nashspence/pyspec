@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .io import read_json
-from .targets import entry_view_surface
+from .targets import entry_fsm_surface
 
 ROOT = Path(__file__).resolve().parent
 
@@ -23,13 +23,11 @@ TARGET_LAYERS: dict[str, set[str]] = {
     "capability": {"core"},
     "scenario": {"core"},
     "workflow": {"workflow"},
-    "panel": {"ui"},
-    "view": {"ui"},
+    "fsm": {"ui"},
     "copy": {"ui"},
     "asset": {"ui"},
     "content_case": {"ui"},
     "audit_profile": {"ui"},
-    "render_case": {"ui"},
     # entry is surface-specific and handled separately.
     "entry": set(),
 }
@@ -48,13 +46,11 @@ AUTHOR_SECTIONS: dict[str, str] = {
     "assets": "asset",
     "content_cases": "content_case",
     "audit_profiles": "audit_profile",
-    "render_cases": "render_case",
     "fixtures": "fixture",
     "facts": "fact",
     "resources": "resource",
     "capabilities": "capability",
-    "panels": "panel",
-    "views": "view",
+    "fsms": "fsm",
     "entries": "entry",
     "workflows": "workflow",
     "scenarios": "scenario",
@@ -144,12 +140,12 @@ def _validate_author_spec_layers(label: str, target: str, spec: dict[str, Any], 
         if surface == "web":
             _require_layers(label, f"entry surface {surface}", {"ui"}, layers)
         entry_target = spec.get("target") or {}
-        if "view" in entry_target:
-            render_surface = entry_view_surface(entry_target)
+        if "fsm" in entry_target:
+            render_surface = entry_fsm_surface(entry_target)
             required_render_layer = RENDER_SURFACE_LAYER.get(render_surface or "")
             if not required_render_layer:
-                raise LayerError(f"{label} uses unsupported view target surface {render_surface!r}")
-            _require_layers(label, f"view target surface {render_surface}", {"ui", required_render_layer}, layers)
+                raise LayerError(f"{label} uses unsupported fsm target surface {render_surface!r}")
+            _require_layers(label, f"FSM target surface {render_surface}", {"ui", required_render_layer}, layers)
         return
 
     if target == "audit_profile":
@@ -160,27 +156,20 @@ def _validate_author_spec_layers(label: str, target: str, spec: dict[str, Any], 
             _require_layers(label, f"audit_profile.{surface}", {AUDIT_PROFILE_LAYER[surface]}, layers)
         return
 
-    if target == "render_case":
-        for surface in spec.get("surfaces", []):
-            required_layer = RENDER_SURFACE_LAYER.get(surface)
-            if not required_layer:
-                raise LayerError(f"{label} uses unsupported render surface {surface!r}")
-            _require_layers(label, f"render_case surface {surface}", {required_layer}, layers)
-        return
-
-    if target == "panel":
+    if target == "fsm":
         for state_name, state in spec.get("states", {}).items():
             _validate_presentation_layers(f"{label} state {state_name}", state.get("presentation", {}), layers)
-        return
-
-    if target == "view":
-        layout = spec.get("layout") or {}
-        if "html" in layout:
-            _require_layers(label, "view layout html", {"web"}, layers)
-        if "textual" in layout:
-            _require_layers(label, "view layout textual", {"textual"}, layers)
-        for state_name, state in spec.get("states", {}).items():
-            _validate_presentation_layers(f"{label} state {state_name}", state.get("presentation", {}), layers)
+            layout = state.get("layout") or {}
+            if "html" in layout:
+                _require_layers(label, "FSM state layout html", {"web"}, layers)
+            if "textual" in layout:
+                _require_layers(label, "FSM state layout textual", {"textual"}, layers)
+            for case_name, case in (state.get("audit") or {}).items():
+                for surface in case.get("surfaces", []):
+                    required_layer = RENDER_SURFACE_LAYER.get(surface)
+                    if not required_layer:
+                        raise LayerError(f"{label} state {state_name} audit {case_name} uses unsupported render surface {surface!r}")
+                    _require_layers(label, f"FSM audit surface {surface}", {required_layer}, layers)
         return
 
 

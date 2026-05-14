@@ -10,10 +10,10 @@ from pyspec_contract.audit import (
     composition_file,
     entrypoint_flow_dot,
     entrypoint_flow_file,
-    panel_fsm_dot,
-    panel_fsm_file,
-    panel_state_root,
-    render_case_file,
+    fsm_dot,
+    fsm_graph_file,
+    fsm_state_root,
+    audit_case_render_file,
     workflow_flow_dot,
     workflow_flow_file,
 )
@@ -34,26 +34,27 @@ def _contract(root: Path = ROOT) -> dict:
 def test_audit_outputs_cover_full_contract() -> None:
     contract = _contract()
     expected = audit_expected_files(contract)
-    assert "spec/generated/audit_evidence/panels/panel_project_list/fsm.svg" in expected
-    assert "spec/generated/audit_evidence/composed_views/project_board/composition.svg" in expected
+    assert "spec/generated/audit_evidence/fsms/fsm_project_list/fsm.svg" in expected
+    assert "spec/generated/audit_evidence/fsms/fsm_project_board/states/ready/composition.svg" in expected
     assert "spec/generated/audit_evidence/entrypoints/web/web_project_board/flow.svg" in expected
     assert "spec/generated/audit_evidence/entrypoints/cli/cli_project_board/flow.svg" in expected
     assert "spec/generated/audit_evidence/workflows/project_approval_notice/flow.svg" in expected
-    assert any(path.startswith("spec/generated/audit_evidence/panels/") and "/states/" in path and path.endswith("/copy.yaml") for path in expected)
-    assert any(path.startswith("spec/generated/audit_evidence/panels/") and "/states/" in path and "/renders/" in path and path.endswith(".png") for path in expected)
-    assert any(path.startswith("spec/generated/audit_evidence/composed_views/") and "/cases/" in path and "/renders/" in path and path.endswith(".html") for path in expected)
-    assert any(path.startswith("spec/generated/audit_evidence/composed_views/") and "/cases/" in path and "/renders/" in path and path.endswith(".svg") for path in expected)
-    assert render_case_file("project.board", "project.board.ready_selected.audit", "default", "wide", "html").endswith("/renders/html.default.wide.source.html")
-    assert render_case_file("project.board", "project.board.ready_selected.audit", "default", "wide", "png").endswith("/renders/html.default.wide.screenshot.png")
-    assert render_case_file("project.board", "project.board.ready_selected.audit", "default", "wide", "py").endswith("/renders/textual.default.wide.source.py")
-    assert render_case_file("project.board", "project.board.ready_selected.audit", "default", "wide", "svg").endswith("/renders/textual.default.wide.capture.svg")
+    assert any(path.startswith("spec/generated/audit_evidence/fsms/") and "/states/" in path and path.endswith("/copy.yaml") for path in expected)
+    assert any(path.startswith("spec/generated/audit_evidence/fsms/") and "/states/" in path and "/renders/" in path and path.endswith(".png") for path in expected)
+    assert any(path.startswith("spec/generated/audit_evidence/fsms/") and "/cases/" in path and "/renders/" in path and path.endswith(".html") for path in expected)
+    assert any(path.startswith("spec/generated/audit_evidence/fsms/") and "/cases/" in path and "/renders/" in path and path.endswith(".svg") for path in expected)
+    assert audit_case_render_file("fsm.project.board", "fsm.project.board.ready.ready_selected.audit", "default", "wide", "html").endswith("/renders/html.default.wide.source.html")
+    assert audit_case_render_file("fsm.project.board", "fsm.project.board.ready.ready_selected.audit", "default", "wide", "png").endswith("/renders/html.default.wide.screenshot.png")
+    assert audit_case_render_file("fsm.project.board", "fsm.project.board.ready.ready_selected.audit", "default", "wide", "py").endswith("/renders/textual.default.wide.source.py")
+    assert audit_case_render_file("fsm.project.board", "fsm.project.board.ready.ready_selected.audit", "default", "wide", "svg").endswith("/renders/textual.default.wide.capture.svg")
     validate_audit_outputs(ROOT, contract)
 
 
 def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     contract = _contract()
-    fsm = panel_fsm_dot("panel.project.list", contract["panels"]["panel.project.list"], contract)
-    composition = composition_dot("project.board", contract["views"]["project.board"], contract)
+    fsm = fsm_dot("fsm.project.list", contract["fsms"]["fsm.project.list"], contract)
+    board = contract["fsms"]["fsm.project.board"]
+    composition = composition_dot("fsm.project.board.ready", {"context": board["context"], **board["states"]["ready"]}, contract)
     entrypoint = entrypoint_flow_dot("web.project.board", contract["entries"]["web.project.board"], contract)
     cli_entrypoint = entrypoint_flow_dot("cli.project.board", contract["entries"]["cli.project.board"], contract)
     worker_entrypoint = entrypoint_flow_dot("worker.project.approval_notice", contract["entries"]["worker.project.approval_notice"], contract)
@@ -87,7 +88,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert input_workspace in fsm
     assert fsm.index(input_workspace) < fsm.index("<B>query:</B>&#160;&#160;query.project.list.list")
     assert fsm.index("<B>query:</B>&#160;&#160;query.project.list.list") < fsm.index("<B>load:</B>&#160;&#160;project.list")
-    detail_transition = panel_fsm_dot("panel.project.detail", contract["panels"]["panel.project.detail"], contract)
+    detail_transition = fsm_dot("fsm.project.detail", contract["fsms"]["fsm.project.detail"], contract)
     selection_card = detail_transition[detail_transition.index("project.selection_changed") :]
     input_project = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
     assert selection_card.index(input_project) < selection_card.index("<B>query:</B>&#160;&#160;query.project.detail.read")
@@ -123,30 +124,30 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "selected_project_id &lt;- project_id" not in composition
     assert "set selected_project_id" not in composition
     assert "<B>flow:</B>" not in composition
-    assert "view context" not in composition
-    assert "project.board" not in composition
-    assert "dashboard view" not in composition
+    assert "FSM context" not in composition
+    assert "fsm.project.board" not in composition
+    assert "dashboard FSM" not in composition
     assert "query.project.board.list" not in composition
     assert "<B>resource:</B>" not in composition
     assert "<B>context</B>" not in composition
     assert "$message." not in composition
     assert "$event." not in composition
-    assert "$view." not in composition
+    assert "$fsm." not in composition
     assert "<B>from:</B>" not in composition
     assert "<B>do:</B>" not in composition
-    assert "Layout / mounted panels" not in composition
+    assert "Layout / mounted FSMs" not in composition
     assert "Message routing" not in composition
     assert "Sync rules" not in composition
     assert "<B>region:</B>" not in composition
     assert "<B>nav</B>" in composition
     assert "<B>main</B>" in composition
     assert "<B>aside</B>" in composition
-    assert "<B>instance:</B>&#160;&#160;panel.project.list" in composition
-    assert "<B>instance:</B>&#160;&#160;panel.project.detail" in composition
+    assert "<B>instance:</B>&#160;&#160;fsm.project.list" in composition
+    assert "<B>instance:</B>&#160;&#160;fsm.project.detail" in composition
     assert "<B>causes:</B>&#160;&#160;to loading" in composition
     assert "context binding" not in composition
-    assert "view.selected_project_id" not in composition
-    assert "panel context" not in composition
+    assert "fsm.selected_project_id" not in composition
+    assert "FSM context" not in composition
     assert "order:" not in composition
     assert "element:" not in composition
     assert "role:" not in composition
@@ -154,35 +155,35 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "layout_region_nav" not in composition
     assert "fontcolor" not in composition
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">web entry</FONT>' in entrypoint
-    assert "<B>route:</B>&#160;&#160;route.project.board" in entrypoint
+    assert "<B>route:</B>&#160;&#160;route.fsm.project.board" in entrypoint
     assert "<B>params</B>" in entrypoint
     assert '<FONT POINT-SIZE="10">workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in entrypoint
-    assert '<FONT POINT-SIZE="8" COLOR="#64748b">target view (html)</FONT>' in entrypoint
-    assert '<FONT POINT-SIZE="8" COLOR="#64748b">target view (textual)</FONT>' in cli_entrypoint
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">target FSM (html)</FONT>' in entrypoint
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">target FSM (textual)</FONT>' in cli_entrypoint
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">target workflow (event project.approved)</FONT>' in worker_entrypoint
     assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in worker_entrypoint
     entrypoint_input = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
     assert entrypoint_input in entrypoint
     assert entrypoint.index(entrypoint_input) < entrypoint.index("<B>query:</B>&#160;&#160;query.project.board.list")
     assert entrypoint.index("<B>query:</B>&#160;&#160;query.project.board.list") < entrypoint.index("<B>load:</B>&#160;&#160;project.list")
-    assert "<B>sync:</B>&#160;&#160;select_project_updates_panels" in entrypoint
-    assert "<B>instance:</B>&#160;&#160;panel.project.list" in entrypoint
-    assert "view.selected_project_id" not in entrypoint
-    assert "$view." not in entrypoint
+    assert "<B>sync:</B>&#160;&#160;select_project_updates_fsms" in entrypoint
+    assert "<B>instance:</B>&#160;&#160;fsm.project.list" in entrypoint
+    assert "fsm.selected_project_id" not in entrypoint
+    assert "$fsm." not in entrypoint
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">event trigger</FONT>' in workflow
     assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in workflow
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">workflow step</FONT>' in workflow
     assert "<B>capability:</B>&#160;&#160;project.send_approval_notice" in workflow
     assert '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;approved_by</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in workflow
     assert '<FONT POINT-SIZE="10"><B>output:</B>&#160;&#160;result</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;NoticeResult</FONT>' in workflow
-    for graph_id, dot_source in {"panel_project_list": fsm, "project_board": composition, "web_project_board": entrypoint, "project_approval_notice": workflow}.items():
+    for graph_id, dot_source in {"fsm_project_list": fsm, "project_board": composition, "web_project_board": entrypoint, "project_approval_notice": workflow}.items():
         svg = _render_graphviz_svg(dot_source, graph_id)
         assert svg.lstrip().startswith("<svg")
         assert "</svg>" in svg
 
 
 def test_composition_dot_routes_messages_generically() -> None:
-    view = {
+    fsm = {
         "archetype": "workspace",
         "resource": "generic.resource",
         "context": {"selected_id": "ID", "workspace_id": "ID"},
@@ -197,23 +198,23 @@ def test_composition_dot_routes_messages_generically() -> None:
             }
         },
         "includes": [
-            {"id": "publisher", "region": "source", "panel": "panel.alpha", "initial": "idle", "context": {}},
-            {"id": "receiver", "region": "target", "panel": "panel.beta", "initial": "waiting", "context": {"item_id": "$view.selected_id"}},
+            {"id": "publisher", "region": "source", "fsm": "fsm.alpha", "initial": "idle", "context": {}},
+            {"id": "receiver", "region": "target", "fsm": "fsm.beta", "initial": "waiting", "context": {"item_id": "$fsm.selected_id"}},
         ],
         "sync": [
             {
                 "id": "route_alpha_beta",
                 "when": {"instance": "publisher", "message": "alpha.ready"},
                 "do": [
-                    {"send": {"panel": "receiver", "message": "beta.consume", "data": {"item_id": "$message.id"}}},
+                    {"send": {"instance": "receiver", "message": "beta.consume", "data": {"item_id": "$message.id"}}},
                     {"set": {"context": "selected_id", "from": "$message.id"}},
                 ],
             }
         ],
     }
     contract = {
-        "panels": {
-            "panel.alpha": {
+        "fsms": {
+            "fsm.alpha": {
                 "messages": {
                     "accepts": {
                         "alpha.submit": {"payload": {"id": "ID"}},
@@ -231,7 +232,7 @@ def test_composition_dot_routes_messages_generically() -> None:
                     }
                 ]
             },
-            "panel.beta": {
+            "fsm.beta": {
                 "messages": {
                     "accepts": {
                         "beta.consume": {"payload": {"item_id": "ID"}},
@@ -249,7 +250,7 @@ def test_composition_dot_routes_messages_generically() -> None:
         }
     }
 
-    composition = composition_dot("generic.view", view, contract)
+    composition = composition_dot("generic.fsm", fsm, contract)
 
     assert "emitted message" in composition
     assert "sent message" in composition
@@ -263,25 +264,25 @@ def test_composition_dot_routes_messages_generically() -> None:
     assert '<FONT POINT-SIZE="10"><B>data:</B>&#160;&#160;id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in composition
     assert '<FONT POINT-SIZE="10"><B>set:</B>&#160;&#160;selected_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT><FONT POINT-SIZE="10">&#160;&lt;&#45;&#160;id</FONT>' in composition
     assert 'item_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT><FONT POINT-SIZE="10">&#160;&lt;&#45;&#160;id</FONT>' in composition
-    assert "item_id &lt;- view.selected_id" not in composition
+    assert "item_id &lt;- fsm.selected_id" not in composition
     assert "context binding" not in composition
     assert "$message." not in composition
     assert "$event." not in composition
-    assert "$view." not in composition
+    assert "$fsm." not in composition
     assert "<B>target:</B>" not in composition
     assert "<B>from:</B>" not in composition
     assert "<B>do:</B>" not in composition
-    assert '"message_effect_route_alpha_beta_0" -> "panel_instance_receiver"' in composition
+    assert '"message_effect_route_alpha_beta_0" -> "fsm_instance_receiver"' in composition
     assert "message_effect_route_alpha_beta_1" not in composition
     assert '#ecfdf5' in composition
     assert '#047857' in composition
     assert '#fdf2f8' in composition
-    assert "No mounted panels" not in composition
+    assert "No mounted FSMs" not in composition
     assert "<B>region:</B>" not in composition
     assert "<B>source</B>" in composition
     assert "<B>target</B>" in composition
-    assert "<B>instance:</B>&#160;&#160;panel.alpha" in composition
-    assert "<B>instance:</B>&#160;&#160;panel.beta" in composition
+    assert "<B>instance:</B>&#160;&#160;fsm.alpha" in composition
+    assert "<B>instance:</B>&#160;&#160;fsm.beta" in composition
     assert "unused" not in composition
     assert "order:" not in composition
     assert "element:" not in composition
@@ -289,31 +290,31 @@ def test_composition_dot_routes_messages_generically() -> None:
     assert "required:" not in composition
     assert "layout_instance" not in composition
     assert "layout_region_empty" not in composition
-    assert "project.board" not in composition
-    assert "panel.project" not in composition
+    assert "fsm.project.board" not in composition
+    assert "fsm.project" not in composition
     svg = _render_graphviz_svg(composition, "generic_composition")
     assert svg.lstrip().startswith("<svg")
 
 
 def test_audit_transition_basis_renders_for_otherwise_sparse_card() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
-    activity = author["panels"]["panel.project.activity"]
+    activity = author["fsms"]["fsm.project.activity"]
     cleared = next(transition for transition in activity["transitions"] if transition["on"] == "selection.cleared")
     cleared.pop("effects")
-    cleared["basis"] = "Clearing the selection returns the activity panel to its empty state."
+    cleared["basis"] = "Clearing the selection returns the activity FSM to its empty state."
     contract = compile_source(author)
 
-    fsm = panel_fsm_dot("panel.project.activity", contract["panels"]["panel.project.activity"], contract)
+    fsm = fsm_dot("fsm.project.activity", contract["fsms"]["fsm.project.activity"], contract)
 
-    assert "Clearing the selection returns the activity panel" in fsm
-    assert "to its empty state." in fsm
+    assert "Clearing the selection returns the activity FSM" in fsm
+    assert "its empty state." in fsm
 
 
 def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
-    list_fsm = (ROOT / panel_fsm_file("panel.project.list")).read_text(encoding="utf-8")
-    detail_fsm = (ROOT / panel_fsm_file("panel.project.detail")).read_text(encoding="utf-8")
-    activity_fsm = (ROOT / panel_fsm_file("panel.project.activity")).read_text(encoding="utf-8")
-    composition = (ROOT / composition_file("project.board")).read_text(encoding="utf-8")
+    list_fsm = (ROOT / fsm_graph_file("fsm.project.list")).read_text(encoding="utf-8")
+    detail_fsm = (ROOT / fsm_graph_file("fsm.project.detail")).read_text(encoding="utf-8")
+    activity_fsm = (ROOT / fsm_graph_file("fsm.project.activity")).read_text(encoding="utf-8")
+    composition = (ROOT / composition_file("fsm.project.board")).read_text(encoding="utf-8")
     assert "data.ready" in list_fsm
     assert "on data.ready" not in list_fsm
     assert "copy.project.list.ready.heading" in list_fsm
@@ -344,7 +345,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "loading &#45;&gt; empty" not in list_fsm
     assert "(initial)" not in list_fsm
     assert "initial:" not in list_fsm
-    assert "FSM panel" not in list_fsm
+    assert "FSM surface" not in list_fsm
     assert "declared, no arrow" not in list_fsm
     assert "transition events" not in list_fsm
     assert "emitted events" not in list_fsm
@@ -373,7 +374,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "project_id &lt;&#45; null" not in detail_fsm
     assert 'fill="#94a3b8">\xa0\xa0ID</text>' in detail_fsm
     assert '\xa0&lt;&#45;\xa0null</text>' in detail_fsm
-    assert "select_project_updates_panels" not in detail_fsm
+    assert "select_project_updates_fsms" not in detail_fsm
     assert "data.ready" not in activity_fsm
     assert "input:" in activity_fsm
     assert "query.project.activity.read" in activity_fsm
@@ -399,22 +400,22 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert '\xa0&lt;&#45;\xa0project_id</text>' in composition
     assert "set selected_project_id" not in composition
     assert "flow:" not in composition
-    assert "view context" not in composition
-    assert "project.board" not in composition
-    assert "dashboard view" not in composition
+    assert "FSM context" not in composition
+    assert "fsm.project.board" not in composition
+    assert "dashboard FSM" not in composition
     assert "query.project.board.list" not in composition
     assert "context binding" not in composition
-    assert "view.selected_project_id" not in composition
-    assert "panel context" not in composition
+    assert "fsm.selected_project_id" not in composition
+    assert "FSM context" not in composition
     assert "$message." not in composition
     assert "$event." not in composition
-    assert "$view." not in composition
+    assert "$fsm." not in composition
     assert "region:" not in composition
     assert "instance:" in composition
     assert "target:" not in composition
     assert "from:" not in composition
     assert "do:" not in composition
-    assert "Layout / mounted panels" not in composition
+    assert "Layout / mounted FSMs" not in composition
     assert "Message routing" not in composition
     assert "Sync rules" not in composition
     assert "nav" in composition
@@ -427,7 +428,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
 
 
 def test_audit_html_sources_render_copy_assets_and_fixture_fields() -> None:
-    ready = ROOT / render_case_file("project.board", "project.board.ready_selected.audit", "default", "wide", "html")
+    ready = ROOT / audit_case_render_file("fsm.project.board", "fsm.project.board.ready.ready_selected.audit", "default", "wide", "html")
     text = ready.read_text(encoding="utf-8")
     assert "Dispatch queue" in text
     assert "Replace rooftop condenser fan · Atlas Foods" in text
@@ -438,7 +439,7 @@ def test_audit_html_sources_render_copy_assets_and_fixture_fields() -> None:
     assert "fixture.projects.audit_records" not in text
     assert "data-audit" not in text
 
-    empty = ROOT / render_case_file("project.board", "project.board.empty.audit", "default", "compact", "html")
+    empty = ROOT / audit_case_render_file("fsm.project.board", "fsm.project.board.ready.empty.audit", "default", "compact", "html")
     empty_text = empty.read_text(encoding="utf-8")
     assert "No dispatch projects yet" in empty_text
     assert "asset.project.list.empty.illustration" in empty_text
@@ -446,7 +447,7 @@ def test_audit_html_sources_render_copy_assets_and_fixture_fields() -> None:
 
 
 def test_audit_asset_placeholder_is_generic_and_not_named() -> None:
-    asset = ROOT / panel_state_root("panel.project.list", "empty") / "assets" / "asset_project_list_empty_illustration.svg"
+    asset = ROOT / fsm_state_root("fsm.project.list", "empty") / "assets" / "asset_project_list_empty_illustration.svg"
     text = asset.read_text(encoding="utf-8")
     assert text.lstrip().startswith("<svg")
     assert "asset.project.list.empty.illustration" not in text
@@ -478,10 +479,10 @@ def test_asset_placeholder_schema_rejects_missing_visual_intent() -> None:
         compile_source(author)
 
 
-def test_render_case_coverage_is_required() -> None:
+def test_audit_case_coverage_is_required() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
-    author.pop("render_cases")
-    with pytest.raises(ContractError, match="At least one render_case|Missing render_case coverage"):
+    author["fsms"]["fsm.project.board"]["states"]["ready"].pop("audit")
+    with pytest.raises(ContractError, match="Missing audit coverage for composed FSM states"):
         compile_source(author)
 
 
@@ -499,7 +500,7 @@ def test_audit_validator_rejects_missing_fsm_svg(tmp_path: Path) -> None:
     project = tmp_path / "project"
     copy_project_tree(ROOT, project)
     contract = read_yaml(project / COMPILED_SPEC_PATH)
-    svg = next(project / path for path in audit_expected_files(contract) if path.startswith("spec/generated/audit_evidence/panels/") and path.endswith("/fsm.svg"))
+    svg = next(project / path for path in audit_expected_files(contract) if path.startswith("spec/generated/audit_evidence/fsms/") and path.endswith("/fsm.svg"))
     svg.unlink()
     with pytest.raises(ContractError, match="audit generated files"):
         validate_audit_outputs(project, contract)

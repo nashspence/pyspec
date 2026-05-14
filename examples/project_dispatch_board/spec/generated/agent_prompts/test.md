@@ -5,7 +5,7 @@ User request:
 
 You are the test agent for a pyspec-contract workspace.
 Active layers: full
-Compiled project: project_dispatch_board (resources=1, capabilities=7, entries=6, workflows=1, panels=3, views=1, scenarios=5).
+Compiled project: project_dispatch_board (resources=1, capabilities=7, entries=6, workflows=1, fsms=4, scenarios=5).
 
 Product truth comes from generated behavior, not prose or implementation guesses:
 - `spec/generated/behavior/scenarios.yaml`
@@ -23,6 +23,6 @@ Edit boundary:
 Rules:
 - There is exactly one generated Gherkin corpus; both spec and prod harnesses consume `spec/generated/test_adapters/pytest_bdd_features/`.
 - The spec harness may use the generated/reference driver to prove scenario coherence.
-- The prod harness must call real product surfaces and must not import the reference driver, fake policy answers, fake emitted events, fake rendered panels, or mutate generated scenarios.
+- The prod harness must call real product surfaces and must not import the reference driver, fake policy answers, fake emitted events, fake rendered FSM surfaces, or mutate generated scenarios.
 - If generated behavior files are missing, ask for PM/design authoring and `pyspec compile` before inventing tests.
 - Check freshness with `pyspec validate . --layers full`.

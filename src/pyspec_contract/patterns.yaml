@@ -17,15 +17,15 @@ authoring_layers:
       requires: [core]
       projections_when_declared: [spec/generated/product_interfaces/workflow.cwl.yaml, spec/generated/product_interfaces/events.asyncapi.yaml, spec/generated/audit_evidence/workflows, spec/generated/audit_evidence/entrypoints]
     ui:
-      opens: [panel, view, copy, asset, content_case, audit_profile, render_case]
+      opens: [fsm, copy, asset, content_case, audit_profile, audit_case]
       requires: [core]
-      projections_when_declared: [spec/generated/product_interfaces/web.panels.json, spec/generated/audit_evidence]
+      projections_when_declared: [spec/generated/product_interfaces/web.fsms.json, spec/generated/audit_evidence]
     textual:
-      opens: [presentation.textual, render_case.surface.textual, audit_profile.textual]
+      opens: [presentation.textual, audit_case.surface.textual, audit_profile.textual]
       requires: [core, ui]
       projections_when_declared: [spec/generated/product_interfaces/textual.projection.py, spec/generated/audit_evidence/**/renders/*.svg]
     web:
-      opens: [entry.surface.web, presentation.html, presentation.css, render_case.surface.html, audit_profile.html]
+      opens: [entry.surface.web, presentation.html, presentation.css, audit_case.surface.html, audit_profile.html]
       requires: [core, ui]
       projections_when_declared: [spec/generated/product_interfaces/web.routes.json, spec/generated/audit_evidence/**/renders/*.png]
   common_sets:
@@ -43,18 +43,18 @@ purity_rules:
   agent_prompts: Use spec/generated/agent_prompts/{pm_design,test,dev,review}.md as role-specific standalone prompts; each contains a {{USER_PROMPT}} substitution point.
 
 scenario_archetypes:
-  empty_collection_view:
+  empty_collection_fsm:
     when: open_entry
-    then: [view.state.empty, enables, forbids]
-  ready_collection_view:
+    then: [fsm.state.empty, enables, forbids]
+  ready_collection_fsm:
     when: open_entry
-    then: [view.state.ready, enables]
-  composed_view:
+    then: [fsm.state.ready, enables]
+  fsm_composition:
     when: open_entry
-    then: [view.panels, enables, forbids]
-  composed_view_sync:
+    then: [fsm.instances, enables, forbids]
+  fsm_composition_sync:
     when: open_entry
-    then: [view.panels, view.context, view.sync.observed]
+    then: [fsm.instances, fsm.context, fsm.sync.observed]
   capability_success:
     when: invoke_capability
     then: [resource.exists, events.emitted, invoked]
@@ -74,7 +74,7 @@ surface_entries:
     requires: [method, path]
     layer: http
   cli:
-    target: [capability, view, workflow]
+    target: [capability, fsm, workflow]
     requires: [command]
     layer: workflow
   worker:
@@ -90,28 +90,28 @@ surface_entries:
     requires: [path]
     layer: events
   web:
-    target: view
+    target: fsm
     requires: [path]
     layer: web
 
 entry_target_contracts:
-  view: 'View entry targets use target.view.name plus target.view.surface to distinguish the abstract view from its html/textual realization.'
+  fsm: 'FSM entry targets use target.fsm.name plus target.fsm.surface to distinguish the entrypoint surface from its html/textual realization.'
   workflow: 'Workflow entry targets use target.workflow.name plus target.workflow.trigger so the entrypoint declares the trigger data it consumes.'
 
 presentation_contracts:
   html:
     layer: web
-    location: 'target: view or target: panel -> spec.states.<state>.presentation.html'
+    location: 'target: fsm -> spec.states.<state>.presentation.html or spec.states.<state>.layout.html'
     purpose: Exact root element, ARIA role, classes, and semantic slots.
     selectors_allowed: [copy_slots, asset_slots, field_slots, actions]
   css:
     layer: web
-    location: 'target: view or target: panel -> spec.states.<state>.presentation.css, or composed view layout.css'
+    location: 'target: fsm -> spec.states.<state>.presentation.css or spec.states.<state>.layout.css'
     purpose: Exact CSS tokens and selector-scoped declarations.
     selectors_allowed: [root, slot.<declared_slot>, action.<declared_action>, instance.<declared_instance>]
   textual:
     layer: textual
-    location: 'target: view or target: panel -> spec.states.<state>.presentation.textual, or composed view layout.textual'
+    location: 'target: fsm -> spec.states.<state>.presentation.textual or spec.states.<state>.layout.textual'
     purpose: Exact Textual screen class, widgets, bindings, and TCSS-like rules.
     selectors_allowed: [screen, slot.<declared_slot>, action.<declared_action>, instance.<declared_instance>]
 
@@ -122,15 +122,14 @@ gherkin_policy:
   rule: PM agents never author raw .feature files; spec and prod pytest-bdd harnesses consume the same generated corpus.
 
 composition_contracts:
-  panel: 'target: panel defines a reusable FSM with context, initial state, states, state-local data, transitions, and emitted events.'
-  view: 'target: view composes panels with layout slots, include instances, shared context, and sync rules.'
-  scenario: 'target: scenario asserts a panel state vector instead of flattened fake view states.'
+  fsm: 'target: fsm defines context, initial state, states, state-local data, transitions, emitted events, and optional state-local composition.'
+  scenario: 'target: scenario asserts an FSM state or composed FSM instance vector.'
 
 audit_contracts:
   copy: 'target: copy declares placeholder text for every rendered copy ref.'
   asset: 'target: asset declares placeholder visual intent; the compiler emits generic SVG placeholder assets.'
   audit_profile: 'target: audit_profile declares fixed HTML and/or Textual breakpoints.'
-  render_case: 'target: render_case binds a view state or composed panel state vector to fixtures, surfaces, and an audit profile.'
+  audit_case: 'state-local audit cases bind an FSM state or composed FSM instance vector to fixtures, render surfaces, and an audit profile.'
   content_case: 'target: content_case exercises every resolver-backed copy/asset with deterministic args.'
   final_content: 'target: copy or asset may declare args and resolver; generated content stubs constrain spec/spec.py.'
   formats:

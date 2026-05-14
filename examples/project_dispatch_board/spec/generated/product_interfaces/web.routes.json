@@ -3,12 +3,12 @@
   "routes": [
     {
       "entry": "web.project.board",
-      "id": "route.project.board",
+      "fsm": "fsm.project.board",
+      "id": "route.fsm.project.board",
       "params": {
         "workspace_id": "ID"
       },
-      "path": "/workspaces/{workspace_id}/dispatch",
-      "view": "project.board"
+      "path": "/workspaces/{workspace_id}/dispatch"
     }
   ]
 }

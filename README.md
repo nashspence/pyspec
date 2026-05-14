@@ -53,12 +53,12 @@ spec/spec.yaml
   -> spec/generated/compiled/spec.yaml
   -> product interfaces and behavior projections required by positive declarations
   -> pytest-bdd adapter files derived from behavior/scenarios.yaml
-  -> audit evidence when render cases exist
+  -> audit evidence when FSM states declare audit cases
 ```
 
 The spec is progressive. If a concern is absent, it has no declaration and no generated projection. The spec does not contain storage implementation details, test-harness routing, dev-environment metadata, review state, release state, or schema-version chatter.
 
-Reusable top-level `facts` name preconditions, such as a resource that must already exist. Scenarios can reference them with `given.facts: [{use: fact.project.submitted}]`, and render cases can reference them with `facts: [{use: fact.project.submitted}]`; the compiled spec expands scenario references back into concrete `present` or `absent` facts for the generated BDD harnesses.
+Reusable top-level `facts` name preconditions, such as a resource that must already exist. Scenarios can reference them with `given.facts: [{use: fact.project.submitted}]`, and state-local audit cases can reference them with `facts: [{use: fact.project.submitted}]`; the compiled spec expands scenario references back into concrete `present` or `absent` facts for the generated BDD harnesses.
 
 ## Layers
 
@@ -109,7 +109,7 @@ spec/generated/
     events.asyncapi.yaml
     workflow.cwl.yaml
     web.routes.json
-    web.panels.json
+    web.fsms.json
     textual.projection.py
   behavior/
     fixtures.yaml
@@ -128,9 +128,10 @@ spec/generated/
       flow.svg
     workflows/<workflow>/
       flow.svg
-    panels/<panel>/
+    fsms/<fsm>/
       fsm.svg
       states/<state>/
+        composition.svg
         copy.yaml
         fixtures.yaml
         assets/*.svg
@@ -138,9 +139,7 @@ spec/generated/
         renders/html.<profile>.<breakpoint>.screenshot.png
         renders/textual.<profile>.<breakpoint>.source.py
         renders/textual.<profile>.<breakpoint>.capture.svg
-    composed_views/<view>/
-      composition.svg
-      cases/<render_case>/
+      cases/<audit_case>/
         copy.yaml
         fixtures.yaml
         assets/*.svg

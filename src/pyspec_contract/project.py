@@ -8,7 +8,7 @@ from typing import Any, Iterable
 from .agent_prompts import agent_prompt_paths, agent_prompt_projection_files
 from .layout import layout_html, layout_textual, layout_textual_containers
 from .paths import generated_relative as g
-from .targets import entry_view_name
+from .targets import entry_fsm_name
 
 
 SCALAR_JSON_SCHEMA: dict[str, dict[str, Any]] = {
@@ -44,7 +44,7 @@ def projection_paths(contract: dict[str, Any]) -> list[str]:
     if _has_web_routes(contract):
         paths.append(g("product_interfaces", "web.routes.json"))
     if _has_ui(contract):
-        paths.append(g("product_interfaces", "web.panels.json"))
+        paths.append(g("product_interfaces", "web.fsms.json"))
     if _has_textual_ui(contract):
         paths.append(g("product_interfaces", "textual.projection.py"))
     if _has_workflow(contract):
@@ -76,7 +76,7 @@ def projection_files(contract: dict[str, Any], *, layers: str | set[str] | None 
     if _has_web_routes(contract):
         yield g("product_interfaces", "web.routes.json"), routes_projection(contract), "json"
     if _has_ui(contract):
-        yield g("product_interfaces", "web.panels.json"), panels_projection(contract), "json"
+        yield g("product_interfaces", "web.fsms.json"), fsms_projection(contract), "json"
     if _has_textual_ui(contract):
         yield g("product_interfaces", "textual.projection.py"), textual_contract_projection(contract), "text"
     if _has_workflow(contract):
@@ -118,7 +118,7 @@ def _has_workflow(contract: dict[str, Any]) -> bool:
 
 
 def _has_ui(contract: dict[str, Any]) -> bool:
-    return bool(contract.get("panels") or contract.get("views"))
+    return bool(contract.get("fsms"))
 
 
 def _state_has_textual_presentation(state: dict[str, Any]) -> bool:
@@ -126,13 +126,12 @@ def _state_has_textual_presentation(state: dict[str, Any]) -> bool:
 
 
 def _has_textual_ui(contract: dict[str, Any]) -> bool:
-    if any("textual" in case.get("surfaces", []) for case in contract.get("render_cases", {}).values()):
+    if any("textual" in case.get("surfaces", []) for fsm in contract.get("fsms", {}).values() for state in fsm.get("states", {}).values() for case in (state.get("audit") or {}).values()):
         return True
-    for owner in list(contract.get("panels", {}).values()) + list(contract.get("views", {}).values()):
+    for owner in contract.get("fsms", {}).values():
         if any(_state_has_textual_presentation(state) for state in owner.get("states", {}).values()):
             return True
-    for view in contract.get("views", {}).values():
-        if "textual" in (view.get("layout") or {}):
+        if any("textual" in (state.get("layout") or {}) for state in owner.get("states", {}).values()):
             return True
     return False
 
@@ -246,7 +245,7 @@ def routes_projection(contract: dict[str, Any]) -> dict[str, Any]:
                 "entry": entry_id,
                 "path": entry["path"],
                 "params": entry.get("params", {}),
-                "view": entry_view_name(entry),
+                "fsm": entry_fsm_name(entry),
             }
             for entry_id, entry in sorted(contract["entries"].items())
             if entry["surface"] == "web"
@@ -254,36 +253,36 @@ def routes_projection(contract: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def panels_projection(contract: dict[str, Any]) -> dict[str, Any]:
-    panels: list[dict[str, Any]] = []
-    for view_id, view in sorted(contract["views"].items()):
-        for state_name, state in sorted(view.get("states", {}).items()):
-            panels.append(panel_projection_item("view", view_id, state_name, state))
-    for panel_id, panel in sorted(contract.get("panels", {}).items()):
-        for state_name, state in sorted(panel.get("states", {}).items()):
-            item = panel_projection_item("panel", panel_id, state_name, state)
+def fsms_projection(contract: dict[str, Any]) -> dict[str, Any]:
+    fsms: list[dict[str, Any]] = []
+    for fsm_id, fsm in sorted(contract.get("fsms", {}).items()):
+        for state_name, state in sorted(fsm.get("states", {}).items()):
+            item = fsm_projection_item("fsm", fsm_id, state_name, state)
             item["fsm"] = {
-                "initial": panel["initial"],
-                "transitions": panel.get("transitions", []),
-                "context": panel.get("context", {}),
+                "initial": fsm["initial"],
+                "transitions": fsm.get("transitions", []),
+                "context": fsm.get("context", {}),
             }
-            panels.append(item)
+            fsms.append(item)
     compositions = []
-    for view_id, view in sorted(contract["views"].items()):
-        if view.get("includes"):
-            compositions.append({
-                "id": view_id,
-                "context": view.get("context", {}),
-                "layout": view.get("layout", {}),
-                "instances": view.get("includes", []),
-                "sync": view.get("sync", []),
-            })
-    return {"project": contract["project"], "panels": panels, "compositions": compositions}
+    for fsm_id, fsm in sorted(contract["fsms"].items()):
+        for state_name, state in sorted(fsm.get("states", {}).items()):
+            if state.get("includes"):
+                compositions.append({
+                    "id": f"{fsm_id}.{state_name}",
+                    "fsm": fsm_id,
+                    "state": state_name,
+                    "context": fsm.get("context", {}),
+                    "layout": state.get("layout", {}),
+                    "instances": state.get("includes", []),
+                    "sync": state.get("sync", []),
+                })
+    return {"project": contract["project"], "fsms": fsms, "compositions": compositions}
 
 
-def panel_projection_item(owner_kind: str, owner_id: str, state_name: str, state: dict[str, Any]) -> dict[str, Any]:
+def fsm_projection_item(owner_kind: str, owner_id: str, state_name: str, state: dict[str, Any]) -> dict[str, Any]:
     return {
-        "id": state["panel"],
+        "id": state["surface"],
         "owner_kind": owner_kind,
         "owner": owner_id,
         "state": state_name,
@@ -298,28 +297,28 @@ def panel_projection_item(owner_kind: str, owner_id: str, state_name: str, state
     }
 
 
-def panel_styles_projection(contract: dict[str, Any]) -> str:
+def fsm_styles_projection(contract: dict[str, Any]) -> str:
     lines = [
-        "/* Generated panel style contract. Do not edit. */",
+        "/* Generated FSM surface style contract. Do not edit. */",
         ":root {",
         "  --contract-space: 1rem;",
-        "  --contract-panel-max-width: 48rem;",
+        "  --contract-fsm-surface-max-width: 48rem;",
         "}",
-        ".contract-panel {",
+        ".contract-fsm-surface {",
         "  display: grid;",
         "  gap: var(--contract-space);",
-        "  max-width: var(--contract-panel-max-width);",
+        "  max-width: var(--contract-fsm-surface-max-width);",
         "}",
     ]
-    panels = panels_projection(contract)["panels"]
-    for panel in panels:
-        css_contract = (panel.get("presentation") or {}).get("css") or {}
+    fsms = fsms_projection(contract)["fsms"]
+    for fsm in fsms:
+        css_contract = (fsm.get("presentation") or {}).get("css") or {}
         grouped: dict[str, dict[str, str]] = {}
-        root_selector = css_selector(panel, "root")
+        root_selector = css_selector(fsm, "root")
         for name, value in sorted((css_contract.get("tokens") or {}).items()):
             grouped.setdefault(root_selector, {})["--" + name.replace("_", "-")] = value
         for rule in css_contract.get("rules", []):
-            selector = css_selector(panel, rule["selector"])
+            selector = css_selector(fsm, rule["selector"])
             declarations = grouped.setdefault(selector, {})
             for name, value in sorted(rule["declarations"].items()):
                 declarations[name] = css_value(value)
@@ -328,7 +327,7 @@ def panel_styles_projection(contract: dict[str, Any]) -> str:
             for name, value in declarations.items():
                 lines.append(f"  {name}: {value};")
             lines.append("}")
-    for composition in panels_projection(contract)["compositions"]:
+    for composition in fsms_projection(contract)["compositions"]:
         css_contract = layout_html(composition.get("layout") or {}).get("css") or {}
         grouped: dict[str, dict[str, str]] = {}
         root_selector = composition_css_selector(composition, "root")
@@ -348,43 +347,43 @@ def panel_styles_projection(contract: dict[str, Any]) -> str:
 
 
 def textual_contract_projection(contract: dict[str, Any]) -> str:
-    projection = panels_projection(contract)
-    panels = projection["panels"]
+    projection = fsms_projection(contract)
+    fsms = projection["fsms"]
     compositions = projection["compositions"]
-    screen_entries = textual_screen_entries(contract, panels, compositions)
+    screen_entries = textual_screen_entries(contract, fsms, compositions)
     return f'''from __future__ import annotations
 
 # Generated Textual projection. Do not edit by hand.
-# The PM contract owns views/states/actions/widgets/TCSS; a real Textual app imports this file
-# and renders panels by id instead of inventing screens, widgets, or action keys.
+# The PM contract owns FSMs/states/actions/widgets/TCSS; a real Textual app imports this file
+# and renders FSM state surfaces by id instead of inventing screens, widgets, or action keys.
 
 PROJECT = {contract["project"]!r}
 SCREENS = {screen_entries!r}
-PANELS = {panels!r}
+FSMS = {fsms!r}
 COMPOSITIONS = {compositions!r}
-TCSS = {textual_tcss(panels, compositions)!r}
+TCSS = {textual_tcss(fsms, compositions)!r}
 
 
-def panel(panel_id: str) -> dict:
-    for item in PANELS:
-        if item["id"] == panel_id:
+def fsm_surface(surface_id: str) -> dict:
+    for item in FSMS:
+        if item["id"] == surface_id:
             return item
-    raise KeyError(panel_id)
+    raise KeyError(surface_id)
 
 
-def composition(view_id: str) -> dict:
+def composition(composition_id: str) -> dict:
     for item in COMPOSITIONS:
-        if item["id"] == view_id:
+        if item["id"] == composition_id:
             return item
-    raise KeyError(view_id)
+    raise KeyError(composition_id)
 
 
 def textual_css() -> str:
     return TCSS
 
 
-def compose_contract_panel(panel_id: str) -> list[tuple[str, str]]:
-    item = panel(panel_id)
+def compose_contract_fsm(surface_id: str) -> list[tuple[str, str]]:
+    item = fsm_surface(surface_id)
     textual = (item.get("presentation") or {{}}).get("textual") or {{}}
     widgets = textual.get("widgets") or []
     if widgets:
@@ -398,9 +397,9 @@ def compose_contract_panel(panel_id: str) -> list[tuple[str, str]]:
     return result
 
 
-def compose_contract_view(view_id: str) -> list[tuple[str, str, str]]:
-    item = composition(view_id)
-    return [(instance["region"], instance["id"], instance["panel"]) for instance in item["instances"]]
+def compose_contract_composition(composition_id: str) -> list[tuple[str, str, str]]:
+    item = composition(composition_id)
+    return [(instance["region"], instance["id"], instance["fsm"]) for instance in item["instances"]]
 
 
 def widget_label(widget: dict) -> str:
@@ -419,70 +418,70 @@ def widget_label(widget: dict) -> str:
 
 def textual_screen_entries(
     contract: dict[str, Any],
-    panels: list[dict[str, Any]] | None = None,
+    fsms: list[dict[str, Any]] | None = None,
     compositions: list[dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
-    projection = None if panels is not None and compositions is not None else panels_projection(contract)
-    panels = panels if panels is not None else projection["panels"]  # type: ignore[index]
+    projection = None if fsms is not None and compositions is not None else fsms_projection(contract)
+    fsms = fsms if fsms is not None else projection["fsms"]  # type: ignore[index]
     compositions = compositions if compositions is not None else projection["compositions"]  # type: ignore[index]
-    panels_by_owner: dict[str, list[dict[str, Any]]] = {}
-    for panel in panels:
-        panels_by_owner.setdefault(panel["owner"], []).append(panel)
-    compositions_by_view = {composition["id"]: composition for composition in compositions}
+    fsms_by_owner: dict[str, list[dict[str, Any]]] = {}
+    for fsm in fsms:
+        fsms_by_owner.setdefault(fsm["owner"], []).append(fsm)
+    compositions_by_fsm = {composition["id"]: composition for composition in compositions}
     screens = []
-    for view_id, view in sorted(contract["views"].items()):
-        screen_class = _textual_screen_class(view_id, view, panels_by_owner, compositions_by_view)
+    for fsm_id, fsm in sorted(contract["fsms"].items()):
+        screen_class = _textual_screen_class(fsm_id, fsm, fsms_by_owner, compositions_by_fsm)
         if screen_class is None:
             continue
         screens.append({
-            "id": f"screen.{view_id}",
-            "view": view_id,
+            "id": f"screen.{fsm_id}",
+            "fsm": fsm_id,
             "screen_class": screen_class,
         })
     return screens
 
 
 def _textual_screen_class(
-    view_id: str,
-    view: dict[str, Any],
-    panels_by_owner: dict[str, list[dict[str, Any]]],
-    compositions_by_view: dict[str, dict[str, Any]],
+    fsm_id: str,
+    fsm: dict[str, Any],
+    fsms_by_owner: dict[str, list[dict[str, Any]]],
+    compositions_by_fsm: dict[str, dict[str, Any]],
 ) -> str | None:
-    if view_id in compositions_by_view:
-        textual = layout_textual(compositions_by_view[view_id].get("layout") or {})
+    for state_name, state in sorted(fsm.get("states", {}).items()):
+        textual = layout_textual(state.get("layout") or {})
         if textual:
             return textual.get("screen_class") or "ComposedContractScreen"
-    for panel in panels_by_owner.get(view_id, []):
-        textual = (panel.get("presentation") or {}).get("textual") or {}
+    for surface in fsms_by_owner.get(fsm_id, []):
+        textual = (surface.get("presentation") or {}).get("textual") or {}
         if textual.get("screen_class"):
             return textual["screen_class"]
         if textual:
             return "Screen"
-    if any("textual" in (state.get("presentation") or {}) for state in view.get("states", {}).values()):
+    if any("textual" in (state.get("presentation") or {}) for state in fsm.get("states", {}).values()):
         return "Screen"
     return None
 
 
-def default_html_slots(panel: dict[str, Any]) -> list[dict[str, Any]]:
+def default_html_slots(fsm: dict[str, Any]) -> list[dict[str, Any]]:
     slots: list[dict[str, Any]] = []
-    for copy_ref in panel["slots"]["copy"]:
+    for copy_ref in fsm["slots"]["copy"]:
         slot = copy_ref.rsplit(".", 1)[-1]
         element = "h2" if slot == "title" else "p"
         item: dict[str, Any] = {"kind": "copy", "slot": slot, "element": element}
         if slot == "title":
             item.update({"role": "heading", "level": 2})
         slots.append(item)
-    for asset_ref in panel["slots"]["assets"]:
+    for asset_ref in fsm["slots"]["assets"]:
         slots.append({"kind": "asset", "slot": asset_ref.rsplit(".", 1)[-1], "element": "img"})
-    for field in panel["slots"].get("fields", []):
+    for field in fsm["slots"].get("fields", []):
         slots.append({"kind": "field", "slot": field, "element": "p"})
-    for action in panel["slots"]["actions"]:
+    for action in fsm["slots"]["actions"]:
         slots.append({"kind": "action", "ref": action, "element": "button"})
     return slots
 
 
-def css_selector(panel: dict[str, Any], selector: str) -> str:
-    root = f'[data-contract-panel="{panel["id"]}"]'
+def css_selector(fsm: dict[str, Any], selector: str) -> str:
+    root = f'[data-contract-fsm-surface="{fsm["id"]}"]'
     if selector in {"root", "screen"}:
         return root
     if selector.startswith("slot."):
@@ -503,19 +502,19 @@ def composition_css_selector(composition: dict[str, Any], selector: str) -> str:
         return f'{root} [data-layout-region="{region}"]'
     if selector.startswith("instance."):
         instance = selector[len("instance."):]
-        return f'{root} [data-panel-instance="{instance}"]'
+        return f'{root} [data-fsm-instance="{instance}"]'
     return root
 
 
-def textual_tcss(panels: list[dict[str, Any]], compositions: list[dict[str, Any]] | None = None) -> str:
+def textual_tcss(fsms: list[dict[str, Any]], compositions: list[dict[str, Any]] | None = None) -> str:
     grouped: dict[str, dict[str, str]] = {
         "Screen": {"layout": "vertical"},
-        ".contract-panel": {"padding": "1"},
+        ".contract-fsm-surface": {"padding": "1"},
     }
-    for panel in panels:
-        textual = (panel.get("presentation") or {}).get("textual") or {}
+    for fsm in fsms:
+        textual = (fsm.get("presentation") or {}).get("textual") or {}
         for rule in textual.get("tcss", {}).get("rules", []):
-            selector = tcss_selector(panel, rule["selector"])
+            selector = tcss_selector(fsm, rule["selector"])
             declarations = grouped.setdefault(selector, {})
             for name, value in sorted(rule["declarations"].items()):
                 declarations[name] = css_value(value)
@@ -535,10 +534,10 @@ def textual_tcss(panels: list[dict[str, Any]], compositions: list[dict[str, Any]
     return "\n".join(lines) + "\n"
 
 
-def tcss_selector(panel: dict[str, Any], selector: str) -> str:
+def tcss_selector(fsm: dict[str, Any], selector: str) -> str:
     if selector in {"root", "screen"}:
         return "Screen"
-    textual = (panel.get("presentation") or {}).get("textual") or {}
+    textual = (fsm.get("presentation") or {}).get("textual") or {}
     widgets = textual.get("widgets") or []
     if selector.startswith("slot."):
         slot = selector[len("slot."):]
@@ -732,10 +731,14 @@ def refs_py_projection(contract: dict[str, Any]) -> str:
         "Event": sorted(contract["events"]),
         "Fact": sorted(contract.get("facts", {})),
         "Fixture": sorted(contract["fixtures"]),
-        "Panel": sorted(contract.get("panels", {})),
-        "RenderCase": sorted(contract.get("render_cases", {})),
+        "FSM": sorted(contract.get("fsms", {})),
+        "AuditCase": sorted(
+            f"{fsm_id}.{state_name}.{case_name}.audit"
+            for fsm_id, fsm in contract.get("fsms", {}).items()
+            for state_name, state in fsm.get("states", {}).items()
+            for case_name in (state.get("audit") or {})
+        ),
         "Scenario": sorted(contract["scenarios"]),
-        "View": sorted(contract["views"]),
     }
     for kind, values in sorted(contract["refs"].items()):
         groups[kind.title().replace("_", "")] = values

@@ -6,7 +6,7 @@ from typing import Any, Mapping
 from pyspec_contract.io import read_json, read_yaml
 from pyspec_contract.paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR
 from pyspec_contract.runtime import fixture_namespace, resolve_map
-from pyspec_contract.targets import entry_view_name
+from pyspec_contract.targets import entry_fsm_name
 
 
 class ProductApp:
@@ -20,7 +20,7 @@ class ProductApp:
     def __init__(self, root: Path):
         self.root = root
         self.contract = read_yaml(root / COMPILED_SPEC_PATH)
-        self.panels = {p["id"]: p for p in read_json(root / GENERATED_SPEC_DIR / "product_interfaces" / "web.panels.json")["panels"]}
+        self.surfaces = {p["id"]: p for p in read_json(root / GENERATED_SPEC_DIR / "product_interfaces" / "web.fsms.json")["fsms"]}
         self.reset()
 
     def reset(self) -> None:
@@ -29,7 +29,7 @@ class ProductApp:
         self.emitted_events: list[str] = []
         self.invoked_capabilities: list[str] = []
         self.ran_workflows: list[str] = []
-        self.rendered_view: dict[str, Any] | None = None
+        self.rendered_fsm: dict[str, Any] | None = None
         self.http_response: dict[str, Any] | None = None
 
     def arrange(self, arrange: Mapping[str, Any]) -> None:
@@ -48,86 +48,86 @@ class ProductApp:
     def open_web_entry(self, entry_id: str, params: Mapping[str, Any]) -> dict[str, Any]:
         entry = self.contract["entries"][entry_id]
         assert entry["surface"] == "web"
-        view_id = entry_view_name(entry)
-        view = self.contract["views"][view_id]
+        fsm_id = entry_fsm_name(entry)
+        fsm = self.contract["fsms"][fsm_id]
         workspace_id = params.get("workspace_id")
         matching = [p for p in self.projects if p.get("workspace_id") == workspace_id]
-        if view.get("includes"):
-            panels: dict[str, Any] = {}
+        parent_state_name = "ready" if "ready" in fsm.get("states", {}) else next(iter(fsm.get("states", {"ready": {}})))
+        parent_state = fsm["states"].get(parent_state_name, {"surface": None, "copy": [], "assets": [], "actions": [], "data": []})
+        if parent_state.get("includes"):
+            fsms: dict[str, Any] = {}
             context = dict(params)
-            for include in view["includes"]:
-                source_id = include["panel"]
-                panel = self.contract["panels"][source_id]
-                state_name = self._choose_panel_state(panel, include, matching, context)
-                state = panel["states"][state_name]
-                panels[include["id"]] = {
+            for include in parent_state["includes"]:
+                source_id = include["fsm"]
+                fsm = self.contract["fsms"][source_id]
+                state_name = self._choose_fsm_state(fsm, include, matching, context)
+                state = fsm["states"][state_name]
+                fsms[include["id"]] = {
                     "source": source_id,
                     "state": state_name,
-                    "panel": state["panel"],
-                    "data": list(panel.get("data", [])) + list(state.get("data", [])),
+                    "surface": state["surface"],
+                    "data": list(fsm.get("data", [])) + list(state.get("data", [])),
                     "copy": list(state["copy"]),
                     "assets": list(state["assets"]),
                     "actions": list(state["actions"]),
                 }
-            state_name = "ready" if "ready" in view.get("states", {}) else next(iter(view.get("states", {"ready": {}})))
-            state = view.get("states", {}).get(state_name, {"panel": None, "copy": [], "assets": [], "actions": [], "data": []})
-            self.rendered_view = {
-                "ref": view_id,
-                "state": state_name,
-                "panel": state.get("panel"),
-                "data": list(panel.get("data", [])) + list(state.get("data", [])),
-                "copy": list(state.get("copy", [])),
-                "assets": list(state.get("assets", [])),
-                "actions": list(state.get("actions", [])),
+            self.rendered_fsm = {
+                "ref": fsm_id,
+                "state": parent_state_name,
+                "surface": parent_state.get("surface"),
+                "data": list(fsm.get("data", [])) + list(parent_state.get("data", [])),
+                "copy": list(parent_state.get("copy", [])),
+                "assets": list(parent_state.get("assets", [])),
+                "actions": list(parent_state.get("actions", [])),
                 "context": context,
-                "panels": panels,
-                "sync": [rule["id"] for rule in view.get("sync", [])],
+                "instances": fsms,
+                "sync": [rule["id"] for rule in parent_state.get("sync", [])],
             }
-            return self.rendered_view
+            return self.rendered_fsm
         state_name = "ready" if matching else "empty"
-        state = view["states"][state_name]
-        self.rendered_view = {
-            "ref": view_id,
+        state = fsm["states"][state_name]
+        self.rendered_fsm = {
+            "ref": fsm_id,
             "state": state_name,
-            "panel": state["panel"],
+            "surface": state["surface"],
             "copy": list(state["copy"]),
             "assets": list(state["assets"]),
             "actions": list(state["actions"]),
         }
-        return self.rendered_view
+        return self.rendered_fsm
 
-    def _choose_panel_state(self, panel: dict[str, Any], include: dict[str, Any], records: list[dict[str, Any]], context: dict[str, Any]) -> str:
+    def _choose_fsm_state(self, fsm: dict[str, Any], include: dict[str, Any], records: list[dict[str, Any]], context: dict[str, Any]) -> str:
         selected = include.get("selected")
         if selected:
             if _condition_matches(selected["when"], context):
                 return selected["state"]
             return include["initial"]
-        if records and "ready" in panel["states"] and (panel.get("data") or panel["states"]["ready"].get("data")):
+        if records and "ready" in fsm["states"] and (fsm.get("data") or fsm["states"]["ready"].get("data")):
             return "ready"
-        if not records and "empty" in panel["states"]:
+        if not records and "empty" in fsm["states"]:
             return "empty"
         return include["initial"]
 
-    def _rendered_panel_ids(self) -> set[str]:
-        if not self.rendered_view:
+    def _rendered_fsm_ids(self) -> set[str]:
+        if not self.rendered_fsm:
             return set()
-        if "panels" in self.rendered_view:
-            panels = {panel["panel"] for panel in self.rendered_view["panels"].values()}
-            if self.rendered_view.get("panel"):
-                panels.add(self.rendered_view["panel"])
-            return panels
-        return {self.rendered_view["panel"]}
+        if "instances" in self.rendered_fsm:
+            fsms = {fsm["surface"] for fsm in self.rendered_fsm["instances"].values()}
+            if self.rendered_fsm.get("surface"):
+                fsms.add(self.rendered_fsm["surface"])
+            return fsms
+        return {self.rendered_fsm["surface"]}
 
     def _rendered_values(self, key: str) -> set[str]:
-        if not self.rendered_view:
+        if not self.rendered_fsm:
             return set()
-        if "panels" in self.rendered_view:
+        if "instances" in self.rendered_fsm:
             values: set[str] = set()
-            values.update(self.rendered_view.get(key, []))
-            for panel in self.rendered_view["panels"].values():
-                values.update(panel.get(key, []))
+            values.update(self.rendered_fsm.get(key, []))
+            for fsm in self.rendered_fsm["instances"].values():
+                values.update(fsm.get(key, []))
             return values
-        return set(self.rendered_view.get(key, []))
+        return set(self.rendered_fsm.get(key, []))
 
     def call_entry(self, entry_id: str, input_values: Mapping[str, Any]) -> dict[str, Any]:
         entry = self.contract["entries"][entry_id]
@@ -177,31 +177,31 @@ class ProductApp:
                     self.invoke_capability(step["capability"], payload)
 
     def assert_contract(self, assertions: Mapping[str, Any]) -> None:
-        if "view" in assertions:
-            expected = assertions["view"]
-            assert self.rendered_view is not None
-            assert self.rendered_view["ref"] == expected["ref"]
+        if "fsm" in assertions:
+            expected = assertions["fsm"]
+            assert self.rendered_fsm is not None
+            assert self.rendered_fsm["ref"] == expected["ref"]
             if "state" in expected:
-                assert self.rendered_view["state"] == expected["state"]
-                assert self.rendered_view["panel"] == expected["panel"]
-            if "panels" in expected:
-                assert set(self.rendered_view["panels"]) == set(expected["panels"])
-                for instance_id, panel_expected in expected["panels"].items():
-                    actual = self.rendered_view["panels"][instance_id]
-                    assert actual["state"] == panel_expected["state"]
-                    assert actual["panel"] == panel_expected["panel"]
+                assert self.rendered_fsm["state"] == expected["state"]
+                assert self.rendered_fsm["surface"] == expected["surface"]
+            if "instances" in expected:
+                assert set(self.rendered_fsm["instances"]) == set(expected["instances"])
+                for instance_id, fsm_expected in expected["instances"].items():
+                    actual = self.rendered_fsm["instances"][instance_id]
+                    assert actual["state"] == fsm_expected["state"]
+                    assert actual["surface"] == fsm_expected["surface"]
                 for sync_id in (expected.get("sync") or {}).get("observed", []):
-                    assert sync_id in self.rendered_view.get("sync", [])
+                    assert sync_id in self.rendered_fsm.get("sync", [])
         requires = assertions.get("requires", {})
         if requires:
-            assert self.rendered_view is not None
-            rendered_panels = self._rendered_panel_ids()
+            assert self.rendered_fsm is not None
+            rendered_fsms = self._rendered_fsm_ids()
             rendered_copy = self._rendered_values("copy")
             rendered_assets = self._rendered_values("assets")
             rendered_actions = self._rendered_values("actions")
-            for panel in requires.get("panel", []):
-                assert panel in self.panels
-                assert panel in rendered_panels
+            for fsm in requires.get("surfaces", []):
+                assert fsm in self.surfaces
+                assert fsm in rendered_fsms
             for key in requires.get("copy", []):
                 assert key in rendered_copy
             for key in requires.get("assets", []):

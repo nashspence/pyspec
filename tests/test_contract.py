@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from pyspec_contract.compile import ContractError, author_from_source, compile_author, compile_source, validate_against_schema
+from pyspec_contract.compile import ContractError, audit_cases, author_from_source, compile_author, compile_source, validate_against_schema
 from pyspec_contract.io import read_yaml, write_yaml
 from pyspec_contract.paths import COMPILED_SPEC_PATH, SOURCE_SPEC_PATH
 from pyspec_contract.validate import validate_project
@@ -86,7 +86,7 @@ def test_release_gate_requires_final_content_resolvers() -> None:
 
 def test_state_pattern_is_not_a_contract_concept() -> None:
     author = _author()
-    state = _item(author, "panels", "panel.project.list")["states"]["loading"]
+    state = _item(author, "fsms", "fsm.project.list")["states"]["loading"]
     state["pattern"] = "loading"
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
@@ -129,7 +129,7 @@ def test_named_fact_expands_into_compiled_scenario() -> None:
     scenario_fact = contract["scenarios"]["project.approve.success"]["arrange"]["facts"][0]
     assert "use" not in scenario_fact
     assert scenario_fact == {"present": fact["present"]}
-    assert contract["render_cases"]["project.board.ready_selected.audit"]["facts"] == [
+    assert audit_cases(contract)["fsm.project.board.ready.ready_selected.audit"]["facts"] == [
         {"use": "fact.project.submitted"},
         {"use": "fact.project.draft"},
     ]
@@ -152,20 +152,20 @@ def test_duplicate_fact_use_in_one_scenario_is_rejected() -> None:
         compile_author(author)
 
 
-def test_unknown_render_case_fact_use_is_rejected() -> None:
+def test_unknown_audit_case_fact_use_is_rejected() -> None:
     author = _author()
-    author["render_cases"]["project.board.ready_selected.audit"]["facts"] = [{"use": "fact.project.missing"}]
-    with pytest.raises(ContractError, match=r"Render case project\.board\.ready_selected\.audit references unknown fact fact\.project\.missing"):
+    author["fsms"]["fsm.project.board"]["states"]["ready"]["audit"]["ready_selected"]["facts"] = [{"use": "fact.project.missing"}]
+    with pytest.raises(ContractError, match=r"Audit case fsm\.project\.board\.ready\.ready_selected\.audit references unknown fact fact\.project\.missing"):
         compile_author(author)
 
 
-def test_duplicate_render_case_fact_use_is_rejected() -> None:
+def test_duplicate_audit_case_fact_use_is_rejected() -> None:
     author = _author()
-    author["render_cases"]["project.board.ready_selected.audit"]["facts"] = [
+    author["fsms"]["fsm.project.board"]["states"]["ready"]["audit"]["ready_selected"]["facts"] = [
         {"use": "fact.project.submitted"},
         {"use": "fact.project.submitted"},
     ]
-    with pytest.raises(ContractError, match=r"Render case project\.board\.ready_selected\.audit uses fact fact\.project\.submitted more than once"):
+    with pytest.raises(ContractError, match=r"Audit case fsm\.project\.board\.ready\.ready_selected\.audit uses fact fact\.project\.submitted more than once"):
         compile_author(author)
 
 
@@ -260,13 +260,13 @@ def test_author_contract_can_omit_absent_sections() -> None:
     contract = compile_author(author)
     assert set(contract["resources"]) == {"Ticket"}
     assert contract["entries"] == {}
-    assert contract["panels"] == {}
+    assert contract["fsms"] == {}
     assert contract["refs"]["policy"] == ["policy.ticket.create"]
     assert contract["resources"]["Ticket"]["basis"] == "Declared resource Ticket."
     assert contract["capabilities"]["ticket.create"]["basis"] == "Members can create tickets."
 
 
-def test_author_panel_defaults_empty_collections() -> None:
+def test_author_fsm_defaults_empty_collections() -> None:
     from pyspec_contract.layers import parse_layers
 
     author = {
@@ -284,145 +284,145 @@ def test_author_panel_defaults_empty_collections() -> None:
                 "basis": "Single breakpoint covers the tiny authored example.",
             }
         },
-        "panels": {
-            "panel.ticket.empty": {
+        "fsms": {
+            "fsm.ticket.empty": {
                 "resource": "Ticket",
                 "initial": "empty",
                 "states": {"empty": {}},
-                "basis": "Panel can start as a minimal empty-state FSM.",
+                "basis": "FSM can start as a minimal empty-state.",
             }
         },
     }
     contract = compile_author(author, layers=parse_layers("core,ui,web"))
-    panel = contract["panels"]["panel.ticket.empty"]
-    assert panel["context"] == {}
-    assert panel["data"] == []
-    assert panel["messages"] == {"accepts": {}, "emits": {}}
-    assert panel["transitions"] == []
-    assert "kind" not in panel
+    fsm = contract["fsms"]["fsm.ticket.empty"]
+    assert fsm["context"] == {}
+    assert fsm["data"] == []
+    assert fsm["messages"] == {"accepts": {}, "emits": {}}
+    assert fsm["transitions"] == []
+    assert "kind" not in fsm
 
 
-def test_panel_empty_message_directions_can_be_omitted() -> None:
+def test_fsm_empty_message_directions_can_be_omitted() -> None:
     author = _author()
-    activity = _item(author, "panels", "panel.project.activity")
+    activity = _item(author, "fsms", "fsm.project.activity")
 
     assert "emits" not in activity["messages"]
     contract = compile_source(author)
 
-    assert contract["panels"]["panel.project.activity"]["messages"]["emits"] == {}
+    assert contract["fsms"]["fsm.project.activity"]["messages"]["emits"] == {}
 
 
 def test_author_source_prunes_empty_message_directions() -> None:
     author = _author()
-    activity = _item(author, "panels", "panel.project.activity")
+    activity = _item(author, "fsms", "fsm.project.activity")
     activity["messages"]["emits"] = {}
 
     pruned = author_from_source(author)
 
-    assert "emits" not in pruned["panels"]["panel.project.activity"]["messages"]
+    assert "emits" not in pruned["fsms"]["fsm.project.activity"]["messages"]
 
 
-def test_empty_panel_message_payloads_can_be_omitted() -> None:
+def test_empty_fsm_message_payloads_can_be_omitted() -> None:
     author = _author()
-    activity = _item(author, "panels", "panel.project.activity")
+    activity = _item(author, "fsms", "fsm.project.activity")
 
     assert activity["messages"]["accepts"]["selection.cleared"] == {}
     contract = compile_source(author)
 
-    assert contract["panels"]["panel.project.activity"]["messages"]["accepts"]["selection.cleared"]["payload"] == {}
+    assert contract["fsms"]["fsm.project.activity"]["messages"]["accepts"]["selection.cleared"]["payload"] == {}
 
 
 def test_author_source_prunes_empty_message_payloads() -> None:
     author = _author()
-    activity = _item(author, "panels", "panel.project.activity")
+    activity = _item(author, "fsms", "fsm.project.activity")
     activity["messages"]["accepts"]["selection.cleared"]["payload"] = {}
 
     pruned = author_from_source(author)
 
-    assert pruned["panels"]["panel.project.activity"]["messages"]["accepts"]["selection.cleared"] == {}
+    assert pruned["fsms"]["fsm.project.activity"]["messages"]["accepts"]["selection.cleared"] == {}
 
 
-def test_panel_accepted_messages_must_be_used_by_transition() -> None:
+def test_fsm_accepted_messages_must_be_used_by_transition() -> None:
     author = _author()
-    activity = _item(author, "panels", "panel.project.activity")
+    activity = _item(author, "fsms", "fsm.project.activity")
     activity["messages"]["accepts"]["unused.message"] = {}
-    with pytest.raises(ContractError, match=r"Panel panel\.project\.activity declares accepted message without transition: .*unused\.message"):
+    with pytest.raises(ContractError, match=r"FSM fsm\.project\.activity declares accepted message without transition: .*unused\.message"):
         compile_source(author)
 
 
-def test_panel_transition_messages_must_be_declared_as_accepted() -> None:
+def test_fsm_transition_messages_must_be_declared_as_accepted() -> None:
     author = _author()
-    activity = _item(author, "panels", "panel.project.activity")
+    activity = _item(author, "fsms", "fsm.project.activity")
     del activity["messages"]["accepts"]["selection.cleared"]
-    with pytest.raises(ContractError, match=r"Panel panel\.project\.activity transition message references undeclared panel message: selection\.cleared"):
+    with pytest.raises(ContractError, match=r"FSM fsm\.project\.activity transition message references undeclared FSM message: selection\.cleared"):
         compile_source(author)
 
 
-def test_panel_data_events_require_data_binding() -> None:
+def test_fsm_data_events_require_data_binding() -> None:
     author = _author()
-    detail = _item(author, "panels", "panel.project.detail")
+    detail = _item(author, "fsms", "fsm.project.detail")
     detail["states"]["loading"]["data"] = []
     detail["states"]["ready"].pop("field_slots")
-    with pytest.raises(ContractError, match=r"Panel panel\.project\.detail transition uses data message without panel or source-state data: data\.ready"):
+    with pytest.raises(ContractError, match=r"FSM fsm\.project\.detail transition uses data message without FSM or source-state data: data\.ready"):
         compile_source(author)
 
 
-def test_panel_transition_requires_basis_when_audit_card_would_be_empty() -> None:
+def test_fsm_transition_requires_basis_when_audit_card_would_be_empty() -> None:
     author = _author()
-    activity = _item(author, "panels", "panel.project.activity")
+    activity = _item(author, "fsms", "fsm.project.activity")
     cleared = next(transition for transition in activity["transitions"] if transition["on"] == "selection.cleared")
     cleared.pop("effects")
     with pytest.raises(
         ContractError,
-        match=r"Panel panel\.project\.activity transition selection\.cleared from ready to empty must declare basis, data, or effects",
+            match=r"FSM fsm\.project\.activity transition selection\.cleared from ready to empty must declare basis, data, or effects",
     ):
         compile_source(author)
 
 
-def test_panel_transition_basis_can_explain_otherwise_empty_audit_card() -> None:
+def test_fsm_transition_basis_can_explain_otherwise_empty_audit_card() -> None:
     author = _author()
-    activity = _item(author, "panels", "panel.project.activity")
+    activity = _item(author, "fsms", "fsm.project.activity")
     cleared = next(transition for transition in activity["transitions"] if transition["on"] == "selection.cleared")
     cleared.pop("effects")
-    cleared["basis"] = "Clearing the selection returns the activity panel to its empty state."
+    cleared["basis"] = "Clearing the selection returns the activity FSM to its empty state."
     contract = compile_source(author)
     compiled = next(
         transition
-        for transition in contract["panels"]["panel.project.activity"]["transitions"]
+        for transition in contract["fsms"]["fsm.project.activity"]["transitions"]
         if transition["on"] == "selection.cleared"
     )
-    assert compiled["basis"] == "Clearing the selection returns the activity panel to its empty state."
+    assert compiled["basis"] == "Clearing the selection returns the activity FSM to its empty state."
 
 
-def test_panel_data_inputs_must_come_from_context() -> None:
+def test_fsm_data_inputs_must_come_from_context() -> None:
     author = _author()
-    panel = _item(author, "panels", "panel.project.list")
-    del panel["context"]["workspace_id"]
+    fsm = _item(author, "fsms", "fsm.project.list")
+    del fsm["context"]["workspace_id"]
     with pytest.raises(
         ContractError,
-        match=r"Panel panel\.project\.list data capability project\.list input not provided by context: .*workspace_id",
+        match=r"FSM fsm\.project\.list data capability project\.list input not provided by context: .*workspace_id",
     ):
         compile_source(author)
 
 
-def test_panel_field_slots_require_data_source() -> None:
+def test_fsm_field_slots_require_data_source() -> None:
     author = _author()
-    activity = _item(author, "panels", "panel.project.activity")
+    activity = _item(author, "fsms", "fsm.project.activity")
     del activity["states"]["ready"]["data"]
     with pytest.raises(
         ContractError,
-        match=r"Panel panel\.project\.activity\.ready declares field slots without data source",
+        match=r"FSM fsm\.project\.activity\.ready declares field slots without data source",
     ):
         compile_source(author)
 
 
-def test_panel_data_source_must_be_query_like_capability() -> None:
+def test_fsm_data_source_must_be_query_like_capability() -> None:
     author = _author()
-    activity = _item(author, "panels", "panel.project.activity")
+    activity = _item(author, "fsms", "fsm.project.activity")
     activity["states"]["ready"]["data"] = ["project.submit"]
     with pytest.raises(
         ContractError,
-        match=r"Panel panel\.project\.activity\.ready data capability must be read, list, or query: project\.submit",
+        match=r"FSM fsm\.project\.activity\.ready data capability must be read, list, or query: project\.submit",
     ):
         compile_source(author)
 
@@ -482,15 +482,15 @@ def test_prod_harness_cannot_import_spec_fake(tmp_path: Path) -> None:
 
 def test_presentation_rejects_undeclared_css_region() -> None:
     author = _author()
-    view = _item(author, "views", "project.board")
-    view["layout"]["html"]["css"]["rules"].append({"selector": "region.ghost", "declarations": {"display": "block"}})
+    fsm = _item(author, "fsms", "fsm.project.board")["states"]["ready"]
+    fsm["layout"]["html"]["css"]["rules"].append({"selector": "region.ghost", "declarations": {"display": "block"}})
     with pytest.raises(ContractError, match="undeclared layout region"):
         compile_source(author)
 
 
 def test_presentation_rejects_undeclared_textual_action() -> None:
     author = _author()
-    state = _item(author, "panels", "panel.project.list")["states"]["ready"]
+    state = _item(author, "fsms", "fsm.project.list")["states"]["ready"]
     state["presentation"] = {
         "textual": {
             "screen_class": "ProjectListState",
@@ -508,18 +508,18 @@ def test_missing_referenced_capability_is_rejected() -> None:
         compile_source(author)
 
 
-def test_composed_view_rejects_unknown_included_panel() -> None:
+def test_fsm_composition_rejects_unknown_included_fsm() -> None:
     author = _author()
-    view = _item(author, "views", "project.board")
-    view["includes"][0]["panel"] = "panel.project.ghost"
-    with pytest.raises(ContractError, match="includes unknown panel"):
+    fsm = _item(author, "fsms", "fsm.project.board")["states"]["ready"]
+    fsm["includes"][0]["fsm"] = "fsm.project.ghost"
+    with pytest.raises(ContractError, match="includes unknown FSM"):
         compile_source(author)
 
 
-def test_composed_view_rejects_unknown_sync_target_message() -> None:
+def test_fsm_composition_rejects_unknown_sync_target_message() -> None:
     author = _author()
-    view = _item(author, "views", "project.board")
-    for effect in view["sync"][0]["do"]:
+    fsm = _item(author, "fsms", "fsm.project.board")["states"]["ready"]
+    for effect in fsm["sync"][0]["do"]:
         if "send" in effect:
             effect["send"]["message"] = "project.ghost_message"
             break
@@ -527,9 +527,9 @@ def test_composed_view_rejects_unknown_sync_target_message() -> None:
         compile_source(author)
 
 
-def test_panel_emit_data_must_exactly_match_emitted_message_payload() -> None:
+def test_fsm_emit_data_must_exactly_match_emitted_message_payload() -> None:
     author = _author()
-    transition = _item(author, "panels", "panel.project.list")["transitions"][-1]
+    transition = _item(author, "fsms", "fsm.project.list")["transitions"][-1]
     transition["effects"][0]["emit"]["data"] = {}
     with pytest.raises(ContractError, match=r"transition emit project\.selected data must exactly match payload fields: missing: project_id"):
         compile_source(author)
@@ -537,8 +537,8 @@ def test_panel_emit_data_must_exactly_match_emitted_message_payload() -> None:
 
 def test_sync_send_data_must_exactly_match_target_message_payload() -> None:
     author = _author()
-    view = _item(author, "views", "project.board")
-    send = next(effect["send"] for effect in view["sync"][0]["do"] if "send" in effect)
+    fsm = _item(author, "fsms", "fsm.project.board")["states"]["ready"]
+    send = next(effect["send"] for effect in fsm["sync"][0]["do"] if "send" in effect)
     send["data"] = {}
     with pytest.raises(ContractError, match=r"sync send project\.selection_changed to detail data must exactly match payload fields: missing: project_id"):
         compile_source(author)
@@ -546,34 +546,34 @@ def test_sync_send_data_must_exactly_match_target_message_payload() -> None:
 
 def test_sync_send_data_must_match_target_message_payload_type() -> None:
     author = _author()
-    view = _item(author, "views", "project.board")
-    send = next(effect["send"] for effect in view["sync"][0]["do"] if "send" in effect)
+    fsm = _item(author, "fsms", "fsm.project.board")["states"]["ready"]
+    send = next(effect["send"] for effect in fsm["sync"][0]["do"] if "send" in effect)
     send["data"]["project_id"] = 1
     with pytest.raises(ContractError, match=r"sync send project\.selection_changed to detail data\.project_id type mismatch: expected ID, got Int"):
         compile_source(author)
 
 
-def test_panel_message_payloads_must_be_consistent_across_panels() -> None:
+def test_fsm_message_payloads_must_be_consistent_across_fsms() -> None:
     author = _author()
-    activity = _item(author, "panels", "panel.project.activity")
+    activity = _item(author, "fsms", "fsm.project.activity")
     activity["messages"]["accepts"]["project.selection_changed"]["payload"]["project_id"] = "Text"
-    with pytest.raises(ContractError, match=r"Panel message project\.selection_changed payload differs"):
+    with pytest.raises(ContractError, match=r"sync send project\.selection_changed to activity data\.project_id type mismatch"):
         compile_source(author)
 
 
-def test_panel_message_direction_must_be_unambiguous() -> None:
+def test_fsm_message_direction_must_be_unambiguous() -> None:
     author = _author()
-    panel = _item(author, "panels", "panel.project.list")
-    panel["messages"]["emits"]["project.select"] = {"payload": {"project_id": "ID"}}
+    fsm = _item(author, "fsms", "fsm.project.list")
+    fsm["messages"]["emits"]["project.select"] = {"payload": {"project_id": "ID"}}
     with pytest.raises(ContractError, match=r"declares message as both accepted and emitted: .*project\.select"):
         compile_source(author)
 
 
-def test_composed_scenario_rejects_unknown_panel_instance() -> None:
+def test_composed_scenario_rejects_unknown_fsm_instance() -> None:
     author = _author()
     scenario = _item(author, "scenarios", "project.board.ready")
-    scenario["then"]["view"]["panels"]["ghost"] = {"state": "ready"}
-    with pytest.raises(ContractError, match="unknown panel instance"):
+    scenario["then"]["fsm"]["instances"]["ghost"] = {"state": "ready"}
+    with pytest.raises(ContractError, match="unknown FSM instance"):
         compile_source(author)
 
 
@@ -617,8 +617,8 @@ def test_authoring_layers_allow_api_only_contract_and_graph_driven_projections()
     assert "spec/generated/product_interfaces/http.openapi.yaml" in paths
     assert "spec/generated/persistence.sql" not in paths
     assert "spec/generated/persistence.json" not in paths
-    assert "spec/generated/product_interfaces/web.panels.preview.html" not in paths
-    assert "spec/generated/product_interfaces/web.panels.preview.css" not in paths
+    assert "spec/generated/product_interfaces/web.fsms.preview.html" not in paths
+    assert "spec/generated/product_interfaces/web.fsms.preview.css" not in paths
     assert "spec/generated/product_interfaces/textual.projection.py" not in paths
     assert "spec/generated/product_interfaces/events.asyncapi.yaml" not in paths
     assert "spec/generated/product_interfaces/workflow.cwl.yaml" not in paths
@@ -628,15 +628,15 @@ def test_authoring_layers_reject_irrelevant_ui_targets() -> None:
     from pyspec_contract.layers import parse_layers
 
     author = _api_only_author()
-    author["panels"] = {
-        "panel.ticket.list": {
+    author["fsms"] = {
+        "fsm.ticket.list": {
             "resource": "Ticket",
             "context": {},
             "data": [],
             "initial": "empty",
             "states": {"empty": {}},
             "transitions": [],
-            "basis": _basis("UI panel is not part of this API layer"),
+            "basis": _basis("UI FSM is not part of this API layer"),
         }
     }
     with pytest.raises(ContractError, match="outside active authoring layers"):
@@ -648,15 +648,15 @@ def test_authoring_layers_reject_wrong_entry_surface() -> None:
 
     author = _api_only_author()
     del author["entries"]["api.ticket.create"]
-    author["entries"]["web.ticket.create"] = {"surface": "web", "path": "/tickets", "target": {"view": {"name": "ticket.list", "surface": "html"}}}
+    author["entries"]["web.ticket.create"] = {"surface": "web", "path": "/tickets", "target": {"fsm": {"name": "fsm.ticket.list", "surface": "html"}}}
     with pytest.raises(ContractError, match="entry surface web requires web"):
         compile_author(author, layers=parse_layers("core,http"))
 
 
-def test_cli_view_entry_must_provide_required_view_context_args() -> None:
+def test_cli_fsm_entry_must_provide_required_context_args() -> None:
     author = _author()
     del author["entries"]["cli.project.board"]["args"]
-    with pytest.raises(ContractError, match=r"Entry cli\.project\.board args must include required view context inputs: \['workspace_id'\]"):
+    with pytest.raises(ContractError, match=r"Entry cli\.project\.board args must include required FSM context inputs: \['workspace_id'\]"):
         compile_source(author)
 
 
@@ -673,7 +673,7 @@ def test_textual_is_not_an_entrypoint_surface() -> None:
         "basis": _basis("Textual is a render surface, not an entrypoint surface."),
         "command": "project board",
         "surface": "textual",
-        "target": {"view": {"name": "project.board", "surface": "textual"}},
+        "target": {"fsm": {"name": "fsm.project.board", "surface": "textual"}},
     }
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
@@ -698,30 +698,30 @@ def test_cli_entry_cannot_target_raw_event() -> None:
         compile_source(author)
 
 
-def test_view_entry_target_must_declare_render_surface() -> None:
+def test_fsm_entry_target_must_declare_render_surface() -> None:
     author = _author()
-    author["entries"]["cli.project.board"]["target"] = {"view": "project.board"}
+    author["entries"]["cli.project.board"]["target"] = {"fsm": "fsm.project.board"}
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
 
-def test_web_view_entry_must_target_html_surface() -> None:
+def test_web_fsm_entry_must_target_html_surface() -> None:
     author = _author()
-    author["entries"]["web.project.board"]["target"]["view"]["surface"] = "textual"
-    with pytest.raises(ContractError, match=r"Entry web\.project\.board cannot target view surface 'textual'"):
+    author["entries"]["web.project.board"]["target"]["fsm"]["surface"] = "textual"
+    with pytest.raises(ContractError, match=r"Entry web\.project\.board cannot target FSM surface 'textual'"):
         compile_source(author)
 
 
-def test_cli_view_entry_surface_must_be_declared_by_view() -> None:
+def test_cli_fsm_entry_surface_must_be_declared_by_fsm() -> None:
     author = _author()
-    del author["views"]["project.board"]["layout"]["textual"]
-    with pytest.raises(ContractError, match=r"Entry cli\.project\.board targets view project\.board surface textual but that view does not declare it"):
+    del author["fsms"]["fsm.project.board"]["states"]["ready"]["layout"]["textual"]
+    with pytest.raises(ContractError, match=r"Entry cli\.project\.board targets FSM fsm\.project\.board surface textual but that FSM does not declare it"):
         compile_source(author)
 
 
-def test_cli_view_entry_can_launch_html_view_surface() -> None:
+def test_cli_fsm_entry_can_launch_html_surface() -> None:
     author = _author()
-    author["entries"]["cli.project.board"]["target"]["view"]["surface"] = "html"
+    author["entries"]["cli.project.board"]["target"]["fsm"]["surface"] = "html"
     compile_source(author)
 
 
@@ -748,20 +748,20 @@ def test_get_api_entry_must_provide_all_capability_input_as_params() -> None:
         compile_source(author)
 
 
-def test_authoring_layers_reject_html_layout_without_web_layer() -> None:
+def test_authoring_layers_reject_html_fsm_layout_without_web_layer() -> None:
     from pyspec_contract.layers import parse_layers
 
     author = _api_only_author()
-    author["views"] = {
-        "ticket.board": {
+    author["fsms"] = {
+        "fsm.ticket.board": {
             "archetype": "dashboard",
             "resource": "Ticket",
-            "states": {"ready": {}},
-            "layout": {"html": {"regions": {"main": {"required": True}}}},
+            "initial": "ready",
+            "states": {"ready": {"layout": {"html": {"regions": {"main": {"required": True}}}}}},
             "basis": _basis("HTML layout is a web surface"),
         }
     }
-    with pytest.raises(ContractError, match="view layout html requires web"):
+    with pytest.raises(ContractError, match="FSM state layout html requires web"):
         compile_author(author, layers=parse_layers("core,http,ui,textual"))
 
 
@@ -771,8 +771,8 @@ def test_layer_pruned_author_schema_hides_irrelevant_sections() -> None:
     schema = author_schema_for_layers(parse_layers("core,http"))
     assert "entries" in schema["properties"]
     assert "resources" in schema["properties"]
-    assert "panels" not in schema["properties"]
-    assert "render_cases" not in schema["properties"]
+    assert "fsms" not in schema["properties"]
+    assert "audit_cases" not in schema["properties"]
 
 
 def test_pyspec_contract_rejects_scenario_harness_routing() -> None:

@@ -6,11 +6,11 @@ The tree is organized by why an artifact exists:
 
 - `agent_prompts/` contains standalone layer-specific role prompts for PM/design, test, dev, and review agents.
 - `compiled/` contains the compiler-normalized spec.
-- `product_interfaces/` contains product-facing projections such as OpenAPI, AsyncAPI, CWL, routes, panel manifests, and Textual projections.
+- `product_interfaces/` contains product-facing projections such as OpenAPI, AsyncAPI, CWL, routes, FSM surface manifests, and Textual projections.
 - `behavior/` contains semantic fixtures and scenarios.
 - `content_resolvers/` contains typed signatures, cases, and implementation stubs for `spec/spec.py`.
 - `test_adapters/` contains Python and pytest-bdd glue derived from `behavior/`.
-- `audit_evidence/` contains subject-local entrypoint flows, workflow flows, panel FSMs, composed-view composition diagrams, scoped inputs, and rendered visual evidence.
+- `audit_evidence/` contains subject-local entrypoint flows, workflow flows, FSM diagrams, state composition diagrams, scoped inputs, and rendered visual evidence.
 
 Validation enforces a closed generated tree:
 

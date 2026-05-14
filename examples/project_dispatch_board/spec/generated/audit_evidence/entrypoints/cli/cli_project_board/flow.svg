@@ -1,5 +1,5 @@
-<svg width="972pt" height="312pt"
- viewBox="0.00 0.00 972.00 312.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="963pt" height="312pt"
+ viewBox="0.00 0.00 963.00 312.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 294)">
 <title>entrypoint_cli_project_board</title>
 <!-- entry_start -->
@@ -18,7 +18,7 @@
 <text text-anchor="start" x="108.5" y="-144.6" font-family="Arial" font-size="8.00" fill="#64748b">cli entry</text>
 <text text-anchor="start" x="108.5" y="-127" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">CLI launcher for the Textual dispatch board.</text>
 <text text-anchor="start" x="109.5" y="-107" font-family="Arial" font-weight="bold" font-size="10.00">command:</text>
-<text text-anchor="start" x="159.5" y="-107" font-family="Arial" font-size="10.00">  command.project.board</text>
+<text text-anchor="start" x="159.5" y="-107" font-family="Arial" font-size="10.00">  command.fsm.project.board</text>
 <polygon fill="none" stroke="#0891b2" points="103,-97.5 103,-178.5 304,-178.5 304,-97.5 103,-97.5"/>
 </g>
 <!-- entry_start&#45;&gt;entrypoint_cli_project_board -->
@@ -46,16 +46,16 @@
 <path fill="none" stroke="#3f3f46" d="M304.07,-138C322.31,-138 340.6,-138 356.55,-138"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="356.66,-140.8 364.66,-138 356.66,-135.2 356.66,-140.8"/>
 </g>
-<!-- entrypoint_target_project_board -->
+<!-- entrypoint_target_fsm_project_board -->
 <g id="node4" class="node">
-<title>entrypoint_target_project_board</title>
-<polygon fill="#ffffff" stroke="transparent" points="510,-62.5 510,-213.5 723,-213.5 723,-62.5 510,-62.5"/>
-<polygon fill="#047857" stroke="transparent" points="511.5,-204 511.5,-212 722.5,-212 722.5,-204 511.5,-204"/>
-<polygon fill="#ecfdf5" stroke="transparent" points="511.5,-173 511.5,-204 722.5,-204 722.5,-173 511.5,-173"/>
-<text text-anchor="start" x="515.5" y="-190.6" font-family="Arial" font-weight="bold" font-size="13.00">project.board</text>
-<text text-anchor="start" x="515.5" y="-179.6" font-family="Arial" font-size="8.00" fill="#64748b">target view (textual)</text>
+<title>entrypoint_target_fsm_project_board</title>
+<polygon fill="#ffffff" stroke="transparent" points="510,-62.5 510,-213.5 721,-213.5 721,-62.5 510,-62.5"/>
+<polygon fill="#047857" stroke="transparent" points="511.5,-204 511.5,-212 720.5,-212 720.5,-204 511.5,-204"/>
+<polygon fill="#ecfdf5" stroke="transparent" points="511.5,-173 511.5,-204 720.5,-204 720.5,-173 511.5,-173"/>
+<text text-anchor="start" x="515.5" y="-190.6" font-family="Arial" font-weight="bold" font-size="13.00">fsm.project.board</text>
+<text text-anchor="start" x="515.5" y="-179.6" font-family="Arial" font-size="8.00" fill="#64748b">target FSM (textual)</text>
 <text text-anchor="start" x="515.5" y="-162" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">The dispatch board composes list, detail, and</text>
-<text text-anchor="start" x="515.5" y="-151" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">activity panels through shared selected&#45;project</text>
+<text text-anchor="start" x="515.5" y="-151" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">activity FSMs through shared selected&#45;project</text>
 <text text-anchor="start" x="515.5" y="-140" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">context.</text>
 <text text-anchor="start" x="516.5" y="-120" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
 <text text-anchor="start" x="544.5" y="-120" font-family="Arial" font-size="10.00">  workspace_id</text>
@@ -68,76 +68,76 @@
 <text text-anchor="start" x="516.5" y="-84" font-family="Arial" font-weight="bold" font-size="10.00">resource:</text>
 <text text-anchor="start" x="560.5" y="-84" font-family="Arial" font-size="10.00">  Project</text>
 <text text-anchor="start" x="516.5" y="-72" font-family="Arial" font-weight="bold" font-size="10.00">sync:</text>
-<text text-anchor="start" x="541.5" y="-72" font-family="Arial" font-size="10.00">  select_project_updates_panels</text>
-<polygon fill="none" stroke="#047857" points="510,-62.5 510,-213.5 723,-213.5 723,-62.5 510,-62.5"/>
+<text text-anchor="start" x="541.5" y="-72" font-family="Arial" font-size="10.00">  select_project_updates_fsms</text>
+<polygon fill="none" stroke="#047857" points="510,-62.5 510,-213.5 721,-213.5 721,-62.5 510,-62.5"/>
 </g>
-<!-- entrypoint_input_cli_project_board&#45;&gt;entrypoint_target_project_board -->
+<!-- entrypoint_input_cli_project_board&#45;&gt;entrypoint_target_fsm_project_board -->
 <g id="edge3" class="edge">
-<title>entrypoint_input_cli_project_board&#45;&gt;entrypoint_target_project_board</title>
-<path fill="none" stroke="#3f3f46" d="M449.49,-138C464.81,-138 483,-138 501.62,-138"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="501.63,-140.8 509.63,-138 501.63,-135.2 501.63,-140.8"/>
+<title>entrypoint_input_cli_project_board&#45;&gt;entrypoint_target_fsm_project_board</title>
+<path fill="none" stroke="#3f3f46" d="M449.29,-138C464.74,-138 483.12,-138 501.92,-138"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="502,-140.8 510,-138 502,-135.2 502,-140.8"/>
 </g>
-<!-- entrypoint_instance_project_board_list -->
+<!-- entrypoint_instance_fsm_project_board_ready_list -->
 <g id="node5" class="node">
-<title>entrypoint_instance_project_board_list</title>
-<polygon fill="#ffffff" stroke="transparent" points="793.5,-202 793.5,-276 926.5,-276 926.5,-202 793.5,-202"/>
-<polygon fill="#047857" stroke="transparent" points="795,-267 795,-275 926,-275 926,-267 795,-267"/>
-<polygon fill="#ecfdf5" stroke="transparent" points="795,-236 795,-267 926,-267 926,-236 795,-236"/>
-<text text-anchor="start" x="799" y="-253.6" font-family="Arial" font-weight="bold" font-size="13.00">nav</text>
-<text text-anchor="start" x="799" y="-242.6" font-family="Arial" font-size="8.00" fill="#64748b">region</text>
-<text text-anchor="start" x="800" y="-224" font-family="Arial" font-weight="bold" font-size="10.00">instance:</text>
-<text text-anchor="start" x="843" y="-224" font-family="Arial" font-size="10.00">  panel.project.list</text>
-<text text-anchor="start" x="800" y="-212" font-family="Arial" font-weight="bold" font-size="10.00">initial:</text>
-<text text-anchor="start" x="830" y="-212" font-family="Arial" font-size="10.00">  loading</text>
-<polygon fill="none" stroke="#047857" points="793.5,-202 793.5,-276 926.5,-276 926.5,-202 793.5,-202"/>
+<title>entrypoint_instance_fsm_project_board_ready_list</title>
+<polygon fill="#ffffff" stroke="transparent" points="791.5,-202 791.5,-276 917.5,-276 917.5,-202 791.5,-202"/>
+<polygon fill="#047857" stroke="transparent" points="792.5,-267 792.5,-275 916.5,-275 916.5,-267 792.5,-267"/>
+<polygon fill="#ecfdf5" stroke="transparent" points="792.5,-236 792.5,-267 916.5,-267 916.5,-236 792.5,-236"/>
+<text text-anchor="start" x="796.5" y="-253.6" font-family="Arial" font-weight="bold" font-size="13.00">nav</text>
+<text text-anchor="start" x="796.5" y="-242.6" font-family="Arial" font-size="8.00" fill="#64748b">region</text>
+<text text-anchor="start" x="797.5" y="-224" font-family="Arial" font-weight="bold" font-size="10.00">instance:</text>
+<text text-anchor="start" x="840.5" y="-224" font-family="Arial" font-size="10.00">  fsm.project.list</text>
+<text text-anchor="start" x="797.5" y="-212" font-family="Arial" font-weight="bold" font-size="10.00">initial:</text>
+<text text-anchor="start" x="827.5" y="-212" font-family="Arial" font-size="10.00">  loading</text>
+<polygon fill="none" stroke="#047857" points="791.5,-202 791.5,-276 917.5,-276 917.5,-202 791.5,-202"/>
 </g>
-<!-- entrypoint_target_project_board&#45;&gt;entrypoint_instance_project_board_list -->
+<!-- entrypoint_target_fsm_project_board&#45;&gt;entrypoint_instance_fsm_project_board_ready_list -->
 <g id="edge4" class="edge">
-<title>entrypoint_target_project_board&#45;&gt;entrypoint_instance_project_board_list</title>
-<path fill="none" stroke="#3f3f46" d="M723.07,-182.15C744.23,-191 766.02,-200.11 785.79,-208.38"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="784.8,-211 793.26,-211.51 786.96,-205.84 784.8,-211"/>
+<title>entrypoint_target_fsm_project_board&#45;&gt;entrypoint_instance_fsm_project_board_ready_list</title>
+<path fill="none" stroke="#3f3f46" d="M721.14,-182.59C742.36,-191.64 764.19,-200.94 783.84,-209.31"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="782.8,-211.91 791.26,-212.47 784.99,-206.76 782.8,-211.91"/>
 </g>
-<!-- entrypoint_instance_project_board_detail -->
+<!-- entrypoint_instance_fsm_project_board_ready_detail -->
 <g id="node6" class="node">
-<title>entrypoint_instance_project_board_detail</title>
-<polygon fill="#ffffff" stroke="transparent" points="788.5,-101 788.5,-175 931.5,-175 931.5,-101 788.5,-101"/>
-<polygon fill="#047857" stroke="transparent" points="790,-166 790,-174 931,-174 931,-166 790,-166"/>
-<polygon fill="#ecfdf5" stroke="transparent" points="790,-135 790,-166 931,-166 931,-135 790,-135"/>
-<text text-anchor="start" x="794" y="-152.6" font-family="Arial" font-weight="bold" font-size="13.00">main</text>
-<text text-anchor="start" x="794" y="-141.6" font-family="Arial" font-size="8.00" fill="#64748b">region</text>
-<text text-anchor="start" x="795" y="-123" font-family="Arial" font-weight="bold" font-size="10.00">instance:</text>
-<text text-anchor="start" x="838" y="-123" font-family="Arial" font-size="10.00">  panel.project.detail</text>
-<text text-anchor="start" x="795" y="-111" font-family="Arial" font-weight="bold" font-size="10.00">initial:</text>
-<text text-anchor="start" x="825" y="-111" font-family="Arial" font-size="10.00">  none</text>
-<polygon fill="none" stroke="#047857" points="788.5,-101 788.5,-175 931.5,-175 931.5,-101 788.5,-101"/>
+<title>entrypoint_instance_fsm_project_board_ready_detail</title>
+<polygon fill="#ffffff" stroke="transparent" points="786,-101 786,-175 923,-175 923,-101 786,-101"/>
+<polygon fill="#047857" stroke="transparent" points="787.5,-166 787.5,-174 922.5,-174 922.5,-166 787.5,-166"/>
+<polygon fill="#ecfdf5" stroke="transparent" points="787.5,-135 787.5,-166 922.5,-166 922.5,-135 787.5,-135"/>
+<text text-anchor="start" x="791.5" y="-152.6" font-family="Arial" font-weight="bold" font-size="13.00">main</text>
+<text text-anchor="start" x="791.5" y="-141.6" font-family="Arial" font-size="8.00" fill="#64748b">region</text>
+<text text-anchor="start" x="792.5" y="-123" font-family="Arial" font-weight="bold" font-size="10.00">instance:</text>
+<text text-anchor="start" x="835.5" y="-123" font-family="Arial" font-size="10.00">  fsm.project.detail</text>
+<text text-anchor="start" x="792.5" y="-111" font-family="Arial" font-weight="bold" font-size="10.00">initial:</text>
+<text text-anchor="start" x="822.5" y="-111" font-family="Arial" font-size="10.00">  none</text>
+<polygon fill="none" stroke="#047857" points="786,-101 786,-175 923,-175 923,-101 786,-101"/>
 </g>
-<!-- entrypoint_target_project_board&#45;&gt;entrypoint_instance_project_board_detail -->
+<!-- entrypoint_target_fsm_project_board&#45;&gt;entrypoint_instance_fsm_project_board_ready_detail -->
 <g id="edge5" class="edge">
-<title>entrypoint_target_project_board&#45;&gt;entrypoint_instance_project_board_detail</title>
-<path fill="none" stroke="#3f3f46" d="M723.07,-138C742.23,-138 761.89,-138 780.11,-138"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="780.37,-140.8 788.37,-138 780.37,-135.2 780.37,-140.8"/>
+<title>entrypoint_target_fsm_project_board&#45;&gt;entrypoint_instance_fsm_project_board_ready_detail</title>
+<path fill="none" stroke="#3f3f46" d="M721.14,-138C740.17,-138 759.69,-138 777.69,-138"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="777.85,-140.8 785.85,-138 777.85,-135.2 777.85,-140.8"/>
 </g>
-<!-- entrypoint_instance_project_board_activity -->
+<!-- entrypoint_instance_fsm_project_board_ready_activity -->
 <g id="node7" class="node">
-<title>entrypoint_instance_project_board_activity</title>
-<polygon fill="#ffffff" stroke="transparent" points="784,0 784,-74 936,-74 936,0 784,0"/>
-<polygon fill="#047857" stroke="transparent" points="785,-65 785,-73 935,-73 935,-65 785,-65"/>
-<polygon fill="#ecfdf5" stroke="transparent" points="785,-34 785,-65 935,-65 935,-34 785,-34"/>
-<text text-anchor="start" x="789" y="-51.6" font-family="Arial" font-weight="bold" font-size="13.00">aside</text>
-<text text-anchor="start" x="789" y="-40.6" font-family="Arial" font-size="8.00" fill="#64748b">region</text>
-<text text-anchor="start" x="790" y="-22" font-family="Arial" font-weight="bold" font-size="10.00">instance:</text>
-<text text-anchor="start" x="833" y="-22" font-family="Arial" font-size="10.00">  panel.project.activity</text>
-<text text-anchor="start" x="790" y="-10" font-family="Arial" font-weight="bold" font-size="10.00">initial:</text>
-<text text-anchor="start" x="820" y="-10" font-family="Arial" font-size="10.00">  empty</text>
-<polygon fill="none" stroke="#047857" points="784,0 784,-74 936,-74 936,0 784,0"/>
+<title>entrypoint_instance_fsm_project_board_ready_activity</title>
+<polygon fill="#ffffff" stroke="transparent" points="782,0 782,-74 927,-74 927,0 782,0"/>
+<polygon fill="#047857" stroke="transparent" points="783.5,-65 783.5,-73 926.5,-73 926.5,-65 783.5,-65"/>
+<polygon fill="#ecfdf5" stroke="transparent" points="783.5,-34 783.5,-65 926.5,-65 926.5,-34 783.5,-34"/>
+<text text-anchor="start" x="787.5" y="-51.6" font-family="Arial" font-weight="bold" font-size="13.00">aside</text>
+<text text-anchor="start" x="787.5" y="-40.6" font-family="Arial" font-size="8.00" fill="#64748b">region</text>
+<text text-anchor="start" x="788.5" y="-22" font-family="Arial" font-weight="bold" font-size="10.00">instance:</text>
+<text text-anchor="start" x="831.5" y="-22" font-family="Arial" font-size="10.00">  fsm.project.activity</text>
+<text text-anchor="start" x="788.5" y="-10" font-family="Arial" font-weight="bold" font-size="10.00">initial:</text>
+<text text-anchor="start" x="818.5" y="-10" font-family="Arial" font-size="10.00">  empty</text>
+<polygon fill="none" stroke="#047857" points="782,0 782,-74 927,-74 927,0 782,0"/>
 </g>
-<!-- entrypoint_target_project_board&#45;&gt;entrypoint_instance_project_board_activity -->
+<!-- entrypoint_target_fsm_project_board&#45;&gt;entrypoint_instance_fsm_project_board_ready_activity -->
 <g id="edge6" class="edge">
-<title>entrypoint_target_project_board&#45;&gt;entrypoint_instance_project_board_activity</title>
-<path fill="none" stroke="#3f3f46" d="M723.07,-93.85C740.79,-86.44 758.96,-78.84 776.01,-71.71"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="777.45,-74.14 783.75,-68.47 775.29,-68.97 777.45,-74.14"/>
+<title>entrypoint_target_fsm_project_board&#45;&gt;entrypoint_instance_fsm_project_board_ready_activity</title>
+<path fill="none" stroke="#3f3f46" d="M721.14,-93.41C738.88,-85.84 757.05,-78.1 774.01,-70.88"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="775.45,-73.3 781.71,-67.59 773.26,-68.15 775.45,-73.3"/>
 </g>
-<!-- entrypoint_instance_project_board_list&#45;&gt;entrypoint_instance_project_board_detail -->
-<!-- entrypoint_instance_project_board_detail&#45;&gt;entrypoint_instance_project_board_activity -->
+<!-- entrypoint_instance_fsm_project_board_ready_list&#45;&gt;entrypoint_instance_fsm_project_board_ready_detail -->
+<!-- entrypoint_instance_fsm_project_board_ready_detail&#45;&gt;entrypoint_instance_fsm_project_board_ready_activity -->
 </g>
 </svg>

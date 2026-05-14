@@ -12,7 +12,7 @@ from pyspec_contract.projection_validators import (
     validate_asyncapi,
     validate_fixtures_and_scenarios,
     validate_openapi,
-    validate_panels_json,
+    validate_fsms_json,
     validate_textual_contract,
     validate_workflows,
 )
@@ -84,11 +84,11 @@ def test_scenario_validator_rejects_freeform_generated_gherkin(tmp_path: Path) -
         validate_fixtures_and_scenarios(project, _contract())
 
 
-def test_panels_json_validator_rejects_missing_composition() -> None:
+def test_fsms_json_validator_rejects_missing_composition() -> None:
     contract = _contract()
-    panels = read_json(ROOT / "spec" / "generated" / "product_interfaces" / "web.panels.json")
-    mutated = copy.deepcopy(panels)
+    fsms = read_json(ROOT / "spec" / "generated" / "product_interfaces" / "web.fsms.json")
+    mutated = copy.deepcopy(fsms)
     mutated["compositions"] = []
-    with pytest.raises(ContractError, match="panels.json"):
-        validate_panels_json(contract, mutated)
+    with pytest.raises(ContractError, match="fsms.json"):
+        validate_fsms_json(contract, mutated)
 
