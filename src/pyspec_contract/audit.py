@@ -573,7 +573,6 @@ def panel_fsm_dot(panel_id: str, panel: dict[str, Any], contract: dict[str, Any]
 
 
 def composition_dot(view_id: str, view: dict[str, Any], contract: dict[str, Any] | None = None) -> str:
-    view_node = _dot_node_id("view", view_id)
     route_panel_order: list[str] = []
     for rule in view.get("sync", []):
         route_panel_order.append(rule["when"]["instance"])
@@ -592,34 +591,18 @@ def composition_dot(view_id: str, view: dict[str, Any], contract: dict[str, Any]
         '  graph [rankdir="LR", bgcolor="transparent", pad="0.25", nodesep="0.38", ranksep="0.85", splines="spline"];',
         '  node [fontname="Arial", fontsize="11"];',
         '  edge [color="#3f3f46", fontname="Arial", fontsize="10", arrowsize="0.8"];',
-        _dot_html_node(
-            view_node,
-            _dot_card(
-                view_id,
-                f"{view['archetype']} view",
-                [
-                    ("resource", [view["resource"]]),
-                    ("context", _format_mapping(view.get("context", {}))),
-                    ("data", _format_data_bindings(view.get("data", []))),
-                ],
-                basis=view.get("basis", ""),
-                header_bg="#f0fdf4",
-                border="#15803d",
-            ),
-        ),
     ]
     for include in includes:
         lines.append(_dot_html_node(instance_node_by_id[include["id"]], _dot_instance_card(include)))
-    if instance_node_ids:
-        lines.append(f"  {_dot_quote(view_node)} -> {_dot_quote(instance_node_ids[0])} [style=\"invis\", weight=\"10\"];")
-        if not has_sync:
-            lines.extend(_dot_invisible_order(instance_node_ids, indent="  "))
+    if instance_node_ids and not has_sync:
+        lines.extend(_dot_invisible_order(instance_node_ids, indent="  "))
     if not has_sync:
         lines.append(_dot_html_node("message_route_none", _dot_card("No message routes", None, [], header_bg="#f8fafc")))
     for rule in view.get("sync", []):
         emit_id = _dot_node_id("message_emit", f"{rule['id']}_{rule['when']['instance']}_{rule['when']['message']}")
         sync_id = _dot_node_id("message_route", rule["id"])
-        effect_ids = [_dot_node_id("message_effect", f"{rule['id']}_{index}") for index, _ in enumerate(rule.get("do", []))]
+        send_effects = [(index, effect) for index, effect in enumerate(rule.get("do", [])) if "send" in effect]
+        effect_ids = [_dot_node_id("message_effect", f"{rule['id']}_{index}") for index, _ in send_effects]
         lines.append(
             _dot_html_node(
                 emit_id,
@@ -641,20 +624,18 @@ def composition_dot(view_id: str, view: dict[str, Any], contract: dict[str, Any]
                 _dot_card(
                     rule["id"],
                     "message route",
-                    [("data", _route_data_lines(rule))],
+                    [("set", _route_set_lines(rule))],
                     header_bg="#fefce8",
                     border="#a16207",
                 ),
             )
         )
-        for index, effect in enumerate(rule.get("do", [])):
+        for index, effect in send_effects:
             effect_id = _dot_node_id("message_effect", f"{rule['id']}_{index}")
             lines.append(_dot_html_node(effect_id, _dot_sync_effect_card(effect, include_by_id, contract)))
         if effect_ids:
             lines.append("  { rank=same; " + " ".join(_dot_quote(effect_id) for effect_id in effect_ids) + " }")
             lines.extend(_dot_invisible_order(effect_ids, indent="  "))
-    if not has_sync:
-        lines.append(f"  {_dot_quote(view_node)} -> {_dot_quote('message_route_none')} [style=\"invis\", weight=\"10\"];")
     for rule in view.get("sync", []):
         emit_id = _dot_node_id("message_emit", f"{rule['id']}_{rule['when']['instance']}_{rule['when']['message']}")
         sync_id = _dot_node_id("message_route", rule["id"])
@@ -663,13 +644,10 @@ def composition_dot(view_id: str, view: dict[str, Any], contract: dict[str, Any]
             lines.append(f"  {_dot_quote(source)} -> {_dot_quote(emit_id)} [color=\"#4f46e5\", penwidth=\"1.4\"];")
         lines.append(f"  {_dot_quote(emit_id)} -> {_dot_quote(sync_id)} [color=\"#4f46e5\", penwidth=\"1.2\"];")
         for index, effect in enumerate(rule.get("do", [])):
-            effect_id = _dot_node_id("message_effect", f"{rule['id']}_{index}")
-            edge_attrs = 'color="#be185d", penwidth="1.3"'
-            if "set" in effect:
-                edge_attrs = 'color="#15803d", penwidth="1.3", style="dotted"'
-            lines.append(f"  {_dot_quote(sync_id)} -> {_dot_quote(effect_id)} [{edge_attrs}];")
             if "send" not in effect:
                 continue
+            effect_id = _dot_node_id("message_effect", f"{rule['id']}_{index}")
+            lines.append(f"  {_dot_quote(sync_id)} -> {_dot_quote(effect_id)} [color=\"#be185d\", penwidth=\"1.3\"];")
             target = instance_node_by_id.get(effect["send"]["panel"])
             if not target:
                 continue
@@ -736,7 +714,7 @@ def _emitted_message_data_lines(
     return lines
 
 
-def _route_data_lines(rule: dict[str, Any]) -> list[str]:
+def _route_set_lines(rule: dict[str, Any]) -> list[str]:
     lines = []
     for effect in rule.get("do", []):
         assignment = effect.get("set")
@@ -980,10 +958,6 @@ def _wrap_dot_token(text: str, width: int) -> list[str]:
     return lines or [text]
 
 
-def _format_mapping(mapping: dict[str, Any]) -> list[str]:
-    return [f"{key}: {value}" for key, value in sorted(mapping.items())]
-
-
 def _format_data_flow(mapping: dict[str, Any], *, identity_scope: str | None = "message") -> list[str]:
     return [_format_flow_assignment(key, value, identity_scope=identity_scope) for key, value in sorted(mapping.items())]
 
@@ -1001,16 +975,6 @@ def _format_flow_source(value: Any) -> str:
     if isinstance(value, str) and value.startswith("$"):
         return value[1:]
     return _format_scalar(value)
-
-
-def _format_data_bindings(bindings: Iterable[dict[str, Any]]) -> list[str]:
-    bindings = list(bindings)
-    lines: list[str] = []
-    for index, binding in enumerate(bindings, start=1):
-        if len(bindings) > 1:
-            lines.append(f"binding {index}")
-        lines.extend(f"{key}: {value}" for key, value in sorted(binding.items()))
-    return lines
 
 
 def _format_transition_sections(

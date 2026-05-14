@@ -73,7 +73,16 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>transition:</B>" not in composition
     assert "selected state:" not in composition
     assert "<B>data:</B>&#160;&#160;project_id" in composition
+    assert "<B>set:</B>&#160;&#160;selected_project_id &lt;- project_id" in composition
     assert "selected_project_id &lt;- project_id" in composition
+    assert "set selected_project_id" not in composition
+    assert "<B>flow:</B>" not in composition
+    assert "view context" not in composition
+    assert "project.board" not in composition
+    assert "dashboard view" not in composition
+    assert "query.project.board.list" not in composition
+    assert "<B>resource:</B>" not in composition
+    assert "<B>context</B>" not in composition
     assert "$message." not in composition
     assert "$event." not in composition
     assert "$view." not in composition
@@ -180,7 +189,7 @@ def test_composition_dot_routes_messages_generically() -> None:
     assert "beta.consume" in composition
     assert "<B>causes:</B>&#160;&#160;to consumed" in composition
     assert "<B>data:</B>&#160;&#160;id" in composition
-    assert "selected_id &lt;- id" in composition
+    assert "<B>set:</B>&#160;&#160;selected_id &lt;- id" in composition
     assert "item_id &lt;- id" in composition
     assert "item_id &lt;- view.selected_id" not in composition
     assert "context binding" not in composition
@@ -191,6 +200,7 @@ def test_composition_dot_routes_messages_generically() -> None:
     assert "<B>from:</B>" not in composition
     assert "<B>do:</B>" not in composition
     assert '"message_effect_route_alpha_beta_0" -> "panel_instance_receiver"' in composition
+    assert "message_effect_route_alpha_beta_1" not in composition
     assert '#fff7ed' in composition
     assert '#fdf2f8' in composition
     assert "No mounted panels" not in composition
@@ -280,7 +290,14 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "none to loading" not in composition
     assert "empty to ready" not in composition
     assert "selected state:" not in composition
+    assert "set:" in composition
     assert "selected_project_id &lt;&#45; project_id" in composition
+    assert "set selected_project_id" not in composition
+    assert "flow:" not in composition
+    assert "view context" not in composition
+    assert "project.board" not in composition
+    assert "dashboard view" not in composition
+    assert "query.project.board.list" not in composition
     assert "context binding" not in composition
     assert "view.selected_project_id" not in composition
     assert "panel context" not in composition
