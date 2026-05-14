@@ -1,5 +1,5 @@
-<svg width="848pt" height="129pt"
- viewBox="0.00 0.00 848.00 129.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="1109pt" height="129pt"
+ viewBox="0.00 0.00 1109.00 129.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 111)">
 <title>entrypoint_worker_project_approval_notice</title>
 <!-- entry_start -->
@@ -67,6 +67,37 @@
 <title>entrypoint_input_worker_project_approval_notice&#45;&gt;entrypoint_target_project_approval_notice</title>
 <path fill="none" stroke="#3f3f46" d="M510.07,-46.5C526.11,-46.5 544.09,-46.5 562.3,-46.5"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="562.69,-49.3 570.69,-46.5 562.69,-43.7 562.69,-49.3"/>
+</g>
+<!-- entrypoint_output_worker_project_approval_notice -->
+<g id="node6" class="node">
+<title>entrypoint_output_worker_project_approval_notice</title>
+<polygon fill="#ffffff" stroke="transparent" points="873,-15.5 873,-77.5 962,-77.5 962,-15.5 873,-15.5"/>
+<polygon fill="#64748b" stroke="transparent" points="874.5,-68.5 874.5,-76.5 961.5,-76.5 961.5,-68.5 874.5,-68.5"/>
+<polygon fill="#f8fafc" stroke="transparent" points="874.5,-37.5 874.5,-68.5 961.5,-68.5 961.5,-37.5 874.5,-37.5"/>
+<text text-anchor="start" x="878.5" y="-55.1" font-family="Arial" font-weight="bold" font-size="13.00">entry output</text>
+<text text-anchor="start" x="878.5" y="-44.1" font-family="Arial" font-size="8.00" fill="#64748b">external result</text>
+<text text-anchor="start" x="879.5" y="-25.5" font-family="Arial" font-weight="bold" font-size="10.00">ack:</text>
+<text text-anchor="start" x="898.5" y="-25.5" font-family="Arial" font-size="10.00">  true</text>
+<polygon fill="none" stroke="#64748b" points="873,-15.5 873,-77.5 962,-77.5 962,-15.5 873,-15.5"/>
+</g>
+<!-- entrypoint_target_project_approval_notice&#45;&gt;entrypoint_output_worker_project_approval_notice -->
+<g id="edge4" class="edge">
+<title>entrypoint_target_project_approval_notice&#45;&gt;entrypoint_output_worker_project_approval_notice</title>
+<path fill="none" stroke="#3f3f46" d="M812.04,-46.5C830.6,-46.5 848.87,-46.5 864.82,-46.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="864.94,-49.3 872.94,-46.5 864.94,-43.7 864.94,-49.3"/>
+</g>
+<!-- entry_exit -->
+<g id="node5" class="node">
+<title>entry_exit</title>
+<ellipse fill="none" stroke="#0891b2" cx="1048" cy="-46.5" rx="21" ry="21"/>
+<ellipse fill="none" stroke="#0891b2" cx="1048" cy="-46.5" rx="25" ry="25"/>
+<text text-anchor="middle" x="1048" y="-44.3" font-family="Arial" font-size="9.00" fill="#155e75">exit</text>
+</g>
+<!-- entrypoint_output_worker_project_approval_notice&#45;&gt;entry_exit -->
+<g id="edge5" class="edge">
+<title>entrypoint_output_worker_project_approval_notice&#45;&gt;entry_exit</title>
+<path fill="none" stroke="#3f3f46" d="M962,-46.5C979.08,-46.5 998.35,-46.5 1014.22,-46.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1014.65,-49.3 1022.65,-46.5 1014.65,-43.7 1014.65,-49.3"/>
 </g>
 </g>
 </svg>

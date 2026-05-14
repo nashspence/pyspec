@@ -490,52 +490,93 @@ fsms:
 entries:
   api.project.create:
     basis: HTTP endpoint for creating a dispatch project.
+    input:
+      body:
+        customer: Text
+        priority: Text
+        title: Text
+      params:
+        workspace_id: ID
     method: POST
-    params:
-      workspace_id: ID
+    output:
+      body:
+        from: target.result
+        type: Project
+      status: 200
     path: /workspaces/{workspace_id}/projects
     surface: api
     target:
       capability: project.create
+      with:
+        customer: input.body.customer
+        priority: input.body.priority
+        title: input.body.title
+        workspace_id: input.params.workspace_id
   api.project.list:
     basis: HTTP endpoint for listing dispatch projects.
+    input:
+      params:
+        workspace_id: ID
     method: GET
-    params:
-      workspace_id: ID
+    output:
+      body:
+        from: target.result
+        type: list[Project]
+      status: 200
     path: /workspaces/{workspace_id}/projects
     surface: api
     target:
       capability: project.list
+      with:
+        workspace_id: input.params.workspace_id
   cli.project.approve:
-    args:
-      project_id: ID
     basis: CLI entry for approval automation.
     command: project approve
+    input:
+      args:
+        project_id: ID
+    output:
+      exit_code: 0
+      stdout:
+        from: target.result
+        type: Project
     surface: cli
     target:
       capability: project.approve
+      with:
+        project_id: input.args.project_id
   cli.project.board:
-    args:
-      workspace_id: ID
     basis: CLI launcher for the Textual dispatch board.
     command: project board
+    input:
+      args:
+        workspace_id: ID
     surface: cli
     target:
       fsm:
         name: fsm.project.board
         surface: textual
+      with:
+        workspace_id: input.args.workspace_id
   web.project.board:
     basis: Web entry for the dispatch board.
-    params:
-      workspace_id: ID
+    input:
+      params:
+        workspace_id: ID
     path: /workspaces/{workspace_id}/dispatch
     surface: web
     target:
       fsm:
         name: fsm.project.board
         surface: html
+      with:
+        workspace_id: input.params.workspace_id
   worker.project.approval_notice:
     basis: Worker entry exposing the approval notice workflow.
+    input:
+      payload: Project
+    output:
+      ack: true
     surface: worker
     target:
       workflow:
@@ -635,7 +676,7 @@ scenarios:
     title: Empty dispatch board
     when:
       open_entry:
-        params:
+        input:
           workspace_id: $fixture.workspace.id
         ref: web.project.board
   project.board.ready:
@@ -667,7 +708,7 @@ scenarios:
     title: Ready dispatch board
     when:
       open_entry:
-        params:
+        input:
           workspace_id: $fixture.workspace.id
         ref: web.project.board
   project.create.api.success:

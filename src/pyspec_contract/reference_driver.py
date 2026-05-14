@@ -45,7 +45,7 @@ class ReferenceSpecDriver:
     def execute(self, scenario_id: str, scenario: Mapping[str, Any]) -> None:
         kind, body = next(iter(scenario["execute"].items()))
         if kind == "open_entry":
-            self.last_fsm = self._open_entry(body["ref"], self._resolve_map(body.get("params", {})))
+            self.last_fsm = self._open_entry(body["ref"], self._resolve_map(body.get("input", {})))
         elif kind == "call_entry":
             self.response = self._call_entry(body["ref"], self._resolve_map(body.get("input", {})))
         elif kind == "invoke_capability":
@@ -128,12 +128,12 @@ class ReferenceSpecDriver:
         entry = self.contract["entries"][entry_id]
         fsm_id = entry_fsm_name(entry)
         fsm = self.contract["fsms"][fsm_id]
-        records = self._filter(fsm["resource"], params)
+        context = self._entry_target_input(entry, params)
+        records = self._filter(fsm["resource"], context)
         parent_state_name = "ready" if "ready" in fsm.get("states", {}) else next(iter(fsm.get("states", {"ready": {}})))
         state = fsm["states"].get(parent_state_name, {"surface": None, "copy": [], "assets": [], "actions": [], "data": []})
         if state.get("mounts"):
             fsms: dict[str, Any] = {}
-            context = {**params}
             for mount in state["mounts"]:
                 source_id = mount["fsm"]
                 fsm = self.contract["fsms"][source_id]
@@ -207,8 +207,21 @@ class ReferenceSpecDriver:
     def _call_entry(self, entry_id: str, input_values: dict[str, Any]) -> dict[str, Any]:
         entry = self.contract["entries"][entry_id]
         cap_id = entry["target"]["capability"]
-        result = self._invoke(cap_id, input_values)
-        return {"status": 200, "body": result}
+        target_input = self._entry_target_input(entry, input_values)
+        result = self._invoke(cap_id, target_input)
+        output = entry["output"]
+        if "status" in output:
+            return {"status": output["status"], "body": result}
+        return {"exit_code": output["exit_code"], "stdout": result}
+
+    def _entry_target_input(self, entry: dict[str, Any], input_values: dict[str, Any]) -> dict[str, Any]:
+        namespace = {"input": {}}
+        for section in ("params", "body", "args"):
+            fields = (entry.get("input") or {}).get(section, {})
+            if fields:
+                namespace["input"][section] = {name: input_values[name] for name in fields}
+        bindings = entry["target"].get("with", {})
+        return {name: _resolve_binding(source, namespace) for name, source in bindings.items()}
 
     def _invoke(self, cap_id: str, input_values: dict[str, Any]) -> Any:
         self.invoked.append(cap_id)
@@ -278,6 +291,13 @@ class ReferenceSpecDriver:
 
 def _matches(record: Mapping[str, Any], where: Mapping[str, Any]) -> bool:
     return all(record.get(key) == value for key, value in where.items())
+
+
+def _resolve_binding(source: str, namespace: Mapping[str, Any]) -> Any:
+    current: Any = namespace
+    for part in source.split("."):
+        current = current[part]
+    return current
 
 
 def _condition_matches(condition: Mapping[str, Any], context: Mapping[str, Any]) -> bool:

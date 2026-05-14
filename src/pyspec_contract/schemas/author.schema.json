@@ -902,15 +902,15 @@
     "entry_author": {
       "additionalProperties": false,
       "properties": {
-        "args": {
-          "$ref": "#/$defs/type_map"
-        },
         "basis": {
           "$ref": "#/$defs/basis"
         },
         "command": {
           "pattern": "^[a-z][a-z0-9_-]*( [a-z][a-z0-9_-]*)*$",
           "type": "string"
+        },
+        "input": {
+          "$ref": "#/$defs/entry_input"
         },
         "method": {
           "enum": [
@@ -921,8 +921,8 @@
             "DELETE"
           ]
         },
-        "params": {
-          "$ref": "#/$defs/type_map"
+        "output": {
+          "$ref": "#/$defs/entry_output"
         },
         "path": {
           "pattern": "^/",
@@ -955,6 +955,16 @@
       ],
       "type": "object"
     },
+    "entry_bindings": {
+      "additionalProperties": {
+        "pattern": "^input\\.(params|body|args|payload)(\\.[a-z][a-z0-9_]*)?$",
+        "type": "string"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/field_name"
+      },
+      "type": "object"
+    },
     "entry_fsm_target": {
       "additionalProperties": false,
       "properties": {
@@ -974,12 +984,27 @@
       ],
       "type": "object"
     },
-    "entry_item": {
+    "entry_input": {
       "additionalProperties": false,
       "properties": {
         "args": {
           "$ref": "#/$defs/type_map"
         },
+        "body": {
+          "$ref": "#/$defs/type_map"
+        },
+        "params": {
+          "$ref": "#/$defs/type_map"
+        },
+        "payload": {
+          "$ref": "#/$defs/type_name"
+        }
+      },
+      "type": "object"
+    },
+    "entry_item": {
+      "additionalProperties": false,
+      "properties": {
         "basis": {
           "$ref": "#/$defs/basis"
         },
@@ -990,6 +1015,9 @@
         "id": {
           "$ref": "#/$defs/dotted_id"
         },
+        "input": {
+          "$ref": "#/$defs/entry_input"
+        },
         "method": {
           "enum": [
             "GET",
@@ -999,8 +1027,8 @@
             "DELETE"
           ]
         },
-        "params": {
-          "$ref": "#/$defs/type_map"
+        "output": {
+          "$ref": "#/$defs/entry_output"
         },
         "path": {
           "pattern": "^/",
@@ -1032,15 +1060,59 @@
       ],
       "type": "object"
     },
+    "entry_output": {
+      "additionalProperties": false,
+      "properties": {
+        "ack": {
+          "type": "boolean"
+        },
+        "body": {
+          "$ref": "#/$defs/entry_output_value"
+        },
+        "exit_code": {
+          "type": "integer"
+        },
+        "status": {
+          "maximum": 599,
+          "minimum": 100,
+          "type": "integer"
+        },
+        "stderr": {
+          "$ref": "#/$defs/entry_output_value"
+        },
+        "stdout": {
+          "$ref": "#/$defs/entry_output_value"
+        }
+      },
+      "type": "object"
+    },
+    "entry_output_value": {
+      "additionalProperties": false,
+      "properties": {
+        "from": {
+          "enum": [
+            "target.result"
+          ]
+        },
+        "type": {
+          "$ref": "#/$defs/type_name"
+        }
+      },
+      "required": [
+        "type",
+        "from"
+      ],
+      "type": "object"
+    },
     "entry_spec": {
       "additionalProperties": false,
       "properties": {
-        "args": {
-          "$ref": "#/$defs/type_map"
-        },
         "command": {
           "pattern": "^[a-z][a-z0-9_-]*( [a-z][a-z0-9_-]*)*$",
           "type": "string"
+        },
+        "input": {
+          "$ref": "#/$defs/entry_input"
         },
         "method": {
           "enum": [
@@ -1051,8 +1123,8 @@
             "DELETE"
           ]
         },
-        "params": {
-          "$ref": "#/$defs/type_map"
+        "output": {
+          "$ref": "#/$defs/entry_output"
         },
         "path": {
           "pattern": "^/",
@@ -1084,14 +1156,32 @@
     },
     "entry_target": {
       "additionalProperties": false,
-      "maxProperties": 1,
-      "minProperties": 1,
+      "oneOf": [
+        {
+          "required": [
+            "capability"
+          ]
+        },
+        {
+          "required": [
+            "fsm"
+          ]
+        },
+        {
+          "required": [
+            "workflow"
+          ]
+        }
+      ],
       "properties": {
         "capability": {
           "$ref": "#/$defs/dotted_id"
         },
         "fsm": {
           "$ref": "#/$defs/entry_fsm_target"
+        },
+        "with": {
+          "$ref": "#/$defs/entry_bindings"
         },
         "workflow": {
           "$ref": "#/$defs/entry_workflow_target"
@@ -1450,22 +1540,6 @@
       "pattern": "^fsm\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
     },
-    "fsm_mount_selected": {
-      "additionalProperties": false,
-      "properties": {
-        "state": {
-          "$ref": "#/$defs/state_name"
-        },
-        "when": {
-          "$ref": "#/$defs/condition_contract"
-        }
-      },
-      "required": [
-        "when",
-        "state"
-      ],
-      "type": "object"
-    },
     "fsm_message": {
       "additionalProperties": false,
       "properties": {
@@ -1500,6 +1574,22 @@
           "type": "object"
         }
       },
+      "type": "object"
+    },
+    "fsm_mount_selected": {
+      "additionalProperties": false,
+      "properties": {
+        "state": {
+          "$ref": "#/$defs/state_name"
+        },
+        "when": {
+          "$ref": "#/$defs/condition_contract"
+        }
+      },
+      "required": [
+        "when",
+        "state"
+      ],
       "type": "object"
     },
     "fsm_state_assertion": {
@@ -1561,14 +1651,14 @@
           "type": "array",
           "uniqueItems": true
         },
+        "layout": {
+          "$ref": "#/$defs/layout_contract"
+        },
         "mounts": {
           "items": {
             "$ref": "#/$defs/mount_item"
           },
           "type": "array"
-        },
-        "layout": {
-          "$ref": "#/$defs/layout_contract"
         },
         "presentation": {
           "$ref": "#/$defs/presentation_contract"
@@ -1916,38 +2006,6 @@
       ],
       "type": "object"
     },
-    "mount_item": {
-      "additionalProperties": false,
-      "properties": {
-        "context": {
-          "$ref": "#/$defs/context_bindings"
-        },
-        "fsm": {
-          "pattern": "^fsm\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
-          "type": "string"
-        },
-        "id": {
-          "$ref": "#/$defs/instance_id"
-        },
-        "initial": {
-          "$ref": "#/$defs/state_name"
-        },
-        "region": {
-          "$ref": "#/$defs/field_name"
-        },
-        "selected": {
-          "$ref": "#/$defs/fsm_mount_selected"
-        }
-      },
-      "required": [
-        "id",
-        "fsm",
-        "region",
-        "initial",
-        "context"
-      ],
-      "type": "object"
-    },
     "instance_id": {
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
@@ -2115,6 +2173,38 @@
       },
       "required": [
         "containers"
+      ],
+      "type": "object"
+    },
+    "mount_item": {
+      "additionalProperties": false,
+      "properties": {
+        "context": {
+          "$ref": "#/$defs/context_bindings"
+        },
+        "fsm": {
+          "pattern": "^fsm\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+          "type": "string"
+        },
+        "id": {
+          "$ref": "#/$defs/instance_id"
+        },
+        "initial": {
+          "$ref": "#/$defs/state_name"
+        },
+        "region": {
+          "$ref": "#/$defs/field_name"
+        },
+        "selected": {
+          "$ref": "#/$defs/fsm_mount_selected"
+        }
+      },
+      "required": [
+        "id",
+        "fsm",
+        "region",
+        "initial",
+        "context"
       ],
       "type": "object"
     },
@@ -3037,7 +3127,7 @@
             "open_entry": {
               "additionalProperties": false,
               "properties": {
-                "params": {
+                "input": {
                   "$ref": "#/$defs/value_map"
                 },
                 "ref": {

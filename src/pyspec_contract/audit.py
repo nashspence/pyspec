@@ -664,8 +664,11 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
     entry_node = _dot_node_id("entrypoint", entry_id)
     input_node = _dot_node_id("entrypoint_input", entry_id)
     target_node = _dot_node_id("entrypoint_target", target_value)
-    target_tail = _entry_target_tail_nodes(target_kind, target_value, contract)
+    output_node = _dot_node_id("entrypoint_output", entry_id)
+    exit_id = "entry_exit"
+    target_tail = [] if target_kind == "fsm" else _entry_target_tail_nodes(target_kind, target_value, contract)
     input_sections = _entry_input_sections(entry, contract)
+    output_sections = _entry_output_sections(entry)
     lines = [
         f"digraph {_dot_quote('entrypoint_' + safe_id(entry_id))} {{",
         '  graph [rankdir="LR", bgcolor="transparent", pad="0.25", nodesep="0.38", ranksep="0.85", splines="spline"];',
@@ -692,6 +695,14 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
             )
         )
     lines.append(_dot_html_node(target_node, _entry_target_card(target_kind, target_value, contract, surface=target_surface, trigger=target_trigger)))
+    if output_sections:
+        lines.append(f"  {_dot_quote(exit_id)} [shape=\"doublecircle\", label=\"exit\", width=\"0.58\", fixedsize=\"true\", color=\"#0891b2\", fontcolor=\"#155e75\", fontsize=\"9\"];")
+        lines.append(
+            _dot_html_node(
+                output_node,
+                _dot_card("entry output", "external result", output_sections, header_bg="#f8fafc", border="#64748b"),
+            )
+        )
     lines.extend(_dot_html_node(node_id, label) for node_id, label in target_tail)
     lines.append(f"  {_dot_quote(start_id)} -> {_dot_quote(entry_node)};")
     if input_sections:
@@ -701,6 +712,9 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
         lines.append(f"  {_dot_quote(entry_node)} -> {_dot_quote(target_node)};")
     for node_id, _ in target_tail:
         lines.append(f"  {_dot_quote(target_node)} -> {_dot_quote(node_id)};")
+    if output_sections:
+        lines.append(f"  {_dot_quote(target_node)} -> {_dot_quote(output_node)};")
+        lines.append(f"  {_dot_quote(output_node)} -> {_dot_quote(exit_id)};")
     if len(target_tail) > 1:
         lines.append("  { rank=same; " + " ".join(_dot_quote(node_id) for node_id, _ in target_tail) + " }")
         lines.extend(_dot_invisible_order([node_id for node_id, _ in target_tail], indent="  "))
@@ -777,25 +791,36 @@ def _entry_binding_sections(entry: dict[str, Any]) -> list[tuple[str, list[objec
 
 def _entry_input_sections(entry: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
-    if entry.get("params"):
-        sections.append(("params", _typed_fields(entry["params"])))
-    if entry.get("args"):
-        sections.append(("args", _typed_fields(entry["args"])))
-    target_kind, target_value = entry_target_pair(entry["target"])
-    if entry["surface"] == "api" and target_kind == "capability":
-        capability = contract["capabilities"][target_value]
-        params = set(entry.get("params", {}))
-        body_fields = {name: type_name for name, type_name in capability["input"].items() if name not in params}
-        if body_fields and entry["method"].lower() not in {"get", "delete"}:
-            sections.append(("body", _typed_fields(body_fields)))
-    if target_kind == "workflow":
-        trigger = entry_workflow_trigger(entry)
-        if trigger:
-            trigger_kind, trigger_value = _target_pair(trigger)
-            if trigger_kind == "event":
-                payload = contract.get("events", {}).get(trigger_value, {}).get("payload")
-                if payload:
-                    sections.append(("payload", [_DotTypedField("payload", payload)]))
+    entry_input = entry.get("input", {})
+    if entry_input.get("params"):
+        sections.append(("params", _typed_fields(entry_input["params"])))
+    if entry_input.get("body"):
+        sections.append(("body", _typed_fields(entry_input["body"])))
+    if entry_input.get("args"):
+        sections.append(("args", _typed_fields(entry_input["args"])))
+    if entry_input.get("payload"):
+        sections.append(("payload", [_DotTypedField("payload", entry_input["payload"])]))
+    return sections
+
+
+def _entry_output_sections(entry: dict[str, Any]) -> list[tuple[str, list[object]]]:
+    output = entry.get("output", {})
+    sections: list[tuple[str, list[object]]] = []
+    if "status" in output:
+        sections.append(("status", [str(output["status"])]))
+    if "body" in output:
+        body = output["body"]
+        sections.append(("body", [_DotTypedField("body", body["type"], body.get("from"))]))
+    if "stdout" in output:
+        stdout = output["stdout"]
+        sections.append(("stdout", [_DotTypedField("stdout", stdout["type"], stdout.get("from"))]))
+    if "stderr" in output:
+        stderr = output["stderr"]
+        sections.append(("stderr", [_DotTypedField("stderr", stderr["type"], stderr.get("from"))]))
+    if "exit_code" in output:
+        sections.append(("exit_code", [str(output["exit_code"])]))
+    if "ack" in output:
+        sections.append(("ack", [str(output["ack"]).lower()]))
     return sections
 
 
@@ -822,7 +847,7 @@ def _entry_target_card(
         return _dot_card(
             target_value,
             "target capability",
-            _capability_sections(capability),
+            _capability_sections(capability, include_output=False),
             basis=capability.get("basis", ""),
             header_bg="#eff6ff",
             border="#2563eb",
@@ -945,11 +970,12 @@ def _event_card(event_id: str, contract: dict[str, Any], *, subtitle: str = "tar
     )
 
 
-def _capability_sections(capability: dict[str, Any]) -> list[tuple[str, list[object]]]:
+def _capability_sections(capability: dict[str, Any], *, include_output: bool = True) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = [("resource", [capability["resource"]])]
     if capability.get("input"):
         sections.append(("input", _typed_fields(capability["input"])))
-    sections.append(("output", [_DotTypedField("result", capability["output"])]))
+    if include_output:
+        sections.append(("output", [_DotTypedField("result", capability["output"])]))
     if capability.get("emits"):
         sections.append(("emits", capability["emits"]))
     return sections

@@ -461,7 +461,7 @@ def test_unresolved_fixture_reference_is_rejected() -> None:
     author = _author()
     scenario = _item(author, "scenarios", "project.board.empty")
     _, body = next(iter(scenario["when"].items()))
-    body.setdefault("params", {})["workspace_id"] = "$fixture.workspace.missing"
+    body.setdefault("input", {})["workspace_id"] = "$fixture.workspace.missing"
     with pytest.raises(ContractError, match="cannot resolve"):
         compile_source(author)
 
@@ -601,7 +601,9 @@ def _api_only_author() -> dict:
                 "surface": "api",
                 "method": "POST",
                 "path": "/tickets",
-                "target": {"capability": "ticket.create"},
+                "input": {"body": {"title": "Text"}},
+                "target": {"capability": "ticket.create", "with": {"title": "input.body.title"}},
+                "output": {"status": 200, "body": {"type": "Ticket", "from": "target.result"}},
                 "basis": _basis("HTTP create ticket entry"),
             }
         },
@@ -648,22 +650,26 @@ def test_authoring_layers_reject_wrong_entry_surface() -> None:
 
     author = _api_only_author()
     del author["entries"]["api.ticket.create"]
-    author["entries"]["web.ticket.create"] = {"surface": "web", "path": "/tickets", "target": {"fsm": {"name": "fsm.ticket.list", "surface": "html"}}}
+    author["entries"]["web.ticket.create"] = {
+        "surface": "web",
+        "path": "/tickets",
+        "target": {"fsm": {"name": "fsm.ticket.list", "surface": "html"}},
+    }
     with pytest.raises(ContractError, match="entry surface web requires web"):
         compile_author(author, layers=parse_layers("core,http"))
 
 
 def test_cli_fsm_entry_must_provide_required_context_args() -> None:
     author = _author()
-    del author["entries"]["cli.project.board"]["args"]
-    with pytest.raises(ContractError, match=r"Entry cli\.project\.board args must include required FSM context inputs: \['workspace_id'\]"):
+    del author["entries"]["cli.project.board"]["input"]["args"]
+    with pytest.raises(ContractError, match=r"Entry cli\.project\.board input\.args must include required FSM context inputs: \['workspace_id'\]"):
         compile_source(author)
 
 
 def test_entry_rejects_surface_irrelevant_fields() -> None:
     author = _author()
-    author["entries"]["web.project.board"]["args"] = {"workspace_id": "ID"}
-    with pytest.raises(ContractError, match=r"Entry web\.project\.board surface web has unsupported fields: \['args'\]"):
+    author["entries"]["web.project.board"]["input"]["args"] = {"workspace_id": "ID"}
+    with pytest.raises(ContractError, match=r"Entry web\.project\.board surface web has unsupported input sections: \['args'\]"):
         compile_source(author)
 
 
@@ -681,8 +687,37 @@ def test_textual_is_not_an_entrypoint_surface() -> None:
 
 def test_cli_entry_args_must_exactly_match_capability_input() -> None:
     author = _author()
-    del author["entries"]["cli.project.approve"]["args"]
-    with pytest.raises(ContractError, match=r"Entry cli\.project\.approve args must exactly match target input: missing: project_id"):
+    del author["entries"]["cli.project.approve"]["input"]["args"]
+    with pytest.raises(ContractError, match=r"Entry cli\.project\.approve input\.args must exactly match target input: missing: project_id"):
+        compile_source(author)
+
+
+def test_entry_target_bindings_must_exactly_match_target_input() -> None:
+    author = _author()
+    del author["entries"]["api.project.create"]["target"]["with"]["title"]
+    with pytest.raises(ContractError, match=r"Entry api\.project\.create target\.with must exactly bind target input: missing: title"):
+        compile_source(author)
+
+
+def test_entry_output_must_match_surface_contract() -> None:
+    author = _author()
+    author["entries"]["api.project.create"]["output"]["body"]["type"] = "Text"
+    with pytest.raises(ContractError, match=r"API entry api\.project\.create output\.body must expose target\.result as Project"):
+        compile_source(author)
+
+
+def test_fsm_entry_must_not_declare_output() -> None:
+    author = _author()
+    entry = author["entries"]["web.project.board"]
+    entry["output"] = {"status": 200}
+    with pytest.raises(ContractError, match=r"Entry web\.project\.board surface web has unsupported fields: \['output'\]"):
+        compile_source(author)
+
+
+def test_worker_entry_payload_must_match_trigger_event_payload() -> None:
+    author = _author()
+    author["entries"]["worker.project.approval_notice"]["input"]["payload"] = "NoticeResult"
+    with pytest.raises(ContractError, match=r"Entry worker\.project\.approval_notice input\.payload must be Project, got NoticeResult"):
         compile_source(author)
 
 
@@ -743,8 +778,9 @@ def test_get_api_entry_must_provide_all_capability_input_as_params() -> None:
     author = _author()
     entry = author["entries"]["api.project.list"]
     entry["path"] = "/projects"
-    entry.pop("params")
-    with pytest.raises(ContractError, match=r"API entry api\.project\.list GET must declare all capability inputs as params: \['workspace_id'\]"):
+    entry["input"].pop("params")
+    entry["target"]["with"].pop("workspace_id")
+    with pytest.raises(ContractError, match=r"API entry api\.project\.list GET must declare all capability inputs as input\.params: \['workspace_id'\]"):
         compile_source(author)
 
 

@@ -149,8 +149,11 @@ def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
             continue
         cap_id = entry["target"]["capability"]
         cap = contract["capabilities"][cap_id]
-        params = entry.get("params", {})
-        body_fields = {k: v for k, v in cap["input"].items() if k not in params}
+        entry_input = entry.get("input", {})
+        params = entry_input.get("params", {})
+        body_fields = entry_input.get("body", {})
+        response_status = str(entry["output"]["status"])
+        response_type = entry["output"]["body"]["type"]
         op: dict[str, Any] = {
             "operationId": cap_id,
             "x-entry": entry_id,
@@ -161,9 +164,9 @@ def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
                 for name, type_name in sorted(params.items())
             ],
             "responses": {
-                "200": {
+                response_status: {
                     "description": "OK",
-                    "content": {"application/json": {"schema": type_schema(cap["output"])}}
+                    "content": {"application/json": {"schema": type_schema(response_type)}}
                 }
             }
         }
@@ -244,7 +247,7 @@ def routes_projection(contract: dict[str, Any]) -> dict[str, Any]:
                 "id": entry["route"],
                 "entry": entry_id,
                 "path": entry["path"],
-                "params": entry.get("params", {}),
+                "params": entry.get("input", {}).get("params", {}),
                 "fsm": entry_fsm_name(entry),
             }
             for entry_id, entry in sorted(contract["entries"].items())

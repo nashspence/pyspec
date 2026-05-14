@@ -295,10 +295,13 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
         entry_id = spec["id"]
         entry: dict[str, Any] = {
             "surface": spec["surface"],
+            "input": spec.get("input", {}),
             "target": spec["target"],
             "basis": spec["basis"],
         }
-        for field in ["method", "path", "params", "command", "args", "schedule"]:
+        if "output" in spec:
+            entry["output"] = spec["output"]
+        for field in ["method", "path", "command", "schedule"]:
             if field in spec:
                 entry[field] = spec[field]
         kind, value = entry_target_pair(spec["target"])
@@ -1270,6 +1273,7 @@ def _validate_entries(contract: dict[str, Any]) -> None:
     for eid, entry in contract["entries"].items():
         surface = entry["surface"]
         _validate_entry_surface_fields(eid, entry)
+        _validate_entry_input_shape(eid, entry)
         kind, value = entry_target_pair(entry["target"])
         if surface == "web":
             if kind != "fsm" or value not in contract["fsms"]:
@@ -1277,7 +1281,9 @@ def _validate_entries(contract: dict[str, Any]) -> None:
             _validate_fsm_target_surface(contract, eid, entry, value, allowed_surfaces={"html"})
             _require(entry, eid, "path")
             _validate_path_params(entry, eid)
-            _validate_fsm_entry_inputs(contract, eid, entry, value, input_field="params")
+            declared = _entry_input_map(entry, "params")
+            _validate_fsm_entry_inputs(contract, eid, value, declared=declared, input_label="input.params")
+            _validate_target_bindings(contract, eid, entry, declared)
         elif surface == "api":
             if kind != "capability" or value not in contract["capabilities"]:
                 raise ContractError(f"API entry {eid} must target a known capability")
@@ -1285,32 +1291,38 @@ def _validate_entries(contract: dict[str, Any]) -> None:
             _require(entry, eid, "path")
             _validate_path_params(entry, eid)
             capability = contract["capabilities"][value]
-            cap_input = set(capability["input"])
-            params = entry.get("params", {})
-            if not set(params).issubset(cap_input):
-                raise ContractError(f"API entry {eid} params must be capability input fields")
-            _validate_entry_input_types(eid, "params", params, capability["input"])
-            body_fields = cap_input - set(params)
-            if entry["method"].lower() in {"get", "delete"} and body_fields:
-                raise ContractError(f"API entry {eid} {entry['method']} must declare all capability inputs as params: {sorted(body_fields)}")
+            params = _entry_input_map(entry, "params")
+            body = _entry_input_map(entry, "body")
+            _validate_api_entry_input(eid, entry, capability, params, body)
+            _validate_target_bindings(contract, eid, entry, {**params, **body})
+            _validate_api_entry_output(eid, entry, capability)
         elif surface == "cli":
             _require(entry, eid, "command")
+            args = _entry_input_map(entry, "args")
             if kind == "capability":
                 if value not in contract["capabilities"]:
                     raise ContractError(f"CLI entry {eid} must target a known capability")
                 capability = contract["capabilities"][value]
-                _validate_exact_entry_inputs(eid, "args", entry.get("args", {}), capability["input"])
+                _validate_exact_entry_inputs(eid, "input.args", args, capability["input"])
+                _validate_target_bindings(contract, eid, entry, args)
+                _validate_cli_capability_output(eid, entry, capability)
             elif kind == "fsm":
                 if value not in contract["fsms"]:
                     raise ContractError(f"CLI entry {eid} must target a known FSM")
                 _validate_fsm_target_surface(contract, eid, entry, value, allowed_surfaces=set(FSM_RENDER_SURFACES))
-                _validate_fsm_entry_inputs(contract, eid, entry, value, input_field="args")
+                _validate_fsm_entry_inputs(contract, eid, value, declared=args, input_label="input.args")
+                _validate_target_bindings(contract, eid, entry, args)
+                target_surface = entry_fsm_surface(entry)
+                assert target_surface is not None
+                if "output" in entry:
+                    raise ContractError(f"CLI entry {eid} targeting an FSM must not declare output")
             elif kind == "workflow":
                 if value not in contract["workflows"]:
                     raise ContractError(f"CLI entry {eid} must target a known workflow")
                 _validate_workflow_entry_trigger(contract, eid, entry, value)
-                if entry.get("args"):
-                    raise ContractError(f"CLI entry {eid} targeting a workflow must not declare args")
+                if args:
+                    raise ContractError(f"CLI entry {eid} targeting a workflow must not declare input.args")
+                _validate_ack_entry_output(eid, entry)
             else:
                 raise ContractError(f"CLI entry {eid} cannot target raw {kind}")
         elif surface in {"worker", "schedule"}:
@@ -1319,26 +1331,55 @@ def _validate_entries(contract: dict[str, Any]) -> None:
             _validate_workflow_entry_trigger(contract, eid, entry, value)
             if surface == "schedule":
                 _require(entry, eid, "schedule")
+                if entry.get("input"):
+                    raise ContractError(f"Schedule entry {eid} must not declare input")
+            else:
+                _validate_event_payload_entry_input(contract, eid, entry, value)
+            _validate_ack_entry_output(eid, entry)
         elif surface == "webhook":
             if kind != "workflow" or value not in contract["workflows"]:
                 raise ContractError(f"Webhook entry {eid} must target a known workflow")
             _validate_workflow_entry_trigger(contract, eid, entry, value)
             _require(entry, eid, "path")
             _validate_path_params(entry, eid)
+            _validate_event_payload_entry_input(contract, eid, entry, value)
+            _validate_webhook_entry_output(eid, entry)
 
 
 def _validate_entry_surface_fields(entry_id: str, entry: dict[str, Any]) -> None:
     allowed = {
-        "web": {"surface", "target", "basis", "path", "params", "route"},
-        "api": {"surface", "target", "basis", "method", "path", "params", "endpoint"},
-        "cli": {"surface", "target", "basis", "command", "args", "command_ref"},
-        "worker": {"surface", "target", "basis", "workflow_ref"},
-        "schedule": {"surface", "target", "basis", "schedule", "workflow_ref"},
-        "webhook": {"surface", "target", "basis", "path", "params"},
+        "web": {"surface", "input", "target", "basis", "path", "route"},
+        "api": {"surface", "input", "target", "output", "basis", "method", "path", "endpoint"},
+        "cli": {"surface", "input", "target", "output", "basis", "command", "command_ref"},
+        "worker": {"surface", "input", "target", "output", "basis", "workflow_ref"},
+        "schedule": {"surface", "input", "target", "output", "basis", "schedule", "workflow_ref"},
+        "webhook": {"surface", "input", "target", "output", "basis", "path"},
     }[entry["surface"]]
     extra = sorted(set(entry) - allowed)
     if extra:
         raise ContractError(f"Entry {entry_id} surface {entry['surface']} has unsupported fields: {extra}")
+
+
+def _validate_entry_input_shape(entry_id: str, entry: dict[str, Any]) -> None:
+    allowed = {
+        "web": {"params"},
+        "api": {"params", "body"},
+        "cli": {"args"},
+        "worker": {"payload"},
+        "schedule": set(),
+        "webhook": {"params", "payload"},
+    }[entry["surface"]]
+    input_spec = entry.get("input", {})
+    extra = sorted(set(input_spec) - allowed)
+    if extra:
+        raise ContractError(f"Entry {entry_id} surface {entry['surface']} has unsupported input sections: {extra}")
+    seen: dict[str, str] = {}
+    for section in ("params", "body", "args"):
+        for name, type_name in _entry_input_map(entry, section).items():
+            previous = seen.get(name)
+            if previous and previous != type_name:
+                raise ContractError(f"Entry {entry_id} input field {name} has conflicting types: {previous} vs {type_name}")
+            seen[name] = type_name
 
 
 def _validate_fsm_target_surface(
@@ -1374,25 +1415,130 @@ def _validate_workflow_entry_trigger(contract: dict[str, Any], entry_id: str, en
         raise ContractError(f"Entry {entry_id} workflow trigger must match workflow {workflow_id} trigger")
 
 
-def _validate_fsm_entry_inputs(
+def _validate_api_entry_input(
+    entry_id: str,
+    entry: dict[str, Any],
+    capability: dict[str, Any],
+    params: dict[str, str],
+    body: dict[str, str],
+) -> None:
+    cap_input = capability["input"]
+    all_input = {**params, **body}
+    if set(params) - set(cap_input):
+        raise ContractError(f"API entry {entry_id} input.params must be capability input fields")
+    if set(body) - set(cap_input):
+        raise ContractError(f"API entry {entry_id} input.body must be capability input fields")
+    if set(params) & set(body):
+        raise ContractError(f"API entry {entry_id} input fields cannot appear in both params and body")
+    _validate_entry_input_types(entry_id, "input.params", params, cap_input)
+    _validate_entry_input_types(entry_id, "input.body", body, cap_input)
+    if entry["method"].lower() in {"get", "delete"}:
+        if body:
+            raise ContractError(f"API entry {entry_id} {entry['method']} must not declare input.body")
+        if set(params) != set(cap_input):
+            missing_params = sorted(set(cap_input) - set(params))
+            raise ContractError(f"API entry {entry_id} {entry['method']} must declare all capability inputs as input.params: {missing_params}")
+    missing = sorted(set(cap_input) - set(all_input))
+    if missing:
+        raise ContractError(f"API entry {entry_id} input must include every capability input: {missing}")
+
+
+def _validate_event_payload_entry_input(contract: dict[str, Any], entry_id: str, entry: dict[str, Any], workflow_id: str) -> None:
+    trigger = entry_workflow_trigger(entry)
+    if not trigger or "event" not in trigger:
+        return
+    event_id = trigger["event"]
+    event = contract["events"].get(event_id)
+    if not event:
+        raise ContractError(f"Entry {entry_id} workflow trigger references unknown event {event_id}")
+    payload_type = (entry.get("input") or {}).get("payload")
+    if payload_type != event["payload"]:
+        raise ContractError(f"Entry {entry_id} input.payload must be {event['payload']}, got {payload_type}")
+
+
+def _validate_target_bindings(
     contract: dict[str, Any],
     entry_id: str,
     entry: dict[str, Any],
+    target_input_types: dict[str, str],
+) -> None:
+    kind, value = entry_target_pair(entry["target"])
+    bindings = entry["target"].get("with", {})
+    if kind == "capability":
+        expected = contract["capabilities"][value]["input"]
+    elif kind == "fsm":
+        expected = {name: contract["fsms"][value].get("context", {})[name] for name in target_input_types}
+    else:
+        if bindings:
+            raise ContractError(f"Entry {entry_id} target.with is not supported for workflow targets")
+        return
+    if set(bindings) != set(expected):
+        missing = sorted(set(expected) - set(bindings))
+        extra = sorted(set(bindings) - set(expected))
+        parts = []
+        if missing:
+            parts.append("missing: " + ", ".join(missing))
+        if extra:
+            parts.append("extra: " + ", ".join(extra))
+        raise ContractError(f"Entry {entry_id} target.with must exactly bind target input" + (": " + "; ".join(parts) if parts else ""))
+    source_types = _entry_input_source_types(contract, entry)
+    for target_name, source in bindings.items():
+        actual_type = source_types.get(source)
+        expected_type = expected[target_name]
+        if actual_type != expected_type:
+            raise ContractError(f"Entry {entry_id} target.with.{target_name} type mismatch: expected {expected_type}, got {actual_type} from {source}")
+
+
+def _validate_api_entry_output(entry_id: str, entry: dict[str, Any], capability: dict[str, Any]) -> None:
+    output = entry.get("output", {})
+    if set(output) != {"status", "body"}:
+        raise ContractError(f"API entry {entry_id} output must declare exactly status and body")
+    if output["status"] != 200:
+        raise ContractError(f"API entry {entry_id} output.status must be 200")
+    body = output["body"]
+    if body != {"type": capability["output"], "from": "target.result"}:
+        raise ContractError(f"API entry {entry_id} output.body must expose target.result as {capability['output']}")
+
+
+def _validate_cli_capability_output(entry_id: str, entry: dict[str, Any], capability: dict[str, Any]) -> None:
+    output = entry.get("output", {})
+    if set(output) != {"stdout", "exit_code"}:
+        raise ContractError(f"CLI entry {entry_id} output must declare exactly stdout and exit_code")
+    if output["exit_code"] != 0:
+        raise ContractError(f"CLI entry {entry_id} output.exit_code must be 0")
+    stdout = output["stdout"]
+    if stdout != {"type": capability["output"], "from": "target.result"}:
+        raise ContractError(f"CLI entry {entry_id} output.stdout must expose target.result as {capability['output']}")
+
+
+def _validate_ack_entry_output(entry_id: str, entry: dict[str, Any]) -> None:
+    if entry.get("output") != {"ack": True}:
+        raise ContractError(f"Entry {entry_id} output must be ack: true")
+
+
+def _validate_webhook_entry_output(entry_id: str, entry: dict[str, Any]) -> None:
+    if entry.get("output") != {"status": 202}:
+        raise ContractError(f"Webhook entry {entry_id} output.status must be 202")
+
+
+def _validate_fsm_entry_inputs(
+    contract: dict[str, Any],
+    entry_id: str,
     fsm_id: str,
     *,
-    input_field: str,
+    declared: dict[str, str],
+    input_label: str,
 ) -> None:
     fsm = contract["fsms"][fsm_id]
-    declared = entry.get(input_field, {})
     fsm_context = fsm.get("context", {})
     extra = sorted(set(declared) - set(fsm_context))
     if extra:
-        raise ContractError(f"Entry {entry_id} {input_field} must be declared FSM context fields: {extra}")
-    _validate_entry_input_types(entry_id, input_field, declared, fsm_context)
+        raise ContractError(f"Entry {entry_id} {input_label} must be declared FSM context fields: {extra}")
+    _validate_entry_input_types(entry_id, input_label, declared, fsm_context)
     required = _required_entry_fsm_context(contract, fsm_id)
     missing = sorted(set(required) - set(declared))
     if missing:
-        raise ContractError(f"Entry {entry_id} {input_field} must include required FSM context inputs: {missing}")
+        raise ContractError(f"Entry {entry_id} {input_label} must include required FSM context inputs: {missing}")
 
 
 def _required_entry_fsm_context(contract: dict[str, Any], fsm_id: str) -> dict[str, str]:
@@ -1476,6 +1622,33 @@ def _validate_entry_input_types(entry_id: str, field: str, actual: dict[str, str
         expected_type = expected.get(name)
         if expected_type != type_name:
             raise ContractError(f"Entry {entry_id} {field}.{name} type mismatch: expected {expected_type}, got {type_name}")
+
+
+def _entry_input_map(entry: dict[str, Any], section: str) -> dict[str, str]:
+    value = (entry.get("input") or {}).get(section, {})
+    return value if isinstance(value, dict) else {}
+
+
+def _entry_input_source_types(contract: dict[str, Any], entry: dict[str, Any]) -> dict[str, str]:
+    source_types: dict[str, str] = {}
+    for section in ("params", "body", "args"):
+        for name, type_name in _entry_input_map(entry, section).items():
+            source_types[f"input.{section}.{name}"] = type_name
+    payload = (entry.get("input") or {}).get("payload")
+    if isinstance(payload, str):
+        source_types["input.payload"] = payload
+        base = _base_type(payload)
+        resource = contract.get("resources", {}).get(base)
+        if resource:
+            for field, type_name in resource["fields"].items():
+                source_types[f"input.payload.{field}"] = type_name
+    return source_types
+
+
+def _base_type(type_name: str) -> str:
+    if type_name.startswith("list[") and type_name.endswith("]"):
+        return type_name[5:-1]
+    return type_name
 
 
 def _validate_workflows(contract: dict[str, Any]) -> None:
@@ -1603,12 +1776,34 @@ def _validate_scenario_when(contract: dict[str, Any], sid: str, scenario: dict[s
             raise ContractError(f"Scenario {sid} open_entry must reference a web or cli FSM entry")
         if kind == "call_entry" and not (entry["surface"] in {"api", "cli"} and entry_target_kind == "capability"):
             raise ContractError(f"Scenario {sid} call_entry must reference an api or cli capability entry")
+        _validate_scenario_entry_input(sid, kind, body, entry)
     elif kind == "invoke_capability":
         if ref not in contract["capabilities"]:
             raise ContractError(f"Scenario {sid} references unknown capability {ref}")
     elif kind == "emit_event":
         if ref not in contract["events"]:
             raise ContractError(f"Scenario {sid} references unknown event {ref}")
+
+
+def _validate_scenario_entry_input(sid: str, kind: str, body: dict[str, Any], entry: dict[str, Any]) -> None:
+    expected = _entry_external_input_types(entry)
+    actual = body.get("input", {})
+    if set(actual) != set(expected):
+        missing = sorted(set(expected) - set(actual))
+        extra = sorted(set(actual) - set(expected))
+        parts = []
+        if missing:
+            parts.append("missing: " + ", ".join(missing))
+        if extra:
+            parts.append("extra: " + ", ".join(extra))
+        raise ContractError(f"Scenario {sid} {kind}.input must exactly match entry input" + (": " + "; ".join(parts) if parts else ""))
+
+
+def _entry_external_input_types(entry: dict[str, Any]) -> dict[str, str]:
+    fields: dict[str, str] = {}
+    for section in ("params", "body", "args"):
+        fields.update(_entry_input_map(entry, section))
+    return fields
 
 
 def _validate_scenario_then(contract: dict[str, Any], sid: str, scenario: dict[str, Any]) -> None:
@@ -1866,10 +2061,10 @@ def _path_params(path: str | None) -> set[str]:
 
 def _validate_path_params(entry: dict[str, Any], entry_id: str) -> None:
     placeholders = _path_params(entry.get("path"))
-    declared = set((entry.get("params") or {}).keys())
+    declared = set(_entry_input_map(entry, "params"))
     if placeholders != declared:
         raise ContractError(
-            f"Entry {entry_id} path params {sorted(placeholders)} must exactly match params {sorted(declared)}"
+            f"Entry {entry_id} path params {sorted(placeholders)} must exactly match input.params {sorted(declared)}"
         )
 
 

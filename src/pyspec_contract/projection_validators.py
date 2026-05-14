@@ -161,7 +161,7 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             raise ContractError(f"OpenAPI policy extension does not match capability {cap_id}")
 
         placeholders = _path_params(path)
-        params = entry.get("params", {})
+        params = entry.get("input", {}).get("params", {})
         if placeholders != set(params):
             raise ContractError(f"OpenAPI path params for {entry_id} do not match declared params")
         expected_params = [
@@ -171,7 +171,7 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
         if operation.get("parameters", []) != expected_params:
             raise ContractError(f"OpenAPI parameters do not match entry params for {entry_id}")
 
-        body_fields = {k: v for k, v in cap["input"].items() if k not in params}
+        body_fields = entry.get("input", {}).get("body", {})
         if body_fields and method not in {"get", "delete"}:
             expected_body = {
                 "required": True,
@@ -182,14 +182,16 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
         elif "requestBody" in operation:
             raise ContractError(f"OpenAPI requestBody is not allowed for {entry_id}")
 
+        response_status = str(entry["output"]["status"])
+        response_type = entry["output"]["body"]["type"]
         expected_responses = {
-            "200": {
+            response_status: {
                 "description": "OK",
-                "content": {"application/json": {"schema": type_schema(cap["output"])}},
+                "content": {"application/json": {"schema": type_schema(response_type)}},
             }
         }
         if operation.get("responses") != expected_responses:
-            raise ContractError(f"OpenAPI response schema does not match capability output for {cap_id}")
+            raise ContractError(f"OpenAPI response schema does not match entry output for {entry_id}")
         _validate_refs_resolve(operation, doc, f"OpenAPI operation {entry_id}")
 
     _validate_refs_resolve(doc["components"], doc, "OpenAPI components")
@@ -291,7 +293,7 @@ def validate_routes(contract: dict[str, Any], doc: dict[str, Any]) -> None:
                 "id": entry["route"],
                 "entry": entry_id,
                 "path": entry["path"],
-                "params": entry.get("params", {}),
+                "params": entry.get("input", {}).get("params", {}),
                 "fsm": entry_fsm_name(entry),
             })
     if doc["routes"] != expected:

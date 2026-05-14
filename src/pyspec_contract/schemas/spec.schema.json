@@ -631,9 +631,6 @@
     "entry": {
       "additionalProperties": false,
       "properties": {
-        "args": {
-          "$ref": "#/$defs/type_map"
-        },
         "basis": {
           "$ref": "#/$defs/basis"
         },
@@ -648,11 +645,14 @@
           "pattern": "^endpoint\\.",
           "type": "string"
         },
+        "input": {
+          "$ref": "#/$defs/entry_input"
+        },
         "method": {
           "type": "string"
         },
-        "params": {
-          "$ref": "#/$defs/type_map"
+        "output": {
+          "$ref": "#/$defs/entry_output"
         },
         "path": {
           "type": "string"
@@ -685,8 +685,19 @@
       "required": [
         "surface",
         "target",
-        "basis"
+        "basis",
+        "input"
       ],
+      "type": "object"
+    },
+    "entry_bindings": {
+      "additionalProperties": {
+        "pattern": "^input\\.(params|body|args|payload)(\\.[a-z][a-z0-9_]*)?$",
+        "type": "string"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/field_name"
+      },
       "type": "object"
     },
     "entry_fsm_target": {
@@ -708,16 +719,96 @@
       ],
       "type": "object"
     },
+    "entry_input": {
+      "additionalProperties": false,
+      "properties": {
+        "args": {
+          "$ref": "#/$defs/type_map"
+        },
+        "body": {
+          "$ref": "#/$defs/type_map"
+        },
+        "params": {
+          "$ref": "#/$defs/type_map"
+        },
+        "payload": {
+          "$ref": "#/$defs/type_name"
+        }
+      },
+      "type": "object"
+    },
+    "entry_output": {
+      "additionalProperties": false,
+      "properties": {
+        "ack": {
+          "type": "boolean"
+        },
+        "body": {
+          "$ref": "#/$defs/entry_output_value"
+        },
+        "exit_code": {
+          "type": "integer"
+        },
+        "status": {
+          "maximum": 599,
+          "minimum": 100,
+          "type": "integer"
+        },
+        "stderr": {
+          "$ref": "#/$defs/entry_output_value"
+        },
+        "stdout": {
+          "$ref": "#/$defs/entry_output_value"
+        }
+      },
+      "type": "object"
+    },
+    "entry_output_value": {
+      "additionalProperties": false,
+      "properties": {
+        "from": {
+          "enum": [
+            "target.result"
+          ]
+        },
+        "type": {
+          "$ref": "#/$defs/type_name"
+        }
+      },
+      "required": [
+        "type",
+        "from"
+      ],
+      "type": "object"
+    },
     "entry_target": {
       "additionalProperties": false,
-      "maxProperties": 1,
-      "minProperties": 1,
+      "oneOf": [
+        {
+          "required": [
+            "capability"
+          ]
+        },
+        {
+          "required": [
+            "fsm"
+          ]
+        },
+        {
+          "required": [
+            "workflow"
+          ]
+        }
+      ],
       "properties": {
         "capability": {
           "$ref": "#/$defs/dotted_id"
         },
         "fsm": {
           "$ref": "#/$defs/entry_fsm_target"
+        },
+        "with": {
+          "$ref": "#/$defs/entry_bindings"
         },
         "workflow": {
           "$ref": "#/$defs/entry_workflow_target"
@@ -1048,22 +1139,6 @@
       "pattern": "^fsm\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
     },
-    "fsm_mount_selected": {
-      "additionalProperties": false,
-      "properties": {
-        "state": {
-          "$ref": "#/$defs/state_name"
-        },
-        "when": {
-          "$ref": "#/$defs/condition_contract"
-        }
-      },
-      "required": [
-        "when",
-        "state"
-      ],
-      "type": "object"
-    },
     "fsm_message": {
       "additionalProperties": false,
       "properties": {
@@ -1104,6 +1179,22 @@
       "required": [
         "accepts",
         "emits"
+      ],
+      "type": "object"
+    },
+    "fsm_mount_selected": {
+      "additionalProperties": false,
+      "properties": {
+        "state": {
+          "$ref": "#/$defs/state_name"
+        },
+        "when": {
+          "$ref": "#/$defs/condition_contract"
+        }
+      },
+      "required": [
+        "when",
+        "state"
       ],
       "type": "object"
     },
@@ -1151,14 +1242,14 @@
           },
           "type": "array"
         },
+        "layout": {
+          "$ref": "#/$defs/layout_contract"
+        },
         "mounts": {
           "items": {
             "$ref": "#/$defs/mount_item"
           },
           "type": "array"
-        },
-        "layout": {
-          "$ref": "#/$defs/layout_contract"
         },
         "presentation": {
           "$ref": "#/$defs/presentation_contract"
@@ -1534,38 +1625,6 @@
       ],
       "type": "object"
     },
-    "mount_item": {
-      "additionalProperties": false,
-      "properties": {
-        "context": {
-          "$ref": "#/$defs/context_bindings"
-        },
-        "fsm": {
-          "pattern": "^fsm\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
-          "type": "string"
-        },
-        "id": {
-          "$ref": "#/$defs/instance_id"
-        },
-        "initial": {
-          "$ref": "#/$defs/state_name"
-        },
-        "region": {
-          "$ref": "#/$defs/field_name"
-        },
-        "selected": {
-          "$ref": "#/$defs/fsm_mount_selected"
-        }
-      },
-      "required": [
-        "id",
-        "fsm",
-        "region",
-        "initial",
-        "context"
-      ],
-      "type": "object"
-    },
     "instance_id": {
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
@@ -1733,6 +1792,38 @@
       },
       "required": [
         "containers"
+      ],
+      "type": "object"
+    },
+    "mount_item": {
+      "additionalProperties": false,
+      "properties": {
+        "context": {
+          "$ref": "#/$defs/context_bindings"
+        },
+        "fsm": {
+          "pattern": "^fsm\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+          "type": "string"
+        },
+        "id": {
+          "$ref": "#/$defs/instance_id"
+        },
+        "initial": {
+          "$ref": "#/$defs/state_name"
+        },
+        "region": {
+          "$ref": "#/$defs/field_name"
+        },
+        "selected": {
+          "$ref": "#/$defs/fsm_mount_selected"
+        }
+      },
+      "required": [
+        "id",
+        "fsm",
+        "region",
+        "initial",
+        "context"
       ],
       "type": "object"
     },

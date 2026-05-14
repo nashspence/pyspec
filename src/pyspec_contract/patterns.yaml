@@ -95,6 +95,7 @@ surface_entries:
     layer: web
 
 entry_target_contracts:
+  boundary: 'Entries declare surface-specific input and output. target.with maps external entry input onto the target capability or FSM context.'
   fsm: 'FSM entry targets use target.fsm.name plus target.fsm.surface to distinguish the entrypoint surface from its html/textual realization.'
   workflow: 'Workflow entry targets use target.workflow.name plus target.workflow.trigger so the entrypoint declares the trigger data it consumes.'
 

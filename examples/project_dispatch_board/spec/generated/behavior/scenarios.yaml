@@ -248,7 +248,7 @@ scenarios:
     basis: An empty workspace shows empty list, no detail, and no activity.
     execute:
       open_entry:
-        params:
+        input:
           workspace_id: $fixture.workspace.id
         ref: web.project.board
     feature: project.board
@@ -444,7 +444,7 @@ scenarios:
     basis: A populated workspace shows the ready list while detail awaits explicit selection.
     execute:
       open_entry:
-        params:
+        input:
           workspace_id: $fixture.workspace.id
         ref: web.project.board
     feature: project.board

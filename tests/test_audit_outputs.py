@@ -56,6 +56,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     board = contract["fsms"]["fsm.project.board"]
     composition = composition_dot("fsm.project.board.ready", {"context": board["context"], **board["states"]["ready"]}, contract)
     entrypoint = entrypoint_flow_dot("web.project.board", contract["entries"]["web.project.board"], contract)
+    api_entrypoint = entrypoint_flow_dot("api.project.create", contract["entries"]["api.project.create"], contract)
     cli_entrypoint = entrypoint_flow_dot("cli.project.board", contract["entries"]["cli.project.board"], contract)
     worker_entrypoint = entrypoint_flow_dot("worker.project.approval_notice", contract["entries"]["worker.project.approval_notice"], contract)
     workflow = workflow_flow_dot("project.approval_notice", contract["workflows"]["project.approval_notice"], contract)
@@ -166,12 +167,26 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">target FSM (textual)</FONT>' in cli_entrypoint
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">target workflow (event project.approved)</FONT>' in worker_entrypoint
     assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in worker_entrypoint
+    assert "<B>surface handoff</B>" not in entrypoint
+    assert 'label="ui loop"' not in entrypoint
+    assert "entry_exit" not in entrypoint
+    assert "<B>entry output</B>" not in entrypoint
+    assert "entrypoint_mount" not in entrypoint
+    assert "nav mount" not in entrypoint
+    assert "<B>surface handoff</B>" not in cli_entrypoint
+    assert 'label="tui loop"' not in cli_entrypoint
+    assert "entry_exit" not in cli_entrypoint
+    assert "entrypoint_mount" not in cli_entrypoint
+    assert "<B>entry output</B>" in api_entrypoint
+    assert 'label="exit"' in api_entrypoint
+    assert "<B>body</B>" in api_entrypoint
+    assert 'body</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT><FONT POINT-SIZE="10">&#160;&lt;&#45;&#160;target.result</FONT>' in api_entrypoint
     entrypoint_input = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
     assert entrypoint_input in entrypoint
     assert entrypoint.index(entrypoint_input) < entrypoint.index("<B>query:</B>&#160;&#160;query.project.board.list")
     assert entrypoint.index("<B>query:</B>&#160;&#160;query.project.board.list") < entrypoint.index("<B>load:</B>&#160;&#160;project.list")
     assert "<B>sync:</B>&#160;&#160;select_project_updates_fsms" in entrypoint
-    assert "<B>fsm:</B>&#160;&#160;fsm.project.list" in entrypoint
+    assert "<B>fsm:</B>" not in entrypoint
     assert "fsm.selected_project_id" not in entrypoint
     assert "$fsm." not in entrypoint
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">event trigger</FONT>' in workflow
@@ -180,7 +195,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>capability:</B>&#160;&#160;project.send_approval_notice" in workflow
     assert '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;approved_by</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in workflow
     assert '<FONT POINT-SIZE="10"><B>output:</B>&#160;&#160;result</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;NoticeResult</FONT>' in workflow
-    for graph_id, dot_source in {"fsm_project_list": fsm, "project_board": composition, "web_project_board": entrypoint, "project_approval_notice": workflow}.items():
+    for graph_id, dot_source in {"fsm_project_list": fsm, "project_board": composition, "web_project_board": entrypoint, "api_project_create": api_entrypoint, "project_approval_notice": workflow}.items():
         svg = _render_graphviz_svg(dot_source, graph_id)
         assert svg.lstrip().startswith("<svg")
         assert "</svg>" in svg

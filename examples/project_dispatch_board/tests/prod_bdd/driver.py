@@ -18,7 +18,7 @@ class ProdDriver:
     def execute(self, scenario_id: str, scenario: Mapping[str, Any]) -> None:
         kind, body = next(iter(scenario["execute"].items()))
         if kind == "open_entry":
-            self.app.open_web_entry(body["ref"], self._resolve_map(body.get("params", {})))
+            self.app.open_web_entry(body["ref"], self._resolve_map(body.get("input", {})))
         elif kind == "call_entry":
             self.app.call_entry(body["ref"], self._resolve_map(body.get("input", {})))
         elif kind == "invoke_capability":

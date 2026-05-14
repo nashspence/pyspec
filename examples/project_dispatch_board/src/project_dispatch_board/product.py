@@ -50,13 +50,13 @@ class ProductApp:
         assert entry["surface"] == "web"
         fsm_id = entry_fsm_name(entry)
         fsm = self.contract["fsms"][fsm_id]
-        workspace_id = params.get("workspace_id")
+        context = self._entry_target_input(entry, params)
+        workspace_id = context.get("workspace_id")
         matching = [p for p in self.projects if p.get("workspace_id") == workspace_id]
         parent_state_name = "ready" if "ready" in fsm.get("states", {}) else next(iter(fsm.get("states", {"ready": {}})))
         parent_state = fsm["states"].get(parent_state_name, {"surface": None, "copy": [], "assets": [], "actions": [], "data": []})
         if parent_state.get("mounts"):
             fsms: dict[str, Any] = {}
-            context = dict(params)
             for mount in parent_state["mounts"]:
                 source_id = mount["fsm"]
                 fsm = self.contract["fsms"][source_id]
@@ -132,9 +132,24 @@ class ProductApp:
     def call_entry(self, entry_id: str, input_values: Mapping[str, Any]) -> dict[str, Any]:
         entry = self.contract["entries"][entry_id]
         assert entry["surface"] in {"api", "cli"}
-        result = self.invoke_capability(entry["target"]["capability"], input_values)
-        self.http_response = {"status": 200, "body": result}
+        target_input = self._entry_target_input(entry, input_values)
+        result = self.invoke_capability(entry["target"]["capability"], target_input)
+        output = entry["output"]
+        self.http_response = (
+            {"status": output["status"], "body": result}
+            if "status" in output
+            else {"exit_code": output["exit_code"], "stdout": result}
+        )
         return self.http_response
+
+    def _entry_target_input(self, entry: Mapping[str, Any], input_values: Mapping[str, Any]) -> dict[str, Any]:
+        namespace = {"input": {}}
+        for section in ("params", "body", "args"):
+            fields = (entry.get("input") or {}).get(section, {})
+            if fields:
+                namespace["input"][section] = {name: input_values[name] for name in fields}
+        bindings = entry["target"].get("with", {})
+        return {name: _resolve_binding(source, namespace) for name, source in bindings.items()}
 
     def invoke_capability(self, capability_id: str, input_values: Mapping[str, Any]) -> Any:
         self.invoked_capabilities.append(capability_id)
@@ -257,6 +272,13 @@ class ProductApp:
 
 def _matches(record: Mapping[str, Any], where: Mapping[str, Any]) -> bool:
     return all(record.get(key) == value for key, value in where.items())
+
+
+def _resolve_binding(source: str, namespace: Mapping[str, Any]) -> Any:
+    current: Any = namespace
+    for part in source.split("."):
+        current = current[part]
+    return current
 
 
 def _condition_matches(condition: Mapping[str, Any], context: Mapping[str, Any]) -> bool:
