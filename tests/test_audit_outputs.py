@@ -3,7 +3,20 @@ from pathlib import Path
 
 import pytest
 
-from pyspec_contract.audit import _render_graphviz_svg, audit_expected_files, composition_dot, composition_file, panel_fsm_dot, panel_fsm_file, panel_state_root, render_case_file
+from pyspec_contract.audit import (
+    _render_graphviz_svg,
+    audit_expected_files,
+    composition_dot,
+    composition_file,
+    entrypoint_flow_dot,
+    entrypoint_flow_file,
+    panel_fsm_dot,
+    panel_fsm_file,
+    panel_state_root,
+    render_case_file,
+    workflow_flow_dot,
+    workflow_flow_file,
+)
 from pyspec_contract.compile import ContractError, compile_source
 from pyspec_contract.io import read_yaml
 from pyspec_contract.paths import COMPILED_SPEC_PATH, SOURCE_SPEC_PATH
@@ -23,6 +36,8 @@ def test_audit_outputs_cover_full_contract() -> None:
     expected = audit_expected_files(contract)
     assert "spec/generated/audit_evidence/panels/panel_project_list/fsm.svg" in expected
     assert "spec/generated/audit_evidence/composed_views/project_board/composition.svg" in expected
+    assert "spec/generated/audit_evidence/entrypoints/web/web_project_board/flow.svg" in expected
+    assert "spec/generated/audit_evidence/workflows/project_approval_notice/flow.svg" in expected
     assert any(path.startswith("spec/generated/audit_evidence/panels/") and "/states/" in path and path.endswith("/copy.yaml") for path in expected)
     assert any(path.startswith("spec/generated/audit_evidence/panels/") and "/states/" in path and "/renders/" in path and path.endswith(".png") for path in expected)
     assert any(path.startswith("spec/generated/audit_evidence/composed_views/") and "/cases/" in path and "/renders/" in path and path.endswith(".html") for path in expected)
@@ -38,8 +53,12 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     contract = _contract()
     fsm = panel_fsm_dot("panel.project.list", contract["panels"]["panel.project.list"], contract)
     composition = composition_dot("project.board", contract["views"]["project.board"], contract)
+    entrypoint = entrypoint_flow_dot("web.project.board", contract["entries"]["web.project.board"], contract)
+    workflow = workflow_flow_dot("project.approval_notice", contract["workflows"]["project.approval_notice"], contract)
     assert fsm.startswith("digraph ")
     assert composition.startswith("digraph ")
+    assert entrypoint.startswith("digraph ")
+    assert workflow.startswith("digraph ")
     assert "stateDiagram" not in fsm
     assert "flowchart" not in composition
     assert "data.ready" in fsm
@@ -131,7 +150,22 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "required:" not in composition
     assert "layout_region_nav" not in composition
     assert "fontcolor" not in composition
-    for graph_id, dot_source in {"panel_project_list": fsm, "project_board": composition}.items():
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">web entry</FONT>' in entrypoint
+    assert "<B>route:</B>&#160;&#160;route.project.board" in entrypoint
+    assert "<B>params</B>" in entrypoint
+    assert '<FONT POINT-SIZE="10">workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in entrypoint
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">target view</FONT>' in entrypoint
+    assert "<B>sync:</B>&#160;&#160;select_project_updates_panels" in entrypoint
+    assert "<B>instance:</B>&#160;&#160;panel.project.list" in entrypoint
+    assert "view.selected_project_id" not in entrypoint
+    assert "$view." not in entrypoint
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">event trigger</FONT>' in workflow
+    assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in workflow
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">workflow step</FONT>' in workflow
+    assert "<B>capability:</B>&#160;&#160;project.send_approval_notice" in workflow
+    assert '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;approved_by</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in workflow
+    assert '<FONT POINT-SIZE="10"><B>output:</B>&#160;&#160;result</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;NoticeResult</FONT>' in workflow
+    for graph_id, dot_source in {"panel_project_list": fsm, "project_board": composition, "web_project_board": entrypoint, "project_approval_notice": workflow}.items():
         svg = _render_graphviz_svg(dot_source, graph_id)
         assert svg.lstrip().startswith("<svg")
         assert "</svg>" in svg

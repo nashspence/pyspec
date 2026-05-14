@@ -7,15 +7,15 @@ authoring_layers:
     http:
       opens: [entry.surface.api]
       requires: [core]
-      projections_when_declared: [spec/generated/product_interfaces/http.openapi.yaml]
+      projections_when_declared: [spec/generated/product_interfaces/http.openapi.yaml, spec/generated/audit_evidence/entrypoints]
     events:
       opens: [entry.surface.webhook]
       requires: [core]
-      projections_when_declared: [spec/generated/product_interfaces/events.asyncapi.yaml]
+      projections_when_declared: [spec/generated/product_interfaces/events.asyncapi.yaml, spec/generated/audit_evidence/entrypoints]
     workflow:
       opens: [workflow, entry.surface.cli, entry.surface.worker, entry.surface.schedule]
       requires: [core]
-      projections_when_declared: [spec/generated/product_interfaces/workflow.cwl.yaml, spec/generated/product_interfaces/events.asyncapi.yaml]
+      projections_when_declared: [spec/generated/product_interfaces/workflow.cwl.yaml, spec/generated/product_interfaces/events.asyncapi.yaml, spec/generated/audit_evidence/workflows, spec/generated/audit_evidence/entrypoints]
     ui:
       opens: [panel, view, copy, asset, content_case, audit_profile, render_case]
       requires: [core]
@@ -134,8 +134,10 @@ audit_contracts:
   content_case: 'target: content_case exercises every resolver-backed copy/asset with deterministic args.'
   final_content: 'target: copy or asset may declare args and resolver; generated content stubs constrain spec/spec.py.'
   formats:
+    entrypoint: svg
     fsm: svg
     composition: svg
+    workflow: svg
     textual: svg
     html: png
   forbidden: [spec/generated/audit_evidence/review.html, spec/generated/audit_evidence/change_report.md, spec/generated/audit_evidence/manifest.json]

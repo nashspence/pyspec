@@ -30,7 +30,9 @@ from .audit import (
     _scope_fixtures_file,
     audit_expected_files,
     composition_file,
+    entrypoint_flow_file,
     panel_fsm_file,
+    workflow_flow_file,
 )
 from .layout import layout_textual
 from .paths import GENERATED_SPEC_DIR, SPEC_ROOT, generated_relative as g
@@ -602,6 +604,11 @@ def validate_audit_outputs(root: Path, contract: dict[str, Any]) -> None:
     for view_id, view in contract.get("views", {}).items():
         if view.get("includes"):
             _assert_svg(root / composition_file(view_id), f"composition {view_id}")
+    for entry_id in contract.get("entries", {}):
+        entry = contract["entries"][entry_id]
+        _assert_svg(root / entrypoint_flow_file(entry_id, entry["surface"]), f"entrypoint {entry_id}")
+    for workflow_id in contract.get("workflows", {}):
+        _assert_svg(root / workflow_flow_file(workflow_id), f"workflow {workflow_id}")
 
     projection = panels_projection(contract)
     for panel in _audit_projection_panels(contract, projection):

@@ -1,0 +1,121 @@
+<svg width="793pt" height="312pt"
+ viewBox="0.00 0.00 793.00 312.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 294)">
+<title>entrypoint_textual_project_board</title>
+<!-- entry_start -->
+<g id="node1" class="node">
+<title>entry_start</title>
+<ellipse fill="none" stroke="#0891b2" cx="21" cy="-138" rx="21" ry="21"/>
+<text text-anchor="middle" x="21" y="-135.8" font-family="Arial" font-size="9.00" fill="#155e75">entry</text>
+</g>
+<!-- entrypoint_textual_project_board -->
+<g id="node2" class="node">
+<title>entrypoint_textual_project_board</title>
+<polygon fill="#ffffff" stroke="transparent" points="103,-97.5 103,-178.5 270,-178.5 270,-97.5 103,-97.5"/>
+<polygon fill="#0891b2" stroke="transparent" points="104.5,-169 104.5,-177 269.5,-177 269.5,-169 104.5,-169"/>
+<polygon fill="#ecfeff" stroke="transparent" points="104.5,-138 104.5,-169 269.5,-169 269.5,-138 104.5,-138"/>
+<text text-anchor="start" x="108.5" y="-155.6" font-family="Arial" font-weight="bold" font-size="13.00">project board</text>
+<text text-anchor="start" x="108.5" y="-144.6" font-family="Arial" font-size="8.00" fill="#64748b">textual entry</text>
+<text text-anchor="start" x="108.5" y="-127" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Textual entry for the dispatch board.</text>
+<text text-anchor="start" x="109.5" y="-107" font-family="Arial" font-weight="bold" font-size="10.00">screen:</text>
+<text text-anchor="start" x="143.5" y="-107" font-family="Arial" font-size="10.00">  screen.project.board</text>
+<polygon fill="none" stroke="#0891b2" points="103,-97.5 103,-178.5 270,-178.5 270,-97.5 103,-97.5"/>
+</g>
+<!-- entry_start&#45;&gt;entrypoint_textual_project_board -->
+<g id="edge1" class="edge">
+<title>entry_start&#45;&gt;entrypoint_textual_project_board</title>
+<path fill="none" stroke="#3f3f46" d="M42.05,-138C55.69,-138 74.81,-138 94.65,-138"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="94.88,-140.8 102.88,-138 94.88,-135.2 94.88,-140.8"/>
+</g>
+<!-- entrypoint_target_project_board -->
+<g id="node3" class="node">
+<title>entrypoint_target_project_board</title>
+<polygon fill="#ffffff" stroke="transparent" points="331,-68.5 331,-207.5 544,-207.5 544,-68.5 331,-68.5"/>
+<polygon fill="#047857" stroke="transparent" points="332.5,-198 332.5,-206 543.5,-206 543.5,-198 332.5,-198"/>
+<polygon fill="#ecfdf5" stroke="transparent" points="332.5,-167 332.5,-198 543.5,-198 543.5,-167 332.5,-167"/>
+<text text-anchor="start" x="336.5" y="-184.6" font-family="Arial" font-weight="bold" font-size="13.00">project.board</text>
+<text text-anchor="start" x="336.5" y="-173.6" font-family="Arial" font-size="8.00" fill="#64748b">target view</text>
+<text text-anchor="start" x="336.5" y="-156" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">The dispatch board composes list, detail, and</text>
+<text text-anchor="start" x="336.5" y="-145" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">activity panels through shared selected&#45;project</text>
+<text text-anchor="start" x="336.5" y="-134" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">context.</text>
+<text text-anchor="start" x="337.5" y="-114" font-family="Arial" font-weight="bold" font-size="10.00">resource:</text>
+<text text-anchor="start" x="381.5" y="-114" font-family="Arial" font-size="10.00">  Project</text>
+<text text-anchor="start" x="337.5" y="-102" font-family="Arial" font-weight="bold" font-size="10.00">query:</text>
+<text text-anchor="start" x="367.5" y="-102" font-family="Arial" font-size="10.00">  query.project.board.list</text>
+<text text-anchor="start" x="337.5" y="-90" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
+<text text-anchor="start" x="361.5" y="-90" font-family="Arial" font-size="10.00">  project.list</text>
+<text text-anchor="start" x="413.5" y="-90" font-family="Arial" font-size="8.00" fill="#94a3b8">  list[Project]</text>
+<text text-anchor="start" x="337.5" y="-78" font-family="Arial" font-weight="bold" font-size="10.00">sync:</text>
+<text text-anchor="start" x="362.5" y="-78" font-family="Arial" font-size="10.00">  select_project_updates_panels</text>
+<polygon fill="none" stroke="#047857" points="331,-68.5 331,-207.5 544,-207.5 544,-68.5 331,-68.5"/>
+</g>
+<!-- entrypoint_textual_project_board&#45;&gt;entrypoint_target_project_board -->
+<g id="edge2" class="edge">
+<title>entrypoint_textual_project_board&#45;&gt;entrypoint_target_project_board</title>
+<path fill="none" stroke="#3f3f46" d="M270.07,-138C286.89,-138 304.86,-138 322.55,-138"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="322.65,-140.8 330.65,-138 322.65,-135.2 322.65,-140.8"/>
+</g>
+<!-- entrypoint_instance_project_board_list -->
+<g id="node4" class="node">
+<title>entrypoint_instance_project_board_list</title>
+<polygon fill="#ffffff" stroke="transparent" points="614.5,-202 614.5,-276 747.5,-276 747.5,-202 614.5,-202"/>
+<polygon fill="#047857" stroke="transparent" points="616,-267 616,-275 747,-275 747,-267 616,-267"/>
+<polygon fill="#ecfdf5" stroke="transparent" points="616,-236 616,-267 747,-267 747,-236 616,-236"/>
+<text text-anchor="start" x="620" y="-253.6" font-family="Arial" font-weight="bold" font-size="13.00">nav</text>
+<text text-anchor="start" x="620" y="-242.6" font-family="Arial" font-size="8.00" fill="#64748b">region</text>
+<text text-anchor="start" x="621" y="-224" font-family="Arial" font-weight="bold" font-size="10.00">instance:</text>
+<text text-anchor="start" x="664" y="-224" font-family="Arial" font-size="10.00">  panel.project.list</text>
+<text text-anchor="start" x="621" y="-212" font-family="Arial" font-weight="bold" font-size="10.00">initial:</text>
+<text text-anchor="start" x="651" y="-212" font-family="Arial" font-size="10.00">  loading</text>
+<polygon fill="none" stroke="#047857" points="614.5,-202 614.5,-276 747.5,-276 747.5,-202 614.5,-202"/>
+</g>
+<!-- entrypoint_target_project_board&#45;&gt;entrypoint_instance_project_board_list -->
+<g id="edge3" class="edge">
+<title>entrypoint_target_project_board&#45;&gt;entrypoint_instance_project_board_list</title>
+<path fill="none" stroke="#3f3f46" d="M544.07,-182.15C565.23,-191 587.02,-200.11 606.79,-208.38"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="605.8,-211 614.26,-211.51 607.96,-205.84 605.8,-211"/>
+</g>
+<!-- entrypoint_instance_project_board_detail -->
+<g id="node5" class="node">
+<title>entrypoint_instance_project_board_detail</title>
+<polygon fill="#ffffff" stroke="transparent" points="609.5,-101 609.5,-175 752.5,-175 752.5,-101 609.5,-101"/>
+<polygon fill="#047857" stroke="transparent" points="611,-166 611,-174 752,-174 752,-166 611,-166"/>
+<polygon fill="#ecfdf5" stroke="transparent" points="611,-135 611,-166 752,-166 752,-135 611,-135"/>
+<text text-anchor="start" x="615" y="-152.6" font-family="Arial" font-weight="bold" font-size="13.00">main</text>
+<text text-anchor="start" x="615" y="-141.6" font-family="Arial" font-size="8.00" fill="#64748b">region</text>
+<text text-anchor="start" x="616" y="-123" font-family="Arial" font-weight="bold" font-size="10.00">instance:</text>
+<text text-anchor="start" x="659" y="-123" font-family="Arial" font-size="10.00">  panel.project.detail</text>
+<text text-anchor="start" x="616" y="-111" font-family="Arial" font-weight="bold" font-size="10.00">initial:</text>
+<text text-anchor="start" x="646" y="-111" font-family="Arial" font-size="10.00">  none</text>
+<polygon fill="none" stroke="#047857" points="609.5,-101 609.5,-175 752.5,-175 752.5,-101 609.5,-101"/>
+</g>
+<!-- entrypoint_target_project_board&#45;&gt;entrypoint_instance_project_board_detail -->
+<g id="edge4" class="edge">
+<title>entrypoint_target_project_board&#45;&gt;entrypoint_instance_project_board_detail</title>
+<path fill="none" stroke="#3f3f46" d="M544.07,-138C563.23,-138 582.89,-138 601.11,-138"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="601.37,-140.8 609.37,-138 601.37,-135.2 601.37,-140.8"/>
+</g>
+<!-- entrypoint_instance_project_board_activity -->
+<g id="node6" class="node">
+<title>entrypoint_instance_project_board_activity</title>
+<polygon fill="#ffffff" stroke="transparent" points="605,0 605,-74 757,-74 757,0 605,0"/>
+<polygon fill="#047857" stroke="transparent" points="606,-65 606,-73 756,-73 756,-65 606,-65"/>
+<polygon fill="#ecfdf5" stroke="transparent" points="606,-34 606,-65 756,-65 756,-34 606,-34"/>
+<text text-anchor="start" x="610" y="-51.6" font-family="Arial" font-weight="bold" font-size="13.00">aside</text>
+<text text-anchor="start" x="610" y="-40.6" font-family="Arial" font-size="8.00" fill="#64748b">region</text>
+<text text-anchor="start" x="611" y="-22" font-family="Arial" font-weight="bold" font-size="10.00">instance:</text>
+<text text-anchor="start" x="654" y="-22" font-family="Arial" font-size="10.00">  panel.project.activity</text>
+<text text-anchor="start" x="611" y="-10" font-family="Arial" font-weight="bold" font-size="10.00">initial:</text>
+<text text-anchor="start" x="641" y="-10" font-family="Arial" font-size="10.00">  empty</text>
+<polygon fill="none" stroke="#047857" points="605,0 605,-74 757,-74 757,0 605,0"/>
+</g>
+<!-- entrypoint_target_project_board&#45;&gt;entrypoint_instance_project_board_activity -->
+<g id="edge5" class="edge">
+<title>entrypoint_target_project_board&#45;&gt;entrypoint_instance_project_board_activity</title>
+<path fill="none" stroke="#3f3f46" d="M544.07,-93.85C561.79,-86.44 579.96,-78.84 597.01,-71.71"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="598.45,-74.14 604.75,-68.47 596.29,-68.97 598.45,-74.14"/>
+</g>
+<!-- entrypoint_instance_project_board_list&#45;&gt;entrypoint_instance_project_board_detail -->
+<!-- entrypoint_instance_project_board_detail&#45;&gt;entrypoint_instance_project_board_activity -->
+</g>
+</svg>

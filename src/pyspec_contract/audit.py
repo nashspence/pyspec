@@ -43,6 +43,14 @@ def composition_file(view_id: str) -> str:
     return g("audit_evidence", "composed_views", safe_id(view_id), "composition.svg")
 
 
+def entrypoint_flow_file(entry_id: str, surface: str) -> str:
+    return g("audit_evidence", "entrypoints", safe_id(surface), safe_id(entry_id), "flow.svg")
+
+
+def workflow_flow_file(workflow_id: str) -> str:
+    return g("audit_evidence", "workflows", safe_id(workflow_id), "flow.svg")
+
+
 def composed_case_root(view_id: str, case_id: str) -> str:
     return g("audit_evidence", "composed_views", safe_id(view_id), "cases", safe_id(case_id))
 
@@ -251,6 +259,10 @@ def audit_expected_files(contract: dict[str, Any]) -> set[str]:
     for view_id, view in contract.get("views", {}).items():
         if view.get("includes"):
             files.add(composition_file(view_id))
+    for entry_id, entry in contract.get("entries", {}).items():
+        files.add(entrypoint_flow_file(entry_id, entry["surface"]))
+    for workflow_id in contract.get("workflows", {}):
+        files.add(workflow_flow_file(workflow_id))
 
     projection = panels_projection(contract)
     for panel in _audit_projection_panels(contract, projection):
@@ -290,7 +302,7 @@ def generate_audit(root: Path, contract: dict[str, Any], tools_root: Path | None
     projection = panels_projection(contract)
     _write_audit_inputs(root, contract, projection)
 
-    if not contract.get("panels") and not contract.get("render_cases"):
+    if not audit_expected_files(contract):
         return
     _render_visual_audit(root, contract, tools_root or root, projection)
 
@@ -314,6 +326,12 @@ def _render_visual_audit(root: Path, contract: dict[str, Any], _tools_root: Path
             continue
         path = root / composition_file(view_id)
         _write_graphviz_svg(path, composition_dot(view_id, view, contract))
+    for entry_id, entry in sorted(contract.get("entries", {}).items()):
+        path = root / entrypoint_flow_file(entry_id, entry["surface"])
+        _write_graphviz_svg(path, entrypoint_flow_dot(entry_id, entry, contract))
+    for workflow_id, workflow in sorted(contract.get("workflows", {}).items()):
+        path = root / workflow_flow_file(workflow_id)
+        _write_graphviz_svg(path, workflow_flow_dot(workflow_id, workflow, contract))
 
     has_html_audit = bool(
         _audit_projection_panels(contract, projection) and any(profile.get("html") for profile in contract.get("audit_profiles", {}).values())
@@ -656,6 +674,288 @@ def composition_dot(view_id: str, view: dict[str, Any], contract: dict[str, Any]
     return "\n".join(lines) + "\n"
 
 
+def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str, Any]) -> str:
+    target_kind, target_value = _target_pair(entry["target"])
+    start_id = "entry_start"
+    entry_node = _dot_node_id("entrypoint", entry_id)
+    input_node = _dot_node_id("entrypoint_input", entry_id)
+    target_node = _dot_node_id("entrypoint_target", target_value)
+    target_tail = _entry_target_tail_nodes(target_kind, target_value, contract)
+    input_sections = _entry_input_sections(entry, contract)
+    lines = [
+        f"digraph {_dot_quote('entrypoint_' + safe_id(entry_id))} {{",
+        '  graph [rankdir="LR", bgcolor="transparent", pad="0.25", nodesep="0.38", ranksep="0.85", splines="spline"];',
+        '  node [fontname="Arial", fontsize="11"];',
+        '  edge [color="#3f3f46", fontname="Arial", fontsize="10", arrowsize="0.8"];',
+        f"  {_dot_quote(start_id)} [shape=\"circle\", label=\"entry\", width=\"0.58\", fixedsize=\"true\", color=\"#0891b2\", fontcolor=\"#155e75\", fontsize=\"9\"];",
+        _dot_html_node(
+            entry_node,
+            _dot_card(
+                _entry_surface_title(entry),
+                f"{entry['surface']} entry",
+                _entry_binding_sections(entry),
+                basis=entry.get("basis", ""),
+                header_bg="#ecfeff",
+                border="#0891b2",
+            ),
+        ),
+    ]
+    if input_sections:
+        lines.append(
+            _dot_html_node(
+                input_node,
+                _dot_card("entry input", "external data", input_sections, header_bg="#f8fafc", border="#64748b"),
+            )
+        )
+    lines.append(_dot_html_node(target_node, _entry_target_card(target_kind, target_value, contract)))
+    lines.extend(_dot_html_node(node_id, label) for node_id, label in target_tail)
+    lines.append(f"  {_dot_quote(start_id)} -> {_dot_quote(entry_node)};")
+    if input_sections:
+        lines.append(f"  {_dot_quote(entry_node)} -> {_dot_quote(input_node)};")
+        lines.append(f"  {_dot_quote(input_node)} -> {_dot_quote(target_node)};")
+    else:
+        lines.append(f"  {_dot_quote(entry_node)} -> {_dot_quote(target_node)};")
+    for node_id, _ in target_tail:
+        lines.append(f"  {_dot_quote(target_node)} -> {_dot_quote(node_id)};")
+    if len(target_tail) > 1:
+        lines.append("  { rank=same; " + " ".join(_dot_quote(node_id) for node_id, _ in target_tail) + " }")
+        lines.extend(_dot_invisible_order([node_id for node_id, _ in target_tail], indent="  "))
+    lines.append("}")
+    return "\n".join(lines) + "\n"
+
+
+def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict[str, Any]) -> str:
+    trigger_kind, trigger_value = _target_pair(workflow["trigger"])
+    start_id = "workflow_start"
+    trigger_node = _dot_node_id("workflow_trigger", f"{trigger_kind}_{trigger_value}")
+    workflow_node = _dot_node_id("workflow", workflow_id)
+    step_nodes = [(_dot_node_id("workflow_step", f"{workflow_id}_{step['id']}"), step) for step in workflow["steps"]]
+    lines = [
+        f"digraph {_dot_quote('workflow_' + safe_id(workflow_id))} {{",
+        '  graph [rankdir="LR", bgcolor="transparent", pad="0.25", nodesep="0.38", ranksep="0.85", splines="spline"];',
+        '  node [fontname="Arial", fontsize="11"];',
+        '  edge [color="#3f3f46", fontname="Arial", fontsize="10", arrowsize="0.8"];',
+        f"  {_dot_quote(start_id)} [shape=\"circle\", label=\"trigger\", width=\"0.68\", fixedsize=\"true\", color=\"#4f46e5\", fontcolor=\"#312e81\", fontsize=\"9\"];",
+        _dot_html_node(trigger_node, _workflow_trigger_card(trigger_kind, trigger_value, contract)),
+        _dot_html_node(
+            workflow_node,
+            _dot_card(
+                workflow_id,
+                "workflow",
+                [
+                    ("ref", [workflow.get("ref", "")]),
+                    ("steps", [f"{step['id']} -> {step['capability']}" for step in workflow["steps"]]),
+                ],
+                basis=workflow.get("basis", ""),
+                header_bg="#fefce8",
+                border="#a16207",
+            ),
+        ),
+    ]
+    for node_id, step in step_nodes:
+        lines.append(_dot_html_node(node_id, _workflow_step_card(step, contract)))
+    lines.append(f"  {_dot_quote(start_id)} -> {_dot_quote(trigger_node)};")
+    lines.append(f"  {_dot_quote(trigger_node)} -> {_dot_quote(workflow_node)};")
+    previous = workflow_node
+    for node_id, _ in step_nodes:
+        lines.append(f"  {_dot_quote(previous)} -> {_dot_quote(node_id)};")
+        previous = node_id
+    lines.append("}")
+    return "\n".join(lines) + "\n"
+
+
+def _entry_surface_title(entry: dict[str, Any]) -> str:
+    surface = entry["surface"]
+    if surface == "api":
+        return f"{entry.get('method', '').upper()} {entry.get('path', '')}".strip()
+    if surface in {"web", "webhook"}:
+        return entry.get("path", surface)
+    if surface in {"textual", "cli"}:
+        return entry.get("command", surface)
+    if surface == "schedule":
+        return entry.get("schedule", surface)
+    if surface == "worker":
+        return entry.get("workflow_ref", surface)
+    return surface
+
+
+def _entry_binding_sections(entry: dict[str, Any]) -> list[tuple[str, list[object]]]:
+    labels = {
+        "route": "route",
+        "screen": "screen",
+        "endpoint": "endpoint",
+        "command_ref": "command",
+        "workflow_ref": "workflow",
+        "schedule": "schedule",
+    }
+    return [(label, [entry[key]]) for key, label in labels.items() if entry.get(key)]
+
+
+def _entry_input_sections(entry: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, list[object]]]:
+    sections: list[tuple[str, list[object]]] = []
+    if entry.get("params"):
+        sections.append(("params", _typed_fields(entry["params"])))
+    if entry.get("args"):
+        sections.append(("args", _typed_fields(entry["args"])))
+    target_kind, target_value = _target_pair(entry["target"])
+    if entry["surface"] == "api" and target_kind == "capability":
+        capability = contract["capabilities"][target_value]
+        params = set(entry.get("params", {}))
+        body_fields = {name: type_name for name, type_name in capability["input"].items() if name not in params}
+        if body_fields and entry["method"].lower() not in {"get", "delete"}:
+            sections.append(("body", _typed_fields(body_fields)))
+    return sections
+
+
+def _entry_target_card(target_kind: str, target_value: str, contract: dict[str, Any]) -> str:
+    if target_kind == "view":
+        view = contract["views"][target_value]
+        return _dot_card(
+            target_value,
+            "target view",
+            _view_summary_sections(view, contract),
+            basis=view.get("basis", ""),
+            header_bg="#ecfdf5",
+            border="#047857",
+        )
+    if target_kind == "capability":
+        capability = contract["capabilities"][target_value]
+        return _dot_card(
+            target_value,
+            "target capability",
+            _capability_sections(capability),
+            basis=capability.get("basis", ""),
+            header_bg="#eff6ff",
+            border="#2563eb",
+        )
+    if target_kind == "workflow":
+        workflow = contract["workflows"][target_value]
+        return _dot_card(
+            target_value,
+            "target workflow",
+            [
+                ("trigger", [_target_label(*_target_pair(workflow["trigger"]))]),
+                ("steps", [f"{step['id']} -> {step['capability']}" for step in workflow["steps"]]),
+            ],
+            basis=workflow.get("basis", ""),
+            header_bg="#fefce8",
+            border="#a16207",
+        )
+    if target_kind == "event":
+        return _event_card(target_value, contract)
+    return _dot_card(target_value, f"target {target_kind}", [], header_bg="#f8fafc")
+
+
+def _entry_target_tail_nodes(target_kind: str, target_value: str, contract: dict[str, Any]) -> list[tuple[str, str]]:
+    if target_kind != "view":
+        return []
+    view = contract["views"][target_value]
+    if view.get("includes"):
+        return [
+            (_dot_node_id("entrypoint_instance", f"{target_value}_{include['id']}"), _dot_instance_card(include))
+            for include in view["includes"]
+        ]
+    return [
+        (_dot_node_id("entrypoint_view_state", f"{target_value}_{state_name}"), _view_state_card(view, state_name, state, contract))
+        for state_name, state in sorted(view.get("states", {}).items())
+    ]
+
+
+def _view_summary_sections(view: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, list[object]]]:
+    sections: list[tuple[str, list[object]]] = [("resource", [view["resource"]])]
+    queries = [binding["query"] for binding in _unique_data_bindings(view.get("data", []))]
+    loads = _format_capability_outputs([binding["capability"] for binding in _unique_data_bindings(view.get("data", []))], contract)
+    if queries:
+        sections.append(("query", queries))
+    if loads:
+        sections.append(("load", loads))
+    if view.get("sync"):
+        sections.append(("sync", [rule["id"] for rule in view["sync"]]))
+    return sections
+
+
+def _view_state_card(view: dict[str, Any], state_name: str, state: dict[str, Any], contract: dict[str, Any]) -> str:
+    return _dot_card(
+        state_name,
+        "view state",
+        [
+            ("copy", state.get("copy", [])),
+            ("assets", state.get("assets", [])),
+            (_state_field_section_title(view, state_name, state), _format_state_fields(view, state, contract)),
+            ("actions", _format_capability_outputs(state.get("actions", []), contract)),
+        ],
+        header_bg="#f8fafc",
+        border="#71717a",
+    )
+
+
+def _workflow_trigger_card(trigger_kind: str, trigger_value: str, contract: dict[str, Any]) -> str:
+    if trigger_kind == "event":
+        return _event_card(trigger_value, contract, subtitle="event trigger")
+    if trigger_kind == "capability":
+        capability = contract["capabilities"][trigger_value]
+        return _dot_card(
+            trigger_value,
+            "capability trigger",
+            _capability_sections(capability),
+            basis=capability.get("basis", ""),
+            header_bg="#eef2ff",
+            border="#4f46e5",
+        )
+    return _dot_card(trigger_value, f"{trigger_kind} trigger", [], header_bg="#eef2ff", border="#4f46e5")
+
+
+def _workflow_step_card(step: dict[str, Any], contract: dict[str, Any]) -> str:
+    capability = contract["capabilities"][step["capability"]]
+    return _dot_card(
+        step["id"],
+        "workflow step",
+        [("capability", [step["capability"]])] + _capability_sections(capability),
+        basis=capability.get("basis", ""),
+        header_bg="#f8fafc",
+        border="#71717a",
+    )
+
+
+def _event_card(event_id: str, contract: dict[str, Any], *, subtitle: str = "target event") -> str:
+    event = contract.get("events", {}).get(event_id, {})
+    sections: list[tuple[str, list[object]]] = []
+    if event.get("payload"):
+        sections.append(("payload", [_DotTypedField("payload", event["payload"])]))
+    if event.get("emitted_by"):
+        sections.append(("emitted by", event["emitted_by"]))
+    return _dot_card(
+        event_id,
+        subtitle,
+        sections,
+        basis=event.get("basis", ""),
+        header_bg="#eef2ff",
+        border="#4f46e5",
+    )
+
+
+def _capability_sections(capability: dict[str, Any]) -> list[tuple[str, list[object]]]:
+    sections: list[tuple[str, list[object]]] = [("resource", [capability["resource"]])]
+    if capability.get("input"):
+        sections.append(("input", _typed_fields(capability["input"])))
+    sections.append(("output", [_DotTypedField("result", capability["output"])]))
+    if capability.get("emits"):
+        sections.append(("emits", capability["emits"]))
+    return sections
+
+
+def _typed_fields(fields: dict[str, str]) -> list[_DotTypedField]:
+    return [_DotTypedField(name, type_name) for name, type_name in sorted(fields.items())]
+
+
+def _target_pair(target: dict[str, str]) -> tuple[str, str]:
+    return next(iter(target.items()))
+
+
+def _target_label(kind: str, value: str) -> str:
+    return f"{kind} {value}"
+
+
 def _dot_instance_card(include: dict[str, Any]) -> str:
     return _dot_card(
         include["region"],
@@ -951,7 +1251,7 @@ def _dot_section_inner_rows(title: str, values: Iterable[object]) -> tuple[bool,
 
 
 def _dot_typed_field_section_inner_rows(title: str, values: list[object]) -> tuple[bool, list[str]]:
-    if title in {"input", "payload", "data", "set", "load"} or (title == "actions" and len(values) == 1):
+    if title in {"input", "output", "payload", "data", "set", "load"} or (title == "actions" and len(values) == 1):
         rows = []
         for index, value in enumerate(values):
             if isinstance(value, _DotTypedField):

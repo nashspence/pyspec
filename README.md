@@ -124,6 +124,10 @@ spec/generated/
     pytest_bdd_steps.py
     pytest_bdd_features/*.feature
   audit_evidence/
+    entrypoints/<surface>/<entry>/
+      flow.svg
+    workflows/<workflow>/
+      flow.svg
     panels/<panel>/
       fsm.svg
       states/<state>/
@@ -206,7 +210,7 @@ pyspec check examples/project_dispatch_board --layers full
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 pytest -q -p pytest_bdd.plugin
 ```
 
-Graphviz is required for FSM and composition SVGs. The devcontainer includes it. If `dot` lives elsewhere:
+Graphviz is required for entrypoint, workflow, FSM, and composition SVGs. The devcontainer includes it. If `dot` lives elsewhere:
 
 ```bash
 export CONTRACT_AUDIT_GRAPHVIZ_DOT=/path/to/dot
