@@ -154,7 +154,7 @@
 <text text-anchor="start" x="1013" y="-229.6" font-family="Arial" font-size="8.00" fill="#64748b">state</text>
 <text text-anchor="start" x="1014" y="-211" font-family="Arial" font-weight="bold" font-size="10.00">copy:</text>
 <text text-anchor="start" x="1040" y="-211" font-family="Arial" font-size="10.00">  copy.project.list.ready.heading</text>
-<text text-anchor="start" x="1013" y="-191" font-family="Arial" font-weight="bold" font-size="10.00">Project fields</text>
+<text text-anchor="start" x="1013" y="-191" font-family="Arial" font-weight="bold" font-size="10.00">project.list fields</text>
 <text text-anchor="start" x="1013" y="-179" font-family="Arial" font-size="10.00">title</text>
 <text text-anchor="start" x="1013" y="-168" font-family="Arial" font-size="10.00">customer</text>
 <text text-anchor="start" x="1013" y="-157" font-family="Arial" font-size="10.00">priority</text>

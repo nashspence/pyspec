@@ -539,8 +539,8 @@ def panel_fsm_dot(panel_id: str, panel: dict[str, Any], contract: dict[str, Any]
                     "initial state" if state_name == panel["initial"] else "state",
                     [
                         ("copy", state.get("copy", [])),
-                        (f"{panel['resource']} fields", state.get("fields", [])),
                         ("assets", state.get("assets", [])),
+                        (_state_field_section_title(panel, state_name, state), state.get("fields", [])),
                         ("actions", state.get("actions", [])),
                     ],
                     header_bg="#ecfeff" if state_name == panel["initial"] else "#f8fafc",
@@ -1028,6 +1028,29 @@ def _format_transition_sections(
 def _transition_target_data_bindings(panel: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
     target_state = panel.get("states", {}).get(transition["to"], {})
     return _unique_data_bindings(target_state.get("data", []))
+
+
+def _state_field_section_title(panel: dict[str, Any], state_name: str, state: dict[str, Any]) -> str:
+    capabilities = [binding["capability"] for binding in _state_field_data_bindings(panel, state_name, state) if binding.get("capability")]
+    unique = sorted(dict.fromkeys(capabilities))
+    if len(unique) == 1:
+        return f"{unique[0]} fields"
+    if unique:
+        return "data fields"
+    return f"{panel['resource']} fields"
+
+
+def _state_field_data_bindings(panel: dict[str, Any], state_name: str, state: dict[str, Any]) -> list[dict[str, Any]]:
+    bindings = _unique_data_bindings(state.get("data", []))
+    if bindings:
+        return bindings
+    incoming_data_bindings: list[dict[str, Any]] = []
+    for transition in panel.get("transitions", []):
+        if transition["to"] == state_name and _is_data_event(transition["on"]):
+            incoming_data_bindings.extend(_transition_data_bindings(panel, transition))
+    if incoming_data_bindings:
+        return _unique_data_bindings(incoming_data_bindings)
+    return _unique_data_bindings(panel.get("data", []))
 
 
 def _format_data_inputs(

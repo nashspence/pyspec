@@ -49,6 +49,10 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">transition event</FONT>' in fsm
     assert "copy.project.list.ready.heading" in fsm
     assert "asset.project.list.empty.illustration" in fsm
+    assert fsm.index("<B>copy</B>") < fsm.index("<B>assets:</B>")
+    assert fsm.index("<B>assets:</B>") < fsm.index("<B>actions:</B>")
+    assert fsm.index("<B>copy:</B>&#160;&#160;copy.project.list.ready.heading") < fsm.index("<B>project.list fields</B>")
+    assert fsm.index("<B>project.list fields</B>") < fsm.index("<B>actions</B>")
     assert "<B>emit:</B>&#160;&#160;project.selected" in fsm
     assert "<B>payload:</B>&#160;&#160;project_id" in fsm
     assert "<B>effects:</B>" not in fsm
@@ -63,7 +67,8 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     selection_card = detail_transition[detail_transition.index("project.selection_changed") :]
     assert selection_card.index("<B>input:</B>&#160;&#160;project_id: ID") < selection_card.index("<B>query:</B>&#160;&#160;query.project.detail.read")
     assert selection_card.index("<B>query:</B>&#160;&#160;query.project.detail.read") < selection_card.index("<B>load:</B>&#160;&#160;project.read")
-    assert "<B>Project fields</B>" in fsm
+    assert "<B>project.list fields</B>" in fsm
+    assert "<B>Project fields</B>" not in fsm
     assert fsm.count("query.project.list.list") == 4
     assert "<B>resource:</B>" not in fsm
     assert "<B>context:</B>" not in fsm
@@ -264,7 +269,8 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "capability: project.list" not in list_fsm
     assert "query.project.list.list" in list_fsm
     assert "workspace_id: ID" in list_fsm
-    assert "Project fields" in list_fsm
+    assert "project.list fields" in list_fsm
+    assert "Project fields" not in list_fsm
     assert "projection:" not in list_fsm
     assert "resource:" not in list_fsm
     assert "context:" not in list_fsm
@@ -282,7 +288,9 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "$message." not in list_fsm
     assert "$event." not in list_fsm
     assert "copy.project.detail.ready.heading" in detail_fsm
+    assert "project.read fields" in detail_fsm
     assert "project.approve" in detail_fsm
+    assert "project.read fields" in activity_fsm
     assert "input:" in detail_fsm
     assert "query.project.detail.read" in detail_fsm
     assert "project_id: ID" in detail_fsm
