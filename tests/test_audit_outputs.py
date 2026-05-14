@@ -181,6 +181,11 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert 'label="exit"' in api_entrypoint
     assert "<B>body</B>" in api_entrypoint
     assert 'body</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT><FONT POINT-SIZE="10">&#160;&lt;&#45;&#160;target.result</FONT>' in api_entrypoint
+    target_card = api_entrypoint[api_entrypoint.index('"entrypoint_target_project_create"') : api_entrypoint.index('"entry_exit"')]
+    assert '<FONT POINT-SIZE="10"><B>input</B></FONT>' in target_card
+    assert '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;customer</FONT>' not in target_card
+    assert target_card.index("<B>input</B>") < target_card.index('<FONT POINT-SIZE="10">customer</FONT>')
+    assert '<FONT POINT-SIZE="10">workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in target_card
     entrypoint_input = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
     assert entrypoint_input in entrypoint
     assert entrypoint.index(entrypoint_input) < entrypoint.index("<B>query:</B>&#160;&#160;query.project.board.list")
@@ -193,7 +198,9 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in workflow
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">workflow step</FONT>' in workflow
     assert "<B>capability:</B>&#160;&#160;project.send_approval_notice" in workflow
-    assert '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;approved_by</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in workflow
+    workflow_step = workflow[workflow.index('"workflow_step_project_approval_notice_send_notice"') :]
+    assert '<FONT POINT-SIZE="10"><B>input</B></FONT>' in workflow_step
+    assert '<FONT POINT-SIZE="10">approved_by</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in workflow_step
     assert '<FONT POINT-SIZE="10"><B>output:</B>&#160;&#160;result</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;NoticeResult</FONT>' in workflow
     for graph_id, dot_source in {"fsm_project_list": fsm, "project_board": composition, "web_project_board": entrypoint, "api_project_create": api_entrypoint, "project_approval_notice": workflow}.items():
         svg = _render_graphviz_svg(dot_source, graph_id)

@@ -1295,7 +1295,7 @@ def _dot_section_inner_rows(title: str, values: Iterable[object]) -> tuple[bool,
 
 
 def _dot_typed_field_section_inner_rows(title: str, values: list[object]) -> tuple[bool, list[str]]:
-    if title in {"input", "output", "payload", "data", "set", "load"} or (title == "actions" and len(values) == 1):
+    if (title in {"input", "output", "payload", "data", "set", "load"} or title == "actions") and len(values) == 1:
         rows = []
         for index, value in enumerate(values):
             if isinstance(value, _DotTypedField):
