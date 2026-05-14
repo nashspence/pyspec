@@ -8,6 +8,7 @@ from typing import Any, Iterable
 from .agent_prompts import agent_prompt_paths, agent_prompt_projection_files
 from .layout import layout_html, layout_textual, layout_textual_containers
 from .paths import generated_relative as g
+from .targets import entry_view_name
 
 
 SCALAR_JSON_SCHEMA: dict[str, dict[str, Any]] = {
@@ -125,8 +126,6 @@ def _state_has_textual_presentation(state: dict[str, Any]) -> bool:
 
 
 def _has_textual_ui(contract: dict[str, Any]) -> bool:
-    if _entries_with_surface(contract, "textual"):
-        return True
     if any("textual" in case.get("surfaces", []) for case in contract.get("render_cases", {}).values()):
         return True
     for owner in list(contract.get("panels", {}).values()) + list(contract.get("views", {}).values()):
@@ -247,7 +246,7 @@ def routes_projection(contract: dict[str, Any]) -> dict[str, Any]:
                 "entry": entry_id,
                 "path": entry["path"],
                 "params": entry.get("params", {}),
-                "view": entry["target"]["view"],
+                "view": entry_view_name(entry),
             }
             for entry_id, entry in sorted(contract["entries"].items())
             if entry["surface"] == "web"
@@ -352,31 +351,7 @@ def textual_contract_projection(contract: dict[str, Any]) -> str:
     projection = panels_projection(contract)
     panels = projection["panels"]
     compositions = projection["compositions"]
-    panels_by_owner: dict[str, list[dict[str, Any]]] = {}
-    for panel in panels:
-        panels_by_owner.setdefault(panel["owner"], []).append(panel)
-    compositions_by_view = {composition["id"]: composition for composition in compositions}
-    screen_entries = []
-    for entry_id, entry in sorted(contract["entries"].items()):
-        if entry["surface"] != "textual":
-            continue
-        view = entry["target"]["view"]
-        screen_class = None
-        if view in compositions_by_view:
-            screen_class = "ComposedContractScreen"
-        else:
-            for panel in panels_by_owner.get(view, []):
-                textual = (panel.get("presentation") or {}).get("textual") or {}
-                if textual.get("screen_class"):
-                    screen_class = textual["screen_class"]
-                    break
-        screen_entries.append({
-            "id": entry.get("screen") or f"screen.{view}",
-            "entry": entry_id,
-            "view": view,
-            "command": entry.get("command"),
-            "screen_class": screen_class,
-        })
+    screen_entries = textual_screen_entries(contract, panels, compositions)
     return f'''from __future__ import annotations
 
 # Generated Textual projection. Do not edit by hand.
@@ -440,6 +415,52 @@ def widget_label(widget: dict) -> str:
         return bind["field"]
     return bind.get("literal", widget["id"])
 '''
+
+
+def textual_screen_entries(
+    contract: dict[str, Any],
+    panels: list[dict[str, Any]] | None = None,
+    compositions: list[dict[str, Any]] | None = None,
+) -> list[dict[str, Any]]:
+    projection = None if panels is not None and compositions is not None else panels_projection(contract)
+    panels = panels if panels is not None else projection["panels"]  # type: ignore[index]
+    compositions = compositions if compositions is not None else projection["compositions"]  # type: ignore[index]
+    panels_by_owner: dict[str, list[dict[str, Any]]] = {}
+    for panel in panels:
+        panels_by_owner.setdefault(panel["owner"], []).append(panel)
+    compositions_by_view = {composition["id"]: composition for composition in compositions}
+    screens = []
+    for view_id, view in sorted(contract["views"].items()):
+        screen_class = _textual_screen_class(view_id, view, panels_by_owner, compositions_by_view)
+        if screen_class is None:
+            continue
+        screens.append({
+            "id": f"screen.{view_id}",
+            "view": view_id,
+            "screen_class": screen_class,
+        })
+    return screens
+
+
+def _textual_screen_class(
+    view_id: str,
+    view: dict[str, Any],
+    panels_by_owner: dict[str, list[dict[str, Any]]],
+    compositions_by_view: dict[str, dict[str, Any]],
+) -> str | None:
+    if view_id in compositions_by_view:
+        textual = layout_textual(compositions_by_view[view_id].get("layout") or {})
+        if textual:
+            return textual.get("screen_class") or "ComposedContractScreen"
+    for panel in panels_by_owner.get(view_id, []):
+        textual = (panel.get("presentation") or {}).get("textual") or {}
+        if textual.get("screen_class"):
+            return textual["screen_class"]
+        if textual:
+            return "Screen"
+    if any("textual" in (state.get("presentation") or {}) for state in view.get("states", {}).values()):
+        return "Screen"
+    return None
 
 
 def default_html_slots(panel: dict[str, Any]) -> list[dict[str, Any]]:

@@ -18,6 +18,7 @@ class Capability:
 
 class Command:
     COMMAND_PROJECT_APPROVE = 'command.project.approve'
+    COMMAND_PROJECT_BOARD = 'command.project.board'
 
 class ContentCase:
     CONTENT_PROJECT_DETAIL_HEADING_HIGH_PRIORITY = 'content.project.detail.heading.high_priority'
@@ -48,7 +49,7 @@ class Entry:
     API_PROJECT_CREATE = 'api.project.create'
     API_PROJECT_LIST = 'api.project.list'
     CLI_PROJECT_APPROVE = 'cli.project.approve'
-    TEXTUAL_PROJECT_BOARD = 'textual.project.board'
+    CLI_PROJECT_BOARD = 'cli.project.board'
     WEB_PROJECT_BOARD = 'web.project.board'
     WORKER_PROJECT_APPROVAL_NOTICE = 'worker.project.approval_notice'
 

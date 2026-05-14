@@ -7,7 +7,7 @@ from pyspec_contract.audit import audit_expected_files, render_case_file
 from pyspec_contract.compile import compile_source
 from pyspec_contract.io import read_json, read_yaml
 from pyspec_contract.paths import COMPILED_SPEC_PATH, SOURCE_SPEC_PATH
-from pyspec_contract.project import projection_files
+from pyspec_contract.project import panels_projection, projection_files, textual_screen_entries
 from tests.helpers import EXAMPLE_ROOT
 
 ROOT = EXAMPLE_ROOT
@@ -64,11 +64,24 @@ def test_canonical_textual_contract_imports_and_composes() -> None:
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     assert module.SCREENS[0]["id"] == "screen.project.board"
+    assert "entry" not in module.SCREENS[0]
+    assert module.SCREENS[0]["screen_class"] == "ProjectBoardScreen"
     assert module.COMPOSITIONS[0]["id"] == "project.board"
     panel_items = module.compose_contract_panel("panel.project.list.empty")
     assert ("Static", "copy.project.list.empty.heading") in panel_items
     assert ("Static", "asset.project.list.empty.illustration") in panel_items
     assert ("Button", "project.create") in panel_items
+
+
+def test_textual_screens_are_driven_by_textual_view_layout() -> None:
+    author = read_yaml(ROOT / SOURCE_SPEC_PATH)
+    del author["views"]["project.board"]["layout"]["textual"]
+    author["entries"]["cli.project.board"]["target"]["view"]["surface"] = "html"
+    for render_case in author["render_cases"].values():
+        render_case["surfaces"] = ["html"]
+    contract = compile_source(author)
+    projection = panels_projection(contract)
+    assert textual_screen_entries(contract, projection["panels"], projection["compositions"]) == []
 
 
 def test_canonical_audit_contains_real_visual_references() -> None:

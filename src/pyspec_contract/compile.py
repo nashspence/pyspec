@@ -18,6 +18,7 @@ from .io import read_json, read_yaml, write_json, write_yaml
 from .layout import layout_html, layout_html_regions, layout_regions, layout_textual, layout_textual_containers
 from .paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR, SOURCE_SPEC_PATH
 from .project import projection_files
+from .targets import VIEW_RENDER_SURFACES, entry_target_pair, entry_view_surface
 
 ROOT = Path(__file__).resolve().parent
 
@@ -331,14 +332,12 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
         for field in ["method", "path", "params", "command", "args", "schedule"]:
             if field in spec:
                 entry[field] = spec[field]
-        kind, value = _one(spec["target"], f"entry {entry_id} target")
+        kind, value = entry_target_pair(spec["target"])
         if spec["surface"] == "web" and kind == "view":
             entry["route"] = rules.route_ref(value)
-        elif spec["surface"] == "textual" and kind == "view":
-            entry["screen"] = rules.screen_ref(value)
         elif spec["surface"] == "api" and kind == "capability":
             entry["endpoint"] = rules.endpoint_ref(value)
-        elif spec["surface"] == "cli" and kind == "capability":
+        elif spec["surface"] == "cli":
             entry["command_ref"] = rules.command_ref(value)
         elif spec["surface"] in {"worker", "schedule"} and kind == "workflow":
             entry["workflow_ref"] = rules.workflow_ref(value)
@@ -472,16 +471,25 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
     for entry in contract["entries"].values():
         for ref_kind, field in [
             ("route", "route"),
-            ("screen", "screen"),
             ("endpoint", "endpoint"),
             ("command", "command_ref"),
             ("workflow", "workflow_ref"),
         ]:
             if field in entry:
                 refs[ref_kind].add(entry[field])
+    for view_id, view in contract["views"].items():
+        if _view_has_textual_screen(view):
+            refs["screen"].add(rules.screen_ref(view_id))
     for workflow in contract["workflows"].values():
         refs["workflow"].add(workflow["ref"])
     return {kind: sorted(values) for kind, values in sorted(refs.items()) if values}
+
+
+def _view_has_textual_screen(view: dict[str, Any]) -> bool:
+    if "textual" in (view.get("layout") or {}):
+        return True
+    return any("textual" in (state.get("presentation") or {}) for state in view.get("states", {}).values())
+
 
 def _semantic_validate(contract: dict[str, Any], used_facts: set[str]) -> None:
     _validate_copy_assets(contract)
@@ -1284,18 +1292,14 @@ def _validate_entries(contract: dict[str, Any]) -> None:
     for eid, entry in contract["entries"].items():
         surface = entry["surface"]
         _validate_entry_surface_fields(eid, entry)
-        kind, value = _one(entry["target"], f"entry {eid} target")
+        kind, value = entry_target_pair(entry["target"])
         if surface == "web":
             if kind != "view" or value not in contract["views"]:
                 raise ContractError(f"Web entry {eid} must target a known view")
+            _validate_view_target_surface(contract, eid, entry, value, allowed_surfaces={"html"})
             _require(entry, eid, "path")
             _validate_path_params(entry, eid)
             _validate_view_entry_inputs(contract, eid, entry, value, input_field="params")
-        elif surface == "textual":
-            if kind != "view" or value not in contract["views"]:
-                raise ContractError(f"TUI entry {eid} must target a known view")
-            _require(entry, eid, "command")
-            _validate_view_entry_inputs(contract, eid, entry, value, input_field="args")
         elif surface == "api":
             if kind != "capability" or value not in contract["capabilities"]:
                 raise ContractError(f"API entry {eid} must target a known capability")
@@ -1312,19 +1316,32 @@ def _validate_entries(contract: dict[str, Any]) -> None:
             if entry["method"].lower() in {"get", "delete"} and body_fields:
                 raise ContractError(f"API entry {eid} {entry['method']} must declare all capability inputs as params: {sorted(body_fields)}")
         elif surface == "cli":
-            if kind != "capability" or value not in contract["capabilities"]:
-                raise ContractError(f"CLI entry {eid} must target a known capability")
             _require(entry, eid, "command")
-            capability = contract["capabilities"][value]
-            _validate_exact_entry_inputs(eid, "args", entry.get("args", {}), capability["input"])
+            if kind == "capability":
+                if value not in contract["capabilities"]:
+                    raise ContractError(f"CLI entry {eid} must target a known capability")
+                capability = contract["capabilities"][value]
+                _validate_exact_entry_inputs(eid, "args", entry.get("args", {}), capability["input"])
+            elif kind == "view":
+                if value not in contract["views"]:
+                    raise ContractError(f"CLI entry {eid} must target a known view")
+                _validate_view_target_surface(contract, eid, entry, value, allowed_surfaces=set(VIEW_RENDER_SURFACES))
+                _validate_view_entry_inputs(contract, eid, entry, value, input_field="args")
+            elif kind == "workflow":
+                if value not in contract["workflows"]:
+                    raise ContractError(f"CLI entry {eid} must target a known workflow")
+                if entry.get("args"):
+                    raise ContractError(f"CLI entry {eid} targeting a workflow must not declare args")
+            else:
+                raise ContractError(f"CLI entry {eid} cannot target raw {kind}")
         elif surface in {"worker", "schedule"}:
             if kind != "workflow" or value not in contract["workflows"]:
                 raise ContractError(f"{surface} entry {eid} must target a known workflow")
             if surface == "schedule":
                 _require(entry, eid, "schedule")
         elif surface == "webhook":
-            if kind not in {"event", "workflow"}:
-                raise ContractError(f"Webhook entry {eid} must target an event or workflow")
+            if kind != "workflow" or value not in contract["workflows"]:
+                raise ContractError(f"Webhook entry {eid} must target a known workflow")
             _require(entry, eid, "path")
             _validate_path_params(entry, eid)
 
@@ -1332,7 +1349,6 @@ def _validate_entries(contract: dict[str, Any]) -> None:
 def _validate_entry_surface_fields(entry_id: str, entry: dict[str, Any]) -> None:
     allowed = {
         "web": {"surface", "target", "basis", "path", "params", "route"},
-        "textual": {"surface", "target", "basis", "command", "args", "screen"},
         "api": {"surface", "target", "basis", "method", "path", "params", "endpoint"},
         "cli": {"surface", "target", "basis", "command", "args", "command_ref"},
         "worker": {"surface", "target", "basis", "workflow_ref"},
@@ -1342,6 +1358,29 @@ def _validate_entry_surface_fields(entry_id: str, entry: dict[str, Any]) -> None
     extra = sorted(set(entry) - allowed)
     if extra:
         raise ContractError(f"Entry {entry_id} surface {entry['surface']} has unsupported fields: {extra}")
+
+
+def _validate_view_target_surface(
+    contract: dict[str, Any],
+    entry_id: str,
+    entry: dict[str, Any],
+    view_id: str,
+    *,
+    allowed_surfaces: set[str],
+) -> None:
+    surface = entry_view_surface(entry)
+    if surface is None:
+        raise ContractError(f"Entry {entry_id} view target must declare surface")
+    if surface not in allowed_surfaces:
+        raise ContractError(f"Entry {entry_id} cannot target view surface {surface!r}")
+    if not _view_supports_render_surface(contract["views"][view_id], surface):
+        raise ContractError(f"Entry {entry_id} targets view {view_id} surface {surface} but that view does not declare it")
+
+
+def _view_supports_render_surface(view: dict[str, Any], surface: str) -> bool:
+    if surface in (view.get("layout") or {}):
+        return True
+    return any(surface in (state.get("presentation") or {}) for state in view.get("states", {}).values())
 
 
 def _validate_view_entry_inputs(
@@ -1567,10 +1606,12 @@ def _validate_scenario_when(contract: dict[str, Any], sid: str, scenario: dict[s
     if kind in {"open_entry", "call_entry"}:
         if ref not in contract["entries"]:
             raise ContractError(f"Scenario {sid} references unknown entry {ref}")
-        if kind == "open_entry" and contract["entries"][ref]["surface"] not in {"web", "textual"}:
-            raise ContractError(f"Scenario {sid} open_entry must reference a web or textual entry")
-        if kind == "call_entry" and contract["entries"][ref]["surface"] not in {"api", "cli"}:
-            raise ContractError(f"Scenario {sid} call_entry must reference an api or cli entry")
+        entry = contract["entries"][ref]
+        entry_target_kind, _ = entry_target_pair(entry["target"])
+        if kind == "open_entry" and not (entry["surface"] in {"web", "cli"} and entry_target_kind == "view"):
+            raise ContractError(f"Scenario {sid} open_entry must reference a web or cli view entry")
+        if kind == "call_entry" and not (entry["surface"] in {"api", "cli"} and entry_target_kind == "capability"):
+            raise ContractError(f"Scenario {sid} call_entry must reference an api or cli capability entry")
     elif kind == "invoke_capability":
         if ref not in contract["capabilities"]:
             raise ContractError(f"Scenario {sid} references unknown capability {ref}")

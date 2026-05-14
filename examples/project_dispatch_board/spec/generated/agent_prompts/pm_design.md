@@ -17,7 +17,7 @@ Authoring scope:
 - Workflow: workflows plus CLI, worker, and scheduled entries.
 - UI: panels, composed views, copy/assets, content cases, audit profiles, and render cases.
 - Web UI: HTML/CSS presentation, web entries, routes, and HTML audit surfaces.
-- Textual UI: Textual presentation, TUI entries, and Textual audit surfaces.
+- Textual UI: Textual presentation, screen projection, and Textual audit surfaces.
 
 Rules:
 - Keep `spec/spec.yaml` sparse, positive-only, and grouped by product concepts.
@@ -26,5 +26,6 @@ Rules:
 - Use scenario archetypes from `src/pyspec_contract/patterns.yaml`; define every fixture explicitly.
 - Resources are product data models: fields, lifecycle, and invariants only.
 - Use `basis` or `why` only when it preserves non-obvious product intent.
+- For view entries, keep invocation and rendering separate: `surface` is the entry surface, while `target.view.surface` is `html` or `textual`.
 - For composed screens, define reusable panel FSMs first, then mount them through view layout, includes, context, and sync rules.
 - Every rendered copy or asset ref must be backed by a declared copy or asset item.

@@ -664,14 +664,9 @@
         "schedule": {
           "type": "string"
         },
-        "screen": {
-          "pattern": "^screen\\.",
-          "type": "string"
-        },
         "surface": {
           "enum": [
             "web",
-            "textual",
             "api",
             "cli",
             "worker",
@@ -680,7 +675,7 @@
           ]
         },
         "target": {
-          "$ref": "#/$defs/target"
+          "$ref": "#/$defs/entry_target"
         },
         "workflow_ref": {
           "pattern": "^workflow\\.",
@@ -691,6 +686,42 @@
         "surface",
         "target",
         "basis"
+      ],
+      "type": "object"
+    },
+    "entry_target": {
+      "additionalProperties": false,
+      "maxProperties": 1,
+      "minProperties": 1,
+      "properties": {
+        "capability": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "view": {
+          "$ref": "#/$defs/entry_view_target"
+        },
+        "workflow": {
+          "$ref": "#/$defs/dotted_id"
+        }
+      },
+      "type": "object"
+    },
+    "entry_view_target": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "surface": {
+          "enum": [
+            "html",
+            "textual"
+          ]
+        }
+      },
+      "required": [
+        "name",
+        "surface"
       ],
       "type": "object"
     },

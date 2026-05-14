@@ -6,6 +6,7 @@ from typing import Any, Mapping
 from .io import read_json, read_yaml
 from .paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR
 from .runtime import fixture_namespace, resolve_map
+from .targets import entry_view_name
 
 
 class ReferenceSpecDriver:
@@ -125,7 +126,7 @@ class ReferenceSpecDriver:
 
     def _open_entry(self, entry_id: str, params: dict[str, Any]) -> dict[str, Any]:
         entry = self.contract["entries"][entry_id]
-        view_id = entry["target"]["view"]
+        view_id = entry_view_name(entry)
         view = self.contract["views"][view_id]
         records = self._filter(view["resource"], params)
         if view.get("includes"):

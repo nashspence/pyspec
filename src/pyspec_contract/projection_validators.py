@@ -45,8 +45,10 @@ from .project import (
     object_schema,
     panels_projection,
     safe_id,
+    textual_screen_entries,
     type_schema,
 )
+from .targets import entry_view_name
 
 _HTTP_METHODS = {"get", "put", "post", "delete", "patch", "head", "options", "trace"}
 _OPENAPI_OPERATION_KEYS = {
@@ -290,7 +292,7 @@ def validate_routes(contract: dict[str, Any], doc: dict[str, Any]) -> None:
                 "entry": entry_id,
                 "path": entry["path"],
                 "params": entry.get("params", {}),
-                "view": entry["target"]["view"],
+                "view": entry_view_name(entry),
             })
     if doc["routes"] != expected:
         raise ContractError("routes.json does not exactly match web entries")
@@ -334,31 +336,9 @@ def validate_textual_contract(root: Path, contract: dict[str, Any]) -> None:
     if module.COMPOSITIONS != compositions:
         raise ContractError(f"{label} COMPOSITIONS does not match composition projection")
 
-    expected_screens = []
-    panels_by_owner: dict[str, list[dict[str, Any]]] = {}
-    for panel in panels:
-        panels_by_owner.setdefault(panel["owner"], []).append(panel)
-    composition_views = {composition["id"] for composition in compositions}
-    for entry_id, entry in sorted(contract["entries"].items()):
-        if entry["surface"] != "textual":
-            continue
-        view_id = entry["target"]["view"]
-        screen_class = "ComposedContractScreen" if view_id in composition_views else None
-        if screen_class is None:
-            for panel in panels_by_owner.get(view_id, []):
-                textual = (panel.get("presentation") or {}).get("textual") or {}
-                if textual.get("screen_class"):
-                    screen_class = textual["screen_class"]
-                    break
-        expected_screens.append({
-            "id": entry.get("screen") or f"screen.{view_id}",
-            "entry": entry_id,
-            "view": view_id,
-            "command": entry.get("command"),
-            "screen_class": screen_class,
-        })
+    expected_screens = textual_screen_entries(contract, panels, compositions)
     if module.SCREENS != expected_screens:
-        raise ContractError(f"{label} SCREENS does not match textual entries")
+        raise ContractError(f"{label} SCREENS does not match textual views")
 
     for panel in panels:
         if module.panel(panel["id"]) != panel:

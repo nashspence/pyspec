@@ -6,6 +6,7 @@ from typing import Any, Mapping
 from pyspec_contract.io import read_json, read_yaml
 from pyspec_contract.paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR
 from pyspec_contract.runtime import fixture_namespace, resolve_map
+from pyspec_contract.targets import entry_view_name
 
 
 class ProductApp:
@@ -47,7 +48,7 @@ class ProductApp:
     def open_web_entry(self, entry_id: str, params: Mapping[str, Any]) -> dict[str, Any]:
         entry = self.contract["entries"][entry_id]
         assert entry["surface"] == "web"
-        view_id = entry["target"]["view"]
+        view_id = entry_view_name(entry)
         view = self.contract["views"][view_id]
         workspace_id = params.get("workspace_id")
         matching = [p for p in self.projects if p.get("workspace_id") == workspace_id]

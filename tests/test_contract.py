@@ -648,15 +648,15 @@ def test_authoring_layers_reject_wrong_entry_surface() -> None:
 
     author = _api_only_author()
     del author["entries"]["api.ticket.create"]
-    author["entries"]["web.ticket.create"] = {"surface": "web", "path": "/tickets", "target": {"view": "ticket.list"}}
+    author["entries"]["web.ticket.create"] = {"surface": "web", "path": "/tickets", "target": {"view": {"name": "ticket.list", "surface": "html"}}}
     with pytest.raises(ContractError, match="entry surface web requires web"):
         compile_author(author, layers=parse_layers("core,http"))
 
 
-def test_textual_view_entry_must_provide_required_view_context_args() -> None:
+def test_cli_view_entry_must_provide_required_view_context_args() -> None:
     author = _author()
-    del author["entries"]["textual.project.board"]["args"]
-    with pytest.raises(ContractError, match=r"Entry textual\.project\.board args must include required view context inputs: \['workspace_id'\]"):
+    del author["entries"]["cli.project.board"]["args"]
+    with pytest.raises(ContractError, match=r"Entry cli\.project\.board args must include required view context inputs: \['workspace_id'\]"):
         compile_source(author)
 
 
@@ -667,11 +667,62 @@ def test_entry_rejects_surface_irrelevant_fields() -> None:
         compile_source(author)
 
 
+def test_textual_is_not_an_entrypoint_surface() -> None:
+    author = _author()
+    author["entries"]["textual.project.board"] = {
+        "basis": _basis("Textual is a render surface, not an entrypoint surface."),
+        "command": "project board",
+        "surface": "textual",
+        "target": {"view": {"name": "project.board", "surface": "textual"}},
+    }
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_source(author)
+
+
 def test_cli_entry_args_must_exactly_match_capability_input() -> None:
     author = _author()
     del author["entries"]["cli.project.approve"]["args"]
     with pytest.raises(ContractError, match=r"Entry cli\.project\.approve args must exactly match target input: missing: project_id"):
         compile_source(author)
+
+
+def test_cli_entry_cannot_target_raw_event() -> None:
+    author = _author()
+    author["entries"]["cli.project.event"] = {
+        "basis": _basis("CLI event publishing is intentionally not modeled"),
+        "command": "project event",
+        "surface": "cli",
+        "target": {"event": "project.approved"},
+    }
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_source(author)
+
+
+def test_view_entry_target_must_declare_render_surface() -> None:
+    author = _author()
+    author["entries"]["cli.project.board"]["target"] = {"view": "project.board"}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_source(author)
+
+
+def test_web_view_entry_must_target_html_surface() -> None:
+    author = _author()
+    author["entries"]["web.project.board"]["target"]["view"]["surface"] = "textual"
+    with pytest.raises(ContractError, match=r"Entry web\.project\.board cannot target view surface 'textual'"):
+        compile_source(author)
+
+
+def test_cli_view_entry_surface_must_be_declared_by_view() -> None:
+    author = _author()
+    del author["views"]["project.board"]["layout"]["textual"]
+    with pytest.raises(ContractError, match=r"Entry cli\.project\.board targets view project\.board surface textual but that view does not declare it"):
+        compile_source(author)
+
+
+def test_cli_view_entry_can_launch_html_view_surface() -> None:
+    author = _author()
+    author["entries"]["cli.project.board"]["target"]["view"]["surface"] = "html"
+    compile_source(author)
 
 
 def test_get_api_entry_must_provide_all_capability_input_as_params() -> None:

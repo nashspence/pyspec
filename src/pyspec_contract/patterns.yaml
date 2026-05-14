@@ -21,7 +21,7 @@ authoring_layers:
       requires: [core]
       projections_when_declared: [spec/generated/product_interfaces/web.panels.json, spec/generated/audit_evidence]
     textual:
-      opens: [entry.surface.textual, presentation.textual, render_case.surface.textual, audit_profile.textual]
+      opens: [presentation.textual, render_case.surface.textual, audit_profile.textual]
       requires: [core, ui]
       projections_when_declared: [spec/generated/product_interfaces/textual.projection.py, spec/generated/audit_evidence/**/renders/*.svg]
     web:
@@ -74,7 +74,7 @@ surface_entries:
     requires: [method, path]
     layer: http
   cli:
-    target: capability
+    target: [capability, view, workflow]
     requires: [command]
     layer: workflow
   worker:
@@ -86,13 +86,9 @@ surface_entries:
     requires: [schedule]
     layer: workflow
   webhook:
-    target: [event, workflow]
+    target: workflow
     requires: [path]
     layer: events
-  textual:
-    target: view
-    requires: [command]
-    layer: textual
   web:
     target: view
     requires: [path]

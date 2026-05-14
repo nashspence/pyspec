@@ -19,6 +19,7 @@ from .layout import layout_html, layout_html_regions
 from .paths import GENERATED_SPEC_DIR, generated_relative as g
 from .project import css_value, default_html_slots, format_attrs, humanize, panels_projection, panel_styles_projection, safe_id
 from .runtime import fixture_namespace, resolve
+from .targets import entry_target_pair, entry_view_surface
 
 ROOT = Path(__file__).resolve().parent
 
@@ -675,7 +676,8 @@ def composition_dot(view_id: str, view: dict[str, Any], contract: dict[str, Any]
 
 
 def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str, Any]) -> str:
-    target_kind, target_value = _target_pair(entry["target"])
+    target_kind, target_value = entry_target_pair(entry["target"])
+    target_surface = entry_view_surface(entry) if target_kind == "view" else None
     start_id = "entry_start"
     entry_node = _dot_node_id("entrypoint", entry_id)
     input_node = _dot_node_id("entrypoint_input", entry_id)
@@ -707,7 +709,7 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
                 _dot_card("entry input", "external data", input_sections, header_bg="#f8fafc", border="#64748b"),
             )
         )
-    lines.append(_dot_html_node(target_node, _entry_target_card(target_kind, target_value, contract)))
+    lines.append(_dot_html_node(target_node, _entry_target_card(target_kind, target_value, contract, surface=target_surface)))
     lines.extend(_dot_html_node(node_id, label) for node_id, label in target_tail)
     lines.append(f"  {_dot_quote(start_id)} -> {_dot_quote(entry_node)};")
     if input_sections:
@@ -770,7 +772,7 @@ def _entry_surface_title(entry: dict[str, Any]) -> str:
         return f"{entry.get('method', '').upper()} {entry.get('path', '')}".strip()
     if surface in {"web", "webhook"}:
         return entry.get("path", surface)
-    if surface in {"textual", "cli"}:
+    if surface == "cli":
         return entry.get("command", surface)
     if surface == "schedule":
         return entry.get("schedule", surface)
@@ -797,7 +799,7 @@ def _entry_input_sections(entry: dict[str, Any], contract: dict[str, Any]) -> li
         sections.append(("params", _typed_fields(entry["params"])))
     if entry.get("args"):
         sections.append(("args", _typed_fields(entry["args"])))
-    target_kind, target_value = _target_pair(entry["target"])
+    target_kind, target_value = entry_target_pair(entry["target"])
     if entry["surface"] == "api" and target_kind == "capability":
         capability = contract["capabilities"][target_value]
         params = set(entry.get("params", {}))
@@ -807,12 +809,12 @@ def _entry_input_sections(entry: dict[str, Any], contract: dict[str, Any]) -> li
     return sections
 
 
-def _entry_target_card(target_kind: str, target_value: str, contract: dict[str, Any]) -> str:
+def _entry_target_card(target_kind: str, target_value: str, contract: dict[str, Any], *, surface: str | None = None) -> str:
     if target_kind == "view":
         view = contract["views"][target_value]
         return _dot_card(
             target_value,
-            "target view",
+            f"target view ({surface})" if surface else "target view",
             _view_summary_sections(view, contract),
             basis=view.get("basis", ""),
             header_bg="#ecfdf5",

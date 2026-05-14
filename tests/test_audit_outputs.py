@@ -37,6 +37,7 @@ def test_audit_outputs_cover_full_contract() -> None:
     assert "spec/generated/audit_evidence/panels/panel_project_list/fsm.svg" in expected
     assert "spec/generated/audit_evidence/composed_views/project_board/composition.svg" in expected
     assert "spec/generated/audit_evidence/entrypoints/web/web_project_board/flow.svg" in expected
+    assert "spec/generated/audit_evidence/entrypoints/cli/cli_project_board/flow.svg" in expected
     assert "spec/generated/audit_evidence/workflows/project_approval_notice/flow.svg" in expected
     assert any(path.startswith("spec/generated/audit_evidence/panels/") and "/states/" in path and path.endswith("/copy.yaml") for path in expected)
     assert any(path.startswith("spec/generated/audit_evidence/panels/") and "/states/" in path and "/renders/" in path and path.endswith(".png") for path in expected)
@@ -54,6 +55,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     fsm = panel_fsm_dot("panel.project.list", contract["panels"]["panel.project.list"], contract)
     composition = composition_dot("project.board", contract["views"]["project.board"], contract)
     entrypoint = entrypoint_flow_dot("web.project.board", contract["entries"]["web.project.board"], contract)
+    cli_entrypoint = entrypoint_flow_dot("cli.project.board", contract["entries"]["cli.project.board"], contract)
     workflow = workflow_flow_dot("project.approval_notice", contract["workflows"]["project.approval_notice"], contract)
     assert fsm.startswith("digraph ")
     assert composition.startswith("digraph ")
@@ -154,7 +156,8 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>route:</B>&#160;&#160;route.project.board" in entrypoint
     assert "<B>params</B>" in entrypoint
     assert '<FONT POINT-SIZE="10">workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in entrypoint
-    assert '<FONT POINT-SIZE="8" COLOR="#64748b">target view</FONT>' in entrypoint
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">target view (html)</FONT>' in entrypoint
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">target view (textual)</FONT>' in cli_entrypoint
     entrypoint_input = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
     assert entrypoint_input in entrypoint
     assert entrypoint.index(entrypoint_input) < entrypoint.index("<B>query:</B>&#160;&#160;query.project.board.list")

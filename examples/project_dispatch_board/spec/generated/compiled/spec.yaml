@@ -249,15 +249,17 @@ entries:
     surface: cli
     target:
       capability: project.approve
-  textual.project.board:
+  cli.project.board:
     args:
       workspace_id: ID
-    basis: Textual entry for the dispatch board.
+    basis: CLI launcher for the Textual dispatch board.
     command: project board
-    screen: screen.project.board
-    surface: textual
+    command_ref: command.project.board
+    surface: cli
     target:
-      view: project.board
+      view:
+        name: project.board
+        surface: textual
   web.project.board:
     basis: Web entry for the dispatch board.
     params:
@@ -266,7 +268,9 @@ entries:
     route: route.project.board
     surface: web
     target:
-      view: project.board
+      view:
+        name: project.board
+        surface: html
   worker.project.approval_notice:
     basis: Worker entry exposing the approval notice workflow.
     surface: worker
@@ -573,6 +577,7 @@ refs:
   - asset.project.list.empty.illustration
   command:
   - command.project.approve
+  - command.project.board
   copy:
   - copy.project.activity.empty.body
   - copy.project.activity.empty.heading

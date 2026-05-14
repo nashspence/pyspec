@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .io import read_json
+from .targets import entry_view_surface
 
 ROOT = Path(__file__).resolve().parent
 
@@ -36,7 +37,6 @@ TARGET_LAYERS: dict[str, set[str]] = {
 ENTRY_SURFACE_LAYER = {
     "api": "http",
     "web": "web",
-    "textual": "textual",
     "cli": "workflow",
     "worker": "workflow",
     "schedule": "workflow",
@@ -141,8 +141,15 @@ def _validate_author_spec_layers(label: str, target: str, spec: dict[str, Any], 
         if not required_layer:
             raise LayerError(f"{label} uses unsupported entry surface {surface!r}")
         _require_layers(label, f"entry surface {surface}", {required_layer}, layers)
-        if surface in {"web", "textual"}:
+        if surface == "web":
             _require_layers(label, f"entry surface {surface}", {"ui"}, layers)
+        entry_target = spec.get("target") or {}
+        if "view" in entry_target:
+            render_surface = entry_view_surface(entry_target)
+            required_render_layer = RENDER_SURFACE_LAYER.get(render_surface or "")
+            if not required_render_layer:
+                raise LayerError(f"{label} uses unsupported view target surface {render_surface!r}")
+            _require_layers(label, f"view target surface {render_surface}", {"ui", required_render_layer}, layers)
         return
 
     if target == "audit_profile":

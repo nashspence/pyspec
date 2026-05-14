@@ -109,9 +109,6 @@ def _contract_has_web(contract: dict[str, Any]) -> bool:
 
 
 def _contract_has_textual(contract: dict[str, Any]) -> bool:
-    entries = contract.get("entries") or {}
-    if any(entry.get("surface") == "textual" for entry in entries.values()):
-        return True
     if any("textual" in case.get("surfaces", []) for case in (contract.get("render_cases") or {}).values()):
         return True
     if any("textual" in profile for profile in (contract.get("audit_profiles") or {}).values()):
@@ -202,7 +199,7 @@ def _pm_design_prompt(context: _PromptContext) -> str:
     elif "ui" in context.layers:
         lines.append("- Do not author HTML/CSS or web routes; the web layer is inactive.")
     if "textual" in context.layers:
-        lines.append("- Textual UI: Textual presentation, TUI entries, and Textual audit surfaces.")
+        lines.append("- Textual UI: Textual presentation, screen projection, and Textual audit surfaces.")
     elif "ui" in context.layers:
         lines.append("- Do not author Textual/TCSS details; the textual layer is inactive.")
     lines.extend(
@@ -215,6 +212,7 @@ def _pm_design_prompt(context: _PromptContext) -> str:
             "- Use scenario archetypes from `src/pyspec_contract/patterns.yaml`; define every fixture explicitly.",
             "- Resources are product data models: fields, lifecycle, and invariants only.",
             "- Use `basis` or `why` only when it preserves non-obvious product intent.",
+            "- For view entries, keep invocation and rendering separate: `surface` is the entry surface, while `target.view.surface` is `html` or `textual`.",
             "- For composed screens, define reusable panel FSMs first, then mount them through view layout, includes, context, and sync rules.",
             "- Every rendered copy or asset ref must be backed by a declared copy or asset item.",
         ]
