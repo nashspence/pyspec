@@ -1,139 +1,136 @@
-<svg width="1008pt" height="249pt"
- viewBox="0.00 0.00 1008.00 249.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="1080pt" height="249pt"
+ viewBox="0.00 0.00 1080.00 249.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 231)">
 <title>composition_project_board</title>
 <!-- panel_instance_list -->
 <g id="node1" class="node">
 <title>panel_instance_list</title>
-<polygon fill="#ffffff" stroke="transparent" points="0,-60 0,-153 95,-153 95,-60 0,-60"/>
-<polygon fill="#c2410c" stroke="transparent" points="1.5,-141.5 1.5,-151.5 94.5,-151.5 94.5,-141.5 1.5,-141.5"/>
-<polygon fill="#fff7ed" stroke="transparent" points="1.5,-116.5 1.5,-141.5 94.5,-141.5 94.5,-116.5 1.5,-116.5"/>
-<text text-anchor="start" x="6.5" y="-126.3" font-family="Arial" font-weight="bold" font-size="14.00">instance: list</text>
-<text text-anchor="start" x="6.5" y="-103.5" font-family="Arial" font-size="10.00">panel.project.list</text>
-<text text-anchor="start" x="7.5" y="-82.5" font-family="Arial" font-weight="bold" font-size="10.00">region:</text>
-<text text-anchor="start" x="41.5" y="-82.5" font-family="Arial" font-size="10.00">  nav</text>
-<text text-anchor="start" x="7.5" y="-70.5" font-family="Arial" font-weight="bold" font-size="10.00">initial:</text>
-<text text-anchor="start" x="37.5" y="-70.5" font-family="Arial" font-size="10.00">  loading</text>
-<polygon fill="none" stroke="#c2410c" points="0,-60 0,-153 95,-153 95,-60 0,-60"/>
+<polygon fill="#ffffff" stroke="transparent" points="0,-70.5 0,-142.5 135,-142.5 135,-70.5 0,-70.5"/>
+<polygon fill="#c2410c" stroke="transparent" points="1.5,-131.5 1.5,-141.5 134.5,-141.5 134.5,-131.5 1.5,-131.5"/>
+<polygon fill="#fff7ed" stroke="transparent" points="1.5,-106.5 1.5,-131.5 134.5,-131.5 134.5,-106.5 1.5,-106.5"/>
+<text text-anchor="start" x="6.5" y="-116.3" font-family="Arial" font-weight="bold" font-size="14.00">nav</text>
+<text text-anchor="start" x="7.5" y="-93.5" font-family="Arial" font-weight="bold" font-size="10.00">instance:</text>
+<text text-anchor="start" x="50.5" y="-93.5" font-family="Arial" font-size="10.00">  panel.project.list</text>
+<text text-anchor="start" x="7.5" y="-81.5" font-family="Arial" font-weight="bold" font-size="10.00">initial:</text>
+<text text-anchor="start" x="37.5" y="-81.5" font-family="Arial" font-size="10.00">  loading</text>
+<polygon fill="none" stroke="#c2410c" points="0,-70.5 0,-142.5 135,-142.5 135,-70.5 0,-70.5"/>
 </g>
 <!-- message_emit_select_project_updates_panels_list_project_selected -->
 <g id="node4" class="node">
 <title>message_emit_select_project_updates_panels_list_project_selected</title>
-<polygon fill="#ffffff" stroke="transparent" points="156,-60 156,-153 271,-153 271,-60 156,-60"/>
-<polygon fill="#4f46e5" stroke="transparent" points="157.5,-141.5 157.5,-151.5 270.5,-151.5 270.5,-141.5 157.5,-141.5"/>
-<polygon fill="#eef2ff" stroke="transparent" points="157.5,-116.5 157.5,-141.5 270.5,-141.5 270.5,-116.5 157.5,-116.5"/>
-<text text-anchor="start" x="162.5" y="-126.3" font-family="Arial" font-weight="bold" font-size="14.00">project.selected</text>
-<text text-anchor="start" x="162.5" y="-103.5" font-family="Arial" font-size="10.00">emitted message</text>
-<text text-anchor="start" x="163.5" y="-82.5" font-family="Arial" font-weight="bold" font-size="10.00">source:</text>
-<text text-anchor="start" x="198.5" y="-82.5" font-family="Arial" font-size="10.00">  project.select</text>
-<text text-anchor="start" x="163.5" y="-70.5" font-family="Arial" font-weight="bold" font-size="10.00">data:</text>
-<text text-anchor="start" x="186.5" y="-70.5" font-family="Arial" font-size="10.00">  project_id</text>
-<polygon fill="none" stroke="#4f46e5" points="156,-60 156,-153 271,-153 271,-60 156,-60"/>
+<polygon fill="#ffffff" stroke="transparent" points="196,-60 196,-153 311,-153 311,-60 196,-60"/>
+<polygon fill="#4f46e5" stroke="transparent" points="197.5,-141.5 197.5,-151.5 310.5,-151.5 310.5,-141.5 197.5,-141.5"/>
+<polygon fill="#eef2ff" stroke="transparent" points="197.5,-116.5 197.5,-141.5 310.5,-141.5 310.5,-116.5 197.5,-116.5"/>
+<text text-anchor="start" x="202.5" y="-126.3" font-family="Arial" font-weight="bold" font-size="14.00">project.selected</text>
+<text text-anchor="start" x="202.5" y="-103.5" font-family="Arial" font-size="10.00">emitted message</text>
+<text text-anchor="start" x="203.5" y="-82.5" font-family="Arial" font-weight="bold" font-size="10.00">source:</text>
+<text text-anchor="start" x="238.5" y="-82.5" font-family="Arial" font-size="10.00">  project.select</text>
+<text text-anchor="start" x="203.5" y="-70.5" font-family="Arial" font-weight="bold" font-size="10.00">data:</text>
+<text text-anchor="start" x="226.5" y="-70.5" font-family="Arial" font-size="10.00">  project_id</text>
+<polygon fill="none" stroke="#4f46e5" points="196,-60 196,-153 311,-153 311,-60 196,-60"/>
 </g>
 <!-- panel_instance_list&#45;&gt;message_emit_select_project_updates_panels_list_project_selected -->
 <g id="edge2" class="edge">
 <title>panel_instance_list&#45;&gt;message_emit_select_project_updates_panels_list_project_selected</title>
-<path fill="none" stroke="#4f46e5" stroke-width="1.4" d="M95.06,-106.5C111.48,-106.5 130.25,-106.5 147.9,-106.5"/>
-<polygon fill="#4f46e5" stroke="#4f46e5" stroke-width="1.4" points="147.92,-109.3 155.92,-106.5 147.92,-103.7 147.92,-109.3"/>
+<path fill="none" stroke="#4f46e5" stroke-width="1.4" d="M135.19,-106.5C152.25,-106.5 170.56,-106.5 187.53,-106.5"/>
+<polygon fill="#4f46e5" stroke="#4f46e5" stroke-width="1.4" points="187.75,-109.3 195.74,-106.5 187.74,-103.7 187.75,-109.3"/>
 </g>
 <!-- panel_instance_detail -->
 <g id="node2" class="node">
 <title>panel_instance_detail</title>
-<polygon fill="#ffffff" stroke="transparent" points="855.5,-120 855.5,-213 966.5,-213 966.5,-120 855.5,-120"/>
-<polygon fill="#c2410c" stroke="transparent" points="857,-201.5 857,-211.5 966,-211.5 966,-201.5 857,-201.5"/>
-<polygon fill="#fff7ed" stroke="transparent" points="857,-176.5 857,-201.5 966,-201.5 966,-176.5 857,-176.5"/>
-<text text-anchor="start" x="862" y="-186.3" font-family="Arial" font-weight="bold" font-size="14.00">instance: detail</text>
-<text text-anchor="start" x="862" y="-163.5" font-family="Arial" font-size="10.00">panel.project.detail</text>
-<text text-anchor="start" x="863" y="-142.5" font-family="Arial" font-weight="bold" font-size="10.00">region:</text>
-<text text-anchor="start" x="897" y="-142.5" font-family="Arial" font-size="10.00">  main</text>
-<text text-anchor="start" x="863" y="-130.5" font-family="Arial" font-weight="bold" font-size="10.00">initial:</text>
-<text text-anchor="start" x="893" y="-130.5" font-family="Arial" font-size="10.00">  none</text>
-<polygon fill="none" stroke="#c2410c" points="855.5,-120 855.5,-213 966.5,-213 966.5,-120 855.5,-120"/>
+<polygon fill="#ffffff" stroke="transparent" points="894.5,-130.5 894.5,-202.5 1039.5,-202.5 1039.5,-130.5 894.5,-130.5"/>
+<polygon fill="#c2410c" stroke="transparent" points="896,-191.5 896,-201.5 1039,-201.5 1039,-191.5 896,-191.5"/>
+<polygon fill="#fff7ed" stroke="transparent" points="896,-166.5 896,-191.5 1039,-191.5 1039,-166.5 896,-166.5"/>
+<text text-anchor="start" x="901" y="-176.3" font-family="Arial" font-weight="bold" font-size="14.00">main</text>
+<text text-anchor="start" x="902" y="-153.5" font-family="Arial" font-weight="bold" font-size="10.00">instance:</text>
+<text text-anchor="start" x="945" y="-153.5" font-family="Arial" font-size="10.00">  panel.project.detail</text>
+<text text-anchor="start" x="902" y="-141.5" font-family="Arial" font-weight="bold" font-size="10.00">initial:</text>
+<text text-anchor="start" x="932" y="-141.5" font-family="Arial" font-size="10.00">  none</text>
+<polygon fill="none" stroke="#c2410c" points="894.5,-130.5 894.5,-202.5 1039.5,-202.5 1039.5,-130.5 894.5,-130.5"/>
 </g>
 <!-- panel_instance_activity -->
 <g id="node3" class="node">
 <title>panel_instance_activity</title>
-<polygon fill="#ffffff" stroke="transparent" points="850,0 850,-93 972,-93 972,0 850,0"/>
-<polygon fill="#c2410c" stroke="transparent" points="851,-81.5 851,-91.5 971,-91.5 971,-81.5 851,-81.5"/>
-<polygon fill="#fff7ed" stroke="transparent" points="851,-56.5 851,-81.5 971,-81.5 971,-56.5 851,-56.5"/>
-<text text-anchor="start" x="856" y="-66.3" font-family="Arial" font-weight="bold" font-size="14.00">instance: activity</text>
-<text text-anchor="start" x="856" y="-43.5" font-family="Arial" font-size="10.00">panel.project.activity</text>
-<text text-anchor="start" x="857" y="-22.5" font-family="Arial" font-weight="bold" font-size="10.00">region:</text>
-<text text-anchor="start" x="891" y="-22.5" font-family="Arial" font-size="10.00">  aside</text>
-<text text-anchor="start" x="857" y="-10.5" font-family="Arial" font-weight="bold" font-size="10.00">initial:</text>
-<text text-anchor="start" x="887" y="-10.5" font-family="Arial" font-size="10.00">  empty</text>
-<polygon fill="none" stroke="#c2410c" points="850,0 850,-93 972,-93 972,0 850,0"/>
+<polygon fill="#ffffff" stroke="transparent" points="890,-10.5 890,-82.5 1044,-82.5 1044,-10.5 890,-10.5"/>
+<polygon fill="#c2410c" stroke="transparent" points="891,-71.5 891,-81.5 1043,-81.5 1043,-71.5 891,-71.5"/>
+<polygon fill="#fff7ed" stroke="transparent" points="891,-46.5 891,-71.5 1043,-71.5 1043,-46.5 891,-46.5"/>
+<text text-anchor="start" x="896" y="-56.3" font-family="Arial" font-weight="bold" font-size="14.00">aside</text>
+<text text-anchor="start" x="897" y="-33.5" font-family="Arial" font-weight="bold" font-size="10.00">instance:</text>
+<text text-anchor="start" x="940" y="-33.5" font-family="Arial" font-size="10.00">  panel.project.activity</text>
+<text text-anchor="start" x="897" y="-21.5" font-family="Arial" font-weight="bold" font-size="10.00">initial:</text>
+<text text-anchor="start" x="927" y="-21.5" font-family="Arial" font-size="10.00">  empty</text>
+<polygon fill="none" stroke="#c2410c" points="890,-10.5 890,-82.5 1044,-82.5 1044,-10.5 890,-10.5"/>
 </g>
 <!-- message_route_select_project_updates_panels -->
 <g id="node5" class="node">
 <title>message_route_select_project_updates_panels</title>
-<polygon fill="#ffffff" stroke="transparent" points="332,-66 332,-147 545,-147 545,-66 332,-66"/>
-<polygon fill="#a16207" stroke="transparent" points="333.5,-135.5 333.5,-145.5 544.5,-145.5 544.5,-135.5 333.5,-135.5"/>
-<polygon fill="#fefce8" stroke="transparent" points="333.5,-110.5 333.5,-135.5 544.5,-135.5 544.5,-110.5 333.5,-110.5"/>
-<text text-anchor="start" x="338.5" y="-120.3" font-family="Arial" font-weight="bold" font-size="14.00">select_project_updates_panels</text>
-<text text-anchor="start" x="338.5" y="-97.5" font-family="Arial" font-size="10.00">message route</text>
-<text text-anchor="start" x="339.5" y="-76.5" font-family="Arial" font-weight="bold" font-size="10.00">set:</text>
-<text text-anchor="start" x="356.5" y="-76.5" font-family="Arial" font-size="10.00">  selected_project_id &lt;&#45; project_id</text>
-<polygon fill="none" stroke="#a16207" points="332,-66 332,-147 545,-147 545,-66 332,-66"/>
+<polygon fill="#ffffff" stroke="transparent" points="372,-66 372,-147 585,-147 585,-66 372,-66"/>
+<polygon fill="#a16207" stroke="transparent" points="373.5,-135.5 373.5,-145.5 584.5,-145.5 584.5,-135.5 373.5,-135.5"/>
+<polygon fill="#fefce8" stroke="transparent" points="373.5,-110.5 373.5,-135.5 584.5,-135.5 584.5,-110.5 373.5,-110.5"/>
+<text text-anchor="start" x="378.5" y="-120.3" font-family="Arial" font-weight="bold" font-size="14.00">select_project_updates_panels</text>
+<text text-anchor="start" x="378.5" y="-97.5" font-family="Arial" font-size="10.00">message route</text>
+<text text-anchor="start" x="379.5" y="-76.5" font-family="Arial" font-weight="bold" font-size="10.00">set:</text>
+<text text-anchor="start" x="396.5" y="-76.5" font-family="Arial" font-size="10.00">  selected_project_id &lt;&#45; project_id</text>
+<polygon fill="none" stroke="#a16207" points="372,-66 372,-147 585,-147 585,-66 372,-66"/>
 </g>
 <!-- message_emit_select_project_updates_panels_list_project_selected&#45;&gt;message_route_select_project_updates_panels -->
 <g id="edge3" class="edge">
 <title>message_emit_select_project_updates_panels_list_project_selected&#45;&gt;message_route_select_project_updates_panels</title>
-<path fill="none" stroke="#4f46e5" stroke-width="1.2" d="M271.06,-106.5C287.17,-106.5 305.33,-106.5 323.57,-106.5"/>
-<polygon fill="#4f46e5" stroke="#4f46e5" stroke-width="1.2" points="323.95,-109.3 331.95,-106.5 323.95,-103.7 323.95,-109.3"/>
+<path fill="none" stroke="#4f46e5" stroke-width="1.2" d="M311.06,-106.5C327.17,-106.5 345.33,-106.5 363.57,-106.5"/>
+<polygon fill="#4f46e5" stroke="#4f46e5" stroke-width="1.2" points="363.95,-109.3 371.95,-106.5 363.95,-103.7 363.95,-109.3"/>
 </g>
 <!-- message_effect_select_project_updates_panels_1 -->
 <g id="node6" class="node">
 <title>message_effect_select_project_updates_panels_1</title>
-<polygon fill="#ffffff" stroke="transparent" points="606,-120 606,-213 789,-213 789,-120 606,-120"/>
-<polygon fill="#be185d" stroke="transparent" points="607.5,-201.5 607.5,-211.5 788.5,-211.5 788.5,-201.5 607.5,-201.5"/>
-<polygon fill="#fdf2f8" stroke="transparent" points="607.5,-176.5 607.5,-201.5 788.5,-201.5 788.5,-176.5 607.5,-176.5"/>
-<text text-anchor="start" x="612.5" y="-186.3" font-family="Arial" font-weight="bold" font-size="14.00">project.selection_changed</text>
-<text text-anchor="start" x="612.5" y="-163.5" font-family="Arial" font-size="10.00">sent message</text>
-<text text-anchor="start" x="613.5" y="-142.5" font-family="Arial" font-weight="bold" font-size="10.00">causes:</text>
-<text text-anchor="start" x="649.5" y="-142.5" font-family="Arial" font-size="10.00">  to loading</text>
-<text text-anchor="start" x="613.5" y="-130.5" font-family="Arial" font-weight="bold" font-size="10.00">data:</text>
-<text text-anchor="start" x="636.5" y="-130.5" font-family="Arial" font-size="10.00">  project_id</text>
-<polygon fill="none" stroke="#be185d" points="606,-120 606,-213 789,-213 789,-120 606,-120"/>
+<polygon fill="#ffffff" stroke="transparent" points="646,-120 646,-213 829,-213 829,-120 646,-120"/>
+<polygon fill="#be185d" stroke="transparent" points="647.5,-201.5 647.5,-211.5 828.5,-211.5 828.5,-201.5 647.5,-201.5"/>
+<polygon fill="#fdf2f8" stroke="transparent" points="647.5,-176.5 647.5,-201.5 828.5,-201.5 828.5,-176.5 647.5,-176.5"/>
+<text text-anchor="start" x="652.5" y="-186.3" font-family="Arial" font-weight="bold" font-size="14.00">project.selection_changed</text>
+<text text-anchor="start" x="652.5" y="-163.5" font-family="Arial" font-size="10.00">sent message</text>
+<text text-anchor="start" x="653.5" y="-142.5" font-family="Arial" font-weight="bold" font-size="10.00">causes:</text>
+<text text-anchor="start" x="689.5" y="-142.5" font-family="Arial" font-size="10.00">  to loading</text>
+<text text-anchor="start" x="653.5" y="-130.5" font-family="Arial" font-weight="bold" font-size="10.00">data:</text>
+<text text-anchor="start" x="676.5" y="-130.5" font-family="Arial" font-size="10.00">  project_id</text>
+<polygon fill="none" stroke="#be185d" points="646,-120 646,-213 829,-213 829,-120 646,-120"/>
 </g>
 <!-- message_route_select_project_updates_panels&#45;&gt;message_effect_select_project_updates_panels_1 -->
 <g id="edge4" class="edge">
 <title>message_route_select_project_updates_panels&#45;&gt;message_effect_select_project_updates_panels_1</title>
-<path fill="none" stroke="#be185d" stroke-width="1.3" d="M545.14,-131.16C562.55,-135.23 580.54,-139.43 597.77,-143.45"/>
-<polygon fill="#be185d" stroke="#be185d" stroke-width="1.3" points="597.2,-146.19 605.63,-145.29 598.48,-140.74 597.2,-146.19"/>
+<path fill="none" stroke="#be185d" stroke-width="1.3" d="M585.14,-131.16C602.55,-135.23 620.54,-139.43 637.77,-143.45"/>
+<polygon fill="#be185d" stroke="#be185d" stroke-width="1.3" points="637.2,-146.19 645.63,-145.29 638.48,-140.74 637.2,-146.19"/>
 </g>
 <!-- message_effect_select_project_updates_panels_2 -->
 <g id="node7" class="node">
 <title>message_effect_select_project_updates_panels_2</title>
-<polygon fill="#ffffff" stroke="transparent" points="606,0 606,-93 789,-93 789,0 606,0"/>
-<polygon fill="#be185d" stroke="transparent" points="607.5,-81.5 607.5,-91.5 788.5,-91.5 788.5,-81.5 607.5,-81.5"/>
-<polygon fill="#fdf2f8" stroke="transparent" points="607.5,-56.5 607.5,-81.5 788.5,-81.5 788.5,-56.5 607.5,-56.5"/>
-<text text-anchor="start" x="612.5" y="-66.3" font-family="Arial" font-weight="bold" font-size="14.00">project.selection_changed</text>
-<text text-anchor="start" x="612.5" y="-43.5" font-family="Arial" font-size="10.00">sent message</text>
-<text text-anchor="start" x="613.5" y="-22.5" font-family="Arial" font-weight="bold" font-size="10.00">causes:</text>
-<text text-anchor="start" x="649.5" y="-22.5" font-family="Arial" font-size="10.00">  to ready</text>
-<text text-anchor="start" x="613.5" y="-10.5" font-family="Arial" font-weight="bold" font-size="10.00">data:</text>
-<text text-anchor="start" x="636.5" y="-10.5" font-family="Arial" font-size="10.00">  project_id</text>
-<polygon fill="none" stroke="#be185d" points="606,0 606,-93 789,-93 789,0 606,0"/>
+<polygon fill="#ffffff" stroke="transparent" points="646,0 646,-93 829,-93 829,0 646,0"/>
+<polygon fill="#be185d" stroke="transparent" points="647.5,-81.5 647.5,-91.5 828.5,-91.5 828.5,-81.5 647.5,-81.5"/>
+<polygon fill="#fdf2f8" stroke="transparent" points="647.5,-56.5 647.5,-81.5 828.5,-81.5 828.5,-56.5 647.5,-56.5"/>
+<text text-anchor="start" x="652.5" y="-66.3" font-family="Arial" font-weight="bold" font-size="14.00">project.selection_changed</text>
+<text text-anchor="start" x="652.5" y="-43.5" font-family="Arial" font-size="10.00">sent message</text>
+<text text-anchor="start" x="653.5" y="-22.5" font-family="Arial" font-weight="bold" font-size="10.00">causes:</text>
+<text text-anchor="start" x="689.5" y="-22.5" font-family="Arial" font-size="10.00">  to ready</text>
+<text text-anchor="start" x="653.5" y="-10.5" font-family="Arial" font-weight="bold" font-size="10.00">data:</text>
+<text text-anchor="start" x="676.5" y="-10.5" font-family="Arial" font-size="10.00">  project_id</text>
+<polygon fill="none" stroke="#be185d" points="646,0 646,-93 829,-93 829,0 646,0"/>
 </g>
 <!-- message_route_select_project_updates_panels&#45;&gt;message_effect_select_project_updates_panels_2 -->
 <g id="edge6" class="edge">
 <title>message_route_select_project_updates_panels&#45;&gt;message_effect_select_project_updates_panels_2</title>
-<path fill="none" stroke="#be185d" stroke-width="1.3" d="M545.14,-81.84C562.55,-77.77 580.54,-73.57 597.77,-69.55"/>
-<polygon fill="#be185d" stroke="#be185d" stroke-width="1.3" points="598.48,-72.26 605.63,-67.71 597.2,-66.81 598.48,-72.26"/>
+<path fill="none" stroke="#be185d" stroke-width="1.3" d="M585.14,-81.84C602.55,-77.77 620.54,-73.57 637.77,-69.55"/>
+<polygon fill="#be185d" stroke="#be185d" stroke-width="1.3" points="638.48,-72.26 645.63,-67.71 637.2,-66.81 638.48,-72.26"/>
 </g>
 <!-- message_effect_select_project_updates_panels_1&#45;&gt;panel_instance_detail -->
 <g id="edge5" class="edge">
 <title>message_effect_select_project_updates_panels_1&#45;&gt;panel_instance_detail</title>
-<path fill="none" stroke="#be185d" stroke-width="1.4" d="M789.12,-166.5C808.66,-166.5 828.91,-166.5 847.11,-166.5"/>
-<polygon fill="#be185d" stroke="#be185d" stroke-width="1.4" points="847.32,-169.3 855.32,-166.5 847.32,-163.7 847.32,-169.3"/>
+<path fill="none" stroke="#be185d" stroke-width="1.4" d="M829.07,-166.5C847.87,-166.5 867.56,-166.5 885.95,-166.5"/>
+<polygon fill="#be185d" stroke="#be185d" stroke-width="1.4" points="886.31,-169.3 894.31,-166.5 886.31,-163.7 886.31,-169.3"/>
 </g>
 <!-- message_effect_select_project_updates_panels_1&#45;&gt;message_effect_select_project_updates_panels_2 -->
 <!-- message_effect_select_project_updates_panels_2&#45;&gt;panel_instance_activity -->
 <g id="edge7" class="edge">
 <title>message_effect_select_project_updates_panels_2&#45;&gt;panel_instance_activity</title>
-<path fill="none" stroke="#be185d" stroke-width="1.4" d="M789.12,-46.5C806.75,-46.5 824.95,-46.5 841.72,-46.5"/>
-<polygon fill="#be185d" stroke="#be185d" stroke-width="1.4" points="841.82,-49.3 849.82,-46.5 841.82,-43.7 841.82,-49.3"/>
+<path fill="none" stroke="#be185d" stroke-width="1.4" d="M829.07,-46.5C846.32,-46.5 864.31,-46.5 881.37,-46.5"/>
+<polygon fill="#be185d" stroke="#be185d" stroke-width="1.4" points="881.66,-49.3 889.66,-46.5 881.66,-43.7 881.66,-49.3"/>
 </g>
 </g>
 </svg>

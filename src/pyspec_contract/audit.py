@@ -557,7 +557,7 @@ def panel_fsm_dot(panel_id: str, panel: dict[str, Any], contract: dict[str, Any]
             _dot_html_node(
                 transition_id,
                 _dot_card(
-                    f"on {transition['on']}",
+                    transition["on"],
                     None,
                     _format_transition_sections(panel, transition, contract),
                     basis=transition.get("basis", ""),
@@ -658,10 +658,10 @@ def composition_dot(view_id: str, view: dict[str, Any], contract: dict[str, Any]
 
 def _dot_instance_card(include: dict[str, Any]) -> str:
     return _dot_card(
-        f"instance: {include['id']}",
-        include["panel"],
+        include["region"],
+        None,
         [
-            ("region", [include["region"]]),
+            ("instance", [include["panel"]]),
             ("initial", [include["initial"]]),
         ],
         header_bg="#fff7ed",

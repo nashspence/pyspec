@@ -42,7 +42,8 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert composition.startswith("digraph ")
     assert "stateDiagram" not in fsm
     assert "flowchart" not in composition
-    assert "on data.ready" in fsm
+    assert "data.ready" in fsm
+    assert "on data.ready" not in fsm
     assert "copy.project.list.ready.heading" in fsm
     assert "asset.project.list.empty.illustration" in fsm
     assert "<B>emit:</B>&#160;&#160;project.selected" in fsm
@@ -56,7 +57,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert fsm.index("<B>input:</B>&#160;&#160;workspace_id: ID") < fsm.index("<B>query:</B>&#160;&#160;query.project.list.list")
     assert fsm.index("<B>query:</B>&#160;&#160;query.project.list.list") < fsm.index("<B>load:</B>&#160;&#160;project.list")
     detail_transition = panel_fsm_dot("panel.project.detail", contract["panels"]["panel.project.detail"], contract)
-    selection_card = detail_transition[detail_transition.index("on project.selection_changed") :]
+    selection_card = detail_transition[detail_transition.index("project.selection_changed") :]
     assert selection_card.index("<B>input:</B>&#160;&#160;project_id: ID") < selection_card.index("<B>query:</B>&#160;&#160;query.project.detail.read")
     assert selection_card.index("<B>query:</B>&#160;&#160;query.project.detail.read") < selection_card.index("<B>load:</B>&#160;&#160;project.read")
     assert "<B>Project fields</B>" in fsm
@@ -91,9 +92,12 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "Layout / mounted panels" not in composition
     assert "Message routing" not in composition
     assert "Sync rules" not in composition
-    assert "<B>region:</B>" in composition
-    assert "<B>region:</B>&#160;&#160;nav" in composition
-    assert "<B>region:</B>&#160;&#160;main" in composition
+    assert "<B>region:</B>" not in composition
+    assert "<B>nav</B>" in composition
+    assert "<B>main</B>" in composition
+    assert "<B>aside</B>" in composition
+    assert "<B>instance:</B>&#160;&#160;panel.project.list" in composition
+    assert "<B>instance:</B>&#160;&#160;panel.project.detail" in composition
     assert "<B>causes:</B>&#160;&#160;to loading" in composition
     assert "context binding" not in composition
     assert "view.selected_project_id" not in composition
@@ -204,8 +208,11 @@ def test_composition_dot_routes_messages_generically() -> None:
     assert '#fff7ed' in composition
     assert '#fdf2f8' in composition
     assert "No mounted panels" not in composition
-    assert "<B>region:</B>&#160;&#160;source" in composition
-    assert "<B>region:</B>&#160;&#160;target" in composition
+    assert "<B>region:</B>" not in composition
+    assert "<B>source</B>" in composition
+    assert "<B>target</B>" in composition
+    assert "<B>instance:</B>&#160;&#160;panel.alpha" in composition
+    assert "<B>instance:</B>&#160;&#160;panel.beta" in composition
     assert "unused" not in composition
     assert "order:" not in composition
     assert "element:" not in composition
@@ -238,7 +245,8 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     detail_fsm = (ROOT / panel_fsm_file("panel.project.detail")).read_text(encoding="utf-8")
     activity_fsm = (ROOT / panel_fsm_file("panel.project.activity")).read_text(encoding="utf-8")
     composition = (ROOT / composition_file("project.board")).read_text(encoding="utf-8")
-    assert "on data.ready" in list_fsm
+    assert "data.ready" in list_fsm
+    assert "on data.ready" not in list_fsm
     assert "copy.project.list.ready.heading" in list_fsm
     assert "asset.project.list.empty.illustration" in list_fsm
     assert "emit:" in list_fsm
@@ -304,14 +312,14 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "$message." not in composition
     assert "$event." not in composition
     assert "$view." not in composition
-    assert "region:" in composition
+    assert "region:" not in composition
+    assert "instance:" in composition
     assert "target:" not in composition
     assert "from:" not in composition
     assert "do:" not in composition
     assert "Layout / mounted panels" not in composition
     assert "Message routing" not in composition
     assert "Sync rules" not in composition
-    assert "region" in composition
     assert "nav" in composition
     assert "main" in composition
     assert "aside" in composition
