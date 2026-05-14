@@ -196,7 +196,7 @@ def _pm_design_prompt(context: _PromptContext) -> str:
     else:
         lines.append("- Do not add workflow, CLI, worker, or schedule vocabulary.")
     if "ui" in context.layers:
-        lines.append("- UI: FSMs with state-local layouts, includes, audit cases, copy/assets, content cases, and audit profiles.")
+        lines.append("- UI: FSMs with state-local layouts, mounts, audit cases, copy/assets, content cases, and audit profiles.")
     else:
         lines.append("- Do not author UI FSMs, copy/assets, audit cases, or surface presentation.")
     if "web" in context.layers:
@@ -219,7 +219,7 @@ def _pm_design_prompt(context: _PromptContext) -> str:
             "- Use `basis` or `why` only when it preserves non-obvious product intent.",
             "- For FSM entries, keep invocation and rendering separate: `surface` is the entry surface, while `target.fsm.surface` is `html` or `textual`.",
             "- For workflow entries, bind the entry to the workflow trigger with `target.workflow.name` and `target.workflow.trigger`.",
-            "- For composed screens, mount FSM instances through state-local layout, includes, context, and sync rules.",
+            "- For composed screens, mount FSM instances through state-local layout, mounts, context, and sync rules.",
             "- Every rendered copy or asset ref must be backed by a declared copy or asset item.",
         ]
     )

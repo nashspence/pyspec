@@ -111,7 +111,11 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "emitted message" in composition
     assert "sent message" in composition
     assert "message route" in composition
-    assert '<FONT POINT-SIZE="8" COLOR="#64748b">region</FONT>' in composition
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">nav mount</FONT>' in composition
+    board_fsm = fsm_dot("fsm.project.board", contract["fsms"]["fsm.project.board"], contract)
+    assert "<B>mounts</B>" in board_fsm
+    assert '<FONT POINT-SIZE="10">nav</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;fsm.project.list</FONT>' in board_fsm
+    assert "nav: fsm.project.list" not in board_fsm
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">emitted message</FONT>' in composition
     assert "<B>source:</B>&#160;&#160;project.select" in composition
     assert "ready to ready" not in composition
@@ -139,11 +143,11 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "Message routing" not in composition
     assert "Sync rules" not in composition
     assert "<B>region:</B>" not in composition
-    assert "<B>nav</B>" in composition
-    assert "<B>main</B>" in composition
-    assert "<B>aside</B>" in composition
-    assert "<B>instance:</B>&#160;&#160;fsm.project.list" in composition
-    assert "<B>instance:</B>&#160;&#160;fsm.project.detail" in composition
+    assert "<B>list</B>" in composition
+    assert "<B>detail</B>" in composition
+    assert "<B>activity</B>" in composition
+    assert "<B>fsm:</B>&#160;&#160;fsm.project.list" in composition
+    assert "<B>fsm:</B>&#160;&#160;fsm.project.detail" in composition
     assert "<B>causes:</B>&#160;&#160;to loading" in composition
     assert "context binding" not in composition
     assert "fsm.selected_project_id" not in composition
@@ -167,7 +171,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert entrypoint.index(entrypoint_input) < entrypoint.index("<B>query:</B>&#160;&#160;query.project.board.list")
     assert entrypoint.index("<B>query:</B>&#160;&#160;query.project.board.list") < entrypoint.index("<B>load:</B>&#160;&#160;project.list")
     assert "<B>sync:</B>&#160;&#160;select_project_updates_fsms" in entrypoint
-    assert "<B>instance:</B>&#160;&#160;fsm.project.list" in entrypoint
+    assert "<B>fsm:</B>&#160;&#160;fsm.project.list" in entrypoint
     assert "fsm.selected_project_id" not in entrypoint
     assert "$fsm." not in entrypoint
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">event trigger</FONT>' in workflow
@@ -197,7 +201,7 @@ def test_composition_dot_routes_messages_generically() -> None:
                 }
             }
         },
-        "includes": [
+        "mounts": [
             {"id": "publisher", "region": "source", "fsm": "fsm.alpha", "initial": "idle", "context": {}},
             {"id": "receiver", "region": "target", "fsm": "fsm.beta", "initial": "waiting", "context": {"item_id": "$fsm.selected_id"}},
         ],
@@ -255,7 +259,7 @@ def test_composition_dot_routes_messages_generically() -> None:
     assert "emitted message" in composition
     assert "sent message" in composition
     assert "message route" in composition
-    assert '<FONT POINT-SIZE="8" COLOR="#64748b">region</FONT>' in composition
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">source mount</FONT>' in composition
     assert "<B>source:</B>&#160;&#160;alpha.submit" in composition
     assert "idle to ready" not in composition
     assert "<B>transition:</B>" not in composition
@@ -272,17 +276,17 @@ def test_composition_dot_routes_messages_generically() -> None:
     assert "<B>target:</B>" not in composition
     assert "<B>from:</B>" not in composition
     assert "<B>do:</B>" not in composition
-    assert '"message_effect_route_alpha_beta_0" -> "fsm_instance_receiver"' in composition
+    assert '"message_effect_route_alpha_beta_0" -> "fsm_mount_receiver"' in composition
     assert "message_effect_route_alpha_beta_1" not in composition
     assert '#ecfdf5' in composition
     assert '#047857' in composition
     assert '#fdf2f8' in composition
     assert "No mounted FSMs" not in composition
     assert "<B>region:</B>" not in composition
-    assert "<B>source</B>" in composition
-    assert "<B>target</B>" in composition
-    assert "<B>instance:</B>&#160;&#160;fsm.alpha" in composition
-    assert "<B>instance:</B>&#160;&#160;fsm.beta" in composition
+    assert "<B>publisher</B>" in composition
+    assert "<B>receiver</B>" in composition
+    assert "<B>fsm:</B>&#160;&#160;fsm.alpha" in composition
+    assert "<B>fsm:</B>&#160;&#160;fsm.beta" in composition
     assert "unused" not in composition
     assert "order:" not in composition
     assert "element:" not in composition
@@ -411,7 +415,9 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "$event." not in composition
     assert "$fsm." not in composition
     assert "region:" not in composition
-    assert "instance:" in composition
+    assert "mount" in composition
+    assert "fsm:" in composition
+    assert "instance:" not in composition
     assert "target:" not in composition
     assert "from:" not in composition
     assert "do:" not in composition

@@ -37,7 +37,7 @@ def test_composed_fsm_contract_is_closed_and_projected() -> None:
     fsm = contract["fsms"]["fsm.project.board"]["states"]["ready"]
     assert set(fsm["layout"]["html"]["regions"]) == {"nav", "main", "aside"}
     assert set(fsm["layout"]["textual"]["containers"]) == {"nav", "main", "aside"}
-    assert [(item["id"], item["fsm"], item["region"], item["initial"]) for item in fsm["includes"]] == [
+    assert [(item["id"], item["fsm"], item["region"], item["initial"]) for item in fsm["mounts"]] == [
         ("list", "fsm.project.list", "nav", "loading"),
         ("detail", "fsm.project.detail", "main", "none"),
         ("activity", "fsm.project.activity", "aside", "empty"),
@@ -45,14 +45,14 @@ def test_composed_fsm_contract_is_closed_and_projected() -> None:
 
     generated = read_json(ROOT / "spec" / "generated" / "product_interfaces" / "web.fsms.json")
     composition = next(item for item in generated["compositions"] if item["id"] == "fsm.project.board.ready")
-    assert composition["instances"] == fsm["includes"]
+    assert composition["mounts"] == fsm["mounts"]
     assert composition["sync"] == fsm["sync"]
 
 
 def test_fsm_composition_rejects_unknown_layout_region() -> None:
     author = _author()
     fsm = _item(author, "fsms", "fsm.project.board")["states"]["ready"]
-    fsm["includes"][0]["region"] = "ghost"
+    fsm["mounts"][0]["region"] = "ghost"
     with pytest.raises(ContractError, match="undeclared region"):
         compile_source(author)
 
@@ -60,7 +60,7 @@ def test_fsm_composition_rejects_unknown_layout_region() -> None:
 def test_fsm_composition_rejects_context_binding_drift() -> None:
     author = _author()
     fsm = _item(author, "fsms", "fsm.project.board")["states"]["ready"]
-    del fsm["includes"][0]["context"]["selected_project_id"]
+    del fsm["mounts"][0]["context"]["selected_project_id"]
     with pytest.raises(ContractError, match="context keys"):
         compile_source(author)
 

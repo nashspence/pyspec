@@ -15,7 +15,7 @@ Authoring scope:
 - HTTP: API entries that bind capabilities to externally visible operations.
 - Events: event-producing product behavior and webhook-facing contracts when requested.
 - Workflow: workflows plus CLI, worker, and scheduled entries.
-- UI: FSMs with state-local layouts, includes, audit cases, copy/assets, content cases, and audit profiles.
+- UI: FSMs with state-local layouts, mounts, audit cases, copy/assets, content cases, and audit profiles.
 - Web UI: HTML/CSS presentation, web entries, routes, and HTML audit surfaces.
 - Textual UI: Textual presentation, screen projection, and Textual audit surfaces.
 
@@ -28,5 +28,5 @@ Rules:
 - Use `basis` or `why` only when it preserves non-obvious product intent.
 - For FSM entries, keep invocation and rendering separate: `surface` is the entry surface, while `target.fsm.surface` is `html` or `textual`.
 - For workflow entries, bind the entry to the workflow trigger with `target.workflow.name` and `target.workflow.trigger`.
-- For composed screens, mount FSM instances through state-local layout, includes, context, and sync rules.
+- For composed screens, mount FSM instances through state-local layout, mounts, context, and sync rules.
 - Every rendered copy or asset ref must be backed by a declared copy or asset item.

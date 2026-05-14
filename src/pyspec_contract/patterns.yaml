@@ -108,12 +108,12 @@ presentation_contracts:
     layer: web
     location: 'target: fsm -> spec.states.<state>.presentation.css or spec.states.<state>.layout.css'
     purpose: Exact CSS tokens and selector-scoped declarations.
-    selectors_allowed: [root, slot.<declared_slot>, action.<declared_action>, instance.<declared_instance>]
+    selectors_allowed: [root, slot.<declared_slot>, action.<declared_action>, mount.<declared_mount>]
   textual:
     layer: textual
     location: 'target: fsm -> spec.states.<state>.presentation.textual or spec.states.<state>.layout.textual'
     purpose: Exact Textual screen class, widgets, bindings, and TCSS-like rules.
-    selectors_allowed: [screen, slot.<declared_slot>, action.<declared_action>, instance.<declared_instance>]
+    selectors_allowed: [screen, slot.<declared_slot>, action.<declared_action>, mount.<declared_mount>]
 
 gherkin_policy:
   source_of_truth: spec/generated/behavior/scenarios.yaml

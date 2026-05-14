@@ -460,34 +460,6 @@ fsms:
         copy: []
         data: []
         fields: []
-        includes:
-        - context:
-            selected_project_id: $fsm.selected_project_id
-            workspace_id: $fsm.workspace_id
-          fsm: fsm.project.list
-          id: list
-          initial: loading
-          region: nav
-        - context:
-            project_id: $fsm.selected_project_id
-          fsm: fsm.project.detail
-          id: detail
-          initial: none
-          region: main
-          selected:
-            state: loading
-            when:
-              context_present: selected_project_id
-        - context:
-            project_id: $fsm.selected_project_id
-          fsm: fsm.project.activity
-          id: activity
-          initial: empty
-          region: aside
-          selected:
-            state: ready
-            when:
-              context_present: selected_project_id
         layout:
           html:
             css:
@@ -566,6 +538,34 @@ fsms:
               - declarations:
                   width: '28'
                 selector: region.aside
+        mounts:
+        - context:
+            selected_project_id: $fsm.selected_project_id
+            workspace_id: $fsm.workspace_id
+          fsm: fsm.project.list
+          id: list
+          initial: loading
+          region: nav
+        - context:
+            project_id: $fsm.selected_project_id
+          fsm: fsm.project.detail
+          id: detail
+          initial: none
+          region: main
+          selected:
+            state: loading
+            when:
+              context_present: selected_project_id
+        - context:
+            project_id: $fsm.selected_project_id
+          fsm: fsm.project.activity
+          id: activity
+          initial: empty
+          region: aside
+          selected:
+            state: ready
+            when:
+              context_present: selected_project_id
         surface: fsm.project.board.ready
         sync:
         - do:
@@ -935,9 +935,131 @@ scenarios:
       - project.approve
       fsm:
         composition:
-          includes: []
-          layout: {}
-          sync: []
+          layout:
+            html:
+              css:
+                rules:
+                - declarations:
+                    display: grid
+                    gap: token.gap
+                    grid-template-columns: token.nav_width 1fr token.aside_width
+                  selector: root
+                - declarations:
+                    min-width: token.nav_width
+                  selector: region.nav
+                - declarations:
+                    min-width: '0'
+                  selector: region.main
+                - declarations:
+                    min-width: token.aside_width
+                  selector: region.aside
+                tokens:
+                  aside_width: 16rem
+                  gap: 1rem
+                  nav_width: 20rem
+              regions:
+                aside:
+                  classes:
+                  - dispatch-board-aside
+                  element: aside
+                  order: 3
+                  required: true
+                  role: complementary
+                main:
+                  classes:
+                  - dispatch-board-main
+                  element: main
+                  order: 2
+                  required: true
+                  role: main
+                nav:
+                  classes:
+                  - dispatch-board-nav
+                  element: nav
+                  order: 1
+                  required: true
+                  role: navigation
+              root:
+                classes:
+                - dispatch-board
+                element: section
+                role: region
+            textual:
+              containers:
+                aside:
+                  id: aside
+                  kind: Container
+                  order: 3
+                  required: true
+                main:
+                  id: main
+                  kind: Container
+                  order: 2
+                  required: true
+                nav:
+                  id: nav
+                  kind: Container
+                  order: 1
+                  required: true
+              screen_class: ProjectBoardScreen
+              tcss:
+                rules:
+                - declarations:
+                    layout: horizontal
+                  selector: screen
+                - declarations:
+                    width: '32'
+                  selector: region.nav
+                - declarations:
+                    width: '28'
+                  selector: region.aside
+          mounts:
+          - context:
+              selected_project_id: $fsm.selected_project_id
+              workspace_id: $fsm.workspace_id
+            fsm: fsm.project.list
+            id: list
+            initial: loading
+            region: nav
+          - context:
+              project_id: $fsm.selected_project_id
+            fsm: fsm.project.detail
+            id: detail
+            initial: none
+            region: main
+            selected:
+              state: loading
+              when:
+                context_present: selected_project_id
+          - context:
+              project_id: $fsm.selected_project_id
+            fsm: fsm.project.activity
+            id: activity
+            initial: empty
+            region: aside
+            selected:
+              state: ready
+              when:
+                context_present: selected_project_id
+          sync:
+          - do:
+            - set:
+                context: selected_project_id
+                from: $message.project_id
+            - send:
+                data:
+                  project_id: $message.project_id
+                instance: detail
+                message: project.selection_changed
+            - send:
+                data:
+                  project_id: $message.project_id
+                instance: activity
+                message: project.selection_changed
+            id: select_project_updates_fsms
+            when:
+              instance: list
+              message: project.selected
         instances:
           activity:
             source: fsm.project.activity
@@ -1010,9 +1132,131 @@ scenarios:
       - project.submit
       fsm:
         composition:
-          includes: []
-          layout: {}
-          sync: []
+          layout:
+            html:
+              css:
+                rules:
+                - declarations:
+                    display: grid
+                    gap: token.gap
+                    grid-template-columns: token.nav_width 1fr token.aside_width
+                  selector: root
+                - declarations:
+                    min-width: token.nav_width
+                  selector: region.nav
+                - declarations:
+                    min-width: '0'
+                  selector: region.main
+                - declarations:
+                    min-width: token.aside_width
+                  selector: region.aside
+                tokens:
+                  aside_width: 16rem
+                  gap: 1rem
+                  nav_width: 20rem
+              regions:
+                aside:
+                  classes:
+                  - dispatch-board-aside
+                  element: aside
+                  order: 3
+                  required: true
+                  role: complementary
+                main:
+                  classes:
+                  - dispatch-board-main
+                  element: main
+                  order: 2
+                  required: true
+                  role: main
+                nav:
+                  classes:
+                  - dispatch-board-nav
+                  element: nav
+                  order: 1
+                  required: true
+                  role: navigation
+              root:
+                classes:
+                - dispatch-board
+                element: section
+                role: region
+            textual:
+              containers:
+                aside:
+                  id: aside
+                  kind: Container
+                  order: 3
+                  required: true
+                main:
+                  id: main
+                  kind: Container
+                  order: 2
+                  required: true
+                nav:
+                  id: nav
+                  kind: Container
+                  order: 1
+                  required: true
+              screen_class: ProjectBoardScreen
+              tcss:
+                rules:
+                - declarations:
+                    layout: horizontal
+                  selector: screen
+                - declarations:
+                    width: '32'
+                  selector: region.nav
+                - declarations:
+                    width: '28'
+                  selector: region.aside
+          mounts:
+          - context:
+              selected_project_id: $fsm.selected_project_id
+              workspace_id: $fsm.workspace_id
+            fsm: fsm.project.list
+            id: list
+            initial: loading
+            region: nav
+          - context:
+              project_id: $fsm.selected_project_id
+            fsm: fsm.project.detail
+            id: detail
+            initial: none
+            region: main
+            selected:
+              state: loading
+              when:
+                context_present: selected_project_id
+          - context:
+              project_id: $fsm.selected_project_id
+            fsm: fsm.project.activity
+            id: activity
+            initial: empty
+            region: aside
+            selected:
+              state: ready
+              when:
+                context_present: selected_project_id
+          sync:
+          - do:
+            - set:
+                context: selected_project_id
+                from: $message.project_id
+            - send:
+                data:
+                  project_id: $message.project_id
+                instance: detail
+                message: project.selection_changed
+            - send:
+                data:
+                  project_id: $message.project_id
+                instance: activity
+                message: project.selection_changed
+            id: select_project_updates_fsms
+            when:
+              instance: list
+              message: project.selected
         instances:
           activity:
             source: fsm.project.activity

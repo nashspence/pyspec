@@ -1450,7 +1450,7 @@
       "pattern": "^fsm\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
     },
-    "fsm_include_selected": {
+    "fsm_mount_selected": {
       "additionalProperties": false,
       "properties": {
         "state": {
@@ -1561,9 +1561,9 @@
           "type": "array",
           "uniqueItems": true
         },
-        "includes": {
+        "mounts": {
           "items": {
-            "$ref": "#/$defs/include_item"
+            "$ref": "#/$defs/mount_item"
           },
           "type": "array"
         },
@@ -1916,7 +1916,7 @@
       ],
       "type": "object"
     },
-    "include_item": {
+    "mount_item": {
       "additionalProperties": false,
       "properties": {
         "context": {
@@ -1936,7 +1936,7 @@
           "$ref": "#/$defs/field_name"
         },
         "selected": {
-          "$ref": "#/$defs/fsm_include_selected"
+          "$ref": "#/$defs/fsm_mount_selected"
         }
       },
       "required": [
@@ -2570,7 +2570,7 @@
       "type": "object"
     },
     "style_selector": {
-      "pattern": "^(root|screen|(slot|region)\\.[a-z][a-z0-9_]*|action\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+|instance\\.[a-z][a-z0-9_]*)$",
+      "pattern": "^(root|screen|(slot|region)\\.[a-z][a-z0-9_]*|action\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+|mount\\.[a-z][a-z0-9_]*)$",
       "type": "string"
     },
     "sync_action": {

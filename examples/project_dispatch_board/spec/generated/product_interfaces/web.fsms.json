@@ -7,48 +7,6 @@
       },
       "fsm": "fsm.project.board",
       "id": "fsm.project.board.ready",
-      "instances": [
-        {
-          "context": {
-            "selected_project_id": "$fsm.selected_project_id",
-            "workspace_id": "$fsm.workspace_id"
-          },
-          "fsm": "fsm.project.list",
-          "id": "list",
-          "initial": "loading",
-          "region": "nav"
-        },
-        {
-          "context": {
-            "project_id": "$fsm.selected_project_id"
-          },
-          "fsm": "fsm.project.detail",
-          "id": "detail",
-          "initial": "none",
-          "region": "main",
-          "selected": {
-            "state": "loading",
-            "when": {
-              "context_present": "selected_project_id"
-            }
-          }
-        },
-        {
-          "context": {
-            "project_id": "$fsm.selected_project_id"
-          },
-          "fsm": "fsm.project.activity",
-          "id": "activity",
-          "initial": "empty",
-          "region": "aside",
-          "selected": {
-            "state": "ready",
-            "when": {
-              "context_present": "selected_project_id"
-            }
-          }
-        }
-      ],
       "layout": {
         "html": {
           "css": {
@@ -169,6 +127,48 @@
           }
         }
       },
+      "mounts": [
+        {
+          "context": {
+            "selected_project_id": "$fsm.selected_project_id",
+            "workspace_id": "$fsm.workspace_id"
+          },
+          "fsm": "fsm.project.list",
+          "id": "list",
+          "initial": "loading",
+          "region": "nav"
+        },
+        {
+          "context": {
+            "project_id": "$fsm.selected_project_id"
+          },
+          "fsm": "fsm.project.detail",
+          "id": "detail",
+          "initial": "none",
+          "region": "main",
+          "selected": {
+            "state": "loading",
+            "when": {
+              "context_present": "selected_project_id"
+            }
+          }
+        },
+        {
+          "context": {
+            "project_id": "$fsm.selected_project_id"
+          },
+          "fsm": "fsm.project.activity",
+          "id": "activity",
+          "initial": "empty",
+          "region": "aside",
+          "selected": {
+            "state": "ready",
+            "when": {
+              "context_present": "selected_project_id"
+            }
+          }
+        }
+      ],
       "state": "ready",
       "sync": [
         {

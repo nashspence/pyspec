@@ -403,7 +403,7 @@ fsms:
               - declarations:
                   width: '28'
                 selector: region.aside
-        includes:
+        mounts:
         - context:
             selected_project_id: $fsm.selected_project_id
             workspace_id: $fsm.workspace_id

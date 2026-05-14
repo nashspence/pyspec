@@ -267,14 +267,14 @@ def fsms_projection(contract: dict[str, Any]) -> dict[str, Any]:
     compositions = []
     for fsm_id, fsm in sorted(contract["fsms"].items()):
         for state_name, state in sorted(fsm.get("states", {}).items()):
-            if state.get("includes"):
+            if state.get("mounts"):
                 compositions.append({
                     "id": f"{fsm_id}.{state_name}",
                     "fsm": fsm_id,
                     "state": state_name,
                     "context": fsm.get("context", {}),
                     "layout": state.get("layout", {}),
-                    "instances": state.get("includes", []),
+                    "mounts": state.get("mounts", []),
                     "sync": state.get("sync", []),
                 })
     return {"project": contract["project"], "fsms": fsms, "compositions": compositions}
@@ -399,7 +399,7 @@ def compose_contract_fsm(surface_id: str) -> list[tuple[str, str]]:
 
 def compose_contract_composition(composition_id: str) -> list[tuple[str, str, str]]:
     item = composition(composition_id)
-    return [(instance["region"], instance["id"], instance["fsm"]) for instance in item["instances"]]
+    return [(mount["region"], mount["id"], mount["fsm"]) for mount in item["mounts"]]
 
 
 def widget_label(widget: dict) -> str:
@@ -500,9 +500,9 @@ def composition_css_selector(composition: dict[str, Any], selector: str) -> str:
     if selector.startswith("region."):
         region = selector[len("region."):]
         return f'{root} [data-layout-region="{region}"]'
-    if selector.startswith("instance."):
-        instance = selector[len("instance."):]
-        return f'{root} [data-fsm-instance="{instance}"]'
+    if selector.startswith("mount."):
+        mount = selector[len("mount."):]
+        return f'{root} [data-fsm-mount="{mount}"]'
     return root
 
 
@@ -563,8 +563,8 @@ def composition_tcss_selector(composition: dict[str, Any], selector: str) -> str
         region = selector[len("region."):]
         container = layout_textual_containers(composition.get("layout") or {}).get(region, {})
         return "#" + safe_id(container.get("id", region))
-    if selector.startswith("instance."):
-        return "#" + safe_id(selector[len("instance."):])
+    if selector.startswith("mount."):
+        return "#" + safe_id(selector[len("mount."):])
     return selector
 
 

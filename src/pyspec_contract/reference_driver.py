@@ -131,15 +131,15 @@ class ReferenceSpecDriver:
         records = self._filter(fsm["resource"], params)
         parent_state_name = "ready" if "ready" in fsm.get("states", {}) else next(iter(fsm.get("states", {"ready": {}})))
         state = fsm["states"].get(parent_state_name, {"surface": None, "copy": [], "assets": [], "actions": [], "data": []})
-        if state.get("includes"):
+        if state.get("mounts"):
             fsms: dict[str, Any] = {}
             context = {**params}
-            for include in state["includes"]:
-                source_id = include["fsm"]
+            for mount in state["mounts"]:
+                source_id = mount["fsm"]
                 fsm = self.contract["fsms"][source_id]
-                child_state_name = self._choose_fsm_state(fsm, include, records, context)
+                child_state_name = self._choose_fsm_state(fsm, mount, records, context)
                 child_state = fsm["states"][child_state_name]
-                fsms[include["id"]] = {
+                fsms[mount["id"]] = {
                     "source": source_id,
                     "state": child_state_name,
                     "surface": child_state["surface"],
@@ -171,17 +171,17 @@ class ReferenceSpecDriver:
             "actions": state["actions"],
         }
 
-    def _choose_fsm_state(self, fsm: dict[str, Any], include: dict[str, Any], records: list[dict[str, Any]], context: dict[str, Any]) -> str:
-        selected = include.get("selected")
+    def _choose_fsm_state(self, fsm: dict[str, Any], mount: dict[str, Any], records: list[dict[str, Any]], context: dict[str, Any]) -> str:
+        selected = mount.get("selected")
         if selected:
             if _condition_matches(selected["when"], context):
                 return selected["state"]
-            return include["initial"]
+            return mount["initial"]
         if records and "ready" in fsm["states"] and (fsm.get("data") or fsm["states"]["ready"].get("data")):
             return "ready"
         if not records and "empty" in fsm["states"]:
             return "empty"
-        return include["initial"]
+        return mount["initial"]
 
     def _rendered_fsm_ids(self) -> set[str]:
         if not self.last_fsm:

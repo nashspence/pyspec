@@ -225,7 +225,7 @@ def _audit_projection_surfaces(contract: dict[str, Any], projection: dict[str, A
     return [
         fsm
         for fsm in projection["fsms"]
-        if not contract["fsms"][fsm["owner"]]["states"][fsm["state"]].get("includes")
+        if not contract["fsms"][fsm["owner"]]["states"][fsm["state"]].get("mounts")
     ]
 
 
@@ -235,7 +235,7 @@ def audit_expected_files(contract: dict[str, Any]) -> set[str]:
         files.add(fsm_graph_file(fsm_id))
     for fsm_id, fsm in contract.get("fsms", {}).items():
         for state_name, state in fsm.get("states", {}).items():
-            if state.get("includes"):
+            if state.get("mounts"):
                 files.add(composition_file(fsm_id, state_name))
     for entry_id, entry in contract.get("entries", {}).items():
         files.add(entrypoint_flow_file(entry_id, entry["surface"]))
@@ -301,7 +301,7 @@ def _render_visual_audit(root: Path, contract: dict[str, Any], _tools_root: Path
         _write_graphviz_svg(path, fsm_dot(fsm_id, fsm, contract))
     for fsm_id, fsm in sorted(contract.get("fsms", {}).items()):
         for state_name, state in sorted(fsm.get("states", {}).items()):
-            if not state.get("includes"):
+            if not state.get("mounts"):
                 continue
             path = root / composition_file(fsm_id, state_name)
             _write_graphviz_svg(path, composition_dot(f"{fsm_id}.{state_name}", {"context": fsm.get("context", {}), **state}, contract))
@@ -528,18 +528,21 @@ def fsm_dot(fsm_id: str, fsm: dict[str, Any], contract: dict[str, Any]) -> str:
     ]
     for state_name in sorted(fsm["states"]):
         state = fsm["states"][state_name]
+        sections: list[tuple[str, Iterable[object]]] = [
+            ("copy", state.get("copy", [])),
+            ("assets", state.get("assets", [])),
+            (_state_field_section_title(fsm, state_name, state), _format_state_fields(fsm, state, contract)),
+            ("actions", _format_capability_outputs(state.get("actions", []), contract)),
+            ("mounts", _format_mounts(state.get("mounts", []))),
+            ("sync", [rule["id"] for rule in state.get("sync", [])]),
+        ]
         lines.append(
             _dot_html_node(
                 _dot_node_id("state", state_name),
                 _dot_card(
                     state_name,
                     "initial state" if state_name == fsm["initial"] else "state",
-                    [
-                        ("copy", state.get("copy", [])),
-                        ("assets", state.get("assets", [])),
-                        (_state_field_section_title(fsm, state_name, state), _format_state_fields(fsm, state, contract)),
-                        ("actions", _format_capability_outputs(state.get("actions", []), contract)),
-                    ],
+                    sections,
                     header_bg="#ecfeff" if state_name == fsm["initial"] else "#f8fafc",
                     border="#0891b2" if state_name == fsm["initial"] else "#71717a",
                 ),
@@ -575,13 +578,13 @@ def composition_dot(fsm_id: str, fsm: dict[str, Any], contract: dict[str, Any]) 
         route_fsm_order.append(rule["when"]["instance"])
         route_fsm_order.extend(effect["send"]["instance"] for effect in rule.get("do", []) if "send" in effect)
     route_fsm_index = {fsm_id: index for index, fsm_id in enumerate(dict.fromkeys(route_fsm_order))}
-    includes = sorted(
-        fsm.get("includes", []),
-        key=lambda include: (route_fsm_index.get(include["id"], len(route_fsm_index)), include["id"]),
+    mounts = sorted(
+        fsm.get("mounts", []),
+        key=lambda mount: (route_fsm_index.get(mount["id"], len(route_fsm_index)), mount["id"]),
     )
-    include_by_id = {include["id"]: include for include in includes}
-    instance_node_by_id = {include["id"]: _dot_node_id("fsm_instance", include["id"]) for include in includes}
-    instance_node_ids = [instance_node_by_id[include["id"]] for include in includes]
+    mount_by_id = {mount["id"]: mount for mount in mounts}
+    mount_node_by_id = {mount["id"]: _dot_node_id("fsm_mount", mount["id"]) for mount in mounts}
+    mount_node_ids = [mount_node_by_id[mount["id"]] for mount in mounts]
     has_sync = bool(fsm.get("sync"))
     lines = [
         f"digraph {_dot_quote('composition_' + safe_id(fsm_id))} {{",
@@ -589,10 +592,10 @@ def composition_dot(fsm_id: str, fsm: dict[str, Any], contract: dict[str, Any]) 
         '  node [fontname="Arial", fontsize="11"];',
         '  edge [color="#3f3f46", fontname="Arial", fontsize="10", arrowsize="0.8"];',
     ]
-    for include in includes:
-        lines.append(_dot_html_node(instance_node_by_id[include["id"]], _dot_instance_card(include)))
-    if instance_node_ids and not has_sync:
-        lines.extend(_dot_invisible_order(instance_node_ids, indent="  "))
+    for mount in mounts:
+        lines.append(_dot_html_node(mount_node_by_id[mount["id"]], _dot_mount_card(mount)))
+    if mount_node_ids and not has_sync:
+        lines.extend(_dot_invisible_order(mount_node_ids, indent="  "))
     if not has_sync:
         lines.append(_dot_html_node("message_route_none", _dot_card("No message routes", "message routing", [], header_bg="#f8fafc")))
     for rule in fsm.get("sync", []):
@@ -607,8 +610,8 @@ def composition_dot(fsm_id: str, fsm: dict[str, Any], contract: dict[str, Any]) 
                     rule["when"]["message"],
                     "emitted message",
                     [
-                        ("source", _emitting_transition_refs(rule["when"]["instance"], rule["when"]["message"], include_by_id, contract)),
-                        ("data", _emitted_message_data_lines(rule["when"]["instance"], rule["when"]["message"], include_by_id, contract)),
+                        ("source", _emitting_transition_refs(rule["when"]["instance"], rule["when"]["message"], mount_by_id, contract)),
+                        ("data", _emitted_message_data_lines(rule["when"]["instance"], rule["when"]["message"], mount_by_id, contract)),
                     ],
                     header_bg="#eef2ff",
                     border="#4f46e5",
@@ -629,14 +632,14 @@ def composition_dot(fsm_id: str, fsm: dict[str, Any], contract: dict[str, Any]) 
         )
         for index, effect in send_effects:
             effect_id = _dot_node_id("message_effect", f"{rule['id']}_{index}")
-            lines.append(_dot_html_node(effect_id, _dot_sync_effect_card(effect, include_by_id, contract)))
+            lines.append(_dot_html_node(effect_id, _dot_sync_effect_card(effect, mount_by_id, contract)))
         if effect_ids:
             lines.append("  { rank=same; " + " ".join(_dot_quote(effect_id) for effect_id in effect_ids) + " }")
             lines.extend(_dot_invisible_order(effect_ids, indent="  "))
     for rule in fsm.get("sync", []):
         emit_id = _dot_node_id("message_emit", f"{rule['id']}_{rule['when']['instance']}_{rule['when']['message']}")
         sync_id = _dot_node_id("message_route", rule["id"])
-        source = instance_node_by_id.get(rule["when"]["instance"])
+        source = mount_node_by_id.get(rule["when"]["instance"])
         if source:
             lines.append(f"  {_dot_quote(source)} -> {_dot_quote(emit_id)} [color=\"#4f46e5\", penwidth=\"1.4\"];")
         lines.append(f"  {_dot_quote(emit_id)} -> {_dot_quote(sync_id)} [color=\"#4f46e5\", penwidth=\"1.2\"];")
@@ -645,7 +648,7 @@ def composition_dot(fsm_id: str, fsm: dict[str, Any], contract: dict[str, Any]) 
                 continue
             effect_id = _dot_node_id("message_effect", f"{rule['id']}_{index}")
             lines.append(f"  {_dot_quote(sync_id)} -> {_dot_quote(effect_id)} [color=\"#be185d\", penwidth=\"1.3\"];")
-            target = instance_node_by_id.get(effect["send"]["instance"])
+            target = mount_node_by_id.get(effect["send"]["instance"])
             if not target:
                 continue
             lines.append(f"  {_dot_quote(effect_id)} -> {_dot_quote(target)} [color=\"#be185d\", penwidth=\"1.4\"];")
@@ -851,10 +854,10 @@ def _entry_target_tail_nodes(target_kind: str, target_value: str, contract: dict
     fsm = contract["fsms"][target_value]
     nodes: list[tuple[str, str]] = []
     for state_name, state in sorted(fsm.get("states", {}).items()):
-        if state.get("includes"):
+        if state.get("mounts"):
             nodes.extend(
-                (_dot_node_id("entrypoint_instance", f"{target_value}_{state_name}_{include['id']}"), _dot_instance_card(include))
-                for include in state["includes"]
+                (_dot_node_id("entrypoint_mount", f"{target_value}_{state_name}_{mount['id']}"), _dot_mount_card(mount))
+                for mount in state["mounts"]
             )
         else:
             nodes.append((_dot_node_id("entrypoint_fsm_state", f"{target_value}_{state_name}"), _fsm_state_card(fsm, state_name, state, contract)))
@@ -889,6 +892,8 @@ def _fsm_state_card(fsm: dict[str, Any], state_name: str, state: dict[str, Any],
             ("assets", state.get("assets", [])),
             (_state_field_section_title(fsm, state_name, state), _format_state_fields(fsm, state, contract)),
             ("actions", _format_capability_outputs(state.get("actions", []), contract)),
+            ("mounts", _format_mounts(state.get("mounts", []))),
+            ("sync", [rule["id"] for rule in state.get("sync", [])]),
         ],
         header_bg="#f8fafc",
         border="#71717a",
@@ -962,13 +967,20 @@ def _target_label(kind: str, value: str) -> str:
     return f"{kind} {value}"
 
 
-def _dot_instance_card(include: dict[str, Any]) -> str:
+def _format_mounts(mounts: Iterable[dict[str, Any]]) -> list[_DotTypedField]:
+    lines: list[_DotTypedField] = []
+    for mount in sorted(mounts, key=lambda item: (item["region"], item["id"])):
+        lines.append(_DotTypedField(mount["region"], mount["fsm"]))
+    return lines
+
+
+def _dot_mount_card(mount: dict[str, Any]) -> str:
     return _dot_card(
-        include["region"],
-        "region",
+        mount["id"],
+        f"{mount['region']} mount",
         [
-            ("instance", [include["fsm"]]),
-            ("initial", [include["initial"]]),
+            ("fsm", [mount["fsm"]]),
+            ("initial", [mount["initial"]]),
         ],
         header_bg="#ecfdf5",
         border="#047857",
@@ -977,7 +989,7 @@ def _dot_instance_card(include: dict[str, Any]) -> str:
 
 def _dot_sync_effect_card(
     effect: dict[str, Any],
-    include_by_id: dict[str, dict[str, Any]],
+    mount_by_id: dict[str, dict[str, Any]],
     contract: dict[str, Any],
 ) -> str:
     if "send" in effect:
@@ -986,8 +998,8 @@ def _dot_sync_effect_card(
             send["message"],
             "sent message",
             [
-                ("causes", _receiving_transition_refs(send["instance"], send["message"], include_by_id, contract)),
-                ("data", _sent_message_data_lines(send, include_by_id, contract)),
+                ("causes", _receiving_transition_refs(send["instance"], send["message"], mount_by_id, contract)),
+                ("data", _sent_message_data_lines(send, mount_by_id, contract)),
             ],
             header_bg="#fdf2f8",
             border="#be185d",
@@ -1007,13 +1019,13 @@ def _dot_sync_effect_card(
 def _emitted_message_data_lines(
     instance_id: str,
     emitted: str,
-    include_by_id: dict[str, dict[str, Any]],
+    mount_by_id: dict[str, dict[str, Any]],
     contract: dict[str, Any],
 ) -> list[_DotTypedField]:
-    payload = _message_payload_for_instance(instance_id, "emits", emitted, include_by_id, contract)
+    payload = _message_payload_for_instance(instance_id, "emits", emitted, mount_by_id, contract)
     lines: list[_DotTypedField] = []
     seen: set[str] = set()
-    for emit in _emitting_transition_emits(instance_id, emitted, include_by_id, contract):
+    for emit in _emitting_transition_emits(instance_id, emitted, mount_by_id, contract):
         for line in _format_typed_data_flow(emit.get("data", {}), payload):
             signature = str(line)
             if signature not in seen:
@@ -1036,10 +1048,10 @@ def _route_set_lines(rule: dict[str, Any], fsm: dict[str, Any]) -> list[_DotType
 
 def _sent_message_data_lines(
     send: dict[str, Any],
-    include_by_id: dict[str, dict[str, Any]],
+    mount_by_id: dict[str, dict[str, Any]],
     contract: dict[str, Any],
 ) -> list[_DotTypedField]:
-    payload = _message_payload_for_instance(send["instance"], "accepts", send["message"], include_by_id, contract)
+    payload = _message_payload_for_instance(send["instance"], "accepts", send["message"], mount_by_id, contract)
     return _format_typed_data_flow(send.get("data", {}), payload)
 
 
@@ -1051,22 +1063,22 @@ def _message_payload_for_instance(
     instance_id: str,
     direction: str,
     message: str,
-    include_by_id: dict[str, dict[str, Any]],
+    mount_by_id: dict[str, dict[str, Any]],
     contract: dict[str, Any],
 ) -> dict[str, str]:
-    include = include_by_id[instance_id]
-    fsm = contract["fsms"][include["fsm"]]
+    mount = mount_by_id[instance_id]
+    fsm = contract["fsms"][mount["fsm"]]
     return fsm["messages"][direction][message]["payload"]
 
 
 def _emitting_transition_emits(
     instance_id: str,
     emitted: str,
-    include_by_id: dict[str, dict[str, Any]],
+    mount_by_id: dict[str, dict[str, Any]],
     contract: dict[str, Any],
 ) -> list[dict[str, Any]]:
-    include = include_by_id[instance_id]
-    fsm = contract["fsms"][include["fsm"]]
+    mount = mount_by_id[instance_id]
+    fsm = contract["fsms"][mount["fsm"]]
     emits = []
     for transition in fsm.get("transitions", []):
         for effect in transition.get("effects", []):
@@ -1079,16 +1091,16 @@ def _emitting_transition_emits(
 def _emitting_transition_refs(
     instance_id: str,
     emitted: str,
-    include_by_id: dict[str, dict[str, Any]],
+    mount_by_id: dict[str, dict[str, Any]],
     contract: dict[str, Any] | None,
 ) -> list[str]:
     refs = []
     if not contract:
         return refs
-    include = include_by_id.get(instance_id)
-    if not include:
+    mount = mount_by_id.get(instance_id)
+    if not mount:
         return refs
-    fsm = contract.get("fsms", {}).get(include["fsm"])
+    fsm = contract.get("fsms", {}).get(mount["fsm"])
     if not fsm:
         return refs
     for transition in fsm.get("transitions", []):
@@ -1100,15 +1112,15 @@ def _emitting_transition_refs(
 def _receiving_transition_refs(
     instance_id: str,
     message: str,
-    include_by_id: dict[str, dict[str, Any]],
+    mount_by_id: dict[str, dict[str, Any]],
     contract: dict[str, Any] | None,
 ) -> list[str]:
     if not contract:
         return []
-    include = include_by_id.get(instance_id)
-    if not include:
+    mount = mount_by_id.get(instance_id)
+    if not mount:
         return []
-    fsm = contract.get("fsms", {}).get(include["fsm"])
+    fsm = contract.get("fsms", {}).get(mount["fsm"])
     if not fsm:
         return []
     target_sources: dict[str, list[str]] = {}
@@ -1587,7 +1599,7 @@ def audit_html_document(contract: dict[str, Any], body: str) -> str:
 def render_audit_case_html(root: Path, contract: dict[str, Any], case_id: str, case: dict[str, Any]) -> str:
     fsm = contract["fsms"][case["fsm"]]
     state = fsm["states"][case["state"]]
-    if state.get("includes"):
+    if state.get("mounts"):
         return render_composed_case_html(root, contract, case)
     projection = fsms_projection(contract)
     fsm = next(item for item in projection["fsms"] if item["owner_kind"] == "fsm" and item["owner"] == case["fsm"] and item["state"] == case["state"])
@@ -1598,11 +1610,11 @@ def case_render_fsms(contract: dict[str, Any], case: dict[str, Any]) -> list[dic
     projection = fsms_projection(contract)
     fsm = contract["fsms"][case["fsm"]]
     state = fsm["states"][case["state"]]
-    if state.get("includes"):
+    if state.get("mounts"):
         fsms = []
-        for include in state["includes"]:
-            state_name = case["instances"][include["id"]]["state"]
-            fsms.append(next(item for item in projection["fsms"] if item["owner_kind"] == "fsm" and item["owner"] == include["fsm"] and item["state"] == state_name))
+        for mount in state["mounts"]:
+            state_name = case["instances"][mount["id"]]["state"]
+            fsms.append(next(item for item in projection["fsms"] if item["owner_kind"] == "fsm" and item["owner"] == mount["fsm"] and item["state"] == state_name))
         return fsms
     return [next(item for item in projection["fsms"] if item["owner_kind"] == "fsm" and item["owner"] == case["fsm"] and item["state"] == case["state"])]
 
@@ -1627,9 +1639,9 @@ def render_composed_case_html(root: Path, contract: dict[str, Any], case: dict[s
         if region.get("role") and region["role"] != "none":
             region_attrs["role"] = region["role"]
         parts.append(f"<{region_tag}{format_attrs(region_attrs)}>")
-        for include in [item for item in state["includes"] if item["region"] == region_name]:
-            state_name = case["instances"][include["id"]]["state"]
-            fsm = next(item for item in projection["fsms"] if item["owner_kind"] == "fsm" and item["owner"] == include["fsm"] and item["state"] == state_name)
+        for mount in [item for item in state["mounts"] if item["region"] == region_name]:
+            state_name = case["instances"][mount["id"]]["state"]
+            fsm = next(item for item in projection["fsms"] if item["owner_kind"] == "fsm" and item["owner"] == mount["fsm"] and item["state"] == state_name)
             parts.append(render_fsm_audit_html(root, contract, fsm, case))
         parts.append(f"</{region_tag}>")
     parts.append(f"</{tag}>")
@@ -1743,10 +1755,10 @@ def textual_audit_lines(root: Path, contract: dict[str, Any], case_id: str, case
     fsm = contract["fsms"][case["fsm"]]
     state = fsm["states"][case["state"]]
     lines: list[tuple[str, str]] = []
-    if state.get("includes"):
-        for include in state["includes"]:
-            state_name = case["instances"][include["id"]]["state"]
-            fsm = next(item for item in projection["fsms"] if item["owner_kind"] == "fsm" and item["owner"] == include["fsm"] and item["state"] == state_name)
+    if state.get("mounts"):
+        for mount in state["mounts"]:
+            state_name = case["instances"][mount["id"]]["state"]
+            fsm = next(item for item in projection["fsms"] if item["owner_kind"] == "fsm" and item["owner"] == mount["fsm"] and item["state"] == state_name)
             lines.extend(fsm_textual_lines(root, contract, fsm, case))
     else:
         fsm = next(item for item in projection["fsms"] if item["owner_kind"] == "fsm" and item["owner"] == case["fsm"] and item["state"] == case["state"])

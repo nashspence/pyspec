@@ -508,11 +508,11 @@ def test_missing_referenced_capability_is_rejected() -> None:
         compile_source(author)
 
 
-def test_fsm_composition_rejects_unknown_included_fsm() -> None:
+def test_fsm_composition_rejects_unknown_mounted_fsm() -> None:
     author = _author()
     fsm = _item(author, "fsms", "fsm.project.board")["states"]["ready"]
-    fsm["includes"][0]["fsm"] = "fsm.project.ghost"
-    with pytest.raises(ContractError, match="includes unknown FSM"):
+    fsm["mounts"][0]["fsm"] = "fsm.project.ghost"
+    with pytest.raises(ContractError, match="mounts unknown FSM"):
         compile_source(author)
 
 

@@ -315,7 +315,7 @@ def validate_fsms_json(contract: dict[str, Any], doc: dict[str, Any]) -> None:
     actual_pairs = {(fsm["owner_kind"], fsm["owner"], fsm["state"]) for fsm in doc["fsms"]}
     if actual_pairs != expected_pairs:
         raise ContractError(_diff_message("FSM owner/state pairs", expected_pairs, actual_pairs))
-    expected_compositions = {f"{fsm_id}.{state_name}" for fsm_id, fsm in contract["fsms"].items() for state_name, state in fsm.get("states", {}).items() if state.get("includes")}
+    expected_compositions = {f"{fsm_id}.{state_name}" for fsm_id, fsm in contract["fsms"].items() for state_name, state in fsm.get("states", {}).items() if state.get("mounts")}
     actual_compositions = {composition["id"] for composition in doc["compositions"]}
     if actual_compositions != expected_compositions:
         raise ContractError(_diff_message("Composed FSM state ids", expected_compositions, actual_compositions))
@@ -349,7 +349,7 @@ def validate_textual_contract(root: Path, contract: dict[str, Any]) -> None:
     for composition in compositions:
         if module.composition(composition["id"]) != composition:
             raise ContractError(f"{label} composition lookup failed for {composition['id']}")
-        expected = [(instance["region"], instance["id"], instance["fsm"]) for instance in composition["instances"]]
+        expected = [(mount["region"], mount["id"], mount["fsm"]) for mount in composition["mounts"]]
         if module.compose_contract_composition(composition["id"]) != expected:
             raise ContractError(f"{label} compose_contract_composition mismatch for {composition['id']}")
 
@@ -582,7 +582,7 @@ def validate_audit_outputs(root: Path, contract: dict[str, Any]) -> None:
         _assert_svg(root / fsm_graph_file(fsm_id), f"FSM {fsm_id}")
     for fsm_id, fsm in contract.get("fsms", {}).items():
         for state_name, state in fsm.get("states", {}).items():
-            if state.get("includes"):
+            if state.get("mounts"):
                 _assert_svg(root / composition_file(fsm_id, state_name), f"composition {fsm_id}.{state_name}")
     for entry_id in contract.get("entries", {}):
         entry = contract["entries"][entry_id]
