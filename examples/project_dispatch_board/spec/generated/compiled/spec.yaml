@@ -275,7 +275,10 @@ entries:
     basis: Worker entry exposing the approval notice workflow.
     surface: worker
     target:
-      workflow: project.approval_notice
+      workflow:
+        name: project.approval_notice
+        trigger:
+          event: project.approved
     workflow_ref: workflow.project.approval_notice
 events:
   project.approved:

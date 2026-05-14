@@ -27,5 +27,6 @@ Rules:
 - Resources are product data models: fields, lifecycle, and invariants only.
 - Use `basis` or `why` only when it preserves non-obvious product intent.
 - For view entries, keep invocation and rendering separate: `surface` is the entry surface, while `target.view.surface` is `html` or `textual`.
+- For workflow entries, bind the entry to the workflow trigger with `target.workflow.name` and `target.workflow.trigger`.
 - For composed screens, define reusable panel FSMs first, then mount them through view layout, includes, context, and sync rules.
 - Every rendered copy or asset ref must be backed by a declared copy or asset item.

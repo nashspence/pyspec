@@ -18,7 +18,7 @@ from .io import read_json, read_yaml, write_json, write_yaml
 from .layout import layout_html, layout_html_regions, layout_regions, layout_textual, layout_textual_containers
 from .paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR, SOURCE_SPEC_PATH
 from .project import projection_files
-from .targets import VIEW_RENDER_SURFACES, entry_target_pair, entry_view_surface
+from .targets import VIEW_RENDER_SURFACES, entry_target_pair, entry_view_surface, entry_workflow_trigger
 
 ROOT = Path(__file__).resolve().parent
 
@@ -1330,6 +1330,7 @@ def _validate_entries(contract: dict[str, Any]) -> None:
             elif kind == "workflow":
                 if value not in contract["workflows"]:
                     raise ContractError(f"CLI entry {eid} must target a known workflow")
+                _validate_workflow_entry_trigger(contract, eid, entry, value)
                 if entry.get("args"):
                     raise ContractError(f"CLI entry {eid} targeting a workflow must not declare args")
             else:
@@ -1337,11 +1338,13 @@ def _validate_entries(contract: dict[str, Any]) -> None:
         elif surface in {"worker", "schedule"}:
             if kind != "workflow" or value not in contract["workflows"]:
                 raise ContractError(f"{surface} entry {eid} must target a known workflow")
+            _validate_workflow_entry_trigger(contract, eid, entry, value)
             if surface == "schedule":
                 _require(entry, eid, "schedule")
         elif surface == "webhook":
             if kind != "workflow" or value not in contract["workflows"]:
                 raise ContractError(f"Webhook entry {eid} must target a known workflow")
+            _validate_workflow_entry_trigger(contract, eid, entry, value)
             _require(entry, eid, "path")
             _validate_path_params(entry, eid)
 
@@ -1381,6 +1384,15 @@ def _view_supports_render_surface(view: dict[str, Any], surface: str) -> bool:
     if surface in (view.get("layout") or {}):
         return True
     return any(surface in (state.get("presentation") or {}) for state in view.get("states", {}).values())
+
+
+def _validate_workflow_entry_trigger(contract: dict[str, Any], entry_id: str, entry: dict[str, Any], workflow_id: str) -> None:
+    trigger = entry_workflow_trigger(entry)
+    if trigger is None:
+        raise ContractError(f"Entry {entry_id} workflow target must declare trigger")
+    workflow_trigger = contract["workflows"][workflow_id]["trigger"]
+    if trigger != workflow_trigger:
+        raise ContractError(f"Entry {entry_id} workflow trigger must match workflow {workflow_id} trigger")
 
 
 def _validate_view_entry_inputs(

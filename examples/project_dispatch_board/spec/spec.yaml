@@ -502,7 +502,10 @@ entries:
     basis: Worker entry exposing the approval notice workflow.
     surface: worker
     target:
-      workflow: project.approval_notice
+      workflow:
+        name: project.approval_notice
+        trigger:
+          event: project.approved
 workflows:
   project.approval_notice:
     basis: Approval event sends a downstream notice.

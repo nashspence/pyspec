@@ -701,7 +701,7 @@
           "$ref": "#/$defs/entry_view_target"
         },
         "workflow": {
-          "$ref": "#/$defs/dotted_id"
+          "$ref": "#/$defs/entry_workflow_target"
         }
       },
       "type": "object"
@@ -722,6 +722,22 @@
       "required": [
         "name",
         "surface"
+      ],
+      "type": "object"
+    },
+    "entry_workflow_target": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "trigger": {
+          "$ref": "#/$defs/workflow_trigger_target"
+        }
+      },
+      "required": [
+        "name",
+        "trigger"
       ],
       "type": "object"
     },
@@ -2491,6 +2507,20 @@
       },
       "type": "object"
     },
+    "workflow_trigger_target": {
+      "additionalProperties": false,
+      "maxProperties": 1,
+      "minProperties": 1,
+      "properties": {
+        "capability": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "event": {
+          "$ref": "#/$defs/dotted_id"
+        }
+      },
+      "type": "object"
+    },
     "workflow": {
       "additionalProperties": false,
       "properties": {
@@ -2521,7 +2551,7 @@
           "type": "array"
         },
         "trigger": {
-          "$ref": "#/$defs/target"
+          "$ref": "#/$defs/workflow_trigger_target"
         }
       },
       "required": [

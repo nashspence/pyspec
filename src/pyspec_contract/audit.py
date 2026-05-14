@@ -19,7 +19,7 @@ from .layout import layout_html, layout_html_regions
 from .paths import GENERATED_SPEC_DIR, generated_relative as g
 from .project import css_value, default_html_slots, format_attrs, humanize, panels_projection, panel_styles_projection, safe_id
 from .runtime import fixture_namespace, resolve
-from .targets import entry_target_pair, entry_view_surface
+from .targets import entry_target_pair, entry_view_surface, entry_workflow_trigger
 
 ROOT = Path(__file__).resolve().parent
 
@@ -678,6 +678,7 @@ def composition_dot(view_id: str, view: dict[str, Any], contract: dict[str, Any]
 def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str, Any]) -> str:
     target_kind, target_value = entry_target_pair(entry["target"])
     target_surface = entry_view_surface(entry) if target_kind == "view" else None
+    target_trigger = entry_workflow_trigger(entry) if target_kind == "workflow" else None
     start_id = "entry_start"
     entry_node = _dot_node_id("entrypoint", entry_id)
     input_node = _dot_node_id("entrypoint_input", entry_id)
@@ -709,7 +710,7 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
                 _dot_card("entry input", "external data", input_sections, header_bg="#f8fafc", border="#64748b"),
             )
         )
-    lines.append(_dot_html_node(target_node, _entry_target_card(target_kind, target_value, contract, surface=target_surface)))
+    lines.append(_dot_html_node(target_node, _entry_target_card(target_kind, target_value, contract, surface=target_surface, trigger=target_trigger)))
     lines.extend(_dot_html_node(node_id, label) for node_id, label in target_tail)
     lines.append(f"  {_dot_quote(start_id)} -> {_dot_quote(entry_node)};")
     if input_sections:
@@ -806,10 +807,25 @@ def _entry_input_sections(entry: dict[str, Any], contract: dict[str, Any]) -> li
         body_fields = {name: type_name for name, type_name in capability["input"].items() if name not in params}
         if body_fields and entry["method"].lower() not in {"get", "delete"}:
             sections.append(("body", _typed_fields(body_fields)))
+    if target_kind == "workflow":
+        trigger = entry_workflow_trigger(entry)
+        if trigger:
+            trigger_kind, trigger_value = _target_pair(trigger)
+            if trigger_kind == "event":
+                payload = contract.get("events", {}).get(trigger_value, {}).get("payload")
+                if payload:
+                    sections.append(("payload", [_DotTypedField("payload", payload)]))
     return sections
 
 
-def _entry_target_card(target_kind: str, target_value: str, contract: dict[str, Any], *, surface: str | None = None) -> str:
+def _entry_target_card(
+    target_kind: str,
+    target_value: str,
+    contract: dict[str, Any],
+    *,
+    surface: str | None = None,
+    trigger: dict[str, str] | None = None,
+) -> str:
     if target_kind == "view":
         view = contract["views"][target_value]
         return _dot_card(
@@ -832,9 +848,12 @@ def _entry_target_card(target_kind: str, target_value: str, contract: dict[str, 
         )
     if target_kind == "workflow":
         workflow = contract["workflows"][target_value]
+        target_subtitle = "target workflow"
+        if trigger:
+            target_subtitle = f"target workflow ({_target_label(*_target_pair(trigger))})"
         return _dot_card(
             target_value,
-            "target workflow",
+            target_subtitle,
             [
                 ("trigger", [_target_label(*_target_pair(workflow["trigger"]))]),
                 ("steps", [f"{step['id']} -> {step['capability']}" for step in workflow["steps"]]),

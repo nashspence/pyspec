@@ -56,6 +56,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     composition = composition_dot("project.board", contract["views"]["project.board"], contract)
     entrypoint = entrypoint_flow_dot("web.project.board", contract["entries"]["web.project.board"], contract)
     cli_entrypoint = entrypoint_flow_dot("cli.project.board", contract["entries"]["cli.project.board"], contract)
+    worker_entrypoint = entrypoint_flow_dot("worker.project.approval_notice", contract["entries"]["worker.project.approval_notice"], contract)
     workflow = workflow_flow_dot("project.approval_notice", contract["workflows"]["project.approval_notice"], contract)
     assert fsm.startswith("digraph ")
     assert composition.startswith("digraph ")
@@ -158,6 +159,8 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert '<FONT POINT-SIZE="10">workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in entrypoint
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">target view (html)</FONT>' in entrypoint
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">target view (textual)</FONT>' in cli_entrypoint
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">target workflow (event project.approved)</FONT>' in worker_entrypoint
+    assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in worker_entrypoint
     entrypoint_input = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
     assert entrypoint_input in entrypoint
     assert entrypoint.index(entrypoint_input) < entrypoint.index("<B>query:</B>&#160;&#160;query.project.board.list")

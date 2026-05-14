@@ -94,6 +94,10 @@ surface_entries:
     requires: [path]
     layer: web
 
+entry_target_contracts:
+  view: 'View entry targets use target.view.name plus target.view.surface to distinguish the abstract view from its html/textual realization.'
+  workflow: 'Workflow entry targets use target.workflow.name plus target.workflow.trigger so the entrypoint declares the trigger data it consumes.'
+
 presentation_contracts:
   html:
     layer: web

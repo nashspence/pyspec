@@ -725,6 +725,20 @@ def test_cli_view_entry_can_launch_html_view_surface() -> None:
     compile_source(author)
 
 
+def test_workflow_entry_target_must_declare_trigger() -> None:
+    author = _author()
+    author["entries"]["worker.project.approval_notice"]["target"] = {"workflow": "project.approval_notice"}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_source(author)
+
+
+def test_workflow_entry_trigger_must_match_workflow_trigger() -> None:
+    author = _author()
+    author["entries"]["worker.project.approval_notice"]["target"]["workflow"]["trigger"] = {"event": "project.created"}
+    with pytest.raises(ContractError, match=r"Entry worker\.project\.approval_notice workflow trigger must match workflow project\.approval_notice trigger"):
+        compile_source(author)
+
+
 def test_get_api_entry_must_provide_all_capability_input_as_params() -> None:
     author = _author()
     entry = author["entries"]["api.project.list"]
