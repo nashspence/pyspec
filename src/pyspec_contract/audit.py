@@ -536,7 +536,7 @@ def panel_fsm_dot(panel_id: str, panel: dict[str, Any], contract: dict[str, Any]
                 _dot_node_id("state", state_name),
                 _dot_card(
                     state_name,
-                    None,
+                    "initial state" if state_name == panel["initial"] else "state",
                     [
                         ("copy", state.get("copy", [])),
                         (f"{panel['resource']} fields", state.get("fields", [])),
@@ -558,7 +558,7 @@ def panel_fsm_dot(panel_id: str, panel: dict[str, Any], contract: dict[str, Any]
                 transition_id,
                 _dot_card(
                     transition["on"],
-                    None,
+                    "transition event",
                     _format_transition_sections(panel, transition, contract),
                     basis=transition.get("basis", ""),
                     header_bg="#eff6ff",
@@ -597,7 +597,7 @@ def composition_dot(view_id: str, view: dict[str, Any], contract: dict[str, Any]
     if instance_node_ids and not has_sync:
         lines.extend(_dot_invisible_order(instance_node_ids, indent="  "))
     if not has_sync:
-        lines.append(_dot_html_node("message_route_none", _dot_card("No message routes", None, [], header_bg="#f8fafc")))
+        lines.append(_dot_html_node("message_route_none", _dot_card("No message routes", "message routing", [], header_bg="#f8fafc")))
     for rule in view.get("sync", []):
         emit_id = _dot_node_id("message_emit", f"{rule['id']}_{rule['when']['instance']}_{rule['when']['message']}")
         sync_id = _dot_node_id("message_route", rule["id"])
@@ -659,13 +659,13 @@ def composition_dot(view_id: str, view: dict[str, Any], contract: dict[str, Any]
 def _dot_instance_card(include: dict[str, Any]) -> str:
     return _dot_card(
         include["region"],
-        None,
+        "region",
         [
             ("instance", [include["panel"]]),
             ("initial", [include["initial"]]),
         ],
-        header_bg="#fff7ed",
-        border="#c2410c",
+        header_bg="#ecfdf5",
+        border="#047857",
     )
 
 
@@ -689,7 +689,7 @@ def _dot_sync_effect_card(
     assignment = effect["set"]
     return _dot_card(
         f"set {assignment['context']}",
-        "view context",
+        "view context update",
         [
             ("flow", [_format_flow_assignment(assignment["context"], _assignment_value(assignment))]),
         ],
@@ -832,17 +832,35 @@ def _dot_card(
 ) -> str:
     rows = [
         f'<TR><TD BGCOLOR="{border}" HEIGHT="3" FIXEDSIZE="false"></TD></TR>',
-        f'<TR><TD BGCOLOR="{header_bg}" ALIGN="LEFT"><FONT POINT-SIZE="14"><B>{_dot_html_text(title)}</B></FONT></TD></TR>',
+        _dot_header_row(title, subtitle, header_bg=header_bg),
     ]
-    if subtitle:
-        rows.extend(_dot_text_rows(_wrap_dot_text(subtitle), point_size=10))
     if basis:
         rows.extend(_dot_text_rows(_wrap_dot_text(basis, width=50), point_size=10, italic=True, color="#3f3f46"))
     rows.extend(_dot_section_rows(sections))
     return (
-        f'<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5" COLOR="{border}" BGCOLOR="#ffffff">'
+        f'<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" COLOR="{border}" BGCOLOR="#ffffff">'
         + "".join(rows)
         + "</TABLE>"
+    )
+
+
+def _dot_header_row(title: str, subtitle: str | None, *, header_bg: str) -> str:
+    header_rows = [
+        f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="13"><B>{_dot_html_text(title)}</B></FONT></TD></TR>',
+    ]
+    if subtitle:
+        header_rows.extend(
+            f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="8" COLOR="#64748b">{_dot_html_text(line)}</FONT></TD></TR>'
+            for line in _wrap_dot_text(subtitle)
+        )
+    header = (
+        '<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">'
+        + "".join(header_rows)
+        + "</TABLE>"
+    )
+    return (
+        f'<TR><TD BGCOLOR="{header_bg}" ALIGN="LEFT">'
+        f"{header}</TD></TR>"
     )
 
 

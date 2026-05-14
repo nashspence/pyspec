@@ -44,6 +44,9 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "flowchart" not in composition
     assert "data.ready" in fsm
     assert "on data.ready" not in fsm
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">initial state</FONT>' in fsm
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">state</FONT>' in fsm
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">transition event</FONT>' in fsm
     assert "copy.project.list.ready.heading" in fsm
     assert "asset.project.list.empty.illustration" in fsm
     assert "<B>emit:</B>&#160;&#160;project.selected" in fsm
@@ -69,6 +72,8 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "emitted message" in composition
     assert "sent message" in composition
     assert "message route" in composition
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">region</FONT>' in composition
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">emitted message</FONT>' in composition
     assert "<B>source:</B>&#160;&#160;project.select" in composition
     assert "ready to ready" not in composition
     assert "<B>transition:</B>" not in composition
@@ -187,6 +192,7 @@ def test_composition_dot_routes_messages_generically() -> None:
     assert "emitted message" in composition
     assert "sent message" in composition
     assert "message route" in composition
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">region</FONT>' in composition
     assert "<B>source:</B>&#160;&#160;alpha.submit" in composition
     assert "idle to ready" not in composition
     assert "<B>transition:</B>" not in composition
@@ -205,7 +211,8 @@ def test_composition_dot_routes_messages_generically() -> None:
     assert "<B>do:</B>" not in composition
     assert '"message_effect_route_alpha_beta_0" -> "panel_instance_receiver"' in composition
     assert "message_effect_route_alpha_beta_1" not in composition
-    assert '#fff7ed' in composition
+    assert '#ecfdf5' in composition
+    assert '#047857' in composition
     assert '#fdf2f8' in composition
     assert "No mounted panels" not in composition
     assert "<B>region:</B>" not in composition
