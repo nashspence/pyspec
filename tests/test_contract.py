@@ -653,6 +653,36 @@ def test_authoring_layers_reject_wrong_entry_surface() -> None:
         compile_author(author, layers=parse_layers("core,http"))
 
 
+def test_textual_view_entry_must_provide_required_view_context_args() -> None:
+    author = _author()
+    del author["entries"]["textual.project.board"]["args"]
+    with pytest.raises(ContractError, match=r"Entry textual\.project\.board args must include required view context inputs: \['workspace_id'\]"):
+        compile_source(author)
+
+
+def test_entry_rejects_surface_irrelevant_fields() -> None:
+    author = _author()
+    author["entries"]["web.project.board"]["args"] = {"workspace_id": "ID"}
+    with pytest.raises(ContractError, match=r"Entry web\.project\.board surface web has unsupported fields: \['args'\]"):
+        compile_source(author)
+
+
+def test_cli_entry_args_must_exactly_match_capability_input() -> None:
+    author = _author()
+    del author["entries"]["cli.project.approve"]["args"]
+    with pytest.raises(ContractError, match=r"Entry cli\.project\.approve args must exactly match target input: missing: project_id"):
+        compile_source(author)
+
+
+def test_get_api_entry_must_provide_all_capability_input_as_params() -> None:
+    author = _author()
+    entry = author["entries"]["api.project.list"]
+    entry["path"] = "/projects"
+    entry.pop("params")
+    with pytest.raises(ContractError, match=r"API entry api\.project\.list GET must declare all capability inputs as params: \['workspace_id'\]"):
+        compile_source(author)
+
+
 def test_authoring_layers_reject_html_layout_without_web_layer() -> None:
     from pyspec_contract.layers import parse_layers
 

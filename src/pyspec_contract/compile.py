@@ -1283,29 +1283,40 @@ def _validate_composition_selector(view_id: str, selector: str, regions: set[str
 def _validate_entries(contract: dict[str, Any]) -> None:
     for eid, entry in contract["entries"].items():
         surface = entry["surface"]
+        _validate_entry_surface_fields(eid, entry)
         kind, value = _one(entry["target"], f"entry {eid} target")
         if surface == "web":
             if kind != "view" or value not in contract["views"]:
                 raise ContractError(f"Web entry {eid} must target a known view")
             _require(entry, eid, "path")
             _validate_path_params(entry, eid)
+            _validate_view_entry_inputs(contract, eid, entry, value, input_field="params")
         elif surface == "textual":
             if kind != "view" or value not in contract["views"]:
                 raise ContractError(f"TUI entry {eid} must target a known view")
             _require(entry, eid, "command")
+            _validate_view_entry_inputs(contract, eid, entry, value, input_field="args")
         elif surface == "api":
             if kind != "capability" or value not in contract["capabilities"]:
                 raise ContractError(f"API entry {eid} must target a known capability")
             _require(entry, eid, "method")
             _require(entry, eid, "path")
             _validate_path_params(entry, eid)
-            cap_input = set(contract["capabilities"][value]["input"])
-            if not set(entry.get("params", {})).issubset(cap_input):
+            capability = contract["capabilities"][value]
+            cap_input = set(capability["input"])
+            params = entry.get("params", {})
+            if not set(params).issubset(cap_input):
                 raise ContractError(f"API entry {eid} params must be capability input fields")
+            _validate_entry_input_types(eid, "params", params, capability["input"])
+            body_fields = cap_input - set(params)
+            if entry["method"].lower() in {"get", "delete"} and body_fields:
+                raise ContractError(f"API entry {eid} {entry['method']} must declare all capability inputs as params: {sorted(body_fields)}")
         elif surface == "cli":
             if kind != "capability" or value not in contract["capabilities"]:
                 raise ContractError(f"CLI entry {eid} must target a known capability")
             _require(entry, eid, "command")
+            capability = contract["capabilities"][value]
+            _validate_exact_entry_inputs(eid, "args", entry.get("args", {}), capability["input"])
         elif surface in {"worker", "schedule"}:
             if kind != "workflow" or value not in contract["workflows"]:
                 raise ContractError(f"{surface} entry {eid} must target a known workflow")
@@ -1315,6 +1326,126 @@ def _validate_entries(contract: dict[str, Any]) -> None:
             if kind not in {"event", "workflow"}:
                 raise ContractError(f"Webhook entry {eid} must target an event or workflow")
             _require(entry, eid, "path")
+            _validate_path_params(entry, eid)
+
+
+def _validate_entry_surface_fields(entry_id: str, entry: dict[str, Any]) -> None:
+    allowed = {
+        "web": {"surface", "target", "basis", "path", "params", "route"},
+        "textual": {"surface", "target", "basis", "command", "args", "screen"},
+        "api": {"surface", "target", "basis", "method", "path", "params", "endpoint"},
+        "cli": {"surface", "target", "basis", "command", "args", "command_ref"},
+        "worker": {"surface", "target", "basis", "workflow_ref"},
+        "schedule": {"surface", "target", "basis", "schedule", "workflow_ref"},
+        "webhook": {"surface", "target", "basis", "path", "params"},
+    }[entry["surface"]]
+    extra = sorted(set(entry) - allowed)
+    if extra:
+        raise ContractError(f"Entry {entry_id} surface {entry['surface']} has unsupported fields: {extra}")
+
+
+def _validate_view_entry_inputs(
+    contract: dict[str, Any],
+    entry_id: str,
+    entry: dict[str, Any],
+    view_id: str,
+    *,
+    input_field: str,
+) -> None:
+    view = contract["views"][view_id]
+    declared = entry.get(input_field, {})
+    view_context = view.get("context", {})
+    extra = sorted(set(declared) - set(view_context))
+    if extra:
+        raise ContractError(f"Entry {entry_id} {input_field} must be declared view context fields: {extra}")
+    _validate_entry_input_types(entry_id, input_field, declared, view_context)
+    required = _required_entry_view_context(contract, view_id)
+    missing = sorted(set(required) - set(declared))
+    if missing:
+        raise ContractError(f"Entry {entry_id} {input_field} must include required view context inputs: {missing}")
+
+
+def _required_entry_view_context(contract: dict[str, Any], view_id: str) -> dict[str, str]:
+    view = contract["views"][view_id]
+    required: dict[str, str] = {}
+    _add_data_context_requirements(contract, f"View {view_id}", view.get("data", []), view.get("context", {}), required)
+    for state_name, state in view.get("states", {}).items():
+        _add_data_context_requirements(contract, f"View {view_id}.{state_name}", state.get("data", []), view.get("context", {}), required)
+    for include in view.get("includes", []):
+        panel = contract["panels"][include["panel"]]
+        initial_state = panel["states"][include["initial"]]
+        _add_include_context_requirements(contract, view_id, include, panel, panel.get("data", []), required)
+        _add_include_context_requirements(contract, view_id, include, panel, initial_state.get("data", []), required)
+    return required
+
+
+def _add_data_context_requirements(
+    contract: dict[str, Any],
+    label: str,
+    data: list[dict[str, Any]],
+    context: dict[str, str],
+    required: dict[str, str],
+) -> None:
+    for datum in data:
+        capability = contract["capabilities"][datum["capability"]]
+        for key, expected_type in capability["input"].items():
+            actual_type = context.get(key)
+            if actual_type != expected_type:
+                raise ContractError(f"{label} context {key} type must be {expected_type}, got {actual_type}")
+            _add_required_entry_context(required, key, expected_type, label)
+
+
+def _add_include_context_requirements(
+    contract: dict[str, Any],
+    view_id: str,
+    include: dict[str, Any],
+    panel: dict[str, Any],
+    data: list[dict[str, Any]],
+    required: dict[str, str],
+) -> None:
+    include_context = include.get("context", {})
+    panel_context = panel.get("context", {})
+    view_context = contract["views"][view_id].get("context", {})
+    for datum in data:
+        capability = contract["capabilities"][datum["capability"]]
+        for panel_key, expected_type in capability["input"].items():
+            if panel_context.get(panel_key) != expected_type:
+                raise ContractError(f"Composed view {view_id}.{include['id']} panel context {panel_key} type must be {expected_type}")
+            value = include_context.get(panel_key)
+            if not (isinstance(value, str) and value.startswith("$view.")):
+                continue
+            view_key = value[len("$view."):]
+            actual_type = view_context.get(view_key)
+            if actual_type != expected_type:
+                raise ContractError(f"Composed view {view_id}.{include['id']} view context {view_key} type must be {expected_type}, got {actual_type}")
+            _add_required_entry_context(required, view_key, expected_type, f"Composed view {view_id}.{include['id']}")
+
+
+def _add_required_entry_context(required: dict[str, str], key: str, type_name: str, label: str) -> None:
+    existing = required.get(key)
+    if existing and existing != type_name:
+        raise ContractError(f"{label} requires conflicting entry input type for {key}: {existing} vs {type_name}")
+    required[key] = type_name
+
+
+def _validate_exact_entry_inputs(entry_id: str, field: str, actual: dict[str, str], expected: dict[str, str]) -> None:
+    if actual != expected:
+        missing = sorted(set(expected) - set(actual))
+        extra = sorted(set(actual) - set(expected))
+        parts = []
+        if missing:
+            parts.append("missing: " + ", ".join(missing))
+        if extra:
+            parts.append("extra: " + ", ".join(extra))
+        raise ContractError(f"Entry {entry_id} {field} must exactly match target input" + (": " + "; ".join(parts) if parts else ""))
+    _validate_entry_input_types(entry_id, field, actual, expected)
+
+
+def _validate_entry_input_types(entry_id: str, field: str, actual: dict[str, str], expected: dict[str, str]) -> None:
+    for name, type_name in actual.items():
+        expected_type = expected.get(name)
+        if expected_type != type_name:
+            raise ContractError(f"Entry {entry_id} {field}.{name} type mismatch: expected {expected_type}, got {type_name}")
 
 
 def _validate_workflows(contract: dict[str, Any]) -> None:

@@ -49,24 +49,27 @@
 <!-- entrypoint_target_project_board -->
 <g id="node4" class="node">
 <title>entrypoint_target_project_board</title>
-<polygon fill="#ffffff" stroke="transparent" points="562,-68.5 562,-207.5 775,-207.5 775,-68.5 562,-68.5"/>
-<polygon fill="#047857" stroke="transparent" points="563.5,-198 563.5,-206 774.5,-206 774.5,-198 563.5,-198"/>
-<polygon fill="#ecfdf5" stroke="transparent" points="563.5,-167 563.5,-198 774.5,-198 774.5,-167 563.5,-167"/>
-<text text-anchor="start" x="567.5" y="-184.6" font-family="Arial" font-weight="bold" font-size="13.00">project.board</text>
-<text text-anchor="start" x="567.5" y="-173.6" font-family="Arial" font-size="8.00" fill="#64748b">target view</text>
-<text text-anchor="start" x="567.5" y="-156" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">The dispatch board composes list, detail, and</text>
-<text text-anchor="start" x="567.5" y="-145" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">activity panels through shared selected&#45;project</text>
-<text text-anchor="start" x="567.5" y="-134" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">context.</text>
-<text text-anchor="start" x="568.5" y="-114" font-family="Arial" font-weight="bold" font-size="10.00">resource:</text>
-<text text-anchor="start" x="612.5" y="-114" font-family="Arial" font-size="10.00">  Project</text>
-<text text-anchor="start" x="568.5" y="-102" font-family="Arial" font-weight="bold" font-size="10.00">query:</text>
-<text text-anchor="start" x="598.5" y="-102" font-family="Arial" font-size="10.00">  query.project.board.list</text>
-<text text-anchor="start" x="568.5" y="-90" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
-<text text-anchor="start" x="592.5" y="-90" font-family="Arial" font-size="10.00">  project.list</text>
-<text text-anchor="start" x="644.5" y="-90" font-family="Arial" font-size="8.00" fill="#94a3b8">  list[Project]</text>
-<text text-anchor="start" x="568.5" y="-78" font-family="Arial" font-weight="bold" font-size="10.00">sync:</text>
-<text text-anchor="start" x="593.5" y="-78" font-family="Arial" font-size="10.00">  select_project_updates_panels</text>
-<polygon fill="none" stroke="#047857" points="562,-68.5 562,-207.5 775,-207.5 775,-68.5 562,-68.5"/>
+<polygon fill="#ffffff" stroke="transparent" points="562,-62.5 562,-213.5 775,-213.5 775,-62.5 562,-62.5"/>
+<polygon fill="#047857" stroke="transparent" points="563.5,-204 563.5,-212 774.5,-212 774.5,-204 563.5,-204"/>
+<polygon fill="#ecfdf5" stroke="transparent" points="563.5,-173 563.5,-204 774.5,-204 774.5,-173 563.5,-173"/>
+<text text-anchor="start" x="567.5" y="-190.6" font-family="Arial" font-weight="bold" font-size="13.00">project.board</text>
+<text text-anchor="start" x="567.5" y="-179.6" font-family="Arial" font-size="8.00" fill="#64748b">target view</text>
+<text text-anchor="start" x="567.5" y="-162" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">The dispatch board composes list, detail, and</text>
+<text text-anchor="start" x="567.5" y="-151" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">activity panels through shared selected&#45;project</text>
+<text text-anchor="start" x="567.5" y="-140" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">context.</text>
+<text text-anchor="start" x="568.5" y="-120" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
+<text text-anchor="start" x="596.5" y="-120" font-family="Arial" font-size="10.00">  workspace_id</text>
+<text text-anchor="start" x="663.5" y="-120" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<text text-anchor="start" x="568.5" y="-108" font-family="Arial" font-weight="bold" font-size="10.00">query:</text>
+<text text-anchor="start" x="598.5" y="-108" font-family="Arial" font-size="10.00">  query.project.board.list</text>
+<text text-anchor="start" x="568.5" y="-96" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
+<text text-anchor="start" x="592.5" y="-96" font-family="Arial" font-size="10.00">  project.list</text>
+<text text-anchor="start" x="644.5" y="-96" font-family="Arial" font-size="8.00" fill="#94a3b8">  list[Project]</text>
+<text text-anchor="start" x="568.5" y="-84" font-family="Arial" font-weight="bold" font-size="10.00">resource:</text>
+<text text-anchor="start" x="612.5" y="-84" font-family="Arial" font-size="10.00">  Project</text>
+<text text-anchor="start" x="568.5" y="-72" font-family="Arial" font-weight="bold" font-size="10.00">sync:</text>
+<text text-anchor="start" x="593.5" y="-72" font-family="Arial" font-size="10.00">  select_project_updates_panels</text>
+<polygon fill="none" stroke="#047857" points="562,-62.5 562,-213.5 775,-213.5 775,-62.5 562,-62.5"/>
 </g>
 <!-- entrypoint_input_web_project_board&#45;&gt;entrypoint_target_project_board -->
 <g id="edge3" class="edge">

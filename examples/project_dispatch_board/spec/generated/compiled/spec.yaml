@@ -250,6 +250,8 @@ entries:
     target:
       capability: project.approve
   textual.project.board:
+    args:
+      workspace_id: ID
     basis: Textual entry for the dispatch board.
     command: project board
     screen: screen.project.board

@@ -155,6 +155,10 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>params</B>" in entrypoint
     assert '<FONT POINT-SIZE="10">workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in entrypoint
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">target view</FONT>' in entrypoint
+    entrypoint_input = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
+    assert entrypoint_input in entrypoint
+    assert entrypoint.index(entrypoint_input) < entrypoint.index("<B>query:</B>&#160;&#160;query.project.board.list")
+    assert entrypoint.index("<B>query:</B>&#160;&#160;query.project.board.list") < entrypoint.index("<B>load:</B>&#160;&#160;project.list")
     assert "<B>sync:</B>&#160;&#160;select_project_updates_panels" in entrypoint
     assert "<B>instance:</B>&#160;&#160;panel.project.list" in entrypoint
     assert "view.selected_project_id" not in entrypoint

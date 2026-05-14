@@ -862,13 +862,18 @@ def _entry_target_tail_nodes(target_kind: str, target_value: str, contract: dict
 
 
 def _view_summary_sections(view: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, list[object]]]:
-    sections: list[tuple[str, list[object]]] = [("resource", [view["resource"]])]
-    queries = [binding["query"] for binding in _unique_data_bindings(view.get("data", []))]
-    loads = _format_capability_outputs([binding["capability"] for binding in _unique_data_bindings(view.get("data", []))], contract)
+    sections: list[tuple[str, list[object]]] = []
+    bindings = _unique_data_bindings(view.get("data", []))
+    inputs = _format_data_inputs(view, bindings, contract)
+    queries = [binding["query"] for binding in bindings]
+    loads = _format_capability_outputs([binding["capability"] for binding in bindings], contract)
+    if inputs:
+        sections.append(("input", inputs))
     if queries:
         sections.append(("query", queries))
     if loads:
         sections.append(("load", loads))
+    sections.append(("resource", [view["resource"]]))
     if view.get("sync"):
         sections.append(("sync", [rule["id"] for rule in view["sync"]]))
     return sections
@@ -1463,7 +1468,7 @@ def _format_capability_outputs(capability_ids: Iterable[str], contract: dict[str
 def _format_data_inputs(
     panel: dict[str, Any], bindings: Iterable[dict[str, Any]], contract: dict[str, Any]
 ) -> list[_DotTypedField]:
-    context = panel["context"]
+    context = panel.get("context", {})
     capabilities = contract["capabilities"]
     inputs: list[_DotTypedField] = []
     seen: set[str] = set()
