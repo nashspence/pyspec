@@ -28,6 +28,7 @@
 <text text-anchor="start" x="235.5" y="-72" font-family="Arial" font-size="10.00">  project.select</text>
 <text text-anchor="start" x="200.5" y="-60" font-family="Arial" font-weight="bold" font-size="10.00">data:</text>
 <text text-anchor="start" x="223.5" y="-60" font-family="Arial" font-size="10.00">  project_id</text>
+<text text-anchor="start" x="272.5" y="-60" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
 <polygon fill="none" stroke="#4f46e5" points="194,-50 194,-124 307,-124 307,-50 194,-50"/>
 </g>
 <!-- panel_instance_list&#45;&gt;message_emit_select_project_updates_panels_list_project_selected -->
@@ -73,7 +74,9 @@
 <text text-anchor="start" x="373.5" y="-95.6" font-family="Arial" font-weight="bold" font-size="13.00">select_project_updates_panels</text>
 <text text-anchor="start" x="373.5" y="-84.6" font-family="Arial" font-size="8.00" fill="#64748b">message route</text>
 <text text-anchor="start" x="374.5" y="-66" font-family="Arial" font-weight="bold" font-size="10.00">set:</text>
-<text text-anchor="start" x="391.5" y="-66" font-family="Arial" font-size="10.00">  selected_project_id &lt;&#45; project_id</text>
+<text text-anchor="start" x="391.5" y="-66" font-family="Arial" font-size="10.00">  selected_project_id</text>
+<text text-anchor="start" x="482.5" y="-66" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<text text-anchor="start" x="495.5" y="-66" font-family="Arial" font-size="10.00"> &lt;&#45; project_id</text>
 <polygon fill="none" stroke="#a16207" points="368,-56 368,-118 579,-118 579,-56 368,-56"/>
 </g>
 <!-- message_emit_select_project_updates_panels_list_project_selected&#45;&gt;message_route_select_project_updates_panels -->
@@ -94,6 +97,7 @@
 <text text-anchor="start" x="682.5" y="-123" font-family="Arial" font-size="10.00">  to loading</text>
 <text text-anchor="start" x="646.5" y="-111" font-family="Arial" font-weight="bold" font-size="10.00">data:</text>
 <text text-anchor="start" x="669.5" y="-111" font-family="Arial" font-size="10.00">  project_id</text>
+<text text-anchor="start" x="718.5" y="-111" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
 <polygon fill="none" stroke="#be185d" points="640,-101 640,-175 821,-175 821,-101 640,-101"/>
 </g>
 <!-- message_route_select_project_updates_panels&#45;&gt;message_effect_select_project_updates_panels_1 -->
@@ -114,6 +118,7 @@
 <text text-anchor="start" x="682.5" y="-22" font-family="Arial" font-size="10.00">  to ready</text>
 <text text-anchor="start" x="646.5" y="-10" font-family="Arial" font-weight="bold" font-size="10.00">data:</text>
 <text text-anchor="start" x="669.5" y="-10" font-family="Arial" font-size="10.00">  project_id</text>
+<text text-anchor="start" x="718.5" y="-10" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
 <polygon fill="none" stroke="#be185d" points="640,0 640,-74 821,-74 821,0 640,0"/>
 </g>
 <!-- message_route_select_project_updates_panels&#45;&gt;message_effect_select_project_updates_panels_2 -->

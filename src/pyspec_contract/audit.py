@@ -541,7 +541,7 @@ def panel_fsm_dot(panel_id: str, panel: dict[str, Any], contract: dict[str, Any]
                         ("copy", state.get("copy", [])),
                         ("assets", state.get("assets", [])),
                         (_state_field_section_title(panel, state_name, state), _format_state_fields(panel, state, contract)),
-                        ("actions", state.get("actions", [])),
+                        ("actions", _format_capability_outputs(state.get("actions", []), contract)),
                     ],
                     header_bg="#ecfeff" if state_name == panel["initial"] else "#f8fafc",
                     border="#0891b2" if state_name == panel["initial"] else "#71717a",
@@ -572,7 +572,7 @@ def panel_fsm_dot(panel_id: str, panel: dict[str, Any], contract: dict[str, Any]
     return "\n".join(lines) + "\n"
 
 
-def composition_dot(view_id: str, view: dict[str, Any], contract: dict[str, Any] | None = None) -> str:
+def composition_dot(view_id: str, view: dict[str, Any], contract: dict[str, Any]) -> str:
     route_panel_order: list[str] = []
     for rule in view.get("sync", []):
         route_panel_order.append(rule["when"]["instance"])
@@ -624,7 +624,7 @@ def composition_dot(view_id: str, view: dict[str, Any], contract: dict[str, Any]
                 _dot_card(
                     rule["id"],
                     "message route",
-                    [("set", _route_set_lines(rule))],
+                    [("set", _route_set_lines(rule, view))],
                     header_bg="#fefce8",
                     border="#a16207",
                 ),
@@ -672,7 +672,7 @@ def _dot_instance_card(include: dict[str, Any]) -> str:
 def _dot_sync_effect_card(
     effect: dict[str, Any],
     include_by_id: dict[str, dict[str, Any]],
-    contract: dict[str, Any] | None,
+    contract: dict[str, Any],
 ) -> str:
     if "send" in effect:
         send = effect["send"]
@@ -681,7 +681,7 @@ def _dot_sync_effect_card(
             "sent message",
             [
                 ("causes", _receiving_transition_refs(send["panel"], send["message"], include_by_id, contract)),
-                ("data", _sent_message_data_lines(send)),
+                ("data", _sent_message_data_lines(send, include_by_id, contract)),
             ],
             header_bg="#fdf2f8",
             border="#be185d",
@@ -691,7 +691,7 @@ def _dot_sync_effect_card(
         f"set {assignment['context']}",
         "view context update",
         [
-            ("flow", [_format_flow_assignment(assignment["context"], _assignment_value(assignment))]),
+            ("set", [_format_flow_assignment(assignment["context"], _assignment_value(assignment), identity_scope=None)]),
         ],
         header_bg="#f0fdf4",
         border="#15803d",
@@ -702,50 +702,65 @@ def _emitted_message_data_lines(
     instance_id: str,
     emitted: str,
     include_by_id: dict[str, dict[str, Any]],
-    contract: dict[str, Any] | None,
-) -> list[str]:
-    lines: list[str] = []
+    contract: dict[str, Any],
+) -> list[_DotTypedField]:
+    payload = _message_payload_for_instance(instance_id, "emits", emitted, include_by_id, contract)
+    lines: list[_DotTypedField] = []
     seen: set[str] = set()
     for emit in _emitting_transition_emits(instance_id, emitted, include_by_id, contract):
-        for line in _format_data_flow(emit.get("data", {})):
-            if line not in seen:
+        for line in _format_typed_data_flow(emit.get("data", {}), payload):
+            signature = str(line)
+            if signature not in seen:
                 lines.append(line)
-                seen.add(line)
+                seen.add(signature)
     return lines
 
 
-def _route_set_lines(rule: dict[str, Any]) -> list[str]:
+def _route_set_lines(rule: dict[str, Any], view: dict[str, Any]) -> list[_DotTypedField]:
     lines = []
+    context = view["context"]
     for effect in rule.get("do", []):
         assignment = effect.get("set")
         if not assignment:
             continue
-        lines.append(_format_flow_assignment(assignment["context"], _assignment_value(assignment)))
+        target = assignment["context"]
+        lines.append(_format_typed_flow_assignment(target, context[target], _assignment_value(assignment), identity_scope=None))
     return lines
 
 
-def _sent_message_data_lines(send: dict[str, Any]) -> list[str]:
-    return _format_data_flow(send.get("data", {}))
+def _sent_message_data_lines(
+    send: dict[str, Any],
+    include_by_id: dict[str, dict[str, Any]],
+    contract: dict[str, Any],
+) -> list[_DotTypedField]:
+    payload = _message_payload_for_instance(send["panel"], "accepts", send["message"], include_by_id, contract)
+    return _format_typed_data_flow(send.get("data", {}), payload)
 
 
 def _assignment_value(assignment: dict[str, Any]) -> Any:
     return assignment.get("from", assignment.get("value", ""))
 
 
+def _message_payload_for_instance(
+    instance_id: str,
+    direction: str,
+    message: str,
+    include_by_id: dict[str, dict[str, Any]],
+    contract: dict[str, Any],
+) -> dict[str, str]:
+    include = include_by_id[instance_id]
+    panel = contract["panels"][include["panel"]]
+    return panel["messages"][direction][message]["payload"]
+
+
 def _emitting_transition_emits(
     instance_id: str,
     emitted: str,
     include_by_id: dict[str, dict[str, Any]],
-    contract: dict[str, Any] | None,
+    contract: dict[str, Any],
 ) -> list[dict[str, Any]]:
-    if not contract:
-        return []
-    include = include_by_id.get(instance_id)
-    if not include:
-        return []
-    panel = contract.get("panels", {}).get(include["panel"])
-    if not panel:
-        return []
+    include = include_by_id[instance_id]
+    panel = contract["panels"][include["panel"]]
     emits = []
     for transition in panel.get("transitions", []):
         for effect in transition.get("effects", []):
@@ -816,12 +831,14 @@ class _DotHtml(str):
 
 
 class _DotTypedField:
-    def __init__(self, field: str, type_name: str) -> None:
+    def __init__(self, field: str, type_name: str, source: str | None = None) -> None:
         self.field = field
         self.type_name = type_name
+        self.source = source
 
     def __str__(self) -> str:
-        return f"{self.field} {self.type_name}"
+        suffix = f" <- {self.source}" if self.source is not None else ""
+        return f"{self.field} {self.type_name}{suffix}"
 
 
 def _dot_html_node(node_id: str, label: str, attrs: dict[str, object] | None = None, indent: str = "  ") -> str:
@@ -934,7 +951,7 @@ def _dot_section_inner_rows(title: str, values: Iterable[object]) -> tuple[bool,
 
 
 def _dot_typed_field_section_inner_rows(title: str, values: list[object]) -> tuple[bool, list[str]]:
-    if title == "input":
+    if title in {"input", "payload", "data", "set", "load"} or (title == "actions" and len(values) == 1):
         rows = []
         for index, value in enumerate(values):
             if isinstance(value, _DotTypedField):
@@ -946,22 +963,32 @@ def _dot_typed_field_section_inner_rows(title: str, values: list[object]) -> tup
 
 
 def _dot_typed_field_row(value: _DotTypedField) -> str:
+    source = _dot_typed_field_source(value)
     return (
         '<TR><TD ALIGN="LEFT" VALIGN="MIDDLE" HEIGHT="11">'
         f'<FONT POINT-SIZE="10">{_dot_html_text(value.field)}</FONT>'
         f'<FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;{_dot_html_text(value.type_name)}</FONT>'
+        f"{source}"
         "</TD></TR>"
     )
 
 
 def _dot_typed_field_key_value_row(title: str, value: _DotTypedField) -> str:
     key = f"<B>{_dot_html_text(title)}:</B>&#160;&#160;" if title else "&#160;&#160;"
+    source = _dot_typed_field_source(value)
     return (
         '<TR><TD ALIGN="LEFT" VALIGN="MIDDLE" HEIGHT="11">'
         f'<FONT POINT-SIZE="10">{key}{_dot_html_text(value.field)}</FONT>'
         f'<FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;{_dot_html_text(value.type_name)}</FONT>'
+        f"{source}"
         "</TD></TR>"
     )
+
+
+def _dot_typed_field_source(value: _DotTypedField) -> str:
+    if value.source is None:
+        return ""
+    return f'<FONT POINT-SIZE="10">&#160;&lt;&#45;&#160;{_dot_html_text(value.source)}</FONT>'
 
 
 def _dot_key_value_text(title: str, value: str) -> str:
@@ -1023,6 +1050,33 @@ def _format_data_flow(mapping: dict[str, Any], *, identity_scope: str | None = "
     return [_format_flow_assignment(key, value, identity_scope=identity_scope) for key, value in sorted(mapping.items())]
 
 
+def _format_typed_data_flow(
+    mapping: dict[str, Any],
+    field_types: dict[str, str],
+    *,
+    identity_scope: str | None = "message",
+) -> list[_DotTypedField]:
+    return [
+        _format_typed_flow_assignment(key, field_types[key], value, identity_scope=identity_scope)
+        for key, value in sorted(mapping.items())
+    ]
+
+
+def _format_typed_flow_assignment(
+    target: str,
+    type_name: str,
+    value: Any,
+    *,
+    identity_scope: str | None = "message",
+) -> _DotTypedField:
+    source = _format_flow_source(value)
+    if identity_scope and source == f"{identity_scope}.{target}":
+        return _DotTypedField(target, type_name)
+    if source.startswith("message."):
+        source = source[len("message.") :]
+    return _DotTypedField(target, type_name, source)
+
+
 def _format_flow_assignment(target: str, value: Any, *, identity_scope: str | None = "message") -> str:
     source = _format_flow_source(value)
     if identity_scope and source == f"{identity_scope}.{target}":
@@ -1044,7 +1098,7 @@ def _format_transition_sections(
     sections: list[tuple[str, list[object]]] = []
     if _is_data_event(transition["on"]):
         bindings = _transition_data_bindings(panel, transition)
-        data_sources = [binding["capability"] for binding in bindings]
+        data_sources = _format_capability_outputs([binding["capability"] for binding in bindings], contract)
         queries = [binding["query"] for binding in bindings]
         inputs = _format_data_inputs(panel, bindings, contract)
         if inputs:
@@ -1055,7 +1109,7 @@ def _format_transition_sections(
             sections.append(("load", data_sources))
     else:
         target_bindings = _transition_target_data_bindings(panel, transition)
-        data_sources = [binding["capability"] for binding in target_bindings]
+        data_sources = _format_capability_outputs([binding["capability"] for binding in target_bindings], contract)
         queries = [binding["query"] for binding in target_bindings]
         required_context = _format_data_inputs(panel, target_bindings, contract)
         if required_context:
@@ -1064,7 +1118,7 @@ def _format_transition_sections(
             sections.append(("query", queries))
         if data_sources:
             sections.append(("load", data_sources))
-    sections.extend(_format_transition_effect_sections(transition))
+    sections.extend(_format_transition_effect_sections(panel, transition))
     return sections
 
 
@@ -1099,6 +1153,11 @@ def _state_field_data_bindings(panel: dict[str, Any], state_name: str, state: di
 def _format_state_fields(panel: dict[str, Any], state: dict[str, Any], contract: dict[str, Any]) -> list[_DotTypedField]:
     resource_fields = contract["resources"][panel["resource"]]["fields"]
     return [_DotTypedField(field, resource_fields[field]) for field in state["fields"]]
+
+
+def _format_capability_outputs(capability_ids: Iterable[str], contract: dict[str, Any]) -> list[_DotTypedField]:
+    capabilities = contract["capabilities"]
+    return [_DotTypedField(capability_id, capabilities[capability_id]["output"]) for capability_id in capability_ids]
 
 
 def _format_data_inputs(
@@ -1139,18 +1198,23 @@ def _unique_data_bindings(bindings: Iterable[dict[str, Any]]) -> list[dict[str, 
     return unique
 
 
-def _format_transition_effect_sections(transition: dict[str, Any]) -> list[tuple[str, list[str]]]:
-    sections: list[tuple[str, list[str]]] = []
+def _format_transition_effect_sections(panel: dict[str, Any], transition: dict[str, Any]) -> list[tuple[str, list[object]]]:
+    sections: list[tuple[str, list[object]]] = []
     for effect in transition.get("effects", []):
         if "emit" in effect:
             emit = effect["emit"]
             sections.append(("emit", [emit["message"]]))
-            payload = _format_data_flow(emit.get("data", {}))
+            payload_types = panel["messages"]["emits"][emit["message"]]["payload"]
+            payload = _format_typed_data_flow(emit.get("data", {}), payload_types)
             if payload:
                 sections.append(("payload", payload))
         elif "set" in effect:
             assignment = effect["set"]
-            sections.append(("set", [_format_flow_assignment(assignment["context"], _assignment_value(assignment), identity_scope=None)]))
+            target = assignment["context"]
+            sections.append((
+                "set",
+                [_format_typed_flow_assignment(target, panel["context"][target], _assignment_value(assignment), identity_scope=None)],
+            ))
     return sections
 
 
