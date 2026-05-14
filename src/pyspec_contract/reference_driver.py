@@ -20,7 +20,7 @@ class ReferenceSpecDriver:
 
     def reset(self) -> None:
         self.fixtures: dict[str, Any] = {}
-        self.store: dict[str, list[dict[str, Any]]] = {rid: [] for rid in self.contract["resources"]}
+        self.store: dict[str, list[dict[str, Any]]] = {rid: [] for rid in self.contract["models"]}
         self.emitted: list[str] = []
         self.invoked: list[str] = []
         self.workflows_ran: list[str] = []
@@ -35,10 +35,10 @@ class ReferenceSpecDriver:
             kind, body = next(iter(fact.items()))
             if kind == "absent":
                 where = self._resolve_map(body["where"])
-                self.store[body["resource"]] = [r for r in self.store[body["resource"]] if not _matches(r, where)]
+                self.store[body["model"]] = [r for r in self.store[body["model"]] if not _matches(r, where)]
             elif kind == "present":
-                values = self._complete_record(body["resource"], self._resolve_map(body["values"]))
-                self.store[body["resource"]].append(values)
+                values = self._complete_record(body["model"], self._resolve_map(body["values"]))
+                self.store[body["model"]].append(values)
             else:  # pragma: no cover - schema prevents this.
                 raise AssertionError(f"Unsupported fact kind: {kind}")
 
@@ -99,10 +99,10 @@ class ReferenceSpecDriver:
             assert cap in self._rendered_values("actions")
         for cap in assertions.get("forbids", []):
             assert cap not in self._rendered_values("actions")
-        exists = (assertions.get("resource") or {}).get("exists")
+        exists = (assertions.get("model") or {}).get("exists")
         if exists:
             where = self._resolve_map(exists["where"])
-            assert any(_matches(record, where) for record in self.store[exists["resource"]]), f"Missing resource {exists}"
+            assert any(_matches(record, where) for record in self.store[exists["model"]]), f"Missing model {exists}"
         events = assertions.get("events") or {}
         for event_id in events.get("emitted", []):
             assert event_id in self.emitted
@@ -129,7 +129,7 @@ class ReferenceSpecDriver:
         fsm_id = entry_fsm_name(entry)
         fsm = self.contract["fsms"][fsm_id]
         context = self._entry_target_input(entry, params)
-        records = self._filter(fsm["resource"], context)
+        records = self._filter(fsm["model"], context)
         parent_state_name = "ready" if "ready" in fsm.get("states", {}) else next(iter(fsm.get("states", {"ready": {}})))
         state = fsm["states"].get(parent_state_name, {"surface": None, "copy": [], "assets": [], "actions": [], "data": []})
         if state.get("mounts"):
@@ -226,28 +226,36 @@ class ReferenceSpecDriver:
     def _invoke(self, cap_id: str, input_values: dict[str, Any]) -> Any:
         self.invoked.append(cap_id)
         cap = self.contract["capabilities"][cap_id]
-        resource_id = cap["resource"]
         if cap["archetype"] == "create":
-            record = self._complete_record(resource_id, input_values)
-            lifecycle = self.contract["resources"][resource_id].get("lifecycle")
+            model_id = _single_model(cap, "creates")
+            record = self._complete_record(model_id, input_values)
+            lifecycle = self.contract["models"][model_id].get("lifecycle")
             if lifecycle and lifecycle["field"] not in record:
                 record[lifecycle["field"]] = lifecycle["initial"]
-            self.store[resource_id].append(record)
+            self.store[model_id].append(record)
             for event_id in cap["emits"]:
                 self._record_event(event_id, {"id": record["id"], **record})
             self.last_result = record
             return record
+        if cap["archetype"] == "read":
+            model_id = _single_model(cap, "reads")
+            model_key = f"{model_id.lower()}_id"
+            self.last_result = self._find(model_id, {"id": input_values.get(model_key) or input_values.get("id")})
+            return self.last_result
         if cap["archetype"] == "list":
-            self.last_result = self._filter(resource_id, input_values)
+            model_id = _single_model(cap, "reads")
+            self.last_result = self._filter(model_id, input_values)
             return self.last_result
         if cap["archetype"] == "transition":
-            project_id = input_values.get("project_id") or input_values.get("id")
-            record = self._find(resource_id, {"id": project_id})
             transition = cap["transition"]
+            model_id = transition["model"]
+            model_key = f"{model_id.lower()}_id"
+            selected_id = input_values.get(model_key) or input_values.get("id")
+            record = self._find(model_id, {"id": selected_id})
             assert record[transition["field"]] == transition["from"]
             record[transition["field"]] = transition["to"]
             for event_id in cap["emits"]:
-                self._record_event(event_id, {"project_id": record["id"], "approved_by": self.fixtures.get("actor", {}).get("id")})
+                self._record_event(event_id, {model_key: record["id"], "approved_by": self.fixtures.get("actor", {}).get("id")})
             self.last_result = record
             return record
         # Command/query capabilities are recorded as effects in the spec world.
@@ -266,19 +274,19 @@ class ReferenceSpecDriver:
     def _record_event(self, event_id: str, payload: dict[str, Any]) -> None:
         self.emitted.append(event_id)
 
-    def _filter(self, resource_id: str, where: dict[str, Any]) -> list[dict[str, Any]]:
-        return [record for record in self.store[resource_id] if _matches(record, where)]
+    def _filter(self, model_id: str, where: dict[str, Any]) -> list[dict[str, Any]]:
+        return [record for record in self.store[model_id] if _matches(record, where)]
 
-    def _find(self, resource_id: str, where: dict[str, Any]) -> dict[str, Any]:
-        matches = self._filter(resource_id, where)
-        assert matches, f"No {resource_id} found for {where}"
+    def _find(self, model_id: str, where: dict[str, Any]) -> dict[str, Any]:
+        matches = self._filter(model_id, where)
+        assert matches, f"No {model_id} found for {where}"
         return matches[0]
 
-    def _complete_record(self, resource_id: str, values: dict[str, Any]) -> dict[str, Any]:
-        fields = self.contract["resources"][resource_id]["fields"]
+    def _complete_record(self, model_id: str, values: dict[str, Any]) -> dict[str, Any]:
+        fields = self.contract["models"][model_id]["fields"]
         record = dict(values)
         if "id" in fields and "id" not in record:
-            record["id"] = f"{resource_id.lower()}_{len(self.store[resource_id]) + 1}"
+            record["id"] = f"{model_id.lower()}_{len(self.store[model_id]) + 1}"
         if "created_at" in fields and "created_at" not in record:
             record["created_at"] = "2026-05-10T00:00:00Z"
         if "updated_at" in fields and "updated_at" not in record:
@@ -291,6 +299,12 @@ class ReferenceSpecDriver:
 
 def _matches(record: Mapping[str, Any], where: Mapping[str, Any]) -> bool:
     return all(record.get(key) == value for key, value in where.items())
+
+
+def _single_model(capability: Mapping[str, Any], field: str) -> str:
+    models = capability[field]
+    assert len(models) == 1, f"Expected exactly one {field} model"
+    return models[0]
 
 
 def _resolve_binding(source: str, namespace: Mapping[str, Any]) -> Any:

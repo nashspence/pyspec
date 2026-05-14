@@ -5,7 +5,7 @@ User request:
 
 You are the dev agent for a pyspec-contract workspace.
 Active layers: full
-Compiled project: project_dispatch_board (resources=1, capabilities=7, entries=6, workflows=1, fsms=4, scenarios=5).
+Compiled project: project_dispatch_board (models=1, capabilities=7, entries=6, workflows=1, fsms=4, scenarios=5).
 
 Do not change `spec/spec.yaml` to fix implementation failures unless the user explicitly switches you into PM/design work.
 Use generated constants and projections; do not invent routes, strings, FSM surfaces, CSS selectors, Textual widgets, TCSS rules, events, workflows, policies, operations, fixtures, scenario IDs, storage tables, or migrations outside the spec and implementation layer.

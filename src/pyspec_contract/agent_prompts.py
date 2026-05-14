@@ -155,7 +155,7 @@ class _PromptContext:
         if not self.contract:
             return "No compiled spec was supplied. Use the active layers as the complete starting context."
         sections = [
-            ("resources", self.contract.get("resources") or {}),
+            ("models", self.contract.get("models") or {}),
             ("capabilities", self.contract.get("capabilities") or {}),
             ("entries", self.contract.get("entries") or {}),
             ("workflows", self.contract.get("workflows") or {}),
@@ -181,7 +181,7 @@ def _pm_design_prompt(context: _PromptContext) -> str:
         f"After authoring, run `pyspec compile . --layers {context.layer_arg}` and `pyspec validate . --layers {context.layer_arg}`.",
         "",
         "Authoring scope:",
-        "- Core: fixtures, facts, resources, capabilities, and product scenarios.",
+        "- Core: fixtures, facts, models, capabilities, and product scenarios.",
     ]
     if "http" in context.layers:
         lines.append("- HTTP: API entries that bind capabilities to externally visible operations.")
@@ -215,7 +215,7 @@ def _pm_design_prompt(context: _PromptContext) -> str:
             "- Declare product meaning once in `spec/spec.yaml`; the compiler owns all generated projections and adapters.",
             "- Keep implementation and storage concerns out of `spec/spec.yaml`.",
             "- Use scenario archetypes from `src/pyspec_contract/patterns.yaml`; define every fixture explicitly.",
-            "- Resources are product data models: fields, lifecycle, and invariants only.",
+            "- Models are product data models: fields, lifecycle, and invariants only.",
             "- Use `basis` or `why` only when it preserves non-obvious product intent.",
             "- For FSM entries, keep invocation and rendering separate: `surface` is the entry surface, while `target.fsm.surface` is `html` or `textual`.",
             "- For workflow entries, bind the entry to the workflow trigger with `target.workflow.name` and `target.workflow.trigger`.",

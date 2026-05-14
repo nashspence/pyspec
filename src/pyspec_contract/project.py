@@ -841,14 +841,14 @@ def components_projection(contract: dict[str, Any]) -> dict[str, Any]:
     components = {"schemas": {}}
     opaque: set[str] = set()
     enum_types: dict[str, list[str]] = {}
-    for rid, resource in sorted(contract["resources"].items()):
-        components["schemas"][rid] = object_schema(resource["fields"])
-        lifecycle = resource.get("lifecycle")
+    for rid, model in sorted(contract["models"].items()):
+        components["schemas"][rid] = object_schema(model["fields"])
+        lifecycle = model.get("lifecycle")
         if lifecycle:
-            enum_type = resource["fields"].get(lifecycle["field"])
+            enum_type = model["fields"].get(lifecycle["field"])
             if enum_type:
                 enum_types[enum_type] = lifecycle["states"]
-        for type_name in resource["fields"].values():
+        for type_name in model["fields"].values():
             base = base_type(type_name)
             if base != rid and not is_scalar(base):
                 opaque.add(base)

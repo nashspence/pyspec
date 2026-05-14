@@ -363,6 +363,12 @@
         "basis": {
           "$ref": "#/$defs/basis"
         },
+        "creates": {
+          "$ref": "#/$defs/model_refs"
+        },
+        "deletes": {
+          "$ref": "#/$defs/model_refs"
+        },
         "emits": {
           "items": {
             "$ref": "#/$defs/dotted_id"
@@ -383,8 +389,8 @@
         "output": {
           "$ref": "#/$defs/type_name"
         },
-        "resource": {
-          "$ref": "#/$defs/resource_id"
+        "reads": {
+          "$ref": "#/$defs/model_refs"
         },
         "transition": {
           "additionalProperties": false,
@@ -396,17 +402,24 @@
               "pattern": "^[a-z][a-z0-9_]*$",
               "type": "string"
             },
+            "model": {
+              "$ref": "#/$defs/model_id"
+            },
             "to": {
               "pattern": "^[a-z][a-z0-9_]*$",
               "type": "string"
             }
           },
           "required": [
+            "model",
             "field",
             "from",
             "to"
           ],
           "type": "object"
+        },
+        "updates": {
+          "$ref": "#/$defs/model_refs"
         },
         "why": {
           "$ref": "#/$defs/basis"
@@ -414,7 +427,6 @@
       },
       "required": [
         "archetype",
-        "resource",
         "input",
         "output"
       ],
@@ -437,6 +449,12 @@
         },
         "basis": {
           "$ref": "#/$defs/basis"
+        },
+        "creates": {
+          "$ref": "#/$defs/model_refs"
+        },
+        "deletes": {
+          "$ref": "#/$defs/model_refs"
         },
         "emits": {
           "items": {
@@ -461,8 +479,8 @@
         "output": {
           "$ref": "#/$defs/type_name"
         },
-        "resource": {
-          "$ref": "#/$defs/resource_id"
+        "reads": {
+          "$ref": "#/$defs/model_refs"
         },
         "transition": {
           "additionalProperties": false,
@@ -474,23 +492,29 @@
               "pattern": "^[a-z][a-z0-9_]*$",
               "type": "string"
             },
+            "model": {
+              "$ref": "#/$defs/model_id"
+            },
             "to": {
               "pattern": "^[a-z][a-z0-9_]*$",
               "type": "string"
             }
           },
           "required": [
+            "model",
             "field",
             "from",
             "to"
           ],
           "type": "object"
+        },
+        "updates": {
+          "$ref": "#/$defs/model_refs"
         }
       },
       "required": [
         "id",
         "archetype",
-        "resource",
         "input",
         "output",
         "basis"
@@ -512,6 +536,12 @@
             "query"
           ]
         },
+        "creates": {
+          "$ref": "#/$defs/model_refs"
+        },
+        "deletes": {
+          "$ref": "#/$defs/model_refs"
+        },
         "emits": {
           "items": {
             "$ref": "#/$defs/dotted_id"
@@ -532,8 +562,8 @@
         "output": {
           "$ref": "#/$defs/type_name"
         },
-        "resource": {
-          "$ref": "#/$defs/resource_id"
+        "reads": {
+          "$ref": "#/$defs/model_refs"
         },
         "transition": {
           "additionalProperties": false,
@@ -545,22 +575,28 @@
               "pattern": "^[a-z][a-z0-9_]*$",
               "type": "string"
             },
+            "model": {
+              "$ref": "#/$defs/model_id"
+            },
             "to": {
               "pattern": "^[a-z][a-z0-9_]*$",
               "type": "string"
             }
           },
           "required": [
+            "model",
             "field",
             "from",
             "to"
           ],
           "type": "object"
+        },
+        "updates": {
+          "$ref": "#/$defs/model_refs"
         }
       },
       "required": [
         "archetype",
-        "resource",
         "input",
         "output"
       ],
@@ -1222,15 +1258,15 @@
             "absent": {
               "additionalProperties": false,
               "properties": {
-                "resource": {
-                  "$ref": "#/$defs/resource_id"
+                "model": {
+                  "$ref": "#/$defs/model_id"
                 },
                 "where": {
                   "$ref": "#/$defs/value_map"
                 }
               },
               "required": [
-                "resource",
+                "model",
                 "where"
               ],
               "type": "object"
@@ -1247,15 +1283,15 @@
             "present": {
               "additionalProperties": false,
               "properties": {
-                "resource": {
-                  "$ref": "#/$defs/resource_id"
+                "model": {
+                  "$ref": "#/$defs/model_id"
                 },
                 "values": {
                   "$ref": "#/$defs/value_map"
                 }
               },
               "required": [
-                "resource",
+                "model",
                 "values"
               ],
               "type": "object"
@@ -1276,15 +1312,15 @@
             "absent": {
               "additionalProperties": false,
               "properties": {
-                "resource": {
-                  "$ref": "#/$defs/resource_id"
+                "model": {
+                  "$ref": "#/$defs/model_id"
                 },
                 "where": {
                   "$ref": "#/$defs/value_map"
                 }
               },
               "required": [
-                "resource",
+                "model",
                 "where"
               ],
               "type": "object"
@@ -1310,15 +1346,15 @@
             "present": {
               "additionalProperties": false,
               "properties": {
-                "resource": {
-                  "$ref": "#/$defs/resource_id"
+                "model": {
+                  "$ref": "#/$defs/model_id"
                 },
                 "values": {
                   "$ref": "#/$defs/value_map"
                 }
               },
               "required": [
-                "resource",
+                "model",
                 "values"
               ],
               "type": "object"
@@ -1506,8 +1542,8 @@
         "messages": {
           "$ref": "#/$defs/fsm_messages"
         },
-        "resource": {
-          "$ref": "#/$defs/resource_id"
+        "model": {
+          "$ref": "#/$defs/model_id"
         },
         "states": {
           "additionalProperties": {
@@ -1530,7 +1566,7 @@
         }
       },
       "required": [
-        "resource",
+        "model",
         "initial",
         "states"
       ],
@@ -2176,62 +2212,7 @@
       ],
       "type": "object"
     },
-    "mount_item": {
-      "additionalProperties": false,
-      "properties": {
-        "context": {
-          "$ref": "#/$defs/context_bindings"
-        },
-        "fsm": {
-          "pattern": "^fsm\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
-          "type": "string"
-        },
-        "id": {
-          "$ref": "#/$defs/instance_id"
-        },
-        "initial": {
-          "$ref": "#/$defs/state_name"
-        },
-        "region": {
-          "$ref": "#/$defs/field_name"
-        },
-        "selected": {
-          "$ref": "#/$defs/fsm_mount_selected"
-        }
-      },
-      "required": [
-        "id",
-        "fsm",
-        "region",
-        "initial",
-        "context"
-      ],
-      "type": "object"
-    },
-    "presentation_contract": {
-      "additionalProperties": false,
-      "properties": {
-        "css": {
-          "$ref": "#/$defs/style_contract"
-        },
-        "html": {
-          "$ref": "#/$defs/html_contract"
-        },
-        "textual": {
-          "$ref": "#/$defs/textual_contract"
-        }
-      },
-      "type": "object"
-    },
-    "python_class_name": {
-      "pattern": "^[A-Z][A-Za-z0-9]*$",
-      "type": "string"
-    },
-    "python_identifier": {
-      "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$",
-      "type": "string"
-    },
-    "resource_author": {
+    "model_author": {
       "additionalProperties": false,
       "properties": {
         "basis": {
@@ -2310,11 +2291,11 @@
       ],
       "type": "object"
     },
-    "resource_id": {
+    "model_id": {
       "pattern": "^[A-Z][A-Za-z0-9]*$",
       "type": "string"
     },
-    "resource_item": {
+    "model_item": {
       "additionalProperties": false,
       "properties": {
         "basis": {
@@ -2324,7 +2305,7 @@
           "$ref": "#/$defs/type_map"
         },
         "id": {
-          "$ref": "#/$defs/resource_id"
+          "$ref": "#/$defs/model_id"
         },
         "kind": {
           "enum": [
@@ -2395,7 +2376,15 @@
       ],
       "type": "object"
     },
-    "resource_spec": {
+    "model_refs": {
+      "items": {
+        "$ref": "#/$defs/model_id"
+      },
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "model_spec": {
       "additionalProperties": false,
       "properties": {
         "fields": {
@@ -2467,6 +2456,61 @@
         "fields"
       ],
       "type": "object"
+    },
+    "mount_item": {
+      "additionalProperties": false,
+      "properties": {
+        "context": {
+          "$ref": "#/$defs/context_bindings"
+        },
+        "fsm": {
+          "pattern": "^fsm\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+          "type": "string"
+        },
+        "id": {
+          "$ref": "#/$defs/instance_id"
+        },
+        "initial": {
+          "$ref": "#/$defs/state_name"
+        },
+        "region": {
+          "$ref": "#/$defs/field_name"
+        },
+        "selected": {
+          "$ref": "#/$defs/fsm_mount_selected"
+        }
+      },
+      "required": [
+        "id",
+        "fsm",
+        "region",
+        "initial",
+        "context"
+      ],
+      "type": "object"
+    },
+    "presentation_contract": {
+      "additionalProperties": false,
+      "properties": {
+        "css": {
+          "$ref": "#/$defs/style_contract"
+        },
+        "html": {
+          "$ref": "#/$defs/html_contract"
+        },
+        "textual": {
+          "$ref": "#/$defs/textual_contract"
+        }
+      },
+      "type": "object"
+    },
+    "python_class_name": {
+      "pattern": "^[A-Z][A-Za-z0-9]*$",
+      "type": "string"
+    },
+    "python_identifier": {
+      "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$",
+      "type": "string"
     },
     "scalar": {
       "type": [
@@ -3045,21 +3089,21 @@
           "type": "array",
           "uniqueItems": true
         },
-        "resource": {
+        "model": {
           "additionalProperties": false,
           "properties": {
             "exists": {
               "additionalProperties": false,
               "properties": {
-                "resource": {
-                  "$ref": "#/$defs/resource_id"
+                "model": {
+                  "$ref": "#/$defs/model_id"
                 },
                 "where": {
                   "$ref": "#/$defs/value_map"
                 }
               },
               "required": [
-                "resource",
+                "model",
                 "where"
               ],
               "type": "object"
@@ -3382,18 +3426,18 @@
       },
       "type": "object"
     },
+    "models": {
+      "additionalProperties": {
+        "$ref": "#/$defs/model_author"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/model_id"
+      },
+      "type": "object"
+    },
     "project": {
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
-    },
-    "resources": {
-      "additionalProperties": {
-        "$ref": "#/$defs/resource_author"
-      },
-      "propertyNames": {
-        "$ref": "#/$defs/resource_id"
-      },
-      "type": "object"
     },
     "scenarios": {
       "additionalProperties": {

@@ -15,7 +15,7 @@ from .paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR, SOURCE_SPEC_PATH
 
 
 MINIMAL_SPEC = """project: new_product_spec
-resources:
+models:
   Item:
     kind: aggregate
     fields:

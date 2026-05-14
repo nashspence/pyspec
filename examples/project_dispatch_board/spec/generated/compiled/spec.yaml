@@ -47,10 +47,10 @@ capabilities:
       project_id: ID
     output: Project
     policy: policy.project.approve
-    resource: Project
     transition:
       field: status
       from: submitted
+      model: Project
       to: approved
   project.archive:
     archetype: transition
@@ -62,14 +62,16 @@ capabilities:
       project_id: ID
     output: Project
     policy: policy.project.archive
-    resource: Project
     transition:
       field: status
       from: approved
+      model: Project
       to: archived
   project.create:
     archetype: create
     basis: Members can create a new dispatch project.
+    creates:
+    - Project
     emits:
     - project.created
     errors: []
@@ -80,7 +82,6 @@ capabilities:
       workspace_id: ID
     output: Project
     policy: policy.project.create
-    resource: Project
   project.list:
     archetype: list
     basis: The board requires a project list query scoped by workspace.
@@ -90,7 +91,8 @@ capabilities:
       workspace_id: ID
     output: list[Project]
     policy: policy.project.list
-    resource: Project
+    reads:
+    - Project
   project.read:
     archetype: read
     basis: The detail FSM loads the selected project by id.
@@ -100,7 +102,8 @@ capabilities:
       project_id: ID
     output: Project
     policy: policy.project.read
-    resource: Project
+    reads:
+    - Project
   project.send_approval_notice:
     archetype: command
     basis: Approval triggers a notification command for downstream coordination.
@@ -111,7 +114,6 @@ capabilities:
       project_id: ID
     output: NoticeResult
     policy: policy.project.send_approval_notice
-    resource: Project
   project.submit:
     archetype: transition
     basis: Draft dispatch projects can be submitted for review.
@@ -122,10 +124,10 @@ capabilities:
       project_id: ID
     output: Project
     policy: policy.project.submit
-    resource: Project
     transition:
       field: status
       from: draft
+      model: Project
       to: submitted
 content_cases:
   content.project.detail.heading.high_priority:
@@ -346,7 +348,7 @@ facts:
   fact.project.draft:
     basis: Draft dispatch project used as a secondary row in ready-board audit renders.
     present:
-      resource: Project
+      model: Project
       values:
         assignee: Unassigned
         created_at: '2026-05-10T11:30:00Z'
@@ -361,7 +363,7 @@ facts:
   fact.project.submitted:
     basis: Submitted dispatch project shared by approval, ready-board, and visual audit scenarios.
     present:
-      resource: Project
+      model: Project
       values:
         assignee: Maya Chen
         created_at: '2026-05-10T09:00:00Z'
@@ -409,7 +411,7 @@ fsms:
         selection.cleared:
           payload: {}
       emits: {}
-    resource: Project
+    model: Project
     states:
       empty:
         actions: []
@@ -457,7 +459,7 @@ fsms:
     messages:
       accepts: {}
       emits: {}
-    resource: Project
+    model: Project
     states:
       ready:
         actions: []
@@ -646,7 +648,7 @@ fsms:
         selection.cleared:
           payload: {}
       emits: {}
-    resource: Project
+    model: Project
     states:
       error:
         actions: []
@@ -733,7 +735,7 @@ fsms:
         project.selected:
           payload:
             project_id: ID
-    resource: Project
+    model: Project
     states:
       empty:
         actions:
@@ -798,6 +800,39 @@ fsms:
       from: ready
       on: project.select
       to: ready
+models:
+  Project:
+    basis: A dispatch project is the durable work item displayed and acted on by the board.
+    fields:
+      assignee: Text
+      created_at: Timestamp
+      customer: Text
+      id: ID
+      priority: Text
+      status: ProjectStatus
+      summary: Text
+      title: Text
+      updated_at: Timestamp
+      workspace_id: ID
+    kind: aggregate
+    lifecycle:
+      field: status
+      initial: draft
+      states:
+      - draft
+      - submitted
+      - approved
+      - archived
+      transitions:
+      - by: project.submit
+        from: draft
+        to: submitted
+      - by: project.approve
+        from: submitted
+        to: approved
+      - by: project.archive
+        from: approved
+        to: archived
 project: project_dispatch_board
 refs:
   asset:
@@ -861,39 +896,6 @@ refs:
   - fsm.project.list.ready
   workflow:
   - workflow.project.approval_notice
-resources:
-  Project:
-    basis: A dispatch project is the durable work item displayed and acted on by the board.
-    fields:
-      assignee: Text
-      created_at: Timestamp
-      customer: Text
-      id: ID
-      priority: Text
-      status: ProjectStatus
-      summary: Text
-      title: Text
-      updated_at: Timestamp
-      workspace_id: ID
-    kind: aggregate
-    lifecycle:
-      field: status
-      initial: draft
-      states:
-      - draft
-      - submitted
-      - approved
-      - archived
-      transitions:
-      - by: project.submit
-        from: draft
-        to: submitted
-      - by: project.approve
-        from: submitted
-        to: approved
-      - by: project.archive
-        from: approved
-        to: archived
 scenarios:
   project.approval_notice.workflow:
     archetype: workflow_event_success
@@ -924,7 +926,7 @@ scenarios:
     arrange:
       facts:
       - present:
-          resource: Project
+          model: Project
           values:
             assignee: Maya Chen
             created_at: '2026-05-10T09:00:00Z'
@@ -944,13 +946,13 @@ scenarios:
         - project.approved
       invoked:
       - project.approve
-      policy: policy.project.approve
-      resource:
+      model:
         exists:
-          resource: Project
+          model: Project
           where:
             id: project_submitted_1
             status: approved
+      policy: policy.project.approve
     basis: Approval transitions a submitted project to approved and emits the event.
     execute:
       invoke_capability:
@@ -964,7 +966,7 @@ scenarios:
     arrange:
       facts:
       - absent:
-          resource: Project
+          model: Project
           where:
             workspace_id: $fixture.workspace.id
       fixtures:
@@ -1153,7 +1155,7 @@ scenarios:
     arrange:
       facts:
       - present:
-          resource: Project
+          model: Project
           values:
             assignee: Maya Chen
             created_at: '2026-05-10T09:00:00Z'
@@ -1349,7 +1351,7 @@ scenarios:
     arrange:
       facts:
       - absent:
-          resource: Project
+          model: Project
           where:
             workspace_id: $fixture.workspace.id
       fixtures:
@@ -1360,13 +1362,13 @@ scenarios:
         - project.created
       invoked:
       - project.create
-      policy: policy.project.create
-      resource:
+      model:
         exists:
-          resource: Project
+          model: Project
           where:
             title: Replace rooftop condenser fan
             workspace_id: $fixture.workspace.id
+      policy: policy.project.create
       response:
         status: 200
     basis: The API create endpoint delegates to the create capability and emits project.created.

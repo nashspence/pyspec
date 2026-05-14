@@ -62,8 +62,8 @@
 <text text-anchor="start" x="604" y="-142.1" font-family="Arial" font-weight="bold" font-size="13.00">project.create</text>
 <text text-anchor="start" x="604" y="-131.1" font-family="Arial" font-size="8.00" fill="#64748b">target capability</text>
 <text text-anchor="start" x="604" y="-113.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Members can create a new dispatch project.</text>
-<text text-anchor="start" x="605" y="-93.5" font-family="Arial" font-weight="bold" font-size="10.00">resource:</text>
-<text text-anchor="start" x="649" y="-93.5" font-family="Arial" font-size="10.00">  Project</text>
+<text text-anchor="start" x="605" y="-93.5" font-family="Arial" font-weight="bold" font-size="10.00">creates:</text>
+<text text-anchor="start" x="642" y="-93.5" font-family="Arial" font-size="10.00">  Project</text>
 <text text-anchor="start" x="604" y="-73.5" font-family="Arial" font-weight="bold" font-size="10.00">input</text>
 <text text-anchor="start" x="604" y="-62.5" font-family="Arial" font-size="10.00">customer</text>
 <text text-anchor="start" x="645" y="-62.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Text</text>

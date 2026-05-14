@@ -24,7 +24,7 @@ facts:
   fact.project.submitted:
     basis: Submitted dispatch project shared by approval, ready-board, and visual audit scenarios.
     present:
-      resource: Project
+      model: Project
       values:
         assignee: Maya Chen
         created_at: '2026-05-10T09:00:00Z'
@@ -39,7 +39,7 @@ facts:
   fact.project.draft:
     basis: Draft dispatch project used as a secondary row in ready-board audit renders.
     present:
-      resource: Project
+      model: Project
       values:
         assignee: Unassigned
         created_at: '2026-05-10T11:30:00Z'
@@ -51,7 +51,7 @@ facts:
         title: Inspect loading dock sensor
         updated_at: '2026-05-11T07:15:00Z'
         workspace_id: $fixture.workspace.id
-resources:
+models:
   Project:
     basis: A dispatch project is the durable work item displayed and acted on by the board.
     fields:
@@ -93,7 +93,6 @@ capabilities:
     input:
       project_id: ID
     output: Project
-    resource: Project
   project.archive:
     archetype: transition
     basis: Approved dispatch projects can be archived.
@@ -102,10 +101,11 @@ capabilities:
     input:
       project_id: ID
     output: Project
-    resource: Project
   project.create:
     archetype: create
     basis: Members can create a new dispatch project.
+    creates:
+    - Project
     emits:
     - project.created
     input:
@@ -114,21 +114,22 @@ capabilities:
       title: Text
       workspace_id: ID
     output: Project
-    resource: Project
   project.list:
     archetype: list
     basis: The board requires a project list query scoped by workspace.
     input:
       workspace_id: ID
     output: list[Project]
-    resource: Project
+    reads:
+    - Project
   project.read:
     archetype: read
     basis: The detail FSM loads the selected project by id.
     input:
       project_id: ID
     output: Project
-    resource: Project
+    reads:
+    - Project
   project.send_approval_notice:
     archetype: command
     basis: Approval triggers a notification command for downstream coordination.
@@ -136,7 +137,6 @@ capabilities:
       approved_by: ID
       project_id: ID
     output: NoticeResult
-    resource: Project
   project.submit:
     archetype: transition
     basis: Draft dispatch projects can be submitted for review.
@@ -145,7 +145,6 @@ capabilities:
     input:
       project_id: ID
     output: Project
-    resource: Project
 fsms:
   fsm.project.activity:
     basis: The activity FSM summarizes latest status around the selected project.
@@ -159,7 +158,7 @@ fsms:
             project_id: ID
         selection.cleared: {}
     initial: empty
-    resource: Project
+    model: Project
     states:
       empty:
         copy_slots:
@@ -199,7 +198,7 @@ fsms:
             project_id: ID
         selection.cleared: {}
     initial: none
-    resource: Project
+    model: Project
     states:
       error:
         copy_slots:
@@ -265,7 +264,7 @@ fsms:
           payload:
             project_id: ID
     initial: loading
-    resource: Project
+    model: Project
     states:
       empty:
         actions:
@@ -322,7 +321,7 @@ fsms:
       workspace_id: ID
     data:
     - project.list
-    resource: Project
+    model: Project
     states:
       ready:
         layout:
@@ -631,9 +630,9 @@ scenarios:
         - project.approved
       invoked:
       - project.approve
-      resource:
+      model:
         exists:
-          resource: Project
+          model: Project
           where:
             id: project_submitted_1
             status: approved
@@ -650,7 +649,7 @@ scenarios:
     given:
       facts:
       - absent:
-          resource: Project
+          model: Project
           where:
             workspace_id: $fixture.workspace.id
       fixtures:
@@ -718,7 +717,7 @@ scenarios:
     given:
       facts:
       - absent:
-          resource: Project
+          model: Project
           where:
             workspace_id: $fixture.workspace.id
       fixtures:
@@ -729,9 +728,9 @@ scenarios:
         - project.created
       invoked:
       - project.create
-      resource:
+      model:
         exists:
-          resource: Project
+          model: Project
           where:
             title: Replace rooftop condenser fan
             workspace_id: $fixture.workspace.id

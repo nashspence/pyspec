@@ -37,7 +37,7 @@ class ProductApp:
         self.fixtures = fixture_namespace(self.contract, list(arrange.get("fixtures", [])))
         for fact in arrange.get("facts", []):
             kind, body = next(iter(fact.items()))
-            if body["resource"] != "Project":
+            if body["model"] != "Project":
                 raise AssertionError("Example app only implements Project")
             if kind == "absent":
                 where = self._resolve_map(body["where"])
@@ -227,7 +227,7 @@ class ProductApp:
             assert cap in self._rendered_values("actions")
         for cap in assertions.get("forbids", []):
             assert cap not in self._rendered_values("actions")
-        exists = (assertions.get("resource") or {}).get("exists")
+        exists = (assertions.get("model") or {}).get("exists")
         if exists:
             where = self._resolve_map(exists["where"])
             assert any(_matches(project, where) for project in self.projects)

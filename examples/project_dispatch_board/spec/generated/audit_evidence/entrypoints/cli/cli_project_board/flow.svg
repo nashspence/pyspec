@@ -65,8 +65,8 @@
 <text text-anchor="start" x="516.5" y="-33.5" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
 <text text-anchor="start" x="540.5" y="-33.5" font-family="Arial" font-size="10.00">  project.list</text>
 <text text-anchor="start" x="592.5" y="-33.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  list[Project]</text>
-<text text-anchor="start" x="516.5" y="-21.5" font-family="Arial" font-weight="bold" font-size="10.00">resource:</text>
-<text text-anchor="start" x="560.5" y="-21.5" font-family="Arial" font-size="10.00">  Project</text>
+<text text-anchor="start" x="516.5" y="-21.5" font-family="Arial" font-weight="bold" font-size="10.00">model:</text>
+<text text-anchor="start" x="549.5" y="-21.5" font-family="Arial" font-size="10.00">  Project</text>
 <text text-anchor="start" x="516.5" y="-9.5" font-family="Arial" font-weight="bold" font-size="10.00">sync:</text>
 <text text-anchor="start" x="541.5" y="-9.5" font-family="Arial" font-size="10.00">  select_project_updates_fsms</text>
 <polygon fill="none" stroke="#047857" points="510,0 510,-151 721,-151 721,0 510,0"/>

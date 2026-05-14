@@ -58,7 +58,7 @@ spec/spec.yaml
 
 The spec is progressive. If a concern is absent, it has no declaration and no generated projection. The spec does not contain storage implementation details, test-harness routing, dev-environment metadata, review state, release state, or schema-version chatter.
 
-Reusable top-level `facts` name preconditions, such as a resource that must already exist. Scenarios can reference them with `given.facts: [{use: fact.project.submitted}]`, and state-local audit cases can reference them with `facts: [{use: fact.project.submitted}]`; the compiled spec expands scenario references back into concrete `present` or `absent` facts for the generated BDD harnesses.
+Reusable top-level `facts` name preconditions, such as a model that must already exist. Scenarios can reference them with `given.facts: [{use: fact.project.submitted}]`, and state-local audit cases can reference them with `facts: [{use: fact.project.submitted}]`; the compiled spec expands scenario references back into concrete `present` or `absent` facts for the generated BDD harnesses.
 
 ## Layers
 

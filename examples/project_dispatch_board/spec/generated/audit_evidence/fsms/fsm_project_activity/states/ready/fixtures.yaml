@@ -3,7 +3,7 @@ facts:
   fact.project.draft:
     basis: Draft dispatch project used as a secondary row in ready-board audit renders.
     present:
-      resource: Project
+      model: Project
       values:
         assignee: Unassigned
         created_at: '2026-05-10T11:30:00Z'
@@ -18,7 +18,7 @@ facts:
   fact.project.submitted:
     basis: Submitted dispatch project shared by approval, ready-board, and visual audit scenarios.
     present:
-      resource: Project
+      model: Project
       values:
         assignee: Maya Chen
         created_at: '2026-05-10T09:00:00Z'

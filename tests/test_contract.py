@@ -173,7 +173,7 @@ def test_unused_fact_is_rejected() -> None:
     author = _author()
     author["facts"]["fact.project.unused"] = {
         "present": {
-            "resource": "Project",
+            "model": "Project",
             "values": {
                 "id": "project_unused_1",
                 "status": "submitted",
@@ -197,17 +197,17 @@ def test_fact_use_requires_declared_fixture_namespace() -> None:
         compile_author(author)
 
 
-def test_fact_template_fields_must_belong_to_resource() -> None:
+def test_fact_template_fields_must_belong_to_model() -> None:
     author = _author()
     author["facts"]["fact.project.submitted"]["present"]["values"]["unknown_field"] = "nope"
     with pytest.raises(ContractError, match=r"Fact fact\.project\.submitted seeds unknown Project fields: \['unknown_field'\]"):
         compile_author(author)
 
 
-def test_transition_capability_derives_state_change_from_resource_lifecycle() -> None:
+def test_transition_capability_derives_state_change_from_model_lifecycle() -> None:
     author = {
         "project": "derived_transition",
-        "resources": {
+        "models": {
             "Ticket": {
                 "kind": "aggregate",
                 "fields": {"id": "ID", "status": "TicketStatus"},
@@ -223,7 +223,6 @@ def test_transition_capability_derives_state_change_from_resource_lifecycle() ->
         "capabilities": {
             "ticket.submit": {
                 "archetype": "transition",
-                "resource": "Ticket",
                 "input": {"ticket_id": "ID"},
                 "output": "Ticket",
                 "basis": "Submitting moves a draft ticket forward.",
@@ -232,16 +231,52 @@ def test_transition_capability_derives_state_change_from_resource_lifecycle() ->
     }
     contract = compile_author(author)
     assert contract["capabilities"]["ticket.submit"]["transition"] == {
+        "model": "Ticket",
         "field": "status",
         "from": "draft",
         "to": "submitted",
     }
 
 
+def test_capability_rejects_primary_model_field() -> None:
+    author = _author()
+    author["capabilities"]["project.create"]["model"] = "Project"
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_source(author)
+
+
+def test_create_capability_requires_created_model_relationship() -> None:
+    author = _author()
+    del author["capabilities"]["project.create"]["creates"]
+    with pytest.raises(ContractError, match=r"Capability project\.create archetype create must declare creates"):
+        compile_source(author)
+
+
+def test_fsm_data_capability_must_read_fsm_model() -> None:
+    author = _author()
+    author["models"]["Workspace"] = {
+        "kind": "entity",
+        "fields": {"id": "ID", "name": "Text"},
+        "basis": "Workspace is a separate model used to prove data bindings are model-aware.",
+    }
+    author["capabilities"]["project.read"]["archetype"] = "query"
+    author["capabilities"]["project.read"]["reads"] = ["Workspace"]
+    with pytest.raises(ContractError, match=r"FSM fsm\.project\.activity\.ready data capability project\.read must read model Project"):
+        compile_source(author)
+
+
+def test_command_capability_does_not_need_model_relationship() -> None:
+    contract = compile_source(_author())
+    assert "creates" not in contract["capabilities"]["project.send_approval_notice"]
+    assert "reads" not in contract["capabilities"]["project.send_approval_notice"]
+    assert "updates" not in contract["capabilities"]["project.send_approval_notice"]
+    assert "deletes" not in contract["capabilities"]["project.send_approval_notice"]
+
+
 def test_author_contract_can_omit_absent_sections() -> None:
     author = {
         "project": "author_core",
-        "resources": {
+        "models": {
             "Ticket": {
                 "kind": "aggregate",
                 "fields": {"id": "ID", "title": "Text"},
@@ -250,7 +285,7 @@ def test_author_contract_can_omit_absent_sections() -> None:
         "capabilities": {
             "ticket.create": {
                 "archetype": "create",
-                "resource": "Ticket",
+                "creates": ["Ticket"],
                 "input": {"title": "Text"},
                 "output": "Ticket",
                 "why": "Members can create tickets.",
@@ -258,11 +293,11 @@ def test_author_contract_can_omit_absent_sections() -> None:
         },
     }
     contract = compile_author(author)
-    assert set(contract["resources"]) == {"Ticket"}
+    assert set(contract["models"]) == {"Ticket"}
     assert contract["entries"] == {}
     assert contract["fsms"] == {}
     assert contract["refs"]["policy"] == ["policy.ticket.create"]
-    assert contract["resources"]["Ticket"]["basis"] == "Declared resource Ticket."
+    assert contract["models"]["Ticket"]["basis"] == "Declared model Ticket."
     assert contract["capabilities"]["ticket.create"]["basis"] == "Members can create tickets."
 
 
@@ -271,7 +306,7 @@ def test_author_fsm_defaults_empty_collections() -> None:
 
     author = {
         "project": "author_ui",
-        "resources": {
+        "models": {
             "Ticket": {
                 "kind": "aggregate",
                 "fields": {"id": "ID", "title": "Text"},
@@ -286,7 +321,7 @@ def test_author_fsm_defaults_empty_collections() -> None:
         },
         "fsms": {
             "fsm.ticket.empty": {
-                "resource": "Ticket",
+                "model": "Ticket",
                 "initial": "empty",
                 "states": {"empty": {}},
                 "basis": "FSM can start as a minimal empty-state.",
@@ -429,13 +464,13 @@ def test_fsm_data_source_must_be_query_like_capability() -> None:
 
 def test_basis_is_plain_bounded_text() -> None:
     author = _author()
-    assert isinstance(author["resources"]["Project"]["basis"], str)
+    assert isinstance(author["models"]["Project"]["basis"], str)
     bad = _author()
-    bad["resources"]["Project"]["basis"] = {"text": "object basis", "kind": "explicit", "confidence": "high"}
+    bad["models"]["Project"]["basis"] = {"text": "object basis", "kind": "explicit", "confidence": "high"}
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(bad)
     bad = _author()
-    bad["resources"]["Project"]["basis"] = "x" * 281
+    bad["models"]["Project"]["basis"] = "x" * 281
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(bad)
 
@@ -580,17 +615,17 @@ def test_composed_scenario_rejects_unknown_fsm_instance() -> None:
 def _api_only_author() -> dict:
     return {
         "project": "api_only",
-        "resources": {
+        "models": {
             "Ticket": {
                 "kind": "aggregate",
                 "fields": {"id": "ID", "title": "Text"},
-                "basis": _basis("ticket resource"),
+                "basis": _basis("ticket model"),
             }
         },
         "capabilities": {
             "ticket.create": {
                 "archetype": "create",
-                "resource": "Ticket",
+                "creates": ["Ticket"],
                 "input": {"title": "Text"},
                 "output": "Ticket",
                 "basis": _basis("create ticket"),
@@ -632,7 +667,7 @@ def test_authoring_layers_reject_irrelevant_ui_targets() -> None:
     author = _api_only_author()
     author["fsms"] = {
         "fsm.ticket.list": {
-            "resource": "Ticket",
+            "model": "Ticket",
             "context": {},
             "data": [],
             "initial": "empty",
@@ -791,7 +826,7 @@ def test_authoring_layers_reject_html_fsm_layout_without_web_layer() -> None:
     author["fsms"] = {
         "fsm.ticket.board": {
             "archetype": "dashboard",
-            "resource": "Ticket",
+            "model": "Ticket",
             "initial": "ready",
             "states": {"ready": {"layout": {"html": {"regions": {"main": {"required": True}}}}}},
             "basis": _basis("HTML layout is a web surface"),
@@ -806,7 +841,7 @@ def test_layer_pruned_author_schema_hides_irrelevant_sections() -> None:
 
     schema = author_schema_for_layers(parse_layers("core,http"))
     assert "entries" in schema["properties"]
-    assert "resources" in schema["properties"]
+    assert "models" in schema["properties"]
     assert "fsms" not in schema["properties"]
     assert "audit_cases" not in schema["properties"]
 
@@ -819,10 +854,10 @@ def test_pyspec_contract_rejects_scenario_harness_routing() -> None:
         compile_source(author)
 
 
-def test_pyspec_contract_rejects_storage_implementation_details_on_resource() -> None:
+def test_pyspec_contract_rejects_storage_implementation_details_on_model() -> None:
     author = _author()
-    resource = _first_item(author, "resources")
-    resource["persistence"] = {"dialect": "sqlite", "table": "projects"}
+    model = _first_item(author, "models")
+    model["persistence"] = {"dialect": "sqlite", "table": "projects"}
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 

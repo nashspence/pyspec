@@ -25,16 +25,16 @@ def test_author_contract_compiles_to_checked_in_machine_contract() -> None:
 def test_author_contract_can_be_minimal_and_surface_invisible() -> None:
     author = {
         "project": "minimal_author",
-        "resources": {
+        "models": {
             "Project": {
-                "basis": "Minimal product resource for an API-free contract.",
+                "basis": "Minimal product model for an API-free contract.",
                 "kind": "aggregate",
                 "fields": {"id": "ID", "title": "Text"},
             }
         },
     }
     contract = compile_source(author, layers={"core"})
-    assert contract["resources"]["Project"]["fields"]["title"] == "Text"
+    assert contract["models"]["Project"]["fields"]["title"] == "Text"
     assert contract["fsms"] == {}
     assert contract["entries"] == {}
     assert contract["refs"] == {}

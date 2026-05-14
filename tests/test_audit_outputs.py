@@ -58,6 +58,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     entrypoint = entrypoint_flow_dot("web.project.board", contract["entries"]["web.project.board"], contract)
     api_entrypoint = entrypoint_flow_dot("api.project.create", contract["entries"]["api.project.create"], contract)
     cli_entrypoint = entrypoint_flow_dot("cli.project.board", contract["entries"]["cli.project.board"], contract)
+    cli_approve_entrypoint = entrypoint_flow_dot("cli.project.approve", contract["entries"]["cli.project.approve"], contract)
     worker_entrypoint = entrypoint_flow_dot("worker.project.approval_notice", contract["entries"]["worker.project.approval_notice"], contract)
     workflow = workflow_flow_dot("project.approval_notice", contract["workflows"]["project.approval_notice"], contract)
     assert fsm.startswith("digraph ")
@@ -105,7 +106,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "status: ProjectStatus" not in fsm
     assert "<B>Project fields</B>" not in fsm
     assert fsm.count("query.project.list.list") == 4
-    assert "<B>resource:</B>" not in fsm
+    assert "<B>model:</B>" not in fsm
     assert "<B>context:</B>" not in fsm
     assert "$message." not in fsm
     assert "$event." not in fsm
@@ -133,7 +134,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "fsm.project.board" not in composition
     assert "dashboard FSM" not in composition
     assert "query.project.board.list" not in composition
-    assert "<B>resource:</B>" not in composition
+    assert "<B>model:</B>" not in composition
     assert "<B>context</B>" not in composition
     assert "$message." not in composition
     assert "$event." not in composition
@@ -177,6 +178,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert 'label="tui loop"' not in cli_entrypoint
     assert "entry_exit" not in cli_entrypoint
     assert "entrypoint_mount" not in cli_entrypoint
+    assert '<FONT POINT-SIZE="10"><B>transition:</B>&#160;&#160;Project.status</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ProjectStatus</FONT><FONT POINT-SIZE="10">&#160;&lt;&#45;&#160;submitted -&gt; approved</FONT>' in cli_approve_entrypoint
     assert "<B>entry output</B>" in api_entrypoint
     assert 'label="exit"' in api_entrypoint
     assert "<B>body</B>" in api_entrypoint
@@ -202,7 +204,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert '<FONT POINT-SIZE="10"><B>input</B></FONT>' in workflow_step
     assert '<FONT POINT-SIZE="10">approved_by</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in workflow_step
     assert '<FONT POINT-SIZE="10"><B>output:</B>&#160;&#160;result</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;NoticeResult</FONT>' in workflow
-    for graph_id, dot_source in {"fsm_project_list": fsm, "project_board": composition, "web_project_board": entrypoint, "api_project_create": api_entrypoint, "project_approval_notice": workflow}.items():
+    for graph_id, dot_source in {"fsm_project_list": fsm, "project_board": composition, "web_project_board": entrypoint, "api_project_create": api_entrypoint, "cli_project_approve": cli_approve_entrypoint, "project_approval_notice": workflow}.items():
         svg = _render_graphviz_svg(dot_source, graph_id)
         assert svg.lstrip().startswith("<svg")
         assert "</svg>" in svg
@@ -211,7 +213,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
 def test_composition_dot_routes_messages_generically() -> None:
     fsm = {
         "archetype": "workspace",
-        "resource": "generic.resource",
+        "model": "generic.model",
         "context": {"selected_id": "ID", "workspace_id": "ID"},
         "data": [],
         "layout": {
@@ -362,7 +364,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert 'fill="#94a3b8">\xa0\xa0ProjectStatus</text>' in list_fsm
     assert "Project fields" not in list_fsm
     assert "projection:" not in list_fsm
-    assert "resource:" not in list_fsm
+    assert "model:" not in list_fsm
     assert "context:" not in list_fsm
     assert "&#45; data.ready" not in list_fsm
     assert "&#45; copy.project" not in list_fsm

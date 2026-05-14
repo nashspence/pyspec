@@ -127,36 +127,36 @@ def _state_needs_data(contract: dict[str, Any], fsm: dict[str, Any]) -> bool:
     return any(contract["copies"][ref].get("args") for ref in copy_refs) or any(contract["assets"][ref].get("args") for ref in asset_refs)
 
 
-def _fixture_ids_for_resource(contract: dict[str, Any], resource_id: str) -> set[str]:
+def _fixture_ids_for_model(contract: dict[str, Any], model_id: str) -> set[str]:
     return {
         fixture_id
         for fixture_id, fixture in contract.get("fixtures", {}).items()
-        if _find_resource_records(fixture.get("values", {}), resource_id)
+        if _find_model_records(fixture.get("values", {}), model_id)
     }
 
 
-def _fact_ids_for_resource(contract: dict[str, Any], resource_id: str) -> set[str]:
+def _fact_ids_for_model(contract: dict[str, Any], model_id: str) -> set[str]:
     fact_ids = set()
     for fact_id, fact in contract.get("facts", {}).items():
         _, body = _fact_selector(fact, fact_id)
-        if body["resource"] == resource_id:
+        if body["model"] == model_id:
             fact_ids.add(fact_id)
     return fact_ids
 
 
-def _fixture_ids_for_facts(contract: dict[str, Any], fact_ids: Iterable[str], resource_id: str) -> set[str]:
+def _fixture_ids_for_facts(contract: dict[str, Any], fact_ids: Iterable[str], model_id: str) -> set[str]:
     fixture_ids: set[str] = set()
     for fact_id in sorted(fact_ids):
         fact_uses = [{"use": fact_id}]
         try:
-            _apply_fact_uses(contract, fact_uses, {}, resource_id, [])
+            _apply_fact_uses(contract, fact_uses, {}, model_id, [])
             continue
         except (AssertionError, KeyError, TypeError):
             pass
         for fixture_id in contract.get("fixtures", {}):
             try:
                 namespace = fixture_namespace(contract, [fixture_id])
-                _apply_fact_uses(contract, fact_uses, namespace, resource_id, [])
+                _apply_fact_uses(contract, fact_uses, namespace, model_id, [])
             except (AssertionError, KeyError, TypeError):
                 continue
             fixture_ids.add(fixture_id)
@@ -170,10 +170,10 @@ def _surface_scope_inputs(contract: dict[str, Any], fsm: dict[str, Any]) -> tupl
     fixture_ids: set[str] = set()
     fact_ids: set[str] = set()
     if _state_needs_data(contract, fsm):
-        resource_id = fsm_resource(contract, fsm)
-        fixture_ids = _fixture_ids_for_resource(contract, resource_id)
-        fact_ids = _fact_ids_for_resource(contract, resource_id)
-        fixture_ids.update(_fixture_ids_for_facts(contract, fact_ids, resource_id))
+        model_id = fsm_model(contract, fsm)
+        fixture_ids = _fixture_ids_for_model(contract, model_id)
+        fact_ids = _fact_ids_for_model(contract, model_id)
+        fixture_ids.update(_fixture_ids_for_facts(contract, fact_ids, model_id))
     return copy_refs, asset_refs, fixture_ids, fact_ids, {}
 
 
@@ -847,7 +847,7 @@ def _entry_target_card(
         return _dot_card(
             target_value,
             "target capability",
-            _capability_sections(capability, include_output=False),
+            _capability_sections(capability, contract, include_output=False),
             basis=capability.get("basis", ""),
             header_bg="#eff6ff",
             border="#2563eb",
@@ -901,7 +901,7 @@ def _fsm_summary_sections(fsm: dict[str, Any], contract: dict[str, Any]) -> list
         sections.append(("query", queries))
     if loads:
         sections.append(("load", loads))
-    sections.append(("resource", [fsm["resource"]]))
+    sections.append(("model", [fsm["model"]]))
     sync_ids = [rule["id"] for state in fsm.get("states", {}).values() for rule in state.get("sync", [])]
     if sync_ids:
         sections.append(("sync", sync_ids))
@@ -933,7 +933,7 @@ def _workflow_trigger_card(trigger_kind: str, trigger_value: str, contract: dict
         return _dot_card(
             trigger_value,
             "capability trigger",
-            _capability_sections(capability),
+            _capability_sections(capability, contract),
             basis=capability.get("basis", ""),
             header_bg="#eef2ff",
             border="#4f46e5",
@@ -946,7 +946,7 @@ def _workflow_step_card(step: dict[str, Any], contract: dict[str, Any]) -> str:
     return _dot_card(
         step["id"],
         "workflow step",
-        [("capability", [step["capability"]])] + _capability_sections(capability),
+        [("capability", [step["capability"]])] + _capability_sections(capability, contract),
         basis=capability.get("basis", ""),
         header_bg="#f8fafc",
         border="#71717a",
@@ -970,8 +970,24 @@ def _event_card(event_id: str, contract: dict[str, Any], *, subtitle: str = "tar
     )
 
 
-def _capability_sections(capability: dict[str, Any], *, include_output: bool = True) -> list[tuple[str, list[object]]]:
-    sections: list[tuple[str, list[object]]] = [("resource", [capability["resource"]])]
+def _capability_sections(capability: dict[str, Any], contract: dict[str, Any], *, include_output: bool = True) -> list[tuple[str, list[object]]]:
+    sections: list[tuple[str, list[object]]] = []
+    for field in ["creates", "reads", "updates", "deletes"]:
+        if capability.get(field):
+            sections.append((field, capability[field]))
+    if capability.get("transition"):
+        transition = capability["transition"]
+        type_name = contract["models"][transition["model"]]["fields"][transition["field"]]
+        sections.append((
+            "transition",
+            [
+                _DotTypedField(
+                    f"{transition['model']}.{transition['field']}",
+                    type_name,
+                    f"{transition['from']} -> {transition['to']}",
+                )
+            ],
+        ))
     if capability.get("input"):
         sections.append(("input", _typed_fields(capability["input"])))
     if include_output:
@@ -1295,7 +1311,7 @@ def _dot_section_inner_rows(title: str, values: Iterable[object]) -> tuple[bool,
 
 
 def _dot_typed_field_section_inner_rows(title: str, values: list[object]) -> tuple[bool, list[str]]:
-    if (title in {"input", "output", "payload", "data", "set", "load"} or title == "actions") and len(values) == 1:
+    if (title in {"input", "output", "payload", "data", "set", "load", "transition"} or title == "actions") and len(values) == 1:
         rows = []
         for index, value in enumerate(values):
             if isinstance(value, _DotTypedField):
@@ -1478,7 +1494,7 @@ def _state_field_section_title(fsm: dict[str, Any], state_name: str, state: dict
         return f"{unique[0]} fields"
     if unique:
         return "data fields"
-    return f"{fsm['resource']} fields"
+    return f"{fsm['model']} fields"
 
 
 def _state_field_data_bindings(fsm: dict[str, Any], state_name: str, state: dict[str, Any]) -> list[dict[str, Any]]:
@@ -1495,8 +1511,8 @@ def _state_field_data_bindings(fsm: dict[str, Any], state_name: str, state: dict
 
 
 def _format_state_fields(fsm: dict[str, Any], state: dict[str, Any], contract: dict[str, Any]) -> list[_DotTypedField]:
-    resource_fields = contract["resources"][fsm["resource"]]["fields"]
-    return [_DotTypedField(field, resource_fields[field]) for field in state["fields"]]
+    model_fields = contract["models"][fsm["model"]]["fields"]
+    return [_DotTypedField(field, model_fields[field]) for field in state["fields"]]
 
 
 def _format_capability_outputs(capability_ids: Iterable[str], contract: dict[str, Any]) -> list[_DotTypedField]:
@@ -1835,35 +1851,35 @@ def fsm_textual_lines(root: Path, contract: dict[str, Any], fsm: dict[str, Any],
 
 
 def records_for_fsm(contract: dict[str, Any], fsm: dict[str, Any], case: dict[str, Any] | None) -> list[dict[str, Any]]:
-    resource_id = fsm_resource(contract, fsm)
-    resource_key = f"{resource_id.lower()}_id"
+    model_id = fsm_model(contract, fsm)
+    model_key = f"{model_id.lower()}_id"
     owner_context = fsm_owner_context(contract, fsm)
     fixtures = case.get("fixtures", []) if case else list(contract.get("fixtures", {}))
     records: list[dict[str, Any]] = []
     if case:
         namespace = fixture_namespace(contract, fixtures)
-        records.extend(_find_resource_records(namespace, resource_id))
-        records = _apply_fact_uses(contract, case.get("facts", []), namespace, resource_id, records)
+        records.extend(_find_model_records(namespace, model_id))
+        records = _apply_fact_uses(contract, case.get("facts", []), namespace, model_id, records)
         context = _resolved_case_context(contract, case, namespace)
     else:
         context = {}
         for fixture_id in fixtures:
-            records.extend(_find_resource_records(contract["fixtures"][fixture_id]["values"], resource_id))
-        records = _apply_facts_with_available_fixtures(contract, resource_id, records)
-    selected_id = context.get(resource_key)
-    if not selected_id and resource_key in owner_context:
-        selected_id = context.get(f"selected_{resource_key}")
-    if selected_id and resource_key in owner_context:
+            records.extend(_find_model_records(contract["fixtures"][fixture_id]["values"], model_id))
+        records = _apply_facts_with_available_fixtures(contract, model_id, records)
+    selected_id = context.get(model_key)
+    if not selected_id and model_key in owner_context:
+        selected_id = context.get(f"selected_{model_key}")
+    if selected_id and model_key in owner_context:
         selected = [record for record in records if record.get("id") == selected_id]
         if selected:
             return selected
-    if resource_key in owner_context and records:
+    if model_key in owner_context and records:
         return records[:1]
     return records
 
 
-def fsm_resource(contract: dict[str, Any], fsm: dict[str, Any]) -> str:
-    return contract["fsms"][fsm["owner"]]["resource"]
+def fsm_model(contract: dict[str, Any], fsm: dict[str, Any]) -> str:
+    return contract["fsms"][fsm["owner"]]["model"]
 
 
 def fsm_owner_context(contract: dict[str, Any], fsm: dict[str, Any]) -> dict[str, Any]:
@@ -1877,22 +1893,22 @@ def _resolved_case_context(contract: dict[str, Any], case: dict[str, Any], names
     return context
 
 
-def _find_resource_records(value: Any, resource_id: str) -> list[dict[str, Any]]:
+def _find_model_records(value: Any, model_id: str) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
     if isinstance(value, dict):
-        if value.get("resource") == resource_id:
+        if value.get("model") == model_id:
             record = dict(value)
-            record.pop("resource", None)
+            record.pop("model", None)
             records.append(record)
         for child in value.values():
-            records.extend(_find_resource_records(child, resource_id))
+            records.extend(_find_model_records(child, model_id))
     elif isinstance(value, list):
         for item in value:
-            records.extend(_find_resource_records(item, resource_id))
+            records.extend(_find_model_records(item, model_id))
     return records
 
 
-def _apply_facts_with_available_fixtures(contract: dict[str, Any], resource_id: str, records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _apply_facts_with_available_fixtures(contract: dict[str, Any], model_id: str, records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     current = list(records)
     namespaces = [{}]
     for fixture_id in contract.get("fixtures", {}):
@@ -1904,7 +1920,7 @@ def _apply_facts_with_available_fixtures(contract: dict[str, Any], resource_id: 
         fact_uses = [{"use": fact_id}]
         for namespace in namespaces:
             try:
-                next_records = _apply_fact_uses(contract, fact_uses, namespace, resource_id, current)
+                next_records = _apply_fact_uses(contract, fact_uses, namespace, model_id, current)
             except (AssertionError, KeyError, TypeError):
                 continue
             current = _dedupe_records(next_records)
@@ -1912,12 +1928,12 @@ def _apply_facts_with_available_fixtures(contract: dict[str, Any], resource_id: 
     return current
 
 
-def _apply_fact_uses(contract: dict[str, Any], fact_uses: list[dict[str, str]], namespace: dict[str, Any], resource_id: str, records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _apply_fact_uses(contract: dict[str, Any], fact_uses: list[dict[str, str]], namespace: dict[str, Any], model_id: str, records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     current = list(records)
     for fact_use in fact_uses:
         fact_id = fact_use["use"]
         kind, body = _fact_selector(contract["facts"][fact_id], fact_id)
-        if body["resource"] != resource_id:
+        if body["model"] != model_id:
             continue
         if kind == "present":
             current.append(resolve(body["values"], namespace))

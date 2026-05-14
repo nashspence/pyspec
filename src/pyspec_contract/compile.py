@@ -45,7 +45,7 @@ def validate_against_schema(data: dict[str, Any], schema_name: str) -> None:
         raise ContractError("Schema validation failed:\n" + str(exc)) from exc
 
 
-TARGET_ORDER = ("copy", "asset", "content_case", "audit_profile", "fixture", "fact", "resource", "capability", "fsm", "entry", "workflow", "scenario")
+TARGET_ORDER = ("copy", "asset", "content_case", "audit_profile", "fixture", "fact", "model", "capability", "fsm", "entry", "workflow", "scenario")
 
 
 
@@ -56,7 +56,7 @@ ENTITY_SECTIONS: dict[str, str] = {
     "audit_profile": "audit_profiles",
     "fixture": "fixtures",
     "fact": "facts",
-    "resource": "resources",
+    "model": "models",
     "capability": "capabilities",
     "fsm": "fsms",
     "entry": "entries",
@@ -77,7 +77,7 @@ def empty_compiled_contract(project: str) -> dict[str, Any]:
         "audit_profiles": {},
         "fixtures": {},
         "facts": {},
-        "resources": {},
+        "models": {},
         "capabilities": {},
         "events": {},
         "fsms": {},
@@ -88,7 +88,7 @@ def empty_compiled_contract(project: str) -> dict[str, Any]:
     }
 
 
-AUTHOR_SECTION_ORDER = ("fixtures", "facts", "resources", "capabilities", "fsms", "entries", "workflows", "scenarios", "copies", "assets", "content_cases", "audit_profiles")
+AUTHOR_SECTION_ORDER = ("fixtures", "facts", "models", "capabilities", "fsms", "entries", "workflows", "scenarios", "copies", "assets", "content_cases", "audit_profiles")
 
 
 def _prune_empty_author_sections(author: dict[str, Any]) -> dict[str, Any]:
@@ -124,10 +124,10 @@ def _normalize_fsm_messages(messages: dict[str, Any] | None) -> dict[str, dict[s
 
 
 def _prune_redundant_author_transitions(author: dict[str, Any]) -> None:
-    """Let resource lifecycles be the source of truth for simple transitions."""
+    """Let model lifecycles be the source of truth for simple transitions."""
     capabilities = author.get("capabilities") or {}
-    for resource in (author.get("resources") or {}).values():
-        lifecycle = resource.get("lifecycle") if isinstance(resource, dict) else None
+    for model_id, model in (author.get("models") or {}).items():
+        lifecycle = model.get("lifecycle") if isinstance(model, dict) else None
         if not lifecycle:
             continue
         field = lifecycle["field"]
@@ -136,7 +136,7 @@ def _prune_redundant_author_transitions(author: dict[str, Any]) -> None:
             if not isinstance(capability, dict):
                 continue
             declared = capability.get("transition")
-            if declared == {"field": field, "from": transition["from"], "to": transition["to"]}:
+            if declared == {"model": model_id, "field": field, "from": transition["from"], "to": transition["to"]}:
                 capability.pop("transition", None)
 
 
@@ -251,7 +251,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
         kind, body = _one_fact(spec, f"Fact {spec['id']}")
         return {kind: body, "basis": spec["basis"]}
 
-    if entity == "resource":
+    if entity == "model":
         item = {
             "kind": spec["kind"],
             "fields": spec["fields"],
@@ -263,7 +263,6 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
     if entity == "capability":
         capability: dict[str, Any] = {
             "archetype": spec["archetype"],
-            "resource": spec["resource"],
             "input": spec["input"],
             "output": spec["output"],
             "policy": rules.policy_ref(spec["id"]),
@@ -271,14 +270,15 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             "errors": spec.get("errors", []),
             "basis": spec["basis"],
         }
-        if "transition" in spec:
-            capability["transition"] = spec["transition"]
+        for field in ["creates", "reads", "updates", "deletes", "transition"]:
+            if field in spec:
+                capability[field] = spec[field]
         return capability
 
     if entity == "fsm":
         fsm_id = spec["id"]
         fsm: dict[str, Any] = {
-            "resource": spec["resource"],
+            "model": spec["model"],
             "context": spec["context"],
             "data": _compile_data(fsm_id, spec.get("data", [])),
             "messages": _normalize_fsm_messages(spec.get("messages")),
@@ -408,15 +408,15 @@ def audit_cases(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
 
 
 def _derive_capability_transitions(contract: dict[str, Any]) -> None:
-    """Derive transition capability details from resource lifecycle declarations.
+    """Derive transition capability details from model lifecycle declarations.
 
     Authored sources should not have to repeat the same state transition in both
-    the resource lifecycle and the capability. The compiled contract remains
+    the model lifecycle and the capability. The compiled contract remains
     explicit for downstream projections and validators.
     """
-    by_capability: dict[str, tuple[str, dict[str, Any]]] = {}
-    for resource_id, resource in contract.get("resources", {}).items():
-        lifecycle = resource.get("lifecycle")
+    by_capability: dict[str, dict[str, Any]] = {}
+    for model_id, model in contract.get("models", {}).items():
+        lifecycle = model.get("lifecycle")
         if not lifecycle:
             continue
         field = lifecycle["field"]
@@ -424,7 +424,12 @@ def _derive_capability_transitions(contract: dict[str, Any]) -> None:
             capability_id = transition["by"]
             if capability_id in by_capability:
                 raise ContractError(f"Capability {capability_id} is used by multiple lifecycle transitions")
-            by_capability[capability_id] = (resource_id, {"field": field, "from": transition["from"], "to": transition["to"]})
+            by_capability[capability_id] = {
+                "model": model_id,
+                "field": field,
+                "from": transition["from"],
+                "to": transition["to"],
+            }
 
     for capability_id, capability in contract.get("capabilities", {}).items():
         if capability.get("archetype") != "transition" or "transition" in capability:
@@ -432,12 +437,7 @@ def _derive_capability_transitions(contract: dict[str, Any]) -> None:
         derived = by_capability.get(capability_id)
         if not derived:
             continue
-        resource_id, transition = derived
-        if capability["resource"] != resource_id:
-            raise ContractError(
-                f"Capability {capability_id} resource {capability['resource']} does not match lifecycle resource {resource_id}"
-            )
-        capability["transition"] = transition
+        capability["transition"] = derived
 
 
 def _derive_events(contract: dict[str, Any]) -> dict[str, Any]:
@@ -503,7 +503,7 @@ def _semantic_validate(contract: dict[str, Any], used_facts: set[str]) -> None:
     _validate_copy_assets(contract)
     _validate_content_cases(contract)
     _validate_audit_profiles(contract)
-    _validate_resources(contract)
+    _validate_models(contract)
     _validate_capabilities(contract)
     _validate_fsms(contract)
     _validate_fsm_message_payload_consistency(contract)
@@ -611,8 +611,8 @@ def _validate_audit_cases(contract: dict[str, Any]) -> None:
         for fact_use in case.get("facts", []):
             fact_id = fact_use["use"]
             _validate_fixture_templates(contract["facts"][fact_id], fixture_values, f"audit case {case_id} fact {fact_id}")
-        if state.get("fields") and not _setup_has_resource(contract, case.get("fixtures", []), case.get("facts", []), fsm["resource"]):
-            raise ContractError(f"Audit case {case_id} renders fields for {fsm_id}.{state_name} but does not include a {fsm['resource']} fixture or fact")
+        if state.get("fields") and not _setup_has_model(contract, case.get("fixtures", []), case.get("facts", []), fsm["model"]):
+            raise ContractError(f"Audit case {case_id} renders fields for {fsm_id}.{state_name} but does not include a {fsm['model']} fixture or fact")
         if state.get("mounts"):
             mounted_instances = {mount["id"]: mount for mount in state["mounts"]}
             expected_instances = case.get("instances")
@@ -625,8 +625,8 @@ def _validate_audit_cases(contract: dict[str, Any]) -> None:
                 if expected["state"] not in contract["fsms"][child_fsm_id]["states"]:
                     raise ContractError(f"Audit case {case_id} references unknown FSM state {child_fsm_id}.{expected['state']}")
                 selected_state = contract["fsms"][child_fsm_id]["states"][expected["state"]]
-                if selected_state.get("fields") and not _setup_has_resource(contract, case.get("fixtures", []), case.get("facts", []), contract["fsms"][child_fsm_id]["resource"]):
-                    raise ContractError(f"Audit case {case_id} renders fields for {child_fsm_id}.{expected['state']} but does not include a {contract['fsms'][child_fsm_id]['resource']} fixture or fact")
+                if selected_state.get("fields") and not _setup_has_model(contract, case.get("fixtures", []), case.get("facts", []), contract["fsms"][child_fsm_id]["model"]):
+                    raise ContractError(f"Audit case {case_id} renders fields for {child_fsm_id}.{expected['state']} but does not include a {contract['fsms'][child_fsm_id]['model']} fixture or fact")
             covered_composable_states.add((fsm_id, state_name))
     missing_composed = sorted(f"{fsm_id}.{state_name}" for fsm_id, state_name in composable_states - covered_composable_states)
     if missing_composed:
@@ -637,29 +637,29 @@ def _validate_audit_cases(contract: dict[str, Any]) -> None:
 def _validate_fsm_state_fixture_coverage(contract: dict[str, Any]) -> None:
     for fsm_id, fsm in contract.get("fsms", {}).items():
         for state_name, state in fsm.get("states", {}).items():
-            if state.get("fields") and not _setup_has_resource(contract, list(contract.get("fixtures", {})), _all_fact_uses(contract), fsm["resource"]):
-                raise ContractError(f"Rendered fields for {fsm_id}.{state_name} require at least one {fsm['resource']} fixture or fact")
+            if state.get("fields") and not _setup_has_model(contract, list(contract.get("fixtures", {})), _all_fact_uses(contract), fsm["model"]):
+                raise ContractError(f"Rendered fields for {fsm_id}.{state_name} require at least one {fsm['model']} fixture or fact")
 
 
-def _setup_has_resource(contract: dict[str, Any], fixture_ids: list[str], fact_uses: list[dict[str, str]], resource_id: str) -> bool:
-    return _fixtures_include_resource(contract, fixture_ids, resource_id) or _fact_uses_include_resource(contract, fact_uses, resource_id)
+def _setup_has_model(contract: dict[str, Any], fixture_ids: list[str], fact_uses: list[dict[str, str]], model_id: str) -> bool:
+    return _fixtures_include_model(contract, fixture_ids, model_id) or _fact_uses_include_model(contract, fact_uses, model_id)
 
 
-def _fixtures_include_resource(contract: dict[str, Any], fixture_ids: list[str], resource_id: str) -> bool:
+def _fixtures_include_model(contract: dict[str, Any], fixture_ids: list[str], model_id: str) -> bool:
     for fixture_id in fixture_ids:
-        if fixture_id in contract.get("fixtures", {}) and _value_contains_resource(contract["fixtures"][fixture_id]["values"], resource_id):
+        if fixture_id in contract.get("fixtures", {}) and _value_contains_model(contract["fixtures"][fixture_id]["values"], model_id):
             return True
     return False
 
 
-def _fact_uses_include_resource(contract: dict[str, Any], fact_uses: list[dict[str, str]], resource_id: str) -> bool:
+def _fact_uses_include_model(contract: dict[str, Any], fact_uses: list[dict[str, str]], model_id: str) -> bool:
     for fact_use in fact_uses:
         fact_id = fact_use["use"]
         fact = contract["facts"].get(fact_id)
         if not fact:
             continue
         kind, body = _one_fact(fact, f"Fact {fact_id}")
-        if kind == "present" and body["resource"] == resource_id:
+        if kind == "present" and body["model"] == model_id:
             return True
     return False
 
@@ -668,88 +668,160 @@ def _all_fact_uses(contract: dict[str, Any]) -> list[dict[str, str]]:
     return [{"use": fact_id} for fact_id in contract.get("facts", {})]
 
 
-def _value_contains_resource(value: Any, resource_id: str) -> bool:
+def _value_contains_model(value: Any, model_id: str) -> bool:
     if isinstance(value, dict):
-        if value.get("resource") == resource_id:
+        if value.get("model") == model_id:
             return True
-        return any(_value_contains_resource(child, resource_id) for child in value.values())
+        return any(_value_contains_model(child, model_id) for child in value.values())
     if isinstance(value, list):
-        return any(_value_contains_resource(item, resource_id) for item in value)
+        return any(_value_contains_model(item, model_id) for item in value)
     return False
 
 
-def _validate_resources(contract: dict[str, Any]) -> None:
-    for rid, resource in contract["resources"].items():
-        lifecycle = resource.get("lifecycle")
+def _validate_models(contract: dict[str, Any]) -> None:
+    for rid, model in contract["models"].items():
+        lifecycle = model.get("lifecycle")
         if not lifecycle:
             continue
-        if lifecycle["field"] not in resource["fields"]:
-            raise ContractError(f"Resource {rid} lifecycle field is not a field: {lifecycle['field']}")
+        if lifecycle["field"] not in model["fields"]:
+            raise ContractError(f"Model {rid} lifecycle field is not a field: {lifecycle['field']}")
         states = set(lifecycle["states"])
         if lifecycle["initial"] not in states:
-            raise ContractError(f"Resource {rid} lifecycle initial state is not declared: {lifecycle['initial']}")
+            raise ContractError(f"Model {rid} lifecycle initial state is not declared: {lifecycle['initial']}")
         for transition in lifecycle.get("transitions", []):
             if transition["from"] not in states or transition["to"] not in states:
-                raise ContractError(f"Resource {rid} lifecycle transition uses unknown state: {transition}")
+                raise ContractError(f"Model {rid} lifecycle transition uses unknown state: {transition}")
 
 
 def _validate_capabilities(contract: dict[str, Any]) -> None:
-    resources = contract["resources"]
+    models = contract["models"]
     capabilities = contract["capabilities"]
     for cid, cap in capabilities.items():
-        if cap["resource"] not in resources:
-            raise ContractError(f"Capability {cid} references unknown resource {cap['resource']}")
-        if cap["archetype"] == "transition" and "transition" not in cap:
-            raise ContractError(f"Transition capability {cid} must declare transition")
-        if cap["archetype"] != "transition" and "transition" in cap:
-            raise ContractError(f"Only transition capabilities may declare transition: {cid}")
-        if "transition" in cap:
-            lifecycle = resources[cap["resource"]].get("lifecycle")
+        _validate_capability_relationships(cid, cap, models)
+        transition = cap.get("transition")
+        if transition:
+            model_id = transition["model"]
+            lifecycle = models[model_id].get("lifecycle")
             if not lifecycle:
-                raise ContractError(f"Capability {cid} declares transition but {cap['resource']} has no lifecycle")
-            transition = cap["transition"]
+                raise ContractError(f"Capability {cid} declares transition but {model_id} has no lifecycle")
             if transition["field"] != lifecycle["field"]:
-                raise ContractError(f"Capability {cid} transition field does not match resource lifecycle")
+                raise ContractError(f"Capability {cid} transition field does not match model lifecycle")
             if transition["from"] not in lifecycle["states"] or transition["to"] not in lifecycle["states"]:
                 raise ContractError(f"Capability {cid} transition references unknown lifecycle state")
-    for rid, resource in resources.items():
-        lifecycle = resource.get("lifecycle")
+    for rid, model in models.items():
+        lifecycle = model.get("lifecycle")
         if not lifecycle:
             continue
         for transition in lifecycle.get("transitions", []):
             by = transition["by"]
             if by not in capabilities:
-                raise ContractError(f"Resource {rid} lifecycle transition references unknown capability {by}")
+                raise ContractError(f"Model {rid} lifecycle transition references unknown capability {by}")
             cap_transition = capabilities[by].get("transition")
-            if not cap_transition or cap_transition["from"] != transition["from"] or cap_transition["to"] != transition["to"]:
-                raise ContractError(f"Resource {rid} lifecycle and capability {by} disagree")
+            if (
+                not cap_transition
+                or cap_transition["model"] != rid
+                or cap_transition["from"] != transition["from"]
+                or cap_transition["to"] != transition["to"]
+            ):
+                raise ContractError(f"Model {rid} lifecycle and capability {by} disagree")
     for event_id, event in contract["events"].items():
         for cap_id in event["emitted_by"]:
             if cap_id not in capabilities:
                 raise ContractError(f"Event {event_id} emitted by unknown capability {cap_id}")
 
 
+def _validate_capability_relationships(cid: str, cap: dict[str, Any], models: dict[str, Any]) -> None:
+    for field in ["creates", "reads", "updates", "deletes"]:
+        for model_id in cap.get(field, []):
+            if model_id not in models:
+                raise ContractError(f"Capability {cid} {field} unknown model {model_id}")
+
+    if "transition" in cap:
+        model_id = cap["transition"]["model"]
+        if model_id not in models:
+            raise ContractError(f"Capability {cid} transition references unknown model {model_id}")
+
+    archetype = cap["archetype"]
+    if archetype == "create":
+        _require_exact_relationship(cid, cap, "creates", 1)
+        _reject_relationships(cid, cap, {"reads", "updates", "deletes", "transition"})
+        _require_output_model(cid, cap, cap["creates"][0])
+    elif archetype == "read":
+        _require_exact_relationship(cid, cap, "reads", 1)
+        _reject_relationships(cid, cap, {"creates", "updates", "deletes", "transition"})
+        _require_output_model(cid, cap, cap["reads"][0])
+    elif archetype == "list":
+        _require_exact_relationship(cid, cap, "reads", 1)
+        _reject_relationships(cid, cap, {"creates", "updates", "deletes", "transition"})
+        expected = f"list[{cap['reads'][0]}]"
+        if cap["output"] != expected:
+            raise ContractError(f"Capability {cid} list output must be {expected}")
+    elif archetype == "query":
+        _require_relationship(cid, cap, "reads")
+        _reject_relationships(cid, cap, {"creates", "updates", "deletes", "transition"})
+    elif archetype == "update":
+        _require_exact_relationship(cid, cap, "updates", 1)
+        _reject_relationships(cid, cap, {"creates", "deletes", "transition"})
+        _require_output_model(cid, cap, cap["updates"][0])
+    elif archetype == "delete":
+        _require_exact_relationship(cid, cap, "deletes", 1)
+        _reject_relationships(cid, cap, {"creates", "updates", "transition"})
+    elif archetype == "transition":
+        if "transition" not in cap:
+            raise ContractError(f"Transition capability {cid} must declare transition")
+        _reject_relationships(cid, cap, {"creates", "reads", "updates", "deletes"})
+        _require_output_model(cid, cap, cap["transition"]["model"])
+    elif archetype == "command":
+        if "transition" in cap:
+            raise ContractError(f"Only transition capabilities may declare transition: {cid}")
+    else:  # pragma: no cover - schema prevents this.
+        raise ContractError(f"Unsupported capability archetype {archetype}: {cid}")
+
+
+def _require_relationship(cid: str, cap: dict[str, Any], field: str) -> None:
+    if not cap.get(field):
+        raise ContractError(f"Capability {cid} archetype {cap['archetype']} must declare {field}")
+
+
+def _require_exact_relationship(cid: str, cap: dict[str, Any], field: str, count: int) -> None:
+    _require_relationship(cid, cap, field)
+    actual = len(cap[field])
+    if actual != count:
+        raise ContractError(f"Capability {cid} archetype {cap['archetype']} must declare exactly {count} {field}")
+
+
+def _reject_relationships(cid: str, cap: dict[str, Any], fields: set[str]) -> None:
+    extras = sorted(field for field in fields if field in cap)
+    if extras:
+        raise ContractError(f"Capability {cid} archetype {cap['archetype']} does not support fields: {extras}")
+
+
+def _require_output_model(cid: str, cap: dict[str, Any], model_id: str) -> None:
+    if _base_type(cap["output"]) != model_id:
+        raise ContractError(f"Capability {cid} output must be {model_id}")
+
+
 def _validate_fsms(contract: dict[str, Any]) -> None:
     for fsm_id, fsm in contract["fsms"].items():
         if not fsm_id.startswith("fsm."):
             raise ContractError(f"FSM id must start with fsm.: {fsm_id}")
-        if fsm["resource"] not in contract["resources"]:
-            raise ContractError(f"FSM {fsm_id} references unknown resource {fsm['resource']}")
+        if fsm["model"] not in contract["models"]:
+            raise ContractError(f"FSM {fsm_id} references unknown model {fsm['model']}")
         _validate_data_bindings(
-            contract, f"FSM {fsm_id}", fsm.get("data", []), fsm.get("context", {}), resource=fsm["resource"]
+            contract, f"FSM {fsm_id}", fsm.get("data", []), fsm.get("context", {}), model=fsm["model"]
         )
         if fsm["initial"] not in fsm["states"]:
             raise ContractError(f"FSM {fsm_id} initial state is not declared: {fsm['initial']}")
-        resource_fields = set(contract["resources"][fsm["resource"]]["fields"])
+        model_fields = set(contract["models"][fsm["model"]]["fields"])
         for state_name, state in fsm["states"].items():
             _validate_fsm_state(
                 contract,
                 f"FSM {fsm_id}",
                 state_name,
                 state,
-                field_names=resource_fields,
+                field_names=model_fields,
                 data_context=fsm.get("context", {}),
-                resource=fsm["resource"],
+                model=fsm["model"],
             )
             if state.get("mounts") or state.get("layout") or state.get("sync"):
                 _validate_state_composition(contract, fsm_id, fsm, state_name, state)
@@ -765,12 +837,12 @@ def _validate_fsm_state(
     state: dict[str, Any],
     field_names: set[str],
     data_context: dict[str, Any] | None = None,
-    resource: str | None = None,
+    model: str | None = None,
 ) -> None:
-    _validate_data_bindings(contract, f"{owner_label}.{state_name}", state.get("data", []), data_context, resource=resource)
+    _validate_data_bindings(contract, f"{owner_label}.{state_name}", state.get("data", []), data_context, model=model)
     for field in state.get("fields", []):
         if field not in field_names:
-            raise ContractError(f"{owner_label}.{state_name} field slot is not declared on the resource/context: {field}")
+            raise ContractError(f"{owner_label}.{state_name} field slot is not declared on the model/context: {field}")
     for action in state["actions"]:
         if action not in contract["capabilities"]:
             raise ContractError(f"{owner_label}.{state_name} action references unknown capability {action}")
@@ -783,7 +855,7 @@ def _validate_data_bindings(
     data: list[dict[str, Any]],
     context: dict[str, Any] | None,
     *,
-    resource: str | None = None,
+    model: str | None = None,
 ) -> None:
     context_keys = set((context or {}).keys())
     for datum in data:
@@ -793,8 +865,8 @@ def _validate_data_bindings(
         capability = contract["capabilities"][capability_id]
         if capability["archetype"] not in {"read", "list", "query"}:
             raise ContractError(f"{owner_label} data capability must be read, list, or query: {capability_id}")
-        if resource and capability["resource"] != resource:
-            raise ContractError(f"{owner_label} data capability {capability_id} resource does not match {resource}")
+        if model and model not in capability.get("reads", []):
+            raise ContractError(f"{owner_label} data capability {capability_id} must read model {model}")
         input_keys = set((capability.get("input") or {}).keys())
         missing = sorted(input_keys - context_keys)
         if missing:
@@ -1069,9 +1141,9 @@ def _resolve_type_path(
         raise ContractError(f"{label} references unknown ${scope} field: {field}")
     type_name = root_types[field]
     for nested in parts[1:]:
-        if not contract or type_name not in contract.get("resources", {}):
-            raise ContractError(f"{label} cannot dereference non-resource field: ${scope}.{'.'.join(parts)}")
-        fields = contract["resources"][type_name]["fields"]
+        if not contract or type_name not in contract.get("models", {}):
+            raise ContractError(f"{label} cannot dereference non-model field: ${scope}.{'.'.join(parts)}")
+        fields = contract["models"][type_name]["fields"]
         if nested not in fields:
             raise ContractError(f"{label} references unknown {type_name} field: {nested}")
         type_name = fields[nested]
@@ -1638,9 +1710,9 @@ def _entry_input_source_types(contract: dict[str, Any], entry: dict[str, Any]) -
     if isinstance(payload, str):
         source_types["input.payload"] = payload
         base = _base_type(payload)
-        resource = contract.get("resources", {}).get(base)
-        if resource:
-            for field, type_name in resource["fields"].items():
+        model = contract.get("models", {}).get(base)
+        if model:
+            for field, type_name in model["fields"].items():
                 source_types[f"input.payload.{field}"] = type_name
     return source_types
 
@@ -1695,18 +1767,18 @@ def _validate_scenarios(contract: dict[str, Any]) -> None:
 
 def _validate_fact_body(contract: dict[str, Any], fact: dict[str, Any], label: str) -> None:
     kind, body = _one_fact(fact, label)
-    resource_id = body["resource"]
-    if resource_id not in contract["resources"]:
-        raise ContractError(f"{label} references unknown resource {resource_id}")
-    fields = set(contract["resources"][resource_id]["fields"])
+    model_id = body["model"]
+    if model_id not in contract["models"]:
+        raise ContractError(f"{label} references unknown model {model_id}")
+    fields = set(contract["models"][model_id]["fields"])
     if kind == "present":
         unknown = set(body["values"]) - fields
         if unknown:
-            raise ContractError(f"{label} seeds unknown {resource_id} fields: {sorted(unknown)}")
+            raise ContractError(f"{label} seeds unknown {model_id} fields: {sorted(unknown)}")
     elif kind == "absent":
         unknown = set(body["where"]) - fields
         if unknown:
-            raise ContractError(f"{label} filters unknown {resource_id} fields: {sorted(unknown)}")
+            raise ContractError(f"{label} filters unknown {model_id} fields: {sorted(unknown)}")
     else:  # pragma: no cover - schema prevents this.
         raise ContractError(f"{label} uses unsupported fact kind {kind}")
 
@@ -1842,9 +1914,9 @@ def _validate_scenario_then(contract: dict[str, Any], sid: str, scenario: dict[s
         for cap_id in then.get(field, []):
             if cap_id not in contract["capabilities"]:
                 raise ContractError(f"Scenario {sid} {field} unknown capability {cap_id}")
-    resource_exists = (then.get("resource") or {}).get("exists")
-    if resource_exists and resource_exists["resource"] not in contract["resources"]:
-        raise ContractError(f"Scenario {sid} asserts unknown resource {resource_exists['resource']}")
+    model_exists = (then.get("model") or {}).get("exists")
+    if model_exists and model_exists["model"] not in contract["models"]:
+        raise ContractError(f"Scenario {sid} asserts unknown model {model_exists['model']}")
     for event_id in (then.get("events") or {}).get("emitted", []) + (then.get("events") or {}).get("not_emitted", []):
         if event_id not in contract["events"]:
             raise ContractError(f"Scenario {sid} asserts unknown event {event_id}")
