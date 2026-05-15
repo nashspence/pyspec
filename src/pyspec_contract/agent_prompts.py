@@ -95,11 +95,8 @@ def _contract_has_web(contract: dict[str, Any]) -> bool:
     if any("html" in profile for profile in (contract.get("audit_profiles") or {}).values()):
         return True
     for owner in (contract.get("state_machines") or {}).values():
-        for state in (owner.get("states") or {}).values():
-            if "html" in (state.get("layout") or {}):
-                return True
-            presentation = state.get("presentation") or {}
-            if "html" in presentation or "css" in presentation:
+        for state in (owner.get("view_states") or {}).values():
+            if "web" in (state.get("renderers") or {}):
                 return True
     return False
 
@@ -110,10 +107,8 @@ def _contract_has_textual(contract: dict[str, Any]) -> bool:
     if any("textual" in profile for profile in (contract.get("audit_profiles") or {}).values()):
         return True
     for owner in (contract.get("state_machines") or {}).values():
-        for state in (owner.get("states") or {}).values():
-            if "textual" in (state.get("layout") or {}):
-                return True
-            if "textual" in (state.get("presentation") or {}):
+        for state in (owner.get("view_states") or {}).values():
+            if "textual" in (state.get("renderers") or {}):
                 return True
     return False
 
@@ -121,7 +116,7 @@ def _contract_has_textual(contract: dict[str, Any]) -> bool:
 def _contract_audit_cases(contract: dict[str, Any]) -> list[dict[str, Any]]:
     cases = []
     for state_machine in (contract.get("state_machines") or {}).values():
-        for state in (state_machine.get("states") or {}).values():
+        for state in (state_machine.get("view_states") or {}).values():
             cases.extend((state.get("audit") or {}).values())
     return cases
 
@@ -206,13 +201,13 @@ def _pm_design_prompt(context: _PromptContext) -> str:
     else:
         lines.append("- Do not author UI state machines, copy/assets, audit cases, or surface presentation.")
     if "web" in context.layers:
-        lines.append("- Web UI: HTML/CSS presentation, UI entry points, routes, and HTML audit surfaces.")
+        lines.append("- Web UI: web renderer layout, presentation, style, UI entry points, routes, and HTML audit surfaces.")
     elif "ui" in context.layers:
-        lines.append("- Do not author HTML/CSS or web routes; the web layer is inactive.")
+        lines.append("- Do not author web renderer details or web routes; the web layer is inactive.")
     if "textual" in context.layers:
         lines.append("- Textual UI: Textual presentation, screen projection, and Textual audit surfaces.")
     elif "ui" in context.layers:
-        lines.append("- Do not author Textual/TCSS details; the textual layer is inactive.")
+        lines.append("- Do not author Textual renderer details; the textual layer is inactive.")
     lines.extend(
         [
             "",
@@ -226,7 +221,7 @@ def _pm_design_prompt(context: _PromptContext) -> str:
             "- For entry points, declare one explicit `adapter` (`http`, `cli`, `webhook`, `scheduled`, `worker`, or `ui`) and one explicit `trigger` (`operation`, `state_machine`, or `workflow`).",
             "- For state-machine entry points, keep invocation and rendering separate with adapter input and trigger `render` (`html` or `textual`).",
             "- For workflow entry points, bind the entry point trigger to the workflow trigger with `trigger.workflow.ref` and `trigger.workflow.when`.",
-            "- For composed screens, mount state machine instances through state-local layout, mounts, context, and sync rules.",
+            "- For rendered screens, put platform-owned `layout`, `presentation`, and `style` under `renderers.web` or `renderers.textual`.",
             "- Every rendered copy or asset ref must be backed by a declared copy or asset item.",
         ]
     )
@@ -328,7 +323,7 @@ def _dev_prompt(context: _PromptContext) -> str:
         context.compiled_summary(),
         "",
         "Do not change `spec/spec.yaml` to fix implementation failures unless the user explicitly switches you into PM/design work.",
-        "Use generated constants and projections; do not invent routes, strings, state machine surfaces, CSS selectors, Textual widgets, TCSS rules, events, workflows, policies, operations, fixtures, scenario IDs, storage tables, or migrations outside the spec and implementation layer.",
+        "Use generated constants and projections; do not invent routes, strings, state machine surfaces, CSS selectors, Textual widgets, Textual style rules, events, workflows, policies, operations, fixtures, scenario IDs, storage tables, or migrations outside the spec and implementation layer.",
         "",
         "Generated interfaces to consume:",
         "- `spec/generated/behavior/scenarios.yaml` and `spec/generated/behavior/fixtures.yaml`",

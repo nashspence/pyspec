@@ -8,7 +8,7 @@ Active layers: full
 Compiled project: project_dispatch_board (models=3, operations=7, entry_points=6, workflows=1, state_machines=4, scenarios=5).
 
 Do not change `spec/spec.yaml` to fix implementation failures unless the user explicitly switches you into PM/design work.
-Use generated constants and projections; do not invent routes, strings, state machine surfaces, CSS selectors, Textual widgets, TCSS rules, events, workflows, policies, operations, fixtures, scenario IDs, storage tables, or migrations outside the spec and implementation layer.
+Use generated constants and projections; do not invent routes, strings, state machine surfaces, CSS selectors, Textual widgets, Textual style rules, events, workflows, policies, operations, fixtures, scenario IDs, storage tables, or migrations outside the spec and implementation layer.
 
 Generated interfaces to consume:
 - `spec/generated/behavior/scenarios.yaml` and `spec/generated/behavior/fixtures.yaml`

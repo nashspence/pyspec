@@ -16,7 +16,16 @@ import fastjsonschema
 from . import rules
 from .layers import LayerError, parse_layers, validate_author_layers
 from .io import read_json, read_yaml, write_json, write_yaml
-from .layout import layout_html, layout_html_regions, layout_regions, layout_textual, layout_textual_containers
+from .layout import (
+    renderer_regions,
+    renderer_textual,
+    renderer_textual_containers,
+    renderer_textual_presentation,
+    renderer_textual_style,
+    renderer_web_presentation,
+    renderer_web_regions,
+    renderer_web_style,
+)
 from .paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR, SOURCE_SPEC_PATH
 from .project import projection_files
 from .runtime_refs import ReferenceExpressionError, is_reference_expression, parse_reference_expression
@@ -414,9 +423,9 @@ def _compile_view_states(owner_id: str, states: dict[str, Any]) -> dict[str, Any
             "fields": state.get("field_slots", []),
             "operation_refs": state.get("operation_refs", []),
         }
-        if "presentation" in state:
-            item["presentation"] = state["presentation"]
-        for field in ["layout", "child_state_machines", "message_sync_rules"]:
+        if "renderers" in state:
+            item["renderers"] = state["renderers"]
+        for field in ["child_state_machines", "message_sync_rules"]:
             if field in state:
                 item[field] = state[field]
         if state.get("audit"):
@@ -545,7 +554,8 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
 
 def _state_machine_has_textual_screen(state_machine: dict[str, Any]) -> bool:
     return any(
-        "textual" in (state.get("layout") or {}) or "textual" in (state.get("presentation") or {})
+        bool(renderer_textual(state).get("layout"))
+        or (not state.get("child_state_machines") and bool(renderer_textual(state).get("presentation")))
         for state in state_machine.get("view_states", {}).values()
     )
 
@@ -640,7 +650,7 @@ def _validate_audit_cases(contract: dict[str, Any]) -> None:
         (state_machine_id, state_name)
         for state_machine_id, state_machine in contract.get("state_machines", {}).items()
         for state_name, state in state_machine.get("view_states", {}).items()
-        if state.get("layout") or state.get("child_state_machines")
+        if state.get("renderers") or state.get("child_state_machines")
     }
     covered_composable_states: set[tuple[str, str]] = set()
     for case_id, case in cases.items():
@@ -941,7 +951,7 @@ def _validate_state_machines(contract: dict[str, Any]) -> None:
                 data_context=state_machine.get("context", {}),
                 model=state_machine["model"],
             )
-            if state.get("child_state_machines") or state.get("layout") or state.get("message_sync_rules"):
+            if state.get("child_state_machines") or state.get("renderers") or state.get("message_sync_rules"):
                 _validate_state_composition(contract, state_machine_id, state_machine, state_name, state)
         _validate_field_state_data_sources(f"state machine {state_machine_id}", state_machine["view_states"], state_machine.get("data_dependencies", []), state_machine.get("transitions", []))
         _validate_state_machine_transitions(contract, state_machine_id, state_machine)
@@ -1108,11 +1118,11 @@ def _validate_state_composition(contract: dict[str, Any], state_machine_id: str,
     label = f"{state_machine_id}.{state_name}"
     parent_state_machine_id = state_machine_id
     parent_state_machine = state_machine
-    if not state.get("layout"):
-        raise ContractError(f"composed state machine state {label} must declare layout")
+    if not any(renderer.get("layout") for renderer in (state.get("renderers") or {}).values()):
+        raise ContractError(f"composed state machine state {label} must declare renderer layout")
     if not state.get("child_state_machines"):
         raise ContractError(f"composed state machine state {label} must mount at least one state machine")
-    regions = set(layout_regions(state["layout"]))
+    regions = set(renderer_regions(state))
     if not regions:
         raise ContractError(f"composed state machine state {label} must declare layout regions")
     mounts: dict[str, dict[str, Any]] = {}
@@ -1148,23 +1158,18 @@ def _validate_state_composition(contract: dict[str, Any], state_machine_id: str,
             mount_context,
         )
     used_regions = {mount["region"] for mount in state["child_state_machines"]}
-    missing_required = [region for region, spec in layout_regions(state["layout"]).items() if spec.get("required") and region not in used_regions]
+    missing_required = [region for region, spec in renderer_regions(state).items() if spec.get("required") and region not in used_regions]
     if missing_required:
         raise ContractError(f"composed state machine state {label} missing required layout regions: {missing_required}")
-    _validate_layout_contract(label, state["layout"], regions, set(mounts))
+    _validate_renderer_layouts(label, state)
     _validate_sync_rules(contract, parent_state_machine_id, state_name, parent_state_machine, state, mounts)
 
 
-def _validate_layout_contract(state_machine_id: str, layout: dict[str, Any], regions: set[str], mounts: set[str]) -> None:
-    html_regions = set(layout_html_regions(layout))
-    textual_regions = set(layout_textual_containers(layout))
-    if html_regions and textual_regions and html_regions != textual_regions:
-        raise ContractError(f"composed state machine {state_machine_id} layout regions differ between html and textual")
-    for rule in ((layout_html(layout).get("css") or {}).get("rules", [])):
-        _validate_composition_selector(state_machine_id, rule["selector"], regions, mounts, "CSS")
-    textual = layout_textual(layout)
-    for rule in ((textual.get("tcss") or {}).get("rules", [])):
-        _validate_composition_selector(state_machine_id, rule["selector"], regions, mounts, "TCSS")
+def _validate_renderer_layouts(state_machine_id: str, state: dict[str, Any]) -> None:
+    web_regions = set(renderer_web_regions(state))
+    textual_regions = set(renderer_textual_containers(state))
+    if web_regions and textual_regions and web_regions != textual_regions:
+        raise ContractError(f"composed state machine {state_machine_id} layout regions differ between web and textual")
 
 
 def _validate_condition_context(state_machine_id: str, context: dict[str, Any], condition: Any) -> None:
@@ -1401,60 +1406,107 @@ def _validate_sync_rules(
 
 
 def _validate_presentation(contract: dict[str, Any], owner_label: str, field_names: set[str], state_name: str, state: dict[str, Any]) -> None:
-    presentation = state.get("presentation") or {}
-    if not presentation:
+    renderers = state.get("renderers") or {}
+    if not renderers:
         return
     copy_slots = {ref.rsplit(".", 1)[-1] for ref in state["copy"]}
     asset_slots = {ref.rsplit(".", 1)[-1] for ref in state["assets"]}
     field_slots = set(state.get("fields", []))
     actions = set(state["operation_refs"])
+    regions = set(renderer_regions(state))
+    mounts = {mount["id"] for mount in state.get("child_state_machines", [])}
 
-    html_contract = presentation.get("html") or {}
-    for slot in html_contract.get("slots", []):
-        kind = slot["kind"]
-        if kind == "copy" and slot["slot"] not in copy_slots:
-            raise ContractError(f"{owner_label}.{state_name} HTML copy slot is not declared: {slot['slot']}")
-        if kind == "asset" and slot["slot"] not in asset_slots:
-            raise ContractError(f"{owner_label}.{state_name} HTML asset slot is not declared: {slot['slot']}")
-        if kind == "asset" and slot.get("alt_copy_slot") and slot["alt_copy_slot"] not in copy_slots:
-            raise ContractError(f"{owner_label}.{state_name} HTML asset alt_copy_slot is not declared: {slot['alt_copy_slot']}")
-        if kind == "field" and slot["slot"] not in field_slots:
-            raise ContractError(f"{owner_label}.{state_name} HTML field slot is not declared: {slot['slot']}")
-        if kind == "action" and slot["ref"] not in actions:
-            raise ContractError(f"{owner_label}.{state_name} HTML action slot is not declared: {slot['ref']}")
+    web_contract = renderer_web_presentation(state)
+    for slot in web_contract.get("slots", []):
+        bind_kind, bind_value = _one(slot["binding"], f"{owner_label}.{state_name} web slot binding")
+        _validate_slot_binding(owner_label, state_name, "Web slot", bind_kind, bind_value, copy_slots, asset_slots, field_slots, actions)
 
-    for rule in (presentation.get("css") or {}).get("rules", []):
-        _validate_style_selector(owner_label, state_name, rule["selector"], copy_slots, asset_slots, field_slots, actions, "CSS")
+    for rule in renderer_web_style(state).get("rules", []):
+        _validate_renderer_style_selector(
+            owner_label,
+            state_name,
+            rule["selector"],
+            copy_slots,
+            asset_slots,
+            field_slots,
+            actions,
+            regions,
+            mounts,
+            "web style",
+        )
 
-    textual = presentation.get("textual") or {}
+    textual = renderer_textual_presentation(state)
     widgets = textual.get("widgets", [])
     widget_ids = [widget["id"] for widget in widgets]
     if len(widget_ids) != len(set(widget_ids)):
         raise ContractError(f"{owner_label}.{state_name} Textual widgets contain duplicate ids")
-    widget_targets = {"copy": set(), "asset": set(), "field": set(), "action": set()}
+    widget_targets = {"text": set(), "asset": set(), "field": set(), "action": set()}
     for widget in widgets:
-        bind_kind, bind_value = _one(widget["bind"], f"{owner_label}.{state_name} textual widget bind")
-        if bind_kind == "copy" and bind_value not in copy_slots:
-            raise ContractError(f"{owner_label}.{state_name} Textual widget copy bind is not declared: {bind_value}")
-        if bind_kind == "asset" and bind_value not in asset_slots:
-            raise ContractError(f"{owner_label}.{state_name} Textual widget asset bind is not declared: {bind_value}")
-        if bind_kind == "action" and bind_value not in actions:
-            raise ContractError(f"{owner_label}.{state_name} Textual widget action bind is not declared: {bind_value}")
-        if bind_kind == "field" and bind_value not in field_slots:
-            raise ContractError(f"{owner_label}.{state_name} Textual widget field bind is not declared: {bind_value}")
+        bind_kind, bind_value = _one(widget["binding"], f"{owner_label}.{state_name} textual widget binding")
+        _validate_slot_binding(owner_label, state_name, "Textual widget", bind_kind, bind_value, copy_slots, asset_slots, field_slots, actions)
         if bind_kind in widget_targets:
             widget_targets[bind_kind].add(bind_value)
-    for rule in textual.get("tcss", {}).get("rules", []):
+    for rule in renderer_textual_style(state).get("rules", []):
         selector = rule["selector"]
-        _validate_style_selector(owner_label, state_name, selector, copy_slots, asset_slots, field_slots, actions, "TCSS")
+        _validate_renderer_style_selector(
+            owner_label,
+            state_name,
+            selector,
+            copy_slots,
+            asset_slots,
+            field_slots,
+            actions,
+            regions,
+            mounts,
+            "textual style",
+        )
         if widgets and selector.startswith("slot."):
             name = selector[len("slot."):]
-            if name not in widget_targets["copy"] and name not in widget_targets["asset"] and name not in widget_targets["field"]:
-                raise ContractError(f"{owner_label}.{state_name} TCSS selector has no matching Textual widget: {selector}")
+            if name not in widget_targets["text"] and name not in widget_targets["asset"] and name not in widget_targets["field"]:
+                raise ContractError(f"{owner_label}.{state_name} textual style selector has no matching Textual widget: {selector}")
         if widgets and selector.startswith("action."):
             action = selector[len("action."):]
             if action not in widget_targets["action"]:
-                raise ContractError(f"{owner_label}.{state_name} TCSS selector has no matching Textual widget: {selector}")
+                raise ContractError(f"{owner_label}.{state_name} textual style selector has no matching Textual widget: {selector}")
+
+
+def _validate_slot_binding(
+    owner_label: str,
+    state_name: str,
+    label: str,
+    bind_kind: str,
+    bind_value: str,
+    copy_slots: set[str],
+    asset_slots: set[str],
+    field_slots: set[str],
+    actions: set[str],
+) -> None:
+    if bind_kind == "text" and bind_value not in copy_slots:
+        raise ContractError(f"{owner_label}.{state_name} {label} text binding is not declared: {bind_value}")
+    if bind_kind == "asset" and bind_value not in asset_slots:
+        raise ContractError(f"{owner_label}.{state_name} {label} asset binding is not declared: {bind_value}")
+    if bind_kind == "action" and bind_value not in actions:
+        raise ContractError(f"{owner_label}.{state_name} {label} action binding is not declared: {bind_value}")
+    if bind_kind == "field" and bind_value not in field_slots:
+        raise ContractError(f"{owner_label}.{state_name} {label} field binding is not declared: {bind_value}")
+
+
+def _validate_renderer_style_selector(
+    owner_label: str,
+    state_name: str,
+    selector: str,
+    copy_slots: set[str],
+    asset_slots: set[str],
+    field_slots: set[str],
+    actions: set[str],
+    regions: set[str],
+    mounts: set[str],
+    label: str,
+) -> None:
+    if selector.startswith("region.") or selector.startswith("mount."):
+        _validate_composition_selector(f"{owner_label}.{state_name}", selector, regions, mounts, label)
+        return
+    _validate_style_selector(owner_label, state_name, selector, copy_slots, asset_slots, field_slots, actions, label)
 
 
 def _validate_style_selector(
@@ -1639,8 +1691,10 @@ def _validate_state_machine_target_surface(
 
 
 def _state_machine_supports_render_surface(state_machine: dict[str, Any], surface: str) -> bool:
+    platform = "web" if surface == "html" else surface
     return any(
-        surface in (state.get("layout") or {}) or surface in (state.get("presentation") or {})
+        bool((state.get("renderers") or {}).get(platform, {}).get("layout"))
+        or (not state.get("child_state_machines") and bool((state.get("renderers") or {}).get(platform, {}).get("presentation")))
         for state in state_machine.get("view_states", {}).values()
     )
 
@@ -2590,7 +2644,7 @@ def _expand_scenarios(contract: dict[str, Any]) -> None:
                     required["assets"].extend(mounted_state["assets"])
                     required["operation_refs"].extend(mounted_state["operation_refs"])
                 state_machine_assertion["composition"] = {
-                    "layout": parent_state.get("layout", {}),
+                    "renderers": parent_state.get("renderers", {}),
                     "child_state_machines": parent_state.get("child_state_machines", []),
                     "message_sync_rules": parent_state.get("message_sync_rules", []),
                 }

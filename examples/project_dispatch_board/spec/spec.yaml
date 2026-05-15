@@ -313,7 +313,16 @@ state_machines:
     context:
       project_id:
         primitive: ID
+    data_dependencies: []
+    initial_view_state: empty
     model: Project
+    state_machine_messages:
+      accepts:
+        message.project.selection_changed:
+          payload_schema:
+            project_id:
+              primitive: ID
+        message.selection.cleared: {}
     transitions:
     - from: empty
       on: message.project.selection_changed
@@ -325,15 +334,6 @@ state_machines:
       from: ready
       on: message.selection.cleared
       to: empty
-    state_machine_messages:
-      accepts:
-        message.project.selection_changed:
-          payload_schema:
-            project_id:
-              primitive: ID
-        message.selection.cleared: {}
-    data_dependencies: []
-    initial_view_state: empty
     view_states:
       empty:
         copy_slots:
@@ -342,12 +342,12 @@ state_machines:
       ready:
         copy_slots:
         - heading
+        data_dependencies:
+        - operation.project.read
         field_slots:
         - updated_at
         - status
         - assignee
-        data_dependencies:
-        - operation.project.read
   state_machine.project.board:
     archetype: dashboard
     basis: The dispatch board composes list, detail, and activity state machines through shared selected-project context.
@@ -356,10 +356,10 @@ state_machines:
         primitive: ID
       workspace_id:
         primitive: ID
-    model: Project
     data_dependencies:
     - operation.project.list
     initial_view_state: ready
+    model: Project
     view_states:
       ready:
         audit:
@@ -398,112 +398,34 @@ state_machines:
             surfaces:
             - html
             - textual
-        layout:
-          html:
-            css:
-              rules:
-              - declarations:
-                  display: grid
-                  gap: token.gap
-                  grid-template-columns: token.nav_width 1fr token.aside_width
-                selector: root
-              - declarations:
-                  min-width: token.nav_width
-                selector: region.nav
-              - declarations:
-                  min-width: '0'
-                selector: region.main
-              - declarations:
-                  min-width: token.aside_width
-                selector: region.aside
-              tokens:
-                aside_width: 16rem
-                gap: 1rem
-                nav_width: 20rem
-            regions:
-              aside:
-                classes:
-                - dispatch-board-aside
-                element: aside
-                order: 3
-                required: true
-                role: complementary
-              main:
-                classes:
-                - dispatch-board-main
-                element: main
-                order: 2
-                required: true
-                role: main
-              nav:
-                classes:
-                - dispatch-board-nav
-                element: nav
-                order: 1
-                required: true
-                role: navigation
-            root:
-              classes:
-              - dispatch-board
-              element: section
-              role: region
-          textual:
-            containers:
-              aside:
-                id: aside
-                kind: Container
-                order: 3
-                required: true
-              main:
-                id: main
-                kind: Container
-                order: 2
-                required: true
-              nav:
-                id: nav
-                kind: Container
-                order: 1
-                required: true
-            screen_class: ProjectBoardScreen
-            tcss:
-              rules:
-              - declarations:
-                  layout: horizontal
-                selector: screen
-              - declarations:
-                  width: '32'
-                selector: region.nav
-              - declarations:
-                  width: '28'
-                selector: region.aside
         child_state_machines:
         - context:
             selected_project_id: $state_machine.selected_project_id
             workspace_id: $state_machine.workspace_id
           id: list
+          initial_view_state: loading
           region: nav
           state_machine: state_machine.project.list
-          initial_view_state: loading
         - context:
             project_id: $state_machine.selected_project_id
           id: detail
+          initial_view_state: none
           region: main
           selected:
+            view_state: loading
             when:
               context_present: selected_project_id
-            view_state: loading
           state_machine: state_machine.project.detail
-          initial_view_state: none
         - context:
             project_id: $state_machine.selected_project_id
           id: activity
+          initial_view_state: empty
           region: aside
           selected:
+            view_state: ready
             when:
               context_present: selected_project_id
-            view_state: ready
           state_machine: state_machine.project.activity
-          initial_view_state: empty
         message_sync_rules:
         - do:
           - set:
@@ -523,12 +445,103 @@ state_machines:
           when:
             instance: list
             message: message.project.selected
+        renderers:
+          textual:
+            layout:
+              containers:
+                aside:
+                  id: aside
+                  kind: Container
+                  order: 3
+                  required: true
+                main:
+                  id: main
+                  kind: Container
+                  order: 2
+                  required: true
+                nav:
+                  id: nav
+                  kind: Container
+                  order: 1
+                  required: true
+              screen_class: ProjectBoardScreen
+            style:
+              rules:
+              - declarations:
+                  layout: horizontal
+                selector: screen
+              - declarations:
+                  width: '32'
+                selector: region.nav
+              - declarations:
+                  width: '28'
+                selector: region.aside
+          web:
+            layout:
+              regions:
+                aside:
+                  classes:
+                  - dispatch-board-aside
+                  element: aside
+                  order: 3
+                  required: true
+                  role: complementary
+                main:
+                  classes:
+                  - dispatch-board-main
+                  element: main
+                  order: 2
+                  required: true
+                  role: main
+                nav:
+                  classes:
+                  - dispatch-board-nav
+                  element: nav
+                  order: 1
+                  required: true
+                  role: navigation
+              root:
+                classes:
+                - dispatch-board
+                element: section
+                role: region
+            style:
+              rules:
+              - declarations:
+                  display: grid
+                  gap: token.gap
+                  grid-template-columns: token.nav_width 1fr token.aside_width
+                selector: root
+              - declarations:
+                  min-width: token.nav_width
+                selector: region.nav
+              - declarations:
+                  min-width: '0'
+                selector: region.main
+              - declarations:
+                  min-width: token.aside_width
+                selector: region.aside
+              tokens:
+                aside_width: 16rem
+                gap: 1rem
+                nav_width: 20rem
   state_machine.project.detail:
     basis: The detail state machine is independent from the list and reacts to selected project context.
     context:
       project_id:
         primitive: ID
+    data_dependencies: []
+    initial_view_state: none
     model: Project
+    state_machine_messages:
+      accepts:
+        data.error: {}
+        data.ready: {}
+        message.project.selection_changed:
+          payload_schema:
+            project_id:
+              primitive: ID
+        message.selection.cleared: {}
     transitions:
     - from: none
       on: message.project.selection_changed
@@ -546,17 +559,6 @@ state_machines:
       from: ready
       on: message.selection.cleared
       to: none
-    state_machine_messages:
-      accepts:
-        data.error: {}
-        data.ready: {}
-        message.project.selection_changed:
-          payload_schema:
-            project_id:
-              primitive: ID
-        message.selection.cleared: {}
-    data_dependencies: []
-    initial_view_state: none
     view_states:
       error:
         copy_slots:
@@ -592,7 +594,24 @@ state_machines:
         primitive: ID
       workspace_id:
         primitive: ID
+    data_dependencies:
+    - operation.project.list
+    initial_view_state: loading
     model: Project
+    state_machine_messages:
+      accepts:
+        data.empty: {}
+        data.error: {}
+        data.ready: {}
+        message.project.select:
+          payload_schema:
+            project_id:
+              primitive: ID
+      emits:
+        message.project.selected:
+          payload_schema:
+            project_id:
+              primitive: ID
     transitions:
     - from: loading
       on: data.empty
@@ -614,23 +633,6 @@ state_machines:
       from: ready
       on: message.project.select
       to: ready
-    state_machine_messages:
-      accepts:
-        data.empty: {}
-        data.error: {}
-        data.ready: {}
-        message.project.select:
-          payload_schema:
-            project_id:
-              primitive: ID
-      emits:
-        message.project.selected:
-          payload_schema:
-            project_id:
-              primitive: ID
-    data_dependencies:
-    - operation.project.list
-    initial_view_state: loading
     view_states:
       empty:
         asset_slots:
@@ -660,11 +662,8 @@ state_machines:
         - operation.project.submit
 entry_points:
   entry_point.api.project.create:
-    basis: HTTP endpoint for creating a dispatch project.
     adapter:
       http:
-        method: POST
-        path: /workspaces/{workspace_id}/projects
         input:
           body:
             customer:
@@ -676,6 +675,8 @@ entry_points:
           params:
             workspace_id:
               primitive: ID
+        method: POST
+        path: /workspaces/{workspace_id}/projects
         responses:
           created:
             body:
@@ -689,6 +690,7 @@ entry_points:
               type:
                 model: Problem
             status: 422
+    basis: HTTP endpoint for creating a dispatch project.
     trigger:
       operation:
         ref: operation.project.create
@@ -698,15 +700,14 @@ entry_points:
           title: $input.body.title
           workspace_id: $input.params.workspace_id
   entry_point.api.project.list:
-    basis: HTTP endpoint for listing dispatch projects.
     adapter:
       http:
-        method: GET
-        path: /workspaces/{workspace_id}/projects
         input:
           params:
             workspace_id:
               primitive: ID
+        method: GET
+        path: /workspaces/{workspace_id}/projects
         responses:
           listed:
             body:
@@ -721,13 +722,13 @@ entry_points:
               type:
                 model: Problem
             status: 503
+    basis: HTTP endpoint for listing dispatch projects.
     trigger:
       operation:
         ref: operation.project.list
         with:
           workspace_id: $input.params.workspace_id
   entry_point.cli.project.approve:
-    basis: CLI entry for approval automation.
     adapter:
       cli:
         cli_command: project approve
@@ -756,6 +757,7 @@ entry_points:
               from: $outcome.result
               type:
                 model: Problem
+    basis: CLI entry for approval automation.
     trigger:
       operation:
         ref: operation.project.approve
@@ -763,7 +765,6 @@ entry_points:
           approved_by: $input.args.approved_by
           project_id: $input.args.project_id
   entry_point.cli.project.board:
-    basis: CLI launcher for the Textual dispatch board.
     adapter:
       cli:
         cli_command: project board
@@ -771,6 +772,7 @@ entry_points:
           args:
             workspace_id:
               primitive: ID
+    basis: CLI launcher for the Textual dispatch board.
     trigger:
       state_machine:
         ref: state_machine.project.board
@@ -778,14 +780,14 @@ entry_points:
         with:
           workspace_id: $input.args.workspace_id
   entry_point.web.project.board:
-    basis: Web entry for the dispatch board.
     adapter:
       ui:
-        path: /workspaces/{workspace_id}/dispatch
         input:
           params:
             workspace_id:
               primitive: ID
+        path: /workspaces/{workspace_id}/dispatch
+    basis: Web entry for the dispatch board.
     trigger:
       state_machine:
         ref: state_machine.project.board
@@ -793,7 +795,6 @@ entry_points:
         with:
           workspace_id: $input.params.workspace_id
   entry_point.worker.project.approval_notice:
-    basis: Worker entry exposing the approval notice workflow.
     adapter:
       worker:
         input:
@@ -806,6 +807,7 @@ entry_points:
             disposition: dead_letter
             problem:
               model: Problem
+    basis: Worker entry exposing the approval notice workflow.
     trigger:
       workflow:
         ref: workflow.project.approval_notice
@@ -825,10 +827,10 @@ workflows:
           model: Problem
     steps:
     - id: send_notice
-      operation: operation.project.send_approval_notice
       input_bindings:
         approved_by: $trigger.payload.approved_by
         project_id: $trigger.payload.project_id
+      operation: operation.project.send_approval_notice
       outcome_routes:
         delivery_failed:
           retry_policy:
@@ -919,11 +921,11 @@ scenarios:
             view_state: none
           list:
             view_state: empty
-        ref: state_machine.project.board
-        view_state: ready
         message_sync_rules:
           observed:
           - select_project_updates_state_machines
+        ref: state_machine.project.board
+        view_state: ready
     title: Empty dispatch board
     when:
       open_entry:
@@ -951,11 +953,11 @@ scenarios:
             view_state: none
           list:
             view_state: ready
-        ref: state_machine.project.board
-        view_state: ready
         message_sync_rules:
           observed:
           - select_project_updates_state_machines
+        ref: state_machine.project.board
+        view_state: ready
     title: Ready dispatch board
     when:
       open_entry:

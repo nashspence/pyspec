@@ -597,7 +597,7 @@ def test_prod_harness_cannot_import_spec_fake(tmp_path: Path) -> None:
 def test_presentation_rejects_undeclared_css_region() -> None:
     author = _author()
     state_machine = _item(author, "state_machines", "state_machine.project.board")["view_states"]["ready"]
-    state_machine["layout"]["html"]["css"]["rules"].append({"selector": "region.ghost", "declarations": {"display": "block"}})
+    state_machine["renderers"]["web"]["style"]["rules"].append({"selector": "region.ghost", "declarations": {"display": "block"}})
     with pytest.raises(ContractError, match="undeclared layout region"):
         compile_source(author)
 
@@ -605,13 +605,14 @@ def test_presentation_rejects_undeclared_css_region() -> None:
 def test_presentation_rejects_undeclared_textual_action() -> None:
     author = _author()
     state = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]
-    state["presentation"] = {
+    state["renderers"] = {
         "textual": {
-            "screen_class": "ProjectListState",
-            "widgets": [{"id": "delete", "kind": "Button", "bind": {"action": "operation.project.delete"}}],
+            "presentation": {
+                "widgets": [{"id": "delete", "kind": "Button", "binding": {"action": "operation.project.delete"}}],
+            }
         }
     }
-    with pytest.raises(ContractError, match="action bind is not declared"):
+    with pytest.raises(ContractError, match="action binding is not declared"):
         compile_source(author)
 
 
@@ -947,7 +948,7 @@ def test_web_state_machine_entry_must_target_html_surface() -> None:
 
 def test_cli_state_machine_entry_surface_must_be_declared_by_state_machine() -> None:
     author = _author()
-    del author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["layout"]["textual"]
+    del author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["renderers"]["textual"]
     with pytest.raises(ContractError, match=r"Entry entry_point.cli\.project\.board targets state machine state_machine\.project\.board surface textual but that state machine does not declare it"):
         compile_source(author)
 
@@ -991,11 +992,11 @@ def test_authoring_layers_reject_html_state_machine_layout_without_web_layer() -
             "archetype": "dashboard",
             "model": "Ticket",
             "initial_view_state": "ready",
-            "view_states": {"ready": {"layout": {"html": {"regions": {"main": {"required": True}}}}}},
+            "view_states": {"ready": {"renderers": {"web": {"layout": {"regions": {"main": {"required": True}}}}}}},
             "basis": _basis("HTML layout is a web surface"),
         }
     }
-    with pytest.raises(ContractError, match="state machine view_state layout html requires web"):
+    with pytest.raises(ContractError, match="state machine view_state renderer web requires web"):
         compile_author(author, layers=parse_layers("core,http,ui,textual"))
 
 

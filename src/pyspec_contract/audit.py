@@ -18,9 +18,9 @@ from typing import Any, Iterable
 from .compile import ContractError, audit_cases
 from .content import AssetResult, ContentContext, ContentError, call_asset, call_copy
 from .io import write_yaml
-from .layout import layout_html, layout_html_regions
+from .layout import renderer_textual_presentation, renderer_web_layout, renderer_web_presentation, renderer_web_regions
 from .paths import GENERATED_SPEC_DIR, generated_relative as g
-from .project import css_value, default_html_slots, format_attrs, humanize, state_machines_projection, state_machine_styles_projection, safe_id
+from .project import css_value, default_web_slots, format_attrs, humanize, state_machines_projection, state_machine_styles_projection, safe_id
 from .runtime import fixture_namespace, resolve
 from .targets import (
     entry_state_machine_surface,
@@ -2105,7 +2105,7 @@ def render_composed_case_html(root: Path, contract: dict[str, Any], case: dict[s
     state = state_machine["view_states"][case["view_state"]]
     projection = state_machines_projection(contract)
     composition = next(item for item in projection["compositions"] if item["state_machine"] == case["state_machine"] and item["view_state"] == case["view_state"])
-    html_layout = layout_html(composition["layout"])
+    html_layout = renderer_web_layout(composition)
     root_spec = html_layout.get("root") or {"element": "section"}
     tag = root_spec.get("element", "section")
     classes = " ".join(["contract-state-machine-composition"] + root_spec.get("classes", []))
@@ -2113,7 +2113,7 @@ def render_composed_case_html(root: Path, contract: dict[str, Any], case: dict[s
     if root_spec.get("role") and root_spec["role"] != "none":
         attrs["role"] = root_spec["role"]
     parts = [f"<{tag}{format_attrs(attrs)}>"]
-    for region_name, region in sorted(layout_html_regions(state["layout"]).items(), key=lambda item: item[1].get("order", 0)):
+    for region_name, region in sorted(renderer_web_regions(state).items(), key=lambda item: item[1].get("order", 0)):
         region_tag = region.get("element", "div")
         region_classes = " ".join(["contract-layout-region", f"contract-layout-region--{region_name}"] + region.get("classes", []))
         region_attrs = {"class": region_classes, "data-layout-region": region_name, "data-required": str(region["required"]).lower()}
@@ -2130,9 +2130,8 @@ def render_composed_case_html(root: Path, contract: dict[str, Any], case: dict[s
 
 
 def render_state_machine_audit_html(root: Path, contract: dict[str, Any], state_machine: dict[str, Any], case: dict[str, Any] | None) -> str:
-    presentation = state_machine.get("presentation") or {}
-    html_contract = presentation.get("html") or {}
-    root_spec = html_contract.get("root") or {"element": "section"}
+    web_contract = renderer_web_presentation(state_machine)
+    root_spec = web_contract.get("root") or {"element": "section"}
     tag = root_spec.get("element", "section")
     classes = " ".join(["contract-state-machine-surface"] + root_spec.get("classes", []))
     attrs = {
@@ -2143,10 +2142,10 @@ def render_state_machine_audit_html(root: Path, contract: dict[str, Any], state_
     if root_spec.get("role") and root_spec["role"] != "none":
         attrs["role"] = root_spec["role"]
     lines = [f"<{tag}{format_attrs(attrs)}>"]
-    slots = html_contract.get("slots") or default_html_slots(state_machine)
-    field_slots = [slot for slot in slots if slot["kind"] == "field"]
+    slots = web_contract.get("slots") or default_web_slots(state_machine)
+    field_slots = [slot for slot in slots if "field" in slot["binding"]]
     for slot in slots:
-        if slot["kind"] == "field":
+        if "field" in slot["binding"]:
             continue
         records = records_for_state_machine(contract, state_machine, case)
         record = records[0] if records else {}
@@ -2167,26 +2166,24 @@ def render_state_machine_audit_html(root: Path, contract: dict[str, Any], state_
 
 
 def render_html_slot_runtime(root: Path, contract: dict[str, Any], state_machine: dict[str, Any], slot: dict[str, Any], record: dict[str, Any], context: dict[str, Any], namespace: dict[str, Any]) -> list[str]:
-    kind = slot["kind"]
+    kind, bind_value = next(iter(slot["binding"].items()))
     tag = slot["element"]
     classes = slot.get("classes", [])
-    attrs: dict[str, str] = {"data-contract-slot": slot.get("slot", slot.get("ref", "action"))}
+    attrs: dict[str, str] = {"data-contract-slot": slot.get("id", bind_value)}
     if classes:
         attrs["class"] = " ".join(classes)
     if slot.get("role") and slot["role"] != "none":
         attrs["role"] = slot["role"]
-    if kind == "copy":
-        copy_ref = slot_ref(state_machine, "copy", slot["slot"])
+    if kind == "text":
+        copy_ref = slot_ref(state_machine, "copy", bind_value)
         attrs["data-copy"] = copy_ref
         if slot.get("level"):
             attrs["aria-level"] = str(slot["level"])
         text = resolve_copy_text(root, contract, copy_ref, record, context, namespace)
         return [f"<{tag}{format_attrs(attrs)}>{html.escape(text)}</{tag}>"]
     if kind == "asset":
-        asset_ref = slot_ref(state_machine, "asset", slot["slot"])
+        asset_ref = slot_ref(state_machine, "asset", bind_value)
         attrs["data-asset"] = asset_ref
-        if slot.get("alt_copy_slot"):
-            attrs["data-alt-copy"] = slot_ref(state_machine, "copy", slot["alt_copy_slot"])
         asset_result = resolve_asset_result(root, contract, asset_ref, record, context, namespace)
         label = asset_result.alt or contract["assets"][asset_ref]["placeholder"]["label"]
         if tag == "img":
@@ -2196,7 +2193,9 @@ def render_html_slot_runtime(root: Path, contract: dict[str, Any], state_machine
             attrs.setdefault("class", (attrs.get("class", "") + " audit-asset").strip())
             return [f"<img{format_attrs(attrs)}>"]
         return [f"<{tag}{format_attrs(attrs)} aria-label={html.escape(label, quote=True)!r}></{tag}>"]
-    action = slot["ref"]
+    if kind == "literal":
+        return [f"<{tag}{format_attrs(attrs)}>{html.escape(str(bind_value))}</{tag}>"]
+    action = bind_value
     attrs["data-action"] = action
     if tag == "a":
         attrs.setdefault("href", "#")
@@ -2207,7 +2206,7 @@ def render_html_slot_runtime(root: Path, contract: dict[str, Any], state_machine
 
 def render_html_field_slot(record: dict[str, Any], slot: dict[str, Any]) -> list[str]:
     tag = slot["element"]
-    field = slot["slot"]
+    field = slot["binding"]["field"]
     attrs: dict[str, str] = {"class": "audit-field", "data-contract-slot": field, "data-field": field}
     if slot.get("classes"):
         attrs["class"] += " " + " ".join(slot["classes"])
@@ -2249,7 +2248,7 @@ def textual_audit_lines(root: Path, contract: dict[str, Any], case_id: str, case
 
 def state_machine_textual_lines(root: Path, contract: dict[str, Any], state_machine: dict[str, Any], case: dict[str, Any] | None) -> list[tuple[str, str]]:
     lines: list[tuple[str, str]] = []
-    textual = (state_machine.get("presentation") or {}).get("textual") or {}
+    textual = renderer_textual_presentation(state_machine)
     widgets = textual.get("widgets") or []
     if widgets:
         records = records_for_state_machine(contract, state_machine, case)
@@ -2257,8 +2256,8 @@ def state_machine_textual_lines(root: Path, contract: dict[str, Any], state_mach
         context = render_context(contract, case)
         namespace = render_namespace(contract, case)
         for widget in widgets:
-            bind_kind, bind_value = next(iter(widget["bind"].items()))
-            if bind_kind == "copy":
+            bind_kind, bind_value = next(iter(widget["binding"].items()))
+            if bind_kind == "text":
                 ref = slot_ref(state_machine, "copy", bind_value)
                 lines.append(("static", resolve_copy_text(root, contract, ref, record, context, namespace)))
             elif bind_kind == "asset":

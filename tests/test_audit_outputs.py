@@ -253,12 +253,14 @@ def test_composition_dot_routes_messages_generically() -> None:
         "model": "generic.model",
         "context": {"selected_id": "ID", "workspace_id": "ID"},
         "data_dependencies": [],
-        "layout": {
-            "html": {
-                "regions": {
-                    "target": {"order": 10, "element": "aside", "role": "complementary"},
-                    "source": {"order": 20, "element": "main", "role": "main", "required": True},
-                    "unused": {"order": 30, "element": "footer", "role": "contentinfo"},
+        "renderers": {
+            "web": {
+                "layout": {
+                    "regions": {
+                        "target": {"order": 10, "element": "aside", "role": "complementary"},
+                        "source": {"order": 20, "element": "main", "role": "main", "required": True},
+                        "unused": {"order": 30, "element": "footer", "role": "contentinfo"},
+                    }
                 }
             }
         },

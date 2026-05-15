@@ -16,6 +16,7 @@ from .content import ContentContext, ContentError, asset as asset_registry, call
 from .runtime import fixture_namespace, resolve
 from .runtime_refs import ReferenceExpressionError, parse_reference_expression
 from .io import read_json, read_yaml
+from .layout import renderer_textual_presentation, renderer_textual_style
 from .audit import (
     _case_file,
     _case_root,
@@ -35,7 +36,6 @@ from .audit import (
     state_machine_graph_file,
     workflow_flow_file,
 )
-from .layout import layout_textual
 from .paths import GENERATED_SPEC_DIR, SPEC_ROOT, generated_relative as g
 from .project import (
     _cwl_operation_ids,
@@ -385,22 +385,21 @@ def validate_textual_contract(root: Path, contract: dict[str, Any]) -> None:
     else:  # pragma: no cover
         raise ContractError(f"{label} state_machine_surface() must raise KeyError for unknown state machine surfaces")
 
-    tcss_rules = _parse_css_rules(module.textual_css(), f"{label} TCSS", textual=True)
+    tcss_rules = _parse_css_rules(module.textual_css(), f"{label} Textual style", textual=True)
     expected_selectors = {"Screen", ".contract-state-machine-surface"}
     for state_machine in state_machines:
-        textual = (state_machine.get("presentation") or {}).get("textual") or {}
+        textual = renderer_textual_presentation(state_machine)
         widget_ids = [widget["id"] for widget in textual.get("widgets", [])]
         if len(widget_ids) != len(set(widget_ids)):
             raise ContractError(f"Textual widgets for {state_machine['id']} contain duplicate ids")
-        for rule in textual.get("tcss", {}).get("rules", []):
+        for rule in renderer_textual_style(state_machine).get("rules", []):
             expected_selectors.add(_textual_selector(state_machine, rule["selector"]))
     for composition in compositions:
-        textual = layout_textual(composition.get("layout") or {})
-        for rule in (textual.get("tcss") or {}).get("rules", []):
+        for rule in renderer_textual_style(composition).get("rules", []):
             expected_selectors.add(composition_tcss_selector(composition, rule["selector"]))
     actual_selectors = {selector for selector, _ in tcss_rules}
     if actual_selectors != expected_selectors:
-        raise ContractError(_diff_message("Textual TCSS selectors", expected_selectors, actual_selectors))
+        raise ContractError(_diff_message("Textual style selectors", expected_selectors, actual_selectors))
 
 
 def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
@@ -871,7 +870,7 @@ def _parse_css_rules(text: str, label: str, textual: bool = False) -> list[tuple
     trailing = without_comments[pos:].strip()
     if trailing:
         raise ContractError(f"{label} contains trailing text outside rule blocks: {trailing[:40]!r}")
-    # Ensure there are no duplicated selectors in generated contract CSS/TCSS.
+    # Ensure there are no duplicated selectors in generated contract CSS/Textual style.
     selectors = [selector for selector, _ in rules]
     if len(selectors) != len(set(selectors)):
         duplicates = sorted({selector for selector in selectors if selectors.count(selector) > 1})
@@ -900,8 +899,7 @@ def _load_generated_module(path: Path, module_name: str):
 
 
 def _expected_textual_compose(state_machine: dict[str, Any]) -> list[tuple[str, str]]:
-    textual = (state_machine.get("presentation") or {}).get("textual") or {}
-    widgets = textual.get("widgets") or []
+    widgets = renderer_textual_presentation(state_machine).get("widgets") or []
     if widgets:
         return [(widget["kind"], _widget_label(widget)) for widget in widgets]
     slots = state_machine["slots"]
@@ -914,29 +912,28 @@ def _expected_textual_compose(state_machine: dict[str, Any]) -> list[tuple[str, 
 
 
 def _widget_label(widget: dict[str, Any]) -> str:
-    bind = widget["bind"]
-    for key in ["copy", "asset", "action", "field", "literal"]:
-        if key in bind:
-            return bind[key]
+    binding = widget["binding"]
+    for key in ["text", "asset", "action", "field", "literal"]:
+        if key in binding:
+            return binding[key]
     return widget["id"]
 
 
 def _textual_selector(state_machine: dict[str, Any], selector: str) -> str:
     if selector in {"root", "screen"}:
         return "Screen"
-    textual = (state_machine.get("presentation") or {}).get("textual") or {}
-    widgets = textual.get("widgets") or []
+    widgets = renderer_textual_presentation(state_machine).get("widgets") or []
     if selector.startswith("slot."):
         slot = selector[len("slot."):]
         for widget in widgets:
-            bind = widget["bind"]
-            if bind.get("copy") == slot or bind.get("asset") == slot:
+            binding = widget["binding"]
+            if binding.get("text") == slot or binding.get("asset") == slot or binding.get("field") == slot:
                 return "#" + safe_id(widget["id"])
         return "#" + slot
     if selector.startswith("action."):
         action = selector[len("action."):]
         for widget in widgets:
-            if widget["bind"].get("action") == action:
+            if widget["binding"].get("action") == action:
                 return "#" + safe_id(widget["id"])
         return "#" + safe_id(action)
     return selector

@@ -53,6 +53,11 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `child_state_machine_item` and `authored_child_state_machine`: child state-machine references plus context mappings.
 - `type_expr`: structured primitive, model, array, map, nullable, optional, enum, or inline object type expression.
 - `field_schema`, `field_schema_map`, and `object_schema`: reusable object contracts with explicit required and nullable semantics.
+- `renderer_contracts`: view-state renderer declarations keyed by platform. `renderers.web` and `renderers.textual` each own their platform-local `layout`, `presentation`, and `style`.
+- `web_renderer_contract`: web UI renderer contract. `layout` declares the web root and regions, `presentation` declares slots/components, and `style` declares web tokens/rules.
+- `textual_renderer_contract`: terminal/Textual UI renderer contract. `layout` declares screen containers and optional screen class, `presentation` declares widgets, and `style` declares Textual tokens/rules.
+- `slot_binding`: shared renderer binding object that connects a slot or widget to declared text, asset, field, action, or literal content.
+- `style_contract`: shared platform-local style tokens and selector rules. Style lives under the platform renderer, never under layout or presentation.
 
 ## Runtime Expression Namespaces
 
@@ -79,8 +84,8 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `spec/generated/product_interfaces/http.openapi.yaml`: OpenAPI projection generated only from HTTP entry points.
 - `spec/generated/product_interfaces/events.asyncapi.yaml`: AsyncAPI projection for durable top-level events, webhooks, workers, and event-triggered workflows; state-machine messages are not projected as domain events.
 - `spec/generated/product_interfaces/web.routes.json`: UI route projection generated from UI entry points.
-- `spec/generated/product_interfaces/web.state_machines.json`: state-machine render projection.
-- `spec/generated/product_interfaces/textual.projection.py`: Textual render projection.
+- `spec/generated/product_interfaces/web.state_machines.json`: state-machine web/Textual renderer contract projection, including composition layout and presentation style.
+- `spec/generated/product_interfaces/textual.projection.py`: Textual renderer projection generated from `renderers.textual.presentation` widgets, `renderers.textual.style`, and `renderers.textual.layout` containers.
 - `spec/generated/product_interfaces/workflow.cwl.yaml`: CWL projection generated for workflow/CLI/worker-relevant execution graphs.
 - `spec/generated/content_resolvers/{signatures.py,stubs.py,cases.yaml}`: content resolver contracts and examples.
 - `spec/generated/test_adapters/python_refs.py`: Python constants for resource and generated reference IDs.
@@ -99,7 +104,7 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 
 Each `$defs` entry in the JSON Schemas is documented exactly once here. The schema-inventory test treats these hidden markers as the authoritative inventory.
 
-- <!-- schema-def:aria_role --> `$defs/aria_role`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:aria_role --> `$defs/aria_role`: renderer contract component for web or Textual platforms.
 - <!-- schema-def:asset_item --> `$defs/asset_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:asset_placeholder --> `$defs/asset_placeholder`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:asset_ref --> `$defs/asset_ref`: typed reference definition for its namespace.
@@ -121,11 +126,11 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:authored_view_state --> `$defs/authored_view_state`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_workflow --> `$defs/authored_workflow`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:basis --> `$defs/basis`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:breakpoint_id --> `$defs/breakpoint_id`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:breakpoint_id --> `$defs/breakpoint_id`: renderer contract component for web or Textual platforms.
 - <!-- schema-def:child_state_machine_item --> `$defs/child_state_machine_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:child_state_machine_selected --> `$defs/child_state_machine_selected`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:cli_adapter --> `$defs/cli_adapter`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:cli_adapter_input --> `$defs/cli_adapter_input`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:cli_adapter --> `$defs/cli_adapter`: entry-point adapter, trigger, binding, or response contract component.
+- <!-- schema-def:cli_adapter_input --> `$defs/cli_adapter_input`: entry-point adapter, trigger, binding, or response contract component.
 - <!-- schema-def:condition_contract --> `$defs/condition_contract`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:content_arg_values --> `$defs/content_arg_values`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:content_args --> `$defs/content_args`: shared schema component used by authored source or compiled output.
@@ -135,10 +140,10 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:context_bindings --> `$defs/context_bindings`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:context_set_effect --> `$defs/context_set_effect`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:copy_item --> `$defs/copy_item`: compiled-output object for this resource or nested contract.
-- <!-- schema-def:css_class --> `$defs/css_class`: UI rendering contract component.
-- <!-- schema-def:css_declarations --> `$defs/css_declarations`: UI rendering contract component.
-- <!-- schema-def:css_property --> `$defs/css_property`: UI rendering contract component.
-- <!-- schema-def:css_value --> `$defs/css_value`: UI rendering contract component.
+- <!-- schema-def:css_class --> `$defs/css_class`: renderer contract component for web or Textual platforms.
+- <!-- schema-def:css_declarations --> `$defs/css_declarations`: renderer contract component for web or Textual platforms.
+- <!-- schema-def:css_property --> `$defs/css_property`: renderer contract component for web or Textual platforms.
+- <!-- schema-def:css_value --> `$defs/css_value`: renderer contract component for web or Textual platforms.
 - <!-- schema-def:datum --> `$defs/datum`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:entry_bindings --> `$defs/entry_bindings`: entry-point adapter, trigger, binding, or response contract component.
 - <!-- schema-def:entry_operation_trigger --> `$defs/entry_operation_trigger`: entry-point adapter, trigger, binding, or response contract component.
@@ -165,25 +170,15 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:fixture_item --> `$defs/fixture_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:fixture_ref --> `$defs/fixture_ref`: typed reference definition for its namespace.
 - <!-- schema-def:given --> `$defs/given`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:html_action_slot --> `$defs/html_action_slot`: UI rendering contract component.
-- <!-- schema-def:html_asset_slot --> `$defs/html_asset_slot`: UI rendering contract component.
-- <!-- schema-def:html_contract --> `$defs/html_contract`: UI rendering contract component.
-- <!-- schema-def:html_copy_slot --> `$defs/html_copy_slot`: UI rendering contract component.
-- <!-- schema-def:html_element --> `$defs/html_element`: UI rendering contract component.
-- <!-- schema-def:html_field_slot --> `$defs/html_field_slot`: UI rendering contract component.
-- <!-- schema-def:html_root --> `$defs/html_root`: UI rendering contract component.
-- <!-- schema-def:html_slot --> `$defs/html_slot`: UI rendering contract component.
-- <!-- schema-def:html_viewport --> `$defs/html_viewport`: UI rendering contract component.
-- <!-- schema-def:http_adapter --> `$defs/http_adapter`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:http_adapter_input --> `$defs/http_adapter_input`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:html_element --> `$defs/html_element`: renderer contract component for web or Textual platforms.
+- <!-- schema-def:html_viewport --> `$defs/html_viewport`: renderer contract component for web or Textual platforms.
+- <!-- schema-def:http_adapter --> `$defs/http_adapter`: entry-point adapter, trigger, binding, or response contract component.
+- <!-- schema-def:http_adapter_input --> `$defs/http_adapter_input`: entry-point adapter, trigger, binding, or response contract component.
 - <!-- schema-def:instance_id --> `$defs/instance_id`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:json_value --> `$defs/json_value`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:layout_container --> `$defs/layout_container`: UI rendering contract component.
-- <!-- schema-def:layout_contract --> `$defs/layout_contract`: UI rendering contract component.
-- <!-- schema-def:layout_html --> `$defs/layout_html`: UI rendering contract component.
-- <!-- schema-def:layout_region --> `$defs/layout_region`: UI rendering contract component.
-- <!-- schema-def:layout_root --> `$defs/layout_root`: UI rendering contract component.
-- <!-- schema-def:layout_textual --> `$defs/layout_textual`: UI rendering contract component.
+- <!-- schema-def:layout_container --> `$defs/layout_container`: renderer contract component for web or Textual platforms.
+- <!-- schema-def:layout_region --> `$defs/layout_region`: renderer contract component for web or Textual platforms.
+- <!-- schema-def:layout_root --> `$defs/layout_root`: renderer contract component for web or Textual platforms.
 - <!-- schema-def:message_ref --> `$defs/message_ref`: typed reference definition for its namespace.
 - <!-- schema-def:message_sync_action --> `$defs/message_sync_action`: message synchronization contract for composed state machines.
 - <!-- schema-def:message_sync_assertion --> `$defs/message_sync_assertion`: message synchronization contract for composed state machines.
@@ -202,44 +197,50 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:operation_outcome --> `$defs/operation_outcome`: operation input, outcome, emission, or binding contract component.
 - <!-- schema-def:operation_outcomes --> `$defs/operation_outcomes`: operation input, outcome, emission, or binding contract component.
 - <!-- schema-def:operation_ref --> `$defs/operation_ref`: typed reference definition for its namespace.
-- <!-- schema-def:presentation_contract --> `$defs/presentation_contract`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:python_class_name --> `$defs/python_class_name`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:python_identifier --> `$defs/python_identifier`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:python_class_name --> `$defs/python_class_name`: renderer contract component for web or Textual platforms.
+- <!-- schema-def:python_identifier --> `$defs/python_identifier`: renderer contract component for web or Textual platforms.
+- <!-- schema-def:renderer_contracts --> `$defs/renderer_contracts`: renderer contract component for web or Textual platforms.
 - <!-- schema-def:runtime_expression --> `$defs/runtime_expression`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:scalar --> `$defs/scalar`: structured type-expression and object-schema contract component.
 - <!-- schema-def:scenario_item --> `$defs/scenario_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:scenario_ref --> `$defs/scenario_ref`: typed reference definition for its namespace.
-- <!-- schema-def:scheduled_adapter --> `$defs/scheduled_adapter`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:scheduled_adapter --> `$defs/scheduled_adapter`: entry-point adapter, trigger, binding, or response contract component.
+- <!-- schema-def:slot_binding --> `$defs/slot_binding`: renderer contract component for web or Textual platforms.
 - <!-- schema-def:state_machine_audit_case --> `$defs/state_machine_audit_case`: state-machine contract component.
 - <!-- schema-def:state_machine_item --> `$defs/state_machine_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:state_machine_message --> `$defs/state_machine_message`: state-machine contract component.
 - <!-- schema-def:state_machine_messages --> `$defs/state_machine_messages`: state-machine contract component.
 - <!-- schema-def:state_machine_ref --> `$defs/state_machine_ref`: typed reference definition for its namespace.
 - <!-- schema-def:state_machine_transition --> `$defs/state_machine_transition`: state-machine contract component.
-- <!-- schema-def:state_name --> `$defs/state_name`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:style_contract --> `$defs/style_contract`: UI rendering contract component.
-- <!-- schema-def:style_rule --> `$defs/style_rule`: UI rendering contract component.
-- <!-- schema-def:style_selector --> `$defs/style_selector`: UI rendering contract component.
+- <!-- schema-def:state_name --> `$defs/state_name`: state-machine contract component.
+- <!-- schema-def:style_contract --> `$defs/style_contract`: renderer contract component for web or Textual platforms.
+- <!-- schema-def:style_rule --> `$defs/style_rule`: renderer contract component for web or Textual platforms.
+- <!-- schema-def:style_selector --> `$defs/style_selector`: renderer contract component for web or Textual platforms.
 - <!-- schema-def:target --> `$defs/target`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:text_ref --> `$defs/text_ref`: typed reference definition for its namespace.
-- <!-- schema-def:textual_bind --> `$defs/textual_bind`: UI rendering contract component.
-- <!-- schema-def:textual_contract --> `$defs/textual_contract`: UI rendering contract component.
-- <!-- schema-def:textual_viewport --> `$defs/textual_viewport`: UI rendering contract component.
-- <!-- schema-def:textual_widget --> `$defs/textual_widget`: UI rendering contract component.
+- <!-- schema-def:textual_renderer_contract --> `$defs/textual_renderer_contract`: renderer contract component for web or Textual platforms.
+- <!-- schema-def:textual_renderer_layout --> `$defs/textual_renderer_layout`: renderer contract component for web or Textual platforms.
+- <!-- schema-def:textual_renderer_presentation --> `$defs/textual_renderer_presentation`: renderer contract component for web or Textual platforms.
+- <!-- schema-def:textual_viewport --> `$defs/textual_viewport`: renderer contract component for web or Textual platforms.
+- <!-- schema-def:textual_widget --> `$defs/textual_widget`: renderer contract component for web or Textual platforms.
 - <!-- schema-def:then --> `$defs/then`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:type_expr --> `$defs/type_expr`: structured type-expression and object-schema contract component.
 - <!-- schema-def:type_expr_map --> `$defs/type_expr_map`: structured type-expression and object-schema contract component.
-- <!-- schema-def:ui_adapter --> `$defs/ui_adapter`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:ui_adapter_input --> `$defs/ui_adapter_input`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:ui_adapter --> `$defs/ui_adapter`: entry-point adapter, trigger, binding, or response contract component.
+- <!-- schema-def:ui_adapter_input --> `$defs/ui_adapter_input`: entry-point adapter, trigger, binding, or response contract component.
 - <!-- schema-def:value_map --> `$defs/value_map`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:view_state --> `$defs/view_state`: state-machine view-state contract component.
-- <!-- schema-def:view_state_assertion --> `$defs/view_state_assertion`: state-machine view-state contract component.
-- <!-- schema-def:view_state_name --> `$defs/view_state_name`: state-machine view-state contract component.
-- <!-- schema-def:webhook_adapter --> `$defs/webhook_adapter`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:webhook_adapter_input --> `$defs/webhook_adapter_input`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:view_state --> `$defs/view_state`: state-machine contract component.
+- <!-- schema-def:view_state_assertion --> `$defs/view_state_assertion`: state-machine contract component.
+- <!-- schema-def:view_state_name --> `$defs/view_state_name`: state-machine contract component.
+- <!-- schema-def:web_renderer_contract --> `$defs/web_renderer_contract`: renderer contract component for web or Textual platforms.
+- <!-- schema-def:web_renderer_layout --> `$defs/web_renderer_layout`: renderer contract component for web or Textual platforms.
+- <!-- schema-def:web_renderer_presentation --> `$defs/web_renderer_presentation`: renderer contract component for web or Textual platforms.
+- <!-- schema-def:web_slot --> `$defs/web_slot`: renderer contract component for web or Textual platforms.
+- <!-- schema-def:webhook_adapter --> `$defs/webhook_adapter`: entry-point adapter, trigger, binding, or response contract component.
+- <!-- schema-def:webhook_adapter_input --> `$defs/webhook_adapter_input`: entry-point adapter, trigger, binding, or response contract component.
 - <!-- schema-def:when --> `$defs/when`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:worker_adapter --> `$defs/worker_adapter`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:worker_adapter_input --> `$defs/worker_adapter_input`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:worker_adapter --> `$defs/worker_adapter`: entry-point adapter, trigger, binding, or response contract component.
+- <!-- schema-def:worker_adapter_input --> `$defs/worker_adapter_input`: entry-point adapter, trigger, binding, or response contract component.
 - <!-- schema-def:workflow_input_bindings --> `$defs/workflow_input_bindings`: workflow trigger, step, route, retry, outcome, or binding contract component.
 - <!-- schema-def:workflow_item --> `$defs/workflow_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:workflow_outcome --> `$defs/workflow_outcome`: workflow trigger, step, route, retry, outcome, or binding contract component.

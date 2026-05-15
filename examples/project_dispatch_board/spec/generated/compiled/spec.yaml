@@ -876,84 +876,6 @@ scenarios:
               when:
                 context_present: selected_project_id
             state_machine: state_machine.project.activity
-          layout:
-            html:
-              css:
-                rules:
-                - declarations:
-                    display: grid
-                    gap: token.gap
-                    grid-template-columns: token.nav_width 1fr token.aside_width
-                  selector: root
-                - declarations:
-                    min-width: token.nav_width
-                  selector: region.nav
-                - declarations:
-                    min-width: '0'
-                  selector: region.main
-                - declarations:
-                    min-width: token.aside_width
-                  selector: region.aside
-                tokens:
-                  aside_width: 16rem
-                  gap: 1rem
-                  nav_width: 20rem
-              regions:
-                aside:
-                  classes:
-                  - dispatch-board-aside
-                  element: aside
-                  order: 3
-                  required: true
-                  role: complementary
-                main:
-                  classes:
-                  - dispatch-board-main
-                  element: main
-                  order: 2
-                  required: true
-                  role: main
-                nav:
-                  classes:
-                  - dispatch-board-nav
-                  element: nav
-                  order: 1
-                  required: true
-                  role: navigation
-              root:
-                classes:
-                - dispatch-board
-                element: section
-                role: region
-            textual:
-              containers:
-                aside:
-                  id: aside
-                  kind: Container
-                  order: 3
-                  required: true
-                main:
-                  id: main
-                  kind: Container
-                  order: 2
-                  required: true
-                nav:
-                  id: nav
-                  kind: Container
-                  order: 1
-                  required: true
-              screen_class: ProjectBoardScreen
-              tcss:
-                rules:
-                - declarations:
-                    layout: horizontal
-                  selector: screen
-                - declarations:
-                    width: '32'
-                  selector: region.nav
-                - declarations:
-                    width: '28'
-                  selector: region.aside
           message_sync_rules:
           - do:
             - set:
@@ -973,6 +895,86 @@ scenarios:
             when:
               instance: list
               message: message.project.selected
+          renderers:
+            textual:
+              layout:
+                containers:
+                  aside:
+                    id: aside
+                    kind: Container
+                    order: 3
+                    required: true
+                  main:
+                    id: main
+                    kind: Container
+                    order: 2
+                    required: true
+                  nav:
+                    id: nav
+                    kind: Container
+                    order: 1
+                    required: true
+                screen_class: ProjectBoardScreen
+              style:
+                rules:
+                - declarations:
+                    layout: horizontal
+                  selector: screen
+                - declarations:
+                    width: '32'
+                  selector: region.nav
+                - declarations:
+                    width: '28'
+                  selector: region.aside
+            web:
+              layout:
+                regions:
+                  aside:
+                    classes:
+                    - dispatch-board-aside
+                    element: aside
+                    order: 3
+                    required: true
+                    role: complementary
+                  main:
+                    classes:
+                    - dispatch-board-main
+                    element: main
+                    order: 2
+                    required: true
+                    role: main
+                  nav:
+                    classes:
+                    - dispatch-board-nav
+                    element: nav
+                    order: 1
+                    required: true
+                    role: navigation
+                root:
+                  classes:
+                  - dispatch-board
+                  element: section
+                  role: region
+              style:
+                rules:
+                - declarations:
+                    display: grid
+                    gap: token.gap
+                    grid-template-columns: token.nav_width 1fr token.aside_width
+                  selector: root
+                - declarations:
+                    min-width: token.nav_width
+                  selector: region.nav
+                - declarations:
+                    min-width: '0'
+                  selector: region.main
+                - declarations:
+                    min-width: token.aside_width
+                  selector: region.aside
+                tokens:
+                  aside_width: 16rem
+                  gap: 1rem
+                  nav_width: 20rem
         instances:
           activity:
             source: state_machine.project.activity
@@ -1072,84 +1074,6 @@ scenarios:
               when:
                 context_present: selected_project_id
             state_machine: state_machine.project.activity
-          layout:
-            html:
-              css:
-                rules:
-                - declarations:
-                    display: grid
-                    gap: token.gap
-                    grid-template-columns: token.nav_width 1fr token.aside_width
-                  selector: root
-                - declarations:
-                    min-width: token.nav_width
-                  selector: region.nav
-                - declarations:
-                    min-width: '0'
-                  selector: region.main
-                - declarations:
-                    min-width: token.aside_width
-                  selector: region.aside
-                tokens:
-                  aside_width: 16rem
-                  gap: 1rem
-                  nav_width: 20rem
-              regions:
-                aside:
-                  classes:
-                  - dispatch-board-aside
-                  element: aside
-                  order: 3
-                  required: true
-                  role: complementary
-                main:
-                  classes:
-                  - dispatch-board-main
-                  element: main
-                  order: 2
-                  required: true
-                  role: main
-                nav:
-                  classes:
-                  - dispatch-board-nav
-                  element: nav
-                  order: 1
-                  required: true
-                  role: navigation
-              root:
-                classes:
-                - dispatch-board
-                element: section
-                role: region
-            textual:
-              containers:
-                aside:
-                  id: aside
-                  kind: Container
-                  order: 3
-                  required: true
-                main:
-                  id: main
-                  kind: Container
-                  order: 2
-                  required: true
-                nav:
-                  id: nav
-                  kind: Container
-                  order: 1
-                  required: true
-              screen_class: ProjectBoardScreen
-              tcss:
-                rules:
-                - declarations:
-                    layout: horizontal
-                  selector: screen
-                - declarations:
-                    width: '32'
-                  selector: region.nav
-                - declarations:
-                    width: '28'
-                  selector: region.aside
           message_sync_rules:
           - do:
             - set:
@@ -1169,6 +1093,86 @@ scenarios:
             when:
               instance: list
               message: message.project.selected
+          renderers:
+            textual:
+              layout:
+                containers:
+                  aside:
+                    id: aside
+                    kind: Container
+                    order: 3
+                    required: true
+                  main:
+                    id: main
+                    kind: Container
+                    order: 2
+                    required: true
+                  nav:
+                    id: nav
+                    kind: Container
+                    order: 1
+                    required: true
+                screen_class: ProjectBoardScreen
+              style:
+                rules:
+                - declarations:
+                    layout: horizontal
+                  selector: screen
+                - declarations:
+                    width: '32'
+                  selector: region.nav
+                - declarations:
+                    width: '28'
+                  selector: region.aside
+            web:
+              layout:
+                regions:
+                  aside:
+                    classes:
+                    - dispatch-board-aside
+                    element: aside
+                    order: 3
+                    required: true
+                    role: complementary
+                  main:
+                    classes:
+                    - dispatch-board-main
+                    element: main
+                    order: 2
+                    required: true
+                    role: main
+                  nav:
+                    classes:
+                    - dispatch-board-nav
+                    element: nav
+                    order: 1
+                    required: true
+                    role: navigation
+                root:
+                  classes:
+                  - dispatch-board
+                  element: section
+                  role: region
+              style:
+                rules:
+                - declarations:
+                    display: grid
+                    gap: token.gap
+                    grid-template-columns: token.nav_width 1fr token.aside_width
+                  selector: root
+                - declarations:
+                    min-width: token.nav_width
+                  selector: region.nav
+                - declarations:
+                    min-width: '0'
+                  selector: region.main
+                - declarations:
+                    min-width: token.aside_width
+                  selector: region.aside
+                tokens:
+                  aside_width: 16rem
+                  gap: 1rem
+                  nav_width: 20rem
         instances:
           activity:
             source: state_machine.project.activity
@@ -1372,84 +1376,6 @@ state_machines:
         copy: []
         data_dependencies: []
         fields: []
-        layout:
-          html:
-            css:
-              rules:
-              - declarations:
-                  display: grid
-                  gap: token.gap
-                  grid-template-columns: token.nav_width 1fr token.aside_width
-                selector: root
-              - declarations:
-                  min-width: token.nav_width
-                selector: region.nav
-              - declarations:
-                  min-width: '0'
-                selector: region.main
-              - declarations:
-                  min-width: token.aside_width
-                selector: region.aside
-              tokens:
-                aside_width: 16rem
-                gap: 1rem
-                nav_width: 20rem
-            regions:
-              aside:
-                classes:
-                - dispatch-board-aside
-                element: aside
-                order: 3
-                required: true
-                role: complementary
-              main:
-                classes:
-                - dispatch-board-main
-                element: main
-                order: 2
-                required: true
-                role: main
-              nav:
-                classes:
-                - dispatch-board-nav
-                element: nav
-                order: 1
-                required: true
-                role: navigation
-            root:
-              classes:
-              - dispatch-board
-              element: section
-              role: region
-          textual:
-            containers:
-              aside:
-                id: aside
-                kind: Container
-                order: 3
-                required: true
-              main:
-                id: main
-                kind: Container
-                order: 2
-                required: true
-              nav:
-                id: nav
-                kind: Container
-                order: 1
-                required: true
-            screen_class: ProjectBoardScreen
-            tcss:
-              rules:
-              - declarations:
-                  layout: horizontal
-                selector: screen
-              - declarations:
-                  width: '32'
-                selector: region.nav
-              - declarations:
-                  width: '28'
-                selector: region.aside
         message_sync_rules:
         - do:
           - set:
@@ -1470,6 +1396,86 @@ state_machines:
             instance: list
             message: message.project.selected
         operation_refs: []
+        renderers:
+          textual:
+            layout:
+              containers:
+                aside:
+                  id: aside
+                  kind: Container
+                  order: 3
+                  required: true
+                main:
+                  id: main
+                  kind: Container
+                  order: 2
+                  required: true
+                nav:
+                  id: nav
+                  kind: Container
+                  order: 1
+                  required: true
+              screen_class: ProjectBoardScreen
+            style:
+              rules:
+              - declarations:
+                  layout: horizontal
+                selector: screen
+              - declarations:
+                  width: '32'
+                selector: region.nav
+              - declarations:
+                  width: '28'
+                selector: region.aside
+          web:
+            layout:
+              regions:
+                aside:
+                  classes:
+                  - dispatch-board-aside
+                  element: aside
+                  order: 3
+                  required: true
+                  role: complementary
+                main:
+                  classes:
+                  - dispatch-board-main
+                  element: main
+                  order: 2
+                  required: true
+                  role: main
+                nav:
+                  classes:
+                  - dispatch-board-nav
+                  element: nav
+                  order: 1
+                  required: true
+                  role: navigation
+              root:
+                classes:
+                - dispatch-board
+                element: section
+                role: region
+            style:
+              rules:
+              - declarations:
+                  display: grid
+                  gap: token.gap
+                  grid-template-columns: token.nav_width 1fr token.aside_width
+                selector: root
+              - declarations:
+                  min-width: token.nav_width
+                selector: region.nav
+              - declarations:
+                  min-width: '0'
+                selector: region.main
+              - declarations:
+                  min-width: token.aside_width
+                selector: region.aside
+              tokens:
+                aside_width: 16rem
+                gap: 1rem
+                nav_width: 20rem
         surface: state_machine.project.board.ready
   state_machine.project.detail:
     basis: The detail state machine is independent from the list and reacts to selected project context.

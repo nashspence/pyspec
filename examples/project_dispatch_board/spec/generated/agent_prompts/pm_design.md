@@ -16,7 +16,7 @@ Authoring scope:
 - Events: event-producing product behavior and webhook-facing contracts when requested.
 - Workflow: workflows with explicit outcomes, step outcome routing, and CLI/worker/scheduled entry points with adapter-appropriate responses.
 - UI: state machines with view-state-local layouts, child state machines, audit cases, copy/assets, content cases, and audit profiles.
-- Web UI: HTML/CSS presentation, UI entry points, routes, and HTML audit surfaces.
+- Web UI: web renderer layout, presentation, style, UI entry points, routes, and HTML audit surfaces.
 - Textual UI: Textual presentation, screen projection, and Textual audit surfaces.
 
 Rules:
@@ -29,5 +29,5 @@ Rules:
 - For entry points, declare one explicit `adapter` (`http`, `cli`, `webhook`, `scheduled`, `worker`, or `ui`) and one explicit `trigger` (`operation`, `state_machine`, or `workflow`).
 - For state-machine entry points, keep invocation and rendering separate with adapter input and trigger `render` (`html` or `textual`).
 - For workflow entry points, bind the entry point trigger to the workflow trigger with `trigger.workflow.ref` and `trigger.workflow.when`.
-- For composed screens, mount state machine instances through state-local layout, mounts, context, and sync rules.
+- For rendered screens, put platform-owned `layout`, `presentation`, and `style` under `renderers.web` or `renderers.textual`.
 - Every rendered copy or asset ref must be backed by a declared copy or asset item.

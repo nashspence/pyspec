@@ -692,9 +692,6 @@
           "type": "array",
           "uniqueItems": true
         },
-        "layout": {
-          "$ref": "#/$defs/layout_contract"
-        },
         "message_sync_rules": {
           "items": {
             "$ref": "#/$defs/message_sync_rule"
@@ -708,8 +705,8 @@
           "type": "array",
           "uniqueItems": true
         },
-        "presentation": {
-          "$ref": "#/$defs/presentation_contract"
+        "renderers": {
+          "$ref": "#/$defs/renderer_contracts"
         }
       },
       "type": "object"
@@ -1319,119 +1316,6 @@
       },
       "type": "object"
     },
-    "html_action_slot": {
-      "additionalProperties": false,
-      "properties": {
-        "classes": {
-          "items": {
-            "$ref": "#/$defs/css_class"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "element": {
-          "$ref": "#/$defs/html_element"
-        },
-        "kind": {
-          "const": "action"
-        },
-        "ref": {
-          "$ref": "#/$defs/operation_ref"
-        },
-        "role": {
-          "$ref": "#/$defs/aria_role"
-        }
-      },
-      "required": [
-        "kind",
-        "ref",
-        "element"
-      ],
-      "type": "object"
-    },
-    "html_asset_slot": {
-      "additionalProperties": false,
-      "properties": {
-        "alt_copy_slot": {
-          "$ref": "#/$defs/field_name"
-        },
-        "classes": {
-          "items": {
-            "$ref": "#/$defs/css_class"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "element": {
-          "$ref": "#/$defs/html_element"
-        },
-        "kind": {
-          "const": "asset"
-        },
-        "role": {
-          "$ref": "#/$defs/aria_role"
-        },
-        "slot": {
-          "$ref": "#/$defs/field_name"
-        }
-      },
-      "required": [
-        "kind",
-        "slot",
-        "element"
-      ],
-      "type": "object"
-    },
-    "html_contract": {
-      "additionalProperties": false,
-      "properties": {
-        "root": {
-          "$ref": "#/$defs/html_root"
-        },
-        "slots": {
-          "items": {
-            "$ref": "#/$defs/html_slot"
-          },
-          "type": "array"
-        }
-      },
-      "type": "object"
-    },
-    "html_copy_slot": {
-      "additionalProperties": false,
-      "properties": {
-        "classes": {
-          "items": {
-            "$ref": "#/$defs/css_class"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "element": {
-          "$ref": "#/$defs/html_element"
-        },
-        "kind": {
-          "const": "copy"
-        },
-        "level": {
-          "maximum": 6,
-          "minimum": 1,
-          "type": "integer"
-        },
-        "role": {
-          "$ref": "#/$defs/aria_role"
-        },
-        "slot": {
-          "$ref": "#/$defs/field_name"
-        }
-      },
-      "required": [
-        "kind",
-        "slot",
-        "element"
-      ],
-      "type": "object"
-    },
     "html_element": {
       "enum": [
         "a",
@@ -1462,78 +1346,6 @@
         "thead",
         "tr",
         "ul"
-      ]
-    },
-    "html_field_slot": {
-      "additionalProperties": false,
-      "properties": {
-        "classes": {
-          "items": {
-            "$ref": "#/$defs/css_class"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "element": {
-          "$ref": "#/$defs/html_element"
-        },
-        "kind": {
-          "const": "field"
-        },
-        "label": {
-          "minLength": 1,
-          "type": "string"
-        },
-        "role": {
-          "$ref": "#/$defs/aria_role"
-        },
-        "slot": {
-          "$ref": "#/$defs/field_name"
-        }
-      },
-      "required": [
-        "kind",
-        "slot",
-        "element"
-      ],
-      "type": "object"
-    },
-    "html_root": {
-      "additionalProperties": false,
-      "properties": {
-        "classes": {
-          "items": {
-            "$ref": "#/$defs/css_class"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "element": {
-          "$ref": "#/$defs/html_element"
-        },
-        "role": {
-          "$ref": "#/$defs/aria_role"
-        }
-      },
-      "required": [
-        "element"
-      ],
-      "type": "object"
-    },
-    "html_slot": {
-      "oneOf": [
-        {
-          "$ref": "#/$defs/html_copy_slot"
-        },
-        {
-          "$ref": "#/$defs/html_asset_slot"
-        },
-        {
-          "$ref": "#/$defs/html_field_slot"
-        },
-        {
-          "$ref": "#/$defs/html_action_slot"
-        }
       ]
     },
     "html_viewport": {
@@ -1654,44 +1466,6 @@
       ],
       "type": "object"
     },
-    "layout_contract": {
-      "additionalProperties": false,
-      "minProperties": 1,
-      "properties": {
-        "html": {
-          "$ref": "#/$defs/layout_html"
-        },
-        "textual": {
-          "$ref": "#/$defs/layout_textual"
-        }
-      },
-      "type": "object"
-    },
-    "layout_html": {
-      "additionalProperties": false,
-      "properties": {
-        "css": {
-          "$ref": "#/$defs/style_contract"
-        },
-        "regions": {
-          "additionalProperties": {
-            "$ref": "#/$defs/layout_region"
-          },
-          "minProperties": 1,
-          "propertyNames": {
-            "$ref": "#/$defs/field_name"
-          },
-          "type": "object"
-        },
-        "root": {
-          "$ref": "#/$defs/layout_root"
-        }
-      },
-      "required": [
-        "regions"
-      ],
-      "type": "object"
-    },
     "layout_region": {
       "additionalProperties": false,
       "properties": {
@@ -1738,31 +1512,6 @@
           "$ref": "#/$defs/aria_role"
         }
       },
-      "type": "object"
-    },
-    "layout_textual": {
-      "additionalProperties": false,
-      "properties": {
-        "containers": {
-          "additionalProperties": {
-            "$ref": "#/$defs/layout_container"
-          },
-          "minProperties": 1,
-          "propertyNames": {
-            "$ref": "#/$defs/field_name"
-          },
-          "type": "object"
-        },
-        "screen_class": {
-          "$ref": "#/$defs/python_class_name"
-        },
-        "tcss": {
-          "$ref": "#/$defs/style_contract"
-        }
-      },
-      "required": [
-        "containers"
-      ],
       "type": "object"
     },
     "message_ref": {
@@ -2042,21 +1791,6 @@
       "pattern": "^operation\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
     },
-    "presentation_contract": {
-      "additionalProperties": false,
-      "properties": {
-        "css": {
-          "$ref": "#/$defs/style_contract"
-        },
-        "html": {
-          "$ref": "#/$defs/html_contract"
-        },
-        "textual": {
-          "$ref": "#/$defs/textual_contract"
-        }
-      },
-      "type": "object"
-    },
     "python_class_name": {
       "pattern": "^[A-Z][A-Za-z0-9]*$",
       "type": "string"
@@ -2064,6 +1798,19 @@
     "python_identifier": {
       "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$",
       "type": "string"
+    },
+    "renderer_contracts": {
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "textual": {
+          "$ref": "#/$defs/textual_renderer_contract"
+        },
+        "web": {
+          "$ref": "#/$defs/web_renderer_contract"
+        }
+      },
+      "type": "object"
     },
     "runtime_expression": {
       "description": "Shared runtime reference expression using $root.path.to.field syntax. Context-specific compiler validation restricts allowed roots and field paths.",
@@ -2098,6 +1845,71 @@
         "schedule_expression"
       ],
       "type": "object"
+    },
+    "slot_binding": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "text": {
+              "$ref": "#/$defs/field_name"
+            }
+          },
+          "required": [
+            "text"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "asset": {
+              "$ref": "#/$defs/field_name"
+            }
+          },
+          "required": [
+            "asset"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "field": {
+              "$ref": "#/$defs/field_name"
+            }
+          },
+          "required": [
+            "field"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "action": {
+              "$ref": "#/$defs/operation_ref"
+            }
+          },
+          "required": [
+            "action"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "literal": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "literal"
+          ],
+          "type": "object"
+        }
+      ]
     },
     "state_machine_audit_case": {
       "additionalProperties": false,
@@ -2322,80 +2134,45 @@
       "pattern": "^text\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
     },
-    "textual_bind": {
-      "oneOf": [
-        {
-          "additionalProperties": false,
-          "properties": {
-            "copy": {
-              "$ref": "#/$defs/field_name"
-            }
-          },
-          "required": [
-            "copy"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "asset": {
-              "$ref": "#/$defs/field_name"
-            }
-          },
-          "required": [
-            "asset"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "action": {
-              "$ref": "#/$defs/operation_ref"
-            }
-          },
-          "required": [
-            "action"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "field": {
-              "$ref": "#/$defs/field_name"
-            }
-          },
-          "required": [
-            "field"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "literal": {
-              "minLength": 1,
-              "type": "string"
-            }
-          },
-          "required": [
-            "literal"
-          ],
-          "type": "object"
-        }
-      ]
-    },
-    "textual_contract": {
+    "textual_renderer_contract": {
       "additionalProperties": false,
+      "minProperties": 1,
       "properties": {
+        "layout": {
+          "$ref": "#/$defs/textual_renderer_layout"
+        },
+        "presentation": {
+          "$ref": "#/$defs/textual_renderer_presentation"
+        },
+        "style": {
+          "$ref": "#/$defs/style_contract"
+        }
+      },
+      "type": "object"
+    },
+    "textual_renderer_layout": {
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "containers": {
+          "additionalProperties": {
+            "$ref": "#/$defs/layout_container"
+          },
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/$defs/field_name"
+          },
+          "type": "object"
+        },
         "screen_class": {
           "$ref": "#/$defs/python_class_name"
-        },
-        "tcss": {
-          "$ref": "#/$defs/style_contract"
-        },
+        }
+      },
+      "type": "object"
+    },
+    "textual_renderer_presentation": {
+      "additionalProperties": false,
+      "properties": {
         "widgets": {
           "items": {
             "$ref": "#/$defs/textual_widget"
@@ -2426,8 +2203,8 @@
     "textual_widget": {
       "additionalProperties": false,
       "properties": {
-        "bind": {
-          "$ref": "#/$defs/textual_bind"
+        "binding": {
+          "$ref": "#/$defs/slot_binding"
         },
         "classes": {
           "items": {
@@ -2453,7 +2230,7 @@
       "required": [
         "id",
         "kind",
-        "bind"
+        "binding"
       ],
       "type": "object"
     },
@@ -2780,6 +2557,103 @@
     "view_state_name": {
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
+    },
+    "web_renderer_contract": {
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "layout": {
+          "$ref": "#/$defs/web_renderer_layout"
+        },
+        "presentation": {
+          "$ref": "#/$defs/web_renderer_presentation"
+        },
+        "style": {
+          "$ref": "#/$defs/style_contract"
+        }
+      },
+      "type": "object"
+    },
+    "web_renderer_layout": {
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "regions": {
+          "additionalProperties": {
+            "$ref": "#/$defs/layout_region"
+          },
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/$defs/field_name"
+          },
+          "type": "object"
+        },
+        "root": {
+          "$ref": "#/$defs/layout_root"
+        }
+      },
+      "type": "object"
+    },
+    "web_renderer_presentation": {
+      "additionalProperties": false,
+      "properties": {
+        "slots": {
+          "items": {
+            "$ref": "#/$defs/web_slot"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "web_slot": {
+      "additionalProperties": false,
+      "properties": {
+        "binding": {
+          "$ref": "#/$defs/slot_binding"
+        },
+        "classes": {
+          "items": {
+            "$ref": "#/$defs/css_class"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "component": {
+          "enum": [
+            "text",
+            "image",
+            "field",
+            "button",
+            "link",
+            "container"
+          ]
+        },
+        "element": {
+          "$ref": "#/$defs/html_element"
+        },
+        "id": {
+          "$ref": "#/$defs/field_name"
+        },
+        "label": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "level": {
+          "maximum": 6,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "role": {
+          "$ref": "#/$defs/aria_role"
+        }
+      },
+      "required": [
+        "binding",
+        "component",
+        "element"
+      ],
+      "type": "object"
     },
     "webhook_adapter": {
       "additionalProperties": false,

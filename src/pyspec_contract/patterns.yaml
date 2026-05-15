@@ -21,11 +21,11 @@ authoring_layers:
       requires: [core]
       projections_when_declared: [spec/generated/product_interfaces/web.state_machines.json, spec/generated/audit_evidence]
     textual:
-      opens: [presentation.textual, audit_case.render.textual, audit_profile.textual]
+      opens: [renderers.textual, audit_case.render.textual, audit_profile.textual]
       requires: [core, ui]
       projections_when_declared: [spec/generated/product_interfaces/textual.projection.py, spec/generated/audit_evidence/**/renders/*.svg]
     web:
-      opens: [entry_point.adapter.ui, presentation.html, presentation.css, audit_case.render.html, audit_profile.html]
+      opens: [entry_point.adapter.ui, renderers.web, audit_case.render.html, audit_profile.html]
       requires: [core, ui]
       projections_when_declared: [spec/generated/product_interfaces/web.routes.json, spec/generated/audit_evidence/**/renders/*.png]
   common_sets:
@@ -99,22 +99,33 @@ entry_target_contracts:
   state_machine: 'State-machine entry triggers use trigger.state_machine.ref plus trigger.state_machine.render to distinguish invocation from html/textual rendering.'
   workflow: 'Workflow entry triggers use trigger.workflow.ref plus trigger.workflow.when so the entry point declares the trigger data it consumes. Workers declare message dispositions; workflows declare terminal outcomes and route each step outcome explicitly.'
 
-presentation_contracts:
-  html:
+renderer_contracts:
+  web_layout:
     layer: web
-    location: 'target: state_machine -> spec.view_states.<view_state>.presentation.html or spec.view_states.<view_state>.layout.html'
-    purpose: Exact root element, ARIA role, classes, and semantic slots.
-    selectors_allowed: [copy_slots, asset_slots, field_slots, actions]
-  css:
+    location: 'target: state_machine -> spec.view_states.<view_state>.renderers.web.layout'
+    purpose: Web renderer root container and composition regions.
+  web_presentation:
     layer: web
-    location: 'target: state_machine -> spec.view_states.<view_state>.presentation.css or spec.view_states.<view_state>.layout.css'
-    purpose: Exact CSS tokens and selector-scoped declarations.
-    selectors_allowed: [root, slot.<declared_slot>, action.<declared_action>, mount.<declared_mount>]
-  textual:
+    location: 'target: state_machine -> spec.view_states.<view_state>.renderers.web.presentation'
+    purpose: Web renderer slots/components and slot bindings.
+  web_style:
+    layer: web
+    location: 'target: state_machine -> spec.view_states.<view_state>.renderers.web.style'
+    purpose: Web renderer style tokens and selector-scoped declarations.
+    selectors_allowed: [root, slot.<declared_slot>, action.<declared_action>, region.<declared_region>, mount.<declared_mount>]
+  textual_layout:
     layer: textual
-    location: 'target: state_machine -> spec.view_states.<view_state>.presentation.textual or spec.view_states.<view_state>.layout.textual'
-    purpose: Exact Textual screen class, widgets, bindings, and TCSS-like rules.
-    selectors_allowed: [screen, slot.<declared_slot>, action.<declared_action>, mount.<declared_mount>]
+    location: 'target: state_machine -> spec.view_states.<view_state>.renderers.textual.layout'
+    purpose: Textual renderer screen class and composition containers.
+  textual_presentation:
+    layer: textual
+    location: 'target: state_machine -> spec.view_states.<view_state>.renderers.textual.presentation'
+    purpose: Textual widgets and slot bindings.
+  textual_style:
+    layer: textual
+    location: 'target: state_machine -> spec.view_states.<view_state>.renderers.textual.style'
+    purpose: Textual renderer style tokens and selector-scoped declarations.
+    selectors_allowed: [screen, slot.<declared_slot>, action.<declared_action>, region.<declared_region>, mount.<declared_mount>]
 
 gherkin_policy:
   source_of_truth: spec/generated/behavior/scenarios.yaml

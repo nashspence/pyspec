@@ -6,7 +6,13 @@ from collections import defaultdict
 from typing import Any, Iterable
 
 from .agent_prompts import agent_prompt_paths, agent_prompt_projection_files
-from .layout import layout_html, layout_textual, layout_textual_containers
+from .layout import (
+    renderer_textual_layout,
+    renderer_textual_presentation,
+    renderer_textual_style,
+    renderer_web_style,
+    renderer_textual_containers,
+)
 from .paths import generated_relative as g
 from .runtime_refs import ReferenceExpressionError, parse_reference_expression
 from .targets import (
@@ -136,7 +142,7 @@ def _has_ui(contract: dict[str, Any]) -> bool:
 
 
 def _state_has_textual_presentation(state: dict[str, Any]) -> bool:
-    return "textual" in (state.get("presentation") or {})
+    return bool(renderer_textual_presentation(state))
 
 
 def _has_textual_ui(contract: dict[str, Any]) -> bool:
@@ -145,7 +151,7 @@ def _has_textual_ui(contract: dict[str, Any]) -> bool:
     for owner in contract.get("state_machines", {}).values():
         if any(_state_has_textual_presentation(state) for state in owner.get("view_states", {}).values()):
             return True
-        if any("textual" in (state.get("layout") or {}) for state in owner.get("view_states", {}).values()):
+        if any(renderer_textual_layout(state) for state in owner.get("view_states", {}).values()):
             return True
     return False
 
@@ -309,7 +315,7 @@ def state_machines_projection(contract: dict[str, Any]) -> dict[str, Any]:
                     "state_machine": state_machine_id,
                     "view_state": state_name,
                     "context": state_machine.get("context", {}),
-                    "layout": state.get("layout", {}),
+                    "renderers": state.get("renderers", {}),
                     "child_state_machines": state.get("child_state_machines", []),
                     "message_sync_rules": state.get("message_sync_rules", []),
                 })
@@ -317,7 +323,7 @@ def state_machines_projection(contract: dict[str, Any]) -> dict[str, Any]:
 
 
 def state_machine_projection_item(owner_kind: str, owner_id: str, state_name: str, state: dict[str, Any]) -> dict[str, Any]:
-    return {
+    item = {
         "id": state["surface"],
         "owner_kind": owner_kind,
         "owner": owner_id,
@@ -329,8 +335,20 @@ def state_machine_projection_item(owner_kind: str, owner_id: str, state_name: st
             "fields": state.get("fields", []),
             "operation_refs": state["operation_refs"],
         },
-        "presentation": state.get("presentation", {}),
     }
+    if state.get("renderers"):
+        item["renderers"] = _surface_renderers(state)
+    return item
+
+
+def _surface_renderers(state: dict[str, Any]) -> dict[str, Any]:
+    if not state.get("child_state_machines"):
+        return state.get("renderers", {})
+    renderers: dict[str, Any] = {}
+    for platform, renderer in (state.get("renderers") or {}).items():
+        if renderer.get("layout"):
+            renderers[platform] = {"layout": renderer["layout"]}
+    return renderers
 
 
 def state_machine_styles_projection(
@@ -357,7 +375,7 @@ def state_machine_styles_projection(
     for state_machine in state_machines:
         if wanted_surfaces is not None and state_machine["id"] not in wanted_surfaces:
             continue
-        css_contract = (state_machine.get("presentation") or {}).get("css") or {}
+        css_contract = renderer_web_style(state_machine)
         grouped: dict[str, dict[str, str]] = {}
         root_selector = css_selector(state_machine, "root")
         for name, value in sorted((css_contract.get("tokens") or {}).items()):
@@ -375,7 +393,7 @@ def state_machine_styles_projection(
     for composition in state_machines_projection(contract)["compositions"]:
         if wanted_compositions is not None and composition["id"] not in wanted_compositions:
             continue
-        css_contract = layout_html(composition.get("layout") or {}).get("css") or {}
+        css_contract = renderer_web_style(composition)
         grouped: dict[str, dict[str, str]] = {}
         root_selector = composition_css_selector(composition, "root")
         for name, value in sorted((css_contract.get("tokens") or {}).items()):
@@ -401,14 +419,14 @@ def textual_contract_projection(contract: dict[str, Any]) -> str:
     return f'''from __future__ import annotations
 
 # Generated Textual projection. Do not edit by hand.
-# The PM contract owns state machines/view states/actions/widgets/TCSS; a real Textual app imports this file
+# The PM contract owns state machines/view states/actions/widgets/Textual styles; a real Textual app imports this file
 # and renders state machine view-state surfaces by id instead of inventing screens, widgets, or action keys.
 
 PROJECT = {contract["project"]!r}
 SCREENS = {screen_entries!r}
 STATE_MACHINES = {state_machines!r}
 COMPOSITIONS = {compositions!r}
-TCSS = {textual_tcss(state_machines, compositions)!r}
+TEXTUAL_STYLE = {textual_tcss(state_machines, compositions)!r}
 
 
 def state_machine_surface(surface_id: str) -> dict:
@@ -426,12 +444,12 @@ def composition(composition_id: str) -> dict:
 
 
 def textual_css() -> str:
-    return TCSS
+    return TEXTUAL_STYLE
 
 
 def compose_contract_state_machine(surface_id: str) -> list[tuple[str, str]]:
     item = state_machine_surface(surface_id)
-    textual = (item.get("presentation") or {{}}).get("textual") or {{}}
+    textual = ((item.get("renderers") or {{}}).get("textual") or {{}}).get("presentation") or {{}}
     widgets = textual.get("widgets") or []
     if widgets:
         return [(widget["kind"], widget_label(widget)) for widget in widgets]
@@ -450,16 +468,16 @@ def compose_contract_composition(composition_id: str) -> list[tuple[str, str, st
 
 
 def widget_label(widget: dict) -> str:
-    bind = widget["bind"]
-    if "copy" in bind:
-        return bind["copy"]
-    if "asset" in bind:
-        return bind["asset"]
-    if "action" in bind:
-        return bind["action"]
-    if "field" in bind:
-        return bind["field"]
-    return bind.get("literal", widget["id"])
+    binding = widget["binding"]
+    if "text" in binding:
+        return binding["text"]
+    if "asset" in binding:
+        return binding["asset"]
+    if "action" in binding:
+        return binding["action"]
+    if "field" in binding:
+        return binding["field"]
+    return binding.get("literal", widget["id"])
 '''
 
 
@@ -495,35 +513,36 @@ def _textual_screen_class(
     compositions_by_state_machine: dict[str, dict[str, Any]],
 ) -> str | None:
     for state_name, state in sorted(state_machine.get("view_states", {}).items()):
-        textual = layout_textual(state.get("layout") or {})
+        textual = renderer_textual_layout(state)
         if textual:
             return textual.get("screen_class") or "ComposedContractScreen"
     for surface in state_machines_by_owner.get(state_machine_id, []):
-        textual = (surface.get("presentation") or {}).get("textual") or {}
-        if textual.get("screen_class"):
-            return textual["screen_class"]
+        textual = renderer_textual_presentation(surface)
         if textual:
             return "Screen"
-    if any("textual" in (state.get("presentation") or {}) for state in state_machine.get("view_states", {}).values()):
+    if any(
+        not state.get("child_state_machines") and bool(renderer_textual_presentation(state))
+        for state in state_machine.get("view_states", {}).values()
+    ):
         return "Screen"
     return None
 
 
-def default_html_slots(state_machine: dict[str, Any]) -> list[dict[str, Any]]:
+def default_web_slots(state_machine: dict[str, Any]) -> list[dict[str, Any]]:
     slots: list[dict[str, Any]] = []
     for copy_ref in state_machine["slots"]["copy"]:
         slot = copy_ref.rsplit(".", 1)[-1]
         element = "h2" if slot == "title" else "p"
-        item: dict[str, Any] = {"kind": "copy", "slot": slot, "element": element}
+        item: dict[str, Any] = {"binding": {"text": slot}, "component": "text", "element": element}
         if slot == "title":
             item.update({"role": "heading", "level": 2})
         slots.append(item)
     for asset_ref in state_machine["slots"]["assets"]:
-        slots.append({"kind": "asset", "slot": asset_ref.rsplit(".", 1)[-1], "element": "img"})
+        slots.append({"binding": {"asset": asset_ref.rsplit(".", 1)[-1]}, "component": "image", "element": "img"})
     for field in state_machine["slots"].get("fields", []):
-        slots.append({"kind": "field", "slot": field, "element": "p"})
+        slots.append({"binding": {"field": field}, "component": "field", "element": "p"})
     for action in state_machine["slots"]["operation_refs"]:
-        slots.append({"kind": "action", "ref": action, "element": "button"})
+        slots.append({"binding": {"action": action}, "component": "button", "element": "button"})
     return slots
 
 
@@ -559,15 +578,13 @@ def textual_tcss(state_machines: list[dict[str, Any]], compositions: list[dict[s
         ".contract-state-machine-surface": {"padding": "1"},
     }
     for state_machine in state_machines:
-        textual = (state_machine.get("presentation") or {}).get("textual") or {}
-        for rule in textual.get("tcss", {}).get("rules", []):
+        for rule in renderer_textual_style(state_machine).get("rules", []):
             selector = tcss_selector(state_machine, rule["selector"])
             declarations = grouped.setdefault(selector, {})
             for name, value in sorted(rule["declarations"].items()):
                 declarations[name] = css_value(value)
     for composition in compositions or []:
-        textual = layout_textual(composition.get("layout") or {})
-        for rule in (textual.get("tcss") or {}).get("rules", []):
+        for rule in renderer_textual_style(composition).get("rules", []):
             selector = composition_tcss_selector(composition, rule["selector"])
             declarations = grouped.setdefault(selector, {})
             for name, value in sorted(rule["declarations"].items()):
@@ -584,19 +601,18 @@ def textual_tcss(state_machines: list[dict[str, Any]], compositions: list[dict[s
 def tcss_selector(state_machine: dict[str, Any], selector: str) -> str:
     if selector in {"root", "screen"}:
         return "Screen"
-    textual = (state_machine.get("presentation") or {}).get("textual") or {}
-    widgets = textual.get("widgets") or []
+    widgets = renderer_textual_presentation(state_machine).get("widgets") or []
     if selector.startswith("slot."):
         slot = selector[len("slot."):]
         for widget in widgets:
-            bind = widget["bind"]
-            if bind.get("copy") == slot or bind.get("asset") == slot:
+            binding = widget["binding"]
+            if binding.get("text") == slot or binding.get("asset") == slot or binding.get("field") == slot:
                 return "#" + safe_id(widget["id"])
         return "#" + slot
     if selector.startswith("action."):
         action = selector[len("action."):]
         for widget in widgets:
-            if widget["bind"].get("action") == action:
+            if widget["binding"].get("action") == action:
                 return "#" + safe_id(widget["id"])
         return "#" + safe_id(action)
     return selector
@@ -604,11 +620,11 @@ def tcss_selector(state_machine: dict[str, Any], selector: str) -> str:
 
 def composition_tcss_selector(composition: dict[str, Any], selector: str) -> str:
     if selector in {"root", "screen"}:
-        textual = layout_textual(composition.get("layout") or {})
+        textual = renderer_textual_layout(composition)
         return textual.get("screen_class") or "Screen"
     if selector.startswith("region."):
         region = selector[len("region."):]
-        container = layout_textual_containers(composition.get("layout") or {}).get(region, {})
+        container = renderer_textual_containers(composition).get(region, {})
         return "#" + safe_id(container.get("id", region))
     if selector.startswith("mount."):
         return "#" + safe_id(selector[len("mount."):])

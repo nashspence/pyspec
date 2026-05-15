@@ -35,8 +35,8 @@ def test_composed_state_machine_contract_is_closed_and_projected() -> None:
     ]
 
     state_machine = contract["state_machines"]["state_machine.project.board"]["view_states"]["ready"]
-    assert set(state_machine["layout"]["html"]["regions"]) == {"nav", "main", "aside"}
-    assert set(state_machine["layout"]["textual"]["containers"]) == {"nav", "main", "aside"}
+    assert set(state_machine["renderers"]["web"]["layout"]["regions"]) == {"nav", "main", "aside"}
+    assert set(state_machine["renderers"]["textual"]["layout"]["containers"]) == {"nav", "main", "aside"}
     assert [(item["id"], item["state_machine"], item["region"], item["initial_view_state"]) for item in state_machine["child_state_machines"]] == [
         ("list", "state_machine.project.list", "nav", "loading"),
         ("detail", "state_machine.project.detail", "main", "none"),

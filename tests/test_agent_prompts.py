@@ -48,5 +48,5 @@ def test_init_writes_layer_specific_starter_prompts(tmp_path: Path) -> None:
     assert (tmp_path / "spec" / "spec.yaml").exists()
     pm_design = (tmp_path / "spec" / "generated" / "agent_prompts" / "pm_design.md").read_text(encoding="utf-8")
     assert "Active layers: core,ui,web" in pm_design
-    assert "Web UI: HTML/CSS presentation" in pm_design
-    assert "Do not author Textual/TCSS details" in pm_design
+    assert "Web UI: web renderer layout, presentation, style" in pm_design
+    assert "Do not author Textual renderer details" in pm_design

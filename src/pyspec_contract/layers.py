@@ -164,12 +164,11 @@ def _validate_author_spec_layers(label: str, target: str, spec: dict[str, Any], 
 
     if target == "state_machine":
         for state_name, state in spec.get("view_states", {}).items():
-            _validate_presentation_layers(f"{label} view_state {state_name}", state.get("presentation", {}), layers)
-            layout = state.get("layout") or {}
-            if "html" in layout:
-                _require_layers(label, "state machine view_state layout html", {"web"}, layers)
-            if "textual" in layout:
-                _require_layers(label, "state machine view_state layout textual", {"textual"}, layers)
+            renderers = state.get("renderers") or {}
+            if "web" in renderers:
+                _require_layers(label, "state machine view_state renderer web", {"web"}, layers)
+            if "textual" in renderers:
+                _require_layers(label, "state machine view_state renderer textual", {"textual"}, layers)
             for case_name, case in (state.get("audit") or {}).items():
                 for surface in case.get("surfaces", []):
                     required_layer = RENDER_SURFACE_LAYER.get(surface)
@@ -177,15 +176,6 @@ def _validate_author_spec_layers(label: str, target: str, spec: dict[str, Any], 
                         raise LayerError(f"{label} view_state {state_name} audit {case_name} uses unsupported render surface {surface!r}")
                     _require_layers(label, f"state machine audit surface {surface}", {required_layer}, layers)
         return
-
-
-def _validate_presentation_layers(label: str, presentation: dict[str, Any], layers: set[str]) -> None:
-    if not presentation:
-        return
-    if "html" in presentation or "css" in presentation:
-        _require_layers(label, "HTML/CSS presentation", {"web"}, layers)
-    if "textual" in presentation:
-        _require_layers(label, "Textual presentation", {"textual"}, layers)
 
 
 def _require_layers(label: str, concept: str, required: set[str], layers: set[str]) -> None:
