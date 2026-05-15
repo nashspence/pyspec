@@ -345,20 +345,7 @@
       "type": "string"
     },
     "context_bindings": {
-      "additionalProperties": {
-        "anyOf": [
-          {
-            "$ref": "#/$defs/scalar"
-          },
-          {
-            "$ref": "#/$defs/runtime_expression"
-          }
-        ]
-      },
-      "propertyNames": {
-        "$ref": "#/$defs/field_name"
-      },
-      "type": "object"
+      "$ref": "#/$defs/content_arg_values"
     },
     "context_set_effect": {
       "additionalProperties": false,
@@ -476,15 +463,6 @@
       ],
       "type": "object"
     },
-    "entry_bindings": {
-      "additionalProperties": {
-        "$ref": "#/$defs/runtime_expression"
-      },
-      "propertyNames": {
-        "$ref": "#/$defs/field_name"
-      },
-      "type": "object"
-    },
     "entry_operation_trigger": {
       "additionalProperties": false,
       "properties": {
@@ -492,7 +470,7 @@
           "$ref": "#/$defs/operation_ref"
         },
         "bindings": {
-          "$ref": "#/$defs/entry_bindings"
+          "$ref": "#/$defs/runtime_bindings"
         }
       },
       "required": [
@@ -703,7 +681,7 @@
           ]
         },
         "bindings": {
-          "$ref": "#/$defs/entry_bindings"
+          "$ref": "#/$defs/runtime_bindings"
         }
       },
       "required": [
@@ -719,7 +697,7 @@
           "$ref": "#/$defs/workflow_ref"
         },
         "when": {
-          "$ref": "#/$defs/workflow_trigger_target"
+          "$ref": "#/$defs/workflow_trigger_source"
         }
       },
       "required": [
@@ -754,15 +732,6 @@
     "event_ref": {
       "pattern": "^event\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
-    },
-    "expression_map": {
-      "additionalProperties": {
-        "$ref": "#/$defs/scalar"
-      },
-      "propertyNames": {
-        "$ref": "#/$defs/field_name"
-      },
-      "type": "object"
     },
     "fact_body": {
       "oneOf": [
@@ -1203,79 +1172,6 @@
         }
       ]
     },
-    "message_sync_effect": {
-      "oneOf": [
-        {
-          "additionalProperties": false,
-          "properties": {
-            "set": {
-              "additionalProperties": false,
-              "oneOf": [
-                {
-                  "required": [
-                    "from"
-                  ]
-                },
-                {
-                  "required": [
-                    "value"
-                  ]
-                }
-              ],
-              "properties": {
-                "context": {
-                  "$ref": "#/$defs/field_name"
-                },
-                "from": {
-                  "minLength": 1,
-                  "type": "string"
-                },
-                "value": {
-                  "$ref": "#/$defs/json_value"
-                }
-              },
-              "required": [
-                "context"
-              ],
-              "type": "object"
-            }
-          },
-          "required": [
-            "set"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "send": {
-              "additionalProperties": false,
-              "properties": {
-                "instance": {
-                  "$ref": "#/$defs/instance_id"
-                },
-                "message": {
-                  "$ref": "#/$defs/message_ref"
-                },
-                "payload_bindings": {
-                  "$ref": "#/$defs/expression_map"
-                }
-              },
-              "required": [
-                "instance",
-                "message",
-                "payload_bindings"
-              ],
-              "type": "object"
-            }
-          },
-          "required": [
-            "send"
-          ],
-          "type": "object"
-        }
-      ]
-    },
     "message_sync_rule": {
       "additionalProperties": false,
       "properties": {
@@ -1314,7 +1210,7 @@
               "type": "string"
             },
             "payload_bindings": {
-              "$ref": "#/$defs/expression_map"
+              "$ref": "#/$defs/value_map"
             }
           },
           "required": [
@@ -1415,14 +1311,6 @@
       "pattern": "^[A-Z][A-Za-z0-9]*$",
       "type": "string"
     },
-    "model_refs": {
-      "items": {
-        "$ref": "#/$defs/model_ref"
-      },
-      "minItems": 1,
-      "type": "array",
-      "uniqueItems": true
-    },
     "object_schema": {
       "additionalProperties": false,
       "description": "Structured object schema with explicit per-field required and nullable semantics.",
@@ -1455,28 +1343,16 @@
           "$ref": "#/$defs/event_ref"
         },
         "payload": {
-          "$ref": "#/$defs/operation_emit_source"
+          "$ref": "#/$defs/runtime_expression"
         },
         "bindings": {
-          "$ref": "#/$defs/operation_emit_bindings"
+          "$ref": "#/$defs/runtime_bindings"
         }
       },
       "required": [
         "event"
       ],
       "type": "object"
-    },
-    "operation_emit_bindings": {
-      "additionalProperties": {
-        "$ref": "#/$defs/operation_emit_source"
-      },
-      "propertyNames": {
-        "$ref": "#/$defs/field_name"
-      },
-      "type": "object"
-    },
-    "operation_emit_source": {
-      "$ref": "#/$defs/runtime_expression"
     },
     "operation_item": {
       "additionalProperties": false,
@@ -1633,6 +1509,15 @@
       "description": "Shared runtime reference expression using $root.path.to.field syntax. Context-specific compiler validation restricts allowed roots and field paths.",
       "pattern": "^\\$[a-z][a-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+$",
       "type": "string"
+    },
+    "runtime_bindings": {
+      "additionalProperties": {
+        "$ref": "#/$defs/runtime_expression"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/field_name"
+      },
+      "type": "object"
     },
     "scalar": {
       "type": [
@@ -1955,7 +1840,7 @@
                         "$ref": "#/$defs/message_ref"
                       },
                       "payload_bindings": {
-                        "$ref": "#/$defs/expression_map"
+                        "$ref": "#/$defs/value_map"
                       }
                     },
                     "required": [
@@ -1991,10 +1876,6 @@
         "on"
       ],
       "type": "object"
-    },
-    "state_name": {
-      "pattern": "^[a-z][a-z0-9_]*$",
-      "type": "string"
     },
     "style_contract": {
       "additionalProperties": false,
@@ -2037,26 +1918,6 @@
     "style_selector": {
       "pattern": "^(root|screen|(slot|region)\\.[a-z][a-z0-9_]*|action\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+|mount\\.[a-z][a-z0-9_]*)$",
       "type": "string"
-    },
-    "target": {
-      "additionalProperties": false,
-      "maxProperties": 1,
-      "minProperties": 1,
-      "properties": {
-        "event": {
-          "$ref": "#/$defs/event_ref"
-        },
-        "operation": {
-          "$ref": "#/$defs/operation_ref"
-        },
-        "state_machine": {
-          "$ref": "#/$defs/state_machine_ref"
-        },
-        "workflow": {
-          "$ref": "#/$defs/workflow_ref"
-        }
-      },
-      "type": "object"
     },
     "text_ref": {
       "pattern": "^text\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
@@ -2578,15 +2439,6 @@
       },
       "type": "object"
     },
-    "workflow_input_bindings": {
-      "additionalProperties": {
-        "$ref": "#/$defs/workflow_source"
-      },
-      "propertyNames": {
-        "$ref": "#/$defs/field_name"
-      },
-      "type": "object"
-    },
     "when": {
       "oneOf": [
         {
@@ -2707,7 +2559,7 @@
           "type": "array"
         },
         "trigger": {
-          "$ref": "#/$defs/workflow_trigger_target"
+          "$ref": "#/$defs/workflow_trigger_source"
         }
       },
       "required": [
@@ -2837,9 +2689,6 @@
       },
       "type": "object"
     },
-    "workflow_source": {
-      "$ref": "#/$defs/runtime_expression"
-    },
     "workflow_step": {
       "additionalProperties": false,
       "properties": {
@@ -2848,7 +2697,7 @@
           "type": "string"
         },
         "input_bindings": {
-          "$ref": "#/$defs/workflow_input_bindings"
+          "$ref": "#/$defs/runtime_bindings"
         },
         "operation": {
           "$ref": "#/$defs/operation_ref"
@@ -2865,7 +2714,7 @@
       ],
       "type": "object"
     },
-    "workflow_trigger_target": {
+    "workflow_trigger_source": {
       "additionalProperties": false,
       "maxProperties": 1,
       "minProperties": 1,

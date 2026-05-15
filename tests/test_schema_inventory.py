@@ -60,6 +60,86 @@ DEPRECATED_PROPERTY_NAMES = {
     "fail",
     "next",
 }
+STALE_SCHEMA_DEFINITION_NAMES = {
+    "entry_bindings",
+    "expression_map",
+    "message_sync_effect",
+    "model_refs",
+    "operation_emit_bindings",
+    "operation_emit_source",
+    "state_name",
+    "target",
+    "workflow_input_bindings",
+    "workflow_source",
+    "workflow_trigger_target",
+}
+ALLOWED_DUPLICATE_DEFINITION_GROUPS = {
+    frozenset({"breakpoint_id", "field_name", "instance_id", "view_state_name"}),
+    frozenset({"model_ref", "python_class_name"}),
+}
+ALLOWED_ANY_OF_PATHS_BY_SCHEMA = {
+    "author.schema.json": {
+        "$defs.authored_render_profile.anyOf",
+        "$defs.content_arg_values.additionalProperties.anyOf",
+    },
+    "spec.schema.json": {
+        "$defs.render_profile_item.anyOf",
+        "$defs.content_arg_values.additionalProperties.anyOf",
+    },
+}
+ALLOWED_ONE_OF_WITHOUT_OBJECT_DISCRIMINATORS = {
+    "$defs.authored_content_case.properties.ref.oneOf",
+    "$defs.content_case_item.properties.ref.oneOf",
+    "$defs.given.properties.domain_facts.items.oneOf",
+    "$defs.json_value.oneOf",
+    "$defs.then.properties.assertion_facts.items.oneOf",
+}
+JSON_SCHEMA_KEYWORD_PROPERTY_NAMES = {
+    "$defs",
+    "$id",
+    "$ref",
+    "$schema",
+    "additionalProperties",
+    "allOf",
+    "anyOf",
+    "const",
+    "default",
+    "description",
+    "else",
+    "enum",
+    "examples",
+    "format",
+    "if",
+    "items",
+    "maxItems",
+    "maxLength",
+    "maxProperties",
+    "maximum",
+    "minItems",
+    "minLength",
+    "minProperties",
+    "minimum",
+    "not",
+    "oneOf",
+    "pattern",
+    "properties",
+    "propertyNames",
+    "required",
+    "then",
+    "title",
+    "type",
+    "uniqueItems",
+}
+ALLOWED_JSON_SCHEMA_KEYWORD_PROPERTIES = {
+    ("authored_test_case", "then"),
+    ("authored_test_case", "title"),
+    ("entry_response_value", "type"),
+    ("field_schema", "required"),
+    ("field_schema", "type"),
+    ("test_case_item", "then"),
+    ("test_case_item", "title"),
+    ("type_expr", "enum"),
+}
 
 
 def _json_without_duplicate_keys(path: Path) -> dict[str, Any]:
@@ -74,6 +154,50 @@ def _json_without_duplicate_keys(path: Path) -> dict[str, Any]:
 
 def _schemas() -> list[tuple[Path, dict[str, Any]]]:
     return [(path, _json_without_duplicate_keys(path)) for path in sorted(SCHEMA_ROOT.glob("**/*.schema.json"))]
+
+
+def _walk(node: Any, trail: tuple[str, ...] = ()) -> list[tuple[tuple[str, ...], Any]]:
+    nodes = [(trail, node)]
+    if isinstance(node, dict):
+        for key, value in node.items():
+            nodes.extend(_walk(value, (*trail, key)))
+    elif isinstance(node, list):
+        for index, value in enumerate(node):
+            nodes.extend(_walk(value, (*trail, str(index))))
+    return nodes
+
+
+def _path(trail: tuple[str, ...]) -> str:
+    return ".".join(trail)
+
+
+def _definition_refs(node: Any) -> set[str]:
+    refs: set[str] = set()
+    if isinstance(node, dict):
+        ref = node.get("$ref")
+        if isinstance(ref, str) and ref.startswith("#/$defs/"):
+            refs.add(ref.removeprefix("#/$defs/"))
+        for value in node.values():
+            refs.update(_definition_refs(value))
+    elif isinstance(node, list):
+        for value in node:
+            refs.update(_definition_refs(value))
+    return refs
+
+
+def _reachable_definitions(schema: dict[str, Any]) -> set[str]:
+    defs = schema.get("$defs", {})
+    root_schema = {key: value for key, value in schema.items() if key != "$defs"}
+    pending = list(_definition_refs(root_schema))
+    reachable: set[str] = set()
+    while pending:
+        name = pending.pop()
+        if name in reachable:
+            continue
+        reachable.add(name)
+        if name in defs:
+            pending.extend(_definition_refs(defs[name]) - reachable)
+    return reachable
 
 
 def _schema_definition_names() -> set[str]:
@@ -135,6 +259,127 @@ def test_schema_inventory_rejects_deprecated_definition_terminology() -> None:
             or "capability" in ref
         )
         assert deprecated_refs == [], f"{path} contains deprecated schema refs: {deprecated_refs}"
+
+
+def test_schema_lint_rejects_stale_definition_names() -> None:
+    for path, schema in _schemas():
+        defs = set(schema.get("$defs", {}))
+        stale_defs = sorted(defs & STALE_SCHEMA_DEFINITION_NAMES)
+        stale_refs = sorted(_definition_refs(schema) & STALE_SCHEMA_DEFINITION_NAMES)
+        assert stale_defs == [], f"{path} contains stale schema definitions: {stale_defs}"
+        assert stale_refs == [], f"{path} contains stale schema refs: {stale_refs}"
+
+
+def test_schema_lint_rejects_unresolved_and_unused_definitions() -> None:
+    for path, schema in _schemas():
+        defs = set(schema.get("$defs", {}))
+        refs = _definition_refs(schema)
+        unresolved = sorted(refs - defs)
+        unused = sorted(defs - _reachable_definitions(schema))
+        assert unresolved == [], f"{path} contains unresolved $defs refs: {unresolved}"
+        assert unused == [], f"{path} contains unused $defs: {unused}"
+
+
+def test_schema_lint_rejects_empty_required_arrays() -> None:
+    for path, schema in _schemas():
+        empty_required = [
+            _path(trail)
+            for trail, node in _walk(schema)
+            if isinstance(node, dict) and node.get("required") == []
+        ]
+        assert empty_required == [], f"{path} contains empty required arrays: {empty_required}"
+
+
+def test_schema_lint_rejects_unapproved_duplicate_definition_bodies() -> None:
+    for path, schema in _schemas():
+        duplicates: dict[str, list[str]] = {}
+        for name, definition in schema.get("$defs", {}).items():
+            normalized = json.dumps(definition, sort_keys=True, separators=(",", ":"))
+            duplicates.setdefault(normalized, []).append(name)
+
+        duplicate_groups = [
+            frozenset(names)
+            for names in duplicates.values()
+            if len(names) > 1
+        ]
+        unexpected = sorted(
+            [sorted(group) for group in duplicate_groups if group not in ALLOWED_DUPLICATE_DEFINITION_GROUPS]
+        )
+        assert unexpected == [], f"{path} contains unapproved duplicate $defs: {unexpected}"
+
+
+def test_schema_lint_documents_any_of_usage() -> None:
+    for path, schema in _schemas():
+        expected = ALLOWED_ANY_OF_PATHS_BY_SCHEMA[path.name]
+        actual = {
+            _path((*trail, "anyOf"))
+            for trail, node in _walk(schema)
+            if isinstance(node, dict) and "anyOf" in node
+        }
+        assert actual == expected, f"{path} has undocumented anyOf usage: {sorted(actual ^ expected)}"
+
+
+def _resolve_ref(schema: dict[str, Any], branch: Any) -> Any:
+    if isinstance(branch, dict) and set(branch) == {"$ref"}:
+        ref = branch["$ref"]
+        if isinstance(ref, str) and ref.startswith("#/$defs/"):
+            return schema.get("$defs", {}).get(ref.removeprefix("#/$defs/"), branch)
+    return branch
+
+
+def _one_of_required_discriminator(branch: Any) -> frozenset[str] | None:
+    if not isinstance(branch, dict):
+        return None
+    required = branch.get("required")
+    if isinstance(required, list) and required:
+        return frozenset(required)
+    return None
+
+
+def test_schema_lint_documents_one_of_exclusivity_strategy() -> None:
+    for path, schema in _schemas():
+        for trail, node in _walk(schema):
+            if not isinstance(node, dict) or "oneOf" not in node:
+                continue
+
+            schema_path = _path((*trail, "oneOf"))
+            branches = [_resolve_ref(schema, branch) for branch in node["oneOf"]]
+            discriminators = [_one_of_required_discriminator(branch) for branch in branches]
+            if any(discriminator is None for discriminator in discriminators):
+                assert schema_path in ALLOWED_ONE_OF_WITHOUT_OBJECT_DISCRIMINATORS, (
+                    f"{path} oneOf lacks required-key discriminators at {schema_path}"
+                )
+                continue
+
+            required_sets = [discriminator for discriminator in discriminators if discriminator is not None]
+            duplicate_sets = [
+                sorted(required_set)
+                for required_set in set(required_sets)
+                if required_sets.count(required_set) > 1
+            ]
+            assert duplicate_sets == [], f"{path} oneOf has duplicate discriminator sets at {schema_path}: {duplicate_sets}"
+
+            for index, required_set in enumerate(required_sets):
+                others = set().union(*(set(other) for offset, other in enumerate(required_sets) if offset != index))
+                assert set(required_set) - others, (
+                    f"{path} oneOf branch {index} has no unique discriminator key at {schema_path}"
+                )
+
+
+def test_schema_lint_limits_json_schema_keyword_shadowing() -> None:
+    for path, schema in _schemas():
+        shadowed: list[str] = []
+        for trail, node in _walk(schema):
+            if not isinstance(node, dict):
+                continue
+            properties = node.get("properties")
+            if not isinstance(properties, dict):
+                continue
+            definition_name = trail[1] if len(trail) >= 2 and trail[0] == "$defs" else "<root>"
+            for property_name in sorted(set(properties) & JSON_SCHEMA_KEYWORD_PROPERTY_NAMES):
+                if (definition_name, property_name) not in ALLOWED_JSON_SCHEMA_KEYWORD_PROPERTIES:
+                    shadowed.append(_path((*trail, "properties", property_name)))
+        assert shadowed == [], f"{path} contains undocumented JSON Schema keyword property names: {shadowed}"
 
 
 def test_schema_inventory_rejects_deprecated_property_terminology() -> None:

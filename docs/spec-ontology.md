@@ -136,7 +136,6 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:css_property --> `$defs/css_property`: renderer contract component for web or terminal platforms.
 - <!-- schema-def:css_value --> `$defs/css_value`: renderer contract component for web or terminal platforms.
 - <!-- schema-def:datum --> `$defs/datum`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:entry_bindings --> `$defs/entry_bindings`: entry-point adapter, trigger, binding, or response contract component.
 - <!-- schema-def:entry_operation_trigger --> `$defs/entry_operation_trigger`: entry-point adapter, trigger, binding, or response contract component.
 - <!-- schema-def:entry_point_adapter --> `$defs/entry_point_adapter`: entry-point adapter, trigger, binding, or response contract component.
 - <!-- schema-def:entry_point_item --> `$defs/entry_point_item`: compiled-output object for this resource or nested contract.
@@ -149,7 +148,6 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:entry_workflow_trigger --> `$defs/entry_workflow_trigger`: entry-point adapter, trigger, binding, or response contract component.
 - <!-- schema-def:event_item --> `$defs/event_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:event_ref --> `$defs/event_ref`: typed reference definition for its namespace.
-- <!-- schema-def:expression_map --> `$defs/expression_map`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:fact --> `$defs/fact`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:fact_body --> `$defs/fact_body`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:fact_item --> `$defs/fact_item`: compiled-output object for this resource or nested contract.
@@ -174,17 +172,13 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:message_ref --> `$defs/message_ref`: typed reference definition for its namespace.
 - <!-- schema-def:message_sync_action --> `$defs/message_sync_action`: message synchronization contract for composed state machines.
 - <!-- schema-def:message_sync_assertion --> `$defs/message_sync_assertion`: message synchronization contract for composed state machines.
-- <!-- schema-def:message_sync_effect --> `$defs/message_sync_effect`: message synchronization contract for composed state machines.
 - <!-- schema-def:message_sync_rule --> `$defs/message_sync_rule`: message synchronization contract for composed state machines.
 - <!-- schema-def:message_sync_send_effect --> `$defs/message_sync_send_effect`: message synchronization contract for composed state machines.
 - <!-- schema-def:message_sync_trigger --> `$defs/message_sync_trigger`: message synchronization contract for composed state machines.
 - <!-- schema-def:model_item --> `$defs/model_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:model_ref --> `$defs/model_ref`: typed reference definition for its namespace.
-- <!-- schema-def:model_refs --> `$defs/model_refs`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:object_schema --> `$defs/object_schema`: structured type-expression and object-schema contract component.
 - <!-- schema-def:operation_emit --> `$defs/operation_emit`: operation input, outcome, emission, or binding contract component.
-- <!-- schema-def:operation_emit_bindings --> `$defs/operation_emit_bindings`: operation input, outcome, emission, or binding contract component.
-- <!-- schema-def:operation_emit_source --> `$defs/operation_emit_source`: operation input, outcome, emission, or binding contract component.
 - <!-- schema-def:operation_item --> `$defs/operation_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:operation_outcome --> `$defs/operation_outcome`: operation input, outcome, emission, or binding contract component.
 - <!-- schema-def:operation_outcomes --> `$defs/operation_outcomes`: operation input, outcome, emission, or binding contract component.
@@ -195,6 +189,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:render_profile_ref --> `$defs/render_profile_ref`: typed reference definition for its namespace.
 - <!-- schema-def:renderer_contracts --> `$defs/renderer_contracts`: renderer contract component for web or terminal platforms.
 - <!-- schema-def:runtime_expression --> `$defs/runtime_expression`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:runtime_bindings --> `$defs/runtime_bindings`: shared runtime reference binding map used by entry points, operation emissions, and workflow steps.
 - <!-- schema-def:scalar --> `$defs/scalar`: structured type-expression and object-schema contract component.
 - <!-- schema-def:scheduled_adapter --> `$defs/scheduled_adapter`: entry-point adapter, trigger, binding, or response contract component.
 - <!-- schema-def:slot_binding --> `$defs/slot_binding`: renderer contract component for web or terminal platforms.
@@ -204,12 +199,10 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:state_machine_messages --> `$defs/state_machine_messages`: state-machine contract component.
 - <!-- schema-def:state_machine_ref --> `$defs/state_machine_ref`: typed reference definition for its namespace.
 - <!-- schema-def:state_machine_transition --> `$defs/state_machine_transition`: state-machine contract component.
-- <!-- schema-def:state_name --> `$defs/state_name`: state-machine contract component.
 - <!-- schema-def:style_contract --> `$defs/style_contract`: renderer contract component for web or terminal platforms.
 - <!-- schema-def:style_rule --> `$defs/style_rule`: renderer contract component for web or terminal platforms.
 - <!-- schema-def:style_selector --> `$defs/style_selector`: renderer contract component for web or terminal platforms.
 - <!-- schema-def:subject_ref --> `$defs/subject_ref`: typed reference definition for its namespace.
-- <!-- schema-def:target --> `$defs/target`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:terminal_viewport --> `$defs/terminal_viewport`: renderer contract component for web or terminal platforms.
 - <!-- schema-def:test_case_item --> `$defs/test_case_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:test_case_ref --> `$defs/test_case_ref`: typed reference definition for its namespace.
@@ -237,7 +230,6 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:when --> `$defs/when`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:worker_adapter --> `$defs/worker_adapter`: entry-point adapter, trigger, binding, or response contract component.
 - <!-- schema-def:worker_adapter_input --> `$defs/worker_adapter_input`: entry-point adapter, trigger, binding, or response contract component.
-- <!-- schema-def:workflow_input_bindings --> `$defs/workflow_input_bindings`: workflow trigger, step, route, retry, outcome, or binding contract component.
 - <!-- schema-def:workflow_item --> `$defs/workflow_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:workflow_outcome --> `$defs/workflow_outcome`: workflow trigger, step, route, retry, outcome, or binding contract component.
 - <!-- schema-def:workflow_outcome_routes --> `$defs/workflow_outcome_routes`: workflow trigger, step, route, retry, outcome, or binding contract component.
@@ -245,6 +237,5 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:workflow_ref --> `$defs/workflow_ref`: typed reference definition for its namespace.
 - <!-- schema-def:workflow_retry_policy --> `$defs/workflow_retry_policy`: workflow trigger, step, route, retry, outcome, or binding contract component.
 - <!-- schema-def:workflow_route --> `$defs/workflow_route`: workflow trigger, step, route, retry, outcome, or binding contract component.
-- <!-- schema-def:workflow_source --> `$defs/workflow_source`: workflow trigger, step, route, retry, outcome, or binding contract component.
 - <!-- schema-def:workflow_step --> `$defs/workflow_step`: workflow trigger, step, route, retry, outcome, or binding contract component.
-- <!-- schema-def:workflow_trigger_target --> `$defs/workflow_trigger_target`: workflow trigger, step, route, retry, outcome, or binding contract component.
+- <!-- schema-def:workflow_trigger_source --> `$defs/workflow_trigger_source`: workflow trigger source reference for event- or operation-started workflows.
