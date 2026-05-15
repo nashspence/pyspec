@@ -72,7 +72,7 @@ STALE_SCHEMA_DEFINITION_NAMES = {
     "workflow_trigger_target",
 }
 ALLOWED_DUPLICATE_DEFINITION_GROUPS = {
-    frozenset({"breakpoint_id", "field_name", "instance_id", "view_state_name"}),
+    frozenset({"field_name", "instance_id", "view_state_name"}),
     frozenset({"model_ref", "python_class_name"}),
 }
 ALLOWED_ANY_OF_PATHS_BY_SCHEMA = {
@@ -88,6 +88,7 @@ ALLOWED_ANY_OF_PATHS_BY_SCHEMA = {
 ALLOWED_ONE_OF_WITHOUT_OBJECT_DISCRIMINATORS = {
     "$defs.authored_content_case.properties.ref.oneOf",
     "$defs.content_case_item.properties.ref.oneOf",
+    "$defs.content_source_ref.oneOf",
     "$defs.given.properties.domain_facts.items.oneOf",
     "$defs.json_value.oneOf",
     "$defs.state_machine_signals.properties.accepts.propertyNames.oneOf",

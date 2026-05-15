@@ -36,7 +36,7 @@ TARGET_LAYERS: dict[str, set[str]] = {
 }
 
 ENTRY_ADAPTER_LAYER = {
-    "http": "http",
+    "http_api": "http",
     "html_route": "ui",
     "cli": "workflow",
     "worker": "workflow",

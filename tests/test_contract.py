@@ -183,14 +183,14 @@ def test_duplicate_fact_use_in_one_test_case_is_rejected() -> None:
 
 def test_unknown_audit_case_fact_use_is_rejected() -> None:
     author = _author()
-    author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["audit"]["ready_selected"]["facts"] = [{"ref": "fact.project.missing"}]
+    author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["render_audit_cases"]["ready_selected"]["facts"] = [{"ref": "fact.project.missing"}]
     with pytest.raises(ContractError, match=r"Audit case state_machine\.project\.board\.ready\.ready_selected\.audit references unknown fact fact\.project\.missing"):
         compile_author(author)
 
 
 def test_duplicate_audit_case_fact_use_is_rejected() -> None:
     author = _author()
-    author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["audit"]["ready_selected"]["facts"] = [
+    author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["render_audit_cases"]["ready_selected"]["facts"] = [
         {"ref": "fact.project.submitted"},
         {"ref": "fact.project.submitted"},
     ]
@@ -367,7 +367,7 @@ def test_operation_rejects_primary_model_field() -> None:
 def test_command_operation_allows_empty_crud_effects() -> None:
     author = _author()
     del author["operations"]["operation.project.create"]["creates"]
-    author["entry_points"]["entry_point.api.project.create"]["adapter"]["http"]["responses"]["created"]["status"] = 200
+    author["entry_points"]["entry_point.api.project.create"]["adapter"]["http_api"]["responses"]["created"]["status"] = 200
     author["test_cases"]["test_case.project.create.api.success"]["then"]["response"]["status"] = 200
     contract = compile_source(author)
     assert contract["operations"]["operation.project.create"]["creates"] == []
@@ -772,7 +772,7 @@ def _api_only_author() -> dict:
         "entry_points": {
             "entry_point.api.ticket.create": {
                 "adapter": {
-                    "http": {
+                    "http_api": {
                         "method": "POST",
                         "path": "/tickets",
                         "input": {"body": {"title": P("Text")}},
@@ -880,7 +880,7 @@ def test_entry_target_bindings_must_exactly_match_target_input() -> None:
 
 def test_entry_point_response_must_match_renderer_contract() -> None:
     author = _author()
-    author["entry_points"]["entry_point.api.project.create"]["adapter"]["http"]["responses"]["created"]["body"]["type"] = P("Text")
+    author["entry_points"]["entry_point.api.project.create"]["adapter"]["http_api"]["responses"]["created"]["body"]["type"] = P("Text")
     with pytest.raises(ContractError, match=r"API entry entry_point.api\.project\.create response created\.body must expose \$outcome\.result as Project"):
         compile_source(author)
 
@@ -920,7 +920,7 @@ def test_runtime_references_validate_declared_fields() -> None:
 
 def test_entry_point_responses_must_map_all_operation_outcomes() -> None:
     author = _author()
-    del author["entry_points"]["entry_point.api.project.create"]["adapter"]["http"]["responses"]["validation_failed"]
+    del author["entry_points"]["entry_point.api.project.create"]["adapter"]["http_api"]["responses"]["validation_failed"]
     with pytest.raises(ContractError, match=r"Entry entry_point.api\.project\.create responses must exactly map operation outcomes: missing: validation_failed"):
         compile_source(author)
 
@@ -1032,8 +1032,8 @@ def test_workflow_entry_trigger_must_match_workflow_trigger() -> None:
 def test_get_api_entry_must_provide_all_operation_input_as_params() -> None:
     author = _author()
     entry = author["entry_points"]["entry_point.api.project.list"]
-    entry["adapter"]["http"]["path"] = "/projects"
-    entry["adapter"]["http"]["input"].pop("params")
+    entry["adapter"]["http_api"]["path"] = "/projects"
+    entry["adapter"]["http_api"]["input"].pop("params")
     entry["target"]["operation"]["input_bindings"].pop("workspace_id")
     with pytest.raises(ContractError, match=r"API entry entry_point.api\.project\.list GET must declare all operation inputs as input\.params: \['workspace_id'\]"):
         compile_source(author)

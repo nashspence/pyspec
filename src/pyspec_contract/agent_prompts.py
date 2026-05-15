@@ -56,7 +56,7 @@ def active_prompt_layers(contract: dict[str, Any] | None = None, *, layers: str 
 def infer_contract_layers(contract: dict[str, Any]) -> set[str]:
     active = {"core"}
     adapter_kinds = _entry_adapter_kinds(contract)
-    if "http" in adapter_kinds:
+    if "http_api" in adapter_kinds:
         active.add("http")
     if contract.get("events") or "webhook" in adapter_kinds:
         active.add("events")
@@ -113,7 +113,7 @@ def _contract_audit_cases(contract: dict[str, Any]) -> list[dict[str, Any]]:
     cases = []
     for state_machine in (contract.get("state_machines") or {}).values():
         for state in (state_machine.get("view_states") or {}).values():
-            cases.extend((state.get("audit") or {}).values())
+            cases.extend((state.get("render_audit_cases") or {}).values())
     return cases
 
 
@@ -214,7 +214,7 @@ def _pm_design_prompt(context: _PromptContext) -> str:
             "- Use test-case archetypes from `src/pyspec_contract/patterns.yaml`; define every seed fixture explicitly.",
             "- Models are product data models: fields, lifecycle, and invariants only.",
             "- Use `rationale` only when it preserves non-obvious product intent.",
-            "- For entry points, declare one explicit `adapter` (`http`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`) and one explicit `target` (`operation`, `state_machine`, or `workflow`).",
+            "- For entry points, declare one explicit `adapter` (`http_api`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`) and one explicit `target` (`operation`, `state_machine`, or `workflow`).",
             "- For state-machine entry points, keep invocation and rendering separate with adapter input and target `renderer` (`html` or `textual`).",
             "- For workflow entry points, bind the entry point target to the workflow trigger with `target.workflow.ref` and `target.workflow.trigger_source`.",
             "- For rendered screens, put framework-owned `layout`, `presentation`, and `style` under `renderers.html` or `renderers.textual`.",
@@ -251,7 +251,7 @@ def _test_prompt(context: _PromptContext) -> str:
         "Rules:",
         "- There is exactly one generated Gherkin corpus; both spec and prod harnesses consume `spec/generated/test_adapters/pytest_bdd_features/`.",
         "- The spec harness may use the generated/reference driver to prove test-case coherence.",
-        "- The prod harness must call real product surfaces and must not import the reference driver, fake policy answers, fake emitted events, fake rendered state machine surfaces, or mutate generated test cases.",
+        "- The prod harness must call real product surfaces and must not import the reference driver, fake authorization decisions, fake emitted events, fake rendered state machine surfaces, or mutate generated test cases.",
         "- If generated behavior files are missing, ask for PM/design authoring and `pyspec compile` before inventing tests.",
         f"- Check freshness with `pyspec validate . --layers {context.layer_arg}`.",
     ]
@@ -281,7 +281,7 @@ def _review_prompt(context: _PromptContext) -> str:
         "",
         "Test audit:",
         "- Check whether tests consume generated behavior and exercise real prod surfaces where required.",
-        "- Reject tests that mutate generated test cases, fake policy answers, fake emitted events, fake rendered state machine surfaces, duplicate generated behavior, or mask missing spec coverage.",
+        "- Reject tests that mutate generated test cases, fake authorization decisions, fake emitted events, fake rendered state machine surfaces, duplicate generated behavior, or mask missing spec coverage.",
         "- For every test issue, provide a recommended prompt for `test.md` that asks for the smallest harness/test fix, or asks the test agent to report a PM/design gap when the spec is wrong.",
         "",
         "Dev audit:",

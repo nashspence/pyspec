@@ -31,7 +31,7 @@ class ProductApp:
         self.invoked_operations: list[str] = []
         self.executed_workflows: list[str] = []
         self.workflow_outcomes: dict[str, str] = {}
-        self.policy_decisions: dict[tuple[str, str, str], bool] = {}
+        self.authorization_decisions: dict[tuple[str, str, str], bool] = {}
         self.rendered_state_machine: dict[str, Any] | None = None
         self.http_response: dict[str, Any] | None = None
         self.last_outcome: str | None = None
@@ -135,14 +135,14 @@ class ProductApp:
 
     def call_entry_point(self, entry_id: str, input_values: Mapping[str, Any]) -> dict[str, Any]:
         entry = self.contract["entry_points"][entry_id]
-        assert entry_point_adapter_pair(entry)[0] in {"http", "cli"}
+        assert entry_point_adapter_pair(entry)[0] in {"http_api", "cli"}
         target_input = self._entry_target_input(entry, input_values)
         target_kind, operation_id = entry_target_pair(entry)
         assert target_kind == "operation"
         authorization_policy = entry.get("authorization_policy")
         if authorization_policy:
             policy_id = authorization_policy
-            self.policy_decisions[("entry_point", entry_id, policy_id)] = self._evaluate_policy(policy_id, "entry_point", entry_id, target_input)
+            self.authorization_decisions[("entry_point", entry_id, policy_id)] = self._evaluate_policy(policy_id, "entry_point", entry_id, target_input)
         result = self.invoke_operation(operation_id, target_input)
         response = entry_point_responses(entry)[self.last_outcome]
         if "status" in response:
@@ -165,7 +165,7 @@ class ProductApp:
     def invoke_operation(self, operation_id: str, input_values: Mapping[str, Any]) -> Any:
         self.invoked_operations.append(operation_id)
         authorization_policy = self.contract["operations"][operation_id]["authorization_policy"]
-        self.policy_decisions[("operation", operation_id, authorization_policy)] = self._evaluate_policy(authorization_policy, "operation", operation_id, input_values)
+        self.authorization_decisions[("operation", operation_id, authorization_policy)] = self._evaluate_policy(authorization_policy, "operation", operation_id, input_values)
         self.last_outcome = _success_outcome_id(self.contract["operations"][operation_id])
         values = dict(input_values)
         if operation_id == "operation.project.create":
@@ -287,12 +287,12 @@ class ProductApp:
         outcome = assertions.get("outcome")
         if outcome:
             assert self.last_outcome == outcome
-        policy = assertions.get("policy")
+        policy = assertions.get("authorization")
         if policy:
             for assertion in policy.get("allowed", []):
-                assert self._policy_assertion_allowed(assertion)
+                assert self._authorization_assertion_allowed(assertion)
             for assertion in policy.get("denied", []):
-                assert not self._policy_assertion_allowed(assertion)
+                assert not self._authorization_assertion_allowed(assertion)
         for fact in assertions.get("expected_facts", []):
             kind, body = next(iter(fact.items()))
             if body["model"] != "Project":
@@ -324,7 +324,7 @@ class ProductApp:
     def _resolve_map(self, values: Mapping[str, Any]) -> dict[str, Any]:
         return resolve_map(values, self.fixtures)
 
-    def _policy_assertion_allowed(self, assertion: Mapping[str, Any]) -> bool:
+    def _authorization_assertion_allowed(self, assertion: Mapping[str, Any]) -> bool:
         kind = "operation" if "operation" in assertion else "entry_point"
         target = assertion[kind]
         authorization_policy = assertion.get("authorization_policy")
@@ -334,7 +334,7 @@ class ProductApp:
             policy_id = self.contract["operations"][target]["authorization_policy"]
         else:
             policy_id = self.contract["entry_points"][target]["authorization_policy"]
-        recorded = self.policy_decisions.get((kind, target, policy_id))
+        recorded = self.authorization_decisions.get((kind, target, policy_id))
         if recorded is not None:
             return recorded
         input_values: dict[str, Any] = {}
@@ -344,31 +344,31 @@ class ProductApp:
 
     def _evaluate_policy(self, policy_id: str, kind: str, target: str, input_values: Mapping[str, Any]) -> bool:
         policy = self.contract["authorization_policies"][policy_id]
-        if not _policy_covers_target(policy, kind, target):
+        if not _authorization_policy_covers_target(policy, kind, target):
             if kind != "entry_point":
                 return False
             target_kind, target_ref = entry_target_pair(self.contract["entry_points"][target])
-            if not _policy_covers_target(policy, target_kind, target_ref):
+            if not _authorization_policy_covers_target(policy, target_kind, target_ref):
                 return False
-        matched = all(self._policy_condition_matches(condition, input_values) for condition in policy.get("conditions", []))
+        matched = all(self._authorization_condition_matches(condition, input_values) for condition in policy.get("conditions", []))
         return matched if policy["effect"] == "allow" else not matched
 
-    def _policy_condition_matches(self, condition: Mapping[str, Any], input_values: Mapping[str, Any]) -> bool:
+    def _authorization_condition_matches(self, condition: Mapping[str, Any], input_values: Mapping[str, Any]) -> bool:
         if "unconditional" in condition:
             return bool(condition["unconditional"])
         if "input_present" in condition:
             field = condition["input_present"]
             return field in input_values and input_values[field] is not None
         if "model_exists" in condition:
-            return bool(self._policy_records(condition["model_exists"]["model"], input_values))
+            return bool(self._authorization_records(condition["model_exists"]["model"], input_values))
         if "model_state" in condition:
             body = condition["model_state"]
-            return any(project.get(body["field"]) == body["equals"] for project in self._policy_records(body["model"], input_values))
-        if "subject_role" in condition:
-            return condition["subject_role"] in self.fixtures.get("actor", {}).get("roles", [])
+            return any(project.get(body["field"]) == body["equals"] for project in self._authorization_records(body["model"], input_values))
+        if "subject_has_role" in condition:
+            return condition["subject_has_role"] in self.fixtures.get("actor", {}).get("roles", [])
         return False
 
-    def _policy_records(self, model_id: str, input_values: Mapping[str, Any]) -> list[dict[str, Any]]:
+    def _authorization_records(self, model_id: str, input_values: Mapping[str, Any]) -> list[dict[str, Any]]:
         if model_id != "Project":
             return []
         records = list(self.projects)
@@ -404,5 +404,5 @@ def _condition_matches(condition: Mapping[str, Any], context: Mapping[str, Any])
     return False
 
 
-def _policy_covers_target(policy: Mapping[str, Any], kind: str, target: str) -> bool:
-    return any(policy_target == {kind: target} for policy_target in policy.get("targets", []))
+def _authorization_policy_covers_target(policy: Mapping[str, Any], kind: str, target: str) -> bool:
+    return any(authorization_target == {kind: target} for authorization_target in policy.get("targets", []))

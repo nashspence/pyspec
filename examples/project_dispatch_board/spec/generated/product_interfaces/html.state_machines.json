@@ -207,7 +207,7 @@
           "id": "select_project_updates_state_machines",
           "when": {
             "instance": "list",
-            "signal": "message.project.selected"
+            "message": "message.project.selected"
           }
         }
       ],

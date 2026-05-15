@@ -105,9 +105,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: Unavailable
+      x-authorization-policy: authorization_policy.project.list
       x-entry: entry_point.api.project.list
       x-operation: operation.project.list
-      x-policy: authorization_policy.project.list
     post:
       operationId: operation.project.create
       parameters:
@@ -147,6 +147,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: Validation Failed
+      x-authorization-policy: authorization_policy.project.create
       x-entry: entry_point.api.project.create
       x-operation: operation.project.create
-      x-policy: authorization_policy.project.create

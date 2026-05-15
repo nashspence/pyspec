@@ -19,7 +19,7 @@ PM/design audit:
 
 Test audit:
 - Check whether tests consume generated behavior and exercise real prod surfaces where required.
-- Reject tests that mutate generated test cases, fake policy answers, fake emitted events, fake rendered state machine surfaces, duplicate generated behavior, or mask missing spec coverage.
+- Reject tests that mutate generated test cases, fake authorization decisions, fake emitted events, fake rendered state machine surfaces, duplicate generated behavior, or mask missing spec coverage.
 - For every test issue, provide a recommended prompt for `test.md` that asks for the smallest harness/test fix, or asks the test agent to report a PM/design gap when the spec is wrong.
 
 Dev audit:

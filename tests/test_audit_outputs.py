@@ -223,18 +223,18 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert '<FONT POINT-SIZE="10"><B>payload_schema:</B>&#160;&#160;payload_schema</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in target_card
     assert "<B>emits:</B>&#160;&#160;event.project.created" not in target_card
     assert "<B>authorization_policy:</B>&#160;&#160;authorization_policy.project.create" in target_card
-    assert "<B>policy_effect:</B>&#160;&#160;allow" in target_card
-    assert "<B>policy_targets</B>" in target_card
+    assert "<B>authorization_effect:</B>&#160;&#160;allow" in target_card
+    assert "<B>authorization_targets</B>" in target_card
     assert "<FONT POINT-SIZE=\"10\">operation: operation.project.create</FONT>" in target_card
     assert "<FONT POINT-SIZE=\"10\">model: Project</FONT>" in target_card
-    assert "<B>policy_conditions:</B>&#160;&#160;unconditional true" in target_card
+    assert "<B>authorization_conditions:</B>&#160;&#160;unconditional true" in target_card
     cli_approve_target_card = cli_approve_entrypoint[cli_approve_entrypoint.index('"entrypoint_target_operation_project_approve"') : cli_approve_entrypoint.index('"entrypoint_response_entry_point_cli_project_approve_approved"')]
     assert "<B>emit:</B>&#160;&#160;approved → event.project.approved" in cli_approve_target_card
     assert '<FONT POINT-SIZE="10"><B>payload_schema:</B>&#160;&#160;payload_schema</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.approved</FONT>' in cli_approve_target_card
     assert "<B>emits:</B>&#160;&#160;event.project.approved" not in cli_approve_target_card
     assert "<B>authorization_policy:</B>&#160;&#160;authorization_policy.project.approve" in cli_approve_entrypoint
     assert "actor ← input.approved_by" in cli_approve_target_card
-    assert "<B>policy_conditions:</B>&#160;&#160;Project.status = submitted" in cli_approve_target_card
+    assert "<B>authorization_conditions:</B>&#160;&#160;Project.status = submitted" in cli_approve_target_card
     entrypoint_input = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
     assert entrypoint_input in entrypoint
     assert entrypoint.index(entrypoint_input) < entrypoint.index("<B>query:</B>&#160;&#160;query.project.board.list")
@@ -287,7 +287,7 @@ def test_composition_dot_routes_messages_generically() -> None:
         "signal_sync_rules": [
             {
                 "id": "route_alpha_beta",
-                "when": {"instance": "publisher", "signal": "message.alpha.ready"},
+                "when": {"instance": "publisher", "message": "message.alpha.ready"},
                 "effects": [
                     {"send": {"instance": "receiver", "message": "message.beta.consume", "payload_bindings": {"item_id": "$message.id"}}},
                     {"set": {"context": "selected_id", "from": "$message.id"}},
@@ -398,7 +398,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     detail_fsm = (ROOT / state_machine_graph_file("state_machine.project.detail")).read_text(encoding="utf-8")
     activity_fsm = (ROOT / state_machine_graph_file("state_machine.project.activity")).read_text(encoding="utf-8")
     composition = (ROOT / composition_file("state_machine.project.board")).read_text(encoding="utf-8")
-    api_entrypoint = (ROOT / entrypoint_flow_file("entry_point.api.project.create", "http")).read_text(encoding="utf-8")
+    api_entrypoint = (ROOT / entrypoint_flow_file("entry_point.api.project.create", "http_api")).read_text(encoding="utf-8")
     cli_approve_entrypoint = (ROOT / entrypoint_flow_file("entry_point.cli.project.approve", "cli")).read_text(encoding="utf-8")
     workflow = (ROOT / workflow_flow_file("workflow.project.approval_notice")).read_text(encoding="utf-8")
     assert "data_signal.ready" in list_fsm
@@ -516,7 +516,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "role:" not in composition
     assert "required:" not in composition
     assert "authorization_policy.project.create" in api_entrypoint
-    assert "policy_conditions" in api_entrypoint
+    assert "authorization_conditions" in api_entrypoint
     assert "authorization_policy.project.approve" in cli_approve_entrypoint
     assert "Project.status = submitted" in cli_approve_entrypoint
     assert "authorization_policy.project.send_approval_notice" in workflow
@@ -576,7 +576,7 @@ def test_asset_placeholder_schema_rejects_missing_visual_intent() -> None:
 
 def test_audit_case_coverage_is_required() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
-    author["state_machines"]["state_machine.project.board"]["view_states"]["ready"].pop("audit")
+    author["state_machines"]["state_machine.project.board"]["view_states"]["ready"].pop("render_audit_cases")
     with pytest.raises(ContractError, match="Missing audit coverage for composed state machine states"):
         compile_source(author)
 

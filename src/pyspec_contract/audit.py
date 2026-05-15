@@ -20,7 +20,7 @@ from .content import AssetResult, ContentContext, ContentError, call_asset, call
 from .io import write_yaml
 from .layout import renderer_textual_presentation, renderer_html_layout, renderer_html_presentation, renderer_html_regions
 from .paths import GENERATED_SPEC_DIR, generated_relative as g
-from .project import css_value, default_html_slots, format_attrs, humanize, state_machines_projection, state_machine_styles_projection, safe_id
+from .project import default_html_slots, format_attrs, humanize, state_machines_projection, state_machine_styles_projection, safe_id
 from .runtime import fixture_namespace, resolve
 from .targets import (
     entry_state_machine_renderer,
@@ -125,8 +125,8 @@ def audit_case_root(state_machine_id: str, case_id: str, state_name: str = "read
     return g("audit_evidence", "state_machines", safe_id(state_machine_id), "view_states", safe_id(state_name), "cases", safe_id(case_id))
 
 
-def _render_filename(profile_id: str, breakpoint_id: str, extension: str) -> str:
-    stem = f"{safe_id(profile_id)}.{safe_id(breakpoint_id)}"
+def _render_filename(profile_id: str, viewport_id: str, extension: str) -> str:
+    stem = f"{safe_id(profile_id)}.{safe_id(viewport_id)}"
     if extension == "html":
         return f"html.{stem}.source.html"
     if extension == "png":
@@ -138,28 +138,28 @@ def _render_filename(profile_id: str, breakpoint_id: str, extension: str) -> str
     raise ContractError(f"Unknown audit render extension: {extension}")
 
 
-def view_state_render_file(state_machine_id: str, state_name: str, profile_id: str, breakpoint_id: str, extension: str) -> str:
-    return _under(view_state_root(state_machine_id, state_name), "renders", _render_filename(profile_id, breakpoint_id, extension))
+def view_state_render_file(state_machine_id: str, state_name: str, profile_id: str, viewport_id: str, extension: str) -> str:
+    return _under(view_state_root(state_machine_id, state_name), "renders", _render_filename(profile_id, viewport_id, extension))
 
 
-def audit_case_render_file(state_machine_id: str, case_id: str, profile_id: str, breakpoint_id: str, extension: str, state_name: str = "ready") -> str:
-    return _under(audit_case_root(state_machine_id, case_id, state_name), "renders", _render_filename(profile_id, breakpoint_id, extension))
+def audit_case_render_file(state_machine_id: str, case_id: str, profile_id: str, viewport_id: str, extension: str, state_name: str = "ready") -> str:
+    return _under(audit_case_root(state_machine_id, case_id, state_name), "renders", _render_filename(profile_id, viewport_id, extension))
 
 
 def _projection_surface_root(state_machine: dict[str, Any]) -> str:
     return view_state_root(state_machine["owner"], state_machine["view_state"])
 
 
-def _projection_surface_file(state_machine: dict[str, Any], profile_id: str, breakpoint_id: str, extension: str) -> str:
-    return view_state_render_file(state_machine["owner"], state_machine["view_state"], profile_id, breakpoint_id, extension)
+def _projection_surface_file(state_machine: dict[str, Any], profile_id: str, viewport_id: str, extension: str) -> str:
+    return view_state_render_file(state_machine["owner"], state_machine["view_state"], profile_id, viewport_id, extension)
 
 
 def _case_root(contract: dict[str, Any], case_id: str, case: dict[str, Any]) -> str:
     return audit_case_root(case["state_machine"], case_id, case["view_state"])
 
 
-def _case_file(contract: dict[str, Any], case_id: str, case: dict[str, Any], profile_id: str, breakpoint_id: str, extension: str) -> str:
-    return audit_case_render_file(case["state_machine"], case_id, profile_id, breakpoint_id, extension, case["view_state"])
+def _case_file(contract: dict[str, Any], case_id: str, case: dict[str, Any], profile_id: str, viewport_id: str, extension: str) -> str:
+    return audit_case_render_file(case["state_machine"], case_id, profile_id, viewport_id, extension, case["view_state"])
 
 
 def _projection_render_surfaces(state_machine: dict[str, Any]) -> set[str]:
@@ -900,7 +900,7 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
     if not has_sync:
         lines.append(_dot_html_node("message_route_none", _dot_card("No message routes", "message routing", [], style=_DOT_STYLE_NEUTRAL)))
     for rule in state_machine.get("signal_sync_rules", []):
-        signal_id = rule["when"]["signal"]
+        signal_id = rule["when"]["message"]
         emit_id = _dot_node_id("message_emit", f"{rule['id']}_{rule['when']['instance']}_{signal_id}")
         sync_id = _dot_node_id("message_route", rule["id"])
         send_effects = [(index, effect) for index, effect in enumerate(rule.get("effects", [])) if "send" in effect]
@@ -937,7 +937,7 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
             lines.append("  { rank=same; " + " ".join(_dot_quote(effect_id) for effect_id in effect_ids) + " }")
             lines.extend(_dot_invisible_order(effect_ids, indent="  "))
     for rule in state_machine.get("signal_sync_rules", []):
-        emit_id = _dot_node_id("message_emit", f"{rule['id']}_{rule['when']['instance']}_{rule['when']['signal']}")
+        emit_id = _dot_node_id("message_emit", f"{rule['id']}_{rule['when']['instance']}_{rule['when']['message']}")
         sync_id = _dot_node_id("message_route", rule["id"])
         source = mount_node_by_id.get(rule["when"]["instance"])
         if source:
@@ -1027,7 +1027,7 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
 
 
 def _entry_io_card_titles(adapter_kind: str) -> tuple[str, str]:
-    if adapter_kind in {"http", "html_route", "webhook"}:
+    if adapter_kind in {"http_api", "html_route", "webhook"}:
         return "request", "response"
     if adapter_kind == "cli":
         return "command input", "command output"
@@ -1098,7 +1098,7 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
 
 def _entry_surface_title(entry: dict[str, Any]) -> str:
     adapter_kind, _ = entry_point_adapter_pair(entry)
-    if adapter_kind == "http":
+    if adapter_kind == "http_api":
         return f"{(entry_point_method(entry) or '').upper()} {entry_point_path(entry) or ''}".strip()
     if adapter_kind in {"html_route", "webhook"}:
         return entry_point_path(entry) or adapter_kind
@@ -1418,14 +1418,14 @@ def _authorization_policy_sections(
     policy = contract.get("authorization_policies", {}).get(policy_id)
     if not policy:
         return sections
-    sections.append(("policy_effect", [policy["effect"]]))
-    sections.append(("policy_subjects", _format_policy_subjects(policy.get("subjects", []))))
-    sections.append(("policy_targets", _format_policy_targets(policy.get("targets", []))))
-    sections.append(("policy_conditions", _format_policy_conditions(policy.get("conditions", []))))
+    sections.append(("authorization_effect", [policy["effect"]]))
+    sections.append(("authorization_subjects", _format_authorization_subjects(policy.get("subjects", []))))
+    sections.append(("authorization_targets", _format_authorization_targets(policy.get("targets", []))))
+    sections.append(("authorization_conditions", _format_authorization_conditions(policy.get("conditions", []))))
     return sections
 
 
-def _format_policy_subjects(subjects: Iterable[dict[str, Any]]) -> list[str]:
+def _format_authorization_subjects(subjects: Iterable[dict[str, Any]]) -> list[str]:
     lines: list[str] = []
     for subject in subjects:
         line = subject["kind"]
@@ -1435,11 +1435,11 @@ def _format_policy_subjects(subjects: Iterable[dict[str, Any]]) -> list[str]:
     return lines
 
 
-def _format_policy_targets(targets: Iterable[dict[str, str]]) -> list[str]:
+def _format_authorization_targets(targets: Iterable[dict[str, str]]) -> list[str]:
     return [f"{kind}: {value}" for kind, value in (_target_pair(target) for target in targets)]
 
 
-def _format_policy_conditions(conditions: Iterable[dict[str, Any]]) -> list[str]:
+def _format_authorization_conditions(conditions: Iterable[dict[str, Any]]) -> list[str]:
     lines: list[str] = []
     for condition in conditions:
         kind, body = _target_pair(condition)
@@ -1451,8 +1451,8 @@ def _format_policy_conditions(conditions: Iterable[dict[str, Any]]) -> list[str]
             lines.append(f"{body['model']} exists")
         elif kind == "model_state":
             lines.append(f"{body['model']}.{body['field']} = {_format_scalar(body['equals'])}")
-        elif kind == "subject_role":
-            lines.append(f"subject_role {body}")
+        elif kind == "subject_has_role":
+            lines.append(f"subject_has_role {body}")
         else:
             lines.append(f"{kind}: {_format_scalar(body)}")
     return lines

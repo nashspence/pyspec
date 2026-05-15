@@ -126,7 +126,7 @@ def _entry_points_with_adapter(contract: dict[str, Any], *adapters: str) -> list
 
 
 def _has_api(contract: dict[str, Any]) -> bool:
-    return bool(_entry_points_with_adapter(contract, "http"))
+    return bool(_entry_points_with_adapter(contract, "http_api"))
 
 
 def _has_asyncapi(contract: dict[str, Any]) -> bool:
@@ -171,7 +171,7 @@ def _has_authorization_policies(contract: dict[str, Any]) -> bool:
 def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
     paths: dict[str, Any] = {}
     for entry_id, entry in sorted(contract["entry_points"].items()):
-        if entry_point_adapter_pair(entry)[0] != "http":
+        if entry_point_adapter_pair(entry)[0] != "http_api":
             continue
         target_kind, cap_id = entry_target_pair(entry)
         if target_kind != "operation":
@@ -192,7 +192,7 @@ def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
             "operationId": cap_id,
             "x-entry": entry_id,
             "x-operation": cap_id,
-            "x-policy": cap["authorization_policy"],
+            "x-authorization-policy": cap["authorization_policy"],
             "parameters": [
                 {"name": name, "in": "path", "required": True, "schema": type_schema(type_name)}
                 for name, type_name in sorted(params.items())
@@ -390,7 +390,7 @@ def state_machine_styles_projection(
             selector = css_selector(state_machine, rule["selector"])
             declarations = grouped.setdefault(selector, {})
             for name, value in sorted(rule["declarations"].items()):
-                declarations[name] = css_value(value)
+                declarations[name] = style_token_value(value)
         for selector, declarations in grouped.items():
             lines.append(f"{selector} {{")
             for name, value in declarations.items():
@@ -408,7 +408,7 @@ def state_machine_styles_projection(
             selector = composition_css_selector(composition, rule["selector"])
             declarations = grouped.setdefault(selector, {})
             for name, value in sorted(rule["declarations"].items()):
-                declarations[name] = css_value(value)
+                declarations[name] = style_token_value(value)
         for selector, declarations in grouped.items():
             lines.append(f"{selector} {{")
             for name, value in declarations.items():
@@ -432,7 +432,7 @@ PROJECT = {contract["project"]!r}
 SCREENS = {screen_entries!r}
 STATE_MACHINES = {state_machines!r}
 COMPOSITIONS = {compositions!r}
-TEXTUAL_STYLE = {textual_tcss(state_machines, compositions)!r}
+TEXTUAL_TCSS = {textual_tcss(state_machines, compositions)!r}
 
 
 def state_machine_surface(surface_id: str) -> dict:
@@ -449,8 +449,8 @@ def composition(composition_id: str) -> dict:
     raise KeyError(composition_id)
 
 
-def textual_css() -> str:
-    return TEXTUAL_STYLE
+def textual_tcss() -> str:
+    return TEXTUAL_TCSS
 
 
 def compose_contract_state_machine(surface_id: str) -> list[tuple[str, str]]:
@@ -588,14 +588,14 @@ def textual_tcss(state_machines: list[dict[str, Any]], compositions: list[dict[s
             selector = tcss_selector(state_machine, rule["selector"])
             declarations = grouped.setdefault(selector, {})
             for name, value in sorted(rule["declarations"].items()):
-                declarations[name] = css_value(value)
+                declarations[name] = style_token_value(value)
     for composition in compositions or []:
         for rule in renderer_textual_style(composition).get("rules", []):
             selector = composition_tcss_selector(composition, rule["selector"])
             declarations = grouped.setdefault(selector, {})
             for name, value in sorted(rule["declarations"].items()):
-                declarations[name] = css_value(value)
-    lines = ["/* Generated Textual CSS contract. Do not edit. */"]
+                declarations[name] = style_token_value(value)
+    lines = ["/* Generated Textual TCSS contract. Do not edit. */"]
     for selector, declarations in grouped.items():
         lines.append(f"{selector} {{")
         for name, value in declarations.items():
@@ -637,7 +637,7 @@ def composition_tcss_selector(composition: dict[str, Any], selector: str) -> str
     return selector
 
 
-def css_value(value: str) -> str:
+def style_token_value(value: str) -> str:
     def repl(match: re.Match[str]) -> str:
         return f"var(--{match.group(1).replace('_', '-')})"
     return re.sub(r"token\.([a-z][a-z0-9_]*)", repl, value)
@@ -853,7 +853,7 @@ def refs_py_projection(contract: dict[str, Any]) -> str:
             f"{state_machine_id}.{state_name}.{case_name}.audit"
             for state_machine_id, state_machine in contract.get("state_machines", {}).items()
             for state_name, state in state_machine.get("view_states", {}).items()
-            for case_name in (state.get("audit") or {})
+            for case_name in (state.get("render_audit_cases") or {})
         ),
         "TestCase": sorted(contract["test_cases"]),
     }

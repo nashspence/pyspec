@@ -63,7 +63,7 @@ _OPENAPI_OPERATION_KEYS = {
     "operationId",
     "x-entry",
     "x-operation",
-    "x-policy",
+    "x-authorization-policy",
     "parameters",
     "responses",
     "requestBody",
@@ -128,7 +128,7 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
 
     expected_operations: dict[tuple[str, str], tuple[str, dict[str, Any], dict[str, Any]]] = {}
     for entry_id, entry in sorted(contract["entry_points"].items()):
-        if entry_point_adapter_pair(entry)[0] != "http":
+        if entry_point_adapter_pair(entry)[0] != "http_api":
             continue
         target_kind, cap_id = entry_target_pair(entry)
         if target_kind != "operation":
@@ -169,8 +169,8 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             raise ContractError(f"OpenAPI operationId must equal operation id for {entry_id}")
         if operation.get("x-entry") != entry_id or operation.get("x-operation") != cap_id:
             raise ContractError(f"OpenAPI extensions do not point back to {entry_id}/{cap_id}")
-        if operation.get("x-policy") != cap["authorization_policy"]:
-            raise ContractError(f"OpenAPI policy extension does not match operation {cap_id}")
+        if operation.get("x-authorization-policy") != cap["authorization_policy"]:
+            raise ContractError(f"OpenAPI authorization policy extension does not match operation {cap_id}")
 
         placeholders = _path_params(path)
         params = entry_point_input(entry).get("params", {})
@@ -391,7 +391,7 @@ def validate_textual_contract(root: Path, contract: dict[str, Any]) -> None:
     else:  # pragma: no cover
         raise ContractError(f"{label} state_machine_surface() must raise KeyError for unknown state machine surfaces")
 
-    tcss_rules = _parse_css_rules(module.textual_css(), f"{label} Textual style", textual=True)
+    tcss_rules = _parse_style_rules(module.textual_tcss(), f"{label} Textual style", textual=True)
     expected_selectors = {"Screen", ".contract-state-machine-surface"}
     for state_machine in state_machines:
         textual = renderer_textual_presentation(state_machine)
@@ -625,12 +625,12 @@ def validate_authorization_policies_json(contract: dict[str, Any], doc: dict[str
         if operation_id not in contract["operations"]:
             raise ContractError(f"authorization_policies.json has unknown operation authorization policy {operation_id}")
         if authorization_policy not in doc["authorization_policies"]:
-            raise ContractError(f"authorization_policies.json operation authorization policy references unknown policy {authorization_policy}")
+            raise ContractError(f"authorization_policies.json operation authorization policy references unknown authorization policy {authorization_policy}")
     for entry_id, authorization_policy in doc["entry_point_authorization_policies"].items():
         if entry_id not in contract["entry_points"]:
             raise ContractError(f"authorization_policies.json has unknown entry point authorization policy {entry_id}")
         if authorization_policy not in doc["authorization_policies"]:
-            raise ContractError(f"authorization_policies.json entry point authorization policy references unknown policy {authorization_policy}")
+            raise ContractError(f"authorization_policies.json entry point authorization policy references unknown authorization policy {authorization_policy}")
 
 
 
@@ -863,7 +863,7 @@ def _expect_asyncapi_operation_channel(op: dict[str, Any], channel_id: str, mess
         raise ContractError(f"AsyncAPI operation {op_id} references wrong message")
 
 
-def _parse_css_rules(text: str, label: str, textual: bool = False) -> list[tuple[str, dict[str, str]]]:
+def _parse_style_rules(text: str, label: str, textual: bool = False) -> list[tuple[str, dict[str, str]]]:
     without_comments = re.sub(r"/\*.*?\*/", "", text, flags=re.S)
     rules: list[tuple[str, dict[str, str]]] = []
     pos = 0
@@ -886,7 +886,7 @@ def _parse_css_rules(text: str, label: str, textual: bool = False) -> list[tuple
             if len(name_value) != 2:
                 raise ContractError(f"{label} declaration is malformed: {line!r}")
             name, value = name_value[0].strip(), name_value[1].strip()
-            _validate_css_property_name(name, label)
+            _validate_style_property_name(name, label)
             if not value:
                 raise ContractError(f"{label} declaration has empty value for {name}")
             declarations[name] = value
@@ -903,9 +903,9 @@ def _parse_css_rules(text: str, label: str, textual: bool = False) -> list[tuple
     return rules
 
 
-def _validate_css_property_name(name: str, label: str) -> None:
+def _validate_style_property_name(name: str, label: str) -> None:
     if not re.fullmatch(r"(?:[a-z][a-z0-9-]*|--[a-z][a-z0-9-]*)", name):
-        raise ContractError(f"{label} contains invalid CSS property name: {name}")
+        raise ContractError(f"{label} contains invalid style property name: {name}")
 
 
 def _load_generated_module(path: Path, module_name: str):

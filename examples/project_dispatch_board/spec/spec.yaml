@@ -376,7 +376,7 @@ state_machines:
     model: Project
     view_states:
       ready:
-        audit:
+        render_audit_cases:
           empty:
             rationale: Audit render for empty board state vector.
             seed_fixtures:
@@ -450,7 +450,7 @@ state_machines:
           id: select_project_updates_state_machines
           when:
             instance: list
-            signal: message.project.selected
+            message: message.project.selected
         renderers:
           textual:
             layout:
@@ -669,7 +669,7 @@ state_machines:
 entry_points:
   entry_point.api.project.create:
     adapter:
-      http:
+      http_api:
         input:
           body:
             customer:
@@ -707,7 +707,7 @@ entry_points:
           workspace_id: $input.params.workspace_id
   entry_point.api.project.list:
     adapter:
-      http:
+      http_api:
         input:
           params:
             workspace_id:
@@ -849,7 +849,7 @@ workflows:
       event: event.project.approved
 test_cases:
   test_case.project.approval_notice.workflow:
-    archetype: workflow_event_success
+    archetype: workflow_trigger_success
     rationale: Approval event dispatches the notification workflow.
     feature_tag: project.approval_notice
     subject_ref:
@@ -923,7 +923,7 @@ test_cases:
     then:
       enables:
       - operation.project.create
-      policy:
+      authorization:
         denied:
         - operation: operation.project.approve
       state_machine:

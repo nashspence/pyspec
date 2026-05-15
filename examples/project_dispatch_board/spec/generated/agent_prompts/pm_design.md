@@ -26,7 +26,7 @@ Rules:
 - Use test-case archetypes from `src/pyspec_contract/patterns.yaml`; define every seed fixture explicitly.
 - Models are product data models: fields, lifecycle, and invariants only.
 - Use `rationale` only when it preserves non-obvious product intent.
-- For entry points, declare one explicit `adapter` (`http`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`) and one explicit `target` (`operation`, `state_machine`, or `workflow`).
+- For entry points, declare one explicit `adapter` (`http_api`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`) and one explicit `target` (`operation`, `state_machine`, or `workflow`).
 - For state-machine entry points, keep invocation and rendering separate with adapter input and target `renderer` (`html` or `textual`).
 - For workflow entry points, bind the entry point target to the workflow trigger with `target.workflow.ref` and `target.workflow.trigger_source`.
 - For rendered screens, put framework-owned `layout`, `presentation`, and `style` under `renderers.html` or `renderers.textual`.

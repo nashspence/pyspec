@@ -5,7 +5,7 @@ authoring_layers:
       targets: [fixture, model, data_contract, operation, test_case]
       projections: [spec/generated/agent_prompts, spec/generated/behavior/fixtures.yaml, spec/generated/behavior/test_cases.yaml, spec/generated/test_adapters/pytest_bdd_features, spec/generated/test_adapters/python_refs.py]
     http:
-      opens: [entry_point.adapter.http]
+      opens: [entry_point.adapter.http_api]
       requires: [core]
       projections_when_declared: [spec/generated/product_interfaces/http.openapi.yaml, spec/generated/audit_evidence/entrypoints]
     events:
@@ -45,13 +45,13 @@ purity_rules:
 test_case_archetypes:
   empty_collection_state_machine:
     when: open_entry_point
-    then: [state_machine.view_state.empty, enables, authorization_policy.denied]
+    then: [state_machine.view_state.empty, enables, authorization.denied]
   ready_collection_state_machine:
     when: open_entry_point
     then: [state_machine.view_state.ready, enables]
   state_machine_composition:
     when: open_entry_point
-    then: [state_machine.instances, enables, authorization_policy.denied]
+    then: [state_machine.instances, enables, authorization.denied]
   state_machine_composition_sync:
     when: open_entry_point
     then: [state_machine.instances, state_machine.context, state_machine.signal_sync_rules.observed_rules]
@@ -61,15 +61,15 @@ test_case_archetypes:
   entry_point_response:
     when: call_entry_point
     then: [outcome, response.status, model.exists, events.emitted, invoked]
-  workflow_event_success:
+  workflow_trigger_success:
     when: emit_event
     then: [workflow.executed, workflow.outcome, invoked]
   authorization_denial:
     when: open_entry_point
-    then: [authorization_policy.denied]
+    then: [authorization.denied]
 
 entry_point_adapters:
-  http:
+  http_api:
     target: operation
     requires: [method, path]
     layer: http
@@ -127,7 +127,7 @@ renderer_contracts:
     purpose: Textual renderer style tokens and selector-scoped declarations.
     selectors_allowed: [screen, slot.<declared_slot>, operation.<declared_operation>, region.<declared_region>, child_state_machine.<declared_child_state_machine>]
 
-gherkin_policy:
+gherkin_corpus:
   source_of_truth: spec/generated/behavior/test_cases.yaml
   generated_features: pytest-bdd adapter only
   corpus: spec/generated/test_adapters/pytest_bdd_features/*.feature

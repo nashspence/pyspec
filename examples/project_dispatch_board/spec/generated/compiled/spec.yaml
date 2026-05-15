@@ -143,7 +143,7 @@ data_contracts:
 entry_points:
   entry_point.api.project.create:
     adapter:
-      http:
+      http_api:
         input:
           body:
             customer:
@@ -183,7 +183,7 @@ entry_points:
         ref: operation.project.create
   entry_point.api.project.list:
     adapter:
-      http:
+      http_api:
         input:
           params:
             workspace_id:
@@ -830,34 +830,6 @@ state_machines:
     view_states:
       ready:
         assets: []
-        audit:
-          empty:
-            instances:
-              activity:
-                view_state: empty
-              detail:
-                view_state: none
-              list:
-                view_state: empty
-            rationale: Audit render for empty board state vector.
-            seed_fixtures:
-            - fixture.workspace.member
-          ready_selected:
-            context:
-              selected_project_id: project_submitted_1
-            facts:
-            - ref: fact.project.submitted
-            - ref: fact.project.draft
-            instances:
-              activity:
-                view_state: ready
-              detail:
-                view_state: ready
-              list:
-                view_state: ready
-            rationale: Audit render for selected-project board state vector using named project facts.
-            seed_fixtures:
-            - fixture.workspace.member
         available_operations: []
         child_state_machines:
         - context_bindings:
@@ -889,6 +861,34 @@ state_machines:
           state_machine: state_machine.project.activity
         fields: []
         query_dependencies: []
+        render_audit_cases:
+          empty:
+            instances:
+              activity:
+                view_state: empty
+              detail:
+                view_state: none
+              list:
+                view_state: empty
+            rationale: Audit render for empty board state vector.
+            seed_fixtures:
+            - fixture.workspace.member
+          ready_selected:
+            context:
+              selected_project_id: project_submitted_1
+            facts:
+            - ref: fact.project.submitted
+            - ref: fact.project.draft
+            instances:
+              activity:
+                view_state: ready
+              detail:
+                view_state: ready
+              list:
+                view_state: ready
+            rationale: Audit render for selected-project board state vector using named project facts.
+            seed_fixtures:
+            - fixture.workspace.member
         renderers:
           html:
             layout:
@@ -987,7 +987,7 @@ state_machines:
           id: select_project_updates_state_machines
           when:
             instance: list
-            signal: message.project.selected
+            message: message.project.selected
         surface: state_machine.project.board.ready
         text: []
   state_machine.project.detail:
@@ -1168,7 +1168,7 @@ state_machines:
         - text.project.list.ready.heading
 test_cases:
   test_case.project.approval_notice.workflow:
-    archetype: workflow_event_success
+    archetype: workflow_trigger_success
     feature_tag: project.approval_notice
     given:
       domain_facts: []
@@ -1218,6 +1218,10 @@ test_cases:
     subject_ref:
       operation: operation.project.approve
     then:
+      authorization:
+        allowed:
+        - authorization_policy: authorization_policy.project.approve
+          operation: operation.project.approve
       events:
         emitted:
         - event.project.approved
@@ -1230,10 +1234,6 @@ test_cases:
             id: project_submitted_1
             status: approved
       outcome: approved
-      policy:
-        allowed:
-        - authorization_policy: authorization_policy.project.approve
-          operation: operation.project.approve
     title: Approve submitted dispatch project
     when:
       invoke_operation:
@@ -1256,12 +1256,12 @@ test_cases:
     subject_ref:
       state_machine: state_machine.project.board
     then:
-      enables:
-      - operation.project.create
-      policy:
+      authorization:
         denied:
         - authorization_policy: authorization_policy.project.approve
           operation: operation.project.approve
+      enables:
+      - operation.project.create
       requires:
         assets:
         - asset.project.list.empty.illustration
@@ -1410,7 +1410,7 @@ test_cases:
             id: select_project_updates_state_machines
             when:
               instance: list
-              signal: message.project.selected
+              message: message.project.selected
         instances:
           activity:
             source: state_machine.project.activity
@@ -1610,7 +1610,7 @@ test_cases:
             id: select_project_updates_state_machines
             when:
               instance: list
-              signal: message.project.selected
+              message: message.project.selected
         instances:
           activity:
             source: state_machine.project.activity
@@ -1651,6 +1651,10 @@ test_cases:
     subject_ref:
       entry_point: entry_point.api.project.create
     then:
+      authorization:
+        allowed:
+        - authorization_policy: authorization_policy.project.create
+          operation: operation.project.create
       events:
         emitted:
         - event.project.created
@@ -1663,10 +1667,6 @@ test_cases:
             title: Replace rooftop condenser fan
             workspace_id: $fixture.workspace.id
       outcome: created
-      policy:
-        allowed:
-        - authorization_policy: authorization_policy.project.create
-          operation: operation.project.create
       response:
         status: 201
     title: Create dispatch project through API

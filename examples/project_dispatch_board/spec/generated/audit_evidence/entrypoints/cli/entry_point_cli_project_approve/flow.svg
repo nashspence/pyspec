@@ -1,6 +1,6 @@
 <svg width="1269pt" height="397pt"
  viewBox="0.00 0.00 1269.00 397.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 6c14452404dbc2f7a9f7eaeaa922d3977ba26ef5275b1ad164b7171a7baac997 -->
+<!-- pyspec-contract-input-sha256: 4cd93faf6a32df73d052bd956d1fb1f6d9414a57639e25694ac82cca48695eca -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 379)">
 <title>entrypoint_entry_point_cli_project_approve</title>
 <!-- entry_start -->
@@ -62,15 +62,15 @@
 <text text-anchor="start" x="613.5" y="-309.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Reviewers can approve submitted dispatch projects.</text>
 <text text-anchor="start" x="614.5" y="-289.5" font-family="Arial" font-weight="bold" font-size="10.00">authorization_policy:</text>
 <text text-anchor="start" x="713.5" y="-289.5" font-family="Arial" font-size="10.00">  authorization_policy.project.approve</text>
-<text text-anchor="start" x="614.5" y="-277.5" font-family="Arial" font-weight="bold" font-size="10.00">policy_effect:</text>
-<text text-anchor="start" x="676.5" y="-277.5" font-family="Arial" font-size="10.00">  allow</text>
-<text text-anchor="start" x="614.5" y="-265.5" font-family="Arial" font-weight="bold" font-size="10.00">policy_subjects:</text>
-<text text-anchor="start" x="690.5" y="-265.5" font-family="Arial" font-size="10.00">  actor ← input.approved_by</text>
-<text text-anchor="start" x="613.5" y="-245.5" font-family="Arial" font-weight="bold" font-size="10.00">policy_targets</text>
+<text text-anchor="start" x="614.5" y="-277.5" font-family="Arial" font-weight="bold" font-size="10.00">authorization_effect:</text>
+<text text-anchor="start" x="709.5" y="-277.5" font-family="Arial" font-size="10.00">  allow</text>
+<text text-anchor="start" x="614.5" y="-265.5" font-family="Arial" font-weight="bold" font-size="10.00">authorization_subjects:</text>
+<text text-anchor="start" x="723.5" y="-265.5" font-family="Arial" font-size="10.00">  actor ← input.approved_by</text>
+<text text-anchor="start" x="613.5" y="-245.5" font-family="Arial" font-weight="bold" font-size="10.00">authorization_targets</text>
 <text text-anchor="start" x="613.5" y="-233.5" font-family="Arial" font-size="10.00">operation: operation.project.approve</text>
 <text text-anchor="start" x="613.5" y="-222.5" font-family="Arial" font-size="10.00">model: Project</text>
-<text text-anchor="start" x="614.5" y="-203.5" font-family="Arial" font-weight="bold" font-size="10.00">policy_conditions:</text>
-<text text-anchor="start" x="701.5" y="-203.5" font-family="Arial" font-size="10.00">  Project.status = submitted</text>
+<text text-anchor="start" x="614.5" y="-203.5" font-family="Arial" font-weight="bold" font-size="10.00">authorization_conditions:</text>
+<text text-anchor="start" x="734.5" y="-203.5" font-family="Arial" font-size="10.00">  Project.status = submitted</text>
 <text text-anchor="start" x="613.5" y="-183.5" font-family="Arial" font-weight="bold" font-size="10.00">transitions</text>
 <text text-anchor="start" x="613.5" y="-172.5" font-family="Arial" font-size="10.00">Project.status</text>
 <text text-anchor="start" x="674.5" y="-172.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  enum&lt;draft|submitted|approved|archived&gt;</text>

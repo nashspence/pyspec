@@ -36,7 +36,7 @@ def test_openapi_validator_rejects_response_schema_drift() -> None:
         validate_openapi(contract, mutated)
 
 
-def test_policy_projection_validator_rejects_guard_drift() -> None:
+def test_authorization_projection_validator_rejects_guard_drift() -> None:
     contract = _contract()
     authorization_policies = read_json(ROOT / "spec" / "generated" / "product_interfaces" / "authorization_policies.json")
     mutated = copy.deepcopy(authorization_policies)

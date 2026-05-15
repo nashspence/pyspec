@@ -413,7 +413,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
         target_kind, target = entry_point_target_pair(entry)
         if adapter_kind == "html_route" and target_kind == "state_machine":
             entry["route"] = rules.route_ref(target["ref"])
-        elif adapter_kind == "http" and target_kind == "operation":
+        elif adapter_kind == "http_api" and target_kind == "operation":
             entry["endpoint"] = rules.endpoint_ref(target["ref"])
             if target["ref"] in contract["operations"]:
                 entry.setdefault("authorization_policy", copy.deepcopy(contract["operations"][target["ref"]]["authorization_policy"]))
@@ -485,10 +485,10 @@ def _compile_view_states(owner_id: str, states: dict[str, Any]) -> dict[str, Any
         for field in ["child_state_machines", "signal_sync_rules"]:
             if field in state:
                 item[field] = state[field]
-        if state.get("audit"):
-            item["audit"] = {
+        if state.get("render_audit_cases"):
+            item["render_audit_cases"] = {
                 case_name: _compile_audit_case(owner_id, state_name, case_name, case)
-                for case_name, case in state["audit"].items()
+                for case_name, case in state["render_audit_cases"].items()
             }
         compiled[state_name] = item
     return compiled
@@ -509,7 +509,7 @@ def audit_cases(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
     cases: dict[str, dict[str, Any]] = {}
     for state_machine_id, state_machine in sorted(contract.get("state_machines", {}).items()):
         for state_name, state in sorted(state_machine.get("view_states", {}).items()):
-            for case_name, case in sorted((state.get("audit") or {}).items()):
+            for case_name, case in sorted((state.get("render_audit_cases") or {}).items()):
                 case_id = f"{state_machine_id}.{state_name}.{case_name}.audit"
                 cases[case_id] = {"state_machine": state_machine_id, "view_state": state_name, "name": case_name, **case}
     return cases
@@ -551,11 +551,11 @@ def _derive_operation_transitions(contract: dict[str, Any]) -> None:
 def _derive_authorization_policies(contract: dict[str, Any]) -> None:
     for operation_id, operation in sorted(contract["operations"].items()):
         policy_id = operation["authorization_policy"]
-        contract["authorization_policies"].setdefault(policy_id, _default_operation_policy(operation_id, operation))
+        contract["authorization_policies"].setdefault(policy_id, _default_operation_authorization_policy(operation_id, operation))
 
 
-def _default_operation_policy(operation_id: str, operation: dict[str, Any]) -> dict[str, Any]:
-    targets = [{"operation": operation_id}, *_operation_policy_targets(operation_id, operation)]
+def _default_operation_authorization_policy(operation_id: str, operation: dict[str, Any]) -> dict[str, Any]:
+    targets = [{"operation": operation_id}, *_operation_authorization_targets(operation_id, operation)]
     conditions: list[dict[str, Any]] = []
     transition = operation.get("transition")
     if transition:
@@ -567,7 +567,7 @@ def _default_operation_policy(operation_id: str, operation: dict[str, Any]) -> d
             }
         })
     return {
-        "subjects": [_operation_policy_subject(operation)],
+        "subjects": [_operation_authorization_subject(operation)],
         "targets": targets,
         "effect": "allow",
         "conditions": conditions or [{"unconditional": True}],
@@ -575,14 +575,14 @@ def _default_operation_policy(operation_id: str, operation: dict[str, Any]) -> d
     }
 
 
-def _operation_policy_subject(operation: dict[str, Any]) -> dict[str, Any]:
+def _operation_authorization_subject(operation: dict[str, Any]) -> dict[str, Any]:
     for field in sorted(operation.get("input", {})):
         if field.endswith("_by"):
             return {"kind": "actor", "source": f"$input.{field}"}
     return {"kind": "actor"}
 
 
-def _operation_policy_targets(operation_id: str, operation: dict[str, Any]) -> list[dict[str, str]]:
+def _operation_authorization_targets(operation_id: str, operation: dict[str, Any]) -> list[dict[str, str]]:
     models: list[str] = []
     transition = operation.get("transition")
     if transition:
@@ -1068,7 +1068,7 @@ def _validate_authorization_policies(contract: dict[str, Any]) -> None:
         policy_id = operation["authorization_policy"]
         if policy_id not in authorization_policies:
             raise ContractError(f"Operation {operation_id} references unknown authorization policy {policy_id}")
-        if not _policy_covers_target(authorization_policies[policy_id], "operation", operation_id):
+        if not _authorization_policy_covers_target(authorization_policies[policy_id], "operation", operation_id):
             raise ContractError(f"Operation {operation_id} authorization_policy {policy_id} must cover operation target")
     for entry_id, entry in entry_points.items():
         policy_id = entry.get("authorization_policy")
@@ -1077,39 +1077,39 @@ def _validate_authorization_policies(contract: dict[str, Any]) -> None:
         if policy_id not in authorization_policies:
             raise ContractError(f"Entry point {entry_id} references unknown authorization policy {policy_id}")
         target_kind, target_ref = entry_target_pair(entry)
-        if not _policy_covers_target(authorization_policies[policy_id], "entry_point", entry_id) and not _policy_covers_target(authorization_policies[policy_id], target_kind, target_ref):
+        if not _authorization_policy_covers_target(authorization_policies[policy_id], "entry_point", entry_id) and not _authorization_policy_covers_target(authorization_policies[policy_id], target_kind, target_ref):
             raise ContractError(f"Entry point {entry_id} authorization_policy {policy_id} must cover entry point or invoked target")
     for policy_id, policy in authorization_policies.items():
         for target in policy["targets"]:
-            kind, ref = _one(target, f"Policy {policy_id} target")
+            kind, ref = _one(target, f"Authorization policy {policy_id} target")
             if kind == "model" and ref not in contract["models"]:
-                raise ContractError(f"Policy {policy_id} target references unknown model {ref}")
+                raise ContractError(f"Authorization policy {policy_id} target references unknown model {ref}")
             if kind == "operation" and ref not in operations:
-                raise ContractError(f"Policy {policy_id} target references unknown operation {ref}")
+                raise ContractError(f"Authorization policy {policy_id} target references unknown operation {ref}")
             if kind == "entry_point" and ref not in entry_points:
-                raise ContractError(f"Policy {policy_id} target references unknown entry point {ref}")
+                raise ContractError(f"Authorization policy {policy_id} target references unknown entry point {ref}")
         for condition in policy.get("conditions", []):
-            kind, body = _one(condition, f"Policy {policy_id} condition")
-            if kind in {"unconditional", "input_present", "subject_role"}:
+            kind, body = _one(condition, f"Authorization policy {policy_id} condition")
+            if kind in {"unconditional", "input_present", "subject_has_role"}:
                 continue
             if kind in {"model_exists", "model_state"}:
                 model_id = body["model"]
                 if model_id not in contract["models"]:
-                    raise ContractError(f"Policy {policy_id} condition references unknown model {model_id}")
+                    raise ContractError(f"Authorization policy {policy_id} condition references unknown model {model_id}")
                 if kind == "model_state" and body["field"] not in contract["models"][model_id]["fields"]:
-                    raise ContractError(f"Policy {policy_id} condition references unknown {model_id} field {body['field']}")
+                    raise ContractError(f"Authorization policy {policy_id} condition references unknown {model_id} field {body['field']}")
                 continue
-            raise ContractError(f"Policy {policy_id} condition is unsupported: {kind}")
+            raise ContractError(f"Authorization policy {policy_id} condition is unsupported: {kind}")
 
 
-def _policy_covers_target(policy: dict[str, Any], kind: str, ref: str) -> bool:
+def _authorization_policy_covers_target(policy: dict[str, Any], kind: str, ref: str) -> bool:
     return any(target == {kind: ref} for target in policy.get("targets", []))
 
 
-def _policy_assertion_target(assertion: dict[str, Any], label: str) -> tuple[str, str]:
+def _authorization_assertion_target(assertion: dict[str, Any], label: str) -> tuple[str, str]:
     items = [(key, assertion[key]) for key in ("operation", "entry_point") if key in assertion]
     if len(items) != 1:
-        raise ContractError(f"{label} must contain exactly one policy target")
+        raise ContractError(f"{label} must contain exactly one authorization target")
     return items[0]
 
 
@@ -1591,7 +1591,7 @@ def _validate_sync_rules(
         if source_id not in mounts:
             raise ContractError(f"composed state machine state {label} sync source instance is unknown: {source_id}")
         source_fsm = contract["state_machines"][mounts[source_id]["state_machine"]]
-        signal_id = rule["when"]["signal"]
+        signal_id = rule["when"]["message"]
         if signal_id not in _state_machine_emits(source_fsm):
             raise ContractError(f"composed state machine state {label} sync listens for signal the source does not emit: {signal_id}")
         source_payload = _state_machine_signal_payload(source_fsm, "emits", signal_id, f"composed state machine state {label} sync trigger")
@@ -1725,7 +1725,7 @@ def _validate_renderer_style_selector(
     mounts: set[str],
     label: str,
 ) -> None:
-    if selector.startswith("region.") or selector.startswith("mount."):
+    if selector.startswith("region.") or selector.startswith("child_state_machine."):
         _validate_composition_selector(f"{owner_label}.{state_name}", selector, regions, mounts, label)
         return
     _validate_style_selector(owner_label, state_name, selector, text_slots, asset_slots, field_slots, operations, label)
@@ -1741,7 +1741,9 @@ def _validate_style_selector(
     operations: set[str],
     label: str,
 ) -> None:
-    if selector in {"root", "screen"}:
+    if selector == "root" and label.startswith("html"):
+        return
+    if selector == "screen" and label.startswith("textual"):
         return
     if selector.startswith("slot."):
         name = selector[len("slot."):]
@@ -1757,7 +1759,9 @@ def _validate_style_selector(
 
 
 def _validate_composition_selector(state_machine_id: str, selector: str, regions: set[str], mounts: set[str], label: str) -> None:
-    if selector in {"root", "screen"}:
+    if selector == "root" and label.startswith("html"):
+        return
+    if selector == "screen" and label.startswith("textual"):
         return
     if selector.startswith("region."):
         region = selector[len("region."):]
@@ -1792,9 +1796,9 @@ def _validate_entries(contract: dict[str, Any]) -> None:
             declared = _entry_input_map(entry, "params")
             _validate_state_machine_entry_inputs(contract, eid, value, declared=declared, input_label="input.params")
             _validate_target_bindings(contract, eid, entry, declared)
-        elif adapter_kind == "http":
+        elif adapter_kind == "http_api":
             if kind != "operation" or value not in contract["operations"]:
-                raise ContractError(f"HTTP entry point {eid} must target a known operation")
+                raise ContractError(f"HTTP API entry point {eid} must target a known operation")
             _require_adapter(adapter, eid, "method")
             _require_adapter(adapter, eid, "path")
             _validate_path_params(entry, eid)
@@ -1858,7 +1862,7 @@ def _validate_entry_point_fields(entry_id: str, entry: dict[str, Any], adapter_k
     allowed = {"adapter", "target", "rationale", "authorization_policy"}
     generated = {
         "html_route": {"route"},
-        "http": {"endpoint"},
+        "http_api": {"endpoint"},
         "cli": {"cli_command_ref"},
         "worker": {"workflow_ref"},
         "scheduled": {"workflow_ref"},
@@ -1873,7 +1877,7 @@ def _validate_entry_point_fields(entry_id: str, entry: dict[str, Any], adapter_k
 def _validate_entry_input_shape(entry_id: str, entry: dict[str, Any], adapter_kind: str) -> None:
     allowed = {
         "html_route": {"params"},
-        "http": {"params", "body"},
+        "http_api": {"params", "body"},
         "cli": {"args"},
         "worker": {"payload"},
         "scheduled": set(),
@@ -2620,8 +2624,8 @@ def _validate_test_case_when(contract: dict[str, Any], test_case_id: str, test_c
         entry_target_kind, _ = entry_target_pair(entry)
         if kind == "open_entry_point" and not (adapter_kind in {"html_route", "cli"} and entry_target_kind == "state_machine"):
             raise ContractError(f"Test case {test_case_id} open_entry_point must reference an HTML route or CLI state machine entry point")
-        if kind == "call_entry_point" and not (adapter_kind in {"http", "cli"} and entry_target_kind == "operation"):
-            raise ContractError(f"Test case {test_case_id} call_entry_point must reference an HTTP or CLI operation entry point")
+        if kind == "call_entry_point" and not (adapter_kind in {"http_api", "cli"} and entry_target_kind == "operation"):
+            raise ContractError(f"Test case {test_case_id} call_entry_point must reference an HTTP API or CLI operation entry point")
         _validate_test_case_entry_input(test_case_id, kind, body, entry)
     elif kind == "invoke_operation":
         if ref not in contract["operations"]:
@@ -2769,10 +2773,10 @@ def _validate_test_case_then(contract: dict[str, Any], test_case_id: str, test_c
         for cap_id in then.get(field, []):
             if cap_id not in contract["operations"]:
                 raise ContractError(f"Test case {test_case_id} {field} unknown operation {cap_id}")
-    policy_assertion = then.get("policy") or {}
+    authorization_assertion = then.get("authorization") or {}
     for effect in ("allowed", "denied"):
-        for assertion in policy_assertion.get(effect, []):
-            kind, ref = _policy_assertion_target(assertion, f"Test case {test_case_id} authorization_policy.{effect}")
+        for assertion in authorization_assertion.get(effect, []):
+            kind, ref = _authorization_assertion_target(assertion, f"Test case {test_case_id} authorization_policy.{effect}")
             if kind == "operation" and ref not in contract["operations"]:
                 raise ContractError(f"Test case {test_case_id} authorization_policy.{effect} unknown operation {ref}")
             if kind == "entry_point" and ref not in contract["entry_points"]:
@@ -2931,13 +2935,13 @@ def _validate_test_case_archetype(test_case_id: str, test_case: dict[str, Any]) 
     elif archetype == "entry_point_response":
         if when_kind != "call_entry_point" or "outcome" not in then or "response" not in then:
             raise ContractError(f"Test case {test_case_id} entry_point_response requires call_entry_point, outcome, and response")
-    elif archetype == "workflow_event_success":
+    elif archetype == "workflow_trigger_success":
         workflow = then.get("workflow", {})
         if when_kind != "emit_event" or not workflow.get("executed") or "outcome" not in workflow:
-            raise ContractError(f"Test case {test_case_id} workflow_event_success requires emit_event, workflow.executed=true, and workflow.outcome")
+            raise ContractError(f"Test case {test_case_id} workflow_trigger_success requires emit_event, workflow.executed=true, and workflow.outcome")
     elif archetype == "authorization_denial":
-        if not (then.get("policy") or {}).get("denied"):
-            raise ContractError(f"Test case {test_case_id} authorization_denial requires authorization_policy.denied")
+        if not then.get("authorization", {}).get("denied"):
+            raise ContractError(f"Test case {test_case_id} authorization_denial requires authorization.denied")
 
 
 def _expand_test_case_fact_uses(contract: dict[str, Any]) -> set[str]:
@@ -3057,19 +3061,19 @@ def _expand_test_cases(contract: dict[str, Any]) -> None:
             if target_kind == "operation":
                 cap_id = target_ref
         if cap_id:
-            assertions.setdefault("policy", {"allowed": [{"operation": cap_id}]})
-        _expand_policy_assertions(contract, assertions)
+            assertions.setdefault("authorization", {"allowed": [{"operation": cap_id}]})
+        _expand_authorization_assertions(contract, assertions)
 
 
-def _expand_policy_assertions(contract: dict[str, Any], assertions: dict[str, Any]) -> None:
-    policy = assertions.get("policy")
+def _expand_authorization_assertions(contract: dict[str, Any], assertions: dict[str, Any]) -> None:
+    policy = assertions.get("authorization")
     if not policy:
         return
     for effect in ("allowed", "denied"):
         for assertion in policy.get(effect, []):
             if "authorization_policy" in assertion:
                 continue
-            kind, ref = _policy_assertion_target(assertion, f"authorization_policy.{effect}")
+            kind, ref = _authorization_assertion_target(assertion, f"authorization_policy.{effect}")
             if kind == "operation":
                 assertion["authorization_policy"] = contract["operations"][ref]["authorization_policy"]
             elif kind == "entry_point":

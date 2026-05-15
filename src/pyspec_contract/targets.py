@@ -4,7 +4,7 @@ from typing import Any
 
 
 STATE_MACHINE_RENDERERS = ("html", "textual")
-ENTRY_POINT_ADAPTER_KINDS = ("http", "cli", "webhook", "scheduled", "worker", "html_route")
+ENTRY_POINT_ADAPTER_KINDS = ("http_api", "cli", "webhook", "scheduled", "worker", "html_route")
 ENTRY_POINT_TARGET_KINDS = ("operation", "state_machine", "workflow")
 
 
@@ -14,7 +14,7 @@ def entry_point_adapter_pair(entry_or_adapter: dict[str, Any]) -> tuple[str, dic
         if kind in adapter:
             value = adapter[kind]
             return kind, value if isinstance(value, dict) else {}
-    raise KeyError("entry point adapter must declare http, cli, webhook, scheduled, worker, or html_route")
+    raise KeyError("entry point adapter must declare http_api, cli, webhook, scheduled, worker, or html_route")
 
 
 def entry_point_adapter(entry_or_adapter: dict[str, Any], kind: str | None = None) -> dict[str, Any]:
@@ -58,7 +58,7 @@ def entry_point_path(entry: dict[str, Any]) -> str | None:
     if "adapter" not in entry:
         return entry.get("path")
     kind, adapter = entry_point_adapter_pair(entry)
-    if kind in {"http", "webhook", "html_route"}:
+    if kind in {"http_api", "webhook", "html_route"}:
         return adapter.get("path")
     return None
 
@@ -67,7 +67,7 @@ def entry_point_method(entry: dict[str, Any]) -> str | None:
     if "adapter" not in entry:
         return entry.get("method")
     kind, adapter = entry_point_adapter_pair(entry)
-    return adapter.get("method") if kind == "http" else None
+    return adapter.get("method") if kind == "http_api" else None
 
 
 def entry_point_cli_command(entry: dict[str, Any]) -> str | None:
