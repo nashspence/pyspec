@@ -874,7 +874,7 @@ def state_machine_dot(state_machine_id: str, state_machine: dict[str, Any], cont
                     transition["on"],
                     "transition event",
                     _format_transition_sections(state_machine, transition, contract),
-                    basis=transition.get("basis", ""),
+                    rationale=transition.get("rationale", ""),
                     style=_DOT_STYLE_CAPABILITY,
                 ),
             )
@@ -889,7 +889,7 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
     route_state_machine_order: list[str] = []
     for rule in state_machine.get("message_sync_rules", []):
         route_state_machine_order.append(rule["when"]["instance"])
-        route_state_machine_order.extend(effect["send"]["instance"] for effect in rule.get("do", []) if "send" in effect)
+        route_state_machine_order.extend(effect["send"]["instance"] for effect in rule.get("effects", []) if "send" in effect)
     route_state_machine_index = {state_machine_id: index for index, state_machine_id in enumerate(dict.fromkeys(route_state_machine_order))}
     mounts = sorted(
         state_machine.get("child_state_machines", []),
@@ -909,7 +909,7 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
     for rule in state_machine.get("message_sync_rules", []):
         emit_id = _dot_node_id("message_emit", f"{rule['id']}_{rule['when']['instance']}_{rule['when']['message']}")
         sync_id = _dot_node_id("message_route", rule["id"])
-        send_effects = [(index, effect) for index, effect in enumerate(rule.get("do", [])) if "send" in effect]
+        send_effects = [(index, effect) for index, effect in enumerate(rule.get("effects", [])) if "send" in effect]
         effect_ids = [_dot_node_id("message_effect", f"{rule['id']}_{index}") for index, _ in send_effects]
         lines.append(
             _dot_html_node(
@@ -949,7 +949,7 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
         if source:
             lines.append(_dot_edge(source, emit_id, {"color": _DOT_COLOR_EVENT_BORDER, "penwidth": "1.4"}))
         lines.append(_dot_edge(emit_id, sync_id, {"color": _DOT_COLOR_EVENT_BORDER, "penwidth": "1.2"}))
-        for index, effect in enumerate(rule.get("do", [])):
+        for index, effect in enumerate(rule.get("effects", [])):
             if "send" not in effect:
                 continue
             effect_id = _dot_node_id("message_effect", f"{rule['id']}_{index}")
@@ -986,7 +986,7 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
                     _entry_surface_title(entry),
                     f"{adapter_kind} entry point",
                     _entry_binding_sections(entry),
-                    basis=entry.get("basis", ""),
+                    rationale=entry.get("rationale", ""),
                     style=_DOT_STYLE_ENTRY,
                 ),
             ),
@@ -1071,7 +1071,7 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
                         ("steps", [f"{step['id']} {_DOT_ARROW_FORWARD} {step['operation']}" for step in workflow["steps"]]),
                         ("outcomes", [_DotTypedField(outcome_id, outcome["result"], outcome["kind"]) for outcome_id, outcome in sorted(workflow["outcomes"].items())]),
                     ],
-                    basis=workflow.get("basis", ""),
+                    rationale=workflow.get("rationale", ""),
                     style=_DOT_STYLE_WORKFLOW,
                 ),
             ),
@@ -1197,7 +1197,7 @@ def _entry_target_card(
             target_value,
             f"target state machine ({surface})" if surface else "target state machine",
             _state_machine_summary_sections(state_machine, contract),
-            basis=state_machine.get("basis", ""),
+            rationale=state_machine.get("rationale", ""),
             style=_DOT_STYLE_STATE_MACHINE,
         )
     if target_kind == "operation":
@@ -1206,7 +1206,7 @@ def _entry_target_card(
             target_value,
             "target operation",
             _operation_sections(operation, contract),
-            basis=operation.get("basis", ""),
+            rationale=operation.get("rationale", ""),
             style=_DOT_STYLE_CAPABILITY,
         )
     if target_kind == "workflow":
@@ -1222,7 +1222,7 @@ def _entry_target_card(
                 ("steps", [f"{step['id']} {_DOT_ARROW_FORWARD} {step['operation']}" for step in workflow["steps"]]),
                 ("outcomes", [_DotTypedField(outcome_id, outcome["result"], outcome["kind"]) for outcome_id, outcome in sorted(workflow["outcomes"].items())]),
             ],
-            basis=workflow.get("basis", ""),
+            rationale=workflow.get("rationale", ""),
             style=_DOT_STYLE_WORKFLOW,
         )
     if target_kind == "event":
@@ -1290,7 +1290,7 @@ def _workflow_trigger_card(trigger_kind: str, trigger_value: str, contract: dict
             trigger_value,
             "operation trigger",
             _operation_sections(operation, contract),
-            basis=operation.get("basis", ""),
+            rationale=operation.get("rationale", ""),
             style=_DOT_STYLE_EVENT,
         )
     return _dot_card(trigger_value, f"{trigger_kind} trigger", [], style=_DOT_STYLE_EVENT)
@@ -1306,7 +1306,7 @@ def _workflow_step_card(step: dict[str, Any], contract: dict[str, Any]) -> str:
             ("input bindings", [f"{name} {_DOT_ARROW_ASSIGN} {source}" for name, source in sorted(step["input_bindings"].items())]),
             ("routes", _workflow_route_lines(step)),
         ] + _operation_sections(operation, contract),
-        basis=operation.get("basis", ""),
+        rationale=operation.get("rationale", ""),
         style=_DOT_STYLE_NEUTRAL,
     )
 
@@ -1360,7 +1360,7 @@ def _event_card(event_id: str, contract: dict[str, Any], *, subtitle: str = "tar
         event_id,
         subtitle,
         sections,
-        basis=event.get("basis", ""),
+        rationale=event.get("rationale", ""),
         style=_DOT_STYLE_EVENT,
     )
 
@@ -1491,7 +1491,7 @@ def _emitted_message_data_lines(
 def _route_set_lines(rule: dict[str, Any], state_machine: dict[str, Any]) -> list[_DotTypedField]:
     lines = []
     context = state_machine["context"]
-    for effect in rule.get("do", []):
+    for effect in rule.get("effects", []):
         assignment = effect.get("set")
         if not assignment:
             continue
@@ -1674,7 +1674,7 @@ def _dot_card(
     subtitle: str | None,
     sections: Iterable[tuple[str, Iterable[object]]],
     *,
-    basis: str | None = None,
+    rationale: str | None = None,
     style: _DotCardStyle = _DOT_STYLE_NEUTRAL,
 ) -> str:
     header_bg = style.header_bg
@@ -1683,8 +1683,8 @@ def _dot_card(
         f'<TR><TD BGCOLOR="{border}" HEIGHT="3" FIXEDSIZE="false"></TD></TR>',
         _dot_header_row(title, subtitle, header_bg=header_bg),
     ]
-    if basis:
-        rows.extend(_dot_text_rows(_wrap_dot_text(basis, width=50), point_size=_DOT_SIZE_BODY, italic=True, color=_DOT_COLOR_AUDIT_TEXT))
+    if rationale:
+        rows.extend(_dot_text_rows(_wrap_dot_text(rationale, width=50), point_size=_DOT_SIZE_BODY, italic=True, color=_DOT_COLOR_AUDIT_TEXT))
     rows.extend(_dot_section_rows(sections))
     return (
         f'<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" COLOR="{border}" BGCOLOR="#ffffff">'
@@ -2176,7 +2176,7 @@ def render_composed_case_html(root: Path, contract: dict[str, Any], case: dict[s
     for region_name, region in sorted(renderer_web_regions(state).items(), key=lambda item: item[1].get("order", 0)):
         region_tag = region.get("element", "div")
         region_classes = " ".join(["contract-layout-region", f"contract-layout-region--{region_name}"] + region.get("classes", []))
-        region_attrs = {"class": region_classes, "data-layout-region": region_name, "data-required": str(region["required"]).lower()}
+        region_attrs = {"class": region_classes, "data-layout-region": region_name, "data-must-render": str(region["must_render"]).lower()}
         if region.get("role") and region["role"] != "none":
             region_attrs["role"] = region["role"]
         parts.append(f"<{region_tag}{format_attrs(region_attrs)}>")

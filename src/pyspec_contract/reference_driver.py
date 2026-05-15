@@ -25,7 +25,7 @@ class ReferenceSpecDriver:
         self.store: dict[str, list[dict[str, Any]]] = {rid: [] for rid in self.contract["models"]}
         self.emitted: list[str] = []
         self.invoked: list[str] = []
-        self.workflows_ran: list[str] = []
+        self.workflows_executed: list[str] = []
         self.workflow_outcomes: dict[str, str] = {}
         self.last_state_machine: dict[str, Any] | None = None
         self.response: dict[str, Any] | None = None
@@ -114,10 +114,10 @@ class ReferenceSpecDriver:
             assert event_id not in self.emitted
         workflow = assertions.get("workflow")
         if workflow:
-            if workflow["ran"]:
-                assert workflow["ref"] in self.workflows_ran
+            if workflow["executed"]:
+                assert workflow["ref"] in self.workflows_executed
             else:
-                assert workflow["ref"] not in self.workflows_ran
+                assert workflow["ref"] not in self.workflows_executed
             if "outcome" in workflow:
                 assert self.workflow_outcomes.get(workflow["ref"]) == workflow["outcome"]
         for cap in assertions.get("invoked", []):
@@ -298,7 +298,7 @@ class ReferenceSpecDriver:
         self._record_event(event_id, payload)
         for workflow_id, workflow in self.contract["workflows"].items():
             if workflow["trigger"] == {"event": event_id}:
-                self.workflows_ran.append(workflow_id)
+                self.workflows_executed.append(workflow_id)
                 self.workflow_outcomes[workflow_id] = self._run_workflow(workflow, payload)
 
     def _run_workflow(self, workflow: dict[str, Any], payload: dict[str, Any]) -> str:
@@ -336,7 +336,7 @@ class ReferenceSpecDriver:
         namespace = {"input": dict(input_values), "outcome": {"result": dict(result)}}
         if "payload" in emit:
             return emit["event"], _resolve_binding(emit["payload"], namespace)
-        return emit["event"], {field: _resolve_binding(source, namespace) for field, source in emit["with"].items()}
+        return emit["event"], {field: _resolve_binding(source, namespace) for field, source in emit["bindings"].items()}
 
     def _record_event(self, event_id: str, payload: dict[str, Any]) -> None:
         self.emitted.append(event_id)

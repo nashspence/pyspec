@@ -141,7 +141,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "$event." not in composition
     assert "$state_machine." not in composition
     assert "<B>from:</B>" not in composition
-    assert "<B>do:</B>" not in composition
+    assert "<B>effects:</B>" not in composition
     assert "Layout / mounted state machines" not in composition
     assert "Message routing" not in composition
     assert "Sync rules" not in composition
@@ -258,7 +258,7 @@ def test_composition_dot_routes_messages_generically() -> None:
                 "layout": {
                     "regions": {
                         "target": {"order": 10, "element": "aside", "role": "complementary"},
-                        "source": {"order": 20, "element": "main", "role": "main", "required": True},
+                        "source": {"order": 20, "element": "main", "role": "main", "must_render": True},
                         "unused": {"order": 30, "element": "footer", "role": "contentinfo"},
                     }
                 }
@@ -272,7 +272,7 @@ def test_composition_dot_routes_messages_generically() -> None:
             {
                 "id": "route_alpha_beta",
                 "when": {"instance": "publisher", "message": "alpha.ready"},
-                "do": [
+                "effects": [
                     {"send": {"instance": "receiver", "message": "beta.consume", "payload_bindings": {"item_id": "$message.id"}}},
                     {"set": {"context": "selected_id", "from": "$message.id"}},
                 ],
@@ -338,7 +338,7 @@ def test_composition_dot_routes_messages_generically() -> None:
     assert "$state_machine." not in composition
     assert "<B>target:</B>" not in composition
     assert "<B>from:</B>" not in composition
-    assert "<B>do:</B>" not in composition
+    assert "<B>effects:</B>" not in composition
     assert '"message_effect_route_alpha_beta_0" -> "child_state_machine_receiver"' in composition
     assert "message_effect_route_alpha_beta_1" not in composition
     assert '#ecfdf5' in composition
@@ -363,12 +363,12 @@ def test_composition_dot_routes_messages_generically() -> None:
     assert svg.lstrip().startswith("<svg")
 
 
-def test_audit_transition_basis_renders_for_otherwise_sparse_card() -> None:
+def test_audit_transition_rationale_renders_for_otherwise_sparse_card() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
     activity = author["state_machines"]["state_machine.project.activity"]
     cleared = next(transition for transition in activity["transitions"] if transition["on"] == "message.selection.cleared")
     cleared.pop("effects")
-    cleared["basis"] = "Clearing the selection returns the activity state to its empty state."
+    cleared["rationale"] = "Clearing the selection returns the activity state to its empty state."
     contract = compile_source(author)
 
     state_machine = state_machine_dot("state_machine.project.activity", contract["state_machines"]["state_machine.project.activity"], contract)
@@ -408,7 +408,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "&#45; data.ready" not in list_fsm
     assert "&#45; text.project" not in list_fsm
     assert "&#45; none" not in list_fsm
-    assert ">basis<" not in list_fsm
+    assert ">rationale<" not in list_fsm
     assert "loading &#45;&gt; empty" not in list_fsm
     assert "(initial)" not in list_fsm
     assert "initial:" not in list_fsm
@@ -483,7 +483,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "instance:" not in composition
     assert "target:" not in composition
     assert "from:" not in composition
-    assert "do:" not in composition
+    assert "effects:" not in composition
     assert "Layout / mounted state machines" not in composition
     assert "Message routing" not in composition
     assert "Sync rules" not in composition

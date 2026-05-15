@@ -85,7 +85,7 @@ def entry_point_schedule_expression(entry: dict[str, Any]) -> str | None:
 
 
 def entry_point_bindings(entry_or_trigger: dict[str, Any]) -> dict[str, Any]:
-    return entry_point_trigger_pair(entry_or_trigger)[1].get("with", {})
+    return entry_point_trigger_pair(entry_or_trigger)[1].get("bindings", {})
 
 
 def entry_target_pair(target: dict[str, Any]) -> tuple[str, str]:

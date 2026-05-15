@@ -28,7 +28,7 @@ models:
           primitive: Text
         required: true
         nullable: false
-    basis: Item is the first product concept in this specification.
+    rationale: Item is the first product concept in this specification.
 """
 
 

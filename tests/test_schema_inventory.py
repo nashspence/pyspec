@@ -50,6 +50,16 @@ DEPRECATED_TOP_LEVEL_PROPERTIES = {
     "copies",
     "scenarios",
 }
+DEPRECATED_PROPERTY_NAMES = {
+    "basis",
+    "why",
+    "with",
+    "do",
+    "ran",
+    "complete",
+    "fail",
+    "next",
+}
 
 
 def _json_without_duplicate_keys(path: Path) -> dict[str, Any]:
@@ -125,6 +135,38 @@ def test_schema_inventory_rejects_deprecated_definition_terminology() -> None:
             or "capability" in ref
         )
         assert deprecated_refs == [], f"{path} contains deprecated schema refs: {deprecated_refs}"
+
+
+def test_schema_inventory_rejects_deprecated_property_terminology() -> None:
+    for path, schema in _schemas():
+        deprecated: list[str] = []
+
+        def visit(node: Any, trail: tuple[str, ...] = ()) -> None:
+            if isinstance(node, dict):
+                properties = node.get("properties")
+                if isinstance(properties, dict):
+                    for name in sorted(set(properties) & DEPRECATED_PROPERTY_NAMES):
+                        deprecated.append(".".join((*trail, "properties", name)))
+                for key, value in node.items():
+                    visit(value, (*trail, key))
+            elif isinstance(node, list):
+                for index, value in enumerate(node):
+                    visit(value, (*trail, str(index)))
+
+        visit(schema)
+        assert deprecated == [], f"{path} contains deprecated property names: {deprecated}"
+
+
+def test_layout_contract_uses_must_render_flag() -> None:
+    for path, schema in _schemas():
+        defs = schema.get("$defs", {})
+        for name in ("layout_container", "layout_region"):
+            layout_def = defs.get(name)
+            if not layout_def:
+                continue
+            properties = layout_def.get("properties", {})
+            assert "must_render" in properties, f"{path} {name} missing must_render"
+            assert "required" not in properties, f"{path} {name} still uses layout required flag"
 
 
 def test_spec_ontology_rejects_deprecated_reference_terminology() -> None:

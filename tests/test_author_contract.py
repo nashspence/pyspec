@@ -35,7 +35,7 @@ def test_author_contract_can_be_minimal_and_surface_invisible() -> None:
         "project": "minimal_author",
         "models": {
             "Project": {
-                "basis": "Minimal product model for an API-free contract.",
+                "rationale": "Minimal product model for an API-free contract.",
                 "fields": {"id": F(P("ID")), "title": F(P("Text"))},
             }
         },
@@ -52,7 +52,7 @@ def test_author_contract_reuses_layer_guardrails() -> None:
         "project": "blocked_author",
         "text_resources": {
             "text.project.empty.heading": {
-                "basis": "UI text is not part of a core-only source.",
+                "rationale": "UI text is not part of a core-only source.",
                 "placeholder": "No projects",
             }
         },

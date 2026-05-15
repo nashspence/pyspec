@@ -13,7 +13,7 @@ from tests.helpers import EXAMPLE_ROOT, copy_project_tree
 ROOT = EXAMPLE_ROOT
 
 
-def _basis(text: str = "test contract declaration") -> str:
+def _rationale(text: str = "test contract declaration") -> str:
     return text
 
 
@@ -56,13 +56,13 @@ def test_project_validates() -> None:
 
 
 def test_yaml_writer_never_emits_anchors_or_aliases(tmp_path: Path) -> None:
-    shared = {"text": "shared basis"}
+    shared = {"text": "shared rationale"}
     path = tmp_path / "spec.yaml"
     write_yaml(path, {"first": shared, "second": shared})
     text = path.read_text(encoding="utf-8")
     assert "&id" not in text
     assert "*id" not in text
-    assert text.count("shared basis") == 2
+    assert text.count("shared rationale") == 2
 
 
 def test_yaml_reader_treats_on_as_a_string_key(tmp_path: Path) -> None:
@@ -137,7 +137,7 @@ def test_author_contract_is_sparse_source() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
     assert author["events"] == {
         "event.project.approved": {
-            "basis": "Approval events carry the reviewer and project identity needed by notification workflows.",
+            "rationale": "Approval events carry the reviewer and project identity needed by notification workflows.",
             "payload_schema": M("ProjectApproved"),
         }
     }
@@ -206,7 +206,7 @@ def test_unused_fact_is_rejected() -> None:
                 "workspace_id": "$fixture.workspace.id",
             },
         },
-        "basis": "Unused facts are dead setup, so they should be removed.",
+        "rationale": "Unused facts are dead setup, so they should be removed.",
     }
     with pytest.raises(ContractError, match=r"Unused facts: fact\.project\.unused"):
         compile_author(author)
@@ -280,7 +280,7 @@ def _derived_transition_author() -> dict:
                     "states": ["draft", "submitted"],
                     "transitions": [{"triggered_by": "operation.ticket.submit", "from": "draft", "to": "submitted"}],
                 },
-                "basis": "Ticket lifecycle owns state transitions.",
+                "rationale": "Ticket lifecycle owns state transitions.",
             }
         },
         "operations": {
@@ -291,7 +291,7 @@ def _derived_transition_author() -> dict:
                     "submitted": {"kind": "success", "result": M("Ticket")},
                     "invalid_state": {"kind": "failure", "result": M("Problem")},
                 },
-                "basis": "Submitting moves a draft ticket forward.",
+                "rationale": "Submitting moves a draft ticket forward.",
             }
         },
     }
@@ -369,7 +369,7 @@ def test_state_machine_data_operation_must_read_state_machine_model() -> None:
     author = _author()
     author["models"]["Workspace"] = {
         "fields": {"id": F(P("ID")), "name": F(P("Text"))},
-        "basis": "Workspace is a separate model used to prove data bindings are model-aware.",
+        "rationale": "Workspace is a separate model used to prove data bindings are model-aware.",
     }
     author["operations"]["operation.project.read"]["operation_kind"] = "query"
     author["operations"]["operation.project.read"]["reads"] = ["Workspace"]
@@ -403,7 +403,7 @@ def test_author_contract_can_omit_absent_sections() -> None:
                     "created": {"kind": "success", "result": M("Ticket")},
                     "validation_failed": {"kind": "failure", "result": M("Problem")},
                 },
-                "why": "Members can create tickets.",
+                "rationale": "Members can create tickets.",
             }
         },
     }
@@ -412,8 +412,8 @@ def test_author_contract_can_omit_absent_sections() -> None:
     assert contract["entry_points"] == {}
     assert contract["state_machines"] == {}
     assert contract["refs"]["policy"] == ["policy.ticket.create"]
-    assert contract["models"]["Ticket"]["basis"] == "Declared model Ticket."
-    assert contract["operations"]["operation.ticket.create"]["basis"] == "Members can create tickets."
+    assert contract["models"]["Ticket"]["rationale"] == "Declared model Ticket."
+    assert contract["operations"]["operation.ticket.create"]["rationale"] == "Members can create tickets."
 
 
 def test_author_state_machine_defaults_empty_collections() -> None:
@@ -424,13 +424,13 @@ def test_author_state_machine_defaults_empty_collections() -> None:
         "models": {
             "Ticket": {
                 "fields": {"id": F(P("ID")), "title": F(P("Text"))},
-                "basis": "Ticket is the product work item.",
+                "rationale": "Ticket is the product work item.",
             }
         },
         "render_profiles": {
             "default": {
                 "html_viewports": {"compact": {"width": 320, "height": 480}},
-                "basis": "Single breakpoint covers the tiny authored example.",
+                "rationale": "Single breakpoint covers the tiny authored example.",
             }
         },
         "state_machines": {
@@ -438,7 +438,7 @@ def test_author_state_machine_defaults_empty_collections() -> None:
                 "model": "Ticket",
                 "initial_view_state": "empty",
                 "view_states": {"empty": {}},
-                "basis": "state machine can start as a minimal empty-state.",
+                "rationale": "state machine can start as a minimal empty-state.",
             }
         },
     }
@@ -516,31 +516,31 @@ def test_state_machine_data_events_require_data_binding() -> None:
         compile_source(author)
 
 
-def test_state_machine_transition_requires_basis_when_audit_card_would_be_empty() -> None:
+def test_state_machine_transition_requires_rationale_when_audit_card_would_be_empty() -> None:
     author = _author()
     activity = _item(author, "state_machines", "state_machine.project.activity")
     cleared = next(transition for transition in activity["transitions"] if transition["on"] == "message.selection.cleared")
     cleared.pop("effects")
     with pytest.raises(
         ContractError,
-            match=r"state machine state_machine\.project\.activity transition message\.selection\.cleared from ready to empty must declare basis, data, or effects",
+            match=r"state machine state_machine\.project\.activity transition message\.selection\.cleared from ready to empty must declare rationale, data, or effects",
     ):
         compile_source(author)
 
 
-def test_state_machine_transition_basis_can_explain_otherwise_empty_audit_card() -> None:
+def test_state_machine_transition_rationale_can_explain_otherwise_empty_audit_card() -> None:
     author = _author()
     activity = _item(author, "state_machines", "state_machine.project.activity")
     cleared = next(transition for transition in activity["transitions"] if transition["on"] == "message.selection.cleared")
     cleared.pop("effects")
-    cleared["basis"] = "Clearing the selection returns the activity state machine to its empty state."
+    cleared["rationale"] = "Clearing the selection returns the activity state machine to its empty state."
     contract = compile_source(author)
     compiled = next(
         transition
         for transition in contract["state_machines"]["state_machine.project.activity"]["transitions"]
         if transition["on"] == "message.selection.cleared"
     )
-    assert compiled["basis"] == "Clearing the selection returns the activity state machine to its empty state."
+    assert compiled["rationale"] == "Clearing the selection returns the activity state machine to its empty state."
 
 
 def test_state_machine_data_inputs_must_come_from_context() -> None:
@@ -580,15 +580,15 @@ def test_state_machine_data_source_must_be_query_like_operation() -> None:
         compile_source(author)
 
 
-def test_basis_is_plain_bounded_text() -> None:
+def test_rationale_is_plain_bounded_text() -> None:
     author = _author()
-    assert isinstance(author["models"]["Project"]["basis"], str)
+    assert isinstance(author["models"]["Project"]["rationale"], str)
     bad = _author()
-    bad["models"]["Project"]["basis"] = {"text": "object basis", "kind": "explicit", "confidence": "high"}
+    bad["models"]["Project"]["rationale"] = {"text": "object rationale", "kind": "explicit", "confidence": "high"}
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(bad)
     bad = _author()
-    bad["models"]["Project"]["basis"] = "x" * 281
+    bad["models"]["Project"]["rationale"] = "x" * 281
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(bad)
 
@@ -673,7 +673,7 @@ def test_state_machine_composition_rejects_unknown_mounted_state_machine() -> No
 def test_state_machine_composition_rejects_unknown_sync_target_message() -> None:
     author = _author()
     state_machine = _item(author, "state_machines", "state_machine.project.board")["view_states"]["ready"]
-    for effect in state_machine["message_sync_rules"][0]["do"]:
+    for effect in state_machine["message_sync_rules"][0]["effects"]:
         if "send" in effect:
             effect["send"]["message"] = "message.project.ghost_message"
             break
@@ -692,7 +692,7 @@ def test_state_machine_emit_data_must_exactly_match_emitted_message_payload() ->
 def test_sync_send_data_must_exactly_match_target_message_payload() -> None:
     author = _author()
     state_machine = _item(author, "state_machines", "state_machine.project.board")["view_states"]["ready"]
-    send = next(effect["send"] for effect in state_machine["message_sync_rules"][0]["do"] if "send" in effect)
+    send = next(effect["send"] for effect in state_machine["message_sync_rules"][0]["effects"] if "send" in effect)
     send["payload_bindings"] = {}
     with pytest.raises(ContractError, match=r"sync send message.project\.selection_changed to detail payload_bindings must exactly match payload fields: missing: project_id"):
         compile_source(author)
@@ -701,7 +701,7 @@ def test_sync_send_data_must_exactly_match_target_message_payload() -> None:
 def test_sync_send_data_must_match_target_message_payload_type() -> None:
     author = _author()
     state_machine = _item(author, "state_machines", "state_machine.project.board")["view_states"]["ready"]
-    send = next(effect["send"] for effect in state_machine["message_sync_rules"][0]["do"] if "send" in effect)
+    send = next(effect["send"] for effect in state_machine["message_sync_rules"][0]["effects"] if "send" in effect)
     send["payload_bindings"]["project_id"] = 1
     with pytest.raises(ContractError, match=r"sync send message.project\.selection_changed to detail payload_bindings\.project_id type mismatch: expected ID, got Int"):
         compile_source(author)
@@ -737,7 +737,7 @@ def _api_only_author() -> dict:
         "models": {
             "Ticket": {
                 "fields": {"id": F(P("ID")), "title": F(P("Text"))},
-                "basis": _basis("ticket model"),
+                "rationale": _rationale("ticket model"),
             }
         },
         "operations": {
@@ -749,7 +749,7 @@ def _api_only_author() -> dict:
                     "created": {"kind": "success", "result": M("Ticket")},
                     "validation_failed": {"kind": "failure", "result": M("Problem")},
                 },
-                "basis": _basis("create ticket"),
+                "rationale": _rationale("create ticket"),
             }
         },
         "entry_points": {
@@ -766,9 +766,9 @@ def _api_only_author() -> dict:
                     }
                 },
                 "trigger": {
-                    "operation": {"ref": "operation.ticket.create", "with": {"title": "$input.body.title"}},
+                    "operation": {"ref": "operation.ticket.create", "bindings": {"title": "$input.body.title"}},
                 },
-                "basis": _basis("HTTP create ticket entry"),
+                "rationale": _rationale("HTTP create ticket entry"),
             }
         },
     }
@@ -802,7 +802,7 @@ def test_authoring_layers_reject_irrelevant_ui_targets() -> None:
             "initial_view_state": "empty",
             "view_states": {"empty": {}},
             "transitions": [],
-            "basis": _basis("UI state machine is not part of this API layer"),
+            "rationale": _rationale("UI state machine is not part of this API layer"),
         }
     }
     with pytest.raises(ContractError, match="outside active authoring layers"):
@@ -839,7 +839,7 @@ def test_entry_rejects_surface_irrelevant_fields() -> None:
 def test_textual_is_not_an_entrypoint_surface() -> None:
     author = _author()
     author["entry_points"]["textual.project.board"] = {
-        "basis": _basis("Textual is a render surface, not an entrypoint surface."),
+        "rationale": _rationale("Textual is a render surface, not an entrypoint surface."),
         "adapter": {"textual": {"cli_command": "project board"}},
         "trigger": {"state_machine": {"ref": "state_machine.project.board", "render": "textual"}},
     }
@@ -856,8 +856,8 @@ def test_cli_entry_args_must_exactly_match_operation_input() -> None:
 
 def test_entry_target_bindings_must_exactly_match_target_input() -> None:
     author = _author()
-    del author["entry_points"]["entry_point.api.project.create"]["trigger"]["operation"]["with"]["title"]
-    with pytest.raises(ContractError, match=r"Entry entry_point.api\.project\.create target\.with must exactly bind target input: missing: title"):
+    del author["entry_points"]["entry_point.api.project.create"]["trigger"]["operation"]["bindings"]["title"]
+    with pytest.raises(ContractError, match=r"Entry entry_point.api\.project\.create target\.bindings must exactly bind target input: missing: title"):
         compile_source(author)
 
 
@@ -882,15 +882,15 @@ def test_operation_outcomes_must_have_one_success_and_real_failure_result() -> N
 
 def test_event_emits_must_map_declared_payload() -> None:
     author = _author()
-    author["operations"]["operation.project.approve"]["outcomes"]["approved"]["emits"][0]["with"]["approved_by"] = "$outcome.result"
+    author["operations"]["operation.project.approve"]["outcomes"]["approved"]["emits"][0]["bindings"]["approved_by"] = "$outcome.result"
     with pytest.raises(ContractError, match=r"emit event.project\.approved mapping approved_by source \$outcome\.result type must be ID"):
         compile_source(author)
 
 
 def test_runtime_references_are_context_scoped() -> None:
     author = _author()
-    author["entry_points"]["entry_point.api.project.create"]["trigger"]["operation"]["with"]["title"] = "$trigger.payload.title"
-    with pytest.raises(ContractError, match=r"target\.with\.title references unavailable runtime root: \$trigger"):
+    author["entry_points"]["entry_point.api.project.create"]["trigger"]["operation"]["bindings"]["title"] = "$trigger.payload.title"
+    with pytest.raises(ContractError, match=r"target\.bindings\.title references unavailable runtime root: \$trigger"):
         compile_source(author)
 
 
@@ -963,7 +963,7 @@ def test_workflow_routes_must_reference_known_targets() -> None:
 def test_cli_entry_cannot_target_raw_event() -> None:
     author = _author()
     author["entry_points"]["entry_point.cli.project.event"] = {
-        "basis": _basis("CLI event publishing is intentionally not modeled"),
+        "rationale": _rationale("CLI event publishing is intentionally not modeled"),
         "adapter": {"cli": {"cli_command": "project event"}},
         "trigger": {"event": {"ref": "event.project.approved"}},
     }
@@ -1017,7 +1017,7 @@ def test_get_api_entry_must_provide_all_operation_input_as_params() -> None:
     entry = author["entry_points"]["entry_point.api.project.list"]
     entry["adapter"]["http"]["path"] = "/projects"
     entry["adapter"]["http"]["input"].pop("params")
-    entry["trigger"]["operation"]["with"].pop("workspace_id")
+    entry["trigger"]["operation"]["bindings"].pop("workspace_id")
     with pytest.raises(ContractError, match=r"API entry entry_point.api\.project\.list GET must declare all operation inputs as input\.params: \['workspace_id'\]"):
         compile_source(author)
 
@@ -1031,8 +1031,8 @@ def test_authoring_layers_reject_html_state_machine_layout_without_web_layer() -
             "archetype": "dashboard",
             "model": "Ticket",
             "initial_view_state": "ready",
-            "view_states": {"ready": {"renderers": {"web": {"layout": {"regions": {"main": {"required": True}}}}}}},
-            "basis": _basis("HTML layout is a web surface"),
+            "view_states": {"ready": {"renderers": {"web": {"layout": {"regions": {"main": {"must_render": True}}}}}}},
+            "rationale": _rationale("HTML layout is a web surface"),
         }
     }
     with pytest.raises(ContractError, match="state machine view_state renderer web requires web"):

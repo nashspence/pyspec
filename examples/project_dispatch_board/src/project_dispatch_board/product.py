@@ -29,7 +29,7 @@ class ProductApp:
         self.projects: list[dict[str, Any]] = []
         self.emitted_events: list[str] = []
         self.invoked_operations: list[str] = []
-        self.ran_workflows: list[str] = []
+        self.executed_workflows: list[str] = []
         self.workflow_outcomes: dict[str, str] = {}
         self.rendered_state_machine: dict[str, Any] | None = None
         self.http_response: dict[str, Any] | None = None
@@ -195,7 +195,7 @@ class ProductApp:
         self._record_event(event_id)
         for workflow_id, workflow in self.contract["workflows"].items():
             if workflow["trigger"] == {"event": event_id}:
-                self.ran_workflows.append(workflow_id)
+                self.executed_workflows.append(workflow_id)
                 self.workflow_outcomes[workflow_id] = self._run_workflow(workflow, payload)
 
     def _run_workflow(self, workflow: Mapping[str, Any], payload: Mapping[str, Any]) -> str:
@@ -266,7 +266,7 @@ class ProductApp:
             assert event_id not in self.emitted_events
         workflow = assertions.get("workflow")
         if workflow:
-            assert (workflow["ref"] in self.ran_workflows) is workflow["ran"]
+            assert (workflow["ref"] in self.executed_workflows) is workflow["executed"]
             if "outcome" in workflow:
                 assert self.workflow_outcomes.get(workflow["ref"]) == workflow["outcome"]
         for cap in assertions.get("invoked", []):

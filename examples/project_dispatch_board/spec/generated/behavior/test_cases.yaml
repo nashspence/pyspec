@@ -2,12 +2,12 @@ project: project_dispatch_board
 test_cases:
   test_case.project.approval_notice.workflow:
     archetype: workflow_event_success
-    basis: Approval event dispatches the notification workflow.
     feature: feature.project.approval_notice
     given:
       domain_facts: []
       seed_fixtures:
       - fixture.workspace.reviewer
+    rationale: Approval event dispatches the notification workflow.
     subject_ref:
       workflow: workflow.project.approval_notice
     then:
@@ -17,8 +17,8 @@ test_cases:
       invoked:
       - operation.project.send_approval_notice
       workflow:
+        executed: true
         outcome: completed
-        ran: true
         ref: workflow.project.approval_notice
     title: Approval event sends notice
     when:
@@ -29,7 +29,6 @@ test_cases:
         ref: event.project.approved
   test_case.project.approve.success:
     archetype: operation_outcome
-    basis: Approval transitions a submitted project to approved and emits the event.
     feature: feature.project.approve
     given:
       domain_facts:
@@ -48,6 +47,7 @@ test_cases:
             workspace_id: $fixture.workspace.id
       seed_fixtures:
       - fixture.workspace.reviewer
+    rationale: Approval transitions a submitted project to approved and emits the event.
     subject_ref:
       operation: operation.project.approve
     then:
@@ -73,7 +73,6 @@ test_cases:
         ref: operation.project.approve
   test_case.project.board.empty:
     archetype: state_machine_composition
-    basis: An empty workspace shows empty list, no detail, and no activity.
     feature: feature.project.board
     given:
       domain_facts:
@@ -83,6 +82,7 @@ test_cases:
             workspace_id: $fixture.workspace.id
       seed_fixtures:
       - fixture.workspace.member
+    rationale: An empty workspace shows empty list, no detail, and no activity.
     subject_ref:
       state_machine: state_machine.project.board
     then:
@@ -141,7 +141,7 @@ test_cases:
                 context_present: selected_project_id
             state_machine: state_machine.project.activity
           message_sync_rules:
-          - do:
+          - effects:
             - set:
                 context: selected_project_id
                 from: $message.project_id
@@ -166,18 +166,18 @@ test_cases:
                   aside:
                     id: aside
                     kind: Container
+                    must_render: true
                     order: 3
-                    required: true
                   main:
                     id: main
                     kind: Container
+                    must_render: true
                     order: 2
-                    required: true
                   nav:
                     id: nav
                     kind: Container
+                    must_render: true
                     order: 1
-                    required: true
                 screen_class: ProjectBoardScreen
               style:
                 rules:
@@ -197,22 +197,22 @@ test_cases:
                     classes:
                     - dispatch-board-aside
                     element: aside
+                    must_render: true
                     order: 3
-                    required: true
                     role: complementary
                   main:
                     classes:
                     - dispatch-board-main
                     element: main
+                    must_render: true
                     order: 2
-                    required: true
                     role: main
                   nav:
                     classes:
                     - dispatch-board-nav
                     element: nav
+                    must_render: true
                     order: 1
-                    required: true
                     role: navigation
                 root:
                   classes:
@@ -266,7 +266,6 @@ test_cases:
         ref: entry_point.web.project.board
   test_case.project.board.ready:
     archetype: state_machine_composition
-    basis: A populated workspace shows the ready list while detail awaits explicit selection.
     feature: feature.project.board
     given:
       domain_facts:
@@ -285,6 +284,7 @@ test_cases:
             workspace_id: $fixture.workspace.id
       seed_fixtures:
       - fixture.workspace.member
+    rationale: A populated workspace shows the ready list while detail awaits explicit selection.
     subject_ref:
       state_machine: state_machine.project.board
     then:
@@ -341,7 +341,7 @@ test_cases:
                 context_present: selected_project_id
             state_machine: state_machine.project.activity
           message_sync_rules:
-          - do:
+          - effects:
             - set:
                 context: selected_project_id
                 from: $message.project_id
@@ -366,18 +366,18 @@ test_cases:
                   aside:
                     id: aside
                     kind: Container
+                    must_render: true
                     order: 3
-                    required: true
                   main:
                     id: main
                     kind: Container
+                    must_render: true
                     order: 2
-                    required: true
                   nav:
                     id: nav
                     kind: Container
+                    must_render: true
                     order: 1
-                    required: true
                 screen_class: ProjectBoardScreen
               style:
                 rules:
@@ -397,22 +397,22 @@ test_cases:
                     classes:
                     - dispatch-board-aside
                     element: aside
+                    must_render: true
                     order: 3
-                    required: true
                     role: complementary
                   main:
                     classes:
                     - dispatch-board-main
                     element: main
+                    must_render: true
                     order: 2
-                    required: true
                     role: main
                   nav:
                     classes:
                     - dispatch-board-nav
                     element: nav
+                    must_render: true
                     order: 1
-                    required: true
                     role: navigation
                 root:
                   classes:
@@ -466,7 +466,6 @@ test_cases:
         ref: entry_point.web.project.board
   test_case.project.create.api.success:
     archetype: entry_response
-    basis: The API create endpoint delegates to the create operation and emits project.created.
     feature: feature.project.create
     given:
       domain_facts:
@@ -476,6 +475,7 @@ test_cases:
             workspace_id: $fixture.workspace.id
       seed_fixtures:
       - fixture.workspace.member
+    rationale: The API create endpoint delegates to the create operation and emits project.created.
     subject_ref:
       entry_point: entry_point.api.project.create
     then:

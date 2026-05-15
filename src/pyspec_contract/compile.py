@@ -146,7 +146,7 @@ def _prune_empty_author_sections(author: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
-def _default_basis(entity: str, entity_id: str) -> str:
+def _default_rationale(entity: str, entity_id: str) -> str:
     return f"Declared {entity} {entity_id}."[:280]
 
 
@@ -245,10 +245,7 @@ def compile_author(author: dict[str, Any], layers: set[str] | None = None) -> di
 
 
 def _apply_author_defaults(entity: str, spec: dict[str, Any]) -> None:
-    why = spec.pop("why", None)
-    if why and "basis" in spec:
-        raise ContractError(f"Authored {entity} {spec['id']} must use either basis or why, not both")
-    spec.setdefault("basis", why or _default_basis(entity, spec["id"]))
+    spec.setdefault("rationale", _default_rationale(entity, spec["id"]))
     if entity == "state_machine":
         spec.setdefault("context", {})
         spec.setdefault("data_dependencies", [])
@@ -264,44 +261,44 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
         raise ContractError(f"Cannot compile missing {entity} spec")
 
     if entity == "text_resource":
-        item = {"placeholder": spec["placeholder"], "basis": spec["basis"]}
+        item = {"placeholder": spec["placeholder"], "rationale": spec["rationale"]}
         for field in ["max_chars", "tone", "args", "source_ref"]:
             if field in spec:
                 item[field] = spec[field]
         return item
 
     if entity == "asset":
-        item = {"media_kind": spec["media_kind"], "placeholder": spec["placeholder"], "basis": spec["basis"]}
+        item = {"media_kind": spec["media_kind"], "placeholder": spec["placeholder"], "rationale": spec["rationale"]}
         for field in ["asset_role", "alt_text", "args", "source_ref"]:
             if field in spec:
                 item[field] = spec[field]
         return item
 
     if entity == "content_case":
-        item = {"ref": spec["ref"], "args": spec["args"], "basis": spec["basis"]}
+        item = {"ref": spec["ref"], "args": spec["args"], "rationale": spec["rationale"]}
         if "fixtures" in spec:
             item["fixtures"] = spec["fixtures"]
         return item
 
     if entity == "render_profile":
-        item = {"basis": spec["basis"]}
+        item = {"rationale": spec["rationale"]}
         for field in ["html_viewports", "terminal_viewports"]:
             if field in spec:
                 item[field] = spec[field]
         return item
 
     if entity == "fixture":
-        return {"values": spec["values"], "basis": spec["basis"]}
+        return {"values": spec["values"], "rationale": spec["rationale"]}
 
     if entity == "fact":
         kind, body = _one_fact(spec, f"Fact {spec['id']}")
-        return {kind: body, "basis": spec["basis"]}
+        return {kind: body, "rationale": spec["rationale"]}
 
     if entity == "model":
         item = {
             "fields": normalize_field_map(spec["fields"]),
             "lifecycle": spec.get("lifecycle"),
-            "basis": spec["basis"],
+            "rationale": spec["rationale"],
         }
         return item
 
@@ -321,7 +318,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             "updates": list(spec.get("updates", [])),
             "deletes": list(spec.get("deletes", [])),
             "policy": rules.policy_ref(spec["id"]),
-            "basis": spec["basis"],
+            "rationale": spec["rationale"],
         }
         for field in ["transition"]:
             if field in spec:
@@ -332,7 +329,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
         return {
             "payload_schema": normalize_type_expr(spec["payload_schema"]),
             "emitted_by": [],
-            "basis": spec["basis"],
+            "rationale": spec["rationale"],
         }
 
     if entity == "state_machine":
@@ -345,7 +342,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             "initial_view_state": spec["initial_view_state"],
             "view_states": _compile_view_states(state_machine_id, spec.get("view_states", {})),
             "transitions": spec.get("transitions", []),
-            "basis": spec["basis"],
+            "rationale": spec["rationale"],
         }
         if "archetype" in spec:
             state_machine["archetype"] = spec["archetype"]
@@ -355,7 +352,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
         entry: dict[str, Any] = {
             "adapter": spec["adapter"],
             "trigger": spec["trigger"],
-            "basis": spec["basis"],
+            "rationale": spec["rationale"],
         }
         adapter_kind, _ = entry_point_adapter_pair(entry)
         trigger_kind, trigger = entry_point_trigger_pair(entry)
@@ -375,7 +372,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             "outcomes": spec["outcomes"],
             "steps": spec["steps"],
             "ref": rules.workflow_ref(spec["id"]),
-            "basis": spec["basis"],
+            "rationale": spec["rationale"],
         }
 
     if entity == "test_case":
@@ -387,7 +384,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             "given": spec["given"],
             "when": spec["when"],
             "then": dict(spec["then"]),
-            "basis": spec["basis"],
+            "rationale": spec["rationale"],
         }
 
     raise ContractError(f"Unknown contract entity kind: {entity}")
@@ -441,7 +438,7 @@ def _compile_view_states(owner_id: str, states: dict[str, Any]) -> dict[str, Any
 def _compile_audit_case(state_machine_id: str, state_name: str, case_name: str, case: dict[str, Any]) -> dict[str, Any]:
     item = {
         "fixtures": case["fixtures"],
-        "basis": case.get("basis", _default_basis("audit_case", f"{state_machine_id}.{state_name}.{case_name}")),
+        "rationale": case.get("rationale", _default_rationale("audit_case", f"{state_machine_id}.{state_name}.{case_name}")),
     }
     for field in ["context", "facts", "instances"]:
         if field in case:
@@ -504,7 +501,7 @@ def _derive_events(contract: dict[str, Any]) -> dict[str, Any]:
                 event = events.setdefault(event_id, {
                     "emitted_by": [],
                     "payload_schema": payload_type,
-                    "basis": operation["basis"],
+                    "rationale": operation["rationale"],
                 })
                 _validate_emit_payload_mapping(contract, operation_id, operation, outcome_id, outcome, event_id, event["payload_schema"], emit)
                 event["emitted_by"].append(operation_id)
@@ -937,9 +934,9 @@ def _validate_emit_payload_mapping(
         return
 
     has_payload = "payload" in emit
-    has_with = "with" in emit
-    if has_payload == has_with:
-        raise ContractError(f"{label} must declare exactly one of payload or with")
+    has_bindings = "bindings" in emit
+    if has_payload == has_bindings:
+        raise ContractError(f"{label} must declare exactly one of payload or bindings")
     if has_payload:
         source = emit["payload"]
         actual = _reference_expression_type(contract, f"{label} payload source", source, source_scopes)
@@ -947,7 +944,7 @@ def _validate_emit_payload_mapping(
             raise ContractError(f"{label} payload source {source} type must be {type_display(event_payload)}, got {type_display(actual)}")
         return
 
-    _validate_mapping_to_type(contract, label, emit["with"], event_payload, source_scopes)
+    _validate_mapping_to_type(contract, label, emit["bindings"], event_payload, source_scopes)
 
 
 def _validate_state_machines(contract: dict[str, Any]) -> None:
@@ -1083,7 +1080,7 @@ def _validate_state_machine_transitions(contract: dict[str, Any], state_machine_
         if not _transition_has_audit_content(state_machine, transition):
             raise ContractError(
                 f"state machine {state_machine_id} transition {transition['on']} from {transition['from']} "
-                f"to {transition['to']} must declare basis, data, or effects"
+                f"to {transition['to']} must declare rationale, data, or effects"
             )
 
 
@@ -1179,9 +1176,9 @@ def _validate_state_composition(contract: dict[str, Any], state_machine_id: str,
             mount_context,
         )
     used_regions = {mount["region"] for mount in state["child_state_machines"]}
-    missing_required = [region for region, spec in renderer_regions(state).items() if spec.get("required") and region not in used_regions]
-    if missing_required:
-        raise ContractError(f"composed state machine state {label} missing required layout regions: {missing_required}")
+    missing_must_render = [region for region, spec in renderer_regions(state).items() if spec.get("must_render") and region not in used_regions]
+    if missing_must_render:
+        raise ContractError(f"composed state machine state {label} missing must_render layout regions: {missing_must_render}")
     _validate_renderer_layouts(label, state)
     _validate_sync_rules(contract, parent_state_machine_id, state_name, parent_state_machine, state, mounts)
 
@@ -1364,7 +1361,7 @@ def _transition_target_data_bindings(state_machine: dict[str, Any], transition: 
 
 
 def _transition_has_audit_content(state_machine: dict[str, Any], transition: dict[str, Any]) -> bool:
-    if transition.get("basis") or transition.get("effects"):
+    if transition.get("rationale") or transition.get("effects"):
         return True
     if _is_data_event(transition["on"]):
         return bool(_transition_data_bindings(state_machine, transition))
@@ -1394,7 +1391,7 @@ def _validate_sync_rules(
         if message_id not in _state_machine_emits(source_fsm):
             raise ContractError(f"composed state machine state {label} sync listens for message the source does not emit: {message_id}")
         source_payload = _state_machine_message_payload(source_fsm, "emits", message_id, f"composed state machine state {label} sync trigger")
-        for effect in rule["do"]:
+        for effect in rule["effects"]:
             kind, body = _one(effect, f"composed state machine state {label} sync effect")
             if kind == "set":
                 if body["context"] not in context:
@@ -1654,7 +1651,7 @@ def _validate_entries(contract: dict[str, Any]) -> None:
 
 
 def _validate_entry_point_fields(entry_id: str, entry: dict[str, Any], adapter_kind: str) -> None:
-    allowed = {"adapter", "trigger", "basis"}
+    allowed = {"adapter", "trigger", "rationale"}
     generated = {
         "ui": {"route"},
         "http": {"endpoint"},
@@ -1785,7 +1782,7 @@ def _validate_target_bindings(
         expected = {name: contract["state_machines"][value].get("context", {})[name] for name in target_input_types}
     else:
         if bindings:
-            raise ContractError(f"Entry {entry_id} target.with is not supported for workflow targets")
+            raise ContractError(f"Entry {entry_id} target.bindings is not supported for workflow targets")
         return
     if set(bindings) != set(expected):
         missing = sorted(set(expected) - set(bindings))
@@ -1795,19 +1792,19 @@ def _validate_target_bindings(
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"Entry {entry_id} target.with must exactly bind target input" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"Entry {entry_id} target.bindings must exactly bind target input" + (": " + "; ".join(parts) if parts else ""))
     source_scopes: TypeScopes = {"input": _entry_input_source_types(contract, entry)}
     for target_name, source in bindings.items():
         actual_type = _reference_expression_type(
             contract,
-            f"Entry {entry_id} target.with.{target_name}",
+            f"Entry {entry_id} target.bindings.{target_name}",
             source,
             source_scopes,
         )
         expected_type = expected[target_name]
         if not type_equals(actual_type, expected_type):
             raise ContractError(
-                f"Entry {entry_id} target.with.{target_name} type mismatch: "
+                f"Entry {entry_id} target.bindings.{target_name} type mismatch: "
                 f"expected {type_display(expected_type)}, got {type_display(actual_type)} from {source}"
             )
 
@@ -2595,8 +2592,8 @@ def _validate_test_case_then(contract: dict[str, Any], test_case_id: str, test_c
         workflow_contract = contract["workflows"][workflow["ref"]]
         if workflow["outcome"] not in workflow_contract["outcomes"]:
             raise ContractError(f"Test case {test_case_id} asserts unknown workflow outcome {workflow['ref']}.{workflow['outcome']}")
-    if workflow and workflow.get("ran") and not _workflow_can_run_from_test_case(contract, test_case):
-        raise ContractError(f"Test case {test_case_id} asserts workflow ran but when does not trigger workflow {workflow['ref']}")
+    if workflow and workflow.get("executed") and not _workflow_can_run_from_test_case(contract, test_case):
+        raise ContractError(f"Test case {test_case_id} asserts workflow executed but when does not trigger workflow {workflow['ref']}")
     if "response" in then:
         when_kind, _ = _one(test_case["when"], f"test case {test_case_id} when")
         if when_kind != "call_entry":
@@ -2722,8 +2719,8 @@ def _validate_test_case_archetype(test_case_id: str, test_case: dict[str, Any]) 
             raise ContractError(f"Test case {test_case_id} entry_response requires call_entry, outcome, and response")
     elif archetype == "workflow_event_success":
         workflow = then.get("workflow", {})
-        if when_kind != "emit_event" or not workflow.get("ran") or "outcome" not in workflow:
-            raise ContractError(f"Test case {test_case_id} workflow_event_success requires emit_event, workflow.ran=true, and workflow.outcome")
+        if when_kind != "emit_event" or not workflow.get("executed") or "outcome" not in workflow:
+            raise ContractError(f"Test case {test_case_id} workflow_event_success requires emit_event, workflow.executed=true, and workflow.outcome")
     elif archetype == "forbidden_action":
         if "forbids" not in then:
             raise ContractError(f"Test case {test_case_id} forbidden_action requires forbids")

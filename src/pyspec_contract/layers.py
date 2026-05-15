@@ -125,7 +125,7 @@ def validate_author_layers(author: dict[str, Any], layers: set[str] | None) -> N
                 if required and not required.issubset(layers):
                     raise LayerError(_blocked(label, target, required, layers))
             spec = copy.deepcopy(item)
-            spec.pop("basis", None)
+            spec.pop("rationale", None)
             _validate_author_spec_layers(label, target, spec, layers)
 
 

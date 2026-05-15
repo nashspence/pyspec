@@ -1,6 +1,6 @@
 fixtures:
   fixture.workspace.member:
-    basis: Workspace member fixture for web/API/TUI test cases.
+    rationale: Workspace member fixture for web/API/TUI test cases.
     values:
       actor:
         id: user_member_1
@@ -10,7 +10,7 @@ fixtures:
         id: workspace_1
         name: North Region Dispatch
   fixture.workspace.reviewer:
-    basis: Reviewer fixture for approval test cases.
+    rationale: Reviewer fixture for approval test cases.
     values:
       actor:
         id: user_reviewer_1

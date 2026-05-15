@@ -117,7 +117,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:authored_text_resource --> `$defs/authored_text_resource`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_view_state --> `$defs/authored_view_state`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_workflow --> `$defs/authored_workflow`: human-authored source object for this resource or nested contract.
-- <!-- schema-def:basis --> `$defs/basis`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:rationale --> `$defs/rationale`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:breakpoint_id --> `$defs/breakpoint_id`: renderer contract component for web or terminal platforms.
 - <!-- schema-def:child_state_machine_item --> `$defs/child_state_machine_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:child_state_machine_selected --> `$defs/child_state_machine_selected`: shared schema component used by authored source or compiled output.

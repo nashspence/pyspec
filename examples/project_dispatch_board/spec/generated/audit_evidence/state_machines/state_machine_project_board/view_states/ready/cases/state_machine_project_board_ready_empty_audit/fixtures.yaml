@@ -2,7 +2,7 @@ context: {}
 facts: {}
 fixtures:
   fixture.workspace.member:
-    basis: Workspace member fixture for web/API/TUI test cases.
+    rationale: Workspace member fixture for web/API/TUI test cases.
     values:
       actor:
         id: user_member_1

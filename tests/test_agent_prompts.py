@@ -39,7 +39,7 @@ def test_agent_prompts_can_be_generated_from_layers_without_spec(tmp_path: Path)
     assert "Test findings" in review
     assert "Dev findings" in review
     assert "Recommended prompt for <role>:" in review
-    assert "too fragile, too dangerous, or wrong" in review
+    assert "fragility, risk, or incorrectness" in review
 
 
 def test_init_writes_layer_specific_starter_prompts(tmp_path: Path) -> None:

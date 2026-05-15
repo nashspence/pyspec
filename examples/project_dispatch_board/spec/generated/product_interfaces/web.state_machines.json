@@ -54,7 +54,7 @@
       "id": "state_machine.project.board.ready",
       "message_sync_rules": [
         {
-          "do": [
+          "effects": [
             {
               "set": {
                 "context": "selected_project_id",
@@ -94,20 +94,20 @@
               "aside": {
                 "id": "aside",
                 "kind": "Container",
-                "order": 3,
-                "required": true
+                "must_render": true,
+                "order": 3
               },
               "main": {
                 "id": "main",
                 "kind": "Container",
-                "order": 2,
-                "required": true
+                "must_render": true,
+                "order": 2
               },
               "nav": {
                 "id": "nav",
                 "kind": "Container",
-                "order": 1,
-                "required": true
+                "must_render": true,
+                "order": 1
               }
             },
             "screen_class": "ProjectBoardScreen"
@@ -143,8 +143,8 @@
                   "dispatch-board-aside"
                 ],
                 "element": "aside",
+                "must_render": true,
                 "order": 3,
-                "required": true,
                 "role": "complementary"
               },
               "main": {
@@ -152,8 +152,8 @@
                   "dispatch-board-main"
                 ],
                 "element": "main",
+                "must_render": true,
                 "order": 2,
-                "required": true,
                 "role": "main"
               },
               "nav": {
@@ -161,8 +161,8 @@
                   "dispatch-board-nav"
                 ],
                 "element": "nav",
+                "must_render": true,
                 "order": 1,
-                "required": true,
                 "role": "navigation"
               }
             },
@@ -325,20 +325,20 @@
               "aside": {
                 "id": "aside",
                 "kind": "Container",
-                "order": 3,
-                "required": true
+                "must_render": true,
+                "order": 3
               },
               "main": {
                 "id": "main",
                 "kind": "Container",
-                "order": 2,
-                "required": true
+                "must_render": true,
+                "order": 2
               },
               "nav": {
                 "id": "nav",
                 "kind": "Container",
-                "order": 1,
-                "required": true
+                "must_render": true,
+                "order": 1
               }
             },
             "screen_class": "ProjectBoardScreen"
@@ -352,8 +352,8 @@
                   "dispatch-board-aside"
                 ],
                 "element": "aside",
+                "must_render": true,
                 "order": 3,
-                "required": true,
                 "role": "complementary"
               },
               "main": {
@@ -361,8 +361,8 @@
                   "dispatch-board-main"
                 ],
                 "element": "main",
+                "must_render": true,
                 "order": 2,
-                "required": true,
                 "role": "main"
               },
               "nav": {
@@ -370,8 +370,8 @@
                   "dispatch-board-nav"
                 ],
                 "element": "nav",
+                "must_render": true,
                 "order": 1,
-                "required": true,
                 "role": "navigation"
               }
             },

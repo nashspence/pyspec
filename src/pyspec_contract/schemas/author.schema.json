@@ -73,8 +73,8 @@
         "args": {
           "$ref": "#/$defs/content_args"
         },
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "asset_role": {
           "enum": [
@@ -98,9 +98,6 @@
         },
         "source_ref": {
           "$ref": "#/$defs/content_source_ref"
-        },
-        "why": {
-          "$ref": "#/$defs/basis"
         }
       },
       "required": [
@@ -124,8 +121,8 @@
         }
       ],
       "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "html_viewports": {
           "additionalProperties": {
@@ -146,9 +143,6 @@
             "$ref": "#/$defs/breakpoint_id"
           },
           "type": "object"
-        },
-        "why": {
-          "$ref": "#/$defs/basis"
         }
       },
       "required": [],
@@ -193,8 +187,8 @@
         "args": {
           "$ref": "#/$defs/content_arg_values"
         },
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "fixtures": {
           "items": {
@@ -212,9 +206,6 @@
               "$ref": "#/$defs/asset_ref"
             }
           ]
-        },
-        "why": {
-          "$ref": "#/$defs/basis"
         }
       },
       "required": [
@@ -229,8 +220,8 @@
         "args": {
           "$ref": "#/$defs/content_args"
         },
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "max_chars": {
           "minimum": 1,
@@ -251,9 +242,6 @@
             "warning",
             "error"
           ]
-        },
-        "why": {
-          "$ref": "#/$defs/basis"
         }
       },
       "required": [
@@ -267,14 +255,11 @@
         "adapter": {
           "$ref": "#/$defs/entry_point_adapter"
         },
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "trigger": {
           "$ref": "#/$defs/entry_point_trigger"
-        },
-        "why": {
-          "$ref": "#/$defs/basis"
         }
       },
       "required": [
@@ -286,14 +271,11 @@
     "authored_event": {
       "additionalProperties": false,
       "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "payload_schema": {
           "$ref": "#/$defs/type_expr"
-        },
-        "why": {
-          "$ref": "#/$defs/basis"
         }
       },
       "required": [
@@ -322,11 +304,8 @@
               ],
               "type": "object"
             },
-            "basis": {
-              "$ref": "#/$defs/basis"
-            },
-            "why": {
-              "$ref": "#/$defs/basis"
+            "rationale": {
+              "$ref": "#/$defs/rationale"
             }
           },
           "required": [
@@ -337,8 +316,8 @@
         {
           "additionalProperties": false,
           "properties": {
-            "basis": {
-              "$ref": "#/$defs/basis"
+            "rationale": {
+              "$ref": "#/$defs/rationale"
             },
             "present": {
               "additionalProperties": false,
@@ -355,9 +334,6 @@
                 "values"
               ],
               "type": "object"
-            },
-            "why": {
-              "$ref": "#/$defs/basis"
             }
           },
           "required": [
@@ -370,8 +346,8 @@
     "authored_fixture": {
       "additionalProperties": false,
       "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "values": {
           "additionalProperties": {
@@ -379,9 +355,6 @@
           },
           "minProperties": 1,
           "type": "object"
-        },
-        "why": {
-          "$ref": "#/$defs/basis"
         }
       },
       "required": [
@@ -392,8 +365,8 @@
     "authored_model": {
       "additionalProperties": false,
       "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "fields": {
           "$ref": "#/$defs/field_schema_map"
@@ -449,9 +422,6 @@
             "initial"
           ],
           "type": "object"
-        },
-        "why": {
-          "$ref": "#/$defs/basis"
         }
       },
       "required": [
@@ -462,8 +432,8 @@
     "authored_operation": {
       "additionalProperties": false,
       "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "creates": {
           "$ref": "#/$defs/model_refs"
@@ -515,9 +485,6 @@
         },
         "updates": {
           "$ref": "#/$defs/model_refs"
-        },
-        "why": {
-          "$ref": "#/$defs/basis"
         }
       },
       "required": [
@@ -539,8 +506,8 @@
             "wizard"
           ]
         },
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "context": {
           "$ref": "#/$defs/type_expr_map"
@@ -576,9 +543,6 @@
             "$ref": "#/$defs/view_state_name"
           },
           "type": "object"
-        },
-        "why": {
-          "$ref": "#/$defs/basis"
         }
       },
       "required": [
@@ -656,8 +620,8 @@
     "authored_workflow": {
       "additionalProperties": false,
       "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "outcomes": {
           "$ref": "#/$defs/workflow_outcomes"
@@ -671,9 +635,6 @@
         },
         "trigger": {
           "$ref": "#/$defs/workflow_trigger_target"
-        },
-        "why": {
-          "$ref": "#/$defs/basis"
         }
       },
       "required": [
@@ -683,7 +644,7 @@
       ],
       "type": "object"
     },
-    "basis": {
+    "rationale": {
       "maxLength": 280,
       "minLength": 1,
       "type": "string"
@@ -904,7 +865,7 @@
         "ref": {
           "$ref": "#/$defs/operation_ref"
         },
-        "with": {
+        "bindings": {
           "$ref": "#/$defs/entry_bindings"
         }
       },
@@ -1079,7 +1040,7 @@
             "textual"
           ]
         },
-        "with": {
+        "bindings": {
           "$ref": "#/$defs/entry_bindings"
         }
       },
@@ -1396,14 +1357,14 @@
           "minimum": 0,
           "type": "integer"
         },
-        "required": {
+        "must_render": {
           "type": "boolean"
         }
       },
       "required": [
         "id",
         "kind",
-        "required"
+        "must_render"
       ],
       "type": "object"
     },
@@ -1424,7 +1385,7 @@
           "minimum": 0,
           "type": "integer"
         },
-        "required": {
+        "must_render": {
           "type": "boolean"
         },
         "role": {
@@ -1432,7 +1393,7 @@
         }
       },
       "required": [
-        "required"
+        "must_render"
       ],
       "type": "object"
     },
@@ -1558,7 +1519,7 @@
     "message_sync_rule": {
       "additionalProperties": false,
       "properties": {
-        "do": {
+        "effects": {
           "items": {
             "$ref": "#/$defs/message_sync_action"
           },
@@ -1575,7 +1536,7 @@
       "required": [
         "id",
         "when",
-        "do"
+        "effects"
       ],
       "type": "object"
     },
@@ -1660,7 +1621,7 @@
         },
         {
           "required": [
-            "with"
+            "bindings"
           ]
         }
       ],
@@ -1671,7 +1632,7 @@
         "payload": {
           "$ref": "#/$defs/operation_emit_source"
         },
-        "with": {
+        "bindings": {
           "$ref": "#/$defs/operation_emit_bindings"
         }
       },
@@ -1782,8 +1743,8 @@
             "workflow_event_success"
           ]
         },
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "feature": {
           "$ref": "#/$defs/feature_ref"
@@ -1803,9 +1764,6 @@
         },
         "when": {
           "$ref": "#/$defs/when"
-        },
-        "why": {
-          "$ref": "#/$defs/basis"
         }
       },
       "required": [
@@ -1931,8 +1889,8 @@
     "state_machine_audit_case": {
       "additionalProperties": false,
       "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "context": {
           "$ref": "#/$defs/context_bindings"
@@ -1969,8 +1927,8 @@
     "state_machine_message": {
       "additionalProperties": false,
       "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "payload_schema": {
           "$ref": "#/$defs/type_expr_map"
@@ -2009,8 +1967,8 @@
     "state_machine_transition": {
       "additionalProperties": false,
       "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "effects": {
           "items": {
@@ -2354,7 +2312,7 @@
             "outcome": {
               "$ref": "#/$defs/field_name"
             },
-            "ran": {
+            "executed": {
               "type": "boolean"
             },
             "ref": {
@@ -2363,7 +2321,7 @@
           },
           "required": [
             "ref",
-            "ran"
+            "executed"
           ],
           "type": "object"
         },
@@ -2994,7 +2952,7 @@
   "$id": "https://example.invalid/authored-source-product-spec.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Sparse human-authored source spec. Compiles to spec/generated/compiled/spec.yaml, where normalized ids, derived events, derived routes, generated references, endpoint expansions, and empty collection expansions are represented.",
+  "description": "Sparse human-authored source specification. The compiler produces the compiled specification file at spec/generated/compiled/spec.yaml, where normalized ids, derived events, derived routes, generated references, endpoint expansions, and empty collection expansions are represented.",
   "properties": {
     "assets": {
       "additionalProperties": {

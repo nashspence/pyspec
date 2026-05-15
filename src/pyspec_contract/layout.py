@@ -53,7 +53,7 @@ def renderer_regions(item: dict[str, Any]) -> dict[str, dict[str, Any]]:
         regions[name] = dict(region)
     for name, container in renderer_textual_containers(item).items():
         region_item = regions.setdefault(name, {})
-        for key in ("order", "required"):
+        for key in ("order", "must_render"):
             if key in container and key not in region_item:
                 region_item[key] = container[key]
     return regions

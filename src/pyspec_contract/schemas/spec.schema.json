@@ -32,8 +32,8 @@
         "args": {
           "$ref": "#/$defs/content_args"
         },
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "asset_role": {
           "enum": [
@@ -62,7 +62,7 @@
       "required": [
         "media_kind",
         "placeholder",
-        "basis"
+        "rationale"
       ],
       "type": "object"
     },
@@ -118,8 +118,8 @@
         }
       ],
       "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "html_viewports": {
           "additionalProperties": {
@@ -143,7 +143,7 @@
         }
       },
       "required": [
-        "basis"
+        "rationale"
       ],
       "type": "object"
     },
@@ -151,7 +151,7 @@
       "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
-    "basis": {
+    "rationale": {
       "maxLength": 280,
       "minLength": 1,
       "type": "string"
@@ -308,8 +308,8 @@
         "args": {
           "$ref": "#/$defs/content_arg_values"
         },
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "fixtures": {
           "items": {
@@ -332,7 +332,7 @@
       "required": [
         "ref",
         "args",
-        "basis"
+        "rationale"
       ],
       "type": "object"
     },
@@ -405,8 +405,8 @@
         "args": {
           "$ref": "#/$defs/content_args"
         },
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "max_chars": {
           "minimum": 1,
@@ -431,7 +431,7 @@
       },
       "required": [
         "placeholder",
-        "basis"
+        "rationale"
       ],
       "type": "object"
     },
@@ -491,7 +491,7 @@
         "ref": {
           "$ref": "#/$defs/operation_ref"
         },
-        "with": {
+        "bindings": {
           "$ref": "#/$defs/entry_bindings"
         }
       },
@@ -562,8 +562,8 @@
         "adapter": {
           "$ref": "#/$defs/entry_point_adapter"
         },
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "cli_command_ref": {
           "pattern": "^cli_command\\.",
@@ -588,7 +588,7 @@
       "required": [
         "adapter",
         "trigger",
-        "basis"
+        "rationale"
       ],
       "type": "object"
     },
@@ -702,7 +702,7 @@
             "textual"
           ]
         },
-        "with": {
+        "bindings": {
           "$ref": "#/$defs/entry_bindings"
         }
       },
@@ -731,8 +731,8 @@
     "event_item": {
       "additionalProperties": false,
       "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "emitted_by": {
           "items": {
@@ -747,7 +747,7 @@
       "required": [
         "emitted_by",
         "payload_schema",
-        "basis"
+        "rationale"
       ],
       "type": "object"
     },
@@ -839,21 +839,21 @@
               ],
               "type": "object"
             },
-            "basis": {
-              "$ref": "#/$defs/basis"
+            "rationale": {
+              "$ref": "#/$defs/rationale"
             }
           },
           "required": [
             "absent",
-            "basis"
+            "rationale"
           ],
           "type": "object"
         },
         {
           "additionalProperties": false,
           "properties": {
-            "basis": {
-              "$ref": "#/$defs/basis"
+            "rationale": {
+              "$ref": "#/$defs/rationale"
             },
             "present": {
               "additionalProperties": false,
@@ -874,7 +874,7 @@
           },
           "required": [
             "present",
-            "basis"
+            "rationale"
           ],
           "type": "object"
         }
@@ -938,8 +938,8 @@
     "fixture_item": {
       "additionalProperties": false,
       "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "values": {
           "additionalProperties": {
@@ -951,7 +951,7 @@
       },
       "required": [
         "values",
-        "basis"
+        "rationale"
       ],
       "type": "object"
     },
@@ -1117,14 +1117,14 @@
           "minimum": 0,
           "type": "integer"
         },
-        "required": {
+        "must_render": {
           "type": "boolean"
         }
       },
       "required": [
         "id",
         "kind",
-        "required"
+        "must_render"
       ],
       "type": "object"
     },
@@ -1145,7 +1145,7 @@
           "minimum": 0,
           "type": "integer"
         },
-        "required": {
+        "must_render": {
           "type": "boolean"
         },
         "role": {
@@ -1153,7 +1153,7 @@
         }
       },
       "required": [
-        "required"
+        "must_render"
       ],
       "type": "object"
     },
@@ -1279,7 +1279,7 @@
     "message_sync_rule": {
       "additionalProperties": false,
       "properties": {
-        "do": {
+        "effects": {
           "items": {
             "$ref": "#/$defs/message_sync_action"
           },
@@ -1296,7 +1296,7 @@
       "required": [
         "id",
         "when",
-        "do"
+        "effects"
       ],
       "type": "object"
     },
@@ -1349,8 +1349,8 @@
     "model_item": {
       "additionalProperties": false,
       "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "fields": {
           "$ref": "#/$defs/field_schema_map"
@@ -1407,7 +1407,7 @@
       },
       "required": [
         "fields",
-        "basis"
+        "rationale"
       ],
       "type": "object"
     },
@@ -1446,7 +1446,7 @@
         },
         {
           "required": [
-            "with"
+            "bindings"
           ]
         }
       ],
@@ -1457,7 +1457,7 @@
         "payload": {
           "$ref": "#/$defs/operation_emit_source"
         },
-        "with": {
+        "bindings": {
           "$ref": "#/$defs/operation_emit_bindings"
         }
       },
@@ -1481,8 +1481,8 @@
     "operation_item": {
       "additionalProperties": false,
       "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "creates": {
           "items": {
@@ -1559,7 +1559,7 @@
         "input",
         "outcomes",
         "policy",
-        "basis",
+        "rationale",
         "reads",
         "creates",
         "updates",
@@ -1673,8 +1673,8 @@
         "archetype": {
           "type": "string"
         },
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "feature": {
           "$ref": "#/$defs/feature_ref"
@@ -1703,7 +1703,7 @@
         "given",
         "when",
         "then",
-        "basis"
+        "rationale"
       ],
       "type": "object"
     },
@@ -1794,8 +1794,8 @@
     "state_machine_audit_case": {
       "additionalProperties": false,
       "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "context": {
           "$ref": "#/$defs/context_bindings"
@@ -1826,7 +1826,7 @@
       },
       "required": [
         "fixtures",
-        "basis"
+        "rationale"
       ],
       "type": "object"
     },
@@ -1836,8 +1836,8 @@
         "archetype": {
           "type": "string"
         },
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "context": {
           "$ref": "#/$defs/type_expr_map"
@@ -1882,15 +1882,15 @@
         "initial_view_state",
         "view_states",
         "transitions",
-        "basis"
+        "rationale"
       ],
       "type": "object"
     },
     "state_machine_message": {
       "additionalProperties": false,
       "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "payload_schema": {
           "$ref": "#/$defs/type_expr_map"
@@ -1936,8 +1936,8 @@
     "state_machine_transition": {
       "additionalProperties": false,
       "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "effects": {
           "items": {
@@ -2690,8 +2690,8 @@
     "workflow_item": {
       "additionalProperties": false,
       "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "outcomes": {
           "$ref": "#/$defs/workflow_outcomes"
@@ -2715,7 +2715,7 @@
         "outcomes",
         "steps",
         "ref",
-        "basis"
+        "rationale"
       ],
       "type": "object"
     },
@@ -3004,7 +3004,7 @@
             "outcome": {
               "$ref": "#/$defs/field_name"
             },
-            "ran": {
+            "executed": {
               "type": "boolean"
             },
             "ref": {
@@ -3013,7 +3013,7 @@
           },
           "required": [
             "ref",
-            "ran"
+            "executed"
           ],
           "type": "object"
         },
@@ -3081,7 +3081,7 @@
   "$id": "https://example.invalid/compiled-output-product-spec.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Compiler-normalized output schema for spec/generated/compiled/spec.yaml. Contains normalized ids, derived events, derived routes, generated references, endpoint expansions, and empty collection expansions.",
+  "description": "Compiler-normalized output schema for the compiled specification file at spec/generated/compiled/spec.yaml. Contains normalized ids, derived events, derived routes, generated references, endpoint expansions, and empty collection expansions.",
   "properties": {
     "assets": {
       "additionalProperties": {

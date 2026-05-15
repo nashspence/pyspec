@@ -2,7 +2,7 @@
 
 `spec/generated/` is durable product evidence, not a disposable cache. The current policy is to check in every generated artifact, including audit PNG renders exactly as produced.
 
-The tree is organized by why an artifact exists:
+The tree is organized by artifact purpose:
 
 - `agent_prompts/` contains standalone layer-specific role prompts for PM/design, test, dev, and review agents.
 - `compiled/` contains the compiler-normalized spec.

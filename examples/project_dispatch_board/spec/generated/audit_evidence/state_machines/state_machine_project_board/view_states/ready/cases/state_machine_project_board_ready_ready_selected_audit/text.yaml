@@ -1,9 +1,9 @@
 project: project_dispatch_board
 text_resources:
   text.project.activity.ready.heading:
-    basis: Ready activity heading.
     max_chars: 80
     placeholder: Latest activity
+    rationale: Ready activity heading.
     tone: neutral
   text.project.detail.ready.heading:
     args:
@@ -11,13 +11,13 @@ text_resources:
         primitive: Text
       title:
         primitive: Text
-    basis: Ready heading for the detail state machine.
     max_chars: 80
     placeholder: Project detail
+    rationale: Ready heading for the detail state machine.
     source_ref: text.project.detail.ready.heading
     tone: neutral
   text.project.list.ready.heading:
-    basis: Ready heading for the project list state machine.
     max_chars: 80
     placeholder: Dispatch queue
+    rationale: Ready heading for the project list state machine.
     tone: neutral

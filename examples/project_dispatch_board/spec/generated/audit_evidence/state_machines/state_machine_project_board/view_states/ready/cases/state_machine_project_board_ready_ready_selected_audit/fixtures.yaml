@@ -2,7 +2,6 @@ context:
   selected_project_id: project_submitted_1
 facts:
   fact.project.draft:
-    basis: Draft dispatch project used as a secondary row in ready-board audit renders.
     present:
       model: Project
       values:
@@ -16,8 +15,8 @@ facts:
         title: Inspect loading dock sensor
         updated_at: '2026-05-11T07:15:00Z'
         workspace_id: $fixture.workspace.id
+    rationale: Draft dispatch project used as a secondary row in ready-board audit renders.
   fact.project.submitted:
-    basis: Submitted dispatch project shared by approval, ready-board, and visual audit test cases.
     present:
       model: Project
       values:
@@ -31,9 +30,10 @@ facts:
         title: Replace rooftop condenser fan
         updated_at: '2026-05-11T08:45:00Z'
         workspace_id: $fixture.workspace.id
+    rationale: Submitted dispatch project shared by approval, ready-board, and visual audit test cases.
 fixtures:
   fixture.workspace.member:
-    basis: Workspace member fixture for web/API/TUI test cases.
+    rationale: Workspace member fixture for web/API/TUI test cases.
     values:
       actor:
         id: user_member_1

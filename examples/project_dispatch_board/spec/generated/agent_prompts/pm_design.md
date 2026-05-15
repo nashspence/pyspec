@@ -25,7 +25,7 @@ Rules:
 - Keep implementation and storage concerns out of `spec/spec.yaml`.
 - Use test-case archetypes from `src/pyspec_contract/patterns.yaml`; define every seed fixture explicitly.
 - Models are product data models: fields, lifecycle, and invariants only.
-- Use `basis` or `why` only when it preserves non-obvious product intent.
+- Use `rationale` only when it preserves non-obvious product intent.
 - For entry points, declare one explicit `adapter` (`http`, `cli`, `webhook`, `scheduled`, `worker`, or `ui`) and one explicit `trigger` (`operation`, `state_machine`, or `workflow`).
 - For state-machine entry points, keep invocation and rendering separate with adapter input and trigger `render` (`html` or `textual`).
 - For workflow entry points, bind the entry point trigger to the workflow trigger with `trigger.workflow.ref` and `trigger.workflow.when`.

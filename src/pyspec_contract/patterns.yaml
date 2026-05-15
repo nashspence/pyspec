@@ -63,7 +63,7 @@ test_case_archetypes:
     then: [outcome, response.status, model.exists, events.emitted, invoked]
   workflow_event_success:
     when: emit_event
-    then: [workflow.ran, workflow.outcome, invoked]
+    then: [workflow.executed, workflow.outcome, invoked]
   forbidden_action:
     when: open_entry
     then: [forbids]
@@ -95,7 +95,7 @@ entry_point_adapters:
     layer: web
 
 entry_target_contracts:
-  boundary: 'Entry points declare adapter-specific input and responses. trigger.*.with maps adapter input onto the target operation or state-machine context.'
+  boundary: 'Entry points declare adapter-specific input and responses. trigger.*.bindings maps adapter input onto the target operation or state-machine context.'
   state_machine: 'State-machine entry triggers use trigger.state_machine.ref plus trigger.state_machine.render to distinguish invocation from html/textual rendering.'
   workflow: 'Workflow entry triggers use trigger.workflow.ref plus trigger.workflow.when so the entry point declares the trigger data it consumes. Workers declare message dispositions; workflows declare terminal outcomes and route each step outcome explicitly.'
 

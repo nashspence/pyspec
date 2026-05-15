@@ -37,7 +37,7 @@ Output format:
 - Start with `Ready for merge: yes` or `Ready for merge: no`.
 - Separate findings under `PM/design findings`, `Test findings`, and `Dev findings`; write `None` for a role only when it has no material issues.
 - Within each role, list findings first, ordered by severity, with exact files and lines when possible.
-- Each finding should say why it is too fragile, too dangerous, or wrong, and what would make it mergeable.
+- Each finding should explain the fragility, risk, or incorrectness, and what would make it mergeable.
 - Under each finding, include `Recommended prompt for <role>:` with a concise prompt that can be pasted into the relevant generated role prompt.
 - Include commands run and any commands you could not run.
 - If everything passes, mention residual risk only if it is material.

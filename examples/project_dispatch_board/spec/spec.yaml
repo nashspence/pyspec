@@ -1,7 +1,7 @@
 project: project_dispatch_board
 fixtures:
   fixture.workspace.member:
-    basis: Workspace member fixture for web/API/TUI test cases.
+    rationale: Workspace member fixture for web/API/TUI test cases.
     values:
       actor:
         id: user_member_1
@@ -11,7 +11,7 @@ fixtures:
         id: workspace_1
         name: North Region Dispatch
   fixture.workspace.reviewer:
-    basis: Reviewer fixture for approval test cases.
+    rationale: Reviewer fixture for approval test cases.
     values:
       actor:
         id: user_reviewer_1
@@ -22,7 +22,7 @@ fixtures:
         name: North Region Dispatch
 facts:
   fact.project.draft:
-    basis: Draft dispatch project used as a secondary row in ready-board audit renders.
+    rationale: Draft dispatch project used as a secondary row in ready-board audit renders.
     present:
       model: Project
       values:
@@ -37,7 +37,7 @@ facts:
         updated_at: '2026-05-11T07:15:00Z'
         workspace_id: $fixture.workspace.id
   fact.project.submitted:
-    basis: Submitted dispatch project shared by approval, ready-board, and visual audit test cases.
+    rationale: Submitted dispatch project shared by approval, ready-board, and visual audit test cases.
     present:
       model: Project
       values:
@@ -53,7 +53,7 @@ facts:
         workspace_id: $fixture.workspace.id
 models:
   Problem:
-    basis: A structured problem result explains intentional failure outcomes across API and CLI surfaces.
+    rationale: A structured problem result explains intentional failure outcomes across API and CLI surfaces.
     fields:
       code:
         nullable: false
@@ -66,7 +66,7 @@ models:
         type:
           primitive: Text
   Project:
-    basis: A dispatch project is the durable work item displayed and acted on by the board.
+    rationale: A dispatch project is the durable work item displayed and acted on by the board.
     fields:
       assignee:
         nullable: false
@@ -141,7 +141,7 @@ models:
         to: archived
         triggered_by: operation.project.archive
   ProjectApproved:
-    basis: Approval events carry only the integration payload required by downstream workflows.
+    rationale: Approval events carry only the integration payload required by downstream workflows.
     fields:
       approved_by:
         nullable: false
@@ -155,7 +155,7 @@ models:
           primitive: ID
 operations:
   operation.project.approve:
-    basis: Reviewers can approve submitted dispatch projects.
+    rationale: Reviewers can approve submitted dispatch projects.
     input:
       approved_by:
         primitive: ID
@@ -166,7 +166,7 @@ operations:
       approved:
         emits:
         - event: event.project.approved
-          with:
+          bindings:
             approved_by: $input.approved_by
             project_id: $input.project_id
         kind: success
@@ -181,7 +181,7 @@ operations:
         result:
           model: Problem
   operation.project.archive:
-    basis: Approved dispatch projects can be archived.
+    rationale: Approved dispatch projects can be archived.
     input:
       project_id:
         primitive: ID
@@ -203,7 +203,7 @@ operations:
         result:
           model: Problem
   operation.project.create:
-    basis: Members can create a new dispatch project.
+    rationale: Members can create a new dispatch project.
     creates:
     - Project
     input:
@@ -229,7 +229,7 @@ operations:
         result:
           model: Problem
   operation.project.list:
-    basis: The board requires a project list query scoped by workspace.
+    rationale: The board requires a project list query scoped by workspace.
     input:
       workspace_id:
         primitive: ID
@@ -247,7 +247,7 @@ operations:
     reads:
     - Project
   operation.project.read:
-    basis: The detail state machine loads the selected project by id.
+    rationale: The detail state machine loads the selected project by id.
     input:
       project_id:
         primitive: ID
@@ -264,7 +264,7 @@ operations:
     reads:
     - Project
   operation.project.send_approval_notice:
-    basis: Approval triggers a notification command for downstream coordination.
+    rationale: Approval triggers a notification command for downstream coordination.
     input:
       approved_by:
         primitive: ID
@@ -281,7 +281,7 @@ operations:
         result:
           model: NoticeResult
   operation.project.submit:
-    basis: Draft dispatch projects can be submitted for review.
+    rationale: Draft dispatch projects can be submitted for review.
     input:
       project_id:
         primitive: ID
@@ -304,12 +304,12 @@ operations:
           model: Project
 events:
   event.project.approved:
-    basis: Approval events carry the reviewer and project identity needed by notification workflows.
+    rationale: Approval events carry the reviewer and project identity needed by notification workflows.
     payload_schema:
       model: ProjectApproved
 state_machines:
   state_machine.project.activity:
-    basis: The activity state machine summarizes latest status around the selected project.
+    rationale: The activity state machine summarizes latest status around the selected project.
     context:
       project_id:
         primitive: ID
@@ -350,7 +350,7 @@ state_machines:
         - assignee
   state_machine.project.board:
     archetype: dashboard
-    basis: The dispatch board composes list, detail, and activity state machines through shared selected-project context.
+    rationale: The dispatch board composes list, detail, and activity state machines through shared selected-project context.
     context:
       selected_project_id:
         primitive: ID
@@ -364,7 +364,7 @@ state_machines:
       ready:
         audit:
           empty:
-            basis: Audit render for empty board state vector.
+            rationale: Audit render for empty board state vector.
             fixtures:
             - fixture.workspace.member
             instances:
@@ -375,7 +375,7 @@ state_machines:
               list:
                 view_state: empty
           ready_selected:
-            basis: Audit render for selected-project board state vector using named project facts.
+            rationale: Audit render for selected-project board state vector using named project facts.
             context:
               selected_project_id: project_submitted_1
             facts:
@@ -419,7 +419,7 @@ state_machines:
               context_present: selected_project_id
           state_machine: state_machine.project.activity
         message_sync_rules:
-        - do:
+        - effects:
           - set:
               context: selected_project_id
               from: $message.project_id
@@ -445,17 +445,17 @@ state_machines:
                   id: aside
                   kind: Container
                   order: 3
-                  required: true
+                  must_render: true
                 main:
                   id: main
                   kind: Container
                   order: 2
-                  required: true
+                  must_render: true
                 nav:
                   id: nav
                   kind: Container
                   order: 1
-                  required: true
+                  must_render: true
               screen_class: ProjectBoardScreen
             style:
               rules:
@@ -476,21 +476,21 @@ state_machines:
                   - dispatch-board-aside
                   element: aside
                   order: 3
-                  required: true
+                  must_render: true
                   role: complementary
                 main:
                   classes:
                   - dispatch-board-main
                   element: main
                   order: 2
-                  required: true
+                  must_render: true
                   role: main
                 nav:
                   classes:
                   - dispatch-board-nav
                   element: nav
                   order: 1
-                  required: true
+                  must_render: true
                   role: navigation
               root:
                 classes:
@@ -518,7 +518,7 @@ state_machines:
                 gap: 1rem
                 nav_width: 20rem
   state_machine.project.detail:
-    basis: The detail state machine is independent from the list and reacts to selected project context.
+    rationale: The detail state machine is independent from the list and reacts to selected project context.
     context:
       project_id:
         primitive: ID
@@ -580,7 +580,7 @@ state_machines:
         - operation.project.approve
         - operation.project.archive
   state_machine.project.list:
-    basis: The list state machine owns collection loading, empty, ready, error, and selection behavior.
+    rationale: The list state machine owns collection loading, empty, ready, error, and selection behavior.
     context:
       selected_project_id:
         primitive: ID
@@ -682,11 +682,11 @@ entry_points:
               type:
                 model: Problem
             status: 422
-    basis: HTTP endpoint for creating a dispatch project.
+    rationale: HTTP endpoint for creating a dispatch project.
     trigger:
       operation:
         ref: operation.project.create
-        with:
+        bindings:
           customer: $input.body.customer
           priority: $input.body.priority
           title: $input.body.title
@@ -714,11 +714,11 @@ entry_points:
               type:
                 model: Problem
             status: 503
-    basis: HTTP endpoint for listing dispatch projects.
+    rationale: HTTP endpoint for listing dispatch projects.
     trigger:
       operation:
         ref: operation.project.list
-        with:
+        bindings:
           workspace_id: $input.params.workspace_id
   entry_point.cli.project.approve:
     adapter:
@@ -749,11 +749,11 @@ entry_points:
               from: $outcome.result
               type:
                 model: Problem
-    basis: CLI entry for approval automation.
+    rationale: CLI entry for approval automation.
     trigger:
       operation:
         ref: operation.project.approve
-        with:
+        bindings:
           approved_by: $input.args.approved_by
           project_id: $input.args.project_id
   entry_point.cli.project.board:
@@ -764,12 +764,12 @@ entry_points:
           args:
             workspace_id:
               primitive: ID
-    basis: CLI launcher for the Textual dispatch board.
+    rationale: CLI launcher for the Textual dispatch board.
     trigger:
       state_machine:
         ref: state_machine.project.board
         render: textual
-        with:
+        bindings:
           workspace_id: $input.args.workspace_id
   entry_point.web.project.board:
     adapter:
@@ -779,12 +779,12 @@ entry_points:
             workspace_id:
               primitive: ID
         path: /workspaces/{workspace_id}/dispatch
-    basis: Web entry for the dispatch board.
+    rationale: Web entry for the dispatch board.
     trigger:
       state_machine:
         ref: state_machine.project.board
         render: html
-        with:
+        bindings:
           workspace_id: $input.params.workspace_id
   entry_point.worker.project.approval_notice:
     adapter:
@@ -799,7 +799,7 @@ entry_points:
             disposition: dead_letter
             problem:
               model: Problem
-    basis: Worker entry exposing the approval notice workflow.
+    rationale: Worker entry exposing the approval notice workflow.
     trigger:
       workflow:
         ref: workflow.project.approval_notice
@@ -807,7 +807,7 @@ entry_points:
           event: event.project.approved
 workflows:
   workflow.project.approval_notice:
-    basis: Approval event sends a downstream notice.
+    rationale: Approval event sends a downstream notice.
     outcomes:
       completed:
         kind: success
@@ -836,7 +836,7 @@ workflows:
 test_cases:
   test_case.project.approval_notice.workflow:
     archetype: workflow_event_success
-    basis: Approval event dispatches the notification workflow.
+    rationale: Approval event dispatches the notification workflow.
     feature: feature.project.approval_notice
     subject_ref:
       workflow: workflow.project.approval_notice
@@ -852,7 +852,7 @@ test_cases:
       - operation.project.send_approval_notice
       workflow:
         outcome: completed
-        ran: true
+        executed: true
         ref: workflow.project.approval_notice
     title: Approval event sends notice
     when:
@@ -863,7 +863,7 @@ test_cases:
         ref: event.project.approved
   test_case.project.approve.success:
     archetype: operation_outcome
-    basis: Approval transitions a submitted project to approved and emits the event.
+    rationale: Approval transitions a submitted project to approved and emits the event.
     feature: feature.project.approve
     subject_ref:
       operation: operation.project.approve
@@ -894,7 +894,7 @@ test_cases:
         ref: operation.project.approve
   test_case.project.board.empty:
     archetype: state_machine_composition
-    basis: An empty workspace shows empty list, no detail, and no activity.
+    rationale: An empty workspace shows empty list, no detail, and no activity.
     feature: feature.project.board
     subject_ref:
       state_machine: state_machine.project.board
@@ -932,7 +932,7 @@ test_cases:
         ref: entry_point.web.project.board
   test_case.project.board.ready:
     archetype: state_machine_composition
-    basis: A populated workspace shows the ready list while detail awaits explicit selection.
+    rationale: A populated workspace shows the ready list while detail awaits explicit selection.
     feature: feature.project.board
     subject_ref:
       state_machine: state_machine.project.board
@@ -966,7 +966,7 @@ test_cases:
         ref: entry_point.web.project.board
   test_case.project.create.api.success:
     archetype: entry_response
-    basis: The API create endpoint delegates to the create operation and emits project.created.
+    rationale: The API create endpoint delegates to the create operation and emits project.created.
     feature: feature.project.create
     subject_ref:
       entry_point: entry_point.api.project.create
@@ -1004,42 +1004,42 @@ test_cases:
         ref: entry_point.api.project.create
 text_resources:
   text.project.activity.empty.body:
-    basis: Empty activity body.
+    rationale: Empty activity body.
     max_chars: 120
     placeholder: Activity appears after a project is selected.
     tone: instructional
   text.project.activity.empty.heading:
-    basis: Empty activity heading.
+    rationale: Empty activity heading.
     max_chars: 80
     placeholder: No project selected
     tone: neutral
   text.project.activity.ready.heading:
-    basis: Ready activity heading.
+    rationale: Ready activity heading.
     max_chars: 80
     placeholder: Latest activity
     tone: neutral
   text.project.detail.error.body:
-    basis: Error body for the detail state machine.
+    rationale: Error body for the detail state machine.
     max_chars: 120
     placeholder: Refresh the selection or return to the queue.
     tone: error
   text.project.detail.error.heading:
-    basis: Error heading for the detail state machine.
+    rationale: Error heading for the detail state machine.
     max_chars: 80
     placeholder: Project detail is unavailable
     tone: error
   text.project.detail.loading.message:
-    basis: Loading message for the detail state machine.
+    rationale: Loading message for the detail state machine.
     max_chars: 80
     placeholder: Loading project detail…
     tone: neutral
   text.project.detail.none.body:
-    basis: No-selection body for the detail state machine.
+    rationale: No-selection body for the detail state machine.
     max_chars: 160
     placeholder: Choose a project from the queue to review customer, assignment, and approval details.
     tone: instructional
   text.project.detail.none.heading:
-    basis: No-selection heading for the detail state machine.
+    rationale: No-selection heading for the detail state machine.
     max_chars: 80
     placeholder: Select a project
     tone: instructional
@@ -1049,38 +1049,38 @@ text_resources:
         primitive: Text
       title:
         primitive: Text
-    basis: Ready heading for the detail state machine.
+    rationale: Ready heading for the detail state machine.
     max_chars: 80
     placeholder: Project detail
     source_ref: text.project.detail.ready.heading
     tone: neutral
   text.project.list.empty.body:
-    basis: Empty body for the project list state machine.
+    rationale: Empty body for the project list state machine.
     max_chars: 160
     placeholder: Create the first project to start coordinating work for this workspace.
     tone: instructional
   text.project.list.empty.heading:
-    basis: Empty heading for the project list state machine.
+    rationale: Empty heading for the project list state machine.
     max_chars: 80
     placeholder: No dispatch projects yet
     tone: neutral
   text.project.list.error.body:
-    basis: Error body for the project list state machine.
+    rationale: Error body for the project list state machine.
     max_chars: 120
     placeholder: Check the workspace connection and try again.
     tone: error
   text.project.list.error.heading:
-    basis: Error heading for the project list state machine.
+    rationale: Error heading for the project list state machine.
     max_chars: 80
     placeholder: Projects could not be loaded
     tone: error
   text.project.list.loading.message:
-    basis: Loading message for the project list state machine.
+    rationale: Loading message for the project list state machine.
     max_chars: 80
     placeholder: Loading dispatch projects…
     tone: neutral
   text.project.list.ready.heading:
-    basis: Ready heading for the project list state machine.
+    rationale: Ready heading for the project list state machine.
     max_chars: 80
     placeholder: Dispatch queue
     tone: neutral
@@ -1089,7 +1089,7 @@ assets:
     args:
       priority:
         primitive: Text
-    basis: Selected project detail shows a dynamic priority badge resolved from project fixture data.
+    rationale: Selected project detail shows a dynamic priority badge resolved from project fixture data.
     asset_role: badge
     media_kind: icon
     placeholder:
@@ -1099,7 +1099,7 @@ assets:
     source_ref: asset.project.detail.ready.priority_badge
   asset.project.list.empty.illustration:
     alt_text: text.project.list.empty.heading
-    basis: Generic placeholder illustration used by the empty queue state machine state.
+    rationale: Generic placeholder illustration used by the empty queue state machine state.
     asset_role: empty_state
     media_kind: illustration
     placeholder:
@@ -1111,16 +1111,16 @@ content_cases:
     args:
       customer: Atlas Foods
       title: Replace rooftop condenser fan
-    basis: Exercise final detail heading text with representative fixture-backed content.
+    rationale: Exercise final detail heading text with representative fixture-backed content.
     ref: text.project.detail.ready.heading
   content.project.detail.priority_badge.high_priority:
     args:
       priority: High
-    basis: Exercise final dynamic priority badge asset.
+    rationale: Exercise final dynamic priority badge asset.
     ref: asset.project.detail.ready.priority_badge
 render_profiles:
   default:
-    basis: Two viewport breakpoints are enough to demonstrate visual audit coverage in the canonical example.
+    rationale: Two viewport breakpoints are enough to demonstrate visual audit coverage in the canonical example.
     html_viewports:
       compact:
         height: 820
