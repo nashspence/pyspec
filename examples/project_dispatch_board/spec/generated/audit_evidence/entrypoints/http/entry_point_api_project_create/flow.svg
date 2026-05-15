@@ -1,6 +1,6 @@
 <svg width="1148pt" height="273pt"
  viewBox="0.00 0.00 1148.00 273.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: fa702c66c48bb09b0a8106bf13de322b10e71010218ce204f82e0bde8e9abcd7 -->
+<!-- pyspec-contract-input-sha256: 7d708059568f7661f20e980211a9fa6db6b20f84db3827499122e3fd7ecb191f -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 255)">
 <title>entrypoint_entry_point_api_project_create</title>
 <!-- entry_start -->
@@ -82,9 +82,9 @@
 <text text-anchor="start" x="674" y="-41.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
 <text text-anchor="start" x="605" y="-21.5" font-family="Arial" font-weight="bold" font-size="10.00">emit:</text>
 <text text-anchor="start" x="629" y="-21.5" font-family="Arial" font-size="10.00">  created → event.project.created</text>
-<text text-anchor="start" x="605" y="-9.5" font-family="Arial" font-weight="bold" font-size="10.00">payload:</text>
-<text text-anchor="start" x="645" y="-9.5" font-family="Arial" font-size="10.00">  payload</text>
-<text text-anchor="start" x="685" y="-9.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
+<text text-anchor="start" x="605" y="-9.5" font-family="Arial" font-weight="bold" font-size="10.00">payload_schema:</text>
+<text text-anchor="start" x="687" y="-9.5" font-family="Arial" font-size="10.00">  payload_schema</text>
+<text text-anchor="start" x="767" y="-9.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
 <polygon fill="none" stroke="#2563eb" points="599,0 599,-237 803,-237 803,0 599,0"/>
 </g>
 <!-- entrypoint_input_entry_point_api_project_create&#45;&gt;entrypoint_target_operation_project_create -->

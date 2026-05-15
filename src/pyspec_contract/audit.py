@@ -859,7 +859,7 @@ def composition_dot(fsm_id: str, fsm: dict[str, Any], contract: dict[str, Any]) 
                     "emitted message",
                     [
                         ("source", _emitting_transition_refs(rule["when"]["instance"], rule["when"]["message"], mount_by_id, contract)),
-                        ("data", _emitted_message_data_lines(rule["when"]["instance"], rule["when"]["message"], mount_by_id, contract)),
+                        ("payload", _emitted_message_data_lines(rule["when"]["instance"], rule["when"]["message"], mount_by_id, contract)),
                     ],
                     style=_DOT_STYLE_EVENT,
                 ),
@@ -1282,8 +1282,8 @@ def _workflow_outcome_card(outcome_id: str, outcome: dict[str, Any]) -> str:
 def _event_card(event_id: str, contract: dict[str, Any], *, subtitle: str = "target event") -> str:
     event = contract.get("events", {}).get(event_id, {})
     sections: list[tuple[str, list[object]]] = []
-    if event.get("payload"):
-        sections.append(("payload", [_DotTypedField("payload", event["payload"])]))
+    if event.get("payload_schema"):
+        sections.append(("payload_schema", [_DotTypedField("payload_schema", event["payload_schema"])]))
     if event.get("emitted_by"):
         sections.append(("emitted by", event["emitted_by"]))
     return _dot_card(
@@ -1337,8 +1337,8 @@ def _operation_emit_sections(operation: dict[str, Any], contract: dict[str, Any]
             event_ref = event_id["event"] if isinstance(event_id, dict) else event_id
             sections.append(("emit", [f"{outcome_id} {_DOT_ARROW_FORWARD} {event_ref}"]))
             event = contract.get("events", {}).get(event_ref, {})
-            if event.get("payload"):
-                sections.append(("payload", [_DotTypedField("payload", event["payload"])]))
+            if event.get("payload_schema"):
+                sections.append(("payload_schema", [_DotTypedField("payload_schema", event["payload_schema"])]))
     return sections
 
 
@@ -1385,7 +1385,7 @@ def _dot_sync_effect_card(
             "sent message",
             [
                 ("causes", _receiving_transition_refs(send["instance"], send["message"], mount_by_id, contract)),
-                ("data", _sent_message_data_lines(send, mount_by_id, contract)),
+                ("payload", _sent_message_data_lines(send, mount_by_id, contract)),
             ],
             style=_DOT_STYLE_MESSAGE,
         )
@@ -1410,7 +1410,7 @@ def _emitted_message_data_lines(
     lines: list[_DotTypedField] = []
     seen: set[str] = set()
     for emit in _emitting_transition_emits(instance_id, emitted, mount_by_id, contract):
-        for line in _format_typed_data_flow(emit.get("data", {}), payload):
+        for line in _format_typed_data_flow(emit.get("payload_bindings", {}), payload):
             signature = str(line)
             if signature not in seen:
                 lines.append(line)
@@ -1436,7 +1436,7 @@ def _sent_message_data_lines(
     contract: dict[str, Any],
 ) -> list[_DotTypedField]:
     payload = _message_payload_for_instance(send["instance"], "accepts", send["message"], mount_by_id, contract)
-    return _format_typed_data_flow(send.get("data", {}), payload)
+    return _format_typed_data_flow(send.get("payload_bindings", {}), payload)
 
 
 def _assignment_value(assignment: dict[str, Any]) -> Any:
@@ -1452,7 +1452,7 @@ def _message_payload_for_instance(
 ) -> dict[str, str]:
     mount = mount_by_id[instance_id]
     fsm = contract["fsms"][mount["fsm"]]
-    return fsm["messages"][direction][message]["payload"]
+    return fsm["state_machine_messages"][direction][message]["payload_schema"]
 
 
 def _emitting_transition_emits(
@@ -1706,7 +1706,7 @@ def _dot_section_inner_rows(title: str, values: Iterable[object]) -> tuple[bool,
 
 
 def _dot_typed_field_section_inner_rows(title: str, values: list[object]) -> tuple[bool, list[str]]:
-    if (title in {"input", "output", "payload", "data", "set", "load"} or title == "actions") and len(values) == 1:
+    if (title in {"input", "output", "payload", "payload_schema", "data", "set", "load"} or title == "actions") and len(values) == 1:
         rows = []
         for index, value in enumerate(values):
             if isinstance(value, _DotTypedField):
@@ -1980,8 +1980,8 @@ def _format_transition_effect_sections(fsm: dict[str, Any], transition: dict[str
         if "emit" in effect:
             emit = effect["emit"]
             sections.append(("emit", [emit["message"]]))
-            payload_types = fsm["messages"]["emits"][emit["message"]]["payload"]
-            payload = _format_typed_data_flow(emit.get("data", {}), payload_types)
+            payload_types = fsm["state_machine_messages"]["emits"][emit["message"]]["payload_schema"]
+            payload = _format_typed_data_flow(emit.get("payload_bindings", {}), payload_types)
             if payload:
                 sections.append(("payload", payload))
         elif "set" in effect:

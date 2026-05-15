@@ -305,7 +305,7 @@ operations:
 events:
   event.project.approved:
     basis: Approval events carry the reviewer and project identity needed by notification workflows.
-    payload:
+    payload_schema:
       model: ProjectApproved
 fsms:
   state_machine.project.activity:
@@ -315,13 +315,6 @@ fsms:
         primitive: ID
     data: []
     initial: empty
-    messages:
-      accepts:
-        message.project.selection_changed:
-          payload:
-            project_id:
-              primitive: ID
-        message.selection.cleared: {}
     model: Project
     states:
       empty:
@@ -348,6 +341,13 @@ fsms:
       from: ready
       on: message.selection.cleared
       to: empty
+    state_machine_messages:
+      accepts:
+        message.project.selection_changed:
+          payload_schema:
+            project_id:
+              primitive: ID
+        message.selection.cleared: {}
   state_machine.project.board:
     archetype: dashboard
     basis: The dispatch board composes list, detail, and activity FSMs through shared selected-project context.
@@ -510,15 +510,15 @@ fsms:
               context: selected_project_id
               from: $message.project_id
           - send:
-              data:
-                project_id: $message.project_id
               instance: detail
               message: message.project.selection_changed
-          - send:
-              data:
+              payload_bindings:
                 project_id: $message.project_id
+          - send:
               instance: activity
               message: message.project.selection_changed
+              payload_bindings:
+                project_id: $message.project_id
           id: select_project_updates_fsms
           when:
             instance: list
@@ -530,15 +530,6 @@ fsms:
         primitive: ID
     data: []
     initial: none
-    messages:
-      accepts:
-        data.error: {}
-        data.ready: {}
-        message.project.selection_changed:
-          payload:
-            project_id:
-              primitive: ID
-        message.selection.cleared: {}
     model: Project
     states:
       error:
@@ -585,6 +576,15 @@ fsms:
       from: ready
       on: message.selection.cleared
       to: none
+    state_machine_messages:
+      accepts:
+        data.error: {}
+        data.ready: {}
+        message.project.selection_changed:
+          payload_schema:
+            project_id:
+              primitive: ID
+        message.selection.cleared: {}
   state_machine.project.list:
     basis: The list FSM owns collection loading, empty, ready, error, and selection behavior.
     context:
@@ -595,20 +595,6 @@ fsms:
     data:
     - operation.project.list
     initial: loading
-    messages:
-      accepts:
-        data.empty: {}
-        data.error: {}
-        data.ready: {}
-        message.project.select:
-          payload:
-            project_id:
-              primitive: ID
-      emits:
-        message.project.selected:
-          payload:
-            project_id:
-              primitive: ID
     model: Project
     states:
       empty:
@@ -652,12 +638,26 @@ fsms:
       to: ready
     - effects:
       - emit:
-          data:
-            project_id: $message.project_id
           message: message.project.selected
+          payload_bindings:
+            project_id: $message.project_id
       from: ready
       on: message.project.select
       to: ready
+    state_machine_messages:
+      accepts:
+        data.empty: {}
+        data.error: {}
+        data.ready: {}
+        message.project.select:
+          payload_schema:
+            project_id:
+              primitive: ID
+      emits:
+        message.project.selected:
+          payload_schema:
+            project_id:
+              primitive: ID
 entry_points:
   entry_point.api.project.create:
     basis: HTTP endpoint for creating a dispatch project.

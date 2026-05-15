@@ -221,7 +221,7 @@ def asyncapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
         messages[message_id] = {
             "name": event_id,
             "title": humanize(event_id),
-            "payload": type_schema(event["payload"]),
+            "payload": type_schema(event["payload_schema"]),
             "x-emitted-by": sorted(event["emitted_by"]),
         }
         operations[f"send_{key}"] = {
@@ -685,7 +685,7 @@ def _cwl_operation_ids(contract: dict[str, Any]) -> list[str]:
 def _workflow_trigger_payload_type(contract: dict[str, Any], workflow: dict[str, Any]) -> str:
     trigger = workflow["trigger"]
     if "event" in trigger:
-        return contract["events"][trigger["event"]]["payload"]
+        return contract["events"][trigger["event"]]["payload_schema"]
     operation = contract["operations"][trigger["operation"]]
     successes = [outcome["result"] for outcome in operation["outcomes"].values() if outcome["kind"] == "success"]
     return successes[0]

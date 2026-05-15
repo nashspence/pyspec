@@ -185,20 +185,20 @@
             },
             {
               "send": {
-                "data": {
-                  "project_id": "$message.project_id"
-                },
                 "instance": "detail",
-                "message": "message.project.selection_changed"
+                "message": "message.project.selection_changed",
+                "payload_bindings": {
+                  "project_id": "$message.project_id"
+                }
               }
             },
             {
               "send": {
-                "data": {
-                  "project_id": "$message.project_id"
-                },
                 "instance": "activity",
-                "message": "message.project.selection_changed"
+                "message": "message.project.selection_changed",
+                "payload_bindings": {
+                  "project_id": "$message.project_id"
+                }
               }
             }
           ],
@@ -607,10 +607,10 @@
             "effects": [
               {
                 "emit": {
-                  "data": {
+                  "message": "message.project.selected",
+                  "payload_bindings": {
                     "project_id": "$message.project_id"
-                  },
-                  "message": "message.project.selected"
+                  }
                 }
               }
             ],
@@ -676,10 +676,10 @@
             "effects": [
               {
                 "emit": {
-                  "data": {
+                  "message": "message.project.selected",
+                  "payload_bindings": {
                     "project_id": "$message.project_id"
-                  },
-                  "message": "message.project.selected"
+                  }
                 }
               }
             ],
@@ -741,10 +741,10 @@
             "effects": [
               {
                 "emit": {
-                  "data": {
+                  "message": "message.project.selected",
+                  "payload_bindings": {
                     "project_id": "$message.project_id"
-                  },
-                  "message": "message.project.selected"
+                  }
                 }
               }
             ],
@@ -805,10 +805,10 @@
             "effects": [
               {
                 "emit": {
-                  "data": {
+                  "message": "message.project.selected",
+                  "payload_bindings": {
                     "project_id": "$message.project_id"
-                  },
-                  "message": "message.project.selected"
+                  }
                 }
               }
             ],

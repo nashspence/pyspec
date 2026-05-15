@@ -141,18 +141,18 @@ def _default_basis(entity: str, entity_id: str) -> str:
     return f"Declared {entity} {entity_id}."[:280]
 
 
-def _empty_fsm_messages() -> dict[str, dict[str, Any]]:
+def _empty_state_machine_messages() -> dict[str, dict[str, Any]]:
     return {"accepts": {}, "emits": {}}
 
 
-def _normalize_fsm_messages(messages: dict[str, Any] | None) -> dict[str, dict[str, Any]]:
+def _normalize_state_machine_messages(messages: dict[str, Any] | None) -> dict[str, dict[str, Any]]:
     messages = messages or {}
     normalized: dict[str, dict[str, Any]] = {}
     for direction in ("accepts", "emits"):
         normalized[direction] = {}
         for message_id, message in (messages.get(direction) or {}).items():
             message_spec = copy.deepcopy(message)
-            message_spec.setdefault("payload", {})
+            message_spec["payload_schema"] = normalize_type_map(message_spec.get("payload_schema"))
             normalized[direction][message_id] = message_spec
     return {
         "accepts": normalized["accepts"],
@@ -177,19 +177,19 @@ def _prune_redundant_author_transitions(author: dict[str, Any]) -> None:
                 operation.pop("transition", None)
 
 
-def _prune_empty_author_fsm_message_directions(author: dict[str, Any]) -> None:
+def _prune_empty_author_state_machine_message_directions(author: dict[str, Any]) -> None:
     for fsm in (author.get("fsms") or {}).values():
-        messages = fsm.get("messages")
+        messages = fsm.get("state_machine_messages")
         if not isinstance(messages, dict):
             continue
         for direction in ("accepts", "emits"):
             for message in (messages.get(direction) or {}).values():
-                if isinstance(message, dict) and message.get("payload") == {}:
-                    message.pop("payload")
+                if isinstance(message, dict) and message.get("payload_schema") == {}:
+                    message.pop("payload_schema")
             if messages.get(direction) == {}:
                 messages.pop(direction)
         if not messages:
-            fsm.pop("messages", None)
+            fsm.pop("state_machine_messages", None)
 
 
 def author_from_source(source: dict[str, Any], layers: set[str] | None = None) -> dict[str, Any]:
@@ -200,7 +200,7 @@ def author_from_source(source: dict[str, Any], layers: set[str] | None = None) -
         raise ContractError(str(exc)) from exc
     author = _prune_empty_author_sections(copy.deepcopy(source))
     _prune_redundant_author_transitions(author)
-    _prune_empty_author_fsm_message_directions(author)
+    _prune_empty_author_state_machine_message_directions(author)
     return author
 
 
@@ -243,7 +243,7 @@ def _apply_author_defaults(entity: str, spec: dict[str, Any]) -> None:
     if entity == "fsm":
         spec.setdefault("context", {})
         spec.setdefault("data", [])
-        spec["messages"] = _normalize_fsm_messages(spec.get("messages"))
+        spec["state_machine_messages"] = _normalize_state_machine_messages(spec.get("state_machine_messages"))
         spec.setdefault("transitions", [])
     elif entity == "operation":
         for outcome in spec.get("outcomes", {}).values():
@@ -321,7 +321,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
 
     if entity == "event":
         return {
-            "payload": spec["payload"],
+            "payload_schema": normalize_type_expr(spec["payload_schema"]),
             "emitted_by": [],
             "basis": spec["basis"],
         }
@@ -332,7 +332,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             "model": spec["model"],
             "context": spec["context"],
             "data": _compile_data(fsm_id, spec.get("data", [])),
-            "messages": _normalize_fsm_messages(spec.get("messages")),
+            "state_machine_messages": _normalize_state_machine_messages(spec.get("state_machine_messages")),
             "initial": spec["initial"],
             "states": _compile_states(fsm_id, spec.get("states", {})),
             "transitions": spec.get("transitions", []),
@@ -492,13 +492,13 @@ def _derive_events(contract: dict[str, Any]) -> dict[str, Any]:
                 event_id = _emit_event_id(emit)
                 if outcome["kind"] != "success":
                     raise ContractError(f"Operation {operation_id} failure outcome {outcome_id} must not emit events")
-                payload_type = events.get(event_id, {}).get("payload", outcome["result"])
+                payload_type = events.get(event_id, {}).get("payload_schema", outcome["result"])
                 event = events.setdefault(event_id, {
                     "emitted_by": [],
-                    "payload": payload_type,
+                    "payload_schema": payload_type,
                     "basis": operation["basis"],
                 })
-                _validate_emit_payload_mapping(contract, operation_id, operation, outcome_id, outcome, event_id, event["payload"], emit)
+                _validate_emit_payload_mapping(contract, operation_id, operation, outcome_id, outcome, event_id, event["payload_schema"], emit)
                 event["emitted_by"].append(operation_id)
     return events
 
@@ -557,7 +557,7 @@ def _semantic_validate(contract: dict[str, Any], used_facts: set[str]) -> None:
     _validate_models(contract)
     _validate_operations(contract)
     _validate_fsms(contract)
-    _validate_fsm_message_payload_consistency(contract)
+    _validate_state_machine_message_payload_consistency(contract)
     _validate_entries(contract)
     _validate_workflows(contract)
     _validate_fixtures(contract)
@@ -945,7 +945,7 @@ def _validate_fsms(contract: dict[str, Any]) -> None:
                 _validate_state_composition(contract, fsm_id, fsm, state_name, state)
         _validate_field_state_data_sources(f"FSM {fsm_id}", fsm["states"], fsm.get("data", []), fsm.get("transitions", []))
         _validate_fsm_transitions(contract, fsm_id, fsm)
-        _validate_fsm_messages(fsm_id, fsm)
+        _validate_state_machine_messages(fsm_id, fsm)
 
 
 def _validate_fsm_state(
@@ -1031,18 +1031,18 @@ def _validate_fsm_transitions(contract: dict[str, Any], fsm_id: str, fsm: dict[s
             raise ContractError(
                 f"FSM {fsm_id} transition uses data message without FSM or source-state data: {transition['on']}"
             )
-        message_payload = _fsm_message_payload(fsm, "accepts", transition["on"], f"FSM {fsm_id} transition message")
+        message_payload = _state_machine_message_payload(fsm, "accepts", transition["on"], f"FSM {fsm_id} transition message")
         for effect in transition.get("effects", []):
             kind, body = _one(effect, f"FSM {fsm_id} transition effect")
             if kind == "set":
                 if body["context"] not in fsm.get("context", {}):
                     raise ContractError(f"FSM {fsm_id} transition sets undeclared context: {body['context']}")
             elif kind == "emit":
-                emitted_payload = _fsm_message_payload(fsm, "emits", body["message"], f"FSM {fsm_id} transition emit")
-                _validate_data_map(
+                emitted_payload = _state_machine_message_payload(fsm, "emits", body["message"], f"FSM {fsm_id} transition emit")
+                _validate_payload_bindings(
                     contract=contract,
-                    label=f"FSM {fsm_id} transition emit {body['message']} data",
-                    data=body["data"],
+                    label=f"FSM {fsm_id} transition emit {body['message']} payload_bindings",
+                    bindings=body["payload_bindings"],
                     payload=emitted_payload,
                     scopes={"message": _type_scope(message_payload), "context": _type_scope(fsm.get("context", {}))},
                 )
@@ -1056,39 +1056,39 @@ def _validate_fsm_transitions(contract: dict[str, Any], fsm_id: str, fsm: dict[s
             )
 
 
-def _validate_fsm_messages(fsm_id: str, fsm: dict[str, Any]) -> None:
-    messages = fsm.get("messages", _empty_fsm_messages())
+def _validate_state_machine_messages(fsm_id: str, fsm: dict[str, Any]) -> None:
+    messages = fsm.get("state_machine_messages", _empty_state_machine_messages())
     declared_accepts = set(messages.get("accepts", {}))
     declared_emits = set(messages.get("emits", {}))
     ambiguous = sorted(declared_accepts & declared_emits)
     if ambiguous:
-        raise ContractError(f"FSM {fsm_id} declares message as both accepted and emitted: {ambiguous}")
+        raise ContractError(f"FSM {fsm_id} declares state-machine message as both accepted and emitted: {ambiguous}")
     accepted = _fsm_accepts(fsm)
     emitted = _fsm_emits(fsm)
     orphan_accepts = sorted(declared_accepts - accepted)
     if orphan_accepts:
-        raise ContractError(f"FSM {fsm_id} declares accepted message without transition: {orphan_accepts}")
+        raise ContractError(f"FSM {fsm_id} declares accepted state-machine message without transition: {orphan_accepts}")
     orphan_emits = sorted(declared_emits - emitted)
     if orphan_emits:
-        raise ContractError(f"FSM {fsm_id} declares emitted message without emit effect: {orphan_emits}")
+        raise ContractError(f"FSM {fsm_id} declares emitted state-machine message without emit effect: {orphan_emits}")
     undeclared_accepts = sorted(accepted - declared_accepts)
     if undeclared_accepts:
-        raise ContractError(f"FSM {fsm_id} accepts message without declaring it: {undeclared_accepts}")
+        raise ContractError(f"FSM {fsm_id} accepts state-machine message without declaring it: {undeclared_accepts}")
     undeclared_emits = sorted(emitted - declared_emits)
     if undeclared_emits:
-        raise ContractError(f"FSM {fsm_id} emits message without declaring it: {undeclared_emits}")
+        raise ContractError(f"FSM {fsm_id} emits state-machine message without declaring it: {undeclared_emits}")
 
 
-def _validate_fsm_message_payload_consistency(contract: dict[str, Any]) -> None:
+def _validate_state_machine_message_payload_consistency(contract: dict[str, Any]) -> None:
     declared: dict[str, tuple[str, str, dict[str, Any]]] = {}
     domain_events = set(contract.get("events", {}))
     for fsm_id, fsm in contract.get("fsms", {}).items():
-        messages = fsm.get("messages", _empty_fsm_messages())
+        messages = fsm.get("state_machine_messages", _empty_state_machine_messages())
         for direction in ("accepts", "emits"):
             for message_id, message in messages.get(direction, {}).items():
                 if message_id in domain_events:
-                    raise ContractError(f"FSM message {message_id} conflicts with domain event {message_id}")
-                payload = message["payload"]
+                    raise ContractError(f"State-machine message {message_id} conflicts with domain event {message_id}")
+                payload = message["payload_schema"]
                 existing = declared.get(message_id)
                 if existing and (
                     set(existing[2]) != set(payload)
@@ -1096,7 +1096,7 @@ def _validate_fsm_message_payload_consistency(contract: dict[str, Any]) -> None:
                 ):
                     first_fsm, first_direction, first_payload = existing
                     raise ContractError(
-                        f"FSM message {message_id} payload differs between {first_fsm}.{first_direction} "
+                        f"State-machine message {message_id} payload_schema differs between {first_fsm}.{first_direction} "
                         f"and {fsm_id}.{direction}: "
                         f"{ {key: type_display(value) for key, value in first_payload.items()} } vs "
                         f"{ {key: type_display(value) for key, value in payload.items()} }"
@@ -1222,21 +1222,21 @@ def _fsm_accepts(fsm: dict[str, Any]) -> set[str]:
     return {transition["on"] for transition in fsm.get("transitions", [])}
 
 
-def _fsm_message_payload(fsm: dict[str, Any], direction: str, message_id: str, label: str) -> dict[str, Any]:
-    message = fsm.get("messages", {}).get(direction, {}).get(message_id)
+def _state_machine_message_payload(fsm: dict[str, Any], direction: str, message_id: str, label: str) -> dict[str, Any]:
+    message = fsm.get("state_machine_messages", {}).get(direction, {}).get(message_id)
     if not message:
-        raise ContractError(f"{label} references undeclared FSM message: {message_id}")
-    return message.get("payload", {})
+        raise ContractError(f"{label} references undeclared state-machine message: {message_id}")
+    return message.get("payload_schema", {})
 
 
-def _validate_data_map(
+def _validate_payload_bindings(
     contract: dict[str, Any] | None,
     label: str,
-    data: dict[str, Any],
+    bindings: dict[str, Any],
     payload: dict[str, Any],
     scopes: TypeScopes,
 ) -> None:
-    actual = set(data)
+    actual = set(bindings)
     expected = set(payload)
     if actual != expected:
         missing = sorted(expected - actual)
@@ -1248,7 +1248,7 @@ def _validate_data_map(
             parts.append("extra: " + ", ".join(extra))
         raise ContractError(f"{label} must exactly match payload fields" + (": " + "; ".join(parts) if parts else ""))
     for field, expected_type in payload.items():
-        _validate_expression_type(contract, f"{label}.{field}", data[field], expected_type, scopes)
+        _validate_expression_type(contract, f"{label}.{field}", bindings[field], expected_type, scopes)
 
 
 def _validate_expression_type(
@@ -1367,7 +1367,7 @@ def _validate_sync_rules(
         message_id = rule["when"]["message"]
         if message_id not in _fsm_emits(source_fsm):
             raise ContractError(f"Composed FSM state {label} sync listens for message the source does not emit: {message_id}")
-        source_payload = _fsm_message_payload(source_fsm, "emits", message_id, f"Composed FSM state {label} sync trigger")
+        source_payload = _state_machine_message_payload(source_fsm, "emits", message_id, f"Composed FSM state {label} sync trigger")
         for effect in rule["do"]:
             kind, body = _one(effect, f"composed FSM state {label} sync effect")
             if kind == "set":
@@ -1388,11 +1388,11 @@ def _validate_sync_rules(
                 target_fsm = contract["fsms"][mounts[target_id]["fsm"]]
                 if body["message"] not in _fsm_accepts(target_fsm):
                     raise ContractError(f"Composed FSM state {label} sync sends message the target does not accept: {body['message']}")
-                target_payload = _fsm_message_payload(target_fsm, "accepts", body["message"], f"Composed FSM state {label} sync send")
-                _validate_data_map(
+                target_payload = _state_machine_message_payload(target_fsm, "accepts", body["message"], f"Composed FSM state {label} sync send")
+                _validate_payload_bindings(
                     contract=contract,
-                    label=f"Composed FSM state {label} sync send {body['message']} to {target_id} data",
-                    data=body["data"],
+                    label=f"Composed FSM state {label} sync send {body['message']} to {target_id} payload_bindings",
+                    bindings=body["payload_bindings"],
                     payload=target_payload,
                     scopes={"message": _type_scope(source_payload), "state_machine": _type_scope(context)},
                 )
@@ -1692,8 +1692,8 @@ def _validate_event_payload_entry_input(contract: dict[str, Any], entry_id: str,
     if not event:
         raise ContractError(f"Entry {entry_id} workflow trigger references unknown event {event_id}")
     payload_type = entry_point_input(entry).get("payload")
-    if not type_equals(payload_type, event["payload"]):
-        raise ContractError(f"Entry {entry_id} input.payload must be {type_display(event['payload'])}, got {type_display(payload_type)}")
+    if not type_equals(payload_type, event["payload_schema"]):
+        raise ContractError(f"Entry {entry_id} input.payload must be {type_display(event['payload_schema'])}, got {type_display(payload_type)}")
 
 
 def _validate_target_bindings(
@@ -2102,7 +2102,7 @@ def _validate_workflow_outcomes(workflow_id: str, workflow: dict[str, Any]) -> N
 def _workflow_trigger_source_types(contract: dict[str, Any], workflow_id: str, workflow: dict[str, Any]) -> TypeScopes:
     kind, value = _one(workflow["trigger"], f"workflow {workflow_id} trigger")
     if kind == "event":
-        payload_type = contract["events"][value]["payload"]
+        payload_type = contract["events"][value]["payload_schema"]
     else:
         payload_type = _success_result_type(contract["operations"][value])
     return {"trigger": _typed_source_paths(contract, ("payload",), payload_type)}
@@ -2338,7 +2338,7 @@ def _validate_scenario_when(contract: dict[str, Any], sid: str, scenario: dict[s
 
 def _validate_scenario_event_payload(contract: dict[str, Any], sid: str, event_id: str, payload: dict[str, Any]) -> None:
     event = contract["events"][event_id]
-    fields = object_fields_for_type(contract, event["payload"])
+    fields = object_fields_for_type(contract, event["payload_schema"])
     if not fields:
         return
     expected = set(fields)
@@ -2353,7 +2353,7 @@ def _validate_scenario_event_payload(contract: dict[str, Any], sid: str, event_i
             parts.append("extra: " + ", ".join(extra))
         raise ContractError(
             f"Scenario {sid} emit_event.payload must exactly match event {event_id} payload "
-            f"{type_display(event['payload'])}" + (": " + "; ".join(parts) if parts else "")
+            f"{type_display(event['payload_schema'])}" + (": " + "; ".join(parts) if parts else "")
         )
 
 

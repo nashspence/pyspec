@@ -138,7 +138,7 @@ def test_author_contract_is_sparse_source() -> None:
     assert author["events"] == {
         "event.project.approved": {
             "basis": "Approval events carry the reviewer and project identity needed by notification workflows.",
-            "payload": M("ProjectApproved"),
+            "payload_schema": M("ProjectApproved"),
         }
     }
     assert "refs" not in author
@@ -407,7 +407,7 @@ def test_author_fsm_defaults_empty_collections() -> None:
     fsm = contract["fsms"]["state_machine.ticket.empty"]
     assert fsm["context"] == {}
     assert fsm["data"] == []
-    assert fsm["messages"] == {"accepts": {}, "emits": {}}
+    assert fsm["state_machine_messages"] == {"accepts": {}, "emits": {}}
     assert fsm["transitions"] == []
     assert "kind" not in fsm
 
@@ -416,55 +416,55 @@ def test_fsm_empty_message_directions_can_be_omitted() -> None:
     author = _author()
     activity = _item(author, "fsms", "state_machine.project.activity")
 
-    assert "emits" not in activity["messages"]
+    assert "emits" not in activity["state_machine_messages"]
     contract = compile_source(author)
 
-    assert contract["fsms"]["state_machine.project.activity"]["messages"]["emits"] == {}
+    assert contract["fsms"]["state_machine.project.activity"]["state_machine_messages"]["emits"] == {}
 
 
 def test_author_source_prunes_empty_message_directions() -> None:
     author = _author()
     activity = _item(author, "fsms", "state_machine.project.activity")
-    activity["messages"]["emits"] = {}
+    activity["state_machine_messages"]["emits"] = {}
 
     pruned = author_from_source(author)
 
-    assert "emits" not in pruned["fsms"]["state_machine.project.activity"]["messages"]
+    assert "emits" not in pruned["fsms"]["state_machine.project.activity"]["state_machine_messages"]
 
 
 def test_empty_fsm_message_payloads_can_be_omitted() -> None:
     author = _author()
     activity = _item(author, "fsms", "state_machine.project.activity")
 
-    assert activity["messages"]["accepts"]["message.selection.cleared"] == {}
+    assert activity["state_machine_messages"]["accepts"]["message.selection.cleared"] == {}
     contract = compile_source(author)
 
-    assert contract["fsms"]["state_machine.project.activity"]["messages"]["accepts"]["message.selection.cleared"]["payload"] == {}
+    assert contract["fsms"]["state_machine.project.activity"]["state_machine_messages"]["accepts"]["message.selection.cleared"]["payload_schema"] == {}
 
 
 def test_author_source_prunes_empty_message_payloads() -> None:
     author = _author()
     activity = _item(author, "fsms", "state_machine.project.activity")
-    activity["messages"]["accepts"]["message.selection.cleared"]["payload"] = {}
+    activity["state_machine_messages"]["accepts"]["message.selection.cleared"]["payload_schema"] = {}
 
     pruned = author_from_source(author)
 
-    assert pruned["fsms"]["state_machine.project.activity"]["messages"]["accepts"]["message.selection.cleared"] == {}
+    assert pruned["fsms"]["state_machine.project.activity"]["state_machine_messages"]["accepts"]["message.selection.cleared"] == {}
 
 
 def test_fsm_accepted_messages_must_be_used_by_transition() -> None:
     author = _author()
     activity = _item(author, "fsms", "state_machine.project.activity")
-    activity["messages"]["accepts"]["message.unused"] = {}
-    with pytest.raises(ContractError, match=r"FSM state_machine\.project\.activity declares accepted message without transition: .*message\.unused"):
+    activity["state_machine_messages"]["accepts"]["message.unused"] = {}
+    with pytest.raises(ContractError, match=r"FSM state_machine\.project\.activity declares accepted state-machine message without transition: .*message\.unused"):
         compile_source(author)
 
 
 def test_fsm_transition_messages_must_be_declared_as_accepted() -> None:
     author = _author()
     activity = _item(author, "fsms", "state_machine.project.activity")
-    del activity["messages"]["accepts"]["message.selection.cleared"]
-    with pytest.raises(ContractError, match=r"FSM state_machine\.project\.activity transition message references undeclared FSM message: message\.selection\.cleared"):
+    del activity["state_machine_messages"]["accepts"]["message.selection.cleared"]
+    with pytest.raises(ContractError, match=r"FSM state_machine\.project\.activity transition message references undeclared state-machine message: message\.selection\.cleared"):
         compile_source(author)
 
 
@@ -644,8 +644,8 @@ def test_fsm_composition_rejects_unknown_sync_target_message() -> None:
 def test_fsm_emit_data_must_exactly_match_emitted_message_payload() -> None:
     author = _author()
     transition = _item(author, "fsms", "state_machine.project.list")["transitions"][-1]
-    transition["effects"][0]["emit"]["data"] = {}
-    with pytest.raises(ContractError, match=r"transition emit message.project\.selected data must exactly match payload fields: missing: project_id"):
+    transition["effects"][0]["emit"]["payload_bindings"] = {}
+    with pytest.raises(ContractError, match=r"transition emit message.project\.selected payload_bindings must exactly match payload fields: missing: project_id"):
         compile_source(author)
 
 
@@ -653,8 +653,8 @@ def test_sync_send_data_must_exactly_match_target_message_payload() -> None:
     author = _author()
     fsm = _item(author, "fsms", "state_machine.project.board")["states"]["ready"]
     send = next(effect["send"] for effect in fsm["sync"][0]["do"] if "send" in effect)
-    send["data"] = {}
-    with pytest.raises(ContractError, match=r"sync send message.project\.selection_changed to detail data must exactly match payload fields: missing: project_id"):
+    send["payload_bindings"] = {}
+    with pytest.raises(ContractError, match=r"sync send message.project\.selection_changed to detail payload_bindings must exactly match payload fields: missing: project_id"):
         compile_source(author)
 
 
@@ -662,24 +662,24 @@ def test_sync_send_data_must_match_target_message_payload_type() -> None:
     author = _author()
     fsm = _item(author, "fsms", "state_machine.project.board")["states"]["ready"]
     send = next(effect["send"] for effect in fsm["sync"][0]["do"] if "send" in effect)
-    send["data"]["project_id"] = 1
-    with pytest.raises(ContractError, match=r"sync send message.project\.selection_changed to detail data\.project_id type mismatch: expected ID, got Int"):
+    send["payload_bindings"]["project_id"] = 1
+    with pytest.raises(ContractError, match=r"sync send message.project\.selection_changed to detail payload_bindings\.project_id type mismatch: expected ID, got Int"):
         compile_source(author)
 
 
 def test_fsm_message_payloads_must_be_consistent_across_fsms() -> None:
     author = _author()
     activity = _item(author, "fsms", "state_machine.project.activity")
-    activity["messages"]["accepts"]["message.project.selection_changed"]["payload"]["project_id"] = P("Text")
-    with pytest.raises(ContractError, match=r"sync send message.project\.selection_changed to activity data\.project_id type mismatch"):
+    activity["state_machine_messages"]["accepts"]["message.project.selection_changed"]["payload_schema"]["project_id"] = P("Text")
+    with pytest.raises(ContractError, match=r"sync send message.project\.selection_changed to activity payload_bindings\.project_id type mismatch"):
         compile_source(author)
 
 
 def test_fsm_message_direction_must_be_unambiguous() -> None:
     author = _author()
     fsm = _item(author, "fsms", "state_machine.project.list")
-    fsm["messages"]["emits"]["message.project.select"] = {"payload": {"project_id": P("ID")}}
-    with pytest.raises(ContractError, match=r"declares message as both accepted and emitted: .*project\.select"):
+    fsm["state_machine_messages"]["emits"]["message.project.select"] = {"payload_schema": {"project_id": P("ID")}}
+    with pytest.raises(ContractError, match=r"declares state-machine message as both accepted and emitted: .*project\.select"):
         compile_source(author)
 
 

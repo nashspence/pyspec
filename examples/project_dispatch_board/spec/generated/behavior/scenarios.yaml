@@ -196,15 +196,15 @@ scenarios:
                 context: selected_project_id
                 from: $message.project_id
             - send:
-                data:
-                  project_id: $message.project_id
                 instance: detail
                 message: message.project.selection_changed
-            - send:
-                data:
+                payload_bindings:
                   project_id: $message.project_id
+            - send:
                 instance: activity
                 message: message.project.selection_changed
+                payload_bindings:
+                  project_id: $message.project_id
             id: select_project_updates_fsms
             when:
               instance: list
@@ -393,15 +393,15 @@ scenarios:
                 context: selected_project_id
                 from: $message.project_id
             - send:
-                data:
-                  project_id: $message.project_id
                 instance: detail
                 message: message.project.selection_changed
-            - send:
-                data:
+                payload_bindings:
                   project_id: $message.project_id
+            - send:
                 instance: activity
                 message: message.project.selection_changed
+                payload_bindings:
+                  project_id: $message.project_id
             id: select_project_updates_fsms
             when:
               instance: list

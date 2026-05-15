@@ -124,7 +124,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "ready to ready" not in composition
     assert "<B>transition:</B>" not in composition
     assert "selected state:" not in composition
-    composition_data_project = '<FONT POINT-SIZE="10"><B>data:</B>&#160;&#160;project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
+    composition_data_project = '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
     composition_set_project = '<FONT POINT-SIZE="10"><B>set:</B>&#160;&#160;selected_project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT><FONT POINT-SIZE="8">&#160;←&#160;project_id</FONT>'
     assert composition_data_project in composition
     assert composition_set_project in composition
@@ -214,11 +214,11 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>success</B>" in target_card
     assert "<B>failure</B>" in target_card
     assert "<B>emit:</B>&#160;&#160;created → event.project.created" in target_card
-    assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in target_card
+    assert '<FONT POINT-SIZE="10"><B>payload_schema:</B>&#160;&#160;payload_schema</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in target_card
     assert "<B>emits:</B>&#160;&#160;event.project.created" not in target_card
     cli_approve_target_card = cli_approve_entrypoint[cli_approve_entrypoint.index('"entrypoint_target_operation_project_approve"') : cli_approve_entrypoint.index('"entrypoint_response_entry_point_cli_project_approve_approved"')]
     assert "<B>emit:</B>&#160;&#160;approved → event.project.approved" in cli_approve_target_card
-    assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ProjectApproved</FONT>' in cli_approve_target_card
+    assert '<FONT POINT-SIZE="10"><B>payload_schema:</B>&#160;&#160;payload_schema</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ProjectApproved</FONT>' in cli_approve_target_card
     assert "<B>emits:</B>&#160;&#160;event.project.approved" not in cli_approve_target_card
     entrypoint_input = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
     assert entrypoint_input in entrypoint
@@ -229,7 +229,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "state_machine.selected_project_id" not in entrypoint
     assert "$state_machine." not in entrypoint
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">event trigger</FONT>' in workflow
-    assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ProjectApproved</FONT>' in workflow
+    assert '<FONT POINT-SIZE="10"><B>payload_schema:</B>&#160;&#160;payload_schema</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ProjectApproved</FONT>' in workflow
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">workflow step</FONT>' in workflow
     assert "<B>operation:</B>&#160;&#160;operation.project.send_approval_notice" in workflow
     workflow_step = workflow[workflow.index('"workflow_step_workflow_project_approval_notice_send_notice"') :]
@@ -271,7 +271,7 @@ def test_composition_dot_routes_messages_generically() -> None:
                 "id": "route_alpha_beta",
                 "when": {"instance": "publisher", "message": "alpha.ready"},
                 "do": [
-                    {"send": {"instance": "receiver", "message": "beta.consume", "data": {"item_id": "$message.id"}}},
+                    {"send": {"instance": "receiver", "message": "beta.consume", "payload_bindings": {"item_id": "$message.id"}}},
                     {"set": {"context": "selected_id", "from": "$message.id"}},
                 ],
             }
@@ -280,12 +280,12 @@ def test_composition_dot_routes_messages_generically() -> None:
     contract = {
         "fsms": {
             "state_machine.alpha": {
-                "messages": {
+                "state_machine_messages": {
                     "accepts": {
-                        "alpha.submit": {"payload": {"id": "ID"}},
+                        "alpha.submit": {"payload_schema": {"id": "ID"}},
                     },
                     "emits": {
-                        "alpha.ready": {"payload": {"id": "ID"}},
+                        "alpha.ready": {"payload_schema": {"id": "ID"}},
                     },
                 },
                 "transitions": [
@@ -293,14 +293,14 @@ def test_composition_dot_routes_messages_generically() -> None:
                         "on": "alpha.submit",
                         "from": "idle",
                         "to": "ready",
-                        "effects": [{"emit": {"message": "alpha.ready", "data": {"id": "$message.id"}}}],
+                        "effects": [{"emit": {"message": "alpha.ready", "payload_bindings": {"id": "$message.id"}}}],
                     }
                 ]
             },
             "state_machine.beta": {
-                "messages": {
+                "state_machine_messages": {
                     "accepts": {
-                        "beta.consume": {"payload": {"item_id": "ID"}},
+                        "beta.consume": {"payload_schema": {"item_id": "ID"}},
                     },
                     "emits": {},
                 },
@@ -326,7 +326,7 @@ def test_composition_dot_routes_messages_generically() -> None:
     assert "<B>transition:</B>" not in composition
     assert "beta.consume" in composition
     assert "<B>causes:</B>&#160;&#160;to consumed" in composition
-    assert '<FONT POINT-SIZE="10"><B>data:</B>&#160;&#160;id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in composition
+    assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in composition
     assert '<FONT POINT-SIZE="10"><B>set:</B>&#160;&#160;selected_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT><FONT POINT-SIZE="8">&#160;←&#160;id</FONT>' in composition
     assert 'item_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT><FONT POINT-SIZE="8">&#160;←&#160;id</FONT>' in composition
     assert "item_id &lt;- state_machine.selected_id" not in composition

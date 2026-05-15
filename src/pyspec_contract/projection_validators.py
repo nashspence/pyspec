@@ -260,7 +260,7 @@ def validate_asyncapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
         message = components["messages"][message_id]
         if message.get("name") != event_id:
             raise ContractError(f"AsyncAPI message {message_id} name does not match event")
-        if message.get("payload") != type_schema(event["payload"]):
+        if message.get("payload") != type_schema(event["payload_schema"]):
             raise ContractError(f"AsyncAPI message {message_id} payload does not match event payload")
         if message.get("x-emitted-by") != sorted(event["emitted_by"]):
             raise ContractError(f"AsyncAPI message {message_id} emitted_by does not match contract")
@@ -573,7 +573,7 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
 def _workflow_trigger_payload_type(contract: dict[str, Any], workflow: dict[str, Any]) -> str:
     trigger = workflow["trigger"]
     if "event" in trigger:
-        return contract["events"][trigger["event"]]["payload"]
+        return contract["events"][trigger["event"]]["payload_schema"]
     operation = contract["operations"][trigger["operation"]]
     successes = [outcome["result"] for outcome in operation["outcomes"].values() if outcome["kind"] == "success"]
     return successes[0]

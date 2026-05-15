@@ -266,7 +266,7 @@
         "basis": {
           "$ref": "#/$defs/basis"
         },
-        "payload": {
+        "payload_schema": {
           "$ref": "#/$defs/type_expr"
         },
         "why": {
@@ -274,7 +274,7 @@
         }
       },
       "required": [
-        "payload"
+        "payload_schema"
       ],
       "type": "object"
     },
@@ -394,11 +394,11 @@
         "initial": {
           "$ref": "#/$defs/state_name"
         },
-        "messages": {
-          "$ref": "#/$defs/fsm_messages"
-        },
         "model": {
           "$ref": "#/$defs/model_ref"
+        },
+        "state_machine_messages": {
+          "$ref": "#/$defs/state_machine_messages"
         },
         "states": {
           "additionalProperties": {
@@ -1329,42 +1329,6 @@
       ],
       "type": "object"
     },
-    "fsm_message": {
-      "additionalProperties": false,
-      "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "payload": {
-          "$ref": "#/$defs/type_expr_map"
-        }
-      },
-      "type": "object"
-    },
-    "fsm_messages": {
-      "additionalProperties": false,
-      "properties": {
-        "accepts": {
-          "additionalProperties": {
-            "$ref": "#/$defs/fsm_message"
-          },
-          "propertyNames": {
-            "$ref": "#/$defs/message_ref"
-          },
-          "type": "object"
-        },
-        "emits": {
-          "additionalProperties": {
-            "$ref": "#/$defs/fsm_message"
-          },
-          "propertyNames": {
-            "$ref": "#/$defs/message_ref"
-          },
-          "type": "object"
-        }
-      },
-      "type": "object"
-    },
     "fsm_mount_selected": {
       "additionalProperties": false,
       "properties": {
@@ -1424,16 +1388,16 @@
                   "emit": {
                     "additionalProperties": false,
                     "properties": {
-                      "data": {
-                        "$ref": "#/$defs/expression_map"
-                      },
                       "message": {
                         "$ref": "#/$defs/message_ref"
+                      },
+                      "payload_bindings": {
+                        "$ref": "#/$defs/expression_map"
                       }
                     },
                     "required": [
                       "message",
-                      "data"
+                      "payload_bindings"
                     ],
                     "type": "object"
                   }
@@ -2106,6 +2070,42 @@
       ],
       "type": "object"
     },
+    "state_machine_message": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "payload_schema": {
+          "$ref": "#/$defs/type_expr_map"
+        }
+      },
+      "type": "object"
+    },
+    "state_machine_messages": {
+      "additionalProperties": false,
+      "properties": {
+        "accepts": {
+          "additionalProperties": {
+            "$ref": "#/$defs/state_machine_message"
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/message_ref"
+          },
+          "type": "object"
+        },
+        "emits": {
+          "additionalProperties": {
+            "$ref": "#/$defs/state_machine_message"
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/message_ref"
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
     "state_machine_ref": {
       "pattern": "^state_machine\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
@@ -2214,20 +2214,20 @@
             "send": {
               "additionalProperties": false,
               "properties": {
-                "data": {
-                  "$ref": "#/$defs/expression_map"
-                },
                 "instance": {
                   "$ref": "#/$defs/instance_id"
                 },
                 "message": {
                   "$ref": "#/$defs/message_ref"
+                },
+                "payload_bindings": {
+                  "$ref": "#/$defs/expression_map"
                 }
               },
               "required": [
                 "instance",
                 "message",
-                "data"
+                "payload_bindings"
               ],
               "type": "object"
             }
@@ -2269,21 +2269,21 @@
         "send": {
           "additionalProperties": false,
           "properties": {
-            "data": {
-              "$ref": "#/$defs/expression_map"
-            },
             "instance": {
               "$ref": "#/$defs/instance_id"
             },
             "message": {
               "pattern": "^([a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+|data\\.[a-z][a-z0-9_]*)$",
               "type": "string"
+            },
+            "payload_bindings": {
+              "$ref": "#/$defs/expression_map"
             }
           },
           "required": [
             "instance",
             "message",
-            "data"
+            "payload_bindings"
           ],
           "type": "object"
         }

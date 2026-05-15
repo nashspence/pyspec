@@ -295,25 +295,25 @@ events:
     basis: Approval events carry the reviewer and project identity needed by notification workflows.
     emitted_by:
     - operation.project.approve
-    payload:
+    payload_schema:
       model: ProjectApproved
   event.project.archived:
     basis: Approved dispatch projects can be archived.
     emitted_by:
     - operation.project.archive
-    payload:
+    payload_schema:
       model: Project
   event.project.created:
     basis: Members can create a new dispatch project.
     emitted_by:
     - operation.project.create
-    payload:
+    payload_schema:
       model: Project
   event.project.submitted:
     basis: Draft dispatch projects can be submitted for review.
     emitted_by:
     - operation.project.submit
-    payload:
+    payload_schema:
       model: Project
 facts:
   fact.project.draft:
@@ -375,16 +375,16 @@ fsms:
         primitive: ID
     data: []
     initial: empty
-    messages:
+    model: Project
+    state_machine_messages:
       accepts:
         message.project.selection_changed:
-          payload:
+          payload_schema:
             project_id:
               primitive: ID
         message.selection.cleared:
-          payload: {}
+          payload_schema: {}
       emits: {}
-    model: Project
     states:
       empty:
         actions: []
@@ -431,10 +431,10 @@ fsms:
     - operation: operation.project.list
       query: query.project.board.list
     initial: ready
-    messages:
+    model: Project
+    state_machine_messages:
       accepts: {}
       emits: {}
-    model: Project
     states:
       ready:
         actions: []
@@ -591,15 +591,15 @@ fsms:
               context: selected_project_id
               from: $message.project_id
           - send:
-              data:
-                project_id: $message.project_id
               instance: detail
               message: message.project.selection_changed
-          - send:
-              data:
+              payload_bindings:
                 project_id: $message.project_id
+          - send:
               instance: activity
               message: message.project.selection_changed
+              payload_bindings:
+                project_id: $message.project_id
           id: select_project_updates_fsms
           when:
             instance: list
@@ -612,20 +612,20 @@ fsms:
         primitive: ID
     data: []
     initial: none
-    messages:
+    model: Project
+    state_machine_messages:
       accepts:
         data.error:
-          payload: {}
+          payload_schema: {}
         data.ready:
-          payload: {}
+          payload_schema: {}
         message.project.selection_changed:
-          payload:
+          payload_schema:
             project_id:
               primitive: ID
         message.selection.cleared:
-          payload: {}
+          payload_schema: {}
       emits: {}
-    model: Project
     states:
       error:
         actions: []
@@ -699,24 +699,24 @@ fsms:
     - operation: operation.project.list
       query: query.project.list.list
     initial: loading
-    messages:
+    model: Project
+    state_machine_messages:
       accepts:
         data.empty:
-          payload: {}
+          payload_schema: {}
         data.error:
-          payload: {}
+          payload_schema: {}
         data.ready:
-          payload: {}
+          payload_schema: {}
         message.project.select:
-          payload:
+          payload_schema:
             project_id:
               primitive: ID
       emits:
         message.project.selected:
-          payload:
+          payload_schema:
             project_id:
               primitive: ID
-    model: Project
     states:
       empty:
         actions:
@@ -775,9 +775,9 @@ fsms:
       to: ready
     - effects:
       - emit:
-          data:
-            project_id: $message.project_id
           message: message.project.selected
+          payload_bindings:
+            project_id: $message.project_id
       from: ready
       on: message.project.select
       to: ready
@@ -1354,15 +1354,15 @@ scenarios:
                 context: selected_project_id
                 from: $message.project_id
             - send:
-                data:
-                  project_id: $message.project_id
                 instance: detail
                 message: message.project.selection_changed
-            - send:
-                data:
+                payload_bindings:
                   project_id: $message.project_id
+            - send:
                 instance: activity
                 message: message.project.selection_changed
+                payload_bindings:
+                  project_id: $message.project_id
             id: select_project_updates_fsms
             when:
               instance: list
@@ -1551,15 +1551,15 @@ scenarios:
                 context: selected_project_id
                 from: $message.project_id
             - send:
-                data:
-                  project_id: $message.project_id
                 instance: detail
                 message: message.project.selection_changed
-            - send:
-                data:
+                payload_bindings:
                   project_id: $message.project_id
+            - send:
                 instance: activity
                 message: message.project.selection_changed
+                payload_bindings:
+                  project_id: $message.project_id
             id: select_project_updates_fsms
             when:
               instance: list

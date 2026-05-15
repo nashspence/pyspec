@@ -1,6 +1,6 @@
 <svg width="1206pt" height="366pt"
  viewBox="0.00 0.00 1206.00 366.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: eba9aa0dbc5285f55520216dcdd98abb67c36963148eaf96c46ad5696d8c7f0d -->
+<!-- pyspec-contract-input-sha256: 277d0683d8d0fe3c42e5774366b18ae9d6da086946cdd291cbd71068f0add26d -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 348)">
 <title>entrypoint_entry_point_cli_project_approve</title>
 <!-- entry_start -->
@@ -78,9 +78,9 @@
 <text text-anchor="start" x="593.5" y="-80" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
 <text text-anchor="start" x="551.5" y="-60" font-family="Arial" font-weight="bold" font-size="10.00">emit:</text>
 <text text-anchor="start" x="575.5" y="-60" font-family="Arial" font-size="10.00">  approved → event.project.approved</text>
-<text text-anchor="start" x="551.5" y="-48" font-family="Arial" font-weight="bold" font-size="10.00">payload:</text>
-<text text-anchor="start" x="591.5" y="-48" font-family="Arial" font-size="10.00">  payload</text>
-<text text-anchor="start" x="631.5" y="-48" font-family="Arial" font-size="8.00" fill="#94a3b8">  ProjectApproved</text>
+<text text-anchor="start" x="551.5" y="-48" font-family="Arial" font-weight="bold" font-size="10.00">payload_schema:</text>
+<text text-anchor="start" x="633.5" y="-48" font-family="Arial" font-size="10.00">  payload_schema</text>
+<text text-anchor="start" x="713.5" y="-48" font-family="Arial" font-size="8.00" fill="#94a3b8">  ProjectApproved</text>
 <polygon fill="none" stroke="#2563eb" points="545,-38 545,-292 858,-292 858,-38 545,-38"/>
 </g>
 <!-- entrypoint_input_entry_point_cli_project_approve&#45;&gt;entrypoint_target_operation_project_approve -->
