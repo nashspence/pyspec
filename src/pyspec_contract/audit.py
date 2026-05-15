@@ -445,7 +445,6 @@ def _strip_svg_preamble(svg: str) -> str:
         return svg
     return svg[start : end + len("</svg>")] + "\n"
 
-
 def _write_textual_source(path: Path, lines: list[tuple[str, str]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(textual_source(lines), encoding="utf-8")
@@ -755,7 +754,7 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
                 "workflow",
                 [
                     ("ref", [workflow.get("ref", "")]),
-                    ("steps", [f"{step['id']} -> {step['capability']}" for step in workflow["steps"]]),
+                    ("steps", [f"{step['id']} → {step['capability']}" for step in workflow["steps"]]),
                 ],
                 basis=workflow.get("basis", ""),
                 header_bg="#fefce8",
@@ -875,7 +874,7 @@ def _entry_target_card(
             target_subtitle,
             [
                 ("trigger", [_target_label(*_target_pair(workflow["trigger"]))]),
-                ("steps", [f"{step['id']} -> {step['capability']}" for step in workflow["steps"]]),
+                ("steps", [f"{step['id']} → {step['capability']}" for step in workflow["steps"]]),
             ],
             basis=workflow.get("basis", ""),
             header_bg="#fefce8",
@@ -991,16 +990,18 @@ def _capability_sections(capability: dict[str, Any], contract: dict[str, Any], *
     if capability.get("transition"):
         transition = capability["transition"]
         type_name = contract["models"][transition["model"]]["fields"][transition["field"]]
-        sections.append((
-            "transition",
-            [
-                _DotTypedField(
-                    f"{transition['model']}.{transition['field']}",
-                    type_name,
-                    f"{transition['from']} -> {transition['to']}",
-                )
-            ],
-        ))
+        sections.append(
+            (
+                "transitions",
+                [
+                    _DotTransitionField(
+                        f"{transition['model']}.{transition['field']}",
+                        type_name,
+                        f"{transition['from']} → {transition['to']}",
+                    )
+                ],
+            )
+        )
     if capability.get("input"):
         sections.append(("input", _typed_fields(capability["input"])))
     if include_output:
@@ -1219,8 +1220,18 @@ class _DotTypedField:
         self.source = source
 
     def __str__(self) -> str:
-        suffix = f" <- {self.source}" if self.source is not None else ""
+        suffix = f" ← {self.source}" if self.source is not None else ""
         return f"{self.field} {self.type_name}{suffix}"
+
+
+class _DotTransitionField:
+    def __init__(self, field: str, type_name: str, change: str) -> None:
+        self.field = field
+        self.type_name = type_name
+        self.change = change
+
+    def __str__(self) -> str:
+        return f"{self.field} {self.type_name} {self.change}"
 
 
 def _dot_html_node(node_id: str, label: str, attrs: dict[str, object] | None = None, indent: str = "  ") -> str:
@@ -1310,6 +1321,8 @@ def _dot_section_rows(sections: Iterable[tuple[str, Iterable[object]]]) -> list[
 
 def _dot_section_inner_rows(title: str, values: Iterable[object]) -> tuple[bool, list[str]] | None:
     values = list(values)
+    if values and all(isinstance(value, _DotTransitionField) for value in values):
+        return _dot_transition_field_section_inner_rows(title, values)
     if values and all(isinstance(value, _DotTypedField) for value in values):
         return _dot_typed_field_section_inner_rows(title, values)
     wrapped_values = [wrapped for value in values if (wrapped := _wrap_dot_text(value))]
@@ -1333,7 +1346,7 @@ def _dot_section_inner_rows(title: str, values: Iterable[object]) -> tuple[bool,
 
 
 def _dot_typed_field_section_inner_rows(title: str, values: list[object]) -> tuple[bool, list[str]]:
-    if (title in {"input", "output", "payload", "data", "set", "load", "transition"} or title == "actions") and len(values) == 1:
+    if (title in {"input", "output", "payload", "data", "set", "load"} or title == "actions") and len(values) == 1:
         rows = []
         for index, value in enumerate(values):
             if isinstance(value, _DotTypedField):
@@ -1342,6 +1355,22 @@ def _dot_typed_field_section_inner_rows(title: str, values: list[object]) -> tup
     inner_rows = [f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10"><B>{_dot_html_text(title)}</B></FONT></TD></TR>']
     inner_rows.extend(_dot_typed_field_row(value) for value in values if isinstance(value, _DotTypedField))
     return False, inner_rows
+
+
+def _dot_transition_field_section_inner_rows(title: str, values: list[object]) -> tuple[bool, list[str]]:
+    inner_rows = [f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10"><B>{_dot_html_text(title)}</B></FONT></TD></TR>']
+    inner_rows.extend(_dot_transition_field_row(value) for value in values if isinstance(value, _DotTransitionField))
+    return False, inner_rows
+
+
+def _dot_transition_field_row(value: _DotTransitionField) -> str:
+    return (
+        '<TR><TD ALIGN="LEFT" VALIGN="MIDDLE" HEIGHT="11">'
+        f'<FONT POINT-SIZE="10">{_dot_html_text(value.field)}</FONT>'
+        f'<FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;{_dot_html_text(value.type_name)}</FONT>'
+        f'<FONT POINT-SIZE="10">&#160;&#160;{_dot_html_text(value.change)}</FONT>'
+        "</TD></TR>"
+    )
 
 
 def _dot_typed_field_row(value: _DotTypedField) -> str:
@@ -1370,7 +1399,7 @@ def _dot_typed_field_key_value_row(title: str, value: _DotTypedField) -> str:
 def _dot_typed_field_source(value: _DotTypedField) -> str:
     if value.source is None:
         return ""
-    return f'<FONT POINT-SIZE="10">&#160;&lt;&#45;&#160;{_dot_html_text(value.source)}</FONT>'
+    return f'<FONT POINT-SIZE="10">&#160;←&#160;{_dot_html_text(value.source)}</FONT>'
 
 
 def _dot_key_value_text(title: str, value: str) -> str:
@@ -1465,7 +1494,7 @@ def _format_flow_assignment(target: str, value: Any, *, identity_scope: str | No
         return target
     if source.startswith("message."):
         source = source[len("message.") :]
-    return f"{target} <- {source}"
+    return f"{target} ← {source}"
 
 
 def _format_flow_source(value: Any) -> str:

@@ -165,7 +165,7 @@
 <text text-anchor="start" x="1321" y="-108.77" font-family="Arial" font-weight="bold" font-size="10.00">set:</text>
 <text text-anchor="start" x="1338" y="-108.77" font-family="Arial" font-size="10.00">  project_id</text>
 <text text-anchor="start" x="1387" y="-108.77" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
-<text text-anchor="start" x="1400" y="-108.77" font-family="Arial" font-size="10.00"> &lt;&#45; null</text>
+<text text-anchor="start" x="1400" y="-108.77" font-family="Arial" font-size="10.00"> ← null</text>
 <polygon fill="none" stroke="#2563eb" points="1315,-98.77 1315,-160.77 1437,-160.77 1437,-98.77 1315,-98.77"/>
 </g>
 <!-- state_ready&#45;&gt;transition_3_ready_none_selection_cleared -->
