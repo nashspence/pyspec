@@ -76,7 +76,7 @@
 <text text-anchor="start" x="345.5" y="-66" font-family="Arial" font-weight="bold" font-size="10.00">set:</text>
 <text text-anchor="start" x="362.5" y="-66" font-family="Arial" font-size="10.00">  selected_project_id</text>
 <text text-anchor="start" x="453.5" y="-66" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
-<text text-anchor="start" x="466.5" y="-66" font-family="Arial" font-size="10.00"> ← project_id</text>
+<text text-anchor="start" x="466.5" y="-66" font-family="Arial" font-size="8.00"> ← project_id</text>
 <polygon fill="none" stroke="#a16207" points="339,-56 339,-118 538,-118 538,-56 339,-56"/>
 </g>
 <!-- message_emit_select_project_updates_fsms_list_project_selected&#45;&gt;message_route_select_project_updates_fsms -->

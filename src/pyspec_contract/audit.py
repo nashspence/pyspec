@@ -9,6 +9,7 @@ import shutil
 import subprocess
 import sys
 import textwrap
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -22,6 +23,61 @@ from .runtime import fixture_namespace, resolve
 from .targets import entry_fsm_surface, entry_target_pair, entry_workflow_trigger
 
 ROOT = Path(__file__).resolve().parent
+
+_DOT_FONT = "Arial"
+_DOT_ARROW_FORWARD = "→"
+_DOT_ARROW_ASSIGN = "←"
+
+_DOT_SIZE_TITLE = 13
+_DOT_SIZE_BODY = 10
+_DOT_SIZE_META = 8
+_DOT_SIZE_NODE = 9
+_DOT_SIZE_DEFAULT_NODE = 11
+
+_DOT_COLOR_EDGE = "#3f3f46"
+_DOT_COLOR_MUTED = "#64748b"
+_DOT_COLOR_TYPE = "#94a3b8"
+_DOT_COLOR_AUDIT_TEXT = "#3f3f46"
+
+_DOT_COLOR_ENTRY = "#0891b2"
+_DOT_COLOR_ENTRY_TEXT = "#155e75"
+_DOT_COLOR_ENTRY_HEADER = "#ecfeff"
+
+_DOT_COLOR_NEUTRAL_BORDER = "#71717a"
+_DOT_COLOR_NEUTRAL_HEADER = "#f8fafc"
+_DOT_COLOR_BOUNDARY_BORDER = "#64748b"
+
+_DOT_COLOR_CAPABILITY_BORDER = "#2563eb"
+_DOT_COLOR_CAPABILITY_HEADER = "#eff6ff"
+_DOT_COLOR_EVENT_BORDER = "#4f46e5"
+_DOT_COLOR_EVENT_TEXT = "#312e81"
+_DOT_COLOR_EVENT_HEADER = "#eef2ff"
+
+_DOT_COLOR_FSM_BORDER = "#047857"
+_DOT_COLOR_FSM_HEADER = "#ecfdf5"
+_DOT_COLOR_WORKFLOW_BORDER = "#a16207"
+_DOT_COLOR_WORKFLOW_HEADER = "#fefce8"
+_DOT_COLOR_MESSAGE_BORDER = "#be185d"
+_DOT_COLOR_MESSAGE_HEADER = "#fdf2f8"
+_DOT_COLOR_CONTEXT_BORDER = "#15803d"
+_DOT_COLOR_CONTEXT_HEADER = "#f0fdf4"
+
+
+@dataclass(frozen=True)
+class _DotCardStyle:
+    header_bg: str
+    border: str
+
+
+_DOT_STYLE_ENTRY = _DotCardStyle(header_bg=_DOT_COLOR_ENTRY_HEADER, border=_DOT_COLOR_ENTRY)
+_DOT_STYLE_EXTERNAL = _DotCardStyle(header_bg=_DOT_COLOR_NEUTRAL_HEADER, border=_DOT_COLOR_BOUNDARY_BORDER)
+_DOT_STYLE_NEUTRAL = _DotCardStyle(header_bg=_DOT_COLOR_NEUTRAL_HEADER, border=_DOT_COLOR_NEUTRAL_BORDER)
+_DOT_STYLE_CAPABILITY = _DotCardStyle(header_bg=_DOT_COLOR_CAPABILITY_HEADER, border=_DOT_COLOR_CAPABILITY_BORDER)
+_DOT_STYLE_EVENT = _DotCardStyle(header_bg=_DOT_COLOR_EVENT_HEADER, border=_DOT_COLOR_EVENT_BORDER)
+_DOT_STYLE_FSM = _DotCardStyle(header_bg=_DOT_COLOR_FSM_HEADER, border=_DOT_COLOR_FSM_BORDER)
+_DOT_STYLE_WORKFLOW = _DotCardStyle(header_bg=_DOT_COLOR_WORKFLOW_HEADER, border=_DOT_COLOR_WORKFLOW_BORDER)
+_DOT_STYLE_MESSAGE = _DotCardStyle(header_bg=_DOT_COLOR_MESSAGE_HEADER, border=_DOT_COLOR_MESSAGE_BORDER)
+_DOT_STYLE_CONTEXT = _DotCardStyle(header_bg=_DOT_COLOR_CONTEXT_HEADER, border=_DOT_COLOR_CONTEXT_BORDER)
 
 
 def _under(relative: str, *parts: str) -> str:
@@ -518,13 +574,8 @@ async def _render_textual_svg(path: Path, lines: list[tuple[str, str]], viewport
 
 
 def fsm_dot(fsm_id: str, fsm: dict[str, Any], contract: dict[str, Any]) -> str:
-    lines = [
-        f"digraph {_dot_quote('fsm_' + safe_id(fsm_id))} {{",
-        '  graph [rankdir="LR", bgcolor="transparent", pad="0.25", nodesep="0.38", ranksep="0.85", splines="spline"];',
-        '  node [fontname="Arial", fontsize="11"];',
-        '  edge [color="#3f3f46", fontname="Arial", fontsize="10", arrowsize="0.8"];',
-        f"  {_dot_quote('initial')} [shape=\"circle\", label=\"initial\", width=\"0.58\", fixedsize=\"true\", color=\"#0891b2\", fontcolor=\"#155e75\", fontsize=\"9\"];",
-    ]
+    lines = _dot_graph_preamble("fsm_" + safe_id(fsm_id))
+    lines.append(_dot_circle_node("initial", "initial", width="0.58", color=_DOT_COLOR_ENTRY, fontcolor=_DOT_COLOR_ENTRY_TEXT))
     for state_name in sorted(fsm["states"]):
         state = fsm["states"][state_name]
         sections: list[tuple[str, Iterable[object]]] = [
@@ -542,12 +593,11 @@ def fsm_dot(fsm_id: str, fsm: dict[str, Any], contract: dict[str, Any]) -> str:
                     state_name,
                     "initial state" if state_name == fsm["initial"] else "state",
                     sections,
-                    header_bg="#ecfeff" if state_name == fsm["initial"] else "#f8fafc",
-                    border="#0891b2" if state_name == fsm["initial"] else "#71717a",
+                    style=_DOT_STYLE_ENTRY if state_name == fsm["initial"] else _DOT_STYLE_NEUTRAL,
                 ),
             )
         )
-    lines.append(f"  {_dot_quote('initial')} -> {_dot_quote(_dot_node_id('state', fsm['initial']))};")
+    lines.append(_dot_edge("initial", _dot_node_id("state", fsm["initial"])))
     for index, transition in enumerate(fsm.get("transitions", [])):
         source = _dot_node_id("state", transition["from"])
         target = _dot_node_id("state", transition["to"])
@@ -560,13 +610,12 @@ def fsm_dot(fsm_id: str, fsm: dict[str, Any], contract: dict[str, Any]) -> str:
                     "transition event",
                     _format_transition_sections(fsm, transition, contract),
                     basis=transition.get("basis", ""),
-                    header_bg="#eff6ff",
-                    border="#2563eb",
+                    style=_DOT_STYLE_CAPABILITY,
                 ),
             )
         )
-        lines.append(f"  {_dot_quote(source)} -> {_dot_quote(transition_id)};")
-        lines.append(f"  {_dot_quote(transition_id)} -> {_dot_quote(target)};")
+        lines.append(_dot_edge(source, transition_id))
+        lines.append(_dot_edge(transition_id, target))
     lines.append("}")
     return "\n".join(lines) + "\n"
 
@@ -585,18 +634,13 @@ def composition_dot(fsm_id: str, fsm: dict[str, Any], contract: dict[str, Any]) 
     mount_node_by_id = {mount["id"]: _dot_node_id("fsm_mount", mount["id"]) for mount in mounts}
     mount_node_ids = [mount_node_by_id[mount["id"]] for mount in mounts]
     has_sync = bool(fsm.get("sync"))
-    lines = [
-        f"digraph {_dot_quote('composition_' + safe_id(fsm_id))} {{",
-        '  graph [rankdir="LR", bgcolor="transparent", pad="0.25", nodesep="0.38", ranksep="0.85", splines="spline"];',
-        '  node [fontname="Arial", fontsize="11"];',
-        '  edge [color="#3f3f46", fontname="Arial", fontsize="10", arrowsize="0.8"];',
-    ]
+    lines = _dot_graph_preamble("composition_" + safe_id(fsm_id))
     for mount in mounts:
         lines.append(_dot_html_node(mount_node_by_id[mount["id"]], _dot_mount_card(mount)))
     if mount_node_ids and not has_sync:
         lines.extend(_dot_invisible_order(mount_node_ids, indent="  "))
     if not has_sync:
-        lines.append(_dot_html_node("message_route_none", _dot_card("No message routes", "message routing", [], header_bg="#f8fafc")))
+        lines.append(_dot_html_node("message_route_none", _dot_card("No message routes", "message routing", [], style=_DOT_STYLE_NEUTRAL)))
     for rule in fsm.get("sync", []):
         emit_id = _dot_node_id("message_emit", f"{rule['id']}_{rule['when']['instance']}_{rule['when']['message']}")
         sync_id = _dot_node_id("message_route", rule["id"])
@@ -612,8 +656,7 @@ def composition_dot(fsm_id: str, fsm: dict[str, Any], contract: dict[str, Any]) 
                         ("source", _emitting_transition_refs(rule["when"]["instance"], rule["when"]["message"], mount_by_id, contract)),
                         ("data", _emitted_message_data_lines(rule["when"]["instance"], rule["when"]["message"], mount_by_id, contract)),
                     ],
-                    header_bg="#eef2ff",
-                    border="#4f46e5",
+                    style=_DOT_STYLE_EVENT,
                 ),
             )
         )
@@ -624,8 +667,7 @@ def composition_dot(fsm_id: str, fsm: dict[str, Any], contract: dict[str, Any]) 
                     rule["id"],
                     "message route",
                     [("set", _route_set_lines(rule, fsm))],
-                    header_bg="#fefce8",
-                    border="#a16207",
+                    style=_DOT_STYLE_WORKFLOW,
                 ),
             )
         )
@@ -640,17 +682,17 @@ def composition_dot(fsm_id: str, fsm: dict[str, Any], contract: dict[str, Any]) 
         sync_id = _dot_node_id("message_route", rule["id"])
         source = mount_node_by_id.get(rule["when"]["instance"])
         if source:
-            lines.append(f"  {_dot_quote(source)} -> {_dot_quote(emit_id)} [color=\"#4f46e5\", penwidth=\"1.4\"];")
-        lines.append(f"  {_dot_quote(emit_id)} -> {_dot_quote(sync_id)} [color=\"#4f46e5\", penwidth=\"1.2\"];")
+            lines.append(_dot_edge(source, emit_id, {"color": _DOT_COLOR_EVENT_BORDER, "penwidth": "1.4"}))
+        lines.append(_dot_edge(emit_id, sync_id, {"color": _DOT_COLOR_EVENT_BORDER, "penwidth": "1.2"}))
         for index, effect in enumerate(rule.get("do", [])):
             if "send" not in effect:
                 continue
             effect_id = _dot_node_id("message_effect", f"{rule['id']}_{index}")
-            lines.append(f"  {_dot_quote(sync_id)} -> {_dot_quote(effect_id)} [color=\"#be185d\", penwidth=\"1.3\"];")
+            lines.append(_dot_edge(sync_id, effect_id, {"color": _DOT_COLOR_MESSAGE_BORDER, "penwidth": "1.3"}))
             target = mount_node_by_id.get(effect["send"]["instance"])
             if not target:
                 continue
-            lines.append(f"  {_dot_quote(effect_id)} -> {_dot_quote(target)} [color=\"#be185d\", penwidth=\"1.4\"];")
+            lines.append(_dot_edge(effect_id, target, {"color": _DOT_COLOR_MESSAGE_BORDER, "penwidth": "1.4"}))
     lines.append("}")
     return "\n".join(lines) + "\n"
 
@@ -669,52 +711,50 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
     input_sections = _entry_input_sections(entry, contract)
     output_sections = _entry_output_sections(entry)
     input_title, output_title = _entry_io_card_titles(entry["surface"])
-    lines = [
-        f"digraph {_dot_quote('entrypoint_' + safe_id(entry_id))} {{",
-        '  graph [rankdir="LR", bgcolor="transparent", pad="0.25", nodesep="0.38", ranksep="0.85", splines="spline"];',
-        '  node [fontname="Arial", fontsize="11"];',
-        '  edge [color="#3f3f46", fontname="Arial", fontsize="10", arrowsize="0.8"];',
-        f"  {_dot_quote(start_id)} [shape=\"circle\", label=\"entry\", width=\"0.58\", fixedsize=\"true\", color=\"#0891b2\", fontcolor=\"#155e75\", fontsize=\"9\"];",
-        _dot_html_node(
-            entry_node,
-            _dot_card(
-                _entry_surface_title(entry),
-                f"{entry['surface']} entry",
-                _entry_binding_sections(entry),
-                basis=entry.get("basis", ""),
-                header_bg="#ecfeff",
-                border="#0891b2",
+    lines = _dot_graph_preamble("entrypoint_" + safe_id(entry_id))
+    lines.extend(
+        [
+            _dot_circle_node(start_id, "entry", width="0.58", color=_DOT_COLOR_ENTRY, fontcolor=_DOT_COLOR_ENTRY_TEXT),
+            _dot_html_node(
+                entry_node,
+                _dot_card(
+                    _entry_surface_title(entry),
+                    f"{entry['surface']} entry",
+                    _entry_binding_sections(entry),
+                    basis=entry.get("basis", ""),
+                    style=_DOT_STYLE_ENTRY,
+                ),
             ),
-        ),
-    ]
+        ]
+    )
     if input_sections:
         lines.append(
             _dot_html_node(
                 input_node,
-                _dot_card(input_title, "external data", input_sections, header_bg="#f8fafc", border="#64748b"),
+                _dot_card(input_title, "external data", input_sections, style=_DOT_STYLE_EXTERNAL),
             )
         )
     lines.append(_dot_html_node(target_node, _entry_target_card(target_kind, target_value, contract, surface=target_surface, trigger=target_trigger)))
     if output_sections:
-        lines.append(f"  {_dot_quote(exit_id)} [shape=\"doublecircle\", label=\"exit\", width=\"0.58\", fixedsize=\"true\", color=\"#0891b2\", fontcolor=\"#155e75\", fontsize=\"9\"];")
+        lines.append(_dot_circle_node(exit_id, "exit", width="0.58", color=_DOT_COLOR_ENTRY, fontcolor=_DOT_COLOR_ENTRY_TEXT, shape="doublecircle"))
         lines.append(
             _dot_html_node(
                 output_node,
-                _dot_card(output_title, "external result", output_sections, header_bg="#f8fafc", border="#64748b"),
+                _dot_card(output_title, "external result", output_sections, style=_DOT_STYLE_EXTERNAL),
             )
         )
     lines.extend(_dot_html_node(node_id, label) for node_id, label in target_tail)
-    lines.append(f"  {_dot_quote(start_id)} -> {_dot_quote(entry_node)};")
+    lines.append(_dot_edge(start_id, entry_node))
     if input_sections:
-        lines.append(f"  {_dot_quote(entry_node)} -> {_dot_quote(input_node)};")
-        lines.append(f"  {_dot_quote(input_node)} -> {_dot_quote(target_node)};")
+        lines.append(_dot_edge(entry_node, input_node))
+        lines.append(_dot_edge(input_node, target_node))
     else:
-        lines.append(f"  {_dot_quote(entry_node)} -> {_dot_quote(target_node)};")
+        lines.append(_dot_edge(entry_node, target_node))
     for node_id, _ in target_tail:
-        lines.append(f"  {_dot_quote(target_node)} -> {_dot_quote(node_id)};")
+        lines.append(_dot_edge(target_node, node_id))
     if output_sections:
-        lines.append(f"  {_dot_quote(target_node)} -> {_dot_quote(output_node)};")
-        lines.append(f"  {_dot_quote(output_node)} -> {_dot_quote(exit_id)};")
+        lines.append(_dot_edge(target_node, output_node))
+        lines.append(_dot_edge(output_node, exit_id))
     if len(target_tail) > 1:
         lines.append("  { rank=same; " + " ".join(_dot_quote(node_id) for node_id, _ in target_tail) + " }")
         lines.extend(_dot_invisible_order([node_id for node_id, _ in target_tail], indent="  "))
@@ -740,35 +780,33 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
     trigger_node = _dot_node_id("workflow_trigger", f"{trigger_kind}_{trigger_value}")
     workflow_node = _dot_node_id("workflow", workflow_id)
     step_nodes = [(_dot_node_id("workflow_step", f"{workflow_id}_{step['id']}"), step) for step in workflow["steps"]]
-    lines = [
-        f"digraph {_dot_quote('workflow_' + safe_id(workflow_id))} {{",
-        '  graph [rankdir="LR", bgcolor="transparent", pad="0.25", nodesep="0.38", ranksep="0.85", splines="spline"];',
-        '  node [fontname="Arial", fontsize="11"];',
-        '  edge [color="#3f3f46", fontname="Arial", fontsize="10", arrowsize="0.8"];',
-        f"  {_dot_quote(start_id)} [shape=\"circle\", label=\"trigger\", width=\"0.68\", fixedsize=\"true\", color=\"#4f46e5\", fontcolor=\"#312e81\", fontsize=\"9\"];",
-        _dot_html_node(trigger_node, _workflow_trigger_card(trigger_kind, trigger_value, contract)),
-        _dot_html_node(
-            workflow_node,
-            _dot_card(
-                workflow_id,
-                "workflow",
-                [
-                    ("ref", [workflow.get("ref", "")]),
-                    ("steps", [f"{step['id']} → {step['capability']}" for step in workflow["steps"]]),
-                ],
-                basis=workflow.get("basis", ""),
-                header_bg="#fefce8",
-                border="#a16207",
+    lines = _dot_graph_preamble("workflow_" + safe_id(workflow_id))
+    lines.extend(
+        [
+            _dot_circle_node(start_id, "trigger", width="0.68", color=_DOT_COLOR_EVENT_BORDER, fontcolor=_DOT_COLOR_EVENT_TEXT),
+            _dot_html_node(trigger_node, _workflow_trigger_card(trigger_kind, trigger_value, contract)),
+            _dot_html_node(
+                workflow_node,
+                _dot_card(
+                    workflow_id,
+                    "workflow",
+                    [
+                        ("ref", [workflow.get("ref", "")]),
+                        ("steps", [f"{step['id']} {_DOT_ARROW_FORWARD} {step['capability']}" for step in workflow["steps"]]),
+                    ],
+                    basis=workflow.get("basis", ""),
+                    style=_DOT_STYLE_WORKFLOW,
+                ),
             ),
-        ),
-    ]
+        ]
+    )
     for node_id, step in step_nodes:
         lines.append(_dot_html_node(node_id, _workflow_step_card(step, contract)))
-    lines.append(f"  {_dot_quote(start_id)} -> {_dot_quote(trigger_node)};")
-    lines.append(f"  {_dot_quote(trigger_node)} -> {_dot_quote(workflow_node)};")
+    lines.append(_dot_edge(start_id, trigger_node))
+    lines.append(_dot_edge(trigger_node, workflow_node))
     previous = workflow_node
     for node_id, _ in step_nodes:
-        lines.append(f"  {_dot_quote(previous)} -> {_dot_quote(node_id)};")
+        lines.append(_dot_edge(previous, node_id))
         previous = node_id
     lines.append("}")
     return "\n".join(lines) + "\n"
@@ -851,8 +889,7 @@ def _entry_target_card(
             f"target FSM ({surface})" if surface else "target FSM",
             _fsm_summary_sections(fsm, contract),
             basis=fsm.get("basis", ""),
-            header_bg="#ecfdf5",
-            border="#047857",
+            style=_DOT_STYLE_FSM,
         )
     if target_kind == "capability":
         capability = contract["capabilities"][target_value]
@@ -861,8 +898,7 @@ def _entry_target_card(
             "target capability",
             _capability_sections(capability, contract, include_output=False),
             basis=capability.get("basis", ""),
-            header_bg="#eff6ff",
-            border="#2563eb",
+            style=_DOT_STYLE_CAPABILITY,
         )
     if target_kind == "workflow":
         workflow = contract["workflows"][target_value]
@@ -874,15 +910,14 @@ def _entry_target_card(
             target_subtitle,
             [
                 ("trigger", [_target_label(*_target_pair(workflow["trigger"]))]),
-                ("steps", [f"{step['id']} → {step['capability']}" for step in workflow["steps"]]),
+                ("steps", [f"{step['id']} {_DOT_ARROW_FORWARD} {step['capability']}" for step in workflow["steps"]]),
             ],
             basis=workflow.get("basis", ""),
-            header_bg="#fefce8",
-            border="#a16207",
+            style=_DOT_STYLE_WORKFLOW,
         )
     if target_kind == "event":
         return _event_card(target_value, contract)
-    return _dot_card(target_value, f"target {target_kind}", [], header_bg="#f8fafc")
+    return _dot_card(target_value, f"target {target_kind}", [], style=_DOT_STYLE_NEUTRAL)
 
 
 def _entry_target_tail_nodes(target_kind: str, target_value: str, contract: dict[str, Any]) -> list[tuple[str, str]]:
@@ -932,8 +967,7 @@ def _fsm_state_card(fsm: dict[str, Any], state_name: str, state: dict[str, Any],
             ("mounts", _format_mounts(state.get("mounts", []))),
             ("sync", [rule["id"] for rule in state.get("sync", [])]),
         ],
-        header_bg="#f8fafc",
-        border="#71717a",
+        style=_DOT_STYLE_NEUTRAL,
     )
 
 
@@ -947,10 +981,9 @@ def _workflow_trigger_card(trigger_kind: str, trigger_value: str, contract: dict
             "capability trigger",
             _capability_sections(capability, contract),
             basis=capability.get("basis", ""),
-            header_bg="#eef2ff",
-            border="#4f46e5",
+            style=_DOT_STYLE_EVENT,
         )
-    return _dot_card(trigger_value, f"{trigger_kind} trigger", [], header_bg="#eef2ff", border="#4f46e5")
+    return _dot_card(trigger_value, f"{trigger_kind} trigger", [], style=_DOT_STYLE_EVENT)
 
 
 def _workflow_step_card(step: dict[str, Any], contract: dict[str, Any]) -> str:
@@ -960,8 +993,7 @@ def _workflow_step_card(step: dict[str, Any], contract: dict[str, Any]) -> str:
         "workflow step",
         [("capability", [step["capability"]])] + _capability_sections(capability, contract),
         basis=capability.get("basis", ""),
-        header_bg="#f8fafc",
-        border="#71717a",
+        style=_DOT_STYLE_NEUTRAL,
     )
 
 
@@ -977,8 +1009,7 @@ def _event_card(event_id: str, contract: dict[str, Any], *, subtitle: str = "tar
         subtitle,
         sections,
         basis=event.get("basis", ""),
-        header_bg="#eef2ff",
-        border="#4f46e5",
+        style=_DOT_STYLE_EVENT,
     )
 
 
@@ -997,7 +1028,7 @@ def _capability_sections(capability: dict[str, Any], contract: dict[str, Any], *
                     _DotTransitionField(
                         f"{transition['model']}.{transition['field']}",
                         type_name,
-                        f"{transition['from']} → {transition['to']}",
+                        f"{transition['from']} {_DOT_ARROW_FORWARD} {transition['to']}",
                     )
                 ],
             )
@@ -1047,8 +1078,7 @@ def _dot_mount_card(mount: dict[str, Any]) -> str:
             ("fsm", [mount["fsm"]]),
             ("initial", [mount["initial"]]),
         ],
-        header_bg="#ecfdf5",
-        border="#047857",
+        style=_DOT_STYLE_FSM,
     )
 
 
@@ -1066,8 +1096,7 @@ def _dot_sync_effect_card(
                 ("causes", _receiving_transition_refs(send["instance"], send["message"], mount_by_id, contract)),
                 ("data", _sent_message_data_lines(send, mount_by_id, contract)),
             ],
-            header_bg="#fdf2f8",
-            border="#be185d",
+            style=_DOT_STYLE_MESSAGE,
         )
     assignment = effect["set"]
     return _dot_card(
@@ -1076,8 +1105,7 @@ def _dot_sync_effect_card(
         [
             ("set", [_format_flow_assignment(assignment["context"], _assignment_value(assignment), identity_scope=None)]),
         ],
-        header_bg="#f0fdf4",
-        border="#15803d",
+        style=_DOT_STYLE_CONTEXT,
     )
 
 
@@ -1202,9 +1230,49 @@ def _dot_node_id(prefix: str, value: str) -> str:
     return f"{prefix}_{safe_id(value)}"
 
 
+def _dot_graph_preamble(graph_id: str) -> list[str]:
+    return [
+        f"digraph {_dot_quote(graph_id)} {{",
+        '  graph [rankdir="LR", bgcolor="transparent", pad="0.25", nodesep="0.38", ranksep="0.85", splines="spline"];',
+        f'  node [fontname="{_DOT_FONT}", fontsize="{_DOT_SIZE_DEFAULT_NODE}"];',
+        f'  edge [color="{_DOT_COLOR_EDGE}", fontname="{_DOT_FONT}", fontsize="{_DOT_SIZE_BODY}", arrowsize="0.8"];',
+    ]
+
+
+def _dot_circle_node(
+    node_id: str,
+    label: str,
+    *,
+    width: str,
+    color: str,
+    fontcolor: str,
+    shape: str = "circle",
+) -> str:
+    return _dot_plain_node(
+        node_id,
+        {
+            "shape": shape,
+            "label": label,
+            "width": width,
+            "fixedsize": "true",
+            "color": color,
+            "fontcolor": fontcolor,
+            "fontsize": str(_DOT_SIZE_NODE),
+        },
+    )
+
+
+def _dot_plain_node(node_id: str, attrs: dict[str, object], indent: str = "  ") -> str:
+    return f"{indent}{_dot_quote(node_id)}{_dot_attrs(attrs)};"
+
+
+def _dot_edge(source: str, target: str, attrs: dict[str, object] | None = None, indent: str = "  ") -> str:
+    return f"{indent}{_dot_quote(source)} -> {_dot_quote(target)}{_dot_attrs(attrs or {})};"
+
+
 def _dot_invisible_order(node_ids: list[str], indent: str) -> list[str]:
     return [
-        f"{indent}{_dot_quote(source)} -> {_dot_quote(target)} [style=\"invis\", weight=\"100\"];"
+        _dot_edge(source, target, {"style": "invis", "weight": "100"}, indent=indent)
         for source, target in zip(node_ids, node_ids[1:])
     ]
 
@@ -1220,7 +1288,7 @@ class _DotTypedField:
         self.source = source
 
     def __str__(self) -> str:
-        suffix = f" ← {self.source}" if self.source is not None else ""
+        suffix = f" {_DOT_ARROW_ASSIGN} {self.source}" if self.source is not None else ""
         return f"{self.field} {self.type_name}{suffix}"
 
 
@@ -1237,7 +1305,7 @@ class _DotTransitionField:
 def _dot_html_node(node_id: str, label: str, attrs: dict[str, object] | None = None, indent: str = "  ") -> str:
     node_attrs: dict[str, object] = {"shape": "plain", "label": _DotHtml(label)}
     node_attrs.update(attrs or {})
-    return f"{indent}{_dot_quote(node_id)}{_dot_attrs(node_attrs)};"
+    return _dot_plain_node(node_id, node_attrs, indent=indent)
 
 
 def _dot_card(
@@ -1246,15 +1314,16 @@ def _dot_card(
     sections: Iterable[tuple[str, Iterable[object]]],
     *,
     basis: str | None = None,
-    header_bg: str,
-    border: str = "#71717a",
+    style: _DotCardStyle = _DOT_STYLE_NEUTRAL,
 ) -> str:
+    header_bg = style.header_bg
+    border = style.border
     rows = [
         f'<TR><TD BGCOLOR="{border}" HEIGHT="3" FIXEDSIZE="false"></TD></TR>',
         _dot_header_row(title, subtitle, header_bg=header_bg),
     ]
     if basis:
-        rows.extend(_dot_text_rows(_wrap_dot_text(basis, width=50), point_size=10, italic=True, color="#3f3f46"))
+        rows.extend(_dot_text_rows(_wrap_dot_text(basis, width=50), point_size=_DOT_SIZE_BODY, italic=True, color=_DOT_COLOR_AUDIT_TEXT))
     rows.extend(_dot_section_rows(sections))
     return (
         f'<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" COLOR="{border}" BGCOLOR="#ffffff">'
@@ -1265,11 +1334,11 @@ def _dot_card(
 
 def _dot_header_row(title: str, subtitle: str | None, *, header_bg: str) -> str:
     header_rows = [
-        f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="13"><B>{_dot_html_text(title)}</B></FONT></TD></TR>',
+        f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="{_DOT_SIZE_TITLE}"><B>{_dot_html_text(title)}</B></FONT></TD></TR>',
     ]
     if subtitle:
         header_rows.extend(
-            f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="8" COLOR="#64748b">{_dot_html_text(line)}</FONT></TD></TR>'
+            f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="{_DOT_SIZE_META}" COLOR="{_DOT_COLOR_MUTED}">{_dot_html_text(line)}</FONT></TD></TR>'
             for line in _wrap_dot_text(subtitle)
         )
     header = (
@@ -1338,10 +1407,10 @@ def _dot_section_inner_rows(title: str, values: Iterable[object]) -> tuple[bool,
         return is_compact, inner_rows
     for wrapped in wrapped_values:
         if not inner_rows:
-            inner_rows.append(f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10"><B>{_dot_html_text(title)}</B></FONT></TD></TR>')
-        inner_rows.append(f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">{_dot_html_text(wrapped[0])}</FONT></TD></TR>')
+            inner_rows.append(f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="{_DOT_SIZE_BODY}"><B>{_dot_html_text(title)}</B></FONT></TD></TR>')
+        inner_rows.append(f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="{_DOT_SIZE_BODY}">{_dot_html_text(wrapped[0])}</FONT></TD></TR>')
         for line in wrapped[1:]:
-            inner_rows.append(f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">{_dot_html_text(line)}</FONT></TD></TR>')
+            inner_rows.append(f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="{_DOT_SIZE_BODY}">{_dot_html_text(line)}</FONT></TD></TR>')
     return False, inner_rows
 
 
@@ -1352,13 +1421,13 @@ def _dot_typed_field_section_inner_rows(title: str, values: list[object]) -> tup
             if isinstance(value, _DotTypedField):
                 rows.append(_dot_typed_field_key_value_row(title if index == 0 else "", value))
         return True, rows
-    inner_rows = [f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10"><B>{_dot_html_text(title)}</B></FONT></TD></TR>']
+    inner_rows = [f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="{_DOT_SIZE_BODY}"><B>{_dot_html_text(title)}</B></FONT></TD></TR>']
     inner_rows.extend(_dot_typed_field_row(value) for value in values if isinstance(value, _DotTypedField))
     return False, inner_rows
 
 
 def _dot_transition_field_section_inner_rows(title: str, values: list[object]) -> tuple[bool, list[str]]:
-    inner_rows = [f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10"><B>{_dot_html_text(title)}</B></FONT></TD></TR>']
+    inner_rows = [f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="{_DOT_SIZE_BODY}"><B>{_dot_html_text(title)}</B></FONT></TD></TR>']
     inner_rows.extend(_dot_transition_field_row(value) for value in values if isinstance(value, _DotTransitionField))
     return False, inner_rows
 
@@ -1366,9 +1435,9 @@ def _dot_transition_field_section_inner_rows(title: str, values: list[object]) -
 def _dot_transition_field_row(value: _DotTransitionField) -> str:
     return (
         '<TR><TD ALIGN="LEFT" VALIGN="MIDDLE" HEIGHT="11">'
-        f'<FONT POINT-SIZE="10">{_dot_html_text(value.field)}</FONT>'
-        f'<FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;{_dot_html_text(value.type_name)}</FONT>'
-        f'<FONT POINT-SIZE="10">&#160;&#160;{_dot_html_text(value.change)}</FONT>'
+        f'<FONT POINT-SIZE="{_DOT_SIZE_BODY}">{_dot_html_text(value.field)}</FONT>'
+        f'<FONT POINT-SIZE="{_DOT_SIZE_META}" COLOR="{_DOT_COLOR_TYPE}">&#160;&#160;{_dot_html_text(value.type_name)}</FONT>'
+        f'<FONT POINT-SIZE="{_DOT_SIZE_META}">&#160;&#160;{_dot_html_text(value.change)}</FONT>'
         "</TD></TR>"
     )
 
@@ -1377,8 +1446,8 @@ def _dot_typed_field_row(value: _DotTypedField) -> str:
     source = _dot_typed_field_source(value)
     return (
         '<TR><TD ALIGN="LEFT" VALIGN="MIDDLE" HEIGHT="11">'
-        f'<FONT POINT-SIZE="10">{_dot_html_text(value.field)}</FONT>'
-        f'<FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;{_dot_html_text(value.type_name)}</FONT>'
+        f'<FONT POINT-SIZE="{_DOT_SIZE_BODY}">{_dot_html_text(value.field)}</FONT>'
+        f'<FONT POINT-SIZE="{_DOT_SIZE_META}" COLOR="{_DOT_COLOR_TYPE}">&#160;&#160;{_dot_html_text(value.type_name)}</FONT>'
         f"{source}"
         "</TD></TR>"
     )
@@ -1389,8 +1458,8 @@ def _dot_typed_field_key_value_row(title: str, value: _DotTypedField) -> str:
     source = _dot_typed_field_source(value)
     return (
         '<TR><TD ALIGN="LEFT" VALIGN="MIDDLE" HEIGHT="11">'
-        f'<FONT POINT-SIZE="10">{key}{_dot_html_text(value.field)}</FONT>'
-        f'<FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;{_dot_html_text(value.type_name)}</FONT>'
+        f'<FONT POINT-SIZE="{_DOT_SIZE_BODY}">{key}{_dot_html_text(value.field)}</FONT>'
+        f'<FONT POINT-SIZE="{_DOT_SIZE_META}" COLOR="{_DOT_COLOR_TYPE}">&#160;&#160;{_dot_html_text(value.type_name)}</FONT>'
         f"{source}"
         "</TD></TR>"
     )
@@ -1399,7 +1468,7 @@ def _dot_typed_field_key_value_row(title: str, value: _DotTypedField) -> str:
 def _dot_typed_field_source(value: _DotTypedField) -> str:
     if value.source is None:
         return ""
-    return f'<FONT POINT-SIZE="10">&#160;←&#160;{_dot_html_text(value.source)}</FONT>'
+    return f'<FONT POINT-SIZE="{_DOT_SIZE_META}">&#160;{_DOT_ARROW_ASSIGN}&#160;{_dot_html_text(value.source)}</FONT>'
 
 
 def _dot_key_value_text(title: str, value: str) -> str:
@@ -1409,7 +1478,7 @@ def _dot_key_value_text(title: str, value: str) -> str:
 
 def _dot_key_value_row(title: str, value: str) -> str:
     return (
-        '<TR><TD ALIGN="LEFT" VALIGN="MIDDLE" HEIGHT="11"><FONT POINT-SIZE="10">'
+        f'<TR><TD ALIGN="LEFT" VALIGN="MIDDLE" HEIGHT="11"><FONT POINT-SIZE="{_DOT_SIZE_BODY}">'
         f"{_dot_key_value_text(title, value)}</FONT></TD></TR>"
     )
 
@@ -1494,7 +1563,7 @@ def _format_flow_assignment(target: str, value: Any, *, identity_scope: str | No
         return target
     if source.startswith("message."):
         source = source[len("message.") :]
-    return f"{target} ← {source}"
+    return f"{target} {_DOT_ARROW_ASSIGN} {source}"
 
 
 def _format_flow_source(value: Any) -> str:

@@ -124,7 +124,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>transition:</B>" not in composition
     assert "selected state:" not in composition
     composition_data_project = '<FONT POINT-SIZE="10"><B>data:</B>&#160;&#160;project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
-    composition_set_project = '<FONT POINT-SIZE="10"><B>set:</B>&#160;&#160;selected_project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT><FONT POINT-SIZE="10">&#160;←&#160;project_id</FONT>'
+    composition_set_project = '<FONT POINT-SIZE="10"><B>set:</B>&#160;&#160;selected_project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT><FONT POINT-SIZE="8">&#160;←&#160;project_id</FONT>'
     assert composition_data_project in composition
     assert composition_set_project in composition
     assert "selected_project_id &lt;- project_id" not in composition
@@ -185,7 +185,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>entry input</B>" not in cli_entrypoint
     assert "entrypoint_mount" not in cli_entrypoint
     assert "<B>transitions</B>" in cli_approve_entrypoint
-    assert '<FONT POINT-SIZE="10">Project.status</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ProjectStatus</FONT><FONT POINT-SIZE="10">&#160;&#160;submitted → approved</FONT>' in cli_approve_entrypoint
+    assert '<FONT POINT-SIZE="10">Project.status</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ProjectStatus</FONT><FONT POINT-SIZE="8">&#160;&#160;submitted → approved</FONT>' in cli_approve_entrypoint
     assert "<B>state:</B>" not in cli_approve_entrypoint
     assert "<B>change:</B>" not in cli_approve_entrypoint
     assert "<B>transition:</B>" not in cli_approve_entrypoint
@@ -201,7 +201,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>entry output</B>" not in worker_entrypoint
     assert 'label="exit"' in api_entrypoint
     assert "<B>body</B>" in api_entrypoint
-    assert 'body</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT><FONT POINT-SIZE="10">&#160;←&#160;target.result</FONT>' in api_entrypoint
+    assert 'body</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT><FONT POINT-SIZE="8">&#160;←&#160;target.result</FONT>' in api_entrypoint
     target_card = api_entrypoint[api_entrypoint.index('"entrypoint_target_project_create"') : api_entrypoint.index('"entry_exit"')]
     assert '<FONT POINT-SIZE="10"><B>input</B></FONT>' in target_card
     assert '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;customer</FONT>' not in target_card
@@ -316,8 +316,8 @@ def test_composition_dot_routes_messages_generically() -> None:
     assert "beta.consume" in composition
     assert "<B>causes:</B>&#160;&#160;to consumed" in composition
     assert '<FONT POINT-SIZE="10"><B>data:</B>&#160;&#160;id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in composition
-    assert '<FONT POINT-SIZE="10"><B>set:</B>&#160;&#160;selected_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT><FONT POINT-SIZE="10">&#160;←&#160;id</FONT>' in composition
-    assert 'item_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT><FONT POINT-SIZE="10">&#160;←&#160;id</FONT>' in composition
+    assert '<FONT POINT-SIZE="10"><B>set:</B>&#160;&#160;selected_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT><FONT POINT-SIZE="8">&#160;←&#160;id</FONT>' in composition
+    assert 'item_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT><FONT POINT-SIZE="8">&#160;←&#160;id</FONT>' in composition
     assert "item_id &lt;- fsm.selected_id" not in composition
     assert "context binding" not in composition
     assert "$message." not in composition
