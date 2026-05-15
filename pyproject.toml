@@ -40,12 +40,12 @@ filterwarnings = [
   "ignore:'maxsplit' is passed as positional argument:DeprecationWarning:gherkin.gherkin_line",
 ]
 markers = [
-  "spec: generated spec harness scenario",
-  "prod: generated prod harness scenario",
-  "project_board_empty: generated scenario tag",
-  "project_board_ready: generated scenario tag",
-  "project_create_api_success: generated scenario tag",
-  "project_approve_success: generated scenario tag",
-  "project_approval_notice_workflow: generated scenario tag",
-  "project_workspace_composed: generated scenario tag",
+  "spec: generated spec harness test case",
+  "prod: generated prod harness test case",
+  "test_case_project_board_empty: generated test-case tag",
+  "test_case_project_board_ready: generated test-case tag",
+  "test_case_project_create_api_success: generated test-case tag",
+  "test_case_project_approve_success: generated test-case tag",
+  "test_case_project_approval_notice_workflow: generated test-case tag",
+  "test_case_project_workspace_composed: generated test-case tag",
 ]

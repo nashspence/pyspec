@@ -72,13 +72,6 @@ class RenderProfile:
 class Route:
     ROUTE_PROJECT_BOARD = 'route.project.board'
 
-class Scenario:
-    SCENARIO_PROJECT_APPROVAL_NOTICE_WORKFLOW = 'scenario.project.approval_notice.workflow'
-    SCENARIO_PROJECT_APPROVE_SUCCESS = 'scenario.project.approve.success'
-    SCENARIO_PROJECT_BOARD_EMPTY = 'scenario.project.board.empty'
-    SCENARIO_PROJECT_BOARD_READY = 'scenario.project.board.ready'
-    SCENARIO_PROJECT_CREATE_API_SUCCESS = 'scenario.project.create.api.success'
-
 class Screen:
     SCREEN_PROJECT_BOARD = 'screen.project.board'
 
@@ -100,6 +93,13 @@ class Surface:
     STATE_MACHINE_PROJECT_LIST_ERROR = 'state_machine.project.list.error'
     STATE_MACHINE_PROJECT_LIST_LOADING = 'state_machine.project.list.loading'
     STATE_MACHINE_PROJECT_LIST_READY = 'state_machine.project.list.ready'
+
+class TestCase:
+    TEST_CASE_PROJECT_APPROVAL_NOTICE_WORKFLOW = 'test_case.project.approval_notice.workflow'
+    TEST_CASE_PROJECT_APPROVE_SUCCESS = 'test_case.project.approve.success'
+    TEST_CASE_PROJECT_BOARD_EMPTY = 'test_case.project.board.empty'
+    TEST_CASE_PROJECT_BOARD_READY = 'test_case.project.board.ready'
+    TEST_CASE_PROJECT_CREATE_API_SUCCESS = 'test_case.project.create.api.success'
 
 class Text:
     TEXT_PROJECT_ACTIVITY_EMPTY_BODY = 'text.project.activity.empty.body'

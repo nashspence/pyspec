@@ -1,7 +1,7 @@
 project: project_dispatch_board
 fixtures:
   fixture.workspace.member:
-    basis: Workspace member fixture for web/API/TUI scenarios.
+    basis: Workspace member fixture for web/API/TUI test cases.
     values:
       actor:
         id: user_member_1
@@ -11,7 +11,7 @@ fixtures:
         id: workspace_1
         name: North Region Dispatch
   fixture.workspace.reviewer:
-    basis: Reviewer fixture for approval scenarios.
+    basis: Reviewer fixture for approval test cases.
     values:
       actor:
         id: user_reviewer_1
@@ -37,7 +37,7 @@ facts:
         updated_at: '2026-05-11T07:15:00Z'
         workspace_id: $fixture.workspace.id
   fact.project.submitted:
-    basis: Submitted dispatch project shared by approval, ready-board, and visual audit scenarios.
+    basis: Submitted dispatch project shared by approval, ready-board, and visual audit test cases.
     present:
       model: Project
       values:
@@ -379,8 +379,8 @@ state_machines:
             context:
               selected_project_id: project_submitted_1
             facts:
-            - use: fact.project.submitted
-            - use: fact.project.draft
+            - ref: fact.project.submitted
+            - ref: fact.project.draft
             fixtures:
             - fixture.workspace.member
             instances:
@@ -833,14 +833,16 @@ workflows:
           complete_as: completed
     trigger:
       event: event.project.approved
-scenarios:
-  scenario.project.approval_notice.workflow:
+test_cases:
+  test_case.project.approval_notice.workflow:
     archetype: workflow_event_success
     basis: Approval event dispatches the notification workflow.
     feature: feature.project.approval_notice
+    subject_ref:
+      workflow: workflow.project.approval_notice
     given:
-      facts: []
-      fixtures:
+      domain_facts: []
+      seed_fixtures:
       - fixture.workspace.reviewer
     then:
       events:
@@ -859,14 +861,16 @@ scenarios:
           approved_by: $fixture.actor.id
           project_id: project_submitted_1
         ref: event.project.approved
-  scenario.project.approve.success:
+  test_case.project.approve.success:
     archetype: operation_outcome
     basis: Approval transitions a submitted project to approved and emits the event.
     feature: feature.project.approve
+    subject_ref:
+      operation: operation.project.approve
     given:
-      facts:
-      - use: fact.project.submitted
-      fixtures:
+      domain_facts:
+      - ref: fact.project.submitted
+      seed_fixtures:
       - fixture.workspace.reviewer
     then:
       events:
@@ -888,17 +892,19 @@ scenarios:
           approved_by: $fixture.actor.id
           project_id: project_submitted_1
         ref: operation.project.approve
-  scenario.project.board.empty:
+  test_case.project.board.empty:
     archetype: state_machine_composition
     basis: An empty workspace shows empty list, no detail, and no activity.
     feature: feature.project.board
+    subject_ref:
+      state_machine: state_machine.project.board
     given:
-      facts:
+      domain_facts:
       - absent:
           model: Project
           where:
             workspace_id: $fixture.workspace.id
-      fixtures:
+      seed_fixtures:
       - fixture.workspace.member
     then:
       enables:
@@ -924,14 +930,16 @@ scenarios:
         input:
           workspace_id: $fixture.workspace.id
         ref: entry_point.web.project.board
-  scenario.project.board.ready:
+  test_case.project.board.ready:
     archetype: state_machine_composition
     basis: A populated workspace shows the ready list while detail awaits explicit selection.
     feature: feature.project.board
+    subject_ref:
+      state_machine: state_machine.project.board
     given:
-      facts:
-      - use: fact.project.submitted
-      fixtures:
+      domain_facts:
+      - ref: fact.project.submitted
+      seed_fixtures:
       - fixture.workspace.member
     then:
       enables:
@@ -956,17 +964,19 @@ scenarios:
         input:
           workspace_id: $fixture.workspace.id
         ref: entry_point.web.project.board
-  scenario.project.create.api.success:
+  test_case.project.create.api.success:
     archetype: entry_response
     basis: The API create endpoint delegates to the create operation and emits project.created.
     feature: feature.project.create
+    subject_ref:
+      entry_point: entry_point.api.project.create
     given:
-      facts:
+      domain_facts:
       - absent:
           model: Project
           where:
             workspace_id: $fixture.workspace.id
-      fixtures:
+      seed_fixtures:
       - fixture.workspace.member
     then:
       events:

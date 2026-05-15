@@ -17,7 +17,7 @@ facts:
         updated_at: '2026-05-11T07:15:00Z'
         workspace_id: $fixture.workspace.id
   fact.project.submitted:
-    basis: Submitted dispatch project shared by approval, ready-board, and visual audit scenarios.
+    basis: Submitted dispatch project shared by approval, ready-board, and visual audit test cases.
     present:
       model: Project
       values:
@@ -33,7 +33,7 @@ facts:
         workspace_id: $fixture.workspace.id
 fixtures:
   fixture.workspace.member:
-    basis: Workspace member fixture for web/API/TUI scenarios.
+    basis: Workspace member fixture for web/API/TUI test cases.
     values:
       actor:
         id: user_member_1

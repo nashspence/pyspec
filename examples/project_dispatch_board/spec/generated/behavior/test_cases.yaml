@@ -1,12 +1,16 @@
 project: project_dispatch_board
-scenarios:
-  scenario.project.approval_notice.workflow:
+test_cases:
+  test_case.project.approval_notice.workflow:
     archetype: workflow_event_success
-    arrange:
-      facts: []
-      fixtures:
+    basis: Approval event dispatches the notification workflow.
+    feature: feature.project.approval_notice
+    given:
+      domain_facts: []
+      seed_fixtures:
       - fixture.workspace.reviewer
-    assert:
+    subject_ref:
+      workflow: workflow.project.approval_notice
+    then:
       events:
         emitted:
         - event.project.approved
@@ -16,19 +20,19 @@ scenarios:
         outcome: completed
         ran: true
         ref: workflow.project.approval_notice
-    basis: Approval event dispatches the notification workflow.
-    execute:
+    title: Approval event sends notice
+    when:
       emit_event:
         payload:
           approved_by: $fixture.actor.id
           project_id: project_submitted_1
         ref: event.project.approved
-    feature: feature.project.approval_notice
-    title: Approval event sends notice
-  scenario.project.approve.success:
+  test_case.project.approve.success:
     archetype: operation_outcome
-    arrange:
-      facts:
+    basis: Approval transitions a submitted project to approved and emits the event.
+    feature: feature.project.approve
+    given:
+      domain_facts:
       - present:
           model: Project
           values:
@@ -42,9 +46,11 @@ scenarios:
             title: Replace rooftop condenser fan
             updated_at: '2026-05-11T08:45:00Z'
             workspace_id: $fixture.workspace.id
-      fixtures:
+      seed_fixtures:
       - fixture.workspace.reviewer
-    assert:
+    subject_ref:
+      operation: operation.project.approve
+    then:
       events:
         emitted:
         - event.project.approved
@@ -58,26 +64,28 @@ scenarios:
             status: approved
       outcome: approved
       policy: policy.project.approve
-    basis: Approval transitions a submitted project to approved and emits the event.
-    execute:
+    title: Approve submitted dispatch project
+    when:
       invoke_operation:
         input:
           approved_by: $fixture.actor.id
           project_id: project_submitted_1
         ref: operation.project.approve
-    feature: feature.project.approve
-    title: Approve submitted dispatch project
-  scenario.project.board.empty:
+  test_case.project.board.empty:
     archetype: state_machine_composition
-    arrange:
-      facts:
+    basis: An empty workspace shows empty list, no detail, and no activity.
+    feature: feature.project.board
+    given:
+      domain_facts:
       - absent:
           model: Project
           where:
             workspace_id: $fixture.workspace.id
-      fixtures:
+      seed_fixtures:
       - fixture.workspace.member
-    assert:
+    subject_ref:
+      state_machine: state_machine.project.board
+    then:
       enables:
       - operation.project.create
       forbids:
@@ -250,18 +258,18 @@ scenarios:
         ref: state_machine.project.board
         surface: state_machine.project.board.ready
         view_state: ready
-    basis: An empty workspace shows empty list, no detail, and no activity.
-    execute:
+    title: Empty dispatch board
+    when:
       open_entry:
         input:
           workspace_id: $fixture.workspace.id
         ref: entry_point.web.project.board
-    feature: feature.project.board
-    title: Empty dispatch board
-  scenario.project.board.ready:
+  test_case.project.board.ready:
     archetype: state_machine_composition
-    arrange:
-      facts:
+    basis: A populated workspace shows the ready list while detail awaits explicit selection.
+    feature: feature.project.board
+    given:
+      domain_facts:
       - present:
           model: Project
           values:
@@ -275,9 +283,11 @@ scenarios:
             title: Replace rooftop condenser fan
             updated_at: '2026-05-11T08:45:00Z'
             workspace_id: $fixture.workspace.id
-      fixtures:
+      seed_fixtures:
       - fixture.workspace.member
-    assert:
+    subject_ref:
+      state_machine: state_machine.project.board
+    then:
       enables:
       - operation.project.create
       - operation.project.submit
@@ -448,25 +458,27 @@ scenarios:
         ref: state_machine.project.board
         surface: state_machine.project.board.ready
         view_state: ready
-    basis: A populated workspace shows the ready list while detail awaits explicit selection.
-    execute:
+    title: Ready dispatch board
+    when:
       open_entry:
         input:
           workspace_id: $fixture.workspace.id
         ref: entry_point.web.project.board
-    feature: feature.project.board
-    title: Ready dispatch board
-  scenario.project.create.api.success:
+  test_case.project.create.api.success:
     archetype: entry_response
-    arrange:
-      facts:
+    basis: The API create endpoint delegates to the create operation and emits project.created.
+    feature: feature.project.create
+    given:
+      domain_facts:
       - absent:
           model: Project
           where:
             workspace_id: $fixture.workspace.id
-      fixtures:
+      seed_fixtures:
       - fixture.workspace.member
-    assert:
+    subject_ref:
+      entry_point: entry_point.api.project.create
+    then:
       events:
         emitted:
         - event.project.created
@@ -482,8 +494,8 @@ scenarios:
       policy: policy.project.create
       response:
         status: 201
-    basis: The API create endpoint delegates to the create operation and emits project.created.
-    execute:
+    title: Create dispatch project through API
+    when:
       call_entry:
         input:
           customer: Atlas Foods
@@ -491,5 +503,3 @@ scenarios:
           title: Replace rooftop condenser fan
           workspace_id: $fixture.workspace.id
         ref: entry_point.api.project.create
-    feature: feature.project.create
-    title: Create dispatch project through API

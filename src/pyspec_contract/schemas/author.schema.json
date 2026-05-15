@@ -527,54 +527,6 @@
       ],
       "type": "object"
     },
-    "authored_scenario": {
-      "additionalProperties": false,
-      "properties": {
-        "archetype": {
-          "enum": [
-            "entry_response",
-            "operation_outcome",
-            "state_machine_composition",
-            "state_machine_composition_sync",
-            "empty_collection_state_machine",
-            "forbidden_action",
-            "ready_collection_state_machine",
-            "workflow_event_success"
-          ]
-        },
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "feature": {
-          "$ref": "#/$defs/feature_ref"
-        },
-        "given": {
-          "$ref": "#/$defs/given"
-        },
-        "then": {
-          "$ref": "#/$defs/then"
-        },
-        "title": {
-          "minLength": 1,
-          "type": "string"
-        },
-        "when": {
-          "$ref": "#/$defs/when"
-        },
-        "why": {
-          "$ref": "#/$defs/basis"
-        }
-      },
-      "required": [
-        "feature",
-        "title",
-        "archetype",
-        "given",
-        "when",
-        "then"
-      ],
-      "type": "object"
-    },
     "authored_state_machine": {
       "additionalProperties": false,
       "properties": {
@@ -1227,12 +1179,12 @@
     "fact_use": {
       "additionalProperties": false,
       "properties": {
-        "use": {
+        "ref": {
           "$ref": "#/$defs/fact_ref"
         }
       },
       "required": [
-        "use"
+        "ref"
       ],
       "type": "object"
     },
@@ -1282,7 +1234,7 @@
     "given": {
       "additionalProperties": false,
       "properties": {
-        "facts": {
+        "domain_facts": {
           "items": {
             "oneOf": [
               {
@@ -1295,10 +1247,9 @@
           },
           "type": "array"
         },
-        "fixtures": {
+        "seed_fixtures": {
           "items": {
-            "pattern": "^fixture\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
-            "type": "string"
+            "$ref": "#/$defs/fixture_ref"
           },
           "type": "array",
           "uniqueItems": true
@@ -1816,8 +1767,84 @@
         "null"
       ]
     },
-    "scenario_ref": {
-      "pattern": "^scenario\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+    "authored_test_case": {
+      "additionalProperties": false,
+      "properties": {
+        "archetype": {
+          "enum": [
+            "entry_response",
+            "operation_outcome",
+            "state_machine_composition",
+            "state_machine_composition_sync",
+            "empty_collection_state_machine",
+            "forbidden_action",
+            "ready_collection_state_machine",
+            "workflow_event_success"
+          ]
+        },
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "feature": {
+          "$ref": "#/$defs/feature_ref"
+        },
+        "subject_ref": {
+          "$ref": "#/$defs/subject_ref"
+        },
+        "given": {
+          "$ref": "#/$defs/given"
+        },
+        "then": {
+          "$ref": "#/$defs/then"
+        },
+        "title": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "when": {
+          "$ref": "#/$defs/when"
+        },
+        "why": {
+          "$ref": "#/$defs/basis"
+        }
+      },
+      "required": [
+        "feature",
+        "title",
+        "archetype",
+        "subject_ref",
+        "given",
+        "when",
+        "then"
+      ],
+      "type": "object"
+    },
+    "subject_ref": {
+      "additionalProperties": false,
+      "description": "Typed reference to the primary resource under test.",
+      "maxProperties": 1,
+      "minProperties": 1,
+      "properties": {
+        "entry_point": {
+          "$ref": "#/$defs/entry_point_ref"
+        },
+        "event": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "operation": {
+          "$ref": "#/$defs/operation_ref"
+        },
+        "state_machine": {
+          "$ref": "#/$defs/state_machine_ref"
+        },
+        "workflow": {
+          "$ref": "#/$defs/workflow_ref"
+        }
+      },
+      "type": "object"
+    },
+    "test_case_ref": {
+      "pattern": "^test_case\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
     },
     "scheduled_adapter": {
@@ -2339,6 +2366,19 @@
             "ran"
           ],
           "type": "object"
+        },
+        "assertion_facts": {
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/fact"
+              },
+              {
+                "$ref": "#/$defs/fact_use"
+              }
+            ]
+          },
+          "type": "array"
         }
       },
       "type": "object"
@@ -3050,12 +3090,12 @@
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
     },
-    "scenarios": {
+    "test_cases": {
       "additionalProperties": {
-        "$ref": "#/$defs/authored_scenario"
+        "$ref": "#/$defs/authored_test_case"
       },
       "propertyNames": {
-        "$ref": "#/$defs/scenario_ref"
+        "$ref": "#/$defs/test_case_ref"
       },
       "type": "object"
     },

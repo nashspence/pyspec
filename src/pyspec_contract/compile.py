@@ -90,7 +90,7 @@ def validate_against_schema(data: dict[str, Any], schema_name: str) -> None:
         raise ContractError("Schema validation failed:\n" + str(exc)) from exc
 
 
-TARGET_ORDER = ("text_resource", "asset", "content_case", "render_profile", "fixture", "fact", "model", "operation", "event", "state_machine", "entry_point", "workflow", "scenario")
+TARGET_ORDER = ("text_resource", "asset", "content_case", "render_profile", "fixture", "fact", "model", "operation", "event", "state_machine", "entry_point", "workflow", "test_case")
 
 
 
@@ -107,7 +107,7 @@ ENTITY_SECTIONS: dict[str, str] = {
     "state_machine": "state_machines",
     "entry_point": "entry_points",
     "workflow": "workflows",
-    "scenario": "scenarios",
+    "test_case": "test_cases",
 }
 
 
@@ -129,12 +129,12 @@ def empty_compiled_contract(project: str) -> dict[str, Any]:
         "state_machines": {},
         "entry_points": {},
         "workflows": {},
-        "scenarios": {},
+        "test_cases": {},
         "refs": {},
     }
 
 
-AUTHOR_SECTION_ORDER = ("fixtures", "facts", "models", "operations", "events", "state_machines", "entry_points", "workflows", "scenarios", "text_resources", "assets", "content_cases", "render_profiles")
+AUTHOR_SECTION_ORDER = ("fixtures", "facts", "models", "operations", "events", "state_machines", "entry_points", "workflows", "test_cases", "text_resources", "assets", "content_cases", "render_profiles")
 
 
 def _prune_empty_author_sections(author: dict[str, Any]) -> dict[str, Any]:
@@ -237,9 +237,9 @@ def compile_author(author: dict[str, Any], layers: set[str] | None = None) -> di
     _derive_operation_transitions(contract)
     contract["events"] = _derive_events(contract)
     contract["refs"] = _derive_refs(contract)
-    used_facts = _expand_scenario_fact_uses(contract)
+    used_facts = _expand_test_case_fact_uses(contract)
     _semantic_validate(contract, used_facts)
-    _expand_scenarios(contract)
+    _expand_test_cases(contract)
     validate_against_schema(contract, "spec.schema.json")
     return contract
 
@@ -378,14 +378,15 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             "basis": spec["basis"],
         }
 
-    if entity == "scenario":
+    if entity == "test_case":
         return {
             "feature": spec["feature"],
             "title": spec["title"],
             "archetype": spec["archetype"],
-            "arrange": spec["given"],
-            "execute": spec["when"],
-            "assert": dict(spec["then"]),
+            "subject_ref": spec["subject_ref"],
+            "given": spec["given"],
+            "when": spec["when"],
+            "then": dict(spec["then"]),
             "basis": spec["basis"],
         }
 
@@ -570,7 +571,7 @@ def _semantic_validate(contract: dict[str, Any], used_facts: set[str]) -> None:
     _validate_workflows(contract)
     _validate_fixtures(contract)
     _validate_facts(contract)
-    _validate_scenarios(contract)
+    _validate_test_cases(contract)
     _validate_audit_cases(contract)
     _validate_facts_are_used(contract, used_facts)
 
@@ -680,7 +681,7 @@ def _validate_audit_cases(contract: dict[str, Any]) -> None:
         fixture_values = _fixture_namespace(contract, case.get("fixtures", []), f"audit case {case_id}")
         _validate_fixture_templates(case, fixture_values, f"audit case {case_id}")
         for fact_use in case.get("facts", []):
-            fact_id = fact_use["use"]
+            fact_id = fact_use["ref"]
             _validate_fixture_templates(contract["facts"][fact_id], fixture_values, f"audit case {case_id} fact {fact_id}")
         if state.get("fields") and not _setup_has_model(contract, case.get("fixtures", []), case.get("facts", []), state_machine["model"]):
             raise ContractError(f"Audit case {case_id} renders fields for {state_machine_id}.{state_name} but does not include a {state_machine['model']} fixture or fact")
@@ -735,7 +736,7 @@ def _fixtures_include_model(contract: dict[str, Any], fixture_ids: list[str], mo
 
 def _fact_uses_include_model(contract: dict[str, Any], fact_uses: list[dict[str, str]], model_id: str) -> bool:
     for fact_use in fact_uses:
-        fact_id = fact_use["use"]
+        fact_id = fact_use["ref"]
         fact = contract["facts"].get(fact_id)
         if not fact:
             continue
@@ -746,7 +747,7 @@ def _fact_uses_include_model(contract: dict[str, Any], fact_uses: list[dict[str,
 
 
 def _all_fact_uses(contract: dict[str, Any]) -> list[dict[str, str]]:
-    return [{"use": fact_id} for fact_id in contract.get("facts", {})]
+    return [{"ref": fact_id} for fact_id in contract.get("facts", {})]
 
 
 def _value_contains_model(value: Any, model_id: str) -> bool:
@@ -2316,19 +2317,22 @@ def _validate_facts(contract: dict[str, Any]) -> None:
         _validate_fact_body(contract, fact, f"Fact {fact_id}")
 
 
-def _validate_scenarios(contract: dict[str, Any]) -> None:
-    for sid, scenario in contract["scenarios"].items():
-        fixture_ids = scenario["arrange"].get("fixtures", [])
+def _validate_test_cases(contract: dict[str, Any]) -> None:
+    for test_case_id, test_case in contract["test_cases"].items():
+        fixture_ids = test_case["given"].get("seed_fixtures", [])
         for fixture_id in fixture_ids:
             if fixture_id not in contract["fixtures"]:
-                raise ContractError(f"Scenario {sid} references unknown fixture {fixture_id}")
-        fixture_values = _fixture_namespace(contract, fixture_ids, sid)
-        _validate_fixture_templates(scenario, fixture_values, sid)
-        for fact in scenario["arrange"].get("facts", []):
-            _validate_fact_body(contract, fact, f"Scenario {sid}")
-        _validate_scenario_when(contract, sid, scenario)
-        _validate_scenario_then(contract, sid, scenario)
-        _validate_scenario_archetype(sid, scenario)
+                raise ContractError(f"Test case {test_case_id} references unknown seed fixture {fixture_id}")
+        fixture_values = _fixture_namespace(contract, fixture_ids, test_case_id)
+        _validate_fixture_templates(test_case, fixture_values, test_case_id)
+        for fact in test_case["given"].get("domain_facts", []):
+            _validate_fact_body(contract, fact, f"Test case {test_case_id} given.domain_facts")
+        for fact in test_case["then"].get("assertion_facts", []):
+            _validate_fact_body(contract, fact, f"Test case {test_case_id} then.assertion_facts")
+        _validate_test_case_when(contract, test_case_id, test_case)
+        _validate_test_case_subject(contract, test_case_id, test_case)
+        _validate_test_case_then(contract, test_case_id, test_case)
+        _validate_test_case_archetype(test_case_id, test_case)
 
 
 def _validate_fact_body(contract: dict[str, Any], fact: dict[str, Any], label: str) -> None:
@@ -2349,10 +2353,10 @@ def _validate_fact_body(contract: dict[str, Any], fact: dict[str, Any], label: s
         raise ContractError(f"{label} uses unsupported fact kind {kind}")
 
 
-def _fixture_namespace(contract: dict[str, Any], fixture_ids: list[str], sid: str) -> dict[str, Any]:
+def _fixture_namespace(contract: dict[str, Any], fixture_ids: list[str], test_case_id: str) -> dict[str, Any]:
     namespace: dict[str, Any] = {}
     for fixture_id in fixture_ids:
-        _deep_merge(namespace, copy.deepcopy(contract["fixtures"][fixture_id]["values"]), f"scenario {sid} fixture {fixture_id}")
+        _deep_merge(namespace, copy.deepcopy(contract["fixtures"][fixture_id]["values"]), f"test case {test_case_id} fixture {fixture_id}")
     return namespace
 
 
@@ -2368,9 +2372,9 @@ def _deep_merge(target: dict[str, Any], source: dict[str, Any], label: str) -> N
             raise ContractError(f"Conflicting fixture value at {key} in {label}")
 
 
-def _validate_fixture_templates(node: Any, fixture_values: dict[str, Any], sid: str) -> None:
+def _validate_fixture_templates(node: Any, fixture_values: dict[str, Any], test_case_id: str) -> None:
     for ref in _fixture_refs(node):
-        _resolve_fixture_path(fixture_values, ref, sid)
+        _resolve_fixture_path(fixture_values, ref, test_case_id)
 
 
 def _fixture_refs(node: Any) -> list[str]:
@@ -2387,49 +2391,49 @@ def _fixture_refs(node: Any) -> list[str]:
     return refs
 
 
-def _resolve_fixture_path(fixture_values: dict[str, Any], ref: str, sid: str) -> Any:
+def _resolve_fixture_path(fixture_values: dict[str, Any], ref: str, test_case_id: str) -> Any:
     try:
         expression = parse_reference_expression(ref)
     except ReferenceExpressionError as exc:
-        raise ContractError(f"Scenario {sid} has malformed runtime reference {ref}") from exc
+        raise ContractError(f"Test case {test_case_id} has malformed runtime reference {ref}") from exc
     if expression.root != "fixture":
-        raise ContractError(f"Scenario {sid} references unavailable runtime root: ${expression.root}")
+        raise ContractError(f"Test case {test_case_id} references unavailable runtime root: ${expression.root}")
     current: Any = fixture_values
     traversed: list[str] = []
     for part in expression.path:
         traversed.append(part)
         if not isinstance(current, dict) or part not in current:
             path = ".".join(traversed)
-            raise ContractError(f"Scenario {sid} fixture ref {ref} cannot resolve at {path}")
+            raise ContractError(f"Test case {test_case_id} fixture ref {ref} cannot resolve at {path}")
         current = current[part]
     return current
 
 
-def _validate_scenario_when(contract: dict[str, Any], sid: str, scenario: dict[str, Any]) -> None:
-    kind, body = _one(scenario["execute"], f"scenario {sid} when")
+def _validate_test_case_when(contract: dict[str, Any], test_case_id: str, test_case: dict[str, Any]) -> None:
+    kind, body = _one(test_case["when"], f"test case {test_case_id} when")
     ref = body["ref"]
     if kind in {"open_entry", "call_entry"}:
         if ref not in contract["entry_points"]:
-            raise ContractError(f"Scenario {sid} references unknown entry {ref}")
+            raise ContractError(f"Test case {test_case_id} references unknown entry point {ref}")
         entry = contract["entry_points"][ref]
         adapter_kind, _ = entry_point_adapter_pair(entry)
         entry_target_kind, _ = entry_target_pair(entry)
         if kind == "open_entry" and not (adapter_kind in {"ui", "cli"} and entry_target_kind == "state_machine"):
-            raise ContractError(f"Scenario {sid} open_entry must reference a UI or CLI state machine entry point")
+            raise ContractError(f"Test case {test_case_id} open_entry must reference a UI or CLI state machine entry point")
         if kind == "call_entry" and not (adapter_kind in {"http", "cli"} and entry_target_kind == "operation"):
-            raise ContractError(f"Scenario {sid} call_entry must reference an HTTP or CLI operation entry point")
-        _validate_scenario_entry_input(sid, kind, body, entry)
+            raise ContractError(f"Test case {test_case_id} call_entry must reference an HTTP or CLI operation entry point")
+        _validate_test_case_entry_input(test_case_id, kind, body, entry)
     elif kind == "invoke_operation":
         if ref not in contract["operations"]:
-            raise ContractError(f"Scenario {sid} references unknown operation {ref}")
+            raise ContractError(f"Test case {test_case_id} references unknown operation {ref}")
     elif kind == "emit_event":
         if ref not in contract["events"]:
-            raise ContractError(f"Scenario {sid} references unknown event {ref}")
-        _validate_scenario_event_payload(contract, sid, ref, body.get("payload", {}))
-    _validate_scenario_outcome(contract, sid, scenario)
+            raise ContractError(f"Test case {test_case_id} references unknown event {ref}")
+        _validate_test_case_event_payload(contract, test_case_id, ref, body.get("payload", {}))
+    _validate_test_case_outcome(contract, test_case_id, test_case)
 
 
-def _validate_scenario_event_payload(contract: dict[str, Any], sid: str, event_id: str, payload: dict[str, Any]) -> None:
+def _validate_test_case_event_payload(contract: dict[str, Any], test_case_id: str, event_id: str, payload: dict[str, Any]) -> None:
     event = contract["events"][event_id]
     fields = object_fields_for_type(contract, event["payload_schema"])
     if not fields:
@@ -2445,12 +2449,12 @@ def _validate_scenario_event_payload(contract: dict[str, Any], sid: str, event_i
         if extra:
             parts.append("extra: " + ", ".join(extra))
         raise ContractError(
-            f"Scenario {sid} emit_event.payload must exactly match event {event_id} payload "
+            f"Test case {test_case_id} emit_event.payload must exactly match event {event_id} payload "
             f"{type_display(event['payload_schema'])}" + (": " + "; ".join(parts) if parts else "")
         )
 
 
-def _validate_scenario_entry_input(sid: str, kind: str, body: dict[str, Any], entry: dict[str, Any]) -> None:
+def _validate_test_case_entry_input(test_case_id: str, kind: str, body: dict[str, Any], entry: dict[str, Any]) -> None:
     expected = _entry_external_input_types(entry)
     actual = body.get("input", {})
     if set(actual) != set(expected):
@@ -2461,7 +2465,7 @@ def _validate_scenario_entry_input(sid: str, kind: str, body: dict[str, Any], en
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"Scenario {sid} {kind}.input must exactly match entry input" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"Test case {test_case_id} {kind}.input must exactly match entry input" + (": " + "; ".join(parts) if parts else ""))
 
 
 def _entry_external_input_types(entry: dict[str, Any]) -> dict[str, Any]:
@@ -2471,60 +2475,197 @@ def _entry_external_input_types(entry: dict[str, Any]) -> dict[str, Any]:
     return fields
 
 
-def _validate_scenario_then(contract: dict[str, Any], sid: str, scenario: dict[str, Any]) -> None:
-    then = scenario["assert"]
+def _subject_ref(subject_ref: dict[str, str]) -> tuple[str, str]:
+    return next(iter(subject_ref.items()))
+
+
+def _validate_test_case_subject(contract: dict[str, Any], test_case_id: str, test_case: dict[str, Any]) -> None:
+    subject_kind, subject_value = _subject_ref(test_case["subject_ref"])
+    collections = {
+        "entry_point": "entry_points",
+        "event": "events",
+        "operation": "operations",
+        "state_machine": "state_machines",
+        "workflow": "workflows",
+    }
+    if subject_value not in contract[collections[subject_kind]]:
+        raise ContractError(f"Test case {test_case_id} subject_ref references unknown {subject_kind} {subject_value}")
+
+    when_kind, when_body = _one(test_case["when"], f"test case {test_case_id} when")
+    then = test_case["then"]
+    operation_ref = _test_case_operation_ref(contract, when_kind, when_body)
+    entry_ref = when_body["ref"] if when_kind in {"open_entry", "call_entry"} else None
+    event_ref = when_body["ref"] if when_kind == "emit_event" else None
+    state_machine_ref = _test_case_state_machine_ref(contract, when_kind, when_body)
+
+    if subject_kind == "entry_point" and entry_ref != subject_value:
+        raise ContractError(f"Test case {test_case_id} subject_ref.entry_point must match the entry point under test")
+    if subject_kind == "operation" and operation_ref != subject_value:
+        raise ContractError(f"Test case {test_case_id} subject_ref.operation must match the operation under test")
+    if subject_kind == "event" and event_ref != subject_value and subject_value not in (then.get("events") or {}).get("emitted", []):
+        raise ContractError(f"Test case {test_case_id} subject_ref.event must match the emitted event under test")
+    if subject_kind == "state_machine":
+        asserted = (then.get("state_machine") or {}).get("ref")
+        if subject_value not in {state_machine_ref, asserted}:
+            raise ContractError(f"Test case {test_case_id} subject_ref.state_machine must match the state machine under test")
+    if subject_kind == "workflow":
+        workflow = then.get("workflow") or {}
+        if workflow.get("ref") != subject_value:
+            raise ContractError(f"Test case {test_case_id} subject_ref.workflow must match then.workflow.ref")
+
+
+def _test_case_operation_ref(contract: dict[str, Any], when_kind: str, when_body: dict[str, Any]) -> str | None:
+    if when_kind == "invoke_operation":
+        return when_body["ref"]
+    if when_kind == "call_entry":
+        target_kind, target_ref = entry_target_pair(contract["entry_points"][when_body["ref"]])
+        if target_kind == "operation":
+            return target_ref
+    return None
+
+
+def _test_case_state_machine_ref(contract: dict[str, Any], when_kind: str, when_body: dict[str, Any]) -> str | None:
+    if when_kind != "open_entry":
+        return None
+    target_kind, target_ref = entry_target_pair(contract["entry_points"][when_body["ref"]])
+    if target_kind == "state_machine":
+        return target_ref
+    return None
+
+
+def _validate_test_case_then(contract: dict[str, Any], test_case_id: str, test_case: dict[str, Any]) -> None:
+    then = test_case["then"]
     if "state_machine" in then:
         expected_state_machine = then["state_machine"]
         state_machine_id = expected_state_machine["ref"]
         if state_machine_id not in contract["state_machines"]:
-            raise ContractError(f"Scenario {sid} references unknown state machine {state_machine_id}")
+            raise ContractError(f"Test case {test_case_id} references unknown state machine {state_machine_id}")
         state_machine = contract["state_machines"][state_machine_id]
         if "view_state" in expected_state_machine:
             state = expected_state_machine["view_state"]
             if state not in state_machine.get("view_states", {}):
-                raise ContractError(f"Scenario {sid} references unknown state machine view state {state_machine_id}.{state}")
+                raise ContractError(f"Test case {test_case_id} references unknown state machine view state {state_machine_id}.{state}")
         if "instances" in expected_state_machine:
             state_name = expected_state_machine.get("view_state")
             selected_state = state_machine.get("view_states", {}).get(state_name, {}) if state_name else {}
             mounted_instances = {mount["id"]: mount for mount in selected_state.get("child_state_machines", [])}
             if not mounted_instances:
-                raise ContractError(f"Scenario {sid} asserts instance view states for non-composed state machine view state {state_machine_id}.{state_name}")
+                raise ContractError(f"Test case {test_case_id} asserts instance view states for non-composed state machine view state {state_machine_id}.{state_name}")
             for instance_id, expectation in expected_state_machine["instances"].items():
                 if instance_id not in mounted_instances:
-                    raise ContractError(f"Scenario {sid} references unknown state machine instance {state_machine_id}.{instance_id}")
+                    raise ContractError(f"Test case {test_case_id} references unknown state machine instance {state_machine_id}.{instance_id}")
                 child_state_machine_id = mounted_instances[instance_id]["state_machine"]
                 if expectation["view_state"] not in contract["state_machines"][child_state_machine_id]["view_states"]:
-                    raise ContractError(f"Scenario {sid} references unknown state machine view state {child_state_machine_id}.{expectation['view_state']}")
+                    raise ContractError(f"Test case {test_case_id} references unknown state machine view state {child_state_machine_id}.{expectation['view_state']}")
         for sync_id in (expected_state_machine.get("message_sync_rules") or {}).get("observed", []):
             state_name = expected_state_machine.get("view_state")
             selected_state = state_machine.get("view_states", {}).get(state_name, {}) if state_name else {}
             if sync_id not in {rule["id"] for rule in selected_state.get("message_sync_rules", [])}:
-                raise ContractError(f"Scenario {sid} references unknown sync rule {state_machine_id}.{sync_id}")
+                raise ContractError(f"Test case {test_case_id} references unknown sync rule {state_machine_id}.{sync_id}")
         for key in (expected_state_machine.get("context") or {}):
             if key not in state_machine.get("context", {}):
-                raise ContractError(f"Scenario {sid} asserts undeclared state machine context {state_machine_id}.{key}")
+                raise ContractError(f"Test case {test_case_id} asserts undeclared state machine context {state_machine_id}.{key}")
     for field in ["enables", "forbids", "invoked"]:
         for cap_id in then.get(field, []):
             if cap_id not in contract["operations"]:
-                raise ContractError(f"Scenario {sid} {field} unknown operation {cap_id}")
+                raise ContractError(f"Test case {test_case_id} {field} unknown operation {cap_id}")
     model_exists = (then.get("model") or {}).get("exists")
-    if model_exists and model_exists["model"] not in contract["models"]:
-        raise ContractError(f"Scenario {sid} asserts unknown model {model_exists['model']}")
-    for event_id in (then.get("events") or {}).get("emitted", []) + (then.get("events") or {}).get("not_emitted", []):
+    if model_exists:
+        model_id = model_exists["model"]
+        if model_id not in contract["models"]:
+            raise ContractError(f"Test case {test_case_id} asserts unknown model {model_id}")
+        unknown_fields = sorted(set(model_exists["where"]) - set(contract["models"][model_id]["fields"]))
+        if unknown_fields:
+            raise ContractError(f"Test case {test_case_id} model.exists filters unknown {model_id} fields: {unknown_fields}")
+    events = then.get("events") or {}
+    emitted = set(events.get("emitted", []))
+    not_emitted = set(events.get("not_emitted", []))
+    overlap = sorted(emitted & not_emitted)
+    if overlap:
+        raise ContractError(f"Test case {test_case_id} asserts events as both emitted and not_emitted: {overlap}")
+    for event_id in list(emitted) + list(not_emitted):
         if event_id not in contract["events"]:
-            raise ContractError(f"Scenario {sid} asserts unknown event {event_id}")
+            raise ContractError(f"Test case {test_case_id} asserts unknown event {event_id}")
+    _validate_test_case_event_emissions(contract, test_case_id, test_case, emitted, not_emitted)
+    _validate_test_case_invocations(contract, test_case_id, test_case)
     workflow = then.get("workflow")
     if workflow and workflow["ref"] not in contract["workflows"]:
-        raise ContractError(f"Scenario {sid} asserts unknown workflow {workflow['ref']}")
+        raise ContractError(f"Test case {test_case_id} asserts unknown workflow {workflow['ref']}")
     if workflow and workflow.get("outcome"):
         workflow_contract = contract["workflows"][workflow["ref"]]
         if workflow["outcome"] not in workflow_contract["outcomes"]:
-            raise ContractError(f"Scenario {sid} asserts unknown workflow outcome {workflow['ref']}.{workflow['outcome']}")
+            raise ContractError(f"Test case {test_case_id} asserts unknown workflow outcome {workflow['ref']}.{workflow['outcome']}")
+    if workflow and workflow.get("ran") and not _workflow_can_run_from_test_case(contract, test_case):
+        raise ContractError(f"Test case {test_case_id} asserts workflow ran but when does not trigger workflow {workflow['ref']}")
+    if "response" in then:
+        when_kind, _ = _one(test_case["when"], f"test case {test_case_id} when")
+        if when_kind != "call_entry":
+            raise ContractError(f"Test case {test_case_id} response assertions require call_entry")
 
 
-def _validate_scenario_outcome(contract: dict[str, Any], sid: str, scenario: dict[str, Any]) -> None:
-    when_kind, when_body = _one(scenario["execute"], f"scenario {sid} when")
-    then = scenario["assert"]
+def _validate_test_case_event_emissions(
+    contract: dict[str, Any],
+    test_case_id: str,
+    test_case: dict[str, Any],
+    emitted: set[str],
+    not_emitted: set[str],
+) -> None:
+    when_kind, when_body = _one(test_case["when"], f"test case {test_case_id} when")
+    then = test_case["then"]
+    if when_kind == "emit_event":
+        if when_body["ref"] in emitted:
+            return
+        return
+    operation_id = _test_case_operation_ref(contract, when_kind, when_body)
+    outcome_id = then.get("outcome")
+    if not operation_id or not outcome_id or outcome_id not in contract["operations"][operation_id]["outcomes"]:
+        return
+    possible = {
+        _emit_event_id(emit)
+        for emit in contract["operations"][operation_id]["outcomes"][outcome_id].get("emits", [])
+    }
+    unexpected = sorted(emitted - possible)
+    if unexpected:
+        raise ContractError(f"Test case {test_case_id} asserts events not emitted by {operation_id}.{outcome_id}: {unexpected}")
+    contradicted = sorted(not_emitted & possible)
+    if contradicted:
+        raise ContractError(f"Test case {test_case_id} asserts not_emitted events emitted by {operation_id}.{outcome_id}: {contradicted}")
+
+
+def _validate_test_case_invocations(contract: dict[str, Any], test_case_id: str, test_case: dict[str, Any]) -> None:
+    invoked = set(test_case["then"].get("invoked", []))
+    if not invoked:
+        return
+    when_kind, when_body = _one(test_case["when"], f"test case {test_case_id} when")
+    direct = _test_case_operation_ref(contract, when_kind, when_body)
+    expected = {direct} if direct else set()
+    if when_kind == "emit_event":
+        event_id = when_body["ref"]
+        for workflow in contract["workflows"].values():
+            if workflow["trigger"] == {"event": event_id}:
+                expected.update(step["operation"] for step in workflow["steps"])
+    unexpected = sorted(invoked - expected)
+    if unexpected:
+        raise ContractError(f"Test case {test_case_id} asserts operation invocations unrelated to when: {unexpected}")
+
+
+def _workflow_can_run_from_test_case(contract: dict[str, Any], test_case: dict[str, Any]) -> bool:
+    workflow_assertion = test_case["then"].get("workflow") or {}
+    workflow_id = workflow_assertion.get("ref")
+    if not workflow_id or workflow_id not in contract["workflows"]:
+        return False
+    workflow = contract["workflows"][workflow_id]
+    when_kind, when_body = _one(test_case["when"], "test case when")
+    trigger_kind, trigger_ref = _one(workflow["trigger"], f"workflow {workflow_id} trigger")
+    if when_kind == "emit_event" and trigger_kind == "event":
+        return when_body["ref"] == trigger_ref
+    operation_id = _test_case_operation_ref(contract, when_kind, when_body)
+    return trigger_kind == "operation" and operation_id == trigger_ref
+
+
+def _validate_test_case_outcome(contract: dict[str, Any], test_case_id: str, test_case: dict[str, Any]) -> None:
+    when_kind, when_body = _one(test_case["when"], f"test case {test_case_id} when")
+    then = test_case["then"]
     outcome_id = then.get("outcome")
     cap: dict[str, Any] | None = None
     entry: dict[str, Any] | None = None
@@ -2537,87 +2678,102 @@ def _validate_scenario_outcome(contract: dict[str, Any], sid: str, scenario: dic
             cap = contract["operations"][target_ref]
     if cap is None:
         if outcome_id:
-            raise ContractError(f"Scenario {sid} asserts outcome but does not execute a operation")
+            raise ContractError(f"Test case {test_case_id} asserts outcome but does not execute an operation")
         return
     if not outcome_id:
-        raise ContractError(f"Scenario {sid} must assert a operation outcome")
+        raise ContractError(f"Test case {test_case_id} must assert an operation outcome")
     if outcome_id not in cap["outcomes"]:
-        raise ContractError(f"Scenario {sid} asserts unknown outcome {outcome_id}")
+        raise ContractError(f"Test case {test_case_id} asserts unknown outcome {outcome_id}")
     if entry is None:
         return
     if outcome_id not in entry_point_responses(entry):
-        raise ContractError(f"Scenario {sid} outcome {outcome_id} is not mapped by entry {when_body['ref']}")
+        raise ContractError(f"Test case {test_case_id} outcome {outcome_id} is not mapped by entry point {when_body['ref']}")
     response_assertion = then.get("response")
     if response_assertion:
         response = entry_point_responses(entry)[outcome_id]
         for key in ("status", "exit_code"):
             if key in response_assertion and response.get(key) != response_assertion[key]:
-                raise ContractError(f"Scenario {sid} response.{key} does not match entry response for outcome {outcome_id}")
+                raise ContractError(f"Test case {test_case_id} response.{key} does not match entry point response for outcome {outcome_id}")
 
 
-def _validate_scenario_archetype(sid: str, scenario: dict[str, Any]) -> None:
-    archetype = scenario["archetype"]
-    when_kind, _ = _one(scenario["execute"], f"scenario {sid} when")
-    then = scenario["assert"]
+def _validate_test_case_archetype(test_case_id: str, test_case: dict[str, Any]) -> None:
+    archetype = test_case["archetype"]
+    when_kind, _ = _one(test_case["when"], f"test case {test_case_id} when")
+    then = test_case["then"]
     if archetype == "empty_collection_state_machine":
         if when_kind != "open_entry" or then.get("state_machine", {}).get("view_state") != "empty":
-            raise ContractError(f"Scenario {sid} empty_collection_state_machine requires open_entry and state_machine.view_state=empty")
+            raise ContractError(f"Test case {test_case_id} empty_collection_state_machine requires open_entry and state_machine.view_state=empty")
     elif archetype == "ready_collection_state_machine":
         if when_kind != "open_entry" or then.get("state_machine", {}).get("view_state") != "ready":
-            raise ContractError(f"Scenario {sid} ready_collection_state_machine requires open_entry and state_machine.view_state=ready")
+            raise ContractError(f"Test case {test_case_id} ready_collection_state_machine requires open_entry and state_machine.view_state=ready")
     elif archetype == "state_machine_composition_sync":
         state_machine_assert = then.get("state_machine", {})
         if when_kind != "open_entry" or not state_machine_assert.get("instances"):
-            raise ContractError(f"Scenario {sid} state_machine_composition_sync requires open_entry and state_machine.instances")
+            raise ContractError(f"Test case {test_case_id} state_machine_composition_sync requires open_entry and state_machine.instances")
     elif archetype == "state_machine_composition":
         state_machine_assert = then.get("state_machine", {})
         if when_kind != "open_entry" or not state_machine_assert.get("instances"):
-            raise ContractError(f"Scenario {sid} state_machine_composition requires open_entry and state_machine.instances")
+            raise ContractError(f"Test case {test_case_id} state_machine_composition requires open_entry and state_machine.instances")
     elif archetype == "operation_outcome":
         if when_kind != "invoke_operation" or "outcome" not in then:
-            raise ContractError(f"Scenario {sid} operation_outcome requires invoke_operation and outcome")
+            raise ContractError(f"Test case {test_case_id} operation_outcome requires invoke_operation and outcome")
     elif archetype == "entry_response":
         if when_kind != "call_entry" or "outcome" not in then or "response" not in then:
-            raise ContractError(f"Scenario {sid} entry_response requires call_entry, outcome, and response")
+            raise ContractError(f"Test case {test_case_id} entry_response requires call_entry, outcome, and response")
     elif archetype == "workflow_event_success":
         workflow = then.get("workflow", {})
         if when_kind != "emit_event" or not workflow.get("ran") or "outcome" not in workflow:
-            raise ContractError(f"Scenario {sid} workflow_event_success requires emit_event, workflow.ran=true, and workflow.outcome")
+            raise ContractError(f"Test case {test_case_id} workflow_event_success requires emit_event, workflow.ran=true, and workflow.outcome")
     elif archetype == "forbidden_action":
         if "forbids" not in then:
-            raise ContractError(f"Scenario {sid} forbidden_action requires forbids")
+            raise ContractError(f"Test case {test_case_id} forbidden_action requires forbids")
 
 
-def _expand_scenario_fact_uses(contract: dict[str, Any]) -> set[str]:
+def _expand_test_case_fact_uses(contract: dict[str, Any]) -> set[str]:
     used: set[str] = set()
-    for sid, scenario in contract["scenarios"].items():
-        arrange = scenario["arrange"]
-        expanded: list[dict[str, Any]] = []
-        scenario_uses: set[str] = set()
-        for fact in arrange.get("facts", []):
-            if "use" not in fact:
-                expanded.append(fact)
-                continue
-            fact_id = fact["use"]
-            if fact_id not in contract["facts"]:
-                raise ContractError(f"Scenario {sid} references unknown fact {fact_id}")
-            if fact_id in scenario_uses:
-                raise ContractError(f"Scenario {sid} uses fact {fact_id} more than once")
-            scenario_uses.add(fact_id)
-            used.add(fact_id)
-            expanded.append(_fact_body(contract["facts"][fact_id], fact_id))
-        if "facts" in arrange:
-            arrange["facts"] = expanded
+    for test_case_id, test_case in contract["test_cases"].items():
+        used.update(_expand_fact_uses(
+            contract,
+            test_case["given"],
+            "domain_facts",
+            f"Test case {test_case_id}",
+        ))
+        used.update(_expand_fact_uses(
+            contract,
+            test_case["then"],
+            "assertion_facts",
+            f"Test case {test_case_id}",
+        ))
     for case_id, case in audit_cases(contract).items():
         case_uses: set[str] = set()
         for fact_use in case.get("facts", []):
-            fact_id = fact_use["use"]
+            fact_id = fact_use["ref"]
             if fact_id not in contract["facts"]:
                 raise ContractError(f"Audit case {case_id} references unknown fact {fact_id}")
             if fact_id in case_uses:
                 raise ContractError(f"Audit case {case_id} uses fact {fact_id} more than once")
             case_uses.add(fact_id)
             used.add(fact_id)
+    return used
+
+
+def _expand_fact_uses(contract: dict[str, Any], owner: dict[str, Any], field: str, label: str) -> set[str]:
+    if field not in owner:
+        return set()
+    expanded: list[dict[str, Any]] = []
+    used: set[str] = set()
+    for fact in owner[field]:
+        if "ref" not in fact:
+            expanded.append(fact)
+            continue
+        fact_id = fact["ref"]
+        if fact_id not in contract["facts"]:
+            raise ContractError(f"{label} references unknown fact {fact_id}")
+        if fact_id in used:
+            raise ContractError(f"{label} uses fact {fact_id} more than once")
+        used.add(fact_id)
+        expanded.append(_fact_body(contract["facts"][fact_id], fact_id))
+    owner[field] = expanded
     return used
 
 
@@ -2632,9 +2788,9 @@ def _validate_facts_are_used(contract: dict[str, Any], used: set[str]) -> None:
         raise ContractError("Unused facts: " + ", ".join(unused))
 
 
-def _expand_scenarios(contract: dict[str, Any]) -> None:
-    for scenario in contract["scenarios"].values():
-        assertions = scenario["assert"]
+def _expand_test_cases(contract: dict[str, Any]) -> None:
+    for test_case in contract["test_cases"].values():
+        assertions = test_case["then"]
         if "state_machine" in assertions:
             state_machine_assertion = assertions["state_machine"]
             state_machine_id = state_machine_assertion["ref"]
@@ -2680,7 +2836,7 @@ def _expand_scenarios(contract: dict[str, Any]) -> None:
                     "assets": list(state["assets"]),
                     "operation_refs": list(state["operation_refs"]),
                 }
-        when_kind, when_body = _one(scenario["execute"], "scenario execute")
+        when_kind, when_body = _one(test_case["when"], "test case when")
         cap_id = None
         if when_kind == "invoke_operation":
             cap_id = when_body["ref"]

@@ -1,7 +1,7 @@
 Feature: Feature Project Create
 
-  @spec @scenario_project_create_api_success
+  @spec @test_case_project_create_api_success
   Scenario: Create dispatch project through API
-    Given spec scenario "scenario.project.create.api.success" is arranged
-    When spec scenario "scenario.project.create.api.success" is executed
-    Then spec scenario "scenario.project.create.api.success" obligations hold
+    Given spec test case "test_case.project.create.api.success" is given
+    When spec test case "test_case.project.create.api.success" runs when
+    Then spec test case "test_case.project.create.api.success" then holds

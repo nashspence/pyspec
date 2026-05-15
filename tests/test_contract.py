@@ -143,43 +143,43 @@ def test_author_contract_is_sparse_source() -> None:
     }
     assert "refs" not in author
     assert "transition" not in author["operations"]["operation.project.submit"]
-    assert author["scenarios"]["scenario.project.approve.success"]["given"]["facts"] == [{"use": "fact.project.submitted"}]
+    assert author["test_cases"]["test_case.project.approve.success"]["given"]["domain_facts"] == [{"ref": "fact.project.submitted"}]
     assert compile_author(author) == read_yaml(ROOT / COMPILED_SPEC_PATH)
 
 
-def test_named_fact_expands_into_compiled_scenario() -> None:
+def test_named_fact_expands_into_compiled_test_case() -> None:
     author = _author()
     contract = compile_author(author)
     fact = contract["facts"]["fact.project.submitted"]
-    scenario_fact = contract["scenarios"]["scenario.project.approve.success"]["arrange"]["facts"][0]
-    assert "use" not in scenario_fact
-    assert scenario_fact == {"present": fact["present"]}
+    test_case_fact = contract["test_cases"]["test_case.project.approve.success"]["given"]["domain_facts"][0]
+    assert "ref" not in test_case_fact
+    assert test_case_fact == {"present": fact["present"]}
     assert audit_cases(contract)["state_machine.project.board.ready.ready_selected.audit"]["facts"] == [
-        {"use": "fact.project.submitted"},
-        {"use": "fact.project.draft"},
+        {"ref": "fact.project.submitted"},
+        {"ref": "fact.project.draft"},
     ]
 
 
 def test_unknown_fact_use_is_rejected() -> None:
     author = _author()
-    author["scenarios"]["scenario.project.approve.success"]["given"]["facts"] = [{"use": "fact.project.missing"}]
-    with pytest.raises(ContractError, match=r"Scenario scenario.project\.approve\.success references unknown fact fact\.project\.missing"):
+    author["test_cases"]["test_case.project.approve.success"]["given"]["domain_facts"] = [{"ref": "fact.project.missing"}]
+    with pytest.raises(ContractError, match=r"Test case test_case.project\.approve\.success references unknown fact fact\.project\.missing"):
         compile_author(author)
 
 
-def test_duplicate_fact_use_in_one_scenario_is_rejected() -> None:
+def test_duplicate_fact_use_in_one_test_case_is_rejected() -> None:
     author = _author()
-    author["scenarios"]["scenario.project.approve.success"]["given"]["facts"] = [
-        {"use": "fact.project.submitted"},
-        {"use": "fact.project.submitted"},
+    author["test_cases"]["test_case.project.approve.success"]["given"]["domain_facts"] = [
+        {"ref": "fact.project.submitted"},
+        {"ref": "fact.project.submitted"},
     ]
-    with pytest.raises(ContractError, match=r"Scenario scenario.project\.approve\.success uses fact fact\.project\.submitted more than once"):
+    with pytest.raises(ContractError, match=r"Test case test_case.project\.approve\.success uses fact fact\.project\.submitted more than once"):
         compile_author(author)
 
 
 def test_unknown_audit_case_fact_use_is_rejected() -> None:
     author = _author()
-    author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["audit"]["ready_selected"]["facts"] = [{"use": "fact.project.missing"}]
+    author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["audit"]["ready_selected"]["facts"] = [{"ref": "fact.project.missing"}]
     with pytest.raises(ContractError, match=r"Audit case state_machine\.project\.board\.ready\.ready_selected\.audit references unknown fact fact\.project\.missing"):
         compile_author(author)
 
@@ -187,8 +187,8 @@ def test_unknown_audit_case_fact_use_is_rejected() -> None:
 def test_duplicate_audit_case_fact_use_is_rejected() -> None:
     author = _author()
     author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["audit"]["ready_selected"]["facts"] = [
-        {"use": "fact.project.submitted"},
-        {"use": "fact.project.submitted"},
+        {"ref": "fact.project.submitted"},
+        {"ref": "fact.project.submitted"},
     ]
     with pytest.raises(ContractError, match=r"Audit case state_machine\.project\.board\.ready\.ready_selected\.audit uses fact fact\.project\.submitted more than once"):
         compile_author(author)
@@ -214,10 +214,10 @@ def test_unused_fact_is_rejected() -> None:
 
 def test_fact_use_requires_declared_fixture_namespace() -> None:
     author = _author()
-    author["scenarios"]["scenario.project.approve.success"]["given"]["fixtures"] = []
+    author["test_cases"]["test_case.project.approve.success"]["given"]["seed_fixtures"] = []
     with pytest.raises(
         ContractError,
-        match=r"Scenario scenario.project\.approve\.success fixture ref \$fixture\.workspace\.id cannot resolve at workspace",
+        match=r"Test case test_case.project\.approve\.success fixture ref \$fixture\.workspace\.id cannot resolve at workspace",
     ):
         compile_author(author)
 
@@ -227,6 +227,45 @@ def test_fact_template_fields_must_belong_to_model() -> None:
     author["facts"]["fact.project.submitted"]["present"]["values"]["unknown_field"] = "nope"
     with pytest.raises(ContractError, match=r"Fact fact\.project\.submitted seeds unknown Project fields: \['unknown_field'\]"):
         compile_author(author)
+
+
+def test_test_case_subject_ref_must_match_operation_under_test() -> None:
+    author = _author()
+    author["test_cases"]["test_case.project.approve.success"]["subject_ref"] = {"operation": "operation.project.create"}
+    with pytest.raises(ContractError, match="subject_ref.operation must match the operation under test"):
+        compile_author(author)
+
+
+def test_model_exists_assertion_rejects_unknown_field() -> None:
+    author = _author()
+    exists = author["test_cases"]["test_case.project.approve.success"]["then"]["model"]["exists"]
+    exists["where"]["ghost"] = "nope"
+    with pytest.raises(ContractError, match=r"model\.exists filters unknown Project fields: \['ghost'\]"):
+        compile_author(author)
+
+
+def test_response_assertion_requires_call_entry() -> None:
+    author = _author()
+    author["test_cases"]["test_case.project.approve.success"]["then"]["response"] = {"status": 200}
+    with pytest.raises(ContractError, match="response assertions require call_entry"):
+        compile_author(author)
+
+
+def test_invocation_assertion_must_follow_when() -> None:
+    author = _author()
+    author["test_cases"]["test_case.project.approve.success"]["then"]["invoked"].append("operation.project.create")
+    with pytest.raises(ContractError, match="asserts operation invocations unrelated to when"):
+        compile_author(author)
+
+
+def test_named_assertion_fact_expands_into_compiled_test_case() -> None:
+    author = _author()
+    author["test_cases"]["test_case.project.approve.success"]["then"]["assertion_facts"] = [{"ref": "fact.project.submitted"}]
+    contract = compile_author(author)
+    fact = contract["facts"]["fact.project.submitted"]
+    assert contract["test_cases"]["test_case.project.approve.success"]["then"]["assertion_facts"] == [
+        {"present": fact["present"]}
+    ]
 
 
 def _derived_transition_author() -> dict:
@@ -321,7 +360,7 @@ def test_command_operation_allows_empty_crud_effects() -> None:
     author = _author()
     del author["operations"]["operation.project.create"]["creates"]
     author["entry_points"]["entry_point.api.project.create"]["adapter"]["http"]["responses"]["created"]["status"] = 200
-    author["scenarios"]["scenario.project.create.api.success"]["then"]["response"]["status"] = 200
+    author["test_cases"]["test_case.project.create.api.success"]["then"]["response"]["status"] = 200
     contract = compile_source(author)
     assert contract["operations"]["operation.project.create"]["creates"] == []
 
@@ -565,16 +604,16 @@ def test_generated_tree_is_closed(tmp_path: Path) -> None:
 
 def test_unknown_fixture_is_rejected() -> None:
     author = _author()
-    scenario = _first_item(author, "scenarios")
-    scenario["given"]["fixtures"] = ["fixture.workspace.ghost"]
-    with pytest.raises(ContractError, match="unknown fixture"):
+    test_case = _first_item(author, "test_cases")
+    test_case["given"]["seed_fixtures"] = ["fixture.workspace.ghost"]
+    with pytest.raises(ContractError, match="unknown seed fixture"):
         compile_source(author)
 
 
 def test_unresolved_fixture_reference_is_rejected() -> None:
     author = _author()
-    scenario = _item(author, "scenarios", "scenario.project.board.empty")
-    _, body = next(iter(scenario["when"].items()))
+    test_case = _item(author, "test_cases", "test_case.project.board.empty")
+    _, body = next(iter(test_case["when"].items()))
     body.setdefault("input", {})["workspace_id"] = "$fixture.workspace.missing"
     with pytest.raises(ContractError, match="cannot resolve"):
         compile_source(author)
@@ -684,10 +723,10 @@ def test_state_machine_message_direction_must_be_unambiguous() -> None:
         compile_source(author)
 
 
-def test_composed_scenario_rejects_unknown_state_machine_instance() -> None:
+def test_composed_test_case_rejects_unknown_state_machine_instance() -> None:
     author = _author()
-    scenario = _item(author, "scenarios", "scenario.project.board.ready")
-    scenario["then"]["state_machine"]["instances"]["ghost"] = {"view_state": "ready"}
+    test_case = _item(author, "test_cases", "test_case.project.board.ready")
+    test_case["then"]["state_machine"]["instances"]["ghost"] = {"view_state": "ready"}
     with pytest.raises(ContractError, match="unknown state machine instance"):
         compile_source(author)
 
@@ -1010,10 +1049,10 @@ def test_layer_pruned_author_schema_hides_irrelevant_sections() -> None:
     assert "audit_cases" not in schema["properties"]
 
 
-def test_pyspec_contract_rejects_scenario_harness_routing() -> None:
+def test_pyspec_contract_rejects_test_case_harness_routing() -> None:
     author = _author()
-    scenario = _first_item(author, "scenarios")
-    scenario["harnesses"] = ["spec", "prod"]
+    test_case = _first_item(author, "test_cases")
+    test_case["harnesses"] = ["spec", "prod"]
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 

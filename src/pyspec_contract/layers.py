@@ -22,7 +22,7 @@ TARGET_LAYERS: dict[str, set[str]] = {
     "model": {"core"},
     "operation": {"core"},
     "event": {"core"},
-    "scenario": {"core"},
+    "test_case": {"core"},
     "workflow": {"workflow"},
     "state_machine": {"ui"},
     "text_resource": {"ui"},
@@ -55,7 +55,7 @@ AUTHOR_SECTIONS: dict[str, str] = {
     "state_machines": "state_machine",
     "entry_points": "entry_point",
     "workflows": "workflow",
-    "scenarios": "scenario",
+    "test_cases": "test_case",
 }
 
 

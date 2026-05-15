@@ -73,9 +73,9 @@ def test_state_machine_composition_rejects_sync_message_not_emitted_by_source_in
         compile_source(author)
 
 
-def test_composed_scenario_rejects_unknown_state_machine_state() -> None:
+def test_composed_test_case_rejects_unknown_state_machine_state() -> None:
     author = _author()
-    scenario = _item(author, "scenarios", "scenario.project.board.ready")
-    scenario["then"]["state_machine"]["instances"]["detail"]["view_state"] = "ghost"
+    test_case = _item(author, "test_cases", "test_case.project.board.ready")
+    test_case["then"]["state_machine"]["instances"]["detail"]["view_state"] = "ghost"
     with pytest.raises(ContractError, match="unknown state machine view state"):
         compile_source(author)

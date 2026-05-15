@@ -12,7 +12,7 @@ from .type_expr import is_array_of_model, model_name
 
 
 class ReferenceSpecDriver:
-    """A fake/reference world for spec BDD. It proves scenarios are coherent, not that prod works."""
+    """A fake/reference world for spec BDD. It proves test cases are coherent, not that prod works."""
 
     def __init__(self, root: Path):
         self.root = root
@@ -32,10 +32,10 @@ class ReferenceSpecDriver:
         self.last_result: Any = None
         self.last_outcome: str | None = None
 
-    def arrange(self, scenario_id: str, scenario: Mapping[str, Any]) -> None:
+    def given(self, test_case_id: str, test_case: Mapping[str, Any]) -> None:
         self.reset()
-        self.fixtures = fixture_namespace(self.contract, list(scenario.get("arrange", {}).get("fixtures", [])))
-        for fact in scenario.get("arrange", {}).get("facts", []):
+        self.fixtures = fixture_namespace(self.contract, list(test_case.get("given", {}).get("seed_fixtures", [])))
+        for fact in test_case.get("given", {}).get("domain_facts", []):
             kind, body = next(iter(fact.items()))
             if kind == "absent":
                 where = self._resolve_map(body["where"])
@@ -46,21 +46,21 @@ class ReferenceSpecDriver:
             else:  # pragma: no cover - schema prevents this.
                 raise AssertionError(f"Unsupported fact kind: {kind}")
 
-    def execute(self, scenario_id: str, scenario: Mapping[str, Any]) -> None:
-        kind, body = next(iter(scenario["execute"].items()))
+    def when(self, test_case_id: str, test_case: Mapping[str, Any]) -> None:
+        kind, body = next(iter(test_case["when"].items()))
         if kind == "open_entry":
             self.last_state_machine = self._open_entry(body["ref"], self._resolve_map(body.get("input", {})))
         elif kind == "call_entry":
-            self.response = self._call_entry(body["ref"], self._resolve_map(body.get("input", {})), scenario["assert"].get("outcome"))
+            self.response = self._call_entry(body["ref"], self._resolve_map(body.get("input", {})), test_case["then"].get("outcome"))
         elif kind == "invoke_operation":
-            self.last_result = self._invoke(body["ref"], self._resolve_map(body.get("input", {})), scenario["assert"].get("outcome"))
+            self.last_result = self._invoke(body["ref"], self._resolve_map(body.get("input", {})), test_case["then"].get("outcome"))
         elif kind == "emit_event":
             self._emit(body["ref"], self._resolve_map(body.get("payload", {})))
         else:  # pragma: no cover - schema prevents this.
-            raise AssertionError(f"Unsupported execute kind: {kind}")
+            raise AssertionError(f"Unsupported when kind: {kind}")
 
-    def assert_obligations(self, scenario_id: str, scenario: Mapping[str, Any]) -> None:
-        assertions = scenario["assert"]
+    def then(self, test_case_id: str, test_case: Mapping[str, Any]) -> None:
+        assertions = test_case["then"]
         if "state_machine" in assertions:
             assert self.last_state_machine is not None, "Expected a rendered state machine"
             expected = assertions["state_machine"]
@@ -134,6 +134,14 @@ class ReferenceSpecDriver:
         policy = assertions.get("policy")
         if policy:
             assert policy in self.contract.get("refs", {}).get("policy", [])
+        for fact in assertions.get("assertion_facts", []):
+            kind, body = next(iter(fact.items()))
+            if kind == "present":
+                values = self._resolve_map(body["values"])
+                assert any(_matches(record, values) for record in self.store[body["model"]]), f"Missing assertion fact {body}"
+            elif kind == "absent":
+                where = self._resolve_map(body["where"])
+                assert not any(_matches(record, where) for record in self.store[body["model"]]), f"Unexpected assertion fact {body}"
 
     def _open_entry(self, entry_id: str, params: dict[str, Any]) -> dict[str, Any]:
         entry = self.contract["entry_points"][entry_id]

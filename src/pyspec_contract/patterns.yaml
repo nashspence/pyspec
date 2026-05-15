@@ -2,8 +2,8 @@ authoring_layers:
   rule: Layers constrain authored spec vocabulary only. They are never written into spec/generated/compiled/spec.yaml and never imply absent adapters are planned.
   layers:
     core:
-      targets: [fixture, model, operation, scenario]
-      projections: [spec/generated/agent_prompts, spec/generated/behavior/fixtures.yaml, spec/generated/behavior/scenarios.yaml, spec/generated/test_adapters/pytest_bdd_features, spec/generated/test_adapters/python_refs.py]
+      targets: [fixture, model, operation, test_case]
+      projections: [spec/generated/agent_prompts, spec/generated/behavior/fixtures.yaml, spec/generated/behavior/test_cases.yaml, spec/generated/test_adapters/pytest_bdd_features, spec/generated/test_adapters/python_refs.py]
     http:
       opens: [entry_point.adapter.http]
       requires: [core]
@@ -37,12 +37,12 @@ authoring_layers:
     full: full
 
 purity_rules:
-  scenarios: Do not include harness, test, dev, or environment routing. The same generated feature corpus is consumed by both spec and prod harnesses.
+  test_cases: Do not include harness, test, dev, or environment routing. The same generated feature corpus is consumed by both spec and prod harnesses.
   models: Do not include persistence dialects, SQL tables, ORM details, datastore engines, indexes, or migrations. Models are product/design data contracts only.
   generated: Do not edit generated projections or audit renders by hand.
   agent_prompts: Use spec/generated/agent_prompts/{pm_design,test,dev,review}.md as role-specific standalone prompts; each contains a {{USER_PROMPT}} substitution point.
 
-scenario_archetypes:
+test_case_archetypes:
   empty_collection_state_machine:
     when: open_entry
     then: [state_machine.view_state.empty, enables, forbids]
@@ -128,14 +128,14 @@ renderer_contracts:
     selectors_allowed: [screen, slot.<declared_slot>, action.<declared_action>, region.<declared_region>, mount.<declared_mount>]
 
 gherkin_policy:
-  source_of_truth: spec/generated/behavior/scenarios.yaml
+  source_of_truth: spec/generated/behavior/test_cases.yaml
   generated_features: pytest-bdd adapter only
   corpus: spec/generated/test_adapters/pytest_bdd_features/*.feature
   rule: PM agents never author raw .feature files; spec and prod pytest-bdd harnesses consume the same generated corpus.
 
 composition_contracts:
   state_machine: 'target: state_machine defines context, initial view state, view states, state-local data dependencies, transitions, emitted messages, and optional state-local composition.'
-  scenario: 'target: scenario asserts a state-machine view state or composed state-machine instance vector.'
+  test_case: 'target: test_case asserts a state-machine view state or composed state-machine instance vector.'
 
 audit_contracts:
   text_resource: 'target: text_resource declares placeholder text for every rendered text ref.'

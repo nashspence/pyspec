@@ -250,7 +250,7 @@ def _fact_ids_for_model(contract: dict[str, Any], model_id: str) -> set[str]:
 def _fixture_ids_for_facts(contract: dict[str, Any], fact_ids: Iterable[str], model_id: str) -> set[str]:
     fixture_ids: set[str] = set()
     for fact_id in sorted(fact_ids):
-        fact_uses = [{"use": fact_id}]
+        fact_uses = [{"ref": fact_id}]
         try:
             _apply_fact_uses(contract, fact_uses, {}, model_id, [])
             continue
@@ -285,7 +285,7 @@ def _case_scope_inputs(contract: dict[str, Any], case: dict[str, Any]) -> tuple[
     text_refs = {text_ref for state_machine in state_machines for text_ref in state_machine["slots"].get("text", [])}
     asset_refs = {asset_ref for state_machine in state_machines for asset_ref in state_machine["slots"].get("assets", [])}
     fixture_ids = set(case.get("fixtures", []))
-    fact_ids = {fact_use["use"] for fact_use in case.get("facts", [])}
+    fact_ids = {fact_use["ref"] for fact_use in case.get("facts", [])}
     return text_refs, asset_refs, fixture_ids, fact_ids, case.get("context") or {}
 
 
@@ -2415,7 +2415,7 @@ def _apply_facts_with_available_fixtures(contract: dict[str, Any], model_id: str
         except (AssertionError, KeyError, TypeError):
             continue
     for fact_id in sorted(contract.get("facts", {})):
-        fact_uses = [{"use": fact_id}]
+        fact_uses = [{"ref": fact_id}]
         for namespace in namespaces:
             try:
                 next_records = _apply_fact_uses(contract, fact_uses, namespace, model_id, current)
@@ -2429,7 +2429,7 @@ def _apply_facts_with_available_fixtures(contract: dict[str, Any], model_id: str
 def _apply_fact_uses(contract: dict[str, Any], fact_uses: list[dict[str, str]], namespace: dict[str, Any], model_id: str, records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     current = list(records)
     for fact_use in fact_uses:
-        fact_id = fact_use["use"]
+        fact_id = fact_use["ref"]
         kind, body = _fact_selector(contract["facts"][fact_id], fact_id)
         if body["model"] != model_id:
             continue

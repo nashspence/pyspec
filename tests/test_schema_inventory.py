@@ -20,6 +20,7 @@ DEPRECATED_DEFINITION_NAMES = {
     "fsm",
     "model",
     "scenario",
+    "test_case",
     "workflow",
 }
 DEPRECATED_REFERENCE_DEFINITION_NAMES = {
@@ -38,6 +39,7 @@ DEPRECATED_REFERENCE_DEFINITION_NAMES = {
     "fixture_id",
     "fsm_id",
     "model_id",
+    "scenario_ref",
     "type_map",
     "type_name",
     "audit_profile_item",
@@ -46,6 +48,7 @@ DEPRECATED_REFERENCE_DEFINITION_NAMES = {
 DEPRECATED_TOP_LEVEL_PROPERTIES = {
     "audit_profiles",
     "copies",
+    "scenarios",
 }
 
 
@@ -128,7 +131,7 @@ def test_spec_ontology_rejects_deprecated_reference_terminology() -> None:
     text = DOC_PATH.read_text(encoding="utf-8")
     deprecated_terms = sorted(
         term
-        for term in DEPRECATED_REFERENCE_DEFINITION_NAMES | DEPRECATED_TOP_LEVEL_PROPERTIES | {"capability", "capabilities", "fsm", "fsms"}
+        for term in DEPRECATED_REFERENCE_DEFINITION_NAMES | DEPRECATED_TOP_LEVEL_PROPERTIES | {"capability", "capabilities", "fsm", "fsms", "scenario", "scenarios"}
         if term in text
     )
     assert deprecated_terms == []

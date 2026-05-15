@@ -21,7 +21,7 @@ COLLECTION_SECTIONS = {
     "fixtures": "fixture",
     "state_machines": "state_machine",
     "models": "model",
-    "scenarios": "scenario",
+    "test_cases": "test_case",
     "workflows": "workflow",
 }
 

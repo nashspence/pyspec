@@ -52,13 +52,13 @@ The human source is `spec/spec.yaml`. It is sparse, positive-only, and grouped b
 spec/spec.yaml
   -> spec/generated/compiled/spec.yaml
   -> product interfaces and behavior projections required by positive declarations
-  -> pytest-bdd adapter files derived from behavior/scenarios.yaml
+  -> pytest-bdd adapter files derived from behavior/test_cases.yaml
   -> audit evidence when state-machine view states declare audit cases
 ```
 
 The spec is progressive. If a concern is absent, it has no declaration and no generated projection. The spec does not contain storage implementation details, test-harness routing, dev-environment metadata, review state, release state, or schema-version chatter.
 
-Reusable top-level `facts` name preconditions, such as a model that must already exist. Scenarios can reference them with `given.facts: [{use: fact.project.submitted}]`, and state-local audit cases can reference them with `facts: [{use: fact.project.submitted}]`; the compiled spec expands scenario references back into concrete `present` or `absent` facts for the generated BDD harnesses.
+Reusable top-level `facts` name preconditions, such as a model that must already exist. Test cases can reference them with `given.domain_facts: [{ref: fact.project.submitted}]`, and state-local audit cases can reference them with `facts: [{ref: fact.project.submitted}]`; the compiled spec expands test-case references back into concrete `present` or `absent` facts for the generated BDD harnesses.
 
 ## Layers
 
@@ -113,7 +113,7 @@ spec/generated/
     textual.projection.py
   behavior/
     fixtures.yaml
-    scenarios.yaml
+    test_cases.yaml
   content_resolvers/
     signatures.py
     stubs.py

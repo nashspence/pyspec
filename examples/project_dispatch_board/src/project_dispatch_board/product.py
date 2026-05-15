@@ -35,10 +35,10 @@ class ProductApp:
         self.http_response: dict[str, Any] | None = None
         self.last_outcome: str | None = None
 
-    def arrange(self, arrange: Mapping[str, Any]) -> None:
+    def given(self, given: Mapping[str, Any]) -> None:
         self.reset()
-        self.fixtures = fixture_namespace(self.contract, list(arrange.get("fixtures", [])))
-        for fact in arrange.get("facts", []):
+        self.fixtures = fixture_namespace(self.contract, list(given.get("seed_fixtures", [])))
+        for fact in given.get("domain_facts", []):
             kind, body = next(iter(fact.items()))
             if body["model"] != "Project":
                 raise AssertionError("Example app only implements Project")
@@ -283,6 +283,16 @@ class ProductApp:
         policy = assertions.get("policy")
         if policy:
             assert policy in self.contract.get("refs", {}).get("policy", [])
+        for fact in assertions.get("assertion_facts", []):
+            kind, body = next(iter(fact.items()))
+            if body["model"] != "Project":
+                raise AssertionError("Example app only implements Project")
+            if kind == "present":
+                values = self._resolve_map(body["values"])
+                assert any(_matches(project, values) for project in self.projects)
+            elif kind == "absent":
+                where = self._resolve_map(body["where"])
+                assert not any(_matches(project, where) for project in self.projects)
 
     def _project(self, values: Mapping[str, Any]) -> dict[str, Any]:
         project = dict(values)

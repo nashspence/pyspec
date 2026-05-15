@@ -13,11 +13,11 @@ class ProdDriver:
     def __init__(self, root: Path):
         self.app = ProductApp(root)
 
-    def arrange(self, scenario_id: str, scenario: Mapping[str, Any]) -> None:
-        self.app.arrange(scenario["arrange"])
+    def given(self, test_case_id: str, test_case: Mapping[str, Any]) -> None:
+        self.app.given(test_case["given"])
 
-    def execute(self, scenario_id: str, scenario: Mapping[str, Any]) -> None:
-        kind, body = next(iter(scenario["execute"].items()))
+    def when(self, test_case_id: str, test_case: Mapping[str, Any]) -> None:
+        kind, body = next(iter(test_case["when"].items()))
         if kind == "open_entry":
             self.app.open_web_entry(body["ref"], self._resolve_map(body.get("input", {})))
         elif kind == "call_entry":
@@ -26,11 +26,11 @@ class ProdDriver:
             self.app.invoke_operation(body["ref"], self._resolve_map(body.get("input", {})))
         elif kind == "emit_event":
             self.app.emit_event(body["ref"], self._resolve_map(body.get("payload", {})))
-        else:  # pragma: no cover - generated scenarios prevent this.
-            raise AssertionError(f"Unsupported execute kind: {kind}")
+        else:  # pragma: no cover - generated test cases prevent this.
+            raise AssertionError(f"Unsupported when kind: {kind}")
 
-    def assert_obligations(self, scenario_id: str, scenario: Mapping[str, Any]) -> None:
-        self.app.assert_contract(scenario["assert"])
+    def then(self, test_case_id: str, test_case: Mapping[str, Any]) -> None:
+        self.app.assert_contract(test_case["then"])
 
     def _resolve_map(self, values: Mapping[str, Any]) -> dict[str, Any]:
         return {key: self._resolve(value) for key, value in values.items()}
