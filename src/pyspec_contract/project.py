@@ -65,6 +65,8 @@ def projection_paths(contract: dict[str, Any]) -> list[str]:
         paths.append(g("product_interfaces", "textual.projection.py"))
     if _has_workflow(contract):
         paths.append(g("product_interfaces", "workflow.cwl.yaml"))
+    if _has_policies(contract):
+        paths.append(g("product_interfaces", "policies.json"))
     if _has_content(contract):
         paths.extend([g("content_resolvers", "__init__.py"), g("content_resolvers", "signatures.py"), g("content_resolvers", "stubs.py"), g("content_resolvers", "cases.yaml")])
     paths.extend(sorted(feature_projections(contract)))
@@ -97,6 +99,8 @@ def projection_files(contract: dict[str, Any], *, layers: str | set[str] | None 
         yield g("product_interfaces", "textual.projection.py"), textual_contract_projection(contract), "text"
     if _has_workflow(contract):
         yield g("product_interfaces", "workflow.cwl.yaml"), workflows_projection(contract), "yaml"
+    if _has_policies(contract):
+        yield g("product_interfaces", "policies.json"), policies_projection(contract), "json"
     yield g("behavior", "fixtures.yaml"), fixtures_projection(contract), "yaml"
     yield g("behavior", "test_cases.yaml"), test_cases_projection(contract), "yaml"
     yield g("test_adapters", "python_refs.py"), refs_py_projection(contract), "text"
@@ -160,6 +164,10 @@ def _has_content(contract: dict[str, Any]) -> bool:
     return bool(contract.get("text_resources") or contract.get("assets") or contract.get("content_cases"))
 
 
+def _has_policies(contract: dict[str, Any]) -> bool:
+    return bool(contract.get("policies"))
+
+
 def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
     paths: dict[str, Any] = {}
     for entry_id, entry in sorted(contract["entry_points"].items()):
@@ -184,7 +192,7 @@ def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
             "operationId": cap_id,
             "x-entry": entry_id,
             "x-operation": cap_id,
-            "x-policy": cap["policy"],
+            "x-policy": cap["policy_guard"]["policy"],
             "parameters": [
                 {"name": name, "in": "path", "required": True, "schema": type_schema(type_name)}
                 for name, type_name in sorted(params.items())
@@ -723,6 +731,22 @@ def fixtures_projection(contract: dict[str, Any]) -> dict[str, Any]:
 
 def test_cases_projection(contract: dict[str, Any]) -> dict[str, Any]:
     return {"project": contract["project"], "test_cases": contract["test_cases"]}
+
+
+def policies_projection(contract: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "project": contract["project"],
+        "policies": contract.get("policies", {}),
+        "operation_guards": {
+            operation_id: operation["policy_guard"]
+            for operation_id, operation in sorted(contract.get("operations", {}).items())
+        },
+        "entry_point_guards": {
+            entry_id: entry["policy_guard"]
+            for entry_id, entry in sorted(contract.get("entry_points", {}).items())
+            if "policy_guard" in entry
+        },
+    }
 
 
 def content_cases_projection(contract: dict[str, Any]) -> dict[str, Any]:

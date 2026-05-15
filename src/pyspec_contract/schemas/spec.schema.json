@@ -543,6 +543,9 @@
         "rationale": {
           "$ref": "#/$defs/rationale"
         },
+        "policy_guard": {
+          "$ref": "#/$defs/policy_guard"
+        },
         "cli_command_ref": {
           "pattern": "^cli_command\\.",
           "type": "string"
@@ -1354,6 +1357,60 @@
       ],
       "type": "object"
     },
+    "policy_item": {
+      "additionalProperties": false,
+      "properties": {
+        "rationale": {
+          "$ref": "#/$defs/rationale"
+        },
+        "actions": {
+          "items": {
+            "$ref": "#/$defs/policy_action"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "conditions": {
+          "items": {
+            "$ref": "#/$defs/policy_condition"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "effect": {
+          "enum": [
+            "allow",
+            "deny"
+          ]
+        },
+        "resources": {
+          "items": {
+            "$ref": "#/$defs/policy_resource"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "subjects": {
+          "items": {
+            "$ref": "#/$defs/policy_subject"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "subjects",
+        "actions",
+        "resources",
+        "effect",
+        "conditions",
+        "rationale"
+      ],
+      "type": "object"
+    },
     "operation_item": {
       "additionalProperties": false,
       "properties": {
@@ -1387,9 +1444,8 @@
         "outcomes": {
           "$ref": "#/$defs/operation_outcomes"
         },
-        "policy": {
-          "pattern": "^policy\\.",
-          "type": "string"
+        "policy_guard": {
+          "$ref": "#/$defs/policy_guard"
         },
         "reads": {
           "items": {
@@ -1434,7 +1490,7 @@
         "operation_kind",
         "input",
         "outcomes",
-        "policy",
+        "policy_guard",
         "rationale",
         "reads",
         "creates",
@@ -1483,6 +1539,218 @@
     "operation_ref": {
       "pattern": "^operation\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
+    },
+    "policy_action": {
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "operation"
+          ]
+        },
+        {
+          "required": [
+            "entry_point"
+          ]
+        }
+      ],
+      "properties": {
+        "entry_point": {
+          "$ref": "#/$defs/entry_point_ref"
+        },
+        "operation": {
+          "$ref": "#/$defs/operation_ref"
+        }
+      },
+      "type": "object"
+    },
+    "policy_assertion": {
+      "additionalProperties": false,
+      "properties": {
+        "allowed": {
+          "items": {
+            "$ref": "#/$defs/policy_decision_assertion"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "denied": {
+          "items": {
+            "$ref": "#/$defs/policy_decision_assertion"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "type": "object"
+    },
+    "policy_condition": {
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "always"
+          ]
+        },
+        {
+          "required": [
+            "input_present"
+          ]
+        },
+        {
+          "required": [
+            "resource_exists"
+          ]
+        },
+        {
+          "required": [
+            "resource_state"
+          ]
+        },
+        {
+          "required": [
+            "subject_role"
+          ]
+        }
+      ],
+      "properties": {
+        "always": {
+          "type": "boolean"
+        },
+        "input_present": {
+          "$ref": "#/$defs/field_name"
+        },
+        "resource_exists": {
+          "additionalProperties": false,
+          "properties": {
+            "model": {
+              "$ref": "#/$defs/model_ref"
+            }
+          },
+          "required": [
+            "model"
+          ],
+          "type": "object"
+        },
+        "resource_state": {
+          "additionalProperties": false,
+          "properties": {
+            "equals": {
+              "$ref": "#/$defs/scalar"
+            },
+            "field": {
+              "$ref": "#/$defs/field_name"
+            },
+            "model": {
+              "$ref": "#/$defs/model_ref"
+            }
+          },
+          "required": [
+            "model",
+            "field",
+            "equals"
+          ],
+          "type": "object"
+        },
+        "subject_role": {
+          "$ref": "#/$defs/field_name"
+        }
+      },
+      "type": "object"
+    },
+    "policy_decision_assertion": {
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "operation"
+          ]
+        },
+        {
+          "required": [
+            "entry_point"
+          ]
+        }
+      ],
+      "properties": {
+        "entry_point": {
+          "$ref": "#/$defs/entry_point_ref"
+        },
+        "guard": {
+          "$ref": "#/$defs/policy_ref"
+        },
+        "operation": {
+          "$ref": "#/$defs/operation_ref"
+        }
+      },
+      "type": "object"
+    },
+    "policy_guard": {
+      "additionalProperties": false,
+      "properties": {
+        "policy": {
+          "$ref": "#/$defs/policy_ref"
+        }
+      },
+      "required": [
+        "policy"
+      ],
+      "type": "object"
+    },
+    "policy_ref": {
+      "pattern": "^policy\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "type": "string"
+    },
+    "policy_resource": {
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "model"
+          ]
+        },
+        {
+          "required": [
+            "operation"
+          ]
+        },
+        {
+          "required": [
+            "entry_point"
+          ]
+        }
+      ],
+      "properties": {
+        "entry_point": {
+          "$ref": "#/$defs/entry_point_ref"
+        },
+        "model": {
+          "$ref": "#/$defs/model_ref"
+        },
+        "operation": {
+          "$ref": "#/$defs/operation_ref"
+        }
+      },
+      "type": "object"
+    },
+    "policy_subject": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "actor",
+            "system",
+            "anonymous"
+          ]
+        },
+        "source": {
+          "$ref": "#/$defs/runtime_expression"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "type": "object"
     },
     "python_class_name": {
       "pattern": "^[A-Z][A-Za-z0-9]*$",
@@ -2880,7 +3148,7 @@
           "type": "array"
         },
         "policy": {
-          "type": "string"
+          "$ref": "#/$defs/policy_assertion"
         },
         "requires": {
           "additionalProperties": false,
@@ -3010,6 +3278,15 @@
       },
       "propertyNames": {
         "$ref": "#/$defs/model_ref"
+      },
+      "type": "object"
+    },
+    "policies": {
+      "additionalProperties": {
+        "$ref": "#/$defs/policy_item"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/policy_ref"
       },
       "type": "object"
     },

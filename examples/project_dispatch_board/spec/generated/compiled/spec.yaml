@@ -63,6 +63,8 @@ entry_points:
                 model: Problem
             status: 422
     endpoint: endpoint.project.create
+    policy_guard:
+      policy: policy.project.create
     rationale: HTTP endpoint for creating a dispatch project.
     trigger:
       operation:
@@ -96,6 +98,8 @@ entry_points:
                 model: Problem
             status: 503
     endpoint: endpoint.project.list
+    policy_guard:
+      policy: policy.project.list
     rationale: HTTP endpoint for listing dispatch projects.
     trigger:
       operation:
@@ -132,6 +136,8 @@ entry_points:
               type:
                 model: Problem
     cli_command_ref: cli_command.project.approve
+    policy_guard:
+      policy: policy.project.approve
     rationale: CLI entry for approval automation.
     trigger:
       operation:
@@ -402,7 +408,8 @@ operations:
         kind: failure
         result:
           model: Problem
-    policy: policy.project.approve
+    policy_guard:
+      policy: policy.project.approve
     rationale: Reviewers can approve submitted dispatch projects.
     reads: []
     transition:
@@ -436,7 +443,8 @@ operations:
         kind: failure
         result:
           model: Problem
-    policy: policy.project.archive
+    policy_guard:
+      policy: policy.project.archive
     rationale: Approved dispatch projects can be archived.
     reads: []
     transition:
@@ -472,7 +480,8 @@ operations:
         kind: failure
         result:
           model: Problem
-    policy: policy.project.create
+    policy_guard:
+      policy: policy.project.create
     rationale: Members can create a new dispatch project.
     reads: []
     updates: []
@@ -495,7 +504,8 @@ operations:
         kind: failure
         result:
           model: Problem
-    policy: policy.project.list
+    policy_guard:
+      policy: policy.project.list
     rationale: The board requires a project list query scoped by workspace.
     reads:
     - Project
@@ -518,7 +528,8 @@ operations:
         kind: failure
         result:
           model: Problem
-    policy: policy.project.read
+    policy_guard:
+      policy: policy.project.read
     rationale: The detail state machine loads the selected project by id.
     reads:
     - Project
@@ -543,7 +554,8 @@ operations:
         kind: success
         result:
           model: NoticeResult
-    policy: policy.project.send_approval_notice
+    policy_guard:
+      policy: policy.project.send_approval_notice
     rationale: Approval triggers a notification command for downstream coordination.
     reads: []
     updates: []
@@ -572,7 +584,8 @@ operations:
         kind: success
         result:
           model: Project
-    policy: policy.project.submit
+    policy_guard:
+      policy: policy.project.submit
     rationale: Draft dispatch projects can be submitted for review.
     reads: []
     transition:
@@ -581,6 +594,95 @@ operations:
       model: Project
       to: submitted
     updates: []
+policies:
+  policy.project.approve:
+    actions:
+    - operation: operation.project.approve
+    conditions:
+    - resource_state:
+        equals: submitted
+        field: status
+        model: Project
+    effect: allow
+    rationale: Reviewers can approve submitted dispatch projects.
+    resources:
+    - model: Project
+    subjects:
+    - kind: actor
+      source: $input.approved_by
+  policy.project.archive:
+    actions:
+    - operation: operation.project.archive
+    conditions:
+    - resource_state:
+        equals: approved
+        field: status
+        model: Project
+    effect: allow
+    rationale: Approved dispatch projects can be archived.
+    resources:
+    - model: Project
+    subjects:
+    - kind: actor
+  policy.project.create:
+    actions:
+    - operation: operation.project.create
+    conditions:
+    - always: true
+    effect: allow
+    rationale: Members can create a new dispatch project.
+    resources:
+    - model: Project
+    subjects:
+    - kind: actor
+  policy.project.list:
+    actions:
+    - operation: operation.project.list
+    conditions:
+    - always: true
+    effect: allow
+    rationale: The board requires a project list query scoped by workspace.
+    resources:
+    - model: Project
+    subjects:
+    - kind: actor
+  policy.project.read:
+    actions:
+    - operation: operation.project.read
+    conditions:
+    - always: true
+    effect: allow
+    rationale: The detail state machine loads the selected project by id.
+    resources:
+    - model: Project
+    subjects:
+    - kind: actor
+  policy.project.send_approval_notice:
+    actions:
+    - operation: operation.project.send_approval_notice
+    conditions:
+    - always: true
+    effect: allow
+    rationale: Approval triggers a notification command for downstream coordination.
+    resources:
+    - operation: operation.project.send_approval_notice
+    subjects:
+    - kind: actor
+      source: $input.approved_by
+  policy.project.submit:
+    actions:
+    - operation: operation.project.submit
+    conditions:
+    - resource_state:
+        equals: draft
+        field: status
+        model: Project
+    effect: allow
+    rationale: Draft dispatch projects can be submitted for review.
+    resources:
+    - model: Project
+    subjects:
+    - kind: actor
 project: project_dispatch_board
 refs:
   asset:
@@ -1133,7 +1235,10 @@ test_cases:
             id: project_submitted_1
             status: approved
       outcome: approved
-      policy: policy.project.approve
+      policy:
+        allowed:
+        - guard: policy.project.approve
+          operation: operation.project.approve
     title: Approve submitted dispatch project
     when:
       invoke_operation:
@@ -1158,8 +1263,10 @@ test_cases:
     then:
       enables:
       - operation.project.create
-      forbids:
-      - operation.project.approve
+      policy:
+        denied:
+        - guard: policy.project.approve
+          operation: operation.project.approve
       requires:
         assets:
         - asset.project.list.empty.illustration
@@ -1561,7 +1668,10 @@ test_cases:
             title: Replace rooftop condenser fan
             workspace_id: $fixture.workspace.id
       outcome: created
-      policy: policy.project.create
+      policy:
+        allowed:
+        - guard: policy.project.create
+          operation: operation.project.create
       response:
         status: 201
     title: Create dispatch project through API

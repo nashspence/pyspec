@@ -63,7 +63,10 @@ test_cases:
             id: project_submitted_1
             status: approved
       outcome: approved
-      policy: policy.project.approve
+      policy:
+        allowed:
+        - guard: policy.project.approve
+          operation: operation.project.approve
     title: Approve submitted dispatch project
     when:
       invoke_operation:
@@ -88,8 +91,10 @@ test_cases:
     then:
       enables:
       - operation.project.create
-      forbids:
-      - operation.project.approve
+      policy:
+        denied:
+        - guard: policy.project.approve
+          operation: operation.project.approve
       requires:
         assets:
         - asset.project.list.empty.illustration
@@ -491,7 +496,10 @@ test_cases:
             title: Replace rooftop condenser fan
             workspace_id: $fixture.workspace.id
       outcome: created
-      policy: policy.project.create
+      policy:
+        allowed:
+        - guard: policy.project.create
+          operation: operation.project.create
       response:
         status: 201
     title: Create dispatch project through API

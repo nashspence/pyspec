@@ -45,13 +45,13 @@ purity_rules:
 test_case_archetypes:
   empty_collection_state_machine:
     when: open_entry
-    then: [state_machine.view_state.empty, enables, forbids]
+    then: [state_machine.view_state.empty, enables, policy.denied]
   ready_collection_state_machine:
     when: open_entry
     then: [state_machine.view_state.ready, enables]
   state_machine_composition:
     when: open_entry
-    then: [state_machine.instances, enables, forbids]
+    then: [state_machine.instances, enables, policy.denied]
   state_machine_composition_sync:
     when: open_entry
     then: [state_machine.instances, state_machine.context, state_machine.message_sync_rules.observed]
@@ -66,7 +66,7 @@ test_case_archetypes:
     then: [workflow.executed, workflow.outcome, invoked]
   forbidden_action:
     when: open_entry
-    then: [forbids]
+    then: [policy.denied]
 
 entry_point_adapters:
   http:

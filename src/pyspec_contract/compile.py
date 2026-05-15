@@ -90,7 +90,7 @@ def validate_against_schema(data: dict[str, Any], schema_name: str) -> None:
         raise ContractError("Schema validation failed:\n" + str(exc)) from exc
 
 
-TARGET_ORDER = ("text_resource", "asset", "content_case", "render_profile", "fixture", "fact", "model", "operation", "event", "state_machine", "entry_point", "workflow", "test_case")
+TARGET_ORDER = ("text_resource", "asset", "content_case", "render_profile", "fixture", "fact", "model", "policy", "operation", "event", "state_machine", "entry_point", "workflow", "test_case")
 
 
 
@@ -102,6 +102,7 @@ ENTITY_SECTIONS: dict[str, str] = {
     "fixture": "fixtures",
     "fact": "facts",
     "model": "models",
+    "policy": "policies",
     "operation": "operations",
     "event": "events",
     "state_machine": "state_machines",
@@ -124,6 +125,7 @@ def empty_compiled_contract(project: str) -> dict[str, Any]:
         "fixtures": {},
         "facts": {},
         "models": {},
+        "policies": {},
         "operations": {},
         "events": {},
         "state_machines": {},
@@ -134,7 +136,7 @@ def empty_compiled_contract(project: str) -> dict[str, Any]:
     }
 
 
-AUTHOR_SECTION_ORDER = ("fixtures", "facts", "models", "operations", "events", "state_machines", "entry_points", "workflows", "test_cases", "text_resources", "assets", "content_cases", "render_profiles")
+AUTHOR_SECTION_ORDER = ("fixtures", "facts", "models", "policies", "operations", "events", "state_machines", "entry_points", "workflows", "test_cases", "text_resources", "assets", "content_cases", "render_profiles")
 
 
 def _prune_empty_author_sections(author: dict[str, Any]) -> dict[str, Any]:
@@ -235,6 +237,7 @@ def compile_author(author: dict[str, Any], layers: set[str] | None = None) -> di
             section[entity_id] = _compile_entity(entity, spec, contract)
 
     _derive_operation_transitions(contract)
+    _derive_policies(contract)
     contract["events"] = _derive_events(contract)
     contract["refs"] = _derive_refs(contract)
     used_facts = _expand_test_case_fact_uses(contract)
@@ -303,6 +306,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
         return item
 
     if entity == "operation":
+        policy_guard = copy.deepcopy(spec.get("policy_guard", {"policy": rules.policy_ref(spec["id"])}))
         outcomes = {}
         for outcome_id, outcome in spec["outcomes"].items():
             normalized_outcome = copy.deepcopy(outcome)
@@ -317,13 +321,23 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             "creates": list(spec.get("creates", [])),
             "updates": list(spec.get("updates", [])),
             "deletes": list(spec.get("deletes", [])),
-            "policy": rules.policy_ref(spec["id"]),
+            "policy_guard": policy_guard,
             "rationale": spec["rationale"],
         }
         for field in ["transition"]:
             if field in spec:
                 operation[field] = spec[field]
         return operation
+
+    if entity == "policy":
+        return {
+            "subjects": copy.deepcopy(spec["subjects"]),
+            "actions": copy.deepcopy(spec["actions"]),
+            "resources": copy.deepcopy(spec["resources"]),
+            "effect": spec["effect"],
+            "conditions": copy.deepcopy(spec.get("conditions", [])),
+            "rationale": spec["rationale"],
+        }
 
     if entity == "event":
         return {
@@ -354,14 +368,20 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             "trigger": spec["trigger"],
             "rationale": spec["rationale"],
         }
+        if "policy_guard" in spec:
+            entry["policy_guard"] = copy.deepcopy(spec["policy_guard"])
         adapter_kind, _ = entry_point_adapter_pair(entry)
         trigger_kind, trigger = entry_point_trigger_pair(entry)
         if adapter_kind == "ui" and trigger_kind == "state_machine":
             entry["route"] = rules.route_ref(trigger["ref"])
         elif adapter_kind == "http" and trigger_kind == "operation":
             entry["endpoint"] = rules.endpoint_ref(trigger["ref"])
+            if trigger["ref"] in contract["operations"]:
+                entry.setdefault("policy_guard", copy.deepcopy(contract["operations"][trigger["ref"]]["policy_guard"]))
         elif adapter_kind == "cli":
             entry["cli_command_ref"] = rules.cli_command_ref(trigger["ref"])
+            if trigger_kind == "operation" and trigger["ref"] in contract["operations"]:
+                entry.setdefault("policy_guard", copy.deepcopy(contract["operations"][trigger["ref"]]["policy_guard"]))
         elif adapter_kind in {"worker", "scheduled"} and trigger_kind == "workflow":
             entry["workflow_ref"] = rules.workflow_ref(trigger["ref"])
         return entry
@@ -489,6 +509,54 @@ def _derive_operation_transitions(contract: dict[str, Any]) -> None:
         operation["transition"] = derived
 
 
+def _derive_policies(contract: dict[str, Any]) -> None:
+    for operation_id, operation in sorted(contract["operations"].items()):
+        policy_id = operation["policy_guard"]["policy"]
+        contract["policies"].setdefault(policy_id, _default_operation_policy(operation_id, operation))
+
+
+def _default_operation_policy(operation_id: str, operation: dict[str, Any]) -> dict[str, Any]:
+    resources = _operation_policy_resources(operation_id, operation)
+    conditions: list[dict[str, Any]] = []
+    transition = operation.get("transition")
+    if transition:
+        conditions.append({
+            "resource_state": {
+                "model": transition["model"],
+                "field": transition["field"],
+                "equals": transition["from"],
+            }
+        })
+    return {
+        "subjects": [_operation_policy_subject(operation)],
+        "actions": [{"operation": operation_id}],
+        "resources": resources,
+        "effect": "allow",
+        "conditions": conditions or [{"always": True}],
+        "rationale": operation["rationale"],
+    }
+
+
+def _operation_policy_subject(operation: dict[str, Any]) -> dict[str, Any]:
+    for field in sorted(operation.get("input", {})):
+        if field.endswith("_by"):
+            return {"kind": "actor", "source": f"$input.{field}"}
+    return {"kind": "actor"}
+
+
+def _operation_policy_resources(operation_id: str, operation: dict[str, Any]) -> list[dict[str, str]]:
+    models: list[str] = []
+    transition = operation.get("transition")
+    if transition:
+        models.append(transition["model"])
+    for field in ("reads", "creates", "updates", "deletes"):
+        models.extend(operation.get(field, []))
+    unique_models = list(dict.fromkeys(models))
+    if unique_models:
+        return [{"model": model_id} for model_id in unique_models]
+    return [{"operation": operation_id}]
+
+
 def _derive_events(contract: dict[str, Any]) -> dict[str, Any]:
     events: dict[str, Any] = copy.deepcopy(contract.get("events", {}))
     for operation_id, operation in sorted(contract["operations"].items()):
@@ -516,8 +584,7 @@ def _emit_event_id(emit: Any) -> str:
 
 def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
     refs: dict[str, set[str]] = {kind: set() for kind in REF_KINDS}
-    for operation_id, operation in contract["operations"].items():
-        refs["policy"].add(operation["policy"])
+    refs["policy"].update(contract.get("policies", {}))
     refs["text"].update(contract.get("text_resources", {}))
     refs["asset"].update(contract.get("assets", {}))
     for state_machine_id in contract["state_machines"]:
@@ -565,6 +632,7 @@ def _semantic_validate(contract: dict[str, Any], used_facts: set[str]) -> None:
     _validate_state_machines(contract)
     _validate_state_machine_message_payload_consistency(contract)
     _validate_entries(contract)
+    _validate_policies(contract)
     _validate_workflows(contract)
     _validate_fixtures(contract)
     _validate_facts(contract)
@@ -907,6 +975,66 @@ def _validate_operation_outcomes(cid: str, cap: dict[str, Any]) -> None:
                 raise ContractError(f"Operation {cid} failure outcome {outcome_id} must not emit events")
             if not is_problem_type(outcome["result"]):
                 raise ContractError(f"Operation {cid} failure outcome {outcome_id} result must be Problem or a *Problem type")
+
+
+def _validate_policies(contract: dict[str, Any]) -> None:
+    policies = contract["policies"]
+    operations = contract["operations"]
+    entry_points = contract["entry_points"]
+    for operation_id, operation in operations.items():
+        policy_id = operation["policy_guard"]["policy"]
+        if policy_id not in policies:
+            raise ContractError(f"Operation {operation_id} references unknown policy {policy_id}")
+        if not _policy_covers_action(policies[policy_id], "operation", operation_id):
+            raise ContractError(f"Operation {operation_id} policy_guard {policy_id} must cover operation action")
+    for entry_id, entry in entry_points.items():
+        guard = entry.get("policy_guard")
+        if not guard:
+            continue
+        policy_id = guard["policy"]
+        if policy_id not in policies:
+            raise ContractError(f"Entry point {entry_id} references unknown policy {policy_id}")
+        target_kind, target_ref = entry_target_pair(entry)
+        if not _policy_covers_action(policies[policy_id], "entry_point", entry_id) and not _policy_covers_action(policies[policy_id], target_kind, target_ref):
+            raise ContractError(f"Entry point {entry_id} policy_guard {policy_id} must cover entry point or target action")
+    for policy_id, policy in policies.items():
+        for action in policy["actions"]:
+            kind, ref = _one(action, f"Policy {policy_id} action")
+            if kind == "operation" and ref not in operations:
+                raise ContractError(f"Policy {policy_id} action references unknown operation {ref}")
+            if kind == "entry_point" and ref not in entry_points:
+                raise ContractError(f"Policy {policy_id} action references unknown entry point {ref}")
+        for resource in policy["resources"]:
+            kind, ref = _one(resource, f"Policy {policy_id} resource")
+            if kind == "model" and ref not in contract["models"]:
+                raise ContractError(f"Policy {policy_id} resource references unknown model {ref}")
+            if kind == "operation" and ref not in operations:
+                raise ContractError(f"Policy {policy_id} resource references unknown operation {ref}")
+            if kind == "entry_point" and ref not in entry_points:
+                raise ContractError(f"Policy {policy_id} resource references unknown entry point {ref}")
+        for condition in policy.get("conditions", []):
+            kind, body = _one(condition, f"Policy {policy_id} condition")
+            if kind in {"always", "input_present", "subject_role"}:
+                continue
+            if kind in {"resource_exists", "resource_state"}:
+                model_id = body["model"]
+                if model_id not in contract["models"]:
+                    raise ContractError(f"Policy {policy_id} condition references unknown model {model_id}")
+                if kind == "resource_state" and body["field"] not in contract["models"][model_id]["fields"]:
+                    raise ContractError(f"Policy {policy_id} condition references unknown {model_id} field {body['field']}")
+                continue
+            raise ContractError(f"Policy {policy_id} condition is unsupported: {kind}")
+
+
+def _policy_covers_action(policy: dict[str, Any], kind: str, ref: str) -> bool:
+    return any(action == {kind: ref} for action in policy.get("actions", []))
+
+
+def _policy_assertion_target(assertion: dict[str, Any], label: str) -> tuple[str, str]:
+    items = [(key, assertion[key]) for key in ("operation", "entry_point") if key in assertion]
+    if len(items) != 1:
+        raise ContractError(f"{label} must contain exactly one policy target")
+    return items[0]
 
 
 def _validate_emit_payload_mapping(
@@ -1651,7 +1779,7 @@ def _validate_entries(contract: dict[str, Any]) -> None:
 
 
 def _validate_entry_point_fields(entry_id: str, entry: dict[str, Any], adapter_kind: str) -> None:
-    allowed = {"adapter", "trigger", "rationale"}
+    allowed = {"adapter", "trigger", "rationale", "policy_guard"}
     generated = {
         "ui": {"route"},
         "http": {"endpoint"},
@@ -2566,6 +2694,17 @@ def _validate_test_case_then(contract: dict[str, Any], test_case_id: str, test_c
         for cap_id in then.get(field, []):
             if cap_id not in contract["operations"]:
                 raise ContractError(f"Test case {test_case_id} {field} unknown operation {cap_id}")
+    policy_assertion = then.get("policy") or {}
+    for effect in ("allowed", "denied"):
+        for assertion in policy_assertion.get(effect, []):
+            kind, ref = _policy_assertion_target(assertion, f"Test case {test_case_id} policy.{effect}")
+            if kind == "operation" and ref not in contract["operations"]:
+                raise ContractError(f"Test case {test_case_id} policy.{effect} unknown operation {ref}")
+            if kind == "entry_point" and ref not in contract["entry_points"]:
+                raise ContractError(f"Test case {test_case_id} policy.{effect} unknown entry point {ref}")
+            guard = assertion.get("guard")
+            if guard and guard not in contract["policies"]:
+                raise ContractError(f"Test case {test_case_id} policy.{effect} unknown guard {guard}")
     model_exists = (then.get("model") or {}).get("exists")
     if model_exists:
         model_id = model_exists["model"]
@@ -2722,8 +2861,8 @@ def _validate_test_case_archetype(test_case_id: str, test_case: dict[str, Any]) 
         if when_kind != "emit_event" or not workflow.get("executed") or "outcome" not in workflow:
             raise ContractError(f"Test case {test_case_id} workflow_event_success requires emit_event, workflow.executed=true, and workflow.outcome")
     elif archetype == "forbidden_action":
-        if "forbids" not in then:
-            raise ContractError(f"Test case {test_case_id} forbidden_action requires forbids")
+        if not (then.get("policy") or {}).get("denied"):
+            raise ContractError(f"Test case {test_case_id} forbidden_action requires policy.denied")
 
 
 def _expand_test_case_fact_uses(contract: dict[str, Any]) -> set[str]:
@@ -2843,7 +2982,25 @@ def _expand_test_cases(contract: dict[str, Any]) -> None:
             if target_kind == "operation":
                 cap_id = target_ref
         if cap_id:
-            assertions.setdefault("policy", contract["operations"][cap_id]["policy"])
+            assertions.setdefault("policy", {"allowed": [{"operation": cap_id}]})
+        _expand_policy_assertions(contract, assertions)
+
+
+def _expand_policy_assertions(contract: dict[str, Any], assertions: dict[str, Any]) -> None:
+    policy = assertions.get("policy")
+    if not policy:
+        return
+    for effect in ("allowed", "denied"):
+        for assertion in policy.get(effect, []):
+            if "guard" in assertion:
+                continue
+            kind, ref = _policy_assertion_target(assertion, f"policy.{effect}")
+            if kind == "operation":
+                assertion["guard"] = contract["operations"][ref]["policy_guard"]["policy"]
+            elif kind == "entry_point":
+                guard = contract["entry_points"][ref].get("policy_guard")
+                if guard:
+                    assertion["guard"] = guard["policy"]
 
 
 def _stash_generated_tree(root: Path) -> tuple[Path | None, Path | None]:

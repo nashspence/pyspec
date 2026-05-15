@@ -411,6 +411,8 @@ def test_author_contract_can_omit_absent_sections() -> None:
     assert set(contract["models"]) == {"Ticket"}
     assert contract["entry_points"] == {}
     assert contract["state_machines"] == {}
+    assert contract["policies"]["policy.ticket.create"]["actions"] == [{"operation": "operation.ticket.create"}]
+    assert contract["operations"]["operation.ticket.create"]["policy_guard"] == {"policy": "policy.ticket.create"}
     assert contract["refs"]["policy"] == ["policy.ticket.create"]
     assert contract["models"]["Ticket"]["rationale"] == "Declared model Ticket."
     assert contract["operations"]["operation.ticket.create"]["rationale"] == "Members can create tickets."

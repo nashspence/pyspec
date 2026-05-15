@@ -1,82 +1,84 @@
-<svg width="891pt" height="187pt"
- viewBox="0.00 0.00 891.00 187.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: c77ee9ef71ab031b243b68f392d52de136b051c79c51213f1011eb8f914b445b -->
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 169)">
+<svg width="891pt" height="199pt"
+ viewBox="0.00 0.00 891.00 199.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: a593d5d491760cad7bc573e73fd04041723b796420f1f1e1804e6fc339782a4f -->
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 181)">
 <title>entrypoint_entry_point_web_project_board</title>
 <!-- entry_start -->
 <g id="node1" class="node">
 <title>entry_start</title>
-<ellipse fill="none" stroke="#0891b2" cx="21" cy="-75.5" rx="21" ry="21"/>
-<text text-anchor="middle" x="21" y="-73.3" font-family="Arial" font-size="9.00" fill="#155e75">entry</text>
+<ellipse fill="none" stroke="#0891b2" cx="21" cy="-81.5" rx="21" ry="21"/>
+<text text-anchor="middle" x="21" y="-79.3" font-family="Arial" font-size="9.00" fill="#155e75">entry</text>
 </g>
 <!-- entrypoint_entry_point_web_project_board -->
 <g id="node2" class="node">
 <title>entrypoint_entry_point_web_project_board</title>
-<polygon fill="#ffffff" stroke="transparent" points="103,-35 103,-116 356,-116 356,-35 103,-35"/>
-<polygon fill="#0891b2" stroke="transparent" points="104.5,-106.5 104.5,-114.5 355.5,-114.5 355.5,-106.5 104.5,-106.5"/>
-<polygon fill="#ecfeff" stroke="transparent" points="104.5,-75.5 104.5,-106.5 355.5,-106.5 355.5,-75.5 104.5,-75.5"/>
-<text text-anchor="start" x="108.5" y="-93.1" font-family="Arial" font-weight="bold" font-size="13.00">/workspaces/{workspace_id}/dispatch</text>
-<text text-anchor="start" x="108.5" y="-82.1" font-family="Arial" font-size="8.00" fill="#64748b">ui entry point</text>
-<text text-anchor="start" x="108.5" y="-64.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Web entry for the dispatch board.</text>
-<text text-anchor="start" x="109.5" y="-44.5" font-family="Arial" font-weight="bold" font-size="10.00">route:</text>
-<text text-anchor="start" x="137.5" y="-44.5" font-family="Arial" font-size="10.00">  route.project.board</text>
-<polygon fill="none" stroke="#0891b2" points="103,-35 103,-116 356,-116 356,-35 103,-35"/>
+<polygon fill="#ffffff" stroke="transparent" points="103,-41 103,-122 356,-122 356,-41 103,-41"/>
+<polygon fill="#0891b2" stroke="transparent" points="104.5,-112.5 104.5,-120.5 355.5,-120.5 355.5,-112.5 104.5,-112.5"/>
+<polygon fill="#ecfeff" stroke="transparent" points="104.5,-81.5 104.5,-112.5 355.5,-112.5 355.5,-81.5 104.5,-81.5"/>
+<text text-anchor="start" x="108.5" y="-99.1" font-family="Arial" font-weight="bold" font-size="13.00">/workspaces/{workspace_id}/dispatch</text>
+<text text-anchor="start" x="108.5" y="-88.1" font-family="Arial" font-size="8.00" fill="#64748b">ui entry point</text>
+<text text-anchor="start" x="108.5" y="-70.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Web entry for the dispatch board.</text>
+<text text-anchor="start" x="109.5" y="-50.5" font-family="Arial" font-weight="bold" font-size="10.00">route:</text>
+<text text-anchor="start" x="137.5" y="-50.5" font-family="Arial" font-size="10.00">  route.project.board</text>
+<polygon fill="none" stroke="#0891b2" points="103,-41 103,-122 356,-122 356,-41 103,-41"/>
 </g>
 <!-- entry_start&#45;&gt;entrypoint_entry_point_web_project_board -->
 <g id="edge1" class="edge">
 <title>entry_start&#45;&gt;entrypoint_entry_point_web_project_board</title>
-<path fill="none" stroke="#3f3f46" d="M42.18,-75.5C55.44,-75.5 74.06,-75.5 94.45,-75.5"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="94.66,-78.3 102.66,-75.5 94.66,-72.7 94.66,-78.3"/>
+<path fill="none" stroke="#3f3f46" d="M42.18,-81.5C55.44,-81.5 74.06,-81.5 94.45,-81.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="94.66,-84.3 102.66,-81.5 94.66,-78.7 94.66,-84.3"/>
 </g>
 <!-- entrypoint_input_entry_point_web_project_board -->
 <g id="node3" class="node">
 <title>entrypoint_input_entry_point_web_project_board</title>
-<polygon fill="#ffffff" stroke="transparent" points="417,-40 417,-111 501,-111 501,-40 417,-40"/>
-<polygon fill="#64748b" stroke="transparent" points="418,-101.5 418,-109.5 500,-109.5 500,-101.5 418,-101.5"/>
-<polygon fill="#f8fafc" stroke="transparent" points="418,-70.5 418,-101.5 500,-101.5 500,-70.5 418,-70.5"/>
-<text text-anchor="start" x="422" y="-88.1" font-family="Arial" font-weight="bold" font-size="13.00">request</text>
-<text text-anchor="start" x="422" y="-77.1" font-family="Arial" font-size="8.00" fill="#64748b">external data</text>
-<text text-anchor="start" x="422" y="-59.5" font-family="Arial" font-weight="bold" font-size="10.00">params</text>
-<text text-anchor="start" x="422" y="-48.5" font-family="Arial" font-size="10.00">workspace_id</text>
-<text text-anchor="start" x="483" y="-48.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
-<polygon fill="none" stroke="#64748b" points="417,-40 417,-111 501,-111 501,-40 417,-40"/>
+<polygon fill="#ffffff" stroke="transparent" points="417,-46 417,-117 501,-117 501,-46 417,-46"/>
+<polygon fill="#64748b" stroke="transparent" points="418,-107.5 418,-115.5 500,-115.5 500,-107.5 418,-107.5"/>
+<polygon fill="#f8fafc" stroke="transparent" points="418,-76.5 418,-107.5 500,-107.5 500,-76.5 418,-76.5"/>
+<text text-anchor="start" x="422" y="-94.1" font-family="Arial" font-weight="bold" font-size="13.00">request</text>
+<text text-anchor="start" x="422" y="-83.1" font-family="Arial" font-size="8.00" fill="#64748b">external data</text>
+<text text-anchor="start" x="422" y="-65.5" font-family="Arial" font-weight="bold" font-size="10.00">params</text>
+<text text-anchor="start" x="422" y="-54.5" font-family="Arial" font-size="10.00">workspace_id</text>
+<text text-anchor="start" x="483" y="-54.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<polygon fill="none" stroke="#64748b" points="417,-46 417,-117 501,-117 501,-46 417,-46"/>
 </g>
 <!-- entrypoint_entry_point_web_project_board&#45;&gt;entrypoint_input_entry_point_web_project_board -->
 <g id="edge2" class="edge">
 <title>entrypoint_entry_point_web_project_board&#45;&gt;entrypoint_input_entry_point_web_project_board</title>
-<path fill="none" stroke="#3f3f46" d="M356.23,-75.5C374.61,-75.5 392.57,-75.5 408.16,-75.5"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="408.56,-78.3 416.56,-75.5 408.56,-72.7 408.56,-78.3"/>
+<path fill="none" stroke="#3f3f46" d="M356.23,-81.5C374.61,-81.5 392.57,-81.5 408.16,-81.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="408.56,-84.3 416.56,-81.5 408.56,-78.7 408.56,-84.3"/>
 </g>
 <!-- entrypoint_target_state_machine_project_board -->
 <g id="node4" class="node">
 <title>entrypoint_target_state_machine_project_board</title>
-<polygon fill="#ffffff" stroke="transparent" points="562,0 562,-151 855,-151 855,0 562,0"/>
-<polygon fill="#047857" stroke="transparent" points="563.5,-141.5 563.5,-149.5 854.5,-149.5 854.5,-141.5 563.5,-141.5"/>
-<polygon fill="#ecfdf5" stroke="transparent" points="563.5,-110.5 563.5,-141.5 854.5,-141.5 854.5,-110.5 563.5,-110.5"/>
-<text text-anchor="start" x="567.5" y="-128.1" font-family="Arial" font-weight="bold" font-size="13.00">state_machine.project.board</text>
-<text text-anchor="start" x="567.5" y="-117.1" font-family="Arial" font-size="8.00" fill="#64748b">target state machine (html)</text>
-<text text-anchor="start" x="567.5" y="-99.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">The dispatch board composes list, detail, and</text>
-<text text-anchor="start" x="567.5" y="-88.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">activity state machines through shared</text>
-<text text-anchor="start" x="567.5" y="-77.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">selected&#45;project context.</text>
-<text text-anchor="start" x="568.5" y="-57.5" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
-<text text-anchor="start" x="596.5" y="-57.5" font-family="Arial" font-size="10.00">  workspace_id</text>
-<text text-anchor="start" x="663.5" y="-57.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
-<text text-anchor="start" x="568.5" y="-45.5" font-family="Arial" font-weight="bold" font-size="10.00">query:</text>
-<text text-anchor="start" x="598.5" y="-45.5" font-family="Arial" font-size="10.00">  query.project.board.list</text>
-<text text-anchor="start" x="568.5" y="-33.5" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
-<text text-anchor="start" x="592.5" y="-33.5" font-family="Arial" font-size="10.00">  operation.project.list</text>
-<text text-anchor="start" x="686.5" y="-33.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
+<polygon fill="#ffffff" stroke="transparent" points="562,0 562,-163 855,-163 855,0 562,0"/>
+<polygon fill="#047857" stroke="transparent" points="563.5,-153.5 563.5,-161.5 854.5,-161.5 854.5,-153.5 563.5,-153.5"/>
+<polygon fill="#ecfdf5" stroke="transparent" points="563.5,-122.5 563.5,-153.5 854.5,-153.5 854.5,-122.5 563.5,-122.5"/>
+<text text-anchor="start" x="567.5" y="-140.1" font-family="Arial" font-weight="bold" font-size="13.00">state_machine.project.board</text>
+<text text-anchor="start" x="567.5" y="-129.1" font-family="Arial" font-size="8.00" fill="#64748b">target state machine (html)</text>
+<text text-anchor="start" x="567.5" y="-111.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">The dispatch board composes list, detail, and</text>
+<text text-anchor="start" x="567.5" y="-100.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">activity state machines through shared</text>
+<text text-anchor="start" x="567.5" y="-89.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">selected&#45;project context.</text>
+<text text-anchor="start" x="568.5" y="-69.5" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
+<text text-anchor="start" x="596.5" y="-69.5" font-family="Arial" font-size="10.00">  workspace_id</text>
+<text text-anchor="start" x="663.5" y="-69.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<text text-anchor="start" x="568.5" y="-57.5" font-family="Arial" font-weight="bold" font-size="10.00">query:</text>
+<text text-anchor="start" x="598.5" y="-57.5" font-family="Arial" font-size="10.00">  query.project.board.list</text>
+<text text-anchor="start" x="568.5" y="-45.5" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
+<text text-anchor="start" x="592.5" y="-45.5" font-family="Arial" font-size="10.00">  operation.project.list</text>
+<text text-anchor="start" x="686.5" y="-45.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
+<text text-anchor="start" x="568.5" y="-33.5" font-family="Arial" font-weight="bold" font-size="10.00">policy_guards:</text>
+<text text-anchor="start" x="638.5" y="-33.5" font-family="Arial" font-size="10.00">  operation.project.list: policy.project.list</text>
 <text text-anchor="start" x="568.5" y="-21.5" font-family="Arial" font-weight="bold" font-size="10.00">model:</text>
 <text text-anchor="start" x="601.5" y="-21.5" font-family="Arial" font-size="10.00">  Project</text>
 <text text-anchor="start" x="568.5" y="-9.5" font-family="Arial" font-weight="bold" font-size="10.00">message_sync_rules:</text>
 <text text-anchor="start" x="668.5" y="-9.5" font-family="Arial" font-size="10.00">  select_project_updates_state_machines</text>
-<polygon fill="none" stroke="#047857" points="562,0 562,-151 855,-151 855,0 562,0"/>
+<polygon fill="none" stroke="#047857" points="562,0 562,-163 855,-163 855,0 562,0"/>
 </g>
 <!-- entrypoint_input_entry_point_web_project_board&#45;&gt;entrypoint_target_state_machine_project_board -->
 <g id="edge3" class="edge">
 <title>entrypoint_input_entry_point_web_project_board&#45;&gt;entrypoint_target_state_machine_project_board</title>
-<path fill="none" stroke="#3f3f46" d="M501.15,-75.5C516.31,-75.5 534.52,-75.5 553.75,-75.5"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="553.75,-78.3 561.75,-75.5 553.75,-72.7 553.75,-78.3"/>
+<path fill="none" stroke="#3f3f46" d="M501.15,-81.5C516.31,-81.5 534.52,-81.5 553.75,-81.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="553.75,-84.3 561.75,-81.5 553.75,-78.7 553.75,-84.3"/>
 </g>
 </g>
 </svg>

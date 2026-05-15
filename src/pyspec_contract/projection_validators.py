@@ -48,6 +48,7 @@ from .project import (
     constant_name,
     cwl_type,
     object_schema,
+    policies_projection,
     state_machines_projection,
     humanize,
     safe_id,
@@ -105,6 +106,8 @@ def validate_generated_projections(root: Path, contract: dict[str, Any]) -> None
         validate_content_contract(root, contract)
     if g("product_interfaces", "workflow.cwl.yaml") in expected_paths:
         validate_workflows(contract, read_yaml(generated / "product_interfaces" / "workflow.cwl.yaml"))
+    if g("product_interfaces", "policies.json") in expected_paths:
+        validate_policies_json(contract, read_json(generated / "product_interfaces" / "policies.json"))
     validate_agent_prompts(root)
     validate_fixtures_and_test_cases(root, contract)
     if (root / GENERATED_SPEC_DIR / "audit_evidence").exists() or any(path.startswith(g("audit_evidence") + "/") for path in audit_expected_files(contract)):
@@ -166,7 +169,7 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             raise ContractError(f"OpenAPI operationId must equal operation id for {entry_id}")
         if operation.get("x-entry") != entry_id or operation.get("x-operation") != cap_id:
             raise ContractError(f"OpenAPI extensions do not point back to {entry_id}/{cap_id}")
-        if operation.get("x-policy") != cap["policy"]:
+        if operation.get("x-policy") != cap["policy_guard"]["policy"]:
             raise ContractError(f"OpenAPI policy extension does not match operation {cap_id}")
 
         placeholders = _path_params(path)
@@ -613,6 +616,21 @@ def validate_fixtures_and_test_cases(root: Path, contract: dict[str, Any]) -> No
     for path in forbidden_harness_dirs:
         if path.exists():
             raise ContractError(f"Generated features must be single-source; remove {path.relative_to(root)}")
+
+
+def validate_policies_json(contract: dict[str, Any], doc: dict[str, Any]) -> None:
+    if doc != policies_projection(contract):
+        raise ContractError("policies.json does not match contract policy guards")
+    for operation_id, guard in doc["operation_guards"].items():
+        if operation_id not in contract["operations"]:
+            raise ContractError(f"policies.json has unknown operation guard {operation_id}")
+        if guard["policy"] not in doc["policies"]:
+            raise ContractError(f"policies.json operation guard references unknown policy {guard['policy']}")
+    for entry_id, guard in doc["entry_point_guards"].items():
+        if entry_id not in contract["entry_points"]:
+            raise ContractError(f"policies.json has unknown entry point guard {entry_id}")
+        if guard["policy"] not in doc["policies"]:
+            raise ContractError(f"policies.json entry point guard references unknown policy {guard['policy']}")
 
 
 

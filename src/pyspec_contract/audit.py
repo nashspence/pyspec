@@ -843,14 +843,7 @@ def state_machine_dot(state_machine_id: str, state_machine: dict[str, Any], cont
     lines.append(_dot_circle_node("initial_view_state", "initial_view_state", width="0.58", color=_DOT_COLOR_ENTRY, fontcolor=_DOT_COLOR_ENTRY_TEXT))
     for state_name in sorted(state_machine["view_states"]):
         state = state_machine["view_states"][state_name]
-        sections: list[tuple[str, Iterable[object]]] = [
-            ("text", state.get("text", [])),
-            ("assets", state.get("assets", [])),
-            (_state_field_section_title(state_machine, state_name, state), _format_state_fields(state_machine, state, contract)),
-            ("operation_refs", _format_operation_outputs(state.get("operation_refs", []), contract)),
-            ("child_state_machines", _format_mounts(state.get("child_state_machines", []))),
-            ("message_sync_rules", [rule["id"] for rule in state.get("message_sync_rules", [])]),
-        ]
+        sections = _state_machine_view_state_sections(state_machine, state_name, state, contract)
         lines.append(
             _dot_html_node(
                 _dot_node_id("view_state", state_name),
@@ -985,7 +978,7 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
                 _dot_card(
                     _entry_surface_title(entry),
                     f"{adapter_kind} entry point",
-                    _entry_binding_sections(entry),
+                    _entry_binding_sections(entry, contract),
                     rationale=entry.get("rationale", ""),
                     style=_DOT_STYLE_ENTRY,
                 ),
@@ -1117,7 +1110,7 @@ def _entry_surface_title(entry: dict[str, Any]) -> str:
     return adapter_kind
 
 
-def _entry_binding_sections(entry: dict[str, Any]) -> list[tuple[str, list[object]]]:
+def _entry_binding_sections(entry: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, list[object]]]:
     labels = {
         "route": "route",
         "screen": "screen",
@@ -1129,6 +1122,7 @@ def _entry_binding_sections(entry: dict[str, Any]) -> list[tuple[str, list[objec
     schedule = entry_point_schedule_expression(entry)
     if schedule:
         sections.append(("schedule", [schedule]))
+    sections.extend(_policy_guard_sections(entry.get("policy_guard"), contract, include_details=False))
     return sections
 
 
@@ -1249,15 +1243,19 @@ def _entry_target_tail_nodes(target_kind: str, target_value: str, contract: dict
 def _state_machine_summary_sections(state_machine: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
     bindings = _unique_data_bindings(state_machine.get("data_dependencies", []))
+    operation_ids = [binding["operation"] for binding in bindings]
     inputs = _format_data_inputs(state_machine, bindings, contract)
     queries = [binding["query"] for binding in bindings]
-    loads = _format_operation_outputs([binding["operation"] for binding in bindings], contract)
+    loads = _format_operation_outputs(operation_ids, contract)
+    guards = _format_operation_policy_guards(operation_ids, contract)
     if inputs:
         sections.append(("input", inputs))
     if queries:
         sections.append(("query", queries))
     if loads:
         sections.append(("load", loads))
+    if guards:
+        sections.append(("policy_guards", guards))
     sections.append(("model", [state_machine["model"]]))
     sync_ids = [rule["id"] for state in state_machine.get("view_states", {}).values() for rule in state.get("message_sync_rules", [])]
     if sync_ids:
@@ -1269,16 +1267,27 @@ def _state_machine_view_state_card(state_machine: dict[str, Any], state_name: st
     return _dot_card(
         state_name,
         "view state",
-        [
-            ("text", state.get("text", [])),
-            ("assets", state.get("assets", [])),
-            (_state_field_section_title(state_machine, state_name, state), _format_state_fields(state_machine, state, contract)),
-            ("operation_refs", _format_operation_outputs(state.get("operation_refs", []), contract)),
-            ("child_state_machines", _format_mounts(state.get("child_state_machines", []))),
-            ("message_sync_rules", [rule["id"] for rule in state.get("message_sync_rules", [])]),
-        ],
+        _state_machine_view_state_sections(state_machine, state_name, state, contract),
         style=_DOT_STYLE_NEUTRAL,
     )
+
+
+def _state_machine_view_state_sections(
+    state_machine: dict[str, Any],
+    state_name: str,
+    state: dict[str, Any],
+    contract: dict[str, Any],
+) -> list[tuple[str, Iterable[object]]]:
+    operation_refs = state.get("operation_refs", [])
+    return [
+        ("text", state.get("text", [])),
+        ("assets", state.get("assets", [])),
+        (_state_field_section_title(state_machine, state_name, state), _format_state_fields(state_machine, state, contract)),
+        ("operation_refs", _format_operation_outputs(operation_refs, contract)),
+        ("policy_guards", _format_operation_policy_guards(operation_refs, contract)),
+        ("child_state_machines", _format_mounts(state.get("child_state_machines", []))),
+        ("message_sync_rules", [rule["id"] for rule in state.get("message_sync_rules", [])]),
+    ]
 
 
 def _workflow_trigger_card(trigger_kind: str, trigger_value: str, contract: dict[str, Any]) -> str:
@@ -1367,6 +1376,7 @@ def _event_card(event_id: str, contract: dict[str, Any], *, subtitle: str = "tar
 
 def _operation_sections(operation: dict[str, Any], contract: dict[str, Any], *, include_output: bool = True) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
+    sections.extend(_policy_guard_sections(operation.get("policy_guard"), contract))
     for field in ["creates", "reads", "updates", "deletes"]:
         if operation.get(field):
             sections.append((field, operation[field]))
@@ -1391,6 +1401,62 @@ def _operation_sections(operation: dict[str, Any], contract: dict[str, Any], *, 
         sections.extend(_operation_outcome_sections(operation))
     sections.extend(_operation_emit_sections(operation, contract))
     return sections
+
+
+def _policy_guard_sections(
+    guard: dict[str, Any] | None,
+    contract: dict[str, Any],
+    *,
+    include_details: bool = True,
+) -> list[tuple[str, list[object]]]:
+    if not guard:
+        return []
+    policy_id = guard["policy"]
+    sections: list[tuple[str, list[object]]] = [("policy_guard", [policy_id])]
+    if not include_details:
+        return sections
+    policy = contract.get("policies", {}).get(policy_id)
+    if not policy:
+        return sections
+    sections.append(("policy_effect", [policy["effect"]]))
+    sections.append(("policy_subjects", _format_policy_subjects(policy.get("subjects", []))))
+    sections.append(("policy_actions", _format_policy_targets(policy.get("actions", []))))
+    sections.append(("policy_resources", _format_policy_targets(policy.get("resources", []))))
+    sections.append(("policy_conditions", _format_policy_conditions(policy.get("conditions", []))))
+    return sections
+
+
+def _format_policy_subjects(subjects: Iterable[dict[str, Any]]) -> list[str]:
+    lines: list[str] = []
+    for subject in subjects:
+        line = subject["kind"]
+        if subject.get("source"):
+            line = f"{line} {_DOT_ARROW_ASSIGN} {_format_flow_source(subject['source'])}"
+        lines.append(line)
+    return lines
+
+
+def _format_policy_targets(targets: Iterable[dict[str, str]]) -> list[str]:
+    return [f"{kind}: {value}" for kind, value in (_target_pair(target) for target in targets)]
+
+
+def _format_policy_conditions(conditions: Iterable[dict[str, Any]]) -> list[str]:
+    lines: list[str] = []
+    for condition in conditions:
+        kind, body = _target_pair(condition)
+        if kind == "always":
+            lines.append(f"always {_format_scalar(body)}")
+        elif kind == "input_present":
+            lines.append(f"input_present {body}")
+        elif kind == "resource_exists":
+            lines.append(f"{body['model']} exists")
+        elif kind == "resource_state":
+            lines.append(f"{body['model']}.{body['field']} = {_format_scalar(body['equals'])}")
+        elif kind == "subject_role":
+            lines.append(f"subject_role {body}")
+        else:
+            lines.append(f"{kind}: {_format_scalar(body)}")
+    return lines
 
 
 def _operation_outcome_sections(operation: dict[str, Any]) -> list[tuple[str, list[object]]]:
@@ -1939,7 +2005,9 @@ def _format_transition_sections(
     sections: list[tuple[str, list[object]]] = []
     if _is_data_event(transition["on"]):
         bindings = _transition_data_bindings(state_machine, transition)
-        data_sources = _format_operation_outputs([binding["operation"] for binding in bindings], contract)
+        operation_ids = [binding["operation"] for binding in bindings]
+        data_sources = _format_operation_outputs(operation_ids, contract)
+        guards = _format_operation_policy_guards(operation_ids, contract)
         queries = [binding["query"] for binding in bindings]
         inputs = _format_data_inputs(state_machine, bindings, contract)
         if inputs:
@@ -1948,9 +2016,13 @@ def _format_transition_sections(
             sections.append(("query", queries))
         if data_sources:
             sections.append(("load", data_sources))
+        if guards:
+            sections.append(("policy_guards", guards))
     else:
         target_bindings = _transition_target_data_bindings(state_machine, transition)
-        data_sources = _format_operation_outputs([binding["operation"] for binding in target_bindings], contract)
+        operation_ids = [binding["operation"] for binding in target_bindings]
+        data_sources = _format_operation_outputs(operation_ids, contract)
+        guards = _format_operation_policy_guards(operation_ids, contract)
         queries = [binding["query"] for binding in target_bindings]
         required_context = _format_data_inputs(state_machine, target_bindings, contract)
         if required_context:
@@ -1959,6 +2031,8 @@ def _format_transition_sections(
             sections.append(("query", queries))
         if data_sources:
             sections.append(("load", data_sources))
+        if guards:
+            sections.append(("policy_guards", guards))
     sections.extend(_format_transition_effect_sections(state_machine, transition))
     return sections
 
@@ -2004,6 +2078,20 @@ def _format_operation_outputs(operation_ids: Iterable[str], contract: dict[str, 
             if outcome["kind"] == "success":
                 fields.append(_DotTypedField(operation_id, outcome["result"]))
     return fields
+
+
+def _format_operation_policy_guards(operation_ids: Iterable[str], contract: dict[str, Any]) -> list[str]:
+    lines: list[str] = []
+    seen: set[str] = set()
+    for operation_id in operation_ids:
+        if operation_id in seen:
+            continue
+        seen.add(operation_id)
+        operation = contract["operations"].get(operation_id)
+        guard = operation.get("policy_guard") if operation else None
+        if guard:
+            lines.append(f"{operation_id}: {guard['policy']}")
+    return lines
 
 
 def _format_data_inputs(

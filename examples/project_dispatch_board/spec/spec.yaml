@@ -909,8 +909,9 @@ test_cases:
     then:
       enables:
       - operation.project.create
-      forbids:
-      - operation.project.approve
+      policy:
+        denied:
+        - operation: operation.project.approve
       state_machine:
         instances:
           activity:
