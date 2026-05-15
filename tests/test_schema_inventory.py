@@ -31,6 +31,8 @@ DEPRECATED_REFERENCE_DEFINITION_NAMES = {
     "fixture_id",
     "fsm_id",
     "model_id",
+    "type_map",
+    "type_name",
 }
 
 

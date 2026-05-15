@@ -13,6 +13,10 @@ from tests.helpers import EXAMPLE_ROOT
 ROOT = EXAMPLE_ROOT
 
 
+def P(name: str) -> dict[str, str]:
+    return {"primitive": name}
+
+
 def test_author_contract_schema_validates() -> None:
     validate_against_schema(read_yaml(ROOT / SOURCE_SPEC_PATH), "author.schema.json")
 
@@ -29,12 +33,12 @@ def test_author_contract_can_be_minimal_and_surface_invisible() -> None:
             "Project": {
                 "basis": "Minimal product model for an API-free contract.",
                 "kind": "aggregate",
-                "fields": {"id": "ID", "title": "Text"},
+                "fields": {"id": P("ID"), "title": P("Text")},
             }
         },
     }
     contract = compile_source(author, layers={"core"})
-    assert contract["models"]["Project"]["fields"]["title"] == "Text"
+    assert contract["models"]["Project"]["fields"]["title"] == P("Text")
     assert contract["fsms"] == {}
     assert contract["entries"] == {}
     assert contract["refs"] == {}

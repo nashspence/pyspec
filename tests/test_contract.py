@@ -17,6 +17,22 @@ def _basis(text: str = "test contract declaration") -> str:
     return text
 
 
+def P(name: str) -> dict[str, str]:
+    return {"primitive": name}
+
+
+def M(name: str) -> dict[str, str]:
+    return {"model": name}
+
+
+def A(item: dict) -> dict:
+    return {"array": item}
+
+
+def E(*values: str) -> dict[str, list[str]]:
+    return {"enum": list(values)}
+
+
 def _author() -> dict:
     return read_yaml(ROOT / SOURCE_SPEC_PATH)
 
@@ -118,7 +134,7 @@ def test_author_contract_is_sparse_source() -> None:
     assert author["events"] == {
         "event.project.approved": {
             "basis": "Approval events carry the reviewer and project identity needed by notification workflows.",
-            "payload": "ProjectApproved",
+            "payload": M("ProjectApproved"),
         }
     }
     assert "refs" not in author
@@ -215,7 +231,7 @@ def test_transition_capability_derives_state_change_from_model_lifecycle() -> No
         "models": {
             "Ticket": {
                 "kind": "aggregate",
-                "fields": {"id": "ID", "status": "TicketStatus"},
+                "fields": {"id": P("ID"), "status": E("draft", "submitted")},
                 "lifecycle": {
                     "field": "status",
                     "initial": "draft",
@@ -228,10 +244,10 @@ def test_transition_capability_derives_state_change_from_model_lifecycle() -> No
         "capabilities": {
             "operation.ticket.submit": {
                 "archetype": "transition",
-                "input": {"ticket_id": "ID"},
+                "input": {"ticket_id": P("ID")},
                 "outcomes": {
-                    "submitted": {"kind": "success", "result": "Ticket"},
-                    "invalid_state": {"kind": "failure", "result": "Problem"},
+                    "submitted": {"kind": "success", "result": M("Ticket")},
+                    "invalid_state": {"kind": "failure", "result": M("Problem")},
                 },
                 "basis": "Submitting moves a draft ticket forward.",
             }
@@ -264,7 +280,7 @@ def test_fsm_data_capability_must_read_fsm_model() -> None:
     author = _author()
     author["models"]["Workspace"] = {
         "kind": "entity",
-        "fields": {"id": "ID", "name": "Text"},
+        "fields": {"id": P("ID"), "name": P("Text")},
         "basis": "Workspace is a separate model used to prove data bindings are model-aware.",
     }
     author["capabilities"]["operation.project.read"]["archetype"] = "query"
@@ -287,17 +303,17 @@ def test_author_contract_can_omit_absent_sections() -> None:
         "models": {
             "Ticket": {
                 "kind": "aggregate",
-                "fields": {"id": "ID", "title": "Text"},
+                "fields": {"id": P("ID"), "title": P("Text")},
             }
         },
         "capabilities": {
             "operation.ticket.create": {
                 "archetype": "create",
                 "creates": ["Ticket"],
-                "input": {"title": "Text"},
+                "input": {"title": P("Text")},
                 "outcomes": {
-                    "created": {"kind": "success", "result": "Ticket"},
-                    "validation_failed": {"kind": "failure", "result": "Problem"},
+                    "created": {"kind": "success", "result": M("Ticket")},
+                    "validation_failed": {"kind": "failure", "result": M("Problem")},
                 },
                 "why": "Members can create tickets.",
             }
@@ -320,7 +336,7 @@ def test_author_fsm_defaults_empty_collections() -> None:
         "models": {
             "Ticket": {
                 "kind": "aggregate",
-                "fields": {"id": "ID", "title": "Text"},
+                "fields": {"id": P("ID"), "title": P("Text")},
                 "basis": "Ticket is the product work item.",
             }
         },
@@ -444,6 +460,10 @@ def test_fsm_data_inputs_must_come_from_context() -> None:
     author = _author()
     fsm = _item(author, "fsms", "state_machine.project.list")
     del fsm["context"]["workspace_id"]
+    board = _item(author, "fsms", "state_machine.project.board")
+    for mount in board["states"]["ready"]["mounts"]:
+        if mount["fsm"] == "state_machine.project.list":
+            mount["context"].pop("workspace_id", None)
     with pytest.raises(
         ContractError,
         match=r"FSM state_machine\.project\.list data capability operation.project\.list input not provided by context: .*workspace_id",
@@ -602,7 +622,7 @@ def test_sync_send_data_must_match_target_message_payload_type() -> None:
 def test_fsm_message_payloads_must_be_consistent_across_fsms() -> None:
     author = _author()
     activity = _item(author, "fsms", "state_machine.project.activity")
-    activity["messages"]["accepts"]["message.project.selection_changed"]["payload"]["project_id"] = "Text"
+    activity["messages"]["accepts"]["message.project.selection_changed"]["payload"]["project_id"] = P("Text")
     with pytest.raises(ContractError, match=r"sync send message.project\.selection_changed to activity data\.project_id type mismatch"):
         compile_source(author)
 
@@ -610,7 +630,7 @@ def test_fsm_message_payloads_must_be_consistent_across_fsms() -> None:
 def test_fsm_message_direction_must_be_unambiguous() -> None:
     author = _author()
     fsm = _item(author, "fsms", "state_machine.project.list")
-    fsm["messages"]["emits"]["message.project.select"] = {"payload": {"project_id": "ID"}}
+    fsm["messages"]["emits"]["message.project.select"] = {"payload": {"project_id": P("ID")}}
     with pytest.raises(ContractError, match=r"declares message as both accepted and emitted: .*project\.select"):
         compile_source(author)
 
@@ -629,7 +649,7 @@ def _api_only_author() -> dict:
         "models": {
             "Ticket": {
                 "kind": "aggregate",
-                "fields": {"id": "ID", "title": "Text"},
+                "fields": {"id": P("ID"), "title": P("Text")},
                 "basis": _basis("ticket model"),
             }
         },
@@ -637,10 +657,10 @@ def _api_only_author() -> dict:
             "operation.ticket.create": {
                 "archetype": "create",
                 "creates": ["Ticket"],
-                "input": {"title": "Text"},
+                "input": {"title": P("Text")},
                 "outcomes": {
-                    "created": {"kind": "success", "result": "Ticket"},
-                    "validation_failed": {"kind": "failure", "result": "Problem"},
+                    "created": {"kind": "success", "result": M("Ticket")},
+                    "validation_failed": {"kind": "failure", "result": M("Problem")},
                 },
                 "basis": _basis("create ticket"),
             }
@@ -650,11 +670,11 @@ def _api_only_author() -> dict:
                 "surface": "api",
                 "method": "POST",
                 "path": "/tickets",
-                "input": {"body": {"title": "Text"}},
+                "input": {"body": {"title": P("Text")}},
                 "target": {"capability": "operation.ticket.create", "with": {"title": "$input.body.title"}},
                 "responses": {
-                    "created": {"status": 201, "body": {"type": "Ticket", "from": "$outcome.result"}},
-                    "validation_failed": {"status": 422, "body": {"type": "Problem", "from": "$outcome.result"}},
+                    "created": {"status": 201, "body": {"type": M("Ticket"), "from": "$outcome.result"}},
+                    "validation_failed": {"status": 422, "body": {"type": M("Problem"), "from": "$outcome.result"}},
                 },
                 "basis": _basis("HTTP create ticket entry"),
             }
@@ -720,7 +740,7 @@ def test_cli_fsm_entry_must_provide_required_context_args() -> None:
 
 def test_entry_rejects_surface_irrelevant_fields() -> None:
     author = _author()
-    author["entries"]["entry_point.web.project.board"]["input"]["args"] = {"workspace_id": "ID"}
+    author["entries"]["entry_point.web.project.board"]["input"]["args"] = {"workspace_id": P("ID")}
     with pytest.raises(ContractError, match=r"Entry entry_point.web\.project\.board surface web has unsupported input sections: \['args'\]"):
         compile_source(author)
 
@@ -753,7 +773,7 @@ def test_entry_target_bindings_must_exactly_match_target_input() -> None:
 
 def test_entry_response_must_match_surface_contract() -> None:
     author = _author()
-    author["entries"]["entry_point.api.project.create"]["responses"]["created"]["body"]["type"] = "Text"
+    author["entries"]["entry_point.api.project.create"]["responses"]["created"]["body"]["type"] = P("Text")
     with pytest.raises(ContractError, match=r"API entry entry_point.api\.project\.create response created\.body must expose \$outcome\.result as Project"):
         compile_source(author)
 
@@ -765,7 +785,7 @@ def test_capability_outcomes_must_have_one_success_and_real_failure_result() -> 
         compile_source(author)
 
     author = _author()
-    author["capabilities"]["operation.project.create"]["outcomes"]["validation_failed"]["result"] = "Project"
+    author["capabilities"]["operation.project.create"]["outcomes"]["validation_failed"]["result"] = M("Project")
     with pytest.raises(ContractError, match=r"failure outcome validation_failed result must be Problem"):
         compile_source(author)
 
@@ -815,7 +835,7 @@ def test_fsm_entry_must_not_declare_output() -> None:
 
 def test_worker_entry_payload_must_match_trigger_event_payload() -> None:
     author = _author()
-    author["entries"]["entry_point.worker.project.approval_notice"]["input"]["payload"] = "NoticeResult"
+    author["entries"]["entry_point.worker.project.approval_notice"]["input"]["payload"] = M("NoticeResult")
     with pytest.raises(ContractError, match=r"Entry entry_point.worker\.project\.approval_notice input\.payload must be ProjectApproved, got NoticeResult"):
         compile_source(author)
 

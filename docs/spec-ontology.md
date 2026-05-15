@@ -41,7 +41,7 @@ Resource IDs use explicit typed namespaces. Top-level mapping keys and reference
 - `audit_profile_ref`: lower-case local audit profile IDs.
 - `breakpoint_id`, `field_name`, `instance_id`, and `state_name`: lower-case local names scoped by their owning resource.
 - `content_resolver_id`: a resolver address in either the `text.` or `asset.` namespace.
-- `type_name`: scalar/model/list type names, such as `Text`, `Project`, or `list[Project]`.
+- `type_expr`: structured data type expressions such as `{primitive: Text}`, `{model: Project}`, `{array: {model: Project}}`, `{map: {primitive: Text}}`, `{nullable: ...}`, `{optional: ...}`, `{enum: [...]}`, and `{object: {...}}`.
 - `css_class`, `css_property`, `python_identifier`, and `python_class_name`: generated projection implementation names.
 
 The compiled `refs` index uses these generated reference namespaces:
@@ -259,8 +259,8 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:textual_viewport --> `$defs/textual_viewport`: Textual audit viewport dimensions.
 - <!-- schema-def:textual_widget --> `$defs/textual_widget`: Textual widget projection metadata.
 - <!-- schema-def:then --> `$defs/then`: scenario assertion block.
-- <!-- schema-def:type_map --> `$defs/type_map`: field-to-type declaration map.
-- <!-- schema-def:type_name --> `$defs/type_name`: scalar, model, or list type reference.
+- <!-- schema-def:type_expr --> `$defs/type_expr`: structured primitive, model, array, map, nullable, optional, enum, or inline object type expression.
+- <!-- schema-def:type_expr_map --> `$defs/type_expr_map`: field map whose values are structured type expressions.
 - <!-- schema-def:value_map --> `$defs/value_map`: field-to-scalar value map.
 - <!-- schema-def:when --> `$defs/when`: scenario action block.
 - <!-- schema-def:workflow_bindings --> `$defs/workflow_bindings`: workflow source to operation input binding map.

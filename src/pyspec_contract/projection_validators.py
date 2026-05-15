@@ -51,6 +51,7 @@ from .project import (
     type_schema,
 )
 from .targets import entry_fsm_name
+from .type_expr import sample_value
 
 _HTTP_METHODS = {"get", "put", "post", "delete", "patch", "head", "options", "trace"}
 _OPENAPI_OPERATION_KEYS = {
@@ -494,18 +495,8 @@ def _final_content_refs(contract: dict[str, Any]) -> set[str]:
     return refs
 
 
-def _sample_value_for_type(type_name: str) -> Any:
-    if type_name == "Bool":
-        return True
-    if type_name == "Int":
-        return 1
-    if type_name == "Decimal":
-        return 1.0
-    if type_name == "JSON":
-        return {}
-    if type_name.startswith("list["):
-        return []
-    return "sample"
+def _sample_value_for_type(type_name: Any) -> Any:
+    return sample_value(type_name)
 
 def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
     _require_exact_keys(doc, {"cwlVersion", "$graph"}, "workflows.cwl.yaml")
@@ -976,6 +967,12 @@ def _validate_cwl_type(type_spec: Any, label: str) -> None:
         if set(type_spec) != {"type", "items"} or type_spec["type"] != "array":
             raise ContractError(f"{label} has unsupported CWL complex type: {type_spec}")
         _validate_cwl_type(type_spec["items"], label)
+        return
+    if isinstance(type_spec, list):
+        if "null" not in type_spec or len(type_spec) != 2:
+            raise ContractError(f"{label} has unsupported CWL union type: {type_spec}")
+        for item in type_spec:
+            _validate_cwl_type(item, label)
         return
     raise ContractError(f"{label} has malformed CWL type: {type_spec!r}")
 

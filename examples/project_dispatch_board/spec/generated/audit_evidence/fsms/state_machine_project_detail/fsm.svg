@@ -1,6 +1,6 @@
 <svg width="1599pt" height="381pt"
  viewBox="0.00 0.00 1599.00 380.95" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 527663ca24877b8de3614c27469629c2c96fd51051edfcf7e130639b707f6fed -->
+<!-- pyspec-contract-input-sha256: f4c1a5e2881668c0e2bdbf40d62a9fd44352a5a844f57ae447fc775a9260b7a5 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 362.95)">
 <title>fsm_state_machine_project_detail</title>
 <!-- initial -->
@@ -143,7 +143,7 @@
 <text text-anchor="start" x="1102" y="-238.45" font-family="Arial" font-size="10.00">customer</text>
 <text text-anchor="start" x="1143" y="-238.45" font-family="Arial" font-size="8.00" fill="#94a3b8">  Text</text>
 <text text-anchor="start" x="1102" y="-227.45" font-family="Arial" font-size="10.00">status</text>
-<text text-anchor="start" x="1130" y="-227.45" font-family="Arial" font-size="8.00" fill="#94a3b8">  ProjectStatus</text>
+<text text-anchor="start" x="1130" y="-227.45" font-family="Arial" font-size="8.00" fill="#94a3b8">  enum&lt;draft|submitted|approved|archived&gt;</text>
 <text text-anchor="start" x="1102" y="-216.45" font-family="Arial" font-size="10.00">assignee</text>
 <text text-anchor="start" x="1142" y="-216.45" font-family="Arial" font-size="8.00" fill="#94a3b8">  Text</text>
 <text text-anchor="start" x="1102" y="-205.45" font-family="Arial" font-size="10.00">summary</text>

@@ -10,19 +10,19 @@ from .layout import layout_html, layout_textual, layout_textual_containers
 from .paths import generated_relative as g
 from .runtime_refs import ReferenceExpressionError, parse_reference_expression
 from .targets import entry_fsm_name
+from .type_expr import (
+    PRIMITIVES,
+    base_model_name,
+    object_to_json_schema,
+    referenced_named_types,
+    type_display,
+    type_to_cwl,
+    type_to_json_schema,
+    type_to_python,
+)
 
 
-SCALAR_JSON_SCHEMA: dict[str, dict[str, Any]] = {
-    "ID": {"type": "string"},
-    "Text": {"type": "string"},
-    "Markdown": {"type": "string"},
-    "Date": {"type": "string", "format": "date"},
-    "Timestamp": {"type": "string", "format": "date-time"},
-    "Bool": {"type": "boolean"},
-    "Int": {"type": "integer"},
-    "Decimal": {"type": "number"},
-    "JSON": {"type": "object", "additionalProperties": True},
-}
+SCALAR_JSON_SCHEMA: dict[str, dict[str, Any]] = PRIMITIVES
 
 
 
@@ -684,20 +684,8 @@ def content_cases_projection(contract: dict[str, Any]) -> dict[str, Any]:
     return {"project": contract["project"], "content_cases": contract.get("content_cases", {})}
 
 
-def python_type_for_contract_type(type_name: str) -> str:
-    if type_name in {"ID", "Text", "Markdown", "Date", "Timestamp"}:
-        return "str"
-    if type_name == "Bool":
-        return "bool"
-    if type_name == "Int":
-        return "int"
-    if type_name == "Decimal":
-        return "float"
-    if type_name == "JSON":
-        return "object"
-    if type_name.startswith("list["):
-        return "list[object]"
-    return "str"
+def python_type_for_contract_type(type_name: Any) -> str:
+    return type_to_python(type_name)
 
 
 def content_arg_class_name(ref: str) -> str:
@@ -897,71 +885,41 @@ def feature_text(feature_id: str, scenarios: list[tuple[str, dict[str, Any]]]) -
 def components_projection(contract: dict[str, Any]) -> dict[str, Any]:
     components = {"schemas": {}}
     opaque: set[str] = set()
-    enum_types: dict[str, list[str]] = {}
     for rid, model in sorted(contract["models"].items()):
         components["schemas"][rid] = object_schema(model["fields"])
-        lifecycle = model.get("lifecycle")
-        if lifecycle:
-            enum_type = model["fields"].get(lifecycle["field"])
-            if enum_type:
-                enum_types[enum_type] = lifecycle["states"]
         for type_name in model["fields"].values():
-            base = base_type(type_name)
-            if base != rid and not is_scalar(base):
-                opaque.add(base)
-    for type_name, states in sorted(enum_types.items()):
-        components["schemas"][type_name] = {"type": "string", "enum": states}
-        opaque.discard(type_name)
+            for ref in referenced_named_types(type_name):
+                if ref != rid and ref not in contract["models"]:
+                    opaque.add(ref)
     for cap in contract["capabilities"].values():
         outcome_types = [outcome["result"] for outcome in cap["outcomes"].values()]
         for type_name in list(cap["input"].values()) + outcome_types:
-            base = base_type(type_name)
-            if base and base not in components["schemas"] and not is_scalar(base):
-                opaque.add(base)
+            for ref in referenced_named_types(type_name):
+                if ref not in components["schemas"] and ref not in contract["models"]:
+                    opaque.add(ref)
     for type_name in sorted(opaque):
         components["schemas"].setdefault(type_name, {"type": "object", "additionalProperties": True})
     return components
 
 
-def object_schema(fields: dict[str, str]) -> dict[str, Any]:
-    return {
-        "type": "object",
-        "additionalProperties": False,
-        "required": sorted(fields),
-        "properties": {name: type_schema(type_name) for name, type_name in sorted(fields.items())},
-    }
+def object_schema(fields: dict[str, Any]) -> dict[str, Any]:
+    return object_to_json_schema(fields)
 
 
-def type_schema(type_name: str) -> dict[str, Any]:
-    if type_name.startswith("list[") and type_name.endswith("]"):
-        return {"type": "array", "items": type_schema(type_name[5:-1])}
-    if type_name in SCALAR_JSON_SCHEMA:
-        return dict(SCALAR_JSON_SCHEMA[type_name])
-    return {"$ref": f"#/components/schemas/{type_name}"}
+def type_schema(type_name: Any) -> dict[str, Any]:
+    return type_to_json_schema(type_name)
 
 
-def cwl_type(type_name: str) -> str | dict[str, Any]:
-    if type_name.startswith("list[") and type_name.endswith("]"):
-        return {"type": "array", "items": cwl_type(type_name[5:-1])}
-    if type_name in {"ID", "Text", "Markdown", "Date", "Timestamp"}:
-        return "string"
-    if type_name == "Bool":
-        return "boolean"
-    if type_name == "Int":
-        return "int"
-    if type_name == "Decimal":
-        return "double"
-    return "Any"
+def cwl_type(type_name: Any) -> str | dict[str, Any] | list[Any]:
+    return type_to_cwl(type_name)
 
 
-def base_type(type_name: str) -> str:
-    if type_name.startswith("list[") and type_name.endswith("]"):
-        return type_name[5:-1]
-    return type_name
+def base_type(type_name: Any) -> str | None:
+    return base_model_name(type_name)
 
 
-def is_scalar(type_name: str) -> bool:
-    return type_name in SCALAR_JSON_SCHEMA
+def is_scalar(type_name: Any) -> bool:
+    return type_display(type_name) in SCALAR_JSON_SCHEMA
 
 
 

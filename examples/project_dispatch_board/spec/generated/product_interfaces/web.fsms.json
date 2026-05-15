@@ -2,8 +2,12 @@
   "compositions": [
     {
       "context": {
-        "selected_project_id": "ID",
-        "workspace_id": "ID"
+        "selected_project_id": {
+          "primitive": "ID"
+        },
+        "workspace_id": {
+          "primitive": "ID"
+        }
       },
       "fsm": "state_machine.project.board",
       "id": "state_machine.project.board.ready",
@@ -212,7 +216,9 @@
       "data": [],
       "fsm": {
         "context": {
-          "project_id": "ID"
+          "project_id": {
+            "primitive": "ID"
+          }
         },
         "initial": "empty",
         "transitions": [
@@ -260,7 +266,9 @@
       ],
       "fsm": {
         "context": {
-          "project_id": "ID"
+          "project_id": {
+            "primitive": "ID"
+          }
         },
         "initial": "empty",
         "transitions": [
@@ -306,8 +314,12 @@
       "data": [],
       "fsm": {
         "context": {
-          "selected_project_id": "ID",
-          "workspace_id": "ID"
+          "selected_project_id": {
+            "primitive": "ID"
+          },
+          "workspace_id": {
+            "primitive": "ID"
+          }
         },
         "initial": "ready",
         "transitions": []
@@ -328,7 +340,9 @@
       "data": [],
       "fsm": {
         "context": {
-          "project_id": "ID"
+          "project_id": {
+            "primitive": "ID"
+          }
         },
         "initial": "none",
         "transitions": [
@@ -386,7 +400,9 @@
       ],
       "fsm": {
         "context": {
-          "project_id": "ID"
+          "project_id": {
+            "primitive": "ID"
+          }
         },
         "initial": "none",
         "transitions": [
@@ -438,7 +454,9 @@
       "data": [],
       "fsm": {
         "context": {
-          "project_id": "ID"
+          "project_id": {
+            "primitive": "ID"
+          }
         },
         "initial": "none",
         "transitions": [
@@ -491,7 +509,9 @@
       "data": [],
       "fsm": {
         "context": {
-          "project_id": "ID"
+          "project_id": {
+            "primitive": "ID"
+          }
         },
         "initial": "none",
         "transitions": [
@@ -554,8 +574,12 @@
       "data": [],
       "fsm": {
         "context": {
-          "selected_project_id": "ID",
-          "workspace_id": "ID"
+          "selected_project_id": {
+            "primitive": "ID"
+          },
+          "workspace_id": {
+            "primitive": "ID"
+          }
         },
         "initial": "loading",
         "transitions": [
@@ -619,8 +643,12 @@
       "data": [],
       "fsm": {
         "context": {
-          "selected_project_id": "ID",
-          "workspace_id": "ID"
+          "selected_project_id": {
+            "primitive": "ID"
+          },
+          "workspace_id": {
+            "primitive": "ID"
+          }
         },
         "initial": "loading",
         "transitions": [
@@ -680,8 +708,12 @@
       "data": [],
       "fsm": {
         "context": {
-          "selected_project_id": "ID",
-          "workspace_id": "ID"
+          "selected_project_id": {
+            "primitive": "ID"
+          },
+          "workspace_id": {
+            "primitive": "ID"
+          }
         },
         "initial": "loading",
         "transitions": [
@@ -740,8 +772,12 @@
       "data": [],
       "fsm": {
         "context": {
-          "selected_project_id": "ID",
-          "workspace_id": "ID"
+          "selected_project_id": {
+            "primitive": "ID"
+          },
+          "workspace_id": {
+            "primitive": "ID"
+          }
         },
         "initial": "loading",
         "transitions": [

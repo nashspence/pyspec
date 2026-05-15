@@ -1,6 +1,6 @@
 <svg width="783pt" height="187pt"
  viewBox="0.00 0.00 783.00 187.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 0b59eccadea5b27d5c3a80fb8a39b9d2946a03b29380ec5529769e8c48824fbf -->
+<!-- pyspec-contract-input-sha256: 7578d50bbbcb857133f4b117b4456e57f8c0e5278d6444b8682698b942b54148 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 169)">
 <title>entrypoint_entry_point_cli_project_board</title>
 <!-- entry_start -->
@@ -65,7 +65,7 @@
 <text text-anchor="start" x="572.5" y="-45.5" font-family="Arial" font-size="10.00">  query.project.board.list</text>
 <text text-anchor="start" x="542.5" y="-33.5" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
 <text text-anchor="start" x="566.5" y="-33.5" font-family="Arial" font-size="10.00">  operation.project.list</text>
-<text text-anchor="start" x="660.5" y="-33.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  list[Project]</text>
+<text text-anchor="start" x="660.5" y="-33.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
 <text text-anchor="start" x="542.5" y="-21.5" font-family="Arial" font-weight="bold" font-size="10.00">model:</text>
 <text text-anchor="start" x="575.5" y="-21.5" font-family="Arial" font-size="10.00">  Project</text>
 <text text-anchor="start" x="542.5" y="-9.5" font-family="Arial" font-weight="bold" font-size="10.00">sync:</text>

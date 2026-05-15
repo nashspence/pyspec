@@ -6,7 +6,9 @@
       "fsm": "state_machine.project.board",
       "id": "route.project.board",
       "params": {
-        "workspace_id": "ID"
+        "workspace_id": {
+          "primitive": "ID"
+        }
       },
       "path": "/workspaces/{workspace_id}/dispatch"
     }

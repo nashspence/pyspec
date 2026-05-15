@@ -85,7 +85,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>effects:</B>" not in fsm
     assert "emit message.project.selected" not in fsm
     assert "<B>projection:</B>" not in fsm
-    assert '<FONT POINT-SIZE="10"><B>load:</B>&#160;&#160;operation.project.list</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;list[Project]</FONT>' in fsm
+    assert '<FONT POINT-SIZE="10"><B>load:</B>&#160;&#160;operation.project.list</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;array&lt;Project&gt;</FONT>' in fsm
     assert "<B>query:</B>&#160;&#160;query.project.list.list" in fsm
     input_workspace = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
     assert input_workspace in fsm
@@ -101,10 +101,10 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert '<FONT POINT-SIZE="10"><B>actions:</B>&#160;&#160;operation.project.create</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in fsm
     assert '<FONT POINT-SIZE="10">operation.project.submit</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in fsm
     assert '<FONT POINT-SIZE="10">title</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Text</FONT>' in fsm
-    assert '<FONT POINT-SIZE="10">status</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ProjectStatus</FONT>' in fsm
+    assert '<FONT POINT-SIZE="10">status</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;enum&lt;draft|submitted|approved|archived&gt;</FONT>' in fsm
     assert '<FONT POINT-SIZE="10">summary</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Text</FONT>' in detail_transition
     assert "title: Text" not in fsm
-    assert "status: ProjectStatus" not in fsm
+    assert "status: enum" not in fsm
     assert "<B>Project fields</B>" not in fsm
     assert fsm.count("query.project.list.list") == 4
     assert "<B>model:</B>" not in fsm
@@ -186,7 +186,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>entry input</B>" not in cli_entrypoint
     assert "entrypoint_mount" not in cli_entrypoint
     assert "<B>transitions</B>" in cli_approve_entrypoint
-    assert '<FONT POINT-SIZE="10">Project.status</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ProjectStatus</FONT><FONT POINT-SIZE="8">&#160;&#160;submitted → approved</FONT>' in cli_approve_entrypoint
+    assert '<FONT POINT-SIZE="10">Project.status</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;enum&lt;draft|submitted|approved|archived&gt;</FONT><FONT POINT-SIZE="8">&#160;&#160;submitted → approved</FONT>' in cli_approve_entrypoint
     assert "<B>state:</B>" not in cli_approve_entrypoint
     assert "<B>change:</B>" not in cli_approve_entrypoint
     assert "<B>transition:</B>" not in cli_approve_entrypoint
@@ -396,9 +396,9 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert 'fill="#94a3b8">\xa0\xa0ID</text>' in list_fsm
     assert "operation.project.list fields" in list_fsm
     assert "title: Text" not in list_fsm
-    assert "status: ProjectStatus" not in list_fsm
+    assert "status: enum" not in list_fsm
     assert 'fill="#94a3b8">\xa0\xa0Text</text>' in list_fsm
-    assert 'fill="#94a3b8">\xa0\xa0ProjectStatus</text>' in list_fsm
+    assert 'fill="#94a3b8">\xa0\xa0enum&lt;draft|submitted|approved|archived&gt;</text>' in list_fsm
     assert "Project fields" not in list_fsm
     assert "projection:" not in list_fsm
     assert "model:" not in list_fsm
@@ -418,7 +418,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "$event." not in list_fsm
     assert "text.project.detail.ready.heading" in detail_fsm
     assert "operation.project.read fields" in detail_fsm
-    assert "list[Project]" in list_fsm
+    assert "array&lt;Project&gt;" in list_fsm
     assert "operation.project.read" in detail_fsm
     assert 'fill="#94a3b8">\xa0\xa0Project</text>' in detail_fsm
     assert "summary: Text" not in detail_fsm

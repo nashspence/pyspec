@@ -23,6 +23,7 @@ from .paths import GENERATED_SPEC_DIR, generated_relative as g
 from .project import css_value, default_html_slots, format_attrs, humanize, fsms_projection, fsm_styles_projection, safe_id
 from .runtime import fixture_namespace, resolve
 from .targets import entry_fsm_surface, entry_target_pair, entry_workflow_trigger
+from .type_expr import type_display
 
 ROOT = Path(__file__).resolve().parent
 
@@ -1555,9 +1556,9 @@ class _DotHtml(str):
 
 
 class _DotTypedField:
-    def __init__(self, field: str, type_name: str, source: str | None = None) -> None:
+    def __init__(self, field: str, type_name: Any, source: str | None = None) -> None:
         self.field = field
-        self.type_name = type_name
+        self.type_name = type_display(type_name)
         self.source = source
 
     def __str__(self) -> str:
@@ -1566,9 +1567,9 @@ class _DotTypedField:
 
 
 class _DotTransitionField:
-    def __init__(self, field: str, type_name: str, change: str) -> None:
+    def __init__(self, field: str, type_name: Any, change: str) -> None:
         self.field = field
-        self.type_name = type_name
+        self.type_name = type_display(type_name)
         self.change = change
 
     def __str__(self) -> str:
@@ -1817,7 +1818,7 @@ def _format_typed_data_flow(
 
 def _format_typed_flow_assignment(
     target: str,
-    type_name: str,
+    type_name: Any,
     value: Any,
     *,
     identity_scope: str | None = "message",

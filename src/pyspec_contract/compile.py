@@ -21,6 +21,19 @@ from .paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR, SOURCE_SPEC_PATH
 from .project import projection_files
 from .runtime_refs import ReferenceExpressionError, is_reference_expression, parse_reference_expression
 from .targets import FSM_RENDER_SURFACES, entry_fsm_surface, entry_target_pair, entry_workflow_trigger
+from .type_expr import (
+    TypeExpressionError,
+    array_of,
+    base_model_name,
+    dereference_type,
+    is_array_of_model,
+    is_problem_type,
+    literal_type_expr,
+    model_name,
+    object_fields_for_type,
+    type_display,
+    type_equals,
+)
 
 ROOT = Path(__file__).resolve().parent
 
@@ -29,7 +42,7 @@ class ContractError(ValueError):
     pass
 
 
-TypeScope = dict[tuple[str, ...], str]
+TypeScope = dict[tuple[str, ...], Any]
 TypeScopes = dict[str, TypeScope]
 
 
@@ -772,9 +785,9 @@ def _validate_capability_relationships(cid: str, cap: dict[str, Any], models: di
     elif archetype == "list":
         _require_exact_relationship(cid, cap, "reads", 1)
         _reject_relationships(cid, cap, {"creates", "updates", "deletes", "transition"})
-        expected = f"list[{cap['reads'][0]}]"
-        if _success_result_type(cap) != expected:
-            raise ContractError(f"Capability {cid} list success outcome result must be {expected}")
+        expected_model = cap["reads"][0]
+        if not is_array_of_model(_success_result_type(cap), expected_model):
+            raise ContractError(f"Capability {cid} list success outcome result must be {type_display(array_of({'model': expected_model}))}")
     elif archetype == "query":
         _require_relationship(cid, cap, "reads")
         _reject_relationships(cid, cap, {"creates", "updates", "deletes", "transition"})
@@ -816,7 +829,7 @@ def _reject_relationships(cid: str, cap: dict[str, Any], fields: set[str]) -> No
 
 
 def _require_output_model(cid: str, cap: dict[str, Any], model_id: str) -> None:
-    if _base_type(_success_result_type(cap)) != model_id:
+    if model_name(_success_result_type(cap)) != model_id:
         raise ContractError(f"Capability {cid} success outcome result must be {model_id}")
 
 
@@ -841,8 +854,7 @@ def _validate_capability_outcomes(cid: str, cap: dict[str, Any]) -> None:
         if outcome["kind"] == "failure":
             if emits:
                 raise ContractError(f"Capability {cid} failure outcome {outcome_id} must not emit events")
-            base = _base_type(outcome["result"])
-            if base != "Problem" and not base.endswith("Problem"):
+            if not is_problem_type(outcome["result"]):
                 raise ContractError(f"Capability {cid} failure outcome {outcome_id} result must be Problem or a *Problem type")
 
 
@@ -853,7 +865,7 @@ def _validate_emit_payload_mapping(
     outcome_id: str,
     outcome: dict[str, Any],
     event_id: str,
-    event_payload: str,
+    event_payload: Any,
     emit: Any,
 ) -> None:
     label = f"Capability {capability_id} outcome {outcome_id} emit {event_id}"
@@ -863,8 +875,11 @@ def _validate_emit_payload_mapping(
     }
 
     if isinstance(emit, str):
-        if event_payload != outcome["result"]:
-            raise ContractError(f"{label} must declare payload mapping because event payload is {event_payload}, not {outcome['result']}")
+        if not type_equals(event_payload, outcome["result"]):
+            raise ContractError(
+                f"{label} must declare payload mapping because event payload is "
+                f"{type_display(event_payload)}, not {type_display(outcome['result'])}"
+            )
         return
 
     has_payload = "payload" in emit
@@ -874,8 +889,8 @@ def _validate_emit_payload_mapping(
     if has_payload:
         source = emit["payload"]
         actual = _reference_expression_type(contract, f"{label} payload source", source, source_scopes)
-        if actual != event_payload:
-            raise ContractError(f"{label} payload source {source} type must be {event_payload}, got {actual}")
+        if not type_equals(actual, event_payload):
+            raise ContractError(f"{label} payload source {source} type must be {type_display(event_payload)}, got {type_display(actual)}")
         return
 
     _validate_mapping_to_type(contract, label, emit["with"], event_payload, source_scopes)
@@ -1042,7 +1057,7 @@ def _validate_fsm_messages(fsm_id: str, fsm: dict[str, Any]) -> None:
 
 
 def _validate_fsm_message_payload_consistency(contract: dict[str, Any]) -> None:
-    declared: dict[str, tuple[str, str, dict[str, str]]] = {}
+    declared: dict[str, tuple[str, str, dict[str, Any]]] = {}
     domain_events = set(contract.get("events", {}))
     for fsm_id, fsm in contract.get("fsms", {}).items():
         messages = fsm.get("messages", _empty_fsm_messages())
@@ -1052,11 +1067,16 @@ def _validate_fsm_message_payload_consistency(contract: dict[str, Any]) -> None:
                     raise ContractError(f"FSM message {message_id} conflicts with domain event {message_id}")
                 payload = message["payload"]
                 existing = declared.get(message_id)
-                if existing and existing[2] != payload:
+                if existing and (
+                    set(existing[2]) != set(payload)
+                    or any(not type_equals(existing[2][key], payload[key]) for key in payload)
+                ):
                     first_fsm, first_direction, first_payload = existing
                     raise ContractError(
                         f"FSM message {message_id} payload differs between {first_fsm}.{first_direction} "
-                        f"and {fsm_id}.{direction}: {first_payload} vs {payload}"
+                        f"and {fsm_id}.{direction}: "
+                        f"{ {key: type_display(value) for key, value in first_payload.items()} } vs "
+                        f"{ {key: type_display(value) for key, value in payload.items()} }"
                     )
                 declared[message_id] = (fsm_id, direction, payload)
 
@@ -1124,7 +1144,7 @@ def _validate_layout_contract(fsm_id: str, layout: dict[str, Any], regions: set[
         _validate_composition_selector(fsm_id, rule["selector"], regions, mounts, "TCSS")
 
 
-def _validate_condition_context(fsm_id: str, context: dict[str, str], condition: Any) -> None:
+def _validate_condition_context(fsm_id: str, context: dict[str, Any], condition: Any) -> None:
     if isinstance(condition, dict):
         if "context_present" in condition:
             keys = [condition["context_present"]]
@@ -1150,8 +1170,8 @@ def _validate_condition_context(fsm_id: str, context: dict[str, str], condition:
 def _validate_fsm_context_refs(
     contract: dict[str, Any],
     fsm_id: str,
-    parent_context: dict[str, str],
-    child_context: dict[str, str],
+    parent_context: dict[str, Any],
+    child_context: dict[str, Any],
     mapping: dict[str, Any],
 ) -> None:
     scopes = {"state_machine": _type_scope(parent_context)}
@@ -1179,7 +1199,7 @@ def _fsm_accepts(fsm: dict[str, Any]) -> set[str]:
     return {transition["on"] for transition in fsm.get("transitions", [])}
 
 
-def _fsm_message_payload(fsm: dict[str, Any], direction: str, message_id: str, label: str) -> dict[str, str]:
+def _fsm_message_payload(fsm: dict[str, Any], direction: str, message_id: str, label: str) -> dict[str, Any]:
     message = fsm.get("messages", {}).get(direction, {}).get(message_id)
     if not message:
         raise ContractError(f"{label} references undeclared FSM message: {message_id}")
@@ -1190,7 +1210,7 @@ def _validate_data_map(
     contract: dict[str, Any] | None,
     label: str,
     data: dict[str, Any],
-    payload: dict[str, str],
+    payload: dict[str, Any],
     scopes: TypeScopes,
 ) -> None:
     actual = set(data)
@@ -1212,15 +1232,15 @@ def _validate_expression_type(
     contract: dict[str, Any] | None,
     label: str,
     expression: Any,
-    expected_type: str,
+    expected_type: Any,
     scopes: TypeScopes,
 ) -> None:
     actual_type = _expression_type(contract, expression, scopes, label)
-    if actual_type and actual_type != expected_type:
-        raise ContractError(f"{label} type mismatch: expected {expected_type}, got {actual_type}")
+    if actual_type and not type_equals(actual_type, expected_type):
+        raise ContractError(f"{label} type mismatch: expected {type_display(expected_type)}, got {type_display(actual_type)}")
 
 
-def _expression_type(contract: dict[str, Any] | None, expression: Any, scopes: TypeScopes, label: str) -> str | None:
+def _expression_type(contract: dict[str, Any] | None, expression: Any, scopes: TypeScopes, label: str) -> Any | None:
     if is_reference_expression(expression):
         return _reference_expression_type(contract, label, expression, scopes)
     return _literal_type(expression)
@@ -1231,7 +1251,7 @@ def _reference_expression_type(
     label: str,
     expression: str,
     scopes: TypeScopes,
-) -> str:
+) -> Any:
     try:
         ref = parse_reference_expression(expression)
     except ReferenceExpressionError as exc:
@@ -1247,7 +1267,7 @@ def _resolve_reference_type(
     root: str,
     path: tuple[str, ...],
     scope: TypeScope,
-) -> str:
+) -> Any:
     for prefix_len in range(len(path), 0, -1):
         prefix = path[:prefix_len]
         if prefix in scope:
@@ -1264,35 +1284,20 @@ def _resolve_reference_type(
 def _resolve_nested_type(
     contract: dict[str, Any] | None,
     label: str,
-    type_name: str,
+    type_name: Any,
     nested_path: tuple[str, ...],
     source: str,
-) -> str:
-    for nested in nested_path:
-        base = _base_type(type_name)
-        if not contract or base not in contract.get("models", {}):
-            raise ContractError(f"{label} cannot dereference non-model field: {source}")
-        fields = contract["models"][base]["fields"]
-        if nested not in fields:
-            raise ContractError(f"{label} references unknown {base} field: {nested}")
-        type_name = fields[nested]
-    return type_name
+) -> Any:
+    try:
+        return dereference_type(contract, type_name, nested_path, source)
+    except TypeExpressionError as exc:
+        raise ContractError(f"{label} references {exc}") from exc
 
 
-def _literal_type(value: Any) -> str | None:
-    if isinstance(value, bool):
-        return "Bool"
-    if isinstance(value, int) and not isinstance(value, bool):
-        return "Int"
-    if isinstance(value, float):
-        return "Decimal"
-    if isinstance(value, dict):
-        return "JSON"
-    if isinstance(value, list):
-        return "JSON"
+def _literal_type(value: Any) -> Any | None:
     # String/null literals can represent several contract scalar types, so schema
     # validation accepts them and semantic validation only type-checks references.
-    return None
+    return literal_type_expr(value)
 
 
 def _is_data_event(message: str) -> bool:
@@ -1574,12 +1579,15 @@ def _validate_entry_input_shape(entry_id: str, entry: dict[str, Any]) -> None:
     extra = sorted(set(input_spec) - allowed)
     if extra:
         raise ContractError(f"Entry {entry_id} surface {entry['surface']} has unsupported input sections: {extra}")
-    seen: dict[str, str] = {}
+    seen: dict[str, Any] = {}
     for section in ("params", "body", "args"):
         for name, type_name in _entry_input_map(entry, section).items():
             previous = seen.get(name)
-            if previous and previous != type_name:
-                raise ContractError(f"Entry {entry_id} input field {name} has conflicting types: {previous} vs {type_name}")
+            if previous and not type_equals(previous, type_name):
+                raise ContractError(
+                    f"Entry {entry_id} input field {name} has conflicting types: "
+                    f"{type_display(previous)} vs {type_display(type_name)}"
+                )
             seen[name] = type_name
 
 
@@ -1620,8 +1628,8 @@ def _validate_api_entry_input(
     entry_id: str,
     entry: dict[str, Any],
     capability: dict[str, Any],
-    params: dict[str, str],
-    body: dict[str, str],
+    params: dict[str, Any],
+    body: dict[str, Any],
 ) -> None:
     cap_input = capability["input"]
     all_input = {**params, **body}
@@ -1653,15 +1661,15 @@ def _validate_event_payload_entry_input(contract: dict[str, Any], entry_id: str,
     if not event:
         raise ContractError(f"Entry {entry_id} workflow trigger references unknown event {event_id}")
     payload_type = (entry.get("input") or {}).get("payload")
-    if payload_type != event["payload"]:
-        raise ContractError(f"Entry {entry_id} input.payload must be {event['payload']}, got {payload_type}")
+    if not type_equals(payload_type, event["payload"]):
+        raise ContractError(f"Entry {entry_id} input.payload must be {type_display(event['payload'])}, got {type_display(payload_type)}")
 
 
 def _validate_target_bindings(
     contract: dict[str, Any],
     entry_id: str,
     entry: dict[str, Any],
-    target_input_types: dict[str, str],
+    target_input_types: dict[str, Any],
 ) -> None:
     kind, value = entry_target_pair(entry["target"])
     bindings = entry["target"].get("with", {})
@@ -1691,8 +1699,11 @@ def _validate_target_bindings(
             source_scopes,
         )
         expected_type = expected[target_name]
-        if actual_type != expected_type:
-            raise ContractError(f"Entry {entry_id} target.with.{target_name} type mismatch: expected {expected_type}, got {actual_type} from {source}")
+        if not type_equals(actual_type, expected_type):
+            raise ContractError(
+                f"Entry {entry_id} target.with.{target_name} type mismatch: "
+                f"expected {type_display(expected_type)}, got {type_display(actual_type)} from {source}"
+            )
 
 
 def _validate_api_entry_responses(entry_id: str, entry: dict[str, Any], capability: dict[str, Any]) -> None:
@@ -1771,10 +1782,9 @@ def _capability_entry_responses(entry_id: str, entry: dict[str, Any], capability
     return responses
 
 
-def _validate_response_value(label: str, value: dict[str, str], expected_type: str) -> None:
-    expected = {"type": expected_type, "from": "$outcome.result"}
-    if value != expected:
-        raise ContractError(f"{label} must expose $outcome.result as {expected_type}")
+def _validate_response_value(label: str, value: dict[str, Any], expected_type: Any) -> None:
+    if set(value) != {"type", "from"} or value["from"] != "$outcome.result" or not type_equals(value["type"], expected_type):
+        raise ContractError(f"{label} must expose $outcome.result as {type_display(expected_type)}")
 
 
 def _validate_async_entry_responses(entry_id: str, entry: dict[str, Any], *, require_failure_disposition: bool) -> None:
@@ -1805,7 +1815,7 @@ def _validate_fsm_entry_inputs(
     entry_id: str,
     fsm_id: str,
     *,
-    declared: dict[str, str],
+    declared: dict[str, Any],
     input_label: str,
 ) -> None:
     fsm = contract["fsms"][fsm_id]
@@ -1820,9 +1830,9 @@ def _validate_fsm_entry_inputs(
         raise ContractError(f"Entry {entry_id} {input_label} must include required FSM context inputs: {missing}")
 
 
-def _required_entry_fsm_context(contract: dict[str, Any], fsm_id: str) -> dict[str, str]:
+def _required_entry_fsm_context(contract: dict[str, Any], fsm_id: str) -> dict[str, Any]:
     fsm = contract["fsms"][fsm_id]
-    required: dict[str, str] = {}
+    required: dict[str, Any] = {}
     _add_data_context_requirements(contract, f"FSM {fsm_id}", fsm.get("data", []), fsm.get("context", {}), required)
     for state_name, state in fsm.get("states", {}).items():
         _add_data_context_requirements(contract, f"FSM {fsm_id}.{state_name}", state.get("data", []), fsm.get("context", {}), required)
@@ -1838,15 +1848,15 @@ def _add_data_context_requirements(
     contract: dict[str, Any],
     label: str,
     data: list[dict[str, Any]],
-    context: dict[str, str],
-    required: dict[str, str],
+    context: dict[str, Any],
+    required: dict[str, Any],
 ) -> None:
     for datum in data:
         capability = contract["capabilities"][datum["capability"]]
         for key, expected_type in capability["input"].items():
             actual_type = context.get(key)
-            if actual_type != expected_type:
-                raise ContractError(f"{label} context {key} type must be {expected_type}, got {actual_type}")
+            if not type_equals(actual_type, expected_type):
+                raise ContractError(f"{label} context {key} type must be {type_display(expected_type)}, got {type_display(actual_type)}")
             _add_required_entry_context(required, key, expected_type, label)
 
 
@@ -1856,7 +1866,7 @@ def _add_mount_context_requirements(
     mount: dict[str, Any],
     fsm: dict[str, Any],
     data: list[dict[str, Any]],
-    required: dict[str, str],
+    required: dict[str, Any],
 ) -> None:
     mount_context = mount.get("context", {})
     child_fsm_context = fsm.get("context", {})
@@ -1864,8 +1874,8 @@ def _add_mount_context_requirements(
     for datum in data:
         capability = contract["capabilities"][datum["capability"]]
         for child_key, expected_type in capability["input"].items():
-            if child_fsm_context.get(child_key) != expected_type:
-                raise ContractError(f"Composed FSM {fsm_id}.{mount['id']} FSM context {child_key} type must be {expected_type}")
+            if not type_equals(child_fsm_context.get(child_key), expected_type):
+                raise ContractError(f"Composed FSM {fsm_id}.{mount['id']} FSM context {child_key} type must be {type_display(expected_type)}")
             value = mount_context.get(child_key)
             if not is_reference_expression(value):
                 continue
@@ -1882,8 +1892,11 @@ def _add_mount_context_requirements(
                 value,
                 {"state_machine": _type_scope(parent_fsm_context)},
             )
-            if actual_type != expected_type:
-                raise ContractError(f"Composed FSM {fsm_id}.{mount['id']} parent context {parent_key} type must be {expected_type}, got {actual_type}")
+            if not type_equals(actual_type, expected_type):
+                raise ContractError(
+                    f"Composed FSM {fsm_id}.{mount['id']} parent context {parent_key} type must be "
+                    f"{type_display(expected_type)}, got {type_display(actual_type)}"
+                )
             _add_required_entry_context(
                 required,
                 parent_key,
@@ -1892,15 +1905,18 @@ def _add_mount_context_requirements(
             )
 
 
-def _add_required_entry_context(required: dict[str, str], key: str, type_name: str, label: str) -> None:
+def _add_required_entry_context(required: dict[str, Any], key: str, type_name: Any, label: str) -> None:
     existing = required.get(key)
-    if existing and existing != type_name:
-        raise ContractError(f"{label} requires conflicting entry input type for {key}: {existing} vs {type_name}")
+    if existing and not type_equals(existing, type_name):
+        raise ContractError(
+            f"{label} requires conflicting entry input type for {key}: "
+            f"{type_display(existing)} vs {type_display(type_name)}"
+        )
     required[key] = type_name
 
 
-def _validate_exact_entry_inputs(entry_id: str, field: str, actual: dict[str, str], expected: dict[str, str]) -> None:
-    if actual != expected:
+def _validate_exact_entry_inputs(entry_id: str, field: str, actual: dict[str, Any], expected: dict[str, Any]) -> None:
+    if set(actual) != set(expected):
         missing = sorted(set(expected) - set(actual))
         extra = sorted(set(actual) - set(expected))
         parts = []
@@ -1912,14 +1928,17 @@ def _validate_exact_entry_inputs(entry_id: str, field: str, actual: dict[str, st
     _validate_entry_input_types(entry_id, field, actual, expected)
 
 
-def _validate_entry_input_types(entry_id: str, field: str, actual: dict[str, str], expected: dict[str, str]) -> None:
+def _validate_entry_input_types(entry_id: str, field: str, actual: dict[str, Any], expected: dict[str, Any]) -> None:
     for name, type_name in actual.items():
         expected_type = expected.get(name)
-        if expected_type != type_name:
-            raise ContractError(f"Entry {entry_id} {field}.{name} type mismatch: expected {expected_type}, got {type_name}")
+        if not type_equals(expected_type, type_name):
+            raise ContractError(
+                f"Entry {entry_id} {field}.{name} type mismatch: "
+                f"expected {type_display(expected_type)}, got {type_display(type_name)}"
+            )
 
 
-def _entry_input_map(entry: dict[str, Any], section: str) -> dict[str, str]:
+def _entry_input_map(entry: dict[str, Any], section: str) -> dict[str, Any]:
     value = (entry.get("input") or {}).get(section, {})
     return value if isinstance(value, dict) else {}
 
@@ -1930,28 +1949,25 @@ def _entry_input_source_types(contract: dict[str, Any], entry: dict[str, Any]) -
         for name, type_name in _entry_input_map(entry, section).items():
             source_types[(section, name)] = type_name
     payload = (entry.get("input") or {}).get("payload")
-    if isinstance(payload, str):
+    if payload is not None:
         source_types.update(_typed_source_paths(contract, ("payload",), payload))
     return source_types
 
 
-def _base_type(type_name: str) -> str:
-    if type_name.startswith("list[") and type_name.endswith("]"):
-        return type_name[5:-1]
-    return type_name
+def _base_type(type_name: Any) -> str | None:
+    return base_model_name(type_name)
 
 
-def _validate_problem_type(label: str, type_name: str) -> None:
-    base = _base_type(type_name)
-    if base != "Problem" and not base.endswith("Problem"):
+def _validate_problem_type(label: str, type_name: Any) -> None:
+    if not is_problem_type(type_name):
         raise ContractError(f"{label} must be Problem or a *Problem type")
 
 
-def _type_scope(types: dict[str, str]) -> TypeScope:
+def _type_scope(types: dict[str, Any]) -> TypeScope:
     return {(name,): type_name for name, type_name in types.items()}
 
 
-def _typed_source_paths(contract: dict[str, Any], prefix: tuple[str, ...], type_name: str) -> TypeScope:
+def _typed_source_paths(contract: dict[str, Any], prefix: tuple[str, ...], type_name: Any) -> TypeScope:
     return {prefix: type_name}
 
 
@@ -1964,13 +1980,12 @@ def _validate_mapping_to_type(
     contract: dict[str, Any],
     label: str,
     mapping: dict[str, str],
-    target_type: str,
+    target_type: Any,
     source_scopes: TypeScopes,
 ) -> None:
-    model = contract.get("models", {}).get(_base_type(target_type))
-    if not model:
-        raise ContractError(f"{label} field mapping requires object payload type, got {target_type}")
-    expected = model["fields"]
+    expected = object_fields_for_type(contract, target_type)
+    if not expected:
+        raise ContractError(f"{label} field mapping requires object payload type, got {type_display(target_type)}")
     if set(mapping) != set(expected):
         missing = sorted(set(expected) - set(mapping))
         extra = sorted(set(mapping) - set(expected))
@@ -1983,8 +1998,11 @@ def _validate_mapping_to_type(
     for field, source in mapping.items():
         actual_type = _reference_expression_type(contract, f"{label} mapping {field}", source, source_scopes)
         expected_type = expected[field]
-        if actual_type != expected_type:
-            raise ContractError(f"{label} mapping {field} source {source} type must be {expected_type}, got {actual_type}")
+        if not type_equals(actual_type, expected_type):
+            raise ContractError(
+                f"{label} mapping {field} source {source} type must be "
+                f"{type_display(expected_type)}, got {type_display(actual_type)}"
+            )
 
 
 def _success_outcomes(cap: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -2002,7 +2020,7 @@ def _primary_success_outcome(cap: dict[str, Any]) -> tuple[str, dict[str, Any]]:
     return next(iter(successes.items()))
 
 
-def _success_result_type(cap: dict[str, Any]) -> str:
+def _success_result_type(cap: dict[str, Any]) -> Any:
     return _primary_success_outcome(cap)[1]["result"]
 
 
@@ -2092,8 +2110,11 @@ def _validate_workflow_step_bindings(
             source_types,
         )
         expected_type = expected[name]
-        if actual_type != expected_type:
-            raise ContractError(f"Workflow {workflow_id} step {step['id']} input {name} source {source} type must be {expected_type}, got {actual_type}")
+        if not type_equals(actual_type, expected_type):
+            raise ContractError(
+                f"Workflow {workflow_id} step {step['id']} input {name} source {source} type must be "
+                f"{type_display(expected_type)}, got {type_display(actual_type)}"
+            )
 
 
 def _validate_workflow_step_routes(
@@ -2135,8 +2156,11 @@ def _validate_workflow_step_routes(
             expected_kind = "success" if target_kind == "complete" else "failure"
             if outcome["kind"] != expected_kind or terminal["kind"] != expected_kind:
                 raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} must preserve {outcome['kind']} outcome semantics")
-            if terminal["result"] != outcome["result"]:
-                raise ContractError(f"Workflow {workflow_id} outcome {terminal_id} result must be {outcome['result']} to receive step outcome {outcome_id}")
+            if not type_equals(terminal["result"], outcome["result"]):
+                raise ContractError(
+                    f"Workflow {workflow_id} outcome {terminal_id} result must be "
+                    f"{type_display(outcome['result'])} to receive step outcome {outcome_id}"
+                )
             routed_terminals.add(terminal_id)
         if "retry" in route:
             if outcome["kind"] != "failure":
@@ -2282,10 +2306,10 @@ def _validate_scenario_when(contract: dict[str, Any], sid: str, scenario: dict[s
 
 def _validate_scenario_event_payload(contract: dict[str, Any], sid: str, event_id: str, payload: dict[str, Any]) -> None:
     event = contract["events"][event_id]
-    model = contract.get("models", {}).get(_base_type(event["payload"]))
-    if not model:
+    fields = object_fields_for_type(contract, event["payload"])
+    if not fields:
         return
-    expected = set(model["fields"])
+    expected = set(fields)
     actual = set(payload)
     if actual != expected:
         missing = sorted(expected - actual)
@@ -2295,7 +2319,10 @@ def _validate_scenario_event_payload(contract: dict[str, Any], sid: str, event_i
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"Scenario {sid} emit_event.payload must exactly match event {event_id} payload {event['payload']}" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(
+            f"Scenario {sid} emit_event.payload must exactly match event {event_id} payload "
+            f"{type_display(event['payload'])}" + (": " + "; ".join(parts) if parts else "")
+        )
 
 
 def _validate_scenario_entry_input(sid: str, kind: str, body: dict[str, Any], entry: dict[str, Any]) -> None:
@@ -2312,8 +2339,8 @@ def _validate_scenario_entry_input(sid: str, kind: str, body: dict[str, Any], en
         raise ContractError(f"Scenario {sid} {kind}.input must exactly match entry input" + (": " + "; ".join(parts) if parts else ""))
 
 
-def _entry_external_input_types(entry: dict[str, Any]) -> dict[str, str]:
-    fields: dict[str, str] = {}
+def _entry_external_input_types(entry: dict[str, Any]) -> dict[str, Any]:
+    fields: dict[str, Any] = {}
     for section in ("params", "body", "args"):
         fields.update(_entry_input_map(entry, section))
     return fields

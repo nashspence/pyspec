@@ -189,7 +189,7 @@
           "$ref": "#/$defs/model_refs"
         },
         "input": {
-          "$ref": "#/$defs/type_map"
+          "$ref": "#/$defs/type_expr_map"
         },
         "outcomes": {
           "$ref": "#/$defs/capability_outcomes"
@@ -374,7 +374,7 @@
           "$ref": "#/$defs/basis"
         },
         "payload": {
-          "$ref": "#/$defs/type_name"
+          "$ref": "#/$defs/type_expr"
         },
         "why": {
           "$ref": "#/$defs/basis"
@@ -489,7 +489,7 @@
           "$ref": "#/$defs/basis"
         },
         "context": {
-          "$ref": "#/$defs/type_map"
+          "$ref": "#/$defs/type_expr_map"
         },
         "data": {
           "items": {
@@ -609,7 +609,7 @@
           "$ref": "#/$defs/basis"
         },
         "fields": {
-          "$ref": "#/$defs/type_map"
+          "$ref": "#/$defs/type_expr_map"
         },
         "kind": {
           "enum": [
@@ -859,7 +859,7 @@
           ]
         },
         "result": {
-          "$ref": "#/$defs/type_name"
+          "$ref": "#/$defs/type_expr"
         }
       },
       "required": [
@@ -937,7 +937,7 @@
     },
     "content_args": {
       "additionalProperties": {
-        "$ref": "#/$defs/type_name"
+        "$ref": "#/$defs/type_expr"
       },
       "propertyNames": {
         "$ref": "#/$defs/field_name"
@@ -1063,16 +1063,16 @@
       "additionalProperties": false,
       "properties": {
         "args": {
-          "$ref": "#/$defs/type_map"
+          "$ref": "#/$defs/type_expr_map"
         },
         "body": {
-          "$ref": "#/$defs/type_map"
+          "$ref": "#/$defs/type_expr_map"
         },
         "params": {
-          "$ref": "#/$defs/type_map"
+          "$ref": "#/$defs/type_expr_map"
         },
         "payload": {
-          "$ref": "#/$defs/type_name"
+          "$ref": "#/$defs/type_expr"
         }
       },
       "type": "object"
@@ -1099,7 +1099,7 @@
           "type": "integer"
         },
         "problem": {
-          "$ref": "#/$defs/type_name"
+          "$ref": "#/$defs/type_expr"
         },
         "status": {
           "maximum": 599,
@@ -1124,7 +1124,7 @@
           ]
         },
         "type": {
-          "$ref": "#/$defs/type_name"
+          "$ref": "#/$defs/type_expr"
         }
       },
       "required": [
@@ -1350,7 +1350,7 @@
           "$ref": "#/$defs/basis"
         },
         "payload": {
-          "$ref": "#/$defs/type_map"
+          "$ref": "#/$defs/type_expr_map"
         }
       },
       "type": "object"
@@ -2469,18 +2469,144 @@
       },
       "type": "object"
     },
-    "type_map": {
+    "type_expr": {
+      "description": "Structured data type expression. Supports primitives, named model/data-contract references, arrays, maps, nullable and optional wrappers, enums, and inline objects.",
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "primitive": {
+              "enum": [
+                "ID",
+                "Text",
+                "Markdown",
+                "Date",
+                "Timestamp",
+                "Bool",
+                "Int",
+                "Decimal",
+                "JSON"
+              ]
+            }
+          },
+          "required": [
+            "primitive"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "model": {
+              "$ref": "#/$defs/model_ref"
+            }
+          },
+          "required": [
+            "model"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "contract": {
+              "$ref": "#/$defs/model_ref"
+            }
+          },
+          "required": [
+            "contract"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "array": {
+              "$ref": "#/$defs/type_expr"
+            }
+          },
+          "required": [
+            "array"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "map": {
+              "$ref": "#/$defs/type_expr"
+            }
+          },
+          "required": [
+            "map"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "nullable": {
+              "$ref": "#/$defs/type_expr"
+            }
+          },
+          "required": [
+            "nullable"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "optional": {
+              "$ref": "#/$defs/type_expr"
+            }
+          },
+          "required": [
+            "optional"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "enum": {
+              "items": {
+                "pattern": "^[A-Za-z][A-Za-z0-9_ -]*$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "enum"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "object": {
+              "$ref": "#/$defs/type_expr_map"
+            }
+          },
+          "required": [
+            "object"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "type_expr_map": {
       "additionalProperties": {
-        "$ref": "#/$defs/type_name"
+        "$ref": "#/$defs/type_expr"
       },
+      "description": "Field map whose values are structured type expressions.",
       "propertyNames": {
         "$ref": "#/$defs/field_name"
       },
       "type": "object"
-    },
-    "type_name": {
-      "pattern": "^list\\[[A-Z][A-Za-z0-9]*\\]$|^[A-Z][A-Za-z0-9]*$",
-      "type": "string"
     },
     "value_map": {
       "additionalProperties": {
@@ -2610,7 +2736,7 @@
           ]
         },
         "result": {
-          "$ref": "#/$defs/type_name"
+          "$ref": "#/$defs/type_expr"
         }
       },
       "required": [

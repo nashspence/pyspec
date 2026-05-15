@@ -1,8 +1,10 @@
 copy:
   text.project.detail.ready.heading:
     args:
-      customer: Text
-      title: Text
+      customer:
+        primitive: Text
+      title:
+        primitive: Text
     basis: Ready heading for the detail FSM.
     max_chars: 80
     placeholder: Project detail

@@ -1,7 +1,8 @@
 assets:
   asset.project.detail.ready.priority_badge:
     args:
-      priority: Text
+      priority:
+        primitive: Text
     basis: Selected project detail shows a dynamic priority badge resolved from project fixture data.
     kind: icon
     placeholder:
@@ -41,8 +42,10 @@ capabilities:
     archetype: transition
     basis: Reviewers can approve submitted dispatch projects.
     input:
-      approved_by: ID
-      project_id: ID
+      approved_by:
+        primitive: ID
+      project_id:
+        primitive: ID
     outcomes:
       approved:
         emits:
@@ -51,15 +54,18 @@ capabilities:
             approved_by: $input.approved_by
             project_id: $input.project_id
         kind: success
-        result: Project
+        result:
+          model: Project
       invalid_state:
         emits: []
         kind: failure
-        result: Problem
+        result:
+          model: Problem
       not_found:
         emits: []
         kind: failure
-        result: Problem
+        result:
+          model: Problem
     policy: policy.project.approve
     transition:
       field: status
@@ -70,22 +76,26 @@ capabilities:
     archetype: transition
     basis: Approved dispatch projects can be archived.
     input:
-      project_id: ID
+      project_id:
+        primitive: ID
     outcomes:
       archived:
         emits:
         - event: event.project.archived
           payload: $outcome.result
         kind: success
-        result: Project
+        result:
+          model: Project
       invalid_state:
         emits: []
         kind: failure
-        result: Problem
+        result:
+          model: Problem
       not_found:
         emits: []
         kind: failure
-        result: Problem
+        result:
+          model: Problem
     policy: policy.project.archive
     transition:
       field: status
@@ -98,36 +108,46 @@ capabilities:
     creates:
     - Project
     input:
-      customer: Text
-      priority: Text
-      title: Text
-      workspace_id: ID
+      customer:
+        primitive: Text
+      priority:
+        primitive: Text
+      title:
+        primitive: Text
+      workspace_id:
+        primitive: ID
     outcomes:
       created:
         emits:
         - event: event.project.created
           payload: $outcome.result
         kind: success
-        result: Project
+        result:
+          model: Project
       validation_failed:
         emits: []
         kind: failure
-        result: Problem
+        result:
+          model: Problem
     policy: policy.project.create
   operation.project.list:
     archetype: list
     basis: The board requires a project list query scoped by workspace.
     input:
-      workspace_id: ID
+      workspace_id:
+        primitive: ID
     outcomes:
       listed:
         emits: []
         kind: success
-        result: list[Project]
+        result:
+          array:
+            model: Project
       unavailable:
         emits: []
         kind: failure
-        result: Problem
+        result:
+          model: Problem
     policy: policy.project.list
     reads:
     - Project
@@ -135,16 +155,19 @@ capabilities:
     archetype: read
     basis: The detail FSM loads the selected project by id.
     input:
-      project_id: ID
+      project_id:
+        primitive: ID
     outcomes:
       found:
         emits: []
         kind: success
-        result: Project
+        result:
+          model: Project
       not_found:
         emits: []
         kind: failure
-        result: Problem
+        result:
+          model: Problem
     policy: policy.project.read
     reads:
     - Project
@@ -152,38 +175,46 @@ capabilities:
     archetype: command
     basis: Approval triggers a notification command for downstream coordination.
     input:
-      approved_by: ID
-      project_id: ID
+      approved_by:
+        primitive: ID
+      project_id:
+        primitive: ID
     outcomes:
       delivery_failed:
         emits: []
         kind: failure
-        result: Problem
+        result:
+          model: Problem
       sent:
         emits: []
         kind: success
-        result: NoticeResult
+        result:
+          model: NoticeResult
     policy: policy.project.send_approval_notice
   operation.project.submit:
     archetype: transition
     basis: Draft dispatch projects can be submitted for review.
     input:
-      project_id: ID
+      project_id:
+        primitive: ID
     outcomes:
       invalid_state:
         emits: []
         kind: failure
-        result: Problem
+        result:
+          model: Problem
       not_found:
         emits: []
         kind: failure
-        result: Problem
+        result:
+          model: Problem
       submitted:
         emits:
         - event: event.project.submitted
           payload: $outcome.result
         kind: success
-        result: Project
+        result:
+          model: Project
     policy: policy.project.submit
     transition:
       field: status
@@ -245,8 +276,10 @@ copies:
     tone: instructional
   text.project.detail.ready.heading:
     args:
-      customer: Text
-      title: Text
+      customer:
+        primitive: Text
+      title:
+        primitive: Text
     basis: Ready heading for the detail FSM.
     max_chars: 80
     placeholder: Project detail
@@ -288,23 +321,29 @@ entries:
     endpoint: endpoint.project.create
     input:
       body:
-        customer: Text
-        priority: Text
-        title: Text
+        customer:
+          primitive: Text
+        priority:
+          primitive: Text
+        title:
+          primitive: Text
       params:
-        workspace_id: ID
+        workspace_id:
+          primitive: ID
     method: POST
     path: /workspaces/{workspace_id}/projects
     responses:
       created:
         body:
           from: $outcome.result
-          type: Project
+          type:
+            model: Project
         status: 201
       validation_failed:
         body:
           from: $outcome.result
-          type: Problem
+          type:
+            model: Problem
         status: 422
     surface: api
     target:
@@ -319,19 +358,23 @@ entries:
     endpoint: endpoint.project.list
     input:
       params:
-        workspace_id: ID
+        workspace_id:
+          primitive: ID
     method: GET
     path: /workspaces/{workspace_id}/projects
     responses:
       listed:
         body:
           from: $outcome.result
-          type: list[Project]
+          type:
+            array:
+              model: Project
         status: 200
       unavailable:
         body:
           from: $outcome.result
-          type: Problem
+          type:
+            model: Problem
         status: 503
     surface: api
     target:
@@ -344,24 +387,29 @@ entries:
     command_ref: command.project.approve
     input:
       args:
-        approved_by: ID
-        project_id: ID
+        approved_by:
+          primitive: ID
+        project_id:
+          primitive: ID
     responses:
       approved:
         exit_code: 0
         stdout:
           from: $outcome.result
-          type: Project
+          type:
+            model: Project
       invalid_state:
         exit_code: 2
         stderr:
           from: $outcome.result
-          type: Problem
+          type:
+            model: Problem
       not_found:
         exit_code: 3
         stderr:
           from: $outcome.result
-          type: Problem
+          type:
+            model: Problem
     surface: cli
     target:
       capability: operation.project.approve
@@ -374,7 +422,8 @@ entries:
     command_ref: command.project.board
     input:
       args:
-        workspace_id: ID
+        workspace_id:
+          primitive: ID
     surface: cli
     target:
       fsm:
@@ -386,7 +435,8 @@ entries:
     basis: Web entry for the dispatch board.
     input:
       params:
-        workspace_id: ID
+        workspace_id:
+          primitive: ID
     path: /workspaces/{workspace_id}/dispatch
     route: route.project.board
     surface: web
@@ -399,13 +449,15 @@ entries:
   entry_point.worker.project.approval_notice:
     basis: Worker entry exposing the approval notice workflow.
     input:
-      payload: ProjectApproved
+      payload:
+        model: ProjectApproved
     responses:
       accepted:
         disposition: ack
       malformed:
         disposition: dead_letter
-        problem: Problem
+        problem:
+          model: Problem
     surface: worker
     target:
       workflow:
@@ -418,22 +470,26 @@ events:
     basis: Approval events carry the reviewer and project identity needed by notification workflows.
     emitted_by:
     - operation.project.approve
-    payload: ProjectApproved
+    payload:
+      model: ProjectApproved
   event.project.archived:
     basis: Approved dispatch projects can be archived.
     emitted_by:
     - operation.project.archive
-    payload: Project
+    payload:
+      model: Project
   event.project.created:
     basis: Members can create a new dispatch project.
     emitted_by:
     - operation.project.create
-    payload: Project
+    payload:
+      model: Project
   event.project.submitted:
     basis: Draft dispatch projects can be submitted for review.
     emitted_by:
     - operation.project.submit
-    payload: Project
+    payload:
+      model: Project
 facts:
   fact.project.draft:
     basis: Draft dispatch project used as a secondary row in ready-board audit renders.
@@ -490,14 +546,16 @@ fsms:
   state_machine.project.activity:
     basis: The activity FSM summarizes latest status around the selected project.
     context:
-      project_id: ID
+      project_id:
+        primitive: ID
     data: []
     initial: empty
     messages:
       accepts:
         message.project.selection_changed:
           payload:
-            project_id: ID
+            project_id:
+              primitive: ID
         message.selection.cleared:
           payload: {}
       emits: {}
@@ -540,8 +598,10 @@ fsms:
     archetype: dashboard
     basis: The dispatch board composes list, detail, and activity FSMs through shared selected-project context.
     context:
-      selected_project_id: ID
-      workspace_id: ID
+      selected_project_id:
+        primitive: ID
+      workspace_id:
+        primitive: ID
     data:
     - capability: operation.project.list
       query: query.project.board.list
@@ -723,7 +783,8 @@ fsms:
   state_machine.project.detail:
     basis: The detail FSM is independent from the list and reacts to selected project context.
     context:
-      project_id: ID
+      project_id:
+        primitive: ID
     data: []
     initial: none
     messages:
@@ -734,7 +795,8 @@ fsms:
           payload: {}
         message.project.selection_changed:
           payload:
-            project_id: ID
+            project_id:
+              primitive: ID
         message.selection.cleared:
           payload: {}
       emits: {}
@@ -804,8 +866,10 @@ fsms:
   state_machine.project.list:
     basis: The list FSM owns collection loading, empty, ready, error, and selection behavior.
     context:
-      selected_project_id: ID
-      workspace_id: ID
+      selected_project_id:
+        primitive: ID
+      workspace_id:
+        primitive: ID
     data:
     - capability: operation.project.list
       query: query.project.list.list
@@ -820,11 +884,13 @@ fsms:
           payload: {}
         message.project.select:
           payload:
-            project_id: ID
+            project_id:
+              primitive: ID
       emits:
         message.project.selected:
           payload:
-            project_id: ID
+            project_id:
+              primitive: ID
     model: Project
     states:
       empty:
@@ -894,23 +960,39 @@ models:
   Problem:
     basis: A structured problem result explains intentional failure outcomes across API and CLI surfaces.
     fields:
-      code: Text
-      message: Text
+      code:
+        primitive: Text
+      message:
+        primitive: Text
     kind: value_object
     lifecycle: null
   Project:
     basis: A dispatch project is the durable work item displayed and acted on by the board.
     fields:
-      assignee: Text
-      created_at: Timestamp
-      customer: Text
-      id: ID
-      priority: Text
-      status: ProjectStatus
-      summary: Text
-      title: Text
-      updated_at: Timestamp
-      workspace_id: ID
+      assignee:
+        primitive: Text
+      created_at:
+        primitive: Timestamp
+      customer:
+        primitive: Text
+      id:
+        primitive: ID
+      priority:
+        primitive: Text
+      status:
+        enum:
+        - draft
+        - submitted
+        - approved
+        - archived
+      summary:
+        primitive: Text
+      title:
+        primitive: Text
+      updated_at:
+        primitive: Timestamp
+      workspace_id:
+        primitive: ID
     kind: aggregate
     lifecycle:
       field: status
@@ -933,8 +1015,10 @@ models:
   ProjectApproved:
     basis: Approval events carry only the integration payload required by downstream workflows.
     fields:
-      approved_by: ID
-      project_id: ID
+      approved_by:
+        primitive: ID
+      project_id:
+        primitive: ID
     kind: value_object
     lifecycle: null
 project: project_dispatch_board
@@ -1496,10 +1580,12 @@ workflows:
     outcomes:
       completed:
         kind: success
-        result: NoticeResult
+        result:
+          model: NoticeResult
       delivery_failed:
         kind: failure
-        result: Problem
+        result:
+          model: Problem
     ref: workflow.project.approval_notice
     steps:
     - capability: operation.project.send_approval_notice

@@ -29,7 +29,12 @@ components:
         priority:
           type: string
         status:
-          $ref: '#/components/schemas/ProjectStatus'
+          enum:
+          - draft
+          - submitted
+          - approved
+          - archived
+          type: string
         summary:
           type: string
         title:
@@ -62,13 +67,6 @@ components:
       - approved_by
       - project_id
       type: object
-    ProjectStatus:
-      enum:
-      - draft
-      - submitted
-      - approved
-      - archived
-      type: string
 info:
   title: project_dispatch_board
   version: 0.0.0-contract

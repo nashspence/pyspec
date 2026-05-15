@@ -21,21 +21,6 @@ fixtures:
         id: workspace_1
         name: North Region Dispatch
 facts:
-  fact.project.submitted:
-    basis: Submitted dispatch project shared by approval, ready-board, and visual audit scenarios.
-    present:
-      model: Project
-      values:
-        assignee: Maya Chen
-        created_at: '2026-05-10T09:00:00Z'
-        customer: Atlas Foods
-        id: project_submitted_1
-        priority: High
-        status: submitted
-        summary: Technician needs approval before ordering the replacement fan motor.
-        title: Replace rooftop condenser fan
-        updated_at: '2026-05-11T08:45:00Z'
-        workspace_id: $fixture.workspace.id
   fact.project.draft:
     basis: Draft dispatch project used as a secondary row in ready-board audit renders.
     present:
@@ -51,20 +36,57 @@ facts:
         title: Inspect loading dock sensor
         updated_at: '2026-05-11T07:15:00Z'
         workspace_id: $fixture.workspace.id
+  fact.project.submitted:
+    basis: Submitted dispatch project shared by approval, ready-board, and visual audit scenarios.
+    present:
+      model: Project
+      values:
+        assignee: Maya Chen
+        created_at: '2026-05-10T09:00:00Z'
+        customer: Atlas Foods
+        id: project_submitted_1
+        priority: High
+        status: submitted
+        summary: Technician needs approval before ordering the replacement fan motor.
+        title: Replace rooftop condenser fan
+        updated_at: '2026-05-11T08:45:00Z'
+        workspace_id: $fixture.workspace.id
 models:
+  Problem:
+    basis: A structured problem result explains intentional failure outcomes across API and CLI surfaces.
+    fields:
+      code:
+        primitive: Text
+      message:
+        primitive: Text
+    kind: value_object
   Project:
     basis: A dispatch project is the durable work item displayed and acted on by the board.
     fields:
-      assignee: Text
-      created_at: Timestamp
-      customer: Text
-      id: ID
-      priority: Text
-      status: ProjectStatus
-      summary: Text
-      title: Text
-      updated_at: Timestamp
-      workspace_id: ID
+      assignee:
+        primitive: Text
+      created_at:
+        primitive: Timestamp
+      customer:
+        primitive: Text
+      id:
+        primitive: ID
+      priority:
+        primitive: Text
+      status:
+        enum:
+        - draft
+        - submitted
+        - approved
+        - archived
+      summary:
+        primitive: Text
+      title:
+        primitive: Text
+      updated_at:
+        primitive: Timestamp
+      workspace_id:
+        primitive: ID
     kind: aggregate
     lifecycle:
       field: status
@@ -84,25 +106,23 @@ models:
       - by: operation.project.archive
         from: approved
         to: archived
-  Problem:
-    basis: A structured problem result explains intentional failure outcomes across API and CLI surfaces.
-    fields:
-      code: Text
-      message: Text
-    kind: value_object
   ProjectApproved:
     basis: Approval events carry only the integration payload required by downstream workflows.
     fields:
-      approved_by: ID
-      project_id: ID
+      approved_by:
+        primitive: ID
+      project_id:
+        primitive: ID
     kind: value_object
 capabilities:
   operation.project.approve:
     archetype: transition
     basis: Reviewers can approve submitted dispatch projects.
     input:
-      approved_by: ID
-      project_id: ID
+      approved_by:
+        primitive: ID
+      project_id:
+        primitive: ID
     outcomes:
       approved:
         emits:
@@ -111,127 +131,158 @@ capabilities:
             approved_by: $input.approved_by
             project_id: $input.project_id
         kind: success
-        result: Project
+        result:
+          model: Project
       invalid_state:
         kind: failure
-        result: Problem
+        result:
+          model: Problem
       not_found:
         kind: failure
-        result: Problem
+        result:
+          model: Problem
   operation.project.archive:
     archetype: transition
     basis: Approved dispatch projects can be archived.
     input:
-      project_id: ID
+      project_id:
+        primitive: ID
     outcomes:
       archived:
         emits:
         - event: event.project.archived
           payload: $outcome.result
         kind: success
-        result: Project
+        result:
+          model: Project
       invalid_state:
         kind: failure
-        result: Problem
+        result:
+          model: Problem
       not_found:
         kind: failure
-        result: Problem
+        result:
+          model: Problem
   operation.project.create:
     archetype: create
     basis: Members can create a new dispatch project.
     creates:
     - Project
     input:
-      customer: Text
-      priority: Text
-      title: Text
-      workspace_id: ID
+      customer:
+        primitive: Text
+      priority:
+        primitive: Text
+      title:
+        primitive: Text
+      workspace_id:
+        primitive: ID
     outcomes:
       created:
         emits:
         - event: event.project.created
           payload: $outcome.result
         kind: success
-        result: Project
+        result:
+          model: Project
       validation_failed:
         kind: failure
-        result: Problem
+        result:
+          model: Problem
   operation.project.list:
     archetype: list
     basis: The board requires a project list query scoped by workspace.
     input:
-      workspace_id: ID
+      workspace_id:
+        primitive: ID
     outcomes:
       listed:
         kind: success
-        result: list[Project]
+        result:
+          array:
+            model: Project
       unavailable:
         kind: failure
-        result: Problem
+        result:
+          model: Problem
     reads:
     - Project
   operation.project.read:
     archetype: read
     basis: The detail FSM loads the selected project by id.
     input:
-      project_id: ID
+      project_id:
+        primitive: ID
     outcomes:
       found:
         kind: success
-        result: Project
+        result:
+          model: Project
       not_found:
         kind: failure
-        result: Problem
+        result:
+          model: Problem
     reads:
     - Project
   operation.project.send_approval_notice:
     archetype: command
     basis: Approval triggers a notification command for downstream coordination.
     input:
-      approved_by: ID
-      project_id: ID
+      approved_by:
+        primitive: ID
+      project_id:
+        primitive: ID
     outcomes:
       delivery_failed:
         kind: failure
-        result: Problem
+        result:
+          model: Problem
       sent:
         kind: success
-        result: NoticeResult
+        result:
+          model: NoticeResult
   operation.project.submit:
     archetype: transition
     basis: Draft dispatch projects can be submitted for review.
     input:
-      project_id: ID
+      project_id:
+        primitive: ID
     outcomes:
       invalid_state:
         kind: failure
-        result: Problem
+        result:
+          model: Problem
       not_found:
         kind: failure
-        result: Problem
+        result:
+          model: Problem
       submitted:
         emits:
         - event: event.project.submitted
           payload: $outcome.result
         kind: success
-        result: Project
+        result:
+          model: Project
 events:
   event.project.approved:
     basis: Approval events carry the reviewer and project identity needed by notification workflows.
-    payload: ProjectApproved
+    payload:
+      model: ProjectApproved
 fsms:
   state_machine.project.activity:
     basis: The activity FSM summarizes latest status around the selected project.
     context:
-      project_id: ID
+      project_id:
+        primitive: ID
     data: []
+    initial: empty
     messages:
       accepts:
         message.project.selection_changed:
           payload:
-            project_id: ID
+            project_id:
+              primitive: ID
         message.selection.cleared: {}
-    initial: empty
     model: Project
     states:
       empty:
@@ -248,156 +299,66 @@ fsms:
         - status
         - assignee
     transitions:
-    - on: message.project.selection_changed
-      from: empty
+    - from: empty
+      on: message.project.selection_changed
       to: ready
     - effects:
       - set:
           context: project_id
           value: null
+      from: ready
       on: message.selection.cleared
-      from: ready
       to: empty
-  state_machine.project.detail:
-    basis: The detail FSM is independent from the list and reacts to selected project context.
-    context:
-      project_id: ID
-    data: []
-    messages:
-      accepts:
-        data.error: {}
-        data.ready: {}
-        message.project.selection_changed:
-          payload:
-            project_id: ID
-        message.selection.cleared: {}
-    initial: none
-    model: Project
-    states:
-      error:
-        copy_slots:
-        - heading
-        - body
-      loading:
-        copy_slots:
-        - message
-        data:
-        - operation.project.read
-      none:
-        copy_slots:
-        - heading
-        - body
-      ready:
-        actions:
-        - operation.project.approve
-        - operation.project.archive
-        asset_slots:
-        - priority_badge
-        copy_slots:
-        - heading
-        field_slots:
-        - title
-        - customer
-        - status
-        - assignee
-        - summary
-    transitions:
-    - on: message.project.selection_changed
-      from: none
-      to: loading
-    - on: data.ready
-      from: loading
-      to: ready
-    - on: data.error
-      from: loading
-      to: error
-    - effects:
-      - set:
-          context: project_id
-          value: null
-      on: message.selection.cleared
-      from: ready
-      to: none
-  state_machine.project.list:
-    basis: The list FSM owns collection loading, empty, ready, error, and selection behavior.
-    context:
-      selected_project_id: ID
-      workspace_id: ID
-    data:
-    - operation.project.list
-    messages:
-      accepts:
-        data.empty: {}
-        data.error: {}
-        data.ready: {}
-        message.project.select:
-          payload:
-            project_id: ID
-      emits:
-        message.project.selected:
-          payload:
-            project_id: ID
-    initial: loading
-    model: Project
-    states:
-      empty:
-        actions:
-        - operation.project.create
-        asset_slots:
-        - illustration
-        copy_slots:
-        - heading
-        - body
-      error:
-        copy_slots:
-        - heading
-        - body
-      loading:
-        copy_slots:
-        - message
-      ready:
-        actions:
-        - operation.project.create
-        - operation.project.submit
-        copy_slots:
-        - heading
-        field_slots:
-        - title
-        - customer
-        - priority
-        - status
-    transitions:
-    - on: data.empty
-      from: loading
-      to: empty
-    - on: data.ready
-      from: loading
-      to: ready
-    - on: data.error
-      from: loading
-      to: error
-    - on: data.ready
-      from: empty
-      to: ready
-    - effects:
-      - emit:
-          data:
-            project_id: $message.project_id
-          message: message.project.selected
-      on: message.project.select
-      from: ready
-      to: ready
   state_machine.project.board:
     archetype: dashboard
     basis: The dispatch board composes list, detail, and activity FSMs through shared selected-project context.
     context:
-      selected_project_id: ID
-      workspace_id: ID
+      selected_project_id:
+        primitive: ID
+      workspace_id:
+        primitive: ID
     data:
     - operation.project.list
+    initial: ready
     model: Project
     states:
       ready:
+        audit:
+          empty:
+            basis: Audit render for empty board state vector.
+            fixtures:
+            - fixture.workspace.member
+            instances:
+              activity:
+                state: empty
+              detail:
+                state: none
+              list:
+                state: empty
+            profile: default
+            surfaces:
+            - html
+            - textual
+          ready_selected:
+            basis: Audit render for selected-project board state vector using named project facts.
+            context:
+              selected_project_id: project_submitted_1
+            facts:
+            - use: fact.project.submitted
+            - use: fact.project.draft
+            fixtures:
+            - fixture.workspace.member
+            instances:
+              activity:
+                state: ready
+              detail:
+                state: ready
+              list:
+                state: ready
+            profile: default
+            surfaces:
+            - html
+            - textual
         layout:
           html:
             css:
@@ -480,12 +441,13 @@ fsms:
         - context:
             selected_project_id: $state_machine.selected_project_id
             workspace_id: $state_machine.workspace_id
+          fsm: state_machine.project.list
           id: list
           initial: loading
           region: nav
-          fsm: state_machine.project.list
         - context:
             project_id: $state_machine.selected_project_id
+          fsm: state_machine.project.detail
           id: detail
           initial: none
           region: main
@@ -493,9 +455,9 @@ fsms:
             state: loading
             when:
               context_present: selected_project_id
-          fsm: state_machine.project.detail
         - context:
             project_id: $state_machine.selected_project_id
+          fsm: state_machine.project.activity
           id: activity
           initial: empty
           region: aside
@@ -503,7 +465,6 @@ fsms:
             state: ready
             when:
               context_present: selected_project_id
-          fsm: state_machine.project.activity
         sync:
         - do:
           - set:
@@ -512,76 +473,180 @@ fsms:
           - send:
               data:
                 project_id: $message.project_id
-              message: message.project.selection_changed
               instance: detail
+              message: message.project.selection_changed
           - send:
               data:
                 project_id: $message.project_id
-              message: message.project.selection_changed
               instance: activity
+              message: message.project.selection_changed
           id: select_project_updates_fsms
           when:
             instance: list
             message: message.project.selected
-        audit:
-          empty:
-            basis: Audit render for empty board state vector.
-            fixtures:
-            - fixture.workspace.member
-            profile: default
-            surfaces:
-            - html
-            - textual
-            instances:
-              activity:
-                state: empty
-              detail:
-                state: none
-              list:
-                state: empty
-          ready_selected:
-            basis: Audit render for selected-project board state vector using named project facts.
-            context:
-              selected_project_id: project_submitted_1
-            facts:
-            - use: fact.project.submitted
-            - use: fact.project.draft
-            fixtures:
-            - fixture.workspace.member
-            profile: default
-            surfaces:
-            - html
-            - textual
-            instances:
-              activity:
-                state: ready
-              detail:
-                state: ready
-              list:
-                state: ready
-    initial: ready
+  state_machine.project.detail:
+    basis: The detail FSM is independent from the list and reacts to selected project context.
+    context:
+      project_id:
+        primitive: ID
+    data: []
+    initial: none
+    messages:
+      accepts:
+        data.error: {}
+        data.ready: {}
+        message.project.selection_changed:
+          payload:
+            project_id:
+              primitive: ID
+        message.selection.cleared: {}
+    model: Project
+    states:
+      error:
+        copy_slots:
+        - heading
+        - body
+      loading:
+        copy_slots:
+        - message
+        data:
+        - operation.project.read
+      none:
+        copy_slots:
+        - heading
+        - body
+      ready:
+        actions:
+        - operation.project.approve
+        - operation.project.archive
+        asset_slots:
+        - priority_badge
+        copy_slots:
+        - heading
+        field_slots:
+        - title
+        - customer
+        - status
+        - assignee
+        - summary
+    transitions:
+    - from: none
+      on: message.project.selection_changed
+      to: loading
+    - from: loading
+      on: data.ready
+      to: ready
+    - from: loading
+      on: data.error
+      to: error
+    - effects:
+      - set:
+          context: project_id
+          value: null
+      from: ready
+      on: message.selection.cleared
+      to: none
+  state_machine.project.list:
+    basis: The list FSM owns collection loading, empty, ready, error, and selection behavior.
+    context:
+      selected_project_id:
+        primitive: ID
+      workspace_id:
+        primitive: ID
+    data:
+    - operation.project.list
+    initial: loading
+    messages:
+      accepts:
+        data.empty: {}
+        data.error: {}
+        data.ready: {}
+        message.project.select:
+          payload:
+            project_id:
+              primitive: ID
+      emits:
+        message.project.selected:
+          payload:
+            project_id:
+              primitive: ID
+    model: Project
+    states:
+      empty:
+        actions:
+        - operation.project.create
+        asset_slots:
+        - illustration
+        copy_slots:
+        - heading
+        - body
+      error:
+        copy_slots:
+        - heading
+        - body
+      loading:
+        copy_slots:
+        - message
+      ready:
+        actions:
+        - operation.project.create
+        - operation.project.submit
+        copy_slots:
+        - heading
+        field_slots:
+        - title
+        - customer
+        - priority
+        - status
+    transitions:
+    - from: loading
+      on: data.empty
+      to: empty
+    - from: loading
+      on: data.ready
+      to: ready
+    - from: loading
+      on: data.error
+      to: error
+    - from: empty
+      on: data.ready
+      to: ready
+    - effects:
+      - emit:
+          data:
+            project_id: $message.project_id
+          message: message.project.selected
+      from: ready
+      on: message.project.select
+      to: ready
 entries:
   entry_point.api.project.create:
     basis: HTTP endpoint for creating a dispatch project.
     input:
       body:
-        customer: Text
-        priority: Text
-        title: Text
+        customer:
+          primitive: Text
+        priority:
+          primitive: Text
+        title:
+          primitive: Text
       params:
-        workspace_id: ID
+        workspace_id:
+          primitive: ID
     method: POST
     path: /workspaces/{workspace_id}/projects
     responses:
       created:
         body:
           from: $outcome.result
-          type: Project
+          type:
+            model: Project
         status: 201
       validation_failed:
         body:
           from: $outcome.result
-          type: Problem
+          type:
+            model: Problem
         status: 422
     surface: api
     target:
@@ -595,19 +660,23 @@ entries:
     basis: HTTP endpoint for listing dispatch projects.
     input:
       params:
-        workspace_id: ID
+        workspace_id:
+          primitive: ID
     method: GET
     path: /workspaces/{workspace_id}/projects
     responses:
       listed:
         body:
           from: $outcome.result
-          type: list[Project]
+          type:
+            array:
+              model: Project
         status: 200
       unavailable:
         body:
           from: $outcome.result
-          type: Problem
+          type:
+            model: Problem
         status: 503
     surface: api
     target:
@@ -619,24 +688,29 @@ entries:
     command: project approve
     input:
       args:
-        approved_by: ID
-        project_id: ID
+        approved_by:
+          primitive: ID
+        project_id:
+          primitive: ID
     responses:
       approved:
         exit_code: 0
         stdout:
           from: $outcome.result
-          type: Project
+          type:
+            model: Project
       invalid_state:
         exit_code: 2
         stderr:
           from: $outcome.result
-          type: Problem
+          type:
+            model: Problem
       not_found:
         exit_code: 3
         stderr:
           from: $outcome.result
-          type: Problem
+          type:
+            model: Problem
     surface: cli
     target:
       capability: operation.project.approve
@@ -648,7 +722,8 @@ entries:
     command: project board
     input:
       args:
-        workspace_id: ID
+        workspace_id:
+          primitive: ID
     surface: cli
     target:
       fsm:
@@ -660,7 +735,8 @@ entries:
     basis: Web entry for the dispatch board.
     input:
       params:
-        workspace_id: ID
+        workspace_id:
+          primitive: ID
     path: /workspaces/{workspace_id}/dispatch
     surface: web
     target:
@@ -672,13 +748,15 @@ entries:
   entry_point.worker.project.approval_notice:
     basis: Worker entry exposing the approval notice workflow.
     input:
-      payload: ProjectApproved
+      payload:
+        model: ProjectApproved
     responses:
       accepted:
         disposition: ack
       malformed:
         disposition: dead_letter
-        problem: Problem
+        problem:
+          model: Problem
     surface: worker
     target:
       workflow:
@@ -691,10 +769,12 @@ workflows:
     outcomes:
       completed:
         kind: success
-        result: NoticeResult
+        result:
+          model: NoticeResult
       delivery_failed:
         kind: failure
-        result: Problem
+        result:
+          model: Problem
     steps:
     - capability: operation.project.send_approval_notice
       id: send_notice
@@ -784,11 +864,6 @@ scenarios:
       forbids:
       - operation.project.approve
       fsm:
-        ref: state_machine.project.board
-        state: ready
-        sync:
-          observed:
-          - select_project_updates_fsms
         instances:
           activity:
             state: empty
@@ -796,6 +871,11 @@ scenarios:
             state: none
           list:
             state: empty
+        ref: state_machine.project.board
+        state: ready
+        sync:
+          observed:
+          - select_project_updates_fsms
     title: Empty dispatch board
     when:
       open_entry:
@@ -816,11 +896,6 @@ scenarios:
       - operation.project.create
       - operation.project.submit
       fsm:
-        ref: state_machine.project.board
-        state: ready
-        sync:
-          observed:
-          - select_project_updates_fsms
         instances:
           activity:
             state: empty
@@ -828,6 +903,11 @@ scenarios:
             state: none
           list:
             state: ready
+        ref: state_machine.project.board
+        state: ready
+        sync:
+          observed:
+          - select_project_updates_fsms
     title: Ready dispatch board
     when:
       open_entry:
@@ -913,8 +993,10 @@ copies:
     tone: instructional
   text.project.detail.ready.heading:
     args:
-      customer: Text
-      title: Text
+      customer:
+        primitive: Text
+      title:
+        primitive: Text
     basis: Ready heading for the detail FSM.
     max_chars: 80
     placeholder: Project detail
@@ -953,7 +1035,8 @@ copies:
 assets:
   asset.project.detail.ready.priority_badge:
     args:
-      priority: Text
+      priority:
+        primitive: Text
     basis: Selected project detail shows a dynamic priority badge resolved from project fixture data.
     kind: icon
     placeholder:
