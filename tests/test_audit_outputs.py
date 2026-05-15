@@ -162,24 +162,39 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "fontcolor" not in composition
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">web entry</FONT>' in entrypoint
     assert "<B>route:</B>&#160;&#160;route.fsm.project.board" in entrypoint
+    assert "<B>request</B>" in entrypoint
     assert "<B>params</B>" in entrypoint
     assert '<FONT POINT-SIZE="10">workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in entrypoint
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">target FSM (html)</FONT>' in entrypoint
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">target FSM (textual)</FONT>' in cli_entrypoint
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">target workflow (event project.approved)</FONT>' in worker_entrypoint
+    assert "<B>event payload</B>" in worker_entrypoint
+    assert "<B>acknowledgement</B>" in worker_entrypoint
     assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in worker_entrypoint
     assert "<B>surface handoff</B>" not in entrypoint
     assert 'label="ui loop"' not in entrypoint
     assert "entry_exit" not in entrypoint
+    assert "<B>entry input</B>" not in entrypoint
     assert "<B>entry output</B>" not in entrypoint
     assert "entrypoint_mount" not in entrypoint
     assert "nav mount" not in entrypoint
     assert "<B>surface handoff</B>" not in cli_entrypoint
+    assert "<B>command input</B>" in cli_entrypoint
     assert 'label="tui loop"' not in cli_entrypoint
     assert "entry_exit" not in cli_entrypoint
+    assert "<B>entry input</B>" not in cli_entrypoint
     assert "entrypoint_mount" not in cli_entrypoint
     assert '<FONT POINT-SIZE="10"><B>transition:</B>&#160;&#160;Project.status</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ProjectStatus</FONT><FONT POINT-SIZE="10">&#160;&lt;&#45;&#160;submitted -&gt; approved</FONT>' in cli_approve_entrypoint
-    assert "<B>entry output</B>" in api_entrypoint
+    assert "<B>command input</B>" in cli_approve_entrypoint
+    assert "<B>command output</B>" in cli_approve_entrypoint
+    assert "<B>entry input</B>" not in cli_approve_entrypoint
+    assert "<B>entry output</B>" not in cli_approve_entrypoint
+    assert "<B>request</B>" in api_entrypoint
+    assert "<B>response</B>" in api_entrypoint
+    assert "<B>entry input</B>" not in api_entrypoint
+    assert "<B>entry output</B>" not in api_entrypoint
+    assert "<B>entry input</B>" not in worker_entrypoint
+    assert "<B>entry output</B>" not in worker_entrypoint
     assert 'label="exit"' in api_entrypoint
     assert "<B>body</B>" in api_entrypoint
     assert 'body</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT><FONT POINT-SIZE="10">&#160;&lt;&#45;&#160;target.result</FONT>' in api_entrypoint
@@ -188,6 +203,13 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;customer</FONT>' not in target_card
     assert target_card.index("<B>input</B>") < target_card.index('<FONT POINT-SIZE="10">customer</FONT>')
     assert '<FONT POINT-SIZE="10">workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in target_card
+    assert "<B>emit:</B>&#160;&#160;project.created" in target_card
+    assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in target_card
+    assert "<B>emits:</B>&#160;&#160;project.created" not in target_card
+    cli_approve_target_card = cli_approve_entrypoint[cli_approve_entrypoint.index('"entrypoint_target_project_approve"') : cli_approve_entrypoint.index('"entrypoint_output_cli_project_approve"')]
+    assert "<B>emit:</B>&#160;&#160;project.approved" in cli_approve_target_card
+    assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in cli_approve_target_card
+    assert "<B>emits:</B>&#160;&#160;project.approved" not in cli_approve_target_card
     entrypoint_input = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
     assert entrypoint_input in entrypoint
     assert entrypoint.index(entrypoint_input) < entrypoint.index("<B>query:</B>&#160;&#160;query.project.board.list")

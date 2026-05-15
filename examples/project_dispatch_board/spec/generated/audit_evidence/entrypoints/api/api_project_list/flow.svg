@@ -33,7 +33,7 @@
 <polygon fill="#ffffff" stroke="transparent" points="445,-16.5 445,-87.5 529,-87.5 529,-16.5 445,-16.5"/>
 <polygon fill="#64748b" stroke="transparent" points="446,-78 446,-86 528,-86 528,-78 446,-78"/>
 <polygon fill="#f8fafc" stroke="transparent" points="446,-47 446,-78 528,-78 528,-47 446,-47"/>
-<text text-anchor="start" x="450" y="-64.6" font-family="Arial" font-weight="bold" font-size="13.00">entry input</text>
+<text text-anchor="start" x="450" y="-64.6" font-family="Arial" font-weight="bold" font-size="13.00">request</text>
 <text text-anchor="start" x="450" y="-53.6" font-family="Arial" font-size="8.00" fill="#64748b">external data</text>
 <text text-anchor="start" x="450" y="-36" font-family="Arial" font-weight="bold" font-size="10.00">params</text>
 <text text-anchor="start" x="450" y="-25" font-family="Arial" font-size="10.00">workspace_id</text>
@@ -75,7 +75,7 @@
 <polygon fill="#ffffff" stroke="transparent" points="874,-6 874,-98 1016,-98 1016,-6 874,-6"/>
 <polygon fill="#64748b" stroke="transparent" points="875,-89 875,-97 1015,-97 1015,-89 875,-89"/>
 <polygon fill="#f8fafc" stroke="transparent" points="875,-58 875,-89 1015,-89 1015,-58 875,-58"/>
-<text text-anchor="start" x="879" y="-75.6" font-family="Arial" font-weight="bold" font-size="13.00">entry output</text>
+<text text-anchor="start" x="879" y="-75.6" font-family="Arial" font-weight="bold" font-size="13.00">response</text>
 <text text-anchor="start" x="879" y="-64.6" font-family="Arial" font-size="8.00" fill="#64748b">external result</text>
 <text text-anchor="start" x="880" y="-46" font-family="Arial" font-weight="bold" font-size="10.00">status:</text>
 <text text-anchor="start" x="911" y="-46" font-family="Arial" font-size="10.00">  200</text>

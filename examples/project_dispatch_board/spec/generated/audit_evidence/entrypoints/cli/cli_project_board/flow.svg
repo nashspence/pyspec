@@ -1,5 +1,5 @@
-<svg width="757pt" height="187pt"
- viewBox="0.00 0.00 757.00 187.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="783pt" height="187pt"
+ viewBox="0.00 0.00 783.00 187.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 169)">
 <title>entrypoint_cli_project_board</title>
 <!-- entry_start -->
@@ -30,52 +30,52 @@
 <!-- entrypoint_input_cli_project_board -->
 <g id="node3" class="node">
 <title>entrypoint_input_cli_project_board</title>
-<polygon fill="#ffffff" stroke="transparent" points="365,-40 365,-111 449,-111 449,-40 365,-40"/>
-<polygon fill="#64748b" stroke="transparent" points="366,-101.5 366,-109.5 448,-109.5 448,-101.5 366,-101.5"/>
-<polygon fill="#f8fafc" stroke="transparent" points="366,-70.5 366,-101.5 448,-101.5 448,-70.5 366,-70.5"/>
-<text text-anchor="start" x="370" y="-88.1" font-family="Arial" font-weight="bold" font-size="13.00">entry input</text>
+<polygon fill="#ffffff" stroke="transparent" points="365,-40 365,-111 475,-111 475,-40 365,-40"/>
+<polygon fill="#64748b" stroke="transparent" points="366,-101.5 366,-109.5 474,-109.5 474,-101.5 366,-101.5"/>
+<polygon fill="#f8fafc" stroke="transparent" points="366,-70.5 366,-101.5 474,-101.5 474,-70.5 366,-70.5"/>
+<text text-anchor="start" x="370" y="-88.1" font-family="Arial" font-weight="bold" font-size="13.00">command input</text>
 <text text-anchor="start" x="370" y="-77.1" font-family="Arial" font-size="8.00" fill="#64748b">external data</text>
 <text text-anchor="start" x="370" y="-59.5" font-family="Arial" font-weight="bold" font-size="10.00">args</text>
 <text text-anchor="start" x="370" y="-48.5" font-family="Arial" font-size="10.00">workspace_id</text>
 <text text-anchor="start" x="431" y="-48.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
-<polygon fill="none" stroke="#64748b" points="365,-40 365,-111 449,-111 449,-40 365,-40"/>
+<polygon fill="none" stroke="#64748b" points="365,-40 365,-111 475,-111 475,-40 365,-40"/>
 </g>
 <!-- entrypoint_cli_project_board&#45;&gt;entrypoint_input_cli_project_board -->
 <g id="edge2" class="edge">
 <title>entrypoint_cli_project_board&#45;&gt;entrypoint_input_cli_project_board</title>
-<path fill="none" stroke="#3f3f46" d="M304.07,-75.5C322.31,-75.5 340.6,-75.5 356.55,-75.5"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="356.66,-78.3 364.66,-75.5 356.66,-72.7 356.66,-78.3"/>
+<path fill="none" stroke="#3f3f46" d="M304.21,-75.5C322.01,-75.5 340.08,-75.5 356.46,-75.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="356.86,-78.3 364.86,-75.5 356.86,-72.7 356.86,-78.3"/>
 </g>
 <!-- entrypoint_target_fsm_project_board -->
 <g id="node4" class="node">
 <title>entrypoint_target_fsm_project_board</title>
-<polygon fill="#ffffff" stroke="transparent" points="510,0 510,-151 721,-151 721,0 510,0"/>
-<polygon fill="#047857" stroke="transparent" points="511.5,-141.5 511.5,-149.5 720.5,-149.5 720.5,-141.5 511.5,-141.5"/>
-<polygon fill="#ecfdf5" stroke="transparent" points="511.5,-110.5 511.5,-141.5 720.5,-141.5 720.5,-110.5 511.5,-110.5"/>
-<text text-anchor="start" x="515.5" y="-128.1" font-family="Arial" font-weight="bold" font-size="13.00">fsm.project.board</text>
-<text text-anchor="start" x="515.5" y="-117.1" font-family="Arial" font-size="8.00" fill="#64748b">target FSM (textual)</text>
-<text text-anchor="start" x="515.5" y="-99.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">The dispatch board composes list, detail, and</text>
-<text text-anchor="start" x="515.5" y="-88.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">activity FSMs through shared selected&#45;project</text>
-<text text-anchor="start" x="515.5" y="-77.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">context.</text>
-<text text-anchor="start" x="516.5" y="-57.5" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
-<text text-anchor="start" x="544.5" y="-57.5" font-family="Arial" font-size="10.00">  workspace_id</text>
-<text text-anchor="start" x="611.5" y="-57.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
-<text text-anchor="start" x="516.5" y="-45.5" font-family="Arial" font-weight="bold" font-size="10.00">query:</text>
-<text text-anchor="start" x="546.5" y="-45.5" font-family="Arial" font-size="10.00">  query.project.board.list</text>
-<text text-anchor="start" x="516.5" y="-33.5" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
-<text text-anchor="start" x="540.5" y="-33.5" font-family="Arial" font-size="10.00">  project.list</text>
-<text text-anchor="start" x="592.5" y="-33.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  list[Project]</text>
-<text text-anchor="start" x="516.5" y="-21.5" font-family="Arial" font-weight="bold" font-size="10.00">model:</text>
-<text text-anchor="start" x="549.5" y="-21.5" font-family="Arial" font-size="10.00">  Project</text>
-<text text-anchor="start" x="516.5" y="-9.5" font-family="Arial" font-weight="bold" font-size="10.00">sync:</text>
-<text text-anchor="start" x="541.5" y="-9.5" font-family="Arial" font-size="10.00">  select_project_updates_fsms</text>
-<polygon fill="none" stroke="#047857" points="510,0 510,-151 721,-151 721,0 510,0"/>
+<polygon fill="#ffffff" stroke="transparent" points="536,0 536,-151 747,-151 747,0 536,0"/>
+<polygon fill="#047857" stroke="transparent" points="537.5,-141.5 537.5,-149.5 746.5,-149.5 746.5,-141.5 537.5,-141.5"/>
+<polygon fill="#ecfdf5" stroke="transparent" points="537.5,-110.5 537.5,-141.5 746.5,-141.5 746.5,-110.5 537.5,-110.5"/>
+<text text-anchor="start" x="541.5" y="-128.1" font-family="Arial" font-weight="bold" font-size="13.00">fsm.project.board</text>
+<text text-anchor="start" x="541.5" y="-117.1" font-family="Arial" font-size="8.00" fill="#64748b">target FSM (textual)</text>
+<text text-anchor="start" x="541.5" y="-99.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">The dispatch board composes list, detail, and</text>
+<text text-anchor="start" x="541.5" y="-88.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">activity FSMs through shared selected&#45;project</text>
+<text text-anchor="start" x="541.5" y="-77.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">context.</text>
+<text text-anchor="start" x="542.5" y="-57.5" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
+<text text-anchor="start" x="570.5" y="-57.5" font-family="Arial" font-size="10.00">  workspace_id</text>
+<text text-anchor="start" x="637.5" y="-57.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<text text-anchor="start" x="542.5" y="-45.5" font-family="Arial" font-weight="bold" font-size="10.00">query:</text>
+<text text-anchor="start" x="572.5" y="-45.5" font-family="Arial" font-size="10.00">  query.project.board.list</text>
+<text text-anchor="start" x="542.5" y="-33.5" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
+<text text-anchor="start" x="566.5" y="-33.5" font-family="Arial" font-size="10.00">  project.list</text>
+<text text-anchor="start" x="618.5" y="-33.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  list[Project]</text>
+<text text-anchor="start" x="542.5" y="-21.5" font-family="Arial" font-weight="bold" font-size="10.00">model:</text>
+<text text-anchor="start" x="575.5" y="-21.5" font-family="Arial" font-size="10.00">  Project</text>
+<text text-anchor="start" x="542.5" y="-9.5" font-family="Arial" font-weight="bold" font-size="10.00">sync:</text>
+<text text-anchor="start" x="567.5" y="-9.5" font-family="Arial" font-size="10.00">  select_project_updates_fsms</text>
+<polygon fill="none" stroke="#047857" points="536,0 536,-151 747,-151 747,0 536,0"/>
 </g>
 <!-- entrypoint_input_cli_project_board&#45;&gt;entrypoint_target_fsm_project_board -->
 <g id="edge3" class="edge">
 <title>entrypoint_input_cli_project_board&#45;&gt;entrypoint_target_fsm_project_board</title>
-<path fill="none" stroke="#3f3f46" d="M449.29,-75.5C464.74,-75.5 483.12,-75.5 501.92,-75.5"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="502,-78.3 510,-75.5 502,-72.7 502,-78.3"/>
+<path fill="none" stroke="#3f3f46" d="M475.26,-75.5C491.22,-75.5 509.31,-75.5 527.52,-75.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="527.89,-78.3 535.89,-75.5 527.89,-72.7 527.89,-78.3"/>
 </g>
 </g>
 </svg>

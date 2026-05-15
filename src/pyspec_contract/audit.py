@@ -669,6 +669,7 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
     target_tail = [] if target_kind == "fsm" else _entry_target_tail_nodes(target_kind, target_value, contract)
     input_sections = _entry_input_sections(entry, contract)
     output_sections = _entry_output_sections(entry)
+    input_title, output_title = _entry_io_card_titles(entry["surface"])
     lines = [
         f"digraph {_dot_quote('entrypoint_' + safe_id(entry_id))} {{",
         '  graph [rankdir="LR", bgcolor="transparent", pad="0.25", nodesep="0.38", ranksep="0.85", splines="spline"];',
@@ -691,7 +692,7 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
         lines.append(
             _dot_html_node(
                 input_node,
-                _dot_card("entry input", "external data", input_sections, header_bg="#f8fafc", border="#64748b"),
+                _dot_card(input_title, "external data", input_sections, header_bg="#f8fafc", border="#64748b"),
             )
         )
     lines.append(_dot_html_node(target_node, _entry_target_card(target_kind, target_value, contract, surface=target_surface, trigger=target_trigger)))
@@ -700,7 +701,7 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
         lines.append(
             _dot_html_node(
                 output_node,
-                _dot_card("entry output", "external result", output_sections, header_bg="#f8fafc", border="#64748b"),
+                _dot_card(output_title, "external result", output_sections, header_bg="#f8fafc", border="#64748b"),
             )
         )
     lines.extend(_dot_html_node(node_id, label) for node_id, label in target_tail)
@@ -720,6 +721,18 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
         lines.extend(_dot_invisible_order([node_id for node_id, _ in target_tail], indent="  "))
     lines.append("}")
     return "\n".join(lines) + "\n"
+
+
+def _entry_io_card_titles(surface: str) -> tuple[str, str]:
+    if surface in {"api", "web", "webhook"}:
+        return "request", "response"
+    if surface == "cli":
+        return "command input", "command output"
+    if surface == "worker":
+        return "event payload", "acknowledgement"
+    if surface == "schedule":
+        return "schedule trigger", "acknowledgement"
+    return "input", "output"
 
 
 def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict[str, Any]) -> str:
@@ -992,8 +1005,17 @@ def _capability_sections(capability: dict[str, Any], contract: dict[str, Any], *
         sections.append(("input", _typed_fields(capability["input"])))
     if include_output:
         sections.append(("output", [_DotTypedField("result", capability["output"])]))
-    if capability.get("emits"):
-        sections.append(("emits", capability["emits"]))
+    sections.extend(_capability_emit_sections(capability, contract))
+    return sections
+
+
+def _capability_emit_sections(capability: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, list[object]]]:
+    sections: list[tuple[str, list[object]]] = []
+    for event_id in capability.get("emits", []):
+        sections.append(("emit", [event_id]))
+        event = contract.get("events", {}).get(event_id, {})
+        if event.get("payload"):
+            sections.append(("payload", [_DotTypedField("payload", event["payload"])]))
     return sections
 
 
