@@ -13,6 +13,7 @@ DOC_PATH = ROOT.parents[1] / "docs" / "spec-ontology.md"
 SCHEMA_ROOT = ROOT / "schemas"
 DEPRECATED_DEFINITION_NAMES = {
     "capability",
+    "operation",
     "entry",
     "event",
     "fixture",
@@ -92,20 +93,28 @@ def test_schema_inventory_rejects_deprecated_definition_terminology() -> None:
     names = _schema_definition_names()
     deprecated_suffixes = sorted(name for name in names if name.endswith(("_author", "_spec")))
     deprecated_bare_items = sorted(names & (DEPRECATED_DEFINITION_NAMES | DEPRECATED_REFERENCE_DEFINITION_NAMES))
+    deprecated_capability_terms = sorted(name for name in names if "capability" in name)
     assert deprecated_suffixes == []
     assert deprecated_bare_items == []
+    assert deprecated_capability_terms == []
 
     for path, schema in _schemas():
         refs = re.findall(r"#/\$defs/([A-Za-z0-9_]+)", json.dumps(schema))
         deprecated_refs = sorted(
             ref
             for ref in refs
-            if ref.endswith(("_author", "_spec")) or ref in DEPRECATED_DEFINITION_NAMES | DEPRECATED_REFERENCE_DEFINITION_NAMES
+            if ref.endswith(("_author", "_spec"))
+            or ref in DEPRECATED_DEFINITION_NAMES | DEPRECATED_REFERENCE_DEFINITION_NAMES
+            or "capability" in ref
         )
         assert deprecated_refs == [], f"{path} contains deprecated schema refs: {deprecated_refs}"
 
 
 def test_spec_ontology_rejects_deprecated_reference_terminology() -> None:
     text = DOC_PATH.read_text(encoding="utf-8")
-    deprecated_terms = sorted(term for term in DEPRECATED_REFERENCE_DEFINITION_NAMES if term in text)
+    deprecated_terms = sorted(
+        term
+        for term in DEPRECATED_REFERENCE_DEFINITION_NAMES | {"capability", "capabilities"}
+        if term in text
+    )
     assert deprecated_terms == []

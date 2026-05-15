@@ -7,7 +7,7 @@ FSM_RENDER_SURFACES = ("html", "textual")
 
 
 def entry_target_pair(target: dict[str, Any]) -> tuple[str, str]:
-    for kind in ("capability", "fsm", "workflow"):
+    for kind in ("operation", "fsm", "workflow"):
         if kind not in target:
             continue
         value = target[kind]
@@ -15,8 +15,8 @@ def entry_target_pair(target: dict[str, Any]) -> tuple[str, str]:
             return kind, fsm_target_name(value)
         if kind == "workflow":
             return kind, workflow_target_name(value)
-        return kind, capability_target_name(value)
-    raise KeyError("entry target must declare capability, fsm, or workflow")
+        return kind, operation_target_name(value)
+    raise KeyError("entry target must declare operation, fsm, or workflow")
 
 
 def entry_fsm_target(entry_or_target: dict[str, Any]) -> dict[str, str]:
@@ -41,7 +41,7 @@ def fsm_target_name(value: Any) -> str:
     return value
 
 
-def capability_target_name(value: Any) -> str:
+def operation_target_name(value: Any) -> str:
     if isinstance(value, dict):
         return value["name"]
     return value

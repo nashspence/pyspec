@@ -25,7 +25,7 @@ $graph:
       - sent
       run: '#operation_project_send_approval_notice'
 - baseCommand:
-  - contract-capability
+  - contract-operation
   - operation.project.approve
   class: CommandLineTool
   id: '#operation_project_approve'
@@ -43,7 +43,7 @@ $graph:
     not_found:
       type: Any
 - baseCommand:
-  - contract-capability
+  - contract-operation
   - operation.project.archive
   class: CommandLineTool
   id: '#operation_project_archive'
@@ -59,7 +59,7 @@ $graph:
     not_found:
       type: Any
 - baseCommand:
-  - contract-capability
+  - contract-operation
   - operation.project.create
   class: CommandLineTool
   id: '#operation_project_create'
@@ -79,7 +79,7 @@ $graph:
     validation_failed:
       type: Any
 - baseCommand:
-  - contract-capability
+  - contract-operation
   - operation.project.list
   class: CommandLineTool
   id: '#operation_project_list'
@@ -95,7 +95,7 @@ $graph:
     unavailable:
       type: Any
 - baseCommand:
-  - contract-capability
+  - contract-operation
   - operation.project.read
   class: CommandLineTool
   id: '#operation_project_read'
@@ -109,7 +109,7 @@ $graph:
     not_found:
       type: Any
 - baseCommand:
-  - contract-capability
+  - contract-operation
   - operation.project.send_approval_notice
   class: CommandLineTool
   id: '#operation_project_send_approval_notice'
@@ -125,7 +125,7 @@ $graph:
     sent:
       type: Any
 - baseCommand:
-  - contract-capability
+  - contract-operation
   - operation.project.submit
   class: CommandLineTool
   id: '#operation_project_submit'

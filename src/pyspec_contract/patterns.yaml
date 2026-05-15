@@ -2,7 +2,7 @@ authoring_layers:
   rule: Layers constrain authored spec vocabulary only. They are never written into spec/generated/compiled/spec.yaml and never imply absent surfaces are planned.
   layers:
     core:
-      targets: [fixture, model, capability, scenario]
+      targets: [fixture, model, operation, scenario]
       projections: [spec/generated/agent_prompts, spec/generated/behavior/fixtures.yaml, spec/generated/behavior/scenarios.yaml, spec/generated/test_adapters/pytest_bdd_features, spec/generated/test_adapters/python_refs.py]
     http:
       opens: [entry.surface.api]
@@ -55,8 +55,8 @@ scenario_archetypes:
   fsm_composition_sync:
     when: open_entry
     then: [fsm.instances, fsm.context, fsm.sync.observed]
-  capability_outcome:
-    when: invoke_capability
+  operation_outcome:
+    when: invoke_operation
     then: [outcome, model.exists, events.emitted, invoked]
   entry_response:
     when: call_entry
@@ -70,11 +70,11 @@ scenario_archetypes:
 
 surface_entries:
   api:
-    target: capability
+    target: operation
     requires: [method, path]
     layer: http
   cli:
-    target: [capability, fsm, workflow]
+    target: [operation, fsm, workflow]
     requires: [command]
     layer: workflow
   worker:
@@ -95,7 +95,7 @@ surface_entries:
     layer: web
 
 entry_target_contracts:
-  boundary: 'Entries declare surface-specific input and responses. target.with maps external entry input onto the target capability or FSM context.'
+  boundary: 'Entries declare surface-specific input and responses. target.with maps external entry input onto the target operation or FSM context.'
   fsm: 'FSM entry targets use target.fsm.name plus target.fsm.surface to distinguish the entrypoint surface from its html/textual realization.'
   workflow: 'Workflow entry targets use target.workflow.name plus target.workflow.trigger so the entrypoint declares the trigger data it consumes. Workers declare message dispositions; workflows declare terminal outcomes and route each step outcome explicitly.'
 

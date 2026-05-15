@@ -231,7 +231,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">event trigger</FONT>' in workflow
     assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ProjectApproved</FONT>' in workflow
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">workflow step</FONT>' in workflow
-    assert "<B>capability:</B>&#160;&#160;operation.project.send_approval_notice" in workflow
+    assert "<B>operation:</B>&#160;&#160;operation.project.send_approval_notice" in workflow
     workflow_step = workflow[workflow.index('"workflow_step_workflow_project_approval_notice_send_notice"') :]
     assert '<FONT POINT-SIZE="10"><B>input</B></FONT>' in workflow_step
     assert '<FONT POINT-SIZE="10">approved_by</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in workflow_step
@@ -389,7 +389,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "payload:" in list_fsm
     assert "emit message.project.selected" not in list_fsm
     assert "effects:" not in list_fsm
-    assert "capability: operation.project.list" not in list_fsm
+    assert "operation: operation.project.list" not in list_fsm
     assert "query.project.list.list" in list_fsm
     assert "workspace_id: ID" not in list_fsm
     assert 'workspace_id</text>' in list_fsm
@@ -434,7 +434,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "project_id: ID" not in detail_fsm
     assert 'project_id</text>' in detail_fsm
     assert 'fill="#94a3b8">\xa0\xa0ID</text>' in detail_fsm
-    assert "capability: operation.project.read" not in detail_fsm
+    assert "operation: operation.project.read" not in detail_fsm
     assert "set:" in detail_fsm
     assert "project_id &lt;&#45; null" not in detail_fsm
     assert 'fill="#94a3b8">\xa0\xa0ID</text>' in detail_fsm

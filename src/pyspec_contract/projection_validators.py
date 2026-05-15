@@ -57,7 +57,7 @@ _HTTP_METHODS = {"get", "put", "post", "delete", "patch", "head", "options", "tr
 _OPENAPI_OPERATION_KEYS = {
     "operationId",
     "x-entry",
-    "x-capability",
+    "x-operation",
     "x-policy",
     "parameters",
     "responses",
@@ -127,8 +127,8 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
         key = (entry["path"], method)
         if key in expected_operations:
             raise ContractError(f"OpenAPI duplicate path/method binding in contract: {entry['path']} {method}")
-        cap_id = entry["target"]["capability"]
-        expected_operations[key] = (entry_id, entry, contract["capabilities"][cap_id])
+        cap_id = entry["target"]["operation"]
+        expected_operations[key] = (entry_id, entry, contract["operations"][cap_id])
 
     actual_operations: dict[tuple[str, str], dict[str, Any]] = {}
     for path, methods in doc["paths"].items():
@@ -152,16 +152,16 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
         unknown_keys = set(operation) - _OPENAPI_OPERATION_KEYS
         if unknown_keys:
             raise ContractError(f"OpenAPI {method.upper()} {path} has unsupported operation keys: {sorted(unknown_keys)}")
-        cap_id = entry["target"]["capability"]
+        cap_id = entry["target"]["operation"]
         if operation.get("operationId") in seen_operation_ids:
             raise ContractError(f"OpenAPI operationId is duplicated: {operation.get('operationId')}")
         seen_operation_ids.add(operation.get("operationId"))
         if operation.get("operationId") != cap_id:
-            raise ContractError(f"OpenAPI operationId must equal capability id for {entry_id}")
-        if operation.get("x-entry") != entry_id or operation.get("x-capability") != cap_id:
+            raise ContractError(f"OpenAPI operationId must equal operation id for {entry_id}")
+        if operation.get("x-entry") != entry_id or operation.get("x-operation") != cap_id:
             raise ContractError(f"OpenAPI extensions do not point back to {entry_id}/{cap_id}")
         if operation.get("x-policy") != cap["policy"]:
-            raise ContractError(f"OpenAPI policy extension does not match capability {cap_id}")
+            raise ContractError(f"OpenAPI policy extension does not match operation {cap_id}")
 
         placeholders = _path_params(path)
         params = entry.get("input", {}).get("params", {})
@@ -181,7 +181,7 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
                 "content": {"application/json": {"schema": object_schema(body_fields)}},
             }
             if operation.get("requestBody") != expected_body:
-                raise ContractError(f"OpenAPI requestBody does not match capability input for {cap_id}")
+                raise ContractError(f"OpenAPI requestBody does not match operation input for {cap_id}")
         elif "requestBody" in operation:
             raise ContractError(f"OpenAPI requestBody is not allowed for {entry_id}")
 
@@ -509,7 +509,7 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
     if len(by_id) != len(graph):
         raise ContractError("CWL $graph contains duplicate or missing ids")
     expected_ids = {f"#{safe_id(workflow_id)}" for workflow_id in contract["workflows"]}
-    expected_ids.update(f"#{safe_id(cap_id)}" for cap_id in contract["capabilities"])
+    expected_ids.update(f"#{safe_id(cap_id)}" for cap_id in contract["operations"])
     if set(by_id) != expected_ids:
         raise ContractError(_diff_message("CWL graph ids", expected_ids, set(by_id)))
 
@@ -533,45 +533,45 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             raise ContractError(f"CWL workflow {workflow_id} steps mismatch")
         for step in workflow["steps"]:
             actual = steps[step["id"]]
-            run_id = f"#{safe_id(step['capability'])}"
+            run_id = f"#{safe_id(step['operation'])}"
             if actual.get("run") != run_id or run_id not in by_id:
                 raise ContractError(f"CWL workflow {workflow_id} step {step['id']} references unknown run")
-            cap = contract["capabilities"][step["capability"]]
+            cap = contract["operations"][step["operation"]]
             expected_in = {name: _workflow_cwl_source(source) for name, source in sorted(step["with"].items())}
             expected_out = sorted(cap["outcomes"])
             expected_doc = f"with={step['with']}; on={step['on']}"
             if set(actual) != {"doc", "run", "in", "out"} or actual.get("doc") != expected_doc or actual.get("in") != expected_in or actual.get("out") != expected_out:
                 raise ContractError(f"CWL workflow {workflow_id} step {step['id']} malformed")
 
-    for cap_id, cap in sorted(contract["capabilities"].items()):
+    for cap_id, cap in sorted(contract["operations"].items()):
         item = by_id[f"#{safe_id(cap_id)}"]
         if set(item) != {"id", "class", "label", "baseCommand", "inputs", "outputs"}:
-            raise ContractError(f"CWL capability node {cap_id} has unsupported keys")
+            raise ContractError(f"CWL operation node {cap_id} has unsupported keys")
         if item.get("class") != "CommandLineTool" or item.get("label") != cap_id:
-            raise ContractError(f"CWL capability node {cap_id} must be a labelled CommandLineTool")
-        if item.get("baseCommand") != ["contract-capability", cap_id]:
-            raise ContractError(f"CWL capability node {cap_id} baseCommand mismatch")
+            raise ContractError(f"CWL operation node {cap_id} must be a labelled CommandLineTool")
+        if item.get("baseCommand") != ["contract-operation", cap_id]:
+            raise ContractError(f"CWL operation node {cap_id} baseCommand mismatch")
         expected_inputs = {name: {"type": cwl_type(type_name)} for name, type_name in sorted(cap["input"].items())}
         if item.get("inputs") != expected_inputs:
-            raise ContractError(f"CWL capability node {cap_id} inputs mismatch")
+            raise ContractError(f"CWL operation node {cap_id} inputs mismatch")
         expected_outputs = {
             outcome_id: {"type": cwl_type(outcome["result"])}
             for outcome_id, outcome in sorted(cap["outcomes"].items())
         }
         if item.get("outputs") != expected_outputs:
-            raise ContractError(f"CWL capability node {cap_id} outputs mismatch")
+            raise ContractError(f"CWL operation node {cap_id} outputs mismatch")
         for parameter in list(item["inputs"].values()) + list(item["outputs"].values()):
             if set(parameter) != {"type"}:
-                raise ContractError(f"CWL capability {cap_id} parameter has unsupported keys")
-            _validate_cwl_type(parameter["type"], f"CWL capability {cap_id}")
+                raise ContractError(f"CWL operation {cap_id} parameter has unsupported keys")
+            _validate_cwl_type(parameter["type"], f"CWL operation {cap_id}")
 
 
 def _workflow_trigger_payload_type(contract: dict[str, Any], workflow: dict[str, Any]) -> str:
     trigger = workflow["trigger"]
     if "event" in trigger:
         return contract["events"][trigger["event"]]["payload"]
-    capability = contract["capabilities"][trigger["capability"]]
-    successes = [outcome["result"] for outcome in capability["outcomes"].values() if outcome["kind"] == "success"]
+    operation = contract["operations"][trigger["operation"]]
+    successes = [outcome["result"] for outcome in operation["outcomes"].values() if outcome["kind"] == "success"]
     return successes[0]
 
 
@@ -764,7 +764,7 @@ def validate_refs_py(root: Path, contract: dict[str, Any]) -> None:
         "Event": sorted(contract["events"]),
         "Fact": sorted(contract.get("facts", {})),
         "Fixture": sorted(contract["fixtures"]),
-        "Operation": sorted(contract["capabilities"]),
+        "Operation": sorted(contract["operations"]),
         "StateMachine": sorted(contract.get("fsms", {})),
         "Text": sorted(contract.get("copies", {})),
         "AuditCase": sorted(audit_cases(contract)),

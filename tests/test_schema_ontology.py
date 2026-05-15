@@ -12,7 +12,7 @@ from pyspec_contract.io import read_json
 COLLECTION_SECTIONS = {
     "assets": "asset",
     "audit_profiles": "audit_profile",
-    "capabilities": "capability",
+    "operations": "operation",
     "content_cases": "content_case",
     "copies": "copy",
     "entries": "entry",

@@ -1,6 +1,6 @@
 <svg width="1177pt" height="366pt"
  viewBox="0.00 0.00 1177.00 366.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 0b97dd3da28f02982ac2b5f8ddda9ddf7f023f0fe3569f22ff0bc02c92a3e35f -->
+<!-- pyspec-contract-input-sha256: 82c72a49ac7d27e8ec1133f35ca0a846914d3ebb2d535b8569d8416f398b2b0e -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 348)">
 <title>entrypoint_entry_point_cli_project_approve</title>
 <!-- entry_start -->
@@ -56,7 +56,7 @@
 <polygon fill="#2563eb" stroke="transparent" points="517.5,-283 517.5,-291 828.5,-291 828.5,-283 517.5,-283"/>
 <polygon fill="#eff6ff" stroke="transparent" points="517.5,-252 517.5,-283 828.5,-283 828.5,-252 517.5,-252"/>
 <text text-anchor="start" x="521.5" y="-269.6" font-family="Arial" font-weight="bold" font-size="13.00">operation.project.approve</text>
-<text text-anchor="start" x="521.5" y="-258.6" font-family="Arial" font-size="8.00" fill="#64748b">target capability</text>
+<text text-anchor="start" x="521.5" y="-258.6" font-family="Arial" font-size="8.00" fill="#64748b">target operation</text>
 <text text-anchor="start" x="521.5" y="-241" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Reviewers can approve submitted dispatch projects.</text>
 <text text-anchor="start" x="521.5" y="-222" font-family="Arial" font-weight="bold" font-size="10.00">transitions</text>
 <text text-anchor="start" x="521.5" y="-211" font-family="Arial" font-size="10.00">Project.status</text>

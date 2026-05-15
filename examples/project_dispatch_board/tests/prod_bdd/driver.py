@@ -22,8 +22,8 @@ class ProdDriver:
             self.app.open_web_entry(body["ref"], self._resolve_map(body.get("input", {})))
         elif kind == "call_entry":
             self.app.call_entry(body["ref"], self._resolve_map(body.get("input", {})))
-        elif kind == "invoke_capability":
-            self.app.invoke_capability(body["ref"], self._resolve_map(body.get("input", {})))
+        elif kind == "invoke_operation":
+            self.app.invoke_operation(body["ref"], self._resolve_map(body.get("input", {})))
         elif kind == "emit_event":
             self.app.emit_event(body["ref"], self._resolve_map(body.get("payload", {})))
         else:  # pragma: no cover - generated scenarios prevent this.

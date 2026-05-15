@@ -142,7 +142,7 @@ def test_author_contract_is_sparse_source() -> None:
         }
     }
     assert "refs" not in author
-    assert "transition" not in author["capabilities"]["operation.project.submit"]
+    assert "transition" not in author["operations"]["operation.project.submit"]
     assert author["scenarios"]["scenario.project.approve.success"]["given"]["facts"] == [{"use": "fact.project.submitted"}]
     assert compile_author(author) == read_yaml(ROOT / COMPILED_SPEC_PATH)
 
@@ -244,9 +244,9 @@ def _derived_transition_author() -> dict:
                 "basis": "Ticket lifecycle owns state transitions.",
             }
         },
-        "capabilities": {
+        "operations": {
             "operation.ticket.submit": {
-                "archetype": "transition",
+                "operation_kind": "transition",
                 "input": {"ticket_id": P("ID")},
                 "outcomes": {
                     "submitted": {"kind": "success", "result": M("Ticket")},
@@ -258,10 +258,10 @@ def _derived_transition_author() -> dict:
     }
 
 
-def test_transition_capability_derives_state_change_from_model_lifecycle() -> None:
+def test_transition_operation_derives_state_change_from_model_lifecycle() -> None:
     author = _derived_transition_author()
     contract = compile_author(author)
-    assert contract["capabilities"]["operation.ticket.submit"]["transition"] == {
+    assert contract["operations"]["operation.ticket.submit"]["transition"] == {
         "model": "Ticket",
         "field": "status",
         "from": "draft",
@@ -292,7 +292,7 @@ def test_lifecycle_transition_states_must_be_declared() -> None:
 
 def test_lifecycle_transition_must_reference_transition_operation() -> None:
     author = _derived_transition_author()
-    author["capabilities"]["operation.ticket.submit"]["archetype"] = "command"
+    author["operations"]["operation.ticket.submit"]["operation_kind"] = "command"
     with pytest.raises(
         ContractError,
         match=r"Model Ticket lifecycle transition operation\.ticket\.submit must reference a transition operation",
@@ -310,38 +310,41 @@ def test_lifecycle_transition_must_reference_known_operation() -> None:
         compile_author(author)
 
 
-def test_capability_rejects_primary_model_field() -> None:
+def test_operation_rejects_primary_model_field() -> None:
     author = _author()
-    author["capabilities"]["operation.project.create"]["model"] = "Project"
+    author["operations"]["operation.project.create"]["model"] = "Project"
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
 
-def test_create_capability_requires_created_model_relationship() -> None:
+def test_command_operation_allows_empty_crud_effects() -> None:
     author = _author()
-    del author["capabilities"]["operation.project.create"]["creates"]
-    with pytest.raises(ContractError, match=r"Capability operation.project\.create archetype create must declare creates"):
-        compile_source(author)
+    del author["operations"]["operation.project.create"]["creates"]
+    author["entries"]["entry_point.api.project.create"]["responses"]["created"]["status"] = 200
+    author["scenarios"]["scenario.project.create.api.success"]["then"]["response"]["status"] = 200
+    contract = compile_source(author)
+    assert contract["operations"]["operation.project.create"]["creates"] == []
 
 
-def test_fsm_data_capability_must_read_fsm_model() -> None:
+def test_fsm_data_operation_must_read_fsm_model() -> None:
     author = _author()
     author["models"]["Workspace"] = {
         "fields": {"id": F(P("ID")), "name": F(P("Text"))},
         "basis": "Workspace is a separate model used to prove data bindings are model-aware.",
     }
-    author["capabilities"]["operation.project.read"]["archetype"] = "query"
-    author["capabilities"]["operation.project.read"]["reads"] = ["Workspace"]
-    with pytest.raises(ContractError, match=r"FSM state_machine\.project\.activity\.ready data capability operation.project\.read must read model Project"):
+    author["operations"]["operation.project.read"]["operation_kind"] = "query"
+    author["operations"]["operation.project.read"]["reads"] = ["Workspace"]
+    author["operations"]["operation.project.read"]["outcomes"]["found"]["result"] = M("Workspace")
+    with pytest.raises(ContractError, match=r"FSM state_machine\.project\.activity\.ready data operation operation.project\.read must read model Project"):
         compile_source(author)
 
 
-def test_command_capability_does_not_need_model_relationship() -> None:
+def test_command_operation_does_not_need_model_relationship() -> None:
     contract = compile_source(_author())
-    assert "creates" not in contract["capabilities"]["operation.project.send_approval_notice"]
-    assert "reads" not in contract["capabilities"]["operation.project.send_approval_notice"]
-    assert "updates" not in contract["capabilities"]["operation.project.send_approval_notice"]
-    assert "deletes" not in contract["capabilities"]["operation.project.send_approval_notice"]
+    assert contract["operations"]["operation.project.send_approval_notice"]["creates"] == []
+    assert contract["operations"]["operation.project.send_approval_notice"]["reads"] == []
+    assert contract["operations"]["operation.project.send_approval_notice"]["updates"] == []
+    assert contract["operations"]["operation.project.send_approval_notice"]["deletes"] == []
 
 
 def test_author_contract_can_omit_absent_sections() -> None:
@@ -352,9 +355,9 @@ def test_author_contract_can_omit_absent_sections() -> None:
                 "fields": {"id": F(P("ID")), "title": F(P("Text"))},
             }
         },
-        "capabilities": {
+        "operations": {
             "operation.ticket.create": {
-                "archetype": "create",
+                "operation_kind": "command",
                 "creates": ["Ticket"],
                 "input": {"title": P("Text")},
                 "outcomes": {
@@ -371,7 +374,7 @@ def test_author_contract_can_omit_absent_sections() -> None:
     assert contract["fsms"] == {}
     assert contract["refs"]["policy"] == ["policy.ticket.create"]
     assert contract["models"]["Ticket"]["basis"] == "Declared model Ticket."
-    assert contract["capabilities"]["operation.ticket.create"]["basis"] == "Members can create tickets."
+    assert contract["operations"]["operation.ticket.create"]["basis"] == "Members can create tickets."
 
 
 def test_author_fsm_defaults_empty_collections() -> None:
@@ -511,7 +514,7 @@ def test_fsm_data_inputs_must_come_from_context() -> None:
             mount["context"].pop("workspace_id", None)
     with pytest.raises(
         ContractError,
-        match=r"FSM state_machine\.project\.list data capability operation.project\.list input not provided by context: .*workspace_id",
+        match=r"FSM state_machine\.project\.list data operation operation.project\.list input not provided by context: .*workspace_id",
     ):
         compile_source(author)
 
@@ -527,13 +530,13 @@ def test_fsm_field_slots_require_data_source() -> None:
         compile_source(author)
 
 
-def test_fsm_data_source_must_be_query_like_capability() -> None:
+def test_fsm_data_source_must_be_query_like_operation() -> None:
     author = _author()
     activity = _item(author, "fsms", "state_machine.project.activity")
     activity["states"]["ready"]["data"] = ["operation.project.submit"]
     with pytest.raises(
         ContractError,
-        match=r"FSM state_machine\.project\.activity\.ready data capability must be read, list, or query: operation.project.submit",
+        match=r"FSM state_machine\.project\.activity\.ready data operation must be query: operation.project.submit",
     ):
         compile_source(author)
 
@@ -612,10 +615,10 @@ def test_presentation_rejects_undeclared_textual_action() -> None:
         compile_source(author)
 
 
-def test_missing_referenced_capability_is_rejected() -> None:
+def test_missing_referenced_operation_is_rejected() -> None:
     author = _author()
-    del author["capabilities"]["operation.project.create"]
-    with pytest.raises(ContractError, match="unknown capability|action references"):
+    del author["operations"]["operation.project.create"]
+    with pytest.raises(ContractError, match="unknown operation|action references"):
         compile_source(author)
 
 
@@ -697,9 +700,9 @@ def _api_only_author() -> dict:
                 "basis": _basis("ticket model"),
             }
         },
-        "capabilities": {
+        "operations": {
             "operation.ticket.create": {
-                "archetype": "create",
+                "operation_kind": "command",
                 "creates": ["Ticket"],
                 "input": {"title": P("Text")},
                 "outcomes": {
@@ -715,7 +718,7 @@ def _api_only_author() -> dict:
                 "method": "POST",
                 "path": "/tickets",
                 "input": {"body": {"title": P("Text")}},
-                "target": {"capability": "operation.ticket.create", "with": {"title": "$input.body.title"}},
+                "target": {"operation": "operation.ticket.create", "with": {"title": "$input.body.title"}},
                 "responses": {
                     "created": {"status": 201, "body": {"type": M("Ticket"), "from": "$outcome.result"}},
                     "validation_failed": {"status": 422, "body": {"type": M("Problem"), "from": "$outcome.result"}},
@@ -801,7 +804,7 @@ def test_textual_is_not_an_entrypoint_surface() -> None:
         compile_source(author)
 
 
-def test_cli_entry_args_must_exactly_match_capability_input() -> None:
+def test_cli_entry_args_must_exactly_match_operation_input() -> None:
     author = _author()
     del author["entries"]["entry_point.cli.project.approve"]["input"]["args"]
     with pytest.raises(ContractError, match=r"Entry entry_point.cli\.project\.approve input\.args must exactly match target input: missing: approved_by, project_id"):
@@ -822,21 +825,21 @@ def test_entry_response_must_match_surface_contract() -> None:
         compile_source(author)
 
 
-def test_capability_outcomes_must_have_one_success_and_real_failure_result() -> None:
+def test_operation_outcomes_must_have_one_success_and_real_failure_result() -> None:
     author = _author()
-    author["capabilities"]["operation.project.create"]["outcomes"]["validation_failed"]["kind"] = "success"
-    with pytest.raises(ContractError, match=r"Capability operation.project\.create must declare exactly one success outcome"):
+    author["operations"]["operation.project.create"]["outcomes"]["validation_failed"]["kind"] = "success"
+    with pytest.raises(ContractError, match=r"Operation operation.project\.create must declare exactly one success outcome"):
         compile_source(author)
 
     author = _author()
-    author["capabilities"]["operation.project.create"]["outcomes"]["validation_failed"]["result"] = M("Project")
+    author["operations"]["operation.project.create"]["outcomes"]["validation_failed"]["result"] = M("Project")
     with pytest.raises(ContractError, match=r"failure outcome validation_failed result must be Problem"):
         compile_source(author)
 
 
 def test_event_emits_must_map_declared_payload() -> None:
     author = _author()
-    author["capabilities"]["operation.project.approve"]["outcomes"]["approved"]["emits"][0]["with"]["approved_by"] = "$outcome.result"
+    author["operations"]["operation.project.approve"]["outcomes"]["approved"]["emits"][0]["with"]["approved_by"] = "$outcome.result"
     with pytest.raises(ContractError, match=r"emit event.project\.approved mapping approved_by source \$outcome\.result type must be ID"):
         compile_source(author)
 
@@ -855,10 +858,10 @@ def test_runtime_references_validate_declared_fields() -> None:
         compile_source(author)
 
 
-def test_entry_responses_must_map_all_capability_outcomes() -> None:
+def test_entry_responses_must_map_all_operation_outcomes() -> None:
     author = _author()
     del author["entries"]["entry_point.api.project.create"]["responses"]["validation_failed"]
-    with pytest.raises(ContractError, match=r"Entry entry_point.api\.project\.create responses must exactly map capability outcomes: missing: validation_failed"):
+    with pytest.raises(ContractError, match=r"Entry entry_point.api\.project\.create responses must exactly map operation outcomes: missing: validation_failed"):
         compile_source(author)
 
 
@@ -891,10 +894,10 @@ def test_worker_entry_must_declare_realistic_dispositions() -> None:
         compile_source(author)
 
 
-def test_workflow_steps_must_route_all_capability_outcomes() -> None:
+def test_workflow_steps_must_route_all_operation_outcomes() -> None:
     author = _author()
     del author["workflows"]["workflow.project.approval_notice"]["steps"][0]["on"]["delivery_failed"]
-    with pytest.raises(ContractError, match=r"Workflow workflow.project\.approval_notice step send_notice on must exactly map capability outcomes: missing: delivery_failed"):
+    with pytest.raises(ContractError, match=r"Workflow workflow.project\.approval_notice step send_notice on must exactly map operation outcomes: missing: delivery_failed"):
         compile_source(author)
 
 
@@ -958,13 +961,13 @@ def test_workflow_entry_trigger_must_match_workflow_trigger() -> None:
         compile_source(author)
 
 
-def test_get_api_entry_must_provide_all_capability_input_as_params() -> None:
+def test_get_api_entry_must_provide_all_operation_input_as_params() -> None:
     author = _author()
     entry = author["entries"]["entry_point.api.project.list"]
     entry["path"] = "/projects"
     entry["input"].pop("params")
     entry["target"]["with"].pop("workspace_id")
-    with pytest.raises(ContractError, match=r"API entry entry_point.api\.project\.list GET must declare all capability inputs as input\.params: \['workspace_id'\]"):
+    with pytest.raises(ContractError, match=r"API entry entry_point.api\.project\.list GET must declare all operation inputs as input\.params: \['workspace_id'\]"):
         compile_source(author)
 
 

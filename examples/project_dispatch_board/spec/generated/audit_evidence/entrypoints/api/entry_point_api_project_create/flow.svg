@@ -1,6 +1,6 @@
 <svg width="1148pt" height="273pt"
  viewBox="0.00 0.00 1148.00 273.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 3698ba3a50b7245e51eb4d71a5a5fea22dab1ea2e22ea89b49c98b8af8f9ee8d -->
+<!-- pyspec-contract-input-sha256: 9ce7e9488bbd0c5633997664ea09d4a04e8f99113678380377ea8b8e9b56007b -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 255)">
 <title>entrypoint_entry_point_api_project_create</title>
 <!-- entry_start -->
@@ -61,7 +61,7 @@
 <polygon fill="#2563eb" stroke="transparent" points="600,-227.5 600,-235.5 802,-235.5 802,-227.5 600,-227.5"/>
 <polygon fill="#eff6ff" stroke="transparent" points="600,-196.5 600,-227.5 802,-227.5 802,-196.5 600,-196.5"/>
 <text text-anchor="start" x="604" y="-214.1" font-family="Arial" font-weight="bold" font-size="13.00">operation.project.create</text>
-<text text-anchor="start" x="604" y="-203.1" font-family="Arial" font-size="8.00" fill="#64748b">target capability</text>
+<text text-anchor="start" x="604" y="-203.1" font-family="Arial" font-size="8.00" fill="#64748b">target operation</text>
 <text text-anchor="start" x="604" y="-185.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Members can create a new dispatch project.</text>
 <text text-anchor="start" x="605" y="-165.5" font-family="Arial" font-weight="bold" font-size="10.00">creates:</text>
 <text text-anchor="start" x="642" y="-165.5" font-family="Arial" font-size="10.00">  Project</text>

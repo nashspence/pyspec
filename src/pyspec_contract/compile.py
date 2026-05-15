@@ -30,6 +30,8 @@ from .type_expr import (
     is_problem_type,
     literal_type_expr,
     normalize_field_map,
+    normalize_type_expr,
+    normalize_type_map,
     model_name,
     object_fields_for_type,
     type_display,
@@ -65,7 +67,7 @@ def validate_against_schema(data: dict[str, Any], schema_name: str) -> None:
         raise ContractError("Schema validation failed:\n" + str(exc)) from exc
 
 
-TARGET_ORDER = ("copy", "asset", "content_case", "audit_profile", "fixture", "fact", "model", "capability", "event", "fsm", "entry", "workflow", "scenario")
+TARGET_ORDER = ("copy", "asset", "content_case", "audit_profile", "fixture", "fact", "model", "operation", "event", "fsm", "entry", "workflow", "scenario")
 
 
 
@@ -77,7 +79,7 @@ ENTITY_SECTIONS: dict[str, str] = {
     "fixture": "fixtures",
     "fact": "facts",
     "model": "models",
-    "capability": "capabilities",
+    "operation": "operations",
     "event": "events",
     "fsm": "fsms",
     "entry": "entries",
@@ -99,7 +101,7 @@ def empty_compiled_contract(project: str) -> dict[str, Any]:
         "fixtures": {},
         "facts": {},
         "models": {},
-        "capabilities": {},
+        "operations": {},
         "events": {},
         "fsms": {},
         "entries": {},
@@ -109,7 +111,7 @@ def empty_compiled_contract(project: str) -> dict[str, Any]:
     }
 
 
-AUTHOR_SECTION_ORDER = ("fixtures", "facts", "models", "capabilities", "events", "fsms", "entries", "workflows", "scenarios", "copies", "assets", "content_cases", "audit_profiles")
+AUTHOR_SECTION_ORDER = ("fixtures", "facts", "models", "operations", "events", "fsms", "entries", "workflows", "scenarios", "copies", "assets", "content_cases", "audit_profiles")
 
 
 def _prune_empty_author_sections(author: dict[str, Any]) -> dict[str, Any]:
@@ -146,19 +148,19 @@ def _normalize_fsm_messages(messages: dict[str, Any] | None) -> dict[str, dict[s
 
 def _prune_redundant_author_transitions(author: dict[str, Any]) -> None:
     """Let model lifecycles be the source of truth for simple transitions."""
-    capabilities = author.get("capabilities") or {}
+    operations = author.get("operations") or {}
     for model_id, model in (author.get("models") or {}).items():
         lifecycle = model.get("lifecycle") if isinstance(model, dict) else None
         if not lifecycle:
             continue
         field = lifecycle["field"]
         for transition in lifecycle.get("transitions", []):
-            capability = capabilities.get(transition["triggered_by"])
-            if not isinstance(capability, dict):
+            operation = operations.get(transition["triggered_by"])
+            if not isinstance(operation, dict):
                 continue
-            declared = capability.get("transition")
+            declared = operation.get("transition")
             if declared == {"model": model_id, "field": field, "from": transition["from"], "to": transition["to"]}:
-                capability.pop("transition", None)
+                operation.pop("transition", None)
 
 
 def _prune_empty_author_fsm_message_directions(author: dict[str, Any]) -> None:
@@ -209,7 +211,7 @@ def compile_author(author: dict[str, Any], layers: set[str] | None = None) -> di
             _apply_author_defaults(entity, spec)
             section[entity_id] = _compile_entity(entity, spec, contract)
 
-    _derive_capability_transitions(contract)
+    _derive_operation_transitions(contract)
     contract["events"] = _derive_events(contract)
     contract["refs"] = _derive_refs(contract)
     used_facts = _expand_scenario_fact_uses(contract)
@@ -229,7 +231,7 @@ def _apply_author_defaults(entity: str, spec: dict[str, Any]) -> None:
         spec.setdefault("data", [])
         spec["messages"] = _normalize_fsm_messages(spec.get("messages"))
         spec.setdefault("transitions", [])
-    elif entity == "capability":
+    elif entity == "operation":
         for outcome in spec.get("outcomes", {}).values():
             outcome.setdefault("emits", [])
 
@@ -280,18 +282,28 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
         }
         return item
 
-    if entity == "capability":
-        capability: dict[str, Any] = {
-            "archetype": spec["archetype"],
-            "input": spec["input"],
-            "outcomes": spec["outcomes"],
+    if entity == "operation":
+        outcomes = {}
+        for outcome_id, outcome in spec["outcomes"].items():
+            normalized_outcome = copy.deepcopy(outcome)
+            normalized_outcome["result"] = normalize_type_expr(normalized_outcome["result"])
+            normalized_outcome.setdefault("emits", [])
+            outcomes[outcome_id] = normalized_outcome
+        operation: dict[str, Any] = {
+            "operation_kind": spec["operation_kind"],
+            "input": normalize_type_map(spec.get("input", {})),
+            "outcomes": outcomes,
+            "reads": list(spec.get("reads", [])),
+            "creates": list(spec.get("creates", [])),
+            "updates": list(spec.get("updates", [])),
+            "deletes": list(spec.get("deletes", [])),
             "policy": rules.policy_ref(spec["id"]),
             "basis": spec["basis"],
         }
-        for field in ["creates", "reads", "updates", "deletes", "transition"]:
+        for field in ["transition"]:
             if field in spec:
-                capability[field] = spec[field]
-        return capability
+                operation[field] = spec[field]
+        return operation
 
     if entity == "event":
         return {
@@ -332,7 +344,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
         kind, value = entry_target_pair(spec["target"])
         if spec["surface"] == "web" and kind == "fsm":
             entry["route"] = rules.route_ref(value)
-        elif spec["surface"] == "api" and kind == "capability":
+        elif spec["surface"] == "api" and kind == "operation":
             entry["endpoint"] = rules.endpoint_ref(value)
         elif spec["surface"] == "cli":
             entry["command_ref"] = rules.command_ref(value)
@@ -373,12 +385,12 @@ def _state_surface_ref(owner_id: str, state_name: str) -> str:
     return rules.fsm_ref(owner_id, state_name)
 
 
-def _compile_data(owner_id: str, capability_ids: list[str]) -> list[dict[str, str]]:
+def _compile_data(owner_id: str, operation_ids: list[str]) -> list[dict[str, str]]:
     subject = _ref_subject(owner_id)
     data = []
-    for cap_id in capability_ids:
-        qref = rules.query_ref(subject, cap_id, many=len(capability_ids) > 1)
-        data.append({"query": qref, "capability": cap_id})
+    for cap_id in operation_ids:
+        qref = rules.query_ref(subject, cap_id, many=len(operation_ids) > 1)
+        data.append({"query": qref, "operation": cap_id})
     return data
 
 
@@ -431,55 +443,55 @@ def audit_cases(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return cases
 
 
-def _derive_capability_transitions(contract: dict[str, Any]) -> None:
-    """Derive transition capability details from model lifecycle declarations.
+def _derive_operation_transitions(contract: dict[str, Any]) -> None:
+    """Derive transition operation details from model lifecycle declarations.
 
     Authored sources should not have to repeat the same state transition in both
-    the model lifecycle and the capability. The compiled contract remains
+    the model lifecycle and the operation. The compiled contract remains
     explicit for downstream projections and validators.
     """
-    by_capability: dict[str, dict[str, Any]] = {}
+    by_operation: dict[str, dict[str, Any]] = {}
     for model_id, model in contract.get("models", {}).items():
         lifecycle = model.get("lifecycle")
         if not lifecycle:
             continue
         field = lifecycle["field"]
         for transition in lifecycle.get("transitions", []):
-            capability_id = transition["triggered_by"]
-            if capability_id in by_capability:
-                raise ContractError(f"Capability {capability_id} is used by multiple lifecycle transitions")
-            by_capability[capability_id] = {
+            operation_id = transition["triggered_by"]
+            if operation_id in by_operation:
+                raise ContractError(f"Operation {operation_id} is used by multiple lifecycle transitions")
+            by_operation[operation_id] = {
                 "model": model_id,
                 "field": field,
                 "from": transition["from"],
                 "to": transition["to"],
             }
 
-    for capability_id, capability in contract.get("capabilities", {}).items():
-        if capability.get("archetype") != "transition" or "transition" in capability:
+    for operation_id, operation in contract.get("operations", {}).items():
+        if operation.get("operation_kind") != "transition" or "transition" in operation:
             continue
-        derived = by_capability.get(capability_id)
+        derived = by_operation.get(operation_id)
         if not derived:
             continue
-        capability["transition"] = derived
+        operation["transition"] = derived
 
 
 def _derive_events(contract: dict[str, Any]) -> dict[str, Any]:
     events: dict[str, Any] = copy.deepcopy(contract.get("events", {}))
-    for capability_id, capability in sorted(contract["capabilities"].items()):
-        for outcome_id, outcome in sorted(capability["outcomes"].items()):
+    for operation_id, operation in sorted(contract["operations"].items()):
+        for outcome_id, outcome in sorted(operation["outcomes"].items()):
             for emit in outcome.get("emits", []):
                 event_id = _emit_event_id(emit)
                 if outcome["kind"] != "success":
-                    raise ContractError(f"Capability {capability_id} failure outcome {outcome_id} must not emit events")
+                    raise ContractError(f"Operation {operation_id} failure outcome {outcome_id} must not emit events")
                 payload_type = events.get(event_id, {}).get("payload", outcome["result"])
                 event = events.setdefault(event_id, {
                     "emitted_by": [],
                     "payload": payload_type,
-                    "basis": capability["basis"],
+                    "basis": operation["basis"],
                 })
-                _validate_emit_payload_mapping(contract, capability_id, capability, outcome_id, outcome, event_id, event["payload"], emit)
-                event["emitted_by"].append(capability_id)
+                _validate_emit_payload_mapping(contract, operation_id, operation, outcome_id, outcome, event_id, event["payload"], emit)
+                event["emitted_by"].append(operation_id)
     return events
 
 
@@ -491,8 +503,8 @@ def _emit_event_id(emit: Any) -> str:
 
 def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
     refs: dict[str, set[str]] = {kind: set() for kind in REF_KINDS}
-    for capability_id, capability in contract["capabilities"].items():
-        refs["policy"].add(capability["policy"])
+    for operation_id, operation in contract["operations"].items():
+        refs["policy"].add(operation["policy"])
     refs["text"].update(contract.get("copies", {}))
     refs["asset"].update(contract.get("assets", {}))
     for fsm_id in contract["fsms"]:
@@ -535,7 +547,7 @@ def _semantic_validate(contract: dict[str, Any], used_facts: set[str]) -> None:
     _validate_content_cases(contract)
     _validate_audit_profiles(contract)
     _validate_models(contract)
-    _validate_capabilities(contract)
+    _validate_operations(contract)
     _validate_fsms(contract)
     _validate_fsm_message_payload_consistency(contract)
     _validate_entries(contract)
@@ -722,39 +734,39 @@ def _validate_models(contract: dict[str, Any]) -> None:
         for transition in lifecycle.get("transitions", []):
             if transition["from"] not in states or transition["to"] not in states:
                 raise ContractError(f"Model {rid} lifecycle transition uses unknown state: {transition}")
-            if transition["triggered_by"] not in contract["capabilities"]:
+            if transition["triggered_by"] not in contract["operations"]:
                 raise ContractError(
                     f"Model {rid} lifecycle transition references unknown operation {transition['triggered_by']}"
                 )
 
 
-def _validate_capabilities(contract: dict[str, Any]) -> None:
+def _validate_operations(contract: dict[str, Any]) -> None:
     models = contract["models"]
-    capabilities = contract["capabilities"]
-    for cid, cap in capabilities.items():
-        _validate_capability_relationships(cid, cap, models)
+    operations = contract["operations"]
+    for cid, cap in operations.items():
+        _validate_operation_relationships(cid, cap, models)
         transition = cap.get("transition")
         if transition:
             model_id = transition["model"]
             lifecycle = models[model_id].get("lifecycle")
             if not lifecycle:
-                raise ContractError(f"Capability {cid} declares transition but {model_id} has no lifecycle")
+                raise ContractError(f"Operation {cid} declares transition but {model_id} has no lifecycle")
             if transition["field"] != lifecycle["field"]:
-                raise ContractError(f"Capability {cid} transition field does not match model lifecycle")
+                raise ContractError(f"Operation {cid} transition field does not match model lifecycle")
             if transition["from"] not in lifecycle["states"] or transition["to"] not in lifecycle["states"]:
-                raise ContractError(f"Capability {cid} transition references unknown lifecycle state")
+                raise ContractError(f"Operation {cid} transition references unknown lifecycle state")
     for rid, model in models.items():
         lifecycle = model.get("lifecycle")
         if not lifecycle:
             continue
         for transition in lifecycle.get("transitions", []):
             triggered_by = transition["triggered_by"]
-            capability = capabilities[triggered_by]
-            if capability["archetype"] != "transition":
+            operation = operations[triggered_by]
+            if operation["operation_kind"] != "transition":
                 raise ContractError(
                     f"Model {rid} lifecycle transition {triggered_by} must reference a transition operation"
                 )
-            cap_transition = capability.get("transition")
+            cap_transition = operation.get("transition")
             if (
                 not cap_transition
                 or cap_transition["model"] != rid
@@ -764,120 +776,116 @@ def _validate_capabilities(contract: dict[str, Any]) -> None:
                 raise ContractError(f"Model {rid} lifecycle and operation {triggered_by} disagree")
     for event_id, event in contract["events"].items():
         for cap_id in event["emitted_by"]:
-            if cap_id not in capabilities:
-                raise ContractError(f"Event {event_id} emitted by unknown capability {cap_id}")
+            if cap_id not in operations:
+                raise ContractError(f"Event {event_id} emitted by unknown operation {cap_id}")
 
 
-def _validate_capability_relationships(cid: str, cap: dict[str, Any], models: dict[str, Any]) -> None:
-    _validate_capability_outcomes(cid, cap)
+def _validate_operation_relationships(cid: str, cap: dict[str, Any], models: dict[str, Any]) -> None:
+    _validate_operation_outcomes(cid, cap)
     for field in ["creates", "reads", "updates", "deletes"]:
         for model_id in cap.get(field, []):
             if model_id not in models:
-                raise ContractError(f"Capability {cid} {field} unknown model {model_id}")
+                raise ContractError(f"Operation {cid} {field} unknown model {model_id}")
 
     if "transition" in cap:
         model_id = cap["transition"]["model"]
         if model_id not in models:
-            raise ContractError(f"Capability {cid} transition references unknown model {model_id}")
+            raise ContractError(f"Operation {cid} transition references unknown model {model_id}")
 
-    archetype = cap["archetype"]
-    if archetype == "create":
-        _require_exact_relationship(cid, cap, "creates", 1)
-        _reject_relationships(cid, cap, {"reads", "updates", "deletes", "transition"})
-        _require_output_model(cid, cap, cap["creates"][0])
-    elif archetype == "read":
-        _require_exact_relationship(cid, cap, "reads", 1)
-        _reject_relationships(cid, cap, {"creates", "updates", "deletes", "transition"})
-        _require_output_model(cid, cap, cap["reads"][0])
-    elif archetype == "list":
-        _require_exact_relationship(cid, cap, "reads", 1)
-        _reject_relationships(cid, cap, {"creates", "updates", "deletes", "transition"})
-        expected_model = cap["reads"][0]
-        if not is_array_of_model(_success_result_type(cap), expected_model):
-            raise ContractError(f"Capability {cid} list success outcome result must be {type_display(array_of({'model': expected_model}))}")
-    elif archetype == "query":
+    operation_kind = cap["operation_kind"]
+    if operation_kind == "query":
         _require_relationship(cid, cap, "reads")
-        _reject_relationships(cid, cap, {"creates", "updates", "deletes", "transition"})
-    elif archetype == "update":
-        _require_exact_relationship(cid, cap, "updates", 1)
-        _reject_relationships(cid, cap, {"creates", "deletes", "transition"})
-        _require_output_model(cid, cap, cap["updates"][0])
-    elif archetype == "delete":
-        _require_exact_relationship(cid, cap, "deletes", 1)
-        _reject_relationships(cid, cap, {"creates", "updates", "transition"})
-    elif archetype == "transition":
-        if "transition" not in cap:
-            raise ContractError(f"Transition capability {cid} must declare transition")
-        _reject_relationships(cid, cap, {"creates", "reads", "updates", "deletes"})
-        _require_output_model(cid, cap, cap["transition"]["model"])
-    elif archetype == "command":
+        _reject_non_empty_relationships(cid, cap, {"creates", "updates", "deletes"})
         if "transition" in cap:
-            raise ContractError(f"Only transition capabilities may declare transition: {cid}")
+            raise ContractError(f"Query operation {cid} must not declare transition")
+        _validate_query_success_result(cid, cap)
+    elif operation_kind == "command":
+        if "transition" in cap:
+            raise ContractError(f"Only transition operations may declare transition: {cid}")
+    elif operation_kind == "transition":
+        if "transition" not in cap:
+            raise ContractError(f"Transition operation {cid} must declare transition")
+        _reject_non_empty_relationships(cid, cap, {"creates", "reads", "updates", "deletes"})
+        _require_output_model(cid, cap, cap["transition"]["model"])
     else:  # pragma: no cover - schema prevents this.
-        raise ContractError(f"Unsupported capability archetype {archetype}: {cid}")
+        raise ContractError(f"Unsupported operation_kind {operation_kind}: {cid}")
 
 
 def _require_relationship(cid: str, cap: dict[str, Any], field: str) -> None:
     if not cap.get(field):
-        raise ContractError(f"Capability {cid} archetype {cap['archetype']} must declare {field}")
+        raise ContractError(f"Operation {cid} operation_kind {cap['operation_kind']} must declare {field}")
 
 
 def _require_exact_relationship(cid: str, cap: dict[str, Any], field: str, count: int) -> None:
     _require_relationship(cid, cap, field)
     actual = len(cap[field])
     if actual != count:
-        raise ContractError(f"Capability {cid} archetype {cap['archetype']} must declare exactly {count} {field}")
+        raise ContractError(f"Operation {cid} operation_kind {cap['operation_kind']} must declare exactly {count} {field}")
 
 
-def _reject_relationships(cid: str, cap: dict[str, Any], fields: set[str]) -> None:
-    extras = sorted(field for field in fields if field in cap)
+def _reject_non_empty_relationships(cid: str, cap: dict[str, Any], fields: set[str]) -> None:
+    extras = sorted(field for field in fields if cap.get(field))
     if extras:
-        raise ContractError(f"Capability {cid} archetype {cap['archetype']} does not support fields: {extras}")
+        raise ContractError(f"Operation {cid} operation_kind {cap['operation_kind']} does not support effects: {extras}")
 
 
 def _require_output_model(cid: str, cap: dict[str, Any], model_id: str) -> None:
     if model_name(_success_result_type(cap)) != model_id:
-        raise ContractError(f"Capability {cid} success outcome result must be {model_id}")
+        raise ContractError(f"Operation {cid} success outcome result must be {model_id}")
 
 
-def _validate_capability_outcomes(cid: str, cap: dict[str, Any]) -> None:
+def _validate_query_success_result(cid: str, cap: dict[str, Any]) -> None:
+    reads = cap.get("reads", [])
+    if len(reads) != 1:
+        return
+    expected_model = reads[0]
+    result_type = _success_result_type(cap)
+    if model_name(result_type) == expected_model or is_array_of_model(result_type, expected_model):
+        return
+    raise ContractError(
+        f"Operation {cid} query success outcome result must be {expected_model} "
+        f"or {type_display(array_of({'model': expected_model}))}"
+    )
+
+
+def _validate_operation_outcomes(cid: str, cap: dict[str, Any]) -> None:
     outcomes = cap["outcomes"]
     successes = _success_outcomes(cap)
     failures = _failure_outcomes(cap)
     if len(successes) != 1:
-        raise ContractError(f"Capability {cid} must declare exactly one success outcome")
+        raise ContractError(f"Operation {cid} must declare exactly one success outcome")
     if not failures:
-        raise ContractError(f"Capability {cid} must declare at least one failure outcome")
+        raise ContractError(f"Operation {cid} must declare at least one failure outcome")
     unknown_kinds = sorted(
         f"{name}:{outcome['kind']}" for name, outcome in outcomes.items() if outcome["kind"] not in {"success", "failure"}
     )
     if unknown_kinds:
-        raise ContractError(f"Capability {cid} has unsupported outcome kinds: {unknown_kinds}")
+        raise ContractError(f"Operation {cid} has unsupported outcome kinds: {unknown_kinds}")
     for outcome_id, outcome in outcomes.items():
         emits = outcome.get("emits", [])
         emit_ids = [_emit_event_id(emit) for emit in emits]
         if len(emit_ids) != len(set(emit_ids)):
-            raise ContractError(f"Capability {cid} outcome {outcome_id} emits duplicate events")
+            raise ContractError(f"Operation {cid} outcome {outcome_id} emits duplicate events")
         if outcome["kind"] == "failure":
             if emits:
-                raise ContractError(f"Capability {cid} failure outcome {outcome_id} must not emit events")
+                raise ContractError(f"Operation {cid} failure outcome {outcome_id} must not emit events")
             if not is_problem_type(outcome["result"]):
-                raise ContractError(f"Capability {cid} failure outcome {outcome_id} result must be Problem or a *Problem type")
+                raise ContractError(f"Operation {cid} failure outcome {outcome_id} result must be Problem or a *Problem type")
 
 
 def _validate_emit_payload_mapping(
     contract: dict[str, Any],
-    capability_id: str,
-    capability: dict[str, Any],
+    operation_id: str,
+    operation: dict[str, Any],
     outcome_id: str,
     outcome: dict[str, Any],
     event_id: str,
     event_payload: Any,
     emit: Any,
 ) -> None:
-    label = f"Capability {capability_id} outcome {outcome_id} emit {event_id}"
+    label = f"Operation {operation_id} outcome {outcome_id} emit {event_id}"
     source_scopes: TypeScopes = {
-        "input": _type_scope(capability["input"]),
+        "input": _type_scope(operation["input"]),
         "outcome": _typed_source_paths(contract, ("result",), outcome["result"]),
     }
 
@@ -946,8 +954,8 @@ def _validate_fsm_state(
         if field not in field_names:
             raise ContractError(f"{owner_label}.{state_name} field slot is not declared on the model/context: {field}")
     for action in state["actions"]:
-        if action not in contract["capabilities"]:
-            raise ContractError(f"{owner_label}.{state_name} action references unknown capability {action}")
+        if action not in contract["operations"]:
+            raise ContractError(f"{owner_label}.{state_name} action references unknown operation {action}")
     _validate_presentation(contract, owner_label, field_names, state_name, state)
 
 
@@ -961,19 +969,19 @@ def _validate_data_bindings(
 ) -> None:
     context_keys = set((context or {}).keys())
     for datum in data:
-        capability_id = datum["capability"]
-        if capability_id not in contract["capabilities"]:
-            raise ContractError(f"{owner_label} data references unknown capability {capability_id}")
-        capability = contract["capabilities"][capability_id]
-        if capability["archetype"] not in {"read", "list", "query"}:
-            raise ContractError(f"{owner_label} data capability must be read, list, or query: {capability_id}")
-        if model and model not in capability.get("reads", []):
-            raise ContractError(f"{owner_label} data capability {capability_id} must read model {model}")
-        input_keys = set((capability.get("input") or {}).keys())
+        operation_id = datum["operation"]
+        if operation_id not in contract["operations"]:
+            raise ContractError(f"{owner_label} data references unknown operation {operation_id}")
+        operation = contract["operations"][operation_id]
+        if operation["operation_kind"] != "query":
+            raise ContractError(f"{owner_label} data operation must be query: {operation_id}")
+        if model and model not in operation.get("reads", []):
+            raise ContractError(f"{owner_label} data operation {operation_id} must read model {model}")
+        input_keys = set((operation.get("input") or {}).keys())
         missing = sorted(input_keys - context_keys)
         if missing:
             raise ContractError(
-                f"{owner_label} data capability {capability_id} input not provided by context: {missing}"
+                f"{owner_label} data operation {operation_id} input not provided by context: {missing}"
             )
 
 
@@ -1498,27 +1506,27 @@ def _validate_entries(contract: dict[str, Any]) -> None:
             _validate_fsm_entry_inputs(contract, eid, value, declared=declared, input_label="input.params")
             _validate_target_bindings(contract, eid, entry, declared)
         elif surface == "api":
-            if kind != "capability" or value not in contract["capabilities"]:
-                raise ContractError(f"API entry {eid} must target a known capability")
+            if kind != "operation" or value not in contract["operations"]:
+                raise ContractError(f"API entry {eid} must target a known operation")
             _require(entry, eid, "method")
             _require(entry, eid, "path")
             _validate_path_params(entry, eid)
-            capability = contract["capabilities"][value]
+            operation = contract["operations"][value]
             params = _entry_input_map(entry, "params")
             body = _entry_input_map(entry, "body")
-            _validate_api_entry_input(eid, entry, capability, params, body)
+            _validate_api_entry_input(eid, entry, operation, params, body)
             _validate_target_bindings(contract, eid, entry, {**params, **body})
-            _validate_api_entry_responses(eid, entry, capability)
+            _validate_api_entry_responses(eid, entry, operation)
         elif surface == "cli":
             _require(entry, eid, "command")
             args = _entry_input_map(entry, "args")
-            if kind == "capability":
-                if value not in contract["capabilities"]:
-                    raise ContractError(f"CLI entry {eid} must target a known capability")
-                capability = contract["capabilities"][value]
-                _validate_exact_entry_inputs(eid, "input.args", args, capability["input"])
+            if kind == "operation":
+                if value not in contract["operations"]:
+                    raise ContractError(f"CLI entry {eid} must target a known operation")
+                operation = contract["operations"][value]
+                _validate_exact_entry_inputs(eid, "input.args", args, operation["input"])
                 _validate_target_bindings(contract, eid, entry, args)
-                _validate_cli_capability_responses(eid, entry, capability)
+                _validate_cli_operation_responses(eid, entry, operation)
             elif kind == "fsm":
                 if value not in contract["fsms"]:
                     raise ContractError(f"CLI entry {eid} must target a known FSM")
@@ -1634,16 +1642,16 @@ def _validate_workflow_entry_trigger(contract: dict[str, Any], entry_id: str, en
 def _validate_api_entry_input(
     entry_id: str,
     entry: dict[str, Any],
-    capability: dict[str, Any],
+    operation: dict[str, Any],
     params: dict[str, Any],
     body: dict[str, Any],
 ) -> None:
-    cap_input = capability["input"]
+    cap_input = operation["input"]
     all_input = {**params, **body}
     if set(params) - set(cap_input):
-        raise ContractError(f"API entry {entry_id} input.params must be capability input fields")
+        raise ContractError(f"API entry {entry_id} input.params must be operation input fields")
     if set(body) - set(cap_input):
-        raise ContractError(f"API entry {entry_id} input.body must be capability input fields")
+        raise ContractError(f"API entry {entry_id} input.body must be operation input fields")
     if set(params) & set(body):
         raise ContractError(f"API entry {entry_id} input fields cannot appear in both params and body")
     _validate_entry_input_types(entry_id, "input.params", params, cap_input)
@@ -1653,10 +1661,10 @@ def _validate_api_entry_input(
             raise ContractError(f"API entry {entry_id} {entry['method']} must not declare input.body")
         if set(params) != set(cap_input):
             missing_params = sorted(set(cap_input) - set(params))
-            raise ContractError(f"API entry {entry_id} {entry['method']} must declare all capability inputs as input.params: {missing_params}")
+            raise ContractError(f"API entry {entry_id} {entry['method']} must declare all operation inputs as input.params: {missing_params}")
     missing = sorted(set(cap_input) - set(all_input))
     if missing:
-        raise ContractError(f"API entry {entry_id} input must include every capability input: {missing}")
+        raise ContractError(f"API entry {entry_id} input must include every operation input: {missing}")
 
 
 def _validate_event_payload_entry_input(contract: dict[str, Any], entry_id: str, entry: dict[str, Any], workflow_id: str) -> None:
@@ -1680,8 +1688,8 @@ def _validate_target_bindings(
 ) -> None:
     kind, value = entry_target_pair(entry["target"])
     bindings = entry["target"].get("with", {})
-    if kind == "capability":
-        expected = contract["capabilities"][value]["input"]
+    if kind == "operation":
+        expected = contract["operations"][value]["input"]
     elif kind == "fsm":
         expected = {name: contract["fsms"][value].get("context", {})[name] for name in target_input_types}
     else:
@@ -1713,11 +1721,11 @@ def _validate_target_bindings(
             )
 
 
-def _validate_api_entry_responses(entry_id: str, entry: dict[str, Any], capability: dict[str, Any]) -> None:
-    responses = _capability_entry_responses(entry_id, entry, capability)
+def _validate_api_entry_responses(entry_id: str, entry: dict[str, Any], operation: dict[str, Any]) -> None:
+    responses = _operation_entry_responses(entry_id, entry, operation)
     statuses: dict[int, str] = {}
     for outcome_id, response in responses.items():
-        outcome = capability["outcomes"][outcome_id]
+        outcome = operation["outcomes"][outcome_id]
         if set(response) != {"status", "body"}:
             raise ContractError(f"API entry {entry_id} response {outcome_id} must declare exactly status and body")
         status = response["status"]
@@ -1727,7 +1735,7 @@ def _validate_api_entry_responses(entry_id: str, entry: dict[str, Any], capabili
             )
         statuses[status] = outcome_id
         if outcome["kind"] == "success":
-            expected = 201 if capability["archetype"] == "create" else 200
+            expected = 201 if operation.get("creates") else 200
             if status != expected:
                 raise ContractError(f"API entry {entry_id} success response {outcome_id} status must be {expected}")
         elif status < 400:
@@ -1740,11 +1748,11 @@ def _validate_api_entry_responses(entry_id: str, entry: dict[str, Any], capabili
         )
 
 
-def _validate_cli_capability_responses(entry_id: str, entry: dict[str, Any], capability: dict[str, Any]) -> None:
-    responses = _capability_entry_responses(entry_id, entry, capability)
+def _validate_cli_operation_responses(entry_id: str, entry: dict[str, Any], operation: dict[str, Any]) -> None:
+    responses = _operation_entry_responses(entry_id, entry, operation)
     exit_codes: dict[int, str] = {}
     for outcome_id, response in responses.items():
-        outcome = capability["outcomes"][outcome_id]
+        outcome = operation["outcomes"][outcome_id]
         if "exit_code" not in response:
             raise ContractError(f"CLI entry {entry_id} response {outcome_id} must declare exit_code")
         exit_code = response["exit_code"]
@@ -1775,17 +1783,17 @@ def _validate_cli_capability_responses(entry_id: str, entry: dict[str, Any], cap
         exit_codes[exit_code] = outcome_id
 
 
-def _capability_entry_responses(entry_id: str, entry: dict[str, Any], capability: dict[str, Any]) -> dict[str, Any]:
+def _operation_entry_responses(entry_id: str, entry: dict[str, Any], operation: dict[str, Any]) -> dict[str, Any]:
     responses = entry.get("responses", {})
-    if set(responses) != set(capability["outcomes"]):
-        missing = sorted(set(capability["outcomes"]) - set(responses))
-        extra = sorted(set(responses) - set(capability["outcomes"]))
+    if set(responses) != set(operation["outcomes"]):
+        missing = sorted(set(operation["outcomes"]) - set(responses))
+        extra = sorted(set(responses) - set(operation["outcomes"]))
         parts = []
         if missing:
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"Entry {entry_id} responses must exactly map capability outcomes" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"Entry {entry_id} responses must exactly map operation outcomes" + (": " + "; ".join(parts) if parts else ""))
     return responses
 
 
@@ -1859,8 +1867,8 @@ def _add_data_context_requirements(
     required: dict[str, Any],
 ) -> None:
     for datum in data:
-        capability = contract["capabilities"][datum["capability"]]
-        for key, expected_type in capability["input"].items():
+        operation = contract["operations"][datum["operation"]]
+        for key, expected_type in operation["input"].items():
             actual_type = context.get(key)
             if not type_equals(actual_type, expected_type):
                 raise ContractError(f"{label} context {key} type must be {type_display(expected_type)}, got {type_display(actual_type)}")
@@ -1879,8 +1887,8 @@ def _add_mount_context_requirements(
     child_fsm_context = fsm.get("context", {})
     parent_fsm_context = contract["fsms"][fsm_id].get("context", {})
     for datum in data:
-        capability = contract["capabilities"][datum["capability"]]
-        for child_key, expected_type in capability["input"].items():
+        operation = contract["operations"][datum["operation"]]
+        for child_key, expected_type in operation["input"].items():
             if not type_equals(child_fsm_context.get(child_key), expected_type):
                 raise ContractError(f"Composed FSM {fsm_id}.{mount['id']} FSM context {child_key} type must be {type_display(expected_type)}")
             value = mount_context.get(child_key)
@@ -2023,7 +2031,7 @@ def _failure_outcomes(cap: dict[str, Any]) -> dict[str, dict[str, Any]]:
 def _primary_success_outcome(cap: dict[str, Any]) -> tuple[str, dict[str, Any]]:
     successes = _success_outcomes(cap)
     if len(successes) != 1:
-        raise ContractError("Capability must declare exactly one success outcome")
+        raise ContractError("Operation must declare exactly one success outcome")
     return next(iter(successes.items()))
 
 
@@ -2036,8 +2044,8 @@ def _validate_workflows(contract: dict[str, Any]) -> None:
         kind, value = _one(workflow["trigger"], f"workflow {wid} trigger")
         if kind == "event" and value not in contract["events"]:
             raise ContractError(f"Workflow {wid} trigger references unknown event {value}")
-        if kind == "capability" and value not in contract["capabilities"]:
-            raise ContractError(f"Workflow {wid} trigger references unknown capability {value}")
+        if kind == "operation" and value not in contract["operations"]:
+            raise ContractError(f"Workflow {wid} trigger references unknown operation {value}")
         _validate_workflow_outcomes(wid, workflow)
         step_ids = [step["id"] for step in workflow["steps"]]
         if len(step_ids) != len(set(step_ids)):
@@ -2046,12 +2054,12 @@ def _validate_workflows(contract: dict[str, Any]) -> None:
         source_types = _workflow_trigger_source_types(contract, wid, workflow)
         routed_terminals: set[str] = set()
         for step in workflow["steps"]:
-            if step["capability"] not in contract["capabilities"]:
-                raise ContractError(f"Workflow {wid} step references unknown capability {step['capability']}")
-            capability = contract["capabilities"][step["capability"]]
-            _validate_workflow_step_bindings(contract, wid, step, capability, source_types)
-            routed_terminals.update(_validate_workflow_step_routes(wid, workflow, step, capability, step_id_set))
-            _merge_type_scopes(source_types, _workflow_step_source_types(contract, step, capability))
+            if step["operation"] not in contract["operations"]:
+                raise ContractError(f"Workflow {wid} step references unknown operation {step['operation']}")
+            operation = contract["operations"][step["operation"]]
+            _validate_workflow_step_bindings(contract, wid, step, operation, source_types)
+            routed_terminals.update(_validate_workflow_step_routes(wid, workflow, step, operation, step_id_set))
+            _merge_type_scopes(source_types, _workflow_step_source_types(contract, step, operation))
         if routed_terminals != set(workflow["outcomes"]):
             missing = sorted(set(workflow["outcomes"]) - routed_terminals)
             extra = sorted(routed_terminals - set(workflow["outcomes"]))
@@ -2080,13 +2088,13 @@ def _workflow_trigger_source_types(contract: dict[str, Any], workflow_id: str, w
     if kind == "event":
         payload_type = contract["events"][value]["payload"]
     else:
-        payload_type = _success_result_type(contract["capabilities"][value])
+        payload_type = _success_result_type(contract["operations"][value])
     return {"trigger": _typed_source_paths(contract, ("payload",), payload_type)}
 
 
-def _workflow_step_source_types(contract: dict[str, Any], step: dict[str, Any], capability: dict[str, Any]) -> TypeScopes:
+def _workflow_step_source_types(contract: dict[str, Any], step: dict[str, Any], operation: dict[str, Any]) -> TypeScopes:
     sources: TypeScope = {}
-    for outcome_id, outcome in capability["outcomes"].items():
+    for outcome_id, outcome in operation["outcomes"].items():
         sources.update(_typed_source_paths(contract, (step["id"], "outcomes", outcome_id, "result"), outcome["result"]))
     return {"steps": sources}
 
@@ -2095,11 +2103,11 @@ def _validate_workflow_step_bindings(
     contract: dict[str, Any],
     workflow_id: str,
     step: dict[str, Any],
-    capability: dict[str, Any],
+    operation: dict[str, Any],
     source_types: TypeScopes,
 ) -> None:
     bindings = step["with"]
-    expected = capability["input"]
+    expected = operation["input"]
     if set(bindings) != set(expected):
         missing = sorted(set(expected) - set(bindings))
         extra = sorted(set(bindings) - set(expected))
@@ -2108,7 +2116,7 @@ def _validate_workflow_step_bindings(
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"Workflow {workflow_id} step {step['id']} with must exactly map capability input" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"Workflow {workflow_id} step {step['id']} with must exactly map operation input" + (": " + "; ".join(parts) if parts else ""))
     for name, source in bindings.items():
         actual_type = _reference_expression_type(
             contract,
@@ -2128,26 +2136,26 @@ def _validate_workflow_step_routes(
     workflow_id: str,
     workflow: dict[str, Any],
     step: dict[str, Any],
-    capability: dict[str, Any],
+    operation: dict[str, Any],
     step_ids: set[str],
 ) -> set[str]:
     routes = step["on"]
-    if set(routes) != set(capability["outcomes"]):
-        missing = sorted(set(capability["outcomes"]) - set(routes))
-        extra = sorted(set(routes) - set(capability["outcomes"]))
+    if set(routes) != set(operation["outcomes"]):
+        missing = sorted(set(operation["outcomes"]) - set(routes))
+        extra = sorted(set(routes) - set(operation["outcomes"]))
         parts = []
         if missing:
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"Workflow {workflow_id} step {step['id']} on must exactly map capability outcomes" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"Workflow {workflow_id} step {step['id']} on must exactly map operation outcomes" + (": " + "; ".join(parts) if parts else ""))
 
     routed_terminals: set[str] = set()
     for outcome_id, route in routes.items():
         route_targets = [key for key in ("complete", "fail", "next") if key in route]
         if len(route_targets) != 1:
             raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} must declare exactly one of complete, fail, or next")
-        outcome = capability["outcomes"][outcome_id]
+        outcome = operation["outcomes"][outcome_id]
         target_kind = route_targets[0]
         if target_kind == "next":
             next_step = route["next"]
@@ -2298,12 +2306,12 @@ def _validate_scenario_when(contract: dict[str, Any], sid: str, scenario: dict[s
         entry_target_kind, _ = entry_target_pair(entry["target"])
         if kind == "open_entry" and not (entry["surface"] in {"web", "cli"} and entry_target_kind == "fsm"):
             raise ContractError(f"Scenario {sid} open_entry must reference a web or cli FSM entry")
-        if kind == "call_entry" and not (entry["surface"] in {"api", "cli"} and entry_target_kind == "capability"):
-            raise ContractError(f"Scenario {sid} call_entry must reference an api or cli capability entry")
+        if kind == "call_entry" and not (entry["surface"] in {"api", "cli"} and entry_target_kind == "operation"):
+            raise ContractError(f"Scenario {sid} call_entry must reference an api or cli operation entry")
         _validate_scenario_entry_input(sid, kind, body, entry)
-    elif kind == "invoke_capability":
-        if ref not in contract["capabilities"]:
-            raise ContractError(f"Scenario {sid} references unknown capability {ref}")
+    elif kind == "invoke_operation":
+        if ref not in contract["operations"]:
+            raise ContractError(f"Scenario {sid} references unknown operation {ref}")
     elif kind == "emit_event":
         if ref not in contract["events"]:
             raise ContractError(f"Scenario {sid} references unknown event {ref}")
@@ -2387,8 +2395,8 @@ def _validate_scenario_then(contract: dict[str, Any], sid: str, scenario: dict[s
                 raise ContractError(f"Scenario {sid} asserts undeclared FSM context {fsm_id}.{key}")
     for field in ["enables", "forbids", "invoked"]:
         for cap_id in then.get(field, []):
-            if cap_id not in contract["capabilities"]:
-                raise ContractError(f"Scenario {sid} {field} unknown capability {cap_id}")
+            if cap_id not in contract["operations"]:
+                raise ContractError(f"Scenario {sid} {field} unknown operation {cap_id}")
     model_exists = (then.get("model") or {}).get("exists")
     if model_exists and model_exists["model"] not in contract["models"]:
         raise ContractError(f"Scenario {sid} asserts unknown model {model_exists['model']}")
@@ -2410,18 +2418,18 @@ def _validate_scenario_outcome(contract: dict[str, Any], sid: str, scenario: dic
     outcome_id = then.get("outcome")
     cap: dict[str, Any] | None = None
     entry: dict[str, Any] | None = None
-    if when_kind == "invoke_capability":
-        cap = contract["capabilities"][when_body["ref"]]
+    if when_kind == "invoke_operation":
+        cap = contract["operations"][when_body["ref"]]
     elif when_kind == "call_entry":
         entry = contract["entries"][when_body["ref"]]
-        if "capability" in entry["target"]:
-            cap = contract["capabilities"][entry["target"]["capability"]]
+        if "operation" in entry["target"]:
+            cap = contract["operations"][entry["target"]["operation"]]
     if cap is None:
         if outcome_id:
-            raise ContractError(f"Scenario {sid} asserts outcome but does not execute a capability")
+            raise ContractError(f"Scenario {sid} asserts outcome but does not execute a operation")
         return
     if not outcome_id:
-        raise ContractError(f"Scenario {sid} must assert a capability outcome")
+        raise ContractError(f"Scenario {sid} must assert a operation outcome")
     if outcome_id not in cap["outcomes"]:
         raise ContractError(f"Scenario {sid} asserts unknown outcome {outcome_id}")
     if entry is None:
@@ -2454,9 +2462,9 @@ def _validate_scenario_archetype(sid: str, scenario: dict[str, Any]) -> None:
         fsm_assert = then.get("fsm", {})
         if when_kind != "open_entry" or not fsm_assert.get("instances"):
             raise ContractError(f"Scenario {sid} fsm_composition requires open_entry and fsm.instances")
-    elif archetype == "capability_outcome":
-        if when_kind != "invoke_capability" or "outcome" not in then:
-            raise ContractError(f"Scenario {sid} capability_outcome requires invoke_capability and outcome")
+    elif archetype == "operation_outcome":
+        if when_kind != "invoke_operation" or "outcome" not in then:
+            raise ContractError(f"Scenario {sid} operation_outcome requires invoke_operation and outcome")
     elif archetype == "entry_response":
         if when_kind != "call_entry" or "outcome" not in then or "response" not in then:
             raise ContractError(f"Scenario {sid} entry_response requires call_entry, outcome, and response")
@@ -2563,14 +2571,14 @@ def _expand_scenarios(contract: dict[str, Any]) -> None:
                 }
         when_kind, when_body = _one(scenario["execute"], "scenario execute")
         cap_id = None
-        if when_kind == "invoke_capability":
+        if when_kind == "invoke_operation":
             cap_id = when_body["ref"]
         elif when_kind == "call_entry":
             entry = contract["entries"][when_body["ref"]]
-            if "capability" in entry["target"]:
-                cap_id = entry["target"]["capability"]
+            if "operation" in entry["target"]:
+                cap_id = entry["target"]["operation"]
         if cap_id:
-            assertions.setdefault("policy", contract["capabilities"][cap_id]["policy"])
+            assertions.setdefault("policy", contract["operations"][cap_id]["policy"])
 
 
 def _stash_generated_tree(root: Path) -> tuple[Path | None, Path | None]:

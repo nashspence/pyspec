@@ -28,7 +28,7 @@ class ProductApp:
         self.fixtures: dict[str, Any] = {}
         self.projects: list[dict[str, Any]] = []
         self.emitted_events: list[str] = []
-        self.invoked_capabilities: list[str] = []
+        self.invoked_operations: list[str] = []
         self.ran_workflows: list[str] = []
         self.workflow_outcomes: dict[str, str] = {}
         self.rendered_fsm: dict[str, Any] | None = None
@@ -136,7 +136,7 @@ class ProductApp:
         entry = self.contract["entries"][entry_id]
         assert entry["surface"] in {"api", "cli"}
         target_input = self._entry_target_input(entry, input_values)
-        result = self.invoke_capability(entry["target"]["capability"], target_input)
+        result = self.invoke_operation(entry["target"]["operation"], target_input)
         response = entry["responses"][self.last_outcome]
         if "status" in response:
             self.http_response = {"status": response["status"], "body": result}
@@ -155,39 +155,39 @@ class ProductApp:
         bindings = entry["target"].get("with", {})
         return {name: _resolve_binding(source, namespace) for name, source in bindings.items()}
 
-    def invoke_capability(self, capability_id: str, input_values: Mapping[str, Any]) -> Any:
-        self.invoked_capabilities.append(capability_id)
-        self.last_outcome = _success_outcome_id(self.contract["capabilities"][capability_id])
+    def invoke_operation(self, operation_id: str, input_values: Mapping[str, Any]) -> Any:
+        self.invoked_operations.append(operation_id)
+        self.last_outcome = _success_outcome_id(self.contract["operations"][operation_id])
         values = dict(input_values)
-        if capability_id == "operation.project.create":
+        if operation_id == "operation.project.create":
             project = self._project(values)
             self.projects.append(project)
             self._record_event("event.project.created")
             return project
-        if capability_id == "operation.project.list":
+        if operation_id == "operation.project.list":
             return [p for p in self.projects if p["workspace_id"] == values.get("workspace_id")]
-        if capability_id == "operation.project.submit":
+        if operation_id == "operation.project.submit":
             project = self._find_project(values["project_id"])
             assert project["status"] == "draft"
             project["status"] = "submitted"
             self._record_event("event.project.submitted")
             return project
-        if capability_id == "operation.project.approve":
+        if operation_id == "operation.project.approve":
             project = self._find_project(values["project_id"])
             assert project["status"] == "submitted"
             project["status"] = "approved"
             project["approved_by"] = values["approved_by"]
             self._record_event("event.project.approved")
             return project
-        if capability_id == "operation.project.archive":
+        if operation_id == "operation.project.archive":
             project = self._find_project(values["project_id"])
             assert project["status"] == "approved"
             project["status"] = "archived"
             self._record_event("event.project.archived")
             return project
-        if capability_id == "operation.project.send_approval_notice":
+        if operation_id == "operation.project.send_approval_notice":
             return {"ok": True, "sent": True, **values}
-        raise AssertionError(f"Unsupported capability: {capability_id}")
+        raise AssertionError(f"Unsupported operation: {operation_id}")
 
     def emit_event(self, event_id: str, payload: Mapping[str, Any]) -> None:
         self._record_event(event_id)
@@ -203,7 +203,7 @@ class ProductApp:
         while True:
             step = step_by_id[current]
             input_values = {name: _resolve_binding(source, namespace) for name, source in step["with"].items()}
-            result = self.invoke_capability(step["capability"], input_values)
+            result = self.invoke_operation(step["operation"], input_values)
             assert self.last_outcome is not None
             namespace["steps"].setdefault(step["id"], {"outcomes": {}})["outcomes"][self.last_outcome] = {"result": result}
             route = step["on"][self.last_outcome]
@@ -264,7 +264,7 @@ class ProductApp:
             if "outcome" in workflow:
                 assert self.workflow_outcomes.get(workflow["ref"]) == workflow["outcome"]
         for cap in assertions.get("invoked", []):
-            assert cap in self.invoked_capabilities
+            assert cap in self.invoked_operations
         response = assertions.get("response")
         if response:
             assert self.http_response is not None
@@ -307,8 +307,8 @@ def _resolve_binding(source: str, namespace: Mapping[str, Any]) -> Any:
     return resolve_reference_expression(source, namespace)
 
 
-def _success_outcome_id(capability: Mapping[str, Any]) -> str:
-    successes = [outcome_id for outcome_id, outcome in capability["outcomes"].items() if outcome["kind"] == "success"]
+def _success_outcome_id(operation: Mapping[str, Any]) -> str:
+    successes = [outcome_id for outcome_id, outcome in operation["outcomes"].items() if outcome["kind"] == "success"]
     assert len(successes) == 1, "Expected exactly one success outcome"
     return successes[0]
 

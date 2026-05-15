@@ -149,8 +149,8 @@ def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
     for entry_id, entry in sorted(contract["entries"].items()):
         if entry["surface"] != "api":
             continue
-        cap_id = entry["target"]["capability"]
-        cap = contract["capabilities"][cap_id]
+        cap_id = entry["target"]["operation"]
+        cap = contract["operations"][cap_id]
         entry_input = entry.get("input", {})
         params = entry_input.get("params", {})
         body_fields = entry_input.get("body", {})
@@ -165,7 +165,7 @@ def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
         op: dict[str, Any] = {
             "operationId": cap_id,
             "x-entry": entry_id,
-            "x-capability": cap_id,
+            "x-operation": cap_id,
             "x-policy": cap["policy"],
             "parameters": [
                 {"name": name, "in": "path", "required": True, "schema": type_schema(type_name)}
@@ -617,10 +617,10 @@ def workflows_projection(contract: dict[str, Any]) -> dict[str, Any]:
     for workflow_id, workflow in sorted(contract["workflows"].items()):
         steps = {}
         for step in workflow["steps"]:
-            cap = contract["capabilities"][step["capability"]]
+            cap = contract["operations"][step["operation"]]
             steps[step["id"]] = {
                 "doc": f"with={step['with']}; on={step['on']}",
-                "run": f"#{safe_id(step['capability'])}",
+                "run": f"#{safe_id(step['operation'])}",
                 "in": {name: _workflow_cwl_source(source) for name, source in sorted(step["with"].items())},
                 "out": sorted(cap["outcomes"]),
             }
@@ -637,12 +637,12 @@ def workflows_projection(contract: dict[str, Any]) -> dict[str, Any]:
             },
             "steps": steps,
         })
-    for cap_id, cap in sorted(contract["capabilities"].items()):
+    for cap_id, cap in sorted(contract["operations"].items()):
         graph.append({
             "id": f"#{safe_id(cap_id)}",
             "class": "CommandLineTool",
             "label": cap_id,
-            "baseCommand": ["contract-capability", cap_id],
+            "baseCommand": ["contract-operation", cap_id],
             "inputs": {name: {"type": cwl_type(type_name)} for name, type_name in sorted(cap["input"].items())},
             "outputs": {
                 outcome_id: {"type": cwl_type(outcome["result"])}
@@ -656,8 +656,8 @@ def _workflow_trigger_payload_type(contract: dict[str, Any], workflow: dict[str,
     trigger = workflow["trigger"]
     if "event" in trigger:
         return contract["events"][trigger["event"]]["payload"]
-    capability = contract["capabilities"][trigger["capability"]]
-    successes = [outcome["result"] for outcome in capability["outcomes"].values() if outcome["kind"] == "success"]
+    operation = contract["operations"][trigger["operation"]]
+    successes = [outcome["result"] for outcome in operation["outcomes"].values() if outcome["kind"] == "success"]
     return successes[0]
 
 
@@ -774,7 +774,7 @@ def refs_py_projection(contract: dict[str, Any]) -> str:
         "Asset": sorted(contract.get("assets", {})),
         "AuditProfile": sorted(contract.get("audit_profiles", {})),
         "EntryPoint": sorted(contract["entries"]),
-        "Operation": sorted(contract["capabilities"]),
+        "Operation": sorted(contract["operations"]),
         "Text": sorted(contract.get("copies", {})),
         "ContentCase": sorted(contract.get("content_cases", {})),
         "Event": sorted(contract["events"]),
@@ -892,7 +892,7 @@ def components_projection(contract: dict[str, Any]) -> dict[str, Any]:
             for ref in referenced_named_types(effective_field_type(field)):
                 if ref != rid and ref not in contract["models"]:
                     opaque.add(ref)
-    for cap in contract["capabilities"].values():
+    for cap in contract["operations"].values():
         outcome_types = [outcome["result"] for outcome in cap["outcomes"].values()]
         for type_name in list(cap["input"].values()) + outcome_types:
             for ref in referenced_named_types(type_name):

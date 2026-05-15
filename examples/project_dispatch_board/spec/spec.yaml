@@ -153,15 +153,15 @@ models:
         required: true
         type:
           primitive: ID
-capabilities:
+operations:
   operation.project.approve:
-    archetype: transition
     basis: Reviewers can approve submitted dispatch projects.
     input:
       approved_by:
         primitive: ID
       project_id:
         primitive: ID
+    operation_kind: transition
     outcomes:
       approved:
         emits:
@@ -181,11 +181,11 @@ capabilities:
         result:
           model: Problem
   operation.project.archive:
-    archetype: transition
     basis: Approved dispatch projects can be archived.
     input:
       project_id:
         primitive: ID
+    operation_kind: transition
     outcomes:
       archived:
         emits:
@@ -203,7 +203,6 @@ capabilities:
         result:
           model: Problem
   operation.project.create:
-    archetype: create
     basis: Members can create a new dispatch project.
     creates:
     - Project
@@ -216,6 +215,7 @@ capabilities:
         primitive: Text
       workspace_id:
         primitive: ID
+    operation_kind: command
     outcomes:
       created:
         emits:
@@ -229,11 +229,11 @@ capabilities:
         result:
           model: Problem
   operation.project.list:
-    archetype: list
     basis: The board requires a project list query scoped by workspace.
     input:
       workspace_id:
         primitive: ID
+    operation_kind: query
     outcomes:
       listed:
         kind: success
@@ -247,11 +247,11 @@ capabilities:
     reads:
     - Project
   operation.project.read:
-    archetype: read
     basis: The detail FSM loads the selected project by id.
     input:
       project_id:
         primitive: ID
+    operation_kind: query
     outcomes:
       found:
         kind: success
@@ -264,13 +264,13 @@ capabilities:
     reads:
     - Project
   operation.project.send_approval_notice:
-    archetype: command
     basis: Approval triggers a notification command for downstream coordination.
     input:
       approved_by:
         primitive: ID
       project_id:
         primitive: ID
+    operation_kind: command
     outcomes:
       delivery_failed:
         kind: failure
@@ -281,11 +281,11 @@ capabilities:
         result:
           model: NoticeResult
   operation.project.submit:
-    archetype: transition
     basis: Draft dispatch projects can be submitted for review.
     input:
       project_id:
         primitive: ID
+    operation_kind: transition
     outcomes:
       invalid_state:
         kind: failure
@@ -689,7 +689,7 @@ entries:
         status: 422
     surface: api
     target:
-      capability: operation.project.create
+      operation: operation.project.create
       with:
         customer: $input.body.customer
         priority: $input.body.priority
@@ -719,7 +719,7 @@ entries:
         status: 503
     surface: api
     target:
-      capability: operation.project.list
+      operation: operation.project.list
       with:
         workspace_id: $input.params.workspace_id
   entry_point.cli.project.approve:
@@ -752,7 +752,7 @@ entries:
             model: Problem
     surface: cli
     target:
-      capability: operation.project.approve
+      operation: operation.project.approve
       with:
         approved_by: $input.args.approved_by
         project_id: $input.args.project_id
@@ -815,8 +815,7 @@ workflows:
         result:
           model: Problem
     steps:
-    - capability: operation.project.send_approval_notice
-      id: send_notice
+    - id: send_notice
       on:
         delivery_failed:
           fail: delivery_failed
@@ -825,6 +824,7 @@ workflows:
             backoff: exponential
         sent:
           complete: completed
+      operation: operation.project.send_approval_notice
       with:
         approved_by: $trigger.payload.approved_by
         project_id: $trigger.payload.project_id
@@ -857,7 +857,7 @@ scenarios:
           project_id: project_submitted_1
         ref: event.project.approved
   scenario.project.approve.success:
-    archetype: capability_outcome
+    archetype: operation_outcome
     basis: Approval transitions a submitted project to approved and emits the event.
     feature: feature.project.approve
     given:
@@ -880,7 +880,7 @@ scenarios:
       outcome: approved
     title: Approve submitted dispatch project
     when:
-      invoke_capability:
+      invoke_operation:
         input:
           approved_by: $fixture.actor.id
           project_id: project_submitted_1
@@ -955,7 +955,7 @@ scenarios:
         ref: entry_point.web.project.board
   scenario.project.create.api.success:
     archetype: entry_response
-    basis: The API create endpoint delegates to the create capability and emits project.created.
+    basis: The API create endpoint delegates to the create operation and emits project.created.
     feature: feature.project.create
     given:
       facts:

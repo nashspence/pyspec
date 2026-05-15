@@ -260,7 +260,7 @@
     {
       "data": [
         {
-          "capability": "operation.project.read",
+          "operation": "operation.project.read",
           "query": "query.project.activity.read"
         }
       ],
@@ -394,7 +394,7 @@
     {
       "data": [
         {
-          "capability": "operation.project.read",
+          "operation": "operation.project.read",
           "query": "query.project.detail.read"
         }
       ],

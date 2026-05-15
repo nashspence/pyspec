@@ -96,8 +96,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: Unavailable
-      x-capability: operation.project.list
       x-entry: entry_point.api.project.list
+      x-operation: operation.project.list
       x-policy: policy.project.list
     post:
       operationId: operation.project.create
@@ -138,6 +138,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: Validation Failed
-      x-capability: operation.project.create
       x-entry: entry_point.api.project.create
+      x-operation: operation.project.create
       x-policy: policy.project.create

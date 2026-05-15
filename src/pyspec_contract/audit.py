@@ -774,7 +774,7 @@ def fsm_dot(fsm_id: str, fsm: dict[str, Any], contract: dict[str, Any]) -> str:
             ("copy", state.get("copy", [])),
             ("assets", state.get("assets", [])),
             (_state_field_section_title(fsm, state_name, state), _format_state_fields(fsm, state, contract)),
-            ("actions", _format_capability_outputs(state.get("actions", []), contract)),
+            ("actions", _format_operation_outputs(state.get("actions", []), contract)),
             ("mounts", _format_mounts(state.get("mounts", []))),
             ("sync", [rule["id"] for rule in state.get("sync", [])]),
         ]
@@ -994,7 +994,7 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
                     "workflow",
                     [
                         ("ref", [workflow.get("ref", "")]),
-                        ("steps", [f"{step['id']} {_DOT_ARROW_FORWARD} {step['capability']}" for step in workflow["steps"]]),
+                        ("steps", [f"{step['id']} {_DOT_ARROW_FORWARD} {step['operation']}" for step in workflow["steps"]]),
                         ("outcomes", [_DotTypedField(outcome_id, outcome["result"], outcome["kind"]) for outcome_id, outcome in sorted(workflow["outcomes"].items())]),
                     ],
                     basis=workflow.get("basis", ""),
@@ -1073,7 +1073,7 @@ def _entry_response_nodes(entry_id: str, entry: dict[str, Any], contract: dict[s
     if not responses:
         return []
     target_kind, target_value = entry_target_pair(entry["target"])
-    outcomes = contract["capabilities"][target_value]["outcomes"] if target_kind == "capability" else {}
+    outcomes = contract["operations"][target_value]["outcomes"] if target_kind == "operation" else {}
     nodes = []
     for outcome_id, response in sorted(responses.items()):
         outcome = outcomes.get(outcome_id)
@@ -1122,13 +1122,13 @@ def _entry_target_card(
             basis=fsm.get("basis", ""),
             style=_DOT_STYLE_FSM,
         )
-    if target_kind == "capability":
-        capability = contract["capabilities"][target_value]
+    if target_kind == "operation":
+        operation = contract["operations"][target_value]
         return _dot_card(
             target_value,
-            "target capability",
-            _capability_sections(capability, contract),
-            basis=capability.get("basis", ""),
+            "target operation",
+            _operation_sections(operation, contract),
+            basis=operation.get("basis", ""),
             style=_DOT_STYLE_CAPABILITY,
         )
     if target_kind == "workflow":
@@ -1141,7 +1141,7 @@ def _entry_target_card(
             target_subtitle,
             [
                 ("trigger", [_target_label(*_target_pair(workflow["trigger"]))]),
-                ("steps", [f"{step['id']} {_DOT_ARROW_FORWARD} {step['capability']}" for step in workflow["steps"]]),
+                ("steps", [f"{step['id']} {_DOT_ARROW_FORWARD} {step['operation']}" for step in workflow["steps"]]),
                 ("outcomes", [_DotTypedField(outcome_id, outcome["result"], outcome["kind"]) for outcome_id, outcome in sorted(workflow["outcomes"].items())]),
             ],
             basis=workflow.get("basis", ""),
@@ -1173,7 +1173,7 @@ def _fsm_summary_sections(fsm: dict[str, Any], contract: dict[str, Any]) -> list
     bindings = _unique_data_bindings(fsm.get("data", []))
     inputs = _format_data_inputs(fsm, bindings, contract)
     queries = [binding["query"] for binding in bindings]
-    loads = _format_capability_outputs([binding["capability"] for binding in bindings], contract)
+    loads = _format_operation_outputs([binding["operation"] for binding in bindings], contract)
     if inputs:
         sections.append(("input", inputs))
     if queries:
@@ -1195,7 +1195,7 @@ def _fsm_state_card(fsm: dict[str, Any], state_name: str, state: dict[str, Any],
             ("copy", state.get("copy", [])),
             ("assets", state.get("assets", [])),
             (_state_field_section_title(fsm, state_name, state), _format_state_fields(fsm, state, contract)),
-            ("actions", _format_capability_outputs(state.get("actions", []), contract)),
+            ("actions", _format_operation_outputs(state.get("actions", []), contract)),
             ("mounts", _format_mounts(state.get("mounts", []))),
             ("sync", [rule["id"] for rule in state.get("sync", [])]),
         ],
@@ -1206,29 +1206,29 @@ def _fsm_state_card(fsm: dict[str, Any], state_name: str, state: dict[str, Any],
 def _workflow_trigger_card(trigger_kind: str, trigger_value: str, contract: dict[str, Any]) -> str:
     if trigger_kind == "event":
         return _event_card(trigger_value, contract, subtitle="event trigger")
-    if trigger_kind == "capability":
-        capability = contract["capabilities"][trigger_value]
+    if trigger_kind == "operation":
+        operation = contract["operations"][trigger_value]
         return _dot_card(
             trigger_value,
-            "capability trigger",
-            _capability_sections(capability, contract),
-            basis=capability.get("basis", ""),
+            "operation trigger",
+            _operation_sections(operation, contract),
+            basis=operation.get("basis", ""),
             style=_DOT_STYLE_EVENT,
         )
     return _dot_card(trigger_value, f"{trigger_kind} trigger", [], style=_DOT_STYLE_EVENT)
 
 
 def _workflow_step_card(step: dict[str, Any], contract: dict[str, Any]) -> str:
-    capability = contract["capabilities"][step["capability"]]
+    operation = contract["operations"][step["operation"]]
     return _dot_card(
         step["id"],
         "workflow step",
         [
-            ("capability", [step["capability"]]),
+            ("operation", [step["operation"]]),
             ("with", [f"{name} {_DOT_ARROW_ASSIGN} {source}" for name, source in sorted(step["with"].items())]),
             ("routes", _workflow_route_lines(step)),
-        ] + _capability_sections(capability, contract),
-        basis=capability.get("basis", ""),
+        ] + _operation_sections(operation, contract),
+        basis=operation.get("basis", ""),
         style=_DOT_STYLE_NEUTRAL,
     )
 
@@ -1278,13 +1278,13 @@ def _event_card(event_id: str, contract: dict[str, Any], *, subtitle: str = "tar
     )
 
 
-def _capability_sections(capability: dict[str, Any], contract: dict[str, Any], *, include_output: bool = True) -> list[tuple[str, list[object]]]:
+def _operation_sections(operation: dict[str, Any], contract: dict[str, Any], *, include_output: bool = True) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
     for field in ["creates", "reads", "updates", "deletes"]:
-        if capability.get(field):
-            sections.append((field, capability[field]))
-    if capability.get("transition"):
-        transition = capability["transition"]
+        if operation.get(field):
+            sections.append((field, operation[field]))
+    if operation.get("transition"):
+        transition = operation["transition"]
         type_name = effective_field_type(contract["models"][transition["model"]]["fields"][transition["field"]])
         sections.append(
             (
@@ -1298,24 +1298,24 @@ def _capability_sections(capability: dict[str, Any], contract: dict[str, Any], *
                 ],
             )
         )
-    if capability.get("input"):
-        sections.append(("input", _typed_fields(capability["input"])))
+    if operation.get("input"):
+        sections.append(("input", _typed_fields(operation["input"])))
     if include_output:
-        sections.extend(_capability_outcome_sections(capability))
-    sections.extend(_capability_emit_sections(capability, contract))
+        sections.extend(_operation_outcome_sections(operation))
+    sections.extend(_operation_emit_sections(operation, contract))
     return sections
 
 
-def _capability_outcome_sections(capability: dict[str, Any]) -> list[tuple[str, list[object]]]:
+def _operation_outcome_sections(operation: dict[str, Any]) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
-    for outcome_id, outcome in sorted(capability["outcomes"].items()):
+    for outcome_id, outcome in sorted(operation["outcomes"].items()):
         sections.append((outcome["kind"], [_DotTypedField(outcome_id, outcome["result"])]))
     return sections
 
 
-def _capability_emit_sections(capability: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, list[object]]]:
+def _operation_emit_sections(operation: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
-    for outcome_id, outcome in sorted(capability["outcomes"].items()):
+    for outcome_id, outcome in sorted(operation["outcomes"].items()):
         for event_id in outcome.get("emits", []):
             event_ref = event_id["event"] if isinstance(event_id, dict) else event_id
             sections.append(("emit", [f"{outcome_id} {_DOT_ARROW_FORWARD} {event_ref}"]))
@@ -1852,7 +1852,7 @@ def _format_transition_sections(
     sections: list[tuple[str, list[object]]] = []
     if _is_data_event(transition["on"]):
         bindings = _transition_data_bindings(fsm, transition)
-        data_sources = _format_capability_outputs([binding["capability"] for binding in bindings], contract)
+        data_sources = _format_operation_outputs([binding["operation"] for binding in bindings], contract)
         queries = [binding["query"] for binding in bindings]
         inputs = _format_data_inputs(fsm, bindings, contract)
         if inputs:
@@ -1863,7 +1863,7 @@ def _format_transition_sections(
             sections.append(("load", data_sources))
     else:
         target_bindings = _transition_target_data_bindings(fsm, transition)
-        data_sources = _format_capability_outputs([binding["capability"] for binding in target_bindings], contract)
+        data_sources = _format_operation_outputs([binding["operation"] for binding in target_bindings], contract)
         queries = [binding["query"] for binding in target_bindings]
         required_context = _format_data_inputs(fsm, target_bindings, contract)
         if required_context:
@@ -1882,8 +1882,8 @@ def _transition_target_data_bindings(fsm: dict[str, Any], transition: dict[str, 
 
 
 def _state_field_section_title(fsm: dict[str, Any], state_name: str, state: dict[str, Any]) -> str:
-    capabilities = [binding["capability"] for binding in _state_field_data_bindings(fsm, state_name, state) if binding.get("capability")]
-    unique = sorted(dict.fromkeys(capabilities))
+    operations = [binding["operation"] for binding in _state_field_data_bindings(fsm, state_name, state) if binding.get("operation")]
+    unique = sorted(dict.fromkeys(operations))
     if len(unique) == 1:
         return f"{unique[0]} fields"
     if unique:
@@ -1909,13 +1909,13 @@ def _format_state_fields(fsm: dict[str, Any], state: dict[str, Any], contract: d
     return [_DotTypedField(field, effective_field_type(model_fields[field])) for field in state["fields"]]
 
 
-def _format_capability_outputs(capability_ids: Iterable[str], contract: dict[str, Any]) -> list[_DotTypedField]:
-    capabilities = contract["capabilities"]
+def _format_operation_outputs(operation_ids: Iterable[str], contract: dict[str, Any]) -> list[_DotTypedField]:
+    operations = contract["operations"]
     fields: list[_DotTypedField] = []
-    for capability_id in capability_ids:
-        for _, outcome in sorted(capabilities[capability_id]["outcomes"].items()):
+    for operation_id in operation_ids:
+        for _, outcome in sorted(operations[operation_id]["outcomes"].items()):
             if outcome["kind"] == "success":
-                fields.append(_DotTypedField(capability_id, outcome["result"]))
+                fields.append(_DotTypedField(operation_id, outcome["result"]))
     return fields
 
 
@@ -1923,12 +1923,12 @@ def _format_data_inputs(
     fsm: dict[str, Any], bindings: Iterable[dict[str, Any]], contract: dict[str, Any]
 ) -> list[_DotTypedField]:
     context = fsm.get("context", {})
-    capabilities = contract["capabilities"]
+    operations = contract["operations"]
     inputs: list[_DotTypedField] = []
     seen: set[str] = set()
     for binding in bindings:
-        capability = capabilities[binding["capability"]]
-        for key in sorted(capability["input"]):
+        operation = operations[binding["operation"]]
+        for key in sorted(operation["input"]):
             signature = f"{key} {context[key]}"
             if signature not in seen:
                 inputs.append(_DotTypedField(key, context[key]))
@@ -1950,7 +1950,7 @@ def _unique_data_bindings(bindings: Iterable[dict[str, Any]]) -> list[dict[str, 
     unique: list[dict[str, Any]] = []
     seen: set[tuple[Any, Any]] = set()
     for binding in bindings:
-        key = (binding.get("capability"), binding.get("query"))
+        key = (binding.get("operation"), binding.get("query"))
         if key not in seen:
             unique.append(binding)
             seen.add(key)

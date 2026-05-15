@@ -26,7 +26,7 @@ scenarios:
     feature: feature.project.approval_notice
     title: Approval event sends notice
   scenario.project.approve.success:
-    archetype: capability_outcome
+    archetype: operation_outcome
     arrange:
       facts:
       - present:
@@ -60,7 +60,7 @@ scenarios:
       policy: policy.project.approve
     basis: Approval transitions a submitted project to approved and emits the event.
     execute:
-      invoke_capability:
+      invoke_operation:
         input:
           approved_by: $fixture.actor.id
           project_id: project_submitted_1
@@ -478,7 +478,7 @@ scenarios:
       policy: policy.project.create
       response:
         status: 201
-    basis: The API create endpoint delegates to the create capability and emits project.created.
+    basis: The API create endpoint delegates to the create operation and emits project.created.
     execute:
       call_entry:
         input:

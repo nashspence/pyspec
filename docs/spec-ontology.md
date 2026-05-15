@@ -6,7 +6,7 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 
 - <!-- top-level:assets --> `assets`: authored or compiled content assets, usually resolver-backed or placeholder SVG evidence.
 - <!-- top-level:audit_profiles --> `audit_profiles`: named viewport/profile settings used to render visual audit evidence.
-- <!-- top-level:capabilities --> `capabilities`: product operations with typed input, model effects, outcomes, policies, and event emissions.
+- <!-- top-level:operations --> `operations`: product operations with typed input, model effects, outcomes, policies, and event emissions.
 - <!-- top-level:content_cases --> `content_cases`: named copy/asset resolver examples with fixtures and argument values.
 - <!-- top-level:copies --> `copies`: product copy strings or resolver-backed copy resources.
 - <!-- top-level:entries --> `entries`: external surfaces such as API endpoints, web routes, CLI commands, workers, schedules, and webhooks.
@@ -18,15 +18,15 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - <!-- top-level:project --> `project`: the project slug for the specification workspace.
 - <!-- top-level:refs --> `refs`: compiled-only generated reference index for stable constants and projection cross-checks.
 - <!-- top-level:scenarios --> `scenarios`: behavior examples compiled into fixtures, semantic scenario YAML, and BDD features.
-- <!-- top-level:workflows --> `workflows`: long-running or asynchronous product flows with triggers, capability steps, routes, and outcomes.
+- <!-- top-level:workflows --> `workflows`: long-running or asynchronous product flows with triggers, operation steps, routes, and outcomes.
 
 ## ID Namespaces
 
 Resource IDs use explicit typed namespaces. Top-level mapping keys and references share the same shape so authored source and compiled output can be validated without a generic dotted ID escape hatch:
 
-- `operation_ref`: `operation.<domain>...`, used by `capabilities`, actions, data loads, entry targets, workflow steps, and policy derivation.
+- `operation_ref`: `operation.<domain>...`, used by `operations`, actions, data loads, entry targets, workflow steps, and policy derivation.
 - `entry_point_ref`: `entry_point.<surface>.<domain>...`, used by `entries` and scenario entry invocations.
-- `event_ref`: `event.<domain>...`, used by `events`, capability emissions, workflow triggers, and scenario event assertions.
+- `event_ref`: `event.<domain>...`, used by `events`, operation emissions, workflow triggers, and scenario event assertions.
 - `workflow_ref`: `workflow.<domain>...`, used by `workflows`, entry targets, workflow routes, and generated workflow references.
 - `state_machine_ref`: `state_machine.<domain>...`, used by `fsms`, entry FSM targets, mounted FSMs, scenario FSM assertions, and state-machine generated references.
 - `scenario_ref`: `scenario.<domain>...`, used by `scenarios`.
@@ -51,7 +51,7 @@ The compiled `refs` index uses these generated reference namespaces:
 - `asset`: asset references from authored assets and expanded slots.
 - `command`: generated command references for CLI and FSM command entrypoints.
 - `endpoint`: generated API endpoint references.
-- `policy`: generated capability policy references.
+- `policy`: generated operation policy references.
 - `query`: generated query references for FSM data requirements.
 - `route`: generated web route references.
 - `screen`: generated Textual screen references.
@@ -62,7 +62,7 @@ The compiled `refs` index uses these generated reference namespaces:
 
 ## Reference Types
 
-- `model_refs` lists model IDs affected by a capability.
+- `model_refs` lists model IDs affected by an operation.
 - `fact_use` references a named fact from a scenario or audit case.
 - `entry_target`, `entry_fsm_target`, and `entry_workflow_target` connect an entrypoint to an operation, state machine, or workflow.
 - `target` is the scenario target union for operations, entrypoints, events, state machines, and workflows.
@@ -82,13 +82,13 @@ Runtime expressions are scoped strings that the compiler validates against the a
 - `$message.<field>` reads the current FSM message payload in transition effects and sync sends.
 - `$context.<field>` reads current FSM context in transition effects.
 - `$input.params.<field>`, `$input.body.<field>`, `$input.args.<field>`, and `$input.payload[.<field>]` read entry input for entry target bindings.
-- `$input.<field>` reads capability input in capability event emission bindings.
-- `$outcome.result[.<field>]` reads a capability outcome result in capability event emission bindings.
+- `$input.<field>` reads operation input in operation event emission bindings.
+- `$outcome.result[.<field>]` reads an operation outcome result in operation event emission bindings.
 - `$trigger.payload[.<field>]` reads the workflow trigger payload.
 - `$steps.<step>.outcomes.<outcome>.result[.<field>]` reads a prior workflow step outcome.
 - `data.<query>` is an FSM transition trigger namespace for data query results.
 
-`expression_map`, `value_map`, `entry_bindings`, `workflow_bindings`, `context_bindings`, `capability_emit_bindings`, and `workflow_source` are the schema definitions that constrain these mappings.
+`expression_map`, `value_map`, `entry_bindings`, `workflow_bindings`, `context_bindings`, `operation_emit_bindings`, and `workflow_source` are the schema definitions that constrain these mappings.
 
 ## Generated Artifacts
 
@@ -148,7 +148,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:audit_profile_ref --> `$defs/audit_profile_ref`: typed local audit profile reference.
 - <!-- schema-def:authored_asset --> `$defs/authored_asset`: human-authored asset source.
 - <!-- schema-def:authored_audit_profile --> `$defs/authored_audit_profile`: human-authored audit profile source.
-- <!-- schema-def:authored_capability --> `$defs/authored_capability`: human-authored operation source.
+- <!-- schema-def:authored_operation --> `$defs/authored_operation`: human-authored operation source.
 - <!-- schema-def:authored_content_case --> `$defs/authored_content_case`: human-authored content resolver case source.
 - <!-- schema-def:authored_copy --> `$defs/authored_copy`: human-authored text source.
 - <!-- schema-def:authored_entry --> `$defs/authored_entry`: human-authored entrypoint source.
@@ -163,12 +163,12 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:authored_workflow --> `$defs/authored_workflow`: human-authored workflow source.
 - <!-- schema-def:basis --> `$defs/basis`: required rationale text for authored and compiled records.
 - <!-- schema-def:breakpoint_id --> `$defs/breakpoint_id`: local audit breakpoint ID.
-- <!-- schema-def:capability_emit --> `$defs/capability_emit`: operation outcome event emission declaration.
-- <!-- schema-def:capability_emit_bindings --> `$defs/capability_emit_bindings`: payload field mapping for operation event emissions.
-- <!-- schema-def:capability_emit_source --> `$defs/capability_emit_source`: source expression for operation event emission bindings.
-- <!-- schema-def:capability_item --> `$defs/capability_item`: compiled operation with generated policy and normalized outcomes.
-- <!-- schema-def:capability_outcome --> `$defs/capability_outcome`: success or failure outcome for an operation.
-- <!-- schema-def:capability_outcomes --> `$defs/capability_outcomes`: named map of operation outcomes.
+- <!-- schema-def:operation_emit --> `$defs/operation_emit`: operation outcome event emission declaration.
+- <!-- schema-def:operation_emit_bindings --> `$defs/operation_emit_bindings`: payload field mapping for operation event emissions.
+- <!-- schema-def:operation_emit_source --> `$defs/operation_emit_source`: source expression for operation event emission bindings.
+- <!-- schema-def:operation_item --> `$defs/operation_item`: compiled operation with generated policy and normalized outcomes.
+- <!-- schema-def:operation_outcome --> `$defs/operation_outcome`: success or failure outcome for an operation.
+- <!-- schema-def:operation_outcomes --> `$defs/operation_outcomes`: named map of operation outcomes.
 - <!-- schema-def:condition_contract --> `$defs/condition_contract`: state-machine composition condition over context.
 - <!-- schema-def:content_arg_values --> `$defs/content_arg_values`: concrete resolver argument values.
 - <!-- schema-def:content_args --> `$defs/content_args`: resolver argument type declaration.

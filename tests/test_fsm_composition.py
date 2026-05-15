@@ -25,13 +25,13 @@ def test_composed_fsm_contract_is_closed_and_projected() -> None:
     list_fsm = contract["fsms"]["state_machine.project.list"]
     assert set(list_fsm) == {"model", "context", "data", "messages", "initial", "states", "transitions", "basis"}
     assert list_fsm["initial"] == "loading"
-    assert list_fsm["data"] == [{"query": "query.project.list.list", "capability": "operation.project.list"}]
+    assert list_fsm["data"] == [{"query": "query.project.list.list", "operation": "operation.project.list"}]
     assert list_fsm["states"]["ready"]["fields"] == ["title", "customer", "priority", "status"]
     detail_fsm = contract["fsms"]["state_machine.project.detail"]
     assert detail_fsm["data"] == []
-    assert detail_fsm["states"]["loading"]["data"] == [{"query": "query.project.detail.read", "capability": "operation.project.read"}]
+    assert detail_fsm["states"]["loading"]["data"] == [{"query": "query.project.detail.read", "operation": "operation.project.read"}]
     assert contract["fsms"]["state_machine.project.activity"]["states"]["ready"]["data"] == [
-        {"query": "query.project.activity.read", "capability": "operation.project.read"}
+        {"query": "query.project.activity.read", "operation": "operation.project.read"}
     ]
 
     fsm = contract["fsms"]["state_machine.project.board"]["states"]["ready"]

@@ -8,6 +8,7 @@ from .paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR
 from .runtime import fixture_namespace, resolve_map
 from .runtime_refs import resolve_reference_expression
 from .targets import entry_fsm_name
+from .type_expr import is_array_of_model, model_name
 
 
 class ReferenceSpecDriver:
@@ -51,7 +52,7 @@ class ReferenceSpecDriver:
             self.last_fsm = self._open_entry(body["ref"], self._resolve_map(body.get("input", {})))
         elif kind == "call_entry":
             self.response = self._call_entry(body["ref"], self._resolve_map(body.get("input", {})), scenario["assert"].get("outcome"))
-        elif kind == "invoke_capability":
+        elif kind == "invoke_operation":
             self.last_result = self._invoke(body["ref"], self._resolve_map(body.get("input", {})), scenario["assert"].get("outcome"))
         elif kind == "emit_event":
             self._emit(body["ref"], self._resolve_map(body.get("payload", {})))
@@ -216,7 +217,7 @@ class ReferenceSpecDriver:
 
     def _call_entry(self, entry_id: str, input_values: dict[str, Any], outcome_id: str | None = None) -> dict[str, Any]:
         entry = self.contract["entries"][entry_id]
-        cap_id = entry["target"]["capability"]
+        cap_id = entry["target"]["operation"]
         target_input = self._entry_target_input(entry, input_values)
         result = self._invoke(cap_id, target_input, outcome_id)
         response = entry["responses"][self.last_outcome]
@@ -237,14 +238,15 @@ class ReferenceSpecDriver:
 
     def _invoke(self, cap_id: str, input_values: dict[str, Any], outcome_id: str | None = None) -> Any:
         self.invoked.append(cap_id)
-        cap = self.contract["capabilities"][cap_id]
+        cap = self.contract["operations"][cap_id]
         outcome_id = outcome_id or _success_outcome_id(cap)
         outcome = cap["outcomes"][outcome_id]
         self.last_outcome = outcome_id
         if outcome["kind"] == "failure":
             self.last_result = {"code": outcome_id, "message": outcome_id.replace("_", " ")}
             return self.last_result
-        if cap["archetype"] == "create":
+        operation_kind = cap["operation_kind"]
+        if operation_kind == "command" and cap.get("creates"):
             model_id = _single_model(cap, "creates")
             record = self._complete_record(model_id, input_values)
             lifecycle = self.contract["models"][model_id].get("lifecycle")
@@ -256,16 +258,16 @@ class ReferenceSpecDriver:
                 self._record_event(event_id, payload)
             self.last_result = record
             return record
-        if cap["archetype"] == "read":
+        if operation_kind == "query" and cap.get("reads") and model_name(outcome["result"]):
             model_id = _single_model(cap, "reads")
             model_key = f"{model_id.lower()}_id"
             self.last_result = self._find(model_id, {"id": input_values.get(model_key) or input_values.get("id")})
             return self.last_result
-        if cap["archetype"] == "list":
+        if operation_kind == "query" and cap.get("reads") and is_array_of_model(outcome["result"], _single_model(cap, "reads")):
             model_id = _single_model(cap, "reads")
             self.last_result = self._filter(model_id, input_values)
             return self.last_result
-        if cap["archetype"] == "transition":
+        if operation_kind == "transition":
             transition = cap["transition"]
             model_id = transition["model"]
             model_key = f"{model_id.lower()}_id"
@@ -278,8 +280,8 @@ class ReferenceSpecDriver:
                 self._record_event(event_id, payload)
             self.last_result = record
             return record
-        # Command/query capabilities are recorded as effects in the spec world.
-        result = {"ok": True, "capability": cap_id, **input_values}
+        # Command/query operations are recorded as effects in the spec world.
+        result = {"ok": True, "operation": cap_id, **input_values}
         self.last_result = result
         return result
 
@@ -297,7 +299,7 @@ class ReferenceSpecDriver:
         while True:
             step = step_by_id[current]
             input_values = {name: _resolve_binding(source, namespace) for name, source in step["with"].items()}
-            result = self._invoke(step["capability"], input_values)
+            result = self._invoke(step["operation"], input_values)
             outcome_id = self.last_outcome
             assert outcome_id is not None
             namespace["steps"].setdefault(step["id"], {"outcomes": {}})["outcomes"][outcome_id] = {"result": result}
@@ -311,7 +313,7 @@ class ReferenceSpecDriver:
     def _event_payload_from_emit(
         self,
         emit: Any,
-        capability: Mapping[str, Any],
+        operation: Mapping[str, Any],
         outcome: Mapping[str, Any],
         input_values: Mapping[str, Any],
         result: Mapping[str, Any],
@@ -353,14 +355,14 @@ def _matches(record: Mapping[str, Any], where: Mapping[str, Any]) -> bool:
     return all(record.get(key) == value for key, value in where.items())
 
 
-def _single_model(capability: Mapping[str, Any], field: str) -> str:
-    models = capability[field]
+def _single_model(operation: Mapping[str, Any], field: str) -> str:
+    models = operation[field]
     assert len(models) == 1, f"Expected exactly one {field} model"
     return models[0]
 
 
-def _success_outcome_id(capability: Mapping[str, Any]) -> str:
-    successes = [outcome_id for outcome_id, outcome in capability["outcomes"].items() if outcome["kind"] == "success"]
+def _success_outcome_id(operation: Mapping[str, Any]) -> str:
+    successes = [outcome_id for outcome_id, outcome in operation["outcomes"].items() if outcome["kind"] == "success"]
     assert len(successes) == 1, "Expected exactly one success outcome"
     return successes[0]
 

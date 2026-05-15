@@ -156,7 +156,7 @@ class _PromptContext:
             return "No compiled spec was supplied. Use the active layers as the complete starting context."
         sections = [
             ("models", self.contract.get("models") or {}),
-            ("capabilities", self.contract.get("capabilities") or {}),
+            ("operations", self.contract.get("operations") or {}),
             ("entries", self.contract.get("entries") or {}),
             ("workflows", self.contract.get("workflows") or {}),
             ("fsms", self.contract.get("fsms") or {}),
@@ -181,10 +181,10 @@ def _pm_design_prompt(context: _PromptContext) -> str:
         f"After authoring, run `pyspec compile . --layers {context.layer_arg}` and `pyspec validate . --layers {context.layer_arg}`.",
         "",
         "Authoring scope:",
-        "- Core: fixtures, facts, models, capabilities, and product scenarios.",
+        "- Core: fixtures, facts, models, operations, and product scenarios.",
     ]
     if "http" in context.layers:
-        lines.append("- HTTP: API entries that bind capabilities to externally visible operations.")
+        lines.append("- HTTP: API entries that bind operations to externally visible operations.")
     else:
         lines.append("- Do not author API entries or OpenAPI details; the HTTP layer is inactive.")
     if "events" in context.layers:

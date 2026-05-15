@@ -164,79 +164,6 @@
       "required": [],
       "type": "object"
     },
-    "authored_capability": {
-      "additionalProperties": false,
-      "properties": {
-        "archetype": {
-          "enum": [
-            "create",
-            "read",
-            "list",
-            "update",
-            "delete",
-            "transition",
-            "command",
-            "query"
-          ]
-        },
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "creates": {
-          "$ref": "#/$defs/model_refs"
-        },
-        "deletes": {
-          "$ref": "#/$defs/model_refs"
-        },
-        "input": {
-          "$ref": "#/$defs/type_expr_map"
-        },
-        "outcomes": {
-          "$ref": "#/$defs/capability_outcomes"
-        },
-        "reads": {
-          "$ref": "#/$defs/model_refs"
-        },
-        "transition": {
-          "additionalProperties": false,
-          "properties": {
-            "field": {
-              "$ref": "#/$defs/field_name"
-            },
-            "from": {
-              "pattern": "^[a-z][a-z0-9_]*$",
-              "type": "string"
-            },
-            "model": {
-              "$ref": "#/$defs/model_ref"
-            },
-            "to": {
-              "pattern": "^[a-z][a-z0-9_]*$",
-              "type": "string"
-            }
-          },
-          "required": [
-            "model",
-            "field",
-            "from",
-            "to"
-          ],
-          "type": "object"
-        },
-        "updates": {
-          "$ref": "#/$defs/model_refs"
-        },
-        "why": {
-          "$ref": "#/$defs/basis"
-        }
-      },
-      "required": [
-        "archetype",
-        "input",
-        "outcomes"
-      ],
-      "type": "object"
-    },
     "authored_content_case": {
       "additionalProperties": false,
       "properties": {
@@ -704,13 +631,81 @@
       ],
       "type": "object"
     },
+    "authored_operation": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "creates": {
+          "$ref": "#/$defs/model_refs"
+        },
+        "deletes": {
+          "$ref": "#/$defs/model_refs"
+        },
+        "input": {
+          "$ref": "#/$defs/type_expr_map"
+        },
+        "operation_kind": {
+          "enum": [
+            "command",
+            "query",
+            "transition"
+          ]
+        },
+        "outcomes": {
+          "$ref": "#/$defs/operation_outcomes"
+        },
+        "reads": {
+          "$ref": "#/$defs/model_refs"
+        },
+        "transition": {
+          "additionalProperties": false,
+          "properties": {
+            "field": {
+              "$ref": "#/$defs/field_name"
+            },
+            "from": {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            "model": {
+              "$ref": "#/$defs/model_ref"
+            },
+            "to": {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "model",
+            "field",
+            "from",
+            "to"
+          ],
+          "type": "object"
+        },
+        "updates": {
+          "$ref": "#/$defs/model_refs"
+        },
+        "why": {
+          "$ref": "#/$defs/basis"
+        }
+      },
+      "required": [
+        "operation_kind",
+        "input",
+        "outcomes"
+      ],
+      "type": "object"
+    },
     "authored_scenario": {
       "additionalProperties": false,
       "properties": {
         "archetype": {
           "enum": [
             "entry_response",
-            "capability_outcome",
+            "operation_outcome",
             "fsm_composition",
             "fsm_composition_sync",
             "empty_collection_fsm",
@@ -790,84 +785,6 @@
     "breakpoint_id": {
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
-    },
-    "capability_emit": {
-      "additionalProperties": false,
-      "oneOf": [
-        {
-          "required": [
-            "payload"
-          ]
-        },
-        {
-          "required": [
-            "with"
-          ]
-        }
-      ],
-      "properties": {
-        "event": {
-          "$ref": "#/$defs/event_ref"
-        },
-        "payload": {
-          "$ref": "#/$defs/capability_emit_source"
-        },
-        "with": {
-          "$ref": "#/$defs/capability_emit_bindings"
-        }
-      },
-      "required": [
-        "event"
-      ],
-      "type": "object"
-    },
-    "capability_emit_bindings": {
-      "additionalProperties": {
-        "$ref": "#/$defs/capability_emit_source"
-      },
-      "propertyNames": {
-        "$ref": "#/$defs/field_name"
-      },
-      "type": "object"
-    },
-    "capability_emit_source": {
-      "$ref": "#/$defs/runtime_expression"
-    },
-    "capability_outcome": {
-      "additionalProperties": false,
-      "properties": {
-        "emits": {
-          "items": {
-            "$ref": "#/$defs/capability_emit"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "kind": {
-          "enum": [
-            "success",
-            "failure"
-          ]
-        },
-        "result": {
-          "$ref": "#/$defs/type_expr"
-        }
-      },
-      "required": [
-        "kind",
-        "result"
-      ],
-      "type": "object"
-    },
-    "capability_outcomes": {
-      "additionalProperties": {
-        "$ref": "#/$defs/capability_outcome"
-      },
-      "minProperties": 2,
-      "propertyNames": {
-        "$ref": "#/$defs/field_name"
-      },
-      "type": "object"
     },
     "condition_contract": {
       "oneOf": [
@@ -1139,7 +1056,7 @@
       "oneOf": [
         {
           "required": [
-            "capability"
+            "operation"
           ]
         },
         {
@@ -1154,11 +1071,11 @@
         }
       ],
       "properties": {
-        "capability": {
-          "$ref": "#/$defs/operation_ref"
-        },
         "fsm": {
           "$ref": "#/$defs/entry_fsm_target"
+        },
+        "operation": {
+          "$ref": "#/$defs/operation_ref"
         },
         "with": {
           "$ref": "#/$defs/entry_bindings"
@@ -1962,6 +1879,84 @@
       ],
       "type": "object"
     },
+    "operation_emit": {
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "payload"
+          ]
+        },
+        {
+          "required": [
+            "with"
+          ]
+        }
+      ],
+      "properties": {
+        "event": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "payload": {
+          "$ref": "#/$defs/operation_emit_source"
+        },
+        "with": {
+          "$ref": "#/$defs/operation_emit_bindings"
+        }
+      },
+      "required": [
+        "event"
+      ],
+      "type": "object"
+    },
+    "operation_emit_bindings": {
+      "additionalProperties": {
+        "$ref": "#/$defs/operation_emit_source"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/field_name"
+      },
+      "type": "object"
+    },
+    "operation_emit_source": {
+      "$ref": "#/$defs/runtime_expression"
+    },
+    "operation_outcome": {
+      "additionalProperties": false,
+      "properties": {
+        "emits": {
+          "items": {
+            "$ref": "#/$defs/operation_emit"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "kind": {
+          "enum": [
+            "success",
+            "failure"
+          ]
+        },
+        "result": {
+          "$ref": "#/$defs/type_expr"
+        }
+      },
+      "required": [
+        "kind",
+        "result"
+      ],
+      "type": "object"
+    },
+    "operation_outcomes": {
+      "additionalProperties": {
+        "$ref": "#/$defs/operation_outcome"
+      },
+      "minProperties": 2,
+      "propertyNames": {
+        "$ref": "#/$defs/field_name"
+      },
+      "type": "object"
+    },
     "operation_ref": {
       "pattern": "^operation\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
@@ -2215,14 +2210,14 @@
       "maxProperties": 1,
       "minProperties": 1,
       "properties": {
-        "capability": {
-          "$ref": "#/$defs/operation_ref"
-        },
         "event": {
           "$ref": "#/$defs/event_ref"
         },
         "fsm": {
           "$ref": "#/$defs/state_machine_ref"
+        },
+        "operation": {
+          "$ref": "#/$defs/operation_ref"
         },
         "workflow": {
           "$ref": "#/$defs/workflow_ref"
@@ -2637,7 +2632,7 @@
       "additionalProperties": {
         "$ref": "#/$defs/type_expr"
       },
-      "description": "Field map whose values are structured type expressions.",
+      "description": "Input or payload map whose values are structured type expressions.",
       "propertyNames": {
         "$ref": "#/$defs/field_name"
       },
@@ -2705,7 +2700,7 @@
         {
           "additionalProperties": false,
           "properties": {
-            "invoke_capability": {
+            "invoke_operation": {
               "additionalProperties": false,
               "properties": {
                 "input": {
@@ -2722,7 +2717,7 @@
             }
           },
           "required": [
-            "invoke_capability"
+            "invoke_operation"
           ],
           "type": "object"
         },
@@ -2854,9 +2849,6 @@
     "workflow_step": {
       "additionalProperties": false,
       "properties": {
-        "capability": {
-          "$ref": "#/$defs/operation_ref"
-        },
         "id": {
           "pattern": "^[a-z][a-z0-9_]*$",
           "type": "string"
@@ -2864,13 +2856,16 @@
         "on": {
           "$ref": "#/$defs/workflow_routes"
         },
+        "operation": {
+          "$ref": "#/$defs/operation_ref"
+        },
         "with": {
           "$ref": "#/$defs/workflow_bindings"
         }
       },
       "required": [
         "id",
-        "capability",
+        "operation",
         "with",
         "on"
       ],
@@ -2881,11 +2876,11 @@
       "maxProperties": 1,
       "minProperties": 1,
       "properties": {
-        "capability": {
-          "$ref": "#/$defs/operation_ref"
-        },
         "event": {
           "$ref": "#/$defs/event_ref"
+        },
+        "operation": {
+          "$ref": "#/$defs/operation_ref"
         }
       },
       "type": "object"
@@ -2896,15 +2891,6 @@
   "additionalProperties": false,
   "description": "Layer-pruned direct authoring schema; runtime layer validation also applies.",
   "properties": {
-    "capabilities": {
-      "additionalProperties": {
-        "$ref": "#/$defs/authored_capability"
-      },
-      "propertyNames": {
-        "$ref": "#/$defs/operation_ref"
-      },
-      "type": "object"
-    },
     "entries": {
       "additionalProperties": {
         "$ref": "#/$defs/authored_entry"
@@ -2947,6 +2933,15 @@
       },
       "propertyNames": {
         "$ref": "#/$defs/model_ref"
+      },
+      "type": "object"
+    },
+    "operations": {
+      "additionalProperties": {
+        "$ref": "#/$defs/authored_operation"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/operation_ref"
       },
       "type": "object"
     },

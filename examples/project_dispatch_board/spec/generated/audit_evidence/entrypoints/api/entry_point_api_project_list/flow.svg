@@ -1,6 +1,6 @@
 <svg width="1181pt" height="247pt"
  viewBox="0.00 0.00 1181.00 247.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 1b9859f754ba388a303caca9a3e602d32d395b3fad1a8f5ff896531b5ae9a09d -->
+<!-- pyspec-contract-input-sha256: 15b1164c04bcafe34248393651e68c2306cec4c75aa83abc56af69e6977c0cca -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 229)">
 <title>entrypoint_entry_point_api_project_list</title>
 <!-- entry_start -->
@@ -54,7 +54,7 @@
 <polygon fill="#2563eb" stroke="transparent" points="591.5,-178 591.5,-186 812.5,-186 812.5,-178 591.5,-178"/>
 <polygon fill="#eff6ff" stroke="transparent" points="591.5,-147 591.5,-178 812.5,-178 812.5,-147 591.5,-147"/>
 <text text-anchor="start" x="595.5" y="-164.6" font-family="Arial" font-weight="bold" font-size="13.00">operation.project.list</text>
-<text text-anchor="start" x="595.5" y="-153.6" font-family="Arial" font-size="8.00" fill="#64748b">target capability</text>
+<text text-anchor="start" x="595.5" y="-153.6" font-family="Arial" font-size="8.00" fill="#64748b">target operation</text>
 <text text-anchor="start" x="595.5" y="-136" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">The board requires a project list query scoped by</text>
 <text text-anchor="start" x="595.5" y="-125" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">workspace.</text>
 <text text-anchor="start" x="596.5" y="-105" font-family="Arial" font-weight="bold" font-size="10.00">reads:</text>
