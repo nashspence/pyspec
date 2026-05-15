@@ -5,7 +5,6 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 ## Top-Level Resource Kinds
 
 - <!-- top-level:assets --> `assets`: content assets, including authored placeholders, separated `media_kind`/`asset_role`, and source-backed generated evidence.
-- <!-- top-level:audit_profiles --> `audit_profiles`: visual audit profile settings for HTML and Textual render checks.
 - <!-- top-level:content_cases --> `content_cases`: named content-source examples for dynamic text and asset content.
 - <!-- top-level:text_resources --> `text_resources`: text resources used by state-machine slots and content-source projections.
 - <!-- top-level:entry_points --> `entry_points`: external invocation declarations split into explicit adapter and trigger objects.
@@ -16,6 +15,7 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - <!-- top-level:operations --> `operations`: executable product operations with typed input, effects, outcomes, and policies.
 - <!-- top-level:project --> `project`: the project slug for the specification workspace.
 - <!-- top-level:refs --> `refs`: compiled-only index of generated references used by projections and tests.
+- <!-- top-level:render_profiles --> `render_profiles`: HTML and terminal viewport profiles for render generation.
 - <!-- top-level:scenarios --> `scenarios`: behavior examples compiled into semantic scenario YAML and BDD features.
 - <!-- top-level:state_machines --> `state_machines`: UI/component state-machine contracts with context, query data dependencies, view states, transitions, state-machine message contracts, child state machines, and message sync rules.
 - <!-- top-level:workflows --> `workflows`: asynchronous or long-running flows with triggers, steps, input bindings, exclusive outcome routes, and outcomes.
@@ -36,7 +36,7 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `model_ref`: `PascalCase`; used by model references inside type expressions and data relationships.
 - `content_case_ref`: `content.<domain>...`; used by content source examples.
 - `feature_ref`: `feature.<domain>...`; used by scenario feature grouping and generated BDD files.
-- `audit_profile_ref`: `[a-z][a-z0-9_]*`; used by local visual audit profiles.
+- `render_profile_ref`: `[a-z][a-z0-9_]*`; used by local render viewport profiles.
 - Generated refs use `asset`, `cli_command`, `endpoint`, `policy`, `query`, `route`, `screen`, `state_machine`, `surface`, `text`, and `workflow` buckets in compiled `refs`.
 
 ## Reference Types
@@ -97,7 +97,7 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `spec/generated/audit_evidence/state_machines/{state_machine}/state_machine.svg`: state-machine diagrams.
 - `spec/generated/audit_evidence/state_machines/{state_machine}/view_states/{view_state}/composition.svg`: composed state-machine view-state diagrams.
 - `spec/generated/audit_evidence/state_machines/{state_machine}/view_states/{view_state}/{text.yaml,fixtures.yaml,assets/*}`: view-state-scoped audit inputs.
-- `spec/generated/audit_evidence/state_machines/{state_machine}/view_states/{view_state}/renders/*`: HTML/Textual view-state render source and captures.
+- `spec/generated/audit_evidence/state_machines/{state_machine}/view_states/{view_state}/renders/*`: HTML/terminal view-state render source and captures.
 - `spec/generated/audit_evidence/state_machines/{state_machine}/view_states/{view_state}/cases/{case}/**`: audit-case scoped inputs and render captures.
 
 ## Schema Definition Inventory
@@ -108,10 +108,8 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:asset_item --> `$defs/asset_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:asset_placeholder --> `$defs/asset_placeholder`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:asset_ref --> `$defs/asset_ref`: typed reference definition for its namespace.
-- <!-- schema-def:audit_profile_item --> `$defs/audit_profile_item`: compiled-output object for this resource or nested contract.
-- <!-- schema-def:audit_profile_ref --> `$defs/audit_profile_ref`: typed reference definition for its namespace.
 - <!-- schema-def:authored_asset --> `$defs/authored_asset`: human-authored source object for this resource or nested contract.
-- <!-- schema-def:authored_audit_profile --> `$defs/authored_audit_profile`: human-authored source object for this resource or nested contract.
+- <!-- schema-def:authored_render_profile --> `$defs/authored_render_profile`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_child_state_machine --> `$defs/authored_child_state_machine`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_content_case --> `$defs/authored_content_case`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_text_resource --> `$defs/authored_text_resource`: human-authored source object for this resource or nested contract.
@@ -200,6 +198,8 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:python_class_name --> `$defs/python_class_name`: renderer contract component for web or Textual platforms.
 - <!-- schema-def:python_identifier --> `$defs/python_identifier`: renderer contract component for web or Textual platforms.
 - <!-- schema-def:renderer_contracts --> `$defs/renderer_contracts`: renderer contract component for web or Textual platforms.
+- <!-- schema-def:render_profile_item --> `$defs/render_profile_item`: compiled-output object for this resource or nested contract.
+- <!-- schema-def:render_profile_ref --> `$defs/render_profile_ref`: typed reference definition for its namespace.
 - <!-- schema-def:runtime_expression --> `$defs/runtime_expression`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:scalar --> `$defs/scalar`: structured type-expression and object-schema contract component.
 - <!-- schema-def:scenario_item --> `$defs/scenario_item`: compiled-output object for this resource or nested contract.
@@ -217,11 +217,11 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:style_rule --> `$defs/style_rule`: renderer contract component for web or Textual platforms.
 - <!-- schema-def:style_selector --> `$defs/style_selector`: renderer contract component for web or Textual platforms.
 - <!-- schema-def:target --> `$defs/target`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:terminal_viewport --> `$defs/terminal_viewport`: terminal viewport profile with columns and rows.
 - <!-- schema-def:text_ref --> `$defs/text_ref`: typed reference definition for its namespace.
 - <!-- schema-def:textual_renderer_contract --> `$defs/textual_renderer_contract`: renderer contract component for web or Textual platforms.
 - <!-- schema-def:textual_renderer_layout --> `$defs/textual_renderer_layout`: renderer contract component for web or Textual platforms.
 - <!-- schema-def:textual_renderer_presentation --> `$defs/textual_renderer_presentation`: renderer contract component for web or Textual platforms.
-- <!-- schema-def:textual_viewport --> `$defs/textual_viewport`: renderer contract component for web or Textual platforms.
 - <!-- schema-def:textual_widget --> `$defs/textual_widget`: renderer contract component for web or Textual platforms.
 - <!-- schema-def:then --> `$defs/then`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:type_expr --> `$defs/type_expr`: structured type-expression and object-schema contract component.

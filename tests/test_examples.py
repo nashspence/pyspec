@@ -77,8 +77,6 @@ def test_textual_screens_are_driven_by_textual_state_machine_layout() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
     del author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["renderers"]["textual"]
     author["entry_points"]["entry_point.cli.project.board"]["trigger"]["state_machine"]["render"] = "html"
-    for audit_case in author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["audit"].values():
-        audit_case["surfaces"] = ["html"]
     contract = compile_source(author)
     projection = state_machines_projection(contract)
     assert textual_screen_entries(contract, projection["state_machines"], projection["compositions"]) == []

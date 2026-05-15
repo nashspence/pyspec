@@ -15,9 +15,9 @@ Authoring scope:
 - HTTP: HTTP entry points that bind operations to externally visible API operations.
 - Events: event-producing product behavior and webhook-facing contracts when requested.
 - Workflow: workflows with explicit outcomes, step outcome routing, and CLI/worker/scheduled entry points with adapter-appropriate responses.
-- UI: state machines with view-state-local layouts, child state machines, audit cases, text resources/assets, content cases, and audit profiles.
+- UI: state machines with view-state-local layouts, child state machines, audit cases, text resources/assets, content cases, and render profiles.
 - Web UI: web renderer layout, presentation, style, UI entry points, routes, and HTML audit surfaces.
-- Textual UI: Textual presentation, screen projection, and Textual audit surfaces.
+- Textual UI: Textual presentation, screen projection, and terminal audit surfaces.
 
 Rules:
 - Keep `spec/spec.yaml` sparse, positive-only, and grouped by product concepts.

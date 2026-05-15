@@ -28,7 +28,7 @@ TARGET_LAYERS: dict[str, set[str]] = {
     "text_resource": {"ui"},
     "asset": {"ui"},
     "content_case": {"ui"},
-    "audit_profile": {"ui"},
+    "render_profile": {"ui"},
     # entry_point is adapter-specific and handled separately.
     "entry_point": set(),
 }
@@ -46,7 +46,7 @@ AUTHOR_SECTIONS: dict[str, str] = {
     "text_resources": "text_resource",
     "assets": "asset",
     "content_cases": "content_case",
-    "audit_profiles": "audit_profile",
+    "render_profiles": "render_profile",
     "fixtures": "fixture",
     "facts": "fact",
     "models": "model",
@@ -60,7 +60,7 @@ AUTHOR_SECTIONS: dict[str, str] = {
 
 
 RENDER_SURFACE_LAYER = {"html": "web", "textual": "textual"}
-AUDIT_PROFILE_LAYER = {"html": "web", "textual": "textual"}
+RENDER_PROFILE_LAYER = {"html_viewports": "web", "terminal_viewports": "textual"}
 
 COMMON_LAYER_SETS: dict[str, set[str]] = {
     "core": {"core"},
@@ -154,12 +154,12 @@ def _validate_author_spec_layers(label: str, target: str, spec: dict[str, Any], 
             _require_layers(label, f"state machine target surface {render_surface}", {"ui", required_render_layer}, layers)
         return
 
-    if target == "audit_profile":
-        active_profiles = set(spec) & set(AUDIT_PROFILE_LAYER)
+    if target == "render_profile":
+        active_profiles = set(spec) & set(RENDER_PROFILE_LAYER)
         if not active_profiles:
-            raise LayerError(f"{label} audit_profile must declare at least one surface profile")
-        for surface in active_profiles:
-            _require_layers(label, f"audit_profile.{surface}", {AUDIT_PROFILE_LAYER[surface]}, layers)
+            raise LayerError(f"{label} render_profile must declare at least one viewport profile")
+        for field in active_profiles:
+            _require_layers(label, f"render_profile.{field}", {RENDER_PROFILE_LAYER[field]}, layers)
         return
 
     if target == "state_machine":
@@ -169,12 +169,6 @@ def _validate_author_spec_layers(label: str, target: str, spec: dict[str, Any], 
                 _require_layers(label, "state machine view_state renderer web", {"web"}, layers)
             if "textual" in renderers:
                 _require_layers(label, "state machine view_state renderer textual", {"textual"}, layers)
-            for case_name, case in (state.get("audit") or {}).items():
-                for surface in case.get("surfaces", []):
-                    required_layer = RENDER_SURFACE_LAYER.get(surface)
-                    if not required_layer:
-                        raise LayerError(f"{label} view_state {state_name} audit {case_name} uses unsupported render surface {surface!r}")
-                    _require_layers(label, f"state machine audit surface {surface}", {required_layer}, layers)
         return
 
 

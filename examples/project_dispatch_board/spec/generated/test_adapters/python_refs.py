@@ -8,9 +8,6 @@ class AuditCase:
     STATE_MACHINE_PROJECT_BOARD_READY_EMPTY_AUDIT = 'state_machine.project.board.ready.empty.audit'
     STATE_MACHINE_PROJECT_BOARD_READY_READY_SELECTED_AUDIT = 'state_machine.project.board.ready.ready_selected.audit'
 
-class AuditProfile:
-    DEFAULT = 'default'
-
 class CliCommand:
     CLI_COMMAND_PROJECT_APPROVE = 'cli_command.project.approve'
     CLI_COMMAND_PROJECT_BOARD = 'cli_command.project.board'
@@ -68,6 +65,9 @@ class Query:
     QUERY_PROJECT_BOARD_LIST = 'query.project.board.list'
     QUERY_PROJECT_DETAIL_READ = 'query.project.detail.read'
     QUERY_PROJECT_LIST_LIST = 'query.project.list.list'
+
+class RenderProfile:
+    DEFAULT = 'default'
 
 class Route:
     ROUTE_PROJECT_BOARD = 'route.project.board'

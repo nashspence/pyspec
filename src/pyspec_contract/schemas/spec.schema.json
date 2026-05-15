@@ -103,17 +103,17 @@
       "pattern": "^asset\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
     },
-    "audit_profile_item": {
+    "render_profile_item": {
       "additionalProperties": false,
       "anyOf": [
         {
           "required": [
-            "html"
+            "html_viewports"
           ]
         },
         {
           "required": [
-            "textual"
+            "terminal_viewports"
           ]
         }
       ],
@@ -121,42 +121,24 @@
         "basis": {
           "$ref": "#/$defs/basis"
         },
-        "html": {
-          "additionalProperties": false,
-          "properties": {
-            "breakpoints": {
-              "additionalProperties": {
-                "$ref": "#/$defs/html_viewport"
-              },
-              "minProperties": 1,
-              "propertyNames": {
-                "$ref": "#/$defs/breakpoint_id"
-              },
-              "type": "object"
-            }
+        "html_viewports": {
+          "additionalProperties": {
+            "$ref": "#/$defs/html_viewport"
           },
-          "required": [
-            "breakpoints"
-          ],
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/$defs/breakpoint_id"
+          },
           "type": "object"
         },
-        "textual": {
-          "additionalProperties": false,
-          "properties": {
-            "breakpoints": {
-              "additionalProperties": {
-                "$ref": "#/$defs/textual_viewport"
-              },
-              "minProperties": 1,
-              "propertyNames": {
-                "$ref": "#/$defs/breakpoint_id"
-              },
-              "type": "object"
-            }
+        "terminal_viewports": {
+          "additionalProperties": {
+            "$ref": "#/$defs/terminal_viewport"
           },
-          "required": [
-            "breakpoints"
-          ],
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/$defs/breakpoint_id"
+          },
           "type": "object"
         }
       },
@@ -165,7 +147,7 @@
       ],
       "type": "object"
     },
-    "audit_profile_ref": {
+    "render_profile_ref": {
       "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
@@ -1719,25 +1701,9 @@
             "$ref": "#/$defs/instance_id"
           },
           "type": "object"
-        },
-        "profile": {
-          "$ref": "#/$defs/audit_profile_ref"
-        },
-        "surfaces": {
-          "items": {
-            "enum": [
-              "html",
-              "textual"
-            ]
-          },
-          "minItems": 1,
-          "type": "array",
-          "uniqueItems": true
         }
       },
       "required": [
-        "profile",
-        "surfaces",
         "fixtures",
         "basis"
       ],
@@ -2023,7 +1989,7 @@
       },
       "type": "object"
     },
-    "textual_viewport": {
+    "terminal_viewport": {
       "additionalProperties": false,
       "properties": {
         "columns": {
@@ -2701,12 +2667,12 @@
       },
       "type": "object"
     },
-    "audit_profiles": {
+    "render_profiles": {
       "additionalProperties": {
-        "$ref": "#/$defs/audit_profile_item"
+        "$ref": "#/$defs/render_profile_item"
       },
       "propertyNames": {
-        "$ref": "#/$defs/audit_profile_ref"
+        "$ref": "#/$defs/render_profile_ref"
       },
       "type": "object"
     },
@@ -2827,7 +2793,7 @@
     "project",
     "text_resources",
     "assets",
-    "audit_profiles",
+    "render_profiles",
     "fixtures",
     "facts",
     "models",

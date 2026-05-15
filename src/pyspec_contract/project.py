@@ -146,8 +146,6 @@ def _state_has_textual_presentation(state: dict[str, Any]) -> bool:
 
 
 def _has_textual_ui(contract: dict[str, Any]) -> bool:
-    if any("textual" in case.get("surfaces", []) for state_machine in contract.get("state_machines", {}).values() for state in state_machine.get("view_states", {}).values() for case in (state.get("audit") or {}).values()):
-        return True
     for owner in contract.get("state_machines", {}).values():
         if any(_state_has_textual_presentation(state) for state in owner.get("view_states", {}).values()):
             return True
@@ -818,7 +816,7 @@ def content_stubs_projection(contract: dict[str, Any]) -> str:
 def refs_py_projection(contract: dict[str, Any]) -> str:
     groups: dict[str, list[str]] = {
         "Asset": sorted(contract.get("assets", {})),
-        "AuditProfile": sorted(contract.get("audit_profiles", {})),
+        "RenderProfile": sorted(contract.get("render_profiles", {})),
         "EntryPoint": sorted(contract["entry_points"]),
         "Operation": sorted(contract["operations"]),
         "Text": sorted(contract.get("text_resources", {})),

@@ -83,16 +83,14 @@ def _contract_has_ui(contract: dict[str, Any]) -> bool:
         or contract.get("text_resources")
         or contract.get("assets")
         or contract.get("content_cases")
-        or contract.get("audit_profiles")
+        or contract.get("render_profiles")
     )
 
 
 def _contract_has_web(contract: dict[str, Any]) -> bool:
     if "ui" in _entry_adapter_kinds(contract):
         return True
-    if any("html" in case.get("surfaces", []) for case in _contract_audit_cases(contract)):
-        return True
-    if any("html" in profile for profile in (contract.get("audit_profiles") or {}).values()):
+    if any("html_viewports" in profile for profile in (contract.get("render_profiles") or {}).values()):
         return True
     for owner in (contract.get("state_machines") or {}).values():
         for state in (owner.get("view_states") or {}).values():
@@ -102,9 +100,7 @@ def _contract_has_web(contract: dict[str, Any]) -> bool:
 
 
 def _contract_has_textual(contract: dict[str, Any]) -> bool:
-    if any("textual" in case.get("surfaces", []) for case in _contract_audit_cases(contract)):
-        return True
-    if any("textual" in profile for profile in (contract.get("audit_profiles") or {}).values()):
+    if any("terminal_viewports" in profile for profile in (contract.get("render_profiles") or {}).values()):
         return True
     for owner in (contract.get("state_machines") or {}).values():
         for state in (owner.get("view_states") or {}).values():
@@ -197,7 +193,7 @@ def _pm_design_prompt(context: _PromptContext) -> str:
     else:
         lines.append("- Do not add workflow, CLI, worker, or schedule vocabulary.")
     if "ui" in context.layers:
-        lines.append("- UI: state machines with view-state-local layouts, child state machines, audit cases, text resources/assets, content cases, and audit profiles.")
+        lines.append("- UI: state machines with view-state-local layouts, child state machines, audit cases, text resources/assets, content cases, and render profiles.")
     else:
         lines.append("- Do not author UI state machines, text resources/assets, audit cases, or surface presentation.")
     if "web" in context.layers:
@@ -205,7 +201,7 @@ def _pm_design_prompt(context: _PromptContext) -> str:
     elif "ui" in context.layers:
         lines.append("- Do not author web renderer details or web routes; the web layer is inactive.")
     if "textual" in context.layers:
-        lines.append("- Textual UI: Textual presentation, screen projection, and Textual audit surfaces.")
+        lines.append("- Textual UI: Textual presentation, screen projection, and terminal audit surfaces.")
     elif "ui" in context.layers:
         lines.append("- Do not author Textual renderer details; the textual layer is inactive.")
     lines.extend(
@@ -340,7 +336,7 @@ def _dev_prompt(context: _PromptContext) -> str:
     elif "ui" in context.layers:
         lines.append("- `spec/generated/product_interfaces/web.state_machines.json` when state machines are declared")
     if "textual" in context.layers:
-        lines.append("- `spec/generated/product_interfaces/textual.projection.py` and Textual audit evidence")
+        lines.append("- `spec/generated/product_interfaces/textual.projection.py` and terminal audit evidence")
     if "ui" in context.layers:
         lines.append("- `spec/generated/content_resolvers/` when generated content source signatures or stubs exist")
     lines.extend(

@@ -60,10 +60,6 @@
       "pattern": "^asset\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
     },
-    "audit_profile_ref": {
-      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
-      "type": "string"
-    },
     "authored_asset": {
       "additionalProperties": false,
       "properties": {
@@ -107,69 +103,6 @@
         "media_kind",
         "placeholder"
       ],
-      "type": "object"
-    },
-    "authored_audit_profile": {
-      "additionalProperties": false,
-      "anyOf": [
-        {
-          "required": [
-            "html"
-          ]
-        },
-        {
-          "required": [
-            "textual"
-          ]
-        }
-      ],
-      "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "html": {
-          "additionalProperties": false,
-          "properties": {
-            "breakpoints": {
-              "additionalProperties": {
-                "$ref": "#/$defs/html_viewport"
-              },
-              "minProperties": 1,
-              "propertyNames": {
-                "$ref": "#/$defs/breakpoint_id"
-              },
-              "type": "object"
-            }
-          },
-          "required": [
-            "breakpoints"
-          ],
-          "type": "object"
-        },
-        "textual": {
-          "additionalProperties": false,
-          "properties": {
-            "breakpoints": {
-              "additionalProperties": {
-                "$ref": "#/$defs/textual_viewport"
-              },
-              "minProperties": 1,
-              "propertyNames": {
-                "$ref": "#/$defs/breakpoint_id"
-              },
-              "type": "object"
-            }
-          },
-          "required": [
-            "breakpoints"
-          ],
-          "type": "object"
-        },
-        "why": {
-          "$ref": "#/$defs/basis"
-        }
-      },
-      "required": [],
       "type": "object"
     },
     "authored_child_state_machine": {
@@ -505,6 +438,51 @@
         "input",
         "outcomes"
       ],
+      "type": "object"
+    },
+    "authored_render_profile": {
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "html_viewports"
+          ]
+        },
+        {
+          "required": [
+            "terminal_viewports"
+          ]
+        }
+      ],
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "html_viewports": {
+          "additionalProperties": {
+            "$ref": "#/$defs/html_viewport"
+          },
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/$defs/breakpoint_id"
+          },
+          "type": "object"
+        },
+        "terminal_viewports": {
+          "additionalProperties": {
+            "$ref": "#/$defs/terminal_viewport"
+          },
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/$defs/breakpoint_id"
+          },
+          "type": "object"
+        },
+        "why": {
+          "$ref": "#/$defs/basis"
+        }
+      },
+      "required": [],
       "type": "object"
     },
     "authored_scenario": {
@@ -1807,6 +1785,10 @@
       "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$",
       "type": "string"
     },
+    "render_profile_ref": {
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "type": "string"
+    },
     "renderer_contracts": {
       "additionalProperties": false,
       "minProperties": 1,
@@ -1950,25 +1932,9 @@
             "$ref": "#/$defs/instance_id"
           },
           "type": "object"
-        },
-        "profile": {
-          "$ref": "#/$defs/audit_profile_ref"
-        },
-        "surfaces": {
-          "items": {
-            "enum": [
-              "html",
-              "textual"
-            ]
-          },
-          "minItems": 1,
-          "type": "array",
-          "uniqueItems": true
         }
       },
       "required": [
-        "profile",
-        "surfaces",
         "fixtures"
       ],
       "type": "object"
@@ -2138,6 +2104,24 @@
       },
       "type": "object"
     },
+    "terminal_viewport": {
+      "additionalProperties": false,
+      "properties": {
+        "columns": {
+          "minimum": 40,
+          "type": "integer"
+        },
+        "rows": {
+          "minimum": 10,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "columns",
+        "rows"
+      ],
+      "type": "object"
+    },
     "text_ref": {
       "pattern": "^text\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
@@ -2188,24 +2172,6 @@
           "type": "array"
         }
       },
-      "type": "object"
-    },
-    "textual_viewport": {
-      "additionalProperties": false,
-      "properties": {
-        "columns": {
-          "minimum": 40,
-          "type": "integer"
-        },
-        "rows": {
-          "minimum": 10,
-          "type": "integer"
-        }
-      },
-      "required": [
-        "columns",
-        "rows"
-      ],
       "type": "object"
     },
     "textual_widget": {
@@ -2999,15 +2965,6 @@
       },
       "type": "object"
     },
-    "audit_profiles": {
-      "additionalProperties": {
-        "$ref": "#/$defs/authored_audit_profile"
-      },
-      "propertyNames": {
-        "$ref": "#/$defs/audit_profile_ref"
-      },
-      "type": "object"
-    },
     "content_cases": {
       "additionalProperties": {
         "$ref": "#/$defs/authored_content_case"
@@ -3074,6 +3031,15 @@
     "project": {
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
+    },
+    "render_profiles": {
+      "additionalProperties": {
+        "$ref": "#/$defs/authored_render_profile"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/render_profile_ref"
+      },
+      "type": "object"
     },
     "scenarios": {
       "additionalProperties": {

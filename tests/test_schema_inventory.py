@@ -24,7 +24,10 @@ DEPRECATED_DEFINITION_NAMES = {
 }
 DEPRECATED_REFERENCE_DEFINITION_NAMES = {
     "asset_id",
+    "audit_expected_artifacts",
     "audit_profile_id",
+    "audit_profile_ref",
+    "authored_audit_profile",
     "content_case_id",
     "content_resolver_id",
     "authored_copy",
@@ -37,8 +40,11 @@ DEPRECATED_REFERENCE_DEFINITION_NAMES = {
     "model_id",
     "type_map",
     "type_name",
+    "audit_profile_item",
+    "textual_viewport",
 }
 DEPRECATED_TOP_LEVEL_PROPERTIES = {
+    "audit_profiles",
     "copies",
 }
 

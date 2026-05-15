@@ -90,7 +90,7 @@ def validate_against_schema(data: dict[str, Any], schema_name: str) -> None:
         raise ContractError("Schema validation failed:\n" + str(exc)) from exc
 
 
-TARGET_ORDER = ("text_resource", "asset", "content_case", "audit_profile", "fixture", "fact", "model", "operation", "event", "state_machine", "entry_point", "workflow", "scenario")
+TARGET_ORDER = ("text_resource", "asset", "content_case", "render_profile", "fixture", "fact", "model", "operation", "event", "state_machine", "entry_point", "workflow", "scenario")
 
 
 
@@ -98,7 +98,7 @@ ENTITY_SECTIONS: dict[str, str] = {
     "text_resource": "text_resources",
     "asset": "assets",
     "content_case": "content_cases",
-    "audit_profile": "audit_profiles",
+    "render_profile": "render_profiles",
     "fixture": "fixtures",
     "fact": "facts",
     "model": "models",
@@ -120,7 +120,7 @@ def empty_compiled_contract(project: str) -> dict[str, Any]:
         "text_resources": {},
         "assets": {},
         "content_cases": {},
-        "audit_profiles": {},
+        "render_profiles": {},
         "fixtures": {},
         "facts": {},
         "models": {},
@@ -134,7 +134,7 @@ def empty_compiled_contract(project: str) -> dict[str, Any]:
     }
 
 
-AUTHOR_SECTION_ORDER = ("fixtures", "facts", "models", "operations", "events", "state_machines", "entry_points", "workflows", "scenarios", "text_resources", "assets", "content_cases", "audit_profiles")
+AUTHOR_SECTION_ORDER = ("fixtures", "facts", "models", "operations", "events", "state_machines", "entry_points", "workflows", "scenarios", "text_resources", "assets", "content_cases", "render_profiles")
 
 
 def _prune_empty_author_sections(author: dict[str, Any]) -> dict[str, Any]:
@@ -283,9 +283,9 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             item["fixtures"] = spec["fixtures"]
         return item
 
-    if entity == "audit_profile":
+    if entity == "render_profile":
         item = {"basis": spec["basis"]}
-        for field in ["html", "textual"]:
+        for field in ["html_viewports", "terminal_viewports"]:
             if field in spec:
                 item[field] = spec[field]
         return item
@@ -439,8 +439,6 @@ def _compile_view_states(owner_id: str, states: dict[str, Any]) -> dict[str, Any
 
 def _compile_audit_case(state_machine_id: str, state_name: str, case_name: str, case: dict[str, Any]) -> dict[str, Any]:
     item = {
-        "profile": case["profile"],
-        "surfaces": case["surfaces"],
         "fixtures": case["fixtures"],
         "basis": case.get("basis", _default_basis("audit_case", f"{state_machine_id}.{state_name}.{case_name}")),
     }
@@ -563,7 +561,7 @@ def _state_machine_has_textual_screen(state_machine: dict[str, Any]) -> bool:
 def _semantic_validate(contract: dict[str, Any], used_facts: set[str]) -> None:
     _validate_text_assets(contract)
     _validate_content_cases(contract)
-    _validate_audit_profiles(contract)
+    _validate_render_profiles(contract)
     _validate_models(contract)
     _validate_operations(contract)
     _validate_state_machines(contract)
@@ -640,9 +638,24 @@ def _validate_content_cases(contract: dict[str, Any]) -> None:
         raise ContractError("Final content resolvers require content_case coverage: " + ", ".join(missing))
 
 
-def _validate_audit_profiles(contract: dict[str, Any]) -> None:
-    if contract.get("state_machines") and not contract.get("audit_profiles"):
-        raise ContractError("At least one audit_profile is required when state_machines are declared")
+def _validate_render_profiles(contract: dict[str, Any]) -> None:
+    required_surfaces = {
+        surface
+        for state_machine in contract.get("state_machines", {}).values()
+        for state in state_machine.get("view_states", {}).values()
+        for surface in _view_state_render_surfaces(state)
+    }
+    if required_surfaces and not contract.get("render_profiles"):
+        raise ContractError("At least one render_profile is required when renderable state_machines are declared")
+    available_surfaces = set()
+    for profile in contract.get("render_profiles", {}).values():
+        if profile.get("html_viewports"):
+            available_surfaces.add("html")
+        if profile.get("terminal_viewports"):
+            available_surfaces.add("terminal")
+    missing = sorted(required_surfaces - available_surfaces)
+    if missing:
+        raise ContractError("Renderable state_machines require render_profile viewports for: " + ", ".join(missing))
 
 
 def _validate_audit_cases(contract: dict[str, Any]) -> None:
@@ -659,12 +672,8 @@ def _validate_audit_cases(contract: dict[str, Any]) -> None:
         state_name = case["view_state"]
         state_machine = contract["state_machines"][state_machine_id]
         state = state_machine["view_states"][state_name]
-        if case["profile"] not in contract.get("audit_profiles", {}):
-            raise ContractError(f"Audit case {case_id} references unknown audit_profile {case['profile']}")
-        profile = contract["audit_profiles"][case["profile"]]
-        for surface in case.get("surfaces", []):
-            if surface not in profile:
-                raise ContractError(f"Audit case {case_id} uses {surface} but audit_profile {case['profile']} does not declare {surface}")
+        if not _view_state_render_surfaces(state):
+            raise ContractError(f"Audit case {case_id} references view state {state_machine_id}.{state_name} with no visual renderer")
         for fixture_id in case.get("fixtures", []):
             if fixture_id not in contract["fixtures"]:
                 raise ContractError(f"Audit case {case_id} references unknown fixture {fixture_id}")
@@ -694,6 +703,16 @@ def _validate_audit_cases(contract: dict[str, Any]) -> None:
     if missing_composed:
         raise ContractError("Missing audit coverage for composed state machine states: " + ", ".join(missing_composed))
     _validate_state_machine_view_state_fixture_coverage(contract)
+
+
+def _view_state_render_surfaces(state: dict[str, Any]) -> set[str]:
+    renderers = state.get("renderers") or {}
+    surfaces: set[str] = set()
+    if renderers.get("web"):
+        surfaces.add("html")
+    if renderers.get("textual"):
+        surfaces.add("terminal")
+    return surfaces
 
 
 def _validate_state_machine_view_state_fixture_coverage(contract: dict[str, Any]) -> None:

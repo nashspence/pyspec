@@ -20,25 +20,6 @@ assets:
       aspect_ratio: '4:3'
       label: Empty dispatch queue illustration
       visual_metaphor: square
-audit_profiles:
-  default:
-    basis: Two viewport breakpoints are enough to demonstrate visual audit coverage in the canonical example.
-    html:
-      breakpoints:
-        compact:
-          height: 820
-          width: 420
-        wide:
-          height: 820
-          width: 1280
-    textual:
-      breakpoints:
-        compact:
-          columns: 80
-          rows: 26
-        wide:
-          columns: 120
-          rows: 36
 content_cases:
   content.project.detail.heading.high_priority:
     args:
@@ -663,6 +644,23 @@ refs:
   - text.project.list.ready.heading
   workflow:
   - workflow.project.approval_notice
+render_profiles:
+  default:
+    basis: Two viewport breakpoints are enough to demonstrate visual audit coverage in the canonical example.
+    html_viewports:
+      compact:
+        height: 820
+        width: 420
+      wide:
+        height: 820
+        width: 1280
+    terminal_viewports:
+      compact:
+        columns: 80
+        rows: 26
+      wide:
+        columns: 120
+        rows: 36
 scenarios:
   scenario.project.approval_notice.workflow:
     archetype: workflow_event_success
@@ -1241,10 +1239,6 @@ state_machines:
                 view_state: none
               list:
                 view_state: empty
-            profile: default
-            surfaces:
-            - html
-            - textual
           ready_selected:
             basis: Audit render for selected-project board state vector using named project facts.
             context:
@@ -1261,10 +1255,6 @@ state_machines:
                 view_state: ready
               list:
                 view_state: ready
-            profile: default
-            surfaces:
-            - html
-            - textual
         child_state_machines:
         - context:
             selected_project_id: $state_machine.selected_project_id

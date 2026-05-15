@@ -388,9 +388,9 @@ def test_author_state_machine_defaults_empty_collections() -> None:
                 "basis": "Ticket is the product work item.",
             }
         },
-        "audit_profiles": {
+        "render_profiles": {
             "default": {
-                "html": {"breakpoints": {"compact": {"width": 320, "height": 480}}},
+                "html_viewports": {"compact": {"width": 320, "height": 480}},
                 "basis": "Single breakpoint covers the tiny authored example.",
             }
         },

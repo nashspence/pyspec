@@ -132,9 +132,9 @@ def _render_filename(profile_id: str, breakpoint_id: str, extension: str) -> str
     if extension == "png":
         return f"html.{stem}.screenshot.png"
     if extension == "py":
-        return f"textual.{stem}.source.py"
+        return f"terminal.{stem}.source.py"
     if extension == "svg":
-        return f"textual.{stem}.capture.svg"
+        return f"terminal.{stem}.capture.svg"
     raise ContractError(f"Unknown audit render extension: {extension}")
 
 
@@ -158,8 +158,38 @@ def _case_root(contract: dict[str, Any], case_id: str, case: dict[str, Any]) -> 
     return audit_case_root(case["state_machine"], case_id, case["view_state"])
 
 
-def _case_file(contract: dict[str, Any], case_id: str, case: dict[str, Any], breakpoint_id: str, extension: str) -> str:
-    return audit_case_render_file(case["state_machine"], case_id, case["profile"], breakpoint_id, extension, case["view_state"])
+def _case_file(contract: dict[str, Any], case_id: str, case: dict[str, Any], profile_id: str, breakpoint_id: str, extension: str) -> str:
+    return audit_case_render_file(case["state_machine"], case_id, profile_id, breakpoint_id, extension, case["view_state"])
+
+
+def _projection_render_surfaces(state_machine: dict[str, Any]) -> set[str]:
+    renderers = state_machine.get("renderers") or {}
+    surfaces: set[str] = set()
+    if renderers.get("web"):
+        surfaces.add("html")
+    if renderers.get("textual"):
+        surfaces.add("terminal")
+    return surfaces
+
+
+def _case_render_surfaces(contract: dict[str, Any], case: dict[str, Any]) -> set[str]:
+    state = contract["state_machines"][case["state_machine"]]["view_states"][case["view_state"]]
+    renderers = state.get("renderers") or {}
+    surfaces: set[str] = set()
+    if renderers.get("web"):
+        surfaces.add("html")
+    if renderers.get("textual"):
+        surfaces.add("terminal")
+    return surfaces
+
+
+def _profile_viewports(contract: dict[str, Any], surface: str) -> list[tuple[str, str, dict[str, int]]]:
+    field = "html_viewports" if surface == "html" else "terminal_viewports"
+    return [
+        (profile_id, name, viewport)
+        for profile_id, profile in sorted(contract.get("render_profiles", {}).items())
+        for name, viewport in sorted(profile.get(field, {}).items())
+    ]
 
 
 def _scope_text_file(scope_root: str) -> str:
@@ -289,6 +319,8 @@ def _write_audit_scope_inputs(
 
 def _write_audit_inputs(root: Path, contract: dict[str, Any], projection: dict[str, Any]) -> None:
     for state_machine in _audit_projection_surfaces(contract, projection):
+        if not _projection_render_surfaces(state_machine):
+            continue
         _write_audit_scope_inputs(root, contract, _projection_surface_root(state_machine), *_surface_scope_inputs(contract, state_machine))
     for case_id, case in sorted(audit_cases(contract).items()):
         _write_audit_scope_inputs(root, contract, _case_root(contract, case_id, case), *_case_scope_inputs(contract, case))
@@ -318,30 +350,34 @@ def audit_expected_files(contract: dict[str, Any]) -> set[str]:
 
     projection = state_machines_projection(contract)
     for state_machine in _audit_projection_surfaces(contract, projection):
+        render_surfaces = _projection_render_surfaces(state_machine)
+        if not render_surfaces:
+            continue
         scope_root = _projection_surface_root(state_machine)
         _, asset_refs, _, _, _ = _surface_scope_inputs(contract, state_machine)
         files.update(_audit_scope_expected_files(scope_root, asset_refs))
-        for profile_id, profile in sorted(contract.get("audit_profiles", {}).items()):
-            for breakpoint in profile.get("html", {}).get("breakpoints", {}):
+        if "html" in render_surfaces:
+            for profile_id, breakpoint, _ in _profile_viewports(contract, "html"):
                 files.add(_projection_surface_file(state_machine, profile_id, breakpoint, "html"))
                 files.add(_projection_surface_file(state_machine, profile_id, breakpoint, "png"))
-            for breakpoint in profile.get("textual", {}).get("breakpoints", {}):
+        if "terminal" in render_surfaces:
+            for profile_id, breakpoint, _ in _profile_viewports(contract, "terminal"):
                 files.add(_projection_surface_file(state_machine, profile_id, breakpoint, "py"))
                 files.add(_projection_surface_file(state_machine, profile_id, breakpoint, "svg"))
 
     for case_id, case in audit_cases(contract).items():
-        profile = contract["audit_profiles"][case["profile"]]
         scope_root = _case_root(contract, case_id, case)
         _, asset_refs, _, _, _ = _case_scope_inputs(contract, case)
         files.update(_audit_scope_expected_files(scope_root, asset_refs))
-        if "html" in case["surfaces"]:
-            for breakpoint in profile.get("html", {}).get("breakpoints", {}):
-                files.add(_case_file(contract, case_id, case, breakpoint, "html"))
-                files.add(_case_file(contract, case_id, case, breakpoint, "png"))
-        if "textual" in case["surfaces"]:
-            for breakpoint in profile.get("textual", {}).get("breakpoints", {}):
-                files.add(_case_file(contract, case_id, case, breakpoint, "py"))
-                files.add(_case_file(contract, case_id, case, breakpoint, "svg"))
+        render_surfaces = _case_render_surfaces(contract, case)
+        if "html" in render_surfaces:
+            for profile_id, breakpoint, _ in _profile_viewports(contract, "html"):
+                files.add(_case_file(contract, case_id, case, profile_id, breakpoint, "html"))
+                files.add(_case_file(contract, case_id, case, profile_id, breakpoint, "png"))
+        if "terminal" in render_surfaces:
+            for profile_id, breakpoint, _ in _profile_viewports(contract, "terminal"):
+                files.add(_case_file(contract, case_id, case, profile_id, breakpoint, "py"))
+                files.add(_case_file(contract, case_id, case, profile_id, breakpoint, "svg"))
     return files
 
 
@@ -433,41 +469,31 @@ def _render_visual_audit(
         path = root / workflow_flow_file(workflow_id)
         _write_graphviz_svg(path, workflow_flow_dot(workflow_id, workflow, contract), _previous_audit_path(root, previous_audit_root, path))
 
-    has_html_audit = bool(
-        _audit_projection_surfaces(contract, projection) and any(profile.get("html") for profile in contract.get("audit_profiles", {}).values())
-    ) or any("html" in case["surfaces"] for case in audit_cases(contract).values())
+    has_html_audit = bool(_profile_viewports(contract, "html")) and (
+        any("html" in _projection_render_surfaces(state_machine) for state_machine in _audit_projection_surfaces(contract, projection))
+        or any("html" in _case_render_surfaces(contract, case) for case in audit_cases(contract).values())
+    )
     if has_html_audit:
         _render_html_audit(root, contract, projection, previous_audit_root)
 
     audit_state_machines = _audit_projection_surfaces(contract, projection)
-    if audit_state_machines or any("textual" in case["surfaces"] for case in audit_cases(contract).values()):
+    has_terminal_audit = bool(_profile_viewports(contract, "terminal")) and (
+        any("terminal" in _projection_render_surfaces(state_machine) for state_machine in audit_state_machines)
+        or any("terminal" in _case_render_surfaces(contract, case) for case in audit_cases(contract).values())
+    )
+    if has_terminal_audit:
         try:
             import textual  # noqa: F401
         except Exception as exc:  # pragma: no cover - dependency absence is environment-specific.
             raise ContractError("Missing Textual dependency; install requirements.txt") from exc
         textual_jobs: list[tuple[Path, list[tuple[str, str]], dict[str, int], Path | None, Path | None]] = []
         for state_machine in sorted(audit_state_machines, key=lambda p: p["id"]):
-            lines = state_machine_textual_lines(root, contract, state_machine, None)
-            for profile_id, profile in sorted(contract.get("audit_profiles", {}).items()):
-                for name, viewport in sorted(profile.get("textual", {}).get("breakpoints", {}).items()):
-                    py_path = root / _projection_surface_file(state_machine, profile_id, name, "py")
-                    svg_path = root / _projection_surface_file(state_machine, profile_id, name, "svg")
-                    _write_textual_source(py_path, lines)
-                    textual_jobs.append((
-                        svg_path,
-                        lines,
-                        viewport,
-                        _previous_audit_path(root, previous_audit_root, py_path),
-                        _previous_audit_path(root, previous_audit_root, svg_path),
-                    ))
-        for case_id, case in sorted(audit_cases(contract).items()):
-            if "textual" not in case["surfaces"]:
+            if "terminal" not in _projection_render_surfaces(state_machine):
                 continue
-            profile = contract["audit_profiles"][case["profile"]]
-            lines = textual_audit_lines(root, contract, case_id, case)
-            for name, viewport in sorted(profile.get("textual", {}).get("breakpoints", {}).items()):
-                py_path = root / _case_file(contract, case_id, case, name, "py")
-                svg_path = root / _case_file(contract, case_id, case, name, "svg")
+            lines = state_machine_textual_lines(root, contract, state_machine, None)
+            for profile_id, name, viewport in _profile_viewports(contract, "terminal"):
+                py_path = root / _projection_surface_file(state_machine, profile_id, name, "py")
+                svg_path = root / _projection_surface_file(state_machine, profile_id, name, "svg")
                 _write_textual_source(py_path, lines)
                 textual_jobs.append((
                     svg_path,
@@ -475,6 +501,23 @@ def _render_visual_audit(
                     viewport,
                     _previous_audit_path(root, previous_audit_root, py_path),
                     _previous_audit_path(root, previous_audit_root, svg_path),
+                ))
+        for case_id, case in sorted(audit_cases(contract).items()):
+            if "terminal" not in _case_render_surfaces(contract, case):
+                continue
+            lines = textual_audit_lines(root, contract, case_id, case)
+            for profile_id, name, viewport in _profile_viewports(contract, "terminal"):
+                py_path = root / _case_file(contract, case_id, case, profile_id, name, "py")
+                svg_path = root / _case_file(contract, case_id, case, profile_id, name, "svg")
+                previous_py_path = _previous_audit_path(root, previous_audit_root, py_path)
+                previous_svg_path = _previous_audit_path(root, previous_audit_root, svg_path)
+                _write_textual_source(py_path, lines)
+                textual_jobs.append((
+                    svg_path,
+                    lines,
+                    viewport,
+                    previous_py_path,
+                    previous_svg_path,
                 ))
         asyncio.run(_render_textual_batch(textual_jobs))
 
@@ -494,35 +537,32 @@ def _render_html_audit(root: Path, contract: dict[str, Any], projection: dict[st
             page = browser.new_page()
             try:
                 for state_machine in sorted(_audit_projection_surfaces(contract, projection), key=lambda p: p["id"]):
-                    for profile_id, profile in sorted(contract.get("audit_profiles", {}).items()):
-                        html_profile = profile.get("html")
-                        if not html_profile:
-                            continue
-                        html_doc = audit_html_document(contract, render_state_machine_audit_html(root, contract, state_machine, None), state_machine_surface_ids={state_machine["id"]})
-                        for name, viewport in sorted(html_profile["breakpoints"].items()):
-                            html_path = root / _projection_surface_file(state_machine, profile_id, name, "html")
-                            png_path = root / _projection_surface_file(state_machine, profile_id, name, "png")
-                            _write_html_and_png_page(
-                                page,
-                                html_doc,
-                                html_path,
-                                png_path,
-                                viewport,
-                                _previous_audit_path(root, previous_audit_root, html_path),
-                                _previous_audit_path(root, previous_audit_root, png_path),
-                            )
+                    if "html" not in _projection_render_surfaces(state_machine):
+                        continue
+                    html_doc = audit_html_document(contract, render_state_machine_audit_html(root, contract, state_machine, None), state_machine_surface_ids={state_machine["id"]})
+                    for profile_id, name, viewport in _profile_viewports(contract, "html"):
+                        html_path = root / _projection_surface_file(state_machine, profile_id, name, "html")
+                        png_path = root / _projection_surface_file(state_machine, profile_id, name, "png")
+                        _write_html_and_png_page(
+                            page,
+                            html_doc,
+                            html_path,
+                            png_path,
+                            viewport,
+                            _previous_audit_path(root, previous_audit_root, html_path),
+                            _previous_audit_path(root, previous_audit_root, png_path),
+                        )
                 for case_id, case in sorted(audit_cases(contract).items()):
-                    profile = contract["audit_profiles"][case["profile"]]
-                    if "html" in case["surfaces"]:
+                    if "html" in _case_render_surfaces(contract, case):
                         html_doc = audit_html_document(
                             contract,
                             render_audit_case_html(root, contract, case_id, case),
                             state_machine_surface_ids={state_machine["id"] for state_machine in case_render_state_machines(contract, case)},
                             composition_ids=_case_composition_ids(contract, case),
                         )
-                        for name, viewport in sorted(profile.get("html", {}).get("breakpoints", {}).items()):
-                            html_path = root / _case_file(contract, case_id, case, name, "html")
-                            png_path = root / _case_file(contract, case_id, case, name, "png")
+                        for profile_id, name, viewport in _profile_viewports(contract, "html"):
+                            html_path = root / _case_file(contract, case_id, case, profile_id, name, "html")
+                            png_path = root / _case_file(contract, case_id, case, profile_id, name, "png")
                             _write_html_and_png_page(
                                 page,
                                 html_doc,
@@ -536,6 +576,41 @@ def _render_html_audit(root: Path, contract: dict[str, Any], projection: dict[st
                 page.close()
         finally:
             browser.close()
+
+
+def _write_html_source(html_path: Path, html_doc: str, previous_html_path: Path | None = None) -> None:
+    html_path.parent.mkdir(parents=True, exist_ok=True)
+    if previous_html_path and _text_file_equals(previous_html_path, html_doc):
+        shutil.copy2(previous_html_path, html_path)
+        return
+    html_path.write_text(html_doc, encoding="utf-8")
+
+
+def _write_png_page(
+    page: Any,
+    html_doc: str,
+    png_path: Path,
+    viewport: dict[str, int],
+    previous_png_path: Path | None = None,
+) -> None:
+    png_path.parent.mkdir(parents=True, exist_ok=True)
+    _ = previous_png_path
+    last_error: Exception | None = None
+    for attempt in range(3):
+        try:
+            page.set_viewport_size({"width": viewport["width"], "height": viewport["height"]})
+            page.set_content(html_doc, wait_until="load")
+            page.screenshot(path=str(png_path), full_page=False, type="png", timeout=10000)
+            last_error = None
+            break
+        except Exception as exc:  # pragma: no cover - renderer failure details come from Playwright.
+            last_error = exc
+            if attempt < 2:
+                page.wait_for_timeout(100)
+    if last_error is not None:
+        raise ContractError(f"HTML renderer failed for {png_path}: {last_error}") from last_error
+    if png_path.read_bytes()[:8] != b"\x89PNG\r\n\x1a\n":
+        raise ContractError(f"HTML renderer did not produce a PNG: {png_path}")
 
 
 def _write_html_and_png_page(
@@ -558,23 +633,8 @@ def _write_html_and_png_page(
         shutil.copy2(previous_html_path, html_path)
         shutil.copy2(previous_png_path, png_path)
         return
-    html_path.write_text(html_doc, encoding="utf-8")
-    last_error: Exception | None = None
-    for attempt in range(3):
-        try:
-            page.set_viewport_size({"width": viewport["width"], "height": viewport["height"]})
-            page.set_content(html_doc, wait_until="load")
-            page.screenshot(path=str(png_path), full_page=False, type="png", timeout=10000)
-            last_error = None
-            break
-        except Exception as exc:  # pragma: no cover - renderer failure details come from Playwright.
-            last_error = exc
-            if attempt < 2:
-                page.wait_for_timeout(100)
-    if last_error is not None:
-        raise ContractError(f"HTML renderer failed for {png_path}: {last_error}") from last_error
-    if png_path.read_bytes()[:8] != b"\x89PNG\r\n\x1a\n":
-        raise ContractError(f"HTML renderer did not produce a PNG: {png_path}")
+    _write_html_source(html_path, html_doc)
+    _write_png_page(page, html_doc, png_path, viewport)
 
 
 def _chromium_executable() -> str | None:

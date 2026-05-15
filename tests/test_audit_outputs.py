@@ -46,8 +46,8 @@ def test_audit_outputs_cover_full_contract() -> None:
     assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/cases/" in path and "/renders/" in path and path.endswith(".svg") for path in expected)
     assert audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "default", "wide", "html").endswith("/renders/html.default.wide.source.html")
     assert audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "default", "wide", "png").endswith("/renders/html.default.wide.screenshot.png")
-    assert audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "default", "wide", "py").endswith("/renders/textual.default.wide.source.py")
-    assert audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "default", "wide", "svg").endswith("/renders/textual.default.wide.capture.svg")
+    assert audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "default", "wide", "py").endswith("/renders/terminal.default.wide.source.py")
+    assert audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "default", "wide", "svg").endswith("/renders/terminal.default.wide.capture.svg")
     validate_audit_outputs(ROOT, contract)
 
 
@@ -516,7 +516,7 @@ def test_audit_html_sources_render_copy_assets_and_fixture_fields() -> None:
 
 
 def test_audit_asset_placeholder_is_generic_and_not_named() -> None:
-    asset = ROOT / view_state_root("state_machine.project.list", "empty") / "assets" / "asset_project_list_empty_illustration.svg"
+    asset = ROOT / "spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/assets/asset_project_list_empty_illustration.svg"
     text = asset.read_text(encoding="utf-8")
     assert text.lstrip().startswith("<svg")
     assert "asset.project.list.empty.illustration" not in text

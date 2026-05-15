@@ -17,15 +17,15 @@ authoring_layers:
       requires: [core]
       projections_when_declared: [spec/generated/product_interfaces/workflow.cwl.yaml, spec/generated/product_interfaces/events.asyncapi.yaml, spec/generated/audit_evidence/workflows, spec/generated/audit_evidence/entrypoints]
     ui:
-      opens: [state_machine, text_resource, asset, content_case, audit_profile, audit_case]
+      opens: [state_machine, text_resource, asset, content_case, render_profile, audit_case]
       requires: [core]
       projections_when_declared: [spec/generated/product_interfaces/web.state_machines.json, spec/generated/audit_evidence]
     textual:
-      opens: [renderers.textual, audit_case.render.textual, audit_profile.textual]
+      opens: [renderers.textual, render_profile.terminal_viewports]
       requires: [core, ui]
       projections_when_declared: [spec/generated/product_interfaces/textual.projection.py, spec/generated/audit_evidence/**/renders/*.svg]
     web:
-      opens: [entry_point.adapter.ui, renderers.web, audit_case.render.html, audit_profile.html]
+      opens: [entry_point.adapter.ui, renderers.web, render_profile.html_viewports]
       requires: [core, ui]
       projections_when_declared: [spec/generated/product_interfaces/web.routes.json, spec/generated/audit_evidence/**/renders/*.png]
   common_sets:
@@ -140,8 +140,8 @@ composition_contracts:
 audit_contracts:
   text_resource: 'target: text_resource declares placeholder text for every rendered text ref.'
   asset: 'target: asset declares media kind, asset role, placeholder visual intent, and optional source_ref; the compiler emits generic SVG placeholder assets.'
-  audit_profile: 'target: audit_profile declares fixed HTML and/or Textual breakpoints.'
-  audit_case: 'state-local audit cases bind a state-machine view state or composed state-machine instance vector to fixtures, render surfaces, and an audit profile.'
+  render_profile: 'target: render_profile declares fixed HTML and/or terminal viewport profiles.'
+  audit_case: 'state-local audit cases bind a state-machine view state or composed state-machine instance vector to fixtures and contexts; render surfaces and artifacts are derived from the referenced view states.'
   content_case: 'target: content_case exercises every source_ref-backed text resource or asset with deterministic args.'
   final_content: 'target: text_resource or asset may declare args and source_ref; generated content stubs constrain spec/spec.py.'
   formats:
@@ -149,6 +149,6 @@ audit_contracts:
     state_machine: svg
     composition: svg
     workflow: svg
-    textual: svg
+    terminal: svg
     html: png
   forbidden: [spec/generated/audit_evidence/review.html, spec/generated/audit_evidence/change_report.md, spec/generated/audit_evidence/manifest.json]

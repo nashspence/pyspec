@@ -19,10 +19,13 @@ from .io import read_json, read_yaml
 from .layout import renderer_textual_presentation, renderer_textual_style
 from .audit import (
     _case_file,
+    _case_render_surfaces,
     _case_root,
     _case_scope_inputs,
     _audit_projection_surfaces,
     _fixtures_doc,
+    _profile_viewports,
+    _projection_render_surfaces,
     _surface_scope_inputs,
     _projection_surface_file,
     _projection_surface_root,
@@ -640,38 +643,42 @@ def validate_audit_outputs(root: Path, contract: dict[str, Any]) -> None:
 
     projection = state_machines_projection(contract)
     for state_machine in _audit_projection_surfaces(contract, projection):
+        render_surfaces = _projection_render_surfaces(state_machine)
+        if not render_surfaces:
+            continue
         _validate_audit_scope_inputs(root, contract, _projection_surface_root(state_machine), *_surface_scope_inputs(contract, state_machine))
-        for profile_id, profile in sorted(contract.get("audit_profiles", {}).items()):
-            for breakpoint, viewport in profile.get("html", {}).get("breakpoints", {}).items():
+        if "html" in render_surfaces:
+            for profile_id, breakpoint, viewport in _profile_viewports(contract, "html"):
                 html_path = root / _projection_surface_file(state_machine, profile_id, breakpoint, "html")
                 png_path = root / _projection_surface_file(state_machine, profile_id, breakpoint, "png")
                 _assert_html_source(html_path, f"HTML state_machine audit {state_machine['id']}/{breakpoint}")
                 _assert_png(png_path, f"HTML state_machine audit {state_machine['id']}/{breakpoint}", viewport)
-            for breakpoint in profile.get("textual", {}).get("breakpoints", {}):
+        if "terminal" in render_surfaces:
+            for profile_id, breakpoint, _ in _profile_viewports(contract, "terminal"):
                 py_path = root / _projection_surface_file(state_machine, profile_id, breakpoint, "py")
                 svg_path = root / _projection_surface_file(state_machine, profile_id, breakpoint, "svg")
-                _assert_textual_source(py_path, f"Textual state_machine audit {state_machine['id']}/{breakpoint}")
-                _assert_svg(svg_path, f"Textual state_machine audit {state_machine['id']}/{breakpoint}")
+                _assert_textual_source(py_path, f"Terminal state_machine audit {state_machine['id']}/{breakpoint}")
+                _assert_svg(svg_path, f"Terminal state_machine audit {state_machine['id']}/{breakpoint}")
                 if "rich-terminal" not in svg_path.read_text(encoding="utf-8"):
-                    raise ContractError(f"Textual audit SVG does not look like a Textual terminal capture: {state_machine['id']}/{breakpoint}")
+                    raise ContractError(f"Terminal audit SVG does not look like a terminal capture: {state_machine['id']}/{breakpoint}")
 
     for case_id, case in audit_cases(contract).items():
         _validate_audit_scope_inputs(root, contract, _case_root(contract, case_id, case), *_case_scope_inputs(contract, case))
-        profile = contract["audit_profiles"][case["profile"]]
-        if "html" in case["surfaces"]:
-            for breakpoint, viewport in profile.get("html", {}).get("breakpoints", {}).items():
-                html_path = root / _case_file(contract, case_id, case, breakpoint, "html")
-                png_path = root / _case_file(contract, case_id, case, breakpoint, "png")
+        render_surfaces = _case_render_surfaces(contract, case)
+        if "html" in render_surfaces:
+            for profile_id, breakpoint, viewport in _profile_viewports(contract, "html"):
+                html_path = root / _case_file(contract, case_id, case, profile_id, breakpoint, "html")
+                png_path = root / _case_file(contract, case_id, case, profile_id, breakpoint, "png")
                 _assert_html_source(html_path, f"HTML state_machine audit {case_id}/{breakpoint}")
                 _assert_png(png_path, f"HTML state_machine audit {case_id}/{breakpoint}", viewport)
-        if "textual" in case["surfaces"]:
-            for breakpoint in profile.get("textual", {}).get("breakpoints", {}):
-                py_path = root / _case_file(contract, case_id, case, breakpoint, "py")
-                svg_path = root / _case_file(contract, case_id, case, breakpoint, "svg")
-                _assert_textual_source(py_path, f"Textual state_machine audit {case_id}/{breakpoint}")
-                _assert_svg(svg_path, f"Textual state_machine audit {case_id}/{breakpoint}")
+        if "terminal" in render_surfaces:
+            for profile_id, breakpoint, _ in _profile_viewports(contract, "terminal"):
+                py_path = root / _case_file(contract, case_id, case, profile_id, breakpoint, "py")
+                svg_path = root / _case_file(contract, case_id, case, profile_id, breakpoint, "svg")
+                _assert_textual_source(py_path, f"Terminal state_machine audit {case_id}/{breakpoint}")
+                _assert_svg(svg_path, f"Terminal state_machine audit {case_id}/{breakpoint}")
                 if "rich-terminal" not in svg_path.read_text(encoding="utf-8"):
-                    raise ContractError(f"Textual audit SVG does not look like a Textual terminal capture: {case_id}/{breakpoint}")
+                    raise ContractError(f"Terminal audit SVG does not look like a terminal capture: {case_id}/{breakpoint}")
 
 
 def _validate_audit_scope_inputs(
@@ -761,7 +768,7 @@ def validate_refs_py(root: Path, contract: dict[str, Any]) -> None:
     module = _load_generated_module(root / GENERATED_SPEC_DIR / "test_adapters" / "python_refs.py", "generated_refs")
     expected_groups: dict[str, list[str]] = {
         "Asset": sorted(contract.get("assets", {})),
-        "AuditProfile": sorted(contract.get("audit_profiles", {})),
+        "RenderProfile": sorted(contract.get("render_profiles", {})),
         "ContentCase": sorted(contract.get("content_cases", {})),
         "EntryPoint": sorted(contract["entry_points"]),
         "Event": sorted(contract["events"]),

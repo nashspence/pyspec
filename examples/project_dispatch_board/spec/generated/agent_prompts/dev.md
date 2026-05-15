@@ -17,7 +17,7 @@ Generated interfaces to consume:
 - `spec/generated/product_interfaces/events.asyncapi.yaml`
 - `spec/generated/product_interfaces/workflow.cwl.yaml`
 - `spec/generated/product_interfaces/web.routes.json`, `spec/generated/product_interfaces/web.state_machines.json`, and HTML audit evidence
-- `spec/generated/product_interfaces/textual.projection.py` and Textual audit evidence
+- `spec/generated/product_interfaces/textual.projection.py` and terminal audit evidence
 - `spec/generated/content_resolvers/` when generated content source signatures or stubs exist
 
 Completion checks:
