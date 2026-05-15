@@ -31,6 +31,7 @@ class ProductApp:
         self.ran_workflows: list[str] = []
         self.rendered_fsm: dict[str, Any] | None = None
         self.http_response: dict[str, Any] | None = None
+        self.last_outcome: str | None = None
 
     def arrange(self, arrange: Mapping[str, Any]) -> None:
         self.reset()
@@ -134,12 +135,13 @@ class ProductApp:
         assert entry["surface"] in {"api", "cli"}
         target_input = self._entry_target_input(entry, input_values)
         result = self.invoke_capability(entry["target"]["capability"], target_input)
-        output = entry["output"]
-        self.http_response = (
-            {"status": output["status"], "body": result}
-            if "status" in output
-            else {"exit_code": output["exit_code"], "stdout": result}
-        )
+        response = entry["responses"][self.last_outcome]
+        if "status" in response:
+            self.http_response = {"status": response["status"], "body": result}
+        elif "stdout" in response:
+            self.http_response = {"exit_code": response["exit_code"], "stdout": result}
+        else:
+            self.http_response = {"exit_code": response["exit_code"], "stderr": result}
         return self.http_response
 
     def _entry_target_input(self, entry: Mapping[str, Any], input_values: Mapping[str, Any]) -> dict[str, Any]:
@@ -153,6 +155,7 @@ class ProductApp:
 
     def invoke_capability(self, capability_id: str, input_values: Mapping[str, Any]) -> Any:
         self.invoked_capabilities.append(capability_id)
+        self.last_outcome = _success_outcome_id(self.contract["capabilities"][capability_id])
         values = dict(input_values)
         if capability_id == "project.create":
             project = self._project(values)
@@ -244,7 +247,12 @@ class ProductApp:
         response = assertions.get("response")
         if response:
             assert self.http_response is not None
-            assert self.http_response["status"] == response["status"]
+            for key in ("status", "exit_code"):
+                if key in response:
+                    assert self.http_response[key] == response[key]
+        outcome = assertions.get("outcome")
+        if outcome:
+            assert self.last_outcome == outcome
         policy = assertions.get("policy")
         if policy:
             assert policy in self.contract.get("refs", {}).get("policy", [])
@@ -279,6 +287,12 @@ def _resolve_binding(source: str, namespace: Mapping[str, Any]) -> Any:
     for part in source.split("."):
         current = current[part]
     return current
+
+
+def _success_outcome_id(capability: Mapping[str, Any]) -> str:
+    successes = [outcome_id for outcome_id, outcome in capability["outcomes"].items() if outcome["kind"] == "success"]
+    assert len(successes) == 1, "Expected exactly one success outcome"
+    return successes[0]
 
 
 def _condition_matches(condition: Mapping[str, Any], context: Mapping[str, Any]) -> bool:

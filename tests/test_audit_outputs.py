@@ -191,28 +191,33 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>change:</B>" not in cli_approve_entrypoint
     assert "<B>transition:</B>" not in cli_approve_entrypoint
     assert "<B>command input</B>" in cli_approve_entrypoint
-    assert "<B>command output</B>" in cli_approve_entrypoint
+    assert "success response" in cli_approve_entrypoint
+    assert "failure response" in cli_approve_entrypoint
     assert "<B>entry input</B>" not in cli_approve_entrypoint
     assert "<B>entry output</B>" not in cli_approve_entrypoint
     assert "<B>request</B>" in api_entrypoint
-    assert "<B>response</B>" in api_entrypoint
+    assert "success response" in api_entrypoint
+    assert "failure response" in api_entrypoint
     assert "<B>entry input</B>" not in api_entrypoint
     assert "<B>entry output</B>" not in api_entrypoint
     assert "<B>entry input</B>" not in worker_entrypoint
     assert "<B>entry output</B>" not in worker_entrypoint
     assert 'label="exit"' in api_entrypoint
     assert "<B>body</B>" in api_entrypoint
-    assert 'body</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT><FONT POINT-SIZE="8">&#160;←&#160;target.result</FONT>' in api_entrypoint
-    target_card = api_entrypoint[api_entrypoint.index('"entrypoint_target_project_create"') : api_entrypoint.index('"entry_exit"')]
+    assert 'body</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT><FONT POINT-SIZE="8">&#160;←&#160;outcome.result</FONT>' in api_entrypoint
+    assert "validation_failed" in api_entrypoint
+    target_card = api_entrypoint[api_entrypoint.index('"entrypoint_target_project_create"') : api_entrypoint.index('"entrypoint_response_api_project_create_created"')]
     assert '<FONT POINT-SIZE="10"><B>input</B></FONT>' in target_card
     assert '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;customer</FONT>' not in target_card
     assert target_card.index("<B>input</B>") < target_card.index('<FONT POINT-SIZE="10">customer</FONT>')
     assert '<FONT POINT-SIZE="10">workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in target_card
-    assert "<B>emit:</B>&#160;&#160;project.created" in target_card
+    assert "<B>success</B>" in target_card
+    assert "<B>failure</B>" in target_card
+    assert "<B>emit:</B>&#160;&#160;created → project.created" in target_card
     assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in target_card
     assert "<B>emits:</B>&#160;&#160;project.created" not in target_card
-    cli_approve_target_card = cli_approve_entrypoint[cli_approve_entrypoint.index('"entrypoint_target_project_approve"') : cli_approve_entrypoint.index('"entrypoint_output_cli_project_approve"')]
-    assert "<B>emit:</B>&#160;&#160;project.approved" in cli_approve_target_card
+    cli_approve_target_card = cli_approve_entrypoint[cli_approve_entrypoint.index('"entrypoint_target_project_approve"') : cli_approve_entrypoint.index('"entrypoint_response_cli_project_approve_approved"')]
+    assert "<B>emit:</B>&#160;&#160;approved → project.approved" in cli_approve_target_card
     assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in cli_approve_target_card
     assert "<B>emits:</B>&#160;&#160;project.approved" not in cli_approve_target_card
     entrypoint_input = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
@@ -230,7 +235,8 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     workflow_step = workflow[workflow.index('"workflow_step_project_approval_notice_send_notice"') :]
     assert '<FONT POINT-SIZE="10"><B>input</B></FONT>' in workflow_step
     assert '<FONT POINT-SIZE="10">approved_by</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in workflow_step
-    assert '<FONT POINT-SIZE="10"><B>output:</B>&#160;&#160;result</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;NoticeResult</FONT>' in workflow
+    assert '<FONT POINT-SIZE="10">sent</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;NoticeResult</FONT>' in workflow
+    assert '<FONT POINT-SIZE="10">delivery_failed</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Problem</FONT>' in workflow
     for graph_id, dot_source in {"fsm_project_list": fsm, "project_board": composition, "web_project_board": entrypoint, "api_project_create": api_entrypoint, "cli_project_approve": cli_approve_entrypoint, "project_approval_notice": workflow}.items():
         svg = _render_graphviz_svg(dot_source, graph_id)
         assert svg.lstrip().startswith("<svg")

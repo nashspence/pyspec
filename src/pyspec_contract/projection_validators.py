@@ -44,6 +44,7 @@ from .project import (
     cwl_type,
     object_schema,
     fsms_projection,
+    humanize,
     safe_id,
     textual_screen_entries,
     type_schema,
@@ -182,16 +183,15 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
         elif "requestBody" in operation:
             raise ContractError(f"OpenAPI requestBody is not allowed for {entry_id}")
 
-        response_status = str(entry["output"]["status"])
-        response_type = entry["output"]["body"]["type"]
         expected_responses = {
-            response_status: {
-                "description": "OK",
-                "content": {"application/json": {"schema": type_schema(response_type)}},
+            str(response["status"]): {
+                "description": humanize(outcome_id),
+                "content": {"application/json": {"schema": type_schema(response["body"]["type"])}},
             }
+            for outcome_id, response in sorted(entry["responses"].items())
         }
         if operation.get("responses") != expected_responses:
-            raise ContractError(f"OpenAPI response schema does not match entry output for {entry_id}")
+            raise ContractError(f"OpenAPI response schema does not match entry responses for {entry_id}")
         _validate_refs_resolve(operation, doc, f"OpenAPI operation {entry_id}")
 
     _validate_refs_resolve(doc["components"], doc, "OpenAPI components")
@@ -536,7 +536,11 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
         expected_inputs = {name: {"type": cwl_type(type_name)} for name, type_name in sorted(cap["input"].items())}
         if item.get("inputs") != expected_inputs:
             raise ContractError(f"CWL capability node {cap_id} inputs mismatch")
-        if item.get("outputs") != {"result": {"type": cwl_type(cap["output"])}}:
+        expected_outputs = {
+            outcome_id: {"type": cwl_type(outcome["result"])}
+            for outcome_id, outcome in sorted(cap["outcomes"].items())
+        }
+        if item.get("outputs") != expected_outputs:
             raise ContractError(f"CWL capability node {cap_id} outputs mismatch")
         for parameter in list(item["inputs"].values()) + list(item["outputs"].values()):
             if set(parameter) != {"type"}:

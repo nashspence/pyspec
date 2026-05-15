@@ -152,8 +152,14 @@ def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
         entry_input = entry.get("input", {})
         params = entry_input.get("params", {})
         body_fields = entry_input.get("body", {})
-        response_status = str(entry["output"]["status"])
-        response_type = entry["output"]["body"]["type"]
+        responses = {}
+        for outcome_id, response in sorted(entry["responses"].items()):
+            response_status = str(response["status"])
+            body_type = response["body"]["type"]
+            responses[response_status] = {
+                "description": humanize(outcome_id),
+                "content": {"application/json": {"schema": type_schema(body_type)}},
+            }
         op: dict[str, Any] = {
             "operationId": cap_id,
             "x-entry": entry_id,
@@ -163,12 +169,7 @@ def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
                 {"name": name, "in": "path", "required": True, "schema": type_schema(type_name)}
                 for name, type_name in sorted(params.items())
             ],
-            "responses": {
-                response_status: {
-                    "description": "OK",
-                    "content": {"application/json": {"schema": type_schema(response_type)}}
-                }
-            }
+            "responses": responses,
         }
         if body_fields and entry["method"].lower() not in {"get", "delete"}:
             op["requestBody"] = {
@@ -621,7 +622,10 @@ def workflows_projection(contract: dict[str, Any]) -> dict[str, Any]:
             "label": cap_id,
             "baseCommand": ["contract-capability", cap_id],
             "inputs": {name: {"type": cwl_type(type_name)} for name, type_name in sorted(cap["input"].items())},
-            "outputs": {"result": {"type": cwl_type(cap["output"])}},
+            "outputs": {
+                outcome_id: {"type": cwl_type(outcome["result"])}
+                for outcome_id, outcome in sorted(cap["outcomes"].items())
+            },
         })
     return {"cwlVersion": "v1.2", "$graph": graph}
 
@@ -867,7 +871,8 @@ def components_projection(contract: dict[str, Any]) -> dict[str, Any]:
         components["schemas"][type_name] = {"type": "string", "enum": states}
         opaque.discard(type_name)
     for cap in contract["capabilities"].values():
-        for type_name in list(cap["input"].values()) + [cap["output"]]:
+        outcome_types = [outcome["result"] for outcome in cap["outcomes"].values()]
+        for type_name in list(cap["input"].values()) + outcome_types:
             base = base_type(type_name)
             if base and base not in components["schemas"] and not is_scalar(base):
                 opaque.add(base)

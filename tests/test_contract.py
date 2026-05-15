@@ -224,7 +224,10 @@ def test_transition_capability_derives_state_change_from_model_lifecycle() -> No
             "ticket.submit": {
                 "archetype": "transition",
                 "input": {"ticket_id": "ID"},
-                "output": "Ticket",
+                "outcomes": {
+                    "submitted": {"kind": "success", "result": "Ticket"},
+                    "invalid_state": {"kind": "failure", "result": "Problem"},
+                },
                 "basis": "Submitting moves a draft ticket forward.",
             }
         },
@@ -287,7 +290,10 @@ def test_author_contract_can_omit_absent_sections() -> None:
                 "archetype": "create",
                 "creates": ["Ticket"],
                 "input": {"title": "Text"},
-                "output": "Ticket",
+                "outcomes": {
+                    "created": {"kind": "success", "result": "Ticket"},
+                    "validation_failed": {"kind": "failure", "result": "Problem"},
+                },
                 "why": "Members can create tickets.",
             }
         },
@@ -627,7 +633,10 @@ def _api_only_author() -> dict:
                 "archetype": "create",
                 "creates": ["Ticket"],
                 "input": {"title": "Text"},
-                "output": "Ticket",
+                "outcomes": {
+                    "created": {"kind": "success", "result": "Ticket"},
+                    "validation_failed": {"kind": "failure", "result": "Problem"},
+                },
                 "basis": _basis("create ticket"),
             }
         },
@@ -638,7 +647,10 @@ def _api_only_author() -> dict:
                 "path": "/tickets",
                 "input": {"body": {"title": "Text"}},
                 "target": {"capability": "ticket.create", "with": {"title": "input.body.title"}},
-                "output": {"status": 200, "body": {"type": "Ticket", "from": "target.result"}},
+                "responses": {
+                    "created": {"status": 201, "body": {"type": "Ticket", "from": "outcome.result"}},
+                    "validation_failed": {"status": 422, "body": {"type": "Problem", "from": "outcome.result"}},
+                },
                 "basis": _basis("HTTP create ticket entry"),
             }
         },
@@ -734,10 +746,36 @@ def test_entry_target_bindings_must_exactly_match_target_input() -> None:
         compile_source(author)
 
 
-def test_entry_output_must_match_surface_contract() -> None:
+def test_entry_response_must_match_surface_contract() -> None:
     author = _author()
-    author["entries"]["api.project.create"]["output"]["body"]["type"] = "Text"
-    with pytest.raises(ContractError, match=r"API entry api\.project\.create output\.body must expose target\.result as Project"):
+    author["entries"]["api.project.create"]["responses"]["created"]["body"]["type"] = "Text"
+    with pytest.raises(ContractError, match=r"API entry api\.project\.create response created\.body must expose outcome\.result as Project"):
+        compile_source(author)
+
+
+def test_capability_outcomes_must_have_one_success_and_real_failure_result() -> None:
+    author = _author()
+    author["capabilities"]["project.create"]["outcomes"]["validation_failed"]["kind"] = "success"
+    with pytest.raises(ContractError, match=r"Capability project\.create must declare exactly one success outcome"):
+        compile_source(author)
+
+    author = _author()
+    author["capabilities"]["project.create"]["outcomes"]["validation_failed"]["result"] = "Project"
+    with pytest.raises(ContractError, match=r"failure outcome validation_failed result must be Problem"):
+        compile_source(author)
+
+
+def test_entry_responses_must_map_all_capability_outcomes() -> None:
+    author = _author()
+    del author["entries"]["api.project.create"]["responses"]["validation_failed"]
+    with pytest.raises(ContractError, match=r"Entry api\.project\.create responses must exactly map capability outcomes: missing: validation_failed"):
+        compile_source(author)
+
+
+def test_cli_failure_response_must_use_nonzero_exit_and_stderr() -> None:
+    author = _author()
+    author["entries"]["cli.project.approve"]["responses"]["invalid_state"]["exit_code"] = 0
+    with pytest.raises(ContractError, match=r"CLI entry cli\.project\.approve failure response invalid_state exit_code must be nonzero"):
         compile_source(author)
 
 
@@ -745,7 +783,7 @@ def test_fsm_entry_must_not_declare_output() -> None:
     author = _author()
     entry = author["entries"]["web.project.board"]
     entry["output"] = {"status": 200}
-    with pytest.raises(ContractError, match=r"Entry web\.project\.board surface web has unsupported fields: \['output'\]"):
+    with pytest.raises(ContractError, match=r"Schema validation failed"):
         compile_source(author)
 
 

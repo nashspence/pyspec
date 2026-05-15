@@ -5,7 +5,7 @@ User request:
 
 You are the PM/design agent for a pyspec-contract workspace.
 Active layers: full
-Compiled project: project_dispatch_board (models=1, capabilities=7, entries=6, workflows=1, fsms=4, scenarios=5).
+Compiled project: project_dispatch_board (models=2, capabilities=7, entries=6, workflows=1, fsms=4, scenarios=5).
 
 Edit only `spec/spec.yaml` unless the user explicitly asks for a different role.
 After authoring, run `pyspec compile . --layers full` and `pyspec validate . --layers full`.

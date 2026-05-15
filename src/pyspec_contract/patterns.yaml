@@ -55,12 +55,12 @@ scenario_archetypes:
   fsm_composition_sync:
     when: open_entry
     then: [fsm.instances, fsm.context, fsm.sync.observed]
-  capability_success:
+  capability_outcome:
     when: invoke_capability
-    then: [model.exists, events.emitted, invoked]
-  api_entry_success:
+    then: [outcome, model.exists, events.emitted, invoked]
+  entry_response:
     when: call_entry
-    then: [response.status, model.exists, events.emitted, invoked]
+    then: [outcome, response.status, model.exists, events.emitted, invoked]
   workflow_event_success:
     when: emit_event
     then: [workflow.ran, invoked]
@@ -95,7 +95,7 @@ surface_entries:
     layer: web
 
 entry_target_contracts:
-  boundary: 'Entries declare surface-specific input and output. target.with maps external entry input onto the target capability or FSM context.'
+  boundary: 'Entries declare surface-specific input and responses. target.with maps external entry input onto the target capability or FSM context.'
   fsm: 'FSM entry targets use target.fsm.name plus target.fsm.surface to distinguish the entrypoint surface from its html/textual realization.'
   workflow: 'Workflow entry targets use target.workflow.name plus target.workflow.trigger so the entrypoint declares the trigger data it consumes.'
 

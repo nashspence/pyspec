@@ -25,7 +25,7 @@ scenarios:
     feature: project.approval_notice
     title: Approval event sends notice
   project.approve.success:
-    archetype: capability_success
+    archetype: capability_outcome
     arrange:
       facts:
       - present:
@@ -55,6 +55,7 @@ scenarios:
           where:
             id: project_submitted_1
             status: approved
+      outcome: approved
       policy: policy.project.approve
     basis: Approval transitions a submitted project to approved and emits the event.
     execute:
@@ -450,7 +451,7 @@ scenarios:
     feature: project.board
     title: Ready dispatch board
   project.create.api.success:
-    archetype: api_entry_success
+    archetype: entry_response
     arrange:
       facts:
       - absent:
@@ -471,9 +472,10 @@ scenarios:
           where:
             title: Replace rooftop condenser fan
             workspace_id: $fixture.workspace.id
+      outcome: created
       policy: policy.project.create
       response:
-        status: 200
+        status: 201
     basis: The API create endpoint delegates to the create capability and emits project.created.
     execute:
       call_entry:

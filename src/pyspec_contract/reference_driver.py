@@ -27,6 +27,7 @@ class ReferenceSpecDriver:
         self.last_fsm: dict[str, Any] | None = None
         self.response: dict[str, Any] | None = None
         self.last_result: Any = None
+        self.last_outcome: str | None = None
 
     def arrange(self, scenario_id: str, scenario: Mapping[str, Any]) -> None:
         self.reset()
@@ -47,9 +48,9 @@ class ReferenceSpecDriver:
         if kind == "open_entry":
             self.last_fsm = self._open_entry(body["ref"], self._resolve_map(body.get("input", {})))
         elif kind == "call_entry":
-            self.response = self._call_entry(body["ref"], self._resolve_map(body.get("input", {})))
+            self.response = self._call_entry(body["ref"], self._resolve_map(body.get("input", {})), scenario["assert"].get("outcome"))
         elif kind == "invoke_capability":
-            self.last_result = self._invoke(body["ref"], self._resolve_map(body.get("input", {})))
+            self.last_result = self._invoke(body["ref"], self._resolve_map(body.get("input", {})), scenario["assert"].get("outcome"))
         elif kind == "emit_event":
             self._emit(body["ref"], self._resolve_map(body.get("payload", {})))
         else:  # pragma: no cover - schema prevents this.
@@ -119,7 +120,12 @@ class ReferenceSpecDriver:
         response = assertions.get("response")
         if response:
             assert self.response is not None
-            assert self.response["status"] == response["status"]
+            for key in ("status", "exit_code"):
+                if key in response:
+                    assert self.response[key] == response[key]
+        outcome = assertions.get("outcome")
+        if outcome:
+            assert self.last_outcome == outcome
         policy = assertions.get("policy")
         if policy:
             assert policy in self.contract.get("refs", {}).get("policy", [])
@@ -204,15 +210,17 @@ class ReferenceSpecDriver:
             return values
         return set(self.last_fsm.get(key, []))
 
-    def _call_entry(self, entry_id: str, input_values: dict[str, Any]) -> dict[str, Any]:
+    def _call_entry(self, entry_id: str, input_values: dict[str, Any], outcome_id: str | None = None) -> dict[str, Any]:
         entry = self.contract["entries"][entry_id]
         cap_id = entry["target"]["capability"]
         target_input = self._entry_target_input(entry, input_values)
-        result = self._invoke(cap_id, target_input)
-        output = entry["output"]
-        if "status" in output:
-            return {"status": output["status"], "body": result}
-        return {"exit_code": output["exit_code"], "stdout": result}
+        result = self._invoke(cap_id, target_input, outcome_id)
+        response = entry["responses"][self.last_outcome]
+        if "status" in response:
+            return {"status": response["status"], "body": result}
+        if "stdout" in response:
+            return {"exit_code": response["exit_code"], "stdout": result}
+        return {"exit_code": response["exit_code"], "stderr": result}
 
     def _entry_target_input(self, entry: dict[str, Any], input_values: dict[str, Any]) -> dict[str, Any]:
         namespace = {"input": {}}
@@ -223,9 +231,15 @@ class ReferenceSpecDriver:
         bindings = entry["target"].get("with", {})
         return {name: _resolve_binding(source, namespace) for name, source in bindings.items()}
 
-    def _invoke(self, cap_id: str, input_values: dict[str, Any]) -> Any:
+    def _invoke(self, cap_id: str, input_values: dict[str, Any], outcome_id: str | None = None) -> Any:
         self.invoked.append(cap_id)
         cap = self.contract["capabilities"][cap_id]
+        outcome_id = outcome_id or _success_outcome_id(cap)
+        outcome = cap["outcomes"][outcome_id]
+        self.last_outcome = outcome_id
+        if outcome["kind"] == "failure":
+            self.last_result = {"code": outcome_id, "message": outcome_id.replace("_", " ")}
+            return self.last_result
         if cap["archetype"] == "create":
             model_id = _single_model(cap, "creates")
             record = self._complete_record(model_id, input_values)
@@ -233,7 +247,7 @@ class ReferenceSpecDriver:
             if lifecycle and lifecycle["field"] not in record:
                 record[lifecycle["field"]] = lifecycle["initial"]
             self.store[model_id].append(record)
-            for event_id in cap["emits"]:
+            for event_id in outcome.get("emits", []):
                 self._record_event(event_id, {"id": record["id"], **record})
             self.last_result = record
             return record
@@ -254,7 +268,7 @@ class ReferenceSpecDriver:
             record = self._find(model_id, {"id": selected_id})
             assert record[transition["field"]] == transition["from"]
             record[transition["field"]] = transition["to"]
-            for event_id in cap["emits"]:
+            for event_id in outcome.get("emits", []):
                 self._record_event(event_id, {model_key: record["id"], "approved_by": self.fixtures.get("actor", {}).get("id")})
             self.last_result = record
             return record
@@ -305,6 +319,12 @@ def _single_model(capability: Mapping[str, Any], field: str) -> str:
     models = capability[field]
     assert len(models) == 1, f"Expected exactly one {field} model"
     return models[0]
+
+
+def _success_outcome_id(capability: Mapping[str, Any]) -> str:
+    successes = [outcome_id for outcome_id, outcome in capability["outcomes"].items() if outcome["kind"] == "success"]
+    assert len(successes) == 1, "Expected exactly one success outcome"
+    return successes[0]
 
 
 def _resolve_binding(source: str, namespace: Mapping[str, Any]) -> Any:

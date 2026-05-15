@@ -30,7 +30,7 @@ def test_openapi_validator_rejects_response_schema_drift() -> None:
     openapi = read_yaml(ROOT / "spec" / "generated" / "product_interfaces" / "http.openapi.yaml")
     mutated = copy.deepcopy(openapi)
     op = mutated["paths"]["/workspaces/{workspace_id}/projects"]["post"]
-    op["responses"]["200"]["content"]["application/json"]["schema"] = {"type": "string"}
+    op["responses"]["201"]["content"]["application/json"]["schema"] = {"type": "string"}
     with pytest.raises(ContractError, match="response schema"):
         validate_openapi(contract, mutated)
 
@@ -39,7 +39,7 @@ def test_openapi_validator_rejects_unresolved_component_ref() -> None:
     contract = _contract()
     openapi = read_yaml(ROOT / "spec" / "generated" / "product_interfaces" / "http.openapi.yaml")
     mutated = copy.deepcopy(openapi)
-    mutated["paths"]["/workspaces/{workspace_id}/projects"]["post"]["responses"]["200"]["content"]["application/json"]["schema"] = {"$ref": "#/components/schemas/Missing"}
+    mutated["paths"]["/workspaces/{workspace_id}/projects"]["post"]["responses"]["201"]["content"]["application/json"]["schema"] = {"$ref": "#/components/schemas/Missing"}
     with pytest.raises(ContractError, match="response schema"):
         validate_openapi(contract, mutated)
 
@@ -91,4 +91,3 @@ def test_fsms_json_validator_rejects_missing_composition() -> None:
     mutated["compositions"] = []
     with pytest.raises(ContractError, match="fsms.json"):
         validate_fsms_json(contract, mutated)
-

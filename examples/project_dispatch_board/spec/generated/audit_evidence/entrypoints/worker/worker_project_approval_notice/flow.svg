@@ -1,6 +1,6 @@
 <svg width="1147pt" height="129pt"
  viewBox="0.00 0.00 1147.00 129.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 660e5ee72b0dfc77d171d143b3dccd3d638d4c86cb4d795bd3ac5e539e55d397 -->
+<!-- pyspec-contract-input-sha256: b380ddfa29a12de13100ab037254101e1c87bb45a232ffa1bc792a05c70dad4c -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 111)">
 <title>entrypoint_worker_project_approval_notice</title>
 <!-- entry_start -->
@@ -69,21 +69,21 @@
 <path fill="none" stroke="#3f3f46" d="M510.19,-46.5C526.27,-46.5 544.28,-46.5 562.54,-46.5"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="562.94,-49.3 570.94,-46.5 562.94,-43.7 562.94,-49.3"/>
 </g>
-<!-- entrypoint_output_worker_project_approval_notice -->
+<!-- entrypoint_response_worker_project_approval_notice_accepted -->
 <g id="node6" class="node">
-<title>entrypoint_output_worker_project_approval_notice</title>
+<title>entrypoint_response_worker_project_approval_notice_accepted</title>
 <polygon fill="#ffffff" stroke="transparent" points="874,-15.5 874,-77.5 1000,-77.5 1000,-15.5 874,-15.5"/>
 <polygon fill="#64748b" stroke="transparent" points="875,-68.5 875,-76.5 999,-76.5 999,-68.5 875,-68.5"/>
 <polygon fill="#f8fafc" stroke="transparent" points="875,-37.5 875,-68.5 999,-68.5 999,-37.5 875,-37.5"/>
 <text text-anchor="start" x="879" y="-55.1" font-family="Arial" font-weight="bold" font-size="13.00">acknowledgement</text>
-<text text-anchor="start" x="879" y="-44.1" font-family="Arial" font-size="8.00" fill="#64748b">external result</text>
+<text text-anchor="start" x="879" y="-44.1" font-family="Arial" font-size="8.00" fill="#64748b">accepted</text>
 <text text-anchor="start" x="880" y="-25.5" font-family="Arial" font-weight="bold" font-size="10.00">ack:</text>
 <text text-anchor="start" x="899" y="-25.5" font-family="Arial" font-size="10.00">  true</text>
 <polygon fill="none" stroke="#64748b" points="874,-15.5 874,-77.5 1000,-77.5 1000,-15.5 874,-15.5"/>
 </g>
-<!-- entrypoint_target_project_approval_notice&#45;&gt;entrypoint_output_worker_project_approval_notice -->
+<!-- entrypoint_target_project_approval_notice&#45;&gt;entrypoint_response_worker_project_approval_notice_accepted -->
 <g id="edge4" class="edge">
-<title>entrypoint_target_project_approval_notice&#45;&gt;entrypoint_output_worker_project_approval_notice</title>
+<title>entrypoint_target_project_approval_notice&#45;&gt;entrypoint_response_worker_project_approval_notice_accepted</title>
 <path fill="none" stroke="#3f3f46" d="M813.08,-46.5C831.16,-46.5 849.29,-46.5 865.86,-46.5"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="865.86,-49.3 873.86,-46.5 865.86,-43.7 865.86,-49.3"/>
 </g>
@@ -94,9 +94,9 @@
 <ellipse fill="none" stroke="#0891b2" cx="1086" cy="-46.5" rx="25" ry="25"/>
 <text text-anchor="middle" x="1086" y="-44.3" font-family="Arial" font-size="9.00" fill="#155e75">exit</text>
 </g>
-<!-- entrypoint_output_worker_project_approval_notice&#45;&gt;entry_exit -->
+<!-- entrypoint_response_worker_project_approval_notice_accepted&#45;&gt;entry_exit -->
 <g id="edge5" class="edge">
-<title>entrypoint_output_worker_project_approval_notice&#45;&gt;entry_exit</title>
+<title>entrypoint_response_worker_project_approval_notice_accepted&#45;&gt;entry_exit</title>
 <path fill="none" stroke="#3f3f46" d="M1000.34,-46.5C1018.3,-46.5 1037.17,-46.5 1052.52,-46.5"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="1052.66,-49.3 1060.66,-46.5 1052.66,-43.7 1052.66,-49.3"/>
 </g>

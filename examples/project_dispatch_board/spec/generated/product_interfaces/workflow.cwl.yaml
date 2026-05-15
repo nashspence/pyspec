@@ -24,7 +24,11 @@ $graph:
       type: string
   label: project.approve
   outputs:
-    result:
+    approved:
+      type: Any
+    invalid_state:
+      type: Any
+    not_found:
       type: Any
 - baseCommand:
   - contract-capability
@@ -36,7 +40,11 @@ $graph:
       type: string
   label: project.archive
   outputs:
-    result:
+    archived:
+      type: Any
+    invalid_state:
+      type: Any
+    not_found:
       type: Any
 - baseCommand:
   - contract-capability
@@ -54,7 +62,9 @@ $graph:
       type: string
   label: project.create
   outputs:
-    result:
+    created:
+      type: Any
+    validation_failed:
       type: Any
 - baseCommand:
   - contract-capability
@@ -66,10 +76,12 @@ $graph:
       type: string
   label: project.list
   outputs:
-    result:
+    listed:
       type:
         items: Any
         type: array
+    unavailable:
+      type: Any
 - baseCommand:
   - contract-capability
   - project.read
@@ -80,7 +92,9 @@ $graph:
       type: string
   label: project.read
   outputs:
-    result:
+    found:
+      type: Any
+    not_found:
       type: Any
 - baseCommand:
   - contract-capability
@@ -94,7 +108,9 @@ $graph:
       type: string
   label: project.send_approval_notice
   outputs:
-    result:
+    delivery_failed:
+      type: Any
+    sent:
       type: Any
 - baseCommand:
   - contract-capability
@@ -106,6 +122,10 @@ $graph:
       type: string
   label: project.submit
   outputs:
-    result:
+    invalid_state:
+      type: Any
+    not_found:
+      type: Any
+    submitted:
       type: Any
 cwlVersion: v1.2

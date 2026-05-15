@@ -84,42 +84,78 @@ models:
       - by: project.archive
         from: approved
         to: archived
+  Problem:
+    basis: A structured problem result explains intentional failure outcomes across API and CLI surfaces.
+    fields:
+      code: Text
+      message: Text
+    kind: value_object
 capabilities:
   project.approve:
     archetype: transition
     basis: Reviewers can approve submitted dispatch projects.
-    emits:
-    - project.approved
     input:
       project_id: ID
-    output: Project
+    outcomes:
+      approved:
+        emits:
+        - project.approved
+        kind: success
+        result: Project
+      invalid_state:
+        kind: failure
+        result: Problem
+      not_found:
+        kind: failure
+        result: Problem
   project.archive:
     archetype: transition
     basis: Approved dispatch projects can be archived.
-    emits:
-    - project.archived
     input:
       project_id: ID
-    output: Project
+    outcomes:
+      archived:
+        emits:
+        - project.archived
+        kind: success
+        result: Project
+      invalid_state:
+        kind: failure
+        result: Problem
+      not_found:
+        kind: failure
+        result: Problem
   project.create:
     archetype: create
     basis: Members can create a new dispatch project.
     creates:
     - Project
-    emits:
-    - project.created
     input:
       customer: Text
       priority: Text
       title: Text
       workspace_id: ID
-    output: Project
+    outcomes:
+      created:
+        emits:
+        - project.created
+        kind: success
+        result: Project
+      validation_failed:
+        kind: failure
+        result: Problem
   project.list:
     archetype: list
     basis: The board requires a project list query scoped by workspace.
     input:
       workspace_id: ID
-    output: list[Project]
+    outcomes:
+      listed:
+        kind: success
+        result: list[Project]
+      unavailable:
+        kind: failure
+        result: Problem
     reads:
     - Project
   project.read:
@@ -127,7 +163,13 @@ capabilities:
     basis: The detail FSM loads the selected project by id.
     input:
       project_id: ID
-    output: Project
+    outcomes:
+      found:
+        kind: success
+        result: Project
+      not_found:
+        kind: failure
+        result: Problem
     reads:
     - Project
   project.send_approval_notice:
@@ -136,15 +178,30 @@ capabilities:
     input:
       approved_by: ID
       project_id: ID
-    output: NoticeResult
+    outcomes:
+      delivery_failed:
+        kind: failure
+        result: Problem
+      sent:
+        kind: success
+        result: NoticeResult
   project.submit:
     archetype: transition
     basis: Draft dispatch projects can be submitted for review.
-    emits:
-    - project.submitted
     input:
       project_id: ID
-    output: Project
+    outcomes:
+      invalid_state:
+        kind: failure
+        result: Problem
+      not_found:
+        kind: failure
+        result: Problem
+      submitted:
+        emits:
+        - project.submitted
+        kind: success
+        result: Project
 fsms:
   fsm.project.activity:
     basis: The activity FSM summarizes latest status around the selected project.
@@ -497,12 +554,18 @@ entries:
       params:
         workspace_id: ID
     method: POST
-    output:
-      body:
-        from: target.result
-        type: Project
-      status: 200
     path: /workspaces/{workspace_id}/projects
+    responses:
+      created:
+        body:
+          from: outcome.result
+          type: Project
+        status: 201
+      validation_failed:
+        body:
+          from: outcome.result
+          type: Problem
+        status: 422
     surface: api
     target:
       capability: project.create
@@ -517,12 +580,18 @@ entries:
       params:
         workspace_id: ID
     method: GET
-    output:
-      body:
-        from: target.result
-        type: list[Project]
-      status: 200
     path: /workspaces/{workspace_id}/projects
+    responses:
+      listed:
+        body:
+          from: outcome.result
+          type: list[Project]
+        status: 200
+      unavailable:
+        body:
+          from: outcome.result
+          type: Problem
+        status: 503
     surface: api
     target:
       capability: project.list
@@ -534,11 +603,22 @@ entries:
     input:
       args:
         project_id: ID
-    output:
-      exit_code: 0
-      stdout:
-        from: target.result
-        type: Project
+    responses:
+      approved:
+        exit_code: 0
+        stdout:
+          from: outcome.result
+          type: Project
+      invalid_state:
+        exit_code: 2
+        stderr:
+          from: outcome.result
+          type: Problem
+      not_found:
+        exit_code: 3
+        stderr:
+          from: outcome.result
+          type: Problem
     surface: cli
     target:
       capability: project.approve
@@ -574,8 +654,9 @@ entries:
     basis: Worker entry exposing the approval notice workflow.
     input:
       payload: Project
-    output:
-      ack: true
+    responses:
+      accepted:
+        ack: true
     surface: worker
     target:
       workflow:
@@ -616,7 +697,7 @@ scenarios:
           project_id: project_submitted_1
         ref: project.approved
   project.approve.success:
-    archetype: capability_success
+    archetype: capability_outcome
     basis: Approval transitions a submitted project to approved and emits the event.
     feature: project.approve
     given:
@@ -636,6 +717,7 @@ scenarios:
           where:
             id: project_submitted_1
             status: approved
+      outcome: approved
     title: Approve submitted dispatch project
     when:
       invoke_capability:
@@ -711,7 +793,7 @@ scenarios:
           workspace_id: $fixture.workspace.id
         ref: web.project.board
   project.create.api.success:
-    archetype: api_entry_success
+    archetype: entry_response
     basis: The API create endpoint delegates to the create capability and emits project.created.
     feature: project.create
     given:
@@ -734,8 +816,9 @@ scenarios:
           where:
             title: Replace rooftop condenser fan
             workspace_id: $fixture.workspace.id
+      outcome: created
       response:
-        status: 200
+        status: 201
     title: Create dispatch project through API
     when:
       call_entry:

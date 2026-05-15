@@ -3,6 +3,17 @@ components:
     NoticeResult:
       additionalProperties: true
       type: object
+    Problem:
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+      required:
+      - code
+      - message
+      type: object
     Project:
       additionalProperties: false
       properties:
@@ -69,7 +80,13 @@ paths:
                 items:
                   $ref: '#/components/schemas/Project'
                 type: array
-          description: OK
+          description: Listed
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: Unavailable
       x-capability: project.list
       x-entry: api.project.list
       x-policy: policy.project.list
@@ -100,12 +117,18 @@ paths:
               type: object
         required: true
       responses:
-        '200':
+        '201':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Project'
-          description: OK
+          description: Created
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: Validation Failed
       x-capability: project.create
       x-entry: api.project.create
       x-policy: policy.project.create

@@ -369,25 +369,11 @@
         "deletes": {
           "$ref": "#/$defs/model_refs"
         },
-        "emits": {
-          "items": {
-            "$ref": "#/$defs/dotted_id"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "errors": {
-          "items": {
-            "$ref": "#/$defs/dotted_id"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
         "input": {
           "$ref": "#/$defs/type_map"
         },
-        "output": {
-          "$ref": "#/$defs/type_name"
+        "outcomes": {
+          "$ref": "#/$defs/capability_outcomes"
         },
         "reads": {
           "$ref": "#/$defs/model_refs"
@@ -428,7 +414,7 @@
       "required": [
         "archetype",
         "input",
-        "output"
+        "outcomes"
       ],
       "type": "object"
     },
@@ -456,28 +442,14 @@
         "deletes": {
           "$ref": "#/$defs/model_refs"
         },
-        "emits": {
-          "items": {
-            "$ref": "#/$defs/dotted_id"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "errors": {
-          "items": {
-            "$ref": "#/$defs/dotted_id"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
         "id": {
           "$ref": "#/$defs/dotted_id"
         },
         "input": {
           "$ref": "#/$defs/type_map"
         },
-        "output": {
-          "$ref": "#/$defs/type_name"
+        "outcomes": {
+          "$ref": "#/$defs/capability_outcomes"
         },
         "reads": {
           "$ref": "#/$defs/model_refs"
@@ -516,9 +488,45 @@
         "id",
         "archetype",
         "input",
-        "output",
+        "outcomes",
         "basis"
       ],
+      "type": "object"
+    },
+    "capability_outcome": {
+      "additionalProperties": false,
+      "properties": {
+        "emits": {
+          "items": {
+            "$ref": "#/$defs/dotted_id"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "kind": {
+          "enum": [
+            "success",
+            "failure"
+          ]
+        },
+        "result": {
+          "$ref": "#/$defs/type_name"
+        }
+      },
+      "required": [
+        "kind",
+        "result"
+      ],
+      "type": "object"
+    },
+    "capability_outcomes": {
+      "additionalProperties": {
+        "$ref": "#/$defs/capability_outcome"
+      },
+      "minProperties": 2,
+      "propertyNames": {
+        "$ref": "#/$defs/field_name"
+      },
       "type": "object"
     },
     "capability_spec": {
@@ -542,25 +550,11 @@
         "deletes": {
           "$ref": "#/$defs/model_refs"
         },
-        "emits": {
-          "items": {
-            "$ref": "#/$defs/dotted_id"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "errors": {
-          "items": {
-            "$ref": "#/$defs/dotted_id"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
         "input": {
           "$ref": "#/$defs/type_map"
         },
-        "output": {
-          "$ref": "#/$defs/type_name"
+        "outcomes": {
+          "$ref": "#/$defs/capability_outcomes"
         },
         "reads": {
           "$ref": "#/$defs/model_refs"
@@ -598,7 +592,7 @@
       "required": [
         "archetype",
         "input",
-        "output"
+        "outcomes"
       ],
       "type": "object"
     },
@@ -957,12 +951,12 @@
             "DELETE"
           ]
         },
-        "output": {
-          "$ref": "#/$defs/entry_output"
-        },
         "path": {
           "pattern": "^/",
           "type": "string"
+        },
+        "responses": {
+          "$ref": "#/$defs/entry_responses"
         },
         "schedule": {
           "minLength": 1,
@@ -1063,12 +1057,12 @@
             "DELETE"
           ]
         },
-        "output": {
-          "$ref": "#/$defs/entry_output"
-        },
         "path": {
           "pattern": "^/",
           "type": "string"
+        },
+        "responses": {
+          "$ref": "#/$defs/entry_responses"
         },
         "schedule": {
           "minLength": 1,
@@ -1096,14 +1090,14 @@
       ],
       "type": "object"
     },
-    "entry_output": {
+    "entry_response": {
       "additionalProperties": false,
       "properties": {
         "ack": {
           "type": "boolean"
         },
         "body": {
-          "$ref": "#/$defs/entry_output_value"
+          "$ref": "#/$defs/entry_response_value"
         },
         "exit_code": {
           "type": "integer"
@@ -1114,20 +1108,20 @@
           "type": "integer"
         },
         "stderr": {
-          "$ref": "#/$defs/entry_output_value"
+          "$ref": "#/$defs/entry_response_value"
         },
         "stdout": {
-          "$ref": "#/$defs/entry_output_value"
+          "$ref": "#/$defs/entry_response_value"
         }
       },
       "type": "object"
     },
-    "entry_output_value": {
+    "entry_response_value": {
       "additionalProperties": false,
       "properties": {
         "from": {
           "enum": [
-            "target.result"
+            "outcome.result"
           ]
         },
         "type": {
@@ -1138,6 +1132,16 @@
         "type",
         "from"
       ],
+      "type": "object"
+    },
+    "entry_responses": {
+      "additionalProperties": {
+        "$ref": "#/$defs/entry_response"
+      },
+      "minProperties": 1,
+      "propertyNames": {
+        "$ref": "#/$defs/field_name"
+      },
       "type": "object"
     },
     "entry_spec": {
@@ -1159,12 +1163,12 @@
             "DELETE"
           ]
         },
-        "output": {
-          "$ref": "#/$defs/entry_output"
-        },
         "path": {
           "pattern": "^/",
           "type": "string"
+        },
+        "responses": {
+          "$ref": "#/$defs/entry_responses"
         },
         "schedule": {
           "minLength": 1,
@@ -2526,8 +2530,8 @@
       "properties": {
         "archetype": {
           "enum": [
-            "api_entry_success",
-            "capability_success",
+            "entry_response",
+            "capability_outcome",
             "fsm_composition",
             "fsm_composition_sync",
             "empty_collection_fsm",
@@ -2576,8 +2580,8 @@
           "enum": [
             "empty_collection_fsm",
             "ready_collection_fsm",
-            "capability_success",
-            "api_entry_success",
+            "capability_outcome",
+            "entry_response",
             "workflow_event_success",
             "forbidden_action",
             "fsm_composition",
@@ -2624,8 +2628,8 @@
       "properties": {
         "archetype": {
           "enum": [
-            "api_entry_success",
-            "capability_success",
+            "entry_response",
+            "capability_outcome",
             "fsm_composition",
             "fsm_composition_sync",
             "empty_collection_fsm",
@@ -3111,9 +3115,15 @@
           },
           "type": "object"
         },
+        "outcome": {
+          "$ref": "#/$defs/field_name"
+        },
         "response": {
           "additionalProperties": false,
           "properties": {
+            "exit_code": {
+              "type": "integer"
+            },
             "status": {
               "maximum": 599,
               "minimum": 100,

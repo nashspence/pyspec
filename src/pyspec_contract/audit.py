@@ -896,11 +896,10 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
     entry_node = _dot_node_id("entrypoint", entry_id)
     input_node = _dot_node_id("entrypoint_input", entry_id)
     target_node = _dot_node_id("entrypoint_target", target_value)
-    output_node = _dot_node_id("entrypoint_output", entry_id)
+    response_nodes = _entry_response_nodes(entry_id, entry, contract)
     exit_id = "entry_exit"
     target_tail = [] if target_kind == "fsm" else _entry_target_tail_nodes(target_kind, target_value, contract)
     input_sections = _entry_input_sections(entry, contract)
-    output_sections = _entry_output_sections(entry)
     input_title, output_title = _entry_io_card_titles(entry["surface"])
     lines = _dot_graph_preamble("entrypoint_" + safe_id(entry_id))
     lines.extend(
@@ -926,13 +925,14 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
             )
         )
     lines.append(_dot_html_node(target_node, _entry_target_card(target_kind, target_value, contract, surface=target_surface, trigger=target_trigger)))
-    if output_sections:
+    if response_nodes:
         lines.append(_dot_circle_node(exit_id, "exit", width="0.58", color=_DOT_COLOR_ENTRY, fontcolor=_DOT_COLOR_ENTRY_TEXT, shape="doublecircle"))
-        lines.append(
+        lines.extend(
             _dot_html_node(
-                output_node,
-                _dot_card(output_title, "external result", output_sections, style=_DOT_STYLE_EXTERNAL),
+                node_id,
+                _dot_card(outcome_id if subtitle else output_title, subtitle or outcome_id, sections, style=_DOT_STYLE_EXTERNAL),
             )
+            for node_id, outcome_id, subtitle, sections in response_nodes
         )
     lines.extend(_dot_html_node(node_id, label) for node_id, label in target_tail)
     lines.append(_dot_edge(start_id, entry_node))
@@ -943,9 +943,13 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
         lines.append(_dot_edge(entry_node, target_node))
     for node_id, _ in target_tail:
         lines.append(_dot_edge(target_node, node_id))
-    if output_sections:
-        lines.append(_dot_edge(target_node, output_node))
-        lines.append(_dot_edge(output_node, exit_id))
+    if response_nodes:
+        for node_id, _, _, _ in response_nodes:
+            lines.append(_dot_edge(target_node, node_id))
+            lines.append(_dot_edge(node_id, exit_id))
+        if len(response_nodes) > 1:
+            lines.append("  { rank=same; " + " ".join(_dot_quote(node_id) for node_id, _, _, _ in response_nodes) + " }")
+            lines.extend(_dot_invisible_order([node_id for node_id, _, _, _ in response_nodes], indent="  "))
     if len(target_tail) > 1:
         lines.append("  { rank=same; " + " ".join(_dot_quote(node_id) for node_id, _ in target_tail) + " }")
         lines.extend(_dot_invisible_order([node_id for node_id, _ in target_tail], indent="  "))
@@ -1044,24 +1048,38 @@ def _entry_input_sections(entry: dict[str, Any], contract: dict[str, Any]) -> li
     return sections
 
 
-def _entry_output_sections(entry: dict[str, Any]) -> list[tuple[str, list[object]]]:
-    output = entry.get("output", {})
+def _entry_response_nodes(entry_id: str, entry: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, str, str | None, list[tuple[str, list[object]]]]]:
+    responses = entry.get("responses", {})
+    if not responses:
+        return []
+    target_kind, target_value = entry_target_pair(entry["target"])
+    outcomes = contract["capabilities"][target_value]["outcomes"] if target_kind == "capability" else {}
+    nodes = []
+    for outcome_id, response in sorted(responses.items()):
+        outcome = outcomes.get(outcome_id)
+        subtitle = f"{outcome['kind']} response" if outcome else None
+        node_id = _dot_node_id("entrypoint_response", f"{entry_id}_{outcome_id}")
+        nodes.append((node_id, outcome_id, subtitle, _entry_response_sections(response)))
+    return nodes
+
+
+def _entry_response_sections(response: dict[str, Any]) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
-    if "status" in output:
-        sections.append(("status", [str(output["status"])]))
-    if "body" in output:
-        body = output["body"]
+    if "status" in response:
+        sections.append(("status", [str(response["status"])]))
+    if "body" in response:
+        body = response["body"]
         sections.append(("body", [_DotTypedField("body", body["type"], body.get("from"))]))
-    if "stdout" in output:
-        stdout = output["stdout"]
+    if "stdout" in response:
+        stdout = response["stdout"]
         sections.append(("stdout", [_DotTypedField("stdout", stdout["type"], stdout.get("from"))]))
-    if "stderr" in output:
-        stderr = output["stderr"]
+    if "stderr" in response:
+        stderr = response["stderr"]
         sections.append(("stderr", [_DotTypedField("stderr", stderr["type"], stderr.get("from"))]))
-    if "exit_code" in output:
-        sections.append(("exit_code", [str(output["exit_code"])]))
-    if "ack" in output:
-        sections.append(("ack", [str(output["ack"]).lower()]))
+    if "exit_code" in response:
+        sections.append(("exit_code", [str(response["exit_code"])]))
+    if "ack" in response:
+        sections.append(("ack", [str(response["ack"]).lower()]))
     return sections
 
 
@@ -1087,7 +1105,7 @@ def _entry_target_card(
         return _dot_card(
             target_value,
             "target capability",
-            _capability_sections(capability, contract, include_output=False),
+            _capability_sections(capability, contract),
             basis=capability.get("basis", ""),
             style=_DOT_STYLE_CAPABILITY,
         )
@@ -1227,18 +1245,26 @@ def _capability_sections(capability: dict[str, Any], contract: dict[str, Any], *
     if capability.get("input"):
         sections.append(("input", _typed_fields(capability["input"])))
     if include_output:
-        sections.append(("output", [_DotTypedField("result", capability["output"])]))
+        sections.extend(_capability_outcome_sections(capability))
     sections.extend(_capability_emit_sections(capability, contract))
+    return sections
+
+
+def _capability_outcome_sections(capability: dict[str, Any]) -> list[tuple[str, list[object]]]:
+    sections: list[tuple[str, list[object]]] = []
+    for outcome_id, outcome in sorted(capability["outcomes"].items()):
+        sections.append((outcome["kind"], [_DotTypedField(outcome_id, outcome["result"])]))
     return sections
 
 
 def _capability_emit_sections(capability: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
-    for event_id in capability.get("emits", []):
-        sections.append(("emit", [event_id]))
-        event = contract.get("events", {}).get(event_id, {})
-        if event.get("payload"):
-            sections.append(("payload", [_DotTypedField("payload", event["payload"])]))
+    for outcome_id, outcome in sorted(capability["outcomes"].items()):
+        for event_id in outcome.get("emits", []):
+            sections.append(("emit", [f"{outcome_id} {_DOT_ARROW_FORWARD} {event_id}"]))
+            event = contract.get("events", {}).get(event_id, {})
+            if event.get("payload"):
+                sections.append(("payload", [_DotTypedField("payload", event["payload"])]))
     return sections
 
 
@@ -1828,7 +1854,12 @@ def _format_state_fields(fsm: dict[str, Any], state: dict[str, Any], contract: d
 
 def _format_capability_outputs(capability_ids: Iterable[str], contract: dict[str, Any]) -> list[_DotTypedField]:
     capabilities = contract["capabilities"]
-    return [_DotTypedField(capability_id, capabilities[capability_id]["output"]) for capability_id in capability_ids]
+    fields: list[_DotTypedField] = []
+    for capability_id in capability_ids:
+        for _, outcome in sorted(capabilities[capability_id]["outcomes"].items()):
+            if outcome["kind"] == "success":
+                fields.append(_DotTypedField(capability_id, outcome["result"]))
+    return fields
 
 
 def _format_data_inputs(

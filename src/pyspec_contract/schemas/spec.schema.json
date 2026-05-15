@@ -270,23 +270,11 @@
         "deletes": {
           "$ref": "#/$defs/model_refs"
         },
-        "emits": {
-          "items": {
-            "$ref": "#/$defs/dotted_id"
-          },
-          "type": "array"
-        },
-        "errors": {
-          "items": {
-            "$ref": "#/$defs/dotted_id"
-          },
-          "type": "array"
-        },
         "input": {
           "$ref": "#/$defs/type_map"
         },
-        "output": {
-          "$ref": "#/$defs/type_name"
+        "outcomes": {
+          "$ref": "#/$defs/capability_outcomes"
         },
         "policy": {
           "pattern": "^policy\\.",
@@ -326,12 +314,47 @@
       "required": [
         "archetype",
         "input",
-        "output",
+        "outcomes",
         "policy",
-        "emits",
-        "errors",
         "basis"
       ],
+      "type": "object"
+    },
+    "capability_outcome": {
+      "additionalProperties": false,
+      "properties": {
+        "emits": {
+          "items": {
+            "$ref": "#/$defs/dotted_id"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "kind": {
+          "enum": [
+            "success",
+            "failure"
+          ]
+        },
+        "result": {
+          "$ref": "#/$defs/type_name"
+        }
+      },
+      "required": [
+        "kind",
+        "result",
+        "emits"
+      ],
+      "type": "object"
+    },
+    "capability_outcomes": {
+      "additionalProperties": {
+        "$ref": "#/$defs/capability_outcome"
+      },
+      "minProperties": 2,
+      "propertyNames": {
+        "$ref": "#/$defs/field_name"
+      },
       "type": "object"
     },
     "condition_contract": {
@@ -663,11 +686,11 @@
         "method": {
           "type": "string"
         },
-        "output": {
-          "$ref": "#/$defs/entry_output"
-        },
         "path": {
           "type": "string"
+        },
+        "responses": {
+          "$ref": "#/$defs/entry_responses"
         },
         "route": {
           "pattern": "^route\\.",
@@ -749,14 +772,14 @@
       },
       "type": "object"
     },
-    "entry_output": {
+    "entry_response": {
       "additionalProperties": false,
       "properties": {
         "ack": {
           "type": "boolean"
         },
         "body": {
-          "$ref": "#/$defs/entry_output_value"
+          "$ref": "#/$defs/entry_response_value"
         },
         "exit_code": {
           "type": "integer"
@@ -767,20 +790,20 @@
           "type": "integer"
         },
         "stderr": {
-          "$ref": "#/$defs/entry_output_value"
+          "$ref": "#/$defs/entry_response_value"
         },
         "stdout": {
-          "$ref": "#/$defs/entry_output_value"
+          "$ref": "#/$defs/entry_response_value"
         }
       },
       "type": "object"
     },
-    "entry_output_value": {
+    "entry_response_value": {
       "additionalProperties": false,
       "properties": {
         "from": {
           "enum": [
-            "target.result"
+            "outcome.result"
           ]
         },
         "type": {
@@ -791,6 +814,16 @@
         "type",
         "from"
       ],
+      "type": "object"
+    },
+    "entry_responses": {
+      "additionalProperties": {
+        "$ref": "#/$defs/entry_response"
+      },
+      "minProperties": 1,
+      "propertyNames": {
+        "$ref": "#/$defs/field_name"
+      },
       "type": "object"
     },
     "entry_target": {

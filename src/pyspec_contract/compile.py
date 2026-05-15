@@ -210,8 +210,8 @@ def _apply_author_defaults(entity: str, spec: dict[str, Any]) -> None:
         spec["messages"] = _normalize_fsm_messages(spec.get("messages"))
         spec.setdefault("transitions", [])
     elif entity == "capability":
-        spec.setdefault("emits", [])
-        spec.setdefault("errors", [])
+        for outcome in spec.get("outcomes", {}).values():
+            outcome.setdefault("emits", [])
 
 
 def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str, Any]) -> dict[str, Any]:
@@ -265,10 +265,8 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
         capability: dict[str, Any] = {
             "archetype": spec["archetype"],
             "input": spec["input"],
-            "output": spec["output"],
+            "outcomes": spec["outcomes"],
             "policy": rules.policy_ref(spec["id"]),
-            "emits": spec.get("emits", []),
-            "errors": spec.get("errors", []),
             "basis": spec["basis"],
         }
         for field in ["creates", "reads", "updates", "deletes", "transition"]:
@@ -300,8 +298,8 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             "target": spec["target"],
             "basis": spec["basis"],
         }
-        if "output" in spec:
-            entry["output"] = spec["output"]
+        if "responses" in spec:
+            entry["responses"] = spec["responses"]
         for field in ["method", "path", "command", "schedule"]:
             if field in spec:
                 entry[field] = spec[field]
@@ -444,18 +442,21 @@ def _derive_capability_transitions(contract: dict[str, Any]) -> None:
 def _derive_events(contract: dict[str, Any]) -> dict[str, Any]:
     events: dict[str, Any] = {}
     for capability_id, capability in sorted(contract["capabilities"].items()):
-        for event_id in capability.get("emits", []):
-            event = events.setdefault(event_id, {
-                "emitted_by": [],
-                "payload": capability["output"],
-                "basis": capability["basis"],
-            })
-            if event["payload"] != capability["output"]:
-                raise ContractError(
-                    f"Event {event_id} cannot be emitted with different payloads: "
-                    f"{event['payload']} vs {capability['output']}"
-                )
-            event["emitted_by"].append(capability_id)
+        for outcome_id, outcome in sorted(capability["outcomes"].items()):
+            for event_id in outcome.get("emits", []):
+                if outcome["kind"] != "success":
+                    raise ContractError(f"Capability {capability_id} failure outcome {outcome_id} must not emit events")
+                event = events.setdefault(event_id, {
+                    "emitted_by": [],
+                    "payload": outcome["result"],
+                    "basis": capability["basis"],
+                })
+                if event["payload"] != outcome["result"]:
+                    raise ContractError(
+                        f"Event {event_id} cannot be emitted with different payloads: "
+                        f"{event['payload']} vs {outcome['result']}"
+                    )
+                event["emitted_by"].append(capability_id)
     return events
 
 
@@ -732,6 +733,7 @@ def _validate_capabilities(contract: dict[str, Any]) -> None:
 
 
 def _validate_capability_relationships(cid: str, cap: dict[str, Any], models: dict[str, Any]) -> None:
+    _validate_capability_outcomes(cid, cap)
     for field in ["creates", "reads", "updates", "deletes"]:
         for model_id in cap.get(field, []):
             if model_id not in models:
@@ -755,8 +757,8 @@ def _validate_capability_relationships(cid: str, cap: dict[str, Any], models: di
         _require_exact_relationship(cid, cap, "reads", 1)
         _reject_relationships(cid, cap, {"creates", "updates", "deletes", "transition"})
         expected = f"list[{cap['reads'][0]}]"
-        if cap["output"] != expected:
-            raise ContractError(f"Capability {cid} list output must be {expected}")
+        if _success_result_type(cap) != expected:
+            raise ContractError(f"Capability {cid} list success outcome result must be {expected}")
     elif archetype == "query":
         _require_relationship(cid, cap, "reads")
         _reject_relationships(cid, cap, {"creates", "updates", "deletes", "transition"})
@@ -798,8 +800,35 @@ def _reject_relationships(cid: str, cap: dict[str, Any], fields: set[str]) -> No
 
 
 def _require_output_model(cid: str, cap: dict[str, Any], model_id: str) -> None:
-    if _base_type(cap["output"]) != model_id:
-        raise ContractError(f"Capability {cid} output must be {model_id}")
+    if _base_type(_success_result_type(cap)) != model_id:
+        raise ContractError(f"Capability {cid} success outcome result must be {model_id}")
+
+
+def _validate_capability_outcomes(cid: str, cap: dict[str, Any]) -> None:
+    outcomes = cap["outcomes"]
+    successes = _success_outcomes(cap)
+    failures = _failure_outcomes(cap)
+    if len(successes) != 1:
+        raise ContractError(f"Capability {cid} must declare exactly one success outcome")
+    if not failures:
+        raise ContractError(f"Capability {cid} must declare at least one failure outcome")
+    unknown_kinds = sorted(
+        f"{name}:{outcome['kind']}" for name, outcome in outcomes.items() if outcome["kind"] not in {"success", "failure"}
+    )
+    if unknown_kinds:
+        raise ContractError(f"Capability {cid} has unsupported outcome kinds: {unknown_kinds}")
+    for outcome_id, outcome in outcomes.items():
+        emits = outcome.get("emits", [])
+        if len(emits) != len(set(emits)):
+            raise ContractError(f"Capability {cid} outcome {outcome_id} emits duplicate events")
+        if outcome["kind"] == "failure":
+            if emits:
+                raise ContractError(f"Capability {cid} failure outcome {outcome_id} must not emit events")
+            base = _base_type(outcome["result"])
+            if base != "Problem" and not base.endswith("Problem"):
+                raise ContractError(
+                    f"Capability {cid} failure outcome {outcome_id} result must be Problem or a *Problem type"
+                )
 
 
 def _validate_fsms(contract: dict[str, Any]) -> None:
@@ -1368,7 +1397,7 @@ def _validate_entries(contract: dict[str, Any]) -> None:
             body = _entry_input_map(entry, "body")
             _validate_api_entry_input(eid, entry, capability, params, body)
             _validate_target_bindings(contract, eid, entry, {**params, **body})
-            _validate_api_entry_output(eid, entry, capability)
+            _validate_api_entry_responses(eid, entry, capability)
         elif surface == "cli":
             _require(entry, eid, "command")
             args = _entry_input_map(entry, "args")
@@ -1378,7 +1407,7 @@ def _validate_entries(contract: dict[str, Any]) -> None:
                 capability = contract["capabilities"][value]
                 _validate_exact_entry_inputs(eid, "input.args", args, capability["input"])
                 _validate_target_bindings(contract, eid, entry, args)
-                _validate_cli_capability_output(eid, entry, capability)
+                _validate_cli_capability_responses(eid, entry, capability)
             elif kind == "fsm":
                 if value not in contract["fsms"]:
                     raise ContractError(f"CLI entry {eid} must target a known FSM")
@@ -1387,15 +1416,15 @@ def _validate_entries(contract: dict[str, Any]) -> None:
                 _validate_target_bindings(contract, eid, entry, args)
                 target_surface = entry_fsm_surface(entry)
                 assert target_surface is not None
-                if "output" in entry:
-                    raise ContractError(f"CLI entry {eid} targeting an FSM must not declare output")
+                if "responses" in entry:
+                    raise ContractError(f"CLI entry {eid} targeting an FSM must not declare responses")
             elif kind == "workflow":
                 if value not in contract["workflows"]:
                     raise ContractError(f"CLI entry {eid} must target a known workflow")
                 _validate_workflow_entry_trigger(contract, eid, entry, value)
                 if args:
                     raise ContractError(f"CLI entry {eid} targeting a workflow must not declare input.args")
-                _validate_ack_entry_output(eid, entry)
+                _validate_ack_entry_responses(eid, entry)
             else:
                 raise ContractError(f"CLI entry {eid} cannot target raw {kind}")
         elif surface in {"worker", "schedule"}:
@@ -1408,7 +1437,7 @@ def _validate_entries(contract: dict[str, Any]) -> None:
                     raise ContractError(f"Schedule entry {eid} must not declare input")
             else:
                 _validate_event_payload_entry_input(contract, eid, entry, value)
-            _validate_ack_entry_output(eid, entry)
+            _validate_ack_entry_responses(eid, entry)
         elif surface == "webhook":
             if kind != "workflow" or value not in contract["workflows"]:
                 raise ContractError(f"Webhook entry {eid} must target a known workflow")
@@ -1416,17 +1445,17 @@ def _validate_entries(contract: dict[str, Any]) -> None:
             _require(entry, eid, "path")
             _validate_path_params(entry, eid)
             _validate_event_payload_entry_input(contract, eid, entry, value)
-            _validate_webhook_entry_output(eid, entry)
+            _validate_webhook_entry_responses(eid, entry)
 
 
 def _validate_entry_surface_fields(entry_id: str, entry: dict[str, Any]) -> None:
     allowed = {
         "web": {"surface", "input", "target", "basis", "path", "route"},
-        "api": {"surface", "input", "target", "output", "basis", "method", "path", "endpoint"},
-        "cli": {"surface", "input", "target", "output", "basis", "command", "command_ref"},
-        "worker": {"surface", "input", "target", "output", "basis", "workflow_ref"},
-        "schedule": {"surface", "input", "target", "output", "basis", "schedule", "workflow_ref"},
-        "webhook": {"surface", "input", "target", "output", "basis", "path"},
+        "api": {"surface", "input", "target", "responses", "basis", "method", "path", "endpoint"},
+        "cli": {"surface", "input", "target", "responses", "basis", "command", "command_ref"},
+        "worker": {"surface", "input", "target", "responses", "basis", "workflow_ref"},
+        "schedule": {"surface", "input", "target", "responses", "basis", "schedule", "workflow_ref"},
+        "webhook": {"surface", "input", "target", "responses", "basis", "path"},
     }[entry["surface"]]
     extra = sorted(set(entry) - allowed)
     if extra:
@@ -1562,36 +1591,96 @@ def _validate_target_bindings(
             raise ContractError(f"Entry {entry_id} target.with.{target_name} type mismatch: expected {expected_type}, got {actual_type} from {source}")
 
 
-def _validate_api_entry_output(entry_id: str, entry: dict[str, Any], capability: dict[str, Any]) -> None:
-    output = entry.get("output", {})
-    if set(output) != {"status", "body"}:
-        raise ContractError(f"API entry {entry_id} output must declare exactly status and body")
-    if output["status"] != 200:
-        raise ContractError(f"API entry {entry_id} output.status must be 200")
-    body = output["body"]
-    if body != {"type": capability["output"], "from": "target.result"}:
-        raise ContractError(f"API entry {entry_id} output.body must expose target.result as {capability['output']}")
+def _validate_api_entry_responses(entry_id: str, entry: dict[str, Any], capability: dict[str, Any]) -> None:
+    responses = _capability_entry_responses(entry_id, entry, capability)
+    statuses: dict[int, str] = {}
+    for outcome_id, response in responses.items():
+        outcome = capability["outcomes"][outcome_id]
+        if set(response) != {"status", "body"}:
+            raise ContractError(f"API entry {entry_id} response {outcome_id} must declare exactly status and body")
+        status = response["status"]
+        if status in statuses:
+            raise ContractError(
+                f"API entry {entry_id} responses {statuses[status]} and {outcome_id} cannot share HTTP status {status}"
+            )
+        statuses[status] = outcome_id
+        if outcome["kind"] == "success":
+            expected = 201 if capability["archetype"] == "create" else 200
+            if status != expected:
+                raise ContractError(f"API entry {entry_id} success response {outcome_id} status must be {expected}")
+        elif status < 400:
+            raise ContractError(f"API entry {entry_id} failure response {outcome_id} status must be 4xx or 5xx")
+        body = response["body"]
+        _validate_response_value(
+            f"API entry {entry_id} response {outcome_id}.body",
+            body,
+            outcome["result"],
+        )
 
 
-def _validate_cli_capability_output(entry_id: str, entry: dict[str, Any], capability: dict[str, Any]) -> None:
-    output = entry.get("output", {})
-    if set(output) != {"stdout", "exit_code"}:
-        raise ContractError(f"CLI entry {entry_id} output must declare exactly stdout and exit_code")
-    if output["exit_code"] != 0:
-        raise ContractError(f"CLI entry {entry_id} output.exit_code must be 0")
-    stdout = output["stdout"]
-    if stdout != {"type": capability["output"], "from": "target.result"}:
-        raise ContractError(f"CLI entry {entry_id} output.stdout must expose target.result as {capability['output']}")
+def _validate_cli_capability_responses(entry_id: str, entry: dict[str, Any], capability: dict[str, Any]) -> None:
+    responses = _capability_entry_responses(entry_id, entry, capability)
+    exit_codes: dict[int, str] = {}
+    for outcome_id, response in responses.items():
+        outcome = capability["outcomes"][outcome_id]
+        if "exit_code" not in response:
+            raise ContractError(f"CLI entry {entry_id} response {outcome_id} must declare exit_code")
+        exit_code = response["exit_code"]
+        if outcome["kind"] == "success":
+            if set(response) != {"exit_code", "stdout"}:
+                raise ContractError(f"CLI entry {entry_id} success response {outcome_id} must declare exactly exit_code and stdout")
+            if exit_code != 0:
+                raise ContractError(f"CLI entry {entry_id} success response {outcome_id} exit_code must be 0")
+            _validate_response_value(
+                f"CLI entry {entry_id} response {outcome_id}.stdout",
+                response["stdout"],
+                outcome["result"],
+            )
+        else:
+            if set(response) != {"exit_code", "stderr"}:
+                raise ContractError(f"CLI entry {entry_id} failure response {outcome_id} must declare exactly exit_code and stderr")
+            if exit_code == 0:
+                raise ContractError(f"CLI entry {entry_id} failure response {outcome_id} exit_code must be nonzero")
+            _validate_response_value(
+                f"CLI entry {entry_id} response {outcome_id}.stderr",
+                response["stderr"],
+                outcome["result"],
+            )
+        if exit_code in exit_codes:
+            raise ContractError(
+                f"CLI entry {entry_id} responses {exit_codes[exit_code]} and {outcome_id} cannot share exit_code {exit_code}"
+            )
+        exit_codes[exit_code] = outcome_id
 
 
-def _validate_ack_entry_output(entry_id: str, entry: dict[str, Any]) -> None:
-    if entry.get("output") != {"ack": True}:
-        raise ContractError(f"Entry {entry_id} output must be ack: true")
+def _capability_entry_responses(entry_id: str, entry: dict[str, Any], capability: dict[str, Any]) -> dict[str, Any]:
+    responses = entry.get("responses", {})
+    if set(responses) != set(capability["outcomes"]):
+        missing = sorted(set(capability["outcomes"]) - set(responses))
+        extra = sorted(set(responses) - set(capability["outcomes"]))
+        parts = []
+        if missing:
+            parts.append("missing: " + ", ".join(missing))
+        if extra:
+            parts.append("extra: " + ", ".join(extra))
+        raise ContractError(f"Entry {entry_id} responses must exactly map capability outcomes" + (": " + "; ".join(parts) if parts else ""))
+    return responses
 
 
-def _validate_webhook_entry_output(entry_id: str, entry: dict[str, Any]) -> None:
-    if entry.get("output") != {"status": 202}:
-        raise ContractError(f"Webhook entry {entry_id} output.status must be 202")
+def _validate_response_value(label: str, value: dict[str, str], expected_type: str) -> None:
+    expected = {"type": expected_type, "from": "outcome.result"}
+    if value != expected:
+        raise ContractError(f"{label} must expose outcome.result as {expected_type}")
+
+
+def _validate_ack_entry_responses(entry_id: str, entry: dict[str, Any]) -> None:
+    if entry.get("responses") != {"accepted": {"ack": True}}:
+        raise ContractError(f"Entry {entry_id} responses must be accepted: {{ack: true}}")
+
+
+def _validate_webhook_entry_responses(entry_id: str, entry: dict[str, Any]) -> None:
+    if entry.get("responses") != {"accepted": {"status": 202}}:
+        raise ContractError(f"Webhook entry {entry_id} responses.accepted.status must be 202")
 
 
 def _validate_fsm_entry_inputs(
@@ -1722,6 +1811,25 @@ def _base_type(type_name: str) -> str:
     if type_name.startswith("list[") and type_name.endswith("]"):
         return type_name[5:-1]
     return type_name
+
+
+def _success_outcomes(cap: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    return {name: outcome for name, outcome in cap["outcomes"].items() if outcome["kind"] == "success"}
+
+
+def _failure_outcomes(cap: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    return {name: outcome for name, outcome in cap["outcomes"].items() if outcome["kind"] == "failure"}
+
+
+def _primary_success_outcome(cap: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+    successes = _success_outcomes(cap)
+    if len(successes) != 1:
+        raise ContractError("Capability must declare exactly one success outcome")
+    return next(iter(successes.items()))
+
+
+def _success_result_type(cap: dict[str, Any]) -> str:
+    return _primary_success_outcome(cap)[1]["result"]
 
 
 def _validate_workflows(contract: dict[str, Any]) -> None:
@@ -1856,6 +1964,7 @@ def _validate_scenario_when(contract: dict[str, Any], sid: str, scenario: dict[s
     elif kind == "emit_event":
         if ref not in contract["events"]:
             raise ContractError(f"Scenario {sid} references unknown event {ref}")
+    _validate_scenario_outcome(contract, sid, scenario)
 
 
 def _validate_scenario_entry_input(sid: str, kind: str, body: dict[str, Any], entry: dict[str, Any]) -> None:
@@ -1926,6 +2035,38 @@ def _validate_scenario_then(contract: dict[str, Any], sid: str, scenario: dict[s
         raise ContractError(f"Scenario {sid} asserts unknown workflow {workflow['ref']}")
 
 
+def _validate_scenario_outcome(contract: dict[str, Any], sid: str, scenario: dict[str, Any]) -> None:
+    when_kind, when_body = _one(scenario["execute"], f"scenario {sid} when")
+    then = scenario["assert"]
+    outcome_id = then.get("outcome")
+    cap: dict[str, Any] | None = None
+    entry: dict[str, Any] | None = None
+    if when_kind == "invoke_capability":
+        cap = contract["capabilities"][when_body["ref"]]
+    elif when_kind == "call_entry":
+        entry = contract["entries"][when_body["ref"]]
+        if "capability" in entry["target"]:
+            cap = contract["capabilities"][entry["target"]["capability"]]
+    if cap is None:
+        if outcome_id:
+            raise ContractError(f"Scenario {sid} asserts outcome but does not execute a capability")
+        return
+    if not outcome_id:
+        raise ContractError(f"Scenario {sid} must assert a capability outcome")
+    if outcome_id not in cap["outcomes"]:
+        raise ContractError(f"Scenario {sid} asserts unknown outcome {outcome_id}")
+    if entry is None:
+        return
+    if outcome_id not in entry.get("responses", {}):
+        raise ContractError(f"Scenario {sid} outcome {outcome_id} is not mapped by entry {when_body['ref']}")
+    response_assertion = then.get("response")
+    if response_assertion:
+        response = entry["responses"][outcome_id]
+        for key in ("status", "exit_code"):
+            if key in response_assertion and response.get(key) != response_assertion[key]:
+                raise ContractError(f"Scenario {sid} response.{key} does not match entry response for outcome {outcome_id}")
+
+
 def _validate_scenario_archetype(sid: str, scenario: dict[str, Any]) -> None:
     archetype = scenario["archetype"]
     when_kind, _ = _one(scenario["execute"], f"scenario {sid} when")
@@ -1944,12 +2085,12 @@ def _validate_scenario_archetype(sid: str, scenario: dict[str, Any]) -> None:
         fsm_assert = then.get("fsm", {})
         if when_kind != "open_entry" or not fsm_assert.get("instances"):
             raise ContractError(f"Scenario {sid} fsm_composition requires open_entry and fsm.instances")
-    elif archetype == "capability_success":
-        if when_kind != "invoke_capability":
-            raise ContractError(f"Scenario {sid} capability_success requires invoke_capability")
-    elif archetype == "api_entry_success":
-        if when_kind != "call_entry" or "response" not in then:
-            raise ContractError(f"Scenario {sid} api_entry_success requires call_entry and response")
+    elif archetype == "capability_outcome":
+        if when_kind != "invoke_capability" or "outcome" not in then:
+            raise ContractError(f"Scenario {sid} capability_outcome requires invoke_capability and outcome")
+    elif archetype == "entry_response":
+        if when_kind != "call_entry" or "outcome" not in then or "response" not in then:
+            raise ContractError(f"Scenario {sid} entry_response requires call_entry, outcome, and response")
     elif archetype == "workflow_event_success":
         if when_kind != "emit_event" or not then.get("workflow", {}).get("ran"):
             raise ContractError(f"Scenario {sid} workflow_event_success requires emit_event and workflow.ran=true")

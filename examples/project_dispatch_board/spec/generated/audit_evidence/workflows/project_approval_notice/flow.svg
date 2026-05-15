@@ -1,84 +1,87 @@
-<svg width="952pt" height="190pt"
- viewBox="0.00 0.00 952.00 190.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: df55b4f91b990b66602fbddda9ae9d0ef2276ecb65876745ddf30a502334b9f6 -->
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 172)">
+<svg width="952pt" height="229pt"
+ viewBox="0.00 0.00 952.00 229.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: 39f123a9306391ea216f40e8fce72b62307e142c261d9907e2b848a97eb211e4 -->
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 211)">
 <title>workflow_project_approval_notice</title>
 <!-- workflow_start -->
 <g id="node1" class="node">
 <title>workflow_start</title>
-<ellipse fill="none" stroke="#4f46e5" cx="24.5" cy="-77" rx="24.5" ry="24.5"/>
-<text text-anchor="middle" x="24.5" y="-74.8" font-family="Arial" font-size="9.00" fill="#312e81">trigger</text>
+<ellipse fill="none" stroke="#4f46e5" cx="24.5" cy="-96.5" rx="24.5" ry="24.5"/>
+<text text-anchor="middle" x="24.5" y="-94.3" font-family="Arial" font-size="9.00" fill="#312e81">trigger</text>
 </g>
 <!-- workflow_trigger_event_project_approved -->
 <g id="node2" class="node">
 <title>workflow_trigger_event_project_approved</title>
-<polygon fill="#ffffff" stroke="transparent" points="110,-30.5 110,-123.5 349,-123.5 349,-30.5 110,-30.5"/>
-<polygon fill="#4f46e5" stroke="transparent" points="111.5,-114 111.5,-122 348.5,-122 348.5,-114 111.5,-114"/>
-<polygon fill="#eef2ff" stroke="transparent" points="111.5,-83 111.5,-114 348.5,-114 348.5,-83 111.5,-83"/>
-<text text-anchor="start" x="115.5" y="-100.6" font-family="Arial" font-weight="bold" font-size="13.00">project.approved</text>
-<text text-anchor="start" x="115.5" y="-89.6" font-family="Arial" font-size="8.00" fill="#64748b">event trigger</text>
-<text text-anchor="start" x="115.5" y="-72" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Reviewers can approve submitted dispatch projects.</text>
-<text text-anchor="start" x="116.5" y="-52" font-family="Arial" font-weight="bold" font-size="10.00">payload:</text>
-<text text-anchor="start" x="156.5" y="-52" font-family="Arial" font-size="10.00">  payload</text>
-<text text-anchor="start" x="196.5" y="-52" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
-<text text-anchor="start" x="116.5" y="-40" font-family="Arial" font-weight="bold" font-size="10.00">emitted by:</text>
-<text text-anchor="start" x="168.5" y="-40" font-family="Arial" font-size="10.00">  project.approve</text>
-<polygon fill="none" stroke="#4f46e5" points="110,-30.5 110,-123.5 349,-123.5 349,-30.5 110,-30.5"/>
+<polygon fill="#ffffff" stroke="transparent" points="110,-50 110,-143 349,-143 349,-50 110,-50"/>
+<polygon fill="#4f46e5" stroke="transparent" points="111.5,-133.5 111.5,-141.5 348.5,-141.5 348.5,-133.5 111.5,-133.5"/>
+<polygon fill="#eef2ff" stroke="transparent" points="111.5,-102.5 111.5,-133.5 348.5,-133.5 348.5,-102.5 111.5,-102.5"/>
+<text text-anchor="start" x="115.5" y="-120.1" font-family="Arial" font-weight="bold" font-size="13.00">project.approved</text>
+<text text-anchor="start" x="115.5" y="-109.1" font-family="Arial" font-size="8.00" fill="#64748b">event trigger</text>
+<text text-anchor="start" x="115.5" y="-91.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Reviewers can approve submitted dispatch projects.</text>
+<text text-anchor="start" x="116.5" y="-71.5" font-family="Arial" font-weight="bold" font-size="10.00">payload:</text>
+<text text-anchor="start" x="156.5" y="-71.5" font-family="Arial" font-size="10.00">  payload</text>
+<text text-anchor="start" x="196.5" y="-71.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
+<text text-anchor="start" x="116.5" y="-59.5" font-family="Arial" font-weight="bold" font-size="10.00">emitted by:</text>
+<text text-anchor="start" x="168.5" y="-59.5" font-family="Arial" font-size="10.00">  project.approve</text>
+<polygon fill="none" stroke="#4f46e5" points="110,-50 110,-143 349,-143 349,-50 110,-50"/>
 </g>
 <!-- workflow_start&#45;&gt;workflow_trigger_event_project_approved -->
 <g id="edge1" class="edge">
 <title>workflow_start&#45;&gt;workflow_trigger_event_project_approved</title>
-<path fill="none" stroke="#3f3f46" d="M49.18,-77C63.03,-77 81.71,-77 101.8,-77"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="101.87,-79.8 109.87,-77 101.87,-74.2 101.87,-79.8"/>
+<path fill="none" stroke="#3f3f46" d="M49.18,-96.5C63.03,-96.5 81.71,-96.5 101.8,-96.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="101.87,-99.3 109.87,-96.5 101.87,-93.7 101.87,-99.3"/>
 </g>
 <!-- workflow_project_approval_notice -->
 <g id="node3" class="node">
 <title>workflow_project_approval_notice</title>
-<polygon fill="#ffffff" stroke="transparent" points="410,-30.5 410,-123.5 652,-123.5 652,-30.5 410,-30.5"/>
-<polygon fill="#a16207" stroke="transparent" points="411,-114 411,-122 651,-122 651,-114 411,-114"/>
-<polygon fill="#fefce8" stroke="transparent" points="411,-83 411,-114 651,-114 651,-83 411,-83"/>
-<text text-anchor="start" x="415" y="-100.6" font-family="Arial" font-weight="bold" font-size="13.00">project.approval_notice</text>
-<text text-anchor="start" x="415" y="-89.6" font-family="Arial" font-size="8.00" fill="#64748b">workflow</text>
-<text text-anchor="start" x="415" y="-72" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approval event sends a downstream notice.</text>
-<text text-anchor="start" x="416" y="-52" font-family="Arial" font-weight="bold" font-size="10.00">ref:</text>
-<text text-anchor="start" x="432" y="-52" font-family="Arial" font-size="10.00">  workflow.project.approval_notice</text>
-<text text-anchor="start" x="416" y="-40" font-family="Arial" font-weight="bold" font-size="10.00">steps:</text>
-<text text-anchor="start" x="444" y="-40" font-family="Arial" font-size="10.00">  send_notice → project.send_approval_notice</text>
-<polygon fill="none" stroke="#a16207" points="410,-30.5 410,-123.5 652,-123.5 652,-30.5 410,-30.5"/>
+<polygon fill="#ffffff" stroke="transparent" points="410,-50 410,-143 652,-143 652,-50 410,-50"/>
+<polygon fill="#a16207" stroke="transparent" points="411,-133.5 411,-141.5 651,-141.5 651,-133.5 411,-133.5"/>
+<polygon fill="#fefce8" stroke="transparent" points="411,-102.5 411,-133.5 651,-133.5 651,-102.5 411,-102.5"/>
+<text text-anchor="start" x="415" y="-120.1" font-family="Arial" font-weight="bold" font-size="13.00">project.approval_notice</text>
+<text text-anchor="start" x="415" y="-109.1" font-family="Arial" font-size="8.00" fill="#64748b">workflow</text>
+<text text-anchor="start" x="415" y="-91.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approval event sends a downstream notice.</text>
+<text text-anchor="start" x="416" y="-71.5" font-family="Arial" font-weight="bold" font-size="10.00">ref:</text>
+<text text-anchor="start" x="432" y="-71.5" font-family="Arial" font-size="10.00">  workflow.project.approval_notice</text>
+<text text-anchor="start" x="416" y="-59.5" font-family="Arial" font-weight="bold" font-size="10.00">steps:</text>
+<text text-anchor="start" x="444" y="-59.5" font-family="Arial" font-size="10.00">  send_notice → project.send_approval_notice</text>
+<polygon fill="none" stroke="#a16207" points="410,-50 410,-143 652,-143 652,-50 410,-50"/>
 </g>
 <!-- workflow_trigger_event_project_approved&#45;&gt;workflow_project_approval_notice -->
 <g id="edge2" class="edge">
 <title>workflow_trigger_event_project_approved&#45;&gt;workflow_project_approval_notice</title>
-<path fill="none" stroke="#3f3f46" d="M349.3,-77C366.42,-77 384.11,-77 401.41,-77"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="401.87,-79.8 409.87,-77 401.87,-74.2 401.87,-79.8"/>
+<path fill="none" stroke="#3f3f46" d="M349.3,-96.5C366.42,-96.5 384.11,-96.5 401.41,-96.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="401.87,-99.3 409.87,-96.5 401.87,-93.7 401.87,-99.3"/>
 </g>
 <!-- workflow_step_project_approval_notice_send_notice -->
 <g id="node4" class="node">
 <title>workflow_step_project_approval_notice_send_notice</title>
-<polygon fill="#ffffff" stroke="transparent" points="713,0 713,-154 916,-154 916,0 713,0"/>
-<polygon fill="#71717a" stroke="transparent" points="714.5,-145 714.5,-153 915.5,-153 915.5,-145 714.5,-145"/>
-<polygon fill="#f8fafc" stroke="transparent" points="714.5,-114 714.5,-145 915.5,-145 915.5,-114 714.5,-114"/>
-<text text-anchor="start" x="718.5" y="-131.6" font-family="Arial" font-weight="bold" font-size="13.00">send_notice</text>
-<text text-anchor="start" x="718.5" y="-120.6" font-family="Arial" font-size="8.00" fill="#64748b">workflow step</text>
-<text text-anchor="start" x="718.5" y="-103" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approval triggers a notification command for</text>
-<text text-anchor="start" x="718.5" y="-92" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">downstream coordination.</text>
-<text text-anchor="start" x="719.5" y="-72" font-family="Arial" font-weight="bold" font-size="10.00">capability:</text>
-<text text-anchor="start" x="768.5" y="-72" font-family="Arial" font-size="10.00">  project.send_approval_notice</text>
-<text text-anchor="start" x="718.5" y="-52" font-family="Arial" font-weight="bold" font-size="10.00">input</text>
-<text text-anchor="start" x="718.5" y="-41" font-family="Arial" font-size="10.00">approved_by</text>
-<text text-anchor="start" x="774.5" y="-41" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
-<text text-anchor="start" x="718.5" y="-30" font-family="Arial" font-size="10.00">project_id</text>
-<text text-anchor="start" x="761.5" y="-30" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
-<text text-anchor="start" x="719.5" y="-10" font-family="Arial" font-weight="bold" font-size="10.00">output:</text>
-<text text-anchor="start" x="753.5" y="-10" font-family="Arial" font-size="10.00">  result</text>
-<text text-anchor="start" x="784.5" y="-10" font-family="Arial" font-size="8.00" fill="#94a3b8">  NoticeResult</text>
-<polygon fill="none" stroke="#71717a" points="713,0 713,-154 916,-154 916,0 713,0"/>
+<polygon fill="#ffffff" stroke="transparent" points="713,0 713,-193 916,-193 916,0 713,0"/>
+<polygon fill="#71717a" stroke="transparent" points="714.5,-183.5 714.5,-191.5 915.5,-191.5 915.5,-183.5 714.5,-183.5"/>
+<polygon fill="#f8fafc" stroke="transparent" points="714.5,-152.5 714.5,-183.5 915.5,-183.5 915.5,-152.5 714.5,-152.5"/>
+<text text-anchor="start" x="718.5" y="-170.1" font-family="Arial" font-weight="bold" font-size="13.00">send_notice</text>
+<text text-anchor="start" x="718.5" y="-159.1" font-family="Arial" font-size="8.00" fill="#64748b">workflow step</text>
+<text text-anchor="start" x="718.5" y="-141.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approval triggers a notification command for</text>
+<text text-anchor="start" x="718.5" y="-130.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">downstream coordination.</text>
+<text text-anchor="start" x="719.5" y="-110.5" font-family="Arial" font-weight="bold" font-size="10.00">capability:</text>
+<text text-anchor="start" x="768.5" y="-110.5" font-family="Arial" font-size="10.00">  project.send_approval_notice</text>
+<text text-anchor="start" x="718.5" y="-90.5" font-family="Arial" font-weight="bold" font-size="10.00">input</text>
+<text text-anchor="start" x="718.5" y="-79.5" font-family="Arial" font-size="10.00">approved_by</text>
+<text text-anchor="start" x="774.5" y="-79.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<text text-anchor="start" x="718.5" y="-68.5" font-family="Arial" font-size="10.00">project_id</text>
+<text text-anchor="start" x="761.5" y="-68.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<text text-anchor="start" x="718.5" y="-49.5" font-family="Arial" font-weight="bold" font-size="10.00">failure</text>
+<text text-anchor="start" x="718.5" y="-38.5" font-family="Arial" font-size="10.00">delivery_failed</text>
+<text text-anchor="start" x="781.5" y="-38.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<text text-anchor="start" x="718.5" y="-19.5" font-family="Arial" font-weight="bold" font-size="10.00">success</text>
+<text text-anchor="start" x="718.5" y="-8.5" font-family="Arial" font-size="10.00">sent</text>
+<text text-anchor="start" x="737.5" y="-8.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  NoticeResult</text>
+<polygon fill="none" stroke="#71717a" points="713,0 713,-193 916,-193 916,0 713,0"/>
 </g>
 <!-- workflow_project_approval_notice&#45;&gt;workflow_step_project_approval_notice_send_notice -->
 <g id="edge3" class="edge">
 <title>workflow_project_approval_notice&#45;&gt;workflow_step_project_approval_notice_send_notice</title>
-<path fill="none" stroke="#3f3f46" d="M652.2,-77C669.53,-77 687.3,-77 704.4,-77"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="704.74,-79.8 712.74,-77 704.74,-74.2 704.74,-79.8"/>
+<path fill="none" stroke="#3f3f46" d="M652.2,-96.5C669.53,-96.5 687.3,-96.5 704.4,-96.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="704.74,-99.3 712.74,-96.5 704.74,-93.7 704.74,-99.3"/>
 </g>
 </g>
 </svg>
