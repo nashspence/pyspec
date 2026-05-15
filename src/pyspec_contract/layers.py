@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .io import read_json
-from .targets import entry_fsm_surface
+from .targets import entry_fsm_surface, entry_point_adapter_pair, entry_point_trigger_pair
 
 ROOT = Path(__file__).resolve().parent
 
@@ -29,16 +29,16 @@ TARGET_LAYERS: dict[str, set[str]] = {
     "asset": {"ui"},
     "content_case": {"ui"},
     "audit_profile": {"ui"},
-    # entry is surface-specific and handled separately.
-    "entry": set(),
+    # entry_point is adapter-specific and handled separately.
+    "entry_point": set(),
 }
 
-ENTRY_SURFACE_LAYER = {
-    "api": "http",
-    "web": "web",
+ENTRY_ADAPTER_LAYER = {
+    "http": "http",
+    "ui": "ui",
     "cli": "workflow",
     "worker": "workflow",
-    "schedule": "workflow",
+    "scheduled": "workflow",
     "webhook": "events",
 }
 
@@ -53,7 +53,7 @@ AUTHOR_SECTIONS: dict[str, str] = {
     "operations": "operation",
     "events": "event",
     "fsms": "fsm",
-    "entries": "entry",
+    "entry_points": "entry_point",
     "workflows": "workflow",
     "scenarios": "scenario",
 }
@@ -120,7 +120,7 @@ def validate_author_layers(author: dict[str, Any], layers: set[str] | None) -> N
             label = f"authored {section_name}.{item_id}"
             if target not in TARGET_LAYERS:
                 raise LayerError(f"{label} uses unsupported target {target!r}")
-            if target != "entry":
+            if target != "entry_point":
                 required = TARGET_LAYERS[target]
                 if required and not required.issubset(layers):
                     raise LayerError(_blocked(label, target, required, layers))
@@ -133,20 +133,24 @@ def _validate_author_spec_layers(label: str, target: str, spec: dict[str, Any], 
     if target == "model":
         return
 
-    if target == "entry":
-        surface = spec.get("surface")
-        required_layer = ENTRY_SURFACE_LAYER.get(surface)
+    if target == "entry_point":
+        try:
+            adapter_kind, _ = entry_point_adapter_pair(spec)
+        except KeyError as exc:
+            raise LayerError(f"{label} uses unsupported entry point adapter") from exc
+        required_layer = ENTRY_ADAPTER_LAYER.get(adapter_kind)
         if not required_layer:
-            raise LayerError(f"{label} uses unsupported entry surface {surface!r}")
-        _require_layers(label, f"entry surface {surface}", {required_layer}, layers)
-        if surface == "web":
-            _require_layers(label, f"entry surface {surface}", {"ui"}, layers)
-        entry_target = spec.get("target") or {}
-        if "fsm" in entry_target:
-            render_surface = entry_fsm_surface(entry_target)
+            raise LayerError(f"{label} uses unsupported entry point adapter {adapter_kind!r}")
+        _require_layers(label, f"entry point adapter {adapter_kind}", {required_layer}, layers)
+        try:
+            trigger_kind, _ = entry_point_trigger_pair(spec)
+        except KeyError as exc:
+            raise LayerError(f"{label} uses unsupported entry point trigger") from exc
+        if trigger_kind == "state_machine":
+            render_surface = entry_fsm_surface(spec)
             required_render_layer = RENDER_SURFACE_LAYER.get(render_surface or "")
             if not required_render_layer:
-                raise LayerError(f"{label} uses unsupported fsm target surface {render_surface!r}")
+                raise LayerError(f"{label} uses unsupported state_machine target render {render_surface!r}")
             _require_layers(label, f"FSM target surface {render_surface}", {"ui", required_render_layer}, layers)
         return
 
@@ -201,9 +205,9 @@ class LayerError(ValueError):
 
 
 def _allowed_targets(layers: set[str]) -> set[str]:
-    allowed = {target for target, required in TARGET_LAYERS.items() if target != "entry" and required.issubset(layers)}
-    if any(layer in layers for layer in ENTRY_SURFACE_LAYER.values()):
-        allowed.add("entry")
+    allowed = {target for target, required in TARGET_LAYERS.items() if target != "entry_point" and required.issubset(layers)}
+    if any(layer in layers for layer in ENTRY_ADAPTER_LAYER.values()):
+        allowed.add("entry_point")
     return allowed
 
 

@@ -320,7 +320,7 @@ def test_operation_rejects_primary_model_field() -> None:
 def test_command_operation_allows_empty_crud_effects() -> None:
     author = _author()
     del author["operations"]["operation.project.create"]["creates"]
-    author["entries"]["entry_point.api.project.create"]["responses"]["created"]["status"] = 200
+    author["entry_points"]["entry_point.api.project.create"]["adapter"]["http"]["responses"]["created"]["status"] = 200
     author["scenarios"]["scenario.project.create.api.success"]["then"]["response"]["status"] = 200
     contract = compile_source(author)
     assert contract["operations"]["operation.project.create"]["creates"] == []
@@ -370,7 +370,7 @@ def test_author_contract_can_omit_absent_sections() -> None:
     }
     contract = compile_author(author)
     assert set(contract["models"]) == {"Ticket"}
-    assert contract["entries"] == {}
+    assert contract["entry_points"] == {}
     assert contract["fsms"] == {}
     assert contract["refs"]["policy"] == ["policy.ticket.create"]
     assert contract["models"]["Ticket"]["basis"] == "Declared model Ticket."
@@ -712,16 +712,21 @@ def _api_only_author() -> dict:
                 "basis": _basis("create ticket"),
             }
         },
-        "entries": {
+        "entry_points": {
             "entry_point.api.ticket.create": {
-                "surface": "api",
-                "method": "POST",
-                "path": "/tickets",
-                "input": {"body": {"title": P("Text")}},
-                "target": {"operation": "operation.ticket.create", "with": {"title": "$input.body.title"}},
-                "responses": {
-                    "created": {"status": 201, "body": {"type": M("Ticket"), "from": "$outcome.result"}},
-                    "validation_failed": {"status": 422, "body": {"type": M("Problem"), "from": "$outcome.result"}},
+                "adapter": {
+                    "http": {
+                        "method": "POST",
+                        "path": "/tickets",
+                        "input": {"body": {"title": P("Text")}},
+                        "responses": {
+                            "created": {"status": 201, "body": {"type": M("Ticket"), "from": "$outcome.result"}},
+                            "validation_failed": {"status": 422, "body": {"type": M("Problem"), "from": "$outcome.result"}},
+                        },
+                    }
+                },
+                "trigger": {
+                    "operation": {"ref": "operation.ticket.create", "with": {"title": "$input.body.title"}},
                 },
                 "basis": _basis("HTTP create ticket entry"),
             }
@@ -768,37 +773,35 @@ def test_authoring_layers_reject_wrong_entry_surface() -> None:
     from pyspec_contract.layers import parse_layers
 
     author = _api_only_author()
-    del author["entries"]["entry_point.api.ticket.create"]
-    author["entries"]["entry_point.web.ticket.create"] = {
-        "surface": "web",
-        "path": "/tickets",
-        "target": {"fsm": {"name": "state_machine.ticket.list", "surface": "html"}},
+    del author["entry_points"]["entry_point.api.ticket.create"]
+    author["entry_points"]["entry_point.web.ticket.create"] = {
+        "adapter": {"ui": {"path": "/tickets"}},
+        "trigger": {"state_machine": {"ref": "state_machine.ticket.list", "render": "html"}},
     }
-    with pytest.raises(ContractError, match="entry surface web requires web"):
+    with pytest.raises(ContractError, match="entry point adapter ui requires ui"):
         compile_author(author, layers=parse_layers("core,http"))
 
 
 def test_cli_fsm_entry_must_provide_required_context_args() -> None:
     author = _author()
-    del author["entries"]["entry_point.cli.project.board"]["input"]["args"]
+    del author["entry_points"]["entry_point.cli.project.board"]["adapter"]["cli"]["input"]["args"]
     with pytest.raises(ContractError, match=r"Entry entry_point.cli\.project\.board input\.args must include required FSM context inputs: \['workspace_id'\]"):
         compile_source(author)
 
 
 def test_entry_rejects_surface_irrelevant_fields() -> None:
     author = _author()
-    author["entries"]["entry_point.web.project.board"]["input"]["args"] = {"workspace_id": P("ID")}
-    with pytest.raises(ContractError, match=r"Entry entry_point.web\.project\.board surface web has unsupported input sections: \['args'\]"):
+    author["entry_points"]["entry_point.web.project.board"]["adapter"]["ui"]["input"]["args"] = {"workspace_id": P("ID")}
+    with pytest.raises(ContractError, match=r"Schema validation failed"):
         compile_source(author)
 
 
 def test_textual_is_not_an_entrypoint_surface() -> None:
     author = _author()
-    author["entries"]["textual.project.board"] = {
+    author["entry_points"]["textual.project.board"] = {
         "basis": _basis("Textual is a render surface, not an entrypoint surface."),
-        "command": "project board",
-        "surface": "textual",
-        "target": {"fsm": {"name": "state_machine.project.board", "surface": "textual"}},
+        "adapter": {"textual": {"cli_command": "project board"}},
+        "trigger": {"state_machine": {"ref": "state_machine.project.board", "render": "textual"}},
     }
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
@@ -806,21 +809,21 @@ def test_textual_is_not_an_entrypoint_surface() -> None:
 
 def test_cli_entry_args_must_exactly_match_operation_input() -> None:
     author = _author()
-    del author["entries"]["entry_point.cli.project.approve"]["input"]["args"]
+    del author["entry_points"]["entry_point.cli.project.approve"]["adapter"]["cli"]["input"]["args"]
     with pytest.raises(ContractError, match=r"Entry entry_point.cli\.project\.approve input\.args must exactly match target input: missing: approved_by, project_id"):
         compile_source(author)
 
 
 def test_entry_target_bindings_must_exactly_match_target_input() -> None:
     author = _author()
-    del author["entries"]["entry_point.api.project.create"]["target"]["with"]["title"]
+    del author["entry_points"]["entry_point.api.project.create"]["trigger"]["operation"]["with"]["title"]
     with pytest.raises(ContractError, match=r"Entry entry_point.api\.project\.create target\.with must exactly bind target input: missing: title"):
         compile_source(author)
 
 
 def test_entry_response_must_match_surface_contract() -> None:
     author = _author()
-    author["entries"]["entry_point.api.project.create"]["responses"]["created"]["body"]["type"] = P("Text")
+    author["entry_points"]["entry_point.api.project.create"]["adapter"]["http"]["responses"]["created"]["body"]["type"] = P("Text")
     with pytest.raises(ContractError, match=r"API entry entry_point.api\.project\.create response created\.body must expose \$outcome\.result as Project"):
         compile_source(author)
 
@@ -846,7 +849,7 @@ def test_event_emits_must_map_declared_payload() -> None:
 
 def test_runtime_references_are_context_scoped() -> None:
     author = _author()
-    author["entries"]["entry_point.api.project.create"]["target"]["with"]["title"] = "$trigger.payload.title"
+    author["entry_points"]["entry_point.api.project.create"]["trigger"]["operation"]["with"]["title"] = "$trigger.payload.title"
     with pytest.raises(ContractError, match=r"target\.with\.title references unavailable runtime root: \$trigger"):
         compile_source(author)
 
@@ -860,21 +863,21 @@ def test_runtime_references_validate_declared_fields() -> None:
 
 def test_entry_responses_must_map_all_operation_outcomes() -> None:
     author = _author()
-    del author["entries"]["entry_point.api.project.create"]["responses"]["validation_failed"]
+    del author["entry_points"]["entry_point.api.project.create"]["adapter"]["http"]["responses"]["validation_failed"]
     with pytest.raises(ContractError, match=r"Entry entry_point.api\.project\.create responses must exactly map operation outcomes: missing: validation_failed"):
         compile_source(author)
 
 
 def test_cli_failure_response_must_use_nonzero_exit_and_stderr() -> None:
     author = _author()
-    author["entries"]["entry_point.cli.project.approve"]["responses"]["invalid_state"]["exit_code"] = 0
+    author["entry_points"]["entry_point.cli.project.approve"]["adapter"]["cli"]["responses"]["invalid_state"]["exit_code"] = 0
     with pytest.raises(ContractError, match=r"CLI entry entry_point.cli\.project\.approve failure response invalid_state exit_code must be nonzero"):
         compile_source(author)
 
 
 def test_fsm_entry_must_not_declare_output() -> None:
     author = _author()
-    entry = author["entries"]["entry_point.web.project.board"]
+    entry = author["entry_points"]["entry_point.web.project.board"]
     entry["output"] = {"status": 200}
     with pytest.raises(ContractError, match=r"Schema validation failed"):
         compile_source(author)
@@ -882,14 +885,14 @@ def test_fsm_entry_must_not_declare_output() -> None:
 
 def test_worker_entry_payload_must_match_trigger_event_payload() -> None:
     author = _author()
-    author["entries"]["entry_point.worker.project.approval_notice"]["input"]["payload"] = M("NoticeResult")
+    author["entry_points"]["entry_point.worker.project.approval_notice"]["adapter"]["worker"]["input"]["payload"] = M("NoticeResult")
     with pytest.raises(ContractError, match=r"Entry entry_point.worker\.project\.approval_notice input\.payload must be ProjectApproved, got NoticeResult"):
         compile_source(author)
 
 
 def test_worker_entry_must_declare_realistic_dispositions() -> None:
     author = _author()
-    author["entries"]["entry_point.worker.project.approval_notice"]["responses"] = {"accepted": {"disposition": "ack"}}
+    author["entry_points"]["entry_point.worker.project.approval_notice"]["adapter"]["worker"]["responses"] = {"accepted": {"disposition": "ack"}}
     with pytest.raises(ContractError, match=r"Entry entry_point.worker\.project\.approval_notice must declare at least one non-ack disposition"):
         compile_source(author)
 
@@ -910,11 +913,10 @@ def test_workflow_failure_routes_must_declare_retry_or_dead_letter() -> None:
 
 def test_cli_entry_cannot_target_raw_event() -> None:
     author = _author()
-    author["entries"]["entry_point.cli.project.event"] = {
+    author["entry_points"]["entry_point.cli.project.event"] = {
         "basis": _basis("CLI event publishing is intentionally not modeled"),
-        "command": "project event",
-        "surface": "cli",
-        "target": {"event": "event.project.approved"},
+        "adapter": {"cli": {"cli_command": "project event"}},
+        "trigger": {"event": {"ref": "event.project.approved"}},
     }
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
@@ -922,14 +924,14 @@ def test_cli_entry_cannot_target_raw_event() -> None:
 
 def test_fsm_entry_target_must_declare_render_surface() -> None:
     author = _author()
-    author["entries"]["entry_point.cli.project.board"]["target"] = {"fsm": "state_machine.project.board"}
+    del author["entry_points"]["entry_point.cli.project.board"]["trigger"]["state_machine"]["render"]
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
 
 def test_web_fsm_entry_must_target_html_surface() -> None:
     author = _author()
-    author["entries"]["entry_point.web.project.board"]["target"]["fsm"]["surface"] = "textual"
+    author["entry_points"]["entry_point.web.project.board"]["trigger"]["state_machine"]["render"] = "textual"
     with pytest.raises(ContractError, match=r"Entry entry_point.web\.project\.board cannot target FSM surface 'textual'"):
         compile_source(author)
 
@@ -943,30 +945,30 @@ def test_cli_fsm_entry_surface_must_be_declared_by_fsm() -> None:
 
 def test_cli_fsm_entry_can_launch_html_surface() -> None:
     author = _author()
-    author["entries"]["entry_point.cli.project.board"]["target"]["fsm"]["surface"] = "html"
+    author["entry_points"]["entry_point.cli.project.board"]["trigger"]["state_machine"]["render"] = "html"
     compile_source(author)
 
 
 def test_workflow_entry_target_must_declare_trigger() -> None:
     author = _author()
-    author["entries"]["entry_point.worker.project.approval_notice"]["target"] = {"workflow": "workflow.project.approval_notice"}
+    del author["entry_points"]["entry_point.worker.project.approval_notice"]["trigger"]["workflow"]["when"]
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
 
 def test_workflow_entry_trigger_must_match_workflow_trigger() -> None:
     author = _author()
-    author["entries"]["entry_point.worker.project.approval_notice"]["target"]["workflow"]["trigger"] = {"event": "event.project.created"}
+    author["entry_points"]["entry_point.worker.project.approval_notice"]["trigger"]["workflow"]["when"] = {"event": "event.project.created"}
     with pytest.raises(ContractError, match=r"Entry entry_point.worker\.project\.approval_notice workflow trigger must match workflow workflow.project\.approval_notice trigger"):
         compile_source(author)
 
 
 def test_get_api_entry_must_provide_all_operation_input_as_params() -> None:
     author = _author()
-    entry = author["entries"]["entry_point.api.project.list"]
-    entry["path"] = "/projects"
-    entry["input"].pop("params")
-    entry["target"]["with"].pop("workspace_id")
+    entry = author["entry_points"]["entry_point.api.project.list"]
+    entry["adapter"]["http"]["path"] = "/projects"
+    entry["adapter"]["http"]["input"].pop("params")
+    entry["trigger"]["operation"]["with"].pop("workspace_id")
     with pytest.raises(ContractError, match=r"API entry entry_point.api\.project\.list GET must declare all operation inputs as input\.params: \['workspace_id'\]"):
         compile_source(author)
 
@@ -992,7 +994,7 @@ def test_layer_pruned_author_schema_hides_irrelevant_sections() -> None:
     from pyspec_contract.layers import author_schema_for_layers, parse_layers
 
     schema = author_schema_for_layers(parse_layers("core,http"))
-    assert "entries" in schema["properties"]
+    assert "entry_points" in schema["properties"]
     assert "models" in schema["properties"]
     assert "fsms" not in schema["properties"]
     assert "audit_cases" not in schema["properties"]

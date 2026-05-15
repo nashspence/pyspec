@@ -658,149 +658,158 @@ fsms:
       from: ready
       on: message.project.select
       to: ready
-entries:
+entry_points:
   entry_point.api.project.create:
     basis: HTTP endpoint for creating a dispatch project.
-    input:
-      body:
-        customer:
-          primitive: Text
-        priority:
-          primitive: Text
-        title:
-          primitive: Text
-      params:
-        workspace_id:
-          primitive: ID
-    method: POST
-    path: /workspaces/{workspace_id}/projects
-    responses:
-      created:
-        body:
-          from: $outcome.result
-          type:
-            model: Project
-        status: 201
-      validation_failed:
-        body:
-          from: $outcome.result
-          type:
-            model: Problem
-        status: 422
-    surface: api
-    target:
-      operation: operation.project.create
-      with:
-        customer: $input.body.customer
-        priority: $input.body.priority
-        title: $input.body.title
-        workspace_id: $input.params.workspace_id
+    adapter:
+      http:
+        method: POST
+        path: /workspaces/{workspace_id}/projects
+        input:
+          body:
+            customer:
+              primitive: Text
+            priority:
+              primitive: Text
+            title:
+              primitive: Text
+          params:
+            workspace_id:
+              primitive: ID
+        responses:
+          created:
+            body:
+              from: $outcome.result
+              type:
+                model: Project
+            status: 201
+          validation_failed:
+            body:
+              from: $outcome.result
+              type:
+                model: Problem
+            status: 422
+    trigger:
+      operation:
+        ref: operation.project.create
+        with:
+          customer: $input.body.customer
+          priority: $input.body.priority
+          title: $input.body.title
+          workspace_id: $input.params.workspace_id
   entry_point.api.project.list:
     basis: HTTP endpoint for listing dispatch projects.
-    input:
-      params:
-        workspace_id:
-          primitive: ID
-    method: GET
-    path: /workspaces/{workspace_id}/projects
-    responses:
-      listed:
-        body:
-          from: $outcome.result
-          type:
-            array:
-              model: Project
-        status: 200
-      unavailable:
-        body:
-          from: $outcome.result
-          type:
-            model: Problem
-        status: 503
-    surface: api
-    target:
-      operation: operation.project.list
-      with:
-        workspace_id: $input.params.workspace_id
+    adapter:
+      http:
+        method: GET
+        path: /workspaces/{workspace_id}/projects
+        input:
+          params:
+            workspace_id:
+              primitive: ID
+        responses:
+          listed:
+            body:
+              from: $outcome.result
+              type:
+                array:
+                  model: Project
+            status: 200
+          unavailable:
+            body:
+              from: $outcome.result
+              type:
+                model: Problem
+            status: 503
+    trigger:
+      operation:
+        ref: operation.project.list
+        with:
+          workspace_id: $input.params.workspace_id
   entry_point.cli.project.approve:
     basis: CLI entry for approval automation.
-    command: project approve
-    input:
-      args:
-        approved_by:
-          primitive: ID
-        project_id:
-          primitive: ID
-    responses:
-      approved:
-        exit_code: 0
-        stdout:
-          from: $outcome.result
-          type:
-            model: Project
-      invalid_state:
-        exit_code: 2
-        stderr:
-          from: $outcome.result
-          type:
-            model: Problem
-      not_found:
-        exit_code: 3
-        stderr:
-          from: $outcome.result
-          type:
-            model: Problem
-    surface: cli
-    target:
-      operation: operation.project.approve
-      with:
-        approved_by: $input.args.approved_by
-        project_id: $input.args.project_id
+    adapter:
+      cli:
+        cli_command: project approve
+        input:
+          args:
+            approved_by:
+              primitive: ID
+            project_id:
+              primitive: ID
+        responses:
+          approved:
+            exit_code: 0
+            stdout:
+              from: $outcome.result
+              type:
+                model: Project
+          invalid_state:
+            exit_code: 2
+            stderr:
+              from: $outcome.result
+              type:
+                model: Problem
+          not_found:
+            exit_code: 3
+            stderr:
+              from: $outcome.result
+              type:
+                model: Problem
+    trigger:
+      operation:
+        ref: operation.project.approve
+        with:
+          approved_by: $input.args.approved_by
+          project_id: $input.args.project_id
   entry_point.cli.project.board:
     basis: CLI launcher for the Textual dispatch board.
-    command: project board
-    input:
-      args:
-        workspace_id:
-          primitive: ID
-    surface: cli
-    target:
-      fsm:
-        name: state_machine.project.board
-        surface: textual
-      with:
-        workspace_id: $input.args.workspace_id
+    adapter:
+      cli:
+        cli_command: project board
+        input:
+          args:
+            workspace_id:
+              primitive: ID
+    trigger:
+      state_machine:
+        ref: state_machine.project.board
+        render: textual
+        with:
+          workspace_id: $input.args.workspace_id
   entry_point.web.project.board:
     basis: Web entry for the dispatch board.
-    input:
-      params:
-        workspace_id:
-          primitive: ID
-    path: /workspaces/{workspace_id}/dispatch
-    surface: web
-    target:
-      fsm:
-        name: state_machine.project.board
-        surface: html
-      with:
-        workspace_id: $input.params.workspace_id
+    adapter:
+      ui:
+        path: /workspaces/{workspace_id}/dispatch
+        input:
+          params:
+            workspace_id:
+              primitive: ID
+    trigger:
+      state_machine:
+        ref: state_machine.project.board
+        render: html
+        with:
+          workspace_id: $input.params.workspace_id
   entry_point.worker.project.approval_notice:
     basis: Worker entry exposing the approval notice workflow.
-    input:
-      payload:
-        model: ProjectApproved
-    responses:
-      accepted:
-        disposition: ack
-      malformed:
-        disposition: dead_letter
-        problem:
-          model: Problem
-    surface: worker
-    target:
+    adapter:
+      worker:
+        input:
+          payload:
+            model: ProjectApproved
+        responses:
+          accepted:
+            disposition: ack
+          malformed:
+            disposition: dead_letter
+            problem:
+              model: Problem
+    trigger:
       workflow:
-        name: workflow.project.approval_notice
-        trigger:
+        ref: workflow.project.approval_notice
+        when:
           event: event.project.approved
 workflows:
   workflow.project.approval_notice:

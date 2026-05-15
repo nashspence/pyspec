@@ -37,7 +37,7 @@ def test_audit_outputs_cover_full_contract() -> None:
     expected = audit_expected_files(contract)
     assert "spec/generated/audit_evidence/fsms/state_machine_project_list/fsm.svg" in expected
     assert "spec/generated/audit_evidence/fsms/state_machine_project_board/states/ready/composition.svg" in expected
-    assert "spec/generated/audit_evidence/entrypoints/web/entry_point_web_project_board/flow.svg" in expected
+    assert "spec/generated/audit_evidence/entrypoints/ui/entry_point_web_project_board/flow.svg" in expected
     assert "spec/generated/audit_evidence/entrypoints/cli/entry_point_cli_project_board/flow.svg" in expected
     assert "spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg" in expected
     assert any(path.startswith("spec/generated/audit_evidence/fsms/") and "/states/" in path and path.endswith("/copy.yaml") for path in expected)
@@ -56,11 +56,11 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     fsm = fsm_dot("state_machine.project.list", contract["fsms"]["state_machine.project.list"], contract)
     board = contract["fsms"]["state_machine.project.board"]
     composition = composition_dot("state_machine.project.board.ready", {"context": board["context"], **board["states"]["ready"]}, contract)
-    entrypoint = entrypoint_flow_dot("entry_point.web.project.board", contract["entries"]["entry_point.web.project.board"], contract)
-    api_entrypoint = entrypoint_flow_dot("entry_point.api.project.create", contract["entries"]["entry_point.api.project.create"], contract)
-    cli_entrypoint = entrypoint_flow_dot("entry_point.cli.project.board", contract["entries"]["entry_point.cli.project.board"], contract)
-    cli_approve_entrypoint = entrypoint_flow_dot("entry_point.cli.project.approve", contract["entries"]["entry_point.cli.project.approve"], contract)
-    worker_entrypoint = entrypoint_flow_dot("entry_point.worker.project.approval_notice", contract["entries"]["entry_point.worker.project.approval_notice"], contract)
+    entrypoint = entrypoint_flow_dot("entry_point.web.project.board", contract["entry_points"]["entry_point.web.project.board"], contract)
+    api_entrypoint = entrypoint_flow_dot("entry_point.api.project.create", contract["entry_points"]["entry_point.api.project.create"], contract)
+    cli_entrypoint = entrypoint_flow_dot("entry_point.cli.project.board", contract["entry_points"]["entry_point.cli.project.board"], contract)
+    cli_approve_entrypoint = entrypoint_flow_dot("entry_point.cli.project.approve", contract["entry_points"]["entry_point.cli.project.approve"], contract)
+    worker_entrypoint = entrypoint_flow_dot("entry_point.worker.project.approval_notice", contract["entry_points"]["entry_point.worker.project.approval_notice"], contract)
     workflow = workflow_flow_dot("workflow.project.approval_notice", contract["workflows"]["workflow.project.approval_notice"], contract)
     assert fsm.startswith("digraph ")
     assert composition.startswith("digraph ")
@@ -161,7 +161,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "required:" not in composition
     assert "layout_region_nav" not in composition
     assert "fontcolor" not in composition
-    assert '<FONT POINT-SIZE="8" COLOR="#64748b">web entry</FONT>' in entrypoint
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">ui entry point</FONT>' in entrypoint
     assert "<B>route:</B>&#160;&#160;route.project.board" in entrypoint
     assert "<B>request</B>" in entrypoint
     assert "<B>params</B>" in entrypoint

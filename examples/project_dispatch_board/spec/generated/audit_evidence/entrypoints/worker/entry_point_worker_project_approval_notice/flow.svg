@@ -1,6 +1,6 @@
 <svg width="1240pt" height="217pt"
  viewBox="0.00 0.00 1240.00 217.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 1be333a2c265dedb5dfea6594baf4934440a66d4a033915fa094413704b56fa8 -->
+<!-- pyspec-contract-input-sha256: 3dafcdce0b927f8973f02afb2801d277e78a264b2eb056e5ac7cb787e132fcab -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 199)">
 <title>entrypoint_entry_point_worker_project_approval_notice</title>
 <!-- entry_start -->
@@ -16,7 +16,7 @@
 <polygon fill="#0891b2" stroke="transparent" points="104,-135 104,-143 326,-143 326,-135 104,-135"/>
 <polygon fill="#ecfeff" stroke="transparent" points="104,-104 104,-135 326,-135 326,-104 104,-104"/>
 <text text-anchor="start" x="108" y="-121.6" font-family="Arial" font-weight="bold" font-size="13.00">workflow.project.approval_notice</text>
-<text text-anchor="start" x="108" y="-110.6" font-family="Arial" font-size="8.00" fill="#64748b">worker entry</text>
+<text text-anchor="start" x="108" y="-110.6" font-family="Arial" font-size="8.00" fill="#64748b">worker entry point</text>
 <text text-anchor="start" x="108" y="-93" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Worker entry exposing the approval notice</text>
 <text text-anchor="start" x="108" y="-82" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">workflow.</text>
 <text text-anchor="start" x="109" y="-62" font-family="Arial" font-weight="bold" font-size="10.00">workflow:</text>

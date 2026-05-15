@@ -7,7 +7,7 @@ from .io import read_json, read_yaml
 from .paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR
 from .runtime import fixture_namespace, resolve_map
 from .runtime_refs import resolve_reference_expression
-from .targets import entry_fsm_name
+from .targets import entry_fsm_name, entry_point_input, entry_point_responses, entry_target_pair, entry_point_bindings
 from .type_expr import is_array_of_model, model_name
 
 
@@ -136,7 +136,7 @@ class ReferenceSpecDriver:
             assert policy in self.contract.get("refs", {}).get("policy", [])
 
     def _open_entry(self, entry_id: str, params: dict[str, Any]) -> dict[str, Any]:
-        entry = self.contract["entries"][entry_id]
+        entry = self.contract["entry_points"][entry_id]
         fsm_id = entry_fsm_name(entry)
         fsm = self.contract["fsms"][fsm_id]
         context = self._entry_target_input(entry, params)
@@ -216,11 +216,12 @@ class ReferenceSpecDriver:
         return set(self.last_fsm.get(key, []))
 
     def _call_entry(self, entry_id: str, input_values: dict[str, Any], outcome_id: str | None = None) -> dict[str, Any]:
-        entry = self.contract["entries"][entry_id]
-        cap_id = entry["target"]["operation"]
+        entry = self.contract["entry_points"][entry_id]
+        target_kind, cap_id = entry_target_pair(entry)
+        assert target_kind == "operation"
         target_input = self._entry_target_input(entry, input_values)
         result = self._invoke(cap_id, target_input, outcome_id)
-        response = entry["responses"][self.last_outcome]
+        response = entry_point_responses(entry)[self.last_outcome]
         if "status" in response:
             return {"status": response["status"], "body": result}
         if "stdout" in response:
@@ -230,10 +231,10 @@ class ReferenceSpecDriver:
     def _entry_target_input(self, entry: dict[str, Any], input_values: dict[str, Any]) -> dict[str, Any]:
         namespace = {"input": {}}
         for section in ("params", "body", "args"):
-            fields = (entry.get("input") or {}).get(section, {})
+            fields = entry_point_input(entry).get(section, {})
             if fields:
                 namespace["input"][section] = {name: input_values[name] for name in fields}
-        bindings = entry["target"].get("with", {})
+        bindings = entry_point_bindings(entry)
         return {name: _resolve_binding(source, namespace) for name, source in bindings.items()}
 
     def _invoke(self, cap_id: str, input_values: dict[str, Any], outcome_id: str | None = None) -> Any:

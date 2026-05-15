@@ -1,6 +1,6 @@
 <svg width="1181pt" height="247pt"
  viewBox="0.00 0.00 1181.00 247.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 15b1164c04bcafe34248393651e68c2306cec4c75aa83abc56af69e6977c0cca -->
+<!-- pyspec-contract-input-sha256: 745ba03378010b53e6bc55f5e4d20cb471e9deb4048f04763968d199a9452bce -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 229)">
 <title>entrypoint_entry_point_api_project_list</title>
 <!-- entry_start -->
@@ -16,7 +16,7 @@
 <polygon fill="#0891b2" stroke="transparent" points="104.5,-136 104.5,-144 383.5,-144 383.5,-136 104.5,-136"/>
 <polygon fill="#ecfeff" stroke="transparent" points="104.5,-105 104.5,-136 383.5,-136 383.5,-105 104.5,-105"/>
 <text text-anchor="start" x="108.5" y="-122.6" font-family="Arial" font-weight="bold" font-size="13.00">GET /workspaces/{workspace_id}/projects</text>
-<text text-anchor="start" x="108.5" y="-111.6" font-family="Arial" font-size="8.00" fill="#64748b">api entry</text>
+<text text-anchor="start" x="108.5" y="-111.6" font-family="Arial" font-size="8.00" fill="#64748b">http entry point</text>
 <text text-anchor="start" x="108.5" y="-94" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">HTTP endpoint for listing dispatch projects.</text>
 <text text-anchor="start" x="109.5" y="-74" font-family="Arial" font-weight="bold" font-size="10.00">endpoint:</text>
 <text text-anchor="start" x="154.5" y="-74" font-family="Arial" font-size="10.00">  endpoint.project.list</text>

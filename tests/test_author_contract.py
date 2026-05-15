@@ -43,7 +43,7 @@ def test_author_contract_can_be_minimal_and_surface_invisible() -> None:
     contract = compile_source(author, layers={"core"})
     assert contract["models"]["Project"]["fields"]["title"] == F(P("Text"))
     assert contract["fsms"] == {}
-    assert contract["entries"] == {}
+    assert contract["entry_points"] == {}
     assert contract["refs"] == {}
 
 

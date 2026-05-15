@@ -55,13 +55,12 @@ def active_prompt_layers(contract: dict[str, Any] | None = None, *, layers: str 
 
 def infer_contract_layers(contract: dict[str, Any]) -> set[str]:
     active = {"core"}
-    entries = contract.get("entries") or {}
-    entry_surfaces = {entry.get("surface") for entry in entries.values()}
-    if "api" in entry_surfaces:
+    adapter_kinds = _entry_adapter_kinds(contract)
+    if "http" in adapter_kinds:
         active.add("http")
-    if contract.get("events") or "webhook" in entry_surfaces:
+    if contract.get("events") or "webhook" in adapter_kinds:
         active.add("events")
-    if contract.get("workflows") or entry_surfaces & {"cli", "worker", "schedule"}:
+    if contract.get("workflows") or adapter_kinds & {"cli", "worker", "scheduled"}:
         active.add("workflow")
     if _contract_has_ui(contract):
         active.add("ui")
@@ -89,8 +88,7 @@ def _contract_has_ui(contract: dict[str, Any]) -> bool:
 
 
 def _contract_has_web(contract: dict[str, Any]) -> bool:
-    entries = contract.get("entries") or {}
-    if any(entry.get("surface") == "web" for entry in entries.values()):
+    if "ui" in _entry_adapter_kinds(contract):
         return True
     if any("html" in case.get("surfaces", []) for case in _contract_audit_cases(contract)):
         return True
@@ -128,6 +126,14 @@ def _contract_audit_cases(contract: dict[str, Any]) -> list[dict[str, Any]]:
     return cases
 
 
+def _entry_adapter_kinds(contract: dict[str, Any]) -> set[str]:
+    kinds: set[str] = set()
+    for entry in (contract.get("entry_points") or {}).values():
+        adapter = entry.get("adapter") or {}
+        kinds.update(adapter)
+    return kinds
+
+
 class _PromptContext:
     def __init__(self, *, contract: dict[str, Any] | None, layers: set[str]) -> None:
         self.contract = contract
@@ -157,7 +163,7 @@ class _PromptContext:
         sections = [
             ("models", self.contract.get("models") or {}),
             ("operations", self.contract.get("operations") or {}),
-            ("entries", self.contract.get("entries") or {}),
+            ("entry_points", self.contract.get("entry_points") or {}),
             ("workflows", self.contract.get("workflows") or {}),
             ("fsms", self.contract.get("fsms") or {}),
             ("scenarios", self.contract.get("scenarios") or {}),
@@ -184,15 +190,15 @@ def _pm_design_prompt(context: _PromptContext) -> str:
         "- Core: fixtures, facts, models, operations, and product scenarios.",
     ]
     if "http" in context.layers:
-        lines.append("- HTTP: API entries that bind operations to externally visible operations.")
+        lines.append("- HTTP: HTTP entry points that bind operations to externally visible API operations.")
     else:
-        lines.append("- Do not author API entries or OpenAPI details; the HTTP layer is inactive.")
+        lines.append("- Do not author HTTP/API entry points or OpenAPI details; the HTTP layer is inactive.")
     if "events" in context.layers:
         lines.append("- Events: event-producing product behavior and webhook-facing contracts when requested.")
     else:
         lines.append("- Do not add event/webhook vocabulary unless the active layers change.")
     if "workflow" in context.layers:
-        lines.append("- Workflow: workflows with explicit outcomes, step outcome routing, and CLI/worker/scheduled entries with surface-appropriate responses.")
+        lines.append("- Workflow: workflows with explicit outcomes, step outcome routing, and CLI/worker/scheduled entry points with adapter-appropriate responses.")
     else:
         lines.append("- Do not add workflow, CLI, worker, or schedule vocabulary.")
     if "ui" in context.layers:
@@ -200,7 +206,7 @@ def _pm_design_prompt(context: _PromptContext) -> str:
     else:
         lines.append("- Do not author UI FSMs, copy/assets, audit cases, or surface presentation.")
     if "web" in context.layers:
-        lines.append("- Web UI: HTML/CSS presentation, web entries, routes, and HTML audit surfaces.")
+        lines.append("- Web UI: HTML/CSS presentation, UI entry points, routes, and HTML audit surfaces.")
     elif "ui" in context.layers:
         lines.append("- Do not author HTML/CSS or web routes; the web layer is inactive.")
     if "textual" in context.layers:
@@ -217,8 +223,9 @@ def _pm_design_prompt(context: _PromptContext) -> str:
             "- Use scenario archetypes from `src/pyspec_contract/patterns.yaml`; define every fixture explicitly.",
             "- Models are product data models: fields, lifecycle, and invariants only.",
             "- Use `basis` or `why` only when it preserves non-obvious product intent.",
-            "- For FSM entries, keep invocation and rendering separate: `surface` is the entry surface, while `target.fsm.surface` is `html` or `textual`.",
-            "- For workflow entries, bind the entry to the workflow trigger with `target.workflow.name` and `target.workflow.trigger`.",
+            "- For entry points, declare one explicit `adapter` (`http`, `cli`, `webhook`, `scheduled`, `worker`, or `ui`) and one explicit `trigger` (`operation`, `state_machine`, or `workflow`).",
+            "- For state-machine entry points, keep invocation and rendering separate with adapter input and trigger `render` (`html` or `textual`).",
+            "- For workflow entry points, bind the entry point trigger to the workflow trigger with `trigger.workflow.ref` and `trigger.workflow.when`.",
             "- For composed screens, mount FSM instances through state-local layout, mounts, context, and sync rules.",
             "- Every rendered copy or asset ref must be backed by a declared copy or asset item.",
         ]

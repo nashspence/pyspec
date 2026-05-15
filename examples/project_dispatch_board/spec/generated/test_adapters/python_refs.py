@@ -11,9 +11,9 @@ class AuditCase:
 class AuditProfile:
     DEFAULT = 'default'
 
-class Command:
-    COMMAND_PROJECT_APPROVE = 'command.project.approve'
-    COMMAND_PROJECT_BOARD = 'command.project.board'
+class CliCommand:
+    CLI_COMMAND_PROJECT_APPROVE = 'cli_command.project.approve'
+    CLI_COMMAND_PROJECT_BOARD = 'cli_command.project.board'
 
 class ContentCase:
     CONTENT_PROJECT_DETAIL_HEADING_HIGH_PRIORITY = 'content.project.detail.heading.high_priority'

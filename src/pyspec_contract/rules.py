@@ -35,8 +35,8 @@ def endpoint_ref(operation_id: str) -> str:
     return dotted("endpoint", resource_tail(operation_id))
 
 
-def command_ref(ref: str) -> str:
-    return dotted("command", resource_tail(ref))
+def cli_command_ref(ref: str) -> str:
+    return dotted("cli_command", resource_tail(ref))
 
 
 def workflow_ref(workflow_id: str) -> str:

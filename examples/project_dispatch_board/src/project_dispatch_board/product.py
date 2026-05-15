@@ -7,7 +7,7 @@ from pyspec_contract.io import read_json, read_yaml
 from pyspec_contract.paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR
 from pyspec_contract.runtime import fixture_namespace, resolve_map
 from pyspec_contract.runtime_refs import resolve_reference_expression
-from pyspec_contract.targets import entry_fsm_name
+from pyspec_contract.targets import entry_fsm_name, entry_point_adapter_pair, entry_point_bindings, entry_point_input, entry_point_responses, entry_target_pair
 
 
 class ProductApp:
@@ -49,8 +49,8 @@ class ProductApp:
                 self.projects.append(self._project(self._resolve_map(body["values"])))
 
     def open_web_entry(self, entry_id: str, params: Mapping[str, Any]) -> dict[str, Any]:
-        entry = self.contract["entries"][entry_id]
-        assert entry["surface"] == "web"
+        entry = self.contract["entry_points"][entry_id]
+        assert entry_point_adapter_pair(entry)[0] == "ui"
         fsm_id = entry_fsm_name(entry)
         fsm = self.contract["fsms"][fsm_id]
         context = self._entry_target_input(entry, params)
@@ -133,11 +133,13 @@ class ProductApp:
         return set(self.rendered_fsm.get(key, []))
 
     def call_entry(self, entry_id: str, input_values: Mapping[str, Any]) -> dict[str, Any]:
-        entry = self.contract["entries"][entry_id]
-        assert entry["surface"] in {"api", "cli"}
+        entry = self.contract["entry_points"][entry_id]
+        assert entry_point_adapter_pair(entry)[0] in {"http", "cli"}
         target_input = self._entry_target_input(entry, input_values)
-        result = self.invoke_operation(entry["target"]["operation"], target_input)
-        response = entry["responses"][self.last_outcome]
+        target_kind, operation_id = entry_target_pair(entry)
+        assert target_kind == "operation"
+        result = self.invoke_operation(operation_id, target_input)
+        response = entry_point_responses(entry)[self.last_outcome]
         if "status" in response:
             self.http_response = {"status": response["status"], "body": result}
         elif "stdout" in response:
@@ -149,10 +151,10 @@ class ProductApp:
     def _entry_target_input(self, entry: Mapping[str, Any], input_values: Mapping[str, Any]) -> dict[str, Any]:
         namespace = {"input": {}}
         for section in ("params", "body", "args"):
-            fields = (entry.get("input") or {}).get(section, {})
+            fields = entry_point_input(dict(entry)).get(section, {})
             if fields:
                 namespace["input"][section] = {name: input_values[name] for name in fields}
-        bindings = entry["target"].get("with", {})
+        bindings = entry_point_bindings(dict(entry))
         return {name: _resolve_binding(source, namespace) for name, source in bindings.items()}
 
     def invoke_operation(self, operation_id: str, input_values: Mapping[str, Any]) -> Any:

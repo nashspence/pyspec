@@ -76,7 +76,7 @@ def test_canonical_textual_contract_imports_and_composes() -> None:
 def test_textual_screens_are_driven_by_textual_fsm_layout() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
     del author["fsms"]["state_machine.project.board"]["states"]["ready"]["layout"]["textual"]
-    author["entries"]["entry_point.cli.project.board"]["target"]["fsm"]["surface"] = "html"
+    author["entry_points"]["entry_point.cli.project.board"]["trigger"]["state_machine"]["render"] = "html"
     for audit_case in author["fsms"]["state_machine.project.board"]["states"]["ready"]["audit"].values():
         audit_case["surfaces"] = ["html"]
     contract = compile_source(author)

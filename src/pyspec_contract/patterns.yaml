@@ -1,19 +1,19 @@
 authoring_layers:
-  rule: Layers constrain authored spec vocabulary only. They are never written into spec/generated/compiled/spec.yaml and never imply absent surfaces are planned.
+  rule: Layers constrain authored spec vocabulary only. They are never written into spec/generated/compiled/spec.yaml and never imply absent adapters are planned.
   layers:
     core:
       targets: [fixture, model, operation, scenario]
       projections: [spec/generated/agent_prompts, spec/generated/behavior/fixtures.yaml, spec/generated/behavior/scenarios.yaml, spec/generated/test_adapters/pytest_bdd_features, spec/generated/test_adapters/python_refs.py]
     http:
-      opens: [entry.surface.api]
+      opens: [entry_point.adapter.http]
       requires: [core]
       projections_when_declared: [spec/generated/product_interfaces/http.openapi.yaml, spec/generated/audit_evidence/entrypoints]
     events:
-      opens: [entry.surface.webhook]
+      opens: [entry_point.adapter.webhook]
       requires: [core]
       projections_when_declared: [spec/generated/product_interfaces/events.asyncapi.yaml, spec/generated/audit_evidence/entrypoints]
     workflow:
-      opens: [workflow, entry.surface.cli, entry.surface.worker, entry.surface.schedule]
+      opens: [workflow, entry_point.adapter.cli, entry_point.adapter.worker, entry_point.adapter.scheduled]
       requires: [core]
       projections_when_declared: [spec/generated/product_interfaces/workflow.cwl.yaml, spec/generated/product_interfaces/events.asyncapi.yaml, spec/generated/audit_evidence/workflows, spec/generated/audit_evidence/entrypoints]
     ui:
@@ -21,11 +21,11 @@ authoring_layers:
       requires: [core]
       projections_when_declared: [spec/generated/product_interfaces/web.fsms.json, spec/generated/audit_evidence]
     textual:
-      opens: [presentation.textual, audit_case.surface.textual, audit_profile.textual]
+      opens: [presentation.textual, audit_case.render.textual, audit_profile.textual]
       requires: [core, ui]
       projections_when_declared: [spec/generated/product_interfaces/textual.projection.py, spec/generated/audit_evidence/**/renders/*.svg]
     web:
-      opens: [entry.surface.web, presentation.html, presentation.css, audit_case.surface.html, audit_profile.html]
+      opens: [entry_point.adapter.ui, presentation.html, presentation.css, audit_case.render.html, audit_profile.html]
       requires: [core, ui]
       projections_when_declared: [spec/generated/product_interfaces/web.routes.json, spec/generated/audit_evidence/**/renders/*.png]
   common_sets:
@@ -68,36 +68,36 @@ scenario_archetypes:
     when: open_entry
     then: [forbids]
 
-surface_entries:
-  api:
+entry_point_adapters:
+  http:
     target: operation
     requires: [method, path]
     layer: http
   cli:
     target: [operation, fsm, workflow]
-    requires: [command]
+    requires: [cli_command]
     layer: workflow
   worker:
     target: workflow
     requires: []
     layer: workflow
-  schedule:
+  scheduled:
     target: workflow
-    requires: [schedule]
+    requires: [schedule_expression]
     layer: workflow
   webhook:
     target: workflow
     requires: [path]
     layer: events
-  web:
+  ui:
     target: fsm
     requires: [path]
     layer: web
 
 entry_target_contracts:
-  boundary: 'Entries declare surface-specific input and responses. target.with maps external entry input onto the target operation or FSM context.'
-  fsm: 'FSM entry targets use target.fsm.name plus target.fsm.surface to distinguish the entrypoint surface from its html/textual realization.'
-  workflow: 'Workflow entry targets use target.workflow.name plus target.workflow.trigger so the entrypoint declares the trigger data it consumes. Workers declare message dispositions; workflows declare terminal outcomes and route each step outcome explicitly.'
+  boundary: 'Entry points declare adapter-specific input and responses. trigger.*.with maps adapter input onto the target operation or state-machine context.'
+  fsm: 'State-machine entry triggers use trigger.state_machine.ref plus trigger.state_machine.render to distinguish invocation from html/textual rendering.'
+  workflow: 'Workflow entry triggers use trigger.workflow.ref plus trigger.workflow.when so the entry point declares the trigger data it consumes. Workers declare message dispositions; workflows declare terminal outcomes and route each step outcome explicitly.'
 
 presentation_contracts:
   html:

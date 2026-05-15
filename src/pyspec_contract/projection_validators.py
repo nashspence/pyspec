@@ -38,6 +38,7 @@ from .audit import (
 from .layout import layout_textual
 from .paths import GENERATED_SPEC_DIR, SPEC_ROOT, generated_relative as g
 from .project import (
+    _cwl_operation_ids,
     components_projection,
     validated_projection_paths,
     composition_tcss_selector,
@@ -50,7 +51,7 @@ from .project import (
     textual_screen_entries,
     type_schema,
 )
-from .targets import entry_fsm_name
+from .targets import entry_fsm_name, entry_point_adapter_pair, entry_point_input, entry_point_method, entry_point_path, entry_point_responses, entry_target_pair
 from .type_expr import sample_value
 
 _HTTP_METHODS = {"get", "put", "post", "delete", "patch", "head", "options", "trace"}
@@ -120,14 +121,16 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
         raise ContractError("OpenAPI components do not exactly match contract schemas")
 
     expected_operations: dict[tuple[str, str], tuple[str, dict[str, Any], dict[str, Any]]] = {}
-    for entry_id, entry in sorted(contract["entries"].items()):
-        if entry["surface"] != "api":
+    for entry_id, entry in sorted(contract["entry_points"].items()):
+        if entry_point_adapter_pair(entry)[0] != "http":
             continue
-        method = entry["method"].lower()
-        key = (entry["path"], method)
+        target_kind, cap_id = entry_target_pair(entry)
+        if target_kind != "operation":
+            continue
+        method = (entry_point_method(entry) or "").lower()
+        key = (entry_point_path(entry), method)
         if key in expected_operations:
-            raise ContractError(f"OpenAPI duplicate path/method binding in contract: {entry['path']} {method}")
-        cap_id = entry["target"]["operation"]
+            raise ContractError(f"OpenAPI duplicate path/method binding in contract: {entry_point_path(entry)} {method}")
         expected_operations[key] = (entry_id, entry, contract["operations"][cap_id])
 
     actual_operations: dict[tuple[str, str], dict[str, Any]] = {}
@@ -152,7 +155,7 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
         unknown_keys = set(operation) - _OPENAPI_OPERATION_KEYS
         if unknown_keys:
             raise ContractError(f"OpenAPI {method.upper()} {path} has unsupported operation keys: {sorted(unknown_keys)}")
-        cap_id = entry["target"]["operation"]
+        _, cap_id = entry_target_pair(entry)
         if operation.get("operationId") in seen_operation_ids:
             raise ContractError(f"OpenAPI operationId is duplicated: {operation.get('operationId')}")
         seen_operation_ids.add(operation.get("operationId"))
@@ -164,7 +167,7 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             raise ContractError(f"OpenAPI policy extension does not match operation {cap_id}")
 
         placeholders = _path_params(path)
-        params = entry.get("input", {}).get("params", {})
+        params = entry_point_input(entry).get("params", {})
         if placeholders != set(params):
             raise ContractError(f"OpenAPI path params for {entry_id} do not match declared params")
         expected_params = [
@@ -174,7 +177,7 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
         if operation.get("parameters", []) != expected_params:
             raise ContractError(f"OpenAPI parameters do not match entry params for {entry_id}")
 
-        body_fields = entry.get("input", {}).get("body", {})
+        body_fields = entry_point_input(entry).get("body", {})
         if body_fields and method not in {"get", "delete"}:
             expected_body = {
                 "required": True,
@@ -190,7 +193,7 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
                 "description": humanize(outcome_id),
                 "content": {"application/json": {"schema": type_schema(response["body"]["type"])}},
             }
-            for outcome_id, response in sorted(entry["responses"].items())
+            for outcome_id, response in sorted(entry_point_responses(entry).items())
         }
         if operation.get("responses") != expected_responses:
             raise ContractError(f"OpenAPI response schema does not match entry responses for {entry_id}")
@@ -292,13 +295,13 @@ def validate_asyncapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
 
 def _workflow_entry_dispositions(contract: dict[str, Any], workflow_id: str) -> dict[str, Any]:
     dispositions: dict[str, Any] = {}
-    for entry_id, entry in sorted(contract.get("entries", {}).items()):
-        if entry.get("surface") not in {"worker", "schedule"}:
+    for entry_id, entry in sorted(contract.get("entry_points", {}).items()):
+        if entry_point_adapter_pair(entry)[0] not in {"worker", "scheduled"}:
             continue
-        target = entry.get("target", {}).get("workflow")
-        if not isinstance(target, dict) or target.get("name") != workflow_id:
+        target_kind, target_ref = entry_target_pair(entry)
+        if target_kind != "workflow" or target_ref != workflow_id:
             continue
-        dispositions[entry_id] = entry.get("responses", {})
+        dispositions[entry_id] = entry_point_responses(entry)
     return dispositions
 
 
@@ -307,17 +310,17 @@ def validate_routes(contract: dict[str, Any], doc: dict[str, Any]) -> None:
     if doc["project"] != contract["project"]:
         raise ContractError("routes.json project does not match contract")
     expected = []
-    for entry_id, entry in sorted(contract["entries"].items()):
-        if entry["surface"] == "web":
+    for entry_id, entry in sorted(contract["entry_points"].items()):
+        if entry_point_adapter_pair(entry)[0] == "ui":
             expected.append({
                 "id": entry["route"],
                 "entry": entry_id,
-                "path": entry["path"],
-                "params": entry.get("input", {}).get("params", {}),
+                "path": entry_point_path(entry),
+                "params": entry_point_input(entry).get("params", {}),
                 "fsm": entry_fsm_name(entry),
             })
     if doc["routes"] != expected:
-        raise ContractError("routes.json does not exactly match web entries")
+        raise ContractError("routes.json does not exactly match UI entry points")
     for route in doc["routes"]:
         if _path_params(route["path"]) != set(route["params"]):
             raise ContractError(f"Route {route['id']} path params do not match declared params")
@@ -509,7 +512,7 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
     if len(by_id) != len(graph):
         raise ContractError("CWL $graph contains duplicate or missing ids")
     expected_ids = {f"#{safe_id(workflow_id)}" for workflow_id in contract["workflows"]}
-    expected_ids.update(f"#{safe_id(cap_id)}" for cap_id in contract["operations"])
+    expected_ids.update(f"#{safe_id(cap_id)}" for cap_id in _cwl_operation_ids(contract))
     if set(by_id) != expected_ids:
         raise ContractError(_diff_message("CWL graph ids", expected_ids, set(by_id)))
 
@@ -543,7 +546,8 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             if set(actual) != {"doc", "run", "in", "out"} or actual.get("doc") != expected_doc or actual.get("in") != expected_in or actual.get("out") != expected_out:
                 raise ContractError(f"CWL workflow {workflow_id} step {step['id']} malformed")
 
-    for cap_id, cap in sorted(contract["operations"].items()):
+    for cap_id in _cwl_operation_ids(contract):
+        cap = contract["operations"][cap_id]
         item = by_id[f"#{safe_id(cap_id)}"]
         if set(item) != {"id", "class", "label", "baseCommand", "inputs", "outputs"}:
             raise ContractError(f"CWL operation node {cap_id} has unsupported keys")
@@ -629,9 +633,9 @@ def validate_audit_outputs(root: Path, contract: dict[str, Any]) -> None:
         for state_name, state in fsm.get("states", {}).items():
             if state.get("mounts"):
                 _assert_svg(root / composition_file(fsm_id, state_name), f"composition {fsm_id}.{state_name}")
-    for entry_id in contract.get("entries", {}):
-        entry = contract["entries"][entry_id]
-        _assert_svg(root / entrypoint_flow_file(entry_id, entry["surface"]), f"entrypoint {entry_id}")
+    for entry_id, entry in contract.get("entry_points", {}).items():
+        adapter_kind, _ = entry_point_adapter_pair(entry)
+        _assert_svg(root / entrypoint_flow_file(entry_id, adapter_kind), f"entrypoint {entry_id}")
     for workflow_id in contract.get("workflows", {}):
         _assert_svg(root / workflow_flow_file(workflow_id), f"workflow {workflow_id}")
 
@@ -760,7 +764,7 @@ def validate_refs_py(root: Path, contract: dict[str, Any]) -> None:
         "Asset": sorted(contract.get("assets", {})),
         "AuditProfile": sorted(contract.get("audit_profiles", {})),
         "ContentCase": sorted(contract.get("content_cases", {})),
-        "EntryPoint": sorted(contract["entries"]),
+        "EntryPoint": sorted(contract["entry_points"]),
         "Event": sorted(contract["events"]),
         "Fact": sorted(contract.get("facts", {})),
         "Fixture": sorted(contract["fixtures"]),

@@ -9,7 +9,15 @@ from .agent_prompts import agent_prompt_paths, agent_prompt_projection_files
 from .layout import layout_html, layout_textual, layout_textual_containers
 from .paths import generated_relative as g
 from .runtime_refs import ReferenceExpressionError, parse_reference_expression
-from .targets import entry_fsm_name
+from .targets import (
+    entry_fsm_name,
+    entry_point_adapter_pair,
+    entry_point_input,
+    entry_point_method,
+    entry_point_path,
+    entry_point_responses,
+    entry_target_pair,
+)
 from .type_expr import (
     PRIMITIVES,
     base_model_name,
@@ -98,25 +106,29 @@ def projection_files(contract: dict[str, Any], *, layers: str | set[str] | None 
     yield from agent_prompt_projection_files(contract, layers=layers)
 
 
-def _entries_with_surface(contract: dict[str, Any], *surfaces: str) -> list[dict[str, Any]]:
-    wanted = set(surfaces)
-    return [entry for entry in contract.get("entries", {}).values() if entry.get("surface") in wanted]
+def _entry_points_with_adapter(contract: dict[str, Any], *adapters: str) -> list[dict[str, Any]]:
+    wanted = set(adapters)
+    return [
+        entry
+        for entry in contract.get("entry_points", {}).values()
+        if entry_point_adapter_pair(entry)[0] in wanted
+    ]
 
 
 def _has_api(contract: dict[str, Any]) -> bool:
-    return bool(_entries_with_surface(contract, "api"))
+    return bool(_entry_points_with_adapter(contract, "http"))
 
 
 def _has_asyncapi(contract: dict[str, Any]) -> bool:
-    return bool(contract.get("events")) and (bool(_entries_with_surface(contract, "webhook", "worker")) or any("event" in wf.get("trigger", {}) for wf in contract.get("workflows", {}).values()))
+    return bool(contract.get("events")) and (bool(_entry_points_with_adapter(contract, "webhook", "worker")) or any("event" in wf.get("trigger", {}) for wf in contract.get("workflows", {}).values()))
 
 
 def _has_web_routes(contract: dict[str, Any]) -> bool:
-    return bool(_entries_with_surface(contract, "web"))
+    return bool(_entry_points_with_adapter(contract, "ui"))
 
 
 def _has_workflow(contract: dict[str, Any]) -> bool:
-    return bool(contract.get("workflows")) or bool(_entries_with_surface(contract, "cli", "worker", "schedule"))
+    return bool(contract.get("workflows")) or bool(_entry_points_with_adapter(contract, "cli", "worker", "scheduled"))
 
 
 def _has_ui(contract: dict[str, Any]) -> bool:
@@ -146,16 +158,18 @@ def _has_content(contract: dict[str, Any]) -> bool:
 
 def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
     paths: dict[str, Any] = {}
-    for entry_id, entry in sorted(contract["entries"].items()):
-        if entry["surface"] != "api":
+    for entry_id, entry in sorted(contract["entry_points"].items()):
+        if entry_point_adapter_pair(entry)[0] != "http":
             continue
-        cap_id = entry["target"]["operation"]
+        target_kind, cap_id = entry_target_pair(entry)
+        if target_kind != "operation":
+            continue
         cap = contract["operations"][cap_id]
-        entry_input = entry.get("input", {})
+        entry_input = entry_point_input(entry)
         params = entry_input.get("params", {})
         body_fields = entry_input.get("body", {})
         responses = {}
-        for outcome_id, response in sorted(entry["responses"].items()):
+        for outcome_id, response in sorted(entry_point_responses(entry).items()):
             response_status = str(response["status"])
             body_type = response["body"]["type"]
             responses[response_status] = {
@@ -173,12 +187,13 @@ def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
             ],
             "responses": responses,
         }
-        if body_fields and entry["method"].lower() not in {"get", "delete"}:
+        method = (entry_point_method(entry) or "").lower()
+        if body_fields and method not in {"get", "delete"}:
             op["requestBody"] = {
                 "required": True,
                 "content": {"application/json": {"schema": object_schema(body_fields)}}
             }
-        paths.setdefault(entry["path"], {})[entry["method"].lower()] = op
+        paths.setdefault(entry_point_path(entry), {})[method] = op
 
     components = components_projection(contract)
     return {
@@ -247,13 +262,13 @@ def asyncapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
 
 def _workflow_entry_dispositions(contract: dict[str, Any], workflow_id: str) -> dict[str, Any]:
     dispositions: dict[str, Any] = {}
-    for entry_id, entry in sorted(contract.get("entries", {}).items()):
-        if entry.get("surface") not in {"worker", "schedule"}:
+    for entry_id, entry in sorted(contract.get("entry_points", {}).items()):
+        if entry_point_adapter_pair(entry)[0] not in {"worker", "scheduled"}:
             continue
-        target = entry.get("target", {}).get("workflow")
-        if not isinstance(target, dict) or target.get("name") != workflow_id:
+        target_kind, target_ref = entry_target_pair(entry)
+        if target_kind != "workflow" or target_ref != workflow_id:
             continue
-        dispositions[entry_id] = entry.get("responses", {})
+        dispositions[entry_id] = entry_point_responses(entry)
     return dispositions
 
 
@@ -264,12 +279,12 @@ def routes_projection(contract: dict[str, Any]) -> dict[str, Any]:
             {
                 "id": entry["route"],
                 "entry": entry_id,
-                "path": entry["path"],
-                "params": entry.get("input", {}).get("params", {}),
+                "path": entry_point_path(entry),
+                "params": entry_point_input(entry).get("params", {}),
                 "fsm": entry_fsm_name(entry),
             }
-            for entry_id, entry in sorted(contract["entries"].items())
-            if entry["surface"] == "web"
+            for entry_id, entry in sorted(contract["entry_points"].items())
+            if entry_point_adapter_pair(entry)[0] == "ui"
         ],
     }
 
@@ -637,7 +652,8 @@ def workflows_projection(contract: dict[str, Any]) -> dict[str, Any]:
             },
             "steps": steps,
         })
-    for cap_id, cap in sorted(contract["operations"].items()):
+    for cap_id in _cwl_operation_ids(contract):
+        cap = contract["operations"][cap_id]
         graph.append({
             "id": f"#{safe_id(cap_id)}",
             "class": "CommandLineTool",
@@ -650,6 +666,20 @@ def workflows_projection(contract: dict[str, Any]) -> dict[str, Any]:
             },
         })
     return {"cwlVersion": "v1.2", "$graph": graph}
+
+
+def _cwl_operation_ids(contract: dict[str, Any]) -> list[str]:
+    operation_ids = {
+        step["operation"]
+        for workflow in contract.get("workflows", {}).values()
+        for step in workflow.get("steps", [])
+    }
+    for entry in contract.get("entry_points", {}).values():
+        adapter_kind, _ = entry_point_adapter_pair(entry)
+        target_kind, target_ref = entry_target_pair(entry)
+        if adapter_kind == "cli" and target_kind == "operation":
+            operation_ids.add(target_ref)
+    return sorted(operation_ids)
 
 
 def _workflow_trigger_payload_type(contract: dict[str, Any], workflow: dict[str, Any]) -> str:
@@ -773,7 +803,7 @@ def refs_py_projection(contract: dict[str, Any]) -> str:
     groups: dict[str, list[str]] = {
         "Asset": sorted(contract.get("assets", {})),
         "AuditProfile": sorted(contract.get("audit_profiles", {})),
-        "EntryPoint": sorted(contract["entries"]),
+        "EntryPoint": sorted(contract["entry_points"]),
         "Operation": sorted(contract["operations"]),
         "Text": sorted(contract.get("copies", {})),
         "ContentCase": sorted(contract.get("content_cases", {})),

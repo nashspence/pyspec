@@ -44,72 +44,6 @@ $graph:
       type: Any
 - baseCommand:
   - contract-operation
-  - operation.project.archive
-  class: CommandLineTool
-  id: '#operation_project_archive'
-  inputs:
-    project_id:
-      type: string
-  label: operation.project.archive
-  outputs:
-    archived:
-      type: Any
-    invalid_state:
-      type: Any
-    not_found:
-      type: Any
-- baseCommand:
-  - contract-operation
-  - operation.project.create
-  class: CommandLineTool
-  id: '#operation_project_create'
-  inputs:
-    customer:
-      type: string
-    priority:
-      type: string
-    title:
-      type: string
-    workspace_id:
-      type: string
-  label: operation.project.create
-  outputs:
-    created:
-      type: Any
-    validation_failed:
-      type: Any
-- baseCommand:
-  - contract-operation
-  - operation.project.list
-  class: CommandLineTool
-  id: '#operation_project_list'
-  inputs:
-    workspace_id:
-      type: string
-  label: operation.project.list
-  outputs:
-    listed:
-      type:
-        items: Any
-        type: array
-    unavailable:
-      type: Any
-- baseCommand:
-  - contract-operation
-  - operation.project.read
-  class: CommandLineTool
-  id: '#operation_project_read'
-  inputs:
-    project_id:
-      type: string
-  label: operation.project.read
-  outputs:
-    found:
-      type: Any
-    not_found:
-      type: Any
-- baseCommand:
-  - contract-operation
   - operation.project.send_approval_notice
   class: CommandLineTool
   id: '#operation_project_send_approval_notice'
@@ -123,21 +57,5 @@ $graph:
     delivery_failed:
       type: Any
     sent:
-      type: Any
-- baseCommand:
-  - contract-operation
-  - operation.project.submit
-  class: CommandLineTool
-  id: '#operation_project_submit'
-  inputs:
-    project_id:
-      type: string
-  label: operation.project.submit
-  outputs:
-    invalid_state:
-      type: Any
-    not_found:
-      type: Any
-    submitted:
       type: Any
 cwlVersion: v1.2

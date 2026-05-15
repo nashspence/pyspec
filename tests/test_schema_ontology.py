@@ -15,7 +15,7 @@ COLLECTION_SECTIONS = {
     "operations": "operation",
     "content_cases": "content_case",
     "copies": "copy",
-    "entries": "entry",
+    "entry_points": "entry_point",
     "events": "event",
     "facts": "fact",
     "fixtures": "fixture",

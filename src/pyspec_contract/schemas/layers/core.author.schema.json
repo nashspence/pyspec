@@ -238,59 +238,25 @@
       ],
       "type": "object"
     },
-    "authored_entry": {
+    "authored_entry_point": {
       "additionalProperties": false,
       "properties": {
+        "adapter": {
+          "$ref": "#/$defs/entry_point_adapter"
+        },
         "basis": {
           "$ref": "#/$defs/basis"
         },
-        "command": {
-          "pattern": "^[a-z][a-z0-9_-]*( [a-z][a-z0-9_-]*)*$",
-          "type": "string"
-        },
-        "input": {
-          "$ref": "#/$defs/entry_input"
-        },
-        "method": {
-          "enum": [
-            "GET",
-            "POST",
-            "PUT",
-            "PATCH",
-            "DELETE"
-          ]
-        },
-        "path": {
-          "pattern": "^/",
-          "type": "string"
-        },
-        "responses": {
-          "$ref": "#/$defs/entry_responses"
-        },
-        "schedule": {
-          "minLength": 1,
-          "type": "string"
-        },
-        "surface": {
-          "enum": [
-            "web",
-            "api",
-            "cli",
-            "worker",
-            "schedule",
-            "webhook"
-          ]
-        },
-        "target": {
-          "$ref": "#/$defs/entry_target"
+        "trigger": {
+          "$ref": "#/$defs/entry_point_trigger"
         },
         "why": {
           "$ref": "#/$defs/basis"
         }
       },
       "required": [
-        "surface",
-        "target"
+        "adapter",
+        "trigger"
       ],
       "type": "object"
     },
@@ -786,6 +752,34 @@
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
     },
+    "cli_adapter": {
+      "additionalProperties": false,
+      "properties": {
+        "cli_command": {
+          "pattern": "^[a-z][a-z0-9_-]*( [a-z][a-z0-9_-]*)*$",
+          "type": "string"
+        },
+        "input": {
+          "$ref": "#/$defs/cli_adapter_input"
+        },
+        "responses": {
+          "$ref": "#/$defs/entry_responses"
+        }
+      },
+      "required": [
+        "cli_command"
+      ],
+      "type": "object"
+    },
+    "cli_adapter_input": {
+      "additionalProperties": false,
+      "properties": {
+        "args": {
+          "$ref": "#/$defs/type_expr_map"
+        }
+      },
+      "type": "object"
+    },
     "condition_contract": {
       "oneOf": [
         {
@@ -948,39 +942,73 @@
       },
       "type": "object"
     },
-    "entry_fsm_target": {
+    "entry_operation_trigger": {
       "additionalProperties": false,
       "properties": {
-        "name": {
-          "$ref": "#/$defs/state_machine_ref"
+        "ref": {
+          "$ref": "#/$defs/operation_ref"
         },
-        "surface": {
-          "enum": [
-            "html",
-            "textual"
-          ]
+        "with": {
+          "$ref": "#/$defs/entry_bindings"
         }
       },
       "required": [
-        "name",
-        "surface"
+        "ref"
       ],
       "type": "object"
     },
-    "entry_input": {
+    "entry_point_adapter": {
       "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "http"
+          ]
+        },
+        {
+          "required": [
+            "cli"
+          ]
+        },
+        {
+          "required": [
+            "webhook"
+          ]
+        },
+        {
+          "required": [
+            "scheduled"
+          ]
+        },
+        {
+          "required": [
+            "worker"
+          ]
+        },
+        {
+          "required": [
+            "ui"
+          ]
+        }
+      ],
       "properties": {
-        "args": {
-          "$ref": "#/$defs/type_expr_map"
+        "cli": {
+          "$ref": "#/$defs/cli_adapter"
         },
-        "body": {
-          "$ref": "#/$defs/type_expr_map"
+        "http": {
+          "$ref": "#/$defs/http_adapter"
         },
-        "params": {
-          "$ref": "#/$defs/type_expr_map"
+        "scheduled": {
+          "$ref": "#/$defs/scheduled_adapter"
         },
-        "payload": {
-          "$ref": "#/$defs/type_expr"
+        "ui": {
+          "$ref": "#/$defs/ui_adapter"
+        },
+        "webhook": {
+          "$ref": "#/$defs/webhook_adapter"
+        },
+        "worker": {
+          "$ref": "#/$defs/worker_adapter"
         }
       },
       "type": "object"
@@ -988,6 +1016,38 @@
     "entry_point_ref": {
       "pattern": "^entry_point\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
+    },
+    "entry_point_trigger": {
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "operation"
+          ]
+        },
+        {
+          "required": [
+            "state_machine"
+          ]
+        },
+        {
+          "required": [
+            "workflow"
+          ]
+        }
+      ],
+      "properties": {
+        "operation": {
+          "$ref": "#/$defs/entry_operation_trigger"
+        },
+        "state_machine": {
+          "$ref": "#/$defs/entry_state_machine_trigger"
+        },
+        "workflow": {
+          "$ref": "#/$defs/entry_workflow_trigger"
+        }
+      },
+      "type": "object"
     },
     "entry_response": {
       "additionalProperties": false,
@@ -1051,54 +1111,41 @@
       },
       "type": "object"
     },
-    "entry_target": {
+    "entry_state_machine_trigger": {
       "additionalProperties": false,
-      "oneOf": [
-        {
-          "required": [
-            "operation"
-          ]
-        },
-        {
-          "required": [
-            "fsm"
-          ]
-        },
-        {
-          "required": [
-            "workflow"
-          ]
-        }
-      ],
       "properties": {
-        "fsm": {
-          "$ref": "#/$defs/entry_fsm_target"
+        "ref": {
+          "$ref": "#/$defs/state_machine_ref"
         },
-        "operation": {
-          "$ref": "#/$defs/operation_ref"
+        "render": {
+          "enum": [
+            "html",
+            "textual"
+          ]
         },
         "with": {
           "$ref": "#/$defs/entry_bindings"
-        },
-        "workflow": {
-          "$ref": "#/$defs/entry_workflow_target"
         }
       },
+      "required": [
+        "ref",
+        "render"
+      ],
       "type": "object"
     },
-    "entry_workflow_target": {
+    "entry_workflow_trigger": {
       "additionalProperties": false,
       "properties": {
-        "name": {
+        "ref": {
           "$ref": "#/$defs/workflow_ref"
         },
-        "trigger": {
+        "when": {
           "$ref": "#/$defs/workflow_trigger_target"
         }
       },
       "required": [
-        "name",
-        "trigger"
+        "ref",
+        "when"
       ],
       "type": "object"
     },
@@ -1680,6 +1727,47 @@
       ],
       "type": "object"
     },
+    "http_adapter": {
+      "additionalProperties": false,
+      "properties": {
+        "input": {
+          "$ref": "#/$defs/http_adapter_input"
+        },
+        "method": {
+          "enum": [
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE"
+          ]
+        },
+        "path": {
+          "pattern": "^/",
+          "type": "string"
+        },
+        "responses": {
+          "$ref": "#/$defs/entry_responses"
+        }
+      },
+      "required": [
+        "method",
+        "path"
+      ],
+      "type": "object"
+    },
+    "http_adapter_input": {
+      "additionalProperties": false,
+      "properties": {
+        "body": {
+          "$ref": "#/$defs/type_expr_map"
+        },
+        "params": {
+          "$ref": "#/$defs/type_expr_map"
+        }
+      },
+      "type": "object"
+    },
     "instance_id": {
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
@@ -2001,6 +2089,22 @@
     "scenario_ref": {
       "pattern": "^scenario\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
+    },
+    "scheduled_adapter": {
+      "additionalProperties": false,
+      "properties": {
+        "responses": {
+          "$ref": "#/$defs/entry_responses"
+        },
+        "schedule_expression": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "schedule_expression"
+      ],
+      "type": "object"
     },
     "state_machine_ref": {
       "pattern": "^state_machine\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
@@ -2638,12 +2742,68 @@
       },
       "type": "object"
     },
+    "ui_adapter": {
+      "additionalProperties": false,
+      "properties": {
+        "input": {
+          "$ref": "#/$defs/ui_adapter_input"
+        },
+        "path": {
+          "pattern": "^/",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "type": "object"
+    },
+    "ui_adapter_input": {
+      "additionalProperties": false,
+      "properties": {
+        "params": {
+          "$ref": "#/$defs/type_expr_map"
+        }
+      },
+      "type": "object"
+    },
     "value_map": {
       "additionalProperties": {
         "$ref": "#/$defs/scalar"
       },
       "propertyNames": {
         "$ref": "#/$defs/field_name"
+      },
+      "type": "object"
+    },
+    "webhook_adapter": {
+      "additionalProperties": false,
+      "properties": {
+        "input": {
+          "$ref": "#/$defs/webhook_adapter_input"
+        },
+        "path": {
+          "pattern": "^/",
+          "type": "string"
+        },
+        "responses": {
+          "$ref": "#/$defs/entry_responses"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "type": "object"
+    },
+    "webhook_adapter_input": {
+      "additionalProperties": false,
+      "properties": {
+        "params": {
+          "$ref": "#/$defs/type_expr_map"
+        },
+        "payload": {
+          "$ref": "#/$defs/type_expr"
+        }
       },
       "type": "object"
     },
@@ -2746,6 +2906,27 @@
           "type": "object"
         }
       ]
+    },
+    "worker_adapter": {
+      "additionalProperties": false,
+      "properties": {
+        "input": {
+          "$ref": "#/$defs/worker_adapter_input"
+        },
+        "responses": {
+          "$ref": "#/$defs/entry_responses"
+        }
+      },
+      "type": "object"
+    },
+    "worker_adapter_input": {
+      "additionalProperties": false,
+      "properties": {
+        "payload": {
+          "$ref": "#/$defs/type_expr"
+        }
+      },
+      "type": "object"
     },
     "workflow_bindings": {
       "additionalProperties": {

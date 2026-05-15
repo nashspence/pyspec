@@ -22,7 +22,18 @@ from .layout import layout_html, layout_html_regions
 from .paths import GENERATED_SPEC_DIR, generated_relative as g
 from .project import css_value, default_html_slots, format_attrs, humanize, fsms_projection, fsm_styles_projection, safe_id
 from .runtime import fixture_namespace, resolve
-from .targets import entry_fsm_surface, entry_target_pair, entry_workflow_trigger
+from .targets import (
+    entry_fsm_surface,
+    entry_point_adapter_pair,
+    entry_point_cli_command,
+    entry_point_input,
+    entry_point_method,
+    entry_point_path,
+    entry_point_responses,
+    entry_point_schedule_expression,
+    entry_target_pair,
+    entry_workflow_trigger,
+)
 from .type_expr import effective_field_type, type_display
 
 ROOT = Path(__file__).resolve().parent
@@ -102,8 +113,8 @@ def composition_file(fsm_id: str, state_name: str = "ready") -> str:
     return g("audit_evidence", "fsms", safe_id(fsm_id), "states", safe_id(state_name), "composition.svg")
 
 
-def entrypoint_flow_file(entry_id: str, surface: str) -> str:
-    return g("audit_evidence", "entrypoints", safe_id(surface), safe_id(entry_id), "flow.svg")
+def entrypoint_flow_file(entry_id: str, adapter_kind: str) -> str:
+    return g("audit_evidence", "entrypoints", safe_id(adapter_kind), safe_id(entry_id), "flow.svg")
 
 
 def workflow_flow_file(workflow_id: str) -> str:
@@ -299,8 +310,9 @@ def audit_expected_files(contract: dict[str, Any]) -> set[str]:
         for state_name, state in fsm.get("states", {}).items():
             if state.get("mounts"):
                 files.add(composition_file(fsm_id, state_name))
-    for entry_id, entry in contract.get("entries", {}).items():
-        files.add(entrypoint_flow_file(entry_id, entry["surface"]))
+    for entry_id, entry in contract.get("entry_points", {}).items():
+        adapter_kind, _ = entry_point_adapter_pair(entry)
+        files.add(entrypoint_flow_file(entry_id, adapter_kind))
     for workflow_id in contract.get("workflows", {}):
         files.add(workflow_flow_file(workflow_id))
 
@@ -413,8 +425,9 @@ def _render_visual_audit(
                 composition_dot(f"{fsm_id}.{state_name}", {"context": fsm.get("context", {}), **state}, contract),
                 _previous_audit_path(root, previous_audit_root, path),
             )
-    for entry_id, entry in sorted(contract.get("entries", {}).items()):
-        path = root / entrypoint_flow_file(entry_id, entry["surface"])
+    for entry_id, entry in sorted(contract.get("entry_points", {}).items()):
+        adapter_kind, _ = entry_point_adapter_pair(entry)
+        path = root / entrypoint_flow_file(entry_id, adapter_kind)
         _write_graphviz_svg(path, entrypoint_flow_dot(entry_id, entry, contract), _previous_audit_path(root, previous_audit_root, path))
     for workflow_id, workflow in sorted(contract.get("workflows", {}).items()):
         path = root / workflow_flow_file(workflow_id)
@@ -890,7 +903,8 @@ def composition_dot(fsm_id: str, fsm: dict[str, Any], contract: dict[str, Any]) 
 
 
 def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str, Any]) -> str:
-    target_kind, target_value = entry_target_pair(entry["target"])
+    adapter_kind, _ = entry_point_adapter_pair(entry)
+    target_kind, target_value = entry_target_pair(entry)
     target_surface = entry_fsm_surface(entry) if target_kind == "fsm" else None
     target_trigger = entry_workflow_trigger(entry) if target_kind == "workflow" else None
     start_id = "entry_start"
@@ -901,7 +915,7 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
     exit_id = "entry_exit"
     target_tail = [] if target_kind == "fsm" else _entry_target_tail_nodes(target_kind, target_value, contract)
     input_sections = _entry_input_sections(entry, contract)
-    input_title, output_title = _entry_io_card_titles(entry["surface"])
+    input_title, output_title = _entry_io_card_titles(adapter_kind)
     lines = _dot_graph_preamble("entrypoint_" + safe_id(entry_id))
     lines.extend(
         [
@@ -910,7 +924,7 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
                 entry_node,
                 _dot_card(
                     _entry_surface_title(entry),
-                    f"{entry['surface']} entry",
+                    f"{adapter_kind} entry point",
                     _entry_binding_sections(entry),
                     basis=entry.get("basis", ""),
                     style=_DOT_STYLE_ENTRY,
@@ -958,14 +972,14 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
     return "\n".join(lines) + "\n"
 
 
-def _entry_io_card_titles(surface: str) -> tuple[str, str]:
-    if surface in {"api", "web", "webhook"}:
+def _entry_io_card_titles(adapter_kind: str) -> tuple[str, str]:
+    if adapter_kind in {"http", "ui", "webhook"}:
         return "request", "response"
-    if surface == "cli":
+    if adapter_kind == "cli":
         return "command input", "command output"
-    if surface == "worker":
+    if adapter_kind == "worker":
         return "event payload", "message disposition"
-    if surface == "schedule":
+    if adapter_kind == "scheduled":
         return "schedule trigger", "trigger disposition"
     return "input", "output"
 
@@ -1028,18 +1042,18 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
 
 
 def _entry_surface_title(entry: dict[str, Any]) -> str:
-    surface = entry["surface"]
-    if surface == "api":
-        return f"{entry.get('method', '').upper()} {entry.get('path', '')}".strip()
-    if surface in {"web", "webhook"}:
-        return entry.get("path", surface)
-    if surface == "cli":
-        return entry.get("command", surface)
-    if surface == "schedule":
-        return entry.get("schedule", surface)
-    if surface == "worker":
-        return entry.get("workflow_ref", surface)
-    return surface
+    adapter_kind, _ = entry_point_adapter_pair(entry)
+    if adapter_kind == "http":
+        return f"{(entry_point_method(entry) or '').upper()} {entry_point_path(entry) or ''}".strip()
+    if adapter_kind in {"ui", "webhook"}:
+        return entry_point_path(entry) or adapter_kind
+    if adapter_kind == "cli":
+        return entry_point_cli_command(entry) or adapter_kind
+    if adapter_kind == "scheduled":
+        return entry_point_schedule_expression(entry) or adapter_kind
+    if adapter_kind == "worker":
+        return entry.get("workflow_ref", adapter_kind)
+    return adapter_kind
 
 
 def _entry_binding_sections(entry: dict[str, Any]) -> list[tuple[str, list[object]]]:
@@ -1047,16 +1061,19 @@ def _entry_binding_sections(entry: dict[str, Any]) -> list[tuple[str, list[objec
         "route": "route",
         "screen": "screen",
         "endpoint": "endpoint",
-        "command_ref": "command",
+        "cli_command_ref": "cli command",
         "workflow_ref": "workflow",
-        "schedule": "schedule",
     }
-    return [(label, [entry[key]]) for key, label in labels.items() if entry.get(key)]
+    sections = [(label, [entry[key]]) for key, label in labels.items() if entry.get(key)]
+    schedule = entry_point_schedule_expression(entry)
+    if schedule:
+        sections.append(("schedule", [schedule]))
+    return sections
 
 
 def _entry_input_sections(entry: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
-    entry_input = entry.get("input", {})
+    entry_input = entry_point_input(entry)
     if entry_input.get("params"):
         sections.append(("params", _typed_fields(entry_input["params"])))
     if entry_input.get("body"):
@@ -1069,10 +1086,10 @@ def _entry_input_sections(entry: dict[str, Any], contract: dict[str, Any]) -> li
 
 
 def _entry_response_nodes(entry_id: str, entry: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, str, str | None, list[tuple[str, list[object]]]]]:
-    responses = entry.get("responses", {})
+    responses = entry_point_responses(entry)
     if not responses:
         return []
-    target_kind, target_value = entry_target_pair(entry["target"])
+    target_kind, target_value = entry_target_pair(entry)
     outcomes = contract["operations"][target_value]["outcomes"] if target_kind == "operation" else {}
     nodes = []
     for outcome_id, response in sorted(responses.items()):

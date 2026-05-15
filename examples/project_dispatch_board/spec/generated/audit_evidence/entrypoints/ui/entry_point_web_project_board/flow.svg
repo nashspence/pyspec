@@ -1,6 +1,6 @@
 <svg width="809pt" height="187pt"
  viewBox="0.00 0.00 809.00 187.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: c0a478b28f71f365812e511b73646774ae597c27983739d8c4830849e6937a19 -->
+<!-- pyspec-contract-input-sha256: 4d559bf5cf5740e01a752923a8f76f009a323383aca058252a32f657c09fb3de -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 169)">
 <title>entrypoint_entry_point_web_project_board</title>
 <!-- entry_start -->
@@ -16,7 +16,7 @@
 <polygon fill="#0891b2" stroke="transparent" points="104.5,-106.5 104.5,-114.5 355.5,-114.5 355.5,-106.5 104.5,-106.5"/>
 <polygon fill="#ecfeff" stroke="transparent" points="104.5,-75.5 104.5,-106.5 355.5,-106.5 355.5,-75.5 104.5,-75.5"/>
 <text text-anchor="start" x="108.5" y="-93.1" font-family="Arial" font-weight="bold" font-size="13.00">/workspaces/{workspace_id}/dispatch</text>
-<text text-anchor="start" x="108.5" y="-82.1" font-family="Arial" font-size="8.00" fill="#64748b">web entry</text>
+<text text-anchor="start" x="108.5" y="-82.1" font-family="Arial" font-size="8.00" fill="#64748b">ui entry point</text>
 <text text-anchor="start" x="108.5" y="-64.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Web entry for the dispatch board.</text>
 <text text-anchor="start" x="109.5" y="-44.5" font-family="Arial" font-weight="bold" font-size="10.00">route:</text>
 <text text-anchor="start" x="137.5" y="-44.5" font-family="Arial" font-size="10.00">  route.project.board</text>
