@@ -18,7 +18,7 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - <!-- top-level:project --> `project`: the project slug for the specification workspace.
 - <!-- top-level:refs --> `refs`: compiled-only index of generated references used by projections and tests.
 - <!-- top-level:scenarios --> `scenarios`: behavior examples compiled into semantic scenario YAML and BDD features.
-- <!-- top-level:workflows --> `workflows`: asynchronous or long-running flows with triggers, steps, routes, and outcomes.
+- <!-- top-level:workflows --> `workflows`: asynchronous or long-running flows with triggers, steps, input bindings, exclusive outcome routes, and outcomes.
 
 ## ID Namespaces
 
@@ -47,7 +47,7 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `entry_state_machine_trigger`: state-machine ref, render target (`html` or `textual`), and context bindings.
 - `entry_workflow_trigger`: workflow ref plus the `when` trigger that must match the workflow.
 - `workflow_trigger_target`: event or operation trigger for workflow execution.
-- `workflow_routes` and `workflow_route`: step outcome routing to next steps or terminal outcomes.
+- `workflow_input_bindings`, `workflow_outcome_routes`, and `workflow_route`: step input mapping and exclusive outcome routing via `next_step`, `complete_as`, `fail_as`, `retry_policy`, or `dead_letter`.
 - `state_machine_messages` and `state_machine_message`: local UI/component/state-machine message contracts split into accepted and emitted messages with `payload_schema` maps.
 - `sync_trigger`, `sync_action`, `sync_effect`, and `sync_send_effect`: mounted instance/message references for composed FSM sync; sends use `payload_bindings`.
 - `mount_item` and `authored_mount`: child state-machine references plus context mappings.
@@ -239,14 +239,14 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:when --> `$defs/when`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:worker_adapter --> `$defs/worker_adapter`: worker adapter contract with payload input and message disposition responses.
 - <!-- schema-def:worker_adapter_input --> `$defs/worker_adapter_input`: worker adapter payload input section.
-- <!-- schema-def:workflow_bindings --> `$defs/workflow_bindings`: runtime reference binding map.
+- <!-- schema-def:workflow_input_bindings --> `$defs/workflow_input_bindings`: workflow step input binding map from trigger or prior step runtime references.
 - <!-- schema-def:workflow_item --> `$defs/workflow_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:workflow_outcome --> `$defs/workflow_outcome`: typed outcome declaration or named outcome map.
+- <!-- schema-def:workflow_outcome_routes --> `$defs/workflow_outcome_routes`: workflow step outcome route map keyed by declared operation outcome id.
 - <!-- schema-def:workflow_outcomes --> `$defs/workflow_outcomes`: typed outcome declaration or named outcome map.
 - <!-- schema-def:workflow_ref --> `$defs/workflow_ref`: typed reference definition for its namespace.
-- <!-- schema-def:workflow_retry --> `$defs/workflow_retry`: workflow contract component.
-- <!-- schema-def:workflow_route --> `$defs/workflow_route`: workflow contract component.
-- <!-- schema-def:workflow_routes --> `$defs/workflow_routes`: workflow contract component.
+- <!-- schema-def:workflow_retry_policy --> `$defs/workflow_retry_policy`: workflow retry action with attempts, backoff, and terminal fail_as outcome.
+- <!-- schema-def:workflow_route --> `$defs/workflow_route`: exclusive workflow route action: next_step, complete_as, fail_as, retry_policy, or dead_letter.
 - <!-- schema-def:workflow_source --> `$defs/workflow_source`: workflow contract component.
 - <!-- schema-def:workflow_step --> `$defs/workflow_step`: workflow contract component.
 - <!-- schema-def:workflow_trigger_target --> `$defs/workflow_trigger_target`: workflow contract component.

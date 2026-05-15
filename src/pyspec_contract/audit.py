@@ -1026,14 +1026,15 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
     if step_nodes:
         lines.append(_dot_edge(workflow_node, step_nodes[0][0]))
     for node_id, step in step_nodes:
-        for outcome_id, route in sorted(step["on"].items()):
+        for outcome_id, route in sorted(step["outcome_routes"].items()):
             attrs = {"label": outcome_id}
-            if "next" in route:
-                lines.append(_dot_edge(node_id, step_node_by_id[route["next"]], attrs))
-            elif "complete" in route:
-                lines.append(_dot_edge(node_id, outcome_node_by_id[route["complete"]], attrs))
-            elif "fail" in route:
-                lines.append(_dot_edge(node_id, outcome_node_by_id[route["fail"]], attrs))
+            action, value = _workflow_route_action(route)
+            if action == "next_step":
+                lines.append(_dot_edge(node_id, step_node_by_id[value], attrs))
+            else:
+                terminal = _workflow_route_terminal(action, value)
+                assert terminal is not None
+                lines.append(_dot_edge(node_id, outcome_node_by_id[terminal], attrs))
     if outcome_nodes:
         lines.append("  { rank=same; " + " ".join(_dot_quote(node_id) for node_id, _, _ in outcome_nodes) + " }")
         lines.extend(_dot_invisible_order([node_id for node_id, _, _ in outcome_nodes], indent="  "))
@@ -1242,7 +1243,7 @@ def _workflow_step_card(step: dict[str, Any], contract: dict[str, Any]) -> str:
         "workflow step",
         [
             ("operation", [step["operation"]]),
-            ("with", [f"{name} {_DOT_ARROW_ASSIGN} {source}" for name, source in sorted(step["with"].items())]),
+            ("input bindings", [f"{name} {_DOT_ARROW_ASSIGN} {source}" for name, source in sorted(step["input_bindings"].items())]),
             ("routes", _workflow_route_lines(step)),
         ] + _operation_sections(operation, contract),
         basis=operation.get("basis", ""),
@@ -1252,22 +1253,31 @@ def _workflow_step_card(step: dict[str, Any], contract: dict[str, Any]) -> str:
 
 def _workflow_route_lines(step: dict[str, Any]) -> list[str]:
     lines: list[str] = []
-    for outcome_id, route in sorted(step["on"].items()):
-        if "complete" in route:
-            target = f"complete {_DOT_ARROW_FORWARD} {route['complete']}"
-        elif "fail" in route:
-            target = f"fail {_DOT_ARROW_FORWARD} {route['fail']}"
+    for outcome_id, route in sorted(step["outcome_routes"].items()):
+        action, value = _workflow_route_action(route)
+        if action == "retry_policy":
+            target = f"retry_policy {_DOT_ARROW_FORWARD} {value['fail_as']}"
+            suffix = f" ({value['attempts']} {value['backoff']})"
         else:
-            target = f"next {_DOT_ARROW_FORWARD} {route['next']}"
-        details = []
-        if "retry" in route:
-            retry = route["retry"]
-            details.append(f"retry {retry['attempts']} {retry['backoff']}")
-        if route.get("dead_letter") is True:
-            details.append("dead letter")
-        suffix = f" ({', '.join(details)})" if details else ""
+            target = f"{action} {_DOT_ARROW_FORWARD} {value}"
+            suffix = ""
         lines.append(f"{outcome_id}: {target}{suffix}")
     return lines
+
+
+def _workflow_route_action(route: dict[str, Any]) -> tuple[str, Any]:
+    for action in ("next_step", "complete_as", "fail_as", "retry_policy", "dead_letter"):
+        if action in route:
+            return action, route[action]
+    raise KeyError("workflow route has no action")
+
+
+def _workflow_route_terminal(action: str, value: Any) -> str | None:
+    if action in {"complete_as", "fail_as", "dead_letter"}:
+        return value
+    if action == "retry_policy":
+        return value["fail_as"]
+    return None
 
 
 def _workflow_outcome_card(outcome_id: str, outcome: dict[str, Any]) -> str:

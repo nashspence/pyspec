@@ -1,6 +1,6 @@
 <svg width="1262pt" height="322pt"
  viewBox="0.00 0.00 1262.00 322.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 87d6cec615cf2ff5b84914ef4d2c97660175d342e2c2a4f11eb7906254423c75 -->
+<!-- pyspec-contract-input-sha256: 8190df85d32f855d0e5bbd10e550833ffa56fc88cf15619d9d99885abae85f8b -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 304)">
 <title>workflow_workflow_project_approval_notice</title>
 <!-- workflow_start -->
@@ -72,13 +72,13 @@
 <text text-anchor="start" x="765" y="-224" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">downstream coordination.</text>
 <text text-anchor="start" x="766" y="-204" font-family="Arial" font-weight="bold" font-size="10.00">operation:</text>
 <text text-anchor="start" x="814" y="-204" font-family="Arial" font-size="10.00">  operation.project.send_approval_notice</text>
-<text text-anchor="start" x="765" y="-184" font-family="Arial" font-weight="bold" font-size="10.00">with</text>
+<text text-anchor="start" x="765" y="-184" font-family="Arial" font-weight="bold" font-size="10.00">input bindings</text>
 <text text-anchor="start" x="765" y="-172" font-family="Arial" font-size="10.00">approved_by ← $trigger.payload.approved_by</text>
 <text text-anchor="start" x="765" y="-161" font-family="Arial" font-size="10.00">project_id ← $trigger.payload.project_id</text>
 <text text-anchor="start" x="765" y="-143" font-family="Arial" font-weight="bold" font-size="10.00">routes</text>
-<text text-anchor="start" x="765" y="-131" font-family="Arial" font-size="10.00">delivery_failed: fail → delivery_failed (retry 3</text>
+<text text-anchor="start" x="765" y="-131" font-family="Arial" font-size="10.00">delivery_failed: retry_policy → delivery_failed (3</text>
 <text text-anchor="start" x="765" y="-120" font-family="Arial" font-size="10.00">exponential)</text>
-<text text-anchor="start" x="765" y="-109" font-family="Arial" font-size="10.00">sent: complete → completed</text>
+<text text-anchor="start" x="765" y="-109" font-family="Arial" font-size="10.00">sent: complete_as → completed</text>
 <text text-anchor="start" x="765" y="-91" font-family="Arial" font-weight="bold" font-size="10.00">input</text>
 <text text-anchor="start" x="765" y="-80" font-family="Arial" font-size="10.00">approved_by</text>
 <text text-anchor="start" x="821" y="-80" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>

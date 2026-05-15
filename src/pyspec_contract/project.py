@@ -634,9 +634,9 @@ def workflows_projection(contract: dict[str, Any]) -> dict[str, Any]:
         for step in workflow["steps"]:
             cap = contract["operations"][step["operation"]]
             steps[step["id"]] = {
-                "doc": f"with={step['with']}; on={step['on']}",
+                "doc": f"input_bindings={step['input_bindings']}; outcome_routes={step['outcome_routes']}",
                 "run": f"#{safe_id(step['operation'])}",
-                "in": {name: _workflow_cwl_source(source) for name, source in sorted(step["with"].items())},
+                "in": {name: _workflow_cwl_source(source) for name, source in sorted(step["input_bindings"].items())},
                 "out": sorted(cap["outcomes"]),
             }
         trigger_payload_type = _workflow_trigger_payload_type(contract, workflow)

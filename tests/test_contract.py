@@ -856,7 +856,7 @@ def test_runtime_references_are_context_scoped() -> None:
 
 def test_runtime_references_validate_declared_fields() -> None:
     author = _author()
-    author["workflows"]["workflow.project.approval_notice"]["steps"][0]["with"]["project_id"] = "$trigger.payload.missing"
+    author["workflows"]["workflow.project.approval_notice"]["steps"][0]["input_bindings"]["project_id"] = "$trigger.payload.missing"
     with pytest.raises(ContractError, match=r"input project_id references unknown ProjectApproved field: missing"):
         compile_source(author)
 
@@ -899,15 +899,24 @@ def test_worker_entry_must_declare_realistic_dispositions() -> None:
 
 def test_workflow_steps_must_route_all_operation_outcomes() -> None:
     author = _author()
-    del author["workflows"]["workflow.project.approval_notice"]["steps"][0]["on"]["delivery_failed"]
-    with pytest.raises(ContractError, match=r"Workflow workflow.project\.approval_notice step send_notice on must exactly map operation outcomes: missing: delivery_failed"):
+    del author["workflows"]["workflow.project.approval_notice"]["steps"][0]["outcome_routes"]["delivery_failed"]
+    with pytest.raises(ContractError, match=r"Workflow workflow.project\.approval_notice step send_notice outcome_routes must exactly map operation outcomes: missing: delivery_failed"):
         compile_source(author)
 
 
-def test_workflow_failure_routes_must_declare_retry_or_dead_letter() -> None:
+def test_workflow_route_actions_must_be_exclusive() -> None:
     author = _author()
-    del author["workflows"]["workflow.project.approval_notice"]["steps"][0]["on"]["delivery_failed"]["retry"]
-    with pytest.raises(ContractError, match=r"Workflow workflow.project\.approval_notice step send_notice failure route delivery_failed must declare retry or dead_letter"):
+    route = author["workflows"]["workflow.project.approval_notice"]["steps"][0]["outcome_routes"]["delivery_failed"]
+    route["fail_as"] = "delivery_failed"
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_source(author)
+
+
+def test_workflow_routes_must_reference_known_targets() -> None:
+    author = _author()
+    route = author["workflows"]["workflow.project.approval_notice"]["steps"][0]["outcome_routes"]["delivery_failed"]
+    route["retry_policy"]["fail_as"] = "missing"
+    with pytest.raises(ContractError, match=r"route delivery_failed references unknown workflow outcome missing"):
         compile_source(author)
 
 

@@ -1662,17 +1662,17 @@ workflows:
     ref: workflow.project.approval_notice
     steps:
     - id: send_notice
-      on:
-        delivery_failed:
-          fail: delivery_failed
-          retry:
-            attempts: 3
-            backoff: exponential
-        sent:
-          complete: completed
-      operation: operation.project.send_approval_notice
-      with:
+      input_bindings:
         approved_by: $trigger.payload.approved_by
         project_id: $trigger.payload.project_id
+      operation: operation.project.send_approval_notice
+      outcome_routes:
+        delivery_failed:
+          retry_policy:
+            attempts: 3
+            backoff: exponential
+            fail_as: delivery_failed
+        sent:
+          complete_as: completed
     trigger:
       event: event.project.approved

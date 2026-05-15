@@ -299,17 +299,21 @@ class ReferenceSpecDriver:
         namespace: dict[str, Any] = {"trigger": {"payload": payload}, "steps": {}}
         while True:
             step = step_by_id[current]
-            input_values = {name: _resolve_binding(source, namespace) for name, source in step["with"].items()}
+            input_values = {name: _resolve_binding(source, namespace) for name, source in step["input_bindings"].items()}
             result = self._invoke(step["operation"], input_values)
             outcome_id = self.last_outcome
             assert outcome_id is not None
             namespace["steps"].setdefault(step["id"], {"outcomes": {}})["outcomes"][outcome_id] = {"result": result}
-            route = step["on"][outcome_id]
-            if "complete" in route:
-                return route["complete"]
-            if "fail" in route:
-                return route["fail"]
-            current = route["next"]
+            route = step["outcome_routes"][outcome_id]
+            if "complete_as" in route:
+                return route["complete_as"]
+            if "fail_as" in route:
+                return route["fail_as"]
+            if "retry_policy" in route:
+                return route["retry_policy"]["fail_as"]
+            if "dead_letter" in route:
+                return route["dead_letter"]
+            current = route["next_step"]
 
     def _event_payload_from_emit(
         self,

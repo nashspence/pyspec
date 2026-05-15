@@ -2928,7 +2928,7 @@
       },
       "type": "object"
     },
-    "workflow_bindings": {
+    "workflow_input_bindings": {
       "additionalProperties": {
         "$ref": "#/$defs/workflow_source"
       },
@@ -2956,6 +2956,16 @@
       ],
       "type": "object"
     },
+    "workflow_outcome_routes": {
+      "additionalProperties": {
+        "$ref": "#/$defs/workflow_route"
+      },
+      "minProperties": 1,
+      "propertyNames": {
+        "$ref": "#/$defs/field_name"
+      },
+      "type": "object"
+    },
     "workflow_outcomes": {
       "additionalProperties": {
         "$ref": "#/$defs/workflow_outcome"
@@ -2970,7 +2980,7 @@
       "pattern": "^workflow\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
     },
-    "workflow_retry": {
+    "workflow_retry_policy": {
       "additionalProperties": false,
       "properties": {
         "attempts": {
@@ -2984,43 +2994,64 @@
             "linear",
             "exponential"
           ]
+        },
+        "fail_as": {
+          "$ref": "#/$defs/field_name"
         }
       },
       "required": [
         "attempts",
-        "backoff"
+        "backoff",
+        "fail_as"
       ],
       "type": "object"
     },
     "workflow_route": {
       "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "next_step"
+          ]
+        },
+        {
+          "required": [
+            "complete_as"
+          ]
+        },
+        {
+          "required": [
+            "fail_as"
+          ]
+        },
+        {
+          "required": [
+            "retry_policy"
+          ]
+        },
+        {
+          "required": [
+            "dead_letter"
+          ]
+        }
+      ],
       "properties": {
-        "complete": {
+        "complete_as": {
           "$ref": "#/$defs/field_name"
         },
         "dead_letter": {
-          "type": "boolean"
-        },
-        "fail": {
           "$ref": "#/$defs/field_name"
         },
-        "next": {
+        "fail_as": {
+          "$ref": "#/$defs/field_name"
+        },
+        "next_step": {
           "pattern": "^[a-z][a-z0-9_]*$",
           "type": "string"
         },
-        "retry": {
-          "$ref": "#/$defs/workflow_retry"
+        "retry_policy": {
+          "$ref": "#/$defs/workflow_retry_policy"
         }
-      },
-      "type": "object"
-    },
-    "workflow_routes": {
-      "additionalProperties": {
-        "$ref": "#/$defs/workflow_route"
-      },
-      "minProperties": 1,
-      "propertyNames": {
-        "$ref": "#/$defs/field_name"
       },
       "type": "object"
     },
@@ -3034,21 +3065,21 @@
           "pattern": "^[a-z][a-z0-9_]*$",
           "type": "string"
         },
-        "on": {
-          "$ref": "#/$defs/workflow_routes"
+        "input_bindings": {
+          "$ref": "#/$defs/workflow_input_bindings"
         },
         "operation": {
           "$ref": "#/$defs/operation_ref"
         },
-        "with": {
-          "$ref": "#/$defs/workflow_bindings"
+        "outcome_routes": {
+          "$ref": "#/$defs/workflow_outcome_routes"
         }
       },
       "required": [
         "id",
         "operation",
-        "with",
-        "on"
+        "input_bindings",
+        "outcome_routes"
       ],
       "type": "object"
     },

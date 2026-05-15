@@ -239,8 +239,8 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert '<FONT POINT-SIZE="10">delivery_failed</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Problem</FONT>' in workflow
     assert "success workflow outcome" in workflow
     assert "failure workflow outcome" in workflow
-    assert "sent: complete → completed" in workflow
-    assert "delivery_failed: fail → delivery_failed" in workflow
+    assert "sent: complete_as → completed" in workflow
+    assert "delivery_failed: retry_policy → delivery_failed" in workflow
     for graph_id, dot_source in {"state_machine_project_list": fsm, "project_board": composition, "web_project_board": entrypoint, "api_project_create": api_entrypoint, "cli_project_approve": cli_approve_entrypoint, "project_approval_notice": workflow}.items():
         svg = _render_graphviz_svg(dot_source, graph_id)
         assert svg.lstrip().startswith("<svg")

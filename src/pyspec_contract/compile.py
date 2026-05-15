@@ -2115,6 +2115,28 @@ def _workflow_step_source_types(contract: dict[str, Any], step: dict[str, Any], 
     return {"steps": sources}
 
 
+WORKFLOW_ROUTE_ACTIONS = ("next_step", "complete_as", "fail_as", "retry_policy", "dead_letter")
+
+
+def _workflow_route_action(route: dict[str, Any]) -> tuple[str, Any]:
+    actions = [action for action in WORKFLOW_ROUTE_ACTIONS if action in route]
+    if len(actions) != 1:
+        raise ContractError(
+            "workflow route must declare exactly one of "
+            + ", ".join(WORKFLOW_ROUTE_ACTIONS)
+        )
+    action = actions[0]
+    return action, route[action]
+
+
+def _workflow_route_terminal(action: str, value: Any) -> str | None:
+    if action in {"complete_as", "fail_as", "dead_letter"}:
+        return value
+    if action == "retry_policy":
+        return value["fail_as"]
+    return None
+
+
 def _validate_workflow_step_bindings(
     contract: dict[str, Any],
     workflow_id: str,
@@ -2122,7 +2144,7 @@ def _validate_workflow_step_bindings(
     operation: dict[str, Any],
     source_types: TypeScopes,
 ) -> None:
-    bindings = step["with"]
+    bindings = step["input_bindings"]
     expected = operation["input"]
     if set(bindings) != set(expected):
         missing = sorted(set(expected) - set(bindings))
@@ -2132,7 +2154,7 @@ def _validate_workflow_step_bindings(
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"Workflow {workflow_id} step {step['id']} with must exactly map operation input" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"Workflow {workflow_id} step {step['id']} input_bindings must exactly map operation input" + (": " + "; ".join(parts) if parts else ""))
     for name, source in bindings.items():
         actual_type = _reference_expression_type(
             contract,
@@ -2155,7 +2177,7 @@ def _validate_workflow_step_routes(
     operation: dict[str, Any],
     step_ids: set[str],
 ) -> set[str]:
-    routes = step["on"]
+    routes = step["outcome_routes"]
     if set(routes) != set(operation["outcomes"]):
         missing = sorted(set(operation["outcomes"]) - set(routes))
         extra = sorted(set(routes) - set(operation["outcomes"]))
@@ -2164,27 +2186,28 @@ def _validate_workflow_step_routes(
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"Workflow {workflow_id} step {step['id']} on must exactly map operation outcomes" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"Workflow {workflow_id} step {step['id']} outcome_routes must exactly map operation outcomes" + (": " + "; ".join(parts) if parts else ""))
 
     routed_terminals: set[str] = set()
     for outcome_id, route in routes.items():
-        route_targets = [key for key in ("complete", "fail", "next") if key in route]
-        if len(route_targets) != 1:
-            raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} must declare exactly one of complete, fail, or next")
+        try:
+            action, value = _workflow_route_action(route)
+        except ContractError as exc:
+            raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} {exc}") from exc
         outcome = operation["outcomes"][outcome_id]
-        target_kind = route_targets[0]
-        if target_kind == "next":
-            next_step = route["next"]
+        if action == "next_step":
+            next_step = value
             if next_step not in step_ids:
                 raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} references unknown next step {next_step}")
             if next_step == step["id"]:
                 raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} cannot loop to itself")
         else:
-            terminal_id = route[target_kind]
+            terminal_id = _workflow_route_terminal(action, value)
+            assert terminal_id is not None
             terminal = workflow["outcomes"].get(terminal_id)
             if not terminal:
                 raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} references unknown workflow outcome {terminal_id}")
-            expected_kind = "success" if target_kind == "complete" else "failure"
+            expected_kind = "success" if action == "complete_as" else "failure"
             if outcome["kind"] != expected_kind or terminal["kind"] != expected_kind:
                 raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} must preserve {outcome['kind']} outcome semantics")
             if not type_equals(terminal["result"], outcome["result"]):
@@ -2193,18 +2216,14 @@ def _validate_workflow_step_routes(
                     f"{type_display(outcome['result'])} to receive step outcome {outcome_id}"
                 )
             routed_terminals.add(terminal_id)
-        if "retry" in route:
+        if action == "retry_policy":
             if outcome["kind"] != "failure":
-                raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} retry is only valid for failure outcomes")
-            retry = route["retry"]
+                raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} retry_policy is only valid for failure outcomes")
+            retry = value
             if retry["attempts"] < 1 or retry["attempts"] > 10:
-                raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} retry attempts must be between 1 and 10")
-        if route.get("dead_letter") is True and outcome["kind"] != "failure":
+                raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} retry_policy attempts must be between 1 and 10")
+        if action == "dead_letter" and outcome["kind"] != "failure":
             raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} dead_letter is only valid for failure outcomes")
-        if outcome["kind"] == "failure" and target_kind == "fail" and "retry" not in route and route.get("dead_letter") is not True:
-            raise ContractError(f"Workflow {workflow_id} step {step['id']} failure route {outcome_id} must declare retry or dead_letter")
-        if outcome["kind"] == "success" and ("retry" in route or route.get("dead_letter") is True):
-            raise ContractError(f"Workflow {workflow_id} step {step['id']} success route {outcome_id} must not declare retry or dead_letter")
     return routed_terminals
 
 
