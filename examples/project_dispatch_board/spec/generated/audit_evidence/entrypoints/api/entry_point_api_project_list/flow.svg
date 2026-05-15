@@ -1,6 +1,6 @@
-<svg width="1162pt" height="247pt"
- viewBox="0.00 0.00 1162.00 247.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 73a975bc80f840e19f1376aeff1cec4999ace3105cfa04326f9f3ff97bdc5673 -->
+<svg width="1166pt" height="247pt"
+ viewBox="0.00 0.00 1166.00 247.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: 53b79cd8b5af18ad6fd38928ff29a01483755e1cbad570dd5bd8c85283de96d2 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 229)">
 <title>entrypoint_entry_point_api_project_list</title>
 <!-- entry_start -->
@@ -79,9 +79,9 @@
 <!-- entrypoint_response_entry_point_api_project_list_listed -->
 <g id="node6" class="node">
 <title>entrypoint_response_entry_point_api_project_list_listed</title>
-<polygon fill="#ffffff" stroke="transparent" points="874,-119 874,-211 1015,-211 1015,-119 874,-119"/>
-<polygon fill="#64748b" stroke="transparent" points="875.5,-202 875.5,-210 1014.5,-210 1014.5,-202 875.5,-202"/>
-<polygon fill="#f8fafc" stroke="transparent" points="875.5,-171 875.5,-202 1014.5,-202 1014.5,-171 875.5,-171"/>
+<polygon fill="#ffffff" stroke="transparent" points="874,-119 874,-211 1019,-211 1019,-119 874,-119"/>
+<polygon fill="#64748b" stroke="transparent" points="875.5,-202 875.5,-210 1018.5,-210 1018.5,-202 875.5,-202"/>
+<polygon fill="#f8fafc" stroke="transparent" points="875.5,-171 875.5,-202 1018.5,-202 1018.5,-171 875.5,-171"/>
 <text text-anchor="start" x="879.5" y="-188.6" font-family="Arial" font-weight="bold" font-size="13.00">listed</text>
 <text text-anchor="start" x="879.5" y="-177.6" font-family="Arial" font-size="8.00" fill="#64748b">success response</text>
 <text text-anchor="start" x="880.5" y="-159" font-family="Arial" font-weight="bold" font-size="10.00">status:</text>
@@ -89,21 +89,21 @@
 <text text-anchor="start" x="879.5" y="-139" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
 <text text-anchor="start" x="879.5" y="-128" font-family="Arial" font-size="10.00">body</text>
 <text text-anchor="start" x="901.5" y="-128" font-family="Arial" font-size="8.00" fill="#94a3b8">  list[Project]</text>
-<text text-anchor="start" x="944.5" y="-128" font-family="Arial" font-size="8.00"> ← outcome.result</text>
-<polygon fill="none" stroke="#64748b" points="874,-119 874,-211 1015,-211 1015,-119 874,-119"/>
+<text text-anchor="start" x="944.5" y="-128" font-family="Arial" font-size="8.00"> ← $outcome.result</text>
+<polygon fill="none" stroke="#64748b" points="874,-119 874,-211 1019,-211 1019,-119 874,-119"/>
 </g>
 <!-- entrypoint_target_operation_project_list&#45;&gt;entrypoint_response_entry_point_api_project_list_listed -->
 <g id="edge4" class="edge">
 <title>entrypoint_target_operation_project_list&#45;&gt;entrypoint_response_entry_point_api_project_list_listed</title>
-<path fill="none" stroke="#3f3f46" d="M813.13,-132.54C830.88,-136.96 848.93,-141.46 865.71,-145.63"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="865.4,-148.44 873.84,-147.66 866.75,-143.01 865.4,-148.44"/>
+<path fill="none" stroke="#3f3f46" d="M813.33,-132.37C830.98,-136.72 848.92,-141.15 865.66,-145.29"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="865.34,-148.09 873.78,-147.29 866.68,-142.65 865.34,-148.09"/>
 </g>
 <!-- entrypoint_response_entry_point_api_project_list_unavailable -->
 <g id="node7" class="node">
 <title>entrypoint_response_entry_point_api_project_list_unavailable</title>
-<polygon fill="#ffffff" stroke="transparent" points="878,0 878,-92 1011,-92 1011,0 878,0"/>
-<polygon fill="#64748b" stroke="transparent" points="879.5,-83 879.5,-91 1010.5,-91 1010.5,-83 879.5,-83"/>
-<polygon fill="#f8fafc" stroke="transparent" points="879.5,-52 879.5,-83 1010.5,-83 1010.5,-52 879.5,-52"/>
+<polygon fill="#ffffff" stroke="transparent" points="878,0 878,-92 1015,-92 1015,0 878,0"/>
+<polygon fill="#64748b" stroke="transparent" points="879.5,-83 879.5,-91 1014.5,-91 1014.5,-83 879.5,-83"/>
+<polygon fill="#f8fafc" stroke="transparent" points="879.5,-52 879.5,-83 1014.5,-83 1014.5,-52 879.5,-52"/>
 <text text-anchor="start" x="883.5" y="-69.6" font-family="Arial" font-weight="bold" font-size="13.00">unavailable</text>
 <text text-anchor="start" x="883.5" y="-58.6" font-family="Arial" font-size="8.00" fill="#64748b">failure response</text>
 <text text-anchor="start" x="884.5" y="-40" font-family="Arial" font-weight="bold" font-size="10.00">status:</text>
@@ -111,34 +111,34 @@
 <text text-anchor="start" x="883.5" y="-20" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
 <text text-anchor="start" x="883.5" y="-9" font-family="Arial" font-size="10.00">body</text>
 <text text-anchor="start" x="905.5" y="-9" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<text text-anchor="start" x="940.5" y="-9" font-family="Arial" font-size="8.00"> ← outcome.result</text>
-<polygon fill="none" stroke="#64748b" points="878,0 878,-92 1011,-92 1011,0 878,0"/>
+<text text-anchor="start" x="940.5" y="-9" font-family="Arial" font-size="8.00"> ← $outcome.result</text>
+<polygon fill="none" stroke="#64748b" points="878,0 878,-92 1015,-92 1015,0 878,0"/>
 </g>
 <!-- entrypoint_target_operation_project_list&#45;&gt;entrypoint_response_entry_point_api_project_list_unavailable -->
 <g id="edge6" class="edge">
 <title>entrypoint_target_operation_project_list&#45;&gt;entrypoint_response_entry_point_api_project_list_unavailable</title>
-<path fill="none" stroke="#3f3f46" d="M813.13,-77.92C832.33,-73.22 851.88,-68.43 869.79,-64.05"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="870.79,-66.68 877.9,-62.06 869.46,-61.24 870.79,-66.68"/>
+<path fill="none" stroke="#3f3f46" d="M813.33,-78.09C832.44,-73.45 851.9,-68.73 869.8,-64.38"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="870.8,-67.02 877.91,-62.41 869.48,-61.58 870.8,-67.02"/>
 </g>
 <!-- entry_exit -->
 <g id="node5" class="node">
 <title>entry_exit</title>
-<ellipse fill="none" stroke="#0891b2" cx="1101" cy="-105" rx="21" ry="21"/>
-<ellipse fill="none" stroke="#0891b2" cx="1101" cy="-105" rx="25" ry="25"/>
-<text text-anchor="middle" x="1101" y="-102.8" font-family="Arial" font-size="9.00" fill="#155e75">exit</text>
+<ellipse fill="none" stroke="#0891b2" cx="1105" cy="-105" rx="21" ry="21"/>
+<ellipse fill="none" stroke="#0891b2" cx="1105" cy="-105" rx="25" ry="25"/>
+<text text-anchor="middle" x="1105" y="-102.8" font-family="Arial" font-size="9.00" fill="#155e75">exit</text>
 </g>
 <!-- entrypoint_response_entry_point_api_project_list_listed&#45;&gt;entry_exit -->
 <g id="edge5" class="edge">
 <title>entrypoint_response_entry_point_api_project_list_listed&#45;&gt;entry_exit</title>
-<path fill="none" stroke="#3f3f46" d="M1015.07,-137.98C1034.16,-130.57 1053.89,-122.91 1069.53,-116.83"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1070.86,-119.32 1077.3,-113.81 1068.83,-114.1 1070.86,-119.32"/>
+<path fill="none" stroke="#3f3f46" d="M1019.34,-137.46C1038.5,-130.11 1058.17,-122.57 1073.73,-116.61"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1075,-119.12 1081.46,-113.64 1072.99,-113.89 1075,-119.12"/>
 </g>
 <!-- entrypoint_response_entry_point_api_project_list_listed&#45;&gt;entrypoint_response_entry_point_api_project_list_unavailable -->
 <!-- entrypoint_response_entry_point_api_project_list_unavailable&#45;&gt;entry_exit -->
 <g id="edge7" class="edge">
 <title>entrypoint_response_entry_point_api_project_list_unavailable&#45;&gt;entry_exit</title>
-<path fill="none" stroke="#3f3f46" d="M1011.02,-71.02C1031.38,-78.79 1052.85,-86.99 1069.59,-93.39"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1068.94,-96.14 1077.41,-96.37 1070.94,-90.9 1068.94,-96.14"/>
+<path fill="none" stroke="#3f3f46" d="M1015.23,-71.54C1035.54,-79.19 1056.8,-87.21 1073.43,-93.47"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1072.72,-96.2 1081.19,-96.4 1074.69,-90.96 1072.72,-96.2"/>
 </g>
 </g>
 </svg>

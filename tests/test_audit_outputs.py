@@ -204,7 +204,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>entry output</B>" not in worker_entrypoint
     assert 'label="exit"' in api_entrypoint
     assert "<B>body</B>" in api_entrypoint
-    assert 'body</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT><FONT POINT-SIZE="8">&#160;←&#160;outcome.result</FONT>' in api_entrypoint
+    assert 'body</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT><FONT POINT-SIZE="8">&#160;←&#160;$outcome.result</FONT>' in api_entrypoint
     assert "validation_failed" in api_entrypoint
     target_card = api_entrypoint[api_entrypoint.index('"entrypoint_target_operation_project_create"') : api_entrypoint.index('"entrypoint_response_entry_point_api_project_create_created"')]
     assert '<FONT POINT-SIZE="10"><B>input</B></FONT>' in target_card

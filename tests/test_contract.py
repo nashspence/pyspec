@@ -651,10 +651,10 @@ def _api_only_author() -> dict:
                 "method": "POST",
                 "path": "/tickets",
                 "input": {"body": {"title": "Text"}},
-                "target": {"capability": "operation.ticket.create", "with": {"title": "input.body.title"}},
+                "target": {"capability": "operation.ticket.create", "with": {"title": "$input.body.title"}},
                 "responses": {
-                    "created": {"status": 201, "body": {"type": "Ticket", "from": "outcome.result"}},
-                    "validation_failed": {"status": 422, "body": {"type": "Problem", "from": "outcome.result"}},
+                    "created": {"status": 201, "body": {"type": "Ticket", "from": "$outcome.result"}},
+                    "validation_failed": {"status": 422, "body": {"type": "Problem", "from": "$outcome.result"}},
                 },
                 "basis": _basis("HTTP create ticket entry"),
             }
@@ -754,7 +754,7 @@ def test_entry_target_bindings_must_exactly_match_target_input() -> None:
 def test_entry_response_must_match_surface_contract() -> None:
     author = _author()
     author["entries"]["entry_point.api.project.create"]["responses"]["created"]["body"]["type"] = "Text"
-    with pytest.raises(ContractError, match=r"API entry entry_point.api\.project\.create response created\.body must expose outcome\.result as Project"):
+    with pytest.raises(ContractError, match=r"API entry entry_point.api\.project\.create response created\.body must expose \$outcome\.result as Project"):
         compile_source(author)
 
 
@@ -772,8 +772,22 @@ def test_capability_outcomes_must_have_one_success_and_real_failure_result() -> 
 
 def test_event_emits_must_map_declared_payload() -> None:
     author = _author()
-    author["capabilities"]["operation.project.approve"]["outcomes"]["approved"]["emits"][0]["with"]["approved_by"] = "outcome.result"
-    with pytest.raises(ContractError, match=r"emit event.project\.approved mapping approved_by source outcome\.result type must be ID"):
+    author["capabilities"]["operation.project.approve"]["outcomes"]["approved"]["emits"][0]["with"]["approved_by"] = "$outcome.result"
+    with pytest.raises(ContractError, match=r"emit event.project\.approved mapping approved_by source \$outcome\.result type must be ID"):
+        compile_source(author)
+
+
+def test_runtime_references_are_context_scoped() -> None:
+    author = _author()
+    author["entries"]["entry_point.api.project.create"]["target"]["with"]["title"] = "$trigger.payload.title"
+    with pytest.raises(ContractError, match=r"target\.with\.title references unavailable runtime root: \$trigger"):
+        compile_source(author)
+
+
+def test_runtime_references_validate_declared_fields() -> None:
+    author = _author()
+    author["workflows"]["workflow.project.approval_notice"]["steps"][0]["with"]["project_id"] = "$trigger.payload.missing"
+    with pytest.raises(ContractError, match=r"input project_id references unknown ProjectApproved field: missing"):
         compile_source(author)
 
 

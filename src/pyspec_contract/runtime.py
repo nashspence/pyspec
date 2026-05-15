@@ -3,6 +3,8 @@ from __future__ import annotations
 import copy
 from typing import Any, Mapping
 
+from .runtime_refs import ReferenceExpressionError, is_reference_expression, parse_reference_expression, resolve_reference_expression
+
 
 class FixtureError(AssertionError):
     pass
@@ -24,13 +26,14 @@ def resolve_map(values: Mapping[str, Any], fixtures: Mapping[str, Any]) -> dict[
 
 
 def resolve(value: Any, fixtures: Mapping[str, Any]) -> Any:
-    if isinstance(value, str) and value.startswith("$fixture."):
-        current: Any = fixtures
-        for part in value[len("$fixture."):].split("."):
-            if not isinstance(current, Mapping) or part not in current:
-                raise FixtureError(f"Unresolved fixture reference: {value}")
-            current = current[part]
-        return current
+    if is_reference_expression(value):
+        try:
+            ref = parse_reference_expression(value)
+            if ref.root != "fixture":
+                raise FixtureError(f"Unsupported fixture runtime reference root: ${ref.root}")
+            return resolve_reference_expression(value, {"fixture": fixtures})
+        except ReferenceExpressionError as exc:
+            raise FixtureError(str(exc)) from exc
     if isinstance(value, list):
         return [resolve(item, fixtures) for item in value]
     if isinstance(value, dict):

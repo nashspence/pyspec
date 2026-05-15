@@ -6,6 +6,7 @@ from typing import Any, Mapping
 from .io import read_json, read_yaml
 from .paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR
 from .runtime import fixture_namespace, resolve_map
+from .runtime_refs import resolve_reference_expression
 from .targets import entry_fsm_name
 
 
@@ -365,10 +366,7 @@ def _success_outcome_id(capability: Mapping[str, Any]) -> str:
 
 
 def _resolve_binding(source: str, namespace: Mapping[str, Any]) -> Any:
-    current: Any = namespace
-    for part in source.split("."):
-        current = current[part]
-    return current
+    return resolve_reference_expression(source, namespace)
 
 
 def _condition_matches(condition: Mapping[str, Any], context: Mapping[str, Any]) -> bool:

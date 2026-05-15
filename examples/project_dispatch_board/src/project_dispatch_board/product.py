@@ -6,6 +6,7 @@ from typing import Any, Mapping
 from pyspec_contract.io import read_json, read_yaml
 from pyspec_contract.paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR
 from pyspec_contract.runtime import fixture_namespace, resolve_map
+from pyspec_contract.runtime_refs import resolve_reference_expression
 from pyspec_contract.targets import entry_fsm_name
 
 
@@ -303,10 +304,7 @@ def _matches(record: Mapping[str, Any], where: Mapping[str, Any]) -> bool:
 
 
 def _resolve_binding(source: str, namespace: Mapping[str, Any]) -> Any:
-    current: Any = namespace
-    for part in source.split("."):
-        current = current[part]
-    return current
+    return resolve_reference_expression(source, namespace)
 
 
 def _success_outcome_id(capability: Mapping[str, Any]) -> str:

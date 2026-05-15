@@ -79,11 +79,11 @@ Runtime expressions are scoped strings that the compiler validates against the a
 - `$state_machine.<field>` reads parent state-machine context when mounting a child state machine.
 - `$message.<field>` reads the current FSM message payload in transition effects and sync sends.
 - `$context.<field>` reads current FSM context in transition effects.
-- `input.params.<field>`, `input.body.<field>`, `input.args.<field>`, and `input.payload[.<field>]` read entry input for entry target bindings.
-- `input.<field>` reads capability input in capability event emission bindings.
-- `outcome.result[.<field>]` reads a capability outcome result in capability event emission bindings.
-- `trigger.payload[.<field>]` reads the workflow trigger payload.
-- `steps.<step>.outcomes.<outcome>.result[.<field>]` reads a prior workflow step outcome.
+- `$input.params.<field>`, `$input.body.<field>`, `$input.args.<field>`, and `$input.payload[.<field>]` read entry input for entry target bindings.
+- `$input.<field>` reads capability input in capability event emission bindings.
+- `$outcome.result[.<field>]` reads a capability outcome result in capability event emission bindings.
+- `$trigger.payload[.<field>]` reads the workflow trigger payload.
+- `$steps.<step>.outcomes.<outcome>.result[.<field>]` reads a prior workflow step outcome.
 - `data.<query>` is an FSM transition trigger namespace for data query results.
 
 `expression_map`, `value_map`, `entry_bindings`, `workflow_bindings`, `context_bindings`, `capability_emit_bindings`, and `workflow_source` are the schema definitions that constrain these mappings.
@@ -238,6 +238,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:presentation_contract --> `$defs/presentation_contract`: UI presentation contract by surface.
 - <!-- schema-def:python_class_name --> `$defs/python_class_name`: generated Python class name.
 - <!-- schema-def:python_identifier --> `$defs/python_identifier`: generated Python identifier.
+- <!-- schema-def:runtime_expression --> `$defs/runtime_expression`: shared `$root.path.to.field` runtime reference expression grammar.
 - <!-- schema-def:scalar --> `$defs/scalar`: scalar literal value.
 - <!-- schema-def:scenario_item --> `$defs/scenario_item`: compiled scenario with normalized arrange/execute/assert sections.
 - <!-- schema-def:scenario_ref --> `$defs/scenario_ref`: typed reference in the `scenario.` namespace.

@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from project_dispatch_board.product import ProductApp
+from pyspec_contract.runtime import resolve
 
 
 class ProdDriver:
@@ -35,9 +36,4 @@ class ProdDriver:
         return {key: self._resolve(value) for key, value in values.items()}
 
     def _resolve(self, value: Any) -> Any:
-        if not isinstance(value, str) or not value.startswith("$fixture."):
-            return value
-        current: Any = self.app.fixtures
-        for part in value[len("$fixture."):].split("."):
-            current = current[part]
-        return current
+        return resolve(value, self.app.fixtures)

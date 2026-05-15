@@ -840,8 +840,7 @@
       "type": "object"
     },
     "capability_emit_source": {
-      "pattern": "^(input\\.[a-z][a-z0-9_]*|outcome\\.result)(\\.[a-z][a-z0-9_]*)?$",
-      "type": "string"
+      "$ref": "#/$defs/runtime_expression"
     },
     "capability_outcome": {
       "additionalProperties": false,
@@ -927,8 +926,7 @@
             "$ref": "#/$defs/scalar"
           },
           {
-            "pattern": "^\\$fixture\\.[a-z][A-Za-z0-9_.]*$",
-            "type": "string"
+            "$ref": "#/$defs/runtime_expression"
           }
         ]
       },
@@ -961,8 +959,7 @@
             "$ref": "#/$defs/scalar"
           },
           {
-            "pattern": "^\\$(state_machine|fixture|event)\\.[a-z][A-Za-z0-9_.]*$",
-            "type": "string"
+            "$ref": "#/$defs/runtime_expression"
           }
         ]
       },
@@ -993,8 +990,7 @@
               "$ref": "#/$defs/field_name"
             },
             "from": {
-              "pattern": "^\\$(message|state_machine)\\.[a-z][A-Za-z0-9_.]*$",
-              "type": "string"
+              "$ref": "#/$defs/runtime_expression"
             },
             "value": {
               "$ref": "#/$defs/scalar"
@@ -1037,8 +1033,7 @@
     },
     "entry_bindings": {
       "additionalProperties": {
-        "pattern": "^input\\.(params|body|args|payload)(\\.[a-z][a-z0-9_]*)?$",
-        "type": "string"
+        "$ref": "#/$defs/runtime_expression"
       },
       "propertyNames": {
         "$ref": "#/$defs/field_name"
@@ -1125,7 +1120,7 @@
       "properties": {
         "from": {
           "enum": [
-            "outcome.result"
+            "$outcome.result"
           ]
         },
         "type": {
@@ -1959,6 +1954,11 @@
       "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$",
       "type": "string"
     },
+    "runtime_expression": {
+      "description": "Shared runtime reference expression using $root.path.to.field syntax. Context-specific compiler validation restricts allowed roots and field paths.",
+      "pattern": "^\\$[a-z][a-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+$",
+      "type": "string"
+    },
     "scalar": {
       "type": [
         "string",
@@ -2688,8 +2688,7 @@
       "type": "object"
     },
     "workflow_source": {
-      "pattern": "^(trigger\\.payload|steps\\.[a-z][a-z0-9_]*\\.outcomes\\.[a-z][a-z0-9_]*\\.result)(\\.[a-z][a-z0-9_]*)?$",
-      "type": "string"
+      "$ref": "#/$defs/runtime_expression"
     },
     "workflow_step": {
       "additionalProperties": false,

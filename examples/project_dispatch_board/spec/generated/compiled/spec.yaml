@@ -48,8 +48,8 @@ capabilities:
         emits:
         - event: event.project.approved
           with:
-            approved_by: input.approved_by
-            project_id: input.project_id
+            approved_by: $input.approved_by
+            project_id: $input.project_id
         kind: success
         result: Project
       invalid_state:
@@ -75,7 +75,7 @@ capabilities:
       archived:
         emits:
         - event: event.project.archived
-          payload: outcome.result
+          payload: $outcome.result
         kind: success
         result: Project
       invalid_state:
@@ -106,7 +106,7 @@ capabilities:
       created:
         emits:
         - event: event.project.created
-          payload: outcome.result
+          payload: $outcome.result
         kind: success
         result: Project
       validation_failed:
@@ -181,7 +181,7 @@ capabilities:
       submitted:
         emits:
         - event: event.project.submitted
-          payload: outcome.result
+          payload: $outcome.result
         kind: success
         result: Project
     policy: policy.project.submit
@@ -298,22 +298,22 @@ entries:
     responses:
       created:
         body:
-          from: outcome.result
+          from: $outcome.result
           type: Project
         status: 201
       validation_failed:
         body:
-          from: outcome.result
+          from: $outcome.result
           type: Problem
         status: 422
     surface: api
     target:
       capability: operation.project.create
       with:
-        customer: input.body.customer
-        priority: input.body.priority
-        title: input.body.title
-        workspace_id: input.params.workspace_id
+        customer: $input.body.customer
+        priority: $input.body.priority
+        title: $input.body.title
+        workspace_id: $input.params.workspace_id
   entry_point.api.project.list:
     basis: HTTP endpoint for listing dispatch projects.
     endpoint: endpoint.project.list
@@ -325,19 +325,19 @@ entries:
     responses:
       listed:
         body:
-          from: outcome.result
+          from: $outcome.result
           type: list[Project]
         status: 200
       unavailable:
         body:
-          from: outcome.result
+          from: $outcome.result
           type: Problem
         status: 503
     surface: api
     target:
       capability: operation.project.list
       with:
-        workspace_id: input.params.workspace_id
+        workspace_id: $input.params.workspace_id
   entry_point.cli.project.approve:
     basis: CLI entry for approval automation.
     command: project approve
@@ -350,24 +350,24 @@ entries:
       approved:
         exit_code: 0
         stdout:
-          from: outcome.result
+          from: $outcome.result
           type: Project
       invalid_state:
         exit_code: 2
         stderr:
-          from: outcome.result
+          from: $outcome.result
           type: Problem
       not_found:
         exit_code: 3
         stderr:
-          from: outcome.result
+          from: $outcome.result
           type: Problem
     surface: cli
     target:
       capability: operation.project.approve
       with:
-        approved_by: input.args.approved_by
-        project_id: input.args.project_id
+        approved_by: $input.args.approved_by
+        project_id: $input.args.project_id
   entry_point.cli.project.board:
     basis: CLI launcher for the Textual dispatch board.
     command: project board
@@ -381,7 +381,7 @@ entries:
         name: state_machine.project.board
         surface: textual
       with:
-        workspace_id: input.args.workspace_id
+        workspace_id: $input.args.workspace_id
   entry_point.web.project.board:
     basis: Web entry for the dispatch board.
     input:
@@ -395,7 +395,7 @@ entries:
         name: state_machine.project.board
         surface: html
       with:
-        workspace_id: input.params.workspace_id
+        workspace_id: $input.params.workspace_id
   entry_point.worker.project.approval_notice:
     basis: Worker entry exposing the approval notice workflow.
     input:
@@ -1513,7 +1513,7 @@ workflows:
         sent:
           complete: completed
       with:
-        approved_by: trigger.payload.approved_by
-        project_id: trigger.payload.project_id
+        approved_by: $trigger.payload.approved_by
+        project_id: $trigger.payload.project_id
     trigger:
       event: event.project.approved

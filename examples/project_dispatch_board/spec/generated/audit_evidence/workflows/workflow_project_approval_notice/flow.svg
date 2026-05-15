@@ -1,6 +1,6 @@
 <svg width="1238pt" height="322pt"
  viewBox="0.00 0.00 1238.00 322.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 5f1aff2964ea2bb67c918010c6222925c75d0fc71cc22eaa84d9aa788e88d4d8 -->
+<!-- pyspec-contract-input-sha256: cb604aa5aa746297207fef4bdceb084fd93ba365c3b0ba864032ce2ac4369bc3 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 304)">
 <title>workflow_workflow_project_approval_notice</title>
 <!-- workflow_start -->
@@ -73,8 +73,8 @@
 <text text-anchor="start" x="741.5" y="-204" font-family="Arial" font-weight="bold" font-size="10.00">capability:</text>
 <text text-anchor="start" x="790.5" y="-204" font-family="Arial" font-size="10.00">  operation.project.send_approval_notice</text>
 <text text-anchor="start" x="740.5" y="-184" font-family="Arial" font-weight="bold" font-size="10.00">with</text>
-<text text-anchor="start" x="740.5" y="-172" font-family="Arial" font-size="10.00">approved_by ← trigger.payload.approved_by</text>
-<text text-anchor="start" x="740.5" y="-161" font-family="Arial" font-size="10.00">project_id ← trigger.payload.project_id</text>
+<text text-anchor="start" x="740.5" y="-172" font-family="Arial" font-size="10.00">approved_by ← $trigger.payload.approved_by</text>
+<text text-anchor="start" x="740.5" y="-161" font-family="Arial" font-size="10.00">project_id ← $trigger.payload.project_id</text>
 <text text-anchor="start" x="740.5" y="-143" font-family="Arial" font-weight="bold" font-size="10.00">routes</text>
 <text text-anchor="start" x="740.5" y="-131" font-family="Arial" font-size="10.00">delivery_failed: fail → delivery_failed (retry 3</text>
 <text text-anchor="start" x="740.5" y="-120" font-family="Arial" font-size="10.00">exponential)</text>

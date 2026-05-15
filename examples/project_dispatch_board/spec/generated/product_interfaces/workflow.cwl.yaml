@@ -14,7 +14,7 @@ $graph:
       type: Any
   steps:
     send_notice:
-      doc: 'with={''approved_by'': ''trigger.payload.approved_by'', ''project_id'': ''trigger.payload.project_id''}; on={''delivery_failed'':
+      doc: 'with={''approved_by'': ''$trigger.payload.approved_by'', ''project_id'': ''$trigger.payload.project_id''}; on={''delivery_failed'':
         {''fail'': ''delivery_failed'', ''retry'': {''attempts'': 3, ''backoff'': ''exponential''}}, ''sent'': {''complete'':
         ''completed''}}'
       in:

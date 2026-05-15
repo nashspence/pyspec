@@ -8,6 +8,7 @@ from typing import Any, Iterable
 from .agent_prompts import agent_prompt_paths, agent_prompt_projection_files
 from .layout import layout_html, layout_textual, layout_textual_containers
 from .paths import generated_relative as g
+from .runtime_refs import ReferenceExpressionError, parse_reference_expression
 from .targets import entry_fsm_name
 
 
@@ -660,11 +661,14 @@ def _workflow_trigger_payload_type(contract: dict[str, Any], workflow: dict[str,
 
 
 def _workflow_cwl_source(source: str) -> str:
-    if source.startswith("trigger.payload"):
+    try:
+        ref = parse_reference_expression(source)
+    except ReferenceExpressionError:
+        return source
+    if ref.root == "trigger" and ref.path[:1] == ("payload",):
         return "trigger_payload"
-    parts = source.split(".")
-    if len(parts) >= 5 and parts[0] == "steps" and parts[2] == "outcomes" and parts[4] == "result":
-        return f"{parts[1]}/{parts[3]}"
+    if ref.root == "steps" and len(ref.path) >= 4 and ref.path[1] == "outcomes" and ref.path[3] == "result":
+        return f"{ref.path[0]}/{ref.path[2]}"
     return source
 
 
