@@ -59,20 +59,28 @@ DEPRECATED_PROPERTY_NAMES = {
     "fail",
     "next",
 }
+def _former_name(prefix: str, suffix: str) -> str:
+    return prefix + suffix
+
+
 STALE_SCHEMA_DEFINITION_NAMES = {
     "entry_bindings",
     "expression_map",
+    _former_name("layout_", "container"),
+    _former_name("layout_", "region"),
+    _former_name("layout_", "root"),
     "model_refs",
     "operation_emit_bindings",
     "operation_emit_source",
     "state_name",
+    _former_name("state_machine_", "audit_case"),
     "target",
     "workflow_input_bindings",
     "workflow_source",
     "workflow_trigger_target",
 }
 ALLOWED_DUPLICATE_DEFINITION_GROUPS = {
-    frozenset({"field_name", "instance_id", "view_state_name"}),
+    frozenset({"instance_id", "view_state_name"}),
     frozenset({"model_ref", "python_class_name"}),
 }
 ALLOWED_ANY_OF_PATHS_BY_SCHEMA = {
@@ -406,7 +414,7 @@ def test_schema_inventory_rejects_deprecated_property_terminology() -> None:
 def test_layout_contract_uses_must_render_flag() -> None:
     for path, schema in _schemas():
         defs = schema.get("$defs", {})
-        for name in ("layout_container", "layout_region"):
+        for name in ("textual_layout_container", "html_layout_region"):
             layout_def = defs.get(name)
             if not layout_def:
                 continue

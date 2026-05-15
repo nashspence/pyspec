@@ -313,8 +313,8 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
 
     if entity == "content_case":
         item = {"ref": spec["ref"], "args": spec["args"], "rationale": spec["rationale"]}
-        if "fixtures" in spec:
-            item["fixtures"] = spec["fixtures"]
+        if "seed_fixtures" in spec:
+            item["seed_fixtures"] = spec["seed_fixtures"]
         return item
 
     if entity == "render_profile":
@@ -497,9 +497,9 @@ def _compile_view_states(owner_id: str, states: dict[str, Any]) -> dict[str, Any
 def _compile_audit_case(state_machine_id: str, state_name: str, case_name: str, case: dict[str, Any]) -> dict[str, Any]:
     item = {
         "seed_fixtures": case["seed_fixtures"],
-        "rationale": case.get("rationale", _default_rationale("audit_case", f"{state_machine_id}.{state_name}.{case_name}")),
+        "rationale": case.get("rationale", _default_rationale("render_audit_case", f"{state_machine_id}.{state_name}.{case_name}")),
     }
-    for field in ["context", "facts", "instances"]:
+    for field in ["context", "fact_refs", "instances"]:
         if field in case:
             item[field] = case[field]
     return item
@@ -729,10 +729,10 @@ def _validate_content_cases(contract: dict[str, Any]) -> None:
         if ref not in contract.get(section, {}):
             label = "text resource" if section == "text_resources" else "asset"
             raise ContractError(f"Content case {case_id} references unknown {label} {ref}")
-        for fixture_id in case.get("fixtures", []):
+        for fixture_id in case.get("seed_fixtures", []):
             if fixture_id not in contract["fixtures"]:
                 raise ContractError(f"Content case {case_id} references unknown fixture {fixture_id}")
-        fixture_values = _fixture_namespace(contract, case.get("fixtures", []), f"content case {case_id}")
+        fixture_values = _fixture_namespace(contract, case.get("seed_fixtures", []), f"content case {case_id}")
         _validate_fixture_templates(case, fixture_values, f"content case {case_id}")
         expected = set(contract[section][ref].get("args", {}))
         actual = set(case.get("args", {}))
@@ -779,35 +779,35 @@ def _validate_audit_cases(contract: dict[str, Any]) -> None:
         state_machine = contract["state_machines"][state_machine_id]
         state = state_machine["view_states"][state_name]
         if not _view_state_renderers(state):
-            raise ContractError(f"Audit case {case_id} references view state {state_machine_id}.{state_name} with no visual renderer")
+            raise ContractError(f"Render audit case {case_id} references view state {state_machine_id}.{state_name} with no visual renderer")
         for fixture_id in case.get("seed_fixtures", []):
             if fixture_id not in contract["fixtures"]:
-                raise ContractError(f"Audit case {case_id} references unknown fixture {fixture_id}")
-        fixture_values = _fixture_namespace(contract, case.get("seed_fixtures", []), f"audit case {case_id}")
-        _validate_fixture_templates(case, fixture_values, f"audit case {case_id}")
-        for fact_use in case.get("facts", []):
+                raise ContractError(f"Render audit case {case_id} references unknown fixture {fixture_id}")
+        fixture_values = _fixture_namespace(contract, case.get("seed_fixtures", []), f"render audit case {case_id}")
+        _validate_fixture_templates(case, fixture_values, f"render audit case {case_id}")
+        for fact_use in case.get("fact_refs", []):
             fact_id = fact_use["ref"]
-            _validate_fixture_templates(contract["facts"][fact_id], fixture_values, f"audit case {case_id} fact {fact_id}")
-        if state.get("fields") and not _setup_has_model(contract, case.get("seed_fixtures", []), case.get("facts", []), state_machine["model"]):
-            raise ContractError(f"Audit case {case_id} renders fields for {state_machine_id}.{state_name} but does not include a {state_machine['model']} fixture or fact")
+            _validate_fixture_templates(contract["facts"][fact_id], fixture_values, f"render audit case {case_id} fact {fact_id}")
+        if state.get("fields") and not _setup_has_model(contract, case.get("seed_fixtures", []), case.get("fact_refs", []), state_machine["model"]):
+            raise ContractError(f"Render audit case {case_id} renders fields for {state_machine_id}.{state_name} but does not include a {state_machine['model']} fixture or fact")
         if state.get("child_state_machines"):
             mounted_instances = {mount["id"]: mount for mount in state["child_state_machines"]}
             expected_instances = case.get("instances")
             if not expected_instances:
-                raise ContractError(f"Audit case {case_id} for composed state machine state {state_machine_id}.{state_name} must declare instances")
+                raise ContractError(f"Render audit case {case_id} for composed state machine state {state_machine_id}.{state_name} must declare instances")
             if set(expected_instances) != set(mounted_instances):
-                raise ContractError(f"Audit case {case_id} instance state vector must exactly cover mounted state machine instances")
+                raise ContractError(f"Render audit case {case_id} instance state vector must exactly cover mounted state machine instances")
             for instance_id, expected in expected_instances.items():
                 child_state_machine_id = mounted_instances[instance_id]["state_machine"]
                 if expected["view_state"] not in contract["state_machines"][child_state_machine_id]["view_states"]:
-                    raise ContractError(f"Audit case {case_id} references unknown state machine view state {child_state_machine_id}.{expected['view_state']}")
+                    raise ContractError(f"Render audit case {case_id} references unknown state machine view state {child_state_machine_id}.{expected['view_state']}")
                 selected_state = contract["state_machines"][child_state_machine_id]["view_states"][expected["view_state"]]
-                if selected_state.get("fields") and not _setup_has_model(contract, case.get("seed_fixtures", []), case.get("facts", []), contract["state_machines"][child_state_machine_id]["model"]):
-                    raise ContractError(f"Audit case {case_id} renders fields for {child_state_machine_id}.{expected['view_state']} but does not include a {contract['state_machines'][child_state_machine_id]['model']} fixture or fact")
+                if selected_state.get("fields") and not _setup_has_model(contract, case.get("seed_fixtures", []), case.get("fact_refs", []), contract["state_machines"][child_state_machine_id]["model"]):
+                    raise ContractError(f"Render audit case {case_id} renders fields for {child_state_machine_id}.{expected['view_state']} but does not include a {contract['state_machines'][child_state_machine_id]['model']} fixture or fact")
             covered_composable_states.add((state_machine_id, state_name))
     missing_composed = sorted(f"{state_machine_id}.{state_name}" for state_machine_id, state_name in composable_states - covered_composable_states)
     if missing_composed:
-        raise ContractError("Missing audit coverage for composed state machine states: " + ", ".join(missing_composed))
+        raise ContractError("Missing render audit coverage for composed state machine states: " + ", ".join(missing_composed))
     _validate_state_machine_view_state_fixture_coverage(contract)
 
 
@@ -1662,7 +1662,7 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
     widget_ids = [widget["id"] for widget in widgets]
     if len(widget_ids) != len(set(widget_ids)):
         raise ContractError(f"{owner_label}.{state_name} Textual widgets contain duplicate ids")
-    widget_targets = {"text": set(), "asset": set(), "field": set(), "action": set()}
+    widget_targets = {"text_slot": set(), "asset_slot": set(), "field_slot": set(), "operation": set()}
     for widget in widgets:
         bind_kind, bind_value = _one(widget["binding"], f"{owner_label}.{state_name} textual widget binding")
         _validate_slot_binding(owner_label, state_name, "Textual widget", bind_kind, bind_value, text_slots, asset_slots, field_slots, operations)
@@ -1684,11 +1684,11 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
         )
         if widgets and selector.startswith("slot."):
             name = selector[len("slot."):]
-            if name not in widget_targets["text"] and name not in widget_targets["asset"] and name not in widget_targets["field"]:
+            if name not in widget_targets["text_slot"] and name not in widget_targets["asset_slot"] and name not in widget_targets["field_slot"]:
                 raise ContractError(f"{owner_label}.{state_name} textual style selector has no matching Textual widget: {selector}")
-        if widgets and selector.startswith("action."):
-            action = selector[len("action."):]
-            if action not in widget_targets["action"]:
+        if widgets and selector.startswith("operation."):
+            operation = selector[len("operation."):]
+            if operation not in widget_targets["operation"]:
                 raise ContractError(f"{owner_label}.{state_name} textual style selector has no matching Textual widget: {selector}")
 
 
@@ -1703,14 +1703,14 @@ def _validate_slot_binding(
     field_slots: set[str],
     operations: set[str],
 ) -> None:
-    if bind_kind == "text" and bind_value not in text_slots:
-        raise ContractError(f"{owner_label}.{state_name} {label} text binding is not declared: {bind_value}")
-    if bind_kind == "asset" and bind_value not in asset_slots:
-        raise ContractError(f"{owner_label}.{state_name} {label} asset binding is not declared: {bind_value}")
+    if bind_kind == "text_slot" and bind_value not in text_slots:
+        raise ContractError(f"{owner_label}.{state_name} {label} text_slot binding is not declared: {bind_value}")
+    if bind_kind == "asset_slot" and bind_value not in asset_slots:
+        raise ContractError(f"{owner_label}.{state_name} {label} asset_slot binding is not declared: {bind_value}")
     if bind_kind == "operation" and bind_value not in operations:
         raise ContractError(f"{owner_label}.{state_name} {label} operation binding is not declared: {bind_value}")
-    if bind_kind == "field" and bind_value not in field_slots:
-        raise ContractError(f"{owner_label}.{state_name} {label} field binding is not declared: {bind_value}")
+    if bind_kind == "field_slot" and bind_value not in field_slots:
+        raise ContractError(f"{owner_label}.{state_name} {label} field_slot binding is not declared: {bind_value}")
 
 
 def _validate_renderer_style_selector(
@@ -1725,7 +1725,7 @@ def _validate_renderer_style_selector(
     mounts: set[str],
     label: str,
 ) -> None:
-    if selector.startswith("region.") or selector.startswith("child_state_machine."):
+    if selector.startswith("region.") or selector.startswith("container.") or selector.startswith("child_state_machine."):
         _validate_composition_selector(f"{owner_label}.{state_name}", selector, regions, mounts, label)
         return
     _validate_style_selector(owner_label, state_name, selector, text_slots, asset_slots, field_slots, operations, label)
@@ -1764,9 +1764,18 @@ def _validate_composition_selector(state_machine_id: str, selector: str, regions
     if selector == "screen" and label.startswith("textual"):
         return
     if selector.startswith("region."):
+        if label.startswith("textual"):
+            raise ContractError(f"composed state machine {state_machine_id} {label} selector uses HTML region syntax: {selector}")
         region = selector[len("region."):]
         if region not in regions:
             raise ContractError(f"composed state machine {state_machine_id} {label} selector references undeclared layout region: {selector}")
+        return
+    if selector.startswith("container."):
+        if not label.startswith("textual"):
+            raise ContractError(f"composed state machine {state_machine_id} {label} selector uses Textual container syntax: {selector}")
+        container = selector[len("container."):]
+        if container not in regions:
+            raise ContractError(f"composed state machine {state_machine_id} {label} selector references undeclared Textual container: {selector}")
         return
     if selector.startswith("child_state_machine."):
         mount = selector[len("child_state_machine."):]
@@ -2961,12 +2970,12 @@ def _expand_test_case_fact_uses(contract: dict[str, Any]) -> set[str]:
         ))
     for case_id, case in audit_cases(contract).items():
         case_uses: set[str] = set()
-        for fact_use in case.get("facts", []):
+        for fact_use in case.get("fact_refs", []):
             fact_id = fact_use["ref"]
             if fact_id not in contract["facts"]:
-                raise ContractError(f"Audit case {case_id} references unknown fact {fact_id}")
+                raise ContractError(f"Render audit case {case_id} references unknown fact {fact_id}")
             if fact_id in case_uses:
-                raise ContractError(f"Audit case {case_id} uses fact {fact_id} more than once")
+                raise ContractError(f"Render audit case {case_id} uses fact {fact_id} more than once")
             case_uses.add(fact_id)
             used.add(fact_id)
     return used

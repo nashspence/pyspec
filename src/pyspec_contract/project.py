@@ -475,14 +475,14 @@ def compose_contract_composition(composition_id: str) -> list[tuple[str, str, st
 
 def widget_label(widget: dict) -> str:
     binding = widget["binding"]
-    if "text" in binding:
-        return binding["text"]
-    if "asset" in binding:
-        return binding["asset"]
+    if "text_slot" in binding:
+        return binding["text_slot"]
+    if "asset_slot" in binding:
+        return binding["asset_slot"]
     if "operation" in binding:
         return binding["operation"]
-    if "field" in binding:
-        return binding["field"]
+    if "field_slot" in binding:
+        return binding["field_slot"]
     return binding.get("literal", widget["id"])
 '''
 
@@ -539,14 +539,14 @@ def default_html_slots(state_machine: dict[str, Any]) -> list[dict[str, Any]]:
     for text_ref in state_machine["slots"]["text"]:
         slot = text_ref.rsplit(".", 1)[-1]
         element = "h2" if slot == "title" else "p"
-        item: dict[str, Any] = {"binding": {"text": slot}, "component": "text", "element": element}
+        item: dict[str, Any] = {"binding": {"text_slot": slot}, "component": "text", "element": element}
         if slot == "title":
             item.update({"role": "heading", "level": 2})
         slots.append(item)
     for asset_ref in state_machine["slots"]["assets"]:
-        slots.append({"binding": {"asset": asset_ref.rsplit(".", 1)[-1]}, "component": "image", "element": "img"})
+        slots.append({"binding": {"asset_slot": asset_ref.rsplit(".", 1)[-1]}, "component": "image", "element": "img"})
     for field in state_machine["slots"].get("fields", []):
-        slots.append({"binding": {"field": field}, "component": "field", "element": "p"})
+        slots.append({"binding": {"field_slot": field}, "component": "field", "element": "p"})
     for operation in state_machine["slots"]["available_operations"]:
         slots.append({"binding": {"operation": operation}, "component": "button", "element": "button"})
     return slots
@@ -612,7 +612,7 @@ def tcss_selector(state_machine: dict[str, Any], selector: str) -> str:
         slot = selector[len("slot."):]
         for widget in widgets:
             binding = widget["binding"]
-            if binding.get("text") == slot or binding.get("asset") == slot or binding.get("field") == slot:
+            if binding.get("text_slot") == slot or binding.get("asset_slot") == slot or binding.get("field_slot") == slot:
                 return "#" + safe_id(widget["id"])
         return "#" + slot
     if selector.startswith("operation."):
@@ -628,10 +628,10 @@ def composition_tcss_selector(composition: dict[str, Any], selector: str) -> str
     if selector in {"root", "screen"}:
         textual = renderer_textual_layout(composition)
         return textual.get("screen_class") or "Screen"
-    if selector.startswith("region."):
-        region = selector[len("region."):]
-        container = renderer_textual_containers(composition).get(region, {})
-        return "#" + safe_id(container.get("id", region))
+    if selector.startswith("container."):
+        container_name = selector[len("container."):]
+        container = renderer_textual_containers(composition).get(container_name, {})
+        return "#" + safe_id(container.get("id", container_name))
     if selector.startswith("child_state_machine."):
         return "#" + safe_id(selector[len("child_state_machine."):])
     return selector
@@ -849,7 +849,7 @@ def refs_py_projection(contract: dict[str, Any]) -> str:
         "Fact": sorted(contract.get("facts", {})),
         "Fixture": sorted(contract["fixtures"]),
         "StateMachine": sorted(contract.get("state_machines", {})),
-        "AuditCase": sorted(
+        "RenderAuditCase": sorted(
             f"{state_machine_id}.{state_name}.{case_name}.audit"
             for state_machine_id, state_machine in contract.get("state_machines", {}).items()
             for state_name, state in state_machine.get("view_states", {}).items()

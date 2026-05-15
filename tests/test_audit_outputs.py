@@ -165,7 +165,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "element:" not in composition
     assert "role:" not in composition
     assert "required:" not in composition
-    assert "layout_region_nav" not in composition
+    assert "html_layout_region_nav" not in composition
     assert "fontcolor" not in composition
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">html_route entry point</FONT>' in entrypoint
     assert "<B>route:</B>&#160;&#160;route.project.board" in entrypoint
@@ -372,7 +372,7 @@ def test_composition_dot_routes_messages_generically() -> None:
     assert "role:" not in composition
     assert "required:" not in composition
     assert "layout_instance" not in composition
-    assert "layout_region_empty" not in composition
+    assert "html_layout_region_empty" not in composition
     assert "state_machine.project.board" not in composition
     assert "state_machine.project" not in composition
     svg = _render_graphviz_svg(composition, "generic_composition")
@@ -574,10 +574,10 @@ def test_asset_placeholder_schema_rejects_missing_visual_intent() -> None:
         compile_source(author)
 
 
-def test_audit_case_coverage_is_required() -> None:
+def test_render_audit_case_coverage_is_required() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
     author["state_machines"]["state_machine.project.board"]["view_states"]["ready"].pop("render_audit_cases")
-    with pytest.raises(ContractError, match="Missing audit coverage for composed state machine states"):
+    with pytest.raises(ContractError, match="Missing render audit coverage for composed state machine states"):
         compile_source(author)
 
 

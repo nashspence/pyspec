@@ -193,9 +193,9 @@ def _pm_design_prompt(context: _PromptContext) -> str:
     else:
         lines.append("- Do not add workflow, CLI, worker, or schedule vocabulary.")
     if "ui" in context.layers:
-        lines.append("- UI: state machines with view-state-local layouts, child state machines, audit cases, text resources/assets, content cases, and render profiles.")
+        lines.append("- UI: state machines with view-state-local layouts, child state machines, render audit cases, text resources/assets, content cases, and render profiles.")
     else:
-        lines.append("- Do not author UI state machines, text resources/assets, audit cases, or surface presentation.")
+        lines.append("- Do not author UI state machines, text resources/assets, render audit cases, or surface presentation.")
     if "html" in context.layers:
         lines.append("- HTML UI: html renderer layout, presentation, style, UI entry points, routes, and HTML audit surfaces.")
     elif "ui" in context.layers:

@@ -392,7 +392,7 @@ state_machines:
             rationale: Audit render for selected-project board state vector using named project facts.
             context:
               selected_project_id: project_submitted_1
-            facts:
+            fact_refs:
             - ref: fact.project.submitted
             - ref: fact.project.draft
             seed_fixtures:
@@ -478,10 +478,10 @@ state_machines:
                 selector: screen
               - declarations:
                   width: '32'
-                selector: region.nav
+                selector: container.nav
               - declarations:
                   width: '28'
-                selector: region.aside
+                selector: container.aside
           html:
             layout:
               regions:

@@ -15,7 +15,7 @@ Authoring scope:
 - HTTP: HTTP entry points that bind operations to externally visible API operations.
 - Events: event-producing product behavior and webhook-facing contracts when requested.
 - Workflow: workflows with explicit outcomes, step outcome routing, and CLI/worker/scheduled entry points with adapter-appropriate responses.
-- UI: state machines with view-state-local layouts, child state machines, audit cases, text resources/assets, content cases, and render profiles.
+- UI: state machines with view-state-local layouts, child state machines, render audit cases, text resources/assets, content cases, and render profiles.
 - HTML UI: html renderer layout, presentation, style, UI entry points, routes, and HTML audit surfaces.
 - Textual UI: Textual presentation, screen projection, and Textual audit surfaces.
 

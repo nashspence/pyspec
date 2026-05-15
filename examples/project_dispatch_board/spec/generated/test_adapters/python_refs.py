@@ -4,10 +4,6 @@ class Asset:
     ASSET_PROJECT_DETAIL_READY_PRIORITY_BADGE = 'asset.project.detail.ready.priority_badge'
     ASSET_PROJECT_LIST_EMPTY_ILLUSTRATION = 'asset.project.list.empty.illustration'
 
-class AuditCase:
-    STATE_MACHINE_PROJECT_BOARD_READY_EMPTY_AUDIT = 'state_machine.project.board.ready.empty.audit'
-    STATE_MACHINE_PROJECT_BOARD_READY_READY_SELECTED_AUDIT = 'state_machine.project.board.ready.ready_selected.audit'
-
 class AuthorizationPolicy:
     AUTHORIZATION_POLICY_PROJECT_APPROVE = 'authorization_policy.project.approve'
     AUTHORIZATION_POLICY_PROJECT_ARCHIVE = 'authorization_policy.project.archive'
@@ -65,6 +61,10 @@ class Query:
     QUERY_PROJECT_BOARD_LIST = 'query.project.board.list'
     QUERY_PROJECT_DETAIL_READ = 'query.project.detail.read'
     QUERY_PROJECT_LIST_LIST = 'query.project.list.list'
+
+class RenderAuditCase:
+    STATE_MACHINE_PROJECT_BOARD_READY_EMPTY_AUDIT = 'state_machine.project.board.ready.empty.audit'
+    STATE_MACHINE_PROJECT_BOARD_READY_READY_SELECTED_AUDIT = 'state_machine.project.board.ready.ready_selected.audit'
 
 class RenderProfile:
     RENDER_PROFILE_DEFAULT = 'render_profile.default'

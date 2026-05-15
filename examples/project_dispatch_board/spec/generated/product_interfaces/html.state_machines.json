@@ -164,13 +164,13 @@
                 "declarations": {
                   "width": "32"
                 },
-                "selector": "region.nav"
+                "selector": "container.nav"
               },
               {
                 "declarations": {
                   "width": "28"
                 },
-                "selector": "region.aside"
+                "selector": "container.aside"
               }
             ]
           }

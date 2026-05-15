@@ -10,13 +10,13 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - <!-- top-level:entry_points --> `entry_points`: external invocation declarations split into explicit adapter and target objects.
 - <!-- top-level:events --> `events`: durable domain/application or system events with payload_schema contracts and compiled emitters.
 - <!-- top-level:facts --> `facts`: reusable domain facts and assertion facts for model presence or absence.
-- <!-- top-level:fixtures --> `fixtures`: named seed data namespaces used by test cases, facts, content cases, and audits.
+- <!-- top-level:fixtures --> `fixtures`: named seed data namespaces used by test cases, facts, content cases, and render audit cases.
 - <!-- top-level:models --> `models`: PascalCase product data models and lifecycle declarations; model ids are the documented reference-prefix exception because they are also type names.
 - <!-- top-level:operations --> `operations`: executable product operations with typed input, effects, outcomes, emitted events, and authorization policies.
 - <!-- top-level:authorization_policies --> `authorization_policies`: authorization policies with subjects, authorization targets, conditions, and effect.
 - <!-- top-level:project --> `project`: the project slug for the specification workspace.
 - <!-- top-level:refs --> `refs`: compiled-only index of generated references used by projections and tests.
-- <!-- top-level:render_profiles --> `render_profiles`: global HTML and Textual viewport profiles for audit/golden-image rendering; state-machine audit cases do not reference profiles directly.
+- <!-- top-level:render_profiles --> `render_profiles`: global HTML and Textual viewport profiles for audit/golden-image rendering; state-machine render audit cases do not reference profiles directly.
 - <!-- top-level:state_machines --> `state_machines`: UI/component state-machine contracts with context, query dependencies, view states, transitions, signals, child state machines, and sync rules.
 - <!-- top-level:test_cases --> `test_cases`: formal behavior test cases with subject_ref, given, when, and then contracts.
 - <!-- top-level:text_resources --> `text_resources`: text resources used by state-machine slots and content-source projections.
@@ -31,7 +31,7 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `entry_point_ref`: `entry_point.<adapter-or-target>.<domain>...`; entry-point declarations and test-case `open_entry_point` or `call_entry_point` actions.
 - `event_ref`: `event.<domain>...`; durable domain/application event declarations, operation emissions, workflow triggers, and test-case event assertions.
 - `fact_ref`: `fact.<domain>...`; named domain or assertion facts referenced through `fact_use.ref`.
-- `fixture_ref`: `fixture.<domain>...`; seed data fixtures used by test cases, content cases, facts, and audit cases.
+- `fixture_ref`: `fixture.<domain>...`; seed data fixtures used by test cases, content cases, facts, and render audit cases.
 - `message_ref`: `message.<domain>...`; local UI/component/state-machine messages only.
 - `model_ref`: `PascalCase`; model references are the sole collection-prefix exception because model ids are also type names.
 - `operation_ref`: `operation.<domain>...`; operation declarations, state-machine `available_operations` and `query_dependencies`, workflow steps, entry-point operation targets, and test-case assertions.
@@ -59,7 +59,7 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 
 ## Runtime Expression Namespaces
 
-- `$fixture.<path>` reads merged seed fixture data in test cases, facts, content cases, and audit cases.
+- `$fixture.<path>` reads merged seed fixture data in test cases, facts, content cases, and render audit cases.
 - `$state_machine.<field>` reads parent state-machine context in child state-machine context bindings and composition conditions.
 - `$message.<field>` reads the current state-machine message payload in transition effects and sync sends.
 - `$context.<field>` reads current state-machine context in transition effects.
@@ -147,6 +147,12 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:fact_ref --> `$defs/fact_ref`: typed reference definition for its namespace.
 - <!-- schema-def:fact_use --> `$defs/fact_use`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:field_name --> `$defs/field_name`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:local_name --> `$defs/local_name`: local identifier contract component.
+- <!-- schema-def:slot_name --> `$defs/slot_name`: local identifier contract component.
+- <!-- schema-def:outcome_name --> `$defs/outcome_name`: local identifier contract component.
+- <!-- schema-def:rule_id --> `$defs/rule_id`: local identifier contract component.
+- <!-- schema-def:role_name --> `$defs/role_name`: local identifier contract component.
+- <!-- schema-def:audit_case_id --> `$defs/audit_case_id`: local identifier contract component.
 - <!-- schema-def:field_schema --> `$defs/field_schema`: structured type-expression and object-schema contract component.
 - <!-- schema-def:field_schema_map --> `$defs/field_schema_map`: structured type-expression and object-schema contract component.
 - <!-- schema-def:fixture_ref --> `$defs/fixture_ref`: typed reference definition for its namespace.
@@ -155,9 +161,9 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:html_viewport --> `$defs/html_viewport`: HTML renderer contract component.
 - <!-- schema-def:instance_id --> `$defs/instance_id`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:json_value --> `$defs/json_value`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:layout_container --> `$defs/layout_container`: renderer contract component scoped to HTML and/or Textual targets.
-- <!-- schema-def:layout_region --> `$defs/layout_region`: renderer contract component scoped to HTML and/or Textual targets.
-- <!-- schema-def:layout_root --> `$defs/layout_root`: renderer contract component scoped to HTML and/or Textual targets.
+- <!-- schema-def:textual_layout_container --> `$defs/textual_layout_container`: Textual renderer contract component.
+- <!-- schema-def:html_layout_region --> `$defs/html_layout_region`: HTML renderer contract component.
+- <!-- schema-def:html_layout_root --> `$defs/html_layout_root`: HTML renderer contract component.
 - <!-- schema-def:message_ref --> `$defs/message_ref`: typed reference definition for its namespace.
 - <!-- schema-def:signal_sync_action --> `$defs/signal_sync_action`: state-machine signal synchronization contract component.
 - <!-- schema-def:signal_sync_assertion --> `$defs/signal_sync_assertion`: state-machine signal synchronization contract component.
@@ -182,7 +188,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:test_case_ref --> `$defs/test_case_ref`: typed reference definition for its namespace.
 - <!-- schema-def:scheduled_adapter --> `$defs/scheduled_adapter`: entry-point adapter, target, input, or response contract component.
 - <!-- schema-def:slot_binding --> `$defs/slot_binding`: renderer contract component scoped to HTML and/or Textual targets.
-- <!-- schema-def:state_machine_audit_case --> `$defs/state_machine_audit_case`: state-machine contract component.
+- <!-- schema-def:state_machine_render_audit_case --> `$defs/state_machine_render_audit_case`: state-machine contract component.
 - <!-- schema-def:state_machine_signal --> `$defs/state_machine_signal`: state-machine contract component.
 - <!-- schema-def:state_machine_ref --> `$defs/state_machine_ref`: typed reference definition for its namespace.
 - <!-- schema-def:state_machine_transition --> `$defs/state_machine_transition`: state-machine contract component.
@@ -222,7 +228,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:feature_tag --> `$defs/feature_tag`: unprefixed test-case feature grouping tag, not a typed reference.
 - <!-- schema-def:data_signal_ref --> `$defs/data_signal_ref`: typed reference definition for its namespace.
 - <!-- schema-def:state_machine_signals --> `$defs/state_machine_signals`: state-machine contract component.
-- <!-- schema-def:viewport_id --> `$defs/viewport_id`: render-profile viewport identifier used by audit/golden-image tooling.
+- <!-- schema-def:viewport_id --> `$defs/viewport_id`: local identifier contract component.
 - <!-- schema-def:http_api_adapter --> `$defs/http_api_adapter`: entry-point adapter, target, input, or response contract component.
 - <!-- schema-def:http_api_adapter_input --> `$defs/http_api_adapter_input`: entry-point adapter, target, input, or response contract component.
 - <!-- schema-def:authorization_assertion --> `$defs/authorization_assertion`: authorization-policy contract component.

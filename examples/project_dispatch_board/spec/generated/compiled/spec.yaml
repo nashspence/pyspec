@@ -876,7 +876,7 @@ state_machines:
           ready_selected:
             context:
               selected_project_id: project_submitted_1
-            facts:
+            fact_refs:
             - ref: fact.project.submitted
             - ref: fact.project.draft
             instances:
@@ -965,10 +965,10 @@ state_machines:
                 selector: screen
               - declarations:
                   width: '32'
-                selector: region.nav
+                selector: container.nav
               - declarations:
                   width: '28'
-                selector: region.aside
+                selector: container.aside
         signal_sync_rules:
         - effects:
           - set:
@@ -1388,10 +1388,10 @@ test_cases:
                   selector: screen
                 - declarations:
                     width: '32'
-                  selector: region.nav
+                  selector: container.nav
                 - declarations:
                     width: '28'
-                  selector: region.aside
+                  selector: container.aside
           signal_sync_rules:
           - effects:
             - set:
@@ -1588,10 +1588,10 @@ test_cases:
                   selector: screen
                 - declarations:
                     width: '32'
-                  selector: region.nav
+                  selector: container.nav
                 - declarations:
                     width: '28'
-                  selector: region.aside
+                  selector: container.aside
           signal_sync_rules:
           - effects:
             - set:

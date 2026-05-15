@@ -285,7 +285,7 @@ def _case_scope_inputs(contract: dict[str, Any], case: dict[str, Any]) -> tuple[
     text_refs = {text_ref for state_machine in state_machines for text_ref in state_machine["slots"].get("text", [])}
     asset_refs = {asset_ref for state_machine in state_machines for asset_ref in state_machine["slots"].get("assets", [])}
     fixture_ids = set(case.get("seed_fixtures", []))
-    fact_ids = {fact_use["ref"] for fact_use in case.get("facts", [])}
+    fact_ids = {fact_use["ref"] for fact_use in case.get("fact_refs", [])}
     return text_refs, asset_refs, fixture_ids, fact_ids, case.get("context") or {}
 
 
@@ -2297,9 +2297,9 @@ def render_state_machine_audit_html(root: Path, contract: dict[str, Any], state_
         attrs["role"] = root_spec["role"]
     lines = [f"<{tag}{format_attrs(attrs)}>"]
     slots = html_contract.get("slots") or default_html_slots(state_machine)
-    field_slots = [slot for slot in slots if "field" in slot["binding"]]
+    field_slots = [slot for slot in slots if "field_slot" in slot["binding"]]
     for slot in slots:
-        if "field" in slot["binding"]:
+        if "field_slot" in slot["binding"]:
             continue
         records = records_for_state_machine(contract, state_machine, case)
         record = records[0] if records else {}
@@ -2328,14 +2328,14 @@ def render_html_slot_runtime(root: Path, contract: dict[str, Any], state_machine
         attrs["class"] = " ".join(classes)
     if slot.get("role") and slot["role"] != "none":
         attrs["role"] = slot["role"]
-    if kind == "text":
+    if kind == "text_slot":
         text_ref = slot_ref(state_machine, "text", bind_value)
         attrs["data-text"] = text_ref
         if slot.get("level"):
             attrs["aria-level"] = str(slot["level"])
         text = resolve_text_resource(root, contract, text_ref, record, context, namespace)
         return [f"<{tag}{format_attrs(attrs)}>{html.escape(text)}</{tag}>"]
-    if kind == "asset":
+    if kind == "asset_slot":
         asset_ref = slot_ref(state_machine, "asset", bind_value)
         attrs["data-asset"] = asset_ref
         asset_result = resolve_asset_result(root, contract, asset_ref, record, context, namespace)
@@ -2360,7 +2360,7 @@ def render_html_slot_runtime(root: Path, contract: dict[str, Any], state_machine
 
 def render_html_field_slot(record: dict[str, Any], slot: dict[str, Any]) -> list[str]:
     tag = slot["element"]
-    field = slot["binding"]["field"]
+    field = slot["binding"]["field_slot"]
     attrs: dict[str, str] = {"class": "audit-field", "data-contract-slot": field, "data-field": field}
     if slot.get("classes"):
         attrs["class"] += " " + " ".join(slot["classes"])
@@ -2411,13 +2411,13 @@ def state_machine_textual_lines(root: Path, contract: dict[str, Any], state_mach
         namespace = render_namespace(contract, case)
         for widget in widgets:
             bind_kind, bind_value = next(iter(widget["binding"].items()))
-            if bind_kind == "text":
+            if bind_kind == "text_slot":
                 ref = slot_ref(state_machine, "text", bind_value)
                 lines.append(("static", resolve_text_resource(root, contract, ref, record, context, namespace)))
-            elif bind_kind == "asset":
+            elif bind_kind == "asset_slot":
                 ref = slot_ref(state_machine, "asset", bind_value)
                 lines.append(("static", resolve_asset_result(root, contract, ref, record, context, namespace).alt or contract["assets"][ref]["placeholder"]["label"]))
-            elif bind_kind == "field":
+            elif bind_kind == "field_slot":
                 lines.append(("static", str(record.get(bind_value, "—"))))
             elif bind_kind == "operation":
                 lines.append(("button", humanize(bind_value)))
@@ -2451,7 +2451,7 @@ def records_for_state_machine(contract: dict[str, Any], state_machine: dict[str,
     if case:
         namespace = fixture_namespace(contract, fixtures)
         records.extend(_find_model_records(namespace, model_id))
-        records = _apply_fact_uses(contract, case.get("facts", []), namespace, model_id, records)
+        records = _apply_fact_uses(contract, case.get("fact_refs", []), namespace, model_id, records)
         context = _resolved_case_context(contract, case, namespace)
     else:
         context = {}

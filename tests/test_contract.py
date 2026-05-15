@@ -158,7 +158,7 @@ def test_named_fact_expands_into_compiled_test_case() -> None:
     test_case_fact = contract["test_cases"]["test_case.project.approve.success"]["given"]["domain_facts"][0]
     assert "ref" not in test_case_fact
     assert test_case_fact == {"present": fact["present"]}
-    assert audit_cases(contract)["state_machine.project.board.ready.ready_selected.audit"]["facts"] == [
+    assert audit_cases(contract)["state_machine.project.board.ready.ready_selected.audit"]["fact_refs"] == [
         {"ref": "fact.project.submitted"},
         {"ref": "fact.project.draft"},
     ]
@@ -181,20 +181,20 @@ def test_duplicate_fact_use_in_one_test_case_is_rejected() -> None:
         compile_author(author)
 
 
-def test_unknown_audit_case_fact_use_is_rejected() -> None:
+def test_unknown_render_audit_case_fact_use_is_rejected() -> None:
     author = _author()
-    author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["render_audit_cases"]["ready_selected"]["facts"] = [{"ref": "fact.project.missing"}]
-    with pytest.raises(ContractError, match=r"Audit case state_machine\.project\.board\.ready\.ready_selected\.audit references unknown fact fact\.project\.missing"):
+    author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["render_audit_cases"]["ready_selected"]["fact_refs"] = [{"ref": "fact.project.missing"}]
+    with pytest.raises(ContractError, match=r"Render audit case state_machine\.project\.board\.ready\.ready_selected\.audit references unknown fact fact\.project\.missing"):
         compile_author(author)
 
 
-def test_duplicate_audit_case_fact_use_is_rejected() -> None:
+def test_duplicate_render_audit_case_fact_use_is_rejected() -> None:
     author = _author()
-    author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["render_audit_cases"]["ready_selected"]["facts"] = [
+    author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["render_audit_cases"]["ready_selected"]["fact_refs"] = [
         {"ref": "fact.project.submitted"},
         {"ref": "fact.project.submitted"},
     ]
-    with pytest.raises(ContractError, match=r"Audit case state_machine\.project\.board\.ready\.ready_selected\.audit uses fact fact\.project\.submitted more than once"):
+    with pytest.raises(ContractError, match=r"Render audit case state_machine\.project\.board\.ready\.ready_selected\.audit uses fact fact\.project\.submitted more than once"):
         compile_author(author)
 
 

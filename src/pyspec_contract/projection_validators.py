@@ -463,7 +463,7 @@ def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
 
     exercised: set[str] = set()
     for case_id, case in contract.get("content_cases", {}).items():
-        namespace = fixture_namespace(contract, case.get("fixtures", []))
+        namespace = fixture_namespace(contract, case.get("seed_fixtures", []))
         args = {key: resolve(value, namespace) for key, value in case.get("args", {}).items()}
         ref = case["ref"]
         if ref.startswith("text."):
@@ -795,7 +795,7 @@ def validate_refs_py(root: Path, contract: dict[str, Any]) -> None:
         "Operation": sorted(contract["operations"]),
         "StateMachine": sorted(contract.get("state_machines", {})),
         "Text": sorted(contract.get("text_resources", {})),
-        "AuditCase": sorted(audit_cases(contract)),
+        "RenderAuditCase": sorted(audit_cases(contract)),
         "TestCase": sorted(contract["test_cases"]),
     }
     for kind, values in sorted(contract["refs"].items()):
@@ -938,7 +938,7 @@ def _expected_textual_compose(state_machine: dict[str, Any]) -> list[tuple[str, 
 
 def _widget_label(widget: dict[str, Any]) -> str:
     binding = widget["binding"]
-    for key in ["text", "asset", "operation", "field", "literal"]:
+    for key in ["text_slot", "asset_slot", "operation", "field_slot", "literal"]:
         if key in binding:
             return binding[key]
     return widget["id"]
@@ -952,7 +952,7 @@ def _textual_selector(state_machine: dict[str, Any], selector: str) -> str:
         slot = selector[len("slot."):]
         for widget in widgets:
             binding = widget["binding"]
-            if binding.get("text") == slot or binding.get("asset") == slot or binding.get("field") == slot:
+            if binding.get("text_slot") == slot or binding.get("asset_slot") == slot or binding.get("field_slot") == slot:
                 return "#" + safe_id(widget["id"])
         return "#" + slot
     if selector.startswith("operation."):

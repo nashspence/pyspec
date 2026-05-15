@@ -83,7 +83,7 @@
             "badge",
             "empty_state",
             "decorative",
-            "content"
+            "informative"
           ]
         },
         "media_kind": {
@@ -190,13 +190,6 @@
         "rationale": {
           "$ref": "#/$defs/rationale"
         },
-        "fixtures": {
-          "items": {
-            "$ref": "#/$defs/fixture_ref"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
         "ref": {
           "oneOf": [
             {
@@ -206,6 +199,14 @@
               "$ref": "#/$defs/asset_ref"
             }
           ]
+        },
+        "seed_fixtures": {
+          "items": {
+            "$ref": "#/$defs/fixture_ref"
+          },
+          "type": "array",
+          "uniqueItems": true,
+          "description": "Seed fixtures used when resolving this content case."
         }
       },
       "required": [
@@ -627,7 +628,7 @@
       "properties": {
         "asset_slots": {
           "items": {
-            "$ref": "#/$defs/field_name"
+            "$ref": "#/$defs/slot_name"
           },
           "type": "array",
           "uniqueItems": true
@@ -640,7 +641,7 @@
         },
         "text_slots": {
           "items": {
-            "$ref": "#/$defs/field_name"
+            "$ref": "#/$defs/slot_name"
           },
           "type": "array",
           "uniqueItems": true
@@ -655,7 +656,7 @@
         },
         "field_slots": {
           "items": {
-            "$ref": "#/$defs/field_name"
+            "$ref": "#/$defs/slot_name"
           },
           "type": "array",
           "uniqueItems": true
@@ -678,10 +679,10 @@
         },
         "render_audit_cases": {
           "additionalProperties": {
-            "$ref": "#/$defs/state_machine_audit_case"
+            "$ref": "#/$defs/state_machine_render_audit_case"
           },
           "propertyNames": {
-            "$ref": "#/$defs/field_name"
+            "$ref": "#/$defs/audit_case_id"
           },
           "type": "object"
         }
@@ -1177,7 +1178,33 @@
     },
     "field_name": {
       "pattern": "^[a-z][a-z0-9_]*$",
+      "type": "string",
+      "description": "Actual data/model/input/context field identifier."
+    },
+    "local_name": {
+      "description": "Local unprefixed identifier used for named slots, outcomes, rules, roles, render audit cases, and viewports.",
+      "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
+    },
+    "slot_name": {
+      "$ref": "#/$defs/local_name",
+      "description": "Local slot identifier within a view state."
+    },
+    "outcome_name": {
+      "$ref": "#/$defs/local_name",
+      "description": "Local operation or workflow outcome identifier."
+    },
+    "rule_id": {
+      "$ref": "#/$defs/local_name",
+      "description": "Local state-machine synchronization rule identifier."
+    },
+    "role_name": {
+      "$ref": "#/$defs/local_name",
+      "description": "Local authorization role name."
+    },
+    "audit_case_id": {
+      "$ref": "#/$defs/local_name",
+      "description": "Local render audit case identifier within a view state."
     },
     "field_schema": {
       "additionalProperties": false,
@@ -1319,7 +1346,7 @@
         }
       ]
     },
-    "layout_container": {
+    "textual_layout_container": {
       "additionalProperties": false,
       "properties": {
         "id": {
@@ -1349,7 +1376,7 @@
       ],
       "type": "object"
     },
-    "layout_region": {
+    "html_layout_region": {
       "additionalProperties": false,
       "properties": {
         "classes": {
@@ -1378,7 +1405,7 @@
       ],
       "type": "object"
     },
-    "layout_root": {
+    "html_layout_root": {
       "additionalProperties": false,
       "properties": {
         "classes": {
@@ -1399,7 +1426,8 @@
     },
     "message_ref": {
       "pattern": "^message\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
-      "type": "string"
+      "type": "string",
+      "description": "State-machine-local message identifier."
     },
     "signal_sync_action": {
       "oneOf": [
@@ -1416,7 +1444,7 @@
       "properties": {
         "observed_rules": {
           "items": {
-            "$ref": "#/$defs/field_name"
+            "$ref": "#/$defs/rule_id"
           },
           "type": "array",
           "uniqueItems": true
@@ -1435,7 +1463,7 @@
           "type": "array"
         },
         "id": {
-          "$ref": "#/$defs/field_name"
+          "$ref": "#/$defs/rule_id"
         },
         "when": {
           "$ref": "#/$defs/signal_sync_trigger"
@@ -1573,7 +1601,7 @@
       },
       "minProperties": 2,
       "propertyNames": {
-        "$ref": "#/$defs/field_name"
+        "$ref": "#/$defs/outcome_name"
       },
       "type": "object"
     },
@@ -1727,36 +1755,39 @@
         {
           "additionalProperties": false,
           "properties": {
-            "text": {
-              "$ref": "#/$defs/field_name"
+            "text_slot": {
+              "$ref": "#/$defs/slot_name",
+              "description": "Local text slot name in the current view state."
             }
           },
           "required": [
-            "text"
+            "text_slot"
           ],
           "type": "object"
         },
         {
           "additionalProperties": false,
           "properties": {
-            "asset": {
-              "$ref": "#/$defs/field_name"
+            "asset_slot": {
+              "$ref": "#/$defs/slot_name",
+              "description": "Local asset slot name in the current view state."
             }
           },
           "required": [
-            "asset"
+            "asset_slot"
           ],
           "type": "object"
         },
         {
           "additionalProperties": false,
           "properties": {
-            "field": {
-              "$ref": "#/$defs/field_name"
+            "field_slot": {
+              "$ref": "#/$defs/slot_name",
+              "description": "Local field slot name in the current view state."
             }
           },
           "required": [
-            "field"
+            "field_slot"
           ],
           "type": "object"
         },
@@ -1785,9 +1816,10 @@
           ],
           "type": "object"
         }
-      ]
+      ],
+      "description": "View-state-local slot binding. text_slot, asset_slot, and field_slot refer to local slots; operation binds an operation reference; literal binds fixed text."
     },
-    "state_machine_audit_case": {
+    "state_machine_render_audit_case": {
       "additionalProperties": false,
       "properties": {
         "rationale": {
@@ -1795,12 +1827,6 @@
         },
         "context": {
           "$ref": "#/$defs/value_map"
-        },
-        "facts": {
-          "items": {
-            "$ref": "#/$defs/fact_use"
-          },
-          "type": "array"
         },
         "instances": {
           "additionalProperties": {
@@ -1817,12 +1843,20 @@
           },
           "type": "array",
           "uniqueItems": true
+        },
+        "fact_refs": {
+          "items": {
+            "$ref": "#/$defs/fact_use"
+          },
+          "type": "array",
+          "description": "Fact references used to seed rendered model state for this render audit case."
         }
       },
       "required": [
         "seed_fixtures"
       ],
-      "type": "object"
+      "type": "object",
+      "description": "Render-audit case for a state-machine view state. Global render profiles are applied by tooling; cases do not reference render profiles."
     },
     "state_machine_signal": {
       "additionalProperties": false,
@@ -1931,11 +1965,11 @@
       "properties": {
         "containers": {
           "additionalProperties": {
-            "$ref": "#/$defs/layout_container"
+            "$ref": "#/$defs/textual_layout_container"
           },
           "minProperties": 1,
           "propertyNames": {
-            "$ref": "#/$defs/field_name"
+            "$ref": "#/$defs/local_name"
           },
           "type": "object"
         },
@@ -2371,16 +2405,16 @@
       "properties": {
         "regions": {
           "additionalProperties": {
-            "$ref": "#/$defs/layout_region"
+            "$ref": "#/$defs/html_layout_region"
           },
           "minProperties": 1,
           "propertyNames": {
-            "$ref": "#/$defs/field_name"
+            "$ref": "#/$defs/local_name"
           },
           "type": "object"
         },
         "root": {
-          "$ref": "#/$defs/layout_root"
+          "$ref": "#/$defs/html_layout_root"
         }
       },
       "type": "object"
@@ -2424,7 +2458,7 @@
           "$ref": "#/$defs/html_element"
         },
         "id": {
-          "$ref": "#/$defs/field_name"
+          "$ref": "#/$defs/slot_name"
         },
         "label": {
           "minLength": 1,
@@ -2623,7 +2657,7 @@
       },
       "minProperties": 1,
       "propertyNames": {
-        "$ref": "#/$defs/field_name"
+        "$ref": "#/$defs/outcome_name"
       },
       "type": "object"
     },
@@ -2633,7 +2667,7 @@
       },
       "minProperties": 2,
       "propertyNames": {
-        "$ref": "#/$defs/field_name"
+        "$ref": "#/$defs/outcome_name"
       },
       "type": "object"
     },
@@ -2657,7 +2691,7 @@
           ]
         },
         "fail_as": {
-          "$ref": "#/$defs/field_name"
+          "$ref": "#/$defs/outcome_name"
         }
       },
       "required": [
@@ -2698,10 +2732,10 @@
       ],
       "properties": {
         "complete_as": {
-          "$ref": "#/$defs/field_name"
+          "$ref": "#/$defs/outcome_name"
         },
         "fail_as": {
-          "$ref": "#/$defs/field_name"
+          "$ref": "#/$defs/outcome_name"
         },
         "next_step": {
           "pattern": "^[a-z][a-z0-9_]*$",
@@ -2711,7 +2745,7 @@
           "$ref": "#/$defs/workflow_retry_policy"
         },
         "dead_letter_as": {
-          "$ref": "#/$defs/field_name"
+          "$ref": "#/$defs/outcome_name"
         }
       },
       "type": "object"
@@ -2781,7 +2815,8 @@
     },
     "data_signal_ref": {
       "pattern": "^data_signal\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
-      "type": "string"
+      "type": "string",
+      "description": "State-machine-local data signal identifier."
     },
     "state_machine_signals": {
       "additionalProperties": false,
@@ -2815,8 +2850,7 @@
       "type": "object"
     },
     "viewport_id": {
-      "pattern": "^[a-z][a-z0-9_]*$",
-      "type": "string",
+      "$ref": "#/$defs/local_name",
       "description": "Identifier for a render-profile viewport size used by audit/golden-image tooling."
     },
     "http_api_adapter": {
@@ -2950,7 +2984,7 @@
           "type": "object"
         },
         "subject_has_role": {
-          "$ref": "#/$defs/field_name"
+          "$ref": "#/$defs/role_name"
         }
       },
       "type": "object"
@@ -3128,8 +3162,8 @@
       "type": "object"
     },
     "textual_tcss_selector": {
-      "description": "Selector over generated Textual screens, widgets, regions, operations, or child state-machine containers.",
-      "pattern": "^(screen|(slot|region)\\.[a-z][a-z0-9_]*|operation\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*|child_state_machine\\.[a-z][a-z0-9_]*)$",
+      "description": "Selector over generated Textual screens, widgets, containers, operations, or child state-machine containers.",
+      "pattern": "^(screen|slot\\.[a-z][a-z0-9_]*|container\\.[a-z][a-z0-9_]*|operation\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*|child_state_machine\\.[a-z][a-z0-9_]*)$",
       "type": "string"
     },
     "textual_tcss_rule": {
@@ -3194,7 +3228,7 @@
         "$ref": "#/$defs/render_profile_ref"
       },
       "type": "object",
-      "description": "Global audit/golden-image render profiles. Audit tooling applies them to all eligible state-machine render audit cases and renderer contracts; audit cases do not reference profiles directly."
+      "description": "Global audit/golden-image render profiles. Audit tooling applies them to all eligible state-machine render audit cases and renderer contracts; render audit cases do not reference profiles directly."
     },
     "content_cases": {
       "additionalProperties": {

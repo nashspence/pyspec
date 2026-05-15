@@ -49,7 +49,7 @@ def test_composed_state_machine_contract_is_closed_and_projected() -> None:
     assert composition["signal_sync_rules"] == state_machine["signal_sync_rules"]
 
 
-def test_state_machine_composition_rejects_unknown_layout_region() -> None:
+def test_state_machine_composition_rejects_unknown_html_region() -> None:
     author = _author()
     state_machine = _item(author, "state_machines", "state_machine.project.board")["view_states"]["ready"]
     state_machine["child_state_machines"][0]["region"] = "ghost"
