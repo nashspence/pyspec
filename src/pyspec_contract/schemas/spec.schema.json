@@ -170,6 +170,55 @@
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
     },
+    "child_state_machine_item": {
+      "additionalProperties": false,
+      "properties": {
+        "context": {
+          "$ref": "#/$defs/context_bindings"
+        },
+        "id": {
+          "$ref": "#/$defs/instance_id"
+        },
+        "initial_view_state": {
+          "$ref": "#/$defs/view_state_name"
+        },
+        "region": {
+          "$ref": "#/$defs/field_name"
+        },
+        "selected": {
+          "$ref": "#/$defs/child_state_machine_selected"
+        },
+        "state_machine": {
+          "$ref": "#/$defs/state_machine_ref",
+          "pattern": "^state_machine\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "state_machine",
+        "region",
+        "initial_view_state",
+        "context"
+      ],
+      "type": "object"
+    },
+    "child_state_machine_selected": {
+      "additionalProperties": false,
+      "properties": {
+        "view_state": {
+          "$ref": "#/$defs/view_state_name"
+        },
+        "when": {
+          "$ref": "#/$defs/condition_contract"
+        }
+      },
+      "required": [
+        "when",
+        "view_state"
+      ],
+      "type": "object"
+    },
     "cli_adapter": {
       "additionalProperties": false,
       "properties": {
@@ -866,281 +915,6 @@
       "pattern": "^fixture\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
-    "fsm_audit_case": {
-      "additionalProperties": false,
-      "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "context": {
-          "$ref": "#/$defs/context_bindings"
-        },
-        "facts": {
-          "items": {
-            "$ref": "#/$defs/fact_use"
-          },
-          "type": "array"
-        },
-        "fixtures": {
-          "items": {
-            "pattern": "^fixture\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
-            "type": "string"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "instances": {
-          "additionalProperties": {
-            "$ref": "#/$defs/fsm_state_assertion"
-          },
-          "propertyNames": {
-            "$ref": "#/$defs/instance_id"
-          },
-          "type": "object"
-        },
-        "profile": {
-          "$ref": "#/$defs/audit_profile_ref"
-        },
-        "surfaces": {
-          "items": {
-            "enum": [
-              "html",
-              "textual"
-            ]
-          },
-          "minItems": 1,
-          "type": "array",
-          "uniqueItems": true
-        }
-      },
-      "required": [
-        "profile",
-        "surfaces",
-        "fixtures",
-        "basis"
-      ],
-      "type": "object"
-    },
-    "fsm_item": {
-      "additionalProperties": false,
-      "properties": {
-        "archetype": {
-          "type": "string"
-        },
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "context": {
-          "$ref": "#/$defs/type_expr_map"
-        },
-        "data": {
-          "items": {
-            "$ref": "#/$defs/datum"
-          },
-          "type": "array"
-        },
-        "initial": {
-          "$ref": "#/$defs/state_name"
-        },
-        "model": {
-          "$ref": "#/$defs/model_ref"
-        },
-        "state_machine_messages": {
-          "$ref": "#/$defs/state_machine_messages"
-        },
-        "states": {
-          "additionalProperties": {
-            "$ref": "#/$defs/fsm_state"
-          },
-          "minProperties": 1,
-          "propertyNames": {
-            "$ref": "#/$defs/state_name"
-          },
-          "type": "object"
-        },
-        "transitions": {
-          "items": {
-            "$ref": "#/$defs/fsm_transition"
-          },
-          "type": "array"
-        }
-      },
-      "required": [
-        "model",
-        "context",
-        "data",
-        "state_machine_messages",
-        "initial",
-        "states",
-        "transitions",
-        "basis"
-      ],
-      "type": "object"
-    },
-    "fsm_mount_selected": {
-      "additionalProperties": false,
-      "properties": {
-        "state": {
-          "$ref": "#/$defs/state_name"
-        },
-        "when": {
-          "$ref": "#/$defs/condition_contract"
-        }
-      },
-      "required": [
-        "when",
-        "state"
-      ],
-      "type": "object"
-    },
-    "fsm_state": {
-      "additionalProperties": false,
-      "properties": {
-        "actions": {
-          "items": {
-            "$ref": "#/$defs/operation_ref"
-          },
-          "type": "array"
-        },
-        "assets": {
-          "items": {
-            "pattern": "^asset\\.",
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "audit": {
-          "additionalProperties": {
-            "$ref": "#/$defs/fsm_audit_case"
-          },
-          "propertyNames": {
-            "$ref": "#/$defs/field_name"
-          },
-          "type": "object"
-        },
-        "copy": {
-          "items": {
-            "pattern": "^text\\.",
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "data": {
-          "items": {
-            "$ref": "#/$defs/datum"
-          },
-          "type": "array"
-        },
-        "fields": {
-          "items": {
-            "$ref": "#/$defs/field_name"
-          },
-          "type": "array"
-        },
-        "layout": {
-          "$ref": "#/$defs/layout_contract"
-        },
-        "mounts": {
-          "items": {
-            "$ref": "#/$defs/mount_item"
-          },
-          "type": "array"
-        },
-        "presentation": {
-          "$ref": "#/$defs/presentation_contract"
-        },
-        "surface": {
-          "pattern": "^state_machine\\.",
-          "type": "string"
-        },
-        "sync": {
-          "items": {
-            "$ref": "#/$defs/sync_rule"
-          },
-          "type": "array"
-        }
-      },
-      "required": [
-        "surface",
-        "data",
-        "copy",
-        "assets",
-        "actions",
-        "fields"
-      ],
-      "type": "object"
-    },
-    "fsm_state_assertion": {
-      "additionalProperties": false,
-      "properties": {
-        "state": {
-          "$ref": "#/$defs/state_name"
-        }
-      },
-      "required": [
-        "state"
-      ],
-      "type": "object"
-    },
-    "fsm_transition": {
-      "additionalProperties": false,
-      "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "effects": {
-          "items": {
-            "oneOf": [
-              {
-                "$ref": "#/$defs/context_set_effect"
-              },
-              {
-                "additionalProperties": false,
-                "properties": {
-                  "emit": {
-                    "additionalProperties": false,
-                    "properties": {
-                      "message": {
-                        "$ref": "#/$defs/message_ref"
-                      },
-                      "payload_bindings": {
-                        "$ref": "#/$defs/expression_map"
-                      }
-                    },
-                    "required": [
-                      "message",
-                      "payload_bindings"
-                    ],
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "emit"
-                ],
-                "type": "object"
-              }
-            ]
-          },
-          "type": "array"
-        },
-        "from": {
-          "$ref": "#/$defs/state_name"
-        },
-        "on": {
-          "pattern": "^([a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+|data\\.[a-z][a-z0-9_]*)$",
-          "type": "string"
-        },
-        "to": {
-          "$ref": "#/$defs/state_name"
-        }
-      },
-      "required": [
-        "from",
-        "to",
-        "on"
-      ],
-      "type": "object"
-    },
     "html_action_slot": {
       "additionalProperties": false,
       "properties": {
@@ -1584,6 +1358,159 @@
       "pattern": "^(message|data)\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
+    "message_sync_action": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/context_set_effect"
+        },
+        {
+          "$ref": "#/$defs/message_sync_send_effect"
+        }
+      ]
+    },
+    "message_sync_effect": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "set": {
+              "additionalProperties": false,
+              "oneOf": [
+                {
+                  "required": [
+                    "from"
+                  ]
+                },
+                {
+                  "required": [
+                    "value"
+                  ]
+                }
+              ],
+              "properties": {
+                "context": {
+                  "$ref": "#/$defs/field_name"
+                },
+                "from": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "value": {
+                  "$ref": "#/$defs/json_value"
+                }
+              },
+              "required": [
+                "context"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "set"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "send": {
+              "additionalProperties": false,
+              "properties": {
+                "instance": {
+                  "$ref": "#/$defs/instance_id"
+                },
+                "message": {
+                  "$ref": "#/$defs/message_ref"
+                },
+                "payload_bindings": {
+                  "$ref": "#/$defs/expression_map"
+                }
+              },
+              "required": [
+                "instance",
+                "message",
+                "payload_bindings"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "send"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "message_sync_rule": {
+      "additionalProperties": false,
+      "properties": {
+        "do": {
+          "items": {
+            "$ref": "#/$defs/message_sync_action"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "id": {
+          "$ref": "#/$defs/field_name"
+        },
+        "when": {
+          "$ref": "#/$defs/message_sync_trigger"
+        }
+      },
+      "required": [
+        "id",
+        "when",
+        "do"
+      ],
+      "type": "object"
+    },
+    "message_sync_send_effect": {
+      "additionalProperties": false,
+      "properties": {
+        "send": {
+          "additionalProperties": false,
+          "properties": {
+            "instance": {
+              "$ref": "#/$defs/instance_id"
+            },
+            "message": {
+              "pattern": "^([a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+|data\\.[a-z][a-z0-9_]*)$",
+              "type": "string"
+            },
+            "payload_bindings": {
+              "$ref": "#/$defs/expression_map"
+            }
+          },
+          "required": [
+            "instance",
+            "message",
+            "payload_bindings"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "send"
+      ],
+      "type": "object"
+    },
+    "message_sync_trigger": {
+      "additionalProperties": false,
+      "properties": {
+        "instance": {
+          "$ref": "#/$defs/instance_id"
+        },
+        "message": {
+          "$ref": "#/$defs/message_ref"
+        }
+      },
+      "required": [
+        "instance",
+        "message"
+      ],
+      "type": "object"
+    },
     "model_item": {
       "additionalProperties": false,
       "properties": {
@@ -1660,38 +1587,6 @@
       "minItems": 1,
       "type": "array",
       "uniqueItems": true
-    },
-    "mount_item": {
-      "additionalProperties": false,
-      "properties": {
-        "context": {
-          "$ref": "#/$defs/context_bindings"
-        },
-        "fsm": {
-          "pattern": "^state_machine\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
-          "type": "string"
-        },
-        "id": {
-          "$ref": "#/$defs/instance_id"
-        },
-        "initial": {
-          "$ref": "#/$defs/state_name"
-        },
-        "region": {
-          "$ref": "#/$defs/field_name"
-        },
-        "selected": {
-          "$ref": "#/$defs/fsm_mount_selected"
-        }
-      },
-      "required": [
-        "id",
-        "fsm",
-        "region",
-        "initial",
-        "context"
-      ],
-      "type": "object"
     },
     "object_schema": {
       "additionalProperties": false,
@@ -1970,6 +1865,117 @@
       ],
       "type": "object"
     },
+    "state_machine_audit_case": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "context": {
+          "$ref": "#/$defs/context_bindings"
+        },
+        "facts": {
+          "items": {
+            "$ref": "#/$defs/fact_use"
+          },
+          "type": "array"
+        },
+        "fixtures": {
+          "items": {
+            "pattern": "^fixture\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "instances": {
+          "additionalProperties": {
+            "$ref": "#/$defs/view_state_assertion"
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/instance_id"
+          },
+          "type": "object"
+        },
+        "profile": {
+          "$ref": "#/$defs/audit_profile_ref"
+        },
+        "surfaces": {
+          "items": {
+            "enum": [
+              "html",
+              "textual"
+            ]
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "profile",
+        "surfaces",
+        "fixtures",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "state_machine_item": {
+      "additionalProperties": false,
+      "properties": {
+        "archetype": {
+          "type": "string"
+        },
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "context": {
+          "$ref": "#/$defs/type_expr_map"
+        },
+        "data_dependencies": {
+          "items": {
+            "$ref": "#/$defs/datum"
+          },
+          "type": "array"
+        },
+        "initial_view_state": {
+          "$ref": "#/$defs/view_state_name"
+        },
+        "model": {
+          "$ref": "#/$defs/model_ref"
+        },
+        "state_machine_messages": {
+          "$ref": "#/$defs/state_machine_messages"
+        },
+        "transitions": {
+          "items": {
+            "$ref": "#/$defs/state_machine_transition"
+          },
+          "type": "array"
+        },
+        "view_states": {
+          "additionalProperties": {
+            "$ref": "#/$defs/view_state"
+          },
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/$defs/view_state_name"
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "model",
+        "context",
+        "data_dependencies",
+        "state_machine_messages",
+        "initial_view_state",
+        "view_states",
+        "transitions",
+        "basis"
+      ],
+      "type": "object"
+    },
     "state_machine_message": {
       "additionalProperties": false,
       "properties": {
@@ -2017,6 +2023,65 @@
       "pattern": "^state_machine\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
     },
+    "state_machine_transition": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "effects": {
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/context_set_effect"
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "emit": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "message": {
+                        "$ref": "#/$defs/message_ref"
+                      },
+                      "payload_bindings": {
+                        "$ref": "#/$defs/expression_map"
+                      }
+                    },
+                    "required": [
+                      "message",
+                      "payload_bindings"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "emit"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "type": "array"
+        },
+        "from": {
+          "$ref": "#/$defs/view_state_name"
+        },
+        "on": {
+          "pattern": "^([a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+|data\\.[a-z][a-z0-9_]*)$",
+          "type": "string"
+        },
+        "to": {
+          "$ref": "#/$defs/view_state_name"
+        }
+      },
+      "required": [
+        "from",
+        "to",
+        "on"
+      ],
+      "type": "object"
+    },
     "state_name": {
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
@@ -2063,159 +2128,6 @@
       "pattern": "^(root|screen|(slot|region)\\.[a-z][a-z0-9_]*|action\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+|mount\\.[a-z][a-z0-9_]*)$",
       "type": "string"
     },
-    "sync_action": {
-      "oneOf": [
-        {
-          "$ref": "#/$defs/context_set_effect"
-        },
-        {
-          "$ref": "#/$defs/sync_send_effect"
-        }
-      ]
-    },
-    "sync_effect": {
-      "oneOf": [
-        {
-          "additionalProperties": false,
-          "properties": {
-            "set": {
-              "additionalProperties": false,
-              "oneOf": [
-                {
-                  "required": [
-                    "from"
-                  ]
-                },
-                {
-                  "required": [
-                    "value"
-                  ]
-                }
-              ],
-              "properties": {
-                "context": {
-                  "$ref": "#/$defs/field_name"
-                },
-                "from": {
-                  "minLength": 1,
-                  "type": "string"
-                },
-                "value": {
-                  "$ref": "#/$defs/json_value"
-                }
-              },
-              "required": [
-                "context"
-              ],
-              "type": "object"
-            }
-          },
-          "required": [
-            "set"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "send": {
-              "additionalProperties": false,
-              "properties": {
-                "instance": {
-                  "$ref": "#/$defs/instance_id"
-                },
-                "message": {
-                  "$ref": "#/$defs/message_ref"
-                },
-                "payload_bindings": {
-                  "$ref": "#/$defs/expression_map"
-                }
-              },
-              "required": [
-                "instance",
-                "message",
-                "payload_bindings"
-              ],
-              "type": "object"
-            }
-          },
-          "required": [
-            "send"
-          ],
-          "type": "object"
-        }
-      ]
-    },
-    "sync_rule": {
-      "additionalProperties": false,
-      "properties": {
-        "do": {
-          "items": {
-            "$ref": "#/$defs/sync_action"
-          },
-          "minItems": 1,
-          "type": "array"
-        },
-        "id": {
-          "$ref": "#/$defs/field_name"
-        },
-        "when": {
-          "$ref": "#/$defs/sync_trigger"
-        }
-      },
-      "required": [
-        "id",
-        "when",
-        "do"
-      ],
-      "type": "object"
-    },
-    "sync_send_effect": {
-      "additionalProperties": false,
-      "properties": {
-        "send": {
-          "additionalProperties": false,
-          "properties": {
-            "instance": {
-              "$ref": "#/$defs/instance_id"
-            },
-            "message": {
-              "pattern": "^([a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+|data\\.[a-z][a-z0-9_]*)$",
-              "type": "string"
-            },
-            "payload_bindings": {
-              "$ref": "#/$defs/expression_map"
-            }
-          },
-          "required": [
-            "instance",
-            "message",
-            "payload_bindings"
-          ],
-          "type": "object"
-        }
-      },
-      "required": [
-        "send"
-      ],
-      "type": "object"
-    },
-    "sync_trigger": {
-      "additionalProperties": false,
-      "properties": {
-        "instance": {
-          "$ref": "#/$defs/instance_id"
-        },
-        "message": {
-          "$ref": "#/$defs/message_ref"
-        }
-      },
-      "required": [
-        "instance",
-        "message"
-      ],
-      "type": "object"
-    },
     "target": {
       "additionalProperties": false,
       "maxProperties": 1,
@@ -2224,11 +2136,11 @@
         "event": {
           "$ref": "#/$defs/event_ref"
         },
-        "fsm": {
-          "$ref": "#/$defs/state_machine_ref"
-        },
         "operation": {
           "$ref": "#/$defs/operation_ref"
+        },
+        "state_machine": {
+          "$ref": "#/$defs/state_machine_ref"
         },
         "workflow": {
           "$ref": "#/$defs/workflow_ref"
@@ -2546,6 +2458,99 @@
         "$ref": "#/$defs/field_name"
       },
       "type": "object"
+    },
+    "view_state": {
+      "additionalProperties": false,
+      "properties": {
+        "assets": {
+          "items": {
+            "pattern": "^asset\\.",
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "audit": {
+          "additionalProperties": {
+            "$ref": "#/$defs/state_machine_audit_case"
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/field_name"
+          },
+          "type": "object"
+        },
+        "child_state_machines": {
+          "items": {
+            "$ref": "#/$defs/child_state_machine_item"
+          },
+          "type": "array"
+        },
+        "copy": {
+          "items": {
+            "pattern": "^text\\.",
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "data_dependencies": {
+          "items": {
+            "$ref": "#/$defs/datum"
+          },
+          "type": "array"
+        },
+        "fields": {
+          "items": {
+            "$ref": "#/$defs/field_name"
+          },
+          "type": "array"
+        },
+        "layout": {
+          "$ref": "#/$defs/layout_contract"
+        },
+        "message_sync_rules": {
+          "items": {
+            "$ref": "#/$defs/message_sync_rule"
+          },
+          "type": "array"
+        },
+        "operation_refs": {
+          "items": {
+            "$ref": "#/$defs/operation_ref"
+          },
+          "type": "array"
+        },
+        "presentation": {
+          "$ref": "#/$defs/presentation_contract"
+        },
+        "surface": {
+          "pattern": "^state_machine\\.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "surface",
+        "data_dependencies",
+        "copy",
+        "assets",
+        "operation_refs",
+        "fields"
+      ],
+      "type": "object"
+    },
+    "view_state_assertion": {
+      "additionalProperties": false,
+      "properties": {
+        "view_state": {
+          "$ref": "#/$defs/view_state_name"
+        }
+      },
+      "required": [
+        "view_state"
+      ],
+      "type": "object"
+    },
+    "view_state_name": {
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "type": "string"
     },
     "webhook_adapter": {
       "additionalProperties": false,
@@ -2877,15 +2882,6 @@
       },
       "type": "object"
     },
-    "fsms": {
-      "additionalProperties": {
-        "$ref": "#/$defs/fsm_item"
-      },
-      "propertyNames": {
-        "$ref": "#/$defs/state_machine_ref"
-      },
-      "type": "object"
-    },
     "models": {
       "additionalProperties": {
         "$ref": "#/$defs/model_item"
@@ -2926,6 +2922,15 @@
       },
       "type": "object"
     },
+    "state_machines": {
+      "additionalProperties": {
+        "$ref": "#/$defs/state_machine_item"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/state_machine_ref"
+      },
+      "type": "object"
+    },
     "workflows": {
       "additionalProperties": {
         "$ref": "#/$defs/workflow_item"
@@ -2951,7 +2956,7 @@
     "scenarios",
     "refs",
     "content_cases",
-    "fsms"
+    "state_machines"
   ],
   "title": "Compiled-Output Product Spec",
   "type": "object"

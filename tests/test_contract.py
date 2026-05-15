@@ -106,7 +106,7 @@ def test_release_gate_requires_final_content_resolvers() -> None:
 
 def test_state_pattern_is_not_a_contract_concept() -> None:
     author = _author()
-    state = _item(author, "fsms", "state_machine.project.list")["states"]["loading"]
+    state = _item(author, "state_machines", "state_machine.project.list")["view_states"]["loading"]
     state["pattern"] = "loading"
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
@@ -179,14 +179,14 @@ def test_duplicate_fact_use_in_one_scenario_is_rejected() -> None:
 
 def test_unknown_audit_case_fact_use_is_rejected() -> None:
     author = _author()
-    author["fsms"]["state_machine.project.board"]["states"]["ready"]["audit"]["ready_selected"]["facts"] = [{"use": "fact.project.missing"}]
+    author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["audit"]["ready_selected"]["facts"] = [{"use": "fact.project.missing"}]
     with pytest.raises(ContractError, match=r"Audit case state_machine\.project\.board\.ready\.ready_selected\.audit references unknown fact fact\.project\.missing"):
         compile_author(author)
 
 
 def test_duplicate_audit_case_fact_use_is_rejected() -> None:
     author = _author()
-    author["fsms"]["state_machine.project.board"]["states"]["ready"]["audit"]["ready_selected"]["facts"] = [
+    author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["audit"]["ready_selected"]["facts"] = [
         {"use": "fact.project.submitted"},
         {"use": "fact.project.submitted"},
     ]
@@ -326,7 +326,7 @@ def test_command_operation_allows_empty_crud_effects() -> None:
     assert contract["operations"]["operation.project.create"]["creates"] == []
 
 
-def test_fsm_data_operation_must_read_fsm_model() -> None:
+def test_state_machine_data_operation_must_read_state_machine_model() -> None:
     author = _author()
     author["models"]["Workspace"] = {
         "fields": {"id": F(P("ID")), "name": F(P("Text"))},
@@ -335,7 +335,7 @@ def test_fsm_data_operation_must_read_fsm_model() -> None:
     author["operations"]["operation.project.read"]["operation_kind"] = "query"
     author["operations"]["operation.project.read"]["reads"] = ["Workspace"]
     author["operations"]["operation.project.read"]["outcomes"]["found"]["result"] = M("Workspace")
-    with pytest.raises(ContractError, match=r"FSM state_machine\.project\.activity\.ready data operation operation.project\.read must read model Project"):
+    with pytest.raises(ContractError, match=r"state machine state_machine\.project\.activity\.ready data operation operation.project\.read must read model Project"):
         compile_source(author)
 
 
@@ -371,13 +371,13 @@ def test_author_contract_can_omit_absent_sections() -> None:
     contract = compile_author(author)
     assert set(contract["models"]) == {"Ticket"}
     assert contract["entry_points"] == {}
-    assert contract["fsms"] == {}
+    assert contract["state_machines"] == {}
     assert contract["refs"]["policy"] == ["policy.ticket.create"]
     assert contract["models"]["Ticket"]["basis"] == "Declared model Ticket."
     assert contract["operations"]["operation.ticket.create"]["basis"] == "Members can create tickets."
 
 
-def test_author_fsm_defaults_empty_collections() -> None:
+def test_author_state_machine_defaults_empty_collections() -> None:
     from pyspec_contract.layers import parse_layers
 
     author = {
@@ -394,149 +394,149 @@ def test_author_fsm_defaults_empty_collections() -> None:
                 "basis": "Single breakpoint covers the tiny authored example.",
             }
         },
-        "fsms": {
+        "state_machines": {
             "state_machine.ticket.empty": {
                 "model": "Ticket",
-                "initial": "empty",
-                "states": {"empty": {}},
-                "basis": "FSM can start as a minimal empty-state.",
+                "initial_view_state": "empty",
+                "view_states": {"empty": {}},
+                "basis": "state machine can start as a minimal empty-state.",
             }
         },
     }
     contract = compile_author(author, layers=parse_layers("core,ui,web"))
-    fsm = contract["fsms"]["state_machine.ticket.empty"]
-    assert fsm["context"] == {}
-    assert fsm["data"] == []
-    assert fsm["state_machine_messages"] == {"accepts": {}, "emits": {}}
-    assert fsm["transitions"] == []
-    assert "kind" not in fsm
+    state_machine = contract["state_machines"]["state_machine.ticket.empty"]
+    assert state_machine["context"] == {}
+    assert state_machine["data_dependencies"] == []
+    assert state_machine["state_machine_messages"] == {"accepts": {}, "emits": {}}
+    assert state_machine["transitions"] == []
+    assert "kind" not in state_machine
 
 
-def test_fsm_empty_message_directions_can_be_omitted() -> None:
+def test_state_machine_empty_message_directions_can_be_omitted() -> None:
     author = _author()
-    activity = _item(author, "fsms", "state_machine.project.activity")
+    activity = _item(author, "state_machines", "state_machine.project.activity")
 
     assert "emits" not in activity["state_machine_messages"]
     contract = compile_source(author)
 
-    assert contract["fsms"]["state_machine.project.activity"]["state_machine_messages"]["emits"] == {}
+    assert contract["state_machines"]["state_machine.project.activity"]["state_machine_messages"]["emits"] == {}
 
 
 def test_author_source_prunes_empty_message_directions() -> None:
     author = _author()
-    activity = _item(author, "fsms", "state_machine.project.activity")
+    activity = _item(author, "state_machines", "state_machine.project.activity")
     activity["state_machine_messages"]["emits"] = {}
 
     pruned = author_from_source(author)
 
-    assert "emits" not in pruned["fsms"]["state_machine.project.activity"]["state_machine_messages"]
+    assert "emits" not in pruned["state_machines"]["state_machine.project.activity"]["state_machine_messages"]
 
 
-def test_empty_fsm_message_payloads_can_be_omitted() -> None:
+def test_empty_state_machine_message_payloads_can_be_omitted() -> None:
     author = _author()
-    activity = _item(author, "fsms", "state_machine.project.activity")
+    activity = _item(author, "state_machines", "state_machine.project.activity")
 
     assert activity["state_machine_messages"]["accepts"]["message.selection.cleared"] == {}
     contract = compile_source(author)
 
-    assert contract["fsms"]["state_machine.project.activity"]["state_machine_messages"]["accepts"]["message.selection.cleared"]["payload_schema"] == {}
+    assert contract["state_machines"]["state_machine.project.activity"]["state_machine_messages"]["accepts"]["message.selection.cleared"]["payload_schema"] == {}
 
 
 def test_author_source_prunes_empty_message_payloads() -> None:
     author = _author()
-    activity = _item(author, "fsms", "state_machine.project.activity")
+    activity = _item(author, "state_machines", "state_machine.project.activity")
     activity["state_machine_messages"]["accepts"]["message.selection.cleared"]["payload_schema"] = {}
 
     pruned = author_from_source(author)
 
-    assert pruned["fsms"]["state_machine.project.activity"]["state_machine_messages"]["accepts"]["message.selection.cleared"] == {}
+    assert pruned["state_machines"]["state_machine.project.activity"]["state_machine_messages"]["accepts"]["message.selection.cleared"] == {}
 
 
-def test_fsm_accepted_messages_must_be_used_by_transition() -> None:
+def test_state_machine_accepted_messages_must_be_used_by_transition() -> None:
     author = _author()
-    activity = _item(author, "fsms", "state_machine.project.activity")
+    activity = _item(author, "state_machines", "state_machine.project.activity")
     activity["state_machine_messages"]["accepts"]["message.unused"] = {}
-    with pytest.raises(ContractError, match=r"FSM state_machine\.project\.activity declares accepted state-machine message without transition: .*message\.unused"):
+    with pytest.raises(ContractError, match=r"state machine state_machine\.project\.activity declares accepted state-machine message without transition: .*message\.unused"):
         compile_source(author)
 
 
-def test_fsm_transition_messages_must_be_declared_as_accepted() -> None:
+def test_state_machine_transition_messages_must_be_declared_as_accepted() -> None:
     author = _author()
-    activity = _item(author, "fsms", "state_machine.project.activity")
+    activity = _item(author, "state_machines", "state_machine.project.activity")
     del activity["state_machine_messages"]["accepts"]["message.selection.cleared"]
-    with pytest.raises(ContractError, match=r"FSM state_machine\.project\.activity transition message references undeclared state-machine message: message\.selection\.cleared"):
+    with pytest.raises(ContractError, match=r"state machine state_machine\.project\.activity transition message references undeclared state-machine message: message\.selection\.cleared"):
         compile_source(author)
 
 
-def test_fsm_data_events_require_data_binding() -> None:
+def test_state_machine_data_events_require_data_binding() -> None:
     author = _author()
-    detail = _item(author, "fsms", "state_machine.project.detail")
-    detail["states"]["loading"]["data"] = []
-    detail["states"]["ready"].pop("field_slots")
-    with pytest.raises(ContractError, match=r"FSM state_machine\.project\.detail transition uses data message without FSM or source-state data: data\.ready"):
+    detail = _item(author, "state_machines", "state_machine.project.detail")
+    detail["view_states"]["loading"]["data_dependencies"] = []
+    detail["view_states"]["ready"].pop("field_slots")
+    with pytest.raises(ContractError, match=r"state machine state_machine\.project\.detail transition uses data message without state machine or source-state data: data\.ready"):
         compile_source(author)
 
 
-def test_fsm_transition_requires_basis_when_audit_card_would_be_empty() -> None:
+def test_state_machine_transition_requires_basis_when_audit_card_would_be_empty() -> None:
     author = _author()
-    activity = _item(author, "fsms", "state_machine.project.activity")
+    activity = _item(author, "state_machines", "state_machine.project.activity")
     cleared = next(transition for transition in activity["transitions"] if transition["on"] == "message.selection.cleared")
     cleared.pop("effects")
     with pytest.raises(
         ContractError,
-            match=r"FSM state_machine\.project\.activity transition message\.selection\.cleared from ready to empty must declare basis, data, or effects",
+            match=r"state machine state_machine\.project\.activity transition message\.selection\.cleared from ready to empty must declare basis, data, or effects",
     ):
         compile_source(author)
 
 
-def test_fsm_transition_basis_can_explain_otherwise_empty_audit_card() -> None:
+def test_state_machine_transition_basis_can_explain_otherwise_empty_audit_card() -> None:
     author = _author()
-    activity = _item(author, "fsms", "state_machine.project.activity")
+    activity = _item(author, "state_machines", "state_machine.project.activity")
     cleared = next(transition for transition in activity["transitions"] if transition["on"] == "message.selection.cleared")
     cleared.pop("effects")
-    cleared["basis"] = "Clearing the selection returns the activity FSM to its empty state."
+    cleared["basis"] = "Clearing the selection returns the activity state machine to its empty state."
     contract = compile_source(author)
     compiled = next(
         transition
-        for transition in contract["fsms"]["state_machine.project.activity"]["transitions"]
+        for transition in contract["state_machines"]["state_machine.project.activity"]["transitions"]
         if transition["on"] == "message.selection.cleared"
     )
-    assert compiled["basis"] == "Clearing the selection returns the activity FSM to its empty state."
+    assert compiled["basis"] == "Clearing the selection returns the activity state machine to its empty state."
 
 
-def test_fsm_data_inputs_must_come_from_context() -> None:
+def test_state_machine_data_inputs_must_come_from_context() -> None:
     author = _author()
-    fsm = _item(author, "fsms", "state_machine.project.list")
-    del fsm["context"]["workspace_id"]
-    board = _item(author, "fsms", "state_machine.project.board")
-    for mount in board["states"]["ready"]["mounts"]:
-        if mount["fsm"] == "state_machine.project.list":
+    state_machine = _item(author, "state_machines", "state_machine.project.list")
+    del state_machine["context"]["workspace_id"]
+    board = _item(author, "state_machines", "state_machine.project.board")
+    for mount in board["view_states"]["ready"]["child_state_machines"]:
+        if mount["state_machine"] == "state_machine.project.list":
             mount["context"].pop("workspace_id", None)
     with pytest.raises(
         ContractError,
-        match=r"FSM state_machine\.project\.list data operation operation.project\.list input not provided by context: .*workspace_id",
+        match=r"state machine state_machine\.project\.list data operation operation.project\.list input not provided by context: .*workspace_id",
     ):
         compile_source(author)
 
 
-def test_fsm_field_slots_require_data_source() -> None:
+def test_state_machine_field_slots_require_data_source() -> None:
     author = _author()
-    activity = _item(author, "fsms", "state_machine.project.activity")
-    del activity["states"]["ready"]["data"]
+    activity = _item(author, "state_machines", "state_machine.project.activity")
+    del activity["view_states"]["ready"]["data_dependencies"]
     with pytest.raises(
         ContractError,
-        match=r"FSM state_machine\.project\.activity\.ready declares field slots without data source",
+        match=r"state machine state_machine\.project\.activity\.ready declares field slots without data source",
     ):
         compile_source(author)
 
 
-def test_fsm_data_source_must_be_query_like_operation() -> None:
+def test_state_machine_data_source_must_be_query_like_operation() -> None:
     author = _author()
-    activity = _item(author, "fsms", "state_machine.project.activity")
-    activity["states"]["ready"]["data"] = ["operation.project.submit"]
+    activity = _item(author, "state_machines", "state_machine.project.activity")
+    activity["view_states"]["ready"]["data_dependencies"] = ["operation.project.submit"]
     with pytest.raises(
         ContractError,
-        match=r"FSM state_machine\.project\.activity\.ready data operation must be query: operation.project.submit",
+        match=r"state machine state_machine\.project\.activity\.ready data operation must be query: operation.project.submit",
     ):
         compile_source(author)
 
@@ -596,15 +596,15 @@ def test_prod_harness_cannot_import_spec_fake(tmp_path: Path) -> None:
 
 def test_presentation_rejects_undeclared_css_region() -> None:
     author = _author()
-    fsm = _item(author, "fsms", "state_machine.project.board")["states"]["ready"]
-    fsm["layout"]["html"]["css"]["rules"].append({"selector": "region.ghost", "declarations": {"display": "block"}})
+    state_machine = _item(author, "state_machines", "state_machine.project.board")["view_states"]["ready"]
+    state_machine["layout"]["html"]["css"]["rules"].append({"selector": "region.ghost", "declarations": {"display": "block"}})
     with pytest.raises(ContractError, match="undeclared layout region"):
         compile_source(author)
 
 
 def test_presentation_rejects_undeclared_textual_action() -> None:
     author = _author()
-    state = _item(author, "fsms", "state_machine.project.list")["states"]["ready"]
+    state = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]
     state["presentation"] = {
         "textual": {
             "screen_class": "ProjectListState",
@@ -622,18 +622,18 @@ def test_missing_referenced_operation_is_rejected() -> None:
         compile_source(author)
 
 
-def test_fsm_composition_rejects_unknown_mounted_fsm() -> None:
+def test_state_machine_composition_rejects_unknown_mounted_state_machine() -> None:
     author = _author()
-    fsm = _item(author, "fsms", "state_machine.project.board")["states"]["ready"]
-    fsm["mounts"][0]["fsm"] = "state_machine.project.ghost"
-    with pytest.raises(ContractError, match="mounts unknown FSM"):
+    state_machine = _item(author, "state_machines", "state_machine.project.board")["view_states"]["ready"]
+    state_machine["child_state_machines"][0]["state_machine"] = "state_machine.project.ghost"
+    with pytest.raises(ContractError, match="mounts unknown state machine"):
         compile_source(author)
 
 
-def test_fsm_composition_rejects_unknown_sync_target_message() -> None:
+def test_state_machine_composition_rejects_unknown_sync_target_message() -> None:
     author = _author()
-    fsm = _item(author, "fsms", "state_machine.project.board")["states"]["ready"]
-    for effect in fsm["sync"][0]["do"]:
+    state_machine = _item(author, "state_machines", "state_machine.project.board")["view_states"]["ready"]
+    for effect in state_machine["message_sync_rules"][0]["do"]:
         if "send" in effect:
             effect["send"]["message"] = "message.project.ghost_message"
             break
@@ -641,9 +641,9 @@ def test_fsm_composition_rejects_unknown_sync_target_message() -> None:
         compile_source(author)
 
 
-def test_fsm_emit_data_must_exactly_match_emitted_message_payload() -> None:
+def test_state_machine_emit_data_must_exactly_match_emitted_message_payload() -> None:
     author = _author()
-    transition = _item(author, "fsms", "state_machine.project.list")["transitions"][-1]
+    transition = _item(author, "state_machines", "state_machine.project.list")["transitions"][-1]
     transition["effects"][0]["emit"]["payload_bindings"] = {}
     with pytest.raises(ContractError, match=r"transition emit message.project\.selected payload_bindings must exactly match payload fields: missing: project_id"):
         compile_source(author)
@@ -651,8 +651,8 @@ def test_fsm_emit_data_must_exactly_match_emitted_message_payload() -> None:
 
 def test_sync_send_data_must_exactly_match_target_message_payload() -> None:
     author = _author()
-    fsm = _item(author, "fsms", "state_machine.project.board")["states"]["ready"]
-    send = next(effect["send"] for effect in fsm["sync"][0]["do"] if "send" in effect)
+    state_machine = _item(author, "state_machines", "state_machine.project.board")["view_states"]["ready"]
+    send = next(effect["send"] for effect in state_machine["message_sync_rules"][0]["do"] if "send" in effect)
     send["payload_bindings"] = {}
     with pytest.raises(ContractError, match=r"sync send message.project\.selection_changed to detail payload_bindings must exactly match payload fields: missing: project_id"):
         compile_source(author)
@@ -660,34 +660,34 @@ def test_sync_send_data_must_exactly_match_target_message_payload() -> None:
 
 def test_sync_send_data_must_match_target_message_payload_type() -> None:
     author = _author()
-    fsm = _item(author, "fsms", "state_machine.project.board")["states"]["ready"]
-    send = next(effect["send"] for effect in fsm["sync"][0]["do"] if "send" in effect)
+    state_machine = _item(author, "state_machines", "state_machine.project.board")["view_states"]["ready"]
+    send = next(effect["send"] for effect in state_machine["message_sync_rules"][0]["do"] if "send" in effect)
     send["payload_bindings"]["project_id"] = 1
     with pytest.raises(ContractError, match=r"sync send message.project\.selection_changed to detail payload_bindings\.project_id type mismatch: expected ID, got Int"):
         compile_source(author)
 
 
-def test_fsm_message_payloads_must_be_consistent_across_fsms() -> None:
+def test_state_machine_message_payloads_must_be_consistent_across_state_machines() -> None:
     author = _author()
-    activity = _item(author, "fsms", "state_machine.project.activity")
+    activity = _item(author, "state_machines", "state_machine.project.activity")
     activity["state_machine_messages"]["accepts"]["message.project.selection_changed"]["payload_schema"]["project_id"] = P("Text")
     with pytest.raises(ContractError, match=r"sync send message.project\.selection_changed to activity payload_bindings\.project_id type mismatch"):
         compile_source(author)
 
 
-def test_fsm_message_direction_must_be_unambiguous() -> None:
+def test_state_machine_message_direction_must_be_unambiguous() -> None:
     author = _author()
-    fsm = _item(author, "fsms", "state_machine.project.list")
-    fsm["state_machine_messages"]["emits"]["message.project.select"] = {"payload_schema": {"project_id": P("ID")}}
+    state_machine = _item(author, "state_machines", "state_machine.project.list")
+    state_machine["state_machine_messages"]["emits"]["message.project.select"] = {"payload_schema": {"project_id": P("ID")}}
     with pytest.raises(ContractError, match=r"declares state-machine message as both accepted and emitted: .*project\.select"):
         compile_source(author)
 
 
-def test_composed_scenario_rejects_unknown_fsm_instance() -> None:
+def test_composed_scenario_rejects_unknown_state_machine_instance() -> None:
     author = _author()
     scenario = _item(author, "scenarios", "scenario.project.board.ready")
-    scenario["then"]["fsm"]["instances"]["ghost"] = {"state": "ready"}
-    with pytest.raises(ContractError, match="unknown FSM instance"):
+    scenario["then"]["state_machine"]["instances"]["ghost"] = {"view_state": "ready"}
+    with pytest.raises(ContractError, match="unknown state machine instance"):
         compile_source(author)
 
 
@@ -743,8 +743,8 @@ def test_authoring_layers_allow_api_only_contract_and_graph_driven_projections()
     assert "spec/generated/product_interfaces/http.openapi.yaml" in paths
     assert "spec/generated/persistence.sql" not in paths
     assert "spec/generated/persistence.json" not in paths
-    assert "spec/generated/product_interfaces/web.fsms.preview.html" not in paths
-    assert "spec/generated/product_interfaces/web.fsms.preview.css" not in paths
+    assert "spec/generated/product_interfaces/web.state_machines.preview.html" not in paths
+    assert "spec/generated/product_interfaces/web.state_machines.preview.css" not in paths
     assert "spec/generated/product_interfaces/textual.projection.py" not in paths
     assert "spec/generated/product_interfaces/events.asyncapi.yaml" not in paths
     assert "spec/generated/product_interfaces/workflow.cwl.yaml" not in paths
@@ -754,15 +754,15 @@ def test_authoring_layers_reject_irrelevant_ui_targets() -> None:
     from pyspec_contract.layers import parse_layers
 
     author = _api_only_author()
-    author["fsms"] = {
+    author["state_machines"] = {
         "state_machine.ticket.list": {
             "model": "Ticket",
             "context": {},
-            "data": [],
-            "initial": "empty",
-            "states": {"empty": {}},
+            "data_dependencies": [],
+            "initial_view_state": "empty",
+            "view_states": {"empty": {}},
             "transitions": [],
-            "basis": _basis("UI FSM is not part of this API layer"),
+            "basis": _basis("UI state machine is not part of this API layer"),
         }
     }
     with pytest.raises(ContractError, match="outside active authoring layers"):
@@ -782,10 +782,10 @@ def test_authoring_layers_reject_wrong_entry_surface() -> None:
         compile_author(author, layers=parse_layers("core,http"))
 
 
-def test_cli_fsm_entry_must_provide_required_context_args() -> None:
+def test_cli_state_machine_entry_must_provide_required_context_args() -> None:
     author = _author()
     del author["entry_points"]["entry_point.cli.project.board"]["adapter"]["cli"]["input"]["args"]
-    with pytest.raises(ContractError, match=r"Entry entry_point.cli\.project\.board input\.args must include required FSM context inputs: \['workspace_id'\]"):
+    with pytest.raises(ContractError, match=r"Entry entry_point.cli\.project\.board input\.args must include required state machine context inputs: \['workspace_id'\]"):
         compile_source(author)
 
 
@@ -875,7 +875,7 @@ def test_cli_failure_response_must_use_nonzero_exit_and_stderr() -> None:
         compile_source(author)
 
 
-def test_fsm_entry_must_not_declare_output() -> None:
+def test_state_machine_entry_must_not_declare_output() -> None:
     author = _author()
     entry = author["entry_points"]["entry_point.web.project.board"]
     entry["output"] = {"status": 200}
@@ -931,28 +931,28 @@ def test_cli_entry_cannot_target_raw_event() -> None:
         compile_source(author)
 
 
-def test_fsm_entry_target_must_declare_render_surface() -> None:
+def test_state_machine_entry_target_must_declare_render_surface() -> None:
     author = _author()
     del author["entry_points"]["entry_point.cli.project.board"]["trigger"]["state_machine"]["render"]
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
 
-def test_web_fsm_entry_must_target_html_surface() -> None:
+def test_web_state_machine_entry_must_target_html_surface() -> None:
     author = _author()
     author["entry_points"]["entry_point.web.project.board"]["trigger"]["state_machine"]["render"] = "textual"
-    with pytest.raises(ContractError, match=r"Entry entry_point.web\.project\.board cannot target FSM surface 'textual'"):
+    with pytest.raises(ContractError, match=r"Entry entry_point.web\.project\.board cannot target state machine surface 'textual'"):
         compile_source(author)
 
 
-def test_cli_fsm_entry_surface_must_be_declared_by_fsm() -> None:
+def test_cli_state_machine_entry_surface_must_be_declared_by_state_machine() -> None:
     author = _author()
-    del author["fsms"]["state_machine.project.board"]["states"]["ready"]["layout"]["textual"]
-    with pytest.raises(ContractError, match=r"Entry entry_point.cli\.project\.board targets FSM state_machine\.project\.board surface textual but that FSM does not declare it"):
+    del author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["layout"]["textual"]
+    with pytest.raises(ContractError, match=r"Entry entry_point.cli\.project\.board targets state machine state_machine\.project\.board surface textual but that state machine does not declare it"):
         compile_source(author)
 
 
-def test_cli_fsm_entry_can_launch_html_surface() -> None:
+def test_cli_state_machine_entry_can_launch_html_surface() -> None:
     author = _author()
     author["entry_points"]["entry_point.cli.project.board"]["trigger"]["state_machine"]["render"] = "html"
     compile_source(author)
@@ -982,20 +982,20 @@ def test_get_api_entry_must_provide_all_operation_input_as_params() -> None:
         compile_source(author)
 
 
-def test_authoring_layers_reject_html_fsm_layout_without_web_layer() -> None:
+def test_authoring_layers_reject_html_state_machine_layout_without_web_layer() -> None:
     from pyspec_contract.layers import parse_layers
 
     author = _api_only_author()
-    author["fsms"] = {
+    author["state_machines"] = {
         "state_machine.ticket.board": {
             "archetype": "dashboard",
             "model": "Ticket",
-            "initial": "ready",
-            "states": {"ready": {"layout": {"html": {"regions": {"main": {"required": True}}}}}},
+            "initial_view_state": "ready",
+            "view_states": {"ready": {"layout": {"html": {"regions": {"main": {"required": True}}}}}},
             "basis": _basis("HTML layout is a web surface"),
         }
     }
-    with pytest.raises(ContractError, match="FSM state layout html requires web"):
+    with pytest.raises(ContractError, match="state machine view_state layout html requires web"):
         compile_author(author, layers=parse_layers("core,http,ui,textual"))
 
 
@@ -1005,7 +1005,7 @@ def test_layer_pruned_author_schema_hides_irrelevant_sections() -> None:
     schema = author_schema_for_layers(parse_layers("core,http"))
     assert "entry_points" in schema["properties"]
     assert "models" in schema["properties"]
-    assert "fsms" not in schema["properties"]
+    assert "state_machines" not in schema["properties"]
     assert "audit_cases" not in schema["properties"]
 
 

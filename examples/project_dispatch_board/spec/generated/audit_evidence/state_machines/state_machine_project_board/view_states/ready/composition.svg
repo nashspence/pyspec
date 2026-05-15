@@ -1,0 +1,145 @@
+<svg width="1384pt" height="211pt"
+ viewBox="0.00 0.00 1384.00 211.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: 0583743ce713b3d14a229d442fd4e03b8c9e9752de9e571b1900f1188e77f245 -->
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 193)">
+<title>composition_state_machine_project_board_ready</title>
+<!-- child_state_machine_list -->
+<g id="node1" class="node">
+<title>child_state_machine_list</title>
+<polygon fill="#ffffff" stroke="transparent" points="0,-50 0,-124 200,-124 200,-50 0,-50"/>
+<polygon fill="#047857" stroke="transparent" points="1,-115 1,-123 199,-123 199,-115 1,-115"/>
+<polygon fill="#ecfdf5" stroke="transparent" points="1,-84 1,-115 199,-115 199,-84 1,-84"/>
+<text text-anchor="start" x="5" y="-101.6" font-family="Arial" font-weight="bold" font-size="13.00">list</text>
+<text text-anchor="start" x="5" y="-90.6" font-family="Arial" font-size="8.00" fill="#64748b">nav mount</text>
+<text text-anchor="start" x="6" y="-72" font-family="Arial" font-weight="bold" font-size="10.00">state_machine:</text>
+<text text-anchor="start" x="76" y="-72" font-family="Arial" font-size="10.00">  state_machine.project.list</text>
+<text text-anchor="start" x="6" y="-60" font-family="Arial" font-weight="bold" font-size="10.00">initial_view_state:</text>
+<text text-anchor="start" x="89" y="-60" font-family="Arial" font-size="10.00">  loading</text>
+<polygon fill="none" stroke="#047857" points="0,-50 0,-124 200,-124 200,-50 0,-50"/>
+</g>
+<!-- message_emit_select_project_updates_state_machines_list_message_project_selected -->
+<g id="node4" class="node">
+<title>message_emit_select_project_updates_state_machines_list_message_project_selected</title>
+<polygon fill="#ffffff" stroke="transparent" points="261,-50 261,-124 435,-124 435,-50 261,-50"/>
+<polygon fill="#4f46e5" stroke="transparent" points="262,-115 262,-123 434,-123 434,-115 262,-115"/>
+<polygon fill="#eef2ff" stroke="transparent" points="262,-84 262,-115 434,-115 434,-84 262,-84"/>
+<text text-anchor="start" x="266" y="-101.6" font-family="Arial" font-weight="bold" font-size="13.00">message.project.selected</text>
+<text text-anchor="start" x="266" y="-90.6" font-family="Arial" font-size="8.00" fill="#64748b">emitted message</text>
+<text text-anchor="start" x="267" y="-72" font-family="Arial" font-weight="bold" font-size="10.00">source:</text>
+<text text-anchor="start" x="302" y="-72" font-family="Arial" font-size="10.00">  message.project.select</text>
+<text text-anchor="start" x="267" y="-60" font-family="Arial" font-weight="bold" font-size="10.00">payload:</text>
+<text text-anchor="start" x="307" y="-60" font-family="Arial" font-size="10.00">  project_id</text>
+<text text-anchor="start" x="356" y="-60" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<polygon fill="none" stroke="#4f46e5" points="261,-50 261,-124 435,-124 435,-50 261,-50"/>
+</g>
+<!-- child_state_machine_list&#45;&gt;message_emit_select_project_updates_state_machines_list_message_project_selected -->
+<g id="edge2" class="edge">
+<title>child_state_machine_list&#45;&gt;message_emit_select_project_updates_state_machines_list_message_project_selected</title>
+<path fill="none" stroke="#4f46e5" stroke-width="1.4" d="M200.35,-87C217.54,-87 235.37,-87 252.43,-87"/>
+<polygon fill="#4f46e5" stroke="#4f46e5" stroke-width="1.4" points="252.73,-89.8 260.73,-87 252.73,-84.2 252.73,-89.8"/>
+</g>
+<!-- child_state_machine_detail -->
+<g id="node2" class="node">
+<title>child_state_machine_detail</title>
+<polygon fill="#ffffff" stroke="transparent" points="1133,-101 1133,-175 1344,-175 1344,-101 1133,-101"/>
+<polygon fill="#047857" stroke="transparent" points="1134.5,-166 1134.5,-174 1343.5,-174 1343.5,-166 1134.5,-166"/>
+<polygon fill="#ecfdf5" stroke="transparent" points="1134.5,-135 1134.5,-166 1343.5,-166 1343.5,-135 1134.5,-135"/>
+<text text-anchor="start" x="1138.5" y="-152.6" font-family="Arial" font-weight="bold" font-size="13.00">detail</text>
+<text text-anchor="start" x="1138.5" y="-141.6" font-family="Arial" font-size="8.00" fill="#64748b">main mount</text>
+<text text-anchor="start" x="1139.5" y="-123" font-family="Arial" font-weight="bold" font-size="10.00">state_machine:</text>
+<text text-anchor="start" x="1209.5" y="-123" font-family="Arial" font-size="10.00">  state_machine.project.detail</text>
+<text text-anchor="start" x="1139.5" y="-111" font-family="Arial" font-weight="bold" font-size="10.00">initial_view_state:</text>
+<text text-anchor="start" x="1222.5" y="-111" font-family="Arial" font-size="10.00">  none</text>
+<polygon fill="none" stroke="#047857" points="1133,-101 1133,-175 1344,-175 1344,-101 1133,-101"/>
+</g>
+<!-- child_state_machine_activity -->
+<g id="node3" class="node">
+<title>child_state_machine_activity</title>
+<polygon fill="#ffffff" stroke="transparent" points="1129,0 1129,-74 1348,-74 1348,0 1129,0"/>
+<polygon fill="#047857" stroke="transparent" points="1130.5,-65 1130.5,-73 1347.5,-73 1347.5,-65 1130.5,-65"/>
+<polygon fill="#ecfdf5" stroke="transparent" points="1130.5,-34 1130.5,-65 1347.5,-65 1347.5,-34 1130.5,-34"/>
+<text text-anchor="start" x="1134.5" y="-51.6" font-family="Arial" font-weight="bold" font-size="13.00">activity</text>
+<text text-anchor="start" x="1134.5" y="-40.6" font-family="Arial" font-size="8.00" fill="#64748b">aside mount</text>
+<text text-anchor="start" x="1135.5" y="-22" font-family="Arial" font-weight="bold" font-size="10.00">state_machine:</text>
+<text text-anchor="start" x="1205.5" y="-22" font-family="Arial" font-size="10.00">  state_machine.project.activity</text>
+<text text-anchor="start" x="1135.5" y="-10" font-family="Arial" font-weight="bold" font-size="10.00">initial_view_state:</text>
+<text text-anchor="start" x="1218.5" y="-10" font-family="Arial" font-size="10.00">  empty</text>
+<polygon fill="none" stroke="#047857" points="1129,0 1129,-74 1348,-74 1348,0 1129,0"/>
+</g>
+<!-- message_route_select_project_updates_state_machines -->
+<g id="node5" class="node">
+<title>message_route_select_project_updates_state_machines</title>
+<polygon fill="#ffffff" stroke="transparent" points="496,-56 496,-118 765,-118 765,-56 496,-56"/>
+<polygon fill="#a16207" stroke="transparent" points="497.5,-109 497.5,-117 764.5,-117 764.5,-109 497.5,-109"/>
+<polygon fill="#fefce8" stroke="transparent" points="497.5,-78 497.5,-109 764.5,-109 764.5,-78 497.5,-78"/>
+<text text-anchor="start" x="501.5" y="-95.6" font-family="Arial" font-weight="bold" font-size="13.00">select_project_updates_state_machines</text>
+<text text-anchor="start" x="501.5" y="-84.6" font-family="Arial" font-size="8.00" fill="#64748b">message route</text>
+<text text-anchor="start" x="502.5" y="-66" font-family="Arial" font-weight="bold" font-size="10.00">set:</text>
+<text text-anchor="start" x="519.5" y="-66" font-family="Arial" font-size="10.00">  selected_project_id</text>
+<text text-anchor="start" x="610.5" y="-66" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<text text-anchor="start" x="623.5" y="-66" font-family="Arial" font-size="8.00"> ← project_id</text>
+<polygon fill="none" stroke="#a16207" points="496,-56 496,-118 765,-118 765,-56 496,-56"/>
+</g>
+<!-- message_emit_select_project_updates_state_machines_list_message_project_selected&#45;&gt;message_route_select_project_updates_state_machines -->
+<g id="edge3" class="edge">
+<title>message_emit_select_project_updates_state_machines_list_message_project_selected&#45;&gt;message_route_select_project_updates_state_machines</title>
+<path fill="none" stroke="#4f46e5" stroke-width="1.2" d="M435.07,-87C451.75,-87 469.65,-87 487.59,-87"/>
+<polygon fill="#4f46e5" stroke="#4f46e5" stroke-width="1.2" points="487.83,-89.8 495.83,-87 487.83,-84.2 487.83,-89.8"/>
+</g>
+<!-- message_effect_select_project_updates_state_machines_1 -->
+<g id="node6" class="node">
+<title>message_effect_select_project_updates_state_machines_1</title>
+<polygon fill="#ffffff" stroke="transparent" points="826,-101 826,-175 1068,-175 1068,-101 826,-101"/>
+<polygon fill="#be185d" stroke="transparent" points="827,-166 827,-174 1067,-174 1067,-166 827,-166"/>
+<polygon fill="#fdf2f8" stroke="transparent" points="827,-135 827,-166 1067,-166 1067,-135 827,-135"/>
+<text text-anchor="start" x="831" y="-152.6" font-family="Arial" font-weight="bold" font-size="13.00">message.project.selection_changed</text>
+<text text-anchor="start" x="831" y="-141.6" font-family="Arial" font-size="8.00" fill="#64748b">sent message</text>
+<text text-anchor="start" x="832" y="-123" font-family="Arial" font-weight="bold" font-size="10.00">causes:</text>
+<text text-anchor="start" x="868" y="-123" font-family="Arial" font-size="10.00">  to loading</text>
+<text text-anchor="start" x="832" y="-111" font-family="Arial" font-weight="bold" font-size="10.00">payload:</text>
+<text text-anchor="start" x="872" y="-111" font-family="Arial" font-size="10.00">  project_id</text>
+<text text-anchor="start" x="921" y="-111" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<polygon fill="none" stroke="#be185d" points="826,-101 826,-175 1068,-175 1068,-101 826,-101"/>
+</g>
+<!-- message_route_select_project_updates_state_machines&#45;&gt;message_effect_select_project_updates_state_machines_1 -->
+<g id="edge4" class="edge">
+<title>message_route_select_project_updates_state_machines&#45;&gt;message_effect_select_project_updates_state_machines_1</title>
+<path fill="none" stroke="#be185d" stroke-width="1.3" d="M765.33,-108.7C782.73,-111.52 800.52,-114.41 817.82,-117.21"/>
+<polygon fill="#be185d" stroke="#be185d" stroke-width="1.3" points="817.39,-119.98 825.73,-118.5 818.29,-114.45 817.39,-119.98"/>
+</g>
+<!-- message_effect_select_project_updates_state_machines_2 -->
+<g id="node7" class="node">
+<title>message_effect_select_project_updates_state_machines_2</title>
+<polygon fill="#ffffff" stroke="transparent" points="826,0 826,-74 1068,-74 1068,0 826,0"/>
+<polygon fill="#be185d" stroke="transparent" points="827,-65 827,-73 1067,-73 1067,-65 827,-65"/>
+<polygon fill="#fdf2f8" stroke="transparent" points="827,-34 827,-65 1067,-65 1067,-34 827,-34"/>
+<text text-anchor="start" x="831" y="-51.6" font-family="Arial" font-weight="bold" font-size="13.00">message.project.selection_changed</text>
+<text text-anchor="start" x="831" y="-40.6" font-family="Arial" font-size="8.00" fill="#64748b">sent message</text>
+<text text-anchor="start" x="832" y="-22" font-family="Arial" font-weight="bold" font-size="10.00">causes:</text>
+<text text-anchor="start" x="868" y="-22" font-family="Arial" font-size="10.00">  to ready</text>
+<text text-anchor="start" x="832" y="-10" font-family="Arial" font-weight="bold" font-size="10.00">payload:</text>
+<text text-anchor="start" x="872" y="-10" font-family="Arial" font-size="10.00">  project_id</text>
+<text text-anchor="start" x="921" y="-10" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<polygon fill="none" stroke="#be185d" points="826,0 826,-74 1068,-74 1068,0 826,0"/>
+</g>
+<!-- message_route_select_project_updates_state_machines&#45;&gt;message_effect_select_project_updates_state_machines_2 -->
+<g id="edge6" class="edge">
+<title>message_route_select_project_updates_state_machines&#45;&gt;message_effect_select_project_updates_state_machines_2</title>
+<path fill="none" stroke="#be185d" stroke-width="1.3" d="M765.33,-65.72C782.73,-62.96 800.52,-60.13 817.82,-57.38"/>
+<polygon fill="#be185d" stroke="#be185d" stroke-width="1.3" points="818.27,-60.14 825.73,-56.12 817.39,-54.61 818.27,-60.14"/>
+</g>
+<!-- message_effect_select_project_updates_state_machines_1&#45;&gt;child_state_machine_detail -->
+<g id="edge5" class="edge">
+<title>message_effect_select_project_updates_state_machines_1&#45;&gt;child_state_machine_detail</title>
+<path fill="none" stroke="#be185d" stroke-width="1.4" d="M1068.26,-138C1086.85,-138 1106,-138 1124.42,-138"/>
+<polygon fill="#be185d" stroke="#be185d" stroke-width="1.4" points="1124.83,-140.8 1132.83,-138 1124.83,-135.2 1124.83,-140.8"/>
+</g>
+<!-- message_effect_select_project_updates_state_machines_1&#45;&gt;message_effect_select_project_updates_state_machines_2 -->
+<!-- message_effect_select_project_updates_state_machines_2&#45;&gt;child_state_machine_activity -->
+<g id="edge7" class="edge">
+<title>message_effect_select_project_updates_state_machines_2&#45;&gt;child_state_machine_activity</title>
+<path fill="none" stroke="#be185d" stroke-width="1.4" d="M1068.26,-37C1085.48,-37 1103.18,-37 1120.34,-37"/>
+<polygon fill="#be185d" stroke="#be185d" stroke-width="1.4" points="1120.72,-39.8 1128.72,-37 1120.72,-34.2 1120.72,-39.8"/>
+</g>
+</g>
+</svg>

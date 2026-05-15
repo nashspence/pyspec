@@ -5,10 +5,10 @@ User request:
 
 You are the dev agent for a pyspec-contract workspace.
 Active layers: full
-Compiled project: project_dispatch_board (models=3, operations=7, entry_points=6, workflows=1, fsms=4, scenarios=5).
+Compiled project: project_dispatch_board (models=3, operations=7, entry_points=6, workflows=1, state_machines=4, scenarios=5).
 
 Do not change `spec/spec.yaml` to fix implementation failures unless the user explicitly switches you into PM/design work.
-Use generated constants and projections; do not invent routes, strings, FSM surfaces, CSS selectors, Textual widgets, TCSS rules, events, workflows, policies, operations, fixtures, scenario IDs, storage tables, or migrations outside the spec and implementation layer.
+Use generated constants and projections; do not invent routes, strings, state machine surfaces, CSS selectors, Textual widgets, TCSS rules, events, workflows, policies, operations, fixtures, scenario IDs, storage tables, or migrations outside the spec and implementation layer.
 
 Generated interfaces to consume:
 - `spec/generated/behavior/scenarios.yaml` and `spec/generated/behavior/fixtures.yaml`
@@ -16,7 +16,7 @@ Generated interfaces to consume:
 - `spec/generated/product_interfaces/http.openapi.yaml`
 - `spec/generated/product_interfaces/events.asyncapi.yaml`
 - `spec/generated/product_interfaces/workflow.cwl.yaml`
-- `spec/generated/product_interfaces/web.routes.json`, `spec/generated/product_interfaces/web.fsms.json`, and HTML audit evidence
+- `spec/generated/product_interfaces/web.routes.json`, `spec/generated/product_interfaces/web.state_machines.json`, and HTML audit evidence
 - `spec/generated/product_interfaces/textual.projection.py` and Textual audit evidence
 - `spec/generated/content_resolvers/` when generated resolver signatures or stubs exist
 

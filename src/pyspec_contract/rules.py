@@ -55,7 +55,7 @@ def query_ref(state_machine_subject: str, operation_id: str, many: bool = False)
     return f"query.{resource_tail(state_machine_subject)}.{suffix}"
 
 
-def fsm_ref(state_machine_id: str, state: str) -> str:
+def state_machine_surface_ref(state_machine_id: str, state: str) -> str:
     return f"{state_machine_id}.{state}"
 
 

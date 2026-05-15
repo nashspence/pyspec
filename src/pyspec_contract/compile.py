@@ -21,8 +21,8 @@ from .paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR, SOURCE_SPEC_PATH
 from .project import projection_files
 from .runtime_refs import ReferenceExpressionError, is_reference_expression, parse_reference_expression
 from .targets import (
-    FSM_RENDER_SURFACES,
-    entry_fsm_surface,
+    STATE_MACHINE_RENDER_SURFACES,
+    entry_state_machine_surface,
     entry_point_adapter_pair,
     entry_point_bindings,
     entry_point_cli_command,
@@ -81,7 +81,7 @@ def validate_against_schema(data: dict[str, Any], schema_name: str) -> None:
         raise ContractError("Schema validation failed:\n" + str(exc)) from exc
 
 
-TARGET_ORDER = ("copy", "asset", "content_case", "audit_profile", "fixture", "fact", "model", "operation", "event", "fsm", "entry_point", "workflow", "scenario")
+TARGET_ORDER = ("copy", "asset", "content_case", "audit_profile", "fixture", "fact", "model", "operation", "event", "state_machine", "entry_point", "workflow", "scenario")
 
 
 
@@ -95,7 +95,7 @@ ENTITY_SECTIONS: dict[str, str] = {
     "model": "models",
     "operation": "operations",
     "event": "events",
-    "fsm": "fsms",
+    "state_machine": "state_machines",
     "entry_point": "entry_points",
     "workflow": "workflows",
     "scenario": "scenarios",
@@ -117,7 +117,7 @@ def empty_compiled_contract(project: str) -> dict[str, Any]:
         "models": {},
         "operations": {},
         "events": {},
-        "fsms": {},
+        "state_machines": {},
         "entry_points": {},
         "workflows": {},
         "scenarios": {},
@@ -125,7 +125,7 @@ def empty_compiled_contract(project: str) -> dict[str, Any]:
     }
 
 
-AUTHOR_SECTION_ORDER = ("fixtures", "facts", "models", "operations", "events", "fsms", "entry_points", "workflows", "scenarios", "copies", "assets", "content_cases", "audit_profiles")
+AUTHOR_SECTION_ORDER = ("fixtures", "facts", "models", "operations", "events", "state_machines", "entry_points", "workflows", "scenarios", "copies", "assets", "content_cases", "audit_profiles")
 
 
 def _prune_empty_author_sections(author: dict[str, Any]) -> dict[str, Any]:
@@ -178,8 +178,8 @@ def _prune_redundant_author_transitions(author: dict[str, Any]) -> None:
 
 
 def _prune_empty_author_state_machine_message_directions(author: dict[str, Any]) -> None:
-    for fsm in (author.get("fsms") or {}).values():
-        messages = fsm.get("state_machine_messages")
+    for state_machine in (author.get("state_machines") or {}).values():
+        messages = state_machine.get("state_machine_messages")
         if not isinstance(messages, dict):
             continue
         for direction in ("accepts", "emits"):
@@ -189,7 +189,7 @@ def _prune_empty_author_state_machine_message_directions(author: dict[str, Any])
             if messages.get(direction) == {}:
                 messages.pop(direction)
         if not messages:
-            fsm.pop("state_machine_messages", None)
+            state_machine.pop("state_machine_messages", None)
 
 
 def author_from_source(source: dict[str, Any], layers: set[str] | None = None) -> dict[str, Any]:
@@ -240,9 +240,9 @@ def _apply_author_defaults(entity: str, spec: dict[str, Any]) -> None:
     if why and "basis" in spec:
         raise ContractError(f"Authored {entity} {spec['id']} must use either basis or why, not both")
     spec.setdefault("basis", why or _default_basis(entity, spec["id"]))
-    if entity == "fsm":
+    if entity == "state_machine":
         spec.setdefault("context", {})
-        spec.setdefault("data", [])
+        spec.setdefault("data_dependencies", [])
         spec["state_machine_messages"] = _normalize_state_machine_messages(spec.get("state_machine_messages"))
         spec.setdefault("transitions", [])
     elif entity == "operation":
@@ -326,21 +326,21 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             "basis": spec["basis"],
         }
 
-    if entity == "fsm":
-        fsm_id = spec["id"]
-        fsm: dict[str, Any] = {
+    if entity == "state_machine":
+        state_machine_id = spec["id"]
+        state_machine: dict[str, Any] = {
             "model": spec["model"],
             "context": spec["context"],
-            "data": _compile_data(fsm_id, spec.get("data", [])),
+            "data_dependencies": _compile_data_dependencies(state_machine_id, spec.get("data_dependencies", [])),
             "state_machine_messages": _normalize_state_machine_messages(spec.get("state_machine_messages")),
-            "initial": spec["initial"],
-            "states": _compile_states(fsm_id, spec.get("states", {})),
+            "initial_view_state": spec["initial_view_state"],
+            "view_states": _compile_view_states(state_machine_id, spec.get("view_states", {})),
             "transitions": spec.get("transitions", []),
             "basis": spec["basis"],
         }
         if "archetype" in spec:
-            fsm["archetype"] = spec["archetype"]
-        return fsm
+            state_machine["archetype"] = spec["archetype"]
+        return state_machine
 
     if entity == "entry_point":
         entry: dict[str, Any] = {
@@ -390,10 +390,10 @@ def _ref_subject(owner_id: str) -> str:
 def _state_surface_ref(owner_id: str, state_name: str) -> str:
     if owner_id.startswith("state_machine."):
         return f"{owner_id}.{state_name}"
-    return rules.fsm_ref(owner_id, state_name)
+    return rules.state_machine_surface_ref(owner_id, state_name)
 
 
-def _compile_data(owner_id: str, operation_ids: list[str]) -> list[dict[str, str]]:
+def _compile_data_dependencies(owner_id: str, operation_ids: list[str]) -> list[dict[str, str]]:
     subject = _ref_subject(owner_id)
     data = []
     for cap_id in operation_ids:
@@ -402,21 +402,21 @@ def _compile_data(owner_id: str, operation_ids: list[str]) -> list[dict[str, str
     return data
 
 
-def _compile_states(owner_id: str, states: dict[str, Any]) -> dict[str, Any]:
+def _compile_view_states(owner_id: str, states: dict[str, Any]) -> dict[str, Any]:
     subject = _ref_subject(owner_id)
     compiled = {}
     for state_name, state in states.items():
         item = {
             "surface": _state_surface_ref(owner_id, state_name),
-            "data": _compile_data(owner_id, state.get("data", [])),
+            "data_dependencies": _compile_data_dependencies(owner_id, state.get("data_dependencies", [])),
             "copy": [rules.copy_ref(subject, state_name, slot) for slot in state.get("copy_slots", [])],
             "assets": [rules.asset_ref(subject, state_name, slot) for slot in state.get("asset_slots", [])],
             "fields": state.get("field_slots", []),
-            "actions": state.get("actions", []),
+            "operation_refs": state.get("operation_refs", []),
         }
         if "presentation" in state:
             item["presentation"] = state["presentation"]
-        for field in ["layout", "mounts", "sync"]:
+        for field in ["layout", "child_state_machines", "message_sync_rules"]:
             if field in state:
                 item[field] = state[field]
         if state.get("audit"):
@@ -428,12 +428,12 @@ def _compile_states(owner_id: str, states: dict[str, Any]) -> dict[str, Any]:
     return compiled
 
 
-def _compile_audit_case(fsm_id: str, state_name: str, case_name: str, case: dict[str, Any]) -> dict[str, Any]:
+def _compile_audit_case(state_machine_id: str, state_name: str, case_name: str, case: dict[str, Any]) -> dict[str, Any]:
     item = {
         "profile": case["profile"],
         "surfaces": case["surfaces"],
         "fixtures": case["fixtures"],
-        "basis": case.get("basis", _default_basis("audit_case", f"{fsm_id}.{state_name}.{case_name}")),
+        "basis": case.get("basis", _default_basis("audit_case", f"{state_machine_id}.{state_name}.{case_name}")),
     }
     for field in ["context", "facts", "instances"]:
         if field in case:
@@ -443,11 +443,11 @@ def _compile_audit_case(fsm_id: str, state_name: str, case_name: str, case: dict
 
 def audit_cases(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
     cases: dict[str, dict[str, Any]] = {}
-    for fsm_id, fsm in sorted(contract.get("fsms", {}).items()):
-        for state_name, state in sorted(fsm.get("states", {}).items()):
+    for state_machine_id, state_machine in sorted(contract.get("state_machines", {}).items()):
+        for state_name, state in sorted(state_machine.get("view_states", {}).items()):
             for case_name, case in sorted((state.get("audit") or {}).items()):
-                case_id = f"{fsm_id}.{state_name}.{case_name}.audit"
-                cases[case_id] = {"fsm": fsm_id, "state": state_name, "name": case_name, **case}
+                case_id = f"{state_machine_id}.{state_name}.{case_name}.audit"
+                cases[case_id] = {"state_machine": state_machine_id, "view_state": state_name, "name": case_name, **case}
     return cases
 
 
@@ -515,13 +515,13 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
         refs["policy"].add(operation["policy"])
     refs["text"].update(contract.get("copies", {}))
     refs["asset"].update(contract.get("assets", {}))
-    for fsm_id in contract["fsms"]:
-        refs["state_machine"].add(fsm_id)
-    for owner in contract["fsms"].values():
-        for datum in owner.get("data", []):
+    for state_machine_id in contract["state_machines"]:
+        refs["state_machine"].add(state_machine_id)
+    for owner in contract["state_machines"].values():
+        for datum in owner.get("data_dependencies", []):
             refs["query"].add(datum["query"])
-        for state in owner.get("states", {}).values():
-            for datum in state.get("data", []):
+        for state in owner.get("view_states", {}).values():
+            for datum in state.get("data_dependencies", []):
                 refs["query"].add(datum["query"])
             refs["surface"].add(state["surface"])
             refs["text"].update(state["copy"])
@@ -535,18 +535,18 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
         ]:
             if field in entry:
                 refs[ref_kind].add(entry[field])
-    for fsm_id, fsm in contract["fsms"].items():
-        if _fsm_has_textual_screen(fsm):
-            refs["screen"].add(rules.screen_ref(fsm_id))
+    for state_machine_id, state_machine in contract["state_machines"].items():
+        if _state_machine_has_textual_screen(state_machine):
+            refs["screen"].add(rules.screen_ref(state_machine_id))
     for workflow in contract["workflows"].values():
         refs["workflow"].add(workflow["ref"])
     return {kind: sorted(values) for kind, values in sorted(refs.items()) if values}
 
 
-def _fsm_has_textual_screen(fsm: dict[str, Any]) -> bool:
+def _state_machine_has_textual_screen(state_machine: dict[str, Any]) -> bool:
     return any(
         "textual" in (state.get("layout") or {}) or "textual" in (state.get("presentation") or {})
-        for state in fsm.get("states", {}).values()
+        for state in state_machine.get("view_states", {}).values()
     )
 
 
@@ -556,7 +556,7 @@ def _semantic_validate(contract: dict[str, Any], used_facts: set[str]) -> None:
     _validate_audit_profiles(contract)
     _validate_models(contract)
     _validate_operations(contract)
-    _validate_fsms(contract)
+    _validate_state_machines(contract)
     _validate_state_machine_message_payload_consistency(contract)
     _validate_entries(contract)
     _validate_workflows(contract)
@@ -571,8 +571,8 @@ def _semantic_validate(contract: dict[str, Any], used_facts: set[str]) -> None:
 def _validate_copy_assets(contract: dict[str, Any]) -> None:
     used_copy: set[str] = set()
     used_assets: set[str] = set()
-    for owner in contract.get("fsms", {}).values():
-        for state in owner.get("states", {}).values():
+    for owner in contract.get("state_machines", {}).values():
+        for state in owner.get("view_states", {}).values():
             used_copy.update(state.get("copy", []))
             used_assets.update(state.get("assets", []))
     declared_copy = set(contract.get("copies", {}))
@@ -630,24 +630,24 @@ def _validate_content_cases(contract: dict[str, Any]) -> None:
 
 
 def _validate_audit_profiles(contract: dict[str, Any]) -> None:
-    if contract.get("fsms") and not contract.get("audit_profiles"):
-        raise ContractError("At least one audit_profile is required when fsms are declared")
+    if contract.get("state_machines") and not contract.get("audit_profiles"):
+        raise ContractError("At least one audit_profile is required when state_machines are declared")
 
 
 def _validate_audit_cases(contract: dict[str, Any]) -> None:
     cases = audit_cases(contract)
     composable_states = {
-        (fsm_id, state_name)
-        for fsm_id, fsm in contract.get("fsms", {}).items()
-        for state_name, state in fsm.get("states", {}).items()
-        if state.get("layout") or state.get("mounts")
+        (state_machine_id, state_name)
+        for state_machine_id, state_machine in contract.get("state_machines", {}).items()
+        for state_name, state in state_machine.get("view_states", {}).items()
+        if state.get("layout") or state.get("child_state_machines")
     }
     covered_composable_states: set[tuple[str, str]] = set()
     for case_id, case in cases.items():
-        fsm_id = case["fsm"]
-        state_name = case["state"]
-        fsm = contract["fsms"][fsm_id]
-        state = fsm["states"][state_name]
+        state_machine_id = case["state_machine"]
+        state_name = case["view_state"]
+        state_machine = contract["state_machines"][state_machine_id]
+        state = state_machine["view_states"][state_name]
         if case["profile"] not in contract.get("audit_profiles", {}):
             raise ContractError(f"Audit case {case_id} references unknown audit_profile {case['profile']}")
         profile = contract["audit_profiles"][case["profile"]]
@@ -662,34 +662,34 @@ def _validate_audit_cases(contract: dict[str, Any]) -> None:
         for fact_use in case.get("facts", []):
             fact_id = fact_use["use"]
             _validate_fixture_templates(contract["facts"][fact_id], fixture_values, f"audit case {case_id} fact {fact_id}")
-        if state.get("fields") and not _setup_has_model(contract, case.get("fixtures", []), case.get("facts", []), fsm["model"]):
-            raise ContractError(f"Audit case {case_id} renders fields for {fsm_id}.{state_name} but does not include a {fsm['model']} fixture or fact")
-        if state.get("mounts"):
-            mounted_instances = {mount["id"]: mount for mount in state["mounts"]}
+        if state.get("fields") and not _setup_has_model(contract, case.get("fixtures", []), case.get("facts", []), state_machine["model"]):
+            raise ContractError(f"Audit case {case_id} renders fields for {state_machine_id}.{state_name} but does not include a {state_machine['model']} fixture or fact")
+        if state.get("child_state_machines"):
+            mounted_instances = {mount["id"]: mount for mount in state["child_state_machines"]}
             expected_instances = case.get("instances")
             if not expected_instances:
-                raise ContractError(f"Audit case {case_id} for composed FSM state {fsm_id}.{state_name} must declare instances")
+                raise ContractError(f"Audit case {case_id} for composed state machine state {state_machine_id}.{state_name} must declare instances")
             if set(expected_instances) != set(mounted_instances):
-                raise ContractError(f"Audit case {case_id} instance state vector must exactly cover mounted FSM instances")
+                raise ContractError(f"Audit case {case_id} instance state vector must exactly cover mounted state machine instances")
             for instance_id, expected in expected_instances.items():
-                child_fsm_id = mounted_instances[instance_id]["fsm"]
-                if expected["state"] not in contract["fsms"][child_fsm_id]["states"]:
-                    raise ContractError(f"Audit case {case_id} references unknown FSM state {child_fsm_id}.{expected['state']}")
-                selected_state = contract["fsms"][child_fsm_id]["states"][expected["state"]]
-                if selected_state.get("fields") and not _setup_has_model(contract, case.get("fixtures", []), case.get("facts", []), contract["fsms"][child_fsm_id]["model"]):
-                    raise ContractError(f"Audit case {case_id} renders fields for {child_fsm_id}.{expected['state']} but does not include a {contract['fsms'][child_fsm_id]['model']} fixture or fact")
-            covered_composable_states.add((fsm_id, state_name))
-    missing_composed = sorted(f"{fsm_id}.{state_name}" for fsm_id, state_name in composable_states - covered_composable_states)
+                child_state_machine_id = mounted_instances[instance_id]["state_machine"]
+                if expected["view_state"] not in contract["state_machines"][child_state_machine_id]["view_states"]:
+                    raise ContractError(f"Audit case {case_id} references unknown state machine view state {child_state_machine_id}.{expected['view_state']}")
+                selected_state = contract["state_machines"][child_state_machine_id]["view_states"][expected["view_state"]]
+                if selected_state.get("fields") and not _setup_has_model(contract, case.get("fixtures", []), case.get("facts", []), contract["state_machines"][child_state_machine_id]["model"]):
+                    raise ContractError(f"Audit case {case_id} renders fields for {child_state_machine_id}.{expected['view_state']} but does not include a {contract['state_machines'][child_state_machine_id]['model']} fixture or fact")
+            covered_composable_states.add((state_machine_id, state_name))
+    missing_composed = sorted(f"{state_machine_id}.{state_name}" for state_machine_id, state_name in composable_states - covered_composable_states)
     if missing_composed:
-        raise ContractError("Missing audit coverage for composed FSM states: " + ", ".join(missing_composed))
-    _validate_fsm_state_fixture_coverage(contract)
+        raise ContractError("Missing audit coverage for composed state machine states: " + ", ".join(missing_composed))
+    _validate_state_machine_view_state_fixture_coverage(contract)
 
 
-def _validate_fsm_state_fixture_coverage(contract: dict[str, Any]) -> None:
-    for fsm_id, fsm in contract.get("fsms", {}).items():
-        for state_name, state in fsm.get("states", {}).items():
-            if state.get("fields") and not _setup_has_model(contract, list(contract.get("fixtures", {})), _all_fact_uses(contract), fsm["model"]):
-                raise ContractError(f"Rendered fields for {fsm_id}.{state_name} require at least one {fsm['model']} fixture or fact")
+def _validate_state_machine_view_state_fixture_coverage(contract: dict[str, Any]) -> None:
+    for state_machine_id, state_machine in contract.get("state_machines", {}).items():
+        for state_name, state in state_machine.get("view_states", {}).items():
+            if state.get("fields") and not _setup_has_model(contract, list(contract.get("fixtures", {})), _all_fact_uses(contract), state_machine["model"]):
+                raise ContractError(f"Rendered fields for {state_machine_id}.{state_name} require at least one {state_machine['model']} fixture or fact")
 
 
 def _setup_has_model(contract: dict[str, Any], fixture_ids: list[str], fact_uses: list[dict[str, str]], model_id: str) -> bool:
@@ -919,36 +919,36 @@ def _validate_emit_payload_mapping(
     _validate_mapping_to_type(contract, label, emit["with"], event_payload, source_scopes)
 
 
-def _validate_fsms(contract: dict[str, Any]) -> None:
-    for fsm_id, fsm in contract["fsms"].items():
-        if not fsm_id.startswith("state_machine."):
-            raise ContractError(f"FSM id must start with state_machine.: {fsm_id}")
-        if fsm["model"] not in contract["models"]:
-            raise ContractError(f"FSM {fsm_id} references unknown model {fsm['model']}")
+def _validate_state_machines(contract: dict[str, Any]) -> None:
+    for state_machine_id, state_machine in contract["state_machines"].items():
+        if not state_machine_id.startswith("state_machine."):
+            raise ContractError(f"state machine id must start with state_machine.: {state_machine_id}")
+        if state_machine["model"] not in contract["models"]:
+            raise ContractError(f"state machine {state_machine_id} references unknown model {state_machine['model']}")
         _validate_data_bindings(
-            contract, f"FSM {fsm_id}", fsm.get("data", []), fsm.get("context", {}), model=fsm["model"]
+            contract, f"state machine {state_machine_id}", state_machine.get("data_dependencies", []), state_machine.get("context", {}), model=state_machine["model"]
         )
-        if fsm["initial"] not in fsm["states"]:
-            raise ContractError(f"FSM {fsm_id} initial state is not declared: {fsm['initial']}")
-        model_fields = set(contract["models"][fsm["model"]]["fields"])
-        for state_name, state in fsm["states"].items():
-            _validate_fsm_state(
+        if state_machine["initial_view_state"] not in state_machine["view_states"]:
+            raise ContractError(f"state machine {state_machine_id} initial view state is not declared: {state_machine['initial_view_state']}")
+        model_fields = set(contract["models"][state_machine["model"]]["fields"])
+        for state_name, state in state_machine["view_states"].items():
+            _validate_state_machine_view_state(
                 contract,
-                f"FSM {fsm_id}",
+                f"state machine {state_machine_id}",
                 state_name,
                 state,
                 field_names=model_fields,
-                data_context=fsm.get("context", {}),
-                model=fsm["model"],
+                data_context=state_machine.get("context", {}),
+                model=state_machine["model"],
             )
-            if state.get("mounts") or state.get("layout") or state.get("sync"):
-                _validate_state_composition(contract, fsm_id, fsm, state_name, state)
-        _validate_field_state_data_sources(f"FSM {fsm_id}", fsm["states"], fsm.get("data", []), fsm.get("transitions", []))
-        _validate_fsm_transitions(contract, fsm_id, fsm)
-        _validate_state_machine_messages(fsm_id, fsm)
+            if state.get("child_state_machines") or state.get("layout") or state.get("message_sync_rules"):
+                _validate_state_composition(contract, state_machine_id, state_machine, state_name, state)
+        _validate_field_state_data_sources(f"state machine {state_machine_id}", state_machine["view_states"], state_machine.get("data_dependencies", []), state_machine.get("transitions", []))
+        _validate_state_machine_transitions(contract, state_machine_id, state_machine)
+        _validate_state_machine_messages(state_machine_id, state_machine)
 
 
-def _validate_fsm_state(
+def _validate_state_machine_view_state(
     contract: dict[str, Any],
     owner_label: str,
     state_name: str,
@@ -957,11 +957,11 @@ def _validate_fsm_state(
     data_context: dict[str, Any] | None = None,
     model: str | None = None,
 ) -> None:
-    _validate_data_bindings(contract, f"{owner_label}.{state_name}", state.get("data", []), data_context, model=model)
+    _validate_data_bindings(contract, f"{owner_label}.{state_name}", state.get("data_dependencies", []), data_context, model=model)
     for field in state.get("fields", []):
         if field not in field_names:
             raise ContractError(f"{owner_label}.{state_name} field slot is not declared on the model/context: {field}")
-    for action in state["actions"]:
+    for action in state["operation_refs"]:
         if action not in contract["operations"]:
             raise ContractError(f"{owner_label}.{state_name} action references unknown operation {action}")
     _validate_presentation(contract, owner_label, field_names, state_name, state)
@@ -1011,83 +1011,83 @@ def _state_has_data_source(
     owner_data: list[dict[str, Any]],
     transitions: list[dict[str, Any]],
 ) -> bool:
-    if owner_data or states[state_name].get("data"):
+    if owner_data or states[state_name].get("data_dependencies"):
         return True
     for transition in transitions:
         if transition["to"] != state_name or not _is_data_event(transition["on"]):
             continue
         source_state = states.get(transition["from"], {})
-        if owner_data or source_state.get("data"):
+        if owner_data or source_state.get("data_dependencies"):
             return True
     return False
 
 
-def _validate_fsm_transitions(contract: dict[str, Any], fsm_id: str, fsm: dict[str, Any]) -> None:
-    states = set(fsm["states"])
-    for transition in fsm.get("transitions", []):
+def _validate_state_machine_transitions(contract: dict[str, Any], state_machine_id: str, state_machine: dict[str, Any]) -> None:
+    states = set(state_machine["view_states"])
+    for transition in state_machine.get("transitions", []):
         if transition["from"] not in states or transition["to"] not in states:
-            raise ContractError(f"FSM {fsm_id} transition uses unknown state: {transition}")
-        if _is_data_event(transition["on"]) and not _transition_data_bindings(fsm, transition):
+            raise ContractError(f"state machine {state_machine_id} transition uses unknown state: {transition}")
+        if _is_data_event(transition["on"]) and not _transition_data_bindings(state_machine, transition):
             raise ContractError(
-                f"FSM {fsm_id} transition uses data message without FSM or source-state data: {transition['on']}"
+                f"state machine {state_machine_id} transition uses data message without state machine or source-state data: {transition['on']}"
             )
-        message_payload = _state_machine_message_payload(fsm, "accepts", transition["on"], f"FSM {fsm_id} transition message")
+        message_payload = _state_machine_message_payload(state_machine, "accepts", transition["on"], f"state machine {state_machine_id} transition message")
         for effect in transition.get("effects", []):
-            kind, body = _one(effect, f"FSM {fsm_id} transition effect")
+            kind, body = _one(effect, f"state machine {state_machine_id} transition effect")
             if kind == "set":
-                if body["context"] not in fsm.get("context", {}):
-                    raise ContractError(f"FSM {fsm_id} transition sets undeclared context: {body['context']}")
+                if body["context"] not in state_machine.get("context", {}):
+                    raise ContractError(f"state machine {state_machine_id} transition sets undeclared context: {body['context']}")
             elif kind == "emit":
-                emitted_payload = _state_machine_message_payload(fsm, "emits", body["message"], f"FSM {fsm_id} transition emit")
+                emitted_payload = _state_machine_message_payload(state_machine, "emits", body["message"], f"state machine {state_machine_id} transition emit")
                 _validate_payload_bindings(
                     contract=contract,
-                    label=f"FSM {fsm_id} transition emit {body['message']} payload_bindings",
+                    label=f"state machine {state_machine_id} transition emit {body['message']} payload_bindings",
                     bindings=body["payload_bindings"],
                     payload=emitted_payload,
-                    scopes={"message": _type_scope(message_payload), "context": _type_scope(fsm.get("context", {}))},
+                    scopes={"message": _type_scope(message_payload), "context": _type_scope(state_machine.get("context", {}))},
                 )
             else:  # pragma: no cover - schema prevents this.
-                raise ContractError(f"FSM {fsm_id} unsupported transition effect: {kind}")
-    for transition in fsm.get("transitions", []):
-        if not _transition_has_audit_content(fsm, transition):
+                raise ContractError(f"state machine {state_machine_id} unsupported transition effect: {kind}")
+    for transition in state_machine.get("transitions", []):
+        if not _transition_has_audit_content(state_machine, transition):
             raise ContractError(
-                f"FSM {fsm_id} transition {transition['on']} from {transition['from']} "
+                f"state machine {state_machine_id} transition {transition['on']} from {transition['from']} "
                 f"to {transition['to']} must declare basis, data, or effects"
             )
 
 
-def _validate_state_machine_messages(fsm_id: str, fsm: dict[str, Any]) -> None:
-    messages = fsm.get("state_machine_messages", _empty_state_machine_messages())
+def _validate_state_machine_messages(state_machine_id: str, state_machine: dict[str, Any]) -> None:
+    messages = state_machine.get("state_machine_messages", _empty_state_machine_messages())
     declared_accepts = set(messages.get("accepts", {}))
     declared_emits = set(messages.get("emits", {}))
     ambiguous = sorted(declared_accepts & declared_emits)
     if ambiguous:
-        raise ContractError(f"FSM {fsm_id} declares state-machine message as both accepted and emitted: {ambiguous}")
-    accepted = _fsm_accepts(fsm)
-    emitted = _fsm_emits(fsm)
+        raise ContractError(f"state machine {state_machine_id} declares state-machine message as both accepted and emitted: {ambiguous}")
+    accepted = _state_machine_accepts(state_machine)
+    emitted = _state_machine_emits(state_machine)
     orphan_accepts = sorted(declared_accepts - accepted)
     if orphan_accepts:
-        raise ContractError(f"FSM {fsm_id} declares accepted state-machine message without transition: {orphan_accepts}")
+        raise ContractError(f"state machine {state_machine_id} declares accepted state-machine message without transition: {orphan_accepts}")
     orphan_emits = sorted(declared_emits - emitted)
     if orphan_emits:
-        raise ContractError(f"FSM {fsm_id} declares emitted state-machine message without emit effect: {orphan_emits}")
+        raise ContractError(f"state machine {state_machine_id} declares emitted state-machine message without emit effect: {orphan_emits}")
     undeclared_accepts = sorted(accepted - declared_accepts)
     if undeclared_accepts:
-        raise ContractError(f"FSM {fsm_id} accepts state-machine message without declaring it: {undeclared_accepts}")
+        raise ContractError(f"state machine {state_machine_id} accepts state-machine message without declaring it: {undeclared_accepts}")
     undeclared_emits = sorted(emitted - declared_emits)
     if undeclared_emits:
-        raise ContractError(f"FSM {fsm_id} emits state-machine message without declaring it: {undeclared_emits}")
+        raise ContractError(f"state machine {state_machine_id} emits state-machine message without declaring it: {undeclared_emits}")
 
 
 def _validate_state_machine_message_payload_consistency(contract: dict[str, Any]) -> None:
     declared: dict[str, tuple[str, str, dict[str, Any]]] = {}
     domain_events = set(contract.get("events", {}))
-    for fsm_id, fsm in contract.get("fsms", {}).items():
-        messages = fsm.get("state_machine_messages", _empty_state_machine_messages())
+    for state_machine_id, state_machine in contract.get("state_machines", {}).items():
+        messages = state_machine.get("state_machine_messages", _empty_state_machine_messages())
         for direction in ("accepts", "emits"):
             for message_id, message in messages.get(direction, {}).items():
                 if message_id in domain_events:
-                    raise ContractError(f"State-machine message {message_id} conflicts with domain event {message_id}")
+                    raise ContractError(f"state-machine message {message_id} conflicts with domain event {message_id}")
                 payload = message["payload_schema"]
                 existing = declared.get(message_id)
                 if existing and (
@@ -1096,78 +1096,78 @@ def _validate_state_machine_message_payload_consistency(contract: dict[str, Any]
                 ):
                     first_fsm, first_direction, first_payload = existing
                     raise ContractError(
-                        f"State-machine message {message_id} payload_schema differs between {first_fsm}.{first_direction} "
-                        f"and {fsm_id}.{direction}: "
+                        f"state-machine message {message_id} payload_schema differs between {first_fsm}.{first_direction} "
+                        f"and {state_machine_id}.{direction}: "
                         f"{ {key: type_display(value) for key, value in first_payload.items()} } vs "
                         f"{ {key: type_display(value) for key, value in payload.items()} }"
                     )
-                declared[message_id] = (fsm_id, direction, payload)
+                declared[message_id] = (state_machine_id, direction, payload)
 
 
-def _validate_state_composition(contract: dict[str, Any], fsm_id: str, fsm: dict[str, Any], state_name: str, state: dict[str, Any]) -> None:
-    label = f"{fsm_id}.{state_name}"
-    parent_fsm_id = fsm_id
-    parent_fsm = fsm
+def _validate_state_composition(contract: dict[str, Any], state_machine_id: str, state_machine: dict[str, Any], state_name: str, state: dict[str, Any]) -> None:
+    label = f"{state_machine_id}.{state_name}"
+    parent_state_machine_id = state_machine_id
+    parent_state_machine = state_machine
     if not state.get("layout"):
-        raise ContractError(f"Composed FSM state {label} must declare layout")
-    if not state.get("mounts"):
-        raise ContractError(f"Composed FSM state {label} must mount at least one FSM")
+        raise ContractError(f"composed state machine state {label} must declare layout")
+    if not state.get("child_state_machines"):
+        raise ContractError(f"composed state machine state {label} must mount at least one state machine")
     regions = set(layout_regions(state["layout"]))
     if not regions:
-        raise ContractError(f"Composed FSM state {label} must declare layout regions")
+        raise ContractError(f"composed state machine state {label} must declare layout regions")
     mounts: dict[str, dict[str, Any]] = {}
-    for mount in state["mounts"]:
+    for mount in state["child_state_machines"]:
         if mount["id"] in mounts:
-            raise ContractError(f"Composed FSM state {label} has duplicate FSM mount: {mount['id']}")
+            raise ContractError(f"composed state machine state {label} has duplicate state machine mount: {mount['id']}")
         mounts[mount["id"]] = mount
         if mount["region"] not in regions:
-            raise ContractError(f"Composed FSM state {label} mounts FSM in undeclared region: {mount['region']}")
-        child_fsm_id = mount["fsm"]
-        if child_fsm_id not in contract["fsms"]:
-            raise ContractError(f"Composed FSM state {label} mounts unknown FSM: {child_fsm_id}")
-        child_fsm = contract["fsms"][child_fsm_id]
-        if mount["initial"] not in child_fsm["states"]:
-            raise ContractError(f"Composed FSM state {label}.{mount['id']} initial state is unknown: {mount['initial']}")
+            raise ContractError(f"composed state machine state {label} mounts state machine in undeclared region: {mount['region']}")
+        child_state_machine_id = mount["state_machine"]
+        if child_state_machine_id not in contract["state_machines"]:
+            raise ContractError(f"composed state machine state {label} mounts unknown state machine: {child_state_machine_id}")
+        child_state_machine = contract["state_machines"][child_state_machine_id]
+        if mount["initial_view_state"] not in child_state_machine["view_states"]:
+            raise ContractError(f"composed state machine view state {label}.{mount['id']} initial view state is unknown: {mount['initial_view_state']}")
         selected = mount.get("selected")
-        if selected and selected["state"] not in child_fsm["states"]:
-            raise ContractError(f"Composed FSM state {label}.{mount['id']} selected state is unknown: {selected['state']}")
+        if selected and selected["view_state"] not in child_state_machine["view_states"]:
+            raise ContractError(f"composed state machine view state {label}.{mount['id']} selected view state is unknown: {selected['view_state']}")
         if selected:
-            _validate_condition_context(label, parent_fsm.get("context", {}), selected["when"])
+            _validate_condition_context(label, parent_state_machine.get("context", {}), selected["when"])
         mount_context = mount.get("context", {})
-        expected_context = set(child_fsm.get("context", {}))
+        expected_context = set(child_state_machine.get("context", {}))
         if set(mount_context) != expected_context:
             raise ContractError(
-                f"Composed FSM state {label}.{mount['id']} context keys {sorted(mount_context)} "
-                f"must exactly match FSM context {sorted(expected_context)}"
+                f"composed state machine state {label}.{mount['id']} context keys {sorted(mount_context)} "
+                f"must exactly match state machine context {sorted(expected_context)}"
             )
-        _validate_fsm_context_refs(
+        _validate_state_machine_context_refs(
             contract,
             label,
-            parent_fsm.get("context", {}),
-            child_fsm.get("context", {}),
+            parent_state_machine.get("context", {}),
+            child_state_machine.get("context", {}),
             mount_context,
         )
-    used_regions = {mount["region"] for mount in state["mounts"]}
+    used_regions = {mount["region"] for mount in state["child_state_machines"]}
     missing_required = [region for region, spec in layout_regions(state["layout"]).items() if spec.get("required") and region not in used_regions]
     if missing_required:
-        raise ContractError(f"Composed FSM state {label} missing required layout regions: {missing_required}")
+        raise ContractError(f"composed state machine state {label} missing required layout regions: {missing_required}")
     _validate_layout_contract(label, state["layout"], regions, set(mounts))
-    _validate_sync_rules(contract, parent_fsm_id, state_name, parent_fsm, state, mounts)
+    _validate_sync_rules(contract, parent_state_machine_id, state_name, parent_state_machine, state, mounts)
 
 
-def _validate_layout_contract(fsm_id: str, layout: dict[str, Any], regions: set[str], mounts: set[str]) -> None:
+def _validate_layout_contract(state_machine_id: str, layout: dict[str, Any], regions: set[str], mounts: set[str]) -> None:
     html_regions = set(layout_html_regions(layout))
     textual_regions = set(layout_textual_containers(layout))
     if html_regions and textual_regions and html_regions != textual_regions:
-        raise ContractError(f"Composed FSM {fsm_id} layout regions differ between html and textual")
+        raise ContractError(f"composed state machine {state_machine_id} layout regions differ between html and textual")
     for rule in ((layout_html(layout).get("css") or {}).get("rules", [])):
-        _validate_composition_selector(fsm_id, rule["selector"], regions, mounts, "CSS")
+        _validate_composition_selector(state_machine_id, rule["selector"], regions, mounts, "CSS")
     textual = layout_textual(layout)
     for rule in ((textual.get("tcss") or {}).get("rules", [])):
-        _validate_composition_selector(fsm_id, rule["selector"], regions, mounts, "TCSS")
+        _validate_composition_selector(state_machine_id, rule["selector"], regions, mounts, "TCSS")
 
 
-def _validate_condition_context(fsm_id: str, context: dict[str, Any], condition: Any) -> None:
+def _validate_condition_context(state_machine_id: str, context: dict[str, Any], condition: Any) -> None:
     if isinstance(condition, dict):
         if "context_present" in condition:
             keys = [condition["context_present"]]
@@ -1179,20 +1179,20 @@ def _validate_condition_context(fsm_id: str, context: dict[str, Any], condition:
         try:
             ref = parse_reference_expression(condition)
         except ReferenceExpressionError as exc:
-            raise ContractError(f"Composed FSM {fsm_id} condition has malformed runtime reference: {condition}") from exc
+            raise ContractError(f"composed state machine {state_machine_id} condition has malformed runtime reference: {condition}") from exc
         if ref.root != "state_machine":
-            raise ContractError(f"Composed FSM {fsm_id} condition references unavailable runtime root: ${ref.root}")
+            raise ContractError(f"composed state machine {state_machine_id} condition references unavailable runtime root: ${ref.root}")
         keys = [ref.path[0]]
     else:
         keys = []
     for key in keys:
         if key not in context:
-            raise ContractError(f"Composed FSM {fsm_id} condition references undeclared context: {key}")
+            raise ContractError(f"composed state machine {state_machine_id} condition references undeclared context: {key}")
 
 
-def _validate_fsm_context_refs(
+def _validate_state_machine_context_refs(
     contract: dict[str, Any],
-    fsm_id: str,
+    state_machine_id: str,
     parent_context: dict[str, Any],
     child_context: dict[str, Any],
     mapping: dict[str, Any],
@@ -1201,29 +1201,29 @@ def _validate_fsm_context_refs(
     for key, value in mapping.items():
         _validate_expression_type(
             contract,
-            f"Composed FSM {fsm_id} context {key}",
+            f"composed state machine {state_machine_id} context {key}",
             value,
             child_context[key],
             scopes,
         )
 
 
-def _fsm_emits(fsm: dict[str, Any]) -> set[str]:
+def _state_machine_emits(state_machine: dict[str, Any]) -> set[str]:
     emits: set[str] = set()
-    for transition in fsm.get("transitions", []):
+    for transition in state_machine.get("transitions", []):
         for effect in transition.get("effects", []):
-            kind, body = _one(effect, "fsm transition effect")
+            kind, body = _one(effect, "state_machine transition effect")
             if kind == "emit":
                 emits.add(body["message"])
     return emits
 
 
-def _fsm_accepts(fsm: dict[str, Any]) -> set[str]:
-    return {transition["on"] for transition in fsm.get("transitions", [])}
+def _state_machine_accepts(state_machine: dict[str, Any]) -> set[str]:
+    return {transition["on"] for transition in state_machine.get("transitions", [])}
 
 
-def _state_machine_message_payload(fsm: dict[str, Any], direction: str, message_id: str, label: str) -> dict[str, Any]:
-    message = fsm.get("state_machine_messages", {}).get(direction, {}).get(message_id)
+def _state_machine_message_payload(state_machine: dict[str, Any], direction: str, message_id: str, label: str) -> dict[str, Any]:
+    message = state_machine.get("state_machine_messages", {}).get(direction, {}).get(message_id)
     if not message:
         raise ContractError(f"{label} references undeclared state-machine message: {message_id}")
     return message.get("payload_schema", {})
@@ -1327,56 +1327,56 @@ def _is_data_event(message: str) -> bool:
     return message.startswith("data.")
 
 
-def _transition_data_bindings(fsm: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
-    source_state = fsm.get("states", {}).get(transition["from"], {})
-    return source_state.get("data", []) or fsm.get("data", [])
+def _transition_data_bindings(state_machine: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
+    source_state = state_machine.get("view_states", {}).get(transition["from"], {})
+    return source_state.get("data_dependencies", []) or state_machine.get("data_dependencies", [])
 
 
-def _transition_target_data_bindings(fsm: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
-    target_state = fsm.get("states", {}).get(transition["to"], {})
-    return target_state.get("data", [])
+def _transition_target_data_bindings(state_machine: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
+    target_state = state_machine.get("view_states", {}).get(transition["to"], {})
+    return target_state.get("data_dependencies", [])
 
 
-def _transition_has_audit_content(fsm: dict[str, Any], transition: dict[str, Any]) -> bool:
+def _transition_has_audit_content(state_machine: dict[str, Any], transition: dict[str, Any]) -> bool:
     if transition.get("basis") or transition.get("effects"):
         return True
     if _is_data_event(transition["on"]):
-        return bool(_transition_data_bindings(fsm, transition))
-    return bool(_transition_target_data_bindings(fsm, transition))
+        return bool(_transition_data_bindings(state_machine, transition))
+    return bool(_transition_target_data_bindings(state_machine, transition))
 
 
 def _validate_sync_rules(
     contract: dict[str, Any],
-    fsm_id: str,
+    state_machine_id: str,
     state_name: str,
-    fsm: dict[str, Any],
+    state_machine: dict[str, Any],
     state: dict[str, Any],
     mounts: dict[str, dict[str, Any]],
 ) -> None:
-    label = f"{fsm_id}.{state_name}"
+    label = f"{state_machine_id}.{state_name}"
     seen: set[str] = set()
-    context = fsm.get("context", {})
-    for rule in state.get("sync", []):
+    context = state_machine.get("context", {})
+    for rule in state.get("message_sync_rules", []):
         if rule["id"] in seen:
-            raise ContractError(f"Composed FSM state {label} has duplicate sync rule: {rule['id']}")
+            raise ContractError(f"composed state machine state {label} has duplicate sync rule: {rule['id']}")
         seen.add(rule["id"])
         source_id = rule["when"]["instance"]
         if source_id not in mounts:
-            raise ContractError(f"Composed FSM state {label} sync source instance is unknown: {source_id}")
-        source_fsm = contract["fsms"][mounts[source_id]["fsm"]]
+            raise ContractError(f"composed state machine state {label} sync source instance is unknown: {source_id}")
+        source_fsm = contract["state_machines"][mounts[source_id]["state_machine"]]
         message_id = rule["when"]["message"]
-        if message_id not in _fsm_emits(source_fsm):
-            raise ContractError(f"Composed FSM state {label} sync listens for message the source does not emit: {message_id}")
-        source_payload = _state_machine_message_payload(source_fsm, "emits", message_id, f"Composed FSM state {label} sync trigger")
+        if message_id not in _state_machine_emits(source_fsm):
+            raise ContractError(f"composed state machine state {label} sync listens for message the source does not emit: {message_id}")
+        source_payload = _state_machine_message_payload(source_fsm, "emits", message_id, f"composed state machine state {label} sync trigger")
         for effect in rule["do"]:
-            kind, body = _one(effect, f"composed FSM state {label} sync effect")
+            kind, body = _one(effect, f"composed state machine state {label} sync effect")
             if kind == "set":
                 if body["context"] not in context:
-                    raise ContractError(f"Composed FSM state {label} sync sets undeclared context: {body['context']}")
+                    raise ContractError(f"composed state machine state {label} sync sets undeclared context: {body['context']}")
                 if "from" in body:
                     _validate_expression_type(
                         contract,
-                        f"Composed FSM state {label} sync set {body['context']}",
+                        f"composed state machine state {label} sync set {body['context']}",
                         body["from"],
                         context[body["context"]],
                         {"message": _type_scope(source_payload), "state_machine": _type_scope(context)},
@@ -1384,20 +1384,20 @@ def _validate_sync_rules(
             elif kind == "send":
                 target_id = body["instance"]
                 if target_id not in mounts:
-                    raise ContractError(f"Composed FSM state {label} sync sends to unknown instance: {target_id}")
-                target_fsm = contract["fsms"][mounts[target_id]["fsm"]]
-                if body["message"] not in _fsm_accepts(target_fsm):
-                    raise ContractError(f"Composed FSM state {label} sync sends message the target does not accept: {body['message']}")
-                target_payload = _state_machine_message_payload(target_fsm, "accepts", body["message"], f"Composed FSM state {label} sync send")
+                    raise ContractError(f"composed state machine state {label} sync sends to unknown instance: {target_id}")
+                target_fsm = contract["state_machines"][mounts[target_id]["state_machine"]]
+                if body["message"] not in _state_machine_accepts(target_fsm):
+                    raise ContractError(f"composed state machine state {label} sync sends message the target does not accept: {body['message']}")
+                target_payload = _state_machine_message_payload(target_fsm, "accepts", body["message"], f"composed state machine state {label} sync send")
                 _validate_payload_bindings(
                     contract=contract,
-                    label=f"Composed FSM state {label} sync send {body['message']} to {target_id} payload_bindings",
+                    label=f"composed state machine state {label} sync send {body['message']} to {target_id} payload_bindings",
                     bindings=body["payload_bindings"],
                     payload=target_payload,
                     scopes={"message": _type_scope(source_payload), "state_machine": _type_scope(context)},
                 )
             else:  # pragma: no cover - schema prevents this.
-                raise ContractError(f"Composed FSM state {label} unsupported sync effect: {kind}")
+                raise ContractError(f"composed state machine state {label} unsupported sync effect: {kind}")
 
 
 def _validate_presentation(contract: dict[str, Any], owner_label: str, field_names: set[str], state_name: str, state: dict[str, Any]) -> None:
@@ -1407,7 +1407,7 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
     copy_slots = {ref.rsplit(".", 1)[-1] for ref in state["copy"]}
     asset_slots = {ref.rsplit(".", 1)[-1] for ref in state["assets"]}
     field_slots = set(state.get("fields", []))
-    actions = set(state["actions"])
+    actions = set(state["operation_refs"])
 
     html_contract = presentation.get("html") or {}
     for slot in html_contract.get("slots", []):
@@ -1482,41 +1482,41 @@ def _validate_style_selector(
     raise ContractError(f"{owner_label}.{state_name} {label} selector is not supported: {selector}")
 
 
-def _validate_composition_selector(fsm_id: str, selector: str, regions: set[str], mounts: set[str], label: str) -> None:
+def _validate_composition_selector(state_machine_id: str, selector: str, regions: set[str], mounts: set[str], label: str) -> None:
     if selector in {"root", "screen"}:
         return
     if selector.startswith("region."):
         region = selector[len("region."):]
         if region not in regions:
-            raise ContractError(f"Composed FSM {fsm_id} {label} selector references undeclared layout region: {selector}")
+            raise ContractError(f"composed state machine {state_machine_id} {label} selector references undeclared layout region: {selector}")
         return
     if selector.startswith("mount."):
         mount = selector[len("mount."):]
         if mount not in mounts:
-            raise ContractError(f"Composed FSM {fsm_id} {label} selector references undeclared FSM mount: {selector}")
+            raise ContractError(f"composed state machine {state_machine_id} {label} selector references undeclared state machine mount: {selector}")
         return
-    raise ContractError(f"Composed FSM {fsm_id} {label} selector is not supported: {selector}")
+    raise ContractError(f"composed state machine {state_machine_id} {label} selector is not supported: {selector}")
 
 
 def _validate_entries(contract: dict[str, Any]) -> None:
     for eid, entry in contract["entry_points"].items():
         adapter_kind, adapter = entry_point_adapter_pair(entry)
         trigger_kind, trigger = entry_point_trigger_pair(entry)
-        kind = "fsm" if trigger_kind == "state_machine" else trigger_kind
+        kind = "state_machine" if trigger_kind == "state_machine" else trigger_kind
         value = trigger["ref"]
         _validate_entry_point_fields(eid, entry, adapter_kind)
         _validate_entry_input_shape(eid, entry, adapter_kind)
         if adapter_kind == "ui":
-            if kind != "fsm" or value not in contract["fsms"]:
-                raise ContractError(f"UI entry point {eid} must target a known FSM")
+            if kind != "state_machine" or value not in contract["state_machines"]:
+                raise ContractError(f"UI entry point {eid} must target a known state machine")
             render = adapter.get("render")
             if render and "render" not in trigger:
                 trigger["render"] = render
-            _validate_fsm_target_surface(contract, eid, entry, value, allowed_surfaces={"html"})
+            _validate_state_machine_target_surface(contract, eid, entry, value, allowed_surfaces={"html"})
             _require_adapter(adapter, eid, "path")
             _validate_path_params(entry, eid)
             declared = _entry_input_map(entry, "params")
-            _validate_fsm_entry_inputs(contract, eid, value, declared=declared, input_label="input.params")
+            _validate_state_machine_entry_inputs(contract, eid, value, declared=declared, input_label="input.params")
             _validate_target_bindings(contract, eid, entry, declared)
         elif adapter_kind == "http":
             if kind != "operation" or value not in contract["operations"]:
@@ -1540,16 +1540,16 @@ def _validate_entries(contract: dict[str, Any]) -> None:
                 _validate_exact_entry_inputs(eid, "input.args", args, operation["input"])
                 _validate_target_bindings(contract, eid, entry, args)
                 _validate_cli_operation_responses(eid, entry, operation)
-            elif kind == "fsm":
-                if value not in contract["fsms"]:
-                    raise ContractError(f"CLI entry point {eid} must target a known FSM")
-                _validate_fsm_target_surface(contract, eid, entry, value, allowed_surfaces=set(FSM_RENDER_SURFACES))
-                _validate_fsm_entry_inputs(contract, eid, value, declared=args, input_label="input.args")
+            elif kind == "state_machine":
+                if value not in contract["state_machines"]:
+                    raise ContractError(f"CLI entry point {eid} must target a known state machine")
+                _validate_state_machine_target_surface(contract, eid, entry, value, allowed_surfaces=set(STATE_MACHINE_RENDER_SURFACES))
+                _validate_state_machine_entry_inputs(contract, eid, value, declared=args, input_label="input.args")
                 _validate_target_bindings(contract, eid, entry, args)
-                target_surface = entry_fsm_surface(entry)
+                target_surface = entry_state_machine_surface(entry)
                 assert target_surface is not None
                 if entry_point_responses(entry):
-                    raise ContractError(f"CLI entry point {eid} targeting an FSM must not declare responses")
+                    raise ContractError(f"CLI entry point {eid} targeting a state machine must not declare responses")
             elif kind == "workflow":
                 if value not in contract["workflows"]:
                     raise ContractError(f"CLI entry point {eid} must target a known workflow")
@@ -1621,27 +1621,27 @@ def _validate_entry_input_shape(entry_id: str, entry: dict[str, Any], adapter_ki
             seen[name] = type_name
 
 
-def _validate_fsm_target_surface(
+def _validate_state_machine_target_surface(
     contract: dict[str, Any],
     entry_id: str,
     entry: dict[str, Any],
-    fsm_id: str,
+    state_machine_id: str,
     *,
     allowed_surfaces: set[str],
 ) -> None:
-    surface = entry_fsm_surface(entry)
+    surface = entry_state_machine_surface(entry)
     if surface is None:
-        raise ContractError(f"Entry {entry_id} FSM target must declare surface")
+        raise ContractError(f"Entry {entry_id} state machine target must declare surface")
     if surface not in allowed_surfaces:
-        raise ContractError(f"Entry {entry_id} cannot target FSM surface {surface!r}")
-    if not _fsm_supports_render_surface(contract["fsms"][fsm_id], surface):
-        raise ContractError(f"Entry {entry_id} targets FSM {fsm_id} surface {surface} but that FSM does not declare it")
+        raise ContractError(f"Entry {entry_id} cannot target state machine surface {surface!r}")
+    if not _state_machine_supports_render_surface(contract["state_machines"][state_machine_id], surface):
+        raise ContractError(f"Entry {entry_id} targets state machine {state_machine_id} surface {surface} but that state machine does not declare it")
 
 
-def _fsm_supports_render_surface(fsm: dict[str, Any], surface: str) -> bool:
+def _state_machine_supports_render_surface(state_machine: dict[str, Any], surface: str) -> bool:
     return any(
         surface in (state.get("layout") or {}) or surface in (state.get("presentation") or {})
-        for state in fsm.get("states", {}).values()
+        for state in state_machine.get("view_states", {}).values()
     )
 
 
@@ -1706,8 +1706,8 @@ def _validate_target_bindings(
     bindings = entry_point_bindings(entry)
     if kind == "operation":
         expected = contract["operations"][value]["input"]
-    elif kind == "fsm":
-        expected = {name: contract["fsms"][value].get("context", {})[name] for name in target_input_types}
+    elif kind == "state_machine":
+        expected = {name: contract["state_machines"][value].get("context", {})[name] for name in target_input_types}
     else:
         if bindings:
             raise ContractError(f"Entry {entry_id} target.with is not supported for workflow targets")
@@ -1841,37 +1841,37 @@ def _validate_webhook_entry_responses(entry_id: str, entry: dict[str, Any]) -> N
         raise ContractError(f"Webhook entry {entry_id} responses.accepted.status must be 202")
 
 
-def _validate_fsm_entry_inputs(
+def _validate_state_machine_entry_inputs(
     contract: dict[str, Any],
     entry_id: str,
-    fsm_id: str,
+    state_machine_id: str,
     *,
     declared: dict[str, Any],
     input_label: str,
 ) -> None:
-    fsm = contract["fsms"][fsm_id]
-    fsm_context = fsm.get("context", {})
-    extra = sorted(set(declared) - set(fsm_context))
+    state_machine = contract["state_machines"][state_machine_id]
+    state_machine_context = state_machine.get("context", {})
+    extra = sorted(set(declared) - set(state_machine_context))
     if extra:
-        raise ContractError(f"Entry {entry_id} {input_label} must be declared FSM context fields: {extra}")
-    _validate_entry_input_types(entry_id, input_label, declared, fsm_context)
-    required = _required_entry_fsm_context(contract, fsm_id)
+        raise ContractError(f"Entry {entry_id} {input_label} must be declared state machine context fields: {extra}")
+    _validate_entry_input_types(entry_id, input_label, declared, state_machine_context)
+    required = _required_entry_state_machine_context(contract, state_machine_id)
     missing = sorted(set(required) - set(declared))
     if missing:
-        raise ContractError(f"Entry {entry_id} {input_label} must include required FSM context inputs: {missing}")
+        raise ContractError(f"Entry {entry_id} {input_label} must include required state machine context inputs: {missing}")
 
 
-def _required_entry_fsm_context(contract: dict[str, Any], fsm_id: str) -> dict[str, Any]:
-    fsm = contract["fsms"][fsm_id]
+def _required_entry_state_machine_context(contract: dict[str, Any], state_machine_id: str) -> dict[str, Any]:
+    state_machine = contract["state_machines"][state_machine_id]
     required: dict[str, Any] = {}
-    _add_data_context_requirements(contract, f"FSM {fsm_id}", fsm.get("data", []), fsm.get("context", {}), required)
-    for state_name, state in fsm.get("states", {}).items():
-        _add_data_context_requirements(contract, f"FSM {fsm_id}.{state_name}", state.get("data", []), fsm.get("context", {}), required)
-        for mount in state.get("mounts", []):
-            fsm = contract["fsms"][mount["fsm"]]
-            initial_state = fsm["states"][mount["initial"]]
-            _add_mount_context_requirements(contract, fsm_id, mount, fsm, fsm.get("data", []), required)
-            _add_mount_context_requirements(contract, fsm_id, mount, fsm, initial_state.get("data", []), required)
+    _add_data_context_requirements(contract, f"state machine {state_machine_id}", state_machine.get("data_dependencies", []), state_machine.get("context", {}), required)
+    for state_name, state in state_machine.get("view_states", {}).items():
+        _add_data_context_requirements(contract, f"state machine {state_machine_id}.{state_name}", state.get("data_dependencies", []), state_machine.get("context", {}), required)
+        for mount in state.get("child_state_machines", []):
+            state_machine = contract["state_machines"][mount["state_machine"]]
+            initial_state = state_machine["view_states"][mount["initial_view_state"]]
+            _add_mount_context_requirements(contract, state_machine_id, mount, state_machine, state_machine.get("data_dependencies", []), required)
+            _add_mount_context_requirements(contract, state_machine_id, mount, state_machine, initial_state.get("data_dependencies", []), required)
     return required
 
 
@@ -1893,46 +1893,46 @@ def _add_data_context_requirements(
 
 def _add_mount_context_requirements(
     contract: dict[str, Any],
-    fsm_id: str,
+    state_machine_id: str,
     mount: dict[str, Any],
-    fsm: dict[str, Any],
+    state_machine: dict[str, Any],
     data: list[dict[str, Any]],
     required: dict[str, Any],
 ) -> None:
     mount_context = mount.get("context", {})
-    child_fsm_context = fsm.get("context", {})
-    parent_fsm_context = contract["fsms"][fsm_id].get("context", {})
+    child_state_machine_context = state_machine.get("context", {})
+    parent_state_machine_context = contract["state_machines"][state_machine_id].get("context", {})
     for datum in data:
         operation = contract["operations"][datum["operation"]]
         for child_key, expected_type in operation["input"].items():
-            if not type_equals(child_fsm_context.get(child_key), expected_type):
-                raise ContractError(f"Composed FSM {fsm_id}.{mount['id']} FSM context {child_key} type must be {type_display(expected_type)}")
+            if not type_equals(child_state_machine_context.get(child_key), expected_type):
+                raise ContractError(f"composed state machine {state_machine_id}.{mount['id']} state machine context {child_key} type must be {type_display(expected_type)}")
             value = mount_context.get(child_key)
             if not is_reference_expression(value):
                 continue
             try:
                 ref = parse_reference_expression(value)
             except ReferenceExpressionError as exc:
-                raise ContractError(f"Composed FSM {fsm_id}.{mount['id']} has malformed runtime reference: {value}") from exc
+                raise ContractError(f"composed state machine {state_machine_id}.{mount['id']} has malformed runtime reference: {value}") from exc
             if ref.root != "state_machine":
                 continue
             parent_key = ref.path[0]
             actual_type = _reference_expression_type(
                 contract,
-                f"Composed FSM {fsm_id}.{mount['id']} parent context {parent_key}",
+                f"composed state machine {state_machine_id}.{mount['id']} parent context {parent_key}",
                 value,
-                {"state_machine": _type_scope(parent_fsm_context)},
+                {"state_machine": _type_scope(parent_state_machine_context)},
             )
             if not type_equals(actual_type, expected_type):
                 raise ContractError(
-                    f"Composed FSM {fsm_id}.{mount['id']} parent context {parent_key} type must be "
+                    f"composed state machine {state_machine_id}.{mount['id']} parent context {parent_key} type must be "
                     f"{type_display(expected_type)}, got {type_display(actual_type)}"
                 )
             _add_required_entry_context(
                 required,
                 parent_key,
-                parent_fsm_context[parent_key],
-                f"Composed FSM {fsm_id}.{mount['id']}",
+                parent_state_machine_context[parent_key],
+                f"composed state machine {state_machine_id}.{mount['id']}",
             )
 
 
@@ -2340,8 +2340,8 @@ def _validate_scenario_when(contract: dict[str, Any], sid: str, scenario: dict[s
         entry = contract["entry_points"][ref]
         adapter_kind, _ = entry_point_adapter_pair(entry)
         entry_target_kind, _ = entry_target_pair(entry)
-        if kind == "open_entry" and not (adapter_kind in {"ui", "cli"} and entry_target_kind == "fsm"):
-            raise ContractError(f"Scenario {sid} open_entry must reference a UI or CLI FSM entry point")
+        if kind == "open_entry" and not (adapter_kind in {"ui", "cli"} and entry_target_kind == "state_machine"):
+            raise ContractError(f"Scenario {sid} open_entry must reference a UI or CLI state machine entry point")
         if kind == "call_entry" and not (adapter_kind in {"http", "cli"} and entry_target_kind == "operation"):
             raise ContractError(f"Scenario {sid} call_entry must reference an HTTP or CLI operation entry point")
         _validate_scenario_entry_input(sid, kind, body, entry)
@@ -2399,36 +2399,36 @@ def _entry_external_input_types(entry: dict[str, Any]) -> dict[str, Any]:
 
 def _validate_scenario_then(contract: dict[str, Any], sid: str, scenario: dict[str, Any]) -> None:
     then = scenario["assert"]
-    if "fsm" in then:
-        expected_fsm = then["fsm"]
-        fsm_id = expected_fsm["ref"]
-        if fsm_id not in contract["fsms"]:
-            raise ContractError(f"Scenario {sid} references unknown FSM {fsm_id}")
-        fsm = contract["fsms"][fsm_id]
-        if "state" in expected_fsm:
-            state = expected_fsm["state"]
-            if state not in fsm.get("states", {}):
-                raise ContractError(f"Scenario {sid} references unknown FSM state {fsm_id}.{state}")
-        if "instances" in expected_fsm:
-            state_name = expected_fsm.get("state")
-            selected_state = fsm.get("states", {}).get(state_name, {}) if state_name else {}
-            mounted_instances = {mount["id"]: mount for mount in selected_state.get("mounts", [])}
+    if "state_machine" in then:
+        expected_state_machine = then["state_machine"]
+        state_machine_id = expected_state_machine["ref"]
+        if state_machine_id not in contract["state_machines"]:
+            raise ContractError(f"Scenario {sid} references unknown state machine {state_machine_id}")
+        state_machine = contract["state_machines"][state_machine_id]
+        if "view_state" in expected_state_machine:
+            state = expected_state_machine["view_state"]
+            if state not in state_machine.get("view_states", {}):
+                raise ContractError(f"Scenario {sid} references unknown state machine view state {state_machine_id}.{state}")
+        if "instances" in expected_state_machine:
+            state_name = expected_state_machine.get("view_state")
+            selected_state = state_machine.get("view_states", {}).get(state_name, {}) if state_name else {}
+            mounted_instances = {mount["id"]: mount for mount in selected_state.get("child_state_machines", [])}
             if not mounted_instances:
-                raise ContractError(f"Scenario {sid} asserts instance states for non-composed FSM state {fsm_id}.{state_name}")
-            for instance_id, expectation in expected_fsm["instances"].items():
+                raise ContractError(f"Scenario {sid} asserts instance view states for non-composed state machine view state {state_machine_id}.{state_name}")
+            for instance_id, expectation in expected_state_machine["instances"].items():
                 if instance_id not in mounted_instances:
-                    raise ContractError(f"Scenario {sid} references unknown FSM instance {fsm_id}.{instance_id}")
-                fsm_id = mounted_instances[instance_id]["fsm"]
-                if expectation["state"] not in contract["fsms"][fsm_id]["states"]:
-                    raise ContractError(f"Scenario {sid} references unknown FSM state {fsm_id}.{expectation['state']}")
-        for sync_id in (expected_fsm.get("sync") or {}).get("observed", []):
-            state_name = expected_fsm.get("state")
-            selected_state = fsm.get("states", {}).get(state_name, {}) if state_name else {}
-            if sync_id not in {rule["id"] for rule in selected_state.get("sync", [])}:
-                raise ContractError(f"Scenario {sid} references unknown sync rule {fsm_id}.{sync_id}")
-        for key in (expected_fsm.get("context") or {}):
-            if key not in fsm.get("context", {}):
-                raise ContractError(f"Scenario {sid} asserts undeclared FSM context {fsm_id}.{key}")
+                    raise ContractError(f"Scenario {sid} references unknown state machine instance {state_machine_id}.{instance_id}")
+                child_state_machine_id = mounted_instances[instance_id]["state_machine"]
+                if expectation["view_state"] not in contract["state_machines"][child_state_machine_id]["view_states"]:
+                    raise ContractError(f"Scenario {sid} references unknown state machine view state {child_state_machine_id}.{expectation['view_state']}")
+        for sync_id in (expected_state_machine.get("message_sync_rules") or {}).get("observed", []):
+            state_name = expected_state_machine.get("view_state")
+            selected_state = state_machine.get("view_states", {}).get(state_name, {}) if state_name else {}
+            if sync_id not in {rule["id"] for rule in selected_state.get("message_sync_rules", [])}:
+                raise ContractError(f"Scenario {sid} references unknown sync rule {state_machine_id}.{sync_id}")
+        for key in (expected_state_machine.get("context") or {}):
+            if key not in state_machine.get("context", {}):
+                raise ContractError(f"Scenario {sid} asserts undeclared state machine context {state_machine_id}.{key}")
     for field in ["enables", "forbids", "invoked"]:
         for cap_id in then.get(field, []):
             if cap_id not in contract["operations"]:
@@ -2485,20 +2485,20 @@ def _validate_scenario_archetype(sid: str, scenario: dict[str, Any]) -> None:
     archetype = scenario["archetype"]
     when_kind, _ = _one(scenario["execute"], f"scenario {sid} when")
     then = scenario["assert"]
-    if archetype == "empty_collection_fsm":
-        if when_kind != "open_entry" or then.get("fsm", {}).get("state") != "empty":
-            raise ContractError(f"Scenario {sid} empty_collection_fsm requires open_entry and fsm.state=empty")
-    elif archetype == "ready_collection_fsm":
-        if when_kind != "open_entry" or then.get("fsm", {}).get("state") != "ready":
-            raise ContractError(f"Scenario {sid} ready_collection_fsm requires open_entry and fsm.state=ready")
-    elif archetype == "fsm_composition_sync":
-        fsm_assert = then.get("fsm", {})
-        if when_kind != "open_entry" or not fsm_assert.get("instances"):
-            raise ContractError(f"Scenario {sid} fsm_composition_sync requires open_entry and fsm.instances")
-    elif archetype == "fsm_composition":
-        fsm_assert = then.get("fsm", {})
-        if when_kind != "open_entry" or not fsm_assert.get("instances"):
-            raise ContractError(f"Scenario {sid} fsm_composition requires open_entry and fsm.instances")
+    if archetype == "empty_collection_state_machine":
+        if when_kind != "open_entry" or then.get("state_machine", {}).get("view_state") != "empty":
+            raise ContractError(f"Scenario {sid} empty_collection_state_machine requires open_entry and state_machine.view_state=empty")
+    elif archetype == "ready_collection_state_machine":
+        if when_kind != "open_entry" or then.get("state_machine", {}).get("view_state") != "ready":
+            raise ContractError(f"Scenario {sid} ready_collection_state_machine requires open_entry and state_machine.view_state=ready")
+    elif archetype == "state_machine_composition_sync":
+        state_machine_assert = then.get("state_machine", {})
+        if when_kind != "open_entry" or not state_machine_assert.get("instances"):
+            raise ContractError(f"Scenario {sid} state_machine_composition_sync requires open_entry and state_machine.instances")
+    elif archetype == "state_machine_composition":
+        state_machine_assert = then.get("state_machine", {})
+        if when_kind != "open_entry" or not state_machine_assert.get("instances"):
+            raise ContractError(f"Scenario {sid} state_machine_composition requires open_entry and state_machine.instances")
     elif archetype == "operation_outcome":
         if when_kind != "invoke_operation" or "outcome" not in then:
             raise ContractError(f"Scenario {sid} operation_outcome requires invoke_operation and outcome")
@@ -2561,50 +2561,50 @@ def _validate_facts_are_used(contract: dict[str, Any], used: set[str]) -> None:
 def _expand_scenarios(contract: dict[str, Any]) -> None:
     for scenario in contract["scenarios"].values():
         assertions = scenario["assert"]
-        if "fsm" in assertions:
-            fsm_assert = assertions["fsm"]
-            fsm_id = fsm_assert["ref"]
-            fsm = contract["fsms"][fsm_id]
-            if "instances" in fsm_assert:
-                state_name = fsm_assert["state"]
-                parent_fsm = fsm
-                parent_state = parent_fsm["states"][state_name]
-                mounts = {mount["id"]: mount for mount in parent_state.get("mounts", [])}
-                required = {"queries": [datum["query"] for datum in parent_fsm.get("data", [])], "surfaces": [], "copy": [], "assets": [], "actions": []}
-                fsm_assert["surface"] = parent_state["surface"]
+        if "state_machine" in assertions:
+            state_machine_assertion = assertions["state_machine"]
+            state_machine_id = state_machine_assertion["ref"]
+            state_machine = contract["state_machines"][state_machine_id]
+            if "instances" in state_machine_assertion:
+                state_name = state_machine_assertion["view_state"]
+                parent_state_machine = state_machine
+                parent_state = parent_state_machine["view_states"][state_name]
+                mounts = {mount["id"]: mount for mount in parent_state.get("child_state_machines", [])}
+                required = {"queries": [datum["query"] for datum in parent_state_machine.get("data_dependencies", [])], "surfaces": [], "copy": [], "assets": [], "operation_refs": []}
+                state_machine_assertion["surface"] = parent_state["surface"]
                 required["surfaces"].append(parent_state["surface"])
-                required["queries"].extend(datum["query"] for datum in parent_state.get("data", []))
+                required["queries"].extend(datum["query"] for datum in parent_state.get("data_dependencies", []))
                 required["copy"].extend(parent_state["copy"])
                 required["assets"].extend(parent_state["assets"])
-                required["actions"].extend(parent_state["actions"])
-                for instance_id, expected in fsm_assert["instances"].items():
+                required["operation_refs"].extend(parent_state["operation_refs"])
+                for instance_id, expected in state_machine_assertion["instances"].items():
                     mount = mounts[instance_id]
-                    mounted_fsm = contract["fsms"][mount["fsm"]]
-                    mounted_state = mounted_fsm["states"][expected["state"]]
+                    mounted_state_machine = contract["state_machines"][mount["state_machine"]]
+                    mounted_state = mounted_state_machine["view_states"][expected["view_state"]]
                     expected["surface"] = mounted_state["surface"]
-                    expected["source"] = mount["fsm"]
-                    required["queries"].extend(datum["query"] for datum in mounted_fsm.get("data", []))
-                    required["queries"].extend(datum["query"] for datum in mounted_state.get("data", []))
+                    expected["source"] = mount["state_machine"]
+                    required["queries"].extend(datum["query"] for datum in mounted_state_machine.get("data_dependencies", []))
+                    required["queries"].extend(datum["query"] for datum in mounted_state.get("data_dependencies", []))
                     required["surfaces"].append(mounted_state["surface"])
                     required["copy"].extend(mounted_state["copy"])
                     required["assets"].extend(mounted_state["assets"])
-                    required["actions"].extend(mounted_state["actions"])
-                fsm_assert["composition"] = {
+                    required["operation_refs"].extend(mounted_state["operation_refs"])
+                state_machine_assertion["composition"] = {
                     "layout": parent_state.get("layout", {}),
-                    "mounts": parent_state.get("mounts", []),
-                    "sync": parent_state.get("sync", []),
+                    "child_state_machines": parent_state.get("child_state_machines", []),
+                    "message_sync_rules": parent_state.get("message_sync_rules", []),
                 }
                 assertions["requires"] = {key: list(dict.fromkeys(values)) for key, values in required.items()}
-            elif "state" in fsm_assert:
-                state_name = fsm_assert["state"]
-                state = fsm["states"][state_name]
-                fsm_assert["surface"] = state["surface"]
+            elif "view_state" in state_machine_assertion:
+                state_name = state_machine_assertion["view_state"]
+                state = state_machine["view_states"][state_name]
+                state_machine_assertion["surface"] = state["surface"]
                 assertions["requires"] = {
-                    "queries": [datum["query"] for datum in fsm.get("data", [])] + [datum["query"] for datum in state.get("data", [])],
+                    "queries": [datum["query"] for datum in state_machine.get("data_dependencies", [])] + [datum["query"] for datum in state.get("data_dependencies", [])],
                     "surfaces": [state["surface"]],
                     "copy": list(state["copy"]),
                     "assets": list(state["assets"]),
-                    "actions": list(state["actions"]),
+                    "operation_refs": list(state["operation_refs"]),
                 }
         when_kind, when_body = _one(scenario["execute"], "scenario execute")
         cap_id = None

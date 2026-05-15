@@ -17,9 +17,9 @@ authoring_layers:
       requires: [core]
       projections_when_declared: [spec/generated/product_interfaces/workflow.cwl.yaml, spec/generated/product_interfaces/events.asyncapi.yaml, spec/generated/audit_evidence/workflows, spec/generated/audit_evidence/entrypoints]
     ui:
-      opens: [fsm, copy, asset, content_case, audit_profile, audit_case]
+      opens: [state_machine, copy, asset, content_case, audit_profile, audit_case]
       requires: [core]
-      projections_when_declared: [spec/generated/product_interfaces/web.fsms.json, spec/generated/audit_evidence]
+      projections_when_declared: [spec/generated/product_interfaces/web.state_machines.json, spec/generated/audit_evidence]
     textual:
       opens: [presentation.textual, audit_case.render.textual, audit_profile.textual]
       requires: [core, ui]
@@ -43,18 +43,18 @@ purity_rules:
   agent_prompts: Use spec/generated/agent_prompts/{pm_design,test,dev,review}.md as role-specific standalone prompts; each contains a {{USER_PROMPT}} substitution point.
 
 scenario_archetypes:
-  empty_collection_fsm:
+  empty_collection_state_machine:
     when: open_entry
-    then: [fsm.state.empty, enables, forbids]
-  ready_collection_fsm:
+    then: [state_machine.view_state.empty, enables, forbids]
+  ready_collection_state_machine:
     when: open_entry
-    then: [fsm.state.ready, enables]
-  fsm_composition:
+    then: [state_machine.view_state.ready, enables]
+  state_machine_composition:
     when: open_entry
-    then: [fsm.instances, enables, forbids]
-  fsm_composition_sync:
+    then: [state_machine.instances, enables, forbids]
+  state_machine_composition_sync:
     when: open_entry
-    then: [fsm.instances, fsm.context, fsm.sync.observed]
+    then: [state_machine.instances, state_machine.context, state_machine.message_sync_rules.observed]
   operation_outcome:
     when: invoke_operation
     then: [outcome, model.exists, events.emitted, invoked]
@@ -74,7 +74,7 @@ entry_point_adapters:
     requires: [method, path]
     layer: http
   cli:
-    target: [operation, fsm, workflow]
+    target: [operation, state_machine, workflow]
     requires: [cli_command]
     layer: workflow
   worker:
@@ -90,29 +90,29 @@ entry_point_adapters:
     requires: [path]
     layer: events
   ui:
-    target: fsm
+    target: state_machine
     requires: [path]
     layer: web
 
 entry_target_contracts:
   boundary: 'Entry points declare adapter-specific input and responses. trigger.*.with maps adapter input onto the target operation or state-machine context.'
-  fsm: 'State-machine entry triggers use trigger.state_machine.ref plus trigger.state_machine.render to distinguish invocation from html/textual rendering.'
+  state_machine: 'State-machine entry triggers use trigger.state_machine.ref plus trigger.state_machine.render to distinguish invocation from html/textual rendering.'
   workflow: 'Workflow entry triggers use trigger.workflow.ref plus trigger.workflow.when so the entry point declares the trigger data it consumes. Workers declare message dispositions; workflows declare terminal outcomes and route each step outcome explicitly.'
 
 presentation_contracts:
   html:
     layer: web
-    location: 'target: fsm -> spec.states.<state>.presentation.html or spec.states.<state>.layout.html'
+    location: 'target: state_machine -> spec.view_states.<view_state>.presentation.html or spec.view_states.<view_state>.layout.html'
     purpose: Exact root element, ARIA role, classes, and semantic slots.
     selectors_allowed: [copy_slots, asset_slots, field_slots, actions]
   css:
     layer: web
-    location: 'target: fsm -> spec.states.<state>.presentation.css or spec.states.<state>.layout.css'
+    location: 'target: state_machine -> spec.view_states.<view_state>.presentation.css or spec.view_states.<view_state>.layout.css'
     purpose: Exact CSS tokens and selector-scoped declarations.
     selectors_allowed: [root, slot.<declared_slot>, action.<declared_action>, mount.<declared_mount>]
   textual:
     layer: textual
-    location: 'target: fsm -> spec.states.<state>.presentation.textual or spec.states.<state>.layout.textual'
+    location: 'target: state_machine -> spec.view_states.<view_state>.presentation.textual or spec.view_states.<view_state>.layout.textual'
     purpose: Exact Textual screen class, widgets, bindings, and TCSS-like rules.
     selectors_allowed: [screen, slot.<declared_slot>, action.<declared_action>, mount.<declared_mount>]
 
@@ -123,19 +123,19 @@ gherkin_policy:
   rule: PM agents never author raw .feature files; spec and prod pytest-bdd harnesses consume the same generated corpus.
 
 composition_contracts:
-  fsm: 'target: fsm defines context, initial state, states, state-local data, transitions, emitted events, and optional state-local composition.'
-  scenario: 'target: scenario asserts an FSM state or composed FSM instance vector.'
+  state_machine: 'target: state_machine defines context, initial view state, view states, state-local data dependencies, transitions, emitted messages, and optional state-local composition.'
+  scenario: 'target: scenario asserts a state-machine view state or composed state-machine instance vector.'
 
 audit_contracts:
   copy: 'target: copy declares placeholder text for every rendered copy ref.'
   asset: 'target: asset declares placeholder visual intent; the compiler emits generic SVG placeholder assets.'
   audit_profile: 'target: audit_profile declares fixed HTML and/or Textual breakpoints.'
-  audit_case: 'state-local audit cases bind an FSM state or composed FSM instance vector to fixtures, render surfaces, and an audit profile.'
+  audit_case: 'state-local audit cases bind a state-machine view state or composed state-machine instance vector to fixtures, render surfaces, and an audit profile.'
   content_case: 'target: content_case exercises every resolver-backed copy/asset with deterministic args.'
   final_content: 'target: copy or asset may declare args and resolver; generated content stubs constrain spec/spec.py.'
   formats:
     entrypoint: svg
-    fsm: svg
+    state_machine: svg
     composition: svg
     workflow: svg
     textual: svg

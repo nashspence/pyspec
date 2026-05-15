@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 
-FSM_RENDER_SURFACES = ("html", "textual")
+STATE_MACHINE_RENDER_SURFACES = ("html", "textual")
 ENTRY_POINT_ADAPTER_KINDS = ("http", "cli", "webhook", "scheduled", "worker", "ui")
 ENTRY_POINT_TRIGGER_KINDS = ("operation", "state_machine", "workflow")
 
@@ -32,31 +32,6 @@ def entry_point_trigger_pair(entry_or_trigger: dict[str, Any]) -> tuple[str, dic
             if isinstance(value, dict):
                 return kind, value
             return kind, {"ref": value}
-    # Backward-compatible target parsing is intentionally kept here so helper
-    # callers can be migrated before every test fixture is rewritten.
-    legacy_target = entry_or_trigger.get("target", entry_or_trigger)
-    if "operation" in legacy_target:
-        value = legacy_target["operation"]
-        body = value if isinstance(value, dict) else {"ref": value}
-        if "with" in legacy_target:
-            body = {**body, "with": legacy_target["with"]}
-        return "operation", body
-    if "fsm" in legacy_target:
-        value = legacy_target["fsm"]
-        if isinstance(value, dict):
-            body = {"ref": value.get("name"), **{key: val for key, val in value.items() if key != "name"}}
-        else:
-            body = {"ref": value}
-        if "with" in legacy_target:
-            body = {**body, "with": legacy_target["with"]}
-        return "state_machine", body
-    if "workflow" in legacy_target:
-        value = legacy_target["workflow"]
-        if isinstance(value, dict):
-            body = {"ref": value.get("name"), "when": value.get("trigger"), **{key: val for key, val in value.items() if key not in {"name", "trigger"}}}
-        else:
-            body = {"ref": value}
-        return "workflow", body
     raise KeyError("entry point trigger must declare operation, state_machine, or workflow")
 
 
@@ -117,21 +92,21 @@ def entry_target_pair(target: dict[str, Any]) -> tuple[str, str]:
     if "trigger" in target:
         kind, body = entry_point_trigger_pair(target)
         if kind == "state_machine":
-            return "fsm", fsm_target_name(body)
+            return "state_machine", state_machine_target_name(body)
         return kind, operation_target_name(body) if kind == "operation" else workflow_target_name(body)
-    for kind in ("operation", "fsm", "workflow"):
+    for kind in ("operation", "state_machine", "workflow"):
         if kind not in target:
             continue
         value = target[kind]
-        if kind == "fsm":
-            return kind, fsm_target_name(value)
+        if kind == "state_machine":
+            return kind, state_machine_target_name(value)
         if kind == "workflow":
             return kind, workflow_target_name(value)
         return kind, operation_target_name(value)
-    raise KeyError("entry target must declare operation, fsm, or workflow")
+    raise KeyError("entry target must declare operation, state_machine, or workflow")
 
 
-def entry_fsm_target(entry_or_target: dict[str, Any]) -> dict[str, str]:
+def entry_state_machine_target(entry_or_target: dict[str, Any]) -> dict[str, str]:
     if "trigger" in entry_or_target or "state_machine" in entry_or_target:
         value = entry_point_trigger(entry_or_target, "state_machine")
         result: dict[str, str] = {"name": value["ref"]}
@@ -141,21 +116,21 @@ def entry_fsm_target(entry_or_target: dict[str, Any]) -> dict[str, str]:
             result["surface"] = value["surface"]
         return result
     target = entry_or_target.get("target", entry_or_target)
-    value = target["fsm"]
+    value = target["state_machine"]
     if isinstance(value, dict):
         return value
     return {"name": value}
 
 
-def entry_fsm_name(entry_or_target: dict[str, Any]) -> str:
-    return entry_fsm_target(entry_or_target)["name"]
+def entry_state_machine_name(entry_or_target: dict[str, Any]) -> str:
+    return entry_state_machine_target(entry_or_target)["name"]
 
 
-def entry_fsm_surface(entry_or_target: dict[str, Any]) -> str | None:
-    return entry_fsm_target(entry_or_target).get("surface")
+def entry_state_machine_surface(entry_or_target: dict[str, Any]) -> str | None:
+    return entry_state_machine_target(entry_or_target).get("surface")
 
 
-def fsm_target_name(value: Any) -> str:
+def state_machine_target_name(value: Any) -> str:
     if isinstance(value, dict):
         return value.get("ref") or value["name"]
     return value

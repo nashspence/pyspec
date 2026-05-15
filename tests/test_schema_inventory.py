@@ -114,7 +114,7 @@ def test_spec_ontology_rejects_deprecated_reference_terminology() -> None:
     text = DOC_PATH.read_text(encoding="utf-8")
     deprecated_terms = sorted(
         term
-        for term in DEPRECATED_REFERENCE_DEFINITION_NAMES | {"capability", "capabilities"}
+        for term in DEPRECATED_REFERENCE_DEFINITION_NAMES | {"capability", "capabilities", "fsm", "fsms"}
         if term in text
     )
     assert deprecated_terms == []

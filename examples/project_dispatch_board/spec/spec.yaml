@@ -247,7 +247,7 @@ operations:
     reads:
     - Project
   operation.project.read:
-    basis: The detail FSM loads the selected project by id.
+    basis: The detail state machine loads the selected project by id.
     input:
       project_id:
         primitive: ID
@@ -307,29 +307,13 @@ events:
     basis: Approval events carry the reviewer and project identity needed by notification workflows.
     payload_schema:
       model: ProjectApproved
-fsms:
+state_machines:
   state_machine.project.activity:
-    basis: The activity FSM summarizes latest status around the selected project.
+    basis: The activity state machine summarizes latest status around the selected project.
     context:
       project_id:
         primitive: ID
-    data: []
-    initial: empty
     model: Project
-    states:
-      empty:
-        copy_slots:
-        - heading
-        - body
-      ready:
-        copy_slots:
-        - heading
-        data:
-        - operation.project.read
-        field_slots:
-        - updated_at
-        - status
-        - assignee
     transitions:
     - from: empty
       on: message.project.selection_changed
@@ -348,19 +332,35 @@ fsms:
             project_id:
               primitive: ID
         message.selection.cleared: {}
+    data_dependencies: []
+    initial_view_state: empty
+    view_states:
+      empty:
+        copy_slots:
+        - heading
+        - body
+      ready:
+        copy_slots:
+        - heading
+        field_slots:
+        - updated_at
+        - status
+        - assignee
+        data_dependencies:
+        - operation.project.read
   state_machine.project.board:
     archetype: dashboard
-    basis: The dispatch board composes list, detail, and activity FSMs through shared selected-project context.
+    basis: The dispatch board composes list, detail, and activity state machines through shared selected-project context.
     context:
       selected_project_id:
         primitive: ID
       workspace_id:
         primitive: ID
-    data:
-    - operation.project.list
-    initial: ready
     model: Project
-    states:
+    data_dependencies:
+    - operation.project.list
+    initial_view_state: ready
+    view_states:
       ready:
         audit:
           empty:
@@ -369,11 +369,11 @@ fsms:
             - fixture.workspace.member
             instances:
               activity:
-                state: empty
+                view_state: empty
               detail:
-                state: none
+                view_state: none
               list:
-                state: empty
+                view_state: empty
             profile: default
             surfaces:
             - html
@@ -389,11 +389,11 @@ fsms:
             - fixture.workspace.member
             instances:
               activity:
-                state: ready
+                view_state: ready
               detail:
-                state: ready
+                view_state: ready
               list:
-                state: ready
+                view_state: ready
             profile: default
             surfaces:
             - html
@@ -476,35 +476,35 @@ fsms:
               - declarations:
                   width: '28'
                 selector: region.aside
-        mounts:
+        child_state_machines:
         - context:
             selected_project_id: $state_machine.selected_project_id
             workspace_id: $state_machine.workspace_id
-          fsm: state_machine.project.list
           id: list
-          initial: loading
           region: nav
+          state_machine: state_machine.project.list
+          initial_view_state: loading
         - context:
             project_id: $state_machine.selected_project_id
-          fsm: state_machine.project.detail
           id: detail
-          initial: none
           region: main
           selected:
-            state: loading
             when:
               context_present: selected_project_id
+            view_state: loading
+          state_machine: state_machine.project.detail
+          initial_view_state: none
         - context:
             project_id: $state_machine.selected_project_id
-          fsm: state_machine.project.activity
           id: activity
-          initial: empty
           region: aside
           selected:
-            state: ready
             when:
               context_present: selected_project_id
-        sync:
+            view_state: ready
+          state_machine: state_machine.project.activity
+          initial_view_state: empty
+        message_sync_rules:
         - do:
           - set:
               context: selected_project_id
@@ -519,46 +519,16 @@ fsms:
               message: message.project.selection_changed
               payload_bindings:
                 project_id: $message.project_id
-          id: select_project_updates_fsms
+          id: select_project_updates_state_machines
           when:
             instance: list
             message: message.project.selected
   state_machine.project.detail:
-    basis: The detail FSM is independent from the list and reacts to selected project context.
+    basis: The detail state machine is independent from the list and reacts to selected project context.
     context:
       project_id:
         primitive: ID
-    data: []
-    initial: none
     model: Project
-    states:
-      error:
-        copy_slots:
-        - heading
-        - body
-      loading:
-        copy_slots:
-        - message
-        data:
-        - operation.project.read
-      none:
-        copy_slots:
-        - heading
-        - body
-      ready:
-        actions:
-        - operation.project.approve
-        - operation.project.archive
-        asset_slots:
-        - priority_badge
-        copy_slots:
-        - heading
-        field_slots:
-        - title
-        - customer
-        - status
-        - assignee
-        - summary
     transitions:
     - from: none
       on: message.project.selection_changed
@@ -585,26 +555,9 @@ fsms:
             project_id:
               primitive: ID
         message.selection.cleared: {}
-  state_machine.project.list:
-    basis: The list FSM owns collection loading, empty, ready, error, and selection behavior.
-    context:
-      selected_project_id:
-        primitive: ID
-      workspace_id:
-        primitive: ID
-    data:
-    - operation.project.list
-    initial: loading
-    model: Project
-    states:
-      empty:
-        actions:
-        - operation.project.create
-        asset_slots:
-        - illustration
-        copy_slots:
-        - heading
-        - body
+    data_dependencies: []
+    initial_view_state: none
+    view_states:
       error:
         copy_slots:
         - heading
@@ -612,17 +565,34 @@ fsms:
       loading:
         copy_slots:
         - message
+        data_dependencies:
+        - operation.project.read
+      none:
+        copy_slots:
+        - heading
+        - body
       ready:
-        actions:
-        - operation.project.create
-        - operation.project.submit
+        asset_slots:
+        - priority_badge
         copy_slots:
         - heading
         field_slots:
         - title
         - customer
-        - priority
         - status
+        - assignee
+        - summary
+        operation_refs:
+        - operation.project.approve
+        - operation.project.archive
+  state_machine.project.list:
+    basis: The list state machine owns collection loading, empty, ready, error, and selection behavior.
+    context:
+      selected_project_id:
+        primitive: ID
+      workspace_id:
+        primitive: ID
+    model: Project
     transitions:
     - from: loading
       on: data.empty
@@ -658,6 +628,36 @@ fsms:
           payload_schema:
             project_id:
               primitive: ID
+    data_dependencies:
+    - operation.project.list
+    initial_view_state: loading
+    view_states:
+      empty:
+        asset_slots:
+        - illustration
+        copy_slots:
+        - heading
+        - body
+        operation_refs:
+        - operation.project.create
+      error:
+        copy_slots:
+        - heading
+        - body
+      loading:
+        copy_slots:
+        - message
+      ready:
+        copy_slots:
+        - heading
+        field_slots:
+        - title
+        - customer
+        - priority
+        - status
+        operation_refs:
+        - operation.project.create
+        - operation.project.submit
 entry_points:
   entry_point.api.project.create:
     basis: HTTP endpoint for creating a dispatch project.
@@ -895,7 +895,7 @@ scenarios:
           project_id: project_submitted_1
         ref: operation.project.approve
   scenario.project.board.empty:
-    archetype: fsm_composition
+    archetype: state_machine_composition
     basis: An empty workspace shows empty list, no detail, and no activity.
     feature: feature.project.board
     given:
@@ -911,19 +911,19 @@ scenarios:
       - operation.project.create
       forbids:
       - operation.project.approve
-      fsm:
+      state_machine:
         instances:
           activity:
-            state: empty
+            view_state: empty
           detail:
-            state: none
+            view_state: none
           list:
-            state: empty
+            view_state: empty
         ref: state_machine.project.board
-        state: ready
-        sync:
+        view_state: ready
+        message_sync_rules:
           observed:
-          - select_project_updates_fsms
+          - select_project_updates_state_machines
     title: Empty dispatch board
     when:
       open_entry:
@@ -931,7 +931,7 @@ scenarios:
           workspace_id: $fixture.workspace.id
         ref: entry_point.web.project.board
   scenario.project.board.ready:
-    archetype: fsm_composition
+    archetype: state_machine_composition
     basis: A populated workspace shows the ready list while detail awaits explicit selection.
     feature: feature.project.board
     given:
@@ -943,19 +943,19 @@ scenarios:
       enables:
       - operation.project.create
       - operation.project.submit
-      fsm:
+      state_machine:
         instances:
           activity:
-            state: empty
+            view_state: empty
           detail:
-            state: none
+            view_state: none
           list:
-            state: ready
+            view_state: ready
         ref: state_machine.project.board
-        state: ready
-        sync:
+        view_state: ready
+        message_sync_rules:
           observed:
-          - select_project_updates_fsms
+          - select_project_updates_state_machines
     title: Ready dispatch board
     when:
       open_entry:
@@ -1015,27 +1015,27 @@ copies:
     placeholder: Latest activity
     tone: neutral
   text.project.detail.error.body:
-    basis: Error body for the detail FSM.
+    basis: Error body for the detail state machine.
     max_chars: 120
     placeholder: Refresh the selection or return to the queue.
     tone: error
   text.project.detail.error.heading:
-    basis: Error heading for the detail FSM.
+    basis: Error heading for the detail state machine.
     max_chars: 80
     placeholder: Project detail is unavailable
     tone: error
   text.project.detail.loading.message:
-    basis: Loading message for the detail FSM.
+    basis: Loading message for the detail state machine.
     max_chars: 80
     placeholder: Loading project detail…
     tone: neutral
   text.project.detail.none.body:
-    basis: No-selection body for the detail FSM.
+    basis: No-selection body for the detail state machine.
     max_chars: 160
     placeholder: Choose a project from the queue to review customer, assignment, and approval details.
     tone: instructional
   text.project.detail.none.heading:
-    basis: No-selection heading for the detail FSM.
+    basis: No-selection heading for the detail state machine.
     max_chars: 80
     placeholder: Select a project
     tone: instructional
@@ -1045,38 +1045,38 @@ copies:
         primitive: Text
       title:
         primitive: Text
-    basis: Ready heading for the detail FSM.
+    basis: Ready heading for the detail state machine.
     max_chars: 80
     placeholder: Project detail
     resolver: text.project.detail.ready.heading
     tone: neutral
   text.project.list.empty.body:
-    basis: Empty body for the project list FSM.
+    basis: Empty body for the project list state machine.
     max_chars: 160
     placeholder: Create the first project to start coordinating work for this workspace.
     tone: instructional
   text.project.list.empty.heading:
-    basis: Empty heading for the project list FSM.
+    basis: Empty heading for the project list state machine.
     max_chars: 80
     placeholder: No dispatch projects yet
     tone: neutral
   text.project.list.error.body:
-    basis: Error body for the project list FSM.
+    basis: Error body for the project list state machine.
     max_chars: 120
     placeholder: Check the workspace connection and try again.
     tone: error
   text.project.list.error.heading:
-    basis: Error heading for the project list FSM.
+    basis: Error heading for the project list state machine.
     max_chars: 80
     placeholder: Projects could not be loaded
     tone: error
   text.project.list.loading.message:
-    basis: Loading message for the project list FSM.
+    basis: Loading message for the project list state machine.
     max_chars: 80
     placeholder: Loading dispatch projects…
     tone: neutral
   text.project.list.ready.heading:
-    basis: Ready heading for the project list FSM.
+    basis: Ready heading for the project list state machine.
     max_chars: 80
     placeholder: Dispatch queue
     tone: neutral
@@ -1094,7 +1094,7 @@ assets:
     resolver: asset.project.detail.ready.priority_badge
   asset.project.list.empty.illustration:
     alt_copy: text.project.list.empty.heading
-    basis: Generic placeholder illustration used by the empty queue FSM state.
+    basis: Generic placeholder illustration used by the empty queue state machine state.
     kind: illustration
     placeholder:
       aspect_ratio: '4:3'

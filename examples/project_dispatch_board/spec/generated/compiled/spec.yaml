@@ -12,7 +12,7 @@ assets:
     resolver: asset.project.detail.ready.priority_badge
   asset.project.list.empty.illustration:
     alt_copy: text.project.list.empty.heading
-    basis: Generic placeholder illustration used by the empty queue FSM state.
+    basis: Generic placeholder illustration used by the empty queue state machine state.
     kind: illustration
     placeholder:
       aspect_ratio: '4:3'
@@ -66,27 +66,27 @@ copies:
     placeholder: Latest activity
     tone: neutral
   text.project.detail.error.body:
-    basis: Error body for the detail FSM.
+    basis: Error body for the detail state machine.
     max_chars: 120
     placeholder: Refresh the selection or return to the queue.
     tone: error
   text.project.detail.error.heading:
-    basis: Error heading for the detail FSM.
+    basis: Error heading for the detail state machine.
     max_chars: 80
     placeholder: Project detail is unavailable
     tone: error
   text.project.detail.loading.message:
-    basis: Loading message for the detail FSM.
+    basis: Loading message for the detail state machine.
     max_chars: 80
     placeholder: Loading project detail…
     tone: neutral
   text.project.detail.none.body:
-    basis: No-selection body for the detail FSM.
+    basis: No-selection body for the detail state machine.
     max_chars: 160
     placeholder: Choose a project from the queue to review customer, assignment, and approval details.
     tone: instructional
   text.project.detail.none.heading:
-    basis: No-selection heading for the detail FSM.
+    basis: No-selection heading for the detail state machine.
     max_chars: 80
     placeholder: Select a project
     tone: instructional
@@ -96,38 +96,38 @@ copies:
         primitive: Text
       title:
         primitive: Text
-    basis: Ready heading for the detail FSM.
+    basis: Ready heading for the detail state machine.
     max_chars: 80
     placeholder: Project detail
     resolver: text.project.detail.ready.heading
     tone: neutral
   text.project.list.empty.body:
-    basis: Empty body for the project list FSM.
+    basis: Empty body for the project list state machine.
     max_chars: 160
     placeholder: Create the first project to start coordinating work for this workspace.
     tone: instructional
   text.project.list.empty.heading:
-    basis: Empty heading for the project list FSM.
+    basis: Empty heading for the project list state machine.
     max_chars: 80
     placeholder: No dispatch projects yet
     tone: neutral
   text.project.list.error.body:
-    basis: Error body for the project list FSM.
+    basis: Error body for the project list state machine.
     max_chars: 120
     placeholder: Check the workspace connection and try again.
     tone: error
   text.project.list.error.heading:
-    basis: Error heading for the project list FSM.
+    basis: Error heading for the project list state machine.
     max_chars: 80
     placeholder: Projects could not be loaded
     tone: error
   text.project.list.loading.message:
-    basis: Loading message for the project list FSM.
+    basis: Loading message for the project list state machine.
     max_chars: 80
     placeholder: Loading dispatch projects…
     tone: neutral
   text.project.list.ready.heading:
-    basis: Ready heading for the project list FSM.
+    basis: Ready heading for the project list state machine.
     max_chars: 80
     placeholder: Dispatch queue
     tone: neutral
@@ -367,420 +367,6 @@ fixtures:
       workspace:
         id: workspace_1
         name: North Region Dispatch
-fsms:
-  state_machine.project.activity:
-    basis: The activity FSM summarizes latest status around the selected project.
-    context:
-      project_id:
-        primitive: ID
-    data: []
-    initial: empty
-    model: Project
-    state_machine_messages:
-      accepts:
-        message.project.selection_changed:
-          payload_schema:
-            project_id:
-              primitive: ID
-        message.selection.cleared:
-          payload_schema: {}
-      emits: {}
-    states:
-      empty:
-        actions: []
-        assets: []
-        copy:
-        - text.project.activity.empty.heading
-        - text.project.activity.empty.body
-        data: []
-        fields: []
-        surface: state_machine.project.activity.empty
-      ready:
-        actions: []
-        assets: []
-        copy:
-        - text.project.activity.ready.heading
-        data:
-        - operation: operation.project.read
-          query: query.project.activity.read
-        fields:
-        - updated_at
-        - status
-        - assignee
-        surface: state_machine.project.activity.ready
-    transitions:
-    - from: empty
-      on: message.project.selection_changed
-      to: ready
-    - effects:
-      - set:
-          context: project_id
-          value: null
-      from: ready
-      on: message.selection.cleared
-      to: empty
-  state_machine.project.board:
-    archetype: dashboard
-    basis: The dispatch board composes list, detail, and activity FSMs through shared selected-project context.
-    context:
-      selected_project_id:
-        primitive: ID
-      workspace_id:
-        primitive: ID
-    data:
-    - operation: operation.project.list
-      query: query.project.board.list
-    initial: ready
-    model: Project
-    state_machine_messages:
-      accepts: {}
-      emits: {}
-    states:
-      ready:
-        actions: []
-        assets: []
-        audit:
-          empty:
-            basis: Audit render for empty board state vector.
-            fixtures:
-            - fixture.workspace.member
-            instances:
-              activity:
-                state: empty
-              detail:
-                state: none
-              list:
-                state: empty
-            profile: default
-            surfaces:
-            - html
-            - textual
-          ready_selected:
-            basis: Audit render for selected-project board state vector using named project facts.
-            context:
-              selected_project_id: project_submitted_1
-            facts:
-            - use: fact.project.submitted
-            - use: fact.project.draft
-            fixtures:
-            - fixture.workspace.member
-            instances:
-              activity:
-                state: ready
-              detail:
-                state: ready
-              list:
-                state: ready
-            profile: default
-            surfaces:
-            - html
-            - textual
-        copy: []
-        data: []
-        fields: []
-        layout:
-          html:
-            css:
-              rules:
-              - declarations:
-                  display: grid
-                  gap: token.gap
-                  grid-template-columns: token.nav_width 1fr token.aside_width
-                selector: root
-              - declarations:
-                  min-width: token.nav_width
-                selector: region.nav
-              - declarations:
-                  min-width: '0'
-                selector: region.main
-              - declarations:
-                  min-width: token.aside_width
-                selector: region.aside
-              tokens:
-                aside_width: 16rem
-                gap: 1rem
-                nav_width: 20rem
-            regions:
-              aside:
-                classes:
-                - dispatch-board-aside
-                element: aside
-                order: 3
-                required: true
-                role: complementary
-              main:
-                classes:
-                - dispatch-board-main
-                element: main
-                order: 2
-                required: true
-                role: main
-              nav:
-                classes:
-                - dispatch-board-nav
-                element: nav
-                order: 1
-                required: true
-                role: navigation
-            root:
-              classes:
-              - dispatch-board
-              element: section
-              role: region
-          textual:
-            containers:
-              aside:
-                id: aside
-                kind: Container
-                order: 3
-                required: true
-              main:
-                id: main
-                kind: Container
-                order: 2
-                required: true
-              nav:
-                id: nav
-                kind: Container
-                order: 1
-                required: true
-            screen_class: ProjectBoardScreen
-            tcss:
-              rules:
-              - declarations:
-                  layout: horizontal
-                selector: screen
-              - declarations:
-                  width: '32'
-                selector: region.nav
-              - declarations:
-                  width: '28'
-                selector: region.aside
-        mounts:
-        - context:
-            selected_project_id: $state_machine.selected_project_id
-            workspace_id: $state_machine.workspace_id
-          fsm: state_machine.project.list
-          id: list
-          initial: loading
-          region: nav
-        - context:
-            project_id: $state_machine.selected_project_id
-          fsm: state_machine.project.detail
-          id: detail
-          initial: none
-          region: main
-          selected:
-            state: loading
-            when:
-              context_present: selected_project_id
-        - context:
-            project_id: $state_machine.selected_project_id
-          fsm: state_machine.project.activity
-          id: activity
-          initial: empty
-          region: aside
-          selected:
-            state: ready
-            when:
-              context_present: selected_project_id
-        surface: state_machine.project.board.ready
-        sync:
-        - do:
-          - set:
-              context: selected_project_id
-              from: $message.project_id
-          - send:
-              instance: detail
-              message: message.project.selection_changed
-              payload_bindings:
-                project_id: $message.project_id
-          - send:
-              instance: activity
-              message: message.project.selection_changed
-              payload_bindings:
-                project_id: $message.project_id
-          id: select_project_updates_fsms
-          when:
-            instance: list
-            message: message.project.selected
-    transitions: []
-  state_machine.project.detail:
-    basis: The detail FSM is independent from the list and reacts to selected project context.
-    context:
-      project_id:
-        primitive: ID
-    data: []
-    initial: none
-    model: Project
-    state_machine_messages:
-      accepts:
-        data.error:
-          payload_schema: {}
-        data.ready:
-          payload_schema: {}
-        message.project.selection_changed:
-          payload_schema:
-            project_id:
-              primitive: ID
-        message.selection.cleared:
-          payload_schema: {}
-      emits: {}
-    states:
-      error:
-        actions: []
-        assets: []
-        copy:
-        - text.project.detail.error.heading
-        - text.project.detail.error.body
-        data: []
-        fields: []
-        surface: state_machine.project.detail.error
-      loading:
-        actions: []
-        assets: []
-        copy:
-        - text.project.detail.loading.message
-        data:
-        - operation: operation.project.read
-          query: query.project.detail.read
-        fields: []
-        surface: state_machine.project.detail.loading
-      none:
-        actions: []
-        assets: []
-        copy:
-        - text.project.detail.none.heading
-        - text.project.detail.none.body
-        data: []
-        fields: []
-        surface: state_machine.project.detail.none
-      ready:
-        actions:
-        - operation.project.approve
-        - operation.project.archive
-        assets:
-        - asset.project.detail.ready.priority_badge
-        copy:
-        - text.project.detail.ready.heading
-        data: []
-        fields:
-        - title
-        - customer
-        - status
-        - assignee
-        - summary
-        surface: state_machine.project.detail.ready
-    transitions:
-    - from: none
-      on: message.project.selection_changed
-      to: loading
-    - from: loading
-      on: data.ready
-      to: ready
-    - from: loading
-      on: data.error
-      to: error
-    - effects:
-      - set:
-          context: project_id
-          value: null
-      from: ready
-      on: message.selection.cleared
-      to: none
-  state_machine.project.list:
-    basis: The list FSM owns collection loading, empty, ready, error, and selection behavior.
-    context:
-      selected_project_id:
-        primitive: ID
-      workspace_id:
-        primitive: ID
-    data:
-    - operation: operation.project.list
-      query: query.project.list.list
-    initial: loading
-    model: Project
-    state_machine_messages:
-      accepts:
-        data.empty:
-          payload_schema: {}
-        data.error:
-          payload_schema: {}
-        data.ready:
-          payload_schema: {}
-        message.project.select:
-          payload_schema:
-            project_id:
-              primitive: ID
-      emits:
-        message.project.selected:
-          payload_schema:
-            project_id:
-              primitive: ID
-    states:
-      empty:
-        actions:
-        - operation.project.create
-        assets:
-        - asset.project.list.empty.illustration
-        copy:
-        - text.project.list.empty.heading
-        - text.project.list.empty.body
-        data: []
-        fields: []
-        surface: state_machine.project.list.empty
-      error:
-        actions: []
-        assets: []
-        copy:
-        - text.project.list.error.heading
-        - text.project.list.error.body
-        data: []
-        fields: []
-        surface: state_machine.project.list.error
-      loading:
-        actions: []
-        assets: []
-        copy:
-        - text.project.list.loading.message
-        data: []
-        fields: []
-        surface: state_machine.project.list.loading
-      ready:
-        actions:
-        - operation.project.create
-        - operation.project.submit
-        assets: []
-        copy:
-        - text.project.list.ready.heading
-        data: []
-        fields:
-        - title
-        - customer
-        - priority
-        - status
-        surface: state_machine.project.list.ready
-    transitions:
-    - from: loading
-      on: data.empty
-      to: empty
-    - from: loading
-      on: data.ready
-      to: ready
-    - from: loading
-      on: data.error
-      to: error
-    - from: empty
-      on: data.ready
-      to: ready
-    - effects:
-      - emit:
-          message: message.project.selected
-          payload_bindings:
-            project_id: $message.project_id
-      from: ready
-      on: message.project.select
-      to: ready
 models:
   Problem:
     basis: A structured problem result explains intentional failure outcomes across API and CLI surfaces.
@@ -1014,7 +600,7 @@ operations:
     - Project
     updates: []
   operation.project.read:
-    basis: The detail FSM loads the selected project by id.
+    basis: The detail state machine loads the selected project by id.
     creates: []
     deletes: []
     input:
@@ -1226,7 +812,7 @@ scenarios:
     feature: feature.project.approve
     title: Approve submitted dispatch project
   scenario.project.board.empty:
-    archetype: fsm_composition
+    archetype: state_machine_composition
     arrange:
       facts:
       - absent:
@@ -1240,8 +826,56 @@ scenarios:
       - operation.project.create
       forbids:
       - operation.project.approve
-      fsm:
+      requires:
+        assets:
+        - asset.project.list.empty.illustration
+        copy:
+        - text.project.activity.empty.heading
+        - text.project.activity.empty.body
+        - text.project.detail.none.heading
+        - text.project.detail.none.body
+        - text.project.list.empty.heading
+        - text.project.list.empty.body
+        operation_refs:
+        - operation.project.create
+        queries:
+        - query.project.board.list
+        - query.project.list.list
+        surfaces:
+        - state_machine.project.board.ready
+        - state_machine.project.activity.empty
+        - state_machine.project.detail.none
+        - state_machine.project.list.empty
+      state_machine:
         composition:
+          child_state_machines:
+          - context:
+              selected_project_id: $state_machine.selected_project_id
+              workspace_id: $state_machine.workspace_id
+            id: list
+            initial_view_state: loading
+            region: nav
+            state_machine: state_machine.project.list
+          - context:
+              project_id: $state_machine.selected_project_id
+            id: detail
+            initial_view_state: none
+            region: main
+            selected:
+              view_state: loading
+              when:
+                context_present: selected_project_id
+            state_machine: state_machine.project.detail
+          - context:
+              project_id: $state_machine.selected_project_id
+            id: activity
+            initial_view_state: empty
+            region: aside
+            selected:
+              view_state: ready
+              when:
+                context_present: selected_project_id
+            state_machine: state_machine.project.activity
           layout:
             html:
               css:
@@ -1320,35 +954,7 @@ scenarios:
                 - declarations:
                     width: '28'
                   selector: region.aside
-          mounts:
-          - context:
-              selected_project_id: $state_machine.selected_project_id
-              workspace_id: $state_machine.workspace_id
-            fsm: state_machine.project.list
-            id: list
-            initial: loading
-            region: nav
-          - context:
-              project_id: $state_machine.selected_project_id
-            fsm: state_machine.project.detail
-            id: detail
-            initial: none
-            region: main
-            selected:
-              state: loading
-              when:
-                context_present: selected_project_id
-          - context:
-              project_id: $state_machine.selected_project_id
-            fsm: state_machine.project.activity
-            id: activity
-            initial: empty
-            region: aside
-            selected:
-              state: ready
-              when:
-                context_present: selected_project_id
-          sync:
+          message_sync_rules:
           - do:
             - set:
                 context: selected_project_id
@@ -1363,49 +969,29 @@ scenarios:
                 message: message.project.selection_changed
                 payload_bindings:
                   project_id: $message.project_id
-            id: select_project_updates_fsms
+            id: select_project_updates_state_machines
             when:
               instance: list
               message: message.project.selected
         instances:
           activity:
             source: state_machine.project.activity
-            state: empty
             surface: state_machine.project.activity.empty
+            view_state: empty
           detail:
             source: state_machine.project.detail
-            state: none
             surface: state_machine.project.detail.none
+            view_state: none
           list:
             source: state_machine.project.list
-            state: empty
             surface: state_machine.project.list.empty
-        ref: state_machine.project.board
-        state: ready
-        surface: state_machine.project.board.ready
-        sync:
+            view_state: empty
+        message_sync_rules:
           observed:
-          - select_project_updates_fsms
-      requires:
-        actions:
-        - operation.project.create
-        assets:
-        - asset.project.list.empty.illustration
-        copy:
-        - text.project.activity.empty.heading
-        - text.project.activity.empty.body
-        - text.project.detail.none.heading
-        - text.project.detail.none.body
-        - text.project.list.empty.heading
-        - text.project.list.empty.body
-        queries:
-        - query.project.board.list
-        - query.project.list.list
-        surfaces:
-        - state_machine.project.board.ready
-        - state_machine.project.activity.empty
-        - state_machine.project.detail.none
-        - state_machine.project.list.empty
+          - select_project_updates_state_machines
+        ref: state_machine.project.board
+        surface: state_machine.project.board.ready
+        view_state: ready
     basis: An empty workspace shows empty list, no detail, and no activity.
     execute:
       open_entry:
@@ -1415,7 +1001,7 @@ scenarios:
     feature: feature.project.board
     title: Empty dispatch board
   scenario.project.board.ready:
-    archetype: fsm_composition
+    archetype: state_machine_composition
     arrange:
       facts:
       - present:
@@ -1437,8 +1023,55 @@ scenarios:
       enables:
       - operation.project.create
       - operation.project.submit
-      fsm:
+      requires:
+        assets: []
+        copy:
+        - text.project.activity.empty.heading
+        - text.project.activity.empty.body
+        - text.project.detail.none.heading
+        - text.project.detail.none.body
+        - text.project.list.ready.heading
+        operation_refs:
+        - operation.project.create
+        - operation.project.submit
+        queries:
+        - query.project.board.list
+        - query.project.list.list
+        surfaces:
+        - state_machine.project.board.ready
+        - state_machine.project.activity.empty
+        - state_machine.project.detail.none
+        - state_machine.project.list.ready
+      state_machine:
         composition:
+          child_state_machines:
+          - context:
+              selected_project_id: $state_machine.selected_project_id
+              workspace_id: $state_machine.workspace_id
+            id: list
+            initial_view_state: loading
+            region: nav
+            state_machine: state_machine.project.list
+          - context:
+              project_id: $state_machine.selected_project_id
+            id: detail
+            initial_view_state: none
+            region: main
+            selected:
+              view_state: loading
+              when:
+                context_present: selected_project_id
+            state_machine: state_machine.project.detail
+          - context:
+              project_id: $state_machine.selected_project_id
+            id: activity
+            initial_view_state: empty
+            region: aside
+            selected:
+              view_state: ready
+              when:
+                context_present: selected_project_id
+            state_machine: state_machine.project.activity
           layout:
             html:
               css:
@@ -1517,35 +1150,7 @@ scenarios:
                 - declarations:
                     width: '28'
                   selector: region.aside
-          mounts:
-          - context:
-              selected_project_id: $state_machine.selected_project_id
-              workspace_id: $state_machine.workspace_id
-            fsm: state_machine.project.list
-            id: list
-            initial: loading
-            region: nav
-          - context:
-              project_id: $state_machine.selected_project_id
-            fsm: state_machine.project.detail
-            id: detail
-            initial: none
-            region: main
-            selected:
-              state: loading
-              when:
-                context_present: selected_project_id
-          - context:
-              project_id: $state_machine.selected_project_id
-            fsm: state_machine.project.activity
-            id: activity
-            initial: empty
-            region: aside
-            selected:
-              state: ready
-              when:
-                context_present: selected_project_id
-          sync:
+          message_sync_rules:
           - do:
             - set:
                 context: selected_project_id
@@ -1560,48 +1165,29 @@ scenarios:
                 message: message.project.selection_changed
                 payload_bindings:
                   project_id: $message.project_id
-            id: select_project_updates_fsms
+            id: select_project_updates_state_machines
             when:
               instance: list
               message: message.project.selected
         instances:
           activity:
             source: state_machine.project.activity
-            state: empty
             surface: state_machine.project.activity.empty
+            view_state: empty
           detail:
             source: state_machine.project.detail
-            state: none
             surface: state_machine.project.detail.none
+            view_state: none
           list:
             source: state_machine.project.list
-            state: ready
             surface: state_machine.project.list.ready
-        ref: state_machine.project.board
-        state: ready
-        surface: state_machine.project.board.ready
-        sync:
+            view_state: ready
+        message_sync_rules:
           observed:
-          - select_project_updates_fsms
-      requires:
-        actions:
-        - operation.project.create
-        - operation.project.submit
-        assets: []
-        copy:
-        - text.project.activity.empty.heading
-        - text.project.activity.empty.body
-        - text.project.detail.none.heading
-        - text.project.detail.none.body
-        - text.project.list.ready.heading
-        queries:
-        - query.project.board.list
-        - query.project.list.list
-        surfaces:
-        - state_machine.project.board.ready
-        - state_machine.project.activity.empty
-        - state_machine.project.detail.none
-        - state_machine.project.list.ready
+          - select_project_updates_state_machines
+        ref: state_machine.project.board
+        surface: state_machine.project.board.ready
+        view_state: ready
     basis: A populated workspace shows the ready list while detail awaits explicit selection.
     execute:
       open_entry:
@@ -1647,6 +1233,420 @@ scenarios:
         ref: entry_point.api.project.create
     feature: feature.project.create
     title: Create dispatch project through API
+state_machines:
+  state_machine.project.activity:
+    basis: The activity state machine summarizes latest status around the selected project.
+    context:
+      project_id:
+        primitive: ID
+    data_dependencies: []
+    initial_view_state: empty
+    model: Project
+    state_machine_messages:
+      accepts:
+        message.project.selection_changed:
+          payload_schema:
+            project_id:
+              primitive: ID
+        message.selection.cleared:
+          payload_schema: {}
+      emits: {}
+    transitions:
+    - from: empty
+      on: message.project.selection_changed
+      to: ready
+    - effects:
+      - set:
+          context: project_id
+          value: null
+      from: ready
+      on: message.selection.cleared
+      to: empty
+    view_states:
+      empty:
+        assets: []
+        copy:
+        - text.project.activity.empty.heading
+        - text.project.activity.empty.body
+        data_dependencies: []
+        fields: []
+        operation_refs: []
+        surface: state_machine.project.activity.empty
+      ready:
+        assets: []
+        copy:
+        - text.project.activity.ready.heading
+        data_dependencies:
+        - operation: operation.project.read
+          query: query.project.activity.read
+        fields:
+        - updated_at
+        - status
+        - assignee
+        operation_refs: []
+        surface: state_machine.project.activity.ready
+  state_machine.project.board:
+    archetype: dashboard
+    basis: The dispatch board composes list, detail, and activity state machines through shared selected-project context.
+    context:
+      selected_project_id:
+        primitive: ID
+      workspace_id:
+        primitive: ID
+    data_dependencies:
+    - operation: operation.project.list
+      query: query.project.board.list
+    initial_view_state: ready
+    model: Project
+    state_machine_messages:
+      accepts: {}
+      emits: {}
+    transitions: []
+    view_states:
+      ready:
+        assets: []
+        audit:
+          empty:
+            basis: Audit render for empty board state vector.
+            fixtures:
+            - fixture.workspace.member
+            instances:
+              activity:
+                view_state: empty
+              detail:
+                view_state: none
+              list:
+                view_state: empty
+            profile: default
+            surfaces:
+            - html
+            - textual
+          ready_selected:
+            basis: Audit render for selected-project board state vector using named project facts.
+            context:
+              selected_project_id: project_submitted_1
+            facts:
+            - use: fact.project.submitted
+            - use: fact.project.draft
+            fixtures:
+            - fixture.workspace.member
+            instances:
+              activity:
+                view_state: ready
+              detail:
+                view_state: ready
+              list:
+                view_state: ready
+            profile: default
+            surfaces:
+            - html
+            - textual
+        child_state_machines:
+        - context:
+            selected_project_id: $state_machine.selected_project_id
+            workspace_id: $state_machine.workspace_id
+          id: list
+          initial_view_state: loading
+          region: nav
+          state_machine: state_machine.project.list
+        - context:
+            project_id: $state_machine.selected_project_id
+          id: detail
+          initial_view_state: none
+          region: main
+          selected:
+            view_state: loading
+            when:
+              context_present: selected_project_id
+          state_machine: state_machine.project.detail
+        - context:
+            project_id: $state_machine.selected_project_id
+          id: activity
+          initial_view_state: empty
+          region: aside
+          selected:
+            view_state: ready
+            when:
+              context_present: selected_project_id
+          state_machine: state_machine.project.activity
+        copy: []
+        data_dependencies: []
+        fields: []
+        layout:
+          html:
+            css:
+              rules:
+              - declarations:
+                  display: grid
+                  gap: token.gap
+                  grid-template-columns: token.nav_width 1fr token.aside_width
+                selector: root
+              - declarations:
+                  min-width: token.nav_width
+                selector: region.nav
+              - declarations:
+                  min-width: '0'
+                selector: region.main
+              - declarations:
+                  min-width: token.aside_width
+                selector: region.aside
+              tokens:
+                aside_width: 16rem
+                gap: 1rem
+                nav_width: 20rem
+            regions:
+              aside:
+                classes:
+                - dispatch-board-aside
+                element: aside
+                order: 3
+                required: true
+                role: complementary
+              main:
+                classes:
+                - dispatch-board-main
+                element: main
+                order: 2
+                required: true
+                role: main
+              nav:
+                classes:
+                - dispatch-board-nav
+                element: nav
+                order: 1
+                required: true
+                role: navigation
+            root:
+              classes:
+              - dispatch-board
+              element: section
+              role: region
+          textual:
+            containers:
+              aside:
+                id: aside
+                kind: Container
+                order: 3
+                required: true
+              main:
+                id: main
+                kind: Container
+                order: 2
+                required: true
+              nav:
+                id: nav
+                kind: Container
+                order: 1
+                required: true
+            screen_class: ProjectBoardScreen
+            tcss:
+              rules:
+              - declarations:
+                  layout: horizontal
+                selector: screen
+              - declarations:
+                  width: '32'
+                selector: region.nav
+              - declarations:
+                  width: '28'
+                selector: region.aside
+        message_sync_rules:
+        - do:
+          - set:
+              context: selected_project_id
+              from: $message.project_id
+          - send:
+              instance: detail
+              message: message.project.selection_changed
+              payload_bindings:
+                project_id: $message.project_id
+          - send:
+              instance: activity
+              message: message.project.selection_changed
+              payload_bindings:
+                project_id: $message.project_id
+          id: select_project_updates_state_machines
+          when:
+            instance: list
+            message: message.project.selected
+        operation_refs: []
+        surface: state_machine.project.board.ready
+  state_machine.project.detail:
+    basis: The detail state machine is independent from the list and reacts to selected project context.
+    context:
+      project_id:
+        primitive: ID
+    data_dependencies: []
+    initial_view_state: none
+    model: Project
+    state_machine_messages:
+      accepts:
+        data.error:
+          payload_schema: {}
+        data.ready:
+          payload_schema: {}
+        message.project.selection_changed:
+          payload_schema:
+            project_id:
+              primitive: ID
+        message.selection.cleared:
+          payload_schema: {}
+      emits: {}
+    transitions:
+    - from: none
+      on: message.project.selection_changed
+      to: loading
+    - from: loading
+      on: data.ready
+      to: ready
+    - from: loading
+      on: data.error
+      to: error
+    - effects:
+      - set:
+          context: project_id
+          value: null
+      from: ready
+      on: message.selection.cleared
+      to: none
+    view_states:
+      error:
+        assets: []
+        copy:
+        - text.project.detail.error.heading
+        - text.project.detail.error.body
+        data_dependencies: []
+        fields: []
+        operation_refs: []
+        surface: state_machine.project.detail.error
+      loading:
+        assets: []
+        copy:
+        - text.project.detail.loading.message
+        data_dependencies:
+        - operation: operation.project.read
+          query: query.project.detail.read
+        fields: []
+        operation_refs: []
+        surface: state_machine.project.detail.loading
+      none:
+        assets: []
+        copy:
+        - text.project.detail.none.heading
+        - text.project.detail.none.body
+        data_dependencies: []
+        fields: []
+        operation_refs: []
+        surface: state_machine.project.detail.none
+      ready:
+        assets:
+        - asset.project.detail.ready.priority_badge
+        copy:
+        - text.project.detail.ready.heading
+        data_dependencies: []
+        fields:
+        - title
+        - customer
+        - status
+        - assignee
+        - summary
+        operation_refs:
+        - operation.project.approve
+        - operation.project.archive
+        surface: state_machine.project.detail.ready
+  state_machine.project.list:
+    basis: The list state machine owns collection loading, empty, ready, error, and selection behavior.
+    context:
+      selected_project_id:
+        primitive: ID
+      workspace_id:
+        primitive: ID
+    data_dependencies:
+    - operation: operation.project.list
+      query: query.project.list.list
+    initial_view_state: loading
+    model: Project
+    state_machine_messages:
+      accepts:
+        data.empty:
+          payload_schema: {}
+        data.error:
+          payload_schema: {}
+        data.ready:
+          payload_schema: {}
+        message.project.select:
+          payload_schema:
+            project_id:
+              primitive: ID
+      emits:
+        message.project.selected:
+          payload_schema:
+            project_id:
+              primitive: ID
+    transitions:
+    - from: loading
+      on: data.empty
+      to: empty
+    - from: loading
+      on: data.ready
+      to: ready
+    - from: loading
+      on: data.error
+      to: error
+    - from: empty
+      on: data.ready
+      to: ready
+    - effects:
+      - emit:
+          message: message.project.selected
+          payload_bindings:
+            project_id: $message.project_id
+      from: ready
+      on: message.project.select
+      to: ready
+    view_states:
+      empty:
+        assets:
+        - asset.project.list.empty.illustration
+        copy:
+        - text.project.list.empty.heading
+        - text.project.list.empty.body
+        data_dependencies: []
+        fields: []
+        operation_refs:
+        - operation.project.create
+        surface: state_machine.project.list.empty
+      error:
+        assets: []
+        copy:
+        - text.project.list.error.heading
+        - text.project.list.error.body
+        data_dependencies: []
+        fields: []
+        operation_refs: []
+        surface: state_machine.project.list.error
+      loading:
+        assets: []
+        copy:
+        - text.project.list.loading.message
+        data_dependencies: []
+        fields: []
+        operation_refs: []
+        surface: state_machine.project.list.loading
+      ready:
+        assets: []
+        copy:
+        - text.project.list.ready.heading
+        data_dependencies: []
+        fields:
+        - title
+        - customer
+        - priority
+        - status
+        operation_refs:
+        - operation.project.create
+        - operation.project.submit
+        surface: state_machine.project.list.ready
 workflows:
   workflow.project.approval_notice:
     basis: Approval event sends a downstream notice.

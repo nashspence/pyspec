@@ -7,7 +7,7 @@ from .io import read_json, read_yaml
 from .paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR
 from .runtime import fixture_namespace, resolve_map
 from .runtime_refs import resolve_reference_expression
-from .targets import entry_fsm_name, entry_point_input, entry_point_responses, entry_target_pair, entry_point_bindings
+from .targets import entry_state_machine_name, entry_point_input, entry_point_responses, entry_target_pair, entry_point_bindings
 from .type_expr import is_array_of_model, model_name
 
 
@@ -17,7 +17,7 @@ class ReferenceSpecDriver:
     def __init__(self, root: Path):
         self.root = root
         self.contract = read_yaml(root / COMPILED_SPEC_PATH)
-        self.surfaces = {p["id"]: p for p in read_json(root / GENERATED_SPEC_DIR / "product_interfaces" / "web.fsms.json")["fsms"]}
+        self.surfaces = {p["id"]: p for p in read_json(root / GENERATED_SPEC_DIR / "product_interfaces" / "web.state_machines.json")["state_machines"]}
         self.reset()
 
     def reset(self) -> None:
@@ -27,7 +27,7 @@ class ReferenceSpecDriver:
         self.invoked: list[str] = []
         self.workflows_ran: list[str] = []
         self.workflow_outcomes: dict[str, str] = {}
-        self.last_fsm: dict[str, Any] | None = None
+        self.last_state_machine: dict[str, Any] | None = None
         self.response: dict[str, Any] | None = None
         self.last_result: Any = None
         self.last_outcome: str | None = None
@@ -49,7 +49,7 @@ class ReferenceSpecDriver:
     def execute(self, scenario_id: str, scenario: Mapping[str, Any]) -> None:
         kind, body = next(iter(scenario["execute"].items()))
         if kind == "open_entry":
-            self.last_fsm = self._open_entry(body["ref"], self._resolve_map(body.get("input", {})))
+            self.last_state_machine = self._open_entry(body["ref"], self._resolve_map(body.get("input", {})))
         elif kind == "call_entry":
             self.response = self._call_entry(body["ref"], self._resolve_map(body.get("input", {})), scenario["assert"].get("outcome"))
         elif kind == "invoke_operation":
@@ -61,48 +61,48 @@ class ReferenceSpecDriver:
 
     def assert_obligations(self, scenario_id: str, scenario: Mapping[str, Any]) -> None:
         assertions = scenario["assert"]
-        if "fsm" in assertions:
-            assert self.last_fsm is not None, "Expected a rendered FSM"
-            expected = assertions["fsm"]
-            assert self.last_fsm["ref"] == expected["ref"]
-            if "state" in expected:
-                assert self.last_fsm["state"] == expected["state"]
-                assert self.last_fsm["surface"] == expected["surface"]
+        if "state_machine" in assertions:
+            assert self.last_state_machine is not None, "Expected a rendered state machine"
+            expected = assertions["state_machine"]
+            assert self.last_state_machine["ref"] == expected["ref"]
+            if "view_state" in expected:
+                assert self.last_state_machine["view_state"] == expected["view_state"]
+                assert self.last_state_machine["surface"] == expected["surface"]
             if "instances" in expected:
-                assert set(self.last_fsm["instances"]) == set(expected["instances"])
-                for instance_id, fsm_expected in expected["instances"].items():
-                    actual = self.last_fsm["instances"][instance_id]
-                    assert actual["state"] == fsm_expected["state"]
-                    assert actual["surface"] == fsm_expected["surface"]
-                for sync_id in (expected.get("sync") or {}).get("observed", []):
-                    assert sync_id in self.last_fsm.get("sync", [])
+                assert set(self.last_state_machine["instances"]) == set(expected["instances"])
+                for instance_id, state_machine_expected in expected["instances"].items():
+                    actual = self.last_state_machine["instances"][instance_id]
+                    assert actual["view_state"] == state_machine_expected["view_state"]
+                    assert actual["surface"] == state_machine_expected["surface"]
+                for sync_id in (expected.get("message_sync_rules") or {}).get("observed", []):
+                    assert sync_id in self.last_state_machine.get("message_sync_rules", [])
         requires = assertions.get("requires", {})
         if requires:
-            assert self.last_fsm is not None, "FSM requirements need a rendered FSM"
-            rendered_fsms = self._rendered_fsm_ids()
+            assert self.last_state_machine is not None, "state-machine requirements need a rendered state machine"
+            rendered_state_machines = self._rendered_state_machine_ids()
             rendered_copy = self._rendered_values("copy")
             rendered_assets = self._rendered_values("assets")
-            rendered_actions = self._rendered_values("actions")
-            for fsm in requires.get("surfaces", []):
-                assert fsm in self.surfaces
-                assert fsm in rendered_fsms
+            rendered_actions = self._rendered_values("operation_refs")
+            for state_machine in requires.get("surfaces", []):
+                assert state_machine in self.surfaces
+                assert state_machine in rendered_state_machines
             for key in requires.get("copy", []):
                 assert key in rendered_copy
             for key in requires.get("assets", []):
                 assert key in rendered_assets
-            for cap in requires.get("actions", []):
+            for cap in requires.get("operation_refs", []):
                 assert cap in rendered_actions
-            fsm = self.contract["fsms"][self.last_fsm["ref"]]
-            queries = [datum["query"] for datum in fsm.get("data", [])]
-            if "instances" in self.last_fsm:
-                for instance in self.last_fsm["instances"].values():
-                    queries.extend(datum["query"] for datum in instance.get("data", []))
+            state_machine = self.contract["state_machines"][self.last_state_machine["ref"]]
+            queries = [datum["query"] for datum in state_machine.get("data_dependencies", [])]
+            if "instances" in self.last_state_machine:
+                for instance in self.last_state_machine["instances"].values():
+                    queries.extend(datum["query"] for datum in instance.get("data_dependencies", []))
             for query in requires.get("queries", []):
                 assert query in queries
         for cap in assertions.get("enables", []):
-            assert cap in self._rendered_values("actions")
+            assert cap in self._rendered_values("operation_refs")
         for cap in assertions.get("forbids", []):
-            assert cap not in self._rendered_values("actions")
+            assert cap not in self._rendered_values("operation_refs")
         exists = (assertions.get("model") or {}).get("exists")
         if exists:
             where = self._resolve_map(exists["where"])
@@ -137,83 +137,83 @@ class ReferenceSpecDriver:
 
     def _open_entry(self, entry_id: str, params: dict[str, Any]) -> dict[str, Any]:
         entry = self.contract["entry_points"][entry_id]
-        fsm_id = entry_fsm_name(entry)
-        fsm = self.contract["fsms"][fsm_id]
+        state_machine_id = entry_state_machine_name(entry)
+        state_machine = self.contract["state_machines"][state_machine_id]
         context = self._entry_target_input(entry, params)
-        records = self._filter(fsm["model"], context)
-        parent_state_name = "ready" if "ready" in fsm.get("states", {}) else next(iter(fsm.get("states", {"ready": {}})))
-        state = fsm["states"].get(parent_state_name, {"surface": None, "copy": [], "assets": [], "actions": [], "data": []})
-        if state.get("mounts"):
-            fsms: dict[str, Any] = {}
-            for mount in state["mounts"]:
-                source_id = mount["fsm"]
-                fsm = self.contract["fsms"][source_id]
-                child_state_name = self._choose_fsm_state(fsm, mount, records, context)
-                child_state = fsm["states"][child_state_name]
-                fsms[mount["id"]] = {
+        records = self._filter(state_machine["model"], context)
+        parent_state_name = "ready" if "ready" in state_machine.get("view_states", {}) else next(iter(state_machine.get("view_states", {"ready": {}})))
+        state = state_machine["view_states"].get(parent_state_name, {"surface": None, "copy": [], "assets": [], "operation_refs": [], "data_dependencies": []})
+        if state.get("child_state_machines"):
+            state_machines: dict[str, Any] = {}
+            for mount in state["child_state_machines"]:
+                source_id = mount["state_machine"]
+                state_machine = self.contract["state_machines"][source_id]
+                child_state_name = self._choose_state_machine_view_state(state_machine, mount, records, context)
+                child_state = state_machine["view_states"][child_state_name]
+                state_machines[mount["id"]] = {
                     "source": source_id,
-                    "state": child_state_name,
+                    "view_state": child_state_name,
                     "surface": child_state["surface"],
-                    "data": list(fsm.get("data", [])) + list(child_state.get("data", [])),
+                    "data_dependencies": list(state_machine.get("data_dependencies", [])) + list(child_state.get("data_dependencies", [])),
                     "copy": child_state["copy"],
                     "assets": child_state["assets"],
-                    "actions": child_state["actions"],
+                    "operation_refs": child_state["operation_refs"],
                 }
             return {
-                "ref": fsm_id,
-                "state": parent_state_name,
+                "ref": state_machine_id,
+                "view_state": parent_state_name,
                 "surface": state.get("surface"),
-                "data": list(fsm.get("data", [])) + list(state.get("data", [])),
+                "data_dependencies": list(state_machine.get("data_dependencies", [])) + list(state.get("data_dependencies", [])),
                 "copy": state.get("copy", []),
                 "assets": state.get("assets", []),
-                "actions": state.get("actions", []),
+                "operation_refs": state.get("operation_refs", []),
                 "context": context,
-                "instances": fsms,
-                "sync": [rule["id"] for rule in state.get("sync", [])],
+                "instances": state_machines,
+                "message_sync_rules": [rule["id"] for rule in state.get("message_sync_rules", [])],
             }
-        state_name = "empty" if not records and "empty" in fsm["states"] else "ready"
-        state = fsm["states"][state_name]
+        state_name = "empty" if not records and "empty" in state_machine["view_states"] else "ready"
+        state = state_machine["view_states"][state_name]
         return {
-            "ref": fsm_id,
-            "state": state_name,
+            "ref": state_machine_id,
+            "view_state": state_name,
             "surface": state["surface"],
             "copy": state["copy"],
             "assets": state["assets"],
-            "actions": state["actions"],
+            "operation_refs": state["operation_refs"],
         }
 
-    def _choose_fsm_state(self, fsm: dict[str, Any], mount: dict[str, Any], records: list[dict[str, Any]], context: dict[str, Any]) -> str:
+    def _choose_state_machine_view_state(self, state_machine: dict[str, Any], mount: dict[str, Any], records: list[dict[str, Any]], context: dict[str, Any]) -> str:
         selected = mount.get("selected")
         if selected:
             if _condition_matches(selected["when"], context):
-                return selected["state"]
-            return mount["initial"]
-        if records and "ready" in fsm["states"] and (fsm.get("data") or fsm["states"]["ready"].get("data")):
+                return selected["view_state"]
+            return mount["initial_view_state"]
+        if records and "ready" in state_machine["view_states"] and (state_machine.get("data_dependencies") or state_machine["view_states"]["ready"].get("data_dependencies")):
             return "ready"
-        if not records and "empty" in fsm["states"]:
+        if not records and "empty" in state_machine["view_states"]:
             return "empty"
-        return mount["initial"]
+        return mount["initial_view_state"]
 
-    def _rendered_fsm_ids(self) -> set[str]:
-        if not self.last_fsm:
+    def _rendered_state_machine_ids(self) -> set[str]:
+        if not self.last_state_machine:
             return set()
-        if "instances" in self.last_fsm:
-            fsms = {fsm["surface"] for fsm in self.last_fsm["instances"].values()}
-            if self.last_fsm.get("surface"):
-                fsms.add(self.last_fsm["surface"])
-            return fsms
-        return {self.last_fsm["surface"]}
+        if "instances" in self.last_state_machine:
+            state_machines = {state_machine["surface"] for state_machine in self.last_state_machine["instances"].values()}
+            if self.last_state_machine.get("surface"):
+                state_machines.add(self.last_state_machine["surface"])
+            return state_machines
+        return {self.last_state_machine["surface"]}
 
     def _rendered_values(self, key: str) -> set[str]:
-        if not self.last_fsm:
+        if not self.last_state_machine:
             return set()
-        if "instances" in self.last_fsm:
+        if "instances" in self.last_state_machine:
             values: set[str] = set()
-            values.update(self.last_fsm.get(key, []))
-            for fsm in self.last_fsm["instances"].values():
-                values.update(fsm.get(key, []))
+            values.update(self.last_state_machine.get(key, []))
+            for state_machine in self.last_state_machine["instances"].values():
+                values.update(state_machine.get(key, []))
             return values
-        return set(self.last_fsm.get(key, []))
+        return set(self.last_state_machine.get(key, []))
 
     def _call_entry(self, entry_id: str, input_values: dict[str, Any], outcome_id: str | None = None) -> dict[str, Any]:
         entry = self.contract["entry_points"][entry_id]

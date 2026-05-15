@@ -1,7 +1,0 @@
-copy:
-  text.project.list.ready.heading:
-    basis: Ready heading for the project list FSM.
-    max_chars: 80
-    placeholder: Dispatch queue
-    tone: neutral
-project: project_dispatch_board

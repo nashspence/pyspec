@@ -32,7 +32,7 @@ from .audit import (
     audit_expected_files,
     composition_file,
     entrypoint_flow_file,
-    fsm_graph_file,
+    state_machine_graph_file,
     workflow_flow_file,
 )
 from .layout import layout_textual
@@ -45,13 +45,13 @@ from .project import (
     constant_name,
     cwl_type,
     object_schema,
-    fsms_projection,
+    state_machines_projection,
     humanize,
     safe_id,
     textual_screen_entries,
     type_schema,
 )
-from .targets import entry_fsm_name, entry_point_adapter_pair, entry_point_input, entry_point_method, entry_point_path, entry_point_responses, entry_target_pair
+from .targets import entry_state_machine_name, entry_point_adapter_pair, entry_point_input, entry_point_method, entry_point_path, entry_point_responses, entry_target_pair
 from .type_expr import sample_value
 
 _HTTP_METHODS = {"get", "put", "post", "delete", "patch", "head", "options", "trace"}
@@ -94,8 +94,8 @@ def validate_generated_projections(root: Path, contract: dict[str, Any]) -> None
         validate_asyncapi(contract, read_yaml(generated / "product_interfaces" / "events.asyncapi.yaml"))
     if g("product_interfaces", "web.routes.json") in expected_paths:
         validate_routes(contract, read_json(generated / "product_interfaces" / "web.routes.json"))
-    if g("product_interfaces", "web.fsms.json") in expected_paths:
-        validate_fsms_json(contract, read_json(generated / "product_interfaces" / "web.fsms.json"))
+    if g("product_interfaces", "web.state_machines.json") in expected_paths:
+        validate_state_machines_json(contract, read_json(generated / "product_interfaces" / "web.state_machines.json"))
     if g("product_interfaces", "textual.projection.py") in expected_paths:
         validate_textual_contract(root, contract)
     if g("content_resolvers", "signatures.py") in expected_paths:
@@ -317,7 +317,7 @@ def validate_routes(contract: dict[str, Any], doc: dict[str, Any]) -> None:
                 "entry": entry_id,
                 "path": entry_point_path(entry),
                 "params": entry_point_input(entry).get("params", {}),
-                "fsm": entry_fsm_name(entry),
+                "state_machine": entry_state_machine_name(entry),
             })
     if doc["routes"] != expected:
         raise ContractError("routes.json does not exactly match UI entry points")
@@ -326,74 +326,74 @@ def validate_routes(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             raise ContractError(f"Route {route['id']} path params do not match declared params")
 
 
-def validate_fsms_json(contract: dict[str, Any], doc: dict[str, Any]) -> None:
-    _require_exact_keys(doc, {"project", "fsms", "compositions"}, "fsms.json")
+def validate_state_machines_json(contract: dict[str, Any], doc: dict[str, Any]) -> None:
+    _require_exact_keys(doc, {"project", "state_machines", "compositions"}, "state_machines.json")
     if doc["project"] != contract["project"]:
-        raise ContractError("fsms.json project does not match contract")
-    expected_doc = fsms_projection(contract)
+        raise ContractError("state_machines.json project does not match contract")
+    expected_doc = state_machines_projection(contract)
     if doc != expected_doc:
-        raise ContractError("fsms.json does not exactly match contract FSMs/compositions")
-    fsm_ids = [fsm["id"] for fsm in doc["fsms"]]
-    if len(fsm_ids) != len(set(fsm_ids)):
-        raise ContractError("fsms.json contains duplicate FSM surface ids")
-    expected_pairs = {("fsm", fsm_id, state_name) for fsm_id, fsm in contract["fsms"].items() for state_name in fsm.get("states", {})}
-    actual_pairs = {(fsm["owner_kind"], fsm["owner"], fsm["state"]) for fsm in doc["fsms"]}
+        raise ContractError("state_machines.json does not exactly match contract state machines/compositions")
+    state_machine_ids = [state_machine["id"] for state_machine in doc["state_machines"]]
+    if len(state_machine_ids) != len(set(state_machine_ids)):
+        raise ContractError("state_machines.json contains duplicate state machine surface ids")
+    expected_pairs = {("state_machine", state_machine_id, state_name) for state_machine_id, state_machine in contract["state_machines"].items() for state_name in state_machine.get("view_states", {})}
+    actual_pairs = {(state_machine["owner_kind"], state_machine["owner"], state_machine["view_state"]) for state_machine in doc["state_machines"]}
     if actual_pairs != expected_pairs:
-        raise ContractError(_diff_message("FSM owner/state pairs", expected_pairs, actual_pairs))
-    expected_compositions = {f"{fsm_id}.{state_name}" for fsm_id, fsm in contract["fsms"].items() for state_name, state in fsm.get("states", {}).items() if state.get("mounts")}
+        raise ContractError(_diff_message("state machine owner/state pairs", expected_pairs, actual_pairs))
+    expected_compositions = {f"{state_machine_id}.{state_name}" for state_machine_id, state_machine in contract["state_machines"].items() for state_name, state in state_machine.get("view_states", {}).items() if state.get("child_state_machines")}
     actual_compositions = {composition["id"] for composition in doc["compositions"]}
     if actual_compositions != expected_compositions:
-        raise ContractError(_diff_message("Composed FSM state ids", expected_compositions, actual_compositions))
+        raise ContractError(_diff_message("Composed state machine state ids", expected_compositions, actual_compositions))
 
 
 def validate_textual_contract(root: Path, contract: dict[str, Any]) -> None:
     label = "textual.projection.py"
     path = root / GENERATED_SPEC_DIR / "product_interfaces" / label
     module = _load_generated_module(path, "generated_textual_contract")
-    fsm_projection = fsms_projection(contract)
-    fsms = fsm_projection["fsms"]
-    compositions = fsm_projection["compositions"]
+    state_machine_projection = state_machines_projection(contract)
+    state_machines = state_machine_projection["state_machines"]
+    compositions = state_machine_projection["compositions"]
     if module.PROJECT != contract["project"]:
         raise ContractError(f"{label} PROJECT does not match contract")
-    if module.FSMS != fsms:
-        raise ContractError(f"{label} FSMS does not match FSM projection")
+    if module.STATE_MACHINES != state_machines:
+        raise ContractError(f"{label} STATE_MACHINES does not match state machine projection")
     if module.COMPOSITIONS != compositions:
         raise ContractError(f"{label} COMPOSITIONS does not match composition projection")
 
-    expected_screens = textual_screen_entries(contract, fsms, compositions)
+    expected_screens = textual_screen_entries(contract, state_machines, compositions)
     if module.SCREENS != expected_screens:
-        raise ContractError(f"{label} SCREENS does not match textual FSMs")
+        raise ContractError(f"{label} SCREENS does not match textual state machines")
 
-    for fsm in fsms:
-        if module.fsm_surface(fsm["id"]) != fsm:
-            raise ContractError(f"{label} FSM surface lookup failed for {fsm['id']}")
-        expected_widgets = _expected_textual_compose(fsm)
-        if module.compose_contract_fsm(fsm["id"]) != expected_widgets:
-            raise ContractError(f"{label} compose_contract_fsm mismatch for {fsm['id']}")
+    for state_machine in state_machines:
+        if module.state_machine_surface(state_machine["id"]) != state_machine:
+            raise ContractError(f"{label} state machine surface lookup failed for {state_machine['id']}")
+        expected_widgets = _expected_textual_compose(state_machine)
+        if module.compose_contract_state_machine(state_machine["id"]) != expected_widgets:
+            raise ContractError(f"{label} compose_contract_state_machine mismatch for {state_machine['id']}")
 
     for composition in compositions:
         if module.composition(composition["id"]) != composition:
             raise ContractError(f"{label} composition lookup failed for {composition['id']}")
-        expected = [(mount["region"], mount["id"], mount["fsm"]) for mount in composition["mounts"]]
+        expected = [(mount["region"], mount["id"], mount["state_machine"]) for mount in composition["child_state_machines"]]
         if module.compose_contract_composition(composition["id"]) != expected:
             raise ContractError(f"{label} compose_contract_composition mismatch for {composition['id']}")
 
     try:
-        module.fsm_surface("fsm.missing")
+        module.state_machine_surface("state_machine.missing")
     except KeyError:
         pass
     else:  # pragma: no cover
-        raise ContractError(f"{label} fsm_surface() must raise KeyError for unknown FSM surfaces")
+        raise ContractError(f"{label} state_machine_surface() must raise KeyError for unknown state machine surfaces")
 
     tcss_rules = _parse_css_rules(module.textual_css(), f"{label} TCSS", textual=True)
-    expected_selectors = {"Screen", ".contract-fsm-surface"}
-    for fsm in fsms:
-        textual = (fsm.get("presentation") or {}).get("textual") or {}
+    expected_selectors = {"Screen", ".contract-state-machine-surface"}
+    for state_machine in state_machines:
+        textual = (state_machine.get("presentation") or {}).get("textual") or {}
         widget_ids = [widget["id"] for widget in textual.get("widgets", [])]
         if len(widget_ids) != len(set(widget_ids)):
-            raise ContractError(f"Textual widgets for {fsm['id']} contain duplicate ids")
+            raise ContractError(f"Textual widgets for {state_machine['id']} contain duplicate ids")
         for rule in textual.get("tcss", {}).get("rules", []):
-            expected_selectors.add(_textual_selector(fsm, rule["selector"]))
+            expected_selectors.add(_textual_selector(state_machine, rule["selector"]))
     for composition in compositions:
         textual = layout_textual(composition.get("layout") or {})
         for rule in (textual.get("tcss") or {}).get("rules", []):
@@ -627,34 +627,34 @@ def validate_audit_outputs(root: Path, contract: dict[str, Any]) -> None:
     if actual != expected:
         raise ContractError(_diff_message("audit generated files", expected, actual))
 
-    for fsm_id in contract.get("fsms", {}):
-        _assert_svg(root / fsm_graph_file(fsm_id), f"FSM {fsm_id}")
-    for fsm_id, fsm in contract.get("fsms", {}).items():
-        for state_name, state in fsm.get("states", {}).items():
-            if state.get("mounts"):
-                _assert_svg(root / composition_file(fsm_id, state_name), f"composition {fsm_id}.{state_name}")
+    for state_machine_id in contract.get("state_machines", {}):
+        _assert_svg(root / state_machine_graph_file(state_machine_id), f"state machine {state_machine_id}")
+    for state_machine_id, state_machine in contract.get("state_machines", {}).items():
+        for state_name, state in state_machine.get("view_states", {}).items():
+            if state.get("child_state_machines"):
+                _assert_svg(root / composition_file(state_machine_id, state_name), f"composition {state_machine_id}.{state_name}")
     for entry_id, entry in contract.get("entry_points", {}).items():
         adapter_kind, _ = entry_point_adapter_pair(entry)
         _assert_svg(root / entrypoint_flow_file(entry_id, adapter_kind), f"entrypoint {entry_id}")
     for workflow_id in contract.get("workflows", {}):
         _assert_svg(root / workflow_flow_file(workflow_id), f"workflow {workflow_id}")
 
-    projection = fsms_projection(contract)
-    for fsm in _audit_projection_surfaces(contract, projection):
-        _validate_audit_scope_inputs(root, contract, _projection_surface_root(fsm), *_surface_scope_inputs(contract, fsm))
+    projection = state_machines_projection(contract)
+    for state_machine in _audit_projection_surfaces(contract, projection):
+        _validate_audit_scope_inputs(root, contract, _projection_surface_root(state_machine), *_surface_scope_inputs(contract, state_machine))
         for profile_id, profile in sorted(contract.get("audit_profiles", {}).items()):
             for breakpoint, viewport in profile.get("html", {}).get("breakpoints", {}).items():
-                html_path = root / _projection_surface_file(fsm, profile_id, breakpoint, "html")
-                png_path = root / _projection_surface_file(fsm, profile_id, breakpoint, "png")
-                _assert_html_source(html_path, f"HTML fsm audit {fsm['id']}/{breakpoint}")
-                _assert_png(png_path, f"HTML fsm audit {fsm['id']}/{breakpoint}", viewport)
+                html_path = root / _projection_surface_file(state_machine, profile_id, breakpoint, "html")
+                png_path = root / _projection_surface_file(state_machine, profile_id, breakpoint, "png")
+                _assert_html_source(html_path, f"HTML state_machine audit {state_machine['id']}/{breakpoint}")
+                _assert_png(png_path, f"HTML state_machine audit {state_machine['id']}/{breakpoint}", viewport)
             for breakpoint in profile.get("textual", {}).get("breakpoints", {}):
-                py_path = root / _projection_surface_file(fsm, profile_id, breakpoint, "py")
-                svg_path = root / _projection_surface_file(fsm, profile_id, breakpoint, "svg")
-                _assert_textual_source(py_path, f"Textual fsm audit {fsm['id']}/{breakpoint}")
-                _assert_svg(svg_path, f"Textual fsm audit {fsm['id']}/{breakpoint}")
+                py_path = root / _projection_surface_file(state_machine, profile_id, breakpoint, "py")
+                svg_path = root / _projection_surface_file(state_machine, profile_id, breakpoint, "svg")
+                _assert_textual_source(py_path, f"Textual state_machine audit {state_machine['id']}/{breakpoint}")
+                _assert_svg(svg_path, f"Textual state_machine audit {state_machine['id']}/{breakpoint}")
                 if "rich-terminal" not in svg_path.read_text(encoding="utf-8"):
-                    raise ContractError(f"Textual audit SVG does not look like a Textual terminal capture: {fsm['id']}/{breakpoint}")
+                    raise ContractError(f"Textual audit SVG does not look like a Textual terminal capture: {state_machine['id']}/{breakpoint}")
 
     for case_id, case in audit_cases(contract).items():
         _validate_audit_scope_inputs(root, contract, _case_root(contract, case_id, case), *_case_scope_inputs(contract, case))
@@ -663,14 +663,14 @@ def validate_audit_outputs(root: Path, contract: dict[str, Any]) -> None:
             for breakpoint, viewport in profile.get("html", {}).get("breakpoints", {}).items():
                 html_path = root / _case_file(contract, case_id, case, breakpoint, "html")
                 png_path = root / _case_file(contract, case_id, case, breakpoint, "png")
-                _assert_html_source(html_path, f"HTML fsm audit {case_id}/{breakpoint}")
-                _assert_png(png_path, f"HTML fsm audit {case_id}/{breakpoint}", viewport)
+                _assert_html_source(html_path, f"HTML state_machine audit {case_id}/{breakpoint}")
+                _assert_png(png_path, f"HTML state_machine audit {case_id}/{breakpoint}", viewport)
         if "textual" in case["surfaces"]:
             for breakpoint in profile.get("textual", {}).get("breakpoints", {}):
                 py_path = root / _case_file(contract, case_id, case, breakpoint, "py")
                 svg_path = root / _case_file(contract, case_id, case, breakpoint, "svg")
-                _assert_textual_source(py_path, f"Textual fsm audit {case_id}/{breakpoint}")
-                _assert_svg(svg_path, f"Textual fsm audit {case_id}/{breakpoint}")
+                _assert_textual_source(py_path, f"Textual state_machine audit {case_id}/{breakpoint}")
+                _assert_svg(svg_path, f"Textual state_machine audit {case_id}/{breakpoint}")
                 if "rich-terminal" not in svg_path.read_text(encoding="utf-8"):
                     raise ContractError(f"Textual audit SVG does not look like a Textual terminal capture: {case_id}/{breakpoint}")
 
@@ -706,7 +706,7 @@ def _assert_html_source(path: Path, label: str) -> None:
     text = path.read_text(encoding="utf-8")
     if not text.startswith("<!doctype html>\n"):
         raise ContractError(f"{label} source is not exact generated HTML")
-    forbidden = ["data-audit-label", "data-audit-fixtures", "audit-fixtures", "Audit case:", "FSM:"]
+    forbidden = ["data-audit-label", "data-audit-fixtures", "audit-fixtures", "Audit case:", "state machine:"]
     present = [item for item in forbidden if item in text]
     if present:
         raise ContractError(f"{label} source contains audit metadata labels: {present}")
@@ -716,7 +716,7 @@ def _assert_textual_source(path: Path, label: str) -> None:
     source = path.read_text(encoding="utf-8")
     if "class AuditApp" not in source or "LINES = " not in source:
         raise ContractError(f"{label} source is not exact generated Textual code")
-    forbidden = ["Audit case:", "FSM:", "data-audit"]
+    forbidden = ["Audit case:", "state machine:", "data-audit"]
     present = [item for item in forbidden if item in source]
     if present:
         raise ContractError(f"{label} source contains audit metadata labels: {present}")
@@ -769,7 +769,7 @@ def validate_refs_py(root: Path, contract: dict[str, Any]) -> None:
         "Fact": sorted(contract.get("facts", {})),
         "Fixture": sorted(contract["fixtures"]),
         "Operation": sorted(contract["operations"]),
-        "StateMachine": sorted(contract.get("fsms", {})),
+        "StateMachine": sorted(contract.get("state_machines", {})),
         "Text": sorted(contract.get("copies", {})),
         "AuditCase": sorted(audit_cases(contract)),
         "Scenario": sorted(contract["scenarios"]),
@@ -899,17 +899,17 @@ def _load_generated_module(path: Path, module_name: str):
         raise ContractError(f"Generated Python projection is not importable: {path}: {exc}") from exc
 
 
-def _expected_textual_compose(fsm: dict[str, Any]) -> list[tuple[str, str]]:
-    textual = (fsm.get("presentation") or {}).get("textual") or {}
+def _expected_textual_compose(state_machine: dict[str, Any]) -> list[tuple[str, str]]:
+    textual = (state_machine.get("presentation") or {}).get("textual") or {}
     widgets = textual.get("widgets") or []
     if widgets:
         return [(widget["kind"], _widget_label(widget)) for widget in widgets]
-    slots = fsm["slots"]
+    slots = state_machine["slots"]
     result: list[tuple[str, str]] = []
     result.extend(("Static", key) for key in slots["copy"])
     result.extend(("Static", key) for key in slots["assets"])
     result.extend(("Static", key) for key in slots.get("fields", []))
-    result.extend(("Button", action) for action in slots["actions"])
+    result.extend(("Button", action) for action in slots["operation_refs"])
     return result
 
 
@@ -921,10 +921,10 @@ def _widget_label(widget: dict[str, Any]) -> str:
     return widget["id"]
 
 
-def _textual_selector(fsm: dict[str, Any], selector: str) -> str:
+def _textual_selector(state_machine: dict[str, Any], selector: str) -> str:
     if selector in {"root", "screen"}:
         return "Screen"
-    textual = (fsm.get("presentation") or {}).get("textual") or {}
+    textual = (state_machine.get("presentation") or {}).get("textual") or {}
     widgets = textual.get("widgets") or []
     if selector.startswith("slot."):
         slot = selector[len("slot."):]

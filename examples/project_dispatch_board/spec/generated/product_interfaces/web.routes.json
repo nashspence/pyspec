@@ -3,14 +3,14 @@
   "routes": [
     {
       "entry": "entry_point.web.project.board",
-      "fsm": "state_machine.project.board",
       "id": "route.project.board",
       "params": {
         "workspace_id": {
           "primitive": "ID"
         }
       },
-      "path": "/workspaces/{workspace_id}/dispatch"
+      "path": "/workspaces/{workspace_id}/dispatch",
+      "state_machine": "state_machine.project.board"
     }
   ]
 }

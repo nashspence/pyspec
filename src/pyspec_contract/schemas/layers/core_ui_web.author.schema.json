@@ -164,6 +164,39 @@
       "required": [],
       "type": "object"
     },
+    "authored_child_state_machine": {
+      "additionalProperties": false,
+      "properties": {
+        "context": {
+          "$ref": "#/$defs/context_bindings"
+        },
+        "id": {
+          "$ref": "#/$defs/instance_id"
+        },
+        "initial_view_state": {
+          "$ref": "#/$defs/view_state_name"
+        },
+        "region": {
+          "$ref": "#/$defs/field_name"
+        },
+        "selected": {
+          "$ref": "#/$defs/child_state_machine_selected"
+        },
+        "state_machine": {
+          "$ref": "#/$defs/state_machine_ref",
+          "pattern": "^state_machine\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "state_machine",
+        "region",
+        "initial_view_state",
+        "context"
+      ],
+      "type": "object"
+    },
     "authored_content_case": {
       "additionalProperties": false,
       "properties": {
@@ -366,135 +399,6 @@
       ],
       "type": "object"
     },
-    "authored_fsm": {
-      "additionalProperties": false,
-      "properties": {
-        "archetype": {
-          "enum": [
-            "collection",
-            "detail",
-            "form",
-            "dashboard",
-            "wizard"
-          ]
-        },
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "context": {
-          "$ref": "#/$defs/type_expr_map"
-        },
-        "data": {
-          "items": {
-            "$ref": "#/$defs/operation_ref"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "initial": {
-          "$ref": "#/$defs/state_name"
-        },
-        "model": {
-          "$ref": "#/$defs/model_ref"
-        },
-        "state_machine_messages": {
-          "$ref": "#/$defs/state_machine_messages"
-        },
-        "states": {
-          "additionalProperties": {
-            "$ref": "#/$defs/authored_fsm_state"
-          },
-          "minProperties": 1,
-          "propertyNames": {
-            "$ref": "#/$defs/state_name"
-          },
-          "type": "object"
-        },
-        "transitions": {
-          "items": {
-            "$ref": "#/$defs/fsm_transition"
-          },
-          "type": "array"
-        },
-        "why": {
-          "$ref": "#/$defs/basis"
-        }
-      },
-      "required": [
-        "model",
-        "initial",
-        "states"
-      ],
-      "type": "object"
-    },
-    "authored_fsm_state": {
-      "additionalProperties": false,
-      "properties": {
-        "actions": {
-          "items": {
-            "$ref": "#/$defs/operation_ref"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "asset_slots": {
-          "items": {
-            "$ref": "#/$defs/field_name"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "audit": {
-          "additionalProperties": {
-            "$ref": "#/$defs/fsm_audit_case"
-          },
-          "propertyNames": {
-            "$ref": "#/$defs/field_name"
-          },
-          "type": "object"
-        },
-        "copy_slots": {
-          "items": {
-            "$ref": "#/$defs/field_name"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "data": {
-          "items": {
-            "$ref": "#/$defs/operation_ref"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "field_slots": {
-          "items": {
-            "$ref": "#/$defs/field_name"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "layout": {
-          "$ref": "#/$defs/layout_contract"
-        },
-        "mounts": {
-          "items": {
-            "$ref": "#/$defs/authored_mount"
-          },
-          "type": "array"
-        },
-        "presentation": {
-          "$ref": "#/$defs/presentation_contract"
-        },
-        "sync": {
-          "items": {
-            "$ref": "#/$defs/sync_rule"
-          },
-          "type": "array"
-        }
-      },
-      "type": "object"
-    },
     "authored_model": {
       "additionalProperties": false,
       "properties": {
@@ -562,38 +466,6 @@
       },
       "required": [
         "fields"
-      ],
-      "type": "object"
-    },
-    "authored_mount": {
-      "additionalProperties": false,
-      "properties": {
-        "context": {
-          "$ref": "#/$defs/context_bindings"
-        },
-        "fsm": {
-          "pattern": "^state_machine\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
-          "type": "string"
-        },
-        "id": {
-          "$ref": "#/$defs/instance_id"
-        },
-        "initial": {
-          "$ref": "#/$defs/state_name"
-        },
-        "region": {
-          "$ref": "#/$defs/field_name"
-        },
-        "selected": {
-          "$ref": "#/$defs/fsm_mount_selected"
-        }
-      },
-      "required": [
-        "id",
-        "fsm",
-        "region",
-        "initial",
-        "context"
       ],
       "type": "object"
     },
@@ -672,11 +544,11 @@
           "enum": [
             "entry_response",
             "operation_outcome",
-            "fsm_composition",
-            "fsm_composition_sync",
-            "empty_collection_fsm",
+            "state_machine_composition",
+            "state_machine_composition_sync",
+            "empty_collection_state_machine",
             "forbidden_action",
-            "ready_collection_fsm",
+            "ready_collection_state_machine",
             "workflow_event_success"
           ]
         },
@@ -711,6 +583,135 @@
         "when",
         "then"
       ],
+      "type": "object"
+    },
+    "authored_state_machine": {
+      "additionalProperties": false,
+      "properties": {
+        "archetype": {
+          "enum": [
+            "collection",
+            "detail",
+            "form",
+            "dashboard",
+            "wizard"
+          ]
+        },
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "context": {
+          "$ref": "#/$defs/type_expr_map"
+        },
+        "data_dependencies": {
+          "items": {
+            "$ref": "#/$defs/operation_ref"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "initial_view_state": {
+          "$ref": "#/$defs/view_state_name"
+        },
+        "model": {
+          "$ref": "#/$defs/model_ref"
+        },
+        "state_machine_messages": {
+          "$ref": "#/$defs/state_machine_messages"
+        },
+        "transitions": {
+          "items": {
+            "$ref": "#/$defs/state_machine_transition"
+          },
+          "type": "array"
+        },
+        "view_states": {
+          "additionalProperties": {
+            "$ref": "#/$defs/authored_view_state"
+          },
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/$defs/view_state_name"
+          },
+          "type": "object"
+        },
+        "why": {
+          "$ref": "#/$defs/basis"
+        }
+      },
+      "required": [
+        "model",
+        "initial_view_state",
+        "view_states"
+      ],
+      "type": "object"
+    },
+    "authored_view_state": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_slots": {
+          "items": {
+            "$ref": "#/$defs/field_name"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "audit": {
+          "additionalProperties": {
+            "$ref": "#/$defs/state_machine_audit_case"
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/field_name"
+          },
+          "type": "object"
+        },
+        "child_state_machines": {
+          "items": {
+            "$ref": "#/$defs/authored_child_state_machine"
+          },
+          "type": "array"
+        },
+        "copy_slots": {
+          "items": {
+            "$ref": "#/$defs/field_name"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "data_dependencies": {
+          "items": {
+            "$ref": "#/$defs/operation_ref"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "field_slots": {
+          "items": {
+            "$ref": "#/$defs/field_name"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "layout": {
+          "$ref": "#/$defs/layout_contract"
+        },
+        "message_sync_rules": {
+          "items": {
+            "$ref": "#/$defs/message_sync_rule"
+          },
+          "type": "array"
+        },
+        "operation_refs": {
+          "items": {
+            "$ref": "#/$defs/operation_ref"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "presentation": {
+          "$ref": "#/$defs/presentation_contract"
+        }
+      },
       "type": "object"
     },
     "authored_workflow": {
@@ -751,6 +752,22 @@
     "breakpoint_id": {
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
+    },
+    "child_state_machine_selected": {
+      "additionalProperties": false,
+      "properties": {
+        "view_state": {
+          "$ref": "#/$defs/view_state_name"
+        },
+        "when": {
+          "$ref": "#/$defs/condition_contract"
+        }
+      },
+      "required": [
+        "when",
+        "view_state"
+      ],
+      "type": "object"
     },
     "cli_adapter": {
       "additionalProperties": false,
@@ -1275,160 +1292,6 @@
       "pattern": "^fixture\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
-    "fsm_audit_case": {
-      "additionalProperties": false,
-      "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "context": {
-          "$ref": "#/$defs/context_bindings"
-        },
-        "facts": {
-          "items": {
-            "$ref": "#/$defs/fact_use"
-          },
-          "type": "array"
-        },
-        "fixtures": {
-          "items": {
-            "pattern": "^fixture\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
-            "type": "string"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "instances": {
-          "additionalProperties": {
-            "$ref": "#/$defs/fsm_state_assertion"
-          },
-          "propertyNames": {
-            "$ref": "#/$defs/instance_id"
-          },
-          "type": "object"
-        },
-        "profile": {
-          "$ref": "#/$defs/audit_profile_ref"
-        },
-        "surfaces": {
-          "items": {
-            "enum": [
-              "html",
-              "textual"
-            ]
-          },
-          "minItems": 1,
-          "type": "array",
-          "uniqueItems": true
-        }
-      },
-      "required": [
-        "profile",
-        "surfaces",
-        "fixtures"
-      ],
-      "type": "object"
-    },
-    "fsm_mount_selected": {
-      "additionalProperties": false,
-      "properties": {
-        "state": {
-          "$ref": "#/$defs/state_name"
-        },
-        "when": {
-          "$ref": "#/$defs/condition_contract"
-        }
-      },
-      "required": [
-        "when",
-        "state"
-      ],
-      "type": "object"
-    },
-    "fsm_state_assertion": {
-      "additionalProperties": false,
-      "properties": {
-        "state": {
-          "$ref": "#/$defs/state_name"
-        }
-      },
-      "required": [
-        "state"
-      ],
-      "type": "object"
-    },
-    "fsm_sync_assertion": {
-      "additionalProperties": false,
-      "properties": {
-        "observed": {
-          "items": {
-            "$ref": "#/$defs/field_name"
-          },
-          "type": "array",
-          "uniqueItems": true
-        }
-      },
-      "type": "object"
-    },
-    "fsm_transition": {
-      "additionalProperties": false,
-      "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "effects": {
-          "items": {
-            "oneOf": [
-              {
-                "$ref": "#/$defs/context_set_effect"
-              },
-              {
-                "additionalProperties": false,
-                "properties": {
-                  "emit": {
-                    "additionalProperties": false,
-                    "properties": {
-                      "message": {
-                        "$ref": "#/$defs/message_ref"
-                      },
-                      "payload_bindings": {
-                        "$ref": "#/$defs/expression_map"
-                      }
-                    },
-                    "required": [
-                      "message",
-                      "payload_bindings"
-                    ],
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "emit"
-                ],
-                "type": "object"
-              }
-            ]
-          },
-          "type": "array"
-        },
-        "from": {
-          "$ref": "#/$defs/state_name"
-        },
-        "on": {
-          "pattern": "^([a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+|data\\.[a-z][a-z0-9_]*)$",
-          "type": "string"
-        },
-        "to": {
-          "$ref": "#/$defs/state_name"
-        }
-      },
-      "required": [
-        "from",
-        "to",
-        "on"
-      ],
-      "type": "object"
-    },
     "given": {
       "additionalProperties": false,
       "properties": {
@@ -1906,6 +1769,172 @@
       "pattern": "^(message|data)\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
+    "message_sync_action": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/context_set_effect"
+        },
+        {
+          "$ref": "#/$defs/message_sync_send_effect"
+        }
+      ]
+    },
+    "message_sync_assertion": {
+      "additionalProperties": false,
+      "properties": {
+        "observed": {
+          "items": {
+            "$ref": "#/$defs/field_name"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "type": "object"
+    },
+    "message_sync_effect": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "set": {
+              "additionalProperties": false,
+              "oneOf": [
+                {
+                  "required": [
+                    "from"
+                  ]
+                },
+                {
+                  "required": [
+                    "value"
+                  ]
+                }
+              ],
+              "properties": {
+                "context": {
+                  "$ref": "#/$defs/field_name"
+                },
+                "from": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "value": {
+                  "$ref": "#/$defs/json_value"
+                }
+              },
+              "required": [
+                "context"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "set"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "send": {
+              "additionalProperties": false,
+              "properties": {
+                "instance": {
+                  "$ref": "#/$defs/instance_id"
+                },
+                "message": {
+                  "$ref": "#/$defs/message_ref"
+                },
+                "payload_bindings": {
+                  "$ref": "#/$defs/expression_map"
+                }
+              },
+              "required": [
+                "instance",
+                "message",
+                "payload_bindings"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "send"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "message_sync_rule": {
+      "additionalProperties": false,
+      "properties": {
+        "do": {
+          "items": {
+            "$ref": "#/$defs/message_sync_action"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "id": {
+          "$ref": "#/$defs/field_name"
+        },
+        "when": {
+          "$ref": "#/$defs/message_sync_trigger"
+        }
+      },
+      "required": [
+        "id",
+        "when",
+        "do"
+      ],
+      "type": "object"
+    },
+    "message_sync_send_effect": {
+      "additionalProperties": false,
+      "properties": {
+        "send": {
+          "additionalProperties": false,
+          "properties": {
+            "instance": {
+              "$ref": "#/$defs/instance_id"
+            },
+            "message": {
+              "pattern": "^([a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+|data\\.[a-z][a-z0-9_]*)$",
+              "type": "string"
+            },
+            "payload_bindings": {
+              "$ref": "#/$defs/expression_map"
+            }
+          },
+          "required": [
+            "instance",
+            "message",
+            "payload_bindings"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "send"
+      ],
+      "type": "object"
+    },
+    "message_sync_trigger": {
+      "additionalProperties": false,
+      "properties": {
+        "instance": {
+          "$ref": "#/$defs/instance_id"
+        },
+        "message": {
+          "$ref": "#/$defs/message_ref"
+        }
+      },
+      "required": [
+        "instance",
+        "message"
+      ],
+      "type": "object"
+    },
     "model_ref": {
       "pattern": "^[A-Z][A-Za-z0-9]*$",
       "type": "string"
@@ -2070,6 +2099,60 @@
       ],
       "type": "object"
     },
+    "state_machine_audit_case": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "context": {
+          "$ref": "#/$defs/context_bindings"
+        },
+        "facts": {
+          "items": {
+            "$ref": "#/$defs/fact_use"
+          },
+          "type": "array"
+        },
+        "fixtures": {
+          "items": {
+            "pattern": "^fixture\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "instances": {
+          "additionalProperties": {
+            "$ref": "#/$defs/view_state_assertion"
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/instance_id"
+          },
+          "type": "object"
+        },
+        "profile": {
+          "$ref": "#/$defs/audit_profile_ref"
+        },
+        "surfaces": {
+          "items": {
+            "enum": [
+              "html",
+              "textual"
+            ]
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "profile",
+        "surfaces",
+        "fixtures"
+      ],
+      "type": "object"
+    },
     "state_machine_message": {
       "additionalProperties": false,
       "properties": {
@@ -2109,6 +2192,65 @@
     "state_machine_ref": {
       "pattern": "^state_machine\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
+    },
+    "state_machine_transition": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "effects": {
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/context_set_effect"
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "emit": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "message": {
+                        "$ref": "#/$defs/message_ref"
+                      },
+                      "payload_bindings": {
+                        "$ref": "#/$defs/expression_map"
+                      }
+                    },
+                    "required": [
+                      "message",
+                      "payload_bindings"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "emit"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "type": "array"
+        },
+        "from": {
+          "$ref": "#/$defs/view_state_name"
+        },
+        "on": {
+          "pattern": "^([a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+|data\\.[a-z][a-z0-9_]*)$",
+          "type": "string"
+        },
+        "to": {
+          "$ref": "#/$defs/view_state_name"
+        }
+      },
+      "required": [
+        "from",
+        "to",
+        "on"
+      ],
+      "type": "object"
     },
     "state_name": {
       "pattern": "^[a-z][a-z0-9_]*$",
@@ -2156,159 +2298,6 @@
       "pattern": "^(root|screen|(slot|region)\\.[a-z][a-z0-9_]*|action\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+|mount\\.[a-z][a-z0-9_]*)$",
       "type": "string"
     },
-    "sync_action": {
-      "oneOf": [
-        {
-          "$ref": "#/$defs/context_set_effect"
-        },
-        {
-          "$ref": "#/$defs/sync_send_effect"
-        }
-      ]
-    },
-    "sync_effect": {
-      "oneOf": [
-        {
-          "additionalProperties": false,
-          "properties": {
-            "set": {
-              "additionalProperties": false,
-              "oneOf": [
-                {
-                  "required": [
-                    "from"
-                  ]
-                },
-                {
-                  "required": [
-                    "value"
-                  ]
-                }
-              ],
-              "properties": {
-                "context": {
-                  "$ref": "#/$defs/field_name"
-                },
-                "from": {
-                  "minLength": 1,
-                  "type": "string"
-                },
-                "value": {
-                  "$ref": "#/$defs/json_value"
-                }
-              },
-              "required": [
-                "context"
-              ],
-              "type": "object"
-            }
-          },
-          "required": [
-            "set"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "send": {
-              "additionalProperties": false,
-              "properties": {
-                "instance": {
-                  "$ref": "#/$defs/instance_id"
-                },
-                "message": {
-                  "$ref": "#/$defs/message_ref"
-                },
-                "payload_bindings": {
-                  "$ref": "#/$defs/expression_map"
-                }
-              },
-              "required": [
-                "instance",
-                "message",
-                "payload_bindings"
-              ],
-              "type": "object"
-            }
-          },
-          "required": [
-            "send"
-          ],
-          "type": "object"
-        }
-      ]
-    },
-    "sync_rule": {
-      "additionalProperties": false,
-      "properties": {
-        "do": {
-          "items": {
-            "$ref": "#/$defs/sync_action"
-          },
-          "minItems": 1,
-          "type": "array"
-        },
-        "id": {
-          "$ref": "#/$defs/field_name"
-        },
-        "when": {
-          "$ref": "#/$defs/sync_trigger"
-        }
-      },
-      "required": [
-        "id",
-        "when",
-        "do"
-      ],
-      "type": "object"
-    },
-    "sync_send_effect": {
-      "additionalProperties": false,
-      "properties": {
-        "send": {
-          "additionalProperties": false,
-          "properties": {
-            "instance": {
-              "$ref": "#/$defs/instance_id"
-            },
-            "message": {
-              "pattern": "^([a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+|data\\.[a-z][a-z0-9_]*)$",
-              "type": "string"
-            },
-            "payload_bindings": {
-              "$ref": "#/$defs/expression_map"
-            }
-          },
-          "required": [
-            "instance",
-            "message",
-            "payload_bindings"
-          ],
-          "type": "object"
-        }
-      },
-      "required": [
-        "send"
-      ],
-      "type": "object"
-    },
-    "sync_trigger": {
-      "additionalProperties": false,
-      "properties": {
-        "instance": {
-          "$ref": "#/$defs/instance_id"
-        },
-        "message": {
-          "$ref": "#/$defs/message_ref"
-        }
-      },
-      "required": [
-        "instance",
-        "message"
-      ],
-      "type": "object"
-    },
     "target": {
       "additionalProperties": false,
       "maxProperties": 1,
@@ -2317,11 +2306,11 @@
         "event": {
           "$ref": "#/$defs/event_ref"
         },
-        "fsm": {
-          "$ref": "#/$defs/state_machine_ref"
-        },
         "operation": {
           "$ref": "#/$defs/operation_ref"
+        },
+        "state_machine": {
+          "$ref": "#/$defs/state_machine_ref"
         },
         "workflow": {
           "$ref": "#/$defs/workflow_ref"
@@ -2505,36 +2494,6 @@
           "type": "array",
           "uniqueItems": true
         },
-        "fsm": {
-          "additionalProperties": false,
-          "properties": {
-            "context": {
-              "$ref": "#/$defs/value_map"
-            },
-            "instances": {
-              "additionalProperties": {
-                "$ref": "#/$defs/fsm_state_assertion"
-              },
-              "propertyNames": {
-                "$ref": "#/$defs/instance_id"
-              },
-              "type": "object"
-            },
-            "ref": {
-              "$ref": "#/$defs/state_machine_ref"
-            },
-            "state": {
-              "$ref": "#/$defs/state_name"
-            },
-            "sync": {
-              "$ref": "#/$defs/fsm_sync_assertion"
-            }
-          },
-          "required": [
-            "ref"
-          ],
-          "type": "object"
-        },
         "invoked": {
           "items": {
             "$ref": "#/$defs/operation_ref"
@@ -2579,6 +2538,36 @@
               "type": "integer"
             }
           },
+          "type": "object"
+        },
+        "state_machine": {
+          "additionalProperties": false,
+          "properties": {
+            "context": {
+              "$ref": "#/$defs/value_map"
+            },
+            "instances": {
+              "additionalProperties": {
+                "$ref": "#/$defs/view_state_assertion"
+              },
+              "propertyNames": {
+                "$ref": "#/$defs/instance_id"
+              },
+              "type": "object"
+            },
+            "message_sync_rules": {
+              "$ref": "#/$defs/message_sync_assertion"
+            },
+            "ref": {
+              "$ref": "#/$defs/state_machine_ref"
+            },
+            "view_state": {
+              "$ref": "#/$defs/view_state_name"
+            }
+          },
+          "required": [
+            "ref"
+          ],
           "type": "object"
         },
         "workflow": {
@@ -2775,6 +2764,22 @@
         "$ref": "#/$defs/field_name"
       },
       "type": "object"
+    },
+    "view_state_assertion": {
+      "additionalProperties": false,
+      "properties": {
+        "view_state": {
+          "$ref": "#/$defs/view_state_name"
+        }
+      },
+      "required": [
+        "view_state"
+      ],
+      "type": "object"
+    },
+    "view_state_name": {
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "type": "string"
     },
     "webhook_adapter": {
       "additionalProperties": false,
@@ -3175,15 +3180,6 @@
       },
       "type": "object"
     },
-    "fsms": {
-      "additionalProperties": {
-        "$ref": "#/$defs/authored_fsm"
-      },
-      "propertyNames": {
-        "$ref": "#/$defs/state_machine_ref"
-      },
-      "type": "object"
-    },
     "models": {
       "additionalProperties": {
         "$ref": "#/$defs/authored_model"
@@ -3212,6 +3208,15 @@
       },
       "propertyNames": {
         "$ref": "#/$defs/scenario_ref"
+      },
+      "type": "object"
+    },
+    "state_machines": {
+      "additionalProperties": {
+        "$ref": "#/$defs/authored_state_machine"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/state_machine_ref"
       },
       "type": "object"
     }

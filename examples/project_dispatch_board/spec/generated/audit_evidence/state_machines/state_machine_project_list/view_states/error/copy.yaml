@@ -1,0 +1,12 @@
+copy:
+  text.project.list.error.body:
+    basis: Error body for the project list state machine.
+    max_chars: 120
+    placeholder: Check the workspace connection and try again.
+    tone: error
+  text.project.list.error.heading:
+    basis: Error heading for the project list state machine.
+    max_chars: 80
+    placeholder: Projects could not be loaded
+    tone: error
+project: project_dispatch_board

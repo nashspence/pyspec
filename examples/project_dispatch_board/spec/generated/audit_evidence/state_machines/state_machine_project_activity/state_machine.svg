@@ -1,0 +1,107 @@
+<svg width="1098pt" height="190pt"
+ viewBox="0.00 0.00 1098.00 190.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: 984bb5cdb984e1feba7d09299a2b3f2039d56e90da867a4972bfb577883625bd -->
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 172)">
+<title>state_machine_state_machine_project_activity</title>
+<!-- initial_view_state -->
+<g id="node1" class="node">
+<title>initial_view_state</title>
+<ellipse fill="none" stroke="#0891b2" cx="21" cy="-41" rx="21" ry="21"/>
+<text text-anchor="middle" x="21" y="-38.8" font-family="Arial" font-size="9.00" fill="#155e75">initial_view_state</text>
+</g>
+<!-- view_state_empty -->
+<g id="node2" class="node">
+<title>view_state_empty</title>
+<polygon fill="#ffffff" stroke="transparent" points="103,0 103,-82 262,-82 262,0 103,0"/>
+<polygon fill="#0891b2" stroke="transparent" points="104.5,-73 104.5,-81 261.5,-81 261.5,-73 104.5,-73"/>
+<polygon fill="#ecfeff" stroke="transparent" points="104.5,-42 104.5,-73 261.5,-73 261.5,-42 104.5,-42"/>
+<text text-anchor="start" x="108.5" y="-59.6" font-family="Arial" font-weight="bold" font-size="13.00">empty</text>
+<text text-anchor="start" x="108.5" y="-48.6" font-family="Arial" font-size="8.00" fill="#64748b">initial view state</text>
+<text text-anchor="start" x="108.5" y="-31" font-family="Arial" font-weight="bold" font-size="10.00">copy</text>
+<text text-anchor="start" x="108.5" y="-19" font-family="Arial" font-size="10.00">text.project.activity.empty.heading</text>
+<text text-anchor="start" x="108.5" y="-8" font-family="Arial" font-size="10.00">text.project.activity.empty.body</text>
+<polygon fill="none" stroke="#0891b2" points="103,0 103,-82 262,-82 262,0 103,0"/>
+</g>
+<!-- initial_view_state&#45;&gt;view_state_empty -->
+<g id="edge1" class="edge">
+<title>initial_view_state&#45;&gt;view_state_empty</title>
+<path fill="none" stroke="#3f3f46" d="M42.2,-41C55.9,-41 75.06,-41 94.78,-41"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="94.96,-43.8 102.96,-41 94.96,-38.2 94.96,-43.8"/>
+</g>
+<!-- transition_0_empty_ready_message_project_selection_changed -->
+<g id="node4" class="node">
+<title>transition_0_empty_ready_message_project_selection_changed</title>
+<polygon fill="#ffffff" stroke="transparent" points="323,-47 323,-133 565,-133 565,-47 323,-47"/>
+<polygon fill="#2563eb" stroke="transparent" points="324,-124 324,-132 564,-132 564,-124 324,-124"/>
+<polygon fill="#eff6ff" stroke="transparent" points="324,-93 324,-124 564,-124 564,-93 324,-93"/>
+<text text-anchor="start" x="328" y="-110.6" font-family="Arial" font-weight="bold" font-size="13.00">message.project.selection_changed</text>
+<text text-anchor="start" x="328" y="-99.6" font-family="Arial" font-size="8.00" fill="#64748b">transition event</text>
+<text text-anchor="start" x="329" y="-81" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
+<text text-anchor="start" x="357" y="-81" font-family="Arial" font-size="10.00">  project_id</text>
+<text text-anchor="start" x="406" y="-81" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<text text-anchor="start" x="329" y="-69" font-family="Arial" font-weight="bold" font-size="10.00">query:</text>
+<text text-anchor="start" x="359" y="-69" font-family="Arial" font-size="10.00">  query.project.activity.read</text>
+<text text-anchor="start" x="329" y="-57" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
+<text text-anchor="start" x="353" y="-57" font-family="Arial" font-size="10.00">  operation.project.read</text>
+<text text-anchor="start" x="453" y="-57" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
+<polygon fill="none" stroke="#2563eb" points="323,-47 323,-133 565,-133 565,-47 323,-47"/>
+</g>
+<!-- view_state_empty&#45;&gt;transition_0_empty_ready_message_project_selection_changed -->
+<g id="edge2" class="edge">
+<title>view_state_empty&#45;&gt;transition_0_empty_ready_message_project_selection_changed</title>
+<path fill="none" stroke="#3f3f46" d="M262.06,-55.83C278.62,-58.96 296.5,-62.34 314.36,-65.71"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="314.18,-68.52 322.56,-67.26 315.21,-63.02 314.18,-68.52"/>
+</g>
+<!-- view_state_ready -->
+<g id="node3" class="node">
+<title>view_state_ready</title>
+<polygon fill="#ffffff" stroke="transparent" points="626,-40 626,-154 820,-154 820,-40 626,-40"/>
+<polygon fill="#71717a" stroke="transparent" points="627,-145 627,-153 819,-153 819,-145 627,-145"/>
+<polygon fill="#f8fafc" stroke="transparent" points="627,-114 627,-145 819,-145 819,-114 627,-114"/>
+<text text-anchor="start" x="631" y="-131.6" font-family="Arial" font-weight="bold" font-size="13.00">ready</text>
+<text text-anchor="start" x="631" y="-120.6" font-family="Arial" font-size="8.00" fill="#64748b">view state</text>
+<text text-anchor="start" x="632" y="-102" font-family="Arial" font-weight="bold" font-size="10.00">copy:</text>
+<text text-anchor="start" x="658" y="-102" font-family="Arial" font-size="10.00">  text.project.activity.ready.heading</text>
+<text text-anchor="start" x="631" y="-82" font-family="Arial" font-weight="bold" font-size="10.00">operation.project.read fields</text>
+<text text-anchor="start" x="631" y="-71" font-family="Arial" font-size="10.00">updated_at</text>
+<text text-anchor="start" x="680" y="-71" font-family="Arial" font-size="8.00" fill="#94a3b8">  Timestamp</text>
+<text text-anchor="start" x="631" y="-60" font-family="Arial" font-size="10.00">status</text>
+<text text-anchor="start" x="659" y="-60" font-family="Arial" font-size="8.00" fill="#94a3b8">  enum&lt;draft|submitted|approved|archived&gt;</text>
+<text text-anchor="start" x="631" y="-49" font-family="Arial" font-size="10.00">assignee</text>
+<text text-anchor="start" x="671" y="-49" font-family="Arial" font-size="8.00" fill="#94a3b8">  Text</text>
+<polygon fill="none" stroke="#71717a" points="626,-40 626,-154 820,-154 820,-40 626,-40"/>
+</g>
+<!-- transition_1_ready_empty_message_selection_cleared -->
+<g id="node5" class="node">
+<title>transition_1_ready_empty_message_selection_cleared</title>
+<polygon fill="#ffffff" stroke="transparent" points="881,-17 881,-79 1062,-79 1062,-17 881,-17"/>
+<polygon fill="#2563eb" stroke="transparent" points="882.5,-70 882.5,-78 1061.5,-78 1061.5,-70 882.5,-70"/>
+<polygon fill="#eff6ff" stroke="transparent" points="882.5,-39 882.5,-70 1061.5,-70 1061.5,-39 882.5,-39"/>
+<text text-anchor="start" x="886.5" y="-56.6" font-family="Arial" font-weight="bold" font-size="13.00">message.selection.cleared</text>
+<text text-anchor="start" x="886.5" y="-45.6" font-family="Arial" font-size="8.00" fill="#64748b">transition event</text>
+<text text-anchor="start" x="887.5" y="-27" font-family="Arial" font-weight="bold" font-size="10.00">set:</text>
+<text text-anchor="start" x="904.5" y="-27" font-family="Arial" font-size="10.00">  project_id</text>
+<text text-anchor="start" x="953.5" y="-27" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<text text-anchor="start" x="966.5" y="-27" font-family="Arial" font-size="8.00"> ← null</text>
+<polygon fill="none" stroke="#2563eb" points="881,-17 881,-79 1062,-79 1062,-17 881,-17"/>
+</g>
+<!-- view_state_ready&#45;&gt;transition_1_ready_empty_message_selection_cleared -->
+<g id="edge4" class="edge">
+<title>view_state_ready&#45;&gt;transition_1_ready_empty_message_selection_cleared</title>
+<path fill="none" stroke="#3f3f46" d="M820.01,-77.92C837.36,-74.47 855.47,-70.87 872.86,-67.41"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="873.5,-70.14 880.8,-65.83 872.41,-64.64 873.5,-70.14"/>
+</g>
+<!-- transition_0_empty_ready_message_project_selection_changed&#45;&gt;view_state_ready -->
+<g id="edge3" class="edge">
+<title>transition_0_empty_ready_message_project_selection_changed&#45;&gt;view_state_ready</title>
+<path fill="none" stroke="#3f3f46" d="M565.29,-93.04C582.73,-93.48 600.56,-93.93 617.65,-94.36"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="617.91,-97.17 625.98,-94.57 618.05,-91.57 617.91,-97.17"/>
+</g>
+<!-- transition_1_ready_empty_message_selection_cleared&#45;&gt;view_state_empty -->
+<g id="edge5" class="edge">
+<title>transition_1_ready_empty_message_selection_cleared&#45;&gt;view_state_empty</title>
+<path fill="none" stroke="#3f3f46" d="M880.79,-33.41C860.83,-30.74 839.74,-28.37 820,-27 623.83,-13.38 392.9,-25.45 270.28,-34.08"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="269.78,-31.31 262,-34.67 270.18,-36.9 269.78,-31.31"/>
+</g>
+</g>
+</svg>

@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .io import read_json
-from .targets import entry_fsm_surface, entry_point_adapter_pair, entry_point_trigger_pair
+from .targets import entry_state_machine_surface, entry_point_adapter_pair, entry_point_trigger_pair
 
 ROOT = Path(__file__).resolve().parent
 
@@ -24,7 +24,7 @@ TARGET_LAYERS: dict[str, set[str]] = {
     "event": {"core"},
     "scenario": {"core"},
     "workflow": {"workflow"},
-    "fsm": {"ui"},
+    "state_machine": {"ui"},
     "copy": {"ui"},
     "asset": {"ui"},
     "content_case": {"ui"},
@@ -52,7 +52,7 @@ AUTHOR_SECTIONS: dict[str, str] = {
     "models": "model",
     "operations": "operation",
     "events": "event",
-    "fsms": "fsm",
+    "state_machines": "state_machine",
     "entry_points": "entry_point",
     "workflows": "workflow",
     "scenarios": "scenario",
@@ -147,11 +147,11 @@ def _validate_author_spec_layers(label: str, target: str, spec: dict[str, Any], 
         except KeyError as exc:
             raise LayerError(f"{label} uses unsupported entry point trigger") from exc
         if trigger_kind == "state_machine":
-            render_surface = entry_fsm_surface(spec)
+            render_surface = entry_state_machine_surface(spec)
             required_render_layer = RENDER_SURFACE_LAYER.get(render_surface or "")
             if not required_render_layer:
                 raise LayerError(f"{label} uses unsupported state_machine target render {render_surface!r}")
-            _require_layers(label, f"FSM target surface {render_surface}", {"ui", required_render_layer}, layers)
+            _require_layers(label, f"state machine target surface {render_surface}", {"ui", required_render_layer}, layers)
         return
 
     if target == "audit_profile":
@@ -162,20 +162,20 @@ def _validate_author_spec_layers(label: str, target: str, spec: dict[str, Any], 
             _require_layers(label, f"audit_profile.{surface}", {AUDIT_PROFILE_LAYER[surface]}, layers)
         return
 
-    if target == "fsm":
-        for state_name, state in spec.get("states", {}).items():
-            _validate_presentation_layers(f"{label} state {state_name}", state.get("presentation", {}), layers)
+    if target == "state_machine":
+        for state_name, state in spec.get("view_states", {}).items():
+            _validate_presentation_layers(f"{label} view_state {state_name}", state.get("presentation", {}), layers)
             layout = state.get("layout") or {}
             if "html" in layout:
-                _require_layers(label, "FSM state layout html", {"web"}, layers)
+                _require_layers(label, "state machine view_state layout html", {"web"}, layers)
             if "textual" in layout:
-                _require_layers(label, "FSM state layout textual", {"textual"}, layers)
+                _require_layers(label, "state machine view_state layout textual", {"textual"}, layers)
             for case_name, case in (state.get("audit") or {}).items():
                 for surface in case.get("surfaces", []):
                     required_layer = RENDER_SURFACE_LAYER.get(surface)
                     if not required_layer:
-                        raise LayerError(f"{label} state {state_name} audit {case_name} uses unsupported render surface {surface!r}")
-                    _require_layers(label, f"FSM audit surface {surface}", {required_layer}, layers)
+                        raise LayerError(f"{label} view_state {state_name} audit {case_name} uses unsupported render surface {surface!r}")
+                    _require_layers(label, f"state machine audit surface {surface}", {required_layer}, layers)
         return
 
 

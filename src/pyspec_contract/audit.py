@@ -20,10 +20,10 @@ from .content import AssetResult, ContentContext, ContentError, call_asset, call
 from .io import write_yaml
 from .layout import layout_html, layout_html_regions
 from .paths import GENERATED_SPEC_DIR, generated_relative as g
-from .project import css_value, default_html_slots, format_attrs, humanize, fsms_projection, fsm_styles_projection, safe_id
+from .project import css_value, default_html_slots, format_attrs, humanize, state_machines_projection, state_machine_styles_projection, safe_id
 from .runtime import fixture_namespace, resolve
 from .targets import (
-    entry_fsm_surface,
+    entry_state_machine_surface,
     entry_point_adapter_pair,
     entry_point_cli_command,
     entry_point_input,
@@ -67,8 +67,8 @@ _DOT_COLOR_EVENT_BORDER = "#4f46e5"
 _DOT_COLOR_EVENT_TEXT = "#312e81"
 _DOT_COLOR_EVENT_HEADER = "#eef2ff"
 
-_DOT_COLOR_FSM_BORDER = "#047857"
-_DOT_COLOR_FSM_HEADER = "#ecfdf5"
+_DOT_COLOR_STATE_MACHINE_BORDER = "#047857"
+_DOT_COLOR_STATE_MACHINE_HEADER = "#ecfdf5"
 _DOT_COLOR_WORKFLOW_BORDER = "#a16207"
 _DOT_COLOR_WORKFLOW_HEADER = "#fefce8"
 _DOT_COLOR_MESSAGE_BORDER = "#be185d"
@@ -91,7 +91,7 @@ _DOT_STYLE_EXTERNAL = _DotCardStyle(header_bg=_DOT_COLOR_NEUTRAL_HEADER, border=
 _DOT_STYLE_NEUTRAL = _DotCardStyle(header_bg=_DOT_COLOR_NEUTRAL_HEADER, border=_DOT_COLOR_NEUTRAL_BORDER)
 _DOT_STYLE_CAPABILITY = _DotCardStyle(header_bg=_DOT_COLOR_CAPABILITY_HEADER, border=_DOT_COLOR_CAPABILITY_BORDER)
 _DOT_STYLE_EVENT = _DotCardStyle(header_bg=_DOT_COLOR_EVENT_HEADER, border=_DOT_COLOR_EVENT_BORDER)
-_DOT_STYLE_FSM = _DotCardStyle(header_bg=_DOT_COLOR_FSM_HEADER, border=_DOT_COLOR_FSM_BORDER)
+_DOT_STYLE_STATE_MACHINE = _DotCardStyle(header_bg=_DOT_COLOR_STATE_MACHINE_HEADER, border=_DOT_COLOR_STATE_MACHINE_BORDER)
 _DOT_STYLE_WORKFLOW = _DotCardStyle(header_bg=_DOT_COLOR_WORKFLOW_HEADER, border=_DOT_COLOR_WORKFLOW_BORDER)
 _DOT_STYLE_MESSAGE = _DotCardStyle(header_bg=_DOT_COLOR_MESSAGE_HEADER, border=_DOT_COLOR_MESSAGE_BORDER)
 _DOT_STYLE_CONTEXT = _DotCardStyle(header_bg=_DOT_COLOR_CONTEXT_HEADER, border=_DOT_COLOR_CONTEXT_BORDER)
@@ -101,16 +101,16 @@ def _under(relative: str, *parts: str) -> str:
     return "/".join([relative, *parts])
 
 
-def fsm_graph_file(fsm_id: str) -> str:
-    return g("audit_evidence", "fsms", safe_id(fsm_id), "fsm.svg")
+def state_machine_graph_file(state_machine_id: str) -> str:
+    return g("audit_evidence", "state_machines", safe_id(state_machine_id), "state_machine.svg")
 
 
-def fsm_state_root(fsm_id: str, state_name: str) -> str:
-    return g("audit_evidence", "fsms", safe_id(fsm_id), "states", safe_id(state_name))
+def view_state_root(state_machine_id: str, state_name: str) -> str:
+    return g("audit_evidence", "state_machines", safe_id(state_machine_id), "view_states", safe_id(state_name))
 
 
-def composition_file(fsm_id: str, state_name: str = "ready") -> str:
-    return g("audit_evidence", "fsms", safe_id(fsm_id), "states", safe_id(state_name), "composition.svg")
+def composition_file(state_machine_id: str, state_name: str = "ready") -> str:
+    return g("audit_evidence", "state_machines", safe_id(state_machine_id), "view_states", safe_id(state_name), "composition.svg")
 
 
 def entrypoint_flow_file(entry_id: str, adapter_kind: str) -> str:
@@ -121,8 +121,8 @@ def workflow_flow_file(workflow_id: str) -> str:
     return g("audit_evidence", "workflows", safe_id(workflow_id), "flow.svg")
 
 
-def audit_case_root(fsm_id: str, case_id: str, state_name: str = "ready") -> str:
-    return g("audit_evidence", "fsms", safe_id(fsm_id), "states", safe_id(state_name), "cases", safe_id(case_id))
+def audit_case_root(state_machine_id: str, case_id: str, state_name: str = "ready") -> str:
+    return g("audit_evidence", "state_machines", safe_id(state_machine_id), "view_states", safe_id(state_name), "cases", safe_id(case_id))
 
 
 def _render_filename(profile_id: str, breakpoint_id: str, extension: str) -> str:
@@ -138,28 +138,28 @@ def _render_filename(profile_id: str, breakpoint_id: str, extension: str) -> str
     raise ContractError(f"Unknown audit render extension: {extension}")
 
 
-def fsm_state_render_file(fsm_id: str, state_name: str, profile_id: str, breakpoint_id: str, extension: str) -> str:
-    return _under(fsm_state_root(fsm_id, state_name), "renders", _render_filename(profile_id, breakpoint_id, extension))
+def view_state_render_file(state_machine_id: str, state_name: str, profile_id: str, breakpoint_id: str, extension: str) -> str:
+    return _under(view_state_root(state_machine_id, state_name), "renders", _render_filename(profile_id, breakpoint_id, extension))
 
 
-def audit_case_render_file(fsm_id: str, case_id: str, profile_id: str, breakpoint_id: str, extension: str, state_name: str = "ready") -> str:
-    return _under(audit_case_root(fsm_id, case_id, state_name), "renders", _render_filename(profile_id, breakpoint_id, extension))
+def audit_case_render_file(state_machine_id: str, case_id: str, profile_id: str, breakpoint_id: str, extension: str, state_name: str = "ready") -> str:
+    return _under(audit_case_root(state_machine_id, case_id, state_name), "renders", _render_filename(profile_id, breakpoint_id, extension))
 
 
-def _projection_surface_root(fsm: dict[str, Any]) -> str:
-    return fsm_state_root(fsm["owner"], fsm["state"])
+def _projection_surface_root(state_machine: dict[str, Any]) -> str:
+    return view_state_root(state_machine["owner"], state_machine["view_state"])
 
 
-def _projection_surface_file(fsm: dict[str, Any], profile_id: str, breakpoint_id: str, extension: str) -> str:
-    return fsm_state_render_file(fsm["owner"], fsm["state"], profile_id, breakpoint_id, extension)
+def _projection_surface_file(state_machine: dict[str, Any], profile_id: str, breakpoint_id: str, extension: str) -> str:
+    return view_state_render_file(state_machine["owner"], state_machine["view_state"], profile_id, breakpoint_id, extension)
 
 
 def _case_root(contract: dict[str, Any], case_id: str, case: dict[str, Any]) -> str:
-    return audit_case_root(case["fsm"], case_id, case["state"])
+    return audit_case_root(case["state_machine"], case_id, case["view_state"])
 
 
 def _case_file(contract: dict[str, Any], case_id: str, case: dict[str, Any], breakpoint_id: str, extension: str) -> str:
-    return audit_case_render_file(case["fsm"], case_id, case["profile"], breakpoint_id, extension, case["state"])
+    return audit_case_render_file(case["state_machine"], case_id, case["profile"], breakpoint_id, extension, case["view_state"])
 
 
 def _scope_copy_file(scope_root: str) -> str:
@@ -192,11 +192,11 @@ def _fixtures_doc(
     }
 
 
-def _state_needs_data(contract: dict[str, Any], fsm: dict[str, Any]) -> bool:
-    if fsm.get("data") or fsm["slots"].get("fields"):
+def _state_needs_data(contract: dict[str, Any], state_machine: dict[str, Any]) -> bool:
+    if state_machine.get("data_dependencies") or state_machine["slots"].get("fields"):
         return True
-    copy_refs = fsm["slots"].get("copy", [])
-    asset_refs = fsm["slots"].get("assets", [])
+    copy_refs = state_machine["slots"].get("copy", [])
+    asset_refs = state_machine["slots"].get("assets", [])
     return any(contract["copies"][ref].get("args") for ref in copy_refs) or any(contract["assets"][ref].get("args") for ref in asset_refs)
 
 
@@ -237,13 +237,13 @@ def _fixture_ids_for_facts(contract: dict[str, Any], fact_ids: Iterable[str], mo
     return fixture_ids
 
 
-def _surface_scope_inputs(contract: dict[str, Any], fsm: dict[str, Any]) -> tuple[set[str], set[str], set[str], set[str], dict[str, Any]]:
-    copy_refs = set(fsm["slots"].get("copy", []))
-    asset_refs = set(fsm["slots"].get("assets", []))
+def _surface_scope_inputs(contract: dict[str, Any], state_machine: dict[str, Any]) -> tuple[set[str], set[str], set[str], set[str], dict[str, Any]]:
+    copy_refs = set(state_machine["slots"].get("copy", []))
+    asset_refs = set(state_machine["slots"].get("assets", []))
     fixture_ids: set[str] = set()
     fact_ids: set[str] = set()
-    if _state_needs_data(contract, fsm):
-        model_id = fsm_model(contract, fsm)
+    if _state_needs_data(contract, state_machine):
+        model_id = state_machine_model(contract, state_machine)
         fixture_ids = _fixture_ids_for_model(contract, model_id)
         fact_ids = _fact_ids_for_model(contract, model_id)
         fixture_ids.update(_fixture_ids_for_facts(contract, fact_ids, model_id))
@@ -251,9 +251,9 @@ def _surface_scope_inputs(contract: dict[str, Any], fsm: dict[str, Any]) -> tupl
 
 
 def _case_scope_inputs(contract: dict[str, Any], case: dict[str, Any]) -> tuple[set[str], set[str], set[str], set[str], dict[str, Any]]:
-    fsms = case_render_fsms(contract, case)
-    copy_refs = {copy_ref for fsm in fsms for copy_ref in fsm["slots"].get("copy", [])}
-    asset_refs = {asset_ref for fsm in fsms for asset_ref in fsm["slots"].get("assets", [])}
+    state_machines = case_render_state_machines(contract, case)
+    copy_refs = {copy_ref for state_machine in state_machines for copy_ref in state_machine["slots"].get("copy", [])}
+    asset_refs = {asset_ref for state_machine in state_machines for asset_ref in state_machine["slots"].get("assets", [])}
     fixture_ids = set(case.get("fixtures", []))
     fact_ids = {fact_use["use"] for fact_use in case.get("facts", [])}
     return copy_refs, asset_refs, fixture_ids, fact_ids, case.get("context") or {}
@@ -288,46 +288,46 @@ def _write_audit_scope_inputs(
 
 
 def _write_audit_inputs(root: Path, contract: dict[str, Any], projection: dict[str, Any]) -> None:
-    for fsm in _audit_projection_surfaces(contract, projection):
-        _write_audit_scope_inputs(root, contract, _projection_surface_root(fsm), *_surface_scope_inputs(contract, fsm))
+    for state_machine in _audit_projection_surfaces(contract, projection):
+        _write_audit_scope_inputs(root, contract, _projection_surface_root(state_machine), *_surface_scope_inputs(contract, state_machine))
     for case_id, case in sorted(audit_cases(contract).items()):
         _write_audit_scope_inputs(root, contract, _case_root(contract, case_id, case), *_case_scope_inputs(contract, case))
 
 
 def _audit_projection_surfaces(contract: dict[str, Any], projection: dict[str, Any]) -> list[dict[str, Any]]:
     return [
-        fsm
-        for fsm in projection["fsms"]
-        if not contract["fsms"][fsm["owner"]]["states"][fsm["state"]].get("mounts")
+        state_machine
+        for state_machine in projection["state_machines"]
+        if not contract["state_machines"][state_machine["owner"]]["view_states"][state_machine["view_state"]].get("child_state_machines")
     ]
 
 
 def audit_expected_files(contract: dict[str, Any]) -> set[str]:
     files: set[str] = set()
-    for fsm_id in contract.get("fsms", {}):
-        files.add(fsm_graph_file(fsm_id))
-    for fsm_id, fsm in contract.get("fsms", {}).items():
-        for state_name, state in fsm.get("states", {}).items():
-            if state.get("mounts"):
-                files.add(composition_file(fsm_id, state_name))
+    for state_machine_id in contract.get("state_machines", {}):
+        files.add(state_machine_graph_file(state_machine_id))
+    for state_machine_id, state_machine in contract.get("state_machines", {}).items():
+        for state_name, state in state_machine.get("view_states", {}).items():
+            if state.get("child_state_machines"):
+                files.add(composition_file(state_machine_id, state_name))
     for entry_id, entry in contract.get("entry_points", {}).items():
         adapter_kind, _ = entry_point_adapter_pair(entry)
         files.add(entrypoint_flow_file(entry_id, adapter_kind))
     for workflow_id in contract.get("workflows", {}):
         files.add(workflow_flow_file(workflow_id))
 
-    projection = fsms_projection(contract)
-    for fsm in _audit_projection_surfaces(contract, projection):
-        scope_root = _projection_surface_root(fsm)
-        _, asset_refs, _, _, _ = _surface_scope_inputs(contract, fsm)
+    projection = state_machines_projection(contract)
+    for state_machine in _audit_projection_surfaces(contract, projection):
+        scope_root = _projection_surface_root(state_machine)
+        _, asset_refs, _, _, _ = _surface_scope_inputs(contract, state_machine)
         files.update(_audit_scope_expected_files(scope_root, asset_refs))
         for profile_id, profile in sorted(contract.get("audit_profiles", {}).items()):
             for breakpoint in profile.get("html", {}).get("breakpoints", {}):
-                files.add(_projection_surface_file(fsm, profile_id, breakpoint, "html"))
-                files.add(_projection_surface_file(fsm, profile_id, breakpoint, "png"))
+                files.add(_projection_surface_file(state_machine, profile_id, breakpoint, "html"))
+                files.add(_projection_surface_file(state_machine, profile_id, breakpoint, "png"))
             for breakpoint in profile.get("textual", {}).get("breakpoints", {}):
-                files.add(_projection_surface_file(fsm, profile_id, breakpoint, "py"))
-                files.add(_projection_surface_file(fsm, profile_id, breakpoint, "svg"))
+                files.add(_projection_surface_file(state_machine, profile_id, breakpoint, "py"))
+                files.add(_projection_surface_file(state_machine, profile_id, breakpoint, "svg"))
 
     for case_id, case in audit_cases(contract).items():
         profile = contract["audit_profiles"][case["profile"]]
@@ -365,7 +365,7 @@ def generate_audit(
     audit_root.mkdir(parents=True, exist_ok=True)
 
     try:
-        projection = fsms_projection(contract)
+        projection = state_machines_projection(contract)
         _write_audit_inputs(root, contract, projection)
 
         if audit_expected_files(contract):
@@ -411,18 +411,18 @@ def _render_visual_audit(
     projection: dict[str, Any] | None = None,
     previous_audit_root: Path | None = None,
 ) -> None:
-    projection = projection or fsms_projection(contract)
-    for fsm_id, fsm in sorted(contract.get("fsms", {}).items()):
-        path = root / fsm_graph_file(fsm_id)
-        _write_graphviz_svg(path, fsm_dot(fsm_id, fsm, contract), _previous_audit_path(root, previous_audit_root, path))
-    for fsm_id, fsm in sorted(contract.get("fsms", {}).items()):
-        for state_name, state in sorted(fsm.get("states", {}).items()):
-            if not state.get("mounts"):
+    projection = projection or state_machines_projection(contract)
+    for state_machine_id, state_machine in sorted(contract.get("state_machines", {}).items()):
+        path = root / state_machine_graph_file(state_machine_id)
+        _write_graphviz_svg(path, state_machine_dot(state_machine_id, state_machine, contract), _previous_audit_path(root, previous_audit_root, path))
+    for state_machine_id, state_machine in sorted(contract.get("state_machines", {}).items()):
+        for state_name, state in sorted(state_machine.get("view_states", {}).items()):
+            if not state.get("child_state_machines"):
                 continue
-            path = root / composition_file(fsm_id, state_name)
+            path = root / composition_file(state_machine_id, state_name)
             _write_graphviz_svg(
                 path,
-                composition_dot(f"{fsm_id}.{state_name}", {"context": fsm.get("context", {}), **state}, contract),
+                composition_dot(f"{state_machine_id}.{state_name}", {"context": state_machine.get("context", {}), **state}, contract),
                 _previous_audit_path(root, previous_audit_root, path),
             )
     for entry_id, entry in sorted(contract.get("entry_points", {}).items()):
@@ -439,19 +439,19 @@ def _render_visual_audit(
     if has_html_audit:
         _render_html_audit(root, contract, projection, previous_audit_root)
 
-    audit_fsms = _audit_projection_surfaces(contract, projection)
-    if audit_fsms or any("textual" in case["surfaces"] for case in audit_cases(contract).values()):
+    audit_state_machines = _audit_projection_surfaces(contract, projection)
+    if audit_state_machines or any("textual" in case["surfaces"] for case in audit_cases(contract).values()):
         try:
             import textual  # noqa: F401
         except Exception as exc:  # pragma: no cover - dependency absence is environment-specific.
             raise ContractError("Missing Textual dependency; install requirements.txt") from exc
         textual_jobs: list[tuple[Path, list[tuple[str, str]], dict[str, int], Path | None, Path | None]] = []
-        for fsm in sorted(audit_fsms, key=lambda p: p["id"]):
-            lines = fsm_textual_lines(root, contract, fsm, None)
+        for state_machine in sorted(audit_state_machines, key=lambda p: p["id"]):
+            lines = state_machine_textual_lines(root, contract, state_machine, None)
             for profile_id, profile in sorted(contract.get("audit_profiles", {}).items()):
                 for name, viewport in sorted(profile.get("textual", {}).get("breakpoints", {}).items()):
-                    py_path = root / _projection_surface_file(fsm, profile_id, name, "py")
-                    svg_path = root / _projection_surface_file(fsm, profile_id, name, "svg")
+                    py_path = root / _projection_surface_file(state_machine, profile_id, name, "py")
+                    svg_path = root / _projection_surface_file(state_machine, profile_id, name, "svg")
                     _write_textual_source(py_path, lines)
                     textual_jobs.append((
                         svg_path,
@@ -493,15 +493,15 @@ def _render_html_audit(root: Path, contract: dict[str, Any], projection: dict[st
         try:
             page = browser.new_page()
             try:
-                for fsm in sorted(_audit_projection_surfaces(contract, projection), key=lambda p: p["id"]):
+                for state_machine in sorted(_audit_projection_surfaces(contract, projection), key=lambda p: p["id"]):
                     for profile_id, profile in sorted(contract.get("audit_profiles", {}).items()):
                         html_profile = profile.get("html")
                         if not html_profile:
                             continue
-                        html_doc = audit_html_document(contract, render_fsm_audit_html(root, contract, fsm, None), fsm_surface_ids={fsm["id"]})
+                        html_doc = audit_html_document(contract, render_state_machine_audit_html(root, contract, state_machine, None), state_machine_surface_ids={state_machine["id"]})
                         for name, viewport in sorted(html_profile["breakpoints"].items()):
-                            html_path = root / _projection_surface_file(fsm, profile_id, name, "html")
-                            png_path = root / _projection_surface_file(fsm, profile_id, name, "png")
+                            html_path = root / _projection_surface_file(state_machine, profile_id, name, "html")
+                            png_path = root / _projection_surface_file(state_machine, profile_id, name, "png")
                             _write_html_and_png_page(
                                 page,
                                 html_doc,
@@ -517,7 +517,7 @@ def _render_html_audit(root: Path, contract: dict[str, Any], projection: dict[st
                         html_doc = audit_html_document(
                             contract,
                             render_audit_case_html(root, contract, case_id, case),
-                            fsm_surface_ids={fsm["id"] for fsm in case_render_fsms(contract, case)},
+                            state_machine_surface_ids={state_machine["id"] for state_machine in case_render_state_machines(contract, case)},
                             composition_ids=_case_composition_ids(contract, case),
                         )
                         for name, viewport in sorted(profile.get("html", {}).get("breakpoints", {}).items()):
@@ -778,34 +778,34 @@ async def _render_textual_svg(
     path.write_text(_svg_with_input_hash(svg, input_hash, _TEXTUAL_INPUT_HASH_PREFIX), encoding="utf-8")
 
 
-def fsm_dot(fsm_id: str, fsm: dict[str, Any], contract: dict[str, Any]) -> str:
-    lines = _dot_graph_preamble("fsm_" + safe_id(fsm_id))
-    lines.append(_dot_circle_node("initial", "initial", width="0.58", color=_DOT_COLOR_ENTRY, fontcolor=_DOT_COLOR_ENTRY_TEXT))
-    for state_name in sorted(fsm["states"]):
-        state = fsm["states"][state_name]
+def state_machine_dot(state_machine_id: str, state_machine: dict[str, Any], contract: dict[str, Any]) -> str:
+    lines = _dot_graph_preamble("state_machine_" + safe_id(state_machine_id))
+    lines.append(_dot_circle_node("initial_view_state", "initial_view_state", width="0.58", color=_DOT_COLOR_ENTRY, fontcolor=_DOT_COLOR_ENTRY_TEXT))
+    for state_name in sorted(state_machine["view_states"]):
+        state = state_machine["view_states"][state_name]
         sections: list[tuple[str, Iterable[object]]] = [
             ("copy", state.get("copy", [])),
             ("assets", state.get("assets", [])),
-            (_state_field_section_title(fsm, state_name, state), _format_state_fields(fsm, state, contract)),
-            ("actions", _format_operation_outputs(state.get("actions", []), contract)),
-            ("mounts", _format_mounts(state.get("mounts", []))),
-            ("sync", [rule["id"] for rule in state.get("sync", [])]),
+            (_state_field_section_title(state_machine, state_name, state), _format_state_fields(state_machine, state, contract)),
+            ("operation_refs", _format_operation_outputs(state.get("operation_refs", []), contract)),
+            ("child_state_machines", _format_mounts(state.get("child_state_machines", []))),
+            ("message_sync_rules", [rule["id"] for rule in state.get("message_sync_rules", [])]),
         ]
         lines.append(
             _dot_html_node(
-                _dot_node_id("state", state_name),
+                _dot_node_id("view_state", state_name),
                 _dot_card(
                     state_name,
-                    "initial state" if state_name == fsm["initial"] else "state",
+                    "initial view state" if state_name == state_machine["initial_view_state"] else "view state",
                     sections,
-                    style=_DOT_STYLE_ENTRY if state_name == fsm["initial"] else _DOT_STYLE_NEUTRAL,
+                    style=_DOT_STYLE_ENTRY if state_name == state_machine["initial_view_state"] else _DOT_STYLE_NEUTRAL,
                 ),
             )
         )
-    lines.append(_dot_edge("initial", _dot_node_id("state", fsm["initial"])))
-    for index, transition in enumerate(fsm.get("transitions", [])):
-        source = _dot_node_id("state", transition["from"])
-        target = _dot_node_id("state", transition["to"])
+    lines.append(_dot_edge("initial_view_state", _dot_node_id("view_state", state_machine["initial_view_state"])))
+    for index, transition in enumerate(state_machine.get("transitions", [])):
+        source = _dot_node_id("view_state", transition["from"])
+        target = _dot_node_id("view_state", transition["to"])
         transition_id = _dot_node_id("transition", f"{index}_{transition['from']}_{transition['to']}_{transition['on']}")
         lines.append(
             _dot_html_node(
@@ -813,7 +813,7 @@ def fsm_dot(fsm_id: str, fsm: dict[str, Any], contract: dict[str, Any]) -> str:
                 _dot_card(
                     transition["on"],
                     "transition event",
-                    _format_transition_sections(fsm, transition, contract),
+                    _format_transition_sections(state_machine, transition, contract),
                     basis=transition.get("basis", ""),
                     style=_DOT_STYLE_CAPABILITY,
                 ),
@@ -825,28 +825,28 @@ def fsm_dot(fsm_id: str, fsm: dict[str, Any], contract: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def composition_dot(fsm_id: str, fsm: dict[str, Any], contract: dict[str, Any]) -> str:
-    route_fsm_order: list[str] = []
-    for rule in fsm.get("sync", []):
-        route_fsm_order.append(rule["when"]["instance"])
-        route_fsm_order.extend(effect["send"]["instance"] for effect in rule.get("do", []) if "send" in effect)
-    route_fsm_index = {fsm_id: index for index, fsm_id in enumerate(dict.fromkeys(route_fsm_order))}
+def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contract: dict[str, Any]) -> str:
+    route_state_machine_order: list[str] = []
+    for rule in state_machine.get("message_sync_rules", []):
+        route_state_machine_order.append(rule["when"]["instance"])
+        route_state_machine_order.extend(effect["send"]["instance"] for effect in rule.get("do", []) if "send" in effect)
+    route_state_machine_index = {state_machine_id: index for index, state_machine_id in enumerate(dict.fromkeys(route_state_machine_order))}
     mounts = sorted(
-        fsm.get("mounts", []),
-        key=lambda mount: (route_fsm_index.get(mount["id"], len(route_fsm_index)), mount["id"]),
+        state_machine.get("child_state_machines", []),
+        key=lambda mount: (route_state_machine_index.get(mount["id"], len(route_state_machine_index)), mount["id"]),
     )
     mount_by_id = {mount["id"]: mount for mount in mounts}
-    mount_node_by_id = {mount["id"]: _dot_node_id("fsm_mount", mount["id"]) for mount in mounts}
+    mount_node_by_id = {mount["id"]: _dot_node_id("child_state_machine", mount["id"]) for mount in mounts}
     mount_node_ids = [mount_node_by_id[mount["id"]] for mount in mounts]
-    has_sync = bool(fsm.get("sync"))
-    lines = _dot_graph_preamble("composition_" + safe_id(fsm_id))
+    has_sync = bool(state_machine.get("message_sync_rules"))
+    lines = _dot_graph_preamble("composition_" + safe_id(state_machine_id))
     for mount in mounts:
         lines.append(_dot_html_node(mount_node_by_id[mount["id"]], _dot_mount_card(mount)))
     if mount_node_ids and not has_sync:
         lines.extend(_dot_invisible_order(mount_node_ids, indent="  "))
     if not has_sync:
         lines.append(_dot_html_node("message_route_none", _dot_card("No message routes", "message routing", [], style=_DOT_STYLE_NEUTRAL)))
-    for rule in fsm.get("sync", []):
+    for rule in state_machine.get("message_sync_rules", []):
         emit_id = _dot_node_id("message_emit", f"{rule['id']}_{rule['when']['instance']}_{rule['when']['message']}")
         sync_id = _dot_node_id("message_route", rule["id"])
         send_effects = [(index, effect) for index, effect in enumerate(rule.get("do", [])) if "send" in effect]
@@ -871,7 +871,7 @@ def composition_dot(fsm_id: str, fsm: dict[str, Any], contract: dict[str, Any]) 
                 _dot_card(
                     rule["id"],
                     "message route",
-                    [("set", _route_set_lines(rule, fsm))],
+                    [("set", _route_set_lines(rule, state_machine))],
                     style=_DOT_STYLE_WORKFLOW,
                 ),
             )
@@ -882,7 +882,7 @@ def composition_dot(fsm_id: str, fsm: dict[str, Any], contract: dict[str, Any]) 
         if effect_ids:
             lines.append("  { rank=same; " + " ".join(_dot_quote(effect_id) for effect_id in effect_ids) + " }")
             lines.extend(_dot_invisible_order(effect_ids, indent="  "))
-    for rule in fsm.get("sync", []):
+    for rule in state_machine.get("message_sync_rules", []):
         emit_id = _dot_node_id("message_emit", f"{rule['id']}_{rule['when']['instance']}_{rule['when']['message']}")
         sync_id = _dot_node_id("message_route", rule["id"])
         source = mount_node_by_id.get(rule["when"]["instance"])
@@ -905,7 +905,7 @@ def composition_dot(fsm_id: str, fsm: dict[str, Any], contract: dict[str, Any]) 
 def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str, Any]) -> str:
     adapter_kind, _ = entry_point_adapter_pair(entry)
     target_kind, target_value = entry_target_pair(entry)
-    target_surface = entry_fsm_surface(entry) if target_kind == "fsm" else None
+    target_surface = entry_state_machine_surface(entry) if target_kind == "state_machine" else None
     target_trigger = entry_workflow_trigger(entry) if target_kind == "workflow" else None
     start_id = "entry_start"
     entry_node = _dot_node_id("entrypoint", entry_id)
@@ -913,7 +913,7 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
     target_node = _dot_node_id("entrypoint_target", target_value)
     response_nodes = _entry_response_nodes(entry_id, entry, contract)
     exit_id = "entry_exit"
-    target_tail = [] if target_kind == "fsm" else _entry_target_tail_nodes(target_kind, target_value, contract)
+    target_tail = [] if target_kind == "state_machine" else _entry_target_tail_nodes(target_kind, target_value, contract)
     input_sections = _entry_input_sections(entry, contract)
     input_title, output_title = _entry_io_card_titles(adapter_kind)
     lines = _dot_graph_preamble("entrypoint_" + safe_id(entry_id))
@@ -1131,14 +1131,14 @@ def _entry_target_card(
     surface: str | None = None,
     trigger: dict[str, str] | None = None,
 ) -> str:
-    if target_kind == "fsm":
-        fsm = contract["fsms"][target_value]
+    if target_kind == "state_machine":
+        state_machine = contract["state_machines"][target_value]
         return _dot_card(
             target_value,
-            f"target FSM ({surface})" if surface else "target FSM",
-            _fsm_summary_sections(fsm, contract),
-            basis=fsm.get("basis", ""),
-            style=_DOT_STYLE_FSM,
+            f"target state machine ({surface})" if surface else "target state machine",
+            _state_machine_summary_sections(state_machine, contract),
+            basis=state_machine.get("basis", ""),
+            style=_DOT_STYLE_STATE_MACHINE,
         )
     if target_kind == "operation":
         operation = contract["operations"][target_value]
@@ -1171,25 +1171,25 @@ def _entry_target_card(
 
 
 def _entry_target_tail_nodes(target_kind: str, target_value: str, contract: dict[str, Any]) -> list[tuple[str, str]]:
-    if target_kind != "fsm":
+    if target_kind != "state_machine":
         return []
-    fsm = contract["fsms"][target_value]
+    state_machine = contract["state_machines"][target_value]
     nodes: list[tuple[str, str]] = []
-    for state_name, state in sorted(fsm.get("states", {}).items()):
-        if state.get("mounts"):
+    for state_name, state in sorted(state_machine.get("view_states", {}).items()):
+        if state.get("child_state_machines"):
             nodes.extend(
                 (_dot_node_id("entrypoint_mount", f"{target_value}_{state_name}_{mount['id']}"), _dot_mount_card(mount))
-                for mount in state["mounts"]
+                for mount in state["child_state_machines"]
             )
         else:
-            nodes.append((_dot_node_id("entrypoint_fsm_state", f"{target_value}_{state_name}"), _fsm_state_card(fsm, state_name, state, contract)))
+            nodes.append((_dot_node_id("entrypoint_state_machine_view_state", f"{target_value}_{state_name}"), _state_machine_view_state_card(state_machine, state_name, state, contract)))
     return nodes
 
 
-def _fsm_summary_sections(fsm: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, list[object]]]:
+def _state_machine_summary_sections(state_machine: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
-    bindings = _unique_data_bindings(fsm.get("data", []))
-    inputs = _format_data_inputs(fsm, bindings, contract)
+    bindings = _unique_data_bindings(state_machine.get("data_dependencies", []))
+    inputs = _format_data_inputs(state_machine, bindings, contract)
     queries = [binding["query"] for binding in bindings]
     loads = _format_operation_outputs([binding["operation"] for binding in bindings], contract)
     if inputs:
@@ -1198,24 +1198,24 @@ def _fsm_summary_sections(fsm: dict[str, Any], contract: dict[str, Any]) -> list
         sections.append(("query", queries))
     if loads:
         sections.append(("load", loads))
-    sections.append(("model", [fsm["model"]]))
-    sync_ids = [rule["id"] for state in fsm.get("states", {}).values() for rule in state.get("sync", [])]
+    sections.append(("model", [state_machine["model"]]))
+    sync_ids = [rule["id"] for state in state_machine.get("view_states", {}).values() for rule in state.get("message_sync_rules", [])]
     if sync_ids:
-        sections.append(("sync", sync_ids))
+        sections.append(("message_sync_rules", sync_ids))
     return sections
 
 
-def _fsm_state_card(fsm: dict[str, Any], state_name: str, state: dict[str, Any], contract: dict[str, Any]) -> str:
+def _state_machine_view_state_card(state_machine: dict[str, Any], state_name: str, state: dict[str, Any], contract: dict[str, Any]) -> str:
     return _dot_card(
         state_name,
-        "fsm state",
+        "view state",
         [
             ("copy", state.get("copy", [])),
             ("assets", state.get("assets", [])),
-            (_state_field_section_title(fsm, state_name, state), _format_state_fields(fsm, state, contract)),
-            ("actions", _format_operation_outputs(state.get("actions", []), contract)),
-            ("mounts", _format_mounts(state.get("mounts", []))),
-            ("sync", [rule["id"] for rule in state.get("sync", [])]),
+            (_state_field_section_title(state_machine, state_name, state), _format_state_fields(state_machine, state, contract)),
+            ("operation_refs", _format_operation_outputs(state.get("operation_refs", []), contract)),
+            ("child_state_machines", _format_mounts(state.get("child_state_machines", []))),
+            ("message_sync_rules", [rule["id"] for rule in state.get("message_sync_rules", [])]),
         ],
         style=_DOT_STYLE_NEUTRAL,
     )
@@ -1367,7 +1367,7 @@ def _target_label(kind: str, value: str) -> str:
 def _format_mounts(mounts: Iterable[dict[str, Any]]) -> list[_DotTypedField]:
     lines: list[_DotTypedField] = []
     for mount in sorted(mounts, key=lambda item: (item["region"], item["id"])):
-        lines.append(_DotTypedField(mount["region"], mount["fsm"]))
+        lines.append(_DotTypedField(mount["region"], mount["state_machine"]))
     return lines
 
 
@@ -1376,10 +1376,10 @@ def _dot_mount_card(mount: dict[str, Any]) -> str:
         mount["id"],
         f"{mount['region']} mount",
         [
-            ("fsm", [mount["fsm"]]),
-            ("initial", [mount["initial"]]),
+            ("state_machine", [mount["state_machine"]]),
+            ("initial_view_state", [mount["initial_view_state"]]),
         ],
-        style=_DOT_STYLE_FSM,
+        style=_DOT_STYLE_STATE_MACHINE,
     )
 
 
@@ -1402,7 +1402,7 @@ def _dot_sync_effect_card(
     assignment = effect["set"]
     return _dot_card(
         f"set {assignment['context']}",
-        "FSM context update",
+        "state machine context update",
         [
             ("set", [_format_flow_assignment(assignment["context"], _assignment_value(assignment), identity_scope=None)]),
         ],
@@ -1428,9 +1428,9 @@ def _emitted_message_data_lines(
     return lines
 
 
-def _route_set_lines(rule: dict[str, Any], fsm: dict[str, Any]) -> list[_DotTypedField]:
+def _route_set_lines(rule: dict[str, Any], state_machine: dict[str, Any]) -> list[_DotTypedField]:
     lines = []
-    context = fsm["context"]
+    context = state_machine["context"]
     for effect in rule.get("do", []):
         assignment = effect.get("set")
         if not assignment:
@@ -1461,8 +1461,8 @@ def _message_payload_for_instance(
     contract: dict[str, Any],
 ) -> dict[str, str]:
     mount = mount_by_id[instance_id]
-    fsm = contract["fsms"][mount["fsm"]]
-    return fsm["state_machine_messages"][direction][message]["payload_schema"]
+    state_machine = contract["state_machines"][mount["state_machine"]]
+    return state_machine["state_machine_messages"][direction][message]["payload_schema"]
 
 
 def _emitting_transition_emits(
@@ -1472,9 +1472,9 @@ def _emitting_transition_emits(
     contract: dict[str, Any],
 ) -> list[dict[str, Any]]:
     mount = mount_by_id[instance_id]
-    fsm = contract["fsms"][mount["fsm"]]
+    state_machine = contract["state_machines"][mount["state_machine"]]
     emits = []
-    for transition in fsm.get("transitions", []):
+    for transition in state_machine.get("transitions", []):
         for effect in transition.get("effects", []):
             emit = effect.get("emit")
             if emit and emit["message"] == emitted:
@@ -1494,10 +1494,10 @@ def _emitting_transition_refs(
     mount = mount_by_id.get(instance_id)
     if not mount:
         return refs
-    fsm = contract.get("fsms", {}).get(mount["fsm"])
-    if not fsm:
+    state_machine = contract.get("state_machines", {}).get(mount["state_machine"])
+    if not state_machine:
         return refs
-    for transition in fsm.get("transitions", []):
+    for transition in state_machine.get("transitions", []):
         if any(effect.get("emit", {}).get("message") == emitted for effect in transition.get("effects", [])):
             refs.append(transition["on"])
     return refs
@@ -1514,11 +1514,11 @@ def _receiving_transition_refs(
     mount = mount_by_id.get(instance_id)
     if not mount:
         return []
-    fsm = contract.get("fsms", {}).get(mount["fsm"])
-    if not fsm:
+    state_machine = contract.get("state_machines", {}).get(mount["state_machine"])
+    if not state_machine:
         return []
     target_sources: dict[str, list[str]] = {}
-    for transition in fsm.get("transitions", []):
+    for transition in state_machine.get("transitions", []):
         if transition["on"] == message:
             target_sources.setdefault(transition["to"], []).append(transition["from"])
     if len(target_sources) == 1:
@@ -1716,7 +1716,7 @@ def _dot_section_inner_rows(title: str, values: Iterable[object]) -> tuple[bool,
 
 
 def _dot_typed_field_section_inner_rows(title: str, values: list[object]) -> tuple[bool, list[str]]:
-    if (title in {"input", "output", "payload", "payload_schema", "data", "set", "load"} or title == "actions") and len(values) == 1:
+    if (title in {"input", "output", "payload", "payload_schema", "data_dependencies", "set", "load"} or title == "operation_refs") and len(values) == 1:
         rows = []
         for index, value in enumerate(values):
             if isinstance(value, _DotTypedField):
@@ -1874,14 +1874,14 @@ def _format_flow_source(value: Any) -> str:
 
 
 def _format_transition_sections(
-    fsm: dict[str, Any], transition: dict[str, Any], contract: dict[str, Any]
+    state_machine: dict[str, Any], transition: dict[str, Any], contract: dict[str, Any]
 ) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
     if _is_data_event(transition["on"]):
-        bindings = _transition_data_bindings(fsm, transition)
+        bindings = _transition_data_bindings(state_machine, transition)
         data_sources = _format_operation_outputs([binding["operation"] for binding in bindings], contract)
         queries = [binding["query"] for binding in bindings]
-        inputs = _format_data_inputs(fsm, bindings, contract)
+        inputs = _format_data_inputs(state_machine, bindings, contract)
         if inputs:
             sections.append(("input", inputs))
         if queries:
@@ -1889,50 +1889,50 @@ def _format_transition_sections(
         if data_sources:
             sections.append(("load", data_sources))
     else:
-        target_bindings = _transition_target_data_bindings(fsm, transition)
+        target_bindings = _transition_target_data_bindings(state_machine, transition)
         data_sources = _format_operation_outputs([binding["operation"] for binding in target_bindings], contract)
         queries = [binding["query"] for binding in target_bindings]
-        required_context = _format_data_inputs(fsm, target_bindings, contract)
+        required_context = _format_data_inputs(state_machine, target_bindings, contract)
         if required_context:
             sections.append(("input", required_context))
         if queries:
             sections.append(("query", queries))
         if data_sources:
             sections.append(("load", data_sources))
-    sections.extend(_format_transition_effect_sections(fsm, transition))
+    sections.extend(_format_transition_effect_sections(state_machine, transition))
     return sections
 
 
-def _transition_target_data_bindings(fsm: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
-    target_state = fsm.get("states", {}).get(transition["to"], {})
-    return _unique_data_bindings(target_state.get("data", []))
+def _transition_target_data_bindings(state_machine: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
+    target_state = state_machine.get("view_states", {}).get(transition["to"], {})
+    return _unique_data_bindings(target_state.get("data_dependencies", []))
 
 
-def _state_field_section_title(fsm: dict[str, Any], state_name: str, state: dict[str, Any]) -> str:
-    operations = [binding["operation"] for binding in _state_field_data_bindings(fsm, state_name, state) if binding.get("operation")]
+def _state_field_section_title(state_machine: dict[str, Any], state_name: str, state: dict[str, Any]) -> str:
+    operations = [binding["operation"] for binding in _state_field_data_bindings(state_machine, state_name, state) if binding.get("operation")]
     unique = sorted(dict.fromkeys(operations))
     if len(unique) == 1:
         return f"{unique[0]} fields"
     if unique:
         return "data fields"
-    return f"{fsm['model']} fields"
+    return f"{state_machine['model']} fields"
 
 
-def _state_field_data_bindings(fsm: dict[str, Any], state_name: str, state: dict[str, Any]) -> list[dict[str, Any]]:
-    bindings = _unique_data_bindings(state.get("data", []))
+def _state_field_data_bindings(state_machine: dict[str, Any], state_name: str, state: dict[str, Any]) -> list[dict[str, Any]]:
+    bindings = _unique_data_bindings(state.get("data_dependencies", []))
     if bindings:
         return bindings
     incoming_data_bindings: list[dict[str, Any]] = []
-    for transition in fsm.get("transitions", []):
+    for transition in state_machine.get("transitions", []):
         if transition["to"] == state_name and _is_data_event(transition["on"]):
-            incoming_data_bindings.extend(_transition_data_bindings(fsm, transition))
+            incoming_data_bindings.extend(_transition_data_bindings(state_machine, transition))
     if incoming_data_bindings:
         return _unique_data_bindings(incoming_data_bindings)
-    return _unique_data_bindings(fsm.get("data", []))
+    return _unique_data_bindings(state_machine.get("data_dependencies", []))
 
 
-def _format_state_fields(fsm: dict[str, Any], state: dict[str, Any], contract: dict[str, Any]) -> list[_DotTypedField]:
-    model_fields = contract["models"][fsm["model"]]["fields"]
+def _format_state_fields(state_machine: dict[str, Any], state: dict[str, Any], contract: dict[str, Any]) -> list[_DotTypedField]:
+    model_fields = contract["models"][state_machine["model"]]["fields"]
     return [_DotTypedField(field, effective_field_type(model_fields[field])) for field in state["fields"]]
 
 
@@ -1947,9 +1947,9 @@ def _format_operation_outputs(operation_ids: Iterable[str], contract: dict[str, 
 
 
 def _format_data_inputs(
-    fsm: dict[str, Any], bindings: Iterable[dict[str, Any]], contract: dict[str, Any]
+    state_machine: dict[str, Any], bindings: Iterable[dict[str, Any]], contract: dict[str, Any]
 ) -> list[_DotTypedField]:
-    context = fsm.get("context", {})
+    context = state_machine.get("context", {})
     operations = contract["operations"]
     inputs: list[_DotTypedField] = []
     seen: set[str] = set()
@@ -1967,9 +1967,9 @@ def _is_data_event(event: str) -> bool:
     return event.startswith("data.")
 
 
-def _transition_data_bindings(fsm: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
-    source_state = fsm.get("states", {}).get(transition["from"], {})
-    bindings = source_state.get("data", []) or fsm.get("data", [])
+def _transition_data_bindings(state_machine: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
+    source_state = state_machine.get("view_states", {}).get(transition["from"], {})
+    bindings = source_state.get("data_dependencies", []) or state_machine.get("data_dependencies", [])
     return _unique_data_bindings(bindings)
 
 
@@ -1984,13 +1984,13 @@ def _unique_data_bindings(bindings: Iterable[dict[str, Any]]) -> list[dict[str, 
     return unique
 
 
-def _format_transition_effect_sections(fsm: dict[str, Any], transition: dict[str, Any]) -> list[tuple[str, list[object]]]:
+def _format_transition_effect_sections(state_machine: dict[str, Any], transition: dict[str, Any]) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
     for effect in transition.get("effects", []):
         if "emit" in effect:
             emit = effect["emit"]
             sections.append(("emit", [emit["message"]]))
-            payload_types = fsm["state_machine_messages"]["emits"][emit["message"]]["payload_schema"]
+            payload_types = state_machine["state_machine_messages"]["emits"][emit["message"]]["payload_schema"]
             payload = _format_typed_data_flow(emit.get("payload_bindings", {}), payload_types)
             if payload:
                 sections.append(("payload", payload))
@@ -1999,7 +1999,7 @@ def _format_transition_effect_sections(fsm: dict[str, Any], transition: dict[str
             target = assignment["context"]
             sections.append((
                 "set",
-                [_format_typed_flow_assignment(target, fsm["context"][target], _assignment_value(assignment), identity_scope=None)],
+                [_format_typed_flow_assignment(target, state_machine["context"][target], _assignment_value(assignment), identity_scope=None)],
             ))
     return sections
 
@@ -2034,15 +2034,15 @@ def audit_html_document(
     contract: dict[str, Any],
     body: str,
     *,
-    fsm_surface_ids: Iterable[str] | None = None,
+    state_machine_surface_ids: Iterable[str] | None = None,
     composition_ids: Iterable[str] | None = None,
 ) -> str:
-    css = fsm_styles_projection(contract, surface_ids=fsm_surface_ids, composition_ids=composition_ids)
+    css = state_machine_styles_projection(contract, surface_ids=state_machine_surface_ids, composition_ids=composition_ids)
     extra_css = """
     body { margin: 0; font-family: ui-sans-serif, system-ui, sans-serif; background: #f7f7f8; color: #171717; }
     main { padding: 24px; }
-    .contract-fsm-surface, .contract-fsm-composition { background: white; border: 1px solid #d0d0d0; border-radius: 12px; padding: 16px; box-sizing: border-box; }
-    .contract-fsm-composition { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(280px, 2fr) minmax(180px, 1fr); gap: 16px; max-width: none; }
+    .contract-state-machine-surface, .contract-state-machine-composition { background: white; border: 1px solid #d0d0d0; border-radius: 12px; padding: 16px; box-sizing: border-box; }
+    .contract-state-machine-composition { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(280px, 2fr) minmax(180px, 1fr); gap: 16px; max-width: none; }
     .contract-layout-region { min-height: 120px; display: grid; gap: 12px; align-content: start; }
     .audit-records { display: grid; gap: 0.75rem; }
     .audit-record { border: 1px solid #e4e4e7; border-radius: 10px; padding: 0.75rem; display: grid; gap: 0.35rem; }
@@ -2051,7 +2051,7 @@ def audit_html_document(
     .audit-field-value { font-weight: 600; }
     img.audit-asset { max-width: 100%; height: auto; border-radius: 8px; }
     button { padding: 0.5rem 0.75rem; border: 1px solid #222; border-radius: 6px; background: #fff; justify-self: start; }
-    @media (max-width: 700px) { .contract-fsm-composition { grid-template-columns: 1fr; } }
+    @media (max-width: 700px) { .contract-state-machine-composition { grid-template-columns: 1fr; } }
     """
     return "\n".join([
         "<!doctype html>",
@@ -2071,44 +2071,44 @@ def audit_html_document(
 
 
 def render_audit_case_html(root: Path, contract: dict[str, Any], case_id: str, case: dict[str, Any]) -> str:
-    fsm = contract["fsms"][case["fsm"]]
-    state = fsm["states"][case["state"]]
-    if state.get("mounts"):
+    state_machine = contract["state_machines"][case["state_machine"]]
+    state = state_machine["view_states"][case["view_state"]]
+    if state.get("child_state_machines"):
         return render_composed_case_html(root, contract, case)
-    projection = fsms_projection(contract)
-    fsm = next(item for item in projection["fsms"] if item["owner_kind"] == "fsm" and item["owner"] == case["fsm"] and item["state"] == case["state"])
-    return render_fsm_audit_html(root, contract, fsm, case)
+    projection = state_machines_projection(contract)
+    state_machine = next(item for item in projection["state_machines"] if item["owner_kind"] == "state_machine" and item["owner"] == case["state_machine"] and item["view_state"] == case["view_state"])
+    return render_state_machine_audit_html(root, contract, state_machine, case)
 
 
-def case_render_fsms(contract: dict[str, Any], case: dict[str, Any]) -> list[dict[str, Any]]:
-    projection = fsms_projection(contract)
-    fsm = contract["fsms"][case["fsm"]]
-    state = fsm["states"][case["state"]]
-    if state.get("mounts"):
-        fsms = []
-        for mount in state["mounts"]:
-            state_name = case["instances"][mount["id"]]["state"]
-            fsms.append(next(item for item in projection["fsms"] if item["owner_kind"] == "fsm" and item["owner"] == mount["fsm"] and item["state"] == state_name))
-        return fsms
-    return [next(item for item in projection["fsms"] if item["owner_kind"] == "fsm" and item["owner"] == case["fsm"] and item["state"] == case["state"])]
+def case_render_state_machines(contract: dict[str, Any], case: dict[str, Any]) -> list[dict[str, Any]]:
+    projection = state_machines_projection(contract)
+    state_machine = contract["state_machines"][case["state_machine"]]
+    state = state_machine["view_states"][case["view_state"]]
+    if state.get("child_state_machines"):
+        state_machines = []
+        for mount in state["child_state_machines"]:
+            state_name = case["instances"][mount["id"]]["view_state"]
+            state_machines.append(next(item for item in projection["state_machines"] if item["owner_kind"] == "state_machine" and item["owner"] == mount["state_machine"] and item["view_state"] == state_name))
+        return state_machines
+    return [next(item for item in projection["state_machines"] if item["owner_kind"] == "state_machine" and item["owner"] == case["state_machine"] and item["view_state"] == case["view_state"])]
 
 
 def _case_composition_ids(contract: dict[str, Any], case: dict[str, Any]) -> set[str]:
-    state = contract["fsms"][case["fsm"]]["states"][case["state"]]
-    if state.get("mounts"):
-        return {f"{case['fsm']}.{case['state']}"}
+    state = contract["state_machines"][case["state_machine"]]["view_states"][case["view_state"]]
+    if state.get("child_state_machines"):
+        return {f"{case['state_machine']}.{case['view_state']}"}
     return set()
 
 
 def render_composed_case_html(root: Path, contract: dict[str, Any], case: dict[str, Any]) -> str:
-    fsm = contract["fsms"][case["fsm"]]
-    state = fsm["states"][case["state"]]
-    projection = fsms_projection(contract)
-    composition = next(item for item in projection["compositions"] if item["fsm"] == case["fsm"] and item["state"] == case["state"])
+    state_machine = contract["state_machines"][case["state_machine"]]
+    state = state_machine["view_states"][case["view_state"]]
+    projection = state_machines_projection(contract)
+    composition = next(item for item in projection["compositions"] if item["state_machine"] == case["state_machine"] and item["view_state"] == case["view_state"])
     html_layout = layout_html(composition["layout"])
     root_spec = html_layout.get("root") or {"element": "section"}
     tag = root_spec.get("element", "section")
-    classes = " ".join(["contract-fsm-composition"] + root_spec.get("classes", []))
+    classes = " ".join(["contract-state-machine-composition"] + root_spec.get("classes", []))
     attrs = {"class": classes, "data-contract-composition": composition["id"]}
     if root_spec.get("role") and root_spec["role"] != "none":
         attrs["role"] = root_spec["role"]
@@ -2120,41 +2120,41 @@ def render_composed_case_html(root: Path, contract: dict[str, Any], case: dict[s
         if region.get("role") and region["role"] != "none":
             region_attrs["role"] = region["role"]
         parts.append(f"<{region_tag}{format_attrs(region_attrs)}>")
-        for mount in [item for item in state["mounts"] if item["region"] == region_name]:
-            state_name = case["instances"][mount["id"]]["state"]
-            fsm = next(item for item in projection["fsms"] if item["owner_kind"] == "fsm" and item["owner"] == mount["fsm"] and item["state"] == state_name)
-            parts.append(render_fsm_audit_html(root, contract, fsm, case))
+        for mount in [item for item in state["child_state_machines"] if item["region"] == region_name]:
+            state_name = case["instances"][mount["id"]]["view_state"]
+            state_machine = next(item for item in projection["state_machines"] if item["owner_kind"] == "state_machine" and item["owner"] == mount["state_machine"] and item["view_state"] == state_name)
+            parts.append(render_state_machine_audit_html(root, contract, state_machine, case))
         parts.append(f"</{region_tag}>")
     parts.append(f"</{tag}>")
     return "\n".join(parts)
 
 
-def render_fsm_audit_html(root: Path, contract: dict[str, Any], fsm: dict[str, Any], case: dict[str, Any] | None) -> str:
-    presentation = fsm.get("presentation") or {}
+def render_state_machine_audit_html(root: Path, contract: dict[str, Any], state_machine: dict[str, Any], case: dict[str, Any] | None) -> str:
+    presentation = state_machine.get("presentation") or {}
     html_contract = presentation.get("html") or {}
     root_spec = html_contract.get("root") or {"element": "section"}
     tag = root_spec.get("element", "section")
-    classes = " ".join(["contract-fsm-surface"] + root_spec.get("classes", []))
+    classes = " ".join(["contract-state-machine-surface"] + root_spec.get("classes", []))
     attrs = {
         "class": classes,
-        "data-contract-fsm-surface": fsm["id"],
-        "data-contract-state": fsm["state"],
+        "data-contract-state-machine-surface": state_machine["id"],
+        "data-contract-view-state": state_machine["view_state"],
     }
     if root_spec.get("role") and root_spec["role"] != "none":
         attrs["role"] = root_spec["role"]
     lines = [f"<{tag}{format_attrs(attrs)}>"]
-    slots = html_contract.get("slots") or default_html_slots(fsm)
+    slots = html_contract.get("slots") or default_html_slots(state_machine)
     field_slots = [slot for slot in slots if slot["kind"] == "field"]
     for slot in slots:
         if slot["kind"] == "field":
             continue
-        records = records_for_fsm(contract, fsm, case)
+        records = records_for_state_machine(contract, state_machine, case)
         record = records[0] if records else {}
         context = render_context(contract, case)
         namespace = render_namespace(contract, case)
-        lines.extend(render_html_slot_runtime(root, contract, fsm, slot, record, context, namespace))
+        lines.extend(render_html_slot_runtime(root, contract, state_machine, slot, record, context, namespace))
     if field_slots:
-        records = records_for_fsm(contract, fsm, case)
+        records = records_for_state_machine(contract, state_machine, case)
         lines.append('<div class="audit-records">')
         for record in records[:4] or [{}]:
             lines.append('<article class="audit-record">')
@@ -2166,7 +2166,7 @@ def render_fsm_audit_html(root: Path, contract: dict[str, Any], fsm: dict[str, A
     return "\n".join(lines)
 
 
-def render_html_slot_runtime(root: Path, contract: dict[str, Any], fsm: dict[str, Any], slot: dict[str, Any], record: dict[str, Any], context: dict[str, Any], namespace: dict[str, Any]) -> list[str]:
+def render_html_slot_runtime(root: Path, contract: dict[str, Any], state_machine: dict[str, Any], slot: dict[str, Any], record: dict[str, Any], context: dict[str, Any], namespace: dict[str, Any]) -> list[str]:
     kind = slot["kind"]
     tag = slot["element"]
     classes = slot.get("classes", [])
@@ -2176,17 +2176,17 @@ def render_html_slot_runtime(root: Path, contract: dict[str, Any], fsm: dict[str
     if slot.get("role") and slot["role"] != "none":
         attrs["role"] = slot["role"]
     if kind == "copy":
-        copy_ref = slot_ref(fsm, "copy", slot["slot"])
+        copy_ref = slot_ref(state_machine, "copy", slot["slot"])
         attrs["data-copy"] = copy_ref
         if slot.get("level"):
             attrs["aria-level"] = str(slot["level"])
         text = resolve_copy_text(root, contract, copy_ref, record, context, namespace)
         return [f"<{tag}{format_attrs(attrs)}>{html.escape(text)}</{tag}>"]
     if kind == "asset":
-        asset_ref = slot_ref(fsm, "asset", slot["slot"])
+        asset_ref = slot_ref(state_machine, "asset", slot["slot"])
         attrs["data-asset"] = asset_ref
         if slot.get("alt_copy_slot"):
-            attrs["data-alt-copy"] = slot_ref(fsm, "copy", slot["alt_copy_slot"])
+            attrs["data-alt-copy"] = slot_ref(state_machine, "copy", slot["alt_copy_slot"])
         asset_result = resolve_asset_result(root, contract, asset_ref, record, context, namespace)
         label = asset_result.alt or contract["assets"][asset_ref]["placeholder"]["label"]
         if tag == "img":
@@ -2223,46 +2223,46 @@ def render_html_field_slot(record: dict[str, Any], slot: dict[str, Any]) -> list
     ]
 
 
-def slot_ref(fsm: dict[str, Any], kind: str, slot: str) -> str:
+def slot_ref(state_machine: dict[str, Any], kind: str, slot: str) -> str:
     key = "copy" if kind == "copy" else "assets"
-    for ref in fsm["slots"][key]:
+    for ref in state_machine["slots"][key]:
         if ref.rsplit(".", 1)[-1] == slot:
             return ref
-    raise KeyError(f"{fsm['id']} has no {kind} slot {slot}")
+    raise KeyError(f"{state_machine['id']} has no {kind} slot {slot}")
 
 
 def textual_audit_lines(root: Path, contract: dict[str, Any], case_id: str, case: dict[str, Any]) -> list[tuple[str, str]]:
-    projection = fsms_projection(contract)
-    fsm = contract["fsms"][case["fsm"]]
-    state = fsm["states"][case["state"]]
+    projection = state_machines_projection(contract)
+    state_machine = contract["state_machines"][case["state_machine"]]
+    state = state_machine["view_states"][case["view_state"]]
     lines: list[tuple[str, str]] = []
-    if state.get("mounts"):
-        for mount in state["mounts"]:
-            state_name = case["instances"][mount["id"]]["state"]
-            fsm = next(item for item in projection["fsms"] if item["owner_kind"] == "fsm" and item["owner"] == mount["fsm"] and item["state"] == state_name)
-            lines.extend(fsm_textual_lines(root, contract, fsm, case))
+    if state.get("child_state_machines"):
+        for mount in state["child_state_machines"]:
+            state_name = case["instances"][mount["id"]]["view_state"]
+            state_machine = next(item for item in projection["state_machines"] if item["owner_kind"] == "state_machine" and item["owner"] == mount["state_machine"] and item["view_state"] == state_name)
+            lines.extend(state_machine_textual_lines(root, contract, state_machine, case))
     else:
-        fsm = next(item for item in projection["fsms"] if item["owner_kind"] == "fsm" and item["owner"] == case["fsm"] and item["state"] == case["state"])
-        lines.extend(fsm_textual_lines(root, contract, fsm, case))
+        state_machine = next(item for item in projection["state_machines"] if item["owner_kind"] == "state_machine" and item["owner"] == case["state_machine"] and item["view_state"] == case["view_state"])
+        lines.extend(state_machine_textual_lines(root, contract, state_machine, case))
     return lines or [("static", " ")]
 
 
-def fsm_textual_lines(root: Path, contract: dict[str, Any], fsm: dict[str, Any], case: dict[str, Any] | None) -> list[tuple[str, str]]:
+def state_machine_textual_lines(root: Path, contract: dict[str, Any], state_machine: dict[str, Any], case: dict[str, Any] | None) -> list[tuple[str, str]]:
     lines: list[tuple[str, str]] = []
-    textual = (fsm.get("presentation") or {}).get("textual") or {}
+    textual = (state_machine.get("presentation") or {}).get("textual") or {}
     widgets = textual.get("widgets") or []
     if widgets:
-        records = records_for_fsm(contract, fsm, case)
+        records = records_for_state_machine(contract, state_machine, case)
         record = records[0] if records else {}
         context = render_context(contract, case)
         namespace = render_namespace(contract, case)
         for widget in widgets:
             bind_kind, bind_value = next(iter(widget["bind"].items()))
             if bind_kind == "copy":
-                ref = slot_ref(fsm, "copy", bind_value)
+                ref = slot_ref(state_machine, "copy", bind_value)
                 lines.append(("static", resolve_copy_text(root, contract, ref, record, context, namespace)))
             elif bind_kind == "asset":
-                ref = slot_ref(fsm, "asset", bind_value)
+                ref = slot_ref(state_machine, "asset", bind_value)
                 lines.append(("static", resolve_asset_result(root, contract, ref, record, context, namespace).alt or contract["assets"][ref]["placeholder"]["label"]))
             elif bind_kind == "field":
                 lines.append(("static", str(record.get(bind_value, "—"))))
@@ -2271,28 +2271,28 @@ def fsm_textual_lines(root: Path, contract: dict[str, Any], fsm: dict[str, Any],
             elif bind_kind == "literal":
                 lines.append(("static", str(bind_value)))
         return lines
-    records = records_for_fsm(contract, fsm, case)
+    records = records_for_state_machine(contract, state_machine, case)
     record = records[0] if records else {}
     context = render_context(contract, case)
     namespace = render_namespace(contract, case)
-    for copy_ref in fsm["slots"]["copy"]:
+    for copy_ref in state_machine["slots"]["copy"]:
         lines.append(("static", resolve_copy_text(root, contract, copy_ref, record, context, namespace)))
-    for asset_ref in fsm["slots"]["assets"]:
+    for asset_ref in state_machine["slots"]["assets"]:
         lines.append(("static", resolve_asset_result(root, contract, asset_ref, record, context, namespace).alt or contract["assets"][asset_ref]["placeholder"]["label"]))
-    fields = fsm["slots"].get("fields", [])
+    fields = state_machine["slots"].get("fields", [])
     if fields:
-        for record in (records_for_fsm(contract, fsm, case)[:4] or [{}]):
+        for record in (records_for_state_machine(contract, state_machine, case)[:4] or [{}]):
             for field in fields:
                 lines.append(("static", f"{humanize(field)}: {record.get(field, '—')}"))
-    for action in fsm["slots"]["actions"]:
+    for action in state_machine["slots"]["operation_refs"]:
         lines.append(("button", humanize(action)))
     return lines or [("static", " ")]
 
 
-def records_for_fsm(contract: dict[str, Any], fsm: dict[str, Any], case: dict[str, Any] | None) -> list[dict[str, Any]]:
-    model_id = fsm_model(contract, fsm)
+def records_for_state_machine(contract: dict[str, Any], state_machine: dict[str, Any], case: dict[str, Any] | None) -> list[dict[str, Any]]:
+    model_id = state_machine_model(contract, state_machine)
     model_key = f"{model_id.lower()}_id"
-    owner_context = fsm_owner_context(contract, fsm)
+    owner_context = state_machine_owner_context(contract, state_machine)
     fixtures = case.get("fixtures", []) if case else sorted(contract.get("fixtures", {}))
     records: list[dict[str, Any]] = []
     if case:
@@ -2317,12 +2317,12 @@ def records_for_fsm(contract: dict[str, Any], fsm: dict[str, Any], case: dict[st
     return records
 
 
-def fsm_model(contract: dict[str, Any], fsm: dict[str, Any]) -> str:
-    return contract["fsms"][fsm["owner"]]["model"]
+def state_machine_model(contract: dict[str, Any], state_machine: dict[str, Any]) -> str:
+    return contract["state_machines"][state_machine["owner"]]["model"]
 
 
-def fsm_owner_context(contract: dict[str, Any], fsm: dict[str, Any]) -> dict[str, Any]:
-    return contract["fsms"][fsm["owner"]].get("context", {})
+def state_machine_owner_context(contract: dict[str, Any], state_machine: dict[str, Any]) -> dict[str, Any]:
+    return contract["state_machines"][state_machine["owner"]].get("context", {})
 
 
 def _resolved_case_context(contract: dict[str, Any], case: dict[str, Any], namespace: dict[str, Any]) -> dict[str, Any]:

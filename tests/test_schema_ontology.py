@@ -19,7 +19,7 @@ COLLECTION_SECTIONS = {
     "events": "event",
     "facts": "fact",
     "fixtures": "fixture",
-    "fsms": "fsm",
+    "state_machines": "state_machine",
     "models": "model",
     "scenarios": "scenario",
     "workflows": "workflow",

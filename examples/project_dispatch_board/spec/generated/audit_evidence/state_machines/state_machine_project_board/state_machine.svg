@@ -1,0 +1,38 @@
+<svg width="432pt" height="150pt"
+ viewBox="0.00 0.00 432.00 150.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: 4d2cb41589287733c27cf27dfd4ce364fe8658ea4c2a0295c2855b03483dbe49 -->
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 132)">
+<title>state_machine_state_machine_project_board</title>
+<!-- initial_view_state -->
+<g id="node1" class="node">
+<title>initial_view_state</title>
+<ellipse fill="none" stroke="#0891b2" cx="21" cy="-57" rx="21" ry="21"/>
+<text text-anchor="middle" x="21" y="-54.8" font-family="Arial" font-size="9.00" fill="#155e75">initial_view_state</text>
+</g>
+<!-- view_state_ready -->
+<g id="node2" class="node">
+<title>view_state_ready</title>
+<polygon fill="#ffffff" stroke="transparent" points="103,0 103,-114 396,-114 396,0 103,0"/>
+<polygon fill="#0891b2" stroke="transparent" points="104.5,-105 104.5,-113 395.5,-113 395.5,-105 104.5,-105"/>
+<polygon fill="#ecfeff" stroke="transparent" points="104.5,-74 104.5,-105 395.5,-105 395.5,-74 104.5,-74"/>
+<text text-anchor="start" x="108.5" y="-91.6" font-family="Arial" font-weight="bold" font-size="13.00">ready</text>
+<text text-anchor="start" x="108.5" y="-80.6" font-family="Arial" font-size="8.00" fill="#64748b">initial view state</text>
+<text text-anchor="start" x="108.5" y="-63" font-family="Arial" font-weight="bold" font-size="10.00">child_state_machines</text>
+<text text-anchor="start" x="108.5" y="-52" font-family="Arial" font-size="10.00">aside</text>
+<text text-anchor="start" x="132.5" y="-52" font-family="Arial" font-size="8.00" fill="#94a3b8">  state_machine.project.activity</text>
+<text text-anchor="start" x="108.5" y="-41" font-family="Arial" font-size="10.00">main</text>
+<text text-anchor="start" x="130.5" y="-41" font-family="Arial" font-size="8.00" fill="#94a3b8">  state_machine.project.detail</text>
+<text text-anchor="start" x="108.5" y="-30" font-family="Arial" font-size="10.00">nav</text>
+<text text-anchor="start" x="124.5" y="-30" font-family="Arial" font-size="8.00" fill="#94a3b8">  state_machine.project.list</text>
+<text text-anchor="start" x="109.5" y="-10" font-family="Arial" font-weight="bold" font-size="10.00">message_sync_rules:</text>
+<text text-anchor="start" x="209.5" y="-10" font-family="Arial" font-size="10.00">  select_project_updates_state_machines</text>
+<polygon fill="none" stroke="#0891b2" points="103,0 103,-114 396,-114 396,0 103,0"/>
+</g>
+<!-- initial_view_state&#45;&gt;view_state_ready -->
+<g id="edge1" class="edge">
+<title>initial_view_state&#45;&gt;view_state_ready</title>
+<path fill="none" stroke="#3f3f46" d="M42.1,-57C55.35,-57 74.05,-57 94.85,-57"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="94.92,-59.8 102.92,-57 94.92,-54.2 94.92,-59.8"/>
+</g>
+</g>
+</svg>

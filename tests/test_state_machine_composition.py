@@ -1,0 +1,81 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+import pytest
+
+from pyspec_contract.compile import ContractError, compile_source
+from pyspec_contract.io import read_json, read_yaml
+from pyspec_contract.paths import SOURCE_SPEC_PATH
+from tests.helpers import EXAMPLE_ROOT
+
+ROOT = EXAMPLE_ROOT
+
+
+def _author() -> dict:
+    return read_yaml(ROOT / SOURCE_SPEC_PATH)
+
+
+def _item(author: dict, section: str, item_id: str) -> dict:
+    return author[section][item_id]
+
+
+def test_composed_state_machine_contract_is_closed_and_projected() -> None:
+    contract = compile_source(_author())
+    list_fsm = contract["state_machines"]["state_machine.project.list"]
+    assert set(list_fsm) == {"model", "context", "data_dependencies", "state_machine_messages", "initial_view_state", "view_states", "transitions", "basis"}
+    assert list_fsm["initial_view_state"] == "loading"
+    assert list_fsm["data_dependencies"] == [{"query": "query.project.list.list", "operation": "operation.project.list"}]
+    assert list_fsm["view_states"]["ready"]["fields"] == ["title", "customer", "priority", "status"]
+    detail_fsm = contract["state_machines"]["state_machine.project.detail"]
+    assert detail_fsm["data_dependencies"] == []
+    assert detail_fsm["view_states"]["loading"]["data_dependencies"] == [{"query": "query.project.detail.read", "operation": "operation.project.read"}]
+    assert contract["state_machines"]["state_machine.project.activity"]["view_states"]["ready"]["data_dependencies"] == [
+        {"query": "query.project.activity.read", "operation": "operation.project.read"}
+    ]
+
+    state_machine = contract["state_machines"]["state_machine.project.board"]["view_states"]["ready"]
+    assert set(state_machine["layout"]["html"]["regions"]) == {"nav", "main", "aside"}
+    assert set(state_machine["layout"]["textual"]["containers"]) == {"nav", "main", "aside"}
+    assert [(item["id"], item["state_machine"], item["region"], item["initial_view_state"]) for item in state_machine["child_state_machines"]] == [
+        ("list", "state_machine.project.list", "nav", "loading"),
+        ("detail", "state_machine.project.detail", "main", "none"),
+        ("activity", "state_machine.project.activity", "aside", "empty"),
+    ]
+
+    generated = read_json(ROOT / "spec" / "generated" / "product_interfaces" / "web.state_machines.json")
+    composition = next(item for item in generated["compositions"] if item["id"] == "state_machine.project.board.ready")
+    assert composition["child_state_machines"] == state_machine["child_state_machines"]
+    assert composition["message_sync_rules"] == state_machine["message_sync_rules"]
+
+
+def test_state_machine_composition_rejects_unknown_layout_region() -> None:
+    author = _author()
+    state_machine = _item(author, "state_machines", "state_machine.project.board")["view_states"]["ready"]
+    state_machine["child_state_machines"][0]["region"] = "ghost"
+    with pytest.raises(ContractError, match="undeclared region"):
+        compile_source(author)
+
+
+def test_state_machine_composition_rejects_context_binding_drift() -> None:
+    author = _author()
+    state_machine = _item(author, "state_machines", "state_machine.project.board")["view_states"]["ready"]
+    del state_machine["child_state_machines"][0]["context"]["selected_project_id"]
+    with pytest.raises(ContractError, match="context keys"):
+        compile_source(author)
+
+
+def test_state_machine_composition_rejects_sync_message_not_emitted_by_source_instance() -> None:
+    author = _author()
+    state_machine = _item(author, "state_machines", "state_machine.project.board")["view_states"]["ready"]
+    state_machine["message_sync_rules"][0]["when"]["message"] = "message.project.unannounced"
+    with pytest.raises(ContractError, match="sync listens for message the source does not emit"):
+        compile_source(author)
+
+
+def test_composed_scenario_rejects_unknown_state_machine_state() -> None:
+    author = _author()
+    scenario = _item(author, "scenarios", "scenario.project.board.ready")
+    scenario["then"]["state_machine"]["instances"]["detail"]["view_state"] = "ghost"
+    with pytest.raises(ContractError, match="unknown state machine view state"):
+        compile_source(author)

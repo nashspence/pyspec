@@ -12,21 +12,21 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - <!-- top-level:events --> `events`: durable domain/application or system events with `payload_schema` contracts and compiled emitters.
 - <!-- top-level:facts --> `facts`: reusable model presence/absence setup for scenarios and audits.
 - <!-- top-level:fixtures --> `fixtures`: named runtime data namespaces for scenarios, facts, content cases, and audits.
-- <!-- top-level:fsms --> `fsms`: state-machine UI/component contracts with context, query data, states, transitions, state-machine message contracts, mounts, and sync.
 - <!-- top-level:models --> `models`: structured product data contracts and lifecycle declarations.
 - <!-- top-level:operations --> `operations`: executable product operations with typed input, effects, outcomes, and policies.
 - <!-- top-level:project --> `project`: the project slug for the specification workspace.
 - <!-- top-level:refs --> `refs`: compiled-only index of generated references used by projections and tests.
 - <!-- top-level:scenarios --> `scenarios`: behavior examples compiled into semantic scenario YAML and BDD features.
+- <!-- top-level:state_machines --> `state_machines`: UI/component state-machine contracts with context, query data dependencies, view states, transitions, state-machine message contracts, child state machines, and message sync rules.
 - <!-- top-level:workflows --> `workflows`: asynchronous or long-running flows with triggers, steps, input bindings, exclusive outcome routes, and outcomes.
 
 ## ID Namespaces
 
-- `operation_ref`: `operation.<domain>...`; used by operation declarations, FSM actions/data, workflow steps, entry-point operation triggers, and scenario assertions.
+- `operation_ref`: `operation.<domain>...`; used by operation declarations, state-machine `operation_refs` and `data_dependencies`, workflow steps, entry-point operation triggers, and scenario assertions.
 - `entry_point_ref`: `entry_point.<adapter>.<domain>...`; used by entry point declarations and scenario `open_entry` or `call_entry` actions.
 - `event_ref`: `event.<domain>...`; used only for durable domain/application event declarations, operation emissions, workflow triggers, and scenario event assertions.
 - `workflow_ref`: `workflow.<domain>...`; used by workflow declarations, workflow entry-point triggers, and generated workflow references.
-- `state_machine_ref`: `state_machine.<domain>...`; used by FSM declarations, mounted FSMs, state-machine entry-point triggers, and scenario FSM assertions.
+- `state_machine_ref`: `state_machine.<domain>...`; used by state-machine declarations, `child_state_machines`, state-machine entry-point triggers, and scenario state-machine assertions.
 - `scenario_ref`: `scenario.<domain>...`; used by scenario declarations and generated feature tags.
 - `fixture_ref`: `fixture.<domain>...`; used by fixtures, scenario setup, content cases, facts, and audit cases.
 - `fact_ref`: `fact.<domain>...`; used by named facts and fact-use references.
@@ -49,8 +49,8 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `workflow_trigger_target`: event or operation trigger for workflow execution.
 - `workflow_input_bindings`, `workflow_outcome_routes`, and `workflow_route`: step input mapping and exclusive outcome routing via `next_step`, `complete_as`, `fail_as`, `retry_policy`, or `dead_letter`.
 - `state_machine_messages` and `state_machine_message`: local UI/component/state-machine message contracts split into accepted and emitted messages with `payload_schema` maps.
-- `sync_trigger`, `sync_action`, `sync_effect`, and `sync_send_effect`: mounted instance/message references for composed FSM sync; sends use `payload_bindings`.
-- `mount_item` and `authored_mount`: child state-machine references plus context mappings.
+- `message_sync_trigger`, `message_sync_action`, `message_sync_effect`, and `message_sync_send_effect`: mounted instance/message references for composed state-machine sync; sends use `payload_bindings`.
+- `child_state_machine_item` and `authored_child_state_machine`: child state-machine references plus context mappings.
 - `type_expr`: structured primitive, model, array, map, nullable, optional, enum, or inline object type expression.
 - `field_schema`, `field_schema_map`, and `object_schema`: reusable object contracts with explicit required and nullable semantics.
 
@@ -59,7 +59,7 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `$fixture.<path>` reads merged fixture data in scenarios, facts, content cases, and audit cases.
 - `$state_machine.<field>` reads parent state-machine context in mounts and composition conditions.
 - `$message.<field>` reads the current state-machine message payload in transition effects and sync sends.
-- `$context.<field>` reads current FSM context in transition effects.
+- `$context.<field>` reads current state-machine context in transition effects.
 - `$input.params.<field>` reads HTTP/UI path or query params in entry-point operation/state-machine bindings.
 - `$input.body.<field>` reads HTTP request body fields in operation bindings.
 - `$input.args.<field>` reads CLI argument fields in operation/state-machine bindings.
@@ -79,7 +79,7 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `spec/generated/product_interfaces/http.openapi.yaml`: OpenAPI projection generated only from HTTP entry points.
 - `spec/generated/product_interfaces/events.asyncapi.yaml`: AsyncAPI projection for durable top-level events, webhooks, workers, and event-triggered workflows; state-machine messages are not projected as domain events.
 - `spec/generated/product_interfaces/web.routes.json`: UI route projection generated from UI entry points.
-- `spec/generated/product_interfaces/web.fsms.json`: FSM render projection.
+- `spec/generated/product_interfaces/web.state_machines.json`: state-machine render projection.
 - `spec/generated/product_interfaces/textual.projection.py`: Textual render projection.
 - `spec/generated/product_interfaces/workflow.cwl.yaml`: CWL projection generated for workflow/CLI/worker-relevant execution graphs.
 - `spec/generated/content_resolvers/{signatures.py,stubs.py,cases.yaml}`: content resolver contracts and examples.
@@ -89,11 +89,11 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `spec/generated/test_adapters/pytest_bdd_features/{feature}.feature`: generated behavior features.
 - `spec/generated/audit_evidence/entrypoints/{adapter}/{entry_point}/flow.svg`: entry-point flow diagrams grouped by adapter kind.
 - `spec/generated/audit_evidence/workflows/{workflow}/flow.svg`: workflow flow diagrams.
-- `spec/generated/audit_evidence/fsms/{fsm}/fsm.svg`: state-machine diagrams.
-- `spec/generated/audit_evidence/fsms/{fsm}/states/{state}/composition.svg`: composed FSM state diagrams.
-- `spec/generated/audit_evidence/fsms/{fsm}/states/{state}/{copy.yaml,fixtures.yaml,assets/*}`: state-scoped audit inputs.
-- `spec/generated/audit_evidence/fsms/{fsm}/states/{state}/renders/*`: HTML/Textual state render source and captures.
-- `spec/generated/audit_evidence/fsms/{fsm}/states/{state}/cases/{case}/**`: audit-case scoped inputs and render captures.
+- `spec/generated/audit_evidence/state_machines/{state_machine}/state_machine.svg`: state-machine diagrams.
+- `spec/generated/audit_evidence/state_machines/{state_machine}/view_states/{view_state}/composition.svg`: composed state-machine view-state diagrams.
+- `spec/generated/audit_evidence/state_machines/{state_machine}/view_states/{view_state}/{copy.yaml,fixtures.yaml,assets/*}`: view-state-scoped audit inputs.
+- `spec/generated/audit_evidence/state_machines/{state_machine}/view_states/{view_state}/renders/*`: HTML/Textual view-state render source and captures.
+- `spec/generated/audit_evidence/state_machines/{state_machine}/view_states/{view_state}/cases/{case}/**`: audit-case scoped inputs and render captures.
 
 ## Schema Definition Inventory
 
@@ -107,30 +107,32 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:audit_profile_ref --> `$defs/audit_profile_ref`: typed reference definition for its namespace.
 - <!-- schema-def:authored_asset --> `$defs/authored_asset`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_audit_profile --> `$defs/authored_audit_profile`: human-authored source object for this resource or nested contract.
+- <!-- schema-def:authored_child_state_machine --> `$defs/authored_child_state_machine`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_content_case --> `$defs/authored_content_case`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_copy --> `$defs/authored_copy`: human-authored source object for this resource or nested contract.
-- <!-- schema-def:authored_entry_point --> `$defs/authored_entry_point`: human-authored entry point source with explicit adapter and trigger objects.
-- <!-- schema-def:authored_event --> `$defs/authored_event`: human-authored durable domain/application event source with a payload_schema contract.
+- <!-- schema-def:authored_entry_point --> `$defs/authored_entry_point`: human-authored source object for this resource or nested contract.
+- <!-- schema-def:authored_event --> `$defs/authored_event`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_fact --> `$defs/authored_fact`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_fixture --> `$defs/authored_fixture`: human-authored source object for this resource or nested contract.
-- <!-- schema-def:authored_fsm --> `$defs/authored_fsm`: human-authored source object for this resource or nested contract.
-- <!-- schema-def:authored_fsm_state --> `$defs/authored_fsm_state`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_model --> `$defs/authored_model`: human-authored source object for this resource or nested contract.
-- <!-- schema-def:authored_mount --> `$defs/authored_mount`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_operation --> `$defs/authored_operation`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_scenario --> `$defs/authored_scenario`: human-authored source object for this resource or nested contract.
+- <!-- schema-def:authored_state_machine --> `$defs/authored_state_machine`: human-authored source object for this resource or nested contract.
+- <!-- schema-def:authored_view_state --> `$defs/authored_view_state`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_workflow --> `$defs/authored_workflow`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:basis --> `$defs/basis`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:breakpoint_id --> `$defs/breakpoint_id`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:cli_adapter --> `$defs/cli_adapter`: CLI adapter contract with cli_command, args input, and process responses.
-- <!-- schema-def:cli_adapter_input --> `$defs/cli_adapter_input`: CLI argument type map.
+- <!-- schema-def:child_state_machine_item --> `$defs/child_state_machine_item`: compiled-output object for this resource or nested contract.
+- <!-- schema-def:child_state_machine_selected --> `$defs/child_state_machine_selected`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:cli_adapter --> `$defs/cli_adapter`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:cli_adapter_input --> `$defs/cli_adapter_input`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:condition_contract --> `$defs/condition_contract`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:content_arg_values --> `$defs/content_arg_values`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:content_args --> `$defs/content_args`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:content_case_item --> `$defs/content_case_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:content_case_ref --> `$defs/content_case_ref`: typed reference definition for its namespace.
 - <!-- schema-def:content_resolver_id --> `$defs/content_resolver_id`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:context_bindings --> `$defs/context_bindings`: runtime reference binding map.
+- <!-- schema-def:context_bindings --> `$defs/context_bindings`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:context_set_effect --> `$defs/context_set_effect`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:copy_item --> `$defs/copy_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:css_class --> `$defs/css_class`: UI rendering contract component.
@@ -138,18 +140,18 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:css_property --> `$defs/css_property`: UI rendering contract component.
 - <!-- schema-def:css_value --> `$defs/css_value`: UI rendering contract component.
 - <!-- schema-def:datum --> `$defs/datum`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:entry_bindings --> `$defs/entry_bindings`: entry-point adapter input to trigger input binding map.
-- <!-- schema-def:entry_operation_trigger --> `$defs/entry_operation_trigger`: operation trigger with typed operation ref and input bindings.
-- <!-- schema-def:entry_point_adapter --> `$defs/entry_point_adapter`: one-of adapter object for HTTP, CLI, webhook, scheduled, worker, or UI semantics.
-- <!-- schema-def:entry_point_item --> `$defs/entry_point_item`: compiled entry point with explicit adapter, trigger, basis, and generated refs.
+- <!-- schema-def:entry_bindings --> `$defs/entry_bindings`: entry-point adapter, trigger, binding, or response contract component.
+- <!-- schema-def:entry_operation_trigger --> `$defs/entry_operation_trigger`: entry-point adapter, trigger, binding, or response contract component.
+- <!-- schema-def:entry_point_adapter --> `$defs/entry_point_adapter`: entry-point adapter, trigger, binding, or response contract component.
+- <!-- schema-def:entry_point_item --> `$defs/entry_point_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:entry_point_ref --> `$defs/entry_point_ref`: typed reference definition for its namespace.
-- <!-- schema-def:entry_point_trigger --> `$defs/entry_point_trigger`: one-of trigger object for operation, state machine, or workflow execution.
-- <!-- schema-def:entry_response --> `$defs/entry_response`: adapter response declaration.
-- <!-- schema-def:entry_response_value --> `$defs/entry_response_value`: response body/stdout/stderr value source.
-- <!-- schema-def:entry_responses --> `$defs/entry_responses`: named response map for adapter outcomes or dispositions.
-- <!-- schema-def:entry_state_machine_trigger --> `$defs/entry_state_machine_trigger`: state-machine trigger with typed ref, render target, and context bindings.
-- <!-- schema-def:entry_workflow_trigger --> `$defs/entry_workflow_trigger`: workflow trigger with typed ref and matching workflow trigger body.
-- <!-- schema-def:event_item --> `$defs/event_item`: compiled durable domain/application event with payload_schema, emitters, and basis.
+- <!-- schema-def:entry_point_trigger --> `$defs/entry_point_trigger`: entry-point adapter, trigger, binding, or response contract component.
+- <!-- schema-def:entry_response --> `$defs/entry_response`: entry-point adapter, trigger, binding, or response contract component.
+- <!-- schema-def:entry_response_value --> `$defs/entry_response_value`: entry-point adapter, trigger, binding, or response contract component.
+- <!-- schema-def:entry_responses --> `$defs/entry_responses`: entry-point adapter, trigger, binding, or response contract component.
+- <!-- schema-def:entry_state_machine_trigger --> `$defs/entry_state_machine_trigger`: entry-point adapter, trigger, binding, or response contract component.
+- <!-- schema-def:entry_workflow_trigger --> `$defs/entry_workflow_trigger`: entry-point adapter, trigger, binding, or response contract component.
+- <!-- schema-def:event_item --> `$defs/event_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:event_ref --> `$defs/event_ref`: typed reference definition for its namespace.
 - <!-- schema-def:expression_map --> `$defs/expression_map`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:fact --> `$defs/fact`: shared schema component used by authored source or compiled output.
@@ -158,17 +160,10 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:fact_use --> `$defs/fact_use`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:feature_ref --> `$defs/feature_ref`: typed reference definition for its namespace.
 - <!-- schema-def:field_name --> `$defs/field_name`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:field_schema --> `$defs/field_schema`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:field_schema_map --> `$defs/field_schema_map`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:field_schema --> `$defs/field_schema`: structured type-expression and object-schema contract component.
+- <!-- schema-def:field_schema_map --> `$defs/field_schema_map`: structured type-expression and object-schema contract component.
 - <!-- schema-def:fixture_item --> `$defs/fixture_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:fixture_ref --> `$defs/fixture_ref`: typed reference definition for its namespace.
-- <!-- schema-def:fsm_audit_case --> `$defs/fsm_audit_case`: state-machine contract component.
-- <!-- schema-def:fsm_item --> `$defs/fsm_item`: compiled-output object for this resource or nested contract.
-- <!-- schema-def:fsm_mount_selected --> `$defs/fsm_mount_selected`: state-machine contract component.
-- <!-- schema-def:fsm_state --> `$defs/fsm_state`: state-machine contract component.
-- <!-- schema-def:fsm_state_assertion --> `$defs/fsm_state_assertion`: state-machine contract component.
-- <!-- schema-def:fsm_sync_assertion --> `$defs/fsm_sync_assertion`: state-machine contract component.
-- <!-- schema-def:fsm_transition --> `$defs/fsm_transition`: state-machine contract component.
 - <!-- schema-def:given --> `$defs/given`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:html_action_slot --> `$defs/html_action_slot`: UI rendering contract component.
 - <!-- schema-def:html_asset_slot --> `$defs/html_asset_slot`: UI rendering contract component.
@@ -179,8 +174,8 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:html_root --> `$defs/html_root`: UI rendering contract component.
 - <!-- schema-def:html_slot --> `$defs/html_slot`: UI rendering contract component.
 - <!-- schema-def:html_viewport --> `$defs/html_viewport`: UI rendering contract component.
-- <!-- schema-def:http_adapter --> `$defs/http_adapter`: HTTP/API adapter contract with method, path, request input, and responses.
-- <!-- schema-def:http_adapter_input --> `$defs/http_adapter_input`: HTTP adapter input sections: params and body.
+- <!-- schema-def:http_adapter --> `$defs/http_adapter`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:http_adapter_input --> `$defs/http_adapter_input`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:instance_id --> `$defs/instance_id`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:json_value --> `$defs/json_value`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:layout_container --> `$defs/layout_container`: UI rendering contract component.
@@ -189,39 +184,42 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:layout_region --> `$defs/layout_region`: UI rendering contract component.
 - <!-- schema-def:layout_root --> `$defs/layout_root`: UI rendering contract component.
 - <!-- schema-def:layout_textual --> `$defs/layout_textual`: UI rendering contract component.
-- <!-- schema-def:message_ref --> `$defs/message_ref`: typed reference for local state-machine/UI messages and data-result triggers.
+- <!-- schema-def:message_ref --> `$defs/message_ref`: typed reference definition for its namespace.
+- <!-- schema-def:message_sync_action --> `$defs/message_sync_action`: message synchronization contract for composed state machines.
+- <!-- schema-def:message_sync_assertion --> `$defs/message_sync_assertion`: message synchronization contract for composed state machines.
+- <!-- schema-def:message_sync_effect --> `$defs/message_sync_effect`: message synchronization contract for composed state machines.
+- <!-- schema-def:message_sync_rule --> `$defs/message_sync_rule`: message synchronization contract for composed state machines.
+- <!-- schema-def:message_sync_send_effect --> `$defs/message_sync_send_effect`: message synchronization contract for composed state machines.
+- <!-- schema-def:message_sync_trigger --> `$defs/message_sync_trigger`: message synchronization contract for composed state machines.
 - <!-- schema-def:model_item --> `$defs/model_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:model_ref --> `$defs/model_ref`: typed reference definition for its namespace.
 - <!-- schema-def:model_refs --> `$defs/model_refs`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:mount_item --> `$defs/mount_item`: compiled-output object for this resource or nested contract.
-- <!-- schema-def:object_schema --> `$defs/object_schema`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:operation_emit --> `$defs/operation_emit`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:operation_emit_bindings --> `$defs/operation_emit_bindings`: runtime reference binding map.
-- <!-- schema-def:operation_emit_source --> `$defs/operation_emit_source`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:object_schema --> `$defs/object_schema`: structured type-expression and object-schema contract component.
+- <!-- schema-def:operation_emit --> `$defs/operation_emit`: operation input, outcome, emission, or binding contract component.
+- <!-- schema-def:operation_emit_bindings --> `$defs/operation_emit_bindings`: operation input, outcome, emission, or binding contract component.
+- <!-- schema-def:operation_emit_source --> `$defs/operation_emit_source`: operation input, outcome, emission, or binding contract component.
 - <!-- schema-def:operation_item --> `$defs/operation_item`: compiled-output object for this resource or nested contract.
-- <!-- schema-def:operation_outcome --> `$defs/operation_outcome`: typed outcome declaration or named outcome map.
-- <!-- schema-def:operation_outcomes --> `$defs/operation_outcomes`: typed outcome declaration or named outcome map.
+- <!-- schema-def:operation_outcome --> `$defs/operation_outcome`: operation input, outcome, emission, or binding contract component.
+- <!-- schema-def:operation_outcomes --> `$defs/operation_outcomes`: operation input, outcome, emission, or binding contract component.
 - <!-- schema-def:operation_ref --> `$defs/operation_ref`: typed reference definition for its namespace.
 - <!-- schema-def:presentation_contract --> `$defs/presentation_contract`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:python_class_name --> `$defs/python_class_name`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:python_identifier --> `$defs/python_identifier`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:runtime_expression --> `$defs/runtime_expression`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:scalar --> `$defs/scalar`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:scalar --> `$defs/scalar`: structured type-expression and object-schema contract component.
 - <!-- schema-def:scenario_item --> `$defs/scenario_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:scenario_ref --> `$defs/scenario_ref`: typed reference definition for its namespace.
-- <!-- schema-def:scheduled_adapter --> `$defs/scheduled_adapter`: scheduled adapter contract with schedule_expression and disposition responses.
-- <!-- schema-def:state_machine_message --> `$defs/state_machine_message`: state-machine/UI message contract with payload_schema for local component communication.
-- <!-- schema-def:state_machine_messages --> `$defs/state_machine_messages`: state-machine/UI message registry split into accepted and emitted messages.
+- <!-- schema-def:scheduled_adapter --> `$defs/scheduled_adapter`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:state_machine_audit_case --> `$defs/state_machine_audit_case`: state-machine contract component.
+- <!-- schema-def:state_machine_item --> `$defs/state_machine_item`: compiled-output object for this resource or nested contract.
+- <!-- schema-def:state_machine_message --> `$defs/state_machine_message`: state-machine contract component.
+- <!-- schema-def:state_machine_messages --> `$defs/state_machine_messages`: state-machine contract component.
 - <!-- schema-def:state_machine_ref --> `$defs/state_machine_ref`: typed reference definition for its namespace.
+- <!-- schema-def:state_machine_transition --> `$defs/state_machine_transition`: state-machine contract component.
 - <!-- schema-def:state_name --> `$defs/state_name`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:style_contract --> `$defs/style_contract`: UI rendering contract component.
 - <!-- schema-def:style_rule --> `$defs/style_rule`: UI rendering contract component.
 - <!-- schema-def:style_selector --> `$defs/style_selector`: UI rendering contract component.
-- <!-- schema-def:sync_action --> `$defs/sync_action`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:sync_effect --> `$defs/sync_effect`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:sync_rule --> `$defs/sync_rule`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:sync_send_effect --> `$defs/sync_send_effect`: composed state-machine send effect with target instance, message, and payload_bindings.
-- <!-- schema-def:sync_trigger --> `$defs/sync_trigger`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:target --> `$defs/target`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:text_ref --> `$defs/text_ref`: typed reference definition for its namespace.
 - <!-- schema-def:textual_bind --> `$defs/textual_bind`: UI rendering contract component.
@@ -229,24 +227,27 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:textual_viewport --> `$defs/textual_viewport`: UI rendering contract component.
 - <!-- schema-def:textual_widget --> `$defs/textual_widget`: UI rendering contract component.
 - <!-- schema-def:then --> `$defs/then`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:type_expr --> `$defs/type_expr`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:type_expr_map --> `$defs/type_expr_map`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:ui_adapter --> `$defs/ui_adapter`: UI adapter contract with route path and params input.
-- <!-- schema-def:ui_adapter_input --> `$defs/ui_adapter_input`: UI adapter params input section.
+- <!-- schema-def:type_expr --> `$defs/type_expr`: structured type-expression and object-schema contract component.
+- <!-- schema-def:type_expr_map --> `$defs/type_expr_map`: structured type-expression and object-schema contract component.
+- <!-- schema-def:ui_adapter --> `$defs/ui_adapter`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:ui_adapter_input --> `$defs/ui_adapter_input`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:value_map --> `$defs/value_map`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:webhook_adapter --> `$defs/webhook_adapter`: webhook adapter contract with path, params/payload input, and acknowledgement response.
-- <!-- schema-def:webhook_adapter_input --> `$defs/webhook_adapter_input`: webhook adapter params and payload input sections.
+- <!-- schema-def:view_state --> `$defs/view_state`: state-machine view-state contract component.
+- <!-- schema-def:view_state_assertion --> `$defs/view_state_assertion`: state-machine view-state contract component.
+- <!-- schema-def:view_state_name --> `$defs/view_state_name`: state-machine view-state contract component.
+- <!-- schema-def:webhook_adapter --> `$defs/webhook_adapter`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:webhook_adapter_input --> `$defs/webhook_adapter_input`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:when --> `$defs/when`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:worker_adapter --> `$defs/worker_adapter`: worker adapter contract with payload input and message disposition responses.
-- <!-- schema-def:worker_adapter_input --> `$defs/worker_adapter_input`: worker adapter payload input section.
-- <!-- schema-def:workflow_input_bindings --> `$defs/workflow_input_bindings`: workflow step input binding map from trigger or prior step runtime references.
+- <!-- schema-def:worker_adapter --> `$defs/worker_adapter`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:worker_adapter_input --> `$defs/worker_adapter_input`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:workflow_input_bindings --> `$defs/workflow_input_bindings`: workflow trigger, step, route, retry, outcome, or binding contract component.
 - <!-- schema-def:workflow_item --> `$defs/workflow_item`: compiled-output object for this resource or nested contract.
-- <!-- schema-def:workflow_outcome --> `$defs/workflow_outcome`: typed outcome declaration or named outcome map.
-- <!-- schema-def:workflow_outcome_routes --> `$defs/workflow_outcome_routes`: workflow step outcome route map keyed by declared operation outcome id.
-- <!-- schema-def:workflow_outcomes --> `$defs/workflow_outcomes`: typed outcome declaration or named outcome map.
+- <!-- schema-def:workflow_outcome --> `$defs/workflow_outcome`: workflow trigger, step, route, retry, outcome, or binding contract component.
+- <!-- schema-def:workflow_outcome_routes --> `$defs/workflow_outcome_routes`: workflow trigger, step, route, retry, outcome, or binding contract component.
+- <!-- schema-def:workflow_outcomes --> `$defs/workflow_outcomes`: workflow trigger, step, route, retry, outcome, or binding contract component.
 - <!-- schema-def:workflow_ref --> `$defs/workflow_ref`: typed reference definition for its namespace.
-- <!-- schema-def:workflow_retry_policy --> `$defs/workflow_retry_policy`: workflow retry action with attempts, backoff, and terminal fail_as outcome.
-- <!-- schema-def:workflow_route --> `$defs/workflow_route`: exclusive workflow route action: next_step, complete_as, fail_as, retry_policy, or dead_letter.
-- <!-- schema-def:workflow_source --> `$defs/workflow_source`: workflow contract component.
-- <!-- schema-def:workflow_step --> `$defs/workflow_step`: workflow contract component.
-- <!-- schema-def:workflow_trigger_target --> `$defs/workflow_trigger_target`: workflow contract component.
+- <!-- schema-def:workflow_retry_policy --> `$defs/workflow_retry_policy`: workflow trigger, step, route, retry, outcome, or binding contract component.
+- <!-- schema-def:workflow_route --> `$defs/workflow_route`: workflow trigger, step, route, retry, outcome, or binding contract component.
+- <!-- schema-def:workflow_source --> `$defs/workflow_source`: workflow trigger, step, route, retry, outcome, or binding contract component.
+- <!-- schema-def:workflow_step --> `$defs/workflow_step`: workflow trigger, step, route, retry, outcome, or binding contract component.
+- <!-- schema-def:workflow_trigger_target --> `$defs/workflow_trigger_target`: workflow trigger, step, route, retry, outcome, or binding contract component.

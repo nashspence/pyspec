@@ -7,7 +7,7 @@ from pyspec_contract.audit import audit_expected_files, audit_case_render_file
 from pyspec_contract.compile import compile_source
 from pyspec_contract.io import read_json, read_yaml
 from pyspec_contract.paths import COMPILED_SPEC_PATH, SOURCE_SPEC_PATH
-from pyspec_contract.project import fsms_projection, projection_files, textual_screen_entries
+from pyspec_contract.project import state_machines_projection, projection_files, textual_screen_entries
 from tests.helpers import EXAMPLE_ROOT
 
 ROOT = EXAMPLE_ROOT
@@ -67,21 +67,21 @@ def test_canonical_textual_contract_imports_and_composes() -> None:
     assert "entry" not in module.SCREENS[0]
     assert module.SCREENS[0]["screen_class"] == "ProjectBoardScreen"
     assert module.COMPOSITIONS[0]["id"] == "state_machine.project.board.ready"
-    fsm_items = module.compose_contract_fsm("state_machine.project.list.empty")
-    assert ("Static", "text.project.list.empty.heading") in fsm_items
-    assert ("Static", "asset.project.list.empty.illustration") in fsm_items
-    assert ("Button", "operation.project.create") in fsm_items
+    state_machine_items = module.compose_contract_state_machine("state_machine.project.list.empty")
+    assert ("Static", "text.project.list.empty.heading") in state_machine_items
+    assert ("Static", "asset.project.list.empty.illustration") in state_machine_items
+    assert ("Button", "operation.project.create") in state_machine_items
 
 
-def test_textual_screens_are_driven_by_textual_fsm_layout() -> None:
+def test_textual_screens_are_driven_by_textual_state_machine_layout() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
-    del author["fsms"]["state_machine.project.board"]["states"]["ready"]["layout"]["textual"]
+    del author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["layout"]["textual"]
     author["entry_points"]["entry_point.cli.project.board"]["trigger"]["state_machine"]["render"] = "html"
-    for audit_case in author["fsms"]["state_machine.project.board"]["states"]["ready"]["audit"].values():
+    for audit_case in author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["audit"].values():
         audit_case["surfaces"] = ["html"]
     contract = compile_source(author)
-    projection = fsms_projection(contract)
-    assert textual_screen_entries(contract, projection["fsms"], projection["compositions"]) == []
+    projection = state_machines_projection(contract)
+    assert textual_screen_entries(contract, projection["state_machines"], projection["compositions"]) == []
 
 
 def test_canonical_audit_contains_real_visual_references() -> None:

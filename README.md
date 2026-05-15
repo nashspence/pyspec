@@ -53,7 +53,7 @@ spec/spec.yaml
   -> spec/generated/compiled/spec.yaml
   -> product interfaces and behavior projections required by positive declarations
   -> pytest-bdd adapter files derived from behavior/scenarios.yaml
-  -> audit evidence when FSM states declare audit cases
+  -> audit evidence when state-machine view states declare audit cases
 ```
 
 The spec is progressive. If a concern is absent, it has no declaration and no generated projection. The spec does not contain storage implementation details, test-harness routing, dev-environment metadata, review state, release state, or schema-version chatter.
@@ -109,7 +109,7 @@ spec/generated/
     events.asyncapi.yaml
     workflow.cwl.yaml
     web.routes.json
-    web.fsms.json
+    web.state_machines.json
     textual.projection.py
   behavior/
     fixtures.yaml
@@ -128,9 +128,9 @@ spec/generated/
       flow.svg
     workflows/<workflow>/
       flow.svg
-    fsms/<fsm>/
-      fsm.svg
-      states/<state>/
+    state_machines/<state_machine>/
+      state_machine.svg
+      view_states/<view_state>/
         composition.svg
         copy.yaml
         fixtures.yaml
@@ -209,7 +209,7 @@ pyspec check examples/project_dispatch_board --layers full
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 pytest -q -p pytest_bdd.plugin
 ```
 
-Graphviz is required for entrypoint, workflow, FSM, and composition SVGs. The devcontainer includes it. If `dot` lives elsewhere:
+Graphviz is required for entrypoint, workflow, state-machine, and composition SVGs. The devcontainer includes it. If `dot` lives elsewhere:
 
 ```bash
 export CONTRACT_AUDIT_GRAPHVIZ_DOT=/path/to/dot
