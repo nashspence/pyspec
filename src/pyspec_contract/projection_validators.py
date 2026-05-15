@@ -278,8 +278,26 @@ def validate_asyncapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
         _expect_asyncapi_operation_channel(op, f"event_{safe_id(event_id)}", f"message_{safe_id(event_id)}", op_id)
         if op.get("x-workflow") != workflow_id or op.get("x-contract-ref") != workflow["ref"]:
             raise ContractError(f"AsyncAPI receive operation {op_id} does not point to workflow")
+        expected_dispositions = _workflow_entry_dispositions(contract, workflow_id)
+        if expected_dispositions:
+            if op.get("x-dispositions") != expected_dispositions:
+                raise ContractError(f"AsyncAPI receive operation {op_id} does not preserve worker dispositions")
+        elif "x-dispositions" in op:
+            raise ContractError(f"AsyncAPI receive operation {op_id} has unexpected worker dispositions")
 
     _validate_refs_resolve(doc, doc, "AsyncAPI document")
+
+
+def _workflow_entry_dispositions(contract: dict[str, Any], workflow_id: str) -> dict[str, Any]:
+    dispositions: dict[str, Any] = {}
+    for entry_id, entry in sorted(contract.get("entries", {}).items()):
+        if entry.get("surface") not in {"worker", "schedule"}:
+            continue
+        target = entry.get("target", {}).get("workflow")
+        if not isinstance(target, dict) or target.get("name") != workflow_id:
+            continue
+        dispositions[entry_id] = entry.get("responses", {})
+    return dispositions
 
 
 def validate_routes(contract: dict[str, Any], doc: dict[str, Any]) -> None:
@@ -511,7 +529,12 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             raise ContractError(f"CWL workflow {workflow_id} has wrong class/label")
         if f"trigger={workflow['trigger']}" not in item.get("doc", "") or f"ref={workflow['ref']}" not in item.get("doc", ""):
             raise ContractError(f"CWL workflow {workflow_id} doc does not preserve trigger/ref")
-        if item.get("inputs") != {"event": {"type": "Any"}} or item.get("outputs") != {}:
+        expected_inputs = {"trigger_payload": {"type": cwl_type(_workflow_trigger_payload_type(contract, workflow))}}
+        expected_outputs = {
+            outcome_id: {"type": cwl_type(outcome["result"])}
+            for outcome_id, outcome in sorted(workflow["outcomes"].items())
+        }
+        if item.get("inputs") != expected_inputs or item.get("outputs") != expected_outputs:
             raise ContractError(f"CWL workflow {workflow_id} inputs/outputs malformed")
         steps = item.get("steps")
         if set(steps) != {step["id"] for step in workflow["steps"]}:
@@ -521,8 +544,11 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             run_id = f"#{safe_id(step['capability'])}"
             if actual.get("run") != run_id or run_id not in by_id:
                 raise ContractError(f"CWL workflow {workflow_id} step {step['id']} references unknown run")
-            expected_in = {name: "event" for name in sorted(contract["capabilities"][step["capability"]]["input"])}
-            if set(actual) != {"run", "in", "out"} or actual.get("in") != expected_in or actual.get("out") != []:
+            cap = contract["capabilities"][step["capability"]]
+            expected_in = {name: _workflow_cwl_source(source) for name, source in sorted(step["with"].items())}
+            expected_out = sorted(cap["outcomes"])
+            expected_doc = f"with={step['with']}; on={step['on']}"
+            if set(actual) != {"doc", "run", "in", "out"} or actual.get("doc") != expected_doc or actual.get("in") != expected_in or actual.get("out") != expected_out:
                 raise ContractError(f"CWL workflow {workflow_id} step {step['id']} malformed")
 
     for cap_id, cap in sorted(contract["capabilities"].items()):
@@ -546,6 +572,24 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             if set(parameter) != {"type"}:
                 raise ContractError(f"CWL capability {cap_id} parameter has unsupported keys")
             _validate_cwl_type(parameter["type"], f"CWL capability {cap_id}")
+
+
+def _workflow_trigger_payload_type(contract: dict[str, Any], workflow: dict[str, Any]) -> str:
+    trigger = workflow["trigger"]
+    if "event" in trigger:
+        return contract["events"][trigger["event"]]["payload"]
+    capability = contract["capabilities"][trigger["capability"]]
+    successes = [outcome["result"] for outcome in capability["outcomes"].values() if outcome["kind"] == "success"]
+    return successes[0]
+
+
+def _workflow_cwl_source(source: str) -> str:
+    if source.startswith("trigger.payload"):
+        return "trigger_payload"
+    parts = source.split(".")
+    if len(parts) >= 5 and parts[0] == "steps" and parts[2] == "outcomes" and parts[4] == "result":
+        return f"{parts[1]}/{parts[3]}"
+    return source
 
 
 def validate_fixtures_and_scenarios(root: Path, contract: dict[str, Any]) -> None:

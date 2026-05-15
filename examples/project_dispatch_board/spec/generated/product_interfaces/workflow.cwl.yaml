@@ -1,18 +1,28 @@
 $graph:
 - class: Workflow
-  doc: 'contract workflow project.approval_notice; trigger={''event'': ''project.approved''}; ref=workflow.project.approval_notice'
+  doc: 'contract workflow project.approval_notice; trigger={''event'': ''project.approved''}; outcomes=[''completed'', ''delivery_failed''];
+    ref=workflow.project.approval_notice'
   id: '#project_approval_notice'
   inputs:
-    event:
+    trigger_payload:
       type: Any
   label: project.approval_notice
-  outputs: {}
+  outputs:
+    completed:
+      type: Any
+    delivery_failed:
+      type: Any
   steps:
     send_notice:
+      doc: 'with={''approved_by'': ''trigger.payload.approved_by'', ''project_id'': ''trigger.payload.project_id''}; on={''delivery_failed'':
+        {''fail'': ''delivery_failed'', ''retry'': {''attempts'': 3, ''backoff'': ''exponential''}}, ''sent'': {''complete'':
+        ''completed''}}'
       in:
-        approved_by: event
-        project_id: event
-      out: []
+        approved_by: trigger_payload
+        project_id: trigger_payload
+      out:
+      - delivery_failed
+      - sent
       run: '#project_send_approval_notice'
 - baseCommand:
   - contract-capability
@@ -20,6 +30,8 @@ $graph:
   class: CommandLineTool
   id: '#project_approve'
   inputs:
+    approved_by:
+      type: string
     project_id:
       type: string
   label: project.approve

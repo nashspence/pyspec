@@ -46,7 +46,7 @@ def validate_against_schema(data: dict[str, Any], schema_name: str) -> None:
         raise ContractError("Schema validation failed:\n" + str(exc)) from exc
 
 
-TARGET_ORDER = ("copy", "asset", "content_case", "audit_profile", "fixture", "fact", "model", "capability", "fsm", "entry", "workflow", "scenario")
+TARGET_ORDER = ("copy", "asset", "content_case", "audit_profile", "fixture", "fact", "model", "capability", "event", "fsm", "entry", "workflow", "scenario")
 
 
 
@@ -59,6 +59,7 @@ ENTITY_SECTIONS: dict[str, str] = {
     "fact": "facts",
     "model": "models",
     "capability": "capabilities",
+    "event": "events",
     "fsm": "fsms",
     "entry": "entries",
     "workflow": "workflows",
@@ -89,7 +90,7 @@ def empty_compiled_contract(project: str) -> dict[str, Any]:
     }
 
 
-AUTHOR_SECTION_ORDER = ("fixtures", "facts", "models", "capabilities", "fsms", "entries", "workflows", "scenarios", "copies", "assets", "content_cases", "audit_profiles")
+AUTHOR_SECTION_ORDER = ("fixtures", "facts", "models", "capabilities", "events", "fsms", "entries", "workflows", "scenarios", "copies", "assets", "content_cases", "audit_profiles")
 
 
 def _prune_empty_author_sections(author: dict[str, Any]) -> dict[str, Any]:
@@ -274,6 +275,13 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
                 capability[field] = spec[field]
         return capability
 
+    if entity == "event":
+        return {
+            "payload": spec["payload"],
+            "emitted_by": [],
+            "basis": spec["basis"],
+        }
+
     if entity == "fsm":
         fsm_id = spec["id"]
         fsm: dict[str, Any] = {
@@ -317,6 +325,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
     if entity == "workflow":
         return {
             "trigger": spec["trigger"],
+            "outcomes": spec["outcomes"],
             "steps": spec["steps"],
             "ref": rules.workflow_ref(spec["id"]),
             "basis": spec["basis"],
@@ -440,24 +449,28 @@ def _derive_capability_transitions(contract: dict[str, Any]) -> None:
 
 
 def _derive_events(contract: dict[str, Any]) -> dict[str, Any]:
-    events: dict[str, Any] = {}
+    events: dict[str, Any] = copy.deepcopy(contract.get("events", {}))
     for capability_id, capability in sorted(contract["capabilities"].items()):
         for outcome_id, outcome in sorted(capability["outcomes"].items()):
-            for event_id in outcome.get("emits", []):
+            for emit in outcome.get("emits", []):
+                event_id = _emit_event_id(emit)
                 if outcome["kind"] != "success":
                     raise ContractError(f"Capability {capability_id} failure outcome {outcome_id} must not emit events")
+                payload_type = events.get(event_id, {}).get("payload", outcome["result"])
                 event = events.setdefault(event_id, {
                     "emitted_by": [],
-                    "payload": outcome["result"],
+                    "payload": payload_type,
                     "basis": capability["basis"],
                 })
-                if event["payload"] != outcome["result"]:
-                    raise ContractError(
-                        f"Event {event_id} cannot be emitted with different payloads: "
-                        f"{event['payload']} vs {outcome['result']}"
-                    )
+                _validate_emit_payload_mapping(contract, capability_id, capability, outcome_id, outcome, event_id, event["payload"], emit)
                 event["emitted_by"].append(capability_id)
     return events
+
+
+def _emit_event_id(emit: Any) -> str:
+    if isinstance(emit, str):
+        return emit
+    return emit["event"]
 
 
 def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
@@ -819,16 +832,50 @@ def _validate_capability_outcomes(cid: str, cap: dict[str, Any]) -> None:
         raise ContractError(f"Capability {cid} has unsupported outcome kinds: {unknown_kinds}")
     for outcome_id, outcome in outcomes.items():
         emits = outcome.get("emits", [])
-        if len(emits) != len(set(emits)):
+        emit_ids = [_emit_event_id(emit) for emit in emits]
+        if len(emit_ids) != len(set(emit_ids)):
             raise ContractError(f"Capability {cid} outcome {outcome_id} emits duplicate events")
         if outcome["kind"] == "failure":
             if emits:
                 raise ContractError(f"Capability {cid} failure outcome {outcome_id} must not emit events")
             base = _base_type(outcome["result"])
             if base != "Problem" and not base.endswith("Problem"):
-                raise ContractError(
-                    f"Capability {cid} failure outcome {outcome_id} result must be Problem or a *Problem type"
-                )
+                raise ContractError(f"Capability {cid} failure outcome {outcome_id} result must be Problem or a *Problem type")
+
+
+def _validate_emit_payload_mapping(
+    contract: dict[str, Any],
+    capability_id: str,
+    capability: dict[str, Any],
+    outcome_id: str,
+    outcome: dict[str, Any],
+    event_id: str,
+    event_payload: str,
+    emit: Any,
+) -> None:
+    label = f"Capability {capability_id} outcome {outcome_id} emit {event_id}"
+    source_types: dict[str, str] = {}
+    for name, type_name in capability["input"].items():
+        source_types[f"input.{name}"] = type_name
+    source_types.update(_typed_source_paths(contract, "outcome.result", outcome["result"]))
+
+    if isinstance(emit, str):
+        if event_payload != outcome["result"]:
+            raise ContractError(f"{label} must declare payload mapping because event payload is {event_payload}, not {outcome['result']}")
+        return
+
+    has_payload = "payload" in emit
+    has_with = "with" in emit
+    if has_payload == has_with:
+        raise ContractError(f"{label} must declare exactly one of payload or with")
+    if has_payload:
+        source = emit["payload"]
+        actual = source_types.get(source)
+        if actual != event_payload:
+            raise ContractError(f"{label} payload source {source} type must be {event_payload}, got {actual}")
+        return
+
+    _validate_mapping_to_type(contract, label, emit["with"], event_payload, source_types)
 
 
 def _validate_fsms(contract: dict[str, Any]) -> None:
@@ -1424,7 +1471,7 @@ def _validate_entries(contract: dict[str, Any]) -> None:
                 _validate_workflow_entry_trigger(contract, eid, entry, value)
                 if args:
                     raise ContractError(f"CLI entry {eid} targeting a workflow must not declare input.args")
-                _validate_ack_entry_responses(eid, entry)
+                _validate_async_entry_responses(eid, entry, require_failure_disposition=False)
             else:
                 raise ContractError(f"CLI entry {eid} cannot target raw {kind}")
         elif surface in {"worker", "schedule"}:
@@ -1437,7 +1484,7 @@ def _validate_entries(contract: dict[str, Any]) -> None:
                     raise ContractError(f"Schedule entry {eid} must not declare input")
             else:
                 _validate_event_payload_entry_input(contract, eid, entry, value)
-            _validate_ack_entry_responses(eid, entry)
+            _validate_async_entry_responses(eid, entry, require_failure_disposition=surface == "worker")
         elif surface == "webhook":
             if kind != "workflow" or value not in contract["workflows"]:
                 raise ContractError(f"Webhook entry {eid} must target a known workflow")
@@ -1673,9 +1720,22 @@ def _validate_response_value(label: str, value: dict[str, str], expected_type: s
         raise ContractError(f"{label} must expose outcome.result as {expected_type}")
 
 
-def _validate_ack_entry_responses(entry_id: str, entry: dict[str, Any]) -> None:
-    if entry.get("responses") != {"accepted": {"ack": True}}:
-        raise ContractError(f"Entry {entry_id} responses must be accepted: {{ack: true}}")
+def _validate_async_entry_responses(entry_id: str, entry: dict[str, Any], *, require_failure_disposition: bool) -> None:
+    responses = entry.get("responses", {})
+    accepted = responses.get("accepted")
+    if accepted != {"disposition": "ack"}:
+        raise ContractError(f"Entry {entry_id} responses.accepted must declare disposition: ack")
+    failure_responses = {name: response for name, response in responses.items() if name != "accepted"}
+    if require_failure_disposition and not failure_responses:
+        raise ContractError(f"Entry {entry_id} must declare at least one non-ack disposition such as retry, reject, or dead_letter")
+    for response_id, response in failure_responses.items():
+        if set(response) != {"disposition", "problem"}:
+            raise ContractError(f"Entry {entry_id} disposition {response_id} must declare exactly disposition and problem")
+        if response["disposition"] not in {"retry", "reject", "dead_letter"}:
+            raise ContractError(f"Entry {entry_id} disposition {response_id} must be retry, reject, or dead_letter")
+        _validate_problem_type(f"Entry {entry_id} disposition {response_id} problem", response["problem"])
+    if require_failure_disposition and not any(response["disposition"] in {"reject", "dead_letter"} for response in failure_responses.values()):
+        raise ContractError(f"Entry {entry_id} must declare a reject or dead_letter disposition for malformed or poison messages")
 
 
 def _validate_webhook_entry_responses(entry_id: str, entry: dict[str, Any]) -> None:
@@ -1813,6 +1873,48 @@ def _base_type(type_name: str) -> str:
     return type_name
 
 
+def _validate_problem_type(label: str, type_name: str) -> None:
+    base = _base_type(type_name)
+    if base != "Problem" and not base.endswith("Problem"):
+        raise ContractError(f"{label} must be Problem or a *Problem type")
+
+
+def _typed_source_paths(contract: dict[str, Any], prefix: str, type_name: str) -> dict[str, str]:
+    sources = {prefix: type_name}
+    model = contract.get("models", {}).get(_base_type(type_name))
+    if model:
+        for field, field_type in model["fields"].items():
+            sources[f"{prefix}.{field}"] = field_type
+    return sources
+
+
+def _validate_mapping_to_type(
+    contract: dict[str, Any],
+    label: str,
+    mapping: dict[str, str],
+    target_type: str,
+    source_types: dict[str, str],
+) -> None:
+    model = contract.get("models", {}).get(_base_type(target_type))
+    if not model:
+        raise ContractError(f"{label} field mapping requires object payload type, got {target_type}")
+    expected = model["fields"]
+    if set(mapping) != set(expected):
+        missing = sorted(set(expected) - set(mapping))
+        extra = sorted(set(mapping) - set(expected))
+        parts = []
+        if missing:
+            parts.append("missing: " + ", ".join(missing))
+        if extra:
+            parts.append("extra: " + ", ".join(extra))
+        raise ContractError(f"{label} mapping must exactly cover {target_type} fields" + (": " + "; ".join(parts) if parts else ""))
+    for field, source in mapping.items():
+        actual_type = source_types.get(source)
+        expected_type = expected[field]
+        if actual_type != expected_type:
+            raise ContractError(f"{label} mapping {field} source {source} type must be {expected_type}, got {actual_type}")
+
+
 def _success_outcomes(cap: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return {name: outcome for name, outcome in cap["outcomes"].items() if outcome["kind"] == "success"}
 
@@ -1839,9 +1941,139 @@ def _validate_workflows(contract: dict[str, Any]) -> None:
             raise ContractError(f"Workflow {wid} trigger references unknown event {value}")
         if kind == "capability" and value not in contract["capabilities"]:
             raise ContractError(f"Workflow {wid} trigger references unknown capability {value}")
+        _validate_workflow_outcomes(wid, workflow)
+        step_ids = [step["id"] for step in workflow["steps"]]
+        if len(step_ids) != len(set(step_ids)):
+            raise ContractError(f"Workflow {wid} step ids must be unique")
+        step_id_set = set(step_ids)
+        source_types = _workflow_trigger_source_types(contract, wid, workflow)
+        routed_terminals: set[str] = set()
         for step in workflow["steps"]:
             if step["capability"] not in contract["capabilities"]:
                 raise ContractError(f"Workflow {wid} step references unknown capability {step['capability']}")
+            capability = contract["capabilities"][step["capability"]]
+            _validate_workflow_step_bindings(contract, wid, step, capability, source_types)
+            routed_terminals.update(_validate_workflow_step_routes(wid, workflow, step, capability, step_id_set))
+            source_types.update(_workflow_step_source_types(contract, step, capability))
+        if routed_terminals != set(workflow["outcomes"]):
+            missing = sorted(set(workflow["outcomes"]) - routed_terminals)
+            extra = sorted(routed_terminals - set(workflow["outcomes"]))
+            parts = []
+            if missing:
+                parts.append("missing terminal routes: " + ", ".join(missing))
+            if extra:
+                parts.append("unknown terminal routes: " + ", ".join(extra))
+            raise ContractError(f"Workflow {wid} outcomes must be reachable from step routes" + (": " + "; ".join(parts) if parts else ""))
+
+
+def _validate_workflow_outcomes(workflow_id: str, workflow: dict[str, Any]) -> None:
+    outcomes = workflow["outcomes"]
+    successes = {name: outcome for name, outcome in outcomes.items() if outcome["kind"] == "success"}
+    failures = {name: outcome for name, outcome in outcomes.items() if outcome["kind"] == "failure"}
+    if len(successes) != 1:
+        raise ContractError(f"Workflow {workflow_id} must declare exactly one success outcome")
+    if not failures:
+        raise ContractError(f"Workflow {workflow_id} must declare at least one failure outcome")
+    for outcome_id, outcome in failures.items():
+        _validate_problem_type(f"Workflow {workflow_id} failure outcome {outcome_id} result", outcome["result"])
+
+
+def _workflow_trigger_source_types(contract: dict[str, Any], workflow_id: str, workflow: dict[str, Any]) -> dict[str, str]:
+    kind, value = _one(workflow["trigger"], f"workflow {workflow_id} trigger")
+    if kind == "event":
+        payload_type = contract["events"][value]["payload"]
+    else:
+        payload_type = _success_result_type(contract["capabilities"][value])
+    return _typed_source_paths(contract, "trigger.payload", payload_type)
+
+
+def _workflow_step_source_types(contract: dict[str, Any], step: dict[str, Any], capability: dict[str, Any]) -> dict[str, str]:
+    sources: dict[str, str] = {}
+    for outcome_id, outcome in capability["outcomes"].items():
+        sources.update(_typed_source_paths(contract, f"steps.{step['id']}.outcomes.{outcome_id}.result", outcome["result"]))
+    return sources
+
+
+def _validate_workflow_step_bindings(
+    contract: dict[str, Any],
+    workflow_id: str,
+    step: dict[str, Any],
+    capability: dict[str, Any],
+    source_types: dict[str, str],
+) -> None:
+    bindings = step["with"]
+    expected = capability["input"]
+    if set(bindings) != set(expected):
+        missing = sorted(set(expected) - set(bindings))
+        extra = sorted(set(bindings) - set(expected))
+        parts = []
+        if missing:
+            parts.append("missing: " + ", ".join(missing))
+        if extra:
+            parts.append("extra: " + ", ".join(extra))
+        raise ContractError(f"Workflow {workflow_id} step {step['id']} with must exactly map capability input" + (": " + "; ".join(parts) if parts else ""))
+    for name, source in bindings.items():
+        actual_type = source_types.get(source)
+        expected_type = expected[name]
+        if actual_type != expected_type:
+            raise ContractError(f"Workflow {workflow_id} step {step['id']} input {name} source {source} type must be {expected_type}, got {actual_type}")
+
+
+def _validate_workflow_step_routes(
+    workflow_id: str,
+    workflow: dict[str, Any],
+    step: dict[str, Any],
+    capability: dict[str, Any],
+    step_ids: set[str],
+) -> set[str]:
+    routes = step["on"]
+    if set(routes) != set(capability["outcomes"]):
+        missing = sorted(set(capability["outcomes"]) - set(routes))
+        extra = sorted(set(routes) - set(capability["outcomes"]))
+        parts = []
+        if missing:
+            parts.append("missing: " + ", ".join(missing))
+        if extra:
+            parts.append("extra: " + ", ".join(extra))
+        raise ContractError(f"Workflow {workflow_id} step {step['id']} on must exactly map capability outcomes" + (": " + "; ".join(parts) if parts else ""))
+
+    routed_terminals: set[str] = set()
+    for outcome_id, route in routes.items():
+        route_targets = [key for key in ("complete", "fail", "next") if key in route]
+        if len(route_targets) != 1:
+            raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} must declare exactly one of complete, fail, or next")
+        outcome = capability["outcomes"][outcome_id]
+        target_kind = route_targets[0]
+        if target_kind == "next":
+            next_step = route["next"]
+            if next_step not in step_ids:
+                raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} references unknown next step {next_step}")
+            if next_step == step["id"]:
+                raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} cannot loop to itself")
+        else:
+            terminal_id = route[target_kind]
+            terminal = workflow["outcomes"].get(terminal_id)
+            if not terminal:
+                raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} references unknown workflow outcome {terminal_id}")
+            expected_kind = "success" if target_kind == "complete" else "failure"
+            if outcome["kind"] != expected_kind or terminal["kind"] != expected_kind:
+                raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} must preserve {outcome['kind']} outcome semantics")
+            if terminal["result"] != outcome["result"]:
+                raise ContractError(f"Workflow {workflow_id} outcome {terminal_id} result must be {outcome['result']} to receive step outcome {outcome_id}")
+            routed_terminals.add(terminal_id)
+        if "retry" in route:
+            if outcome["kind"] != "failure":
+                raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} retry is only valid for failure outcomes")
+            retry = route["retry"]
+            if retry["attempts"] < 1 or retry["attempts"] > 10:
+                raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} retry attempts must be between 1 and 10")
+        if route.get("dead_letter") is True and outcome["kind"] != "failure":
+            raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} dead_letter is only valid for failure outcomes")
+        if outcome["kind"] == "failure" and target_kind == "fail" and "retry" not in route and route.get("dead_letter") is not True:
+            raise ContractError(f"Workflow {workflow_id} step {step['id']} failure route {outcome_id} must declare retry or dead_letter")
+        if outcome["kind"] == "success" and ("retry" in route or route.get("dead_letter") is True):
+            raise ContractError(f"Workflow {workflow_id} step {step['id']} success route {outcome_id} must not declare retry or dead_letter")
+    return routed_terminals
 
 
 def _validate_fixtures(contract: dict[str, Any]) -> None:
@@ -1964,7 +2196,26 @@ def _validate_scenario_when(contract: dict[str, Any], sid: str, scenario: dict[s
     elif kind == "emit_event":
         if ref not in contract["events"]:
             raise ContractError(f"Scenario {sid} references unknown event {ref}")
+        _validate_scenario_event_payload(contract, sid, ref, body.get("payload", {}))
     _validate_scenario_outcome(contract, sid, scenario)
+
+
+def _validate_scenario_event_payload(contract: dict[str, Any], sid: str, event_id: str, payload: dict[str, Any]) -> None:
+    event = contract["events"][event_id]
+    model = contract.get("models", {}).get(_base_type(event["payload"]))
+    if not model:
+        return
+    expected = set(model["fields"])
+    actual = set(payload)
+    if actual != expected:
+        missing = sorted(expected - actual)
+        extra = sorted(actual - expected)
+        parts = []
+        if missing:
+            parts.append("missing: " + ", ".join(missing))
+        if extra:
+            parts.append("extra: " + ", ".join(extra))
+        raise ContractError(f"Scenario {sid} emit_event.payload must exactly match event {event_id} payload {event['payload']}" + (": " + "; ".join(parts) if parts else ""))
 
 
 def _validate_scenario_entry_input(sid: str, kind: str, body: dict[str, Any], entry: dict[str, Any]) -> None:
@@ -2033,6 +2284,10 @@ def _validate_scenario_then(contract: dict[str, Any], sid: str, scenario: dict[s
     workflow = then.get("workflow")
     if workflow and workflow["ref"] not in contract["workflows"]:
         raise ContractError(f"Scenario {sid} asserts unknown workflow {workflow['ref']}")
+    if workflow and workflow.get("outcome"):
+        workflow_contract = contract["workflows"][workflow["ref"]]
+        if workflow["outcome"] not in workflow_contract["outcomes"]:
+            raise ContractError(f"Scenario {sid} asserts unknown workflow outcome {workflow['ref']}.{workflow['outcome']}")
 
 
 def _validate_scenario_outcome(contract: dict[str, Any], sid: str, scenario: dict[str, Any]) -> None:
@@ -2092,8 +2347,9 @@ def _validate_scenario_archetype(sid: str, scenario: dict[str, Any]) -> None:
         if when_kind != "call_entry" or "outcome" not in then or "response" not in then:
             raise ContractError(f"Scenario {sid} entry_response requires call_entry, outcome, and response")
     elif archetype == "workflow_event_success":
-        if when_kind != "emit_event" or not then.get("workflow", {}).get("ran"):
-            raise ContractError(f"Scenario {sid} workflow_event_success requires emit_event and workflow.ran=true")
+        workflow = then.get("workflow", {})
+        if when_kind != "emit_event" or not workflow.get("ran") or "outcome" not in workflow:
+            raise ContractError(f"Scenario {sid} workflow_event_success requires emit_event, workflow.ran=true, and workflow.outcome")
     elif archetype == "forbidden_action":
         if "forbids" not in then:
             raise ContractError(f"Scenario {sid} forbidden_action requires forbids")

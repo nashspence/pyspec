@@ -963,9 +963,9 @@ def _entry_io_card_titles(surface: str) -> tuple[str, str]:
     if surface == "cli":
         return "command input", "command output"
     if surface == "worker":
-        return "event payload", "acknowledgement"
+        return "event payload", "message disposition"
     if surface == "schedule":
-        return "schedule trigger", "acknowledgement"
+        return "schedule trigger", "trigger disposition"
     return "input", "output"
 
 
@@ -975,6 +975,12 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
     trigger_node = _dot_node_id("workflow_trigger", f"{trigger_kind}_{trigger_value}")
     workflow_node = _dot_node_id("workflow", workflow_id)
     step_nodes = [(_dot_node_id("workflow_step", f"{workflow_id}_{step['id']}"), step) for step in workflow["steps"]]
+    outcome_nodes = [
+        (_dot_node_id("workflow_outcome", f"{workflow_id}_{outcome_id}"), outcome_id, outcome)
+        for outcome_id, outcome in sorted(workflow["outcomes"].items())
+    ]
+    step_node_by_id = {step["id"]: node_id for node_id, step in step_nodes}
+    outcome_node_by_id = {outcome_id: node_id for node_id, outcome_id, _ in outcome_nodes}
     lines = _dot_graph_preamble("workflow_" + safe_id(workflow_id))
     lines.extend(
         [
@@ -988,6 +994,7 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
                     [
                         ("ref", [workflow.get("ref", "")]),
                         ("steps", [f"{step['id']} {_DOT_ARROW_FORWARD} {step['capability']}" for step in workflow["steps"]]),
+                        ("outcomes", [_DotTypedField(outcome_id, outcome["result"], outcome["kind"]) for outcome_id, outcome in sorted(workflow["outcomes"].items())]),
                     ],
                     basis=workflow.get("basis", ""),
                     style=_DOT_STYLE_WORKFLOW,
@@ -997,12 +1004,24 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
     )
     for node_id, step in step_nodes:
         lines.append(_dot_html_node(node_id, _workflow_step_card(step, contract)))
+    for node_id, outcome_id, outcome in outcome_nodes:
+        lines.append(_dot_html_node(node_id, _workflow_outcome_card(outcome_id, outcome)))
     lines.append(_dot_edge(start_id, trigger_node))
     lines.append(_dot_edge(trigger_node, workflow_node))
-    previous = workflow_node
-    for node_id, _ in step_nodes:
-        lines.append(_dot_edge(previous, node_id))
-        previous = node_id
+    if step_nodes:
+        lines.append(_dot_edge(workflow_node, step_nodes[0][0]))
+    for node_id, step in step_nodes:
+        for outcome_id, route in sorted(step["on"].items()):
+            attrs = {"label": outcome_id}
+            if "next" in route:
+                lines.append(_dot_edge(node_id, step_node_by_id[route["next"]], attrs))
+            elif "complete" in route:
+                lines.append(_dot_edge(node_id, outcome_node_by_id[route["complete"]], attrs))
+            elif "fail" in route:
+                lines.append(_dot_edge(node_id, outcome_node_by_id[route["fail"]], attrs))
+    if outcome_nodes:
+        lines.append("  { rank=same; " + " ".join(_dot_quote(node_id) for node_id, _, _ in outcome_nodes) + " }")
+        lines.extend(_dot_invisible_order([node_id for node_id, _, _ in outcome_nodes], indent="  "))
     lines.append("}")
     return "\n".join(lines) + "\n"
 
@@ -1078,8 +1097,10 @@ def _entry_response_sections(response: dict[str, Any]) -> list[tuple[str, list[o
         sections.append(("stderr", [_DotTypedField("stderr", stderr["type"], stderr.get("from"))]))
     if "exit_code" in response:
         sections.append(("exit_code", [str(response["exit_code"])]))
-    if "ack" in response:
-        sections.append(("ack", [str(response["ack"]).lower()]))
+    if "disposition" in response:
+        sections.append(("disposition", [response["disposition"]]))
+    if "problem" in response:
+        sections.append(("problem", [_DotTypedField("problem", response["problem"])]))
     return sections
 
 
@@ -1120,6 +1141,7 @@ def _entry_target_card(
             [
                 ("trigger", [_target_label(*_target_pair(workflow["trigger"]))]),
                 ("steps", [f"{step['id']} {_DOT_ARROW_FORWARD} {step['capability']}" for step in workflow["steps"]]),
+                ("outcomes", [_DotTypedField(outcome_id, outcome["result"], outcome["kind"]) for outcome_id, outcome in sorted(workflow["outcomes"].items())]),
             ],
             basis=workflow.get("basis", ""),
             style=_DOT_STYLE_WORKFLOW,
@@ -1200,9 +1222,42 @@ def _workflow_step_card(step: dict[str, Any], contract: dict[str, Any]) -> str:
     return _dot_card(
         step["id"],
         "workflow step",
-        [("capability", [step["capability"]])] + _capability_sections(capability, contract),
+        [
+            ("capability", [step["capability"]]),
+            ("with", [f"{name} {_DOT_ARROW_ASSIGN} {source}" for name, source in sorted(step["with"].items())]),
+            ("routes", _workflow_route_lines(step)),
+        ] + _capability_sections(capability, contract),
         basis=capability.get("basis", ""),
         style=_DOT_STYLE_NEUTRAL,
+    )
+
+
+def _workflow_route_lines(step: dict[str, Any]) -> list[str]:
+    lines: list[str] = []
+    for outcome_id, route in sorted(step["on"].items()):
+        if "complete" in route:
+            target = f"complete {_DOT_ARROW_FORWARD} {route['complete']}"
+        elif "fail" in route:
+            target = f"fail {_DOT_ARROW_FORWARD} {route['fail']}"
+        else:
+            target = f"next {_DOT_ARROW_FORWARD} {route['next']}"
+        details = []
+        if "retry" in route:
+            retry = route["retry"]
+            details.append(f"retry {retry['attempts']} {retry['backoff']}")
+        if route.get("dead_letter") is True:
+            details.append("dead letter")
+        suffix = f" ({', '.join(details)})" if details else ""
+        lines.append(f"{outcome_id}: {target}{suffix}")
+    return lines
+
+
+def _workflow_outcome_card(outcome_id: str, outcome: dict[str, Any]) -> str:
+    return _dot_card(
+        outcome_id,
+        f"{outcome['kind']} workflow outcome",
+        [("result", [_DotTypedField("result", outcome["result"])])],
+        style=_DOT_STYLE_EXTERNAL,
     )
 
 
@@ -1261,8 +1316,9 @@ def _capability_emit_sections(capability: dict[str, Any], contract: dict[str, An
     sections: list[tuple[str, list[object]]] = []
     for outcome_id, outcome in sorted(capability["outcomes"].items()):
         for event_id in outcome.get("emits", []):
-            sections.append(("emit", [f"{outcome_id} {_DOT_ARROW_FORWARD} {event_id}"]))
-            event = contract.get("events", {}).get(event_id, {})
+            event_ref = event_id["event"] if isinstance(event_id, dict) else event_id
+            sections.append(("emit", [f"{outcome_id} {_DOT_ARROW_FORWARD} {event_ref}"]))
+            event = contract.get("events", {}).get(event_ref, {})
             if event.get("payload"):
                 sections.append(("payload", [_DotTypedField("payload", event["payload"])]))
     return sections

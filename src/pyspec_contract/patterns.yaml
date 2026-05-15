@@ -63,7 +63,7 @@ scenario_archetypes:
     then: [outcome, response.status, model.exists, events.emitted, invoked]
   workflow_event_success:
     when: emit_event
-    then: [workflow.ran, invoked]
+    then: [workflow.ran, workflow.outcome, invoked]
   forbidden_action:
     when: open_entry
     then: [forbids]
@@ -97,7 +97,7 @@ surface_entries:
 entry_target_contracts:
   boundary: 'Entries declare surface-specific input and responses. target.with maps external entry input onto the target capability or FSM context.'
   fsm: 'FSM entry targets use target.fsm.name plus target.fsm.surface to distinguish the entrypoint surface from its html/textual realization.'
-  workflow: 'Workflow entry targets use target.workflow.name plus target.workflow.trigger so the entrypoint declares the trigger data it consumes.'
+  workflow: 'Workflow entry targets use target.workflow.name plus target.workflow.trigger so the entrypoint declares the trigger data it consumes. Workers declare message dispositions; workflows declare terminal outcomes and route each step outcome explicitly.'
 
 presentation_contracts:
   html:

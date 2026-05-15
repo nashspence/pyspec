@@ -24,6 +24,7 @@ class ReferenceSpecDriver:
         self.emitted: list[str] = []
         self.invoked: list[str] = []
         self.workflows_ran: list[str] = []
+        self.workflow_outcomes: dict[str, str] = {}
         self.last_fsm: dict[str, Any] | None = None
         self.response: dict[str, Any] | None = None
         self.last_result: Any = None
@@ -115,6 +116,8 @@ class ReferenceSpecDriver:
                 assert workflow["ref"] in self.workflows_ran
             else:
                 assert workflow["ref"] not in self.workflows_ran
+            if "outcome" in workflow:
+                assert self.workflow_outcomes.get(workflow["ref"]) == workflow["outcome"]
         for cap in assertions.get("invoked", []):
             assert cap in self.invoked
         response = assertions.get("response")
@@ -247,8 +250,9 @@ class ReferenceSpecDriver:
             if lifecycle and lifecycle["field"] not in record:
                 record[lifecycle["field"]] = lifecycle["initial"]
             self.store[model_id].append(record)
-            for event_id in outcome.get("emits", []):
-                self._record_event(event_id, {"id": record["id"], **record})
+            for emit in outcome.get("emits", []):
+                event_id, payload = self._event_payload_from_emit(emit, cap, outcome, input_values, record)
+                self._record_event(event_id, payload)
             self.last_result = record
             return record
         if cap["archetype"] == "read":
@@ -268,8 +272,9 @@ class ReferenceSpecDriver:
             record = self._find(model_id, {"id": selected_id})
             assert record[transition["field"]] == transition["from"]
             record[transition["field"]] = transition["to"]
-            for event_id in outcome.get("emits", []):
-                self._record_event(event_id, {model_key: record["id"], "approved_by": self.fixtures.get("actor", {}).get("id")})
+            for emit in outcome.get("emits", []):
+                event_id, payload = self._event_payload_from_emit(emit, cap, outcome, input_values, record)
+                self._record_event(event_id, payload)
             self.last_result = record
             return record
         # Command/query capabilities are recorded as effects in the spec world.
@@ -282,8 +287,40 @@ class ReferenceSpecDriver:
         for workflow_id, workflow in self.contract["workflows"].items():
             if workflow["trigger"] == {"event": event_id}:
                 self.workflows_ran.append(workflow_id)
-                for step in workflow["steps"]:
-                    self._invoke(step["capability"], payload)
+                self.workflow_outcomes[workflow_id] = self._run_workflow(workflow, payload)
+
+    def _run_workflow(self, workflow: dict[str, Any], payload: dict[str, Any]) -> str:
+        step_by_id = {step["id"]: step for step in workflow["steps"]}
+        current = workflow["steps"][0]["id"]
+        namespace: dict[str, Any] = {"trigger": {"payload": payload}, "steps": {}}
+        while True:
+            step = step_by_id[current]
+            input_values = {name: _resolve_binding(source, namespace) for name, source in step["with"].items()}
+            result = self._invoke(step["capability"], input_values)
+            outcome_id = self.last_outcome
+            assert outcome_id is not None
+            namespace["steps"].setdefault(step["id"], {"outcomes": {}})["outcomes"][outcome_id] = {"result": result}
+            route = step["on"][outcome_id]
+            if "complete" in route:
+                return route["complete"]
+            if "fail" in route:
+                return route["fail"]
+            current = route["next"]
+
+    def _event_payload_from_emit(
+        self,
+        emit: Any,
+        capability: Mapping[str, Any],
+        outcome: Mapping[str, Any],
+        input_values: Mapping[str, Any],
+        result: Mapping[str, Any],
+    ) -> tuple[str, dict[str, Any]]:
+        if isinstance(emit, str):
+            return emit, dict(result)
+        namespace = {"input": dict(input_values), "outcome": {"result": dict(result)}}
+        if "payload" in emit:
+            return emit["event"], _resolve_binding(emit["payload"], namespace)
+        return emit["event"], {field: _resolve_binding(source, namespace) for field, source in emit["with"].items()}
 
     def _record_event(self, event_id: str, payload: dict[str, Any]) -> None:
         self.emitted.append(event_id)

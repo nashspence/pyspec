@@ -115,7 +115,12 @@ def test_author_yaml_is_direct_source() -> None:
 
 def test_author_contract_is_sparse_source() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
-    assert "events" not in author
+    assert author["events"] == {
+        "project.approved": {
+            "basis": "Approval events carry the reviewer and project identity needed by notification workflows.",
+            "payload": "ProjectApproved",
+        }
+    }
     assert "refs" not in author
     assert "transition" not in author["capabilities"]["project.submit"]
     assert author["scenarios"]["project.approve.success"]["given"]["facts"] == [{"use": "fact.project.submitted"}]
@@ -735,7 +740,7 @@ def test_textual_is_not_an_entrypoint_surface() -> None:
 def test_cli_entry_args_must_exactly_match_capability_input() -> None:
     author = _author()
     del author["entries"]["cli.project.approve"]["input"]["args"]
-    with pytest.raises(ContractError, match=r"Entry cli\.project\.approve input\.args must exactly match target input: missing: project_id"):
+    with pytest.raises(ContractError, match=r"Entry cli\.project\.approve input\.args must exactly match target input: missing: approved_by, project_id"):
         compile_source(author)
 
 
@@ -765,6 +770,13 @@ def test_capability_outcomes_must_have_one_success_and_real_failure_result() -> 
         compile_source(author)
 
 
+def test_event_emits_must_map_declared_payload() -> None:
+    author = _author()
+    author["capabilities"]["project.approve"]["outcomes"]["approved"]["emits"][0]["with"]["approved_by"] = "outcome.result"
+    with pytest.raises(ContractError, match=r"emit project\.approved mapping approved_by source outcome\.result type must be ID"):
+        compile_source(author)
+
+
 def test_entry_responses_must_map_all_capability_outcomes() -> None:
     author = _author()
     del author["entries"]["api.project.create"]["responses"]["validation_failed"]
@@ -790,7 +802,28 @@ def test_fsm_entry_must_not_declare_output() -> None:
 def test_worker_entry_payload_must_match_trigger_event_payload() -> None:
     author = _author()
     author["entries"]["worker.project.approval_notice"]["input"]["payload"] = "NoticeResult"
-    with pytest.raises(ContractError, match=r"Entry worker\.project\.approval_notice input\.payload must be Project, got NoticeResult"):
+    with pytest.raises(ContractError, match=r"Entry worker\.project\.approval_notice input\.payload must be ProjectApproved, got NoticeResult"):
+        compile_source(author)
+
+
+def test_worker_entry_must_declare_realistic_dispositions() -> None:
+    author = _author()
+    author["entries"]["worker.project.approval_notice"]["responses"] = {"accepted": {"disposition": "ack"}}
+    with pytest.raises(ContractError, match=r"Entry worker\.project\.approval_notice must declare at least one non-ack disposition"):
+        compile_source(author)
+
+
+def test_workflow_steps_must_route_all_capability_outcomes() -> None:
+    author = _author()
+    del author["workflows"]["project.approval_notice"]["steps"][0]["on"]["delivery_failed"]
+    with pytest.raises(ContractError, match=r"Workflow project\.approval_notice step send_notice on must exactly map capability outcomes: missing: delivery_failed"):
+        compile_source(author)
+
+
+def test_workflow_failure_routes_must_declare_retry_or_dead_letter() -> None:
+    author = _author()
+    del author["workflows"]["project.approval_notice"]["steps"][0]["on"]["delivery_failed"]["retry"]
+    with pytest.raises(ContractError, match=r"Workflow project\.approval_notice step send_notice failure route delivery_failed must declare retry or dead_letter"):
         compile_source(author)
 
 

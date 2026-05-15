@@ -170,8 +170,8 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">target FSM (textual)</FONT>' in cli_entrypoint
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">target workflow (event project.approved)</FONT>' in worker_entrypoint
     assert "<B>event payload</B>" in worker_entrypoint
-    assert "<B>acknowledgement</B>" in worker_entrypoint
-    assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in worker_entrypoint
+    assert "<B>message disposition</B>" in worker_entrypoint
+    assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ProjectApproved</FONT>' in worker_entrypoint
     assert "<B>surface handoff</B>" not in entrypoint
     assert 'label="ui loop"' not in entrypoint
     assert "entry_exit" not in entrypoint
@@ -218,7 +218,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>emits:</B>&#160;&#160;project.created" not in target_card
     cli_approve_target_card = cli_approve_entrypoint[cli_approve_entrypoint.index('"entrypoint_target_project_approve"') : cli_approve_entrypoint.index('"entrypoint_response_cli_project_approve_approved"')]
     assert "<B>emit:</B>&#160;&#160;approved → project.approved" in cli_approve_target_card
-    assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in cli_approve_target_card
+    assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ProjectApproved</FONT>' in cli_approve_target_card
     assert "<B>emits:</B>&#160;&#160;project.approved" not in cli_approve_target_card
     entrypoint_input = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
     assert entrypoint_input in entrypoint
@@ -229,7 +229,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "fsm.selected_project_id" not in entrypoint
     assert "$fsm." not in entrypoint
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">event trigger</FONT>' in workflow
-    assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in workflow
+    assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ProjectApproved</FONT>' in workflow
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">workflow step</FONT>' in workflow
     assert "<B>capability:</B>&#160;&#160;project.send_approval_notice" in workflow
     workflow_step = workflow[workflow.index('"workflow_step_project_approval_notice_send_notice"') :]
@@ -237,6 +237,10 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert '<FONT POINT-SIZE="10">approved_by</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in workflow_step
     assert '<FONT POINT-SIZE="10">sent</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;NoticeResult</FONT>' in workflow
     assert '<FONT POINT-SIZE="10">delivery_failed</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Problem</FONT>' in workflow
+    assert "success workflow outcome" in workflow
+    assert "failure workflow outcome" in workflow
+    assert "sent: complete → completed" in workflow
+    assert "delivery_failed: fail → delivery_failed" in workflow
     for graph_id, dot_source in {"fsm_project_list": fsm, "project_board": composition, "web_project_board": entrypoint, "api_project_create": api_entrypoint, "cli_project_approve": cli_approve_entrypoint, "project_approval_notice": workflow}.items():
         svg = _render_graphviz_svg(dot_source, graph_id)
         assert svg.lstrip().startswith("<svg")

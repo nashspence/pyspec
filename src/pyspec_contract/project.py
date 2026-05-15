@@ -227,6 +227,9 @@ def asyncapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
             "x-workflow": workflow_id,
             "x-contract-ref": workflow["ref"],
         }
+        dispositions = _workflow_entry_dispositions(contract, workflow_id)
+        if dispositions:
+            operations[f"receive_{safe_id(workflow_id)}"]["x-dispositions"] = dispositions
 
     return {
         "asyncapi": "3.1.0",
@@ -238,6 +241,18 @@ def asyncapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
             "schemas": components_projection(contract)["schemas"],
         },
     }
+
+
+def _workflow_entry_dispositions(contract: dict[str, Any], workflow_id: str) -> dict[str, Any]:
+    dispositions: dict[str, Any] = {}
+    for entry_id, entry in sorted(contract.get("entries", {}).items()):
+        if entry.get("surface") not in {"worker", "schedule"}:
+            continue
+        target = entry.get("target", {}).get("workflow")
+        if not isinstance(target, dict) or target.get("name") != workflow_id:
+            continue
+        dispositions[entry_id] = entry.get("responses", {})
+    return dispositions
 
 
 def routes_projection(contract: dict[str, Any]) -> dict[str, Any]:
@@ -602,17 +617,22 @@ def workflows_projection(contract: dict[str, Any]) -> dict[str, Any]:
         for step in workflow["steps"]:
             cap = contract["capabilities"][step["capability"]]
             steps[step["id"]] = {
+                "doc": f"with={step['with']}; on={step['on']}",
                 "run": f"#{safe_id(step['capability'])}",
-                "in": {name: "event" for name in sorted(cap["input"])},
-                "out": [],
+                "in": {name: _workflow_cwl_source(source) for name, source in sorted(step["with"].items())},
+                "out": sorted(cap["outcomes"]),
             }
+        trigger_payload_type = _workflow_trigger_payload_type(contract, workflow)
         graph.append({
             "id": f"#{safe_id(workflow_id)}",
             "class": "Workflow",
             "label": workflow_id,
-            "doc": f"contract workflow {workflow_id}; trigger={workflow['trigger']}; ref={workflow['ref']}",
-            "inputs": {"event": {"type": "Any"}},
-            "outputs": {},
+            "doc": f"contract workflow {workflow_id}; trigger={workflow['trigger']}; outcomes={list(workflow['outcomes'])}; ref={workflow['ref']}",
+            "inputs": {"trigger_payload": {"type": cwl_type(trigger_payload_type)}},
+            "outputs": {
+                outcome_id: {"type": cwl_type(outcome["result"])}
+                for outcome_id, outcome in sorted(workflow["outcomes"].items())
+            },
             "steps": steps,
         })
     for cap_id, cap in sorted(contract["capabilities"].items()):
@@ -628,6 +648,24 @@ def workflows_projection(contract: dict[str, Any]) -> dict[str, Any]:
             },
         })
     return {"cwlVersion": "v1.2", "$graph": graph}
+
+
+def _workflow_trigger_payload_type(contract: dict[str, Any], workflow: dict[str, Any]) -> str:
+    trigger = workflow["trigger"]
+    if "event" in trigger:
+        return contract["events"][trigger["event"]]["payload"]
+    capability = contract["capabilities"][trigger["capability"]]
+    successes = [outcome["result"] for outcome in capability["outcomes"].values() if outcome["kind"] == "success"]
+    return successes[0]
+
+
+def _workflow_cwl_source(source: str) -> str:
+    if source.startswith("trigger.payload"):
+        return "trigger_payload"
+    parts = source.split(".")
+    if len(parts) >= 5 and parts[0] == "steps" and parts[2] == "outcomes" and parts[4] == "result":
+        return f"{parts[1]}/{parts[3]}"
+    return source
 
 
 def fixtures_projection(contract: dict[str, Any]) -> dict[str, Any]:

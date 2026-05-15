@@ -29,6 +29,7 @@ class ProductApp:
         self.emitted_events: list[str] = []
         self.invoked_capabilities: list[str] = []
         self.ran_workflows: list[str] = []
+        self.workflow_outcomes: dict[str, str] = {}
         self.rendered_fsm: dict[str, Any] | None = None
         self.http_response: dict[str, Any] | None = None
         self.last_outcome: str | None = None
@@ -174,6 +175,7 @@ class ProductApp:
             project = self._find_project(values["project_id"])
             assert project["status"] == "submitted"
             project["status"] = "approved"
+            project["approved_by"] = values["approved_by"]
             self._record_event("project.approved")
             return project
         if capability_id == "project.archive":
@@ -191,8 +193,24 @@ class ProductApp:
         for workflow_id, workflow in self.contract["workflows"].items():
             if workflow["trigger"] == {"event": event_id}:
                 self.ran_workflows.append(workflow_id)
-                for step in workflow["steps"]:
-                    self.invoke_capability(step["capability"], payload)
+                self.workflow_outcomes[workflow_id] = self._run_workflow(workflow, payload)
+
+    def _run_workflow(self, workflow: Mapping[str, Any], payload: Mapping[str, Any]) -> str:
+        step_by_id = {step["id"]: step for step in workflow["steps"]}
+        current = workflow["steps"][0]["id"]
+        namespace: dict[str, Any] = {"trigger": {"payload": dict(payload)}, "steps": {}}
+        while True:
+            step = step_by_id[current]
+            input_values = {name: _resolve_binding(source, namespace) for name, source in step["with"].items()}
+            result = self.invoke_capability(step["capability"], input_values)
+            assert self.last_outcome is not None
+            namespace["steps"].setdefault(step["id"], {"outcomes": {}})["outcomes"][self.last_outcome] = {"result": result}
+            route = step["on"][self.last_outcome]
+            if "complete" in route:
+                return route["complete"]
+            if "fail" in route:
+                return route["fail"]
+            current = route["next"]
 
     def assert_contract(self, assertions: Mapping[str, Any]) -> None:
         if "fsm" in assertions:
@@ -242,6 +260,8 @@ class ProductApp:
         workflow = assertions.get("workflow")
         if workflow:
             assert (workflow["ref"] in self.ran_workflows) is workflow["ran"]
+            if "outcome" in workflow:
+                assert self.workflow_outcomes.get(workflow["ref"]) == workflow["outcome"]
         for cap in assertions.get("invoked", []):
             assert cap in self.invoked_capabilities
         response = assertions.get("response")

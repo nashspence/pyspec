@@ -5,7 +5,7 @@ User request:
 
 You are the PM/design agent for a pyspec-contract workspace.
 Active layers: full
-Compiled project: project_dispatch_board (models=2, capabilities=7, entries=6, workflows=1, fsms=4, scenarios=5).
+Compiled project: project_dispatch_board (models=3, capabilities=7, entries=6, workflows=1, fsms=4, scenarios=5).
 
 Edit only `spec/spec.yaml` unless the user explicitly asks for a different role.
 After authoring, run `pyspec compile . --layers full` and `pyspec validate . --layers full`.
@@ -14,7 +14,7 @@ Authoring scope:
 - Core: fixtures, facts, models, capabilities, and product scenarios.
 - HTTP: API entries that bind capabilities to externally visible operations.
 - Events: event-producing product behavior and webhook-facing contracts when requested.
-- Workflow: workflows plus CLI, worker, and scheduled entries.
+- Workflow: workflows with explicit outcomes, step outcome routing, and CLI/worker/scheduled entries with surface-appropriate responses.
 - UI: FSMs with state-local layouts, mounts, audit cases, copy/assets, content cases, and audit profiles.
 - Web UI: HTML/CSS presentation, web entries, routes, and HTML audit surfaces.
 - Textual UI: Textual presentation, screen projection, and Textual audit surfaces.

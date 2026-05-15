@@ -418,6 +418,49 @@
       ],
       "type": "object"
     },
+    "capability_emit": {
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "payload"
+          ]
+        },
+        {
+          "required": [
+            "with"
+          ]
+        }
+      ],
+      "properties": {
+        "event": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "payload": {
+          "$ref": "#/$defs/capability_emit_source"
+        },
+        "with": {
+          "$ref": "#/$defs/capability_emit_bindings"
+        }
+      },
+      "required": [
+        "event"
+      ],
+      "type": "object"
+    },
+    "capability_emit_bindings": {
+      "additionalProperties": {
+        "$ref": "#/$defs/capability_emit_source"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/field_name"
+      },
+      "type": "object"
+    },
+    "capability_emit_source": {
+      "pattern": "^(input\\.[a-z][a-z0-9_]*|outcome\\.result)(\\.[a-z][a-z0-9_]*)?$",
+      "type": "string"
+    },
     "capability_item": {
       "additionalProperties": false,
       "properties": {
@@ -498,7 +541,7 @@
       "properties": {
         "emits": {
           "items": {
-            "$ref": "#/$defs/dotted_id"
+            "$ref": "#/$defs/capability_emit"
           },
           "type": "array",
           "uniqueItems": true
@@ -1093,14 +1136,22 @@
     "entry_response": {
       "additionalProperties": false,
       "properties": {
-        "ack": {
-          "type": "boolean"
-        },
         "body": {
           "$ref": "#/$defs/entry_response_value"
         },
+        "disposition": {
+          "enum": [
+            "ack",
+            "retry",
+            "reject",
+            "dead_letter"
+          ]
+        },
         "exit_code": {
           "type": "integer"
+        },
+        "problem": {
+          "$ref": "#/$defs/type_name"
         },
         "status": {
           "maximum": 599,
@@ -1242,6 +1293,24 @@
       "required": [
         "name",
         "trigger"
+      ],
+      "type": "object"
+    },
+    "event_author": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "payload": {
+          "$ref": "#/$defs/type_name"
+        },
+        "why": {
+          "$ref": "#/$defs/basis"
+        }
+      },
+      "required": [
+        "payload"
       ],
       "type": "object"
     },
@@ -3135,6 +3204,9 @@
         "workflow": {
           "additionalProperties": false,
           "properties": {
+            "outcome": {
+              "$ref": "#/$defs/field_name"
+            },
             "ran": {
               "type": "boolean"
             },
@@ -3279,23 +3351,12 @@
         "basis": {
           "$ref": "#/$defs/basis"
         },
+        "outcomes": {
+          "$ref": "#/$defs/workflow_outcomes"
+        },
         "steps": {
           "items": {
-            "additionalProperties": false,
-            "properties": {
-              "capability": {
-                "$ref": "#/$defs/dotted_id"
-              },
-              "id": {
-                "pattern": "^[a-z][a-z0-9_]*$",
-                "type": "string"
-              }
-            },
-            "required": [
-              "id",
-              "capability"
-            ],
-            "type": "object"
+            "$ref": "#/$defs/workflow_step"
           },
           "minItems": 1,
           "type": "array"
@@ -3309,8 +3370,18 @@
       },
       "required": [
         "trigger",
+        "outcomes",
         "steps"
       ],
+      "type": "object"
+    },
+    "workflow_bindings": {
+      "additionalProperties": {
+        "$ref": "#/$defs/workflow_source"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/field_name"
+      },
       "type": "object"
     },
     "workflow_item": {
@@ -3322,23 +3393,12 @@
         "id": {
           "$ref": "#/$defs/dotted_id"
         },
+        "outcomes": {
+          "$ref": "#/$defs/workflow_outcomes"
+        },
         "steps": {
           "items": {
-            "additionalProperties": false,
-            "properties": {
-              "capability": {
-                "$ref": "#/$defs/dotted_id"
-              },
-              "id": {
-                "pattern": "^[a-z][a-z0-9_]*$",
-                "type": "string"
-              }
-            },
-            "required": [
-              "id",
-              "capability"
-            ],
-            "type": "object"
+            "$ref": "#/$defs/workflow_step"
           },
           "minItems": 1,
           "type": "array"
@@ -3350,31 +3410,108 @@
       "required": [
         "id",
         "trigger",
+        "outcomes",
         "steps",
         "basis"
       ],
       "type": "object"
     },
+    "workflow_outcome": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "success",
+            "failure"
+          ]
+        },
+        "result": {
+          "$ref": "#/$defs/type_name"
+        }
+      },
+      "required": [
+        "kind",
+        "result"
+      ],
+      "type": "object"
+    },
+    "workflow_outcomes": {
+      "additionalProperties": {
+        "$ref": "#/$defs/workflow_outcome"
+      },
+      "minProperties": 2,
+      "propertyNames": {
+        "$ref": "#/$defs/field_name"
+      },
+      "type": "object"
+    },
+    "workflow_retry": {
+      "additionalProperties": false,
+      "properties": {
+        "attempts": {
+          "maximum": 10,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "backoff": {
+          "enum": [
+            "fixed",
+            "linear",
+            "exponential"
+          ]
+        }
+      },
+      "required": [
+        "attempts",
+        "backoff"
+      ],
+      "type": "object"
+    },
+    "workflow_route": {
+      "additionalProperties": false,
+      "properties": {
+        "complete": {
+          "$ref": "#/$defs/field_name"
+        },
+        "dead_letter": {
+          "type": "boolean"
+        },
+        "fail": {
+          "$ref": "#/$defs/field_name"
+        },
+        "next": {
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        },
+        "retry": {
+          "$ref": "#/$defs/workflow_retry"
+        }
+      },
+      "type": "object"
+    },
+    "workflow_routes": {
+      "additionalProperties": {
+        "$ref": "#/$defs/workflow_route"
+      },
+      "minProperties": 1,
+      "propertyNames": {
+        "$ref": "#/$defs/field_name"
+      },
+      "type": "object"
+    },
+    "workflow_source": {
+      "pattern": "^(trigger\\.payload|steps\\.[a-z][a-z0-9_]*\\.outcomes\\.[a-z][a-z0-9_]*\\.result)(\\.[a-z][a-z0-9_]*)?$",
+      "type": "string"
+    },
     "workflow_spec": {
       "additionalProperties": false,
       "properties": {
+        "outcomes": {
+          "$ref": "#/$defs/workflow_outcomes"
+        },
         "steps": {
           "items": {
-            "additionalProperties": false,
-            "properties": {
-              "capability": {
-                "$ref": "#/$defs/dotted_id"
-              },
-              "id": {
-                "pattern": "^[a-z][a-z0-9_]*$",
-                "type": "string"
-              }
-            },
-            "required": [
-              "id",
-              "capability"
-            ],
-            "type": "object"
+            "$ref": "#/$defs/workflow_step"
           },
           "minItems": 1,
           "type": "array"
@@ -3385,7 +3522,33 @@
       },
       "required": [
         "trigger",
+        "outcomes",
         "steps"
+      ],
+      "type": "object"
+    },
+    "workflow_step": {
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "id": {
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        },
+        "on": {
+          "$ref": "#/$defs/workflow_routes"
+        },
+        "with": {
+          "$ref": "#/$defs/workflow_bindings"
+        }
+      },
+      "required": [
+        "id",
+        "capability",
+        "with",
+        "on"
       ],
       "type": "object"
     },
@@ -3412,6 +3575,15 @@
     "capabilities": {
       "additionalProperties": {
         "$ref": "#/$defs/capability_author"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/dotted_id"
+      },
+      "type": "object"
+    },
+    "events": {
+      "additionalProperties": {
+        "$ref": "#/$defs/event_author"
       },
       "propertyNames": {
         "$ref": "#/$defs/dotted_id"

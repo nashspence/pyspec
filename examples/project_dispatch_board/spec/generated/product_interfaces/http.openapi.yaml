@@ -51,6 +51,17 @@ components:
       - updated_at
       - workspace_id
       type: object
+    ProjectApproved:
+      additionalProperties: false
+      properties:
+        approved_by:
+          type: string
+        project_id:
+          type: string
+      required:
+      - approved_by
+      - project_id
+      type: object
     ProjectStatus:
       enum:
       - draft

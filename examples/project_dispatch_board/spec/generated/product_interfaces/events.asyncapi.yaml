@@ -29,7 +29,7 @@ components:
     message_project_approved:
       name: project.approved
       payload:
-        $ref: '#/components/schemas/Project'
+        $ref: '#/components/schemas/ProjectApproved'
       title: Project Approved
       x-emitted-by:
       - project.approve
@@ -106,6 +106,17 @@ components:
       - updated_at
       - workspace_id
       type: object
+    ProjectApproved:
+      additionalProperties: false
+      properties:
+        approved_by:
+          type: string
+        project_id:
+          type: string
+      required:
+      - approved_by
+      - project_id
+      type: object
     ProjectStatus:
       enum:
       - draft
@@ -124,6 +135,13 @@ operations:
     messages:
     - $ref: '#/components/messages/message_project_approved'
     x-contract-ref: workflow.project.approval_notice
+    x-dispositions:
+      worker.project.approval_notice:
+        accepted:
+          disposition: ack
+        malformed:
+          disposition: dead_letter
+          problem: Problem
     x-workflow: project.approval_notice
   send_project_approved:
     action: send

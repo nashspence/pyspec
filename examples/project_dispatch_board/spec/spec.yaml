@@ -90,16 +90,26 @@ models:
       code: Text
       message: Text
     kind: value_object
+  ProjectApproved:
+    basis: Approval events carry only the integration payload required by downstream workflows.
+    fields:
+      approved_by: ID
+      project_id: ID
+    kind: value_object
 capabilities:
   project.approve:
     archetype: transition
     basis: Reviewers can approve submitted dispatch projects.
     input:
+      approved_by: ID
       project_id: ID
     outcomes:
       approved:
         emits:
-        - project.approved
+        - event: project.approved
+          with:
+            approved_by: input.approved_by
+            project_id: input.project_id
         kind: success
         result: Project
       invalid_state:
@@ -116,7 +126,8 @@ capabilities:
     outcomes:
       archived:
         emits:
-        - project.archived
+        - event: project.archived
+          payload: outcome.result
         kind: success
         result: Project
       invalid_state:
@@ -138,7 +149,8 @@ capabilities:
     outcomes:
       created:
         emits:
-        - project.created
+        - event: project.created
+          payload: outcome.result
         kind: success
         result: Project
       validation_failed:
@@ -199,9 +211,14 @@ capabilities:
         result: Problem
       submitted:
         emits:
-        - project.submitted
+        - event: project.submitted
+          payload: outcome.result
         kind: success
         result: Project
+events:
+  project.approved:
+    basis: Approval events carry the reviewer and project identity needed by notification workflows.
+    payload: ProjectApproved
 fsms:
   fsm.project.activity:
     basis: The activity FSM summarizes latest status around the selected project.
@@ -602,6 +619,7 @@ entries:
     command: project approve
     input:
       args:
+        approved_by: ID
         project_id: ID
     responses:
       approved:
@@ -623,6 +641,7 @@ entries:
     target:
       capability: project.approve
       with:
+        approved_by: input.args.approved_by
         project_id: input.args.project_id
   cli.project.board:
     basis: CLI launcher for the Textual dispatch board.
@@ -653,10 +672,13 @@ entries:
   worker.project.approval_notice:
     basis: Worker entry exposing the approval notice workflow.
     input:
-      payload: Project
+      payload: ProjectApproved
     responses:
       accepted:
-        ack: true
+        disposition: ack
+      malformed:
+        disposition: dead_letter
+        problem: Problem
     surface: worker
     target:
       workflow:
@@ -666,9 +688,27 @@ entries:
 workflows:
   project.approval_notice:
     basis: Approval event sends a downstream notice.
+    outcomes:
+      completed:
+        kind: success
+        result: NoticeResult
+      delivery_failed:
+        kind: failure
+        result: Problem
     steps:
     - capability: project.send_approval_notice
       id: send_notice
+      on:
+        delivery_failed:
+          fail: delivery_failed
+          retry:
+            attempts: 3
+            backoff: exponential
+        sent:
+          complete: completed
+      with:
+        approved_by: trigger.payload.approved_by
+        project_id: trigger.payload.project_id
     trigger:
       event: project.approved
 scenarios:
@@ -687,6 +727,7 @@ scenarios:
       invoked:
       - project.send_approval_notice
       workflow:
+        outcome: completed
         ran: true
         ref: project.approval_notice
     title: Approval event sends notice
@@ -722,6 +763,7 @@ scenarios:
     when:
       invoke_capability:
         input:
+          approved_by: $fixture.actor.id
           project_id: project_submitted_1
         ref: project.approve
   project.board.empty:
