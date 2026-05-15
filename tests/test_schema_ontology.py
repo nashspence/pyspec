@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
 import pytest
 
 from pyspec_contract.compile import ROOT
 from pyspec_contract.io import read_json
+from pyspec_contract.layers import COMMON_LAYER_SETS, author_schema_for_layers
 
 
 COLLECTION_SECTIONS = {
@@ -26,9 +26,22 @@ COLLECTION_SECTIONS = {
 }
 
 
-def _schema_paths() -> list[Path]:
-    schemas = [ROOT / "schemas" / "author.schema.json"]
-    schemas.extend(sorted((ROOT / "schemas" / "layers").glob("*.author.schema.json")))
+def _authored_schema_cases() -> list[Any]:
+    schemas = [
+        pytest.param(
+            "author.schema.json",
+            read_json(ROOT / "schemas" / "author.schema.json"),
+            id="author.schema.json",
+        )
+    ]
+    schemas.extend(
+        pytest.param(
+            f"generated:{name}.author.schema.json",
+            author_schema_for_layers(layers),
+            id=f"generated:{name}.author.schema.json",
+        )
+        for name, layers in sorted(COMMON_LAYER_SETS.items())
+    )
     return schemas
 
 
@@ -46,15 +59,14 @@ def _definition_refs(node: Any) -> set[str]:
     return refs
 
 
-@pytest.mark.parametrize("path", _schema_paths(), ids=lambda path: path.name)
-def test_authored_schemas_only_use_authored_source_collection_defs(path: Path) -> None:
-    schema = read_json(path)
+@pytest.mark.parametrize("schema_name,schema", _authored_schema_cases())
+def test_authored_schemas_only_use_authored_source_collection_defs(schema_name: str, schema: dict[str, Any]) -> None:
     defs = schema["$defs"]
     legacy = sorted(name for name in defs if name.endswith(("_author", "_item", "_spec")))
-    assert legacy == []
+    assert legacy == [], schema_name
 
     refs = _definition_refs(schema)
-    assert sorted(refs - set(defs)) == []
+    assert sorted(refs - set(defs)) == [], schema_name
 
     for section, singular in COLLECTION_SECTIONS.items():
         if section in schema["properties"]:

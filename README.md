@@ -83,13 +83,14 @@ pyspec compile . --layers core,http
 pyspec validate . --layers core,http
 ```
 
-The package ships layer-pruned schemas under `pyspec_contract/schemas/layers/`, including:
+Layer-pruned schemas are generated from `author.schema.json` on demand instead of checked in as duplicate source files:
 
-```text
-core_http.author.schema.json
-core_ui_web.author.schema.json
-full.author.schema.json
+```bash
+python -m pyspec_contract.layers core,http
+python -m pyspec_contract.layers --write-common
 ```
+
+The `--write-common` command writes local editor/tooling copies under the ignored `pyspec_contract/schemas/layers/` directory.
 
 ## Generated Artifacts
 

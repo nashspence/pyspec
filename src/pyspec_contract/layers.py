@@ -215,6 +215,10 @@ def author_schema_for_layers(layers: set[str] | None) -> dict[str, Any]:
 
 
 def write_common_layer_schemas(root: Path | None = None) -> None:
+    """Write derived common layer schemas for local editor/tool integration.
+
+    These files are generated artifacts, not checked-in source of truth.
+    """
     base = root or ROOT
     out = base / "schemas" / "layers"
     out.mkdir(parents=True, exist_ok=True)
@@ -224,9 +228,13 @@ def write_common_layer_schemas(root: Path | None = None) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Print or write layer-pruned authored-spec schemas.")
+    parser = argparse.ArgumentParser(description="Print or locally write generated layer-pruned authored-spec schemas.")
     parser.add_argument("layers", nargs="?", default="full", help="Comma-separated layers, e.g. core,http or core,ui,textual")
-    parser.add_argument("--write-common", action="store_true", help="Write the common schemas under schemas/layers/")
+    parser.add_argument(
+        "--write-common",
+        action="store_true",
+        help="Write generated common schemas under ignored schemas/layers/ for local tooling.",
+    )
     args = parser.parse_args(argv)
     try:
         if args.write_common:
