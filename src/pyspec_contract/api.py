@@ -1,15 +1,22 @@
 from __future__ import annotations
 
-import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable
 
 from .audit import audit_expected_files, generate_audit
-from .compile import compile_author, compile_source, default_source_path, write_compiled
+from .compile import (
+    _cleanup_generated_backup,
+    _restore_generated_tree,
+    _stash_generated_tree,
+    compile_author,
+    compile_source,
+    default_source_path,
+    write_compiled,
+)
 from .io import write_json, write_yaml
 from .layers import parse_layers
-from .paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR
+from .paths import COMPILED_SPEC_PATH
 from .project import projection_files
 from .validate import validate_project as _validate_project
 
@@ -85,21 +92,26 @@ def write_generated(
     """Write generated artifacts for an already compiled contract."""
 
     project_root = Path(root).resolve()
-    generated = project_root / GENERATED_SPEC_DIR
-    if generated.exists():
-        shutil.rmtree(generated)
-    compiled_path = project_root / COMPILED_SPEC_PATH
-    compiled_path.parent.mkdir(parents=True, exist_ok=True)
-    write_yaml(compiled_path, contract)
-    for relative, content, kind in projection_files(contract, layers=_coerce_layers(layers)):
-        path = project_root / relative
-        path.parent.mkdir(parents=True, exist_ok=True)
-        if kind == "json":
-            write_json(path, content)
-        elif kind == "yaml":
-            write_yaml(path, content)
-        elif kind == "text":
-            path.write_text(content, encoding="utf-8")
-    if render_audit:
-        generate_audit(project_root, contract)
+    backup_parent, backup = _stash_generated_tree(project_root)
+    try:
+        compiled_path = project_root / COMPILED_SPEC_PATH
+        compiled_path.parent.mkdir(parents=True, exist_ok=True)
+        write_yaml(compiled_path, contract)
+        for relative, content, kind in projection_files(contract, layers=_coerce_layers(layers)):
+            path = project_root / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            if kind == "json":
+                write_json(path, content)
+            elif kind == "yaml":
+                write_yaml(path, content)
+            elif kind == "text":
+                path.write_text(content, encoding="utf-8")
+        if render_audit:
+            previous_audit_root = backup / "audit_evidence" if backup else None
+            generate_audit(project_root, contract, previous_audit_root=previous_audit_root)
+    except BaseException:
+        _restore_generated_tree(project_root, backup)
+        _cleanup_generated_backup(backup_parent)
+        raise
+    _cleanup_generated_backup(backup_parent)
     return expected_artifacts(contract, artifact_policy=artifact_policy)

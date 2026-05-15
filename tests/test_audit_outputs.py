@@ -13,11 +13,12 @@ from pyspec_contract.audit import (
     fsm_dot,
     fsm_graph_file,
     fsm_state_root,
+    generate_audit,
     audit_case_render_file,
     workflow_flow_dot,
     workflow_flow_file,
 )
-from pyspec_contract.compile import ContractError, compile_source
+from pyspec_contract.compile import ContractError, compile_source, write_compiled
 from pyspec_contract.io import read_yaml
 from pyspec_contract.paths import COMPILED_SPEC_PATH, SOURCE_SPEC_PATH
 from pyspec_contract.projection_validators import validate_audit_outputs
@@ -560,3 +561,48 @@ def test_audit_validator_rejects_missing_fsm_svg(tmp_path: Path) -> None:
     svg.unlink()
     with pytest.raises(ContractError, match="audit generated files"):
         validate_audit_outputs(project, contract)
+
+
+def test_audit_generation_restores_existing_outputs_on_renderer_failure(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    project = tmp_path / "project"
+    copy_project_tree(ROOT, project)
+    contract = read_yaml(project / COMPILED_SPEC_PATH)
+    audit_root = project / "spec" / "generated" / "audit_evidence"
+    before = {
+        str(path.relative_to(audit_root)): path.read_bytes()
+        for path in audit_root.rglob("*")
+        if path.is_file()
+    }
+    monkeypatch.setenv("CONTRACT_AUDIT_CHROMIUM", "/does/not/exist")
+
+    with pytest.raises(ContractError, match="Visual audit renderer failed"):
+        generate_audit(project, contract)
+
+    after = {
+        str(path.relative_to(audit_root)): path.read_bytes()
+        for path in audit_root.rglob("*")
+        if path.is_file()
+    }
+    assert after == before
+
+
+def test_compile_restores_generated_tree_on_audit_renderer_failure(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    project = tmp_path / "project"
+    copy_project_tree(ROOT, project)
+    generated = project / "spec" / "generated"
+    before = {
+        str(path.relative_to(generated)): path.read_bytes()
+        for path in generated.rglob("*")
+        if path.is_file() and "__pycache__" not in path.parts and path.suffix != ".pyc"
+    }
+    monkeypatch.setenv("CONTRACT_AUDIT_CHROMIUM", "/does/not/exist")
+
+    with pytest.raises(ContractError, match="Visual audit renderer failed"):
+        write_compiled(project, project / SOURCE_SPEC_PATH)
+
+    after = {
+        str(path.relative_to(generated)): path.read_bytes()
+        for path in generated.rglob("*")
+        if path.is_file() and "__pycache__" not in path.parts and path.suffix != ".pyc"
+    }
+    assert after == before

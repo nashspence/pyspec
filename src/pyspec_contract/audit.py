@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import hashlib
 import html
 import json
 import os
 import shutil
 import subprocess
 import sys
+import tempfile
 import textwrap
 from dataclasses import dataclass
 from pathlib import Path
@@ -61,6 +63,9 @@ _DOT_COLOR_MESSAGE_BORDER = "#be185d"
 _DOT_COLOR_MESSAGE_HEADER = "#fdf2f8"
 _DOT_COLOR_CONTEXT_BORDER = "#15803d"
 _DOT_COLOR_CONTEXT_HEADER = "#f0fdf4"
+
+_GRAPHVIZ_INPUT_HASH_PREFIX = "pyspec-contract-input-sha256:"
+_TEXTUAL_INPUT_HASH_PREFIX = "pyspec-contract-textual-input-sha256:"
 
 
 @dataclass(frozen=True)
@@ -327,52 +332,98 @@ def audit_expected_files(contract: dict[str, Any]) -> set[str]:
     return files
 
 
-def generate_audit(root: Path, contract: dict[str, Any], tools_root: Path | None = None) -> None:
+def generate_audit(
+    root: Path,
+    contract: dict[str, Any],
+    tools_root: Path | None = None,
+    previous_audit_root: Path | None = None,
+) -> None:
+    root = root.resolve()
     audit_root = root / GENERATED_SPEC_DIR / "audit_evidence"
+    backup_parent: Path | None = None
+    restore_audit_root: Path | None = None
     if audit_root.exists():
-        shutil.rmtree(audit_root)
+        backup_container = root / GENERATED_SPEC_DIR.parent
+        backup_container.mkdir(parents=True, exist_ok=True)
+        backup_parent = Path(tempfile.mkdtemp(prefix=".pyspec-audit-backup-", dir=str(backup_container)))
+        restore_audit_root = backup_parent / "audit_evidence"
+        shutil.move(str(audit_root), str(restore_audit_root))
+        previous_audit_root = restore_audit_root
     audit_root.mkdir(parents=True, exist_ok=True)
 
-    projection = fsms_projection(contract)
-    _write_audit_inputs(root, contract, projection)
+    try:
+        projection = fsms_projection(contract)
+        _write_audit_inputs(root, contract, projection)
 
-    if not audit_expected_files(contract):
-        return
-    _render_visual_audit(root, contract, tools_root or root, projection)
+        if audit_expected_files(contract):
+            _render_visual_audit_subprocess(root, tools_root or root, previous_audit_root)
+    except BaseException:
+        if audit_root.exists():
+            shutil.rmtree(audit_root)
+        if restore_audit_root and restore_audit_root.exists():
+            shutil.move(str(restore_audit_root), str(audit_root))
+        raise
+    finally:
+        if backup_parent and backup_parent.exists():
+            shutil.rmtree(backup_parent, ignore_errors=True)
 
 
-def _render_visual_audit_subprocess(root: Path, tools_root: Path) -> None:
+def _render_visual_audit_subprocess(root: Path, tools_root: Path, previous_audit_root: Path | None = None) -> None:
     env = os.environ.copy()
     env["PM_CONTRACT_AUDIT_WORKER"] = "1"
+    src_root = str(ROOT.parent)
+    env["PYTHONPATH"] = src_root if not env.get("PYTHONPATH") else src_root + os.pathsep + env["PYTHONPATH"]
     cmd = [sys.executable, "-m", "pyspec_contract.audit", str(root), str(tools_root)]
-    result = subprocess.run(cmd, cwd=str(root), env=env, timeout=900)
+    if previous_audit_root:
+        cmd.append(str(previous_audit_root))
+    result = subprocess.run(
+        cmd,
+        cwd=str(root),
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        timeout=900,
+    )
     if result.returncode != 0:
-        raise ContractError(f"Visual audit renderer failed with exit code {result.returncode}")
+        detail = (result.stderr or result.stdout).strip()
+        suffix = f":\n{detail}" if detail else ""
+        raise ContractError(f"Visual audit renderer failed with exit code {result.returncode}{suffix}")
 
 
-def _render_visual_audit(root: Path, contract: dict[str, Any], _tools_root: Path, projection: dict[str, Any] | None = None) -> None:
+def _render_visual_audit(
+    root: Path,
+    contract: dict[str, Any],
+    _tools_root: Path,
+    projection: dict[str, Any] | None = None,
+    previous_audit_root: Path | None = None,
+) -> None:
     projection = projection or fsms_projection(contract)
     for fsm_id, fsm in sorted(contract.get("fsms", {}).items()):
         path = root / fsm_graph_file(fsm_id)
-        _write_graphviz_svg(path, fsm_dot(fsm_id, fsm, contract))
+        _write_graphviz_svg(path, fsm_dot(fsm_id, fsm, contract), _previous_audit_path(root, previous_audit_root, path))
     for fsm_id, fsm in sorted(contract.get("fsms", {}).items()):
         for state_name, state in sorted(fsm.get("states", {}).items()):
             if not state.get("mounts"):
                 continue
             path = root / composition_file(fsm_id, state_name)
-            _write_graphviz_svg(path, composition_dot(f"{fsm_id}.{state_name}", {"context": fsm.get("context", {}), **state}, contract))
+            _write_graphviz_svg(
+                path,
+                composition_dot(f"{fsm_id}.{state_name}", {"context": fsm.get("context", {}), **state}, contract),
+                _previous_audit_path(root, previous_audit_root, path),
+            )
     for entry_id, entry in sorted(contract.get("entries", {}).items()):
         path = root / entrypoint_flow_file(entry_id, entry["surface"])
-        _write_graphviz_svg(path, entrypoint_flow_dot(entry_id, entry, contract))
+        _write_graphviz_svg(path, entrypoint_flow_dot(entry_id, entry, contract), _previous_audit_path(root, previous_audit_root, path))
     for workflow_id, workflow in sorted(contract.get("workflows", {}).items()):
         path = root / workflow_flow_file(workflow_id)
-        _write_graphviz_svg(path, workflow_flow_dot(workflow_id, workflow, contract))
+        _write_graphviz_svg(path, workflow_flow_dot(workflow_id, workflow, contract), _previous_audit_path(root, previous_audit_root, path))
 
     has_html_audit = bool(
         _audit_projection_surfaces(contract, projection) and any(profile.get("html") for profile in contract.get("audit_profiles", {}).values())
     ) or any("html" in case["surfaces"] for case in audit_cases(contract).values())
     if has_html_audit:
-        _render_html_audit(root, contract, projection)
+        _render_html_audit(root, contract, projection, previous_audit_root)
 
     audit_fsms = _audit_projection_surfaces(contract, projection)
     if audit_fsms or any("textual" in case["surfaces"] for case in audit_cases(contract).values()):
@@ -380,7 +431,7 @@ def _render_visual_audit(root: Path, contract: dict[str, Any], _tools_root: Path
             import textual  # noqa: F401
         except Exception as exc:  # pragma: no cover - dependency absence is environment-specific.
             raise ContractError("Missing Textual dependency; install requirements.txt") from exc
-        textual_jobs: list[tuple[Path, list[tuple[str, str]], dict[str, int]]] = []
+        textual_jobs: list[tuple[Path, list[tuple[str, str]], dict[str, int], Path | None, Path | None]] = []
         for fsm in sorted(audit_fsms, key=lambda p: p["id"]):
             lines = fsm_textual_lines(root, contract, fsm, None)
             for profile_id, profile in sorted(contract.get("audit_profiles", {}).items()):
@@ -388,7 +439,13 @@ def _render_visual_audit(root: Path, contract: dict[str, Any], _tools_root: Path
                     py_path = root / _projection_surface_file(fsm, profile_id, name, "py")
                     svg_path = root / _projection_surface_file(fsm, profile_id, name, "svg")
                     _write_textual_source(py_path, lines)
-                    textual_jobs.append((svg_path, lines, viewport))
+                    textual_jobs.append((
+                        svg_path,
+                        lines,
+                        viewport,
+                        _previous_audit_path(root, previous_audit_root, py_path),
+                        _previous_audit_path(root, previous_audit_root, svg_path),
+                    ))
         for case_id, case in sorted(audit_cases(contract).items()):
             if "textual" not in case["surfaces"]:
                 continue
@@ -398,18 +455,27 @@ def _render_visual_audit(root: Path, contract: dict[str, Any], _tools_root: Path
                 py_path = root / _case_file(contract, case_id, case, name, "py")
                 svg_path = root / _case_file(contract, case_id, case, name, "svg")
                 _write_textual_source(py_path, lines)
-                textual_jobs.append((svg_path, lines, viewport))
+                textual_jobs.append((
+                    svg_path,
+                    lines,
+                    viewport,
+                    _previous_audit_path(root, previous_audit_root, py_path),
+                    _previous_audit_path(root, previous_audit_root, svg_path),
+                ))
         asyncio.run(_render_textual_batch(textual_jobs))
 
 
-def _render_html_audit(root: Path, contract: dict[str, Any], projection: dict[str, Any]) -> None:
+def _render_html_audit(root: Path, contract: dict[str, Any], projection: dict[str, Any], previous_audit_root: Path | None = None) -> None:
     try:
         from playwright.sync_api import sync_playwright
     except Exception as exc:  # pragma: no cover - dependency absence is environment-specific.
         raise ContractError("Missing Playwright dependency; install requirements.txt and run python -m playwright install chromium, or provide system Chromium") from exc
 
     with sync_playwright() as pw:
-        browser = _launch_chromium(pw)
+        try:
+            browser = _launch_chromium(pw)
+        except Exception as exc:  # pragma: no cover - browser launch depends on the host image.
+            raise ContractError(f"HTML audit renderer could not launch Chromium: {exc}") from exc
         try:
             page = browser.new_page()
             try:
@@ -418,32 +484,81 @@ def _render_html_audit(root: Path, contract: dict[str, Any], projection: dict[st
                         html_profile = profile.get("html")
                         if not html_profile:
                             continue
-                        html_doc = audit_html_document(contract, render_fsm_audit_html(root, contract, fsm, None))
+                        html_doc = audit_html_document(contract, render_fsm_audit_html(root, contract, fsm, None), fsm_surface_ids={fsm["id"]})
                         for name, viewport in sorted(html_profile["breakpoints"].items()):
                             html_path = root / _projection_surface_file(fsm, profile_id, name, "html")
                             png_path = root / _projection_surface_file(fsm, profile_id, name, "png")
-                            _write_html_and_png_page(page, html_doc, html_path, png_path, viewport)
+                            _write_html_and_png_page(
+                                page,
+                                html_doc,
+                                html_path,
+                                png_path,
+                                viewport,
+                                _previous_audit_path(root, previous_audit_root, html_path),
+                                _previous_audit_path(root, previous_audit_root, png_path),
+                            )
                 for case_id, case in sorted(audit_cases(contract).items()):
                     profile = contract["audit_profiles"][case["profile"]]
                     if "html" in case["surfaces"]:
-                        html_doc = audit_html_document(contract, render_audit_case_html(root, contract, case_id, case))
+                        html_doc = audit_html_document(
+                            contract,
+                            render_audit_case_html(root, contract, case_id, case),
+                            fsm_surface_ids={fsm["id"] for fsm in case_render_fsms(contract, case)},
+                            composition_ids=_case_composition_ids(contract, case),
+                        )
                         for name, viewport in sorted(profile.get("html", {}).get("breakpoints", {}).items()):
                             html_path = root / _case_file(contract, case_id, case, name, "html")
                             png_path = root / _case_file(contract, case_id, case, name, "png")
-                            _write_html_and_png_page(page, html_doc, html_path, png_path, viewport)
+                            _write_html_and_png_page(
+                                page,
+                                html_doc,
+                                html_path,
+                                png_path,
+                                viewport,
+                                _previous_audit_path(root, previous_audit_root, html_path),
+                                _previous_audit_path(root, previous_audit_root, png_path),
+                            )
             finally:
                 page.close()
         finally:
             browser.close()
 
 
-def _write_html_and_png_page(page: Any, html_doc: str, html_path: Path, png_path: Path, viewport: dict[str, int]) -> None:
+def _write_html_and_png_page(
+    page: Any,
+    html_doc: str,
+    html_path: Path,
+    png_path: Path,
+    viewport: dict[str, int],
+    previous_html_path: Path | None = None,
+    previous_png_path: Path | None = None,
+) -> None:
     html_path.parent.mkdir(parents=True, exist_ok=True)
     png_path.parent.mkdir(parents=True, exist_ok=True)
+    if (
+        previous_html_path
+        and previous_png_path
+        and _text_file_equals(previous_html_path, html_doc)
+        and _png_matches_viewport(previous_png_path, viewport)
+    ):
+        shutil.copy2(previous_html_path, html_path)
+        shutil.copy2(previous_png_path, png_path)
+        return
     html_path.write_text(html_doc, encoding="utf-8")
-    page.set_viewport_size({"width": viewport["width"], "height": viewport["height"]})
-    page.set_content(html_doc, wait_until="load")
-    page.screenshot(path=str(png_path), full_page=False, type="png", timeout=10000)
+    last_error: Exception | None = None
+    for attempt in range(3):
+        try:
+            page.set_viewport_size({"width": viewport["width"], "height": viewport["height"]})
+            page.set_content(html_doc, wait_until="load")
+            page.screenshot(path=str(png_path), full_page=False, type="png", timeout=10000)
+            last_error = None
+            break
+        except Exception as exc:  # pragma: no cover - renderer failure details come from Playwright.
+            last_error = exc
+            if attempt < 2:
+                page.wait_for_timeout(100)
+    if last_error is not None:
+        raise ContractError(f"HTML renderer failed for {png_path}: {last_error}") from last_error
     if png_path.read_bytes()[:8] != b"\x89PNG\r\n\x1a\n":
         raise ContractError(f"HTML renderer did not produce a PNG: {png_path}")
 
@@ -467,9 +582,13 @@ def _graphviz_dot_executable() -> str:
     return executable
 
 
-def _write_graphviz_svg(path: Path, dot_source: str) -> None:
+def _write_graphviz_svg(path: Path, dot_source: str, previous_path: Path | None = None) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(_render_graphviz_svg(dot_source, path.stem), encoding="utf-8")
+    input_hash = _input_hash(dot_source)
+    if previous_path and _svg_has_input_hash(previous_path, input_hash):
+        shutil.copy2(previous_path, path)
+        return
+    path.write_text(_svg_with_input_hash(_render_graphviz_svg(dot_source, path.stem), input_hash), encoding="utf-8")
 
 
 def _render_graphviz_svg(dot_source: str, graph_id: str) -> str:
@@ -500,6 +619,58 @@ def _strip_svg_preamble(svg: str) -> str:
     if start == -1 or end == -1:
         return svg
     return svg[start : end + len("</svg>")] + "\n"
+
+
+def _input_hash(value: str) -> str:
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+def _svg_has_input_hash(path: Path, input_hash: str, prefix: str = _GRAPHVIZ_INPUT_HASH_PREFIX) -> bool:
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError:
+        return False
+    marker = f"<!-- {prefix} {input_hash} -->"
+    return text.lstrip().startswith("<svg") and marker in text and "</svg>" in text
+
+
+def _svg_with_input_hash(svg: str, input_hash: str, prefix: str = _GRAPHVIZ_INPUT_HASH_PREFIX) -> str:
+    marker = f"\n<!-- {prefix} {input_hash} -->"
+    insert_at = svg.find(">")
+    if insert_at == -1:
+        return svg
+    return svg[: insert_at + 1] + marker + svg[insert_at + 1:]
+
+
+def _previous_audit_path(root: Path, previous_audit_root: Path | None, path: Path) -> Path | None:
+    if previous_audit_root is None:
+        return None
+    try:
+        relative = path.relative_to(root / GENERATED_SPEC_DIR / "audit_evidence")
+    except ValueError:
+        return None
+    previous = previous_audit_root / relative
+    return previous if previous.exists() else None
+
+
+def _text_file_equals(path: Path, text: str) -> bool:
+    try:
+        return path.read_text(encoding="utf-8") == text
+    except OSError:
+        return False
+
+
+def _png_matches_viewport(path: Path, viewport: dict[str, int]) -> bool:
+    try:
+        from PIL import Image
+
+        if path.read_bytes()[:8] != b"\x89PNG\r\n\x1a\n":
+            return False
+        with Image.open(path) as image:
+            return image.size == (viewport["width"], viewport["height"])
+    except Exception:
+        return False
+
 
 def _write_textual_source(path: Path, lines: list[tuple[str, str]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -538,15 +709,35 @@ if __name__ == "__main__":
 '''
 
 
-async def _render_textual_batch(jobs: list[tuple[Path, list[tuple[str, str]], dict[str, int]]]) -> None:
-    for path, lines, viewport in jobs:
-        await _render_textual_svg(path, lines, viewport)
+async def _render_textual_batch(
+    jobs: list[tuple[Path, list[tuple[str, str]], dict[str, int], Path | None, Path | None]],
+) -> None:
+    for path, lines, viewport, previous_source_path, previous_svg_path in jobs:
+        await _render_textual_svg(path, lines, viewport, previous_source_path, previous_svg_path)
 
 
-async def _render_textual_svg(path: Path, lines: list[tuple[str, str]], viewport: dict[str, int]) -> None:
+async def _render_textual_svg(
+    path: Path,
+    lines: list[tuple[str, str]],
+    viewport: dict[str, int],
+    previous_source_path: Path | None = None,
+    previous_svg_path: Path | None = None,
+) -> None:
     from textual.app import App, ComposeResult
     from textual.containers import Container
     from textual.widgets import Button, Static
+
+    source = textual_source(lines)
+    input_hash = _input_hash(json.dumps({"source": source, "viewport": viewport}, sort_keys=True))
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if (
+        previous_source_path
+        and previous_svg_path
+        and _text_file_equals(previous_source_path, source)
+        and _svg_has_input_hash(previous_svg_path, input_hash, _TEXTUAL_INPUT_HASH_PREFIX)
+    ):
+        shutil.copy2(previous_svg_path, path)
+        return
 
     class AuditApp(App[None]):
         CSS = """
@@ -570,7 +761,7 @@ async def _render_textual_svg(path: Path, lines: list[tuple[str, str]], viewport
         svg = app.export_screenshot()
     if not isinstance(svg, str) or "<svg" not in svg:
         raise ContractError("Textual renderer did not produce SVG")
-    path.write_text(svg, encoding="utf-8")
+    path.write_text(_svg_with_input_hash(svg, input_hash, _TEXTUAL_INPUT_HASH_PREFIX), encoding="utf-8")
 
 
 def fsm_dot(fsm_id: str, fsm: dict[str, Any], contract: dict[str, Any]) -> str:
@@ -1724,8 +1915,14 @@ def _dot_quote(value: object) -> str:
     return '"' + str(value).replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n") + '"'
 
 
-def audit_html_document(contract: dict[str, Any], body: str) -> str:
-    css = fsm_styles_projection(contract)
+def audit_html_document(
+    contract: dict[str, Any],
+    body: str,
+    *,
+    fsm_surface_ids: Iterable[str] | None = None,
+    composition_ids: Iterable[str] | None = None,
+) -> str:
+    css = fsm_styles_projection(contract, surface_ids=fsm_surface_ids, composition_ids=composition_ids)
     extra_css = """
     body { margin: 0; font-family: ui-sans-serif, system-ui, sans-serif; background: #f7f7f8; color: #171717; }
     main { padding: 24px; }
@@ -1779,6 +1976,13 @@ def case_render_fsms(contract: dict[str, Any], case: dict[str, Any]) -> list[dic
             fsms.append(next(item for item in projection["fsms"] if item["owner_kind"] == "fsm" and item["owner"] == mount["fsm"] and item["state"] == state_name))
         return fsms
     return [next(item for item in projection["fsms"] if item["owner_kind"] == "fsm" and item["owner"] == case["fsm"] and item["state"] == case["state"])]
+
+
+def _case_composition_ids(contract: dict[str, Any], case: dict[str, Any]) -> set[str]:
+    state = contract["fsms"][case["fsm"]]["states"][case["state"]]
+    if state.get("mounts"):
+        return {f"{case['fsm']}.{case['state']}"}
+    return set()
 
 
 def render_composed_case_html(root: Path, contract: dict[str, Any], case: dict[str, Any]) -> str:
@@ -1974,7 +2178,7 @@ def records_for_fsm(contract: dict[str, Any], fsm: dict[str, Any], case: dict[st
     model_id = fsm_model(contract, fsm)
     model_key = f"{model_id.lower()}_id"
     owner_context = fsm_owner_context(contract, fsm)
-    fixtures = case.get("fixtures", []) if case else list(contract.get("fixtures", {}))
+    fixtures = case.get("fixtures", []) if case else sorted(contract.get("fixtures", {}))
     records: list[dict[str, Any]] = []
     if case:
         namespace = fixture_namespace(contract, fixtures)
@@ -2031,12 +2235,12 @@ def _find_model_records(value: Any, model_id: str) -> list[dict[str, Any]]:
 def _apply_facts_with_available_fixtures(contract: dict[str, Any], model_id: str, records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     current = list(records)
     namespaces = [{}]
-    for fixture_id in contract.get("fixtures", {}):
+    for fixture_id in sorted(contract.get("fixtures", {})):
         try:
             namespaces.append(fixture_namespace(contract, [fixture_id]))
         except (AssertionError, KeyError, TypeError):
             continue
-    for fact_id in contract.get("facts", {}):
+    for fact_id in sorted(contract.get("facts", {})):
         fact_uses = [{"use": fact_id}]
         for namespace in namespaces:
             try:
@@ -2173,15 +2377,20 @@ def asset_placeholder_svg(asset: dict[str, Any]) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
-    if len(argv) != 2:
-        print("usage: pyspec audit <root>", file=sys.stderr)
+    if len(argv) not in {2, 3}:
+        print("usage: pyspec audit <root> <tools_root> [previous_audit_root]", file=sys.stderr)
         return 2
     root = Path(argv[0]).resolve()
     tools_root = Path(argv[1]).resolve()
+    previous_audit_root = Path(argv[2]).resolve() if len(argv) == 3 else None
     from .io import read_yaml
     from .paths import COMPILED_SPEC_PATH
     contract = read_yaml(root / COMPILED_SPEC_PATH)
-    _render_visual_audit(root, contract, tools_root)
+    try:
+        _render_visual_audit(root, contract, tools_root, previous_audit_root=previous_audit_root)
+    except (ContractError, ValueError) as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
     # Playwright/Textual can leave cleanup state that blocks interpreter shutdown in
     # constrained containers. This worker has completed all file outputs; exit
     # immediately so the compiler process stays deterministic.

@@ -300,7 +300,14 @@ def fsm_projection_item(owner_kind: str, owner_id: str, state_name: str, state: 
     }
 
 
-def fsm_styles_projection(contract: dict[str, Any]) -> str:
+def fsm_styles_projection(
+    contract: dict[str, Any],
+    *,
+    surface_ids: Iterable[str] | None = None,
+    composition_ids: Iterable[str] | None = None,
+) -> str:
+    wanted_surfaces = set(surface_ids) if surface_ids is not None else None
+    wanted_compositions = set(composition_ids) if composition_ids is not None else None
     lines = [
         "/* Generated FSM surface style contract. Do not edit. */",
         ":root {",
@@ -315,6 +322,8 @@ def fsm_styles_projection(contract: dict[str, Any]) -> str:
     ]
     fsms = fsms_projection(contract)["fsms"]
     for fsm in fsms:
+        if wanted_surfaces is not None and fsm["id"] not in wanted_surfaces:
+            continue
         css_contract = (fsm.get("presentation") or {}).get("css") or {}
         grouped: dict[str, dict[str, str]] = {}
         root_selector = css_selector(fsm, "root")
@@ -331,6 +340,8 @@ def fsm_styles_projection(contract: dict[str, Any]) -> str:
                 lines.append(f"  {name}: {value};")
             lines.append("}")
     for composition in fsms_projection(contract)["compositions"]:
+        if wanted_compositions is not None and composition["id"] not in wanted_compositions:
+            continue
         css_contract = layout_html(composition.get("layout") or {}).get("css") or {}
         grouped: dict[str, dict[str, str]] = {}
         root_selector = composition_css_selector(composition, "root")

@@ -4,7 +4,7 @@ from textual.app import App, ComposeResult
 from textual.containers import Container
 from textual.widgets import Button, Static
 
-LINES = [('static', 'Latest activity'), ('static', 'Updated At: 2026-05-11T08:45:00Z'), ('static', 'Status: submitted'), ('static', 'Assignee: Maya Chen')]
+LINES = [('static', 'Latest activity'), ('static', 'Updated At: 2026-05-11T07:15:00Z'), ('static', 'Status: draft'), ('static', 'Assignee: Unassigned')]
 
 
 class AuditApp(App[None]):

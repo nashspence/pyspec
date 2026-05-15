@@ -4,7 +4,7 @@ from textual.app import App, ComposeResult
 from textual.containers import Container
 from textual.widgets import Button, Static
 
-LINES = [('static', 'Dispatch queue'), ('static', 'Title: Replace rooftop condenser fan'), ('static', 'Customer: Atlas Foods'), ('static', 'Priority: High'), ('static', 'Status: submitted'), ('static', 'Title: Inspect loading dock sensor'), ('static', 'Customer: Harbor Logistics'), ('static', 'Priority: Normal'), ('static', 'Status: draft'), ('button', 'Project Create'), ('button', 'Project Submit')]
+LINES = [('static', 'Dispatch queue'), ('static', 'Title: Inspect loading dock sensor'), ('static', 'Customer: Harbor Logistics'), ('static', 'Priority: Normal'), ('static', 'Status: draft'), ('static', 'Title: Replace rooftop condenser fan'), ('static', 'Customer: Atlas Foods'), ('static', 'Priority: High'), ('static', 'Status: submitted'), ('button', 'Project Create'), ('button', 'Project Submit')]
 
 
 class AuditApp(App[None]):

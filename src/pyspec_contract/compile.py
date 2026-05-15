@@ -7,6 +7,7 @@ from functools import lru_cache
 import re
 import shutil
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -2061,33 +2062,63 @@ def _expand_scenarios(contract: dict[str, Any]) -> None:
             assertions.setdefault("policy", contract["capabilities"][cap_id]["policy"])
 
 
+def _stash_generated_tree(root: Path) -> tuple[Path | None, Path | None]:
+    generated = root / GENERATED_SPEC_DIR
+    if not generated.exists():
+        return None, None
+    stash_parent_root = root / SOURCE_SPEC_PATH.parent
+    stash_parent_root.mkdir(parents=True, exist_ok=True)
+    backup_parent = Path(tempfile.mkdtemp(prefix=".pyspec-generated-backup-", dir=str(stash_parent_root)))
+    backup = backup_parent / "generated"
+    shutil.move(str(generated), str(backup))
+    return backup_parent, backup
+
+
+def _restore_generated_tree(root: Path, backup: Path | None) -> None:
+    generated = root / GENERATED_SPEC_DIR
+    if generated.exists():
+        shutil.rmtree(generated)
+    if backup and backup.exists():
+        shutil.move(str(backup), str(generated))
+
+
+def _cleanup_generated_backup(backup_parent: Path | None) -> None:
+    if backup_parent and backup_parent.exists():
+        shutil.rmtree(backup_parent, ignore_errors=True)
+
+
 def write_compiled(root: Path, source_path: Path, tools_root: Path | None = None, render_audit: bool = True, layers: set[str] | None = None) -> dict[str, Any]:
     source = read_yaml(source_path)
     author = author_from_source(source, layers=layers)
     contract = compile_author(author, layers=layers)
-    generated = root / GENERATED_SPEC_DIR
-    if generated.exists():
-        shutil.rmtree(generated)
-    source_output = root / SOURCE_SPEC_PATH
-    source_output.parent.mkdir(parents=True, exist_ok=True)
-    write_yaml(source_output, author, sort_keys=False)
-    compiled_path = root / COMPILED_SPEC_PATH
-    compiled_path.parent.mkdir(parents=True, exist_ok=True)
-    write_yaml(compiled_path, contract)
-    for relative, content, kind in projection_files(contract, layers=layers):
-        path = root / relative
-        path.parent.mkdir(parents=True, exist_ok=True)
-        if kind == "json":
-            write_json(path, content)
-        elif kind == "yaml":
-            write_yaml(path, content)
-        elif kind == "text":
-            path.write_text(content, encoding="utf-8")
-        else:  # pragma: no cover
-            raise ContractError(f"Unknown projection kind: {kind}")
-    if render_audit:
-        from .audit import generate_audit
-        generate_audit(root, contract, tools_root=tools_root)
+    backup_parent, backup = _stash_generated_tree(root)
+    try:
+        source_output = root / SOURCE_SPEC_PATH
+        source_output.parent.mkdir(parents=True, exist_ok=True)
+        write_yaml(source_output, author, sort_keys=False)
+        compiled_path = root / COMPILED_SPEC_PATH
+        compiled_path.parent.mkdir(parents=True, exist_ok=True)
+        write_yaml(compiled_path, contract)
+        for relative, content, kind in projection_files(contract, layers=layers):
+            path = root / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            if kind == "json":
+                write_json(path, content)
+            elif kind == "yaml":
+                write_yaml(path, content)
+            elif kind == "text":
+                path.write_text(content, encoding="utf-8")
+            else:  # pragma: no cover
+                raise ContractError(f"Unknown projection kind: {kind}")
+        if render_audit:
+            from .audit import generate_audit
+            previous_audit_root = backup / "audit_evidence" if backup else None
+            generate_audit(root, contract, tools_root=tools_root, previous_audit_root=previous_audit_root)
+    except BaseException:
+        _restore_generated_tree(root, backup)
+        _cleanup_generated_backup(backup_parent)
+        raise
+    _cleanup_generated_backup(backup_parent)
     return contract
 
 
