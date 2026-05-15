@@ -23,78 +23,9 @@
         "table"
       ]
     },
-    "asset_author": {
-      "additionalProperties": false,
-      "properties": {
-        "alt_copy": {
-          "$ref": "#/$defs/copy_id"
-        },
-        "args": {
-          "$ref": "#/$defs/content_args"
-        },
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "kind": {
-          "enum": [
-            "illustration",
-            "icon",
-            "photo",
-            "logo",
-            "avatar"
-          ]
-        },
-        "placeholder": {
-          "$ref": "#/$defs/asset_placeholder"
-        },
-        "resolver": {
-          "$ref": "#/$defs/content_resolver_id"
-        },
-        "why": {
-          "$ref": "#/$defs/basis"
-        }
-      },
-      "required": [
-        "kind",
-        "placeholder"
-      ],
-      "type": "object"
-    },
     "asset_id": {
       "pattern": "^asset\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
-    },
-    "asset_item": {
-      "additionalProperties": false,
-      "properties": {
-        "alt_copy": {
-          "$ref": "#/$defs/copy_id"
-        },
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "kind": {
-          "enum": [
-            "illustration",
-            "icon",
-            "photo",
-            "logo",
-            "avatar"
-          ]
-        },
-        "placeholder": {
-          "$ref": "#/$defs/asset_placeholder"
-        },
-        "resolver": {
-          "$ref": "#/$defs/content_resolver_id"
-        }
-      },
-      "required": [
-        "kind",
-        "placeholder",
-        "basis"
-      ],
-      "type": "object"
     },
     "asset_placeholder": {
       "additionalProperties": false,
@@ -129,7 +60,11 @@
       ],
       "type": "object"
     },
-    "asset_spec": {
+    "audit_profile_id": {
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "type": "string"
+    },
+    "authored_asset": {
       "additionalProperties": false,
       "properties": {
         "alt_copy": {
@@ -137,6 +72,9 @@
         },
         "args": {
           "$ref": "#/$defs/content_args"
+        },
+        "basis": {
+          "$ref": "#/$defs/basis"
         },
         "kind": {
           "enum": [
@@ -152,6 +90,9 @@
         },
         "resolver": {
           "$ref": "#/$defs/content_resolver_id"
+        },
+        "why": {
+          "$ref": "#/$defs/basis"
         }
       },
       "required": [
@@ -160,7 +101,7 @@
       ],
       "type": "object"
     },
-    "audit_profile_author": {
+    "authored_audit_profile": {
       "additionalProperties": false,
       "anyOf": [
         {
@@ -223,129 +164,7 @@
       "required": [],
       "type": "object"
     },
-    "audit_profile_id": {
-      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
-      "type": "string"
-    },
-    "audit_profile_item": {
-      "additionalProperties": false,
-      "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "html": {
-          "additionalProperties": false,
-          "properties": {
-            "breakpoints": {
-              "additionalProperties": {
-                "$ref": "#/$defs/html_viewport"
-              },
-              "minProperties": 1,
-              "propertyNames": {
-                "$ref": "#/$defs/breakpoint_id"
-              },
-              "type": "object"
-            }
-          },
-          "required": [
-            "breakpoints"
-          ],
-          "type": "object"
-        },
-        "textual": {
-          "additionalProperties": false,
-          "properties": {
-            "breakpoints": {
-              "additionalProperties": {
-                "$ref": "#/$defs/textual_viewport"
-              },
-              "minProperties": 1,
-              "propertyNames": {
-                "$ref": "#/$defs/breakpoint_id"
-              },
-              "type": "object"
-            }
-          },
-          "required": [
-            "breakpoints"
-          ],
-          "type": "object"
-        }
-      },
-      "required": [
-        "html",
-        "textual",
-        "basis"
-      ],
-      "type": "object"
-    },
-    "audit_profile_spec": {
-      "additionalProperties": false,
-      "anyOf": [
-        {
-          "required": [
-            "html"
-          ]
-        },
-        {
-          "required": [
-            "textual"
-          ]
-        }
-      ],
-      "properties": {
-        "html": {
-          "additionalProperties": false,
-          "properties": {
-            "breakpoints": {
-              "additionalProperties": {
-                "$ref": "#/$defs/html_viewport"
-              },
-              "minProperties": 1,
-              "propertyNames": {
-                "$ref": "#/$defs/breakpoint_id"
-              },
-              "type": "object"
-            }
-          },
-          "required": [
-            "breakpoints"
-          ],
-          "type": "object"
-        },
-        "textual": {
-          "additionalProperties": false,
-          "properties": {
-            "breakpoints": {
-              "additionalProperties": {
-                "$ref": "#/$defs/textual_viewport"
-              },
-              "minProperties": 1,
-              "propertyNames": {
-                "$ref": "#/$defs/breakpoint_id"
-              },
-              "type": "object"
-            }
-          },
-          "required": [
-            "breakpoints"
-          ],
-          "type": "object"
-        }
-      },
-      "required": [],
-      "type": "object"
-    },
-    "basis": {
-      "maxLength": 280,
-      "minLength": 1,
-      "type": "string"
-    },
-    "breakpoint_id": {
-      "pattern": "^[a-z][a-z0-9_]*$",
-      "type": "string"
-    },
-    "capability_author": {
+    "authored_capability": {
       "additionalProperties": false,
       "properties": {
         "archetype": {
@@ -418,80 +237,568 @@
       ],
       "type": "object"
     },
-    "capability_item": {
+    "authored_content_case": {
+      "additionalProperties": false,
+      "properties": {
+        "args": {
+          "$ref": "#/$defs/content_arg_values"
+        },
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "fixtures": {
+          "items": {
+            "$ref": "#/$defs/fixture_id"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "ref": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/copy_id"
+            },
+            {
+              "$ref": "#/$defs/asset_id"
+            }
+          ]
+        },
+        "why": {
+          "$ref": "#/$defs/basis"
+        }
+      },
+      "required": [
+        "ref",
+        "args"
+      ],
+      "type": "object"
+    },
+    "authored_copy": {
+      "additionalProperties": false,
+      "properties": {
+        "args": {
+          "$ref": "#/$defs/content_args"
+        },
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "max_chars": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "placeholder": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "resolver": {
+          "$ref": "#/$defs/content_resolver_id"
+        },
+        "tone": {
+          "enum": [
+            "neutral",
+            "instructional",
+            "success",
+            "warning",
+            "error"
+          ]
+        },
+        "why": {
+          "$ref": "#/$defs/basis"
+        }
+      },
+      "required": [
+        "placeholder"
+      ],
+      "type": "object"
+    },
+    "authored_entry": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "command": {
+          "pattern": "^[a-z][a-z0-9_-]*( [a-z][a-z0-9_-]*)*$",
+          "type": "string"
+        },
+        "input": {
+          "$ref": "#/$defs/entry_input"
+        },
+        "method": {
+          "enum": [
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE"
+          ]
+        },
+        "path": {
+          "pattern": "^/",
+          "type": "string"
+        },
+        "responses": {
+          "$ref": "#/$defs/entry_responses"
+        },
+        "schedule": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "surface": {
+          "enum": [
+            "web",
+            "api",
+            "cli",
+            "worker",
+            "schedule",
+            "webhook"
+          ]
+        },
+        "target": {
+          "$ref": "#/$defs/entry_target"
+        },
+        "why": {
+          "$ref": "#/$defs/basis"
+        }
+      },
+      "required": [
+        "surface",
+        "target"
+      ],
+      "type": "object"
+    },
+    "authored_event": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "payload": {
+          "$ref": "#/$defs/type_name"
+        },
+        "why": {
+          "$ref": "#/$defs/basis"
+        }
+      },
+      "required": [
+        "payload"
+      ],
+      "type": "object"
+    },
+    "authored_fact": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "absent": {
+              "additionalProperties": false,
+              "properties": {
+                "model": {
+                  "$ref": "#/$defs/model_id"
+                },
+                "where": {
+                  "$ref": "#/$defs/value_map"
+                }
+              },
+              "required": [
+                "model",
+                "where"
+              ],
+              "type": "object"
+            },
+            "basis": {
+              "$ref": "#/$defs/basis"
+            },
+            "why": {
+              "$ref": "#/$defs/basis"
+            }
+          },
+          "required": [
+            "absent"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "basis": {
+              "$ref": "#/$defs/basis"
+            },
+            "present": {
+              "additionalProperties": false,
+              "properties": {
+                "model": {
+                  "$ref": "#/$defs/model_id"
+                },
+                "values": {
+                  "$ref": "#/$defs/value_map"
+                }
+              },
+              "required": [
+                "model",
+                "values"
+              ],
+              "type": "object"
+            },
+            "why": {
+              "$ref": "#/$defs/basis"
+            }
+          },
+          "required": [
+            "present"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "authored_fixture": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "values": {
+          "additionalProperties": {
+            "$ref": "#/$defs/json_value"
+          },
+          "minProperties": 1,
+          "type": "object"
+        },
+        "why": {
+          "$ref": "#/$defs/basis"
+        }
+      },
+      "required": [
+        "values"
+      ],
+      "type": "object"
+    },
+    "authored_fsm": {
       "additionalProperties": false,
       "properties": {
         "archetype": {
           "enum": [
-            "create",
-            "read",
-            "list",
-            "update",
-            "delete",
-            "transition",
-            "command",
-            "query"
+            "collection",
+            "detail",
+            "form",
+            "dashboard",
+            "wizard"
           ]
         },
         "basis": {
           "$ref": "#/$defs/basis"
         },
-        "creates": {
-          "$ref": "#/$defs/model_refs"
-        },
-        "deletes": {
-          "$ref": "#/$defs/model_refs"
-        },
-        "id": {
-          "$ref": "#/$defs/dotted_id"
-        },
-        "input": {
+        "context": {
           "$ref": "#/$defs/type_map"
         },
-        "outcomes": {
-          "$ref": "#/$defs/capability_outcomes"
+        "data": {
+          "items": {
+            "$ref": "#/$defs/dotted_id"
+          },
+          "type": "array",
+          "uniqueItems": true
         },
-        "reads": {
-          "$ref": "#/$defs/model_refs"
+        "initial": {
+          "$ref": "#/$defs/state_name"
         },
-        "transition": {
+        "messages": {
+          "$ref": "#/$defs/fsm_messages"
+        },
+        "model": {
+          "$ref": "#/$defs/model_id"
+        },
+        "states": {
+          "additionalProperties": {
+            "$ref": "#/$defs/authored_fsm_state"
+          },
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/$defs/state_name"
+          },
+          "type": "object"
+        },
+        "transitions": {
+          "items": {
+            "$ref": "#/$defs/fsm_transition"
+          },
+          "type": "array"
+        },
+        "why": {
+          "$ref": "#/$defs/basis"
+        }
+      },
+      "required": [
+        "model",
+        "initial",
+        "states"
+      ],
+      "type": "object"
+    },
+    "authored_fsm_state": {
+      "additionalProperties": false,
+      "properties": {
+        "actions": {
+          "items": {
+            "$ref": "#/$defs/dotted_id"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "asset_slots": {
+          "items": {
+            "$ref": "#/$defs/field_name"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "audit": {
+          "additionalProperties": {
+            "$ref": "#/$defs/fsm_audit_case"
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/field_name"
+          },
+          "type": "object"
+        },
+        "copy_slots": {
+          "items": {
+            "$ref": "#/$defs/field_name"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "data": {
+          "items": {
+            "$ref": "#/$defs/dotted_id"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "field_slots": {
+          "items": {
+            "$ref": "#/$defs/field_name"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "layout": {
+          "$ref": "#/$defs/layout_contract"
+        },
+        "mounts": {
+          "items": {
+            "$ref": "#/$defs/authored_mount"
+          },
+          "type": "array"
+        },
+        "presentation": {
+          "$ref": "#/$defs/presentation_contract"
+        },
+        "sync": {
+          "items": {
+            "$ref": "#/$defs/sync_rule"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "authored_model": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "fields": {
+          "$ref": "#/$defs/type_map"
+        },
+        "kind": {
+          "enum": [
+            "aggregate",
+            "entity",
+            "value_object",
+            "external"
+          ]
+        },
+        "lifecycle": {
           "additionalProperties": false,
           "properties": {
             "field": {
               "$ref": "#/$defs/field_name"
             },
-            "from": {
+            "initial": {
               "pattern": "^[a-z][a-z0-9_]*$",
               "type": "string"
             },
-            "model": {
-              "$ref": "#/$defs/model_id"
+            "states": {
+              "items": {
+                "pattern": "^[a-z][a-z0-9_]*$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
             },
-            "to": {
-              "pattern": "^[a-z][a-z0-9_]*$",
-              "type": "string"
+            "transitions": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "by": {
+                    "$ref": "#/$defs/dotted_id"
+                  },
+                  "from": {
+                    "pattern": "^[a-z][a-z0-9_]*$",
+                    "type": "string"
+                  },
+                  "to": {
+                    "pattern": "^[a-z][a-z0-9_]*$",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "from",
+                  "to",
+                  "by"
+                ],
+                "type": "object"
+              },
+              "type": "array"
             }
           },
           "required": [
-            "model",
             "field",
-            "from",
-            "to"
+            "states",
+            "initial"
           ],
           "type": "object"
         },
-        "updates": {
-          "$ref": "#/$defs/model_refs"
+        "why": {
+          "$ref": "#/$defs/basis"
+        }
+      },
+      "required": [
+        "kind",
+        "fields"
+      ],
+      "type": "object"
+    },
+    "authored_mount": {
+      "additionalProperties": false,
+      "properties": {
+        "context": {
+          "$ref": "#/$defs/context_bindings"
+        },
+        "fsm": {
+          "pattern": "^fsm\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+          "type": "string"
+        },
+        "id": {
+          "$ref": "#/$defs/instance_id"
+        },
+        "initial": {
+          "$ref": "#/$defs/state_name"
+        },
+        "region": {
+          "$ref": "#/$defs/field_name"
+        },
+        "selected": {
+          "$ref": "#/$defs/fsm_mount_selected"
         }
       },
       "required": [
         "id",
-        "archetype",
-        "input",
-        "outcomes",
-        "basis"
+        "fsm",
+        "region",
+        "initial",
+        "context"
       ],
       "type": "object"
+    },
+    "authored_scenario": {
+      "additionalProperties": false,
+      "properties": {
+        "archetype": {
+          "enum": [
+            "entry_response",
+            "capability_outcome",
+            "fsm_composition",
+            "fsm_composition_sync",
+            "empty_collection_fsm",
+            "forbidden_action",
+            "ready_collection_fsm",
+            "workflow_event_success"
+          ]
+        },
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "feature": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "given": {
+          "$ref": "#/$defs/given"
+        },
+        "then": {
+          "$ref": "#/$defs/then"
+        },
+        "title": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "when": {
+          "$ref": "#/$defs/when"
+        },
+        "why": {
+          "$ref": "#/$defs/basis"
+        }
+      },
+      "required": [
+        "feature",
+        "title",
+        "archetype",
+        "given",
+        "when",
+        "then"
+      ],
+      "type": "object"
+    },
+    "authored_workflow": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "outcomes": {
+          "$ref": "#/$defs/workflow_outcomes"
+        },
+        "steps": {
+          "items": {
+            "$ref": "#/$defs/workflow_step"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "trigger": {
+          "$ref": "#/$defs/workflow_trigger_target"
+        },
+        "why": {
+          "$ref": "#/$defs/basis"
+        }
+      },
+      "required": [
+        "trigger",
+        "outcomes",
+        "steps"
+      ],
+      "type": "object"
+    },
+    "basis": {
+      "maxLength": 280,
+      "minLength": 1,
+      "type": "string"
+    },
+    "breakpoint_id": {
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "type": "string"
     },
     "capability_emit": {
       "additionalProperties": false,
@@ -572,73 +879,6 @@
       },
       "type": "object"
     },
-    "capability_spec": {
-      "additionalProperties": false,
-      "properties": {
-        "archetype": {
-          "enum": [
-            "create",
-            "read",
-            "list",
-            "update",
-            "delete",
-            "transition",
-            "command",
-            "query"
-          ]
-        },
-        "creates": {
-          "$ref": "#/$defs/model_refs"
-        },
-        "deletes": {
-          "$ref": "#/$defs/model_refs"
-        },
-        "input": {
-          "$ref": "#/$defs/type_map"
-        },
-        "outcomes": {
-          "$ref": "#/$defs/capability_outcomes"
-        },
-        "reads": {
-          "$ref": "#/$defs/model_refs"
-        },
-        "transition": {
-          "additionalProperties": false,
-          "properties": {
-            "field": {
-              "$ref": "#/$defs/field_name"
-            },
-            "from": {
-              "pattern": "^[a-z][a-z0-9_]*$",
-              "type": "string"
-            },
-            "model": {
-              "$ref": "#/$defs/model_id"
-            },
-            "to": {
-              "pattern": "^[a-z][a-z0-9_]*$",
-              "type": "string"
-            }
-          },
-          "required": [
-            "model",
-            "field",
-            "from",
-            "to"
-          ],
-          "type": "object"
-        },
-        "updates": {
-          "$ref": "#/$defs/model_refs"
-        }
-      },
-      "required": [
-        "archetype",
-        "input",
-        "outcomes"
-      ],
-      "type": "object"
-    },
     "condition_contract": {
       "oneOf": [
         {
@@ -706,75 +946,9 @@
       },
       "type": "object"
     },
-    "content_case_author": {
-      "additionalProperties": false,
-      "properties": {
-        "args": {
-          "$ref": "#/$defs/content_arg_values"
-        },
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "fixtures": {
-          "items": {
-            "$ref": "#/$defs/fixture_id"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "ref": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/copy_id"
-            },
-            {
-              "$ref": "#/$defs/asset_id"
-            }
-          ]
-        },
-        "why": {
-          "$ref": "#/$defs/basis"
-        }
-      },
-      "required": [
-        "ref",
-        "args"
-      ],
-      "type": "object"
-    },
     "content_case_id": {
       "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
-    },
-    "content_case_spec": {
-      "additionalProperties": false,
-      "properties": {
-        "args": {
-          "$ref": "#/$defs/content_arg_values"
-        },
-        "fixtures": {
-          "items": {
-            "$ref": "#/$defs/fixture_id"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "ref": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/copy_id"
-            },
-            {
-              "$ref": "#/$defs/asset_id"
-            }
-          ]
-        }
-      },
-      "required": [
-        "ref",
-        "args"
-      ],
-      "type": "object"
     },
     "content_resolver_id": {
       "pattern": "^(copy|asset)\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
@@ -837,112 +1011,9 @@
       ],
       "type": "object"
     },
-    "copy_author": {
-      "additionalProperties": false,
-      "properties": {
-        "args": {
-          "$ref": "#/$defs/content_args"
-        },
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "max_chars": {
-          "minimum": 1,
-          "type": "integer"
-        },
-        "placeholder": {
-          "minLength": 1,
-          "type": "string"
-        },
-        "resolver": {
-          "$ref": "#/$defs/content_resolver_id"
-        },
-        "tone": {
-          "enum": [
-            "neutral",
-            "instructional",
-            "success",
-            "warning",
-            "error"
-          ]
-        },
-        "why": {
-          "$ref": "#/$defs/basis"
-        }
-      },
-      "required": [
-        "placeholder"
-      ],
-      "type": "object"
-    },
     "copy_id": {
       "pattern": "^copy\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
-    },
-    "copy_item": {
-      "additionalProperties": false,
-      "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "max_chars": {
-          "minimum": 1,
-          "type": "integer"
-        },
-        "placeholder": {
-          "minLength": 1,
-          "type": "string"
-        },
-        "resolver": {
-          "$ref": "#/$defs/content_resolver_id"
-        },
-        "tone": {
-          "enum": [
-            "neutral",
-            "instructional",
-            "success",
-            "warning",
-            "error"
-          ]
-        }
-      },
-      "required": [
-        "placeholder",
-        "basis"
-      ],
-      "type": "object"
-    },
-    "copy_spec": {
-      "additionalProperties": false,
-      "properties": {
-        "args": {
-          "$ref": "#/$defs/content_args"
-        },
-        "max_chars": {
-          "minimum": 1,
-          "type": "integer"
-        },
-        "placeholder": {
-          "minLength": 1,
-          "type": "string"
-        },
-        "resolver": {
-          "$ref": "#/$defs/content_resolver_id"
-        },
-        "tone": {
-          "enum": [
-            "neutral",
-            "instructional",
-            "success",
-            "warning",
-            "error"
-          ]
-        }
-      },
-      "required": [
-        "placeholder"
-      ],
-      "type": "object"
     },
     "css_class": {
       "pattern": "^[a-z][a-z0-9_-]*$",
@@ -971,62 +1042,6 @@
     "dotted_id": {
       "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
-    },
-    "entry_author": {
-      "additionalProperties": false,
-      "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "command": {
-          "pattern": "^[a-z][a-z0-9_-]*( [a-z][a-z0-9_-]*)*$",
-          "type": "string"
-        },
-        "input": {
-          "$ref": "#/$defs/entry_input"
-        },
-        "method": {
-          "enum": [
-            "GET",
-            "POST",
-            "PUT",
-            "PATCH",
-            "DELETE"
-          ]
-        },
-        "path": {
-          "pattern": "^/",
-          "type": "string"
-        },
-        "responses": {
-          "$ref": "#/$defs/entry_responses"
-        },
-        "schedule": {
-          "minLength": 1,
-          "type": "string"
-        },
-        "surface": {
-          "enum": [
-            "web",
-            "api",
-            "cli",
-            "worker",
-            "schedule",
-            "webhook"
-          ]
-        },
-        "target": {
-          "$ref": "#/$defs/entry_target"
-        },
-        "why": {
-          "$ref": "#/$defs/basis"
-        }
-      },
-      "required": [
-        "surface",
-        "target"
-      ],
-      "type": "object"
     },
     "entry_bindings": {
       "additionalProperties": {
@@ -1073,64 +1088,6 @@
           "$ref": "#/$defs/type_name"
         }
       },
-      "type": "object"
-    },
-    "entry_item": {
-      "additionalProperties": false,
-      "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "command": {
-          "pattern": "^[a-z][a-z0-9_-]*( [a-z][a-z0-9_-]*)*$",
-          "type": "string"
-        },
-        "id": {
-          "$ref": "#/$defs/dotted_id"
-        },
-        "input": {
-          "$ref": "#/$defs/entry_input"
-        },
-        "method": {
-          "enum": [
-            "GET",
-            "POST",
-            "PUT",
-            "PATCH",
-            "DELETE"
-          ]
-        },
-        "path": {
-          "pattern": "^/",
-          "type": "string"
-        },
-        "responses": {
-          "$ref": "#/$defs/entry_responses"
-        },
-        "schedule": {
-          "minLength": 1,
-          "type": "string"
-        },
-        "surface": {
-          "enum": [
-            "web",
-            "api",
-            "cli",
-            "worker",
-            "schedule",
-            "webhook"
-          ]
-        },
-        "target": {
-          "$ref": "#/$defs/entry_target"
-        }
-      },
-      "required": [
-        "id",
-        "surface",
-        "target",
-        "basis"
-      ],
       "type": "object"
     },
     "entry_response": {
@@ -1195,56 +1152,6 @@
       },
       "type": "object"
     },
-    "entry_spec": {
-      "additionalProperties": false,
-      "properties": {
-        "command": {
-          "pattern": "^[a-z][a-z0-9_-]*( [a-z][a-z0-9_-]*)*$",
-          "type": "string"
-        },
-        "input": {
-          "$ref": "#/$defs/entry_input"
-        },
-        "method": {
-          "enum": [
-            "GET",
-            "POST",
-            "PUT",
-            "PATCH",
-            "DELETE"
-          ]
-        },
-        "path": {
-          "pattern": "^/",
-          "type": "string"
-        },
-        "responses": {
-          "$ref": "#/$defs/entry_responses"
-        },
-        "schedule": {
-          "minLength": 1,
-          "type": "string"
-        },
-        "surface": {
-          "enum": [
-            "web",
-            "api",
-            "cli",
-            "worker",
-            "schedule",
-            "webhook"
-          ]
-        },
-        "target": {
-          "$ref": "#/$defs/entry_target"
-        }
-      },
-      "required": [
-        "surface",
-        "target"
-      ],
-      "type": "object"
-    },
     "entry_target": {
       "additionalProperties": false,
       "oneOf": [
@@ -1293,24 +1200,6 @@
       "required": [
         "name",
         "trigger"
-      ],
-      "type": "object"
-    },
-    "event_author": {
-      "additionalProperties": false,
-      "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "payload": {
-          "$ref": "#/$defs/type_name"
-        },
-        "why": {
-          "$ref": "#/$defs/basis"
-        }
-      },
-      "required": [
-        "payload"
       ],
       "type": "object"
     },
@@ -1377,72 +1266,6 @@
         }
       ]
     },
-    "fact_author": {
-      "oneOf": [
-        {
-          "additionalProperties": false,
-          "properties": {
-            "absent": {
-              "additionalProperties": false,
-              "properties": {
-                "model": {
-                  "$ref": "#/$defs/model_id"
-                },
-                "where": {
-                  "$ref": "#/$defs/value_map"
-                }
-              },
-              "required": [
-                "model",
-                "where"
-              ],
-              "type": "object"
-            },
-            "basis": {
-              "$ref": "#/$defs/basis"
-            },
-            "why": {
-              "$ref": "#/$defs/basis"
-            }
-          },
-          "required": [
-            "absent"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "basis": {
-              "$ref": "#/$defs/basis"
-            },
-            "present": {
-              "additionalProperties": false,
-              "properties": {
-                "model": {
-                  "$ref": "#/$defs/model_id"
-                },
-                "values": {
-                  "$ref": "#/$defs/value_map"
-                }
-              },
-              "required": [
-                "model",
-                "values"
-              ],
-              "type": "object"
-            },
-            "why": {
-              "$ref": "#/$defs/basis"
-            }
-          },
-          "required": [
-            "present"
-          ],
-          "type": "object"
-        }
-      ]
-    },
     "fact_id": {
       "pattern": "^fact\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
@@ -1463,72 +1286,9 @@
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
     },
-    "fixture_author": {
-      "additionalProperties": false,
-      "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "values": {
-          "additionalProperties": {
-            "$ref": "#/$defs/json_value"
-          },
-          "minProperties": 1,
-          "type": "object"
-        },
-        "why": {
-          "$ref": "#/$defs/basis"
-        }
-      },
-      "required": [
-        "values"
-      ],
-      "type": "object"
-    },
     "fixture_id": {
       "pattern": "^fixture\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
-    },
-    "fixture_item": {
-      "additionalProperties": false,
-      "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "id": {
-          "pattern": "^fixture\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
-          "type": "string"
-        },
-        "values": {
-          "additionalProperties": {
-            "$ref": "#/$defs/json_value"
-          },
-          "minProperties": 1,
-          "type": "object"
-        }
-      },
-      "required": [
-        "id",
-        "values",
-        "basis"
-      ],
-      "type": "object"
-    },
-    "fixture_spec": {
-      "additionalProperties": false,
-      "properties": {
-        "values": {
-          "additionalProperties": {
-            "$ref": "#/$defs/json_value"
-          },
-          "minProperties": 1,
-          "type": "object"
-        }
-      },
-      "required": [
-        "values"
-      ],
-      "type": "object"
     },
     "fsm_audit_case": {
       "additionalProperties": false,
@@ -1581,67 +1341,6 @@
         "profile",
         "surfaces",
         "fixtures"
-      ],
-      "type": "object"
-    },
-    "fsm_author": {
-      "additionalProperties": false,
-      "properties": {
-        "archetype": {
-          "enum": [
-            "collection",
-            "detail",
-            "form",
-            "dashboard",
-            "wizard"
-          ]
-        },
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "context": {
-          "$ref": "#/$defs/type_map"
-        },
-        "data": {
-          "items": {
-            "$ref": "#/$defs/dotted_id"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "initial": {
-          "$ref": "#/$defs/state_name"
-        },
-        "messages": {
-          "$ref": "#/$defs/fsm_messages"
-        },
-        "model": {
-          "$ref": "#/$defs/model_id"
-        },
-        "states": {
-          "additionalProperties": {
-            "$ref": "#/$defs/fsm_state_spec"
-          },
-          "minProperties": 1,
-          "propertyNames": {
-            "$ref": "#/$defs/state_name"
-          },
-          "type": "object"
-        },
-        "transitions": {
-          "items": {
-            "$ref": "#/$defs/fsm_transition"
-          },
-          "type": "array"
-        },
-        "why": {
-          "$ref": "#/$defs/basis"
-        }
-      },
-      "required": [
-        "model",
-        "initial",
-        "states"
       ],
       "type": "object"
     },
@@ -1711,74 +1410,6 @@
       "required": [
         "state"
       ],
-      "type": "object"
-    },
-    "fsm_state_spec": {
-      "additionalProperties": false,
-      "properties": {
-        "actions": {
-          "items": {
-            "$ref": "#/$defs/dotted_id"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "asset_slots": {
-          "items": {
-            "$ref": "#/$defs/field_name"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "audit": {
-          "additionalProperties": {
-            "$ref": "#/$defs/fsm_audit_case"
-          },
-          "propertyNames": {
-            "$ref": "#/$defs/field_name"
-          },
-          "type": "object"
-        },
-        "copy_slots": {
-          "items": {
-            "$ref": "#/$defs/field_name"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "data": {
-          "items": {
-            "$ref": "#/$defs/dotted_id"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "field_slots": {
-          "items": {
-            "$ref": "#/$defs/field_name"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "layout": {
-          "$ref": "#/$defs/layout_contract"
-        },
-        "mounts": {
-          "items": {
-            "$ref": "#/$defs/mount_item"
-          },
-          "type": "array"
-        },
-        "presentation": {
-          "$ref": "#/$defs/presentation_contract"
-        },
-        "sync": {
-          "items": {
-            "$ref": "#/$defs/sync_rule"
-          },
-          "type": "array"
-        }
-      },
       "type": "object"
     },
     "fsm_sync_assertion": {
@@ -2285,169 +1916,9 @@
       ],
       "type": "object"
     },
-    "model_author": {
-      "additionalProperties": false,
-      "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "fields": {
-          "$ref": "#/$defs/type_map"
-        },
-        "kind": {
-          "enum": [
-            "aggregate",
-            "entity",
-            "value_object",
-            "external"
-          ]
-        },
-        "lifecycle": {
-          "additionalProperties": false,
-          "properties": {
-            "field": {
-              "$ref": "#/$defs/field_name"
-            },
-            "initial": {
-              "pattern": "^[a-z][a-z0-9_]*$",
-              "type": "string"
-            },
-            "states": {
-              "items": {
-                "pattern": "^[a-z][a-z0-9_]*$",
-                "type": "string"
-              },
-              "minItems": 1,
-              "type": "array",
-              "uniqueItems": true
-            },
-            "transitions": {
-              "items": {
-                "additionalProperties": false,
-                "properties": {
-                  "by": {
-                    "$ref": "#/$defs/dotted_id"
-                  },
-                  "from": {
-                    "pattern": "^[a-z][a-z0-9_]*$",
-                    "type": "string"
-                  },
-                  "to": {
-                    "pattern": "^[a-z][a-z0-9_]*$",
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "from",
-                  "to",
-                  "by"
-                ],
-                "type": "object"
-              },
-              "type": "array"
-            }
-          },
-          "required": [
-            "field",
-            "states",
-            "initial"
-          ],
-          "type": "object"
-        },
-        "why": {
-          "$ref": "#/$defs/basis"
-        }
-      },
-      "required": [
-        "kind",
-        "fields"
-      ],
-      "type": "object"
-    },
     "model_id": {
       "pattern": "^[A-Z][A-Za-z0-9]*$",
       "type": "string"
-    },
-    "model_item": {
-      "additionalProperties": false,
-      "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "fields": {
-          "$ref": "#/$defs/type_map"
-        },
-        "id": {
-          "$ref": "#/$defs/model_id"
-        },
-        "kind": {
-          "enum": [
-            "aggregate",
-            "entity",
-            "value_object",
-            "external"
-          ]
-        },
-        "lifecycle": {
-          "additionalProperties": false,
-          "properties": {
-            "field": {
-              "$ref": "#/$defs/field_name"
-            },
-            "initial": {
-              "pattern": "^[a-z][a-z0-9_]*$",
-              "type": "string"
-            },
-            "states": {
-              "items": {
-                "pattern": "^[a-z][a-z0-9_]*$",
-                "type": "string"
-              },
-              "minItems": 1,
-              "type": "array",
-              "uniqueItems": true
-            },
-            "transitions": {
-              "items": {
-                "additionalProperties": false,
-                "properties": {
-                  "by": {
-                    "$ref": "#/$defs/dotted_id"
-                  },
-                  "from": {
-                    "pattern": "^[a-z][a-z0-9_]*$",
-                    "type": "string"
-                  },
-                  "to": {
-                    "pattern": "^[a-z][a-z0-9_]*$",
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "from",
-                  "to",
-                  "by"
-                ],
-                "type": "object"
-              },
-              "type": "array"
-            }
-          },
-          "required": [
-            "field",
-            "states",
-            "initial"
-          ],
-          "type": "object"
-        }
-      },
-      "required": [
-        "id",
-        "kind",
-        "fields",
-        "basis"
-      ],
-      "type": "object"
     },
     "model_refs": {
       "items": {
@@ -2456,111 +1927,6 @@
       "minItems": 1,
       "type": "array",
       "uniqueItems": true
-    },
-    "model_spec": {
-      "additionalProperties": false,
-      "properties": {
-        "fields": {
-          "$ref": "#/$defs/type_map"
-        },
-        "kind": {
-          "enum": [
-            "aggregate",
-            "entity",
-            "value_object",
-            "external"
-          ]
-        },
-        "lifecycle": {
-          "additionalProperties": false,
-          "properties": {
-            "field": {
-              "$ref": "#/$defs/field_name"
-            },
-            "initial": {
-              "pattern": "^[a-z][a-z0-9_]*$",
-              "type": "string"
-            },
-            "states": {
-              "items": {
-                "pattern": "^[a-z][a-z0-9_]*$",
-                "type": "string"
-              },
-              "minItems": 1,
-              "type": "array",
-              "uniqueItems": true
-            },
-            "transitions": {
-              "items": {
-                "additionalProperties": false,
-                "properties": {
-                  "by": {
-                    "$ref": "#/$defs/dotted_id"
-                  },
-                  "from": {
-                    "pattern": "^[a-z][a-z0-9_]*$",
-                    "type": "string"
-                  },
-                  "to": {
-                    "pattern": "^[a-z][a-z0-9_]*$",
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "from",
-                  "to",
-                  "by"
-                ],
-                "type": "object"
-              },
-              "type": "array"
-            }
-          },
-          "required": [
-            "field",
-            "states",
-            "initial"
-          ],
-          "type": "object"
-        }
-      },
-      "required": [
-        "kind",
-        "fields"
-      ],
-      "type": "object"
-    },
-    "mount_item": {
-      "additionalProperties": false,
-      "properties": {
-        "context": {
-          "$ref": "#/$defs/context_bindings"
-        },
-        "fsm": {
-          "pattern": "^fsm\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
-          "type": "string"
-        },
-        "id": {
-          "$ref": "#/$defs/instance_id"
-        },
-        "initial": {
-          "$ref": "#/$defs/state_name"
-        },
-        "region": {
-          "$ref": "#/$defs/field_name"
-        },
-        "selected": {
-          "$ref": "#/$defs/fsm_mount_selected"
-        }
-      },
-      "required": [
-        "id",
-        "fsm",
-        "region",
-        "initial",
-        "context"
-      ],
-      "type": "object"
     },
     "presentation_contract": {
       "additionalProperties": false,
@@ -2593,146 +1959,6 @@
         "boolean",
         "null"
       ]
-    },
-    "scenario_author": {
-      "additionalProperties": false,
-      "properties": {
-        "archetype": {
-          "enum": [
-            "entry_response",
-            "capability_outcome",
-            "fsm_composition",
-            "fsm_composition_sync",
-            "empty_collection_fsm",
-            "forbidden_action",
-            "ready_collection_fsm",
-            "workflow_event_success"
-          ]
-        },
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "feature": {
-          "$ref": "#/$defs/dotted_id"
-        },
-        "given": {
-          "$ref": "#/$defs/given"
-        },
-        "then": {
-          "$ref": "#/$defs/then"
-        },
-        "title": {
-          "minLength": 1,
-          "type": "string"
-        },
-        "when": {
-          "$ref": "#/$defs/when"
-        },
-        "why": {
-          "$ref": "#/$defs/basis"
-        }
-      },
-      "required": [
-        "feature",
-        "title",
-        "archetype",
-        "given",
-        "when",
-        "then"
-      ],
-      "type": "object"
-    },
-    "scenario_item": {
-      "additionalProperties": false,
-      "properties": {
-        "archetype": {
-          "enum": [
-            "empty_collection_fsm",
-            "ready_collection_fsm",
-            "capability_outcome",
-            "entry_response",
-            "workflow_event_success",
-            "forbidden_action",
-            "fsm_composition",
-            "fsm_composition_sync"
-          ]
-        },
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "feature": {
-          "$ref": "#/$defs/dotted_id"
-        },
-        "given": {
-          "$ref": "#/$defs/given"
-        },
-        "id": {
-          "$ref": "#/$defs/dotted_id"
-        },
-        "then": {
-          "$ref": "#/$defs/then"
-        },
-        "title": {
-          "minLength": 1,
-          "type": "string"
-        },
-        "when": {
-          "$ref": "#/$defs/when"
-        }
-      },
-      "required": [
-        "id",
-        "feature",
-        "title",
-        "archetype",
-        "given",
-        "when",
-        "then",
-        "basis"
-      ],
-      "type": "object"
-    },
-    "scenario_spec": {
-      "additionalProperties": false,
-      "properties": {
-        "archetype": {
-          "enum": [
-            "entry_response",
-            "capability_outcome",
-            "fsm_composition",
-            "fsm_composition_sync",
-            "empty_collection_fsm",
-            "forbidden_action",
-            "ready_collection_fsm",
-            "workflow_event_success"
-          ]
-        },
-        "feature": {
-          "$ref": "#/$defs/dotted_id"
-        },
-        "given": {
-          "$ref": "#/$defs/given"
-        },
-        "then": {
-          "$ref": "#/$defs/then"
-        },
-        "title": {
-          "minLength": 1,
-          "type": "string"
-        },
-        "when": {
-          "$ref": "#/$defs/when"
-        }
-      },
-      "required": [
-        "feature",
-        "title",
-        "archetype",
-        "given",
-        "when",
-        "then"
-      ],
-      "type": "object"
     },
     "state_name": {
       "pattern": "^[a-z][a-z0-9_]*$",
@@ -3345,36 +2571,6 @@
         }
       ]
     },
-    "workflow_author": {
-      "additionalProperties": false,
-      "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "outcomes": {
-          "$ref": "#/$defs/workflow_outcomes"
-        },
-        "steps": {
-          "items": {
-            "$ref": "#/$defs/workflow_step"
-          },
-          "minItems": 1,
-          "type": "array"
-        },
-        "trigger": {
-          "$ref": "#/$defs/workflow_trigger_target"
-        },
-        "why": {
-          "$ref": "#/$defs/basis"
-        }
-      },
-      "required": [
-        "trigger",
-        "outcomes",
-        "steps"
-      ],
-      "type": "object"
-    },
     "workflow_bindings": {
       "additionalProperties": {
         "$ref": "#/$defs/workflow_source"
@@ -3382,38 +2578,6 @@
       "propertyNames": {
         "$ref": "#/$defs/field_name"
       },
-      "type": "object"
-    },
-    "workflow_item": {
-      "additionalProperties": false,
-      "properties": {
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "id": {
-          "$ref": "#/$defs/dotted_id"
-        },
-        "outcomes": {
-          "$ref": "#/$defs/workflow_outcomes"
-        },
-        "steps": {
-          "items": {
-            "$ref": "#/$defs/workflow_step"
-          },
-          "minItems": 1,
-          "type": "array"
-        },
-        "trigger": {
-          "$ref": "#/$defs/workflow_trigger_target"
-        }
-      },
-      "required": [
-        "id",
-        "trigger",
-        "outcomes",
-        "steps",
-        "basis"
-      ],
       "type": "object"
     },
     "workflow_outcome": {
@@ -3503,30 +2667,6 @@
       "pattern": "^(trigger\\.payload|steps\\.[a-z][a-z0-9_]*\\.outcomes\\.[a-z][a-z0-9_]*\\.result)(\\.[a-z][a-z0-9_]*)?$",
       "type": "string"
     },
-    "workflow_spec": {
-      "additionalProperties": false,
-      "properties": {
-        "outcomes": {
-          "$ref": "#/$defs/workflow_outcomes"
-        },
-        "steps": {
-          "items": {
-            "$ref": "#/$defs/workflow_step"
-          },
-          "minItems": 1,
-          "type": "array"
-        },
-        "trigger": {
-          "$ref": "#/$defs/workflow_trigger_target"
-        }
-      },
-      "required": [
-        "trigger",
-        "outcomes",
-        "steps"
-      ],
-      "type": "object"
-    },
     "workflow_step": {
       "additionalProperties": false,
       "properties": {
@@ -3567,14 +2707,14 @@
       "type": "object"
     }
   },
-  "$id": "https://example.invalid/authored-product-spec.schema.json",
+  "$id": "https://example.invalid/authored-source-product-spec.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Sparse human-authored spec. Compiles to spec/generated/compiled/spec.yaml, where derived events, refs, policies, routes, query refs, endpoints, and empty collections are expanded.",
+  "description": "Sparse human-authored source spec. Compiles to spec/generated/compiled/spec.yaml, where normalized ids, derived events, derived routes, generated references, endpoint expansions, and empty collection expansions are represented.",
   "properties": {
     "assets": {
       "additionalProperties": {
-        "$ref": "#/$defs/asset_author"
+        "$ref": "#/$defs/authored_asset"
       },
       "propertyNames": {
         "$ref": "#/$defs/asset_id"
@@ -3583,7 +2723,7 @@
     },
     "audit_profiles": {
       "additionalProperties": {
-        "$ref": "#/$defs/audit_profile_author"
+        "$ref": "#/$defs/authored_audit_profile"
       },
       "propertyNames": {
         "$ref": "#/$defs/audit_profile_id"
@@ -3592,7 +2732,7 @@
     },
     "capabilities": {
       "additionalProperties": {
-        "$ref": "#/$defs/capability_author"
+        "$ref": "#/$defs/authored_capability"
       },
       "propertyNames": {
         "$ref": "#/$defs/dotted_id"
@@ -3601,7 +2741,7 @@
     },
     "content_cases": {
       "additionalProperties": {
-        "$ref": "#/$defs/content_case_author"
+        "$ref": "#/$defs/authored_content_case"
       },
       "propertyNames": {
         "$ref": "#/$defs/content_case_id"
@@ -3610,7 +2750,7 @@
     },
     "copies": {
       "additionalProperties": {
-        "$ref": "#/$defs/copy_author"
+        "$ref": "#/$defs/authored_copy"
       },
       "propertyNames": {
         "$ref": "#/$defs/copy_id"
@@ -3619,7 +2759,7 @@
     },
     "entries": {
       "additionalProperties": {
-        "$ref": "#/$defs/entry_author"
+        "$ref": "#/$defs/authored_entry"
       },
       "propertyNames": {
         "$ref": "#/$defs/dotted_id"
@@ -3628,7 +2768,7 @@
     },
     "events": {
       "additionalProperties": {
-        "$ref": "#/$defs/event_author"
+        "$ref": "#/$defs/authored_event"
       },
       "propertyNames": {
         "$ref": "#/$defs/dotted_id"
@@ -3637,7 +2777,7 @@
     },
     "facts": {
       "additionalProperties": {
-        "$ref": "#/$defs/fact_author"
+        "$ref": "#/$defs/authored_fact"
       },
       "propertyNames": {
         "$ref": "#/$defs/fact_id"
@@ -3646,7 +2786,7 @@
     },
     "fixtures": {
       "additionalProperties": {
-        "$ref": "#/$defs/fixture_author"
+        "$ref": "#/$defs/authored_fixture"
       },
       "propertyNames": {
         "$ref": "#/$defs/fixture_id"
@@ -3655,7 +2795,7 @@
     },
     "fsms": {
       "additionalProperties": {
-        "$ref": "#/$defs/fsm_author"
+        "$ref": "#/$defs/authored_fsm"
       },
       "propertyNames": {
         "$ref": "#/$defs/fsm_id"
@@ -3664,7 +2804,7 @@
     },
     "models": {
       "additionalProperties": {
-        "$ref": "#/$defs/model_author"
+        "$ref": "#/$defs/authored_model"
       },
       "propertyNames": {
         "$ref": "#/$defs/model_id"
@@ -3677,7 +2817,7 @@
     },
     "scenarios": {
       "additionalProperties": {
-        "$ref": "#/$defs/scenario_author"
+        "$ref": "#/$defs/authored_scenario"
       },
       "propertyNames": {
         "$ref": "#/$defs/dotted_id"
@@ -3686,7 +2826,7 @@
     },
     "workflows": {
       "additionalProperties": {
-        "$ref": "#/$defs/workflow_author"
+        "$ref": "#/$defs/authored_workflow"
       },
       "propertyNames": {
         "$ref": "#/$defs/dotted_id"
@@ -3697,6 +2837,6 @@
   "required": [
     "project"
   ],
-  "title": "Authored Product Spec",
+  "title": "Authored-Source Product Spec",
   "type": "object"
 }

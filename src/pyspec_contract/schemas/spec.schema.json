@@ -95,34 +95,6 @@
       ],
       "type": "object"
     },
-    "asset_spec": {
-      "additionalProperties": false,
-      "properties": {
-        "alt_copy": {
-          "$ref": "#/$defs/copy_id"
-        },
-        "kind": {
-          "enum": [
-            "illustration",
-            "icon",
-            "photo",
-            "logo",
-            "avatar"
-          ]
-        },
-        "placeholder": {
-          "$ref": "#/$defs/asset_placeholder"
-        },
-        "resolver": {
-          "$ref": "#/$defs/content_resolver_id"
-        }
-      },
-      "required": [
-        "kind",
-        "placeholder"
-      ],
-      "type": "object"
-    },
     "audit_profile_id": {
       "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
@@ -189,54 +161,6 @@
       ],
       "type": "object"
     },
-    "audit_profile_spec": {
-      "additionalProperties": false,
-      "properties": {
-        "html": {
-          "additionalProperties": false,
-          "properties": {
-            "breakpoints": {
-              "additionalProperties": {
-                "$ref": "#/$defs/html_viewport"
-              },
-              "minProperties": 1,
-              "propertyNames": {
-                "$ref": "#/$defs/breakpoint_id"
-              },
-              "type": "object"
-            }
-          },
-          "required": [
-            "breakpoints"
-          ],
-          "type": "object"
-        },
-        "textual": {
-          "additionalProperties": false,
-          "properties": {
-            "breakpoints": {
-              "additionalProperties": {
-                "$ref": "#/$defs/textual_viewport"
-              },
-              "minProperties": 1,
-              "propertyNames": {
-                "$ref": "#/$defs/breakpoint_id"
-              },
-              "type": "object"
-            }
-          },
-          "required": [
-            "breakpoints"
-          ],
-          "type": "object"
-        }
-      },
-      "required": [
-        "html",
-        "textual"
-      ],
-      "type": "object"
-    },
     "basis": {
       "maxLength": 280,
       "minLength": 1,
@@ -246,7 +170,50 @@
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
     },
-    "capability": {
+    "capability_emit": {
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "payload"
+          ]
+        },
+        {
+          "required": [
+            "with"
+          ]
+        }
+      ],
+      "properties": {
+        "event": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "payload": {
+          "$ref": "#/$defs/capability_emit_source"
+        },
+        "with": {
+          "$ref": "#/$defs/capability_emit_bindings"
+        }
+      },
+      "required": [
+        "event"
+      ],
+      "type": "object"
+    },
+    "capability_emit_bindings": {
+      "additionalProperties": {
+        "$ref": "#/$defs/capability_emit_source"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/field_name"
+      },
+      "type": "object"
+    },
+    "capability_emit_source": {
+      "pattern": "^(input\\.[a-z][a-z0-9_]*|outcome\\.result)(\\.[a-z][a-z0-9_]*)?$",
+      "type": "string"
+    },
+    "capability_item": {
       "additionalProperties": false,
       "properties": {
         "archetype": {
@@ -319,49 +286,6 @@
         "basis"
       ],
       "type": "object"
-    },
-    "capability_emit": {
-      "additionalProperties": false,
-      "oneOf": [
-        {
-          "required": [
-            "payload"
-          ]
-        },
-        {
-          "required": [
-            "with"
-          ]
-        }
-      ],
-      "properties": {
-        "event": {
-          "$ref": "#/$defs/dotted_id"
-        },
-        "payload": {
-          "$ref": "#/$defs/capability_emit_source"
-        },
-        "with": {
-          "$ref": "#/$defs/capability_emit_bindings"
-        }
-      },
-      "required": [
-        "event"
-      ],
-      "type": "object"
-    },
-    "capability_emit_bindings": {
-      "additionalProperties": {
-        "$ref": "#/$defs/capability_emit_source"
-      },
-      "propertyNames": {
-        "$ref": "#/$defs/field_name"
-      },
-      "type": "object"
-    },
-    "capability_emit_source": {
-      "pattern": "^(input\\.[a-z][a-z0-9_]*|outcome\\.result)(\\.[a-z][a-z0-9_]*)?$",
-      "type": "string"
     },
     "capability_outcome": {
       "additionalProperties": false,
@@ -501,36 +425,6 @@
       ],
       "type": "object"
     },
-    "content_case_spec": {
-      "additionalProperties": false,
-      "properties": {
-        "args": {
-          "$ref": "#/$defs/content_arg_values"
-        },
-        "fixtures": {
-          "items": {
-            "$ref": "#/$defs/fixture_id"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "ref": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/copy_id"
-            },
-            {
-              "$ref": "#/$defs/asset_id"
-            }
-          ]
-        }
-      },
-      "required": [
-        "ref",
-        "args"
-      ],
-      "type": "object"
-    },
     "content_resolver_id": {
       "pattern": "^(copy|asset)\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
@@ -632,35 +526,6 @@
       ],
       "type": "object"
     },
-    "copy_spec": {
-      "additionalProperties": false,
-      "properties": {
-        "max_chars": {
-          "minimum": 1,
-          "type": "integer"
-        },
-        "placeholder": {
-          "minLength": 1,
-          "type": "string"
-        },
-        "resolver": {
-          "$ref": "#/$defs/content_resolver_id"
-        },
-        "tone": {
-          "enum": [
-            "neutral",
-            "instructional",
-            "success",
-            "warning",
-            "error"
-          ]
-        }
-      },
-      "required": [
-        "placeholder"
-      ],
-      "type": "object"
-    },
     "css_class": {
       "pattern": "^[a-z][a-z0-9_-]*$",
       "type": "string"
@@ -706,7 +571,54 @@
       "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
     },
-    "entry": {
+    "entry_bindings": {
+      "additionalProperties": {
+        "pattern": "^input\\.(params|body|args|payload)(\\.[a-z][a-z0-9_]*)?$",
+        "type": "string"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/field_name"
+      },
+      "type": "object"
+    },
+    "entry_fsm_target": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/dotted_id"
+        },
+        "surface": {
+          "enum": [
+            "html",
+            "textual"
+          ]
+        }
+      },
+      "required": [
+        "name",
+        "surface"
+      ],
+      "type": "object"
+    },
+    "entry_input": {
+      "additionalProperties": false,
+      "properties": {
+        "args": {
+          "$ref": "#/$defs/type_map"
+        },
+        "body": {
+          "$ref": "#/$defs/type_map"
+        },
+        "params": {
+          "$ref": "#/$defs/type_map"
+        },
+        "payload": {
+          "$ref": "#/$defs/type_name"
+        }
+      },
+      "type": "object"
+    },
+    "entry_item": {
       "additionalProperties": false,
       "properties": {
         "basis": {
@@ -766,53 +678,6 @@
         "basis",
         "input"
       ],
-      "type": "object"
-    },
-    "entry_bindings": {
-      "additionalProperties": {
-        "pattern": "^input\\.(params|body|args|payload)(\\.[a-z][a-z0-9_]*)?$",
-        "type": "string"
-      },
-      "propertyNames": {
-        "$ref": "#/$defs/field_name"
-      },
-      "type": "object"
-    },
-    "entry_fsm_target": {
-      "additionalProperties": false,
-      "properties": {
-        "name": {
-          "$ref": "#/$defs/dotted_id"
-        },
-        "surface": {
-          "enum": [
-            "html",
-            "textual"
-          ]
-        }
-      },
-      "required": [
-        "name",
-        "surface"
-      ],
-      "type": "object"
-    },
-    "entry_input": {
-      "additionalProperties": false,
-      "properties": {
-        "args": {
-          "$ref": "#/$defs/type_map"
-        },
-        "body": {
-          "$ref": "#/$defs/type_map"
-        },
-        "params": {
-          "$ref": "#/$defs/type_map"
-        },
-        "payload": {
-          "$ref": "#/$defs/type_name"
-        }
-      },
       "type": "object"
     },
     "entry_response": {
@@ -928,7 +793,7 @@
       ],
       "type": "object"
     },
-    "event": {
+    "event_item": {
       "additionalProperties": false,
       "properties": {
         "basis": {
@@ -959,60 +824,6 @@
         "$ref": "#/$defs/field_name"
       },
       "type": "object"
-    },
-    "fact": {
-      "oneOf": [
-        {
-          "additionalProperties": false,
-          "properties": {
-            "absent": {
-              "additionalProperties": false,
-              "properties": {
-                "model": {
-                  "$ref": "#/$defs/model_id"
-                },
-                "where": {
-                  "$ref": "#/$defs/value_map"
-                }
-              },
-              "required": [
-                "model",
-                "where"
-              ],
-              "type": "object"
-            }
-          },
-          "required": [
-            "absent"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "present": {
-              "additionalProperties": false,
-              "properties": {
-                "model": {
-                  "$ref": "#/$defs/model_id"
-                },
-                "values": {
-                  "$ref": "#/$defs/value_map"
-                }
-              },
-              "required": [
-                "model",
-                "values"
-              ],
-              "type": "object"
-            }
-          },
-          "required": [
-            "present"
-          ],
-          "type": "object"
-        }
-      ]
     },
     "fact_id": {
       "pattern": "^fact\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
@@ -1096,7 +907,11 @@
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
     },
-    "fixture": {
+    "fixture_id": {
+      "pattern": "^fixture\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "type": "string"
+    },
+    "fixture_item": {
       "additionalProperties": false,
       "properties": {
         "basis": {
@@ -1112,66 +927,6 @@
       },
       "required": [
         "values",
-        "basis"
-      ],
-      "type": "object"
-    },
-    "fixture_id": {
-      "pattern": "^fixture\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
-      "type": "string"
-    },
-    "fsm": {
-      "additionalProperties": false,
-      "properties": {
-        "archetype": {
-          "type": "string"
-        },
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "context": {
-          "$ref": "#/$defs/type_map"
-        },
-        "data": {
-          "items": {
-            "$ref": "#/$defs/datum"
-          },
-          "type": "array"
-        },
-        "initial": {
-          "$ref": "#/$defs/state_name"
-        },
-        "messages": {
-          "$ref": "#/$defs/fsm_messages"
-        },
-        "model": {
-          "$ref": "#/$defs/model_id"
-        },
-        "states": {
-          "additionalProperties": {
-            "$ref": "#/$defs/fsm_state"
-          },
-          "minProperties": 1,
-          "propertyNames": {
-            "$ref": "#/$defs/state_name"
-          },
-          "type": "object"
-        },
-        "transitions": {
-          "items": {
-            "$ref": "#/$defs/fsm_transition"
-          },
-          "type": "array"
-        }
-      },
-      "required": [
-        "model",
-        "context",
-        "data",
-        "messages",
-        "initial",
-        "states",
-        "transitions",
         "basis"
       ],
       "type": "object"
@@ -1234,6 +989,62 @@
     "fsm_id": {
       "pattern": "^fsm\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
+    },
+    "fsm_item": {
+      "additionalProperties": false,
+      "properties": {
+        "archetype": {
+          "type": "string"
+        },
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "context": {
+          "$ref": "#/$defs/type_map"
+        },
+        "data": {
+          "items": {
+            "$ref": "#/$defs/datum"
+          },
+          "type": "array"
+        },
+        "initial": {
+          "$ref": "#/$defs/state_name"
+        },
+        "messages": {
+          "$ref": "#/$defs/fsm_messages"
+        },
+        "model": {
+          "$ref": "#/$defs/model_id"
+        },
+        "states": {
+          "additionalProperties": {
+            "$ref": "#/$defs/fsm_state"
+          },
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/$defs/state_name"
+          },
+          "type": "object"
+        },
+        "transitions": {
+          "items": {
+            "$ref": "#/$defs/fsm_transition"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "model",
+        "context",
+        "data",
+        "messages",
+        "initial",
+        "states",
+        "transitions",
+        "basis"
+      ],
+      "type": "object"
     },
     "fsm_message": {
       "additionalProperties": false,
@@ -1381,50 +1192,6 @@
       "required": [
         "state"
       ],
-      "type": "object"
-    },
-    "fsm_state_spec": {
-      "additionalProperties": false,
-      "properties": {
-        "actions": {
-          "items": {
-            "$ref": "#/$defs/dotted_id"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "asset_slots": {
-          "items": {
-            "$ref": "#/$defs/field_name"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "copy_slots": {
-          "items": {
-            "$ref": "#/$defs/field_name"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "data": {
-          "items": {
-            "$ref": "#/$defs/dotted_id"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "field_slots": {
-          "items": {
-            "$ref": "#/$defs/field_name"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "presentation": {
-          "$ref": "#/$defs/presentation_contract"
-        }
-      },
       "type": "object"
     },
     "fsm_transition": {
@@ -1891,7 +1658,11 @@
       ],
       "type": "object"
     },
-    "model": {
+    "model_id": {
+      "pattern": "^[A-Z][A-Za-z0-9]*$",
+      "type": "string"
+    },
+    "model_item": {
       "additionalProperties": false,
       "properties": {
         "basis": {
@@ -1965,10 +1736,6 @@
       ],
       "type": "object"
     },
-    "model_id": {
-      "pattern": "^[A-Z][A-Za-z0-9]*$",
-      "type": "string"
-    },
     "model_refs": {
       "items": {
         "$ref": "#/$defs/model_id"
@@ -2041,7 +1808,7 @@
         "null"
       ]
     },
-    "scenario": {
+    "scenario_item": {
       "additionalProperties": false,
       "properties": {
         "archetype": {
@@ -2453,7 +2220,16 @@
       },
       "type": "object"
     },
-    "workflow": {
+    "workflow_bindings": {
+      "additionalProperties": {
+        "$ref": "#/$defs/workflow_source"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/field_name"
+      },
+      "type": "object"
+    },
+    "workflow_item": {
       "additionalProperties": false,
       "properties": {
         "basis": {
@@ -2483,15 +2259,6 @@
         "ref",
         "basis"
       ],
-      "type": "object"
-    },
-    "workflow_bindings": {
-      "additionalProperties": {
-        "$ref": "#/$defs/workflow_source"
-      },
-      "propertyNames": {
-        "$ref": "#/$defs/field_name"
-      },
       "type": "object"
     },
     "workflow_outcome": {
@@ -2621,9 +2388,10 @@
       "type": "object"
     }
   },
-  "$id": "https://example.invalid/product-spec.schema.json",
+  "$id": "https://example.invalid/compiled-output-product-spec.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
+  "description": "Compiler-normalized output schema for spec/generated/compiled/spec.yaml. Contains normalized ids, derived events, derived routes, generated references, endpoint expansions, and empty collection expansions.",
   "properties": {
     "assets": {
       "additionalProperties": {
@@ -2639,7 +2407,7 @@
     },
     "capabilities": {
       "additionalProperties": {
-        "$ref": "#/$defs/capability"
+        "$ref": "#/$defs/capability_item"
       },
       "type": "object"
     },
@@ -2657,13 +2425,13 @@
     },
     "entries": {
       "additionalProperties": {
-        "$ref": "#/$defs/entry"
+        "$ref": "#/$defs/entry_item"
       },
       "type": "object"
     },
     "events": {
       "additionalProperties": {
-        "$ref": "#/$defs/event"
+        "$ref": "#/$defs/event_item"
       },
       "type": "object"
     },
@@ -2678,13 +2446,13 @@
     },
     "fixtures": {
       "additionalProperties": {
-        "$ref": "#/$defs/fixture"
+        "$ref": "#/$defs/fixture_item"
       },
       "type": "object"
     },
     "fsms": {
       "additionalProperties": {
-        "$ref": "#/$defs/fsm"
+        "$ref": "#/$defs/fsm_item"
       },
       "propertyNames": {
         "$ref": "#/$defs/fsm_id"
@@ -2693,7 +2461,7 @@
     },
     "models": {
       "additionalProperties": {
-        "$ref": "#/$defs/model"
+        "$ref": "#/$defs/model_item"
       },
       "type": "object"
     },
@@ -2712,13 +2480,13 @@
     },
     "scenarios": {
       "additionalProperties": {
-        "$ref": "#/$defs/scenario"
+        "$ref": "#/$defs/scenario_item"
       },
       "type": "object"
     },
     "workflows": {
       "additionalProperties": {
-        "$ref": "#/$defs/workflow"
+        "$ref": "#/$defs/workflow_item"
       },
       "type": "object"
     }
@@ -2740,6 +2508,6 @@
     "content_cases",
     "fsms"
   ],
-  "title": "Compiled Product Spec",
+  "title": "Compiled-Output Product Spec",
   "type": "object"
 }
