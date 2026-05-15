@@ -224,12 +224,12 @@
       "owner_kind": "state_machine",
       "slots": {
         "assets": [],
-        "copy": [
+        "fields": [],
+        "operation_refs": [],
+        "text": [
           "text.project.activity.empty.heading",
           "text.project.activity.empty.body"
-        ],
-        "fields": [],
-        "operation_refs": []
+        ]
       },
       "state_machine": {
         "context": {
@@ -273,15 +273,15 @@
       "owner_kind": "state_machine",
       "slots": {
         "assets": [],
-        "copy": [
-          "text.project.activity.ready.heading"
-        ],
         "fields": [
           "updated_at",
           "status",
           "assignee"
         ],
-        "operation_refs": []
+        "operation_refs": [],
+        "text": [
+          "text.project.activity.ready.heading"
+        ]
       },
       "state_machine": {
         "context": {
@@ -387,9 +387,9 @@
       },
       "slots": {
         "assets": [],
-        "copy": [],
         "fields": [],
-        "operation_refs": []
+        "operation_refs": [],
+        "text": []
       },
       "state_machine": {
         "context": {
@@ -412,12 +412,12 @@
       "owner_kind": "state_machine",
       "slots": {
         "assets": [],
-        "copy": [
+        "fields": [],
+        "operation_refs": [],
+        "text": [
           "text.project.detail.error.heading",
           "text.project.detail.error.body"
-        ],
-        "fields": [],
-        "operation_refs": []
+        ]
       },
       "state_machine": {
         "context": {
@@ -471,11 +471,11 @@
       "owner_kind": "state_machine",
       "slots": {
         "assets": [],
-        "copy": [
-          "text.project.detail.loading.message"
-        ],
         "fields": [],
-        "operation_refs": []
+        "operation_refs": [],
+        "text": [
+          "text.project.detail.loading.message"
+        ]
       },
       "state_machine": {
         "context": {
@@ -524,12 +524,12 @@
       "owner_kind": "state_machine",
       "slots": {
         "assets": [],
-        "copy": [
+        "fields": [],
+        "operation_refs": [],
+        "text": [
           "text.project.detail.none.heading",
           "text.project.detail.none.body"
-        ],
-        "fields": [],
-        "operation_refs": []
+        ]
       },
       "state_machine": {
         "context": {
@@ -580,9 +580,6 @@
         "assets": [
           "asset.project.detail.ready.priority_badge"
         ],
-        "copy": [
-          "text.project.detail.ready.heading"
-        ],
         "fields": [
           "title",
           "customer",
@@ -593,6 +590,9 @@
         "operation_refs": [
           "operation.project.approve",
           "operation.project.archive"
+        ],
+        "text": [
+          "text.project.detail.ready.heading"
         ]
       },
       "state_machine": {
@@ -644,13 +644,13 @@
         "assets": [
           "asset.project.list.empty.illustration"
         ],
-        "copy": [
-          "text.project.list.empty.heading",
-          "text.project.list.empty.body"
-        ],
         "fields": [],
         "operation_refs": [
           "operation.project.create"
+        ],
+        "text": [
+          "text.project.list.empty.heading",
+          "text.project.list.empty.body"
         ]
       },
       "state_machine": {
@@ -710,12 +710,12 @@
       "owner_kind": "state_machine",
       "slots": {
         "assets": [],
-        "copy": [
+        "fields": [],
+        "operation_refs": [],
+        "text": [
           "text.project.list.error.heading",
           "text.project.list.error.body"
-        ],
-        "fields": [],
-        "operation_refs": []
+        ]
       },
       "state_machine": {
         "context": {
@@ -774,11 +774,11 @@
       "owner_kind": "state_machine",
       "slots": {
         "assets": [],
-        "copy": [
-          "text.project.list.loading.message"
-        ],
         "fields": [],
-        "operation_refs": []
+        "operation_refs": [],
+        "text": [
+          "text.project.list.loading.message"
+        ]
       },
       "state_machine": {
         "context": {
@@ -837,9 +837,6 @@
       "owner_kind": "state_machine",
       "slots": {
         "assets": [],
-        "copy": [
-          "text.project.list.ready.heading"
-        ],
         "fields": [
           "title",
           "customer",
@@ -849,6 +846,9 @@
         "operation_refs": [
           "operation.project.create",
           "operation.project.submit"
+        ],
+        "text": [
+          "text.project.list.ready.heading"
         ]
       },
       "state_machine": {

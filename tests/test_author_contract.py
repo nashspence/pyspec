@@ -50,9 +50,9 @@ def test_author_contract_can_be_minimal_and_surface_invisible() -> None:
 def test_author_contract_reuses_layer_guardrails() -> None:
     author = {
         "project": "blocked_author",
-        "copies": {
+        "text_resources": {
             "text.project.empty.heading": {
-                "basis": "UI copy is not part of a core-only source.",
+                "basis": "UI text is not part of a core-only source.",
                 "placeholder": "No projects",
             }
         },

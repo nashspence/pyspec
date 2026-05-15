@@ -26,7 +26,7 @@
     "asset_item": {
       "additionalProperties": false,
       "properties": {
-        "alt_copy": {
+        "alt_text": {
           "$ref": "#/$defs/text_ref"
         },
         "args": {
@@ -35,24 +35,32 @@
         "basis": {
           "$ref": "#/$defs/basis"
         },
-        "kind": {
+        "asset_role": {
+          "enum": [
+            "logo",
+            "avatar",
+            "badge",
+            "empty_state",
+            "decorative",
+            "content"
+          ]
+        },
+        "media_kind": {
           "enum": [
             "illustration",
             "icon",
-            "photo",
-            "logo",
-            "avatar"
+            "photo"
           ]
         },
         "placeholder": {
           "$ref": "#/$defs/asset_placeholder"
         },
-        "resolver": {
-          "$ref": "#/$defs/content_resolver_id"
+        "source_ref": {
+          "$ref": "#/$defs/content_source_ref"
         }
       },
       "required": [
-        "kind",
+        "media_kind",
         "placeholder",
         "basis"
       ],
@@ -69,7 +77,7 @@
           "minLength": 1,
           "type": "string"
         },
-        "shape": {
+        "visual_metaphor": {
           "enum": [
             "folder",
             "document",
@@ -87,7 +95,7 @@
       },
       "required": [
         "label",
-        "shape"
+        "visual_metaphor"
       ],
       "type": "object"
     },
@@ -350,7 +358,7 @@
       "pattern": "^content\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
     },
-    "content_resolver_id": {
+    "content_source_ref": {
       "pattern": "^(text|asset)\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
     },
@@ -409,7 +417,7 @@
       ],
       "type": "object"
     },
-    "copy_item": {
+    "text_resource_item": {
       "additionalProperties": false,
       "properties": {
         "args": {
@@ -426,8 +434,8 @@
           "minLength": 1,
           "type": "string"
         },
-        "resolver": {
-          "$ref": "#/$defs/content_resolver_id"
+        "source_ref": {
+          "$ref": "#/$defs/content_source_ref"
         },
         "tone": {
           "enum": [
@@ -2264,7 +2272,7 @@
           },
           "type": "array"
         },
-        "copy": {
+        "text": {
           "items": {
             "pattern": "^text\\.",
             "type": "string"
@@ -2306,7 +2314,7 @@
       "required": [
         "surface",
         "data_dependencies",
-        "copy",
+        "text",
         "assets",
         "operation_refs",
         "fields"
@@ -2711,9 +2719,9 @@
       },
       "type": "object"
     },
-    "copies": {
+    "text_resources": {
       "additionalProperties": {
-        "$ref": "#/$defs/copy_item"
+        "$ref": "#/$defs/text_resource_item"
       },
       "propertyNames": {
         "$ref": "#/$defs/text_ref"
@@ -2817,7 +2825,7 @@
   },
   "required": [
     "project",
-    "copies",
+    "text_resources",
     "assets",
     "audit_profiles",
     "fixtures",

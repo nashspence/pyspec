@@ -4,10 +4,10 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 
 ## Top-Level Resource Kinds
 
-- <!-- top-level:assets --> `assets`: content assets, including authored placeholders and resolver-backed generated evidence.
+- <!-- top-level:assets --> `assets`: content assets, including authored placeholders, separated `media_kind`/`asset_role`, and source-backed generated evidence.
 - <!-- top-level:audit_profiles --> `audit_profiles`: visual audit profile settings for HTML and Textual render checks.
-- <!-- top-level:content_cases --> `content_cases`: named resolver examples for dynamic text and asset content.
-- <!-- top-level:copies --> `copies`: text resources used by state-machine slots and resolver projections.
+- <!-- top-level:content_cases --> `content_cases`: named content-source examples for dynamic text and asset content.
+- <!-- top-level:text_resources --> `text_resources`: text resources used by state-machine slots and content-source projections.
 - <!-- top-level:entry_points --> `entry_points`: external invocation declarations split into explicit adapter and trigger objects.
 - <!-- top-level:events --> `events`: durable domain/application or system events with `payload_schema` contracts and compiled emitters.
 - <!-- top-level:facts --> `facts`: reusable model presence/absence setup for scenarios and audits.
@@ -31,10 +31,10 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `fixture_ref`: `fixture.<domain>...`; used by fixtures, scenario setup, content cases, facts, and audit cases.
 - `fact_ref`: `fact.<domain>...`; used by named facts and fact-use references.
 - `asset_ref`: `asset.<domain>...`; used by asset declarations, generated asset slots, content cases, and audit evidence.
-- `text_ref`: `text.<domain>...`; used by copy declarations, generated copy slots, content cases, and resolver signatures.
+- `text_ref`: `text.<domain>...`; used by text resource declarations, generated text slots, content cases, and content source signatures.
 - `message_ref`: `message.<domain>...` or `data.<query>`; used by state-machine/UI messages and data-result transition triggers, never by durable top-level events.
 - `model_ref`: `PascalCase`; used by model references inside type expressions and data relationships.
-- `content_case_ref`: `content.<domain>...`; used by content resolver examples.
+- `content_case_ref`: `content.<domain>...`; used by content source examples.
 - `feature_ref`: `feature.<domain>...`; used by scenario feature grouping and generated BDD files.
 - `audit_profile_ref`: `[a-z][a-z0-9_]*`; used by local visual audit profiles.
 - Generated refs use `asset`, `cli_command`, `endpoint`, `policy`, `query`, `route`, `screen`, `state_machine`, `surface`, `text`, and `workflow` buckets in compiled `refs`.
@@ -87,7 +87,7 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `spec/generated/product_interfaces/web.state_machines.json`: state-machine web/Textual renderer contract projection, including composition layout and presentation style.
 - `spec/generated/product_interfaces/textual.projection.py`: Textual renderer projection generated from `renderers.textual.presentation` widgets, `renderers.textual.style`, and `renderers.textual.layout` containers.
 - `spec/generated/product_interfaces/workflow.cwl.yaml`: CWL projection generated for workflow/CLI/worker-relevant execution graphs.
-- `spec/generated/content_resolvers/{signatures.py,stubs.py,cases.yaml}`: content resolver contracts and examples.
+- `spec/generated/content_resolvers/{signatures.py,stubs.py,cases.yaml}`: documented content-resolution contracts and examples.
 - `spec/generated/test_adapters/python_refs.py`: Python constants for resource and generated reference IDs.
 - `spec/generated/test_adapters/driver_protocol.py`: BDD driver protocol.
 - `spec/generated/test_adapters/pytest_bdd_steps.py`: BDD step glue.
@@ -96,7 +96,7 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `spec/generated/audit_evidence/workflows/{workflow}/flow.svg`: workflow flow diagrams.
 - `spec/generated/audit_evidence/state_machines/{state_machine}/state_machine.svg`: state-machine diagrams.
 - `spec/generated/audit_evidence/state_machines/{state_machine}/view_states/{view_state}/composition.svg`: composed state-machine view-state diagrams.
-- `spec/generated/audit_evidence/state_machines/{state_machine}/view_states/{view_state}/{copy.yaml,fixtures.yaml,assets/*}`: view-state-scoped audit inputs.
+- `spec/generated/audit_evidence/state_machines/{state_machine}/view_states/{view_state}/{text.yaml,fixtures.yaml,assets/*}`: view-state-scoped audit inputs.
 - `spec/generated/audit_evidence/state_machines/{state_machine}/view_states/{view_state}/renders/*`: HTML/Textual view-state render source and captures.
 - `spec/generated/audit_evidence/state_machines/{state_machine}/view_states/{view_state}/cases/{case}/**`: audit-case scoped inputs and render captures.
 
@@ -114,7 +114,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:authored_audit_profile --> `$defs/authored_audit_profile`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_child_state_machine --> `$defs/authored_child_state_machine`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_content_case --> `$defs/authored_content_case`: human-authored source object for this resource or nested contract.
-- <!-- schema-def:authored_copy --> `$defs/authored_copy`: human-authored source object for this resource or nested contract.
+- <!-- schema-def:authored_text_resource --> `$defs/authored_text_resource`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_entry_point --> `$defs/authored_entry_point`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_event --> `$defs/authored_event`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_fact --> `$defs/authored_fact`: human-authored source object for this resource or nested contract.
@@ -136,10 +136,10 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:content_args --> `$defs/content_args`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:content_case_item --> `$defs/content_case_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:content_case_ref --> `$defs/content_case_ref`: typed reference definition for its namespace.
-- <!-- schema-def:content_resolver_id --> `$defs/content_resolver_id`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:content_source_ref --> `$defs/content_source_ref`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:context_bindings --> `$defs/context_bindings`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:context_set_effect --> `$defs/context_set_effect`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:copy_item --> `$defs/copy_item`: compiled-output object for this resource or nested contract.
+- <!-- schema-def:text_resource_item --> `$defs/text_resource_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:css_class --> `$defs/css_class`: renderer contract component for web or Textual platforms.
 - <!-- schema-def:css_declarations --> `$defs/css_declarations`: renderer contract component for web or Textual platforms.
 - <!-- schema-def:css_property --> `$defs/css_property`: renderer contract component for web or Textual platforms.

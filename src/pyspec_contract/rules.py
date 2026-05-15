@@ -59,7 +59,7 @@ def state_machine_surface_ref(state_machine_id: str, state: str) -> str:
     return f"{state_machine_id}.{state}"
 
 
-def copy_ref(state_machine_id: str, state: str, slot: str) -> str:
+def text_ref(state_machine_id: str, state: str, slot: str) -> str:
     return f"text.{resource_tail(state_machine_id)}.{state}.{slot}"
 
 

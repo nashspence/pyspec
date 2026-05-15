@@ -1,4 +1,5 @@
-copy:
+project: project_dispatch_board
+text_resources:
   text.project.detail.ready.heading:
     args:
       customer:
@@ -8,6 +9,5 @@ copy:
     basis: Ready heading for the detail state machine.
     max_chars: 80
     placeholder: Project detail
-    resolver: text.project.detail.ready.heading
+    source_ref: text.project.detail.ready.heading
     tone: neutral
-project: project_dispatch_board

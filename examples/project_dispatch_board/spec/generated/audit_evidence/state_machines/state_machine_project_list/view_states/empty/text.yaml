@@ -1,4 +1,5 @@
-copy:
+project: project_dispatch_board
+text_resources:
   text.project.list.empty.body:
     basis: Empty body for the project list state machine.
     max_chars: 160
@@ -9,4 +10,3 @@ copy:
     max_chars: 80
     placeholder: No dispatch projects yet
     tone: neutral
-project: project_dispatch_board

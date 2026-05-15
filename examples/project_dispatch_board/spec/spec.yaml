@@ -336,11 +336,11 @@ state_machines:
       to: empty
     view_states:
       empty:
-        copy_slots:
+        text_slots:
         - heading
         - body
       ready:
-        copy_slots:
+        text_slots:
         - heading
         data_dependencies:
         - operation.project.read
@@ -561,22 +561,22 @@ state_machines:
       to: none
     view_states:
       error:
-        copy_slots:
+        text_slots:
         - heading
         - body
       loading:
-        copy_slots:
+        text_slots:
         - message
         data_dependencies:
         - operation.project.read
       none:
-        copy_slots:
+        text_slots:
         - heading
         - body
       ready:
         asset_slots:
         - priority_badge
-        copy_slots:
+        text_slots:
         - heading
         field_slots:
         - title
@@ -637,20 +637,20 @@ state_machines:
       empty:
         asset_slots:
         - illustration
-        copy_slots:
+        text_slots:
         - heading
         - body
         operation_refs:
         - operation.project.create
       error:
-        copy_slots:
+        text_slots:
         - heading
         - body
       loading:
-        copy_slots:
+        text_slots:
         - message
       ready:
-        copy_slots:
+        text_slots:
         - heading
         field_slots:
         - title
@@ -1000,7 +1000,7 @@ scenarios:
           title: Replace rooftop condenser fan
           workspace_id: $fixture.workspace.id
         ref: entry_point.api.project.create
-copies:
+text_resources:
   text.project.activity.empty.body:
     basis: Empty activity body.
     max_chars: 120
@@ -1050,7 +1050,7 @@ copies:
     basis: Ready heading for the detail state machine.
     max_chars: 80
     placeholder: Project detail
-    resolver: text.project.detail.ready.heading
+    source_ref: text.project.detail.ready.heading
     tone: neutral
   text.project.list.empty.body:
     basis: Empty body for the project list state machine.
@@ -1088,26 +1088,28 @@ assets:
       priority:
         primitive: Text
     basis: Selected project detail shows a dynamic priority badge resolved from project fixture data.
-    kind: icon
+    asset_role: badge
+    media_kind: icon
     placeholder:
       aspect_ratio: '1:1'
       label: Project priority badge
-      shape: square
-    resolver: asset.project.detail.ready.priority_badge
+      visual_metaphor: square
+    source_ref: asset.project.detail.ready.priority_badge
   asset.project.list.empty.illustration:
-    alt_copy: text.project.list.empty.heading
+    alt_text: text.project.list.empty.heading
     basis: Generic placeholder illustration used by the empty queue state machine state.
-    kind: illustration
+    asset_role: empty_state
+    media_kind: illustration
     placeholder:
       aspect_ratio: '4:3'
       label: Empty dispatch queue illustration
-      shape: square
+      visual_metaphor: square
 content_cases:
   content.project.detail.heading.high_priority:
     args:
       customer: Atlas Foods
       title: Replace rooftop condenser fan
-    basis: Exercise final detail heading copy with representative fixture-backed content.
+    basis: Exercise final detail heading text with representative fixture-backed content.
     ref: text.project.detail.ready.heading
   content.project.detail.priority_badge.high_priority:
     args:

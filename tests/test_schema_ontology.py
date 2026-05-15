@@ -14,7 +14,7 @@ COLLECTION_SECTIONS = {
     "audit_profiles": "audit_profile",
     "operations": "operation",
     "content_cases": "content_case",
-    "copies": "copy",
+    "text_resources": "text_resource",
     "entry_points": "entry_point",
     "events": "event",
     "facts": "fact",

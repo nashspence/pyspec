@@ -57,7 +57,7 @@ class ProductApp:
         workspace_id = context.get("workspace_id")
         matching = [p for p in self.projects if p.get("workspace_id") == workspace_id]
         parent_state_name = "ready" if "ready" in state_machine.get("view_states", {}) else next(iter(state_machine.get("view_states", {"ready": {}})))
-        parent_state = state_machine["view_states"].get(parent_state_name, {"surface": None, "copy": [], "assets": [], "operation_refs": [], "data_dependencies": []})
+        parent_state = state_machine["view_states"].get(parent_state_name, {"surface": None, "text": [], "assets": [], "operation_refs": [], "data_dependencies": []})
         if parent_state.get("child_state_machines"):
             state_machines: dict[str, Any] = {}
             for mount in parent_state["child_state_machines"]:
@@ -70,7 +70,7 @@ class ProductApp:
                     "view_state": state_name,
                     "surface": state["surface"],
                     "data_dependencies": list(child_state_machine.get("data_dependencies", [])) + list(state.get("data_dependencies", [])),
-                    "copy": list(state["copy"]),
+                    "text": list(state["text"]),
                     "assets": list(state["assets"]),
                     "operation_refs": list(state["operation_refs"]),
                 }
@@ -79,7 +79,7 @@ class ProductApp:
                 "view_state": parent_state_name,
                 "surface": parent_state.get("surface"),
                 "data_dependencies": list(state_machine.get("data_dependencies", [])) + list(parent_state.get("data_dependencies", [])),
-                "copy": list(parent_state.get("copy", [])),
+                "text": list(parent_state.get("text", [])),
                 "assets": list(parent_state.get("assets", [])),
                 "operation_refs": list(parent_state.get("operation_refs", [])),
                 "context": context,
@@ -93,7 +93,7 @@ class ProductApp:
             "ref": state_machine_id,
             "view_state": state_name,
             "surface": state["surface"],
-            "copy": list(state["copy"]),
+            "text": list(state["text"]),
             "assets": list(state["assets"]),
             "operation_refs": list(state["operation_refs"]),
         }
@@ -239,14 +239,14 @@ class ProductApp:
         if requires:
             assert self.rendered_state_machine is not None
             rendered_state_machines = self._rendered_state_machine_ids()
-            rendered_copy = self._rendered_values("copy")
+            rendered_text = self._rendered_values("text")
             rendered_assets = self._rendered_values("assets")
             rendered_actions = self._rendered_values("operation_refs")
             for state_machine in requires.get("surfaces", []):
                 assert state_machine in self.surfaces
                 assert state_machine in rendered_state_machines
-            for key in requires.get("copy", []):
-                assert key in rendered_copy
+            for key in requires.get("text", []):
+                assert key in rendered_text
             for key in requires.get("assets", []):
                 assert key in rendered_assets
             for cap in requires.get("operation_refs", []):

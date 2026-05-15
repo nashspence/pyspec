@@ -24,14 +24,14 @@ Test audit:
 
 Dev audit:
 - Check whether implementation consumes generated projections/constants and implements the declared contract without inventing contract surface.
-- Reject invented routes, copy, selectors, events, workflows, policies, operations, fixtures, scenario IDs, persistence contracts, or content resolver signatures outside the spec.
+- Reject invented routes, text resources, selectors, events, workflows, policies, operations, fixtures, scenario IDs, persistence contracts, or content source signatures outside the spec.
 - For every dev issue, provide a recommended prompt for `dev.md` that asks for the smallest implementation fix.
 
 Evidence checks:
 - Run or inspect `pyspec compile . --layers full` and `pyspec validate . --layers full` for generated-tree freshness and layer correctness.
 - Run the project tests that exercise the generated pytest-bdd corpus.
 - For UI layers, inspect render/audit evidence and call out visual, accessibility, or composition mismatches.
-- For content resolvers, confirm generated signatures/stubs are followed and outputs are deterministic for declared cases.
+- For content sources, confirm generated signatures/stubs are followed and outputs are deterministic for declared cases.
 
 Output format:
 - Start with `Ready for merge: yes` or `Ready for merge: no`.

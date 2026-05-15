@@ -1,7 +1,7 @@
-copy:
+project: project_dispatch_board
+text_resources:
   text.project.list.loading.message:
     basis: Loading message for the project list state machine.
     max_chars: 80
     placeholder: Loading dispatch projects…
     tone: neutral
-project: project_dispatch_board

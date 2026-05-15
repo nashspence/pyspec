@@ -34,7 +34,7 @@
           "minLength": 1,
           "type": "string"
         },
-        "shape": {
+        "visual_metaphor": {
           "enum": [
             "folder",
             "document",
@@ -52,7 +52,7 @@
       },
       "required": [
         "label",
-        "shape"
+        "visual_metaphor"
       ],
       "type": "object"
     },
@@ -67,36 +67,44 @@
     "authored_asset": {
       "additionalProperties": false,
       "properties": {
-        "alt_copy": {
+        "alt_text": {
           "$ref": "#/$defs/text_ref"
         },
         "args": {
           "$ref": "#/$defs/content_args"
         },
+        "asset_role": {
+          "enum": [
+            "logo",
+            "avatar",
+            "badge",
+            "empty_state",
+            "decorative",
+            "content"
+          ]
+        },
         "basis": {
           "$ref": "#/$defs/basis"
         },
-        "kind": {
+        "media_kind": {
           "enum": [
             "illustration",
             "icon",
-            "photo",
-            "logo",
-            "avatar"
+            "photo"
           ]
         },
         "placeholder": {
           "$ref": "#/$defs/asset_placeholder"
         },
-        "resolver": {
-          "$ref": "#/$defs/content_resolver_id"
+        "source_ref": {
+          "$ref": "#/$defs/content_source_ref"
         },
         "why": {
           "$ref": "#/$defs/basis"
         }
       },
       "required": [
-        "kind",
+        "media_kind",
         "placeholder"
       ],
       "type": "object"
@@ -230,44 +238,6 @@
       "required": [
         "ref",
         "args"
-      ],
-      "type": "object"
-    },
-    "authored_copy": {
-      "additionalProperties": false,
-      "properties": {
-        "args": {
-          "$ref": "#/$defs/content_args"
-        },
-        "basis": {
-          "$ref": "#/$defs/basis"
-        },
-        "max_chars": {
-          "minimum": 1,
-          "type": "integer"
-        },
-        "placeholder": {
-          "minLength": 1,
-          "type": "string"
-        },
-        "resolver": {
-          "$ref": "#/$defs/content_resolver_id"
-        },
-        "tone": {
-          "enum": [
-            "neutral",
-            "instructional",
-            "success",
-            "warning",
-            "error"
-          ]
-        },
-        "why": {
-          "$ref": "#/$defs/basis"
-        }
-      },
-      "required": [
-        "placeholder"
       ],
       "type": "object"
     },
@@ -646,6 +616,44 @@
       ],
       "type": "object"
     },
+    "authored_text_resource": {
+      "additionalProperties": false,
+      "properties": {
+        "args": {
+          "$ref": "#/$defs/content_args"
+        },
+        "basis": {
+          "$ref": "#/$defs/basis"
+        },
+        "max_chars": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "placeholder": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "source_ref": {
+          "$ref": "#/$defs/content_source_ref"
+        },
+        "tone": {
+          "enum": [
+            "neutral",
+            "instructional",
+            "success",
+            "warning",
+            "error"
+          ]
+        },
+        "why": {
+          "$ref": "#/$defs/basis"
+        }
+      },
+      "required": [
+        "placeholder"
+      ],
+      "type": "object"
+    },
     "authored_view_state": {
       "additionalProperties": false,
       "properties": {
@@ -670,13 +678,6 @@
             "$ref": "#/$defs/authored_child_state_machine"
           },
           "type": "array"
-        },
-        "copy_slots": {
-          "items": {
-            "$ref": "#/$defs/field_name"
-          },
-          "type": "array",
-          "uniqueItems": true
         },
         "data_dependencies": {
           "items": {
@@ -707,6 +708,13 @@
         },
         "renderers": {
           "$ref": "#/$defs/renderer_contracts"
+        },
+        "text_slots": {
+          "items": {
+            "$ref": "#/$defs/field_name"
+          },
+          "type": "array",
+          "uniqueItems": true
         }
       },
       "type": "object"
@@ -864,7 +872,7 @@
       "pattern": "^content\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
     },
-    "content_resolver_id": {
+    "content_source_ref": {
       "pattern": "^(text|asset)\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
     },

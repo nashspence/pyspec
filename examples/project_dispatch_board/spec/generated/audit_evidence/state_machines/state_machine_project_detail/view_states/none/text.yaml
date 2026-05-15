@@ -1,4 +1,5 @@
-copy:
+project: project_dispatch_board
+text_resources:
   text.project.detail.none.body:
     basis: No-selection body for the detail state machine.
     max_chars: 160
@@ -9,4 +10,3 @@ copy:
     max_chars: 80
     placeholder: Select a project
     tone: instructional
-project: project_dispatch_board

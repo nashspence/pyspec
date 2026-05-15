@@ -1,4 +1,5 @@
-copy:
+project: project_dispatch_board
+text_resources:
   text.project.activity.ready.heading:
     basis: Ready activity heading.
     max_chars: 80
@@ -13,11 +14,10 @@ copy:
     basis: Ready heading for the detail state machine.
     max_chars: 80
     placeholder: Project detail
-    resolver: text.project.detail.ready.heading
+    source_ref: text.project.detail.ready.heading
     tone: neutral
   text.project.list.ready.heading:
     basis: Ready heading for the project list state machine.
     max_chars: 80
     placeholder: Dispatch queue
     tone: neutral
-project: project_dispatch_board

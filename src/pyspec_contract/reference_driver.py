@@ -80,14 +80,14 @@ class ReferenceSpecDriver:
         if requires:
             assert self.last_state_machine is not None, "state-machine requirements need a rendered state machine"
             rendered_state_machines = self._rendered_state_machine_ids()
-            rendered_copy = self._rendered_values("copy")
+            rendered_text = self._rendered_values("text")
             rendered_assets = self._rendered_values("assets")
             rendered_actions = self._rendered_values("operation_refs")
             for state_machine in requires.get("surfaces", []):
                 assert state_machine in self.surfaces
                 assert state_machine in rendered_state_machines
-            for key in requires.get("copy", []):
-                assert key in rendered_copy
+            for key in requires.get("text", []):
+                assert key in rendered_text
             for key in requires.get("assets", []):
                 assert key in rendered_assets
             for cap in requires.get("operation_refs", []):
@@ -142,7 +142,7 @@ class ReferenceSpecDriver:
         context = self._entry_target_input(entry, params)
         records = self._filter(state_machine["model"], context)
         parent_state_name = "ready" if "ready" in state_machine.get("view_states", {}) else next(iter(state_machine.get("view_states", {"ready": {}})))
-        state = state_machine["view_states"].get(parent_state_name, {"surface": None, "copy": [], "assets": [], "operation_refs": [], "data_dependencies": []})
+        state = state_machine["view_states"].get(parent_state_name, {"surface": None, "text": [], "assets": [], "operation_refs": [], "data_dependencies": []})
         if state.get("child_state_machines"):
             state_machines: dict[str, Any] = {}
             for mount in state["child_state_machines"]:
@@ -155,7 +155,7 @@ class ReferenceSpecDriver:
                     "view_state": child_state_name,
                     "surface": child_state["surface"],
                     "data_dependencies": list(state_machine.get("data_dependencies", [])) + list(child_state.get("data_dependencies", [])),
-                    "copy": child_state["copy"],
+                    "text": child_state["text"],
                     "assets": child_state["assets"],
                     "operation_refs": child_state["operation_refs"],
                 }
@@ -164,7 +164,7 @@ class ReferenceSpecDriver:
                 "view_state": parent_state_name,
                 "surface": state.get("surface"),
                 "data_dependencies": list(state_machine.get("data_dependencies", [])) + list(state.get("data_dependencies", [])),
-                "copy": state.get("copy", []),
+                "text": state.get("text", []),
                 "assets": state.get("assets", []),
                 "operation_refs": state.get("operation_refs", []),
                 "context": context,
@@ -177,7 +177,7 @@ class ReferenceSpecDriver:
             "ref": state_machine_id,
             "view_state": state_name,
             "surface": state["surface"],
-            "copy": state["copy"],
+            "text": state["text"],
             "assets": state["assets"],
             "operation_refs": state["operation_refs"],
         }

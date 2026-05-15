@@ -28,7 +28,7 @@ class AssetResult:
     alt: str = ""
 
 
-class ResolverRegistry:
+class ContentSourceRegistry:
     def __init__(self, kind: str) -> None:
         self.kind = kind
         self._functions: dict[str, Callable[..., Any]] = {}
@@ -39,7 +39,7 @@ class ResolverRegistry:
     def implements(self, ref: str) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
         def decorate(func: Callable[..., Any]) -> Callable[..., Any]:
             if ref in self._functions:
-                raise ContentError(f"Duplicate {self.kind} resolver: {ref}")
+                raise ContentError(f"Duplicate {self.kind} content source: {ref}")
             self._functions[ref] = func
             return func
         return decorate
@@ -52,11 +52,11 @@ class ResolverRegistry:
         try:
             return self._functions[ref]
         except KeyError as exc:
-            raise ContentError(f"Missing {self.kind} resolver: {ref}") from exc
+            raise ContentError(f"Missing {self.kind} content source: {ref}") from exc
 
 
-copy = ResolverRegistry("copy")
-asset = ResolverRegistry("asset")
+text = ContentSourceRegistry("text")
+asset = ContentSourceRegistry("asset")
 _LOADED_ROOT: Path | None = None
 _RESOLVER_MODULE_NAME = "_pyspec_contract_project_spec"
 
@@ -67,7 +67,7 @@ def load_resolvers(root: Path) -> None:
     if _LOADED_ROOT == root:
         return
     _LOADED_ROOT = None
-    copy.clear()
+    text.clear()
     asset.clear()
     resolver_path = root / RESOLVER_SPEC_PATH
     if not resolver_path.is_file():
@@ -103,11 +103,16 @@ def _content_contract(root: Path):
 
 def instantiate_args(root: Path, kind: str, ref: str, values: Mapping[str, Any]) -> Any:
     module = _content_contract(root)
-    classes = module.COPY_ARG_CLASSES if kind == "copy" else module.ASSET_ARG_CLASSES
+    if kind == "text":
+        classes = module.TEXT_ARG_CLASSES
+        kind_label = "text"
+    else:
+        classes = module.ASSET_ARG_CLASSES
+        kind_label = kind
     try:
         arg_cls = classes[ref]
     except KeyError as exc:
-        raise ContentError(f"Unknown {kind} content ref: {ref}") from exc
+        raise ContentError(f"Unknown {kind_label} content ref: {ref}") from exc
     return arg_cls(**dict(values))
 
 
@@ -123,12 +128,12 @@ def validate_resolver_function(func: Callable[..., Any], arg_class: type) -> Non
         raise ContentError(f"Resolver {func.__name__} args annotation must be {arg_class.__name__}")
 
 
-def call_copy(root: Path, ref: str, values: Mapping[str, Any], ctx: ContentContext | None = None) -> str:
+def call_text(root: Path, ref: str, values: Mapping[str, Any], ctx: ContentContext | None = None) -> str:
     load_resolvers(root)
-    args = instantiate_args(root, "copy", ref, values)
-    result = copy.function(ref)(args, ctx or ContentContext())
+    args = instantiate_args(root, "text", ref, values)
+    result = text.function(ref)(args, ctx or ContentContext())
     if not isinstance(result, str):
-        raise ContentError(f"Copy resolver {ref} must return str")
+        raise ContentError(f"Text source {ref} must return str")
     return result
 
 
@@ -137,5 +142,5 @@ def call_asset(root: Path, ref: str, values: Mapping[str, Any], ctx: ContentCont
     args = instantiate_args(root, "asset", ref, values)
     result = asset.function(ref)(args, ctx or ContentContext())
     if not isinstance(result, AssetResult):
-        raise ContentError(f"Asset resolver {ref} must return AssetResult")
+        raise ContentError(f"Asset source {ref} must return AssetResult")
     return result

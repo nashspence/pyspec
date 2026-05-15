@@ -12,7 +12,7 @@ from jsonschema import Draft202012Validator
 
 from .agent_prompts import USER_PROMPT_PLACEHOLDER, agent_prompt_paths
 from .compile import ContractError, audit_cases
-from .content import ContentContext, ContentError, asset as asset_registry, call_asset, call_copy, copy as copy_registry, instantiate_args, load_resolvers, validate_resolver_function
+from .content import ContentContext, ContentError, asset as asset_registry, call_asset, call_text, text as text_registry, instantiate_args, load_resolvers, validate_resolver_function
 from .runtime import fixture_namespace, resolve
 from .runtime_refs import ReferenceExpressionError, parse_reference_expression
 from .io import read_json, read_yaml
@@ -22,13 +22,13 @@ from .audit import (
     _case_root,
     _case_scope_inputs,
     _audit_projection_surfaces,
-    _copy_doc,
     _fixtures_doc,
     _surface_scope_inputs,
     _projection_surface_file,
     _projection_surface_root,
     _scope_asset_file,
-    _scope_copy_file,
+    _scope_text_file,
+    _text_doc,
     _scope_fixtures_file,
     audit_expected_files,
     composition_file,
@@ -413,14 +413,14 @@ def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
         if _final_content_refs(contract):
             raise ContractError(str(exc)) from exc
         return
-    declared_copy = set(contract.get("copies", {}))
+    declared_text = set(contract.get("text_resources", {}))
     declared_assets = set(contract.get("assets", {}))
-    unknown_copy = copy_registry.refs - declared_copy
+    unknown_text = text_registry.refs - declared_text
     unknown_assets = asset_registry.refs - declared_assets
-    if unknown_copy:
-        raise ContractError("Unknown copy resolvers: " + ", ".join(sorted(unknown_copy)))
+    if unknown_text:
+        raise ContractError("Unknown text sources: " + ", ".join(sorted(unknown_text)))
     if unknown_assets:
-        raise ContractError("Unknown asset resolvers: " + ", ".join(sorted(unknown_assets)))
+        raise ContractError("Unknown asset sources: " + ", ".join(sorted(unknown_assets)))
 
     import importlib, sys
     sys.path.insert(0, str(root / SPEC_ROOT))
@@ -432,24 +432,24 @@ def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
             sys.path.remove(str(root / SPEC_ROOT))
         except ValueError:
             pass
-    for ref, item in contract.get("copies", {}).items():
-        resolver = item.get("resolver")
-        arg_cls = module.COPY_ARG_CLASSES[ref]
-        instantiate_args(root, "copy", ref, {name: _sample_value_for_type(type_name) for name, type_name in item.get("args", {}).items()})
-        if resolver:
-            if ref not in copy_registry.refs:
-                raise ContractError(f"Missing final copy resolver: {ref}")
+    for ref, item in contract.get("text_resources", {}).items():
+        source_ref = item.get("source_ref")
+        arg_cls = module.TEXT_ARG_CLASSES[ref]
+        instantiate_args(root, "text", ref, {name: _sample_value_for_type(type_name) for name, type_name in item.get("args", {}).items()})
+        if source_ref:
+            if ref not in text_registry.refs:
+                raise ContractError(f"Missing final text source: {ref}")
             try:
-                validate_resolver_function(copy_registry.function(ref), arg_cls)
+                validate_resolver_function(text_registry.function(ref), arg_cls)
             except ContentError as exc:
                 raise ContractError(str(exc)) from exc
     for ref, item in contract.get("assets", {}).items():
-        resolver = item.get("resolver")
+        source_ref = item.get("source_ref")
         arg_cls = module.ASSET_ARG_CLASSES[ref]
         instantiate_args(root, "asset", ref, {name: _sample_value_for_type(type_name) for name, type_name in item.get("args", {}).items()})
-        if resolver:
+        if source_ref:
             if ref not in asset_registry.refs:
-                raise ContractError(f"Missing final asset resolver: {ref}")
+                raise ContractError(f"Missing final asset source: {ref}")
             try:
                 validate_resolver_function(asset_registry.function(ref), arg_cls)
             except ContentError as exc:
@@ -461,21 +461,21 @@ def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
         args = {key: resolve(value, namespace) for key, value in case.get("args", {}).items()}
         ref = case["ref"]
         if ref.startswith("text."):
-            item = contract["copies"][ref]
-            if not item.get("resolver"):
+            item = contract["text_resources"][ref]
+            if not item.get("source_ref"):
                 result = item["placeholder"]
             else:
                 try:
-                    result = call_copy(root, ref, args, ContentContext(surface="content_case"))
+                    result = call_text(root, ref, args, ContentContext(surface="content_case"))
                 except ContentError as exc:
                     raise ContractError(str(exc)) from exc
             if not isinstance(result, str) or not result.strip():
-                raise ContractError(f"Content case {case_id} copy result must be non-empty text")
+                raise ContractError(f"Content case {case_id} text result must be non-empty")
             if item.get("max_chars") is not None and len(result) > item["max_chars"]:
-                raise ContractError(f"Content case {case_id} copy result exceeds max_chars")
+                raise ContractError(f"Content case {case_id} text result exceeds max_chars")
         else:
             item = contract["assets"][ref]
-            if item.get("resolver"):
+            if item.get("source_ref"):
                 try:
                     result = call_asset(root, ref, args, ContentContext(surface="content_case"))
                 except ContentError as exc:
@@ -490,9 +490,9 @@ def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
 
 def _final_content_refs(contract: dict[str, Any]) -> set[str]:
     refs: set[str] = set()
-    for section in ["copies", "assets"]:
+    for section in ["text_resources", "assets"]:
         for ref, item in contract.get(section, {}).items():
-            if item.get("resolver"):
+            if item.get("source_ref"):
                 refs.add(ref)
     return refs
 
@@ -684,9 +684,9 @@ def _validate_audit_scope_inputs(
     fact_ids: set[str],
     context: dict[str, Any],
 ) -> None:
-    copy_doc = read_yaml(root / _scope_copy_file(scope_root))
-    if copy_doc != _copy_doc(contract, copy_refs):
-        raise ContractError(f"audit copy.yaml does not match scoped copy placeholders: {scope_root}")
+    text_doc = read_yaml(root / _scope_text_file(scope_root))
+    if text_doc != _text_doc(contract, copy_refs):
+        raise ContractError(f"audit text.yaml does not match scoped text resources: {scope_root}")
     fixtures_doc = read_yaml(root / _scope_fixtures_file(scope_root))
     if fixtures_doc != _fixtures_doc(contract, fixture_ids, fact_ids, context):
         raise ContractError(f"audit fixtures.yaml does not match scoped fixtures: {scope_root}")
@@ -769,7 +769,7 @@ def validate_refs_py(root: Path, contract: dict[str, Any]) -> None:
         "Fixture": sorted(contract["fixtures"]),
         "Operation": sorted(contract["operations"]),
         "StateMachine": sorted(contract.get("state_machines", {})),
-        "Text": sorted(contract.get("copies", {})),
+        "Text": sorted(contract.get("text_resources", {})),
         "AuditCase": sorted(audit_cases(contract)),
         "Scenario": sorted(contract["scenarios"]),
     }
@@ -904,7 +904,7 @@ def _expected_textual_compose(state_machine: dict[str, Any]) -> list[tuple[str, 
         return [(widget["kind"], _widget_label(widget)) for widget in widgets]
     slots = state_machine["slots"]
     result: list[tuple[str, str]] = []
-    result.extend(("Static", key) for key in slots["copy"])
+    result.extend(("Static", key) for key in slots["text"])
     result.extend(("Static", key) for key in slots["assets"])
     result.extend(("Static", key) for key in slots.get("fields", []))
     result.extend(("Button", action) for action in slots["operation_refs"])

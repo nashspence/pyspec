@@ -40,7 +40,7 @@ def test_audit_outputs_cover_full_contract() -> None:
     assert "spec/generated/audit_evidence/entrypoints/ui/entry_point_web_project_board/flow.svg" in expected
     assert "spec/generated/audit_evidence/entrypoints/cli/entry_point_cli_project_board/flow.svg" in expected
     assert "spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg" in expected
-    assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/view_states/" in path and path.endswith("/copy.yaml") for path in expected)
+    assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/view_states/" in path and path.endswith("/text.yaml") for path in expected)
     assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/view_states/" in path and "/renders/" in path and path.endswith(".png") for path in expected)
     assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/cases/" in path and "/renders/" in path and path.endswith(".html") for path in expected)
     assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/cases/" in path and "/renders/" in path and path.endswith(".svg") for path in expected)
@@ -75,9 +75,9 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">transition event</FONT>' in state_machine
     assert "text.project.list.ready.heading" in state_machine
     assert "asset.project.list.empty.illustration" in state_machine
-    assert state_machine.index("<B>copy</B>") < state_machine.index("<B>assets:</B>")
+    assert state_machine.index("<B>text</B>") < state_machine.index("<B>assets:</B>")
     assert state_machine.index("<B>assets:</B>") < state_machine.index("<B>operation_refs:</B>")
-    assert state_machine.index("<B>copy:</B>&#160;&#160;text.project.list.ready.heading") < state_machine.index("<B>operation.project.list fields</B>")
+    assert state_machine.index("<B>text:</B>&#160;&#160;text.project.list.ready.heading") < state_machine.index("<B>operation.project.list fields</B>")
     assert state_machine.index("<B>operation.project.list fields</B>") < state_machine.index("<B>operation_refs</B>")
     assert "<B>emit:</B>&#160;&#160;message.project.selected" in state_machine
     payload_project = '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
@@ -532,11 +532,11 @@ def test_audit_pngs_are_real_pngs() -> None:
         assert path.read_bytes().startswith(PNG_HEADER), path
 
 
-def test_copy_placeholder_is_required_for_used_copy_ref() -> None:
+def test_text_resource_placeholder_is_required_for_used_text_ref() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
-    copy_id = next(iter(author["copies"]))
-    del author["copies"][copy_id]
-    with pytest.raises(ContractError, match="copy placeholders drift"):
+    text_id = next(iter(author["text_resources"]))
+    del author["text_resources"][text_id]
+    with pytest.raises(ContractError, match="text resources drift"):
         compile_source(author)
 
 

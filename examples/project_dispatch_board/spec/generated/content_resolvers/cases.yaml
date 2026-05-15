@@ -3,7 +3,7 @@ content_cases:
     args:
       customer: Atlas Foods
       title: Replace rooftop condenser fan
-    basis: Exercise final detail heading copy with representative fixture-backed content.
+    basis: Exercise final detail heading text with representative fixture-backed content.
     ref: text.project.detail.ready.heading
   content.project.detail.priority_badge.high_priority:
     args:

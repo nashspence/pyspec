@@ -1,6 +1,6 @@
 <svg width="1098pt" height="190pt"
  viewBox="0.00 0.00 1098.00 190.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 984bb5cdb984e1feba7d09299a2b3f2039d56e90da867a4972bfb577883625bd -->
+<!-- pyspec-contract-input-sha256: d52a4291c07c46e57e7fd5803fff4ba711f6c6e064cca56d4c623f92c409db9e -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 172)">
 <title>state_machine_state_machine_project_activity</title>
 <!-- initial_view_state -->
@@ -17,7 +17,7 @@
 <polygon fill="#ecfeff" stroke="transparent" points="104.5,-42 104.5,-73 261.5,-73 261.5,-42 104.5,-42"/>
 <text text-anchor="start" x="108.5" y="-59.6" font-family="Arial" font-weight="bold" font-size="13.00">empty</text>
 <text text-anchor="start" x="108.5" y="-48.6" font-family="Arial" font-size="8.00" fill="#64748b">initial view state</text>
-<text text-anchor="start" x="108.5" y="-31" font-family="Arial" font-weight="bold" font-size="10.00">copy</text>
+<text text-anchor="start" x="108.5" y="-31" font-family="Arial" font-weight="bold" font-size="10.00">text</text>
 <text text-anchor="start" x="108.5" y="-19" font-family="Arial" font-size="10.00">text.project.activity.empty.heading</text>
 <text text-anchor="start" x="108.5" y="-8" font-family="Arial" font-size="10.00">text.project.activity.empty.body</text>
 <polygon fill="none" stroke="#0891b2" points="103,0 103,-82 262,-82 262,0 103,0"/>
@@ -60,8 +60,8 @@
 <polygon fill="#f8fafc" stroke="transparent" points="627,-114 627,-145 819,-145 819,-114 627,-114"/>
 <text text-anchor="start" x="631" y="-131.6" font-family="Arial" font-weight="bold" font-size="13.00">ready</text>
 <text text-anchor="start" x="631" y="-120.6" font-family="Arial" font-size="8.00" fill="#64748b">view state</text>
-<text text-anchor="start" x="632" y="-102" font-family="Arial" font-weight="bold" font-size="10.00">copy:</text>
-<text text-anchor="start" x="658" y="-102" font-family="Arial" font-size="10.00">  text.project.activity.ready.heading</text>
+<text text-anchor="start" x="632" y="-102" font-family="Arial" font-weight="bold" font-size="10.00">text:</text>
+<text text-anchor="start" x="652" y="-102" font-family="Arial" font-size="10.00">  text.project.activity.ready.heading</text>
 <text text-anchor="start" x="631" y="-82" font-family="Arial" font-weight="bold" font-size="10.00">operation.project.read fields</text>
 <text text-anchor="start" x="631" y="-71" font-family="Arial" font-size="10.00">updated_at</text>
 <text text-anchor="start" x="680" y="-71" font-family="Arial" font-size="8.00" fill="#94a3b8">  Timestamp</text>

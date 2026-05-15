@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from pyspec_contract.compile import ContractError, compile_source
-from pyspec_contract.content import ContentContext, call_asset, call_copy
+from pyspec_contract.content import ContentContext, call_asset, call_text
 from pyspec_contract.io import read_yaml
 from pyspec_contract.paths import COMPILED_SPEC_PATH, SOURCE_SPEC_PATH
 from pyspec_contract.projection_validators import validate_content_contract
@@ -14,8 +14,8 @@ from tests.helpers import EXAMPLE_ROOT
 ROOT = EXAMPLE_ROOT
 
 
-def test_final_copy_resolver_is_contract_declared_and_executable() -> None:
-    result = call_copy(
+def test_final_text_source_is_contract_declared_and_executable() -> None:
+    result = call_text(
         ROOT,
         "text.project.detail.ready.heading",
         {"title": "Replace rooftop condenser fan", "customer": "Atlas Foods"},

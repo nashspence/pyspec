@@ -17,7 +17,7 @@ authoring_layers:
       requires: [core]
       projections_when_declared: [spec/generated/product_interfaces/workflow.cwl.yaml, spec/generated/product_interfaces/events.asyncapi.yaml, spec/generated/audit_evidence/workflows, spec/generated/audit_evidence/entrypoints]
     ui:
-      opens: [state_machine, copy, asset, content_case, audit_profile, audit_case]
+      opens: [state_machine, text_resource, asset, content_case, audit_profile, audit_case]
       requires: [core]
       projections_when_declared: [spec/generated/product_interfaces/web.state_machines.json, spec/generated/audit_evidence]
     textual:
@@ -138,12 +138,12 @@ composition_contracts:
   scenario: 'target: scenario asserts a state-machine view state or composed state-machine instance vector.'
 
 audit_contracts:
-  copy: 'target: copy declares placeholder text for every rendered copy ref.'
-  asset: 'target: asset declares placeholder visual intent; the compiler emits generic SVG placeholder assets.'
+  text_resource: 'target: text_resource declares placeholder text for every rendered text ref.'
+  asset: 'target: asset declares media kind, asset role, placeholder visual intent, and optional source_ref; the compiler emits generic SVG placeholder assets.'
   audit_profile: 'target: audit_profile declares fixed HTML and/or Textual breakpoints.'
   audit_case: 'state-local audit cases bind a state-machine view state or composed state-machine instance vector to fixtures, render surfaces, and an audit profile.'
-  content_case: 'target: content_case exercises every resolver-backed copy/asset with deterministic args.'
-  final_content: 'target: copy or asset may declare args and resolver; generated content stubs constrain spec/spec.py.'
+  content_case: 'target: content_case exercises every source_ref-backed text resource or asset with deterministic args.'
+  final_content: 'target: text_resource or asset may declare args and source_ref; generated content stubs constrain spec/spec.py.'
   formats:
     entrypoint: svg
     state_machine: svg

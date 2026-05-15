@@ -3,21 +3,23 @@ assets:
     args:
       priority:
         primitive: Text
+    asset_role: badge
     basis: Selected project detail shows a dynamic priority badge resolved from project fixture data.
-    kind: icon
+    media_kind: icon
     placeholder:
       aspect_ratio: '1:1'
       label: Project priority badge
-      shape: square
-    resolver: asset.project.detail.ready.priority_badge
+      visual_metaphor: square
+    source_ref: asset.project.detail.ready.priority_badge
   asset.project.list.empty.illustration:
-    alt_copy: text.project.list.empty.heading
+    alt_text: text.project.list.empty.heading
+    asset_role: empty_state
     basis: Generic placeholder illustration used by the empty queue state machine state.
-    kind: illustration
+    media_kind: illustration
     placeholder:
       aspect_ratio: '4:3'
       label: Empty dispatch queue illustration
-      shape: square
+      visual_metaphor: square
 audit_profiles:
   default:
     basis: Two viewport breakpoints are enough to demonstrate visual audit coverage in the canonical example.
@@ -42,95 +44,13 @@ content_cases:
     args:
       customer: Atlas Foods
       title: Replace rooftop condenser fan
-    basis: Exercise final detail heading copy with representative fixture-backed content.
+    basis: Exercise final detail heading text with representative fixture-backed content.
     ref: text.project.detail.ready.heading
   content.project.detail.priority_badge.high_priority:
     args:
       priority: High
     basis: Exercise final dynamic priority badge asset.
     ref: asset.project.detail.ready.priority_badge
-copies:
-  text.project.activity.empty.body:
-    basis: Empty activity body.
-    max_chars: 120
-    placeholder: Activity appears after a project is selected.
-    tone: instructional
-  text.project.activity.empty.heading:
-    basis: Empty activity heading.
-    max_chars: 80
-    placeholder: No project selected
-    tone: neutral
-  text.project.activity.ready.heading:
-    basis: Ready activity heading.
-    max_chars: 80
-    placeholder: Latest activity
-    tone: neutral
-  text.project.detail.error.body:
-    basis: Error body for the detail state machine.
-    max_chars: 120
-    placeholder: Refresh the selection or return to the queue.
-    tone: error
-  text.project.detail.error.heading:
-    basis: Error heading for the detail state machine.
-    max_chars: 80
-    placeholder: Project detail is unavailable
-    tone: error
-  text.project.detail.loading.message:
-    basis: Loading message for the detail state machine.
-    max_chars: 80
-    placeholder: Loading project detail…
-    tone: neutral
-  text.project.detail.none.body:
-    basis: No-selection body for the detail state machine.
-    max_chars: 160
-    placeholder: Choose a project from the queue to review customer, assignment, and approval details.
-    tone: instructional
-  text.project.detail.none.heading:
-    basis: No-selection heading for the detail state machine.
-    max_chars: 80
-    placeholder: Select a project
-    tone: instructional
-  text.project.detail.ready.heading:
-    args:
-      customer:
-        primitive: Text
-      title:
-        primitive: Text
-    basis: Ready heading for the detail state machine.
-    max_chars: 80
-    placeholder: Project detail
-    resolver: text.project.detail.ready.heading
-    tone: neutral
-  text.project.list.empty.body:
-    basis: Empty body for the project list state machine.
-    max_chars: 160
-    placeholder: Create the first project to start coordinating work for this workspace.
-    tone: instructional
-  text.project.list.empty.heading:
-    basis: Empty heading for the project list state machine.
-    max_chars: 80
-    placeholder: No dispatch projects yet
-    tone: neutral
-  text.project.list.error.body:
-    basis: Error body for the project list state machine.
-    max_chars: 120
-    placeholder: Check the workspace connection and try again.
-    tone: error
-  text.project.list.error.heading:
-    basis: Error heading for the project list state machine.
-    max_chars: 80
-    placeholder: Projects could not be loaded
-    tone: error
-  text.project.list.loading.message:
-    basis: Loading message for the project list state machine.
-    max_chars: 80
-    placeholder: Loading dispatch projects…
-    tone: neutral
-  text.project.list.ready.heading:
-    basis: Ready heading for the project list state machine.
-    max_chars: 80
-    placeholder: Dispatch queue
-    tone: neutral
 entry_points:
   entry_point.api.project.create:
     adapter:
@@ -829,13 +749,6 @@ scenarios:
       requires:
         assets:
         - asset.project.list.empty.illustration
-        copy:
-        - text.project.activity.empty.heading
-        - text.project.activity.empty.body
-        - text.project.detail.none.heading
-        - text.project.detail.none.body
-        - text.project.list.empty.heading
-        - text.project.list.empty.body
         operation_refs:
         - operation.project.create
         queries:
@@ -846,6 +759,13 @@ scenarios:
         - state_machine.project.activity.empty
         - state_machine.project.detail.none
         - state_machine.project.list.empty
+        text:
+        - text.project.activity.empty.heading
+        - text.project.activity.empty.body
+        - text.project.detail.none.heading
+        - text.project.detail.none.body
+        - text.project.list.empty.heading
+        - text.project.list.empty.body
       state_machine:
         composition:
           child_state_machines:
@@ -1027,12 +947,6 @@ scenarios:
       - operation.project.submit
       requires:
         assets: []
-        copy:
-        - text.project.activity.empty.heading
-        - text.project.activity.empty.body
-        - text.project.detail.none.heading
-        - text.project.detail.none.body
-        - text.project.list.ready.heading
         operation_refs:
         - operation.project.create
         - operation.project.submit
@@ -1044,6 +958,12 @@ scenarios:
         - state_machine.project.activity.empty
         - state_machine.project.detail.none
         - state_machine.project.list.ready
+        text:
+        - text.project.activity.empty.heading
+        - text.project.activity.empty.body
+        - text.project.detail.none.heading
+        - text.project.detail.none.body
+        - text.project.list.ready.heading
       state_machine:
         composition:
           child_state_machines:
@@ -1269,17 +1189,15 @@ state_machines:
     view_states:
       empty:
         assets: []
-        copy:
-        - text.project.activity.empty.heading
-        - text.project.activity.empty.body
         data_dependencies: []
         fields: []
         operation_refs: []
         surface: state_machine.project.activity.empty
+        text:
+        - text.project.activity.empty.heading
+        - text.project.activity.empty.body
       ready:
         assets: []
-        copy:
-        - text.project.activity.ready.heading
         data_dependencies:
         - operation: operation.project.read
           query: query.project.activity.read
@@ -1289,6 +1207,8 @@ state_machines:
         - assignee
         operation_refs: []
         surface: state_machine.project.activity.ready
+        text:
+        - text.project.activity.ready.heading
   state_machine.project.board:
     archetype: dashboard
     basis: The dispatch board composes list, detail, and activity state machines through shared selected-project context.
@@ -1373,7 +1293,6 @@ state_machines:
             when:
               context_present: selected_project_id
           state_machine: state_machine.project.activity
-        copy: []
         data_dependencies: []
         fields: []
         message_sync_rules:
@@ -1477,6 +1396,7 @@ state_machines:
                 gap: 1rem
                 nav_width: 20rem
         surface: state_machine.project.board.ready
+        text: []
   state_machine.project.detail:
     basis: The detail state machine is independent from the list and reacts to selected project context.
     context:
@@ -1518,37 +1438,35 @@ state_machines:
     view_states:
       error:
         assets: []
-        copy:
-        - text.project.detail.error.heading
-        - text.project.detail.error.body
         data_dependencies: []
         fields: []
         operation_refs: []
         surface: state_machine.project.detail.error
+        text:
+        - text.project.detail.error.heading
+        - text.project.detail.error.body
       loading:
         assets: []
-        copy:
-        - text.project.detail.loading.message
         data_dependencies:
         - operation: operation.project.read
           query: query.project.detail.read
         fields: []
         operation_refs: []
         surface: state_machine.project.detail.loading
+        text:
+        - text.project.detail.loading.message
       none:
         assets: []
-        copy:
-        - text.project.detail.none.heading
-        - text.project.detail.none.body
         data_dependencies: []
         fields: []
         operation_refs: []
         surface: state_machine.project.detail.none
+        text:
+        - text.project.detail.none.heading
+        - text.project.detail.none.body
       ready:
         assets:
         - asset.project.detail.ready.priority_badge
-        copy:
-        - text.project.detail.ready.heading
         data_dependencies: []
         fields:
         - title
@@ -1560,6 +1478,8 @@ state_machines:
         - operation.project.approve
         - operation.project.archive
         surface: state_machine.project.detail.ready
+        text:
+        - text.project.detail.ready.heading
   state_machine.project.list:
     basis: The list state machine owns collection loading, empty, ready, error, and selection behavior.
     context:
@@ -1614,35 +1534,33 @@ state_machines:
       empty:
         assets:
         - asset.project.list.empty.illustration
-        copy:
-        - text.project.list.empty.heading
-        - text.project.list.empty.body
         data_dependencies: []
         fields: []
         operation_refs:
         - operation.project.create
         surface: state_machine.project.list.empty
+        text:
+        - text.project.list.empty.heading
+        - text.project.list.empty.body
       error:
         assets: []
-        copy:
-        - text.project.list.error.heading
-        - text.project.list.error.body
         data_dependencies: []
         fields: []
         operation_refs: []
         surface: state_machine.project.list.error
+        text:
+        - text.project.list.error.heading
+        - text.project.list.error.body
       loading:
         assets: []
-        copy:
-        - text.project.list.loading.message
         data_dependencies: []
         fields: []
         operation_refs: []
         surface: state_machine.project.list.loading
+        text:
+        - text.project.list.loading.message
       ready:
         assets: []
-        copy:
-        - text.project.list.ready.heading
         data_dependencies: []
         fields:
         - title
@@ -1653,6 +1571,90 @@ state_machines:
         - operation.project.create
         - operation.project.submit
         surface: state_machine.project.list.ready
+        text:
+        - text.project.list.ready.heading
+text_resources:
+  text.project.activity.empty.body:
+    basis: Empty activity body.
+    max_chars: 120
+    placeholder: Activity appears after a project is selected.
+    tone: instructional
+  text.project.activity.empty.heading:
+    basis: Empty activity heading.
+    max_chars: 80
+    placeholder: No project selected
+    tone: neutral
+  text.project.activity.ready.heading:
+    basis: Ready activity heading.
+    max_chars: 80
+    placeholder: Latest activity
+    tone: neutral
+  text.project.detail.error.body:
+    basis: Error body for the detail state machine.
+    max_chars: 120
+    placeholder: Refresh the selection or return to the queue.
+    tone: error
+  text.project.detail.error.heading:
+    basis: Error heading for the detail state machine.
+    max_chars: 80
+    placeholder: Project detail is unavailable
+    tone: error
+  text.project.detail.loading.message:
+    basis: Loading message for the detail state machine.
+    max_chars: 80
+    placeholder: Loading project detail…
+    tone: neutral
+  text.project.detail.none.body:
+    basis: No-selection body for the detail state machine.
+    max_chars: 160
+    placeholder: Choose a project from the queue to review customer, assignment, and approval details.
+    tone: instructional
+  text.project.detail.none.heading:
+    basis: No-selection heading for the detail state machine.
+    max_chars: 80
+    placeholder: Select a project
+    tone: instructional
+  text.project.detail.ready.heading:
+    args:
+      customer:
+        primitive: Text
+      title:
+        primitive: Text
+    basis: Ready heading for the detail state machine.
+    max_chars: 80
+    placeholder: Project detail
+    source_ref: text.project.detail.ready.heading
+    tone: neutral
+  text.project.list.empty.body:
+    basis: Empty body for the project list state machine.
+    max_chars: 160
+    placeholder: Create the first project to start coordinating work for this workspace.
+    tone: instructional
+  text.project.list.empty.heading:
+    basis: Empty heading for the project list state machine.
+    max_chars: 80
+    placeholder: No dispatch projects yet
+    tone: neutral
+  text.project.list.error.body:
+    basis: Error body for the project list state machine.
+    max_chars: 120
+    placeholder: Check the workspace connection and try again.
+    tone: error
+  text.project.list.error.heading:
+    basis: Error heading for the project list state machine.
+    max_chars: 80
+    placeholder: Projects could not be loaded
+    tone: error
+  text.project.list.loading.message:
+    basis: Loading message for the project list state machine.
+    max_chars: 80
+    placeholder: Loading dispatch projects…
+    tone: neutral
+  text.project.list.ready.heading:
+    basis: Ready heading for the project list state machine.
+    max_chars: 80
+    placeholder: Dispatch queue
+    tone: neutral
 workflows:
   workflow.project.approval_notice:
     basis: Approval event sends a downstream notice.

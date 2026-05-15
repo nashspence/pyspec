@@ -25,7 +25,7 @@ TARGET_LAYERS: dict[str, set[str]] = {
     "scenario": {"core"},
     "workflow": {"workflow"},
     "state_machine": {"ui"},
-    "copy": {"ui"},
+    "text_resource": {"ui"},
     "asset": {"ui"},
     "content_case": {"ui"},
     "audit_profile": {"ui"},
@@ -43,7 +43,7 @@ ENTRY_ADAPTER_LAYER = {
 }
 
 AUTHOR_SECTIONS: dict[str, str] = {
-    "copies": "copy",
+    "text_resources": "text_resource",
     "assets": "asset",
     "content_cases": "content_case",
     "audit_profiles": "audit_profile",

@@ -1,4 +1,5 @@
-copy:
+project: project_dispatch_board
+text_resources:
   text.project.detail.error.body:
     basis: Error body for the detail state machine.
     max_chars: 120
@@ -9,4 +10,3 @@ copy:
     max_chars: 80
     placeholder: Project detail is unavailable
     tone: error
-project: project_dispatch_board

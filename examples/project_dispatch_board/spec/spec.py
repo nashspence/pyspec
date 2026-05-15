@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from pyspec_contract.content import AssetResult, ContentContext, asset, copy
+from pyspec_contract.content import AssetResult, ContentContext, asset, text
 from generated.content_resolvers.signatures import AssetProjectDetailReadyPriorityBadgeArgs, TextProjectDetailReadyHeadingArgs
 from generated.test_adapters.python_refs import Asset, Text
 
 
-@copy.implements(Text.TEXT_PROJECT_DETAIL_READY_HEADING)
+@text.implements(Text.TEXT_PROJECT_DETAIL_READY_HEADING)
 def project_detail_ready_heading(args: TextProjectDetailReadyHeadingArgs, ctx: ContentContext) -> str:
     return f"{args.title} · {args.customer}"
 

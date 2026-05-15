@@ -90,12 +90,12 @@ def validate_against_schema(data: dict[str, Any], schema_name: str) -> None:
         raise ContractError("Schema validation failed:\n" + str(exc)) from exc
 
 
-TARGET_ORDER = ("copy", "asset", "content_case", "audit_profile", "fixture", "fact", "model", "operation", "event", "state_machine", "entry_point", "workflow", "scenario")
+TARGET_ORDER = ("text_resource", "asset", "content_case", "audit_profile", "fixture", "fact", "model", "operation", "event", "state_machine", "entry_point", "workflow", "scenario")
 
 
 
 ENTITY_SECTIONS: dict[str, str] = {
-    "copy": "copies",
+    "text_resource": "text_resources",
     "asset": "assets",
     "content_case": "content_cases",
     "audit_profile": "audit_profiles",
@@ -117,7 +117,7 @@ REF_KINDS = ["asset", "cli_command", "endpoint", "policy", "query", "route", "sc
 def empty_compiled_contract(project: str) -> dict[str, Any]:
     return {
         "project": project,
-        "copies": {},
+        "text_resources": {},
         "assets": {},
         "content_cases": {},
         "audit_profiles": {},
@@ -134,7 +134,7 @@ def empty_compiled_contract(project: str) -> dict[str, Any]:
     }
 
 
-AUTHOR_SECTION_ORDER = ("fixtures", "facts", "models", "operations", "events", "state_machines", "entry_points", "workflows", "scenarios", "copies", "assets", "content_cases", "audit_profiles")
+AUTHOR_SECTION_ORDER = ("fixtures", "facts", "models", "operations", "events", "state_machines", "entry_points", "workflows", "scenarios", "text_resources", "assets", "content_cases", "audit_profiles")
 
 
 def _prune_empty_author_sections(author: dict[str, Any]) -> dict[str, Any]:
@@ -263,16 +263,16 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
     if spec is None:  # pragma: no cover - delete never compiles an entity.
         raise ContractError(f"Cannot compile missing {entity} spec")
 
-    if entity == "copy":
+    if entity == "text_resource":
         item = {"placeholder": spec["placeholder"], "basis": spec["basis"]}
-        for field in ["max_chars", "tone", "args", "resolver"]:
+        for field in ["max_chars", "tone", "args", "source_ref"]:
             if field in spec:
                 item[field] = spec[field]
         return item
 
     if entity == "asset":
-        item = {"kind": spec["kind"], "placeholder": spec["placeholder"], "basis": spec["basis"]}
-        for field in ["alt_copy", "args", "resolver"]:
+        item = {"media_kind": spec["media_kind"], "placeholder": spec["placeholder"], "basis": spec["basis"]}
+        for field in ["asset_role", "alt_text", "args", "source_ref"]:
             if field in spec:
                 item[field] = spec[field]
         return item
@@ -418,7 +418,7 @@ def _compile_view_states(owner_id: str, states: dict[str, Any]) -> dict[str, Any
         item = {
             "surface": _state_surface_ref(owner_id, state_name),
             "data_dependencies": _compile_data_dependencies(owner_id, state.get("data_dependencies", [])),
-            "copy": [rules.copy_ref(subject, state_name, slot) for slot in state.get("copy_slots", [])],
+            "text": [rules.text_ref(subject, state_name, slot) for slot in state.get("text_slots", [])],
             "assets": [rules.asset_ref(subject, state_name, slot) for slot in state.get("asset_slots", [])],
             "fields": state.get("field_slots", []),
             "operation_refs": state.get("operation_refs", []),
@@ -522,7 +522,7 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
     refs: dict[str, set[str]] = {kind: set() for kind in REF_KINDS}
     for operation_id, operation in contract["operations"].items():
         refs["policy"].add(operation["policy"])
-    refs["text"].update(contract.get("copies", {}))
+    refs["text"].update(contract.get("text_resources", {}))
     refs["asset"].update(contract.get("assets", {}))
     for state_machine_id in contract["state_machines"]:
         refs["state_machine"].add(state_machine_id)
@@ -533,7 +533,7 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
             for datum in state.get("data_dependencies", []):
                 refs["query"].add(datum["query"])
             refs["surface"].add(state["surface"])
-            refs["text"].update(state["copy"])
+            refs["text"].update(state["text"])
             refs["asset"].update(state["assets"])
     for entry in contract["entry_points"].values():
         for ref_kind, field in [
@@ -561,7 +561,7 @@ def _state_machine_has_textual_screen(state_machine: dict[str, Any]) -> bool:
 
 
 def _semantic_validate(contract: dict[str, Any], used_facts: set[str]) -> None:
-    _validate_copy_assets(contract)
+    _validate_text_assets(contract)
     _validate_content_cases(contract)
     _validate_audit_profiles(contract)
     _validate_models(contract)
@@ -578,27 +578,27 @@ def _semantic_validate(contract: dict[str, Any], used_facts: set[str]) -> None:
 
 
 
-def _validate_copy_assets(contract: dict[str, Any]) -> None:
-    used_copy: set[str] = set()
+def _validate_text_assets(contract: dict[str, Any]) -> None:
+    used_text: set[str] = set()
     used_assets: set[str] = set()
     for owner in contract.get("state_machines", {}).values():
         for state in owner.get("view_states", {}).values():
-            used_copy.update(state.get("copy", []))
+            used_text.update(state.get("text", []))
             used_assets.update(state.get("assets", []))
-    declared_copy = set(contract.get("copies", {}))
+    declared_text = set(contract.get("text_resources", {}))
     declared_assets = set(contract.get("assets", {}))
-    if declared_copy != used_copy:
-        raise ContractError(_diff_message("copy placeholders", used_copy, declared_copy))
+    if declared_text != used_text:
+        raise ContractError(_diff_message("text resources", used_text, declared_text))
     if declared_assets != used_assets:
         raise ContractError(_diff_message("asset placeholders", used_assets, declared_assets))
-    for copy_id, item in contract.get("copies", {}).items():
+    for text_id, item in contract.get("text_resources", {}).items():
         max_chars = item.get("max_chars")
         if max_chars is not None and len(item["placeholder"]) > max_chars:
-            raise ContractError(f"Copy {copy_id} placeholder exceeds max_chars")
+            raise ContractError(f"Text resource {text_id} placeholder exceeds max_chars")
     for asset_id, item in contract.get("assets", {}).items():
-        alt_copy = item.get("alt_copy")
-        if alt_copy and alt_copy not in declared_copy:
-            raise ContractError(f"Asset {asset_id} alt_copy references unknown copy {alt_copy}")
+        alt_text = item.get("alt_text")
+        if alt_text and alt_text not in declared_text:
+            raise ContractError(f"Asset {asset_id} alt_text references unknown text resource {alt_text}")
 
 
 
@@ -606,24 +606,25 @@ def _validate_copy_assets(contract: dict[str, Any]) -> None:
 def _validate_content_cases(contract: dict[str, Any]) -> None:
     final_refs = {
         ref
-        for section in ["copies", "assets"]
+        for section in ["text_resources", "assets"]
         for ref, item in contract.get(section, {}).items()
-        if item.get("resolver")
+        if item.get("source_ref")
     }
     declared_case_refs: set[str] = set()
-    for ref, item in list(contract.get("copies", {}).items()) + list(contract.get("assets", {}).items()):
-        resolver = item.get("resolver")
-        if resolver:
-            if resolver != ref:
-                raise ContractError(f"Content resolver for {ref} must equal the content id")
+    for ref, item in list(contract.get("text_resources", {}).items()) + list(contract.get("assets", {}).items()):
+        source_ref = item.get("source_ref")
+        if source_ref:
+            if source_ref != ref:
+                raise ContractError(f"Content source_ref for {ref} must equal the content id")
             if not item.get("args"):
                 # Arg-less resolvers are allowed, but declaring args is preferred for dynamic content.
                 pass
     for case_id, case in contract.get("content_cases", {}).items():
         ref = case["ref"]
-        section = "copies" if ref.startswith("text.") else "assets"
+        section = "text_resources" if ref.startswith("text.") else "assets"
         if ref not in contract.get(section, {}):
-            raise ContractError(f"Content case {case_id} references unknown {section[:-1]} {ref}")
+            label = "text resource" if section == "text_resources" else "asset"
+            raise ContractError(f"Content case {case_id} references unknown {label} {ref}")
         for fixture_id in case.get("fixtures", []):
             if fixture_id not in contract["fixtures"]:
                 raise ContractError(f"Content case {case_id} references unknown fixture {fixture_id}")
@@ -1409,7 +1410,7 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
     renderers = state.get("renderers") or {}
     if not renderers:
         return
-    copy_slots = {ref.rsplit(".", 1)[-1] for ref in state["copy"]}
+    text_slots = {ref.rsplit(".", 1)[-1] for ref in state["text"]}
     asset_slots = {ref.rsplit(".", 1)[-1] for ref in state["assets"]}
     field_slots = set(state.get("fields", []))
     actions = set(state["operation_refs"])
@@ -1419,14 +1420,14 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
     web_contract = renderer_web_presentation(state)
     for slot in web_contract.get("slots", []):
         bind_kind, bind_value = _one(slot["binding"], f"{owner_label}.{state_name} web slot binding")
-        _validate_slot_binding(owner_label, state_name, "Web slot", bind_kind, bind_value, copy_slots, asset_slots, field_slots, actions)
+        _validate_slot_binding(owner_label, state_name, "Web slot", bind_kind, bind_value, text_slots, asset_slots, field_slots, actions)
 
     for rule in renderer_web_style(state).get("rules", []):
         _validate_renderer_style_selector(
             owner_label,
             state_name,
             rule["selector"],
-            copy_slots,
+            text_slots,
             asset_slots,
             field_slots,
             actions,
@@ -1443,7 +1444,7 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
     widget_targets = {"text": set(), "asset": set(), "field": set(), "action": set()}
     for widget in widgets:
         bind_kind, bind_value = _one(widget["binding"], f"{owner_label}.{state_name} textual widget binding")
-        _validate_slot_binding(owner_label, state_name, "Textual widget", bind_kind, bind_value, copy_slots, asset_slots, field_slots, actions)
+        _validate_slot_binding(owner_label, state_name, "Textual widget", bind_kind, bind_value, text_slots, asset_slots, field_slots, actions)
         if bind_kind in widget_targets:
             widget_targets[bind_kind].add(bind_value)
     for rule in renderer_textual_style(state).get("rules", []):
@@ -1452,7 +1453,7 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
             owner_label,
             state_name,
             selector,
-            copy_slots,
+            text_slots,
             asset_slots,
             field_slots,
             actions,
@@ -1476,12 +1477,12 @@ def _validate_slot_binding(
     label: str,
     bind_kind: str,
     bind_value: str,
-    copy_slots: set[str],
+    text_slots: set[str],
     asset_slots: set[str],
     field_slots: set[str],
     actions: set[str],
 ) -> None:
-    if bind_kind == "text" and bind_value not in copy_slots:
+    if bind_kind == "text" and bind_value not in text_slots:
         raise ContractError(f"{owner_label}.{state_name} {label} text binding is not declared: {bind_value}")
     if bind_kind == "asset" and bind_value not in asset_slots:
         raise ContractError(f"{owner_label}.{state_name} {label} asset binding is not declared: {bind_value}")
@@ -1495,7 +1496,7 @@ def _validate_renderer_style_selector(
     owner_label: str,
     state_name: str,
     selector: str,
-    copy_slots: set[str],
+    text_slots: set[str],
     asset_slots: set[str],
     field_slots: set[str],
     actions: set[str],
@@ -1506,14 +1507,14 @@ def _validate_renderer_style_selector(
     if selector.startswith("region.") or selector.startswith("mount."):
         _validate_composition_selector(f"{owner_label}.{state_name}", selector, regions, mounts, label)
         return
-    _validate_style_selector(owner_label, state_name, selector, copy_slots, asset_slots, field_slots, actions, label)
+    _validate_style_selector(owner_label, state_name, selector, text_slots, asset_slots, field_slots, actions, label)
 
 
 def _validate_style_selector(
     owner_label: str,
     state_name: str,
     selector: str,
-    copy_slots: set[str],
+    text_slots: set[str],
     asset_slots: set[str],
     field_slots: set[str],
     actions: set[str],
@@ -1523,7 +1524,7 @@ def _validate_style_selector(
         return
     if selector.startswith("slot."):
         name = selector[len("slot."):]
-        if name not in copy_slots and name not in asset_slots and name not in field_slots:
+        if name not in text_slots and name not in asset_slots and name not in field_slots:
             raise ContractError(f"{owner_label}.{state_name} {label} selector references undeclared slot: {selector}")
         return
     if selector.startswith("action."):
@@ -2624,11 +2625,11 @@ def _expand_scenarios(contract: dict[str, Any]) -> None:
                 parent_state_machine = state_machine
                 parent_state = parent_state_machine["view_states"][state_name]
                 mounts = {mount["id"]: mount for mount in parent_state.get("child_state_machines", [])}
-                required = {"queries": [datum["query"] for datum in parent_state_machine.get("data_dependencies", [])], "surfaces": [], "copy": [], "assets": [], "operation_refs": []}
+                required = {"queries": [datum["query"] for datum in parent_state_machine.get("data_dependencies", [])], "surfaces": [], "text": [], "assets": [], "operation_refs": []}
                 state_machine_assertion["surface"] = parent_state["surface"]
                 required["surfaces"].append(parent_state["surface"])
                 required["queries"].extend(datum["query"] for datum in parent_state.get("data_dependencies", []))
-                required["copy"].extend(parent_state["copy"])
+                required["text"].extend(parent_state["text"])
                 required["assets"].extend(parent_state["assets"])
                 required["operation_refs"].extend(parent_state["operation_refs"])
                 for instance_id, expected in state_machine_assertion["instances"].items():
@@ -2640,7 +2641,7 @@ def _expand_scenarios(contract: dict[str, Any]) -> None:
                     required["queries"].extend(datum["query"] for datum in mounted_state_machine.get("data_dependencies", []))
                     required["queries"].extend(datum["query"] for datum in mounted_state.get("data_dependencies", []))
                     required["surfaces"].append(mounted_state["surface"])
-                    required["copy"].extend(mounted_state["copy"])
+                    required["text"].extend(mounted_state["text"])
                     required["assets"].extend(mounted_state["assets"])
                     required["operation_refs"].extend(mounted_state["operation_refs"])
                 state_machine_assertion["composition"] = {
@@ -2656,7 +2657,7 @@ def _expand_scenarios(contract: dict[str, Any]) -> None:
                 assertions["requires"] = {
                     "queries": [datum["query"] for datum in state_machine.get("data_dependencies", [])] + [datum["query"] for datum in state.get("data_dependencies", [])],
                     "surfaces": [state["surface"]],
-                    "copy": list(state["copy"]),
+                    "text": list(state["text"]),
                     "assets": list(state["assets"]),
                     "operation_refs": list(state["operation_refs"]),
                 }

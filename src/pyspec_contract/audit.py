@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from .compile import ContractError, audit_cases
-from .content import AssetResult, ContentContext, ContentError, call_asset, call_copy
+from .content import AssetResult, ContentContext, ContentError, call_asset, call_text
 from .io import write_yaml
 from .layout import renderer_textual_presentation, renderer_web_layout, renderer_web_presentation, renderer_web_regions
 from .paths import GENERATED_SPEC_DIR, generated_relative as g
@@ -162,8 +162,8 @@ def _case_file(contract: dict[str, Any], case_id: str, case: dict[str, Any], bre
     return audit_case_render_file(case["state_machine"], case_id, case["profile"], breakpoint_id, extension, case["view_state"])
 
 
-def _scope_copy_file(scope_root: str) -> str:
-    return _under(scope_root, "copy.yaml")
+def _scope_text_file(scope_root: str) -> str:
+    return _under(scope_root, "text.yaml")
 
 
 def _scope_fixtures_file(scope_root: str) -> str:
@@ -174,8 +174,8 @@ def _scope_asset_file(scope_root: str, asset_id: str) -> str:
     return _under(scope_root, "assets", f"{safe_id(asset_id)}.svg")
 
 
-def _copy_doc(contract: dict[str, Any], copy_refs: Iterable[str]) -> dict[str, Any]:
-    return {"project": contract["project"], "copy": {ref: contract["copies"][ref] for ref in sorted(copy_refs)}}
+def _text_doc(contract: dict[str, Any], text_refs: Iterable[str]) -> dict[str, Any]:
+    return {"project": contract["project"], "text_resources": {ref: contract["text_resources"][ref] for ref in sorted(text_refs)}}
 
 
 def _fixtures_doc(
@@ -195,9 +195,9 @@ def _fixtures_doc(
 def _state_needs_data(contract: dict[str, Any], state_machine: dict[str, Any]) -> bool:
     if state_machine.get("data_dependencies") or state_machine["slots"].get("fields"):
         return True
-    copy_refs = state_machine["slots"].get("copy", [])
+    text_refs = state_machine["slots"].get("text", [])
     asset_refs = state_machine["slots"].get("assets", [])
-    return any(contract["copies"][ref].get("args") for ref in copy_refs) or any(contract["assets"][ref].get("args") for ref in asset_refs)
+    return any(contract["text_resources"][ref].get("args") for ref in text_refs) or any(contract["assets"][ref].get("args") for ref in asset_refs)
 
 
 def _fixture_ids_for_model(contract: dict[str, Any], model_id: str) -> set[str]:
@@ -238,7 +238,7 @@ def _fixture_ids_for_facts(contract: dict[str, Any], fact_ids: Iterable[str], mo
 
 
 def _surface_scope_inputs(contract: dict[str, Any], state_machine: dict[str, Any]) -> tuple[set[str], set[str], set[str], set[str], dict[str, Any]]:
-    copy_refs = set(state_machine["slots"].get("copy", []))
+    text_refs = set(state_machine["slots"].get("text", []))
     asset_refs = set(state_machine["slots"].get("assets", []))
     fixture_ids: set[str] = set()
     fact_ids: set[str] = set()
@@ -247,20 +247,20 @@ def _surface_scope_inputs(contract: dict[str, Any], state_machine: dict[str, Any
         fixture_ids = _fixture_ids_for_model(contract, model_id)
         fact_ids = _fact_ids_for_model(contract, model_id)
         fixture_ids.update(_fixture_ids_for_facts(contract, fact_ids, model_id))
-    return copy_refs, asset_refs, fixture_ids, fact_ids, {}
+    return text_refs, asset_refs, fixture_ids, fact_ids, {}
 
 
 def _case_scope_inputs(contract: dict[str, Any], case: dict[str, Any]) -> tuple[set[str], set[str], set[str], set[str], dict[str, Any]]:
     state_machines = case_render_state_machines(contract, case)
-    copy_refs = {copy_ref for state_machine in state_machines for copy_ref in state_machine["slots"].get("copy", [])}
+    text_refs = {text_ref for state_machine in state_machines for text_ref in state_machine["slots"].get("text", [])}
     asset_refs = {asset_ref for state_machine in state_machines for asset_ref in state_machine["slots"].get("assets", [])}
     fixture_ids = set(case.get("fixtures", []))
     fact_ids = {fact_use["use"] for fact_use in case.get("facts", [])}
-    return copy_refs, asset_refs, fixture_ids, fact_ids, case.get("context") or {}
+    return text_refs, asset_refs, fixture_ids, fact_ids, case.get("context") or {}
 
 
 def _audit_scope_expected_files(scope_root: str, asset_refs: Iterable[str]) -> set[str]:
-    files = {_scope_copy_file(scope_root), _scope_fixtures_file(scope_root)}
+    files = {_scope_text_file(scope_root), _scope_fixtures_file(scope_root)}
     files.update(_scope_asset_file(scope_root, asset_id) for asset_id in asset_refs)
     return files
 
@@ -269,15 +269,15 @@ def _write_audit_scope_inputs(
     root: Path,
     contract: dict[str, Any],
     scope_root: str,
-    copy_refs: Iterable[str],
+    text_refs: Iterable[str],
     asset_refs: Iterable[str],
     fixture_ids: Iterable[str],
     fact_ids: Iterable[str],
     context: dict[str, Any] | None = None,
 ) -> None:
-    copy_path = root / _scope_copy_file(scope_root)
-    copy_path.parent.mkdir(parents=True, exist_ok=True)
-    write_yaml(copy_path, _copy_doc(contract, copy_refs))
+    text_path = root / _scope_text_file(scope_root)
+    text_path.parent.mkdir(parents=True, exist_ok=True)
+    write_yaml(text_path, _text_doc(contract, text_refs))
     fixtures_path = root / _scope_fixtures_file(scope_root)
     fixtures_path.parent.mkdir(parents=True, exist_ok=True)
     write_yaml(fixtures_path, _fixtures_doc(contract, fixture_ids, fact_ids, context))
@@ -784,7 +784,7 @@ def state_machine_dot(state_machine_id: str, state_machine: dict[str, Any], cont
     for state_name in sorted(state_machine["view_states"]):
         state = state_machine["view_states"][state_name]
         sections: list[tuple[str, Iterable[object]]] = [
-            ("copy", state.get("copy", [])),
+            ("text", state.get("text", [])),
             ("assets", state.get("assets", [])),
             (_state_field_section_title(state_machine, state_name, state), _format_state_fields(state_machine, state, contract)),
             ("operation_refs", _format_operation_outputs(state.get("operation_refs", []), contract)),
@@ -1210,7 +1210,7 @@ def _state_machine_view_state_card(state_machine: dict[str, Any], state_name: st
         state_name,
         "view state",
         [
-            ("copy", state.get("copy", [])),
+            ("text", state.get("text", [])),
             ("assets", state.get("assets", [])),
             (_state_field_section_title(state_machine, state_name, state), _format_state_fields(state_machine, state, contract)),
             ("operation_refs", _format_operation_outputs(state.get("operation_refs", []), contract)),
@@ -2175,11 +2175,11 @@ def render_html_slot_runtime(root: Path, contract: dict[str, Any], state_machine
     if slot.get("role") and slot["role"] != "none":
         attrs["role"] = slot["role"]
     if kind == "text":
-        copy_ref = slot_ref(state_machine, "copy", bind_value)
-        attrs["data-copy"] = copy_ref
+        text_ref = slot_ref(state_machine, "text", bind_value)
+        attrs["data-text"] = text_ref
         if slot.get("level"):
             attrs["aria-level"] = str(slot["level"])
-        text = resolve_copy_text(root, contract, copy_ref, record, context, namespace)
+        text = resolve_text_resource(root, contract, text_ref, record, context, namespace)
         return [f"<{tag}{format_attrs(attrs)}>{html.escape(text)}</{tag}>"]
     if kind == "asset":
         asset_ref = slot_ref(state_machine, "asset", bind_value)
@@ -2223,7 +2223,7 @@ def render_html_field_slot(record: dict[str, Any], slot: dict[str, Any]) -> list
 
 
 def slot_ref(state_machine: dict[str, Any], kind: str, slot: str) -> str:
-    key = "copy" if kind == "copy" else "assets"
+    key = "text" if kind == "text" else "assets"
     for ref in state_machine["slots"][key]:
         if ref.rsplit(".", 1)[-1] == slot:
             return ref
@@ -2258,8 +2258,8 @@ def state_machine_textual_lines(root: Path, contract: dict[str, Any], state_mach
         for widget in widgets:
             bind_kind, bind_value = next(iter(widget["binding"].items()))
             if bind_kind == "text":
-                ref = slot_ref(state_machine, "copy", bind_value)
-                lines.append(("static", resolve_copy_text(root, contract, ref, record, context, namespace)))
+                ref = slot_ref(state_machine, "text", bind_value)
+                lines.append(("static", resolve_text_resource(root, contract, ref, record, context, namespace)))
             elif bind_kind == "asset":
                 ref = slot_ref(state_machine, "asset", bind_value)
                 lines.append(("static", resolve_asset_result(root, contract, ref, record, context, namespace).alt or contract["assets"][ref]["placeholder"]["label"]))
@@ -2274,8 +2274,8 @@ def state_machine_textual_lines(root: Path, contract: dict[str, Any], state_mach
     record = records[0] if records else {}
     context = render_context(contract, case)
     namespace = render_namespace(contract, case)
-    for copy_ref in state_machine["slots"]["copy"]:
-        lines.append(("static", resolve_copy_text(root, contract, copy_ref, record, context, namespace)))
+    for text_ref in state_machine["slots"]["text"]:
+        lines.append(("static", resolve_text_resource(root, contract, text_ref, record, context, namespace)))
     for asset_ref in state_machine["slots"]["assets"]:
         lines.append(("static", resolve_asset_result(root, contract, asset_ref, record, context, namespace).alt or contract["assets"][asset_ref]["placeholder"]["label"]))
     fields = state_machine["slots"].get("fields", [])
@@ -2431,37 +2431,37 @@ def content_args(contract: dict[str, Any], ref: str, item: dict[str, Any], recor
     return values
 
 
-def resolve_copy_text(root: Path, contract: dict[str, Any], ref: str, record: dict[str, Any], context: dict[str, Any], namespace: dict[str, Any]) -> str:
-    item = contract["copies"][ref]
-    resolver = item.get("resolver")
-    if not resolver:
+def resolve_text_resource(root: Path, contract: dict[str, Any], ref: str, record: dict[str, Any], context: dict[str, Any], namespace: dict[str, Any]) -> str:
+    item = contract["text_resources"][ref]
+    source_ref = item.get("source_ref")
+    if not source_ref:
         text = item["placeholder"]
     else:
         try:
-            text = call_copy(root, ref, content_args(contract, ref, item, record, context, namespace), ContentContext(surface="audit"))
+            text = call_text(root, ref, content_args(contract, ref, item, record, context, namespace), ContentContext(surface="audit"))
         except ContentError as exc:
             raise ContractError(str(exc)) from exc
     max_chars = item.get("max_chars")
     if max_chars is not None and len(text) > max_chars:
-        raise ContractError(f"Copy resolver {ref} exceeds max_chars")
+        raise ContractError(f"Text source {ref} exceeds max_chars")
     if not text.strip():
-        raise ContractError(f"Copy resolver {ref} returned empty text")
+        raise ContractError(f"Text source {ref} returned empty text")
     return text
 
 
 def resolve_asset_result(root: Path, contract: dict[str, Any], ref: str, record: dict[str, Any], context: dict[str, Any], namespace: dict[str, Any]) -> AssetResult:
     item = contract["assets"][ref]
-    resolver = item.get("resolver")
-    if not resolver:
+    source_ref = item.get("source_ref")
+    if not source_ref:
         return AssetResult(mime_type="image/svg+xml", body=asset_placeholder_svg(item), alt=item["placeholder"]["label"])
     try:
         result = call_asset(root, ref, content_args(contract, ref, item, record, context, namespace), ContentContext(surface="audit"))
     except ContentError as exc:
         raise ContractError(str(exc)) from exc
     if result.mime_type != "image/svg+xml":
-        raise ContractError(f"Asset resolver {ref} must return image/svg+xml")
+        raise ContractError(f"Asset source {ref} must return image/svg+xml")
     if not result.body.lstrip().startswith("<svg") or "</svg>" not in result.body:
-        raise ContractError(f"Asset resolver {ref} did not return SVG")
+        raise ContractError(f"Asset source {ref} did not return SVG")
     return result
 
 

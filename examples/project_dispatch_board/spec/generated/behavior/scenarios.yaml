@@ -85,13 +85,6 @@ scenarios:
       requires:
         assets:
         - asset.project.list.empty.illustration
-        copy:
-        - text.project.activity.empty.heading
-        - text.project.activity.empty.body
-        - text.project.detail.none.heading
-        - text.project.detail.none.body
-        - text.project.list.empty.heading
-        - text.project.list.empty.body
         operation_refs:
         - operation.project.create
         queries:
@@ -102,6 +95,13 @@ scenarios:
         - state_machine.project.activity.empty
         - state_machine.project.detail.none
         - state_machine.project.list.empty
+        text:
+        - text.project.activity.empty.heading
+        - text.project.activity.empty.body
+        - text.project.detail.none.heading
+        - text.project.detail.none.body
+        - text.project.list.empty.heading
+        - text.project.list.empty.body
       state_machine:
         composition:
           child_state_machines:
@@ -283,12 +283,6 @@ scenarios:
       - operation.project.submit
       requires:
         assets: []
-        copy:
-        - text.project.activity.empty.heading
-        - text.project.activity.empty.body
-        - text.project.detail.none.heading
-        - text.project.detail.none.body
-        - text.project.list.ready.heading
         operation_refs:
         - operation.project.create
         - operation.project.submit
@@ -300,6 +294,12 @@ scenarios:
         - state_machine.project.activity.empty
         - state_machine.project.detail.none
         - state_machine.project.list.ready
+        text:
+        - text.project.activity.empty.heading
+        - text.project.activity.empty.body
+        - text.project.detail.none.heading
+        - text.project.detail.none.body
+        - text.project.list.ready.heading
       state_machine:
         composition:
           child_state_machines:

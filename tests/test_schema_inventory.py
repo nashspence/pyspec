@@ -26,6 +26,9 @@ DEPRECATED_REFERENCE_DEFINITION_NAMES = {
     "asset_id",
     "audit_profile_id",
     "content_case_id",
+    "content_resolver_id",
+    "authored_copy",
+    "copy_item",
     "copy_id",
     "dotted_id",
     "fact_id",
@@ -34,6 +37,9 @@ DEPRECATED_REFERENCE_DEFINITION_NAMES = {
     "model_id",
     "type_map",
     "type_name",
+}
+DEPRECATED_TOP_LEVEL_PROPERTIES = {
+    "copies",
 }
 
 
@@ -94,9 +100,11 @@ def test_schema_inventory_rejects_deprecated_definition_terminology() -> None:
     deprecated_suffixes = sorted(name for name in names if name.endswith(("_author", "_spec")))
     deprecated_bare_items = sorted(names & (DEPRECATED_DEFINITION_NAMES | DEPRECATED_REFERENCE_DEFINITION_NAMES))
     deprecated_capability_terms = sorted(name for name in names if "capability" in name)
+    deprecated_top_level_properties = sorted(_schema_top_level_properties() & DEPRECATED_TOP_LEVEL_PROPERTIES)
     assert deprecated_suffixes == []
     assert deprecated_bare_items == []
     assert deprecated_capability_terms == []
+    assert deprecated_top_level_properties == []
 
     for path, schema in _schemas():
         refs = re.findall(r"#/\$defs/([A-Za-z0-9_]+)", json.dumps(schema))
@@ -114,7 +122,7 @@ def test_spec_ontology_rejects_deprecated_reference_terminology() -> None:
     text = DOC_PATH.read_text(encoding="utf-8")
     deprecated_terms = sorted(
         term
-        for term in DEPRECATED_REFERENCE_DEFINITION_NAMES | {"capability", "capabilities", "fsm", "fsms"}
+        for term in DEPRECATED_REFERENCE_DEFINITION_NAMES | DEPRECATED_TOP_LEVEL_PROPERTIES | {"capability", "capabilities", "fsm", "fsms"}
         if term in text
     )
     assert deprecated_terms == []

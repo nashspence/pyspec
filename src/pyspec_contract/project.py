@@ -159,7 +159,7 @@ def _has_textual_ui(contract: dict[str, Any]) -> bool:
 
 
 def _has_content(contract: dict[str, Any]) -> bool:
-    return bool(contract.get("copies") or contract.get("assets") or contract.get("content_cases"))
+    return bool(contract.get("text_resources") or contract.get("assets") or contract.get("content_cases"))
 
 
 def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
@@ -330,7 +330,7 @@ def state_machine_projection_item(owner_kind: str, owner_id: str, state_name: st
         "view_state": state_name,
         "data_dependencies": state.get("data_dependencies", []),
         "slots": {
-            "copy": state["copy"],
+            "text": state["text"],
             "assets": state["assets"],
             "fields": state.get("fields", []),
             "operation_refs": state["operation_refs"],
@@ -455,7 +455,7 @@ def compose_contract_state_machine(surface_id: str) -> list[tuple[str, str]]:
         return [(widget["kind"], widget_label(widget)) for widget in widgets]
     slots = item["slots"]
     result: list[tuple[str, str]] = []
-    result.extend(("Static", key) for key in slots["copy"])
+    result.extend(("Static", key) for key in slots["text"])
     result.extend(("Static", key) for key in slots["assets"])
     result.extend(("Static", key) for key in slots.get("fields", []))
     result.extend(("Button", action) for action in slots["operation_refs"])
@@ -530,8 +530,8 @@ def _textual_screen_class(
 
 def default_web_slots(state_machine: dict[str, Any]) -> list[dict[str, Any]]:
     slots: list[dict[str, Any]] = []
-    for copy_ref in state_machine["slots"]["copy"]:
-        slot = copy_ref.rsplit(".", 1)[-1]
+    for text_ref in state_machine["slots"]["text"]:
+        slot = text_ref.rsplit(".", 1)[-1]
         element = "h2" if slot == "title" else "p"
         item: dict[str, Any] = {"binding": {"text": slot}, "component": "text", "element": element}
         if slot == "title":
@@ -749,7 +749,7 @@ def _content_signature_items(contract: dict[str, Any], section: str) -> list[tup
 
 def content_contract_projection(contract: dict[str, Any]) -> str:
     lines = [
-        '"""Generated content resolver signatures. Do not edit by hand."""',
+        '"""Generated content source signatures. Do not edit by hand."""',
         "from __future__ import annotations",
         "",
         "from dataclasses import dataclass",
@@ -758,9 +758,9 @@ def content_contract_projection(contract: dict[str, Any]) -> str:
         "from pyspec_contract.content import AssetResult, ContentContext",
         "",
     ]
-    copy_classes: dict[str, str] = {}
+    text_classes: dict[str, str] = {}
     asset_classes: dict[str, str] = {}
-    for section, mapping_name, store in [("copies", "COPY_SIGNATURES", copy_classes), ("assets", "ASSET_SIGNATURES", asset_classes)]:
+    for section, mapping_name, store in [("text_resources", "TEXT_SIGNATURES", text_classes), ("assets", "ASSET_SIGNATURES", asset_classes)]:
         for ref, spec, class_name in _content_signature_items(contract, section):
             store[ref] = class_name
             args = spec.get("args", {})
@@ -772,9 +772,9 @@ def content_contract_projection(contract: dict[str, Any]) -> str:
             else:
                 lines.append("    pass")
             lines.append("")
-    lines.append(f"COPY_SIGNATURES = { {ref: {'args': spec.get('args', {}), 'resolver': spec.get('resolver'), 'arg_class': copy_classes[ref]} for ref, spec, _ in _content_signature_items(contract, 'copies')}!r}")
-    lines.append(f"ASSET_SIGNATURES = { {ref: {'args': spec.get('args', {}), 'resolver': spec.get('resolver'), 'arg_class': asset_classes[ref]} for ref, spec, _ in _content_signature_items(contract, 'assets')}!r}")
-    lines.append(f"COPY_ARG_CLASSES = {{{', '.join(f'{ref!r}: {cls}' for ref, cls in copy_classes.items())}}}")
+    lines.append(f"TEXT_SIGNATURES = { {ref: {'args': spec.get('args', {}), 'source_ref': spec.get('source_ref'), 'arg_class': text_classes[ref]} for ref, spec, _ in _content_signature_items(contract, 'text_resources')}!r}")
+    lines.append(f"ASSET_SIGNATURES = { {ref: {'args': spec.get('args', {}), 'source_ref': spec.get('source_ref'), 'arg_class': asset_classes[ref]} for ref, spec, _ in _content_signature_items(contract, 'assets')}!r}")
+    lines.append(f"TEXT_ARG_CLASSES = {{{', '.join(f'{ref!r}: {cls}' for ref, cls in text_classes.items())}}}")
     lines.append(f"ASSET_ARG_CLASSES = {{{', '.join(f'{ref!r}: {cls}' for ref, cls in asset_classes.items())}}}")
     lines.append("")
     return "\n".join(lines)
@@ -782,27 +782,27 @@ def content_contract_projection(contract: dict[str, Any]) -> str:
 
 def content_stubs_projection(contract: dict[str, Any]) -> str:
     lines = [
-        '"""Generated content resolver stubs. Do not edit; copy needed functions into spec.py."""',
+        '"""Generated content source stubs. Do not edit; move needed functions into spec.py."""',
         "from __future__ import annotations",
         "",
-        "from pyspec_contract.content import AssetResult, ContentContext, asset, copy",
+        "from pyspec_contract.content import AssetResult, ContentContext, asset, text",
         "from generated.content_resolvers.signatures import *  # generated arg classes",
         "from generated.test_adapters.python_refs import Asset, Text",
         "",
     ]
-    for ref, spec, class_name in _content_signature_items(contract, "copies"):
-        resolver = spec.get("resolver")
-        if not resolver:
+    for ref, spec, class_name in _content_signature_items(contract, "text_resources"):
+        source_ref = spec.get("source_ref")
+        if not source_ref:
             continue
         lines.extend([
-            f"@copy.implements(Text.{constant_name(ref)})",
+            f"@text.implements(Text.{constant_name(ref)})",
             f"def {safe_id(ref)}(args: {class_name}, ctx: ContentContext) -> str:",
             f"    raise NotImplementedError({ref!r})",
             "",
         ])
     for ref, spec, class_name in _content_signature_items(contract, "assets"):
-        resolver = spec.get("resolver")
-        if not resolver:
+        source_ref = spec.get("source_ref")
+        if not source_ref:
             continue
         lines.extend([
             f"@asset.implements(Asset.{constant_name(ref)})",
@@ -821,7 +821,7 @@ def refs_py_projection(contract: dict[str, Any]) -> str:
         "AuditProfile": sorted(contract.get("audit_profiles", {})),
         "EntryPoint": sorted(contract["entry_points"]),
         "Operation": sorted(contract["operations"]),
-        "Text": sorted(contract.get("copies", {})),
+        "Text": sorted(contract.get("text_resources", {})),
         "ContentCase": sorted(contract.get("content_cases", {})),
         "Event": sorted(contract["events"]),
         "Fact": sorted(contract.get("facts", {})),
