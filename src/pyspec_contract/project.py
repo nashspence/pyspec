@@ -13,6 +13,7 @@ from .targets import entry_fsm_name
 from .type_expr import (
     PRIMITIVES,
     base_model_name,
+    effective_field_type,
     object_to_json_schema,
     referenced_named_types,
     type_display,
@@ -887,8 +888,8 @@ def components_projection(contract: dict[str, Any]) -> dict[str, Any]:
     opaque: set[str] = set()
     for rid, model in sorted(contract["models"].items()):
         components["schemas"][rid] = object_schema(model["fields"])
-        for type_name in model["fields"].values():
-            for ref in referenced_named_types(type_name):
+        for field in model["fields"].values():
+            for ref in referenced_named_types(effective_field_type(field)):
                 if ref != rid and ref not in contract["models"]:
                     opaque.add(ref)
     for cap in contract["capabilities"].values():

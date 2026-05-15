@@ -23,7 +23,7 @@ from .paths import GENERATED_SPEC_DIR, generated_relative as g
 from .project import css_value, default_html_slots, format_attrs, humanize, fsms_projection, fsm_styles_projection, safe_id
 from .runtime import fixture_namespace, resolve
 from .targets import entry_fsm_surface, entry_target_pair, entry_workflow_trigger
-from .type_expr import type_display
+from .type_expr import effective_field_type, type_display
 
 ROOT = Path(__file__).resolve().parent
 
@@ -1285,7 +1285,7 @@ def _capability_sections(capability: dict[str, Any], contract: dict[str, Any], *
             sections.append((field, capability[field]))
     if capability.get("transition"):
         transition = capability["transition"]
-        type_name = contract["models"][transition["model"]]["fields"][transition["field"]]
+        type_name = effective_field_type(contract["models"][transition["model"]]["fields"][transition["field"]])
         sections.append(
             (
                 "transitions",
@@ -1906,7 +1906,7 @@ def _state_field_data_bindings(fsm: dict[str, Any], state_name: str, state: dict
 
 def _format_state_fields(fsm: dict[str, Any], state: dict[str, Any], contract: dict[str, Any]) -> list[_DotTypedField]:
     model_fields = contract["models"][fsm["model"]]["fields"]
-    return [_DotTypedField(field, model_fields[field]) for field in state["fields"]]
+    return [_DotTypedField(field, effective_field_type(model_fields[field])) for field in state["fields"]]
 
 
 def _format_capability_outputs(capability_ids: Iterable[str], contract: dict[str, Any]) -> list[_DotTypedField]:

@@ -33,6 +33,10 @@ def E(*values: str) -> dict[str, list[str]]:
     return {"enum": list(values)}
 
 
+def F(type_expr: dict, *, required: bool = True, nullable: bool = False) -> dict:
+    return {"type": type_expr, "required": required, "nullable": nullable}
+
+
 def _author() -> dict:
     return read_yaml(ROOT / SOURCE_SPEC_PATH)
 
@@ -225,18 +229,17 @@ def test_fact_template_fields_must_belong_to_model() -> None:
         compile_author(author)
 
 
-def test_transition_capability_derives_state_change_from_model_lifecycle() -> None:
-    author = {
+def _derived_transition_author() -> dict:
+    return {
         "project": "derived_transition",
         "models": {
             "Ticket": {
-                "kind": "aggregate",
-                "fields": {"id": P("ID"), "status": E("draft", "submitted")},
+                "fields": {"id": F(P("ID")), "status": F(E("draft", "submitted"))},
                 "lifecycle": {
                     "field": "status",
                     "initial": "draft",
                     "states": ["draft", "submitted"],
-                    "transitions": [{"by": "operation.ticket.submit", "from": "draft", "to": "submitted"}],
+                    "transitions": [{"triggered_by": "operation.ticket.submit", "from": "draft", "to": "submitted"}],
                 },
                 "basis": "Ticket lifecycle owns state transitions.",
             }
@@ -253,6 +256,10 @@ def test_transition_capability_derives_state_change_from_model_lifecycle() -> No
             }
         },
     }
+
+
+def test_transition_capability_derives_state_change_from_model_lifecycle() -> None:
+    author = _derived_transition_author()
     contract = compile_author(author)
     assert contract["capabilities"]["operation.ticket.submit"]["transition"] == {
         "model": "Ticket",
@@ -260,6 +267,47 @@ def test_transition_capability_derives_state_change_from_model_lifecycle() -> No
         "from": "draft",
         "to": "submitted",
     }
+
+
+def test_lifecycle_field_must_exist_on_model() -> None:
+    author = _derived_transition_author()
+    del author["models"]["Ticket"]["fields"]["status"]
+    with pytest.raises(ContractError, match=r"Model Ticket lifecycle field is not a field: status"):
+        compile_author(author)
+
+
+def test_lifecycle_initial_state_must_be_declared() -> None:
+    author = _derived_transition_author()
+    author["models"]["Ticket"]["lifecycle"]["initial"] = "missing"
+    with pytest.raises(ContractError, match=r"Model Ticket lifecycle initial state is not declared: missing"):
+        compile_author(author)
+
+
+def test_lifecycle_transition_states_must_be_declared() -> None:
+    author = _derived_transition_author()
+    author["models"]["Ticket"]["lifecycle"]["transitions"][0]["to"] = "missing"
+    with pytest.raises(ContractError, match=r"Model Ticket lifecycle transition uses unknown state"):
+        compile_author(author)
+
+
+def test_lifecycle_transition_must_reference_transition_operation() -> None:
+    author = _derived_transition_author()
+    author["capabilities"]["operation.ticket.submit"]["archetype"] = "command"
+    with pytest.raises(
+        ContractError,
+        match=r"Model Ticket lifecycle transition operation\.ticket\.submit must reference a transition operation",
+    ):
+        compile_author(author)
+
+
+def test_lifecycle_transition_must_reference_known_operation() -> None:
+    author = _derived_transition_author()
+    author["models"]["Ticket"]["lifecycle"]["transitions"][0]["triggered_by"] = "operation.ticket.missing"
+    with pytest.raises(
+        ContractError,
+        match=r"Model Ticket lifecycle transition references unknown operation operation\.ticket\.missing",
+    ):
+        compile_author(author)
 
 
 def test_capability_rejects_primary_model_field() -> None:
@@ -279,8 +327,7 @@ def test_create_capability_requires_created_model_relationship() -> None:
 def test_fsm_data_capability_must_read_fsm_model() -> None:
     author = _author()
     author["models"]["Workspace"] = {
-        "kind": "entity",
-        "fields": {"id": P("ID"), "name": P("Text")},
+        "fields": {"id": F(P("ID")), "name": F(P("Text"))},
         "basis": "Workspace is a separate model used to prove data bindings are model-aware.",
     }
     author["capabilities"]["operation.project.read"]["archetype"] = "query"
@@ -302,8 +349,7 @@ def test_author_contract_can_omit_absent_sections() -> None:
         "project": "author_core",
         "models": {
             "Ticket": {
-                "kind": "aggregate",
-                "fields": {"id": P("ID"), "title": P("Text")},
+                "fields": {"id": F(P("ID")), "title": F(P("Text"))},
             }
         },
         "capabilities": {
@@ -335,8 +381,7 @@ def test_author_fsm_defaults_empty_collections() -> None:
         "project": "author_ui",
         "models": {
             "Ticket": {
-                "kind": "aggregate",
-                "fields": {"id": P("ID"), "title": P("Text")},
+                "fields": {"id": F(P("ID")), "title": F(P("Text"))},
                 "basis": "Ticket is the product work item.",
             }
         },
@@ -648,8 +693,7 @@ def _api_only_author() -> dict:
         "project": "api_only",
         "models": {
             "Ticket": {
-                "kind": "aggregate",
-                "fields": {"id": P("ID"), "title": P("Text")},
+                "fields": {"id": F(P("ID")), "title": F(P("Text"))},
                 "basis": _basis("ticket model"),
             }
         },

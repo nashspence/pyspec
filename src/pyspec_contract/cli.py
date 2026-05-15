@@ -17,10 +17,17 @@ from .paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR, SOURCE_SPEC_PATH
 MINIMAL_SPEC = """project: new_product_spec
 models:
   Item:
-    kind: aggregate
     fields:
-      id: ID
-      title: Text
+      id:
+        type:
+          primitive: ID
+        required: true
+        nullable: false
+      title:
+        type:
+          primitive: Text
+        required: true
+        nullable: false
     basis: Item is the first product concept in this specification.
 """
 

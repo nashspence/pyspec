@@ -56,38 +56,72 @@ models:
     basis: A structured problem result explains intentional failure outcomes across API and CLI surfaces.
     fields:
       code:
-        primitive: Text
+        nullable: false
+        required: true
+        type:
+          primitive: Text
       message:
-        primitive: Text
-    kind: value_object
+        nullable: false
+        required: true
+        type:
+          primitive: Text
   Project:
     basis: A dispatch project is the durable work item displayed and acted on by the board.
     fields:
       assignee:
-        primitive: Text
+        nullable: false
+        required: true
+        type:
+          primitive: Text
       created_at:
-        primitive: Timestamp
+        nullable: false
+        required: true
+        type:
+          primitive: Timestamp
       customer:
-        primitive: Text
+        nullable: false
+        required: true
+        type:
+          primitive: Text
       id:
-        primitive: ID
+        nullable: false
+        required: true
+        type:
+          primitive: ID
       priority:
-        primitive: Text
+        nullable: false
+        required: true
+        type:
+          primitive: Text
       status:
-        enum:
-        - draft
-        - submitted
-        - approved
-        - archived
+        nullable: false
+        required: true
+        type:
+          enum:
+          - draft
+          - submitted
+          - approved
+          - archived
       summary:
-        primitive: Text
+        nullable: false
+        required: true
+        type:
+          primitive: Text
       title:
-        primitive: Text
+        nullable: false
+        required: true
+        type:
+          primitive: Text
       updated_at:
-        primitive: Timestamp
+        nullable: false
+        required: true
+        type:
+          primitive: Timestamp
       workspace_id:
-        primitive: ID
-    kind: aggregate
+        nullable: false
+        required: true
+        type:
+          primitive: ID
     lifecycle:
       field: status
       initial: draft
@@ -97,23 +131,28 @@ models:
       - approved
       - archived
       transitions:
-      - by: operation.project.submit
-        from: draft
+      - from: draft
         to: submitted
-      - by: operation.project.approve
-        from: submitted
+        triggered_by: operation.project.submit
+      - from: submitted
         to: approved
-      - by: operation.project.archive
-        from: approved
+        triggered_by: operation.project.approve
+      - from: approved
         to: archived
+        triggered_by: operation.project.archive
   ProjectApproved:
     basis: Approval events carry only the integration payload required by downstream workflows.
     fields:
       approved_by:
-        primitive: ID
+        nullable: false
+        required: true
+        type:
+          primitive: ID
       project_id:
-        primitive: ID
-    kind: value_object
+        nullable: false
+        required: true
+        type:
+          primitive: ID
 capabilities:
   operation.project.approve:
     archetype: transition

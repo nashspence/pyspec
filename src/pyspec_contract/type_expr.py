@@ -69,13 +69,77 @@ def normalize_type_expr(expr: Any) -> dict[str, Any]:
         return {"enum": list(value)}
     if kind == "object":
         if not isinstance(value, Mapping):
-            raise TypeExpressionError("Inline object type must declare a field map")
-        return {"object": normalize_type_map(value)}
+            raise TypeExpressionError("Inline object type must declare an object schema")
+        return {"object": normalize_object_schema(value)}
     raise TypeExpressionError(f"Unsupported type expression kind: {kind}")
 
 
 def normalize_type_map(fields: Mapping[str, Any] | None) -> dict[str, dict[str, Any]]:
     return {name: normalize_type_expr(type_expr) for name, type_expr in (fields or {}).items()}
+
+
+def normalize_field_schema(field: Any) -> dict[str, Any]:
+    """Normalize a field declaration to explicit presence/nullability metadata.
+
+    The non-``type`` branch keeps older in-memory field maps readable while the
+    authored/compiled schemas require the explicit object form.
+    """
+    if isinstance(field, Mapping) and "type" in field:
+        unknown = set(field) - {"type", "required", "nullable"}
+        if unknown:
+            raise TypeExpressionError(f"Field schema has unsupported keys: {sorted(unknown)}")
+        required = field.get("required", True)
+        nullable = field.get("nullable", False)
+        type_expr = normalize_type_expr(field["type"])
+    else:
+        required = True
+        nullable = False
+        type_expr = normalize_type_expr(field)
+
+    if not isinstance(required, bool):
+        raise TypeExpressionError("Field schema required must be a boolean")
+    if not isinstance(nullable, bool):
+        raise TypeExpressionError("Field schema nullable must be a boolean")
+
+    while "optional" in type_expr or "nullable" in type_expr:
+        if "optional" in type_expr:
+            required = False
+            type_expr = normalize_type_expr(type_expr["optional"])
+        else:
+            nullable = True
+            type_expr = normalize_type_expr(type_expr["nullable"])
+    return {"type": type_expr, "required": required, "nullable": nullable}
+
+
+def normalize_field_map(fields: Mapping[str, Any] | None) -> dict[str, dict[str, Any]]:
+    return {name: normalize_field_schema(field) for name, field in (fields or {}).items()}
+
+
+def normalize_object_schema(schema: Mapping[str, Any]) -> dict[str, Any]:
+    if "fields" in schema:
+        unknown = set(schema) - {"fields"}
+        if unknown:
+            raise TypeExpressionError(f"Object schema has unsupported keys: {sorted(unknown)}")
+        fields = schema["fields"]
+    else:
+        fields = schema
+    if not isinstance(fields, Mapping):
+        raise TypeExpressionError("Object schema fields must be a field map")
+    return {"fields": normalize_field_map(fields)}
+
+
+def effective_field_type(field: Any) -> dict[str, Any]:
+    normalized = normalize_field_schema(field)
+    type_expr = normalized["type"]
+    if normalized["nullable"]:
+        type_expr = {"nullable": type_expr}
+    if not normalized["required"]:
+        type_expr = {"optional": type_expr}
+    return normalize_type_expr(type_expr)
+
+
+def effective_type_map(fields: Mapping[str, Any] | None) -> dict[str, dict[str, Any]]:
+    return {name: effective_field_type(field) for name, field in (fields or {}).items()}
 
 
 def type_equals(left: Any, right: Any) -> bool:
@@ -102,7 +166,10 @@ def type_display(expr: Any) -> str:
     if kind == "enum":
         return "enum<" + "|".join(value) + ">"
     if kind == "object":
-        fields = ", ".join(f"{name}: {type_display(child)}" for name, child in sorted(value.items()))
+        fields = ", ".join(
+            f"{name}: {type_display(effective_field_type(child))}"
+            for name, child in sorted(normalize_object_schema(value)["fields"].items())
+        )
         return "object{" + fields + "}"
     raise TypeExpressionError(f"Unsupported type expression kind: {kind}")
 
@@ -152,10 +219,10 @@ def is_problem_type(expr: Any) -> bool:
 def object_fields_for_type(contract: Mapping[str, Any] | None, expr: Any) -> dict[str, Any] | None:
     expr = unwrap_nullable_optional(expr)
     if "object" in expr:
-        return expr["object"]
+        return effective_type_map(expr["object"]["fields"])
     name = model_name(expr)
     if name and contract and name in contract.get("models", {}):
-        return contract["models"][name]["fields"]
+        return effective_type_map(contract["models"][name]["fields"])
     return None
 
 
@@ -181,8 +248,8 @@ def referenced_named_types(expr: Any) -> set[str]:
         return referenced_named_types(value)
     if kind == "object":
         names: set[str] = set()
-        for child in value.values():
-            names.update(referenced_named_types(child))
+        for child in normalize_object_schema(value)["fields"].values():
+            names.update(referenced_named_types(child["type"]))
         return names
     return set()
 
@@ -223,12 +290,15 @@ def type_to_json_schema(expr: Any) -> dict[str, Any]:
 
 
 def object_to_json_schema(fields: Mapping[str, Any]) -> dict[str, Any]:
-    normalized = normalize_type_map(fields)
+    normalized = normalize_object_schema(fields)["fields"]
     return {
         "type": "object",
         "additionalProperties": False,
-        "required": sorted(name for name, expr in normalized.items() if not is_optional(expr)),
-        "properties": {name: type_to_json_schema(unwrap_optional(expr)) for name, expr in sorted(normalized.items())},
+        "required": sorted(name for name, field in normalized.items() if field["required"]),
+        "properties": {
+            name: type_to_json_schema({"nullable": field["type"]} if field["nullable"] else field["type"])
+            for name, field in sorted(normalized.items())
+        },
     }
 
 
@@ -288,8 +358,14 @@ def sample_value(expr: Any) -> Any:
             "Decimal": 1.0,
             "JSON": {},
         }.get(value, "sample")
-    if kind in {"model", "contract", "object", "map"}:
+    if kind in {"model", "contract", "map"}:
         return {}
+    if kind == "object":
+        return {
+            name: sample_value(field["type"])
+            for name, field in normalize_object_schema(value)["fields"].items()
+            if field["required"]
+        }
     if kind == "array":
         return []
     if kind == "nullable":

@@ -17,6 +17,10 @@ def P(name: str) -> dict[str, str]:
     return {"primitive": name}
 
 
+def F(type_expr: dict, *, required: bool = True, nullable: bool = False) -> dict:
+    return {"type": type_expr, "required": required, "nullable": nullable}
+
+
 def test_author_contract_schema_validates() -> None:
     validate_against_schema(read_yaml(ROOT / SOURCE_SPEC_PATH), "author.schema.json")
 
@@ -32,13 +36,12 @@ def test_author_contract_can_be_minimal_and_surface_invisible() -> None:
         "models": {
             "Project": {
                 "basis": "Minimal product model for an API-free contract.",
-                "kind": "aggregate",
-                "fields": {"id": P("ID"), "title": P("Text")},
+                "fields": {"id": F(P("ID")), "title": F(P("Text"))},
             }
         },
     }
     contract = compile_source(author, layers={"core"})
-    assert contract["models"]["Project"]["fields"]["title"] == P("Text")
+    assert contract["models"]["Project"]["fields"]["title"] == F(P("Text"))
     assert contract["fsms"] == {}
     assert contract["entries"] == {}
     assert contract["refs"] == {}

@@ -29,6 +29,7 @@ from .type_expr import (
     is_array_of_model,
     is_problem_type,
     literal_type_expr,
+    normalize_field_map,
     model_name,
     object_fields_for_type,
     type_display,
@@ -152,7 +153,7 @@ def _prune_redundant_author_transitions(author: dict[str, Any]) -> None:
             continue
         field = lifecycle["field"]
         for transition in lifecycle.get("transitions", []):
-            capability = capabilities.get(transition["by"])
+            capability = capabilities.get(transition["triggered_by"])
             if not isinstance(capability, dict):
                 continue
             declared = capability.get("transition")
@@ -273,8 +274,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
 
     if entity == "model":
         item = {
-            "kind": spec["kind"],
-            "fields": spec["fields"],
+            "fields": normalize_field_map(spec["fields"]),
             "lifecycle": spec.get("lifecycle"),
             "basis": spec["basis"],
         }
@@ -445,7 +445,7 @@ def _derive_capability_transitions(contract: dict[str, Any]) -> None:
             continue
         field = lifecycle["field"]
         for transition in lifecycle.get("transitions", []):
-            capability_id = transition["by"]
+            capability_id = transition["triggered_by"]
             if capability_id in by_capability:
                 raise ContractError(f"Capability {capability_id} is used by multiple lifecycle transitions")
             by_capability[capability_id] = {
@@ -722,6 +722,10 @@ def _validate_models(contract: dict[str, Any]) -> None:
         for transition in lifecycle.get("transitions", []):
             if transition["from"] not in states or transition["to"] not in states:
                 raise ContractError(f"Model {rid} lifecycle transition uses unknown state: {transition}")
+            if transition["triggered_by"] not in contract["capabilities"]:
+                raise ContractError(
+                    f"Model {rid} lifecycle transition references unknown operation {transition['triggered_by']}"
+                )
 
 
 def _validate_capabilities(contract: dict[str, Any]) -> None:
@@ -744,17 +748,20 @@ def _validate_capabilities(contract: dict[str, Any]) -> None:
         if not lifecycle:
             continue
         for transition in lifecycle.get("transitions", []):
-            by = transition["by"]
-            if by not in capabilities:
-                raise ContractError(f"Model {rid} lifecycle transition references unknown capability {by}")
-            cap_transition = capabilities[by].get("transition")
+            triggered_by = transition["triggered_by"]
+            capability = capabilities[triggered_by]
+            if capability["archetype"] != "transition":
+                raise ContractError(
+                    f"Model {rid} lifecycle transition {triggered_by} must reference a transition operation"
+                )
+            cap_transition = capability.get("transition")
             if (
                 not cap_transition
                 or cap_transition["model"] != rid
                 or cap_transition["from"] != transition["from"]
                 or cap_transition["to"] != transition["to"]
             ):
-                raise ContractError(f"Model {rid} lifecycle and capability {by} disagree")
+                raise ContractError(f"Model {rid} lifecycle and operation {triggered_by} disagree")
     for event_id, event in contract["events"].items():
         for cap_id in event["emitted_by"]:
             if cap_id not in capabilities:

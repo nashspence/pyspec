@@ -14,7 +14,7 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - <!-- top-level:facts --> `facts`: reusable preconditions that assert model presence or absence.
 - <!-- top-level:fixtures --> `fixtures`: named runtime data namespaces used by scenarios, facts, content cases, and audit evidence.
 - <!-- top-level:fsms --> `fsms`: UI/state-machine contracts, including context, data queries, states, transitions, messages, mounts, and sync.
-- <!-- top-level:models --> `models`: product data types and lifecycle states.
+- <!-- top-level:models --> `models`: product data contracts and lifecycle states.
 - <!-- top-level:project --> `project`: the project slug for the specification workspace.
 - <!-- top-level:refs --> `refs`: compiled-only generated reference index for stable constants and projection cross-checks.
 - <!-- top-level:scenarios --> `scenarios`: behavior examples compiled into fixtures, semantic scenario YAML, and BDD features.
@@ -41,7 +41,9 @@ Resource IDs use explicit typed namespaces. Top-level mapping keys and reference
 - `audit_profile_ref`: lower-case local audit profile IDs.
 - `breakpoint_id`, `field_name`, `instance_id`, and `state_name`: lower-case local names scoped by their owning resource.
 - `content_resolver_id`: a resolver address in either the `text.` or `asset.` namespace.
-- `type_expr`: structured data type expressions such as `{primitive: Text}`, `{model: Project}`, `{array: {model: Project}}`, `{map: {primitive: Text}}`, `{nullable: ...}`, `{optional: ...}`, `{enum: [...]}`, and `{object: {...}}`.
+- `type_expr`: structured data type expressions such as `{primitive: Text}`, `{model: Project}`, `{array: {model: Project}}`, `{map: {primitive: Text}}`, `{nullable: ...}`, `{optional: ...}`, `{enum: [...]}`, and `{object: {fields: {...}}}`.
+- `type_expr_map`: input/payload maps whose values are `type_expr` objects.
+- `object_schema`, `field_schema`, and `field_schema_map`: reusable object contracts whose fields explicitly declare `type`, `required`, and `nullable`; model `fields` use this shape.
 - `css_class`, `css_property`, `python_identifier`, and `python_class_name`: generated projection implementation names.
 
 The compiled `refs` index uses these generated reference namespaces:
@@ -199,6 +201,8 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:fact_ref --> `$defs/fact_ref`: typed reference in the `fact.` namespace.
 - <!-- schema-def:fact_use --> `$defs/fact_use`: named fact reference.
 - <!-- schema-def:feature_ref --> `$defs/feature_ref`: typed reference in the `feature.` namespace.
+- <!-- schema-def:field_schema --> `$defs/field_schema`: object field declaration with explicit type, required, and nullable semantics.
+- <!-- schema-def:field_schema_map --> `$defs/field_schema_map`: field map whose values are structured field declarations.
 - <!-- schema-def:field_name --> `$defs/field_name`: lower-case field name.
 - <!-- schema-def:fixture_item --> `$defs/fixture_item`: compiled fixture with concrete values.
 - <!-- schema-def:fixture_ref --> `$defs/fixture_ref`: typed reference in the `fixture.` namespace.
@@ -234,6 +238,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:model_ref --> `$defs/model_ref`: typed PascalCase model reference.
 - <!-- schema-def:model_refs --> `$defs/model_refs`: list of model references.
 - <!-- schema-def:mount_item --> `$defs/mount_item`: compiled mounted state-machine record.
+- <!-- schema-def:object_schema --> `$defs/object_schema`: structured object contract with per-field required and nullable semantics.
 - <!-- schema-def:operation_ref --> `$defs/operation_ref`: typed reference in the `operation.` namespace.
 - <!-- schema-def:presentation_contract --> `$defs/presentation_contract`: UI presentation contract by surface.
 - <!-- schema-def:python_class_name --> `$defs/python_class_name`: generated Python class name.
@@ -259,8 +264,8 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:textual_viewport --> `$defs/textual_viewport`: Textual audit viewport dimensions.
 - <!-- schema-def:textual_widget --> `$defs/textual_widget`: Textual widget projection metadata.
 - <!-- schema-def:then --> `$defs/then`: scenario assertion block.
-- <!-- schema-def:type_expr --> `$defs/type_expr`: structured primitive, model, array, map, nullable, optional, enum, or inline object type expression.
-- <!-- schema-def:type_expr_map --> `$defs/type_expr_map`: field map whose values are structured type expressions.
+- <!-- schema-def:type_expr --> `$defs/type_expr`: structured primitive, model, array, map, nullable, optional, enum, or inline object-schema type expression.
+- <!-- schema-def:type_expr_map --> `$defs/type_expr_map`: input or payload map whose values are structured type expressions.
 - <!-- schema-def:value_map --> `$defs/value_map`: field-to-scalar value map.
 - <!-- schema-def:when --> `$defs/when`: scenario action block.
 - <!-- schema-def:workflow_bindings --> `$defs/workflow_bindings`: workflow source to operation input binding map.

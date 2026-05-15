@@ -910,6 +910,37 @@
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
     },
+    "field_schema": {
+      "additionalProperties": false,
+      "description": "Object field declaration with explicit required and nullable semantics.",
+      "properties": {
+        "nullable": {
+          "type": "boolean"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "type": {
+          "$ref": "#/$defs/type_expr"
+        }
+      },
+      "required": [
+        "type",
+        "required",
+        "nullable"
+      ],
+      "type": "object"
+    },
+    "field_schema_map": {
+      "additionalProperties": {
+        "$ref": "#/$defs/field_schema"
+      },
+      "description": "Object field map whose values declare type, required, and nullable semantics.",
+      "propertyNames": {
+        "$ref": "#/$defs/field_name"
+      },
+      "type": "object"
+    },
     "fixture_item": {
       "additionalProperties": false,
       "properties": {
@@ -1668,15 +1699,7 @@
           "$ref": "#/$defs/basis"
         },
         "fields": {
-          "$ref": "#/$defs/type_expr_map"
-        },
-        "kind": {
-          "enum": [
-            "aggregate",
-            "entity",
-            "value_object",
-            "external"
-          ]
+          "$ref": "#/$defs/field_schema_map"
         },
         "lifecycle": {
           "additionalProperties": false,
@@ -1697,20 +1720,20 @@
               "items": {
                 "additionalProperties": false,
                 "properties": {
-                  "by": {
-                    "$ref": "#/$defs/operation_ref"
-                  },
                   "from": {
                     "type": "string"
                   },
                   "to": {
                     "type": "string"
+                  },
+                  "triggered_by": {
+                    "$ref": "#/$defs/operation_ref"
                   }
                 },
                 "required": [
                   "from",
                   "to",
-                  "by"
+                  "triggered_by"
                 ],
                 "type": "object"
               },
@@ -1729,7 +1752,6 @@
         }
       },
       "required": [
-        "kind",
         "fields",
         "basis"
       ],
@@ -1776,6 +1798,19 @@
         "region",
         "initial",
         "context"
+      ],
+      "type": "object"
+    },
+    "object_schema": {
+      "additionalProperties": false,
+      "description": "Structured object schema with explicit per-field required and nullable semantics.",
+      "properties": {
+        "fields": {
+          "$ref": "#/$defs/field_schema_map"
+        }
+      },
+      "required": [
+        "fields"
       ],
       "type": "object"
     },
@@ -2223,7 +2258,7 @@
       "type": "object"
     },
     "type_expr": {
-      "description": "Structured data type expression. Supports primitives, named model/data-contract references, arrays, maps, nullable and optional wrappers, enums, and inline objects.",
+      "description": "Structured data type expression. Supports primitives, named model/data-contract references, arrays, maps, nullable and optional wrappers, enums, and inline object schemas.",
       "oneOf": [
         {
           "additionalProperties": false,
@@ -2341,7 +2376,7 @@
           "additionalProperties": false,
           "properties": {
             "object": {
-              "$ref": "#/$defs/type_expr_map"
+              "$ref": "#/$defs/object_schema"
             }
           },
           "required": [
