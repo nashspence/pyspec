@@ -1,6 +1,6 @@
-<svg width="891pt" height="199pt"
- viewBox="0.00 0.00 891.00 199.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 41fd9c83aae76f283a24226160ceb9498741cdebadbb66d05875d731153039b9 -->
+<svg width="951pt" height="199pt"
+ viewBox="0.00 0.00 951.00 199.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: d77b3f1bccb6b0b86bb0ed49fcff4bd3488d5d8ec744c77d697bc728a1369885 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 181)">
 <title>entrypoint_entry_point_html_project_board</title>
 <!-- entry_start -->
@@ -16,7 +16,7 @@
 <polygon fill="#0891b2" stroke="transparent" points="104.5,-112.5 104.5,-120.5 355.5,-120.5 355.5,-112.5 104.5,-112.5"/>
 <polygon fill="#ecfeff" stroke="transparent" points="104.5,-81.5 104.5,-112.5 355.5,-112.5 355.5,-81.5 104.5,-81.5"/>
 <text text-anchor="start" x="108.5" y="-99.1" font-family="Arial" font-weight="bold" font-size="13.00">/workspaces/{workspace_id}/dispatch</text>
-<text text-anchor="start" x="108.5" y="-88.1" font-family="Arial" font-size="8.00" fill="#64748b">ui entry point</text>
+<text text-anchor="start" x="108.5" y="-88.1" font-family="Arial" font-size="8.00" fill="#64748b">html_route entry point</text>
 <text text-anchor="start" x="108.5" y="-70.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">HTML entry for the dispatch board.</text>
 <text text-anchor="start" x="109.5" y="-50.5" font-family="Arial" font-weight="bold" font-size="10.00">route:</text>
 <text text-anchor="start" x="137.5" y="-50.5" font-family="Arial" font-size="10.00">  route.project.board</text>
@@ -50,9 +50,9 @@
 <!-- entrypoint_target_state_machine_project_board -->
 <g id="node4" class="node">
 <title>entrypoint_target_state_machine_project_board</title>
-<polygon fill="#ffffff" stroke="transparent" points="562,0 562,-163 855,-163 855,0 562,0"/>
-<polygon fill="#047857" stroke="transparent" points="563.5,-153.5 563.5,-161.5 854.5,-161.5 854.5,-153.5 563.5,-153.5"/>
-<polygon fill="#ecfdf5" stroke="transparent" points="563.5,-122.5 563.5,-153.5 854.5,-153.5 854.5,-122.5 563.5,-122.5"/>
+<polygon fill="#ffffff" stroke="transparent" points="562,0 562,-163 915,-163 915,0 562,0"/>
+<polygon fill="#047857" stroke="transparent" points="563.5,-153.5 563.5,-161.5 914.5,-161.5 914.5,-153.5 563.5,-153.5"/>
+<polygon fill="#ecfdf5" stroke="transparent" points="563.5,-122.5 563.5,-153.5 914.5,-153.5 914.5,-122.5 563.5,-122.5"/>
 <text text-anchor="start" x="567.5" y="-140.1" font-family="Arial" font-weight="bold" font-size="13.00">state_machine.project.board</text>
 <text text-anchor="start" x="567.5" y="-129.1" font-family="Arial" font-size="8.00" fill="#64748b">target state machine (html)</text>
 <text text-anchor="start" x="567.5" y="-111.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">The dispatch board composes list, detail, and</text>
@@ -67,18 +67,18 @@
 <text text-anchor="start" x="592.5" y="-45.5" font-family="Arial" font-size="10.00">  operation.project.list</text>
 <text text-anchor="start" x="686.5" y="-45.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
 <text text-anchor="start" x="568.5" y="-33.5" font-family="Arial" font-weight="bold" font-size="10.00">authorization_policies:</text>
-<text text-anchor="start" x="675.5" y="-33.5" font-family="Arial" font-size="10.00">  operation.project.list: policy.project.list</text>
+<text text-anchor="start" x="675.5" y="-33.5" font-family="Arial" font-size="10.00">  operation.project.list: authorization_policy.project.list</text>
 <text text-anchor="start" x="568.5" y="-21.5" font-family="Arial" font-weight="bold" font-size="10.00">model:</text>
 <text text-anchor="start" x="601.5" y="-21.5" font-family="Arial" font-size="10.00">  Project</text>
-<text text-anchor="start" x="568.5" y="-9.5" font-family="Arial" font-weight="bold" font-size="10.00">message_sync_rules:</text>
-<text text-anchor="start" x="668.5" y="-9.5" font-family="Arial" font-size="10.00">  select_project_updates_state_machines</text>
-<polygon fill="none" stroke="#047857" points="562,0 562,-163 855,-163 855,0 562,0"/>
+<text text-anchor="start" x="568.5" y="-9.5" font-family="Arial" font-weight="bold" font-size="10.00">signal_sync_rules:</text>
+<text text-anchor="start" x="656.5" y="-9.5" font-family="Arial" font-size="10.00">  select_project_updates_state_machines</text>
+<polygon fill="none" stroke="#047857" points="562,0 562,-163 915,-163 915,0 562,0"/>
 </g>
 <!-- entrypoint_input_entry_point_html_project_board&#45;&gt;entrypoint_target_state_machine_project_board -->
 <g id="edge3" class="edge">
 <title>entrypoint_input_entry_point_html_project_board&#45;&gt;entrypoint_target_state_machine_project_board</title>
-<path fill="none" stroke="#3f3f46" d="M501.15,-81.5C516.31,-81.5 534.52,-81.5 553.75,-81.5"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="553.75,-84.3 561.75,-81.5 553.75,-78.7 553.75,-84.3"/>
+<path fill="none" stroke="#3f3f46" d="M501.24,-81.5C516.24,-81.5 534.31,-81.5 553.69,-81.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="553.77,-84.3 561.77,-81.5 553.77,-78.7 553.77,-84.3"/>
 </g>
 </g>
 </svg>

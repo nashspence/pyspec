@@ -52,41 +52,6 @@
         }
       },
       "id": "state_machine.project.board.ready",
-      "message_sync_rules": [
-        {
-          "effects": [
-            {
-              "set": {
-                "context": "selected_project_id",
-                "from": "$message.project_id"
-              }
-            },
-            {
-              "send": {
-                "instance": "detail",
-                "message": "message.project.selection_changed",
-                "payload_bindings": {
-                  "project_id": "$message.project_id"
-                }
-              }
-            },
-            {
-              "send": {
-                "instance": "activity",
-                "message": "message.project.selection_changed",
-                "payload_bindings": {
-                  "project_id": "$message.project_id"
-                }
-              }
-            }
-          ],
-          "id": "select_project_updates_state_machines",
-          "when": {
-            "instance": "list",
-            "message": "message.project.selected"
-          }
-        }
-      ],
       "renderers": {
         "html": {
           "layout": {
@@ -211,6 +176,41 @@
           }
         }
       },
+      "signal_sync_rules": [
+        {
+          "effects": [
+            {
+              "set": {
+                "context": "selected_project_id",
+                "from": "$message.project_id"
+              }
+            },
+            {
+              "send": {
+                "instance": "detail",
+                "message": "message.project.selection_changed",
+                "payload_bindings": {
+                  "project_id": "$message.project_id"
+                }
+              }
+            },
+            {
+              "send": {
+                "instance": "activity",
+                "message": "message.project.selection_changed",
+                "payload_bindings": {
+                  "project_id": "$message.project_id"
+                }
+              }
+            }
+          ],
+          "id": "select_project_updates_state_machines",
+          "when": {
+            "instance": "list",
+            "signal": "message.project.selected"
+          }
+        }
+      ],
       "state_machine": "state_machine.project.board",
       "view_state": "ready"
     }
@@ -218,10 +218,10 @@
   "project": "project_dispatch_board",
   "state_machines": [
     {
-      "data_dependencies": [],
       "id": "state_machine.project.activity.empty",
       "owner": "state_machine.project.activity",
       "owner_kind": "state_machine",
+      "query_dependencies": [],
       "slots": {
         "assets": [],
         "available_operations": [],
@@ -262,15 +262,15 @@
       "view_state": "empty"
     },
     {
-      "data_dependencies": [
+      "id": "state_machine.project.activity.ready",
+      "owner": "state_machine.project.activity",
+      "owner_kind": "state_machine",
+      "query_dependencies": [
         {
           "operation": "operation.project.read",
           "query": "query.project.activity.read"
         }
       ],
-      "id": "state_machine.project.activity.ready",
-      "owner": "state_machine.project.activity",
-      "owner_kind": "state_machine",
       "slots": {
         "assets": [],
         "available_operations": [],
@@ -314,10 +314,10 @@
       "view_state": "ready"
     },
     {
-      "data_dependencies": [],
       "id": "state_machine.project.board.ready",
       "owner": "state_machine.project.board",
       "owner_kind": "state_machine",
+      "query_dependencies": [],
       "renderers": {
         "html": {
           "layout": {
@@ -406,10 +406,10 @@
       "view_state": "ready"
     },
     {
-      "data_dependencies": [],
       "id": "state_machine.project.detail.error",
       "owner": "state_machine.project.detail",
       "owner_kind": "state_machine",
+      "query_dependencies": [],
       "slots": {
         "assets": [],
         "available_operations": [],
@@ -434,12 +434,12 @@
           },
           {
             "from": "loading",
-            "on": "data.ready",
+            "on": "data_signal.ready",
             "to": "ready"
           },
           {
             "from": "loading",
-            "on": "data.error",
+            "on": "data_signal.error",
             "to": "error"
           },
           {
@@ -460,15 +460,15 @@
       "view_state": "error"
     },
     {
-      "data_dependencies": [
+      "id": "state_machine.project.detail.loading",
+      "owner": "state_machine.project.detail",
+      "owner_kind": "state_machine",
+      "query_dependencies": [
         {
           "operation": "operation.project.read",
           "query": "query.project.detail.read"
         }
       ],
-      "id": "state_machine.project.detail.loading",
-      "owner": "state_machine.project.detail",
-      "owner_kind": "state_machine",
       "slots": {
         "assets": [],
         "available_operations": [],
@@ -492,12 +492,12 @@
           },
           {
             "from": "loading",
-            "on": "data.ready",
+            "on": "data_signal.ready",
             "to": "ready"
           },
           {
             "from": "loading",
-            "on": "data.error",
+            "on": "data_signal.error",
             "to": "error"
           },
           {
@@ -518,10 +518,10 @@
       "view_state": "loading"
     },
     {
-      "data_dependencies": [],
       "id": "state_machine.project.detail.none",
       "owner": "state_machine.project.detail",
       "owner_kind": "state_machine",
+      "query_dependencies": [],
       "slots": {
         "assets": [],
         "available_operations": [],
@@ -546,12 +546,12 @@
           },
           {
             "from": "loading",
-            "on": "data.ready",
+            "on": "data_signal.ready",
             "to": "ready"
           },
           {
             "from": "loading",
-            "on": "data.error",
+            "on": "data_signal.error",
             "to": "error"
           },
           {
@@ -572,10 +572,10 @@
       "view_state": "none"
     },
     {
-      "data_dependencies": [],
       "id": "state_machine.project.detail.ready",
       "owner": "state_machine.project.detail",
       "owner_kind": "state_machine",
+      "query_dependencies": [],
       "slots": {
         "assets": [
           "asset.project.detail.ready.priority_badge"
@@ -610,12 +610,12 @@
           },
           {
             "from": "loading",
-            "on": "data.ready",
+            "on": "data_signal.ready",
             "to": "ready"
           },
           {
             "from": "loading",
-            "on": "data.error",
+            "on": "data_signal.error",
             "to": "error"
           },
           {
@@ -636,10 +636,10 @@
       "view_state": "ready"
     },
     {
-      "data_dependencies": [],
       "id": "state_machine.project.list.empty",
       "owner": "state_machine.project.list",
       "owner_kind": "state_machine",
+      "query_dependencies": [],
       "slots": {
         "assets": [
           "asset.project.list.empty.illustration"
@@ -666,22 +666,22 @@
         "transitions": [
           {
             "from": "loading",
-            "on": "data.empty",
+            "on": "data_signal.empty",
             "to": "empty"
           },
           {
             "from": "loading",
-            "on": "data.ready",
+            "on": "data_signal.ready",
             "to": "ready"
           },
           {
             "from": "loading",
-            "on": "data.error",
+            "on": "data_signal.error",
             "to": "error"
           },
           {
             "from": "empty",
-            "on": "data.ready",
+            "on": "data_signal.ready",
             "to": "ready"
           },
           {
@@ -704,10 +704,10 @@
       "view_state": "empty"
     },
     {
-      "data_dependencies": [],
       "id": "state_machine.project.list.error",
       "owner": "state_machine.project.list",
       "owner_kind": "state_machine",
+      "query_dependencies": [],
       "slots": {
         "assets": [],
         "available_operations": [],
@@ -730,22 +730,22 @@
         "transitions": [
           {
             "from": "loading",
-            "on": "data.empty",
+            "on": "data_signal.empty",
             "to": "empty"
           },
           {
             "from": "loading",
-            "on": "data.ready",
+            "on": "data_signal.ready",
             "to": "ready"
           },
           {
             "from": "loading",
-            "on": "data.error",
+            "on": "data_signal.error",
             "to": "error"
           },
           {
             "from": "empty",
-            "on": "data.ready",
+            "on": "data_signal.ready",
             "to": "ready"
           },
           {
@@ -768,10 +768,10 @@
       "view_state": "error"
     },
     {
-      "data_dependencies": [],
       "id": "state_machine.project.list.loading",
       "owner": "state_machine.project.list",
       "owner_kind": "state_machine",
+      "query_dependencies": [],
       "slots": {
         "assets": [],
         "available_operations": [],
@@ -793,22 +793,22 @@
         "transitions": [
           {
             "from": "loading",
-            "on": "data.empty",
+            "on": "data_signal.empty",
             "to": "empty"
           },
           {
             "from": "loading",
-            "on": "data.ready",
+            "on": "data_signal.ready",
             "to": "ready"
           },
           {
             "from": "loading",
-            "on": "data.error",
+            "on": "data_signal.error",
             "to": "error"
           },
           {
             "from": "empty",
-            "on": "data.ready",
+            "on": "data_signal.ready",
             "to": "ready"
           },
           {
@@ -831,10 +831,10 @@
       "view_state": "loading"
     },
     {
-      "data_dependencies": [],
       "id": "state_machine.project.list.ready",
       "owner": "state_machine.project.list",
       "owner_kind": "state_machine",
+      "query_dependencies": [],
       "slots": {
         "assets": [],
         "available_operations": [
@@ -864,22 +864,22 @@
         "transitions": [
           {
             "from": "loading",
-            "on": "data.empty",
+            "on": "data_signal.empty",
             "to": "empty"
           },
           {
             "from": "loading",
-            "on": "data.ready",
+            "on": "data_signal.ready",
             "to": "ready"
           },
           {
             "from": "loading",
-            "on": "data.error",
+            "on": "data_signal.error",
             "to": "error"
           },
           {
             "from": "empty",
-            "on": "data.ready",
+            "on": "data_signal.ready",
             "to": "ready"
           },
           {

@@ -18,10 +18,10 @@ class ProdDriver:
 
     def when(self, test_case_id: str, test_case: Mapping[str, Any]) -> None:
         kind, body = next(iter(test_case["when"].items()))
-        if kind == "open_entry":
+        if kind == "open_entry_point":
             self.app.open_web_entry(body["ref"], self._resolve_map(body.get("input", {})))
-        elif kind == "call_entry":
-            self.app.call_entry(body["ref"], self._resolve_map(body.get("input", {})))
+        elif kind == "call_entry_point":
+            self.app.call_entry_point(body["ref"], self._resolve_map(body.get("input", {})))
         elif kind == "invoke_operation":
             self.app.invoke_operation(body["ref"], self._resolve_map(body.get("input", {})))
         elif kind == "emit_event":

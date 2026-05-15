@@ -65,8 +65,8 @@ def projection_paths(contract: dict[str, Any]) -> list[str]:
         paths.append(g("product_interfaces", "textual.projection.py"))
     if _has_workflow(contract):
         paths.append(g("product_interfaces", "workflow.cwl.yaml"))
-    if _has_policies(contract):
-        paths.append(g("product_interfaces", "policies.json"))
+    if _has_authorization_policies(contract):
+        paths.append(g("product_interfaces", "authorization_policies.json"))
     if _has_content(contract):
         paths.extend([g("content_resolvers", "__init__.py"), g("content_resolvers", "signatures.py"), g("content_resolvers", "stubs.py"), g("content_resolvers", "cases.yaml")])
     paths.extend(sorted(feature_projections(contract)))
@@ -99,8 +99,8 @@ def projection_files(contract: dict[str, Any], *, layers: str | set[str] | None 
         yield g("product_interfaces", "textual.projection.py"), textual_contract_projection(contract), "text"
     if _has_workflow(contract):
         yield g("product_interfaces", "workflow.cwl.yaml"), workflows_projection(contract), "yaml"
-    if _has_policies(contract):
-        yield g("product_interfaces", "policies.json"), policies_projection(contract), "json"
+    if _has_authorization_policies(contract):
+        yield g("product_interfaces", "authorization_policies.json"), authorization_policies_projection(contract), "json"
     yield g("behavior", "fixtures.yaml"), fixtures_projection(contract), "yaml"
     yield g("behavior", "test_cases.yaml"), test_cases_projection(contract), "yaml"
     yield g("test_adapters", "python_refs.py"), refs_py_projection(contract), "text"
@@ -134,7 +134,7 @@ def _has_asyncapi(contract: dict[str, Any]) -> bool:
 
 
 def _has_html_routes(contract: dict[str, Any]) -> bool:
-    return bool(_entry_points_with_adapter(contract, "ui"))
+    return bool(_entry_points_with_adapter(contract, "html_route"))
 
 
 def _has_workflow(contract: dict[str, Any]) -> bool:
@@ -164,8 +164,8 @@ def _has_content(contract: dict[str, Any]) -> bool:
     return bool(contract.get("text_resources") or contract.get("assets") or contract.get("content_cases"))
 
 
-def _has_policies(contract: dict[str, Any]) -> bool:
-    return bool(contract.get("policies"))
+def _has_authorization_policies(contract: dict[str, Any]) -> bool:
+    return bool(contract.get("authorization_policies"))
 
 
 def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
@@ -192,7 +192,7 @@ def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
             "operationId": cap_id,
             "x-entry": entry_id,
             "x-operation": cap_id,
-            "x-policy": cap["authorization_policy"]["policy"],
+            "x-policy": cap["authorization_policy"],
             "parameters": [
                 {"name": name, "in": "path", "required": True, "schema": type_schema(type_name)}
                 for name, type_name in sorted(params.items())
@@ -296,7 +296,7 @@ def routes_projection(contract: dict[str, Any]) -> dict[str, Any]:
                 "state_machine": entry_state_machine_name(entry),
             }
             for entry_id, entry in sorted(contract["entry_points"].items())
-            if entry_point_adapter_pair(entry)[0] == "ui"
+            if entry_point_adapter_pair(entry)[0] == "html_route"
         ],
     }
 
@@ -323,7 +323,7 @@ def state_machines_projection(contract: dict[str, Any]) -> dict[str, Any]:
                     "context": state_machine.get("context", {}),
                     "renderers": state.get("renderers", {}),
                     "child_state_machines": state.get("child_state_machines", []),
-                    "message_sync_rules": state.get("message_sync_rules", []),
+                    "signal_sync_rules": state.get("signal_sync_rules", []),
                 })
     return {"project": contract["project"], "state_machines": state_machines, "compositions": compositions}
 
@@ -334,7 +334,7 @@ def state_machine_projection_item(owner_kind: str, owner_id: str, state_name: st
         "owner_kind": owner_kind,
         "owner": owner_id,
         "view_state": state_name,
-        "data_dependencies": state.get("data_dependencies", []),
+        "query_dependencies": state.get("query_dependencies", []),
         "slots": {
             "text": state["text"],
             "assets": state["assets"],
@@ -733,10 +733,10 @@ def test_cases_projection(contract: dict[str, Any]) -> dict[str, Any]:
     return {"project": contract["project"], "test_cases": contract["test_cases"]}
 
 
-def policies_projection(contract: dict[str, Any]) -> dict[str, Any]:
+def authorization_policies_projection(contract: dict[str, Any]) -> dict[str, Any]:
     return {
         "project": contract["project"],
-        "policies": contract.get("policies", {}),
+        "authorization_policies": contract.get("authorization_policies", {}),
         "operation_authorization_policies": {
             operation_id: operation["authorization_policy"]
             for operation_id, operation in sorted(contract.get("operations", {}).items())

@@ -204,7 +204,7 @@ operations:
       archived:
         emits:
         - event: event.project.archived
-          payload: $outcome.result
+          payload_source: $outcome.result
         kind: success
         result:
           model: Project
@@ -234,7 +234,7 @@ operations:
       created:
         emits:
         - event: event.project.created
-          payload: $outcome.result
+          payload_source: $outcome.result
         kind: success
         result:
           model: Project
@@ -312,7 +312,7 @@ operations:
       submitted:
         emits:
         - event: event.project.submitted
-          payload: $outcome.result
+          payload_source: $outcome.result
         kind: success
         result:
           model: Project
@@ -327,10 +327,10 @@ state_machines:
     context:
       project_id:
         primitive: ID
-    data_dependencies: []
+    query_dependencies: []
     initial_view_state: empty
     model: Project
-    messages:
+    signals:
       accepts:
         message.project.selection_changed:
           payload_schema:
@@ -356,7 +356,7 @@ state_machines:
       ready:
         text_slots:
         - heading
-        data_dependencies:
+        query_dependencies:
         - operation.project.read
         field_slots:
         - updated_at
@@ -370,7 +370,7 @@ state_machines:
         primitive: ID
       workspace_id:
         primitive: ID
-    data_dependencies:
+    query_dependencies:
     - operation.project.list
     initial_view_state: ready
     model: Project
@@ -379,7 +379,7 @@ state_machines:
         audit:
           empty:
             rationale: Audit render for empty board state vector.
-            fixtures:
+            seed_fixtures:
             - fixture.workspace.member
             instances:
               activity:
@@ -395,7 +395,7 @@ state_machines:
             facts:
             - ref: fact.project.submitted
             - ref: fact.project.draft
-            fixtures:
+            seed_fixtures:
             - fixture.workspace.member
             instances:
               activity:
@@ -432,7 +432,7 @@ state_machines:
             when:
               context_present: selected_project_id
           state_machine: state_machine.project.activity
-        message_sync_rules:
+        signal_sync_rules:
         - effects:
           - set:
               context: selected_project_id
@@ -450,7 +450,7 @@ state_machines:
           id: select_project_updates_state_machines
           when:
             instance: list
-            message: message.project.selected
+            signal: message.project.selected
         renderers:
           textual:
             layout:
@@ -536,13 +536,13 @@ state_machines:
     context:
       project_id:
         primitive: ID
-    data_dependencies: []
+    query_dependencies: []
     initial_view_state: none
     model: Project
-    messages:
+    signals:
       accepts:
-        data.error: {}
-        data.ready: {}
+        data_signal.error: {}
+        data_signal.ready: {}
         message.project.selection_changed:
           payload_schema:
             project_id:
@@ -553,10 +553,10 @@ state_machines:
       on: message.project.selection_changed
       to: loading
     - from: loading
-      on: data.ready
+      on: data_signal.ready
       to: ready
     - from: loading
-      on: data.error
+      on: data_signal.error
       to: error
     - effects:
       - set:
@@ -573,7 +573,7 @@ state_machines:
       loading:
         text_slots:
         - message
-        data_dependencies:
+        query_dependencies:
         - operation.project.read
       none:
         text_slots:
@@ -600,15 +600,15 @@ state_machines:
         primitive: ID
       workspace_id:
         primitive: ID
-    data_dependencies:
+    query_dependencies:
     - operation.project.list
     initial_view_state: loading
     model: Project
-    messages:
+    signals:
       accepts:
-        data.empty: {}
-        data.error: {}
-        data.ready: {}
+        data_signal.empty: {}
+        data_signal.error: {}
+        data_signal.ready: {}
         message.project.select:
           payload_schema:
             project_id:
@@ -620,16 +620,16 @@ state_machines:
               primitive: ID
     transitions:
     - from: loading
-      on: data.empty
+      on: data_signal.empty
       to: empty
     - from: loading
-      on: data.ready
+      on: data_signal.ready
       to: ready
     - from: loading
-      on: data.error
+      on: data_signal.error
       to: error
     - from: empty
-      on: data.ready
+      on: data_signal.ready
       to: ready
     - effects:
       - emit:
@@ -787,7 +787,7 @@ entry_points:
           workspace_id: $input.args.workspace_id
   entry_point.html.project.board:
     adapter:
-      ui:
+      html_route:
         input:
           params:
             workspace_id:
@@ -817,7 +817,7 @@ entry_points:
     target:
       workflow:
         ref: workflow.project.approval_notice
-        when:
+        trigger_source:
           event: event.project.approved
 workflows:
   workflow.project.approval_notice:
@@ -934,14 +934,14 @@ test_cases:
             view_state: none
           list:
             view_state: empty
-        message_sync_rules:
+        signal_sync_rules:
           observed_rules:
           - select_project_updates_state_machines
         ref: state_machine.project.board
         view_state: ready
     title: Empty dispatch board
     when:
-      open_entry:
+      open_entry_point:
         input:
           workspace_id: $fixture.workspace.id
         ref: entry_point.html.project.board
@@ -968,19 +968,19 @@ test_cases:
             view_state: none
           list:
             view_state: ready
-        message_sync_rules:
+        signal_sync_rules:
           observed_rules:
           - select_project_updates_state_machines
         ref: state_machine.project.board
         view_state: ready
     title: Ready dispatch board
     when:
-      open_entry:
+      open_entry_point:
         input:
           workspace_id: $fixture.workspace.id
         ref: entry_point.html.project.board
   test_case.project.create.api.success:
-    archetype: entry_response
+    archetype: entry_point_response
     rationale: The API create endpoint delegates to the create operation and emits project.created.
     feature_tag: project.create
     subject_ref:
@@ -1010,7 +1010,7 @@ test_cases:
         status: 201
     title: Create dispatch project through API
     when:
-      call_entry:
+      call_entry_point:
         input:
           customer: Atlas Foods
           priority: High

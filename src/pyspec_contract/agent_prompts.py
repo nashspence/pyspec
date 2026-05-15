@@ -88,7 +88,7 @@ def _contract_has_ui(contract: dict[str, Any]) -> bool:
 
 
 def _contract_has_html(contract: dict[str, Any]) -> bool:
-    if "ui" in _entry_adapter_kinds(contract):
+    if "html_route" in _entry_adapter_kinds(contract):
         return True
     if any("html_viewports" in profile for profile in (contract.get("render_profiles") or {}).values()):
         return True
@@ -214,9 +214,9 @@ def _pm_design_prompt(context: _PromptContext) -> str:
             "- Use test-case archetypes from `src/pyspec_contract/patterns.yaml`; define every seed fixture explicitly.",
             "- Models are product data models: fields, lifecycle, and invariants only.",
             "- Use `rationale` only when it preserves non-obvious product intent.",
-            "- For entry points, declare one explicit `adapter` (`http`, `cli`, `webhook`, `scheduled`, `worker`, or `ui`) and one explicit `target` (`operation`, `state_machine`, or `workflow`).",
+            "- For entry points, declare one explicit `adapter` (`http`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`) and one explicit `target` (`operation`, `state_machine`, or `workflow`).",
             "- For state-machine entry points, keep invocation and rendering separate with adapter input and target `renderer` (`html` or `textual`).",
-            "- For workflow entry points, bind the entry point target to the workflow trigger with `target.workflow.ref` and `target.workflow.when`.",
+            "- For workflow entry points, bind the entry point target to the workflow trigger with `target.workflow.ref` and `target.workflow.trigger_source`.",
             "- For rendered screens, put framework-owned `layout`, `presentation`, and `style` under `renderers.html` or `renderers.textual`.",
             "- Every rendered text or asset ref must be backed by a declared text resource or asset item.",
         ]
@@ -286,7 +286,7 @@ def _review_prompt(context: _PromptContext) -> str:
         "",
         "Dev audit:",
         "- Check whether implementation consumes generated projections/constants and implements the declared contract without inventing contract surface.",
-        "- Reject invented routes, text resources, selectors, events, workflows, policies, operations, fixtures, test-case IDs, persistence contracts, or content source signatures outside the spec.",
+        "- Reject invented routes, text resources, selectors, events, workflows, authorization_policies, operations, fixtures, test-case IDs, persistence contracts, or content source signatures outside the spec.",
         "- For every dev issue, provide a recommended prompt for `dev.md` that asks for the smallest implementation fix.",
         "",
         "Evidence checks:",
@@ -319,7 +319,7 @@ def _dev_prompt(context: _PromptContext) -> str:
         context.compiled_summary(),
         "",
         "Do not change `spec/spec.yaml` to fix implementation failures unless the user explicitly switches you into PM/design work.",
-        "Use generated constants and projections; do not invent routes, strings, state machine surfaces, CSS selectors, Textual widgets, Textual style rules, events, workflows, policies, operations, fixtures, test-case IDs, storage tables, or migrations outside the spec and implementation layer.",
+        "Use generated constants and projections; do not invent routes, strings, state machine surfaces, CSS selectors, Textual widgets, Textual style rules, events, workflows, authorization_policies, operations, fixtures, test-case IDs, storage tables, or migrations outside the spec and implementation layer.",
         "",
         "Generated interfaces to consume:",
         "- `spec/generated/behavior/test_cases.yaml` and `spec/generated/behavior/fixtures.yaml`",

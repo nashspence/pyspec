@@ -24,7 +24,7 @@ Test audit:
 
 Dev audit:
 - Check whether implementation consumes generated projections/constants and implements the declared contract without inventing contract surface.
-- Reject invented routes, text resources, selectors, events, workflows, policies, operations, fixtures, test-case IDs, persistence contracts, or content source signatures outside the spec.
+- Reject invented routes, text resources, selectors, events, workflows, authorization_policies, operations, fixtures, test-case IDs, persistence contracts, or content source signatures outside the spec.
 - For every dev issue, provide a recommended prompt for `dev.md` that asks for the smallest implementation fix.
 
 Evidence checks:

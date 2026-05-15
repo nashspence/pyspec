@@ -65,8 +65,7 @@ test_cases:
       outcome: approved
       policy:
         allowed:
-        - authorization_policy:
-            policy: policy.project.approve
+        - authorization_policy: authorization_policy.project.approve
           operation: operation.project.approve
     title: Approve submitted dispatch project
     when:
@@ -94,8 +93,7 @@ test_cases:
       - operation.project.create
       policy:
         denied:
-        - authorization_policy:
-            policy: policy.project.approve
+        - authorization_policy: authorization_policy.project.approve
           operation: operation.project.approve
       requires:
         assets:
@@ -147,25 +145,6 @@ test_cases:
               when:
                 context_present: selected_project_id
             state_machine: state_machine.project.activity
-          message_sync_rules:
-          - effects:
-            - set:
-                context: selected_project_id
-                from: $message.project_id
-            - send:
-                instance: detail
-                message: message.project.selection_changed
-                payload_bindings:
-                  project_id: $message.project_id
-            - send:
-                instance: activity
-                message: message.project.selection_changed
-                payload_bindings:
-                  project_id: $message.project_id
-            id: select_project_updates_state_machines
-            when:
-              instance: list
-              message: message.project.selected
           renderers:
             html:
               layout:
@@ -246,6 +225,25 @@ test_cases:
                 - declarations:
                     width: '28'
                   selector: region.aside
+          signal_sync_rules:
+          - effects:
+            - set:
+                context: selected_project_id
+                from: $message.project_id
+            - send:
+                instance: detail
+                message: message.project.selection_changed
+                payload_bindings:
+                  project_id: $message.project_id
+            - send:
+                instance: activity
+                message: message.project.selection_changed
+                payload_bindings:
+                  project_id: $message.project_id
+            id: select_project_updates_state_machines
+            when:
+              instance: list
+              signal: message.project.selected
         instances:
           activity:
             source: state_machine.project.activity
@@ -259,15 +257,15 @@ test_cases:
             source: state_machine.project.list
             surface: state_machine.project.list.empty
             view_state: empty
-        message_sync_rules:
+        ref: state_machine.project.board
+        signal_sync_rules:
           observed_rules:
           - select_project_updates_state_machines
-        ref: state_machine.project.board
         surface: state_machine.project.board.ready
         view_state: ready
     title: Empty dispatch board
     when:
-      open_entry:
+      open_entry_point:
         input:
           workspace_id: $fixture.workspace.id
         ref: entry_point.html.project.board
@@ -347,25 +345,6 @@ test_cases:
               when:
                 context_present: selected_project_id
             state_machine: state_machine.project.activity
-          message_sync_rules:
-          - effects:
-            - set:
-                context: selected_project_id
-                from: $message.project_id
-            - send:
-                instance: detail
-                message: message.project.selection_changed
-                payload_bindings:
-                  project_id: $message.project_id
-            - send:
-                instance: activity
-                message: message.project.selection_changed
-                payload_bindings:
-                  project_id: $message.project_id
-            id: select_project_updates_state_machines
-            when:
-              instance: list
-              message: message.project.selected
           renderers:
             html:
               layout:
@@ -446,6 +425,25 @@ test_cases:
                 - declarations:
                     width: '28'
                   selector: region.aside
+          signal_sync_rules:
+          - effects:
+            - set:
+                context: selected_project_id
+                from: $message.project_id
+            - send:
+                instance: detail
+                message: message.project.selection_changed
+                payload_bindings:
+                  project_id: $message.project_id
+            - send:
+                instance: activity
+                message: message.project.selection_changed
+                payload_bindings:
+                  project_id: $message.project_id
+            id: select_project_updates_state_machines
+            when:
+              instance: list
+              signal: message.project.selected
         instances:
           activity:
             source: state_machine.project.activity
@@ -459,20 +457,20 @@ test_cases:
             source: state_machine.project.list
             surface: state_machine.project.list.ready
             view_state: ready
-        message_sync_rules:
+        ref: state_machine.project.board
+        signal_sync_rules:
           observed_rules:
           - select_project_updates_state_machines
-        ref: state_machine.project.board
         surface: state_machine.project.board.ready
         view_state: ready
     title: Ready dispatch board
     when:
-      open_entry:
+      open_entry_point:
         input:
           workspace_id: $fixture.workspace.id
         ref: entry_point.html.project.board
   test_case.project.create.api.success:
-    archetype: entry_response
+    archetype: entry_point_response
     feature_tag: project.create
     given:
       domain_facts:
@@ -500,14 +498,13 @@ test_cases:
       outcome: created
       policy:
         allowed:
-        - authorization_policy:
-            policy: policy.project.create
+        - authorization_policy: authorization_policy.project.create
           operation: operation.project.create
       response:
         status: 201
     title: Create dispatch project through API
     when:
-      call_entry:
+      call_entry_point:
         input:
           customer: Atlas Foods
           priority: High

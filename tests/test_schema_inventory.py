@@ -62,7 +62,6 @@ DEPRECATED_PROPERTY_NAMES = {
 STALE_SCHEMA_DEFINITION_NAMES = {
     "entry_bindings",
     "expression_map",
-    "message_sync_effect",
     "model_refs",
     "operation_emit_bindings",
     "operation_emit_source",
@@ -91,9 +90,9 @@ ALLOWED_ONE_OF_WITHOUT_OBJECT_DISCRIMINATORS = {
     "$defs.content_case_item.properties.ref.oneOf",
     "$defs.given.properties.domain_facts.items.oneOf",
     "$defs.json_value.oneOf",
-    "$defs.messages.properties.accepts.propertyNames.oneOf",
+    "$defs.state_machine_signals.properties.accepts.propertyNames.oneOf",
     "$defs.state_machine_transition.properties.on.oneOf",
-    "$defs.then.properties.assertion_facts.items.oneOf",
+    "$defs.then.properties.expected_facts.items.oneOf",
 }
 JSON_SCHEMA_KEYWORD_PROPERTY_NAMES = {
     "$defs",
@@ -134,7 +133,7 @@ JSON_SCHEMA_KEYWORD_PROPERTY_NAMES = {
 ALLOWED_JSON_SCHEMA_KEYWORD_PROPERTIES = {
     ("authored_test_case", "then"),
     ("authored_test_case", "title"),
-    ("entry_response_value", "type"),
+    ("entry_point_response_value", "type"),
     ("field_schema", "required"),
     ("field_schema", "type"),
     ("test_case_item", "then"),

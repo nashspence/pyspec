@@ -20,6 +20,87 @@ assets:
       label: Empty dispatch queue illustration
       placeholder_symbol: square
     rationale: Generic placeholder illustration used by the empty queue state machine state.
+authorization_policies:
+  authorization_policy.project.approve:
+    conditions:
+    - model_state:
+        equals: submitted
+        field: status
+        model: Project
+    effect: allow
+    rationale: Reviewers can approve submitted dispatch projects.
+    subjects:
+    - kind: actor
+      source: $input.approved_by
+    targets:
+    - operation: operation.project.approve
+    - model: Project
+  authorization_policy.project.archive:
+    conditions:
+    - model_state:
+        equals: approved
+        field: status
+        model: Project
+    effect: allow
+    rationale: Approved dispatch projects can be archived.
+    subjects:
+    - kind: actor
+    targets:
+    - operation: operation.project.archive
+    - model: Project
+  authorization_policy.project.create:
+    conditions:
+    - unconditional: true
+    effect: allow
+    rationale: Members can create a new dispatch project.
+    subjects:
+    - kind: actor
+    targets:
+    - operation: operation.project.create
+    - model: Project
+  authorization_policy.project.list:
+    conditions:
+    - unconditional: true
+    effect: allow
+    rationale: The board requires a project list query scoped by workspace.
+    subjects:
+    - kind: actor
+    targets:
+    - operation: operation.project.list
+    - model: Project
+  authorization_policy.project.read:
+    conditions:
+    - unconditional: true
+    effect: allow
+    rationale: The detail state machine loads the selected project by id.
+    subjects:
+    - kind: actor
+    targets:
+    - operation: operation.project.read
+    - model: Project
+  authorization_policy.project.send_approval_notice:
+    conditions:
+    - unconditional: true
+    effect: allow
+    rationale: Approval triggers a notification command for downstream coordination.
+    subjects:
+    - kind: actor
+      source: $input.approved_by
+    targets:
+    - operation: operation.project.send_approval_notice
+  authorization_policy.project.submit:
+    conditions:
+    - model_state:
+        equals: draft
+        field: status
+        model: Project
+    effect: allow
+    rationale: Draft dispatch projects can be submitted for review.
+    subjects:
+    - kind: actor
+    targets:
+    - operation: operation.project.submit
+    - model: Project
 content_cases:
   content_case.project.detail.heading.high_priority:
     args:
@@ -89,8 +170,7 @@ entry_points:
               type:
                 model: Problem
             status: 422
-    authorization_policy:
-      policy: policy.project.create
+    authorization_policy: authorization_policy.project.create
     endpoint: endpoint.project.create
     rationale: HTTP endpoint for creating a dispatch project.
     target:
@@ -124,8 +204,7 @@ entry_points:
               type:
                 model: Problem
             status: 503
-    authorization_policy:
-      policy: policy.project.list
+    authorization_policy: authorization_policy.project.list
     endpoint: endpoint.project.list
     rationale: HTTP endpoint for listing dispatch projects.
     target:
@@ -162,8 +241,7 @@ entry_points:
               from: $outcome.result
               type:
                 model: Problem
-    authorization_policy:
-      policy: policy.project.approve
+    authorization_policy: authorization_policy.project.approve
     cli_command_ref: cli_command.project.approve
     rationale: CLI entry for approval automation.
     target:
@@ -190,7 +268,7 @@ entry_points:
         renderer: textual
   entry_point.html.project.board:
     adapter:
-      ui:
+      html_route:
         input:
           params:
             workspace_id:
@@ -221,7 +299,7 @@ entry_points:
     target:
       workflow:
         ref: workflow.project.approval_notice
-        when:
+        trigger_source:
           event: event.project.approved
     workflow_ref: workflow.project.approval_notice
 events:
@@ -393,8 +471,7 @@ models:
     rationale: A dispatch project is the durable work item displayed and acted on by the board.
 operations:
   operation.project.approve:
-    authorization_policy:
-      policy: policy.project.approve
+    authorization_policy: authorization_policy.project.approve
     creates: []
     deletes: []
     input:
@@ -432,8 +509,7 @@ operations:
       to: approved
     updates: []
   operation.project.archive:
-    authorization_policy:
-      policy: policy.project.archive
+    authorization_policy: authorization_policy.project.archive
     creates: []
     deletes: []
     input:
@@ -444,7 +520,7 @@ operations:
       archived:
         emits:
         - event: event.project.archived
-          payload: $outcome.result
+          payload_source: $outcome.result
         kind: success
         result:
           model: Project
@@ -467,8 +543,7 @@ operations:
       to: archived
     updates: []
   operation.project.create:
-    authorization_policy:
-      policy: policy.project.create
+    authorization_policy: authorization_policy.project.create
     creates:
     - Project
     deletes: []
@@ -486,7 +561,7 @@ operations:
       created:
         emits:
         - event: event.project.created
-          payload: $outcome.result
+          payload_source: $outcome.result
         kind: success
         result:
           model: Project
@@ -499,8 +574,7 @@ operations:
     reads: []
     updates: []
   operation.project.list:
-    authorization_policy:
-      policy: policy.project.list
+    authorization_policy: authorization_policy.project.list
     creates: []
     deletes: []
     input:
@@ -524,8 +598,7 @@ operations:
     - Project
     updates: []
   operation.project.read:
-    authorization_policy:
-      policy: policy.project.read
+    authorization_policy: authorization_policy.project.read
     creates: []
     deletes: []
     input:
@@ -548,8 +621,7 @@ operations:
     - Project
     updates: []
   operation.project.send_approval_notice:
-    authorization_policy:
-      policy: policy.project.send_approval_notice
+    authorization_policy: authorization_policy.project.send_approval_notice
     creates: []
     deletes: []
     input:
@@ -573,8 +645,7 @@ operations:
     reads: []
     updates: []
   operation.project.submit:
-    authorization_policy:
-      policy: policy.project.submit
+    authorization_policy: authorization_policy.project.submit
     creates: []
     deletes: []
     input:
@@ -595,7 +666,7 @@ operations:
       submitted:
         emits:
         - event: event.project.submitted
-          payload: $outcome.result
+          payload_source: $outcome.result
         kind: success
         result:
           model: Project
@@ -607,106 +678,25 @@ operations:
       model: Project
       to: submitted
     updates: []
-policies:
-  policy.project.approve:
-    conditions:
-    - resource_state:
-        equals: submitted
-        field: status
-        model: Project
-    effect: allow
-    rationale: Reviewers can approve submitted dispatch projects.
-    subjects:
-    - kind: actor
-      source: $input.approved_by
-    targets:
-    - operation: operation.project.approve
-    - model: Project
-  policy.project.archive:
-    conditions:
-    - resource_state:
-        equals: approved
-        field: status
-        model: Project
-    effect: allow
-    rationale: Approved dispatch projects can be archived.
-    subjects:
-    - kind: actor
-    targets:
-    - operation: operation.project.archive
-    - model: Project
-  policy.project.create:
-    conditions:
-    - always: true
-    effect: allow
-    rationale: Members can create a new dispatch project.
-    subjects:
-    - kind: actor
-    targets:
-    - operation: operation.project.create
-    - model: Project
-  policy.project.list:
-    conditions:
-    - always: true
-    effect: allow
-    rationale: The board requires a project list query scoped by workspace.
-    subjects:
-    - kind: actor
-    targets:
-    - operation: operation.project.list
-    - model: Project
-  policy.project.read:
-    conditions:
-    - always: true
-    effect: allow
-    rationale: The detail state machine loads the selected project by id.
-    subjects:
-    - kind: actor
-    targets:
-    - operation: operation.project.read
-    - model: Project
-  policy.project.send_approval_notice:
-    conditions:
-    - always: true
-    effect: allow
-    rationale: Approval triggers a notification command for downstream coordination.
-    subjects:
-    - kind: actor
-      source: $input.approved_by
-    targets:
-    - operation: operation.project.send_approval_notice
-  policy.project.submit:
-    conditions:
-    - resource_state:
-        equals: draft
-        field: status
-        model: Project
-    effect: allow
-    rationale: Draft dispatch projects can be submitted for review.
-    subjects:
-    - kind: actor
-    targets:
-    - operation: operation.project.submit
-    - model: Project
 project: project_dispatch_board
 refs:
   asset:
   - asset.project.detail.ready.priority_badge
   - asset.project.list.empty.illustration
+  authorization_policy:
+  - authorization_policy.project.approve
+  - authorization_policy.project.archive
+  - authorization_policy.project.create
+  - authorization_policy.project.list
+  - authorization_policy.project.read
+  - authorization_policy.project.send_approval_notice
+  - authorization_policy.project.submit
   cli_command:
   - cli_command.project.approve
   - cli_command.project.board
   endpoint:
   - endpoint.project.create
   - endpoint.project.list
-  policy:
-  - policy.project.approve
-  - policy.project.archive
-  - policy.project.create
-  - policy.project.list
-  - policy.project.read
-  - policy.project.send_approval_notice
-  - policy.project.submit
   query:
   - query.project.activity.read
   - query.project.board.list
@@ -773,9 +763,11 @@ state_machines:
     context:
       project_id:
         primitive: ID
-    data_dependencies: []
     initial_view_state: empty
-    messages:
+    model: Project
+    query_dependencies: []
+    rationale: The activity state machine summarizes latest status around the selected project.
+    signals:
       accepts:
         message.project.selection_changed:
           payload_schema:
@@ -784,8 +776,6 @@ state_machines:
         message.selection.cleared:
           payload_schema: {}
       emits: {}
-    model: Project
-    rationale: The activity state machine summarizes latest status around the selected project.
     transitions:
     - from: empty
       on: message.project.selection_changed
@@ -801,8 +791,8 @@ state_machines:
       empty:
         assets: []
         available_operations: []
-        data_dependencies: []
         fields: []
+        query_dependencies: []
         surface: state_machine.project.activity.empty
         text:
         - text.project.activity.empty.heading
@@ -810,13 +800,13 @@ state_machines:
       ready:
         assets: []
         available_operations: []
-        data_dependencies:
-        - operation: operation.project.read
-          query: query.project.activity.read
         fields:
         - updated_at
         - status
         - assignee
+        query_dependencies:
+        - operation: operation.project.read
+          query: query.project.activity.read
         surface: state_machine.project.activity.ready
         text:
         - text.project.activity.ready.heading
@@ -827,23 +817,21 @@ state_machines:
         primitive: ID
       workspace_id:
         primitive: ID
-    data_dependencies:
+    initial_view_state: ready
+    model: Project
+    query_dependencies:
     - operation: operation.project.list
       query: query.project.board.list
-    initial_view_state: ready
-    messages:
+    rationale: The dispatch board composes list, detail, and activity state machines through shared selected-project context.
+    signals:
       accepts: {}
       emits: {}
-    model: Project
-    rationale: The dispatch board composes list, detail, and activity state machines through shared selected-project context.
     transitions: []
     view_states:
       ready:
         assets: []
         audit:
           empty:
-            fixtures:
-            - fixture.workspace.member
             instances:
               activity:
                 view_state: empty
@@ -852,14 +840,14 @@ state_machines:
               list:
                 view_state: empty
             rationale: Audit render for empty board state vector.
+            seed_fixtures:
+            - fixture.workspace.member
           ready_selected:
             context:
               selected_project_id: project_submitted_1
             facts:
             - ref: fact.project.submitted
             - ref: fact.project.draft
-            fixtures:
-            - fixture.workspace.member
             instances:
               activity:
                 view_state: ready
@@ -868,6 +856,8 @@ state_machines:
               list:
                 view_state: ready
             rationale: Audit render for selected-project board state vector using named project facts.
+            seed_fixtures:
+            - fixture.workspace.member
         available_operations: []
         child_state_machines:
         - context_bindings:
@@ -897,27 +887,8 @@ state_machines:
             when:
               context_present: selected_project_id
           state_machine: state_machine.project.activity
-        data_dependencies: []
         fields: []
-        message_sync_rules:
-        - effects:
-          - set:
-              context: selected_project_id
-              from: $message.project_id
-          - send:
-              instance: detail
-              message: message.project.selection_changed
-              payload_bindings:
-                project_id: $message.project_id
-          - send:
-              instance: activity
-              message: message.project.selection_changed
-              payload_bindings:
-                project_id: $message.project_id
-          id: select_project_updates_state_machines
-          when:
-            instance: list
-            message: message.project.selected
+        query_dependencies: []
         renderers:
           html:
             layout:
@@ -998,19 +969,40 @@ state_machines:
               - declarations:
                   width: '28'
                 selector: region.aside
+        signal_sync_rules:
+        - effects:
+          - set:
+              context: selected_project_id
+              from: $message.project_id
+          - send:
+              instance: detail
+              message: message.project.selection_changed
+              payload_bindings:
+                project_id: $message.project_id
+          - send:
+              instance: activity
+              message: message.project.selection_changed
+              payload_bindings:
+                project_id: $message.project_id
+          id: select_project_updates_state_machines
+          when:
+            instance: list
+            signal: message.project.selected
         surface: state_machine.project.board.ready
         text: []
   state_machine.project.detail:
     context:
       project_id:
         primitive: ID
-    data_dependencies: []
     initial_view_state: none
-    messages:
+    model: Project
+    query_dependencies: []
+    rationale: The detail state machine is independent from the list and reacts to selected project context.
+    signals:
       accepts:
-        data.error:
+        data_signal.error:
           payload_schema: {}
-        data.ready:
+        data_signal.ready:
           payload_schema: {}
         message.project.selection_changed:
           payload_schema:
@@ -1019,17 +1011,15 @@ state_machines:
         message.selection.cleared:
           payload_schema: {}
       emits: {}
-    model: Project
-    rationale: The detail state machine is independent from the list and reacts to selected project context.
     transitions:
     - from: none
       on: message.project.selection_changed
       to: loading
     - from: loading
-      on: data.ready
+      on: data_signal.ready
       to: ready
     - from: loading
-      on: data.error
+      on: data_signal.error
       to: error
     - effects:
       - set:
@@ -1042,8 +1032,8 @@ state_machines:
       error:
         assets: []
         available_operations: []
-        data_dependencies: []
         fields: []
+        query_dependencies: []
         surface: state_machine.project.detail.error
         text:
         - text.project.detail.error.heading
@@ -1051,18 +1041,18 @@ state_machines:
       loading:
         assets: []
         available_operations: []
-        data_dependencies:
+        fields: []
+        query_dependencies:
         - operation: operation.project.read
           query: query.project.detail.read
-        fields: []
         surface: state_machine.project.detail.loading
         text:
         - text.project.detail.loading.message
       none:
         assets: []
         available_operations: []
-        data_dependencies: []
         fields: []
+        query_dependencies: []
         surface: state_machine.project.detail.none
         text:
         - text.project.detail.none.heading
@@ -1073,13 +1063,13 @@ state_machines:
         available_operations:
         - operation.project.approve
         - operation.project.archive
-        data_dependencies: []
         fields:
         - title
         - customer
         - status
         - assignee
         - summary
+        query_dependencies: []
         surface: state_machine.project.detail.ready
         text:
         - text.project.detail.ready.heading
@@ -1089,17 +1079,19 @@ state_machines:
         primitive: ID
       workspace_id:
         primitive: ID
-    data_dependencies:
+    initial_view_state: loading
+    model: Project
+    query_dependencies:
     - operation: operation.project.list
       query: query.project.list.list
-    initial_view_state: loading
-    messages:
+    rationale: The list state machine owns collection loading, empty, ready, error, and selection behavior.
+    signals:
       accepts:
-        data.empty:
+        data_signal.empty:
           payload_schema: {}
-        data.error:
+        data_signal.error:
           payload_schema: {}
-        data.ready:
+        data_signal.ready:
           payload_schema: {}
         message.project.select:
           payload_schema:
@@ -1110,20 +1102,18 @@ state_machines:
           payload_schema:
             project_id:
               primitive: ID
-    model: Project
-    rationale: The list state machine owns collection loading, empty, ready, error, and selection behavior.
     transitions:
     - from: loading
-      on: data.empty
+      on: data_signal.empty
       to: empty
     - from: loading
-      on: data.ready
+      on: data_signal.ready
       to: ready
     - from: loading
-      on: data.error
+      on: data_signal.error
       to: error
     - from: empty
-      on: data.ready
+      on: data_signal.ready
       to: ready
     - effects:
       - emit:
@@ -1139,8 +1129,8 @@ state_machines:
         - asset.project.list.empty.illustration
         available_operations:
         - operation.project.create
-        data_dependencies: []
         fields: []
+        query_dependencies: []
         surface: state_machine.project.list.empty
         text:
         - text.project.list.empty.heading
@@ -1148,8 +1138,8 @@ state_machines:
       error:
         assets: []
         available_operations: []
-        data_dependencies: []
         fields: []
+        query_dependencies: []
         surface: state_machine.project.list.error
         text:
         - text.project.list.error.heading
@@ -1157,8 +1147,8 @@ state_machines:
       loading:
         assets: []
         available_operations: []
-        data_dependencies: []
         fields: []
+        query_dependencies: []
         surface: state_machine.project.list.loading
         text:
         - text.project.list.loading.message
@@ -1167,12 +1157,12 @@ state_machines:
         available_operations:
         - operation.project.create
         - operation.project.submit
-        data_dependencies: []
         fields:
         - title
         - customer
         - priority
         - status
+        query_dependencies: []
         surface: state_machine.project.list.ready
         text:
         - text.project.list.ready.heading
@@ -1242,8 +1232,7 @@ test_cases:
       outcome: approved
       policy:
         allowed:
-        - authorization_policy:
-            policy: policy.project.approve
+        - authorization_policy: authorization_policy.project.approve
           operation: operation.project.approve
     title: Approve submitted dispatch project
     when:
@@ -1271,8 +1260,7 @@ test_cases:
       - operation.project.create
       policy:
         denied:
-        - authorization_policy:
-            policy: policy.project.approve
+        - authorization_policy: authorization_policy.project.approve
           operation: operation.project.approve
       requires:
         assets:
@@ -1324,25 +1312,6 @@ test_cases:
               when:
                 context_present: selected_project_id
             state_machine: state_machine.project.activity
-          message_sync_rules:
-          - effects:
-            - set:
-                context: selected_project_id
-                from: $message.project_id
-            - send:
-                instance: detail
-                message: message.project.selection_changed
-                payload_bindings:
-                  project_id: $message.project_id
-            - send:
-                instance: activity
-                message: message.project.selection_changed
-                payload_bindings:
-                  project_id: $message.project_id
-            id: select_project_updates_state_machines
-            when:
-              instance: list
-              message: message.project.selected
           renderers:
             html:
               layout:
@@ -1423,6 +1392,25 @@ test_cases:
                 - declarations:
                     width: '28'
                   selector: region.aside
+          signal_sync_rules:
+          - effects:
+            - set:
+                context: selected_project_id
+                from: $message.project_id
+            - send:
+                instance: detail
+                message: message.project.selection_changed
+                payload_bindings:
+                  project_id: $message.project_id
+            - send:
+                instance: activity
+                message: message.project.selection_changed
+                payload_bindings:
+                  project_id: $message.project_id
+            id: select_project_updates_state_machines
+            when:
+              instance: list
+              signal: message.project.selected
         instances:
           activity:
             source: state_machine.project.activity
@@ -1436,15 +1424,15 @@ test_cases:
             source: state_machine.project.list
             surface: state_machine.project.list.empty
             view_state: empty
-        message_sync_rules:
+        ref: state_machine.project.board
+        signal_sync_rules:
           observed_rules:
           - select_project_updates_state_machines
-        ref: state_machine.project.board
         surface: state_machine.project.board.ready
         view_state: ready
     title: Empty dispatch board
     when:
-      open_entry:
+      open_entry_point:
         input:
           workspace_id: $fixture.workspace.id
         ref: entry_point.html.project.board
@@ -1524,25 +1512,6 @@ test_cases:
               when:
                 context_present: selected_project_id
             state_machine: state_machine.project.activity
-          message_sync_rules:
-          - effects:
-            - set:
-                context: selected_project_id
-                from: $message.project_id
-            - send:
-                instance: detail
-                message: message.project.selection_changed
-                payload_bindings:
-                  project_id: $message.project_id
-            - send:
-                instance: activity
-                message: message.project.selection_changed
-                payload_bindings:
-                  project_id: $message.project_id
-            id: select_project_updates_state_machines
-            when:
-              instance: list
-              message: message.project.selected
           renderers:
             html:
               layout:
@@ -1623,6 +1592,25 @@ test_cases:
                 - declarations:
                     width: '28'
                   selector: region.aside
+          signal_sync_rules:
+          - effects:
+            - set:
+                context: selected_project_id
+                from: $message.project_id
+            - send:
+                instance: detail
+                message: message.project.selection_changed
+                payload_bindings:
+                  project_id: $message.project_id
+            - send:
+                instance: activity
+                message: message.project.selection_changed
+                payload_bindings:
+                  project_id: $message.project_id
+            id: select_project_updates_state_machines
+            when:
+              instance: list
+              signal: message.project.selected
         instances:
           activity:
             source: state_machine.project.activity
@@ -1636,20 +1624,20 @@ test_cases:
             source: state_machine.project.list
             surface: state_machine.project.list.ready
             view_state: ready
-        message_sync_rules:
+        ref: state_machine.project.board
+        signal_sync_rules:
           observed_rules:
           - select_project_updates_state_machines
-        ref: state_machine.project.board
         surface: state_machine.project.board.ready
         view_state: ready
     title: Ready dispatch board
     when:
-      open_entry:
+      open_entry_point:
         input:
           workspace_id: $fixture.workspace.id
         ref: entry_point.html.project.board
   test_case.project.create.api.success:
-    archetype: entry_response
+    archetype: entry_point_response
     feature_tag: project.create
     given:
       domain_facts:
@@ -1677,14 +1665,13 @@ test_cases:
       outcome: created
       policy:
         allowed:
-        - authorization_policy:
-            policy: policy.project.create
+        - authorization_policy: authorization_policy.project.create
           operation: operation.project.create
       response:
         status: 201
     title: Create dispatch project through API
     when:
-      call_entry:
+      call_entry_point:
         input:
           customer: Atlas Foods
           priority: High

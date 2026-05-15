@@ -8,6 +8,15 @@ class AuditCase:
     STATE_MACHINE_PROJECT_BOARD_READY_EMPTY_AUDIT = 'state_machine.project.board.ready.empty.audit'
     STATE_MACHINE_PROJECT_BOARD_READY_READY_SELECTED_AUDIT = 'state_machine.project.board.ready.ready_selected.audit'
 
+class AuthorizationPolicy:
+    AUTHORIZATION_POLICY_PROJECT_APPROVE = 'authorization_policy.project.approve'
+    AUTHORIZATION_POLICY_PROJECT_ARCHIVE = 'authorization_policy.project.archive'
+    AUTHORIZATION_POLICY_PROJECT_CREATE = 'authorization_policy.project.create'
+    AUTHORIZATION_POLICY_PROJECT_LIST = 'authorization_policy.project.list'
+    AUTHORIZATION_POLICY_PROJECT_READ = 'authorization_policy.project.read'
+    AUTHORIZATION_POLICY_PROJECT_SEND_APPROVAL_NOTICE = 'authorization_policy.project.send_approval_notice'
+    AUTHORIZATION_POLICY_PROJECT_SUBMIT = 'authorization_policy.project.submit'
+
 class CliCommand:
     CLI_COMMAND_PROJECT_APPROVE = 'cli_command.project.approve'
     CLI_COMMAND_PROJECT_BOARD = 'cli_command.project.board'
@@ -50,15 +59,6 @@ class Operation:
     OPERATION_PROJECT_READ = 'operation.project.read'
     OPERATION_PROJECT_SEND_APPROVAL_NOTICE = 'operation.project.send_approval_notice'
     OPERATION_PROJECT_SUBMIT = 'operation.project.submit'
-
-class Policy:
-    POLICY_PROJECT_APPROVE = 'policy.project.approve'
-    POLICY_PROJECT_ARCHIVE = 'policy.project.archive'
-    POLICY_PROJECT_CREATE = 'policy.project.create'
-    POLICY_PROJECT_LIST = 'policy.project.list'
-    POLICY_PROJECT_READ = 'policy.project.read'
-    POLICY_PROJECT_SEND_APPROVAL_NOTICE = 'policy.project.send_approval_notice'
-    POLICY_PROJECT_SUBMIT = 'policy.project.submit'
 
 class Query:
     QUERY_PROJECT_ACTIVITY_READ = 'query.project.activity.read'

@@ -107,7 +107,7 @@ paths:
           description: Unavailable
       x-entry: entry_point.api.project.list
       x-operation: operation.project.list
-      x-policy: policy.project.list
+      x-policy: authorization_policy.project.list
     post:
       operationId: operation.project.create
       parameters:
@@ -149,4 +149,4 @@ paths:
           description: Validation Failed
       x-entry: entry_point.api.project.create
       x-operation: operation.project.create
-      x-policy: policy.project.create
+      x-policy: authorization_policy.project.create

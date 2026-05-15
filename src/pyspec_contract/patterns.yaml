@@ -25,7 +25,7 @@ authoring_layers:
       requires: [core, ui]
       projections_when_declared: [spec/generated/product_interfaces/textual.projection.py, spec/generated/audit_evidence/**/renders/*.svg]
     html:
-      opens: [entry_point.adapter.ui, renderers.html, render_profile.html_viewports]
+      opens: [entry_point.adapter.html_route, renderers.html, render_profile.html_viewports]
       requires: [core, ui]
       projections_when_declared: [spec/generated/product_interfaces/html.routes.json, spec/generated/audit_evidence/**/renders/*.png]
   common_sets:
@@ -44,29 +44,29 @@ purity_rules:
 
 test_case_archetypes:
   empty_collection_state_machine:
-    when: open_entry
-    then: [state_machine.view_state.empty, enables, policy.denied]
+    when: open_entry_point
+    then: [state_machine.view_state.empty, enables, authorization_policy.denied]
   ready_collection_state_machine:
-    when: open_entry
+    when: open_entry_point
     then: [state_machine.view_state.ready, enables]
   state_machine_composition:
-    when: open_entry
-    then: [state_machine.instances, enables, policy.denied]
+    when: open_entry_point
+    then: [state_machine.instances, enables, authorization_policy.denied]
   state_machine_composition_sync:
-    when: open_entry
-    then: [state_machine.instances, state_machine.context, state_machine.message_sync_rules.observed_rules]
+    when: open_entry_point
+    then: [state_machine.instances, state_machine.context, state_machine.signal_sync_rules.observed_rules]
   operation_outcome:
     when: invoke_operation
     then: [outcome, model.exists, events.emitted, invoked]
-  entry_response:
-    when: call_entry
+  entry_point_response:
+    when: call_entry_point
     then: [outcome, response.status, model.exists, events.emitted, invoked]
   workflow_event_success:
     when: emit_event
     then: [workflow.executed, workflow.outcome, invoked]
-  forbidden_action:
-    when: open_entry
-    then: [policy.denied]
+  authorization_denial:
+    when: open_entry_point
+    then: [authorization_policy.denied]
 
 entry_point_adapters:
   http:
@@ -89,7 +89,7 @@ entry_point_adapters:
     target: workflow
     requires: [path]
     layer: events
-  ui:
+  html_route:
     target: state_machine
     requires: [path]
     layer: html
@@ -97,7 +97,7 @@ entry_point_adapters:
 entry_target_contracts:
   boundary: 'Entry points declare adapter-specific input and responses. target.*.input_bindings maps adapter input onto the target operation or state-machine context.'
   state_machine: 'State-machine entry targets use target.state_machine.ref plus target.state_machine.renderer to distinguish invocation from html/textual rendering.'
-  workflow: 'Workflow entry targets use target.workflow.ref plus target.workflow.when so the entry point declares the trigger data it consumes. Workers declare message dispositions; workflows declare named outcomes and route each step outcome explicitly.'
+  workflow: 'Workflow entry targets use target.workflow.ref plus target.workflow.trigger_source so the entry point declares the trigger data it consumes. Workers declare message dispositions; workflows declare named outcomes and route each step outcome explicitly.'
 
 renderer_contracts:
   html_layout:
@@ -134,7 +134,7 @@ gherkin_policy:
   rule: PM agents never author raw .feature files; spec and prod pytest-bdd harnesses consume the same generated corpus.
 
 composition_contracts:
-  state_machine: 'target: state_machine defines context, initial view state, view states, state-local data dependencies, transitions, emitted messages, and optional state-local composition.'
+  state_machine: 'target: state_machine defines context, initial view state, view states, state-local query dependencies, transitions, emitted signals, and optional state-local composition.'
   test_case: 'target: test_case asserts a state-machine view state or composed state-machine instance vector.'
 
 audit_contracts:

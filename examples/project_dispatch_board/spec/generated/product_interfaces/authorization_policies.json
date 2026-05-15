@@ -1,43 +1,9 @@
 {
-  "entry_point_authorization_policies": {
-    "entry_point.api.project.create": {
-      "policy": "policy.project.create"
-    },
-    "entry_point.api.project.list": {
-      "policy": "policy.project.list"
-    },
-    "entry_point.cli.project.approve": {
-      "policy": "policy.project.approve"
-    }
-  },
-  "operation_authorization_policies": {
-    "operation.project.approve": {
-      "policy": "policy.project.approve"
-    },
-    "operation.project.archive": {
-      "policy": "policy.project.archive"
-    },
-    "operation.project.create": {
-      "policy": "policy.project.create"
-    },
-    "operation.project.list": {
-      "policy": "policy.project.list"
-    },
-    "operation.project.read": {
-      "policy": "policy.project.read"
-    },
-    "operation.project.send_approval_notice": {
-      "policy": "policy.project.send_approval_notice"
-    },
-    "operation.project.submit": {
-      "policy": "policy.project.submit"
-    }
-  },
-  "policies": {
-    "policy.project.approve": {
+  "authorization_policies": {
+    "authorization_policy.project.approve": {
       "conditions": [
         {
-          "resource_state": {
+          "model_state": {
             "equals": "submitted",
             "field": "status",
             "model": "Project"
@@ -61,10 +27,10 @@
         }
       ]
     },
-    "policy.project.archive": {
+    "authorization_policy.project.archive": {
       "conditions": [
         {
-          "resource_state": {
+          "model_state": {
             "equals": "approved",
             "field": "status",
             "model": "Project"
@@ -87,10 +53,10 @@
         }
       ]
     },
-    "policy.project.create": {
+    "authorization_policy.project.create": {
       "conditions": [
         {
-          "always": true
+          "unconditional": true
         }
       ],
       "effect": "allow",
@@ -109,10 +75,10 @@
         }
       ]
     },
-    "policy.project.list": {
+    "authorization_policy.project.list": {
       "conditions": [
         {
-          "always": true
+          "unconditional": true
         }
       ],
       "effect": "allow",
@@ -131,10 +97,10 @@
         }
       ]
     },
-    "policy.project.read": {
+    "authorization_policy.project.read": {
       "conditions": [
         {
-          "always": true
+          "unconditional": true
         }
       ],
       "effect": "allow",
@@ -153,10 +119,10 @@
         }
       ]
     },
-    "policy.project.send_approval_notice": {
+    "authorization_policy.project.send_approval_notice": {
       "conditions": [
         {
-          "always": true
+          "unconditional": true
         }
       ],
       "effect": "allow",
@@ -173,10 +139,10 @@
         }
       ]
     },
-    "policy.project.submit": {
+    "authorization_policy.project.submit": {
       "conditions": [
         {
-          "resource_state": {
+          "model_state": {
             "equals": "draft",
             "field": "status",
             "model": "Project"
@@ -199,6 +165,20 @@
         }
       ]
     }
+  },
+  "entry_point_authorization_policies": {
+    "entry_point.api.project.create": "authorization_policy.project.create",
+    "entry_point.api.project.list": "authorization_policy.project.list",
+    "entry_point.cli.project.approve": "authorization_policy.project.approve"
+  },
+  "operation_authorization_policies": {
+    "operation.project.approve": "authorization_policy.project.approve",
+    "operation.project.archive": "authorization_policy.project.archive",
+    "operation.project.create": "authorization_policy.project.create",
+    "operation.project.list": "authorization_policy.project.list",
+    "operation.project.read": "authorization_policy.project.read",
+    "operation.project.send_approval_notice": "authorization_policy.project.send_approval_notice",
+    "operation.project.submit": "authorization_policy.project.submit"
   },
   "project": "project_dispatch_board"
 }

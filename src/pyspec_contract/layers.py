@@ -20,7 +20,7 @@ TARGET_LAYERS: dict[str, set[str]] = {
     "fixture": {"core"},
     "fact": {"core"},
     "model": {"core"},
-    "policy": {"core"},
+    "authorization_policy": {"core"},
     "operation": {"core"},
     "event": {"core"},
     "test_case": {"core"},
@@ -37,7 +37,7 @@ TARGET_LAYERS: dict[str, set[str]] = {
 
 ENTRY_ADAPTER_LAYER = {
     "http": "http",
-    "ui": "ui",
+    "html_route": "ui",
     "cli": "workflow",
     "worker": "workflow",
     "scheduled": "workflow",
@@ -52,7 +52,7 @@ AUTHOR_SECTIONS: dict[str, str] = {
     "fixtures": "fixture",
     "facts": "fact",
     "models": "model",
-    "policies": "policy",
+    "authorization_policies": "authorization_policy",
     "operations": "operation",
     "events": "event",
     "data_contracts": "data_contract",

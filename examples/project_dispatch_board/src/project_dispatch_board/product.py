@@ -51,14 +51,14 @@ class ProductApp:
 
     def open_web_entry(self, entry_id: str, params: Mapping[str, Any]) -> dict[str, Any]:
         entry = self.contract["entry_points"][entry_id]
-        assert entry_point_adapter_pair(entry)[0] == "ui"
+        assert entry_point_adapter_pair(entry)[0] == "html_route"
         state_machine_id = entry_state_machine_name(entry)
         state_machine = self.contract["state_machines"][state_machine_id]
         context = self._entry_target_input(entry, params)
         workspace_id = context.get("workspace_id")
         matching = [p for p in self.projects if p.get("workspace_id") == workspace_id]
         parent_state_name = "ready" if "ready" in state_machine.get("view_states", {}) else next(iter(state_machine.get("view_states", {"ready": {}})))
-        parent_state = state_machine["view_states"].get(parent_state_name, {"surface": None, "text": [], "assets": [], "available_operations": [], "data_dependencies": []})
+        parent_state = state_machine["view_states"].get(parent_state_name, {"surface": None, "text": [], "assets": [], "available_operations": [], "query_dependencies": []})
         if parent_state.get("child_state_machines"):
             state_machines: dict[str, Any] = {}
             for mount in parent_state["child_state_machines"]:
@@ -70,7 +70,7 @@ class ProductApp:
                     "source": source_id,
                     "view_state": state_name,
                     "surface": state["surface"],
-                    "data_dependencies": list(child_state_machine.get("data_dependencies", [])) + list(state.get("data_dependencies", [])),
+                    "query_dependencies": list(child_state_machine.get("query_dependencies", [])) + list(state.get("query_dependencies", [])),
                     "text": list(state["text"]),
                     "assets": list(state["assets"]),
                     "available_operations": list(state["available_operations"]),
@@ -79,13 +79,13 @@ class ProductApp:
                 "ref": state_machine_id,
                 "view_state": parent_state_name,
                 "surface": parent_state.get("surface"),
-                "data_dependencies": list(state_machine.get("data_dependencies", [])) + list(parent_state.get("data_dependencies", [])),
+                "query_dependencies": list(state_machine.get("query_dependencies", [])) + list(parent_state.get("query_dependencies", [])),
                 "text": list(parent_state.get("text", [])),
                 "assets": list(parent_state.get("assets", [])),
                 "available_operations": list(parent_state.get("available_operations", [])),
                 "context": context,
                 "instances": state_machines,
-                "message_sync_rules": [rule["id"] for rule in parent_state.get("message_sync_rules", [])],
+                "signal_sync_rules": [rule["id"] for rule in parent_state.get("signal_sync_rules", [])],
             }
             return self.rendered_state_machine
         state_name = "ready" if matching else "empty"
@@ -106,7 +106,7 @@ class ProductApp:
             if _condition_matches(selected["when"], context):
                 return selected["view_state"]
             return mount["initial_view_state"]
-        if records and "ready" in state_machine["view_states"] and (state_machine.get("data_dependencies") or state_machine["view_states"]["ready"].get("data_dependencies")):
+        if records and "ready" in state_machine["view_states"] and (state_machine.get("query_dependencies") or state_machine["view_states"]["ready"].get("query_dependencies")):
             return "ready"
         if not records and "empty" in state_machine["view_states"]:
             return "empty"
@@ -133,7 +133,7 @@ class ProductApp:
             return values
         return set(self.rendered_state_machine.get(key, []))
 
-    def call_entry(self, entry_id: str, input_values: Mapping[str, Any]) -> dict[str, Any]:
+    def call_entry_point(self, entry_id: str, input_values: Mapping[str, Any]) -> dict[str, Any]:
         entry = self.contract["entry_points"][entry_id]
         assert entry_point_adapter_pair(entry)[0] in {"http", "cli"}
         target_input = self._entry_target_input(entry, input_values)
@@ -141,7 +141,7 @@ class ProductApp:
         assert target_kind == "operation"
         authorization_policy = entry.get("authorization_policy")
         if authorization_policy:
-            policy_id = authorization_policy["policy"]
+            policy_id = authorization_policy
             self.policy_decisions[("entry_point", entry_id, policy_id)] = self._evaluate_policy(policy_id, "entry_point", entry_id, target_input)
         result = self.invoke_operation(operation_id, target_input)
         response = entry_point_responses(entry)[self.last_outcome]
@@ -164,7 +164,7 @@ class ProductApp:
 
     def invoke_operation(self, operation_id: str, input_values: Mapping[str, Any]) -> Any:
         self.invoked_operations.append(operation_id)
-        authorization_policy = self.contract["operations"][operation_id]["authorization_policy"]["policy"]
+        authorization_policy = self.contract["operations"][operation_id]["authorization_policy"]
         self.policy_decisions[("operation", operation_id, authorization_policy)] = self._evaluate_policy(authorization_policy, "operation", operation_id, input_values)
         self.last_outcome = _success_outcome_id(self.contract["operations"][operation_id])
         values = dict(input_values)
@@ -240,8 +240,8 @@ class ProductApp:
                     actual = self.rendered_state_machine["instances"][instance_id]
                     assert actual["view_state"] == state_machine_expected["view_state"]
                     assert actual["surface"] == state_machine_expected["surface"]
-                for sync_id in (expected.get("message_sync_rules") or {}).get("observed_rules", []):
-                    assert sync_id in self.rendered_state_machine.get("message_sync_rules", [])
+                for sync_id in (expected.get("signal_sync_rules") or {}).get("observed_rules", []):
+                    assert sync_id in self.rendered_state_machine.get("signal_sync_rules", [])
         requires = assertions.get("requires", {})
         if requires:
             assert self.rendered_state_machine is not None
@@ -293,7 +293,7 @@ class ProductApp:
                 assert self._policy_assertion_allowed(assertion)
             for assertion in policy.get("denied", []):
                 assert not self._policy_assertion_allowed(assertion)
-        for fact in assertions.get("assertion_facts", []):
+        for fact in assertions.get("expected_facts", []):
             kind, body = next(iter(fact.items()))
             if body["model"] != "Project":
                 raise AssertionError("Example app only implements Project")
@@ -329,11 +329,11 @@ class ProductApp:
         target = assertion[kind]
         authorization_policy = assertion.get("authorization_policy")
         if authorization_policy:
-            policy_id = authorization_policy["policy"]
+            policy_id = authorization_policy
         elif kind == "operation":
-            policy_id = self.contract["operations"][target]["authorization_policy"]["policy"]
+            policy_id = self.contract["operations"][target]["authorization_policy"]
         else:
-            policy_id = self.contract["entry_points"][target]["authorization_policy"]["policy"]
+            policy_id = self.contract["entry_points"][target]["authorization_policy"]
         recorded = self.policy_decisions.get((kind, target, policy_id))
         if recorded is not None:
             return recorded
@@ -343,7 +343,7 @@ class ProductApp:
         return self._evaluate_policy(policy_id, kind, target, input_values)
 
     def _evaluate_policy(self, policy_id: str, kind: str, target: str, input_values: Mapping[str, Any]) -> bool:
-        policy = self.contract["policies"][policy_id]
+        policy = self.contract["authorization_policies"][policy_id]
         if not _policy_covers_target(policy, kind, target):
             if kind != "entry_point":
                 return False
@@ -354,15 +354,15 @@ class ProductApp:
         return matched if policy["effect"] == "allow" else not matched
 
     def _policy_condition_matches(self, condition: Mapping[str, Any], input_values: Mapping[str, Any]) -> bool:
-        if "always" in condition:
-            return bool(condition["always"])
+        if "unconditional" in condition:
+            return bool(condition["unconditional"])
         if "input_present" in condition:
             field = condition["input_present"]
             return field in input_values and input_values[field] is not None
-        if "resource_exists" in condition:
-            return bool(self._policy_records(condition["resource_exists"]["model"], input_values))
-        if "resource_state" in condition:
-            body = condition["resource_state"]
+        if "model_exists" in condition:
+            return bool(self._policy_records(condition["model_exists"]["model"], input_values))
+        if "model_state" in condition:
+            body = condition["model_state"]
             return any(project.get(body["field"]) == body["equals"] for project in self._policy_records(body["model"], input_values))
         if "subject_role" in condition:
             return condition["subject_role"] in self.fixtures.get("actor", {}).get("roles", [])

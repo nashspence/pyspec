@@ -49,10 +49,10 @@ class ReferenceSpecDriver:
 
     def when(self, test_case_id: str, test_case: Mapping[str, Any]) -> None:
         kind, body = next(iter(test_case["when"].items()))
-        if kind == "open_entry":
-            self.last_state_machine = self._open_entry(body["ref"], self._resolve_map(body.get("input", {})))
-        elif kind == "call_entry":
-            self.response = self._call_entry(body["ref"], self._resolve_map(body.get("input", {})), test_case["then"].get("outcome"))
+        if kind == "open_entry_point":
+            self.last_state_machine = self._open_entry_point(body["ref"], self._resolve_map(body.get("input", {})))
+        elif kind == "call_entry_point":
+            self.response = self._call_entry_point(body["ref"], self._resolve_map(body.get("input", {})), test_case["then"].get("outcome"))
         elif kind == "invoke_operation":
             self.last_result = self._invoke(body["ref"], self._resolve_map(body.get("input", {})), test_case["then"].get("outcome"))
         elif kind == "emit_event":
@@ -75,8 +75,8 @@ class ReferenceSpecDriver:
                     actual = self.last_state_machine["instances"][instance_id]
                     assert actual["view_state"] == state_machine_expected["view_state"]
                     assert actual["surface"] == state_machine_expected["surface"]
-                for sync_id in (expected.get("message_sync_rules") or {}).get("observed_rules", []):
-                    assert sync_id in self.last_state_machine.get("message_sync_rules", [])
+                for sync_id in (expected.get("signal_sync_rules") or {}).get("observed_rules", []):
+                    assert sync_id in self.last_state_machine.get("signal_sync_rules", [])
         requires = assertions.get("requires", {})
         if requires:
             assert self.last_state_machine is not None, "state-machine requirements need a rendered state machine"
@@ -94,10 +94,10 @@ class ReferenceSpecDriver:
             for cap in requires.get("available_operations", []):
                 assert cap in rendered_actions
             state_machine = self.contract["state_machines"][self.last_state_machine["ref"]]
-            queries = [datum["query"] for datum in state_machine.get("data_dependencies", [])]
+            queries = [dependency["query"] for dependency in state_machine.get("query_dependencies", [])]
             if "instances" in self.last_state_machine:
                 for instance in self.last_state_machine["instances"].values():
-                    queries.extend(datum["query"] for datum in instance.get("data_dependencies", []))
+                    queries.extend(dependency["query"] for dependency in instance.get("query_dependencies", []))
             for query in requires.get("queries", []):
                 assert query in queries
         for cap in assertions.get("enables", []):
@@ -137,7 +137,7 @@ class ReferenceSpecDriver:
             assert self._policy_assertion_allowed(assertion), f"Expected policy to allow {assertion}"
         for assertion in policy.get("denied", []):
             assert not self._policy_assertion_allowed(assertion), f"Expected policy to deny {assertion}"
-        for fact in assertions.get("assertion_facts", []):
+        for fact in assertions.get("expected_facts", []):
             kind, body = next(iter(fact.items()))
             if kind == "present":
                 values = self._resolve_map(body["values"])
@@ -146,14 +146,14 @@ class ReferenceSpecDriver:
                 where = self._resolve_map(body["where"])
                 assert not any(_matches(record, where) for record in self.store[body["model"]]), f"Unexpected assertion fact {body}"
 
-    def _open_entry(self, entry_id: str, params: dict[str, Any]) -> dict[str, Any]:
+    def _open_entry_point(self, entry_id: str, params: dict[str, Any]) -> dict[str, Any]:
         entry = self.contract["entry_points"][entry_id]
         state_machine_id = entry_state_machine_name(entry)
         state_machine = self.contract["state_machines"][state_machine_id]
         context = self._entry_target_input(entry, params)
         records = self._filter(state_machine["model"], context)
         parent_state_name = "ready" if "ready" in state_machine.get("view_states", {}) else next(iter(state_machine.get("view_states", {"ready": {}})))
-        state = state_machine["view_states"].get(parent_state_name, {"surface": None, "text": [], "assets": [], "available_operations": [], "data_dependencies": []})
+        state = state_machine["view_states"].get(parent_state_name, {"surface": None, "text": [], "assets": [], "available_operations": [], "query_dependencies": []})
         if state.get("child_state_machines"):
             state_machines: dict[str, Any] = {}
             for mount in state["child_state_machines"]:
@@ -165,7 +165,7 @@ class ReferenceSpecDriver:
                     "source": source_id,
                     "view_state": child_state_name,
                     "surface": child_state["surface"],
-                    "data_dependencies": list(state_machine.get("data_dependencies", [])) + list(child_state.get("data_dependencies", [])),
+                    "query_dependencies": list(state_machine.get("query_dependencies", [])) + list(child_state.get("query_dependencies", [])),
                     "text": child_state["text"],
                     "assets": child_state["assets"],
                     "available_operations": child_state["available_operations"],
@@ -174,13 +174,13 @@ class ReferenceSpecDriver:
                 "ref": state_machine_id,
                 "view_state": parent_state_name,
                 "surface": state.get("surface"),
-                "data_dependencies": list(state_machine.get("data_dependencies", [])) + list(state.get("data_dependencies", [])),
+                "query_dependencies": list(state_machine.get("query_dependencies", [])) + list(state.get("query_dependencies", [])),
                 "text": state.get("text", []),
                 "assets": state.get("assets", []),
                 "available_operations": state.get("available_operations", []),
                 "context": context,
                 "instances": state_machines,
-                "message_sync_rules": [rule["id"] for rule in state.get("message_sync_rules", [])],
+                "signal_sync_rules": [rule["id"] for rule in state.get("signal_sync_rules", [])],
             }
         state_name = "empty" if not records and "empty" in state_machine["view_states"] else "ready"
         state = state_machine["view_states"][state_name]
@@ -199,7 +199,7 @@ class ReferenceSpecDriver:
             if _condition_matches(selected["when"], context):
                 return selected["view_state"]
             return mount["initial_view_state"]
-        if records and "ready" in state_machine["view_states"] and (state_machine.get("data_dependencies") or state_machine["view_states"]["ready"].get("data_dependencies")):
+        if records and "ready" in state_machine["view_states"] and (state_machine.get("query_dependencies") or state_machine["view_states"]["ready"].get("query_dependencies")):
             return "ready"
         if not records and "empty" in state_machine["view_states"]:
             return "empty"
@@ -226,14 +226,13 @@ class ReferenceSpecDriver:
             return values
         return set(self.last_state_machine.get(key, []))
 
-    def _call_entry(self, entry_id: str, input_values: dict[str, Any], outcome_id: str | None = None) -> dict[str, Any]:
+    def _call_entry_point(self, entry_id: str, input_values: dict[str, Any], outcome_id: str | None = None) -> dict[str, Any]:
         entry = self.contract["entry_points"][entry_id]
         target_kind, cap_id = entry_target_pair(entry)
         assert target_kind == "operation"
         target_input = self._entry_target_input(entry, input_values)
-        authorization_policy = entry.get("authorization_policy")
-        if authorization_policy:
-            policy_id = authorization_policy["policy"]
+        policy_id = entry.get("authorization_policy")
+        if policy_id:
             self.policy_decisions[("entry_point", entry_id, policy_id)] = self._evaluate_policy(policy_id, "entry_point", entry_id, target_input)
         result = self._invoke(cap_id, target_input, outcome_id)
         response = entry_point_responses(entry)[self.last_outcome]
@@ -255,7 +254,7 @@ class ReferenceSpecDriver:
     def _invoke(self, cap_id: str, input_values: dict[str, Any], outcome_id: str | None = None) -> Any:
         self.invoked.append(cap_id)
         cap = self.contract["operations"][cap_id]
-        policy_id = cap["authorization_policy"]["policy"]
+        policy_id = cap["authorization_policy"]
         self.policy_decisions[("operation", cap_id, policy_id)] = self._evaluate_policy(policy_id, "operation", cap_id, input_values)
         outcome_id = outcome_id or _success_outcome_id(cap)
         outcome = cap["outcomes"][outcome_id]
@@ -343,8 +342,8 @@ class ReferenceSpecDriver:
         if isinstance(emit, str):
             return emit, dict(result)
         namespace = {"input": dict(input_values), "outcome": {"result": dict(result)}}
-        if "payload" in emit:
-            return emit["event"], _resolve_binding(emit["payload"], namespace)
+        if "payload_source" in emit:
+            return emit["event"], _resolve_binding(emit["payload_source"], namespace)
         return emit["event"], {field: _resolve_binding(source, namespace) for field, source in emit["payload_bindings"].items()}
 
     def _record_event(self, event_id: str, payload: dict[str, Any]) -> None:
@@ -377,11 +376,11 @@ class ReferenceSpecDriver:
         target_ref = assertion[kind]
         authorization_policy = assertion.get("authorization_policy")
         if authorization_policy:
-            policy_id = authorization_policy["policy"]
+            policy_id = authorization_policy
         elif kind == "operation":
-            policy_id = self.contract["operations"][target_ref]["authorization_policy"]["policy"]
+            policy_id = self.contract["operations"][target_ref]["authorization_policy"]
         else:
-            policy_id = self.contract["entry_points"][target_ref]["authorization_policy"]["policy"]
+            policy_id = self.contract["entry_points"][target_ref]["authorization_policy"]
         recorded = self.policy_decisions.get((kind, target_ref, policy_id))
         if recorded is not None:
             return recorded
@@ -391,7 +390,7 @@ class ReferenceSpecDriver:
         return self._evaluate_policy(policy_id, kind, target_ref, input_values)
 
     def _evaluate_policy(self, policy_id: str, kind: str, target_ref: str, input_values: Mapping[str, Any]) -> bool:
-        policy = self.contract["policies"][policy_id]
+        policy = self.contract["authorization_policies"][policy_id]
         if not _policy_covers_target(policy, kind, target_ref):
             if kind == "entry_point":
                 target_kind, target = entry_target_pair(self.contract["entry_points"][target_ref])
@@ -403,15 +402,15 @@ class ReferenceSpecDriver:
         return matched if policy["effect"] == "allow" else not matched
 
     def _policy_condition_matches(self, condition: Mapping[str, Any], input_values: Mapping[str, Any]) -> bool:
-        if "always" in condition:
-            return bool(condition["always"])
+        if "unconditional" in condition:
+            return bool(condition["unconditional"])
         if "input_present" in condition:
             field = condition["input_present"]
             return field in input_values and input_values[field] is not None
-        if "resource_exists" in condition:
-            return bool(self._policy_records(condition["resource_exists"]["model"], input_values))
-        if "resource_state" in condition:
-            body = condition["resource_state"]
+        if "model_exists" in condition:
+            return bool(self._policy_records(condition["model_exists"]["model"], input_values))
+        if "model_state" in condition:
+            body = condition["model_state"]
             return any(record.get(body["field"]) == body["equals"] for record in self._policy_records(body["model"], input_values))
         if "subject_role" in condition:
             role = condition["subject_role"]

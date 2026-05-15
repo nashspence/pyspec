@@ -223,7 +223,7 @@ def _fixtures_doc(
 
 
 def _state_needs_data(contract: dict[str, Any], state_machine: dict[str, Any]) -> bool:
-    if state_machine.get("data_dependencies") or state_machine["slots"].get("fields"):
+    if state_machine.get("query_dependencies") or state_machine["slots"].get("fields"):
         return True
     text_refs = state_machine["slots"].get("text", [])
     asset_refs = state_machine["slots"].get("assets", [])
@@ -284,7 +284,7 @@ def _case_scope_inputs(contract: dict[str, Any], case: dict[str, Any]) -> tuple[
     state_machines = case_render_state_machines(contract, case)
     text_refs = {text_ref for state_machine in state_machines for text_ref in state_machine["slots"].get("text", [])}
     asset_refs = {asset_ref for state_machine in state_machines for asset_ref in state_machine["slots"].get("assets", [])}
-    fixture_ids = set(case.get("fixtures", []))
+    fixture_ids = set(case.get("seed_fixtures", []))
     fact_ids = {fact_use["ref"] for fact_use in case.get("facts", [])}
     return text_refs, asset_refs, fixture_ids, fact_ids, case.get("context") or {}
 
@@ -880,7 +880,7 @@ def state_machine_dot(state_machine_id: str, state_machine: dict[str, Any], cont
 
 def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contract: dict[str, Any]) -> str:
     route_state_machine_order: list[str] = []
-    for rule in state_machine.get("message_sync_rules", []):
+    for rule in state_machine.get("signal_sync_rules", []):
         route_state_machine_order.append(rule["when"]["instance"])
         route_state_machine_order.extend(effect["send"]["instance"] for effect in rule.get("effects", []) if "send" in effect)
     route_state_machine_index = {state_machine_id: index for index, state_machine_id in enumerate(dict.fromkeys(route_state_machine_order))}
@@ -891,7 +891,7 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
     mount_by_id = {mount["id"]: mount for mount in mounts}
     mount_node_by_id = {mount["id"]: _dot_node_id("child_state_machine", mount["id"]) for mount in mounts}
     mount_node_ids = [mount_node_by_id[mount["id"]] for mount in mounts]
-    has_sync = bool(state_machine.get("message_sync_rules"))
+    has_sync = bool(state_machine.get("signal_sync_rules"))
     lines = _dot_graph_preamble("composition_" + safe_id(state_machine_id))
     for mount in mounts:
         lines.append(_dot_html_node(mount_node_by_id[mount["id"]], _dot_mount_card(mount)))
@@ -899,8 +899,9 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
         lines.extend(_dot_invisible_order(mount_node_ids, indent="  "))
     if not has_sync:
         lines.append(_dot_html_node("message_route_none", _dot_card("No message routes", "message routing", [], style=_DOT_STYLE_NEUTRAL)))
-    for rule in state_machine.get("message_sync_rules", []):
-        emit_id = _dot_node_id("message_emit", f"{rule['id']}_{rule['when']['instance']}_{rule['when']['message']}")
+    for rule in state_machine.get("signal_sync_rules", []):
+        signal_id = rule["when"]["signal"]
+        emit_id = _dot_node_id("message_emit", f"{rule['id']}_{rule['when']['instance']}_{signal_id}")
         sync_id = _dot_node_id("message_route", rule["id"])
         send_effects = [(index, effect) for index, effect in enumerate(rule.get("effects", [])) if "send" in effect]
         effect_ids = [_dot_node_id("message_effect", f"{rule['id']}_{index}") for index, _ in send_effects]
@@ -908,11 +909,11 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
             _dot_html_node(
                 emit_id,
                 _dot_card(
-                    rule["when"]["message"],
+                    signal_id,
                     "emitted message",
                     [
-                        ("source", _emitting_transition_refs(rule["when"]["instance"], rule["when"]["message"], mount_by_id, contract)),
-                        ("payload", _emitted_message_data_lines(rule["when"]["instance"], rule["when"]["message"], mount_by_id, contract)),
+                        ("source", _emitting_transition_refs(rule["when"]["instance"], signal_id, mount_by_id, contract)),
+                        ("payload", _emitted_message_data_lines(rule["when"]["instance"], signal_id, mount_by_id, contract)),
                     ],
                     style=_DOT_STYLE_EVENT,
                 ),
@@ -935,8 +936,8 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
         if effect_ids:
             lines.append("  { rank=same; " + " ".join(_dot_quote(effect_id) for effect_id in effect_ids) + " }")
             lines.extend(_dot_invisible_order(effect_ids, indent="  "))
-    for rule in state_machine.get("message_sync_rules", []):
-        emit_id = _dot_node_id("message_emit", f"{rule['id']}_{rule['when']['instance']}_{rule['when']['message']}")
+    for rule in state_machine.get("signal_sync_rules", []):
+        emit_id = _dot_node_id("message_emit", f"{rule['id']}_{rule['when']['instance']}_{rule['when']['signal']}")
         sync_id = _dot_node_id("message_route", rule["id"])
         source = mount_node_by_id.get(rule["when"]["instance"])
         if source:
@@ -964,7 +965,7 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
     entry_node = _dot_node_id("entrypoint", entry_id)
     input_node = _dot_node_id("entrypoint_input", entry_id)
     target_node = _dot_node_id("entrypoint_target", target_value)
-    response_nodes = _entry_response_nodes(entry_id, entry, contract)
+    response_nodes = _entry_point_response_nodes(entry_id, entry, contract)
     exit_id = "entry_exit"
     target_tail = [] if target_kind == "state_machine" else _entry_target_tail_nodes(target_kind, target_value, contract)
     input_sections = _entry_input_sections(entry, contract)
@@ -1026,7 +1027,7 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
 
 
 def _entry_io_card_titles(adapter_kind: str) -> tuple[str, str]:
-    if adapter_kind in {"http", "ui", "webhook"}:
+    if adapter_kind in {"http", "html_route", "webhook"}:
         return "request", "response"
     if adapter_kind == "cli":
         return "command input", "command output"
@@ -1099,7 +1100,7 @@ def _entry_surface_title(entry: dict[str, Any]) -> str:
     adapter_kind, _ = entry_point_adapter_pair(entry)
     if adapter_kind == "http":
         return f"{(entry_point_method(entry) or '').upper()} {entry_point_path(entry) or ''}".strip()
-    if adapter_kind in {"ui", "webhook"}:
+    if adapter_kind in {"html_route", "webhook"}:
         return entry_point_path(entry) or adapter_kind
     if adapter_kind == "cli":
         return entry_point_cli_command(entry) or adapter_kind
@@ -1140,7 +1141,7 @@ def _entry_input_sections(entry: dict[str, Any], contract: dict[str, Any]) -> li
     return sections
 
 
-def _entry_response_nodes(entry_id: str, entry: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, str, str | None, list[tuple[str, list[object]]]]]:
+def _entry_point_response_nodes(entry_id: str, entry: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, str, str | None, list[tuple[str, list[object]]]]]:
     responses = entry_point_responses(entry)
     if not responses:
         return []
@@ -1151,11 +1152,11 @@ def _entry_response_nodes(entry_id: str, entry: dict[str, Any], contract: dict[s
         outcome = outcomes.get(outcome_id)
         subtitle = f"{outcome['kind']} response" if outcome else None
         node_id = _dot_node_id("entrypoint_response", f"{entry_id}_{outcome_id}")
-        nodes.append((node_id, outcome_id, subtitle, _entry_response_sections(response)))
+        nodes.append((node_id, outcome_id, subtitle, _entry_point_response_sections(response)))
     return nodes
 
 
-def _entry_response_sections(response: dict[str, Any]) -> list[tuple[str, list[object]]]:
+def _entry_point_response_sections(response: dict[str, Any]) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
     if "status" in response:
         sections.append(("status", [str(response["status"])]))
@@ -1242,7 +1243,7 @@ def _entry_target_tail_nodes(target_kind: str, target_value: str, contract: dict
 
 def _state_machine_summary_sections(state_machine: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
-    bindings = _unique_data_bindings(state_machine.get("data_dependencies", []))
+    bindings = _unique_data_bindings(state_machine.get("query_dependencies", []))
     operation_ids = [binding["operation"] for binding in bindings]
     inputs = _format_data_inputs(state_machine, bindings, contract)
     queries = [binding["query"] for binding in bindings]
@@ -1257,9 +1258,9 @@ def _state_machine_summary_sections(state_machine: dict[str, Any], contract: dic
     if guards:
         sections.append(("authorization_policies", guards))
     sections.append(("model", [state_machine["model"]]))
-    sync_ids = [rule["id"] for state in state_machine.get("view_states", {}).values() for rule in state.get("message_sync_rules", [])]
+    sync_ids = [rule["id"] for state in state_machine.get("view_states", {}).values() for rule in state.get("signal_sync_rules", [])]
     if sync_ids:
-        sections.append(("message_sync_rules", sync_ids))
+        sections.append(("signal_sync_rules", sync_ids))
     return sections
 
 
@@ -1286,7 +1287,7 @@ def _state_machine_view_state_sections(
         ("available_operations", _format_operation_outputs(available_operations, contract)),
         ("authorization_policies", _format_operation_authorization_policies(available_operations, contract)),
         ("child_state_machines", _format_mounts(state.get("child_state_machines", []))),
-        ("message_sync_rules", [rule["id"] for rule in state.get("message_sync_rules", [])]),
+        ("signal_sync_rules", [rule["id"] for rule in state.get("signal_sync_rules", [])]),
     ]
 
 
@@ -1404,18 +1405,17 @@ def _operation_sections(operation: dict[str, Any], contract: dict[str, Any], *, 
 
 
 def _authorization_policy_sections(
-    authorization_policy: dict[str, Any] | None,
+    policy_id: str | None,
     contract: dict[str, Any],
     *,
     include_details: bool = True,
 ) -> list[tuple[str, list[object]]]:
-    if not authorization_policy:
+    if not policy_id:
         return []
-    policy_id = authorization_policy["policy"]
     sections: list[tuple[str, list[object]]] = [("authorization_policy", [policy_id])]
     if not include_details:
         return sections
-    policy = contract.get("policies", {}).get(policy_id)
+    policy = contract.get("authorization_policies", {}).get(policy_id)
     if not policy:
         return sections
     sections.append(("policy_effect", [policy["effect"]]))
@@ -1443,13 +1443,13 @@ def _format_policy_conditions(conditions: Iterable[dict[str, Any]]) -> list[str]
     lines: list[str] = []
     for condition in conditions:
         kind, body = _target_pair(condition)
-        if kind == "always":
-            lines.append(f"always {_format_scalar(body)}")
+        if kind == "unconditional":
+            lines.append(f"unconditional {_format_scalar(body)}")
         elif kind == "input_present":
             lines.append(f"input_present {body}")
-        elif kind == "resource_exists":
+        elif kind == "model_exists":
             lines.append(f"{body['model']} exists")
-        elif kind == "resource_state":
+        elif kind == "model_state":
             lines.append(f"{body['model']}.{body['field']} = {_format_scalar(body['equals'])}")
         elif kind == "subject_role":
             lines.append(f"subject_role {body}")
@@ -1587,7 +1587,7 @@ def _message_payload_for_instance(
 ) -> dict[str, str]:
     mount = mount_by_id[instance_id]
     state_machine = contract["state_machines"][mount["state_machine"]]
-    return state_machine["messages"][direction][message]["payload_schema"]
+    return state_machine["signals"][direction][message]["payload_schema"]
 
 
 def _emitting_transition_emits(
@@ -1848,7 +1848,7 @@ def _dot_section_inner_rows(title: str, values: Iterable[object]) -> tuple[bool,
 
 
 def _dot_typed_field_section_inner_rows(title: str, values: list[object]) -> tuple[bool, list[str]]:
-    if (title in {"input", "output", "payload", "payload_schema", "data_dependencies", "set", "load"} or title == "available_operations") and len(values) == 1:
+    if (title in {"input", "output", "payload", "payload_schema", "query_dependencies", "set", "load"} or title == "available_operations") and len(values) == 1:
         rows = []
         for index, value in enumerate(values):
             if isinstance(value, _DotTypedField):
@@ -2009,7 +2009,7 @@ def _format_transition_sections(
     state_machine: dict[str, Any], transition: dict[str, Any], contract: dict[str, Any]
 ) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
-    if _is_data_event(transition["on"]):
+    if _is_data_signal(transition["on"]):
         bindings = _transition_data_bindings(state_machine, transition)
         operation_ids = [binding["operation"] for binding in bindings]
         data_sources = _format_operation_outputs(operation_ids, contract)
@@ -2045,7 +2045,7 @@ def _format_transition_sections(
 
 def _transition_target_data_bindings(state_machine: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
     target_state = state_machine.get("view_states", {}).get(transition["to"], {})
-    return _unique_data_bindings(target_state.get("data_dependencies", []))
+    return _unique_data_bindings(target_state.get("query_dependencies", []))
 
 
 def _state_field_section_title(state_machine: dict[str, Any], state_name: str, state: dict[str, Any]) -> str:
@@ -2059,16 +2059,16 @@ def _state_field_section_title(state_machine: dict[str, Any], state_name: str, s
 
 
 def _state_field_data_bindings(state_machine: dict[str, Any], state_name: str, state: dict[str, Any]) -> list[dict[str, Any]]:
-    bindings = _unique_data_bindings(state.get("data_dependencies", []))
+    bindings = _unique_data_bindings(state.get("query_dependencies", []))
     if bindings:
         return bindings
     incoming_data_bindings: list[dict[str, Any]] = []
     for transition in state_machine.get("transitions", []):
-        if transition["to"] == state_name and _is_data_event(transition["on"]):
+        if transition["to"] == state_name and _is_data_signal(transition["on"]):
             incoming_data_bindings.extend(_transition_data_bindings(state_machine, transition))
     if incoming_data_bindings:
         return _unique_data_bindings(incoming_data_bindings)
-    return _unique_data_bindings(state_machine.get("data_dependencies", []))
+    return _unique_data_bindings(state_machine.get("query_dependencies", []))
 
 
 def _format_state_fields(state_machine: dict[str, Any], state: dict[str, Any], contract: dict[str, Any]) -> list[_DotTypedField]:
@@ -2096,7 +2096,7 @@ def _format_operation_authorization_policies(operation_ids: Iterable[str], contr
         operation = contract["operations"].get(operation_id)
         authorization_policy = operation.get("authorization_policy") if operation else None
         if authorization_policy:
-            lines.append(f"{operation_id}: {authorization_policy['policy']}")
+            lines.append(f"{operation_id}: {authorization_policy}")
     return lines
 
 
@@ -2117,13 +2117,13 @@ def _format_data_inputs(
     return inputs
 
 
-def _is_data_event(event: str) -> bool:
-    return event.startswith("data.")
+def _is_data_signal(event: str) -> bool:
+    return event.startswith("data_signal.")
 
 
 def _transition_data_bindings(state_machine: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
     source_state = state_machine.get("view_states", {}).get(transition["from"], {})
-    bindings = source_state.get("data_dependencies", []) or state_machine.get("data_dependencies", [])
+    bindings = source_state.get("query_dependencies", []) or state_machine.get("query_dependencies", [])
     return _unique_data_bindings(bindings)
 
 
@@ -2144,7 +2144,7 @@ def _format_transition_effect_sections(state_machine: dict[str, Any], transition
         if "emit" in effect:
             emit = effect["emit"]
             sections.append(("emit", [emit["message"]]))
-            payload_types = state_machine["messages"]["emits"][emit["message"]]["payload_schema"]
+            payload_types = state_machine["signals"]["emits"][emit["message"]]["payload_schema"]
             payload = _format_typed_data_flow(emit.get("payload_bindings", {}), payload_types)
             if payload:
                 sections.append(("payload", payload))
@@ -2446,7 +2446,7 @@ def records_for_state_machine(contract: dict[str, Any], state_machine: dict[str,
     model_id = state_machine_model(contract, state_machine)
     model_key = f"{model_id.lower()}_id"
     owner_context = state_machine_owner_context(contract, state_machine)
-    fixtures = case.get("fixtures", []) if case else sorted(contract.get("fixtures", {}))
+    fixtures = case.get("seed_fixtures", []) if case else sorted(contract.get("fixtures", {}))
     records: list[dict[str, Any]] = []
     if case:
         namespace = fixture_namespace(contract, fixtures)
@@ -2560,7 +2560,7 @@ def _dedupe_records(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 def render_namespace(contract: dict[str, Any], case: dict[str, Any] | None) -> dict[str, Any]:
     if case:
-        return fixture_namespace(contract, case.get("fixtures", []))
+        return fixture_namespace(contract, case.get("seed_fixtures", []))
     return {}
 
 

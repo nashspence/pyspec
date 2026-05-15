@@ -13,11 +13,11 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - <!-- top-level:fixtures --> `fixtures`: named seed data namespaces used by test cases, facts, content cases, and audits.
 - <!-- top-level:models --> `models`: PascalCase product data models and lifecycle declarations; model ids are the documented reference-prefix exception because they are also type names.
 - <!-- top-level:operations --> `operations`: executable product operations with typed input, effects, outcomes, emitted events, and authorization policies.
-- <!-- top-level:policies --> `policies`: authorization policies with subjects, policy targets, conditions, and effect.
+- <!-- top-level:authorization_policies --> `authorization_policies`: authorization policies with subjects, policy targets, conditions, and effect.
 - <!-- top-level:project --> `project`: the project slug for the specification workspace.
 - <!-- top-level:refs --> `refs`: compiled-only index of generated references used by projections and tests.
 - <!-- top-level:render_profiles --> `render_profiles`: HTML and Textual viewport profiles for render generation.
-- <!-- top-level:state_machines --> `state_machines`: UI/component state-machine contracts with context, data dependencies, view states, transitions, messages, child state machines, and sync rules.
+- <!-- top-level:state_machines --> `state_machines`: UI/component state-machine contracts with context, query dependencies, view states, transitions, signals, child state machines, and sync rules.
 - <!-- top-level:test_cases --> `test_cases`: formal behavior test cases with subject_ref, given, when, and then contracts.
 - <!-- top-level:text_resources --> `text_resources`: text resources used by state-machine slots and content-source projections.
 - <!-- top-level:workflows --> `workflows`: asynchronous or long-running flows with workflow triggers, steps, input bindings, exclusive outcome routes, and outcomes.
@@ -27,15 +27,15 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `asset_ref`: `asset.<domain>...`; asset declarations, generated asset slots, content cases, and audit evidence.
 - `content_case_ref`: `content_case.<domain>...`; content source examples.
 - `data_contract_ref`: `data_contract.<domain>...`; reusable typed payload/data contracts in `type_expr.data_contract`.
-- `data_signal_ref`: `data.<domain>...`; state-machine data-result signals used in transition and listener positions.
-- `entry_point_ref`: `entry_point.<adapter-or-target>.<domain>...`; entry-point declarations and test-case `open_entry` or `call_entry` actions.
+- `data_signal_ref`: `data_signal.<domain>...`; state-machine data-result signals used in transition and listener positions.
+- `entry_point_ref`: `entry_point.<adapter-or-target>.<domain>...`; entry-point declarations and test-case `open_entry_point` or `call_entry_point` actions.
 - `event_ref`: `event.<domain>...`; durable domain/application event declarations, operation emissions, workflow triggers, and test-case event assertions.
 - `fact_ref`: `fact.<domain>...`; named domain or assertion facts referenced through `fact_use.ref`.
 - `fixture_ref`: `fixture.<domain>...`; seed data fixtures used by test cases, content cases, facts, and audit cases.
 - `message_ref`: `message.<domain>...`; local UI/component/state-machine messages only.
 - `model_ref`: `PascalCase`; model references are the sole collection-prefix exception because model ids are also type names.
-- `operation_ref`: `operation.<domain>...`; operation declarations, state-machine `available_operations` and `data_dependencies`, workflow steps, entry-point operation targets, and test-case assertions.
-- `policy_ref`: `policy.<domain>...`; policy declarations, authorization_policy references, generated policy projections, and policy test assertions.
+- `operation_ref`: `operation.<domain>...`; operation declarations, state-machine `available_operations` and `query_dependencies`, workflow steps, entry-point operation targets, and test-case assertions.
+- `authorization_policy_ref`: `authorization_policy.<domain>...`; authorization-policy declarations, direct authorization_policy references, generated policy projections, and policy test assertions.
 - `render_profile_ref`: `render_profile.<domain>...`; named HTML/Textual viewport profiles.
 - `state_machine_ref`: `state_machine.<domain>...`; state-machine declarations, `child_state_machines`, state-machine entry-point targets, and test-case state-machine assertions.
 - `test_case_ref`: `test_case.<domain>...`; formal test-case declarations and generated feature tags.
@@ -47,15 +47,15 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 
 - `subject_ref`: exactly one typed reference to the resource under test: `entry_point`, `event`, `operation`, `state_machine`, or `workflow`.
 - `given`: setup contract split into `seed_fixtures` and `domain_facts`.
-- `when`: one executable stimulus: `open_entry`, `call_entry`, `invoke_operation`, or `emit_event`.
-- `then`: assertions for model existence, emitted events, workflow execution, policy decisions, responses, operation invocations, state-machine states, and optional `assertion_facts`.
-- `entry_point_adapter`: exactly one adapter object: `http`, `cli`, `webhook`, `scheduled`, `worker`, or `ui`.
+- `when`: one executable stimulus: `open_entry_point`, `call_entry_point`, `invoke_operation`, or `emit_event`.
+- `then`: assertions for model existence, emitted events, workflow execution, policy decisions, responses, operation invocations, state-machine states, and optional `expected_facts`.
+- `entry_point_adapter`: exactly one adapter object: `http`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`.
 - `entry_point_target`: exactly one target object: `operation`, `state_machine`, or `workflow`.
 - `workflow_route`: exclusive route target via `next_step`, `complete_as`, `fail_as`, `retry_policy`, or `dead_letter_as`.
-- `messages`: local UI/component/state-machine message contracts split into accepted and emitted message/data-signal maps with `payload_schema` maps.
+- `signals`: local UI/component/state-machine signal contracts split into accepted message/data-signal maps and emitted message maps with `payload_schema` maps.
 - `renderer_contracts`: view-state renderer declarations keyed by concrete target. `renderers.html` and `renderers.textual` each own target-local `layout`, `presentation`, and `style`.
 - `type_expr`: structured primitive, model, data_contract, array, map, nullable, optional, enum, or inline object type expression.
-- `authorization_policy`: an object containing a `policy` / `policy_ref`; policies themselves declare `targets` made of `model`, `operation`, or `entry_point` target refs.
+- `authorization_policy`: direct `authorization_policy_ref` fields identify the policy applied to an operation, entry point, or policy assertion.
 
 ## Runtime Expression Namespaces
 
@@ -80,12 +80,12 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `spec/generated/behavior/fixtures.yaml`: seed fixture projection.
 - `spec/generated/behavior/test_cases.yaml`: semantic test-case projection.
 - `spec/generated/product_interfaces/http.openapi.yaml`: OpenAPI projection generated only from HTTP entry points.
-- `spec/generated/product_interfaces/events.asyncapi.yaml`: AsyncAPI projection for durable top-level events, webhooks, workers, and event-triggered workflows; state-machine messages are not projected as domain events.
+- `spec/generated/product_interfaces/events.asyncapi.yaml`: AsyncAPI projection for durable top-level events, webhooks, workers, and event-triggered workflows; state-machine signals are not projected as domain events.
 - `spec/generated/product_interfaces/html.routes.json`: UI route projection generated from UI entry points.
 - `spec/generated/product_interfaces/html.state_machines.json`: state-machine HTML/Textual renderer contract projection, including composition layout and presentation style.
 - `spec/generated/product_interfaces/textual.projection.py`: Textual renderer projection generated from `renderers.textual.presentation` widgets, `renderers.textual.style`, and `renderers.textual.layout` containers.
 - `spec/generated/product_interfaces/workflow.cwl.yaml`: CWL projection generated for workflow/CLI/worker-relevant execution graphs.
-- `spec/generated/product_interfaces/policies.json`: policy and authorization-policy projection for operations and entry points.
+- `spec/generated/product_interfaces/authorization_policies.json`: policy and authorization-policy projection for operations and entry points.
 - `spec/generated/content_resolvers/{signatures.py,stubs.py,cases.yaml}`: documented content-resolution contracts and examples.
 - `spec/generated/test_adapters/python_refs.py`: Python constants for resource and generated reference IDs.
 - `spec/generated/test_adapters/driver_protocol.py`: BDD driver protocol.
@@ -117,14 +117,13 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:authored_fixture --> `$defs/authored_fixture`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_model --> `$defs/authored_model`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_operation --> `$defs/authored_operation`: human-authored source object for this resource or nested contract.
-- <!-- schema-def:authored_policy --> `$defs/authored_policy`: human-authored source object for this resource or nested contract.
+- <!-- schema-def:authored_authorization_policy --> `$defs/authored_authorization_policy`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_render_profile --> `$defs/authored_render_profile`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_state_machine --> `$defs/authored_state_machine`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_test_case --> `$defs/authored_test_case`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_text_resource --> `$defs/authored_text_resource`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_view_state --> `$defs/authored_view_state`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_workflow --> `$defs/authored_workflow`: human-authored source object for this resource or nested contract.
-- <!-- schema-def:authorization_policy --> `$defs/authorization_policy`: authorization policy contract component.
 - <!-- schema-def:breakpoint_id --> `$defs/breakpoint_id`: renderer contract component for HTML or Textual targets.
 - <!-- schema-def:child_state_machine_item --> `$defs/child_state_machine_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:child_state_machine_selected --> `$defs/child_state_machine_selected`: state-machine contract component.
@@ -145,15 +144,15 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:data_contract_item --> `$defs/data_contract_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:data_contract_ref --> `$defs/data_contract_ref`: typed reference definition for its namespace.
 - <!-- schema-def:data_signal_ref --> `$defs/data_signal_ref`: typed reference definition for its namespace.
-- <!-- schema-def:datum --> `$defs/datum`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:query_dependency --> `$defs/query_dependency`: state-machine query dependency contract component.
 - <!-- schema-def:entry_operation_target --> `$defs/entry_operation_target`: entry-point adapter, target, input, or response contract component.
 - <!-- schema-def:entry_point_adapter --> `$defs/entry_point_adapter`: entry-point adapter, target, input, or response contract component.
 - <!-- schema-def:entry_point_item --> `$defs/entry_point_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:entry_point_ref --> `$defs/entry_point_ref`: typed reference definition for its namespace.
 - <!-- schema-def:entry_point_target --> `$defs/entry_point_target`: entry-point adapter, target, input, or response contract component.
-- <!-- schema-def:entry_response --> `$defs/entry_response`: entry-point adapter, target, input, or response contract component.
-- <!-- schema-def:entry_response_value --> `$defs/entry_response_value`: entry-point adapter, target, input, or response contract component.
-- <!-- schema-def:entry_responses --> `$defs/entry_responses`: entry-point adapter, target, input, or response contract component.
+- <!-- schema-def:entry_point_response --> `$defs/entry_point_response`: entry-point adapter, target, input, or response contract component.
+- <!-- schema-def:entry_point_response_value --> `$defs/entry_point_response_value`: entry-point adapter, target, input, or response contract component.
+- <!-- schema-def:entry_point_responses --> `$defs/entry_point_responses`: entry-point adapter, target, input, or response contract component.
 - <!-- schema-def:entry_state_machine_target --> `$defs/entry_state_machine_target`: entry-point adapter, target, input, or response contract component.
 - <!-- schema-def:entry_workflow_target --> `$defs/entry_workflow_target`: entry-point adapter, target, input, or response contract component.
 - <!-- schema-def:event_item --> `$defs/event_item`: compiled-output object for this resource or nested contract.
@@ -184,12 +183,12 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:layout_region --> `$defs/layout_region`: renderer contract component for HTML or Textual targets.
 - <!-- schema-def:layout_root --> `$defs/layout_root`: renderer contract component for HTML or Textual targets.
 - <!-- schema-def:message_ref --> `$defs/message_ref`: typed reference definition for its namespace.
-- <!-- schema-def:message_sync_action --> `$defs/message_sync_action`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:message_sync_assertion --> `$defs/message_sync_assertion`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:message_sync_rule --> `$defs/message_sync_rule`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:message_sync_send_effect --> `$defs/message_sync_send_effect`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:message_sync_trigger --> `$defs/message_sync_trigger`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:messages --> `$defs/messages`: state-machine contract component.
+- <!-- schema-def:signal_sync_action --> `$defs/signal_sync_action`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:signal_sync_assertion --> `$defs/signal_sync_assertion`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:signal_sync_rule --> `$defs/signal_sync_rule`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:signal_sync_send_effect --> `$defs/signal_sync_send_effect`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:signal_sync_trigger --> `$defs/signal_sync_trigger`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:state_machine_signals --> `$defs/state_machine_signals`: state-machine contract component.
 - <!-- schema-def:model_item --> `$defs/model_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:model_ref --> `$defs/model_ref`: typed reference definition for its namespace.
 - <!-- schema-def:object_schema --> `$defs/object_schema`: structured type-expression and object-schema contract component.
@@ -201,8 +200,8 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:policy_assertion --> `$defs/policy_assertion`: authorization policy contract component.
 - <!-- schema-def:policy_condition --> `$defs/policy_condition`: authorization policy contract component.
 - <!-- schema-def:policy_decision_assertion --> `$defs/policy_decision_assertion`: authorization policy contract component.
-- <!-- schema-def:policy_item --> `$defs/policy_item`: compiled-output object for this resource or nested contract.
-- <!-- schema-def:policy_ref --> `$defs/policy_ref`: typed reference definition for its namespace.
+- <!-- schema-def:authorization_policy_item --> `$defs/authorization_policy_item`: compiled-output object for this resource or nested contract.
+- <!-- schema-def:authorization_policy_ref --> `$defs/authorization_policy_ref`: typed reference definition for its namespace.
 - <!-- schema-def:policy_subject --> `$defs/policy_subject`: authorization policy contract component.
 - <!-- schema-def:policy_target --> `$defs/policy_target`: authorization policy contract component.
 - <!-- schema-def:python_class_name --> `$defs/python_class_name`: shared schema component used by authored source or compiled output.
@@ -218,7 +217,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:slot_binding --> `$defs/slot_binding`: renderer contract component for HTML or Textual targets.
 - <!-- schema-def:state_machine_audit_case --> `$defs/state_machine_audit_case`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:state_machine_item --> `$defs/state_machine_item`: compiled-output object for this resource or nested contract.
-- <!-- schema-def:state_machine_message --> `$defs/state_machine_message`: state-machine contract component.
+- <!-- schema-def:state_machine_signal --> `$defs/state_machine_signal`: state-machine contract component.
 - <!-- schema-def:state_machine_ref --> `$defs/state_machine_ref`: typed reference definition for its namespace.
 - <!-- schema-def:state_machine_transition --> `$defs/state_machine_transition`: state-machine contract component.
 - <!-- schema-def:style_contract --> `$defs/style_contract`: renderer contract component for HTML or Textual targets.
@@ -237,8 +236,8 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:then --> `$defs/then`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:type_expr --> `$defs/type_expr`: structured type-expression and object-schema contract component.
 - <!-- schema-def:type_expr_map --> `$defs/type_expr_map`: structured type-expression and object-schema contract component.
-- <!-- schema-def:ui_adapter --> `$defs/ui_adapter`: entry-point adapter, target, input, or response contract component.
-- <!-- schema-def:ui_adapter_input --> `$defs/ui_adapter_input`: entry-point adapter, target, input, or response contract component.
+- <!-- schema-def:html_route_adapter --> `$defs/html_route_adapter`: entry-point adapter, target, input, or response contract component.
+- <!-- schema-def:html_route_adapter_input --> `$defs/html_route_adapter_input`: entry-point adapter, target, input, or response contract component.
 - <!-- schema-def:value_map --> `$defs/value_map`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:view_state --> `$defs/view_state`: state-machine contract component.
 - <!-- schema-def:view_state_assertion --> `$defs/view_state_assertion`: state-machine contract component.

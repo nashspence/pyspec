@@ -4,7 +4,7 @@ from typing import Any
 
 
 STATE_MACHINE_RENDERERS = ("html", "textual")
-ENTRY_POINT_ADAPTER_KINDS = ("http", "cli", "webhook", "scheduled", "worker", "ui")
+ENTRY_POINT_ADAPTER_KINDS = ("http", "cli", "webhook", "scheduled", "worker", "html_route")
 ENTRY_POINT_TARGET_KINDS = ("operation", "state_machine", "workflow")
 
 
@@ -14,7 +14,7 @@ def entry_point_adapter_pair(entry_or_adapter: dict[str, Any]) -> tuple[str, dic
         if kind in adapter:
             value = adapter[kind]
             return kind, value if isinstance(value, dict) else {}
-    raise KeyError("entry point adapter must declare http, cli, webhook, scheduled, worker, or ui")
+    raise KeyError("entry point adapter must declare http, cli, webhook, scheduled, worker, or html_route")
 
 
 def entry_point_adapter(entry_or_adapter: dict[str, Any], kind: str | None = None) -> dict[str, Any]:
@@ -58,7 +58,7 @@ def entry_point_path(entry: dict[str, Any]) -> str | None:
     if "adapter" not in entry:
         return entry.get("path")
     kind, adapter = entry_point_adapter_pair(entry)
-    if kind in {"http", "webhook", "ui"}:
+    if kind in {"http", "webhook", "html_route"}:
         return adapter.get("path")
     return None
 
@@ -144,8 +144,8 @@ def entry_workflow_target(entry_or_target: dict[str, Any]) -> dict[str, Any]:
     if "target" in entry_or_target or "workflow" in entry_or_target:
         value = entry_point_target(entry_or_target, "workflow")
         result = {"name": value["ref"]}
-        if "when" in value:
-            result["source"] = value["when"]
+        if "trigger_source" in value:
+            result["source"] = value["trigger_source"]
         return result
     target = entry_or_target.get("target", entry_or_target)
     value = target["workflow"]

@@ -89,7 +89,7 @@
             "circle",
             "square",
             "card",
-            "textual"
+            "terminal"
           ]
         }
       },
@@ -100,7 +100,7 @@
       "type": "object"
     },
     "asset_ref": {
-      "pattern": "^asset\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "pattern": "^asset\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
     "render_profile_item": {
@@ -219,7 +219,7 @@
           "$ref": "#/$defs/cli_adapter_input"
         },
         "responses": {
-          "$ref": "#/$defs/entry_responses"
+          "$ref": "#/$defs/entry_point_responses"
         }
       },
       "required": [
@@ -453,23 +453,6 @@
       "pattern": "^[^;{}<>]+$",
       "type": "string"
     },
-    "datum": {
-      "additionalProperties": false,
-      "properties": {
-        "operation": {
-          "$ref": "#/$defs/operation_ref"
-        },
-        "query": {
-          "pattern": "^query\\.",
-          "type": "string"
-        }
-      },
-      "required": [
-        "query",
-        "operation"
-      ],
-      "type": "object"
-    },
     "entry_operation_target": {
       "additionalProperties": false,
       "properties": {
@@ -515,7 +498,7 @@
         },
         {
           "required": [
-            "ui"
+            "html_route"
           ]
         }
       ],
@@ -529,14 +512,14 @@
         "scheduled": {
           "$ref": "#/$defs/scheduled_adapter"
         },
-        "ui": {
-          "$ref": "#/$defs/ui_adapter"
-        },
         "webhook": {
           "$ref": "#/$defs/webhook_adapter"
         },
         "worker": {
           "$ref": "#/$defs/worker_adapter"
+        },
+        "html_route": {
+          "$ref": "#/$defs/html_route_adapter"
         }
       },
       "type": "object"
@@ -551,7 +534,7 @@
           "$ref": "#/$defs/rationale"
         },
         "authorization_policy": {
-          "$ref": "#/$defs/authorization_policy"
+          "$ref": "#/$defs/authorization_policy_ref"
         },
         "cli_command_ref": {
           "pattern": "^cli_command\\.",
@@ -581,7 +564,7 @@
       "type": "object"
     },
     "entry_point_ref": {
-      "pattern": "^entry_point\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "pattern": "^entry_point\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
     "entry_point_target": {
@@ -616,11 +599,11 @@
       },
       "type": "object"
     },
-    "entry_response": {
+    "entry_point_response": {
       "additionalProperties": false,
       "properties": {
         "body": {
-          "$ref": "#/$defs/entry_response_value"
+          "$ref": "#/$defs/entry_point_response_value"
         },
         "disposition": {
           "enum": [
@@ -642,15 +625,15 @@
           "type": "integer"
         },
         "stderr": {
-          "$ref": "#/$defs/entry_response_value"
+          "$ref": "#/$defs/entry_point_response_value"
         },
         "stdout": {
-          "$ref": "#/$defs/entry_response_value"
+          "$ref": "#/$defs/entry_point_response_value"
         }
       },
       "type": "object"
     },
-    "entry_response_value": {
+    "entry_point_response_value": {
       "additionalProperties": false,
       "properties": {
         "from": {
@@ -668,9 +651,9 @@
       ],
       "type": "object"
     },
-    "entry_responses": {
+    "entry_point_responses": {
       "additionalProperties": {
-        "$ref": "#/$defs/entry_response"
+        "$ref": "#/$defs/entry_point_response"
       },
       "minProperties": 1,
       "propertyNames": {
@@ -706,13 +689,13 @@
         "ref": {
           "$ref": "#/$defs/workflow_ref"
         },
-        "when": {
+        "trigger_source": {
           "$ref": "#/$defs/workflow_trigger_source"
         }
       },
       "required": [
         "ref",
-        "when"
+        "trigger_source"
       ],
       "type": "object"
     },
@@ -740,7 +723,7 @@
       "type": "object"
     },
     "event_ref": {
-      "pattern": "^event\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "pattern": "^event\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
     "fact_body": {
@@ -1023,7 +1006,7 @@
           "type": "string"
         },
         "responses": {
-          "$ref": "#/$defs/entry_responses"
+          "$ref": "#/$defs/entry_point_responses"
         }
       },
       "required": [
@@ -1155,7 +1138,7 @@
       "pattern": "^message\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
-    "message_sync_assertion": {
+    "signal_sync_assertion": {
       "additionalProperties": false,
       "properties": {
         "observed_rules": {
@@ -1168,22 +1151,22 @@
       },
       "type": "object"
     },
-    "message_sync_action": {
+    "signal_sync_action": {
       "oneOf": [
         {
           "$ref": "#/$defs/context_set_effect"
         },
         {
-          "$ref": "#/$defs/message_sync_send_effect"
+          "$ref": "#/$defs/signal_sync_send_effect"
         }
       ]
     },
-    "message_sync_rule": {
+    "signal_sync_rule": {
       "additionalProperties": false,
       "properties": {
         "effects": {
           "items": {
-            "$ref": "#/$defs/message_sync_action"
+            "$ref": "#/$defs/signal_sync_action"
           },
           "minItems": 1,
           "type": "array"
@@ -1192,7 +1175,7 @@
           "$ref": "#/$defs/field_name"
         },
         "when": {
-          "$ref": "#/$defs/message_sync_trigger"
+          "$ref": "#/$defs/signal_sync_trigger"
         }
       },
       "required": [
@@ -1202,7 +1185,7 @@
       ],
       "type": "object"
     },
-    "message_sync_send_effect": {
+    "signal_sync_send_effect": {
       "additionalProperties": false,
       "properties": {
         "send": {
@@ -1231,19 +1214,19 @@
       ],
       "type": "object"
     },
-    "message_sync_trigger": {
+    "signal_sync_trigger": {
       "additionalProperties": false,
       "properties": {
         "instance": {
           "$ref": "#/$defs/instance_id"
         },
-        "message": {
+        "signal": {
           "$ref": "#/$defs/message_ref"
         }
       },
       "required": [
         "instance",
-        "message"
+        "signal"
       ],
       "type": "object"
     },
@@ -1334,7 +1317,7 @@
       "oneOf": [
         {
           "required": [
-            "payload"
+            "payload_source"
           ]
         },
         {
@@ -1347,11 +1330,11 @@
         "event": {
           "$ref": "#/$defs/event_ref"
         },
-        "payload": {
-          "$ref": "#/$defs/runtime_expression"
-        },
         "payload_bindings": {
           "$ref": "#/$defs/runtime_bindings"
+        },
+        "payload_source": {
+          "$ref": "#/$defs/runtime_expression"
         }
       },
       "required": [
@@ -1359,7 +1342,7 @@
       ],
       "type": "object"
     },
-    "policy_item": {
+    "authorization_policy_item": {
       "additionalProperties": false,
       "properties": {
         "rationale": {
@@ -1438,7 +1421,7 @@
           "$ref": "#/$defs/operation_outcomes"
         },
         "authorization_policy": {
-          "$ref": "#/$defs/authorization_policy"
+          "$ref": "#/$defs/authorization_policy_ref"
         },
         "reads": {
           "items": {
@@ -1530,7 +1513,7 @@
       "type": "object"
     },
     "operation_ref": {
-      "pattern": "^operation\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "pattern": "^operation\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
     "policy_assertion": {
@@ -1558,7 +1541,7 @@
       "oneOf": [
         {
           "required": [
-            "always"
+            "unconditional"
           ]
         },
         {
@@ -1568,12 +1551,12 @@
         },
         {
           "required": [
-            "resource_exists"
+            "model_exists"
           ]
         },
         {
           "required": [
-            "resource_state"
+            "model_state"
           ]
         },
         {
@@ -1583,13 +1566,13 @@
         }
       ],
       "properties": {
-        "always": {
+        "unconditional": {
           "type": "boolean"
         },
         "input_present": {
           "$ref": "#/$defs/field_name"
         },
-        "resource_exists": {
+        "model_exists": {
           "additionalProperties": false,
           "properties": {
             "model": {
@@ -1601,7 +1584,7 @@
           ],
           "type": "object"
         },
-        "resource_state": {
+        "model_state": {
           "additionalProperties": false,
           "properties": {
             "equals": {
@@ -1649,25 +1632,13 @@
           "$ref": "#/$defs/operation_ref"
         },
         "authorization_policy": {
-          "$ref": "#/$defs/authorization_policy"
+          "$ref": "#/$defs/authorization_policy_ref"
         }
       },
       "type": "object"
     },
-    "authorization_policy": {
-      "additionalProperties": false,
-      "properties": {
-        "policy": {
-          "$ref": "#/$defs/policy_ref"
-        }
-      },
-      "required": [
-        "policy"
-      ],
-      "type": "object"
-    },
-    "policy_ref": {
-      "pattern": "^policy\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+    "authorization_policy_ref": {
+      "pattern": "^authorization_policy\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
     },
     "policy_subject": {
@@ -1798,14 +1769,14 @@
       "type": "object"
     },
     "test_case_ref": {
-      "pattern": "^test_case\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "pattern": "^test_case\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
     "scheduled_adapter": {
       "additionalProperties": false,
       "properties": {
         "responses": {
-          "$ref": "#/$defs/entry_responses"
+          "$ref": "#/$defs/entry_point_responses"
         },
         "schedule_expression": {
           "type": "string"
@@ -1896,14 +1867,6 @@
           },
           "type": "array"
         },
-        "fixtures": {
-          "items": {
-            "pattern": "^fixture\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
-            "type": "string"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
         "instances": {
           "additionalProperties": {
             "$ref": "#/$defs/view_state_assertion"
@@ -1912,11 +1875,17 @@
             "$ref": "#/$defs/instance_id"
           },
           "type": "object"
+        },
+        "seed_fixtures": {
+          "items": {
+            "$ref": "#/$defs/fixture_ref"
+          },
+          "type": "array",
+          "uniqueItems": true
         }
       },
       "required": [
-        "fixtures",
-        "rationale"
+        "seed_fixtures"
       ],
       "type": "object"
     },
@@ -1932,9 +1901,9 @@
         "context": {
           "$ref": "#/$defs/type_expr_map"
         },
-        "data_dependencies": {
+        "query_dependencies": {
           "items": {
-            "$ref": "#/$defs/datum"
+            "$ref": "#/$defs/query_dependency"
           },
           "type": "array"
         },
@@ -1943,9 +1912,6 @@
         },
         "model": {
           "$ref": "#/$defs/model_ref"
-        },
-        "messages": {
-          "$ref": "#/$defs/messages"
         },
         "transitions": {
           "items": {
@@ -1962,13 +1928,16 @@
             "$ref": "#/$defs/view_state_name"
           },
           "type": "object"
+        },
+        "signals": {
+          "$ref": "#/$defs/state_machine_signals"
         }
       },
       "required": [
         "model",
         "context",
-        "data_dependencies",
-        "messages",
+        "query_dependencies",
+        "signals",
         "initial_view_state",
         "view_states",
         "transitions",
@@ -1976,7 +1945,7 @@
       ],
       "type": "object"
     },
-    "state_machine_message": {
+    "state_machine_signal": {
       "additionalProperties": false,
       "properties": {
         "rationale": {
@@ -1991,43 +1960,8 @@
       ],
       "type": "object"
     },
-    "messages": {
-      "additionalProperties": false,
-      "properties": {
-        "accepts": {
-          "additionalProperties": {
-            "$ref": "#/$defs/state_machine_message"
-          },
-          "propertyNames": {
-            "oneOf": [
-              {
-                "$ref": "#/$defs/message_ref"
-              },
-              {
-                "$ref": "#/$defs/data_signal_ref"
-              }
-            ]
-          },
-          "type": "object"
-        },
-        "emits": {
-          "additionalProperties": {
-            "$ref": "#/$defs/state_machine_message"
-          },
-          "propertyNames": {
-            "$ref": "#/$defs/message_ref"
-          },
-          "type": "object"
-        }
-      },
-      "required": [
-        "accepts",
-        "emits"
-      ],
-      "type": "object"
-    },
     "state_machine_ref": {
-      "pattern": "^state_machine\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "pattern": "^state_machine\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
     "state_machine_transition": {
@@ -2138,7 +2072,7 @@
       "type": "string"
     },
     "text_ref": {
-      "pattern": "^text\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "pattern": "^text\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
     "textual_renderer_contract": {
@@ -2380,11 +2314,11 @@
       },
       "type": "object"
     },
-    "ui_adapter": {
+    "html_route_adapter": {
       "additionalProperties": false,
       "properties": {
         "input": {
-          "$ref": "#/$defs/ui_adapter_input"
+          "$ref": "#/$defs/html_route_adapter_input"
         },
         "path": {
           "type": "string"
@@ -2395,7 +2329,7 @@
       ],
       "type": "object"
     },
-    "ui_adapter_input": {
+    "html_route_adapter_input": {
       "additionalProperties": false,
       "properties": {
         "params": {
@@ -2445,9 +2379,9 @@
           },
           "type": "array"
         },
-        "data_dependencies": {
+        "query_dependencies": {
           "items": {
-            "$ref": "#/$defs/datum"
+            "$ref": "#/$defs/query_dependency"
           },
           "type": "array"
         },
@@ -2457,9 +2391,9 @@
           },
           "type": "array"
         },
-        "message_sync_rules": {
+        "signal_sync_rules": {
           "items": {
-            "$ref": "#/$defs/message_sync_rule"
+            "$ref": "#/$defs/signal_sync_rule"
           },
           "type": "array"
         },
@@ -2479,7 +2413,7 @@
       },
       "required": [
         "surface",
-        "data_dependencies",
+        "query_dependencies",
         "text",
         "assets",
         "available_operations",
@@ -2616,7 +2550,7 @@
           "type": "string"
         },
         "responses": {
-          "$ref": "#/$defs/entry_responses"
+          "$ref": "#/$defs/entry_point_responses"
         }
       },
       "required": [
@@ -2643,7 +2577,7 @@
           "$ref": "#/$defs/worker_adapter_input"
         },
         "responses": {
-          "$ref": "#/$defs/entry_responses"
+          "$ref": "#/$defs/entry_point_responses"
         }
       },
       "type": "object"
@@ -2662,7 +2596,7 @@
         {
           "additionalProperties": false,
           "properties": {
-            "open_entry": {
+            "open_entry_point": {
               "additionalProperties": false,
               "properties": {
                 "input": {
@@ -2679,14 +2613,14 @@
             }
           },
           "required": [
-            "open_entry"
+            "open_entry_point"
           ],
           "type": "object"
         },
         {
           "additionalProperties": false,
           "properties": {
-            "call_entry": {
+            "call_entry_point": {
               "additionalProperties": false,
               "properties": {
                 "input": {
@@ -2703,7 +2637,7 @@
             }
           },
           "required": [
-            "call_entry"
+            "call_entry_point"
           ],
           "type": "object"
         },
@@ -2829,7 +2763,7 @@
       "type": "object"
     },
     "workflow_ref": {
-      "pattern": "^workflow\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "pattern": "^workflow\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
     "workflow_retry_policy": {
@@ -3044,8 +2978,8 @@
               },
               "type": "object"
             },
-            "message_sync_rules": {
-              "$ref": "#/$defs/message_sync_assertion"
+            "signal_sync_rules": {
+              "$ref": "#/$defs/signal_sync_assertion"
             },
             "ref": {
               "$ref": "#/$defs/state_machine_ref"
@@ -3084,7 +3018,7 @@
           ],
           "type": "object"
         },
-        "assertion_facts": {
+        "expected_facts": {
           "items": {
             "oneOf": [
               {
@@ -3170,7 +3104,7 @@
       "type": "string"
     },
     "data_signal_ref": {
-      "pattern": "^data\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "pattern": "^data_signal\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
     "policy_target": {
@@ -3203,6 +3137,58 @@
           "$ref": "#/$defs/operation_ref"
         }
       },
+      "type": "object"
+    },
+    "state_machine_signals": {
+      "additionalProperties": false,
+      "properties": {
+        "accepts": {
+          "additionalProperties": {
+            "$ref": "#/$defs/state_machine_signal"
+          },
+          "propertyNames": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/message_ref"
+              },
+              {
+                "$ref": "#/$defs/data_signal_ref"
+              }
+            ]
+          },
+          "type": "object"
+        },
+        "emits": {
+          "additionalProperties": {
+            "$ref": "#/$defs/state_machine_signal"
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/message_ref"
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "accepts",
+        "emits"
+      ],
+      "type": "object"
+    },
+    "query_dependency": {
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "$ref": "#/$defs/operation_ref"
+        },
+        "query": {
+          "pattern": "^query\\.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "query",
+        "operation"
+      ],
       "type": "object"
     }
   },
@@ -3301,12 +3287,12 @@
       },
       "type": "object"
     },
-    "policies": {
+    "authorization_policies": {
       "additionalProperties": {
-        "$ref": "#/$defs/policy_item"
+        "$ref": "#/$defs/authorization_policy_item"
       },
       "propertyNames": {
-        "$ref": "#/$defs/policy_ref"
+        "$ref": "#/$defs/authorization_policy_ref"
       },
       "type": "object"
     },

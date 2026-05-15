@@ -48,7 +48,7 @@ from .project import (
     constant_name,
     cwl_type,
     object_schema,
-    policies_projection,
+    authorization_policies_projection,
     state_machines_projection,
     humanize,
     safe_id,
@@ -106,8 +106,8 @@ def validate_generated_projections(root: Path, contract: dict[str, Any]) -> None
         validate_content_contract(root, contract)
     if g("product_interfaces", "workflow.cwl.yaml") in expected_paths:
         validate_workflows(contract, read_yaml(generated / "product_interfaces" / "workflow.cwl.yaml"))
-    if g("product_interfaces", "policies.json") in expected_paths:
-        validate_policies_json(contract, read_json(generated / "product_interfaces" / "policies.json"))
+    if g("product_interfaces", "authorization_policies.json") in expected_paths:
+        validate_authorization_policies_json(contract, read_json(generated / "product_interfaces" / "authorization_policies.json"))
     validate_agent_prompts(root)
     validate_fixtures_and_test_cases(root, contract)
     if (root / GENERATED_SPEC_DIR / "audit_evidence").exists() or any(path.startswith(g("audit_evidence") + "/") for path in audit_expected_files(contract)):
@@ -169,7 +169,7 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             raise ContractError(f"OpenAPI operationId must equal operation id for {entry_id}")
         if operation.get("x-entry") != entry_id or operation.get("x-operation") != cap_id:
             raise ContractError(f"OpenAPI extensions do not point back to {entry_id}/{cap_id}")
-        if operation.get("x-policy") != cap["authorization_policy"]["policy"]:
+        if operation.get("x-policy") != cap["authorization_policy"]:
             raise ContractError(f"OpenAPI policy extension does not match operation {cap_id}")
 
         placeholders = _path_params(path)
@@ -317,7 +317,7 @@ def validate_routes(contract: dict[str, Any], doc: dict[str, Any]) -> None:
         raise ContractError("routes.json project does not match contract")
     expected = []
     for entry_id, entry in sorted(contract["entry_points"].items()):
-        if entry_point_adapter_pair(entry)[0] == "ui":
+        if entry_point_adapter_pair(entry)[0] == "html_route":
             expected.append({
                 "id": entry["route"],
                 "entry": entry_id,
@@ -618,19 +618,19 @@ def validate_fixtures_and_test_cases(root: Path, contract: dict[str, Any]) -> No
             raise ContractError(f"Generated features must be single-source; remove {path.relative_to(root)}")
 
 
-def validate_policies_json(contract: dict[str, Any], doc: dict[str, Any]) -> None:
-    if doc != policies_projection(contract):
-        raise ContractError("policies.json does not match contract authorization policies")
+def validate_authorization_policies_json(contract: dict[str, Any], doc: dict[str, Any]) -> None:
+    if doc != authorization_policies_projection(contract):
+        raise ContractError("authorization_policies.json does not match contract authorization policies")
     for operation_id, authorization_policy in doc["operation_authorization_policies"].items():
         if operation_id not in contract["operations"]:
-            raise ContractError(f"policies.json has unknown operation authorization policy {operation_id}")
-        if authorization_policy["policy"] not in doc["policies"]:
-            raise ContractError(f"policies.json operation authorization policy references unknown policy {authorization_policy['policy']}")
+            raise ContractError(f"authorization_policies.json has unknown operation authorization policy {operation_id}")
+        if authorization_policy not in doc["authorization_policies"]:
+            raise ContractError(f"authorization_policies.json operation authorization policy references unknown policy {authorization_policy}")
     for entry_id, authorization_policy in doc["entry_point_authorization_policies"].items():
         if entry_id not in contract["entry_points"]:
-            raise ContractError(f"policies.json has unknown entry point authorization policy {entry_id}")
-        if authorization_policy["policy"] not in doc["policies"]:
-            raise ContractError(f"policies.json entry point authorization policy references unknown policy {authorization_policy['policy']}")
+            raise ContractError(f"authorization_policies.json has unknown entry point authorization policy {entry_id}")
+        if authorization_policy not in doc["authorization_policies"]:
+            raise ContractError(f"authorization_policies.json entry point authorization policy references unknown policy {authorization_policy}")
 
 
 

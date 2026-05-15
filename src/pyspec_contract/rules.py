@@ -21,7 +21,8 @@ def resource_tail(value: str) -> str:
         "data_contract",
         "render_profile",
         "message",
-        "data",
+        "data_signal",
+        "authorization_policy",
     ):
         marker = f"{prefix}."
         if value.startswith(marker):
@@ -47,8 +48,8 @@ def workflow_ref(workflow_id: str) -> str:
     return dotted("workflow", resource_tail(workflow_id))
 
 
-def policy_ref(operation_id: str) -> str:
-    return dotted("policy", resource_tail(operation_id))
+def authorization_policy_ref(operation_id: str) -> str:
+    return dotted("authorization_policy", resource_tail(operation_id))
 
 
 def query_ref(state_machine_subject: str, operation_id: str, many: bool = False) -> str:

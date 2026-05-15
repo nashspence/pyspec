@@ -22,7 +22,7 @@ COLLECTION_SECTIONS = {
     "state_machines": "state_machine",
     "models": "model",
     "data_contracts": "data_contract",
-    "policies": "policy",
+    "authorization_policies": "authorization_policy",
     "test_cases": "test_case",
     "workflows": "workflow",
 }
