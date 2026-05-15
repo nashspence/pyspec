@@ -23,7 +23,7 @@ def _item(author: dict, section: str, item_id: str) -> dict:
 def test_composed_state_machine_contract_is_closed_and_projected() -> None:
     contract = compile_source(_author())
     list_fsm = contract["state_machines"]["state_machine.project.list"]
-    assert set(list_fsm) == {"model", "context", "data_dependencies", "state_machine_messages", "initial_view_state", "view_states", "transitions", "rationale"}
+    assert set(list_fsm) == {"model", "context", "data_dependencies", "messages", "initial_view_state", "view_states", "transitions", "rationale"}
     assert list_fsm["initial_view_state"] == "loading"
     assert list_fsm["data_dependencies"] == [{"query": "query.project.list.list", "operation": "operation.project.list"}]
     assert list_fsm["view_states"]["ready"]["fields"] == ["title", "customer", "priority", "status"]
@@ -35,7 +35,7 @@ def test_composed_state_machine_contract_is_closed_and_projected() -> None:
     ]
 
     state_machine = contract["state_machines"]["state_machine.project.board"]["view_states"]["ready"]
-    assert set(state_machine["renderers"]["web"]["layout"]["regions"]) == {"nav", "main", "aside"}
+    assert set(state_machine["renderers"]["html"]["layout"]["regions"]) == {"nav", "main", "aside"}
     assert set(state_machine["renderers"]["textual"]["layout"]["containers"]) == {"nav", "main", "aside"}
     assert [(item["id"], item["state_machine"], item["region"], item["initial_view_state"]) for item in state_machine["child_state_machines"]] == [
         ("list", "state_machine.project.list", "nav", "loading"),
@@ -43,7 +43,7 @@ def test_composed_state_machine_contract_is_closed_and_projected() -> None:
         ("activity", "state_machine.project.activity", "aside", "empty"),
     ]
 
-    generated = read_json(ROOT / "spec" / "generated" / "product_interfaces" / "web.state_machines.json")
+    generated = read_json(ROOT / "spec" / "generated" / "product_interfaces" / "html.state_machines.json")
     composition = next(item for item in generated["compositions"] if item["id"] == "state_machine.project.board.ready")
     assert composition["child_state_machines"] == state_machine["child_state_machines"]
     assert composition["message_sync_rules"] == state_machine["message_sync_rules"]
@@ -60,7 +60,7 @@ def test_state_machine_composition_rejects_unknown_layout_region() -> None:
 def test_state_machine_composition_rejects_context_binding_drift() -> None:
     author = _author()
     state_machine = _item(author, "state_machines", "state_machine.project.board")["view_states"]["ready"]
-    del state_machine["child_state_machines"][0]["context"]["selected_project_id"]
+    del state_machine["child_state_machines"][0]["context_bindings"]["selected_project_id"]
     with pytest.raises(ContractError, match="context keys"):
         compile_source(author)
 

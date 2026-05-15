@@ -1,32 +1,32 @@
 project: project_dispatch_board
 text_resources:
   text.project.activity.empty.body:
+    intent: instructional
     max_chars: 120
     placeholder: Activity appears after a project is selected.
     rationale: Empty activity body.
-    tone: instructional
   text.project.activity.empty.heading:
+    intent: neutral
     max_chars: 80
     placeholder: No project selected
     rationale: Empty activity heading.
-    tone: neutral
   text.project.detail.none.body:
+    intent: instructional
     max_chars: 160
     placeholder: Choose a project from the queue to review customer, assignment, and approval details.
     rationale: No-selection body for the detail state machine.
-    tone: instructional
   text.project.detail.none.heading:
+    intent: instructional
     max_chars: 80
     placeholder: Select a project
     rationale: No-selection heading for the detail state machine.
-    tone: instructional
   text.project.list.empty.body:
+    intent: instructional
     max_chars: 160
     placeholder: Create the first project to start coordinating work for this workspace.
     rationale: Empty body for the project list state machine.
-    tone: instructional
   text.project.list.empty.heading:
+    intent: neutral
     max_chars: 80
     placeholder: No dispatch projects yet
     rationale: Empty heading for the project list state machine.
-    tone: neutral

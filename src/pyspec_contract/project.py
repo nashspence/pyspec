@@ -10,7 +10,7 @@ from .layout import (
     renderer_textual_layout,
     renderer_textual_presentation,
     renderer_textual_style,
-    renderer_web_style,
+    renderer_html_style,
     renderer_textual_containers,
 )
 from .paths import generated_relative as g
@@ -57,10 +57,10 @@ def projection_paths(contract: dict[str, Any]) -> list[str]:
         paths.append(g("product_interfaces", "http.openapi.yaml"))
     if _has_asyncapi(contract):
         paths.append(g("product_interfaces", "events.asyncapi.yaml"))
-    if _has_web_routes(contract):
-        paths.append(g("product_interfaces", "web.routes.json"))
+    if _has_html_routes(contract):
+        paths.append(g("product_interfaces", "html.routes.json"))
     if _has_ui(contract):
-        paths.append(g("product_interfaces", "web.state_machines.json"))
+        paths.append(g("product_interfaces", "html.state_machines.json"))
     if _has_textual_ui(contract):
         paths.append(g("product_interfaces", "textual.projection.py"))
     if _has_workflow(contract):
@@ -91,10 +91,10 @@ def projection_files(contract: dict[str, Any], *, layers: str | set[str] | None 
         yield g("product_interfaces", "http.openapi.yaml"), openapi_projection(contract), "yaml"
     if _has_asyncapi(contract):
         yield g("product_interfaces", "events.asyncapi.yaml"), asyncapi_projection(contract), "yaml"
-    if _has_web_routes(contract):
-        yield g("product_interfaces", "web.routes.json"), routes_projection(contract), "json"
+    if _has_html_routes(contract):
+        yield g("product_interfaces", "html.routes.json"), routes_projection(contract), "json"
     if _has_ui(contract):
-        yield g("product_interfaces", "web.state_machines.json"), state_machines_projection(contract), "json"
+        yield g("product_interfaces", "html.state_machines.json"), state_machines_projection(contract), "json"
     if _has_textual_ui(contract):
         yield g("product_interfaces", "textual.projection.py"), textual_contract_projection(contract), "text"
     if _has_workflow(contract):
@@ -133,7 +133,7 @@ def _has_asyncapi(contract: dict[str, Any]) -> bool:
     return bool(contract.get("events")) and (bool(_entry_points_with_adapter(contract, "webhook", "worker")) or any("event" in wf.get("trigger", {}) for wf in contract.get("workflows", {}).values()))
 
 
-def _has_web_routes(contract: dict[str, Any]) -> bool:
+def _has_html_routes(contract: dict[str, Any]) -> bool:
     return bool(_entry_points_with_adapter(contract, "ui"))
 
 
@@ -192,7 +192,7 @@ def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
             "operationId": cap_id,
             "x-entry": entry_id,
             "x-operation": cap_id,
-            "x-policy": cap["policy_guard"]["policy"],
+            "x-policy": cap["authorization_policy"]["policy"],
             "parameters": [
                 {"name": name, "in": "path", "required": True, "schema": type_schema(type_name)}
                 for name, type_name in sorted(params.items())
@@ -339,7 +339,7 @@ def state_machine_projection_item(owner_kind: str, owner_id: str, state_name: st
             "text": state["text"],
             "assets": state["assets"],
             "fields": state.get("fields", []),
-            "operation_refs": state["operation_refs"],
+            "available_operations": state["available_operations"],
         },
     }
     if state.get("renderers"):
@@ -381,7 +381,7 @@ def state_machine_styles_projection(
     for state_machine in state_machines:
         if wanted_surfaces is not None and state_machine["id"] not in wanted_surfaces:
             continue
-        css_contract = renderer_web_style(state_machine)
+        css_contract = renderer_html_style(state_machine)
         grouped: dict[str, dict[str, str]] = {}
         root_selector = css_selector(state_machine, "root")
         for name, value in sorted((css_contract.get("tokens") or {}).items()):
@@ -399,7 +399,7 @@ def state_machine_styles_projection(
     for composition in state_machines_projection(contract)["compositions"]:
         if wanted_compositions is not None and composition["id"] not in wanted_compositions:
             continue
-        css_contract = renderer_web_style(composition)
+        css_contract = renderer_html_style(composition)
         grouped: dict[str, dict[str, str]] = {}
         root_selector = composition_css_selector(composition, "root")
         for name, value in sorted((css_contract.get("tokens") or {}).items()):
@@ -425,8 +425,8 @@ def textual_contract_projection(contract: dict[str, Any]) -> str:
     return f'''from __future__ import annotations
 
 # Generated Textual projection. Do not edit by hand.
-# The PM contract owns state machines/view states/actions/widgets/Textual styles; a real Textual app imports this file
-# and renders state machine view-state surfaces by id instead of inventing screens, widgets, or action keys.
+# The PM contract owns state machines/view states/operations/widgets/Textual styles; a real Textual app imports this file
+# and renders state machine view-state surfaces by id instead of inventing screens, widgets, or operation keys.
 
 PROJECT = {contract["project"]!r}
 SCREENS = {screen_entries!r}
@@ -458,13 +458,13 @@ def compose_contract_state_machine(surface_id: str) -> list[tuple[str, str]]:
     textual = ((item.get("renderers") or {{}}).get("textual") or {{}}).get("presentation") or {{}}
     widgets = textual.get("widgets") or []
     if widgets:
-        return [(widget["kind"], widget_label(widget)) for widget in widgets]
+        return [(widget["widget_class"], widget_label(widget)) for widget in widgets]
     slots = item["slots"]
     result: list[tuple[str, str]] = []
     result.extend(("Static", key) for key in slots["text"])
     result.extend(("Static", key) for key in slots["assets"])
     result.extend(("Static", key) for key in slots.get("fields", []))
-    result.extend(("Button", action) for action in slots["operation_refs"])
+    result.extend(("Button", operation) for operation in slots["available_operations"])
     return result
 
 
@@ -479,8 +479,8 @@ def widget_label(widget: dict) -> str:
         return binding["text"]
     if "asset" in binding:
         return binding["asset"]
-    if "action" in binding:
-        return binding["action"]
+    if "operation" in binding:
+        return binding["operation"]
     if "field" in binding:
         return binding["field"]
     return binding.get("literal", widget["id"])
@@ -534,7 +534,7 @@ def _textual_screen_class(
     return None
 
 
-def default_web_slots(state_machine: dict[str, Any]) -> list[dict[str, Any]]:
+def default_html_slots(state_machine: dict[str, Any]) -> list[dict[str, Any]]:
     slots: list[dict[str, Any]] = []
     for text_ref in state_machine["slots"]["text"]:
         slot = text_ref.rsplit(".", 1)[-1]
@@ -547,8 +547,8 @@ def default_web_slots(state_machine: dict[str, Any]) -> list[dict[str, Any]]:
         slots.append({"binding": {"asset": asset_ref.rsplit(".", 1)[-1]}, "component": "image", "element": "img"})
     for field in state_machine["slots"].get("fields", []):
         slots.append({"binding": {"field": field}, "component": "field", "element": "p"})
-    for action in state_machine["slots"]["operation_refs"]:
-        slots.append({"binding": {"action": action}, "component": "button", "element": "button"})
+    for operation in state_machine["slots"]["available_operations"]:
+        slots.append({"binding": {"operation": operation}, "component": "button", "element": "button"})
     return slots
 
 
@@ -559,9 +559,9 @@ def css_selector(state_machine: dict[str, Any], selector: str) -> str:
     if selector.startswith("slot."):
         slot = selector[len("slot."):]
         return f'{root} [data-contract-slot="{slot}"]'
-    if selector.startswith("action."):
-        action = selector[len("action."):]
-        return f'{root} [data-action="{action}"]'
+    if selector.startswith("operation."):
+        operation = selector[len("operation."):]
+        return f'{root} [data-operation="{operation}"]'
     return root
 
 
@@ -572,9 +572,9 @@ def composition_css_selector(composition: dict[str, Any], selector: str) -> str:
     if selector.startswith("region."):
         region = selector[len("region."):]
         return f'{root} [data-layout-region="{region}"]'
-    if selector.startswith("mount."):
-        mount = selector[len("mount."):]
-        return f'{root} [data-state-machine-mount="{mount}"]'
+    if selector.startswith("child_state_machine."):
+        child_state_machine = selector[len("child_state_machine."):]
+        return f'{root} [data-child-state-machine="{child_state_machine}"]'
     return root
 
 
@@ -615,12 +615,12 @@ def tcss_selector(state_machine: dict[str, Any], selector: str) -> str:
             if binding.get("text") == slot or binding.get("asset") == slot or binding.get("field") == slot:
                 return "#" + safe_id(widget["id"])
         return "#" + slot
-    if selector.startswith("action."):
-        action = selector[len("action."):]
+    if selector.startswith("operation."):
+        operation = selector[len("operation."):]
         for widget in widgets:
-            if widget["binding"].get("action") == action:
+            if widget["binding"].get("operation") == operation:
                 return "#" + safe_id(widget["id"])
-        return "#" + safe_id(action)
+        return "#" + safe_id(operation)
     return selector
 
 
@@ -632,8 +632,8 @@ def composition_tcss_selector(composition: dict[str, Any], selector: str) -> str
         region = selector[len("region."):]
         container = renderer_textual_containers(composition).get(region, {})
         return "#" + safe_id(container.get("id", region))
-    if selector.startswith("mount."):
-        return "#" + safe_id(selector[len("mount."):])
+    if selector.startswith("child_state_machine."):
+        return "#" + safe_id(selector[len("child_state_machine."):])
     return selector
 
 
@@ -737,14 +737,14 @@ def policies_projection(contract: dict[str, Any]) -> dict[str, Any]:
     return {
         "project": contract["project"],
         "policies": contract.get("policies", {}),
-        "operation_guards": {
-            operation_id: operation["policy_guard"]
+        "operation_authorization_policies": {
+            operation_id: operation["authorization_policy"]
             for operation_id, operation in sorted(contract.get("operations", {}).items())
         },
-        "entry_point_guards": {
-            entry_id: entry["policy_guard"]
+        "entry_point_authorization_policies": {
+            entry_id: entry["authorization_policy"]
             for entry_id, entry in sorted(contract.get("entry_points", {}).items())
-            if "policy_guard" in entry
+            if "authorization_policy" in entry
         },
     }
 
@@ -927,17 +927,17 @@ def then_spec_test_case(spec_driver, test_case_id: str) -> None:
 
 
 def feature_projections(contract: dict[str, Any]) -> dict[str, str]:
-    by_feature: dict[str, list[tuple[str, dict[str, Any]]]] = defaultdict(list)
+    by_feature_tag: dict[str, list[tuple[str, dict[str, Any]]]] = defaultdict(list)
     for test_case_id, test_case in sorted(contract["test_cases"].items()):
-        by_feature[test_case["feature"]].append((test_case_id, test_case))
+        by_feature_tag[test_case["feature_tag"]].append((test_case_id, test_case))
     files: dict[str, str] = {}
-    for feature_id, test_cases in sorted(by_feature.items()):
-        files[g("test_adapters", "pytest_bdd_features", f"{safe_id(feature_id)}.feature")] = feature_text(feature_id, test_cases)
+    for feature_tag, test_cases in sorted(by_feature_tag.items()):
+        files[g("test_adapters", "pytest_bdd_features", f"{safe_id(feature_tag)}.feature")] = feature_text(feature_tag, test_cases)
     return files
 
 
-def feature_text(feature_id: str, test_cases: list[tuple[str, dict[str, Any]]]) -> str:
-    lines = [f"Feature: {humanize(feature_id)}", ""]
+def feature_text(feature_tag: str, test_cases: list[tuple[str, dict[str, Any]]]) -> str:
+    lines = [f"Feature: {humanize(feature_tag)}", ""]
     for test_case_id, test_case in test_cases:
         tag_id = safe_id(test_case_id)
         lines.extend([
@@ -954,17 +954,19 @@ def feature_text(feature_id: str, test_cases: list[tuple[str, dict[str, Any]]]) 
 def components_projection(contract: dict[str, Any]) -> dict[str, Any]:
     components = {"schemas": {}}
     opaque: set[str] = set()
+    for rid, data_contract in sorted(contract.get("data_contracts", {}).items()):
+        components["schemas"][rid] = object_schema(data_contract["fields"])
     for rid, model in sorted(contract["models"].items()):
         components["schemas"][rid] = object_schema(model["fields"])
         for field in model["fields"].values():
             for ref in referenced_named_types(effective_field_type(field)):
-                if ref != rid and ref not in contract["models"]:
+                if ref != rid and ref not in contract["models"] and ref not in contract.get("data_contracts", {}):
                     opaque.add(ref)
     for cap in contract["operations"].values():
         outcome_types = [outcome["result"] for outcome in cap["outcomes"].values()]
         for type_name in list(cap["input"].values()) + outcome_types:
             for ref in referenced_named_types(type_name):
-                if ref not in components["schemas"] and ref not in contract["models"]:
+                if ref not in components["schemas"] and ref not in contract["models"] and ref not in contract.get("data_contracts", {}):
                     opaque.add(ref)
     for type_name in sorted(opaque):
         components["schemas"].setdefault(type_name, {"type": "object", "additionalProperties": True})

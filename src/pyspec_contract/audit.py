@@ -18,12 +18,12 @@ from typing import Any, Iterable
 from .compile import ContractError, audit_cases
 from .content import AssetResult, ContentContext, ContentError, call_asset, call_text
 from .io import write_yaml
-from .layout import renderer_textual_presentation, renderer_web_layout, renderer_web_presentation, renderer_web_regions
+from .layout import renderer_textual_presentation, renderer_html_layout, renderer_html_presentation, renderer_html_regions
 from .paths import GENERATED_SPEC_DIR, generated_relative as g
-from .project import css_value, default_web_slots, format_attrs, humanize, state_machines_projection, state_machine_styles_projection, safe_id
+from .project import css_value, default_html_slots, format_attrs, humanize, state_machines_projection, state_machine_styles_projection, safe_id
 from .runtime import fixture_namespace, resolve
 from .targets import (
-    entry_state_machine_surface,
+    entry_state_machine_renderer,
     entry_point_adapter_pair,
     entry_point_cli_command,
     entry_point_input,
@@ -32,7 +32,7 @@ from .targets import (
     entry_point_responses,
     entry_point_schedule_expression,
     entry_target_pair,
-    entry_workflow_trigger,
+    entry_workflow_target_source,
 )
 from .type_expr import effective_field_type, type_display
 
@@ -132,9 +132,9 @@ def _render_filename(profile_id: str, breakpoint_id: str, extension: str) -> str
     if extension == "png":
         return f"html.{stem}.screenshot.png"
     if extension == "py":
-        return f"terminal.{stem}.source.py"
+        return f"textual.{stem}.source.py"
     if extension == "svg":
-        return f"terminal.{stem}.capture.svg"
+        return f"textual.{stem}.capture.svg"
     raise ContractError(f"Unknown audit render extension: {extension}")
 
 
@@ -165,10 +165,10 @@ def _case_file(contract: dict[str, Any], case_id: str, case: dict[str, Any], pro
 def _projection_render_surfaces(state_machine: dict[str, Any]) -> set[str]:
     renderers = state_machine.get("renderers") or {}
     surfaces: set[str] = set()
-    if renderers.get("web"):
+    if renderers.get("html"):
         surfaces.add("html")
     if renderers.get("textual"):
-        surfaces.add("terminal")
+        surfaces.add("textual")
     return surfaces
 
 
@@ -176,15 +176,15 @@ def _case_render_surfaces(contract: dict[str, Any], case: dict[str, Any]) -> set
     state = contract["state_machines"][case["state_machine"]]["view_states"][case["view_state"]]
     renderers = state.get("renderers") or {}
     surfaces: set[str] = set()
-    if renderers.get("web"):
+    if renderers.get("html"):
         surfaces.add("html")
     if renderers.get("textual"):
-        surfaces.add("terminal")
+        surfaces.add("textual")
     return surfaces
 
 
 def _profile_viewports(contract: dict[str, Any], surface: str) -> list[tuple[str, str, dict[str, int]]]:
-    field = "html_viewports" if surface == "html" else "terminal_viewports"
+    field = "html_viewports" if surface == "html" else "textual_viewports"
     return [
         (profile_id, name, viewport)
         for profile_id, profile in sorted(contract.get("render_profiles", {}).items())
@@ -360,8 +360,8 @@ def audit_expected_files(contract: dict[str, Any]) -> set[str]:
             for profile_id, breakpoint, _ in _profile_viewports(contract, "html"):
                 files.add(_projection_surface_file(state_machine, profile_id, breakpoint, "html"))
                 files.add(_projection_surface_file(state_machine, profile_id, breakpoint, "png"))
-        if "terminal" in render_surfaces:
-            for profile_id, breakpoint, _ in _profile_viewports(contract, "terminal"):
+        if "textual" in render_surfaces:
+            for profile_id, breakpoint, _ in _profile_viewports(contract, "textual"):
                 files.add(_projection_surface_file(state_machine, profile_id, breakpoint, "py"))
                 files.add(_projection_surface_file(state_machine, profile_id, breakpoint, "svg"))
 
@@ -374,8 +374,8 @@ def audit_expected_files(contract: dict[str, Any]) -> set[str]:
             for profile_id, breakpoint, _ in _profile_viewports(contract, "html"):
                 files.add(_case_file(contract, case_id, case, profile_id, breakpoint, "html"))
                 files.add(_case_file(contract, case_id, case, profile_id, breakpoint, "png"))
-        if "terminal" in render_surfaces:
-            for profile_id, breakpoint, _ in _profile_viewports(contract, "terminal"):
+        if "textual" in render_surfaces:
+            for profile_id, breakpoint, _ in _profile_viewports(contract, "textual"):
                 files.add(_case_file(contract, case_id, case, profile_id, breakpoint, "py"))
                 files.add(_case_file(contract, case_id, case, profile_id, breakpoint, "svg"))
     return files
@@ -477,21 +477,21 @@ def _render_visual_audit(
         _render_html_audit(root, contract, projection, previous_audit_root)
 
     audit_state_machines = _audit_projection_surfaces(contract, projection)
-    has_terminal_audit = bool(_profile_viewports(contract, "terminal")) and (
-        any("terminal" in _projection_render_surfaces(state_machine) for state_machine in audit_state_machines)
-        or any("terminal" in _case_render_surfaces(contract, case) for case in audit_cases(contract).values())
+    has_textual_audit = bool(_profile_viewports(contract, "textual")) and (
+        any("textual" in _projection_render_surfaces(state_machine) for state_machine in audit_state_machines)
+        or any("textual" in _case_render_surfaces(contract, case) for case in audit_cases(contract).values())
     )
-    if has_terminal_audit:
+    if has_textual_audit:
         try:
             import textual  # noqa: F401
         except Exception as exc:  # pragma: no cover - dependency absence is environment-specific.
             raise ContractError("Missing Textual dependency; install requirements.txt") from exc
         textual_jobs: list[tuple[Path, list[tuple[str, str]], dict[str, int], Path | None, Path | None]] = []
         for state_machine in sorted(audit_state_machines, key=lambda p: p["id"]):
-            if "terminal" not in _projection_render_surfaces(state_machine):
+            if "textual" not in _projection_render_surfaces(state_machine):
                 continue
             lines = state_machine_textual_lines(root, contract, state_machine, None)
-            for profile_id, name, viewport in _profile_viewports(contract, "terminal"):
+            for profile_id, name, viewport in _profile_viewports(contract, "textual"):
                 py_path = root / _projection_surface_file(state_machine, profile_id, name, "py")
                 svg_path = root / _projection_surface_file(state_machine, profile_id, name, "svg")
                 _write_textual_source(py_path, lines)
@@ -503,10 +503,10 @@ def _render_visual_audit(
                     _previous_audit_path(root, previous_audit_root, svg_path),
                 ))
         for case_id, case in sorted(audit_cases(contract).items()):
-            if "terminal" not in _case_render_surfaces(contract, case):
+            if "textual" not in _case_render_surfaces(contract, case):
                 continue
             lines = textual_audit_lines(root, contract, case_id, case)
-            for profile_id, name, viewport in _profile_viewports(contract, "terminal"):
+            for profile_id, name, viewport in _profile_viewports(contract, "textual"):
                 py_path = root / _case_file(contract, case_id, case, profile_id, name, "py")
                 svg_path = root / _case_file(contract, case_id, case, profile_id, name, "svg")
                 previous_py_path = _previous_audit_path(root, previous_audit_root, py_path)
@@ -958,8 +958,8 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
 def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str, Any]) -> str:
     adapter_kind, _ = entry_point_adapter_pair(entry)
     target_kind, target_value = entry_target_pair(entry)
-    target_surface = entry_state_machine_surface(entry) if target_kind == "state_machine" else None
-    target_trigger = entry_workflow_trigger(entry) if target_kind == "workflow" else None
+    target_renderer = entry_state_machine_renderer(entry) if target_kind == "state_machine" else None
+    target_source = entry_workflow_target_source(entry) if target_kind == "workflow" else None
     start_id = "entry_start"
     entry_node = _dot_node_id("entrypoint", entry_id)
     input_node = _dot_node_id("entrypoint_input", entry_id)
@@ -992,7 +992,7 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
                 _dot_card(input_title, "external data", input_sections, style=_DOT_STYLE_EXTERNAL),
             )
         )
-    lines.append(_dot_html_node(target_node, _entry_target_card(target_kind, target_value, contract, surface=target_surface, trigger=target_trigger)))
+    lines.append(_dot_html_node(target_node, _entry_target_card(target_kind, target_value, contract, renderer=target_renderer, source=target_source)))
     if response_nodes:
         lines.append(_dot_circle_node(exit_id, "exit", width="0.58", color=_DOT_COLOR_ENTRY, fontcolor=_DOT_COLOR_ENTRY_TEXT, shape="doublecircle"))
         lines.extend(
@@ -1081,13 +1081,13 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
     for node_id, step in step_nodes:
         for outcome_id, route in sorted(step["outcome_routes"].items()):
             attrs = {"label": outcome_id}
-            action, value = _workflow_route_action(route)
-            if action == "next_step":
+            route_key, value = _workflow_route_action(route)
+            if route_key == "next_step":
                 lines.append(_dot_edge(node_id, step_node_by_id[value], attrs))
             else:
-                terminal = _workflow_route_terminal(action, value)
-                assert terminal is not None
-                lines.append(_dot_edge(node_id, outcome_node_by_id[terminal], attrs))
+                outcome = _workflow_route_outcome(route_key, value)
+                assert outcome is not None
+                lines.append(_dot_edge(node_id, outcome_node_by_id[outcome], attrs))
     if outcome_nodes:
         lines.append("  { rank=same; " + " ".join(_dot_quote(node_id) for node_id, _, _ in outcome_nodes) + " }")
         lines.extend(_dot_invisible_order([node_id for node_id, _, _ in outcome_nodes], indent="  "))
@@ -1122,7 +1122,7 @@ def _entry_binding_sections(entry: dict[str, Any], contract: dict[str, Any]) -> 
     schedule = entry_point_schedule_expression(entry)
     if schedule:
         sections.append(("schedule", [schedule]))
-    sections.extend(_policy_guard_sections(entry.get("policy_guard"), contract, include_details=False))
+    sections.extend(_authorization_policy_sections(entry.get("authorization_policy"), contract, include_details=False))
     return sections
 
 
@@ -1182,14 +1182,14 @@ def _entry_target_card(
     target_value: str,
     contract: dict[str, Any],
     *,
-    surface: str | None = None,
-    trigger: dict[str, str] | None = None,
+    renderer: str | None = None,
+    source: dict[str, str] | None = None,
 ) -> str:
     if target_kind == "state_machine":
         state_machine = contract["state_machines"][target_value]
         return _dot_card(
             target_value,
-            f"target state machine ({surface})" if surface else "target state machine",
+            f"target state machine ({renderer})" if renderer else "target state machine",
             _state_machine_summary_sections(state_machine, contract),
             rationale=state_machine.get("rationale", ""),
             style=_DOT_STYLE_STATE_MACHINE,
@@ -1206,8 +1206,8 @@ def _entry_target_card(
     if target_kind == "workflow":
         workflow = contract["workflows"][target_value]
         target_subtitle = "target workflow"
-        if trigger:
-            target_subtitle = f"target workflow ({_target_label(*_target_pair(trigger))})"
+        if source:
+            target_subtitle = f"target workflow ({_target_label(*_target_pair(source))})"
         return _dot_card(
             target_value,
             target_subtitle,
@@ -1247,7 +1247,7 @@ def _state_machine_summary_sections(state_machine: dict[str, Any], contract: dic
     inputs = _format_data_inputs(state_machine, bindings, contract)
     queries = [binding["query"] for binding in bindings]
     loads = _format_operation_outputs(operation_ids, contract)
-    guards = _format_operation_policy_guards(operation_ids, contract)
+    guards = _format_operation_authorization_policies(operation_ids, contract)
     if inputs:
         sections.append(("input", inputs))
     if queries:
@@ -1255,7 +1255,7 @@ def _state_machine_summary_sections(state_machine: dict[str, Any], contract: dic
     if loads:
         sections.append(("load", loads))
     if guards:
-        sections.append(("policy_guards", guards))
+        sections.append(("authorization_policies", guards))
     sections.append(("model", [state_machine["model"]]))
     sync_ids = [rule["id"] for state in state_machine.get("view_states", {}).values() for rule in state.get("message_sync_rules", [])]
     if sync_ids:
@@ -1278,13 +1278,13 @@ def _state_machine_view_state_sections(
     state: dict[str, Any],
     contract: dict[str, Any],
 ) -> list[tuple[str, Iterable[object]]]:
-    operation_refs = state.get("operation_refs", [])
+    available_operations = state.get("available_operations", [])
     return [
         ("text", state.get("text", [])),
         ("assets", state.get("assets", [])),
         (_state_field_section_title(state_machine, state_name, state), _format_state_fields(state_machine, state, contract)),
-        ("operation_refs", _format_operation_outputs(operation_refs, contract)),
-        ("policy_guards", _format_operation_policy_guards(operation_refs, contract)),
+        ("available_operations", _format_operation_outputs(available_operations, contract)),
+        ("authorization_policies", _format_operation_authorization_policies(available_operations, contract)),
         ("child_state_machines", _format_mounts(state.get("child_state_machines", []))),
         ("message_sync_rules", [rule["id"] for rule in state.get("message_sync_rules", [])]),
     ]
@@ -1323,28 +1323,28 @@ def _workflow_step_card(step: dict[str, Any], contract: dict[str, Any]) -> str:
 def _workflow_route_lines(step: dict[str, Any]) -> list[str]:
     lines: list[str] = []
     for outcome_id, route in sorted(step["outcome_routes"].items()):
-        action, value = _workflow_route_action(route)
-        if action == "retry_policy":
+        route_key, value = _workflow_route_action(route)
+        if route_key == "retry_policy":
             target = f"retry_policy {_DOT_ARROW_FORWARD} {value['fail_as']}"
             suffix = f" ({value['attempts']} {value['backoff']})"
         else:
-            target = f"{action} {_DOT_ARROW_FORWARD} {value}"
+            target = f"{route_key} {_DOT_ARROW_FORWARD} {value}"
             suffix = ""
         lines.append(f"{outcome_id}: {target}{suffix}")
     return lines
 
 
 def _workflow_route_action(route: dict[str, Any]) -> tuple[str, Any]:
-    for action in ("next_step", "complete_as", "fail_as", "retry_policy", "dead_letter"):
-        if action in route:
-            return action, route[action]
-    raise KeyError("workflow route has no action")
+    for route_key in ("next_step", "complete_as", "fail_as", "retry_policy", "dead_letter_as"):
+        if route_key in route:
+            return route_key, route[route_key]
+    raise KeyError("workflow route has no target")
 
 
-def _workflow_route_terminal(action: str, value: Any) -> str | None:
-    if action in {"complete_as", "fail_as", "dead_letter"}:
+def _workflow_route_outcome(route_key: str, value: Any) -> str | None:
+    if route_key in {"complete_as", "fail_as", "dead_letter_as"}:
         return value
-    if action == "retry_policy":
+    if route_key == "retry_policy":
         return value["fail_as"]
     return None
 
@@ -1376,7 +1376,7 @@ def _event_card(event_id: str, contract: dict[str, Any], *, subtitle: str = "tar
 
 def _operation_sections(operation: dict[str, Any], contract: dict[str, Any], *, include_output: bool = True) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
-    sections.extend(_policy_guard_sections(operation.get("policy_guard"), contract))
+    sections.extend(_authorization_policy_sections(operation.get("authorization_policy"), contract))
     for field in ["creates", "reads", "updates", "deletes"]:
         if operation.get(field):
             sections.append((field, operation[field]))
@@ -1403,16 +1403,16 @@ def _operation_sections(operation: dict[str, Any], contract: dict[str, Any], *, 
     return sections
 
 
-def _policy_guard_sections(
-    guard: dict[str, Any] | None,
+def _authorization_policy_sections(
+    authorization_policy: dict[str, Any] | None,
     contract: dict[str, Any],
     *,
     include_details: bool = True,
 ) -> list[tuple[str, list[object]]]:
-    if not guard:
+    if not authorization_policy:
         return []
-    policy_id = guard["policy"]
-    sections: list[tuple[str, list[object]]] = [("policy_guard", [policy_id])]
+    policy_id = authorization_policy["policy"]
+    sections: list[tuple[str, list[object]]] = [("authorization_policy", [policy_id])]
     if not include_details:
         return sections
     policy = contract.get("policies", {}).get(policy_id)
@@ -1420,8 +1420,7 @@ def _policy_guard_sections(
         return sections
     sections.append(("policy_effect", [policy["effect"]]))
     sections.append(("policy_subjects", _format_policy_subjects(policy.get("subjects", []))))
-    sections.append(("policy_actions", _format_policy_targets(policy.get("actions", []))))
-    sections.append(("policy_resources", _format_policy_targets(policy.get("resources", []))))
+    sections.append(("policy_targets", _format_policy_targets(policy.get("targets", []))))
     sections.append(("policy_conditions", _format_policy_conditions(policy.get("conditions", []))))
     return sections
 
@@ -1493,7 +1492,7 @@ def _target_label(kind: str, value: str) -> str:
 def _format_mounts(mounts: Iterable[dict[str, Any]]) -> list[_DotTypedField]:
     lines: list[_DotTypedField] = []
     for mount in sorted(mounts, key=lambda item: (item["region"], item["id"])):
-        lines.append(_DotTypedField(mount["region"], mount["state_machine"]))
+        lines.append(_DotReferenceField(mount["region"], mount["state_machine"]))
     return lines
 
 
@@ -1588,7 +1587,7 @@ def _message_payload_for_instance(
 ) -> dict[str, str]:
     mount = mount_by_id[instance_id]
     state_machine = contract["state_machines"][mount["state_machine"]]
-    return state_machine["state_machine_messages"][direction][message]["payload_schema"]
+    return state_machine["messages"][direction][message]["payload_schema"]
 
 
 def _emitting_transition_emits(
@@ -1719,6 +1718,13 @@ class _DotTypedField:
         return f"{self.field} {self.type_name}{suffix}"
 
 
+class _DotReferenceField(_DotTypedField):
+    def __init__(self, field: str, ref: str, source: str | None = None) -> None:
+        self.field = field
+        self.type_name = ref
+        self.source = source
+
+
 class _DotTransitionField:
     def __init__(self, field: str, type_name: Any, change: str) -> None:
         self.field = field
@@ -1842,7 +1848,7 @@ def _dot_section_inner_rows(title: str, values: Iterable[object]) -> tuple[bool,
 
 
 def _dot_typed_field_section_inner_rows(title: str, values: list[object]) -> tuple[bool, list[str]]:
-    if (title in {"input", "output", "payload", "payload_schema", "data_dependencies", "set", "load"} or title == "operation_refs") and len(values) == 1:
+    if (title in {"input", "output", "payload", "payload_schema", "data_dependencies", "set", "load"} or title == "available_operations") and len(values) == 1:
         rows = []
         for index, value in enumerate(values):
             if isinstance(value, _DotTypedField):
@@ -2007,7 +2013,7 @@ def _format_transition_sections(
         bindings = _transition_data_bindings(state_machine, transition)
         operation_ids = [binding["operation"] for binding in bindings]
         data_sources = _format_operation_outputs(operation_ids, contract)
-        guards = _format_operation_policy_guards(operation_ids, contract)
+        guards = _format_operation_authorization_policies(operation_ids, contract)
         queries = [binding["query"] for binding in bindings]
         inputs = _format_data_inputs(state_machine, bindings, contract)
         if inputs:
@@ -2017,12 +2023,12 @@ def _format_transition_sections(
         if data_sources:
             sections.append(("load", data_sources))
         if guards:
-            sections.append(("policy_guards", guards))
+            sections.append(("authorization_policies", guards))
     else:
         target_bindings = _transition_target_data_bindings(state_machine, transition)
         operation_ids = [binding["operation"] for binding in target_bindings]
         data_sources = _format_operation_outputs(operation_ids, contract)
-        guards = _format_operation_policy_guards(operation_ids, contract)
+        guards = _format_operation_authorization_policies(operation_ids, contract)
         queries = [binding["query"] for binding in target_bindings]
         required_context = _format_data_inputs(state_machine, target_bindings, contract)
         if required_context:
@@ -2032,7 +2038,7 @@ def _format_transition_sections(
         if data_sources:
             sections.append(("load", data_sources))
         if guards:
-            sections.append(("policy_guards", guards))
+            sections.append(("authorization_policies", guards))
     sections.extend(_format_transition_effect_sections(state_machine, transition))
     return sections
 
@@ -2080,7 +2086,7 @@ def _format_operation_outputs(operation_ids: Iterable[str], contract: dict[str, 
     return fields
 
 
-def _format_operation_policy_guards(operation_ids: Iterable[str], contract: dict[str, Any]) -> list[str]:
+def _format_operation_authorization_policies(operation_ids: Iterable[str], contract: dict[str, Any]) -> list[str]:
     lines: list[str] = []
     seen: set[str] = set()
     for operation_id in operation_ids:
@@ -2088,9 +2094,9 @@ def _format_operation_policy_guards(operation_ids: Iterable[str], contract: dict
             continue
         seen.add(operation_id)
         operation = contract["operations"].get(operation_id)
-        guard = operation.get("policy_guard") if operation else None
-        if guard:
-            lines.append(f"{operation_id}: {guard['policy']}")
+        authorization_policy = operation.get("authorization_policy") if operation else None
+        if authorization_policy:
+            lines.append(f"{operation_id}: {authorization_policy['policy']}")
     return lines
 
 
@@ -2138,7 +2144,7 @@ def _format_transition_effect_sections(state_machine: dict[str, Any], transition
         if "emit" in effect:
             emit = effect["emit"]
             sections.append(("emit", [emit["message"]]))
-            payload_types = state_machine["state_machine_messages"]["emits"][emit["message"]]["payload_schema"]
+            payload_types = state_machine["messages"]["emits"][emit["message"]]["payload_schema"]
             payload = _format_typed_data_flow(emit.get("payload_bindings", {}), payload_types)
             if payload:
                 sections.append(("payload", payload))
@@ -2253,7 +2259,7 @@ def render_composed_case_html(root: Path, contract: dict[str, Any], case: dict[s
     state = state_machine["view_states"][case["view_state"]]
     projection = state_machines_projection(contract)
     composition = next(item for item in projection["compositions"] if item["state_machine"] == case["state_machine"] and item["view_state"] == case["view_state"])
-    html_layout = renderer_web_layout(composition)
+    html_layout = renderer_html_layout(composition)
     root_spec = html_layout.get("root") or {"element": "section"}
     tag = root_spec.get("element", "section")
     classes = " ".join(["contract-state-machine-composition"] + root_spec.get("classes", []))
@@ -2261,7 +2267,7 @@ def render_composed_case_html(root: Path, contract: dict[str, Any], case: dict[s
     if root_spec.get("role") and root_spec["role"] != "none":
         attrs["role"] = root_spec["role"]
     parts = [f"<{tag}{format_attrs(attrs)}>"]
-    for region_name, region in sorted(renderer_web_regions(state).items(), key=lambda item: item[1].get("order", 0)):
+    for region_name, region in sorted(renderer_html_regions(state).items(), key=lambda item: item[1].get("order", 0)):
         region_tag = region.get("element", "div")
         region_classes = " ".join(["contract-layout-region", f"contract-layout-region--{region_name}"] + region.get("classes", []))
         region_attrs = {"class": region_classes, "data-layout-region": region_name, "data-must-render": str(region["must_render"]).lower()}
@@ -2278,8 +2284,8 @@ def render_composed_case_html(root: Path, contract: dict[str, Any], case: dict[s
 
 
 def render_state_machine_audit_html(root: Path, contract: dict[str, Any], state_machine: dict[str, Any], case: dict[str, Any] | None) -> str:
-    web_contract = renderer_web_presentation(state_machine)
-    root_spec = web_contract.get("root") or {"element": "section"}
+    html_contract = renderer_html_presentation(state_machine)
+    root_spec = html_contract.get("root") or {"element": "section"}
     tag = root_spec.get("element", "section")
     classes = " ".join(["contract-state-machine-surface"] + root_spec.get("classes", []))
     attrs = {
@@ -2290,7 +2296,7 @@ def render_state_machine_audit_html(root: Path, contract: dict[str, Any], state_
     if root_spec.get("role") and root_spec["role"] != "none":
         attrs["role"] = root_spec["role"]
     lines = [f"<{tag}{format_attrs(attrs)}>"]
-    slots = web_contract.get("slots") or default_web_slots(state_machine)
+    slots = html_contract.get("slots") or default_html_slots(state_machine)
     field_slots = [slot for slot in slots if "field" in slot["binding"]]
     for slot in slots:
         if "field" in slot["binding"]:
@@ -2343,13 +2349,13 @@ def render_html_slot_runtime(root: Path, contract: dict[str, Any], state_machine
         return [f"<{tag}{format_attrs(attrs)} aria-label={html.escape(label, quote=True)!r}></{tag}>"]
     if kind == "literal":
         return [f"<{tag}{format_attrs(attrs)}>{html.escape(str(bind_value))}</{tag}>"]
-    action = bind_value
-    attrs["data-action"] = action
+    operation = bind_value
+    attrs["data-operation"] = operation
     if tag == "a":
         attrs.setdefault("href", "#")
     if tag == "button":
         attrs.setdefault("type", "button")
-    return [f"<{tag}{format_attrs(attrs)}>{html.escape(humanize(action))}</{tag}>"]
+    return [f"<{tag}{format_attrs(attrs)}>{html.escape(humanize(operation))}</{tag}>"]
 
 
 def render_html_field_slot(record: dict[str, Any], slot: dict[str, Any]) -> list[str]:
@@ -2413,7 +2419,7 @@ def state_machine_textual_lines(root: Path, contract: dict[str, Any], state_mach
                 lines.append(("static", resolve_asset_result(root, contract, ref, record, context, namespace).alt or contract["assets"][ref]["placeholder"]["label"]))
             elif bind_kind == "field":
                 lines.append(("static", str(record.get(bind_value, "—"))))
-            elif bind_kind == "action":
+            elif bind_kind == "operation":
                 lines.append(("button", humanize(bind_value)))
             elif bind_kind == "literal":
                 lines.append(("static", str(bind_value)))
@@ -2431,8 +2437,8 @@ def state_machine_textual_lines(root: Path, contract: dict[str, Any], state_mach
         for record in (records_for_state_machine(contract, state_machine, case)[:4] or [{}]):
             for field in fields:
                 lines.append(("static", f"{humanize(field)}: {record.get(field, '—')}"))
-    for action in state_machine["slots"]["operation_refs"]:
-        lines.append(("button", humanize(action)))
+    for operation in state_machine["slots"]["available_operations"]:
+        lines.append(("button", humanize(operation)))
     return lines or [("static", " ")]
 
 

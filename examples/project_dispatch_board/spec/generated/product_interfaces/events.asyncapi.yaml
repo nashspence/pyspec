@@ -29,7 +29,7 @@ components:
     message_event_project_approved:
       name: event.project.approved
       payload:
-        $ref: '#/components/schemas/ProjectApproved'
+        $ref: '#/components/schemas/data_contract.project.approved'
       title: Event Project Approved
       x-emitted-by:
       - operation.project.approve
@@ -55,9 +55,6 @@ components:
       x-emitted-by:
       - operation.project.submit
   schemas:
-    NoticeResult:
-      additionalProperties: true
-      type: object
     Problem:
       additionalProperties: false
       properties:
@@ -111,7 +108,7 @@ components:
       - updated_at
       - workspace_id
       type: object
-    ProjectApproved:
+    data_contract.project.approved:
       additionalProperties: false
       properties:
         approved_by:
@@ -121,6 +118,18 @@ components:
       required:
       - approved_by
       - project_id
+      type: object
+    data_contract.project.notice_result:
+      additionalProperties: false
+      properties:
+        notice_id:
+          type: string
+        queued_at:
+          format: date-time
+          type: string
+      required:
+      - notice_id
+      - queued_at
       type: object
 info:
   title: project_dispatch_board
@@ -136,7 +145,7 @@ operations:
     x-dispositions:
       entry_point.worker.project.approval_notice:
         accepted:
-          disposition: ack
+          disposition: acknowledge
         malformed:
           disposition: dead_letter
           problem:

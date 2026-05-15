@@ -8,7 +8,7 @@ assets:
     placeholder:
       aspect_ratio: '1:1'
       label: Project priority badge
-      visual_metaphor: square
+      placeholder_symbol: square
     rationale: Selected project detail shows a dynamic priority badge resolved from project fixture data.
     source_ref: asset.project.detail.ready.priority_badge
   asset.project.list.empty.illustration:
@@ -18,20 +18,47 @@ assets:
     placeholder:
       aspect_ratio: '4:3'
       label: Empty dispatch queue illustration
-      visual_metaphor: square
+      placeholder_symbol: square
     rationale: Generic placeholder illustration used by the empty queue state machine state.
 content_cases:
-  content.project.detail.heading.high_priority:
+  content_case.project.detail.heading.high_priority:
     args:
       customer: Atlas Foods
       title: Replace rooftop condenser fan
     rationale: Exercise final detail heading text with representative fixture-backed content.
     ref: text.project.detail.ready.heading
-  content.project.detail.priority_badge.high_priority:
+  content_case.project.detail.priority_badge.high_priority:
     args:
       priority: High
     rationale: Exercise final dynamic priority badge asset.
     ref: asset.project.detail.ready.priority_badge
+data_contracts:
+  data_contract.project.approved:
+    fields:
+      approved_by:
+        nullable: false
+        required: true
+        type:
+          primitive: ID
+      project_id:
+        nullable: false
+        required: true
+        type:
+          primitive: ID
+    rationale: Approval events carry only the integration payload required by downstream workflows.
+  data_contract.project.notice_result:
+    fields:
+      notice_id:
+        nullable: false
+        required: true
+        type:
+          primitive: ID
+      queued_at:
+        nullable: false
+        required: true
+        type:
+          primitive: Timestamp
+    rationale: Approval notice commands return a transient delivery receipt rather than a durable product model.
 entry_points:
   entry_point.api.project.create:
     adapter:
@@ -62,13 +89,13 @@ entry_points:
               type:
                 model: Problem
             status: 422
-    endpoint: endpoint.project.create
-    policy_guard:
+    authorization_policy:
       policy: policy.project.create
+    endpoint: endpoint.project.create
     rationale: HTTP endpoint for creating a dispatch project.
-    trigger:
+    target:
       operation:
-        bindings:
+        input_bindings:
           customer: $input.body.customer
           priority: $input.body.priority
           title: $input.body.title
@@ -97,13 +124,13 @@ entry_points:
               type:
                 model: Problem
             status: 503
-    endpoint: endpoint.project.list
-    policy_guard:
+    authorization_policy:
       policy: policy.project.list
+    endpoint: endpoint.project.list
     rationale: HTTP endpoint for listing dispatch projects.
-    trigger:
+    target:
       operation:
-        bindings:
+        input_bindings:
           workspace_id: $input.params.workspace_id
         ref: operation.project.list
   entry_point.cli.project.approve:
@@ -135,13 +162,13 @@ entry_points:
               from: $outcome.result
               type:
                 model: Problem
-    cli_command_ref: cli_command.project.approve
-    policy_guard:
+    authorization_policy:
       policy: policy.project.approve
+    cli_command_ref: cli_command.project.approve
     rationale: CLI entry for approval automation.
-    trigger:
+    target:
       operation:
-        bindings:
+        input_bindings:
           approved_by: $input.args.approved_by
           project_id: $input.args.project_id
         ref: operation.project.approve
@@ -155,13 +182,13 @@ entry_points:
               primitive: ID
     cli_command_ref: cli_command.project.board
     rationale: CLI launcher for the Textual dispatch board.
-    trigger:
+    target:
       state_machine:
-        bindings:
+        input_bindings:
           workspace_id: $input.args.workspace_id
         ref: state_machine.project.board
-        render: textual
-  entry_point.web.project.board:
+        renderer: textual
+  entry_point.html.project.board:
     adapter:
       ui:
         input:
@@ -169,29 +196,29 @@ entry_points:
             workspace_id:
               primitive: ID
         path: /workspaces/{workspace_id}/dispatch
-    rationale: Web entry for the dispatch board.
+    rationale: HTML entry for the dispatch board.
     route: route.project.board
-    trigger:
+    target:
       state_machine:
-        bindings:
+        input_bindings:
           workspace_id: $input.params.workspace_id
         ref: state_machine.project.board
-        render: html
+        renderer: html
   entry_point.worker.project.approval_notice:
     adapter:
       worker:
         input:
           payload:
-            model: ProjectApproved
+            data_contract: data_contract.project.approved
         responses:
           accepted:
-            disposition: ack
+            disposition: acknowledge
           malformed:
             disposition: dead_letter
             problem:
               model: Problem
     rationale: Worker entry exposing the approval notice workflow.
-    trigger:
+    target:
       workflow:
         ref: workflow.project.approval_notice
         when:
@@ -202,7 +229,7 @@ events:
     emitted_by:
     - operation.project.approve
     payload_schema:
-      model: ProjectApproved
+      data_contract: data_contract.project.approved
     rationale: Approval events carry the reviewer and project identity needed by notification workflows.
   event.project.archived:
     emitted_by:
@@ -255,7 +282,7 @@ facts:
     rationale: Submitted dispatch project shared by approval, ready-board, and visual audit test cases.
 fixtures:
   fixture.workspace.member:
-    rationale: Workspace member fixture for web/API/TUI test cases.
+    rationale: Workspace member fixture for HTML/API/Textual test cases.
     values:
       actor:
         id: user_member_1
@@ -364,22 +391,10 @@ models:
         to: archived
         triggered_by: operation.project.archive
     rationale: A dispatch project is the durable work item displayed and acted on by the board.
-  ProjectApproved:
-    fields:
-      approved_by:
-        nullable: false
-        required: true
-        type:
-          primitive: ID
-      project_id:
-        nullable: false
-        required: true
-        type:
-          primitive: ID
-    lifecycle: null
-    rationale: Approval events carry only the integration payload required by downstream workflows.
 operations:
   operation.project.approve:
+    authorization_policy:
+      policy: policy.project.approve
     creates: []
     deletes: []
     input:
@@ -391,10 +406,10 @@ operations:
     outcomes:
       approved:
         emits:
-        - bindings:
+        - event: event.project.approved
+          payload_bindings:
             approved_by: $input.approved_by
             project_id: $input.project_id
-          event: event.project.approved
         kind: success
         result:
           model: Project
@@ -408,8 +423,6 @@ operations:
         kind: failure
         result:
           model: Problem
-    policy_guard:
-      policy: policy.project.approve
     rationale: Reviewers can approve submitted dispatch projects.
     reads: []
     transition:
@@ -419,6 +432,8 @@ operations:
       to: approved
     updates: []
   operation.project.archive:
+    authorization_policy:
+      policy: policy.project.archive
     creates: []
     deletes: []
     input:
@@ -443,8 +458,6 @@ operations:
         kind: failure
         result:
           model: Problem
-    policy_guard:
-      policy: policy.project.archive
     rationale: Approved dispatch projects can be archived.
     reads: []
     transition:
@@ -454,6 +467,8 @@ operations:
       to: archived
     updates: []
   operation.project.create:
+    authorization_policy:
+      policy: policy.project.create
     creates:
     - Project
     deletes: []
@@ -480,12 +495,12 @@ operations:
         kind: failure
         result:
           model: Problem
-    policy_guard:
-      policy: policy.project.create
     rationale: Members can create a new dispatch project.
     reads: []
     updates: []
   operation.project.list:
+    authorization_policy:
+      policy: policy.project.list
     creates: []
     deletes: []
     input:
@@ -504,13 +519,13 @@ operations:
         kind: failure
         result:
           model: Problem
-    policy_guard:
-      policy: policy.project.list
     rationale: The board requires a project list query scoped by workspace.
     reads:
     - Project
     updates: []
   operation.project.read:
+    authorization_policy:
+      policy: policy.project.read
     creates: []
     deletes: []
     input:
@@ -528,13 +543,13 @@ operations:
         kind: failure
         result:
           model: Problem
-    policy_guard:
-      policy: policy.project.read
     rationale: The detail state machine loads the selected project by id.
     reads:
     - Project
     updates: []
   operation.project.send_approval_notice:
+    authorization_policy:
+      policy: policy.project.send_approval_notice
     creates: []
     deletes: []
     input:
@@ -553,13 +568,13 @@ operations:
         emits: []
         kind: success
         result:
-          model: NoticeResult
-    policy_guard:
-      policy: policy.project.send_approval_notice
+          data_contract: data_contract.project.notice_result
     rationale: Approval triggers a notification command for downstream coordination.
     reads: []
     updates: []
   operation.project.submit:
+    authorization_policy:
+      policy: policy.project.submit
     creates: []
     deletes: []
     input:
@@ -584,8 +599,6 @@ operations:
         kind: success
         result:
           model: Project
-    policy_guard:
-      policy: policy.project.submit
     rationale: Draft dispatch projects can be submitted for review.
     reads: []
     transition:
@@ -596,8 +609,6 @@ operations:
     updates: []
 policies:
   policy.project.approve:
-    actions:
-    - operation: operation.project.approve
     conditions:
     - resource_state:
         equals: submitted
@@ -605,14 +616,13 @@ policies:
         model: Project
     effect: allow
     rationale: Reviewers can approve submitted dispatch projects.
-    resources:
-    - model: Project
     subjects:
     - kind: actor
       source: $input.approved_by
+    targets:
+    - operation: operation.project.approve
+    - model: Project
   policy.project.archive:
-    actions:
-    - operation: operation.project.archive
     conditions:
     - resource_state:
         equals: approved
@@ -620,58 +630,52 @@ policies:
         model: Project
     effect: allow
     rationale: Approved dispatch projects can be archived.
-    resources:
-    - model: Project
     subjects:
     - kind: actor
+    targets:
+    - operation: operation.project.archive
+    - model: Project
   policy.project.create:
-    actions:
-    - operation: operation.project.create
     conditions:
     - always: true
     effect: allow
     rationale: Members can create a new dispatch project.
-    resources:
-    - model: Project
     subjects:
     - kind: actor
+    targets:
+    - operation: operation.project.create
+    - model: Project
   policy.project.list:
-    actions:
-    - operation: operation.project.list
     conditions:
     - always: true
     effect: allow
     rationale: The board requires a project list query scoped by workspace.
-    resources:
-    - model: Project
     subjects:
     - kind: actor
+    targets:
+    - operation: operation.project.list
+    - model: Project
   policy.project.read:
-    actions:
-    - operation: operation.project.read
     conditions:
     - always: true
     effect: allow
     rationale: The detail state machine loads the selected project by id.
-    resources:
-    - model: Project
     subjects:
     - kind: actor
+    targets:
+    - operation: operation.project.read
+    - model: Project
   policy.project.send_approval_notice:
-    actions:
-    - operation: operation.project.send_approval_notice
     conditions:
     - always: true
     effect: allow
     rationale: Approval triggers a notification command for downstream coordination.
-    resources:
-    - operation: operation.project.send_approval_notice
     subjects:
     - kind: actor
       source: $input.approved_by
+    targets:
+    - operation: operation.project.send_approval_notice
   policy.project.submit:
-    actions:
-    - operation: operation.project.submit
     conditions:
     - resource_state:
         equals: draft
@@ -679,10 +683,11 @@ policies:
         model: Project
     effect: allow
     rationale: Draft dispatch projects can be submitted for review.
-    resources:
-    - model: Project
     subjects:
     - kind: actor
+    targets:
+    - operation: operation.project.submit
+    - model: Project
 project: project_dispatch_board
 refs:
   asset:
@@ -747,7 +752,7 @@ refs:
   workflow:
   - workflow.project.approval_notice
 render_profiles:
-  default:
+  render_profile.default:
     html_viewports:
       compact:
         height: 820
@@ -756,7 +761,7 @@ render_profiles:
         height: 820
         width: 1280
     rationale: Two viewport breakpoints are enough to demonstrate visual audit coverage in the canonical example.
-    terminal_viewports:
+    textual_viewports:
       compact:
         columns: 80
         rows: 26
@@ -770,9 +775,7 @@ state_machines:
         primitive: ID
     data_dependencies: []
     initial_view_state: empty
-    model: Project
-    rationale: The activity state machine summarizes latest status around the selected project.
-    state_machine_messages:
+    messages:
       accepts:
         message.project.selection_changed:
           payload_schema:
@@ -781,6 +784,8 @@ state_machines:
         message.selection.cleared:
           payload_schema: {}
       emits: {}
+    model: Project
+    rationale: The activity state machine summarizes latest status around the selected project.
     transitions:
     - from: empty
       on: message.project.selection_changed
@@ -795,15 +800,16 @@ state_machines:
     view_states:
       empty:
         assets: []
+        available_operations: []
         data_dependencies: []
         fields: []
-        operation_refs: []
         surface: state_machine.project.activity.empty
         text:
         - text.project.activity.empty.heading
         - text.project.activity.empty.body
       ready:
         assets: []
+        available_operations: []
         data_dependencies:
         - operation: operation.project.read
           query: query.project.activity.read
@@ -811,7 +817,6 @@ state_machines:
         - updated_at
         - status
         - assignee
-        operation_refs: []
         surface: state_machine.project.activity.ready
         text:
         - text.project.activity.ready.heading
@@ -826,11 +831,11 @@ state_machines:
     - operation: operation.project.list
       query: query.project.board.list
     initial_view_state: ready
-    model: Project
-    rationale: The dispatch board composes list, detail, and activity state machines through shared selected-project context.
-    state_machine_messages:
+    messages:
       accepts: {}
       emits: {}
+    model: Project
+    rationale: The dispatch board composes list, detail, and activity state machines through shared selected-project context.
     transitions: []
     view_states:
       ready:
@@ -863,15 +868,16 @@ state_machines:
               list:
                 view_state: ready
             rationale: Audit render for selected-project board state vector using named project facts.
+        available_operations: []
         child_state_machines:
-        - context:
+        - context_bindings:
             selected_project_id: $state_machine.selected_project_id
             workspace_id: $state_machine.workspace_id
           id: list
           initial_view_state: loading
           region: nav
           state_machine: state_machine.project.list
-        - context:
+        - context_bindings:
             project_id: $state_machine.selected_project_id
           id: detail
           initial_view_state: none
@@ -881,7 +887,7 @@ state_machines:
             when:
               context_present: selected_project_id
           state_machine: state_machine.project.detail
-        - context:
+        - context_bindings:
             project_id: $state_machine.selected_project_id
           id: activity
           initial_view_state: empty
@@ -912,39 +918,8 @@ state_machines:
           when:
             instance: list
             message: message.project.selected
-        operation_refs: []
         renderers:
-          textual:
-            layout:
-              containers:
-                aside:
-                  id: aside
-                  kind: Container
-                  must_render: true
-                  order: 3
-                main:
-                  id: main
-                  kind: Container
-                  must_render: true
-                  order: 2
-                nav:
-                  id: nav
-                  kind: Container
-                  must_render: true
-                  order: 1
-              screen_class: ProjectBoardScreen
-            style:
-              rules:
-              - declarations:
-                  layout: horizontal
-                selector: screen
-              - declarations:
-                  width: '32'
-                selector: region.nav
-              - declarations:
-                  width: '28'
-                selector: region.aside
-          web:
+          html:
             layout:
               regions:
                 aside:
@@ -993,6 +968,36 @@ state_machines:
                 aside_width: 16rem
                 gap: 1rem
                 nav_width: 20rem
+          textual:
+            layout:
+              containers:
+                aside:
+                  container_class: Container
+                  id: aside
+                  must_render: true
+                  order: 3
+                main:
+                  container_class: Container
+                  id: main
+                  must_render: true
+                  order: 2
+                nav:
+                  container_class: Container
+                  id: nav
+                  must_render: true
+                  order: 1
+              screen_class: ProjectBoardScreen
+            style:
+              rules:
+              - declarations:
+                  layout: horizontal
+                selector: screen
+              - declarations:
+                  width: '32'
+                selector: region.nav
+              - declarations:
+                  width: '28'
+                selector: region.aside
         surface: state_machine.project.board.ready
         text: []
   state_machine.project.detail:
@@ -1001,9 +1006,7 @@ state_machines:
         primitive: ID
     data_dependencies: []
     initial_view_state: none
-    model: Project
-    rationale: The detail state machine is independent from the list and reacts to selected project context.
-    state_machine_messages:
+    messages:
       accepts:
         data.error:
           payload_schema: {}
@@ -1016,6 +1019,8 @@ state_machines:
         message.selection.cleared:
           payload_schema: {}
       emits: {}
+    model: Project
+    rationale: The detail state machine is independent from the list and reacts to selected project context.
     transitions:
     - from: none
       on: message.project.selection_changed
@@ -1036,28 +1041,28 @@ state_machines:
     view_states:
       error:
         assets: []
+        available_operations: []
         data_dependencies: []
         fields: []
-        operation_refs: []
         surface: state_machine.project.detail.error
         text:
         - text.project.detail.error.heading
         - text.project.detail.error.body
       loading:
         assets: []
+        available_operations: []
         data_dependencies:
         - operation: operation.project.read
           query: query.project.detail.read
         fields: []
-        operation_refs: []
         surface: state_machine.project.detail.loading
         text:
         - text.project.detail.loading.message
       none:
         assets: []
+        available_operations: []
         data_dependencies: []
         fields: []
-        operation_refs: []
         surface: state_machine.project.detail.none
         text:
         - text.project.detail.none.heading
@@ -1065,6 +1070,9 @@ state_machines:
       ready:
         assets:
         - asset.project.detail.ready.priority_badge
+        available_operations:
+        - operation.project.approve
+        - operation.project.archive
         data_dependencies: []
         fields:
         - title
@@ -1072,9 +1080,6 @@ state_machines:
         - status
         - assignee
         - summary
-        operation_refs:
-        - operation.project.approve
-        - operation.project.archive
         surface: state_machine.project.detail.ready
         text:
         - text.project.detail.ready.heading
@@ -1088,9 +1093,7 @@ state_machines:
     - operation: operation.project.list
       query: query.project.list.list
     initial_view_state: loading
-    model: Project
-    rationale: The list state machine owns collection loading, empty, ready, error, and selection behavior.
-    state_machine_messages:
+    messages:
       accepts:
         data.empty:
           payload_schema: {}
@@ -1107,6 +1110,8 @@ state_machines:
           payload_schema:
             project_id:
               primitive: ID
+    model: Project
+    rationale: The list state machine owns collection loading, empty, ready, error, and selection behavior.
     transitions:
     - from: loading
       on: data.empty
@@ -1132,49 +1137,49 @@ state_machines:
       empty:
         assets:
         - asset.project.list.empty.illustration
+        available_operations:
+        - operation.project.create
         data_dependencies: []
         fields: []
-        operation_refs:
-        - operation.project.create
         surface: state_machine.project.list.empty
         text:
         - text.project.list.empty.heading
         - text.project.list.empty.body
       error:
         assets: []
+        available_operations: []
         data_dependencies: []
         fields: []
-        operation_refs: []
         surface: state_machine.project.list.error
         text:
         - text.project.list.error.heading
         - text.project.list.error.body
       loading:
         assets: []
+        available_operations: []
         data_dependencies: []
         fields: []
-        operation_refs: []
         surface: state_machine.project.list.loading
         text:
         - text.project.list.loading.message
       ready:
         assets: []
+        available_operations:
+        - operation.project.create
+        - operation.project.submit
         data_dependencies: []
         fields:
         - title
         - customer
         - priority
         - status
-        operation_refs:
-        - operation.project.create
-        - operation.project.submit
         surface: state_machine.project.list.ready
         text:
         - text.project.list.ready.heading
 test_cases:
   test_case.project.approval_notice.workflow:
     archetype: workflow_event_success
-    feature: feature.project.approval_notice
+    feature_tag: project.approval_notice
     given:
       domain_facts: []
       seed_fixtures:
@@ -1201,7 +1206,7 @@ test_cases:
         ref: event.project.approved
   test_case.project.approve.success:
     archetype: operation_outcome
-    feature: feature.project.approve
+    feature_tag: project.approve
     given:
       domain_facts:
       - present:
@@ -1237,7 +1242,8 @@ test_cases:
       outcome: approved
       policy:
         allowed:
-        - guard: policy.project.approve
+        - authorization_policy:
+            policy: policy.project.approve
           operation: operation.project.approve
     title: Approve submitted dispatch project
     when:
@@ -1248,7 +1254,7 @@ test_cases:
         ref: operation.project.approve
   test_case.project.board.empty:
     archetype: state_machine_composition
-    feature: feature.project.board
+    feature_tag: project.board
     given:
       domain_facts:
       - absent:
@@ -1265,12 +1271,13 @@ test_cases:
       - operation.project.create
       policy:
         denied:
-        - guard: policy.project.approve
+        - authorization_policy:
+            policy: policy.project.approve
           operation: operation.project.approve
       requires:
         assets:
         - asset.project.list.empty.illustration
-        operation_refs:
+        available_operations:
         - operation.project.create
         queries:
         - query.project.board.list
@@ -1290,14 +1297,14 @@ test_cases:
       state_machine:
         composition:
           child_state_machines:
-          - context:
+          - context_bindings:
               selected_project_id: $state_machine.selected_project_id
               workspace_id: $state_machine.workspace_id
             id: list
             initial_view_state: loading
             region: nav
             state_machine: state_machine.project.list
-          - context:
+          - context_bindings:
               project_id: $state_machine.selected_project_id
             id: detail
             initial_view_state: none
@@ -1307,7 +1314,7 @@ test_cases:
               when:
                 context_present: selected_project_id
             state_machine: state_machine.project.detail
-          - context:
+          - context_bindings:
               project_id: $state_machine.selected_project_id
             id: activity
             initial_view_state: empty
@@ -1337,37 +1344,7 @@ test_cases:
               instance: list
               message: message.project.selected
           renderers:
-            textual:
-              layout:
-                containers:
-                  aside:
-                    id: aside
-                    kind: Container
-                    must_render: true
-                    order: 3
-                  main:
-                    id: main
-                    kind: Container
-                    must_render: true
-                    order: 2
-                  nav:
-                    id: nav
-                    kind: Container
-                    must_render: true
-                    order: 1
-                screen_class: ProjectBoardScreen
-              style:
-                rules:
-                - declarations:
-                    layout: horizontal
-                  selector: screen
-                - declarations:
-                    width: '32'
-                  selector: region.nav
-                - declarations:
-                    width: '28'
-                  selector: region.aside
-            web:
+            html:
               layout:
                 regions:
                   aside:
@@ -1416,6 +1393,36 @@ test_cases:
                   aside_width: 16rem
                   gap: 1rem
                   nav_width: 20rem
+            textual:
+              layout:
+                containers:
+                  aside:
+                    container_class: Container
+                    id: aside
+                    must_render: true
+                    order: 3
+                  main:
+                    container_class: Container
+                    id: main
+                    must_render: true
+                    order: 2
+                  nav:
+                    container_class: Container
+                    id: nav
+                    must_render: true
+                    order: 1
+                screen_class: ProjectBoardScreen
+              style:
+                rules:
+                - declarations:
+                    layout: horizontal
+                  selector: screen
+                - declarations:
+                    width: '32'
+                  selector: region.nav
+                - declarations:
+                    width: '28'
+                  selector: region.aside
         instances:
           activity:
             source: state_machine.project.activity
@@ -1430,7 +1437,7 @@ test_cases:
             surface: state_machine.project.list.empty
             view_state: empty
         message_sync_rules:
-          observed:
+          observed_rules:
           - select_project_updates_state_machines
         ref: state_machine.project.board
         surface: state_machine.project.board.ready
@@ -1440,10 +1447,10 @@ test_cases:
       open_entry:
         input:
           workspace_id: $fixture.workspace.id
-        ref: entry_point.web.project.board
+        ref: entry_point.html.project.board
   test_case.project.board.ready:
     archetype: state_machine_composition
-    feature: feature.project.board
+    feature_tag: project.board
     given:
       domain_facts:
       - present:
@@ -1470,7 +1477,7 @@ test_cases:
       - operation.project.submit
       requires:
         assets: []
-        operation_refs:
+        available_operations:
         - operation.project.create
         - operation.project.submit
         queries:
@@ -1490,14 +1497,14 @@ test_cases:
       state_machine:
         composition:
           child_state_machines:
-          - context:
+          - context_bindings:
               selected_project_id: $state_machine.selected_project_id
               workspace_id: $state_machine.workspace_id
             id: list
             initial_view_state: loading
             region: nav
             state_machine: state_machine.project.list
-          - context:
+          - context_bindings:
               project_id: $state_machine.selected_project_id
             id: detail
             initial_view_state: none
@@ -1507,7 +1514,7 @@ test_cases:
               when:
                 context_present: selected_project_id
             state_machine: state_machine.project.detail
-          - context:
+          - context_bindings:
               project_id: $state_machine.selected_project_id
             id: activity
             initial_view_state: empty
@@ -1537,37 +1544,7 @@ test_cases:
               instance: list
               message: message.project.selected
           renderers:
-            textual:
-              layout:
-                containers:
-                  aside:
-                    id: aside
-                    kind: Container
-                    must_render: true
-                    order: 3
-                  main:
-                    id: main
-                    kind: Container
-                    must_render: true
-                    order: 2
-                  nav:
-                    id: nav
-                    kind: Container
-                    must_render: true
-                    order: 1
-                screen_class: ProjectBoardScreen
-              style:
-                rules:
-                - declarations:
-                    layout: horizontal
-                  selector: screen
-                - declarations:
-                    width: '32'
-                  selector: region.nav
-                - declarations:
-                    width: '28'
-                  selector: region.aside
-            web:
+            html:
               layout:
                 regions:
                   aside:
@@ -1616,6 +1593,36 @@ test_cases:
                   aside_width: 16rem
                   gap: 1rem
                   nav_width: 20rem
+            textual:
+              layout:
+                containers:
+                  aside:
+                    container_class: Container
+                    id: aside
+                    must_render: true
+                    order: 3
+                  main:
+                    container_class: Container
+                    id: main
+                    must_render: true
+                    order: 2
+                  nav:
+                    container_class: Container
+                    id: nav
+                    must_render: true
+                    order: 1
+                screen_class: ProjectBoardScreen
+              style:
+                rules:
+                - declarations:
+                    layout: horizontal
+                  selector: screen
+                - declarations:
+                    width: '32'
+                  selector: region.nav
+                - declarations:
+                    width: '28'
+                  selector: region.aside
         instances:
           activity:
             source: state_machine.project.activity
@@ -1630,7 +1637,7 @@ test_cases:
             surface: state_machine.project.list.ready
             view_state: ready
         message_sync_rules:
-          observed:
+          observed_rules:
           - select_project_updates_state_machines
         ref: state_machine.project.board
         surface: state_machine.project.board.ready
@@ -1640,10 +1647,10 @@ test_cases:
       open_entry:
         input:
           workspace_id: $fixture.workspace.id
-        ref: entry_point.web.project.board
+        ref: entry_point.html.project.board
   test_case.project.create.api.success:
     archetype: entry_response
-    feature: feature.project.create
+    feature_tag: project.create
     given:
       domain_facts:
       - absent:
@@ -1670,7 +1677,8 @@ test_cases:
       outcome: created
       policy:
         allowed:
-        - guard: policy.project.create
+        - authorization_policy:
+            policy: policy.project.create
           operation: operation.project.create
       response:
         status: 201
@@ -1685,93 +1693,93 @@ test_cases:
         ref: entry_point.api.project.create
 text_resources:
   text.project.activity.empty.body:
+    intent: instructional
     max_chars: 120
     placeholder: Activity appears after a project is selected.
     rationale: Empty activity body.
-    tone: instructional
   text.project.activity.empty.heading:
+    intent: neutral
     max_chars: 80
     placeholder: No project selected
     rationale: Empty activity heading.
-    tone: neutral
   text.project.activity.ready.heading:
+    intent: neutral
     max_chars: 80
     placeholder: Latest activity
     rationale: Ready activity heading.
-    tone: neutral
   text.project.detail.error.body:
+    intent: error
     max_chars: 120
     placeholder: Refresh the selection or return to the queue.
     rationale: Error body for the detail state machine.
-    tone: error
   text.project.detail.error.heading:
+    intent: error
     max_chars: 80
     placeholder: Project detail is unavailable
     rationale: Error heading for the detail state machine.
-    tone: error
   text.project.detail.loading.message:
+    intent: neutral
     max_chars: 80
     placeholder: Loading project detail…
     rationale: Loading message for the detail state machine.
-    tone: neutral
   text.project.detail.none.body:
+    intent: instructional
     max_chars: 160
     placeholder: Choose a project from the queue to review customer, assignment, and approval details.
     rationale: No-selection body for the detail state machine.
-    tone: instructional
   text.project.detail.none.heading:
+    intent: instructional
     max_chars: 80
     placeholder: Select a project
     rationale: No-selection heading for the detail state machine.
-    tone: instructional
   text.project.detail.ready.heading:
     args:
       customer:
         primitive: Text
       title:
         primitive: Text
+    intent: neutral
     max_chars: 80
     placeholder: Project detail
     rationale: Ready heading for the detail state machine.
     source_ref: text.project.detail.ready.heading
-    tone: neutral
   text.project.list.empty.body:
+    intent: instructional
     max_chars: 160
     placeholder: Create the first project to start coordinating work for this workspace.
     rationale: Empty body for the project list state machine.
-    tone: instructional
   text.project.list.empty.heading:
+    intent: neutral
     max_chars: 80
     placeholder: No dispatch projects yet
     rationale: Empty heading for the project list state machine.
-    tone: neutral
   text.project.list.error.body:
+    intent: error
     max_chars: 120
     placeholder: Check the workspace connection and try again.
     rationale: Error body for the project list state machine.
-    tone: error
   text.project.list.error.heading:
+    intent: error
     max_chars: 80
     placeholder: Projects could not be loaded
     rationale: Error heading for the project list state machine.
-    tone: error
   text.project.list.loading.message:
+    intent: neutral
     max_chars: 80
     placeholder: Loading dispatch projects…
     rationale: Loading message for the project list state machine.
-    tone: neutral
   text.project.list.ready.heading:
+    intent: neutral
     max_chars: 80
     placeholder: Dispatch queue
     rationale: Ready heading for the project list state machine.
-    tone: neutral
 workflows:
   workflow.project.approval_notice:
     outcomes:
       completed:
         kind: success
         result:
-          model: NoticeResult
+          data_contract: data_contract.project.notice_result
       delivery_failed:
         kind: failure
         result:

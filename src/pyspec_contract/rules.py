@@ -17,9 +17,11 @@ def resource_tail(value: str) -> str:
         "fact",
         "asset",
         "text",
-        "content",
-        "feature",
+        "content_case",
+        "data_contract",
+        "render_profile",
         "message",
+        "data",
     ):
         marker = f"{prefix}."
         if value.startswith(marker):

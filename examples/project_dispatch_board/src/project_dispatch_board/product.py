@@ -7,7 +7,7 @@ from pyspec_contract.io import read_json, read_yaml
 from pyspec_contract.paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR
 from pyspec_contract.runtime import fixture_namespace, resolve_map
 from pyspec_contract.runtime_refs import resolve_reference_expression
-from pyspec_contract.targets import entry_state_machine_name, entry_point_adapter_pair, entry_point_bindings, entry_point_input, entry_point_responses, entry_target_pair
+from pyspec_contract.targets import entry_state_machine_name, entry_point_adapter_pair, entry_point_input_bindings, entry_point_input, entry_point_responses, entry_target_pair
 
 
 class ProductApp:
@@ -21,7 +21,7 @@ class ProductApp:
     def __init__(self, root: Path):
         self.root = root
         self.contract = read_yaml(root / COMPILED_SPEC_PATH)
-        self.surfaces = {p["id"]: p for p in read_json(root / GENERATED_SPEC_DIR / "product_interfaces" / "web.state_machines.json")["state_machines"]}
+        self.surfaces = {p["id"]: p for p in read_json(root / GENERATED_SPEC_DIR / "product_interfaces" / "html.state_machines.json")["state_machines"]}
         self.reset()
 
     def reset(self) -> None:
@@ -58,7 +58,7 @@ class ProductApp:
         workspace_id = context.get("workspace_id")
         matching = [p for p in self.projects if p.get("workspace_id") == workspace_id]
         parent_state_name = "ready" if "ready" in state_machine.get("view_states", {}) else next(iter(state_machine.get("view_states", {"ready": {}})))
-        parent_state = state_machine["view_states"].get(parent_state_name, {"surface": None, "text": [], "assets": [], "operation_refs": [], "data_dependencies": []})
+        parent_state = state_machine["view_states"].get(parent_state_name, {"surface": None, "text": [], "assets": [], "available_operations": [], "data_dependencies": []})
         if parent_state.get("child_state_machines"):
             state_machines: dict[str, Any] = {}
             for mount in parent_state["child_state_machines"]:
@@ -73,7 +73,7 @@ class ProductApp:
                     "data_dependencies": list(child_state_machine.get("data_dependencies", [])) + list(state.get("data_dependencies", [])),
                     "text": list(state["text"]),
                     "assets": list(state["assets"]),
-                    "operation_refs": list(state["operation_refs"]),
+                    "available_operations": list(state["available_operations"]),
                 }
             self.rendered_state_machine = {
                 "ref": state_machine_id,
@@ -82,7 +82,7 @@ class ProductApp:
                 "data_dependencies": list(state_machine.get("data_dependencies", [])) + list(parent_state.get("data_dependencies", [])),
                 "text": list(parent_state.get("text", [])),
                 "assets": list(parent_state.get("assets", [])),
-                "operation_refs": list(parent_state.get("operation_refs", [])),
+                "available_operations": list(parent_state.get("available_operations", [])),
                 "context": context,
                 "instances": state_machines,
                 "message_sync_rules": [rule["id"] for rule in parent_state.get("message_sync_rules", [])],
@@ -96,7 +96,7 @@ class ProductApp:
             "surface": state["surface"],
             "text": list(state["text"]),
             "assets": list(state["assets"]),
-            "operation_refs": list(state["operation_refs"]),
+            "available_operations": list(state["available_operations"]),
         }
         return self.rendered_state_machine
 
@@ -139,9 +139,9 @@ class ProductApp:
         target_input = self._entry_target_input(entry, input_values)
         target_kind, operation_id = entry_target_pair(entry)
         assert target_kind == "operation"
-        guard = entry.get("policy_guard")
-        if guard:
-            policy_id = guard["policy"]
+        authorization_policy = entry.get("authorization_policy")
+        if authorization_policy:
+            policy_id = authorization_policy["policy"]
             self.policy_decisions[("entry_point", entry_id, policy_id)] = self._evaluate_policy(policy_id, "entry_point", entry_id, target_input)
         result = self.invoke_operation(operation_id, target_input)
         response = entry_point_responses(entry)[self.last_outcome]
@@ -159,13 +159,13 @@ class ProductApp:
             fields = entry_point_input(dict(entry)).get(section, {})
             if fields:
                 namespace["input"][section] = {name: input_values[name] for name in fields}
-        bindings = entry_point_bindings(dict(entry))
+        bindings = entry_point_input_bindings(dict(entry))
         return {name: _resolve_binding(source, namespace) for name, source in bindings.items()}
 
     def invoke_operation(self, operation_id: str, input_values: Mapping[str, Any]) -> Any:
         self.invoked_operations.append(operation_id)
-        guard = self.contract["operations"][operation_id]["policy_guard"]["policy"]
-        self.policy_decisions[("operation", operation_id, guard)] = self._evaluate_policy(guard, "operation", operation_id, input_values)
+        authorization_policy = self.contract["operations"][operation_id]["authorization_policy"]["policy"]
+        self.policy_decisions[("operation", operation_id, authorization_policy)] = self._evaluate_policy(authorization_policy, "operation", operation_id, input_values)
         self.last_outcome = _success_outcome_id(self.contract["operations"][operation_id])
         values = dict(input_values)
         if operation_id == "operation.project.create":
@@ -222,8 +222,8 @@ class ProductApp:
                 return route["fail_as"]
             if "retry_policy" in route:
                 return route["retry_policy"]["fail_as"]
-            if "dead_letter" in route:
-                return route["dead_letter"]
+            if "dead_letter_as" in route:
+                return route["dead_letter_as"]
             current = route["next_step"]
 
     def assert_contract(self, assertions: Mapping[str, Any]) -> None:
@@ -240,7 +240,7 @@ class ProductApp:
                     actual = self.rendered_state_machine["instances"][instance_id]
                     assert actual["view_state"] == state_machine_expected["view_state"]
                     assert actual["surface"] == state_machine_expected["surface"]
-                for sync_id in (expected.get("message_sync_rules") or {}).get("observed", []):
+                for sync_id in (expected.get("message_sync_rules") or {}).get("observed_rules", []):
                     assert sync_id in self.rendered_state_machine.get("message_sync_rules", [])
         requires = assertions.get("requires", {})
         if requires:
@@ -248,7 +248,7 @@ class ProductApp:
             rendered_state_machines = self._rendered_state_machine_ids()
             rendered_text = self._rendered_values("text")
             rendered_assets = self._rendered_values("assets")
-            rendered_actions = self._rendered_values("operation_refs")
+            rendered_actions = self._rendered_values("available_operations")
             for state_machine in requires.get("surfaces", []):
                 assert state_machine in self.surfaces
                 assert state_machine in rendered_state_machines
@@ -256,12 +256,12 @@ class ProductApp:
                 assert key in rendered_text
             for key in requires.get("assets", []):
                 assert key in rendered_assets
-            for cap in requires.get("operation_refs", []):
+            for cap in requires.get("available_operations", []):
                 assert cap in rendered_actions
         for cap in assertions.get("enables", []):
-            assert cap in self._rendered_values("operation_refs")
+            assert cap in self._rendered_values("available_operations")
         for cap in assertions.get("forbids", []):
-            assert cap not in self._rendered_values("operation_refs")
+            assert cap not in self._rendered_values("available_operations")
         exists = (assertions.get("model") or {}).get("exists")
         if exists:
             where = self._resolve_map(exists["where"])
@@ -327,27 +327,28 @@ class ProductApp:
     def _policy_assertion_allowed(self, assertion: Mapping[str, Any]) -> bool:
         kind = "operation" if "operation" in assertion else "entry_point"
         target = assertion[kind]
-        guard = assertion.get("guard")
-        if not guard:
-            if kind == "operation":
-                guard = self.contract["operations"][target]["policy_guard"]["policy"]
-            else:
-                guard = self.contract["entry_points"][target]["policy_guard"]["policy"]
-        recorded = self.policy_decisions.get((kind, target, guard))
+        authorization_policy = assertion.get("authorization_policy")
+        if authorization_policy:
+            policy_id = authorization_policy["policy"]
+        elif kind == "operation":
+            policy_id = self.contract["operations"][target]["authorization_policy"]["policy"]
+        else:
+            policy_id = self.contract["entry_points"][target]["authorization_policy"]["policy"]
+        recorded = self.policy_decisions.get((kind, target, policy_id))
         if recorded is not None:
             return recorded
         input_values: dict[str, Any] = {}
         if self.rendered_state_machine and "context" in self.rendered_state_machine:
             input_values.update(self.rendered_state_machine["context"])
-        return self._evaluate_policy(guard, kind, target, input_values)
+        return self._evaluate_policy(policy_id, kind, target, input_values)
 
     def _evaluate_policy(self, policy_id: str, kind: str, target: str, input_values: Mapping[str, Any]) -> bool:
         policy = self.contract["policies"][policy_id]
-        if not _policy_covers_action(policy, kind, target):
+        if not _policy_covers_target(policy, kind, target):
             if kind != "entry_point":
                 return False
             target_kind, target_ref = entry_target_pair(self.contract["entry_points"][target])
-            if not _policy_covers_action(policy, target_kind, target_ref):
+            if not _policy_covers_target(policy, target_kind, target_ref):
                 return False
         matched = all(self._policy_condition_matches(condition, input_values) for condition in policy.get("conditions", []))
         return matched if policy["effect"] == "allow" else not matched
@@ -403,5 +404,5 @@ def _condition_matches(condition: Mapping[str, Any], context: Mapping[str, Any])
     return False
 
 
-def _policy_covers_action(policy: Mapping[str, Any], kind: str, target: str) -> bool:
-    return any(action == {kind: target} for action in policy.get("actions", []))
+def _policy_covers_target(policy: Mapping[str, Any], kind: str, target: str) -> bool:
+    return any(policy_target == {kind: target} for policy_target in policy.get("targets", []))

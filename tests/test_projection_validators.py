@@ -40,7 +40,7 @@ def test_policy_projection_validator_rejects_guard_drift() -> None:
     contract = _contract()
     policies = read_json(ROOT / "spec" / "generated" / "product_interfaces" / "policies.json")
     mutated = copy.deepcopy(policies)
-    mutated["operation_guards"]["operation.project.approve"]["policy"] = "policy.project.create"
+    mutated["operation_authorization_policies"]["operation.project.approve"]["policy"] = "policy.project.create"
     with pytest.raises(ContractError, match="policies.json"):
         validate_policies_json(contract, mutated)
 
@@ -87,16 +87,16 @@ def test_textual_validator_rejects_broken_generated_python(tmp_path: Path) -> No
 def test_test_case_validator_rejects_freeform_generated_gherkin(tmp_path: Path) -> None:
     project = tmp_path / "project"
     copy_project_tree(ROOT, project)
-    feature = next((project / "spec" / "generated" / "test_adapters" / "pytest_bdd_features").glob("*.feature"))
-    text = feature.read_text(encoding="utf-8")
-    feature.write_text(text.replace("    Then ", "    And freeform agent prose\n    Then ", 1), encoding="utf-8")
+    feature_file = next((project / "spec" / "generated" / "test_adapters" / "pytest_bdd_features").glob("*.feature"))
+    text = feature_file.read_text(encoding="utf-8")
+    feature_file.write_text(text.replace("    Then ", "    And freeform agent prose\n    Then ", 1), encoding="utf-8")
     with pytest.raises(ContractError, match="non-canonical BDD conjunction|canonical When/Then"):
         validate_fixtures_and_test_cases(project, _contract())
 
 
 def test_state_machines_json_validator_rejects_missing_composition() -> None:
     contract = _contract()
-    state_machines = read_json(ROOT / "spec" / "generated" / "product_interfaces" / "web.state_machines.json")
+    state_machines = read_json(ROOT / "spec" / "generated" / "product_interfaces" / "html.state_machines.json")
     mutated = copy.deepcopy(state_machines)
     mutated["compositions"] = []
     with pytest.raises(ContractError, match="state_machines.json"):

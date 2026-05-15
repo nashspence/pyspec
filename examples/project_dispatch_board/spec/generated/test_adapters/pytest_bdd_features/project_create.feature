@@ -1,4 +1,4 @@
-Feature: Feature Project Create
+Feature: Project Create
 
   @spec @test_case_project_create_api_success
   Scenario: Create dispatch project through API

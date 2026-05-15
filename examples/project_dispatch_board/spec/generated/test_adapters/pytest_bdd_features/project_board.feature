@@ -1,4 +1,4 @@
-Feature: Feature Project Board
+Feature: Project Board
 
   @spec @test_case_project_board_empty
   Scenario: Empty dispatch board

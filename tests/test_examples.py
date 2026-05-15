@@ -76,16 +76,16 @@ def test_canonical_textual_contract_imports_and_composes() -> None:
 def test_textual_screens_are_driven_by_textual_state_machine_layout() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
     del author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["renderers"]["textual"]
-    author["entry_points"]["entry_point.cli.project.board"]["trigger"]["state_machine"]["render"] = "html"
+    author["entry_points"]["entry_point.cli.project.board"]["target"]["state_machine"]["renderer"] = "html"
     contract = compile_source(author)
     projection = state_machines_projection(contract)
     assert textual_screen_entries(contract, projection["state_machines"], projection["compositions"]) == []
 
 
 def test_canonical_audit_contains_real_visual_references() -> None:
-    html = (ROOT / audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "default", "wide", "html")).read_text(encoding="utf-8")
+    html = (ROOT / audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "html")).read_text(encoding="utf-8")
     assert "Replace rooftop condenser fan" in html
     assert "Atlas Foods" in html
     assert "Dispatch queue" in html
-    assert (ROOT / audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "default", "wide", "png")).exists()
-    assert (ROOT / audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "default", "wide", "svg")).exists()
+    assert (ROOT / audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "png")).exists()
+    assert (ROOT / audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "svg")).exists()

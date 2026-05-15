@@ -50,6 +50,6 @@ def test_final_content_requires_content_case_coverage() -> None:
 
 def test_content_case_args_must_match_declared_signature() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
-    del author["content_cases"]["content.project.detail.heading.high_priority"]["args"]["customer"]
+    del author["content_cases"]["content_case.project.detail.heading.high_priority"]["args"]["customer"]
     with pytest.raises(ContractError, match="args"):
         compile_source(author)

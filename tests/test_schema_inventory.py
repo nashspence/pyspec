@@ -43,7 +43,6 @@ DEPRECATED_REFERENCE_DEFINITION_NAMES = {
     "type_map",
     "type_name",
     "audit_profile_item",
-    "textual_viewport",
 }
 DEPRECATED_TOP_LEVEL_PROPERTIES = {
     "audit_profiles",
@@ -92,6 +91,8 @@ ALLOWED_ONE_OF_WITHOUT_OBJECT_DISCRIMINATORS = {
     "$defs.content_case_item.properties.ref.oneOf",
     "$defs.given.properties.domain_facts.items.oneOf",
     "$defs.json_value.oneOf",
+    "$defs.messages.properties.accepts.propertyNames.oneOf",
+    "$defs.state_machine_transition.properties.on.oneOf",
     "$defs.then.properties.assertion_facts.items.oneOf",
 }
 JSON_SCHEMA_KEYWORD_PROPERTY_NAMES = {

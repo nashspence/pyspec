@@ -22,27 +22,27 @@ from .layout import (
     renderer_textual_containers,
     renderer_textual_presentation,
     renderer_textual_style,
-    renderer_web_presentation,
-    renderer_web_regions,
-    renderer_web_style,
+    renderer_html_presentation,
+    renderer_html_regions,
+    renderer_html_style,
 )
 from .paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR, SOURCE_SPEC_PATH
 from .project import projection_files
 from .runtime_refs import ReferenceExpressionError, is_reference_expression, parse_reference_expression
 from .targets import (
-    STATE_MACHINE_RENDER_SURFACES,
-    entry_state_machine_surface,
+    STATE_MACHINE_RENDERERS,
+    entry_state_machine_renderer,
     entry_point_adapter_pair,
-    entry_point_bindings,
+    entry_point_input_bindings,
     entry_point_cli_command,
     entry_point_input,
     entry_point_method,
     entry_point_path,
     entry_point_responses,
     entry_point_schedule_expression,
-    entry_point_trigger_pair,
+    entry_point_target_pair,
     entry_target_pair,
-    entry_workflow_trigger,
+    entry_workflow_target_source,
 )
 from .type_expr import (
     TypeExpressionError,
@@ -90,7 +90,23 @@ def validate_against_schema(data: dict[str, Any], schema_name: str) -> None:
         raise ContractError("Schema validation failed:\n" + str(exc)) from exc
 
 
-TARGET_ORDER = ("text_resource", "asset", "content_case", "render_profile", "fixture", "fact", "model", "policy", "operation", "event", "state_machine", "entry_point", "workflow", "test_case")
+TARGET_ORDER = (
+    "text_resource",
+    "asset",
+    "content_case",
+    "render_profile",
+    "fixture",
+    "fact",
+    "data_contract",
+    "model",
+    "policy",
+    "operation",
+    "event",
+    "state_machine",
+    "entry_point",
+    "workflow",
+    "test_case",
+)
 
 
 
@@ -101,6 +117,7 @@ ENTITY_SECTIONS: dict[str, str] = {
     "render_profile": "render_profiles",
     "fixture": "fixtures",
     "fact": "facts",
+    "data_contract": "data_contracts",
     "model": "models",
     "policy": "policies",
     "operation": "operations",
@@ -124,6 +141,7 @@ def empty_compiled_contract(project: str) -> dict[str, Any]:
         "render_profiles": {},
         "fixtures": {},
         "facts": {},
+        "data_contracts": {},
         "models": {},
         "policies": {},
         "operations": {},
@@ -136,7 +154,23 @@ def empty_compiled_contract(project: str) -> dict[str, Any]:
     }
 
 
-AUTHOR_SECTION_ORDER = ("fixtures", "facts", "models", "policies", "operations", "events", "state_machines", "entry_points", "workflows", "test_cases", "text_resources", "assets", "content_cases", "render_profiles")
+AUTHOR_SECTION_ORDER = (
+    "fixtures",
+    "facts",
+    "data_contracts",
+    "models",
+    "policies",
+    "operations",
+    "events",
+    "state_machines",
+    "entry_points",
+    "workflows",
+    "test_cases",
+    "text_resources",
+    "assets",
+    "content_cases",
+    "render_profiles",
+)
 
 
 def _prune_empty_author_sections(author: dict[str, Any]) -> dict[str, Any]:
@@ -152,11 +186,11 @@ def _default_rationale(entity: str, entity_id: str) -> str:
     return f"Declared {entity} {entity_id}."[:280]
 
 
-def _empty_state_machine_messages() -> dict[str, dict[str, Any]]:
+def _empty_messages() -> dict[str, dict[str, Any]]:
     return {"accepts": {}, "emits": {}}
 
 
-def _normalize_state_machine_messages(messages: dict[str, Any] | None) -> dict[str, dict[str, Any]]:
+def _normalize_messages(messages: dict[str, Any] | None) -> dict[str, dict[str, Any]]:
     messages = messages or {}
     normalized: dict[str, dict[str, Any]] = {}
     for direction in ("accepts", "emits"):
@@ -190,7 +224,7 @@ def _prune_redundant_author_transitions(author: dict[str, Any]) -> None:
 
 def _prune_empty_author_state_machine_message_directions(author: dict[str, Any]) -> None:
     for state_machine in (author.get("state_machines") or {}).values():
-        messages = state_machine.get("state_machine_messages")
+        messages = state_machine.get("messages")
         if not isinstance(messages, dict):
             continue
         for direction in ("accepts", "emits"):
@@ -200,7 +234,7 @@ def _prune_empty_author_state_machine_message_directions(author: dict[str, Any])
             if messages.get(direction) == {}:
                 messages.pop(direction)
         if not messages:
-            state_machine.pop("state_machine_messages", None)
+            state_machine.pop("messages", None)
 
 
 def author_from_source(source: dict[str, Any], layers: set[str] | None = None) -> dict[str, Any]:
@@ -252,7 +286,7 @@ def _apply_author_defaults(entity: str, spec: dict[str, Any]) -> None:
     if entity == "state_machine":
         spec.setdefault("context", {})
         spec.setdefault("data_dependencies", [])
-        spec["state_machine_messages"] = _normalize_state_machine_messages(spec.get("state_machine_messages"))
+        spec["messages"] = _normalize_messages(spec.get("messages"))
         spec.setdefault("transitions", [])
     elif entity == "operation":
         for outcome in spec.get("outcomes", {}).values():
@@ -265,7 +299,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
 
     if entity == "text_resource":
         item = {"placeholder": spec["placeholder"], "rationale": spec["rationale"]}
-        for field in ["max_chars", "tone", "args", "source_ref"]:
+        for field in ["max_chars", "intent", "args", "source_ref"]:
             if field in spec:
                 item[field] = spec[field]
         return item
@@ -285,7 +319,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
 
     if entity == "render_profile":
         item = {"rationale": spec["rationale"]}
-        for field in ["html_viewports", "terminal_viewports"]:
+        for field in ["html_viewports", "textual_viewports"]:
             if field in spec:
                 item[field] = spec[field]
         return item
@@ -305,8 +339,14 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
         }
         return item
 
+    if entity == "data_contract":
+        return {
+            "fields": normalize_field_map(spec["fields"]),
+            "rationale": spec["rationale"],
+        }
+
     if entity == "operation":
-        policy_guard = copy.deepcopy(spec.get("policy_guard", {"policy": rules.policy_ref(spec["id"])}))
+        authorization_policy = copy.deepcopy(spec.get("authorization_policy", {"policy": rules.policy_ref(spec["id"])}))
         outcomes = {}
         for outcome_id, outcome in spec["outcomes"].items():
             normalized_outcome = copy.deepcopy(outcome)
@@ -321,7 +361,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             "creates": list(spec.get("creates", [])),
             "updates": list(spec.get("updates", [])),
             "deletes": list(spec.get("deletes", [])),
-            "policy_guard": policy_guard,
+            "authorization_policy": authorization_policy,
             "rationale": spec["rationale"],
         }
         for field in ["transition"]:
@@ -332,8 +372,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
     if entity == "policy":
         return {
             "subjects": copy.deepcopy(spec["subjects"]),
-            "actions": copy.deepcopy(spec["actions"]),
-            "resources": copy.deepcopy(spec["resources"]),
+            "targets": copy.deepcopy(spec["targets"]),
             "effect": spec["effect"],
             "conditions": copy.deepcopy(spec.get("conditions", [])),
             "rationale": spec["rationale"],
@@ -352,7 +391,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             "model": spec["model"],
             "context": spec["context"],
             "data_dependencies": _compile_data_dependencies(state_machine_id, spec.get("data_dependencies", [])),
-            "state_machine_messages": _normalize_state_machine_messages(spec.get("state_machine_messages")),
+            "messages": _normalize_messages(spec.get("messages")),
             "initial_view_state": spec["initial_view_state"],
             "view_states": _compile_view_states(state_machine_id, spec.get("view_states", {})),
             "transitions": spec.get("transitions", []),
@@ -365,25 +404,25 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
     if entity == "entry_point":
         entry: dict[str, Any] = {
             "adapter": spec["adapter"],
-            "trigger": spec["trigger"],
+            "target": spec["target"],
             "rationale": spec["rationale"],
         }
-        if "policy_guard" in spec:
-            entry["policy_guard"] = copy.deepcopy(spec["policy_guard"])
+        if "authorization_policy" in spec:
+            entry["authorization_policy"] = copy.deepcopy(spec["authorization_policy"])
         adapter_kind, _ = entry_point_adapter_pair(entry)
-        trigger_kind, trigger = entry_point_trigger_pair(entry)
-        if adapter_kind == "ui" and trigger_kind == "state_machine":
-            entry["route"] = rules.route_ref(trigger["ref"])
-        elif adapter_kind == "http" and trigger_kind == "operation":
-            entry["endpoint"] = rules.endpoint_ref(trigger["ref"])
-            if trigger["ref"] in contract["operations"]:
-                entry.setdefault("policy_guard", copy.deepcopy(contract["operations"][trigger["ref"]]["policy_guard"]))
+        target_kind, target = entry_point_target_pair(entry)
+        if adapter_kind == "ui" and target_kind == "state_machine":
+            entry["route"] = rules.route_ref(target["ref"])
+        elif adapter_kind == "http" and target_kind == "operation":
+            entry["endpoint"] = rules.endpoint_ref(target["ref"])
+            if target["ref"] in contract["operations"]:
+                entry.setdefault("authorization_policy", copy.deepcopy(contract["operations"][target["ref"]]["authorization_policy"]))
         elif adapter_kind == "cli":
-            entry["cli_command_ref"] = rules.cli_command_ref(trigger["ref"])
-            if trigger_kind == "operation" and trigger["ref"] in contract["operations"]:
-                entry.setdefault("policy_guard", copy.deepcopy(contract["operations"][trigger["ref"]]["policy_guard"]))
-        elif adapter_kind in {"worker", "scheduled"} and trigger_kind == "workflow":
-            entry["workflow_ref"] = rules.workflow_ref(trigger["ref"])
+            entry["cli_command_ref"] = rules.cli_command_ref(target["ref"])
+            if target_kind == "operation" and target["ref"] in contract["operations"]:
+                entry.setdefault("authorization_policy", copy.deepcopy(contract["operations"][target["ref"]]["authorization_policy"]))
+        elif adapter_kind in {"worker", "scheduled"} and target_kind == "workflow":
+            entry["workflow_ref"] = rules.workflow_ref(target["ref"])
         return entry
 
     if entity == "workflow":
@@ -397,7 +436,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
 
     if entity == "test_case":
         return {
-            "feature": spec["feature"],
+            "feature_tag": spec["feature_tag"],
             "title": spec["title"],
             "archetype": spec["archetype"],
             "subject_ref": spec["subject_ref"],
@@ -439,7 +478,7 @@ def _compile_view_states(owner_id: str, states: dict[str, Any]) -> dict[str, Any
             "text": [rules.text_ref(subject, state_name, slot) for slot in state.get("text_slots", [])],
             "assets": [rules.asset_ref(subject, state_name, slot) for slot in state.get("asset_slots", [])],
             "fields": state.get("field_slots", []),
-            "operation_refs": state.get("operation_refs", []),
+            "available_operations": state.get("available_operations", []),
         }
         if "renderers" in state:
             item["renderers"] = state["renderers"]
@@ -511,12 +550,12 @@ def _derive_operation_transitions(contract: dict[str, Any]) -> None:
 
 def _derive_policies(contract: dict[str, Any]) -> None:
     for operation_id, operation in sorted(contract["operations"].items()):
-        policy_id = operation["policy_guard"]["policy"]
+        policy_id = operation["authorization_policy"]["policy"]
         contract["policies"].setdefault(policy_id, _default_operation_policy(operation_id, operation))
 
 
 def _default_operation_policy(operation_id: str, operation: dict[str, Any]) -> dict[str, Any]:
-    resources = _operation_policy_resources(operation_id, operation)
+    targets = [{"operation": operation_id}, *_operation_policy_targets(operation_id, operation)]
     conditions: list[dict[str, Any]] = []
     transition = operation.get("transition")
     if transition:
@@ -529,8 +568,7 @@ def _default_operation_policy(operation_id: str, operation: dict[str, Any]) -> d
         })
     return {
         "subjects": [_operation_policy_subject(operation)],
-        "actions": [{"operation": operation_id}],
-        "resources": resources,
+        "targets": targets,
         "effect": "allow",
         "conditions": conditions or [{"always": True}],
         "rationale": operation["rationale"],
@@ -544,7 +582,7 @@ def _operation_policy_subject(operation: dict[str, Any]) -> dict[str, Any]:
     return {"kind": "actor"}
 
 
-def _operation_policy_resources(operation_id: str, operation: dict[str, Any]) -> list[dict[str, str]]:
+def _operation_policy_targets(operation_id: str, operation: dict[str, Any]) -> list[dict[str, str]]:
     models: list[str] = []
     transition = operation.get("transition")
     if transition:
@@ -554,7 +592,7 @@ def _operation_policy_resources(operation_id: str, operation: dict[str, Any]) ->
     unique_models = list(dict.fromkeys(models))
     if unique_models:
         return [{"model": model_id} for model_id in unique_models]
-    return [{"operation": operation_id}]
+    return []
 
 
 def _derive_events(contract: dict[str, Any]) -> dict[str, Any]:
@@ -627,7 +665,9 @@ def _semantic_validate(contract: dict[str, Any], used_facts: set[str]) -> None:
     _validate_text_assets(contract)
     _validate_content_cases(contract)
     _validate_render_profiles(contract)
+    _validate_data_contracts(contract)
     _validate_models(contract)
+    _validate_type_references(contract)
     _validate_operations(contract)
     _validate_state_machines(contract)
     _validate_state_machine_message_payload_consistency(contract)
@@ -705,21 +745,21 @@ def _validate_content_cases(contract: dict[str, Any]) -> None:
 
 
 def _validate_render_profiles(contract: dict[str, Any]) -> None:
-    required_surfaces = {
-        surface
+    required_renderers = {
+        renderer
         for state_machine in contract.get("state_machines", {}).values()
         for state in state_machine.get("view_states", {}).values()
-        for surface in _view_state_render_surfaces(state)
+        for renderer in _view_state_renderers(state)
     }
-    if required_surfaces and not contract.get("render_profiles"):
+    if required_renderers and not contract.get("render_profiles"):
         raise ContractError("At least one render_profile is required when renderable state_machines are declared")
-    available_surfaces = set()
+    available_renderers = set()
     for profile in contract.get("render_profiles", {}).values():
         if profile.get("html_viewports"):
-            available_surfaces.add("html")
-        if profile.get("terminal_viewports"):
-            available_surfaces.add("terminal")
-    missing = sorted(required_surfaces - available_surfaces)
+            available_renderers.add("html")
+        if profile.get("textual_viewports"):
+            available_renderers.add("textual")
+    missing = sorted(required_renderers - available_renderers)
     if missing:
         raise ContractError("Renderable state_machines require render_profile viewports for: " + ", ".join(missing))
 
@@ -738,7 +778,7 @@ def _validate_audit_cases(contract: dict[str, Any]) -> None:
         state_name = case["view_state"]
         state_machine = contract["state_machines"][state_machine_id]
         state = state_machine["view_states"][state_name]
-        if not _view_state_render_surfaces(state):
+        if not _view_state_renderers(state):
             raise ContractError(f"Audit case {case_id} references view state {state_machine_id}.{state_name} with no visual renderer")
         for fixture_id in case.get("fixtures", []):
             if fixture_id not in contract["fixtures"]:
@@ -771,14 +811,14 @@ def _validate_audit_cases(contract: dict[str, Any]) -> None:
     _validate_state_machine_view_state_fixture_coverage(contract)
 
 
-def _view_state_render_surfaces(state: dict[str, Any]) -> set[str]:
+def _view_state_renderers(state: dict[str, Any]) -> set[str]:
     renderers = state.get("renderers") or {}
-    surfaces: set[str] = set()
-    if renderers.get("web"):
-        surfaces.add("html")
+    result: set[str] = set()
+    if renderers.get("html"):
+        result.add("html")
     if renderers.get("textual"):
-        surfaces.add("terminal")
-    return surfaces
+        result.add("textual")
+    return result
 
 
 def _validate_state_machine_view_state_fixture_coverage(contract: dict[str, Any]) -> None:
@@ -842,6 +882,49 @@ def _validate_models(contract: dict[str, Any]) -> None:
                 raise ContractError(
                     f"Model {rid} lifecycle transition references unknown operation {transition['triggered_by']}"
                 )
+
+
+def _validate_data_contracts(contract: dict[str, Any]) -> None:
+    for data_contract_id, data_contract in contract.get("data_contracts", {}).items():
+        if not data_contract_id.startswith("data_contract."):
+            raise ContractError(f"Data contract id must start with data_contract.: {data_contract_id}")
+        if not data_contract.get("fields"):
+            raise ContractError(f"Data contract {data_contract_id} must declare fields")
+
+
+def _validate_type_references(contract: dict[str, Any]) -> None:
+    for model_id, model in contract.get("models", {}).items():
+        for field_name, field in model.get("fields", {}).items():
+            _validate_type_reference(contract, f"Model {model_id}.{field_name}", field["type"])
+    for data_contract_id, data_contract in contract.get("data_contracts", {}).items():
+        for field_name, field in data_contract.get("fields", {}).items():
+            _validate_type_reference(contract, f"Data contract {data_contract_id}.{field_name}", field["type"])
+    for operation_id, operation in contract.get("operations", {}).items():
+        for field_name, type_expr in operation.get("input", {}).items():
+            _validate_type_reference(contract, f"Operation {operation_id} input {field_name}", type_expr)
+        for outcome_id, outcome in operation.get("outcomes", {}).items():
+            _validate_type_reference(contract, f"Operation {operation_id} outcome {outcome_id}", outcome["result"])
+    for event_id, event in contract.get("events", {}).items():
+        _validate_type_reference(contract, f"Event {event_id} payload_schema", event["payload_schema"])
+
+
+def _validate_type_reference(contract: dict[str, Any], label: str, expr: Any) -> None:
+    normalized = normalize_type_expr(expr)
+    kind, value = next(iter(normalized.items()))
+    if kind == "model":
+        if value not in contract["models"]:
+            raise ContractError(f"{label} references unknown model {value}")
+        return
+    if kind == "data_contract":
+        if value not in contract.get("data_contracts", {}):
+            raise ContractError(f"{label} references unknown data contract {value}")
+        return
+    if kind in {"array", "map", "nullable", "optional"}:
+        _validate_type_reference(contract, label, value)
+        return
+    if kind == "object":
+        for field_name, field in normalize_field_map(value.get("fields", value)).items():
+            _validate_type_reference(contract, f"{label}.{field_name}", field["type"])
 
 
 def _validate_operations(contract: dict[str, Any]) -> None:
@@ -982,36 +1065,30 @@ def _validate_policies(contract: dict[str, Any]) -> None:
     operations = contract["operations"]
     entry_points = contract["entry_points"]
     for operation_id, operation in operations.items():
-        policy_id = operation["policy_guard"]["policy"]
+        policy_id = operation["authorization_policy"]["policy"]
         if policy_id not in policies:
             raise ContractError(f"Operation {operation_id} references unknown policy {policy_id}")
-        if not _policy_covers_action(policies[policy_id], "operation", operation_id):
-            raise ContractError(f"Operation {operation_id} policy_guard {policy_id} must cover operation action")
+        if not _policy_covers_target(policies[policy_id], "operation", operation_id):
+            raise ContractError(f"Operation {operation_id} authorization_policy {policy_id} must cover operation target")
     for entry_id, entry in entry_points.items():
-        guard = entry.get("policy_guard")
-        if not guard:
+        authorization_policy = entry.get("authorization_policy")
+        if not authorization_policy:
             continue
-        policy_id = guard["policy"]
+        policy_id = authorization_policy["policy"]
         if policy_id not in policies:
             raise ContractError(f"Entry point {entry_id} references unknown policy {policy_id}")
         target_kind, target_ref = entry_target_pair(entry)
-        if not _policy_covers_action(policies[policy_id], "entry_point", entry_id) and not _policy_covers_action(policies[policy_id], target_kind, target_ref):
-            raise ContractError(f"Entry point {entry_id} policy_guard {policy_id} must cover entry point or target action")
+        if not _policy_covers_target(policies[policy_id], "entry_point", entry_id) and not _policy_covers_target(policies[policy_id], target_kind, target_ref):
+            raise ContractError(f"Entry point {entry_id} authorization_policy {policy_id} must cover entry point or invoked target")
     for policy_id, policy in policies.items():
-        for action in policy["actions"]:
-            kind, ref = _one(action, f"Policy {policy_id} action")
-            if kind == "operation" and ref not in operations:
-                raise ContractError(f"Policy {policy_id} action references unknown operation {ref}")
-            if kind == "entry_point" and ref not in entry_points:
-                raise ContractError(f"Policy {policy_id} action references unknown entry point {ref}")
-        for resource in policy["resources"]:
-            kind, ref = _one(resource, f"Policy {policy_id} resource")
+        for target in policy["targets"]:
+            kind, ref = _one(target, f"Policy {policy_id} target")
             if kind == "model" and ref not in contract["models"]:
-                raise ContractError(f"Policy {policy_id} resource references unknown model {ref}")
+                raise ContractError(f"Policy {policy_id} target references unknown model {ref}")
             if kind == "operation" and ref not in operations:
-                raise ContractError(f"Policy {policy_id} resource references unknown operation {ref}")
+                raise ContractError(f"Policy {policy_id} target references unknown operation {ref}")
             if kind == "entry_point" and ref not in entry_points:
-                raise ContractError(f"Policy {policy_id} resource references unknown entry point {ref}")
+                raise ContractError(f"Policy {policy_id} target references unknown entry point {ref}")
         for condition in policy.get("conditions", []):
             kind, body = _one(condition, f"Policy {policy_id} condition")
             if kind in {"always", "input_present", "subject_role"}:
@@ -1026,8 +1103,8 @@ def _validate_policies(contract: dict[str, Any]) -> None:
             raise ContractError(f"Policy {policy_id} condition is unsupported: {kind}")
 
 
-def _policy_covers_action(policy: dict[str, Any], kind: str, ref: str) -> bool:
-    return any(action == {kind: ref} for action in policy.get("actions", []))
+def _policy_covers_target(policy: dict[str, Any], kind: str, ref: str) -> bool:
+    return any(target == {kind: ref} for target in policy.get("targets", []))
 
 
 def _policy_assertion_target(assertion: dict[str, Any], label: str) -> tuple[str, str]:
@@ -1062,9 +1139,9 @@ def _validate_emit_payload_mapping(
         return
 
     has_payload = "payload" in emit
-    has_bindings = "bindings" in emit
-    if has_payload == has_bindings:
-        raise ContractError(f"{label} must declare exactly one of payload or bindings")
+    has_payload_bindings = "payload_bindings" in emit
+    if has_payload == has_payload_bindings:
+        raise ContractError(f"{label} must declare exactly one of payload or payload_bindings")
     if has_payload:
         source = emit["payload"]
         actual = _reference_expression_type(contract, f"{label} payload source", source, source_scopes)
@@ -1072,7 +1149,7 @@ def _validate_emit_payload_mapping(
             raise ContractError(f"{label} payload source {source} type must be {type_display(event_payload)}, got {type_display(actual)}")
         return
 
-    _validate_mapping_to_type(contract, label, emit["bindings"], event_payload, source_scopes)
+    _validate_mapping_to_type(contract, label, emit["payload_bindings"], event_payload, source_scopes)
 
 
 def _validate_state_machines(contract: dict[str, Any]) -> None:
@@ -1101,7 +1178,7 @@ def _validate_state_machines(contract: dict[str, Any]) -> None:
                 _validate_state_composition(contract, state_machine_id, state_machine, state_name, state)
         _validate_field_state_data_sources(f"state machine {state_machine_id}", state_machine["view_states"], state_machine.get("data_dependencies", []), state_machine.get("transitions", []))
         _validate_state_machine_transitions(contract, state_machine_id, state_machine)
-        _validate_state_machine_messages(state_machine_id, state_machine)
+        _validate_messages(state_machine_id, state_machine)
 
 
 def _validate_state_machine_view_state(
@@ -1117,9 +1194,9 @@ def _validate_state_machine_view_state(
     for field in state.get("fields", []):
         if field not in field_names:
             raise ContractError(f"{owner_label}.{state_name} field slot is not declared on the model/context: {field}")
-    for action in state["operation_refs"]:
-        if action not in contract["operations"]:
-            raise ContractError(f"{owner_label}.{state_name} action references unknown operation {action}")
+    for operation in state["available_operations"]:
+        if operation not in contract["operations"]:
+            raise ContractError(f"{owner_label}.{state_name} available operation references unknown operation {operation}")
     _validate_presentation(contract, owner_label, field_names, state_name, state)
 
 
@@ -1185,7 +1262,7 @@ def _validate_state_machine_transitions(contract: dict[str, Any], state_machine_
             raise ContractError(f"state machine {state_machine_id} transition uses unknown state: {transition}")
         if _is_data_event(transition["on"]) and not _transition_data_bindings(state_machine, transition):
             raise ContractError(
-                f"state machine {state_machine_id} transition uses data message without state machine or source-state data: {transition['on']}"
+                f"state machine {state_machine_id} transition uses data signal without state machine or source-state data: {transition['on']}"
             )
         message_payload = _state_machine_message_payload(state_machine, "accepts", transition["on"], f"state machine {state_machine_id} transition message")
         for effect in transition.get("effects", []):
@@ -1212,8 +1289,8 @@ def _validate_state_machine_transitions(contract: dict[str, Any], state_machine_
             )
 
 
-def _validate_state_machine_messages(state_machine_id: str, state_machine: dict[str, Any]) -> None:
-    messages = state_machine.get("state_machine_messages", _empty_state_machine_messages())
+def _validate_messages(state_machine_id: str, state_machine: dict[str, Any]) -> None:
+    messages = state_machine.get("messages", _empty_messages())
     declared_accepts = set(messages.get("accepts", {}))
     declared_emits = set(messages.get("emits", {}))
     ambiguous = sorted(declared_accepts & declared_emits)
@@ -1239,7 +1316,7 @@ def _validate_state_machine_message_payload_consistency(contract: dict[str, Any]
     declared: dict[str, tuple[str, str, dict[str, Any]]] = {}
     domain_events = set(contract.get("events", {}))
     for state_machine_id, state_machine in contract.get("state_machines", {}).items():
-        messages = state_machine.get("state_machine_messages", _empty_state_machine_messages())
+        messages = state_machine.get("messages", _empty_messages())
         for direction in ("accepts", "emits"):
             for message_id, message in messages.get(direction, {}).items():
                 if message_id in domain_events:
@@ -1289,7 +1366,7 @@ def _validate_state_composition(contract: dict[str, Any], state_machine_id: str,
             raise ContractError(f"composed state machine view state {label}.{mount['id']} selected view state is unknown: {selected['view_state']}")
         if selected:
             _validate_condition_context(label, parent_state_machine.get("context", {}), selected["when"])
-        mount_context = mount.get("context", {})
+        mount_context = mount.get("context_bindings", {})
         expected_context = set(child_state_machine.get("context", {}))
         if set(mount_context) != expected_context:
             raise ContractError(
@@ -1312,10 +1389,10 @@ def _validate_state_composition(contract: dict[str, Any], state_machine_id: str,
 
 
 def _validate_renderer_layouts(state_machine_id: str, state: dict[str, Any]) -> None:
-    web_regions = set(renderer_web_regions(state))
+    html_regions = set(renderer_html_regions(state))
     textual_regions = set(renderer_textual_containers(state))
-    if web_regions and textual_regions and web_regions != textual_regions:
-        raise ContractError(f"composed state machine {state_machine_id} layout regions differ between web and textual")
+    if html_regions and textual_regions and html_regions != textual_regions:
+        raise ContractError(f"composed state machine {state_machine_id} layout regions differ between html and textual")
 
 
 def _validate_condition_context(state_machine_id: str, context: dict[str, Any], condition: Any) -> None:
@@ -1374,7 +1451,7 @@ def _state_machine_accepts(state_machine: dict[str, Any]) -> set[str]:
 
 
 def _state_machine_message_payload(state_machine: dict[str, Any], direction: str, message_id: str, label: str) -> dict[str, Any]:
-    message = state_machine.get("state_machine_messages", {}).get(direction, {}).get(message_id)
+    message = state_machine.get("messages", {}).get(direction, {}).get(message_id)
     if not message:
         raise ContractError(f"{label} references undeclared state-machine message: {message_id}")
     return message.get("payload_schema", {})
@@ -1558,16 +1635,16 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
     text_slots = {ref.rsplit(".", 1)[-1] for ref in state["text"]}
     asset_slots = {ref.rsplit(".", 1)[-1] for ref in state["assets"]}
     field_slots = set(state.get("fields", []))
-    actions = set(state["operation_refs"])
+    operations = set(state["available_operations"])
     regions = set(renderer_regions(state))
     mounts = {mount["id"] for mount in state.get("child_state_machines", [])}
 
-    web_contract = renderer_web_presentation(state)
-    for slot in web_contract.get("slots", []):
-        bind_kind, bind_value = _one(slot["binding"], f"{owner_label}.{state_name} web slot binding")
-        _validate_slot_binding(owner_label, state_name, "Web slot", bind_kind, bind_value, text_slots, asset_slots, field_slots, actions)
+    html_contract = renderer_html_presentation(state)
+    for slot in html_contract.get("slots", []):
+        bind_kind, bind_value = _one(slot["binding"], f"{owner_label}.{state_name} html slot binding")
+        _validate_slot_binding(owner_label, state_name, "HTML slot", bind_kind, bind_value, text_slots, asset_slots, field_slots, operations)
 
-    for rule in renderer_web_style(state).get("rules", []):
+    for rule in renderer_html_style(state).get("rules", []):
         _validate_renderer_style_selector(
             owner_label,
             state_name,
@@ -1575,10 +1652,10 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
             text_slots,
             asset_slots,
             field_slots,
-            actions,
+            operations,
             regions,
             mounts,
-            "web style",
+            "html style",
         )
 
     textual = renderer_textual_presentation(state)
@@ -1589,7 +1666,7 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
     widget_targets = {"text": set(), "asset": set(), "field": set(), "action": set()}
     for widget in widgets:
         bind_kind, bind_value = _one(widget["binding"], f"{owner_label}.{state_name} textual widget binding")
-        _validate_slot_binding(owner_label, state_name, "Textual widget", bind_kind, bind_value, text_slots, asset_slots, field_slots, actions)
+        _validate_slot_binding(owner_label, state_name, "Textual widget", bind_kind, bind_value, text_slots, asset_slots, field_slots, operations)
         if bind_kind in widget_targets:
             widget_targets[bind_kind].add(bind_value)
     for rule in renderer_textual_style(state).get("rules", []):
@@ -1601,7 +1678,7 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
             text_slots,
             asset_slots,
             field_slots,
-            actions,
+            operations,
             regions,
             mounts,
             "textual style",
@@ -1625,14 +1702,14 @@ def _validate_slot_binding(
     text_slots: set[str],
     asset_slots: set[str],
     field_slots: set[str],
-    actions: set[str],
+    operations: set[str],
 ) -> None:
     if bind_kind == "text" and bind_value not in text_slots:
         raise ContractError(f"{owner_label}.{state_name} {label} text binding is not declared: {bind_value}")
     if bind_kind == "asset" and bind_value not in asset_slots:
         raise ContractError(f"{owner_label}.{state_name} {label} asset binding is not declared: {bind_value}")
-    if bind_kind == "action" and bind_value not in actions:
-        raise ContractError(f"{owner_label}.{state_name} {label} action binding is not declared: {bind_value}")
+    if bind_kind == "operation" and bind_value not in operations:
+        raise ContractError(f"{owner_label}.{state_name} {label} operation binding is not declared: {bind_value}")
     if bind_kind == "field" and bind_value not in field_slots:
         raise ContractError(f"{owner_label}.{state_name} {label} field binding is not declared: {bind_value}")
 
@@ -1644,7 +1721,7 @@ def _validate_renderer_style_selector(
     text_slots: set[str],
     asset_slots: set[str],
     field_slots: set[str],
-    actions: set[str],
+    operations: set[str],
     regions: set[str],
     mounts: set[str],
     label: str,
@@ -1652,7 +1729,7 @@ def _validate_renderer_style_selector(
     if selector.startswith("region.") or selector.startswith("mount."):
         _validate_composition_selector(f"{owner_label}.{state_name}", selector, regions, mounts, label)
         return
-    _validate_style_selector(owner_label, state_name, selector, text_slots, asset_slots, field_slots, actions, label)
+    _validate_style_selector(owner_label, state_name, selector, text_slots, asset_slots, field_slots, operations, label)
 
 
 def _validate_style_selector(
@@ -1662,7 +1739,7 @@ def _validate_style_selector(
     text_slots: set[str],
     asset_slots: set[str],
     field_slots: set[str],
-    actions: set[str],
+    operations: set[str],
     label: str,
 ) -> None:
     if selector in {"root", "screen"}:
@@ -1672,10 +1749,10 @@ def _validate_style_selector(
         if name not in text_slots and name not in asset_slots and name not in field_slots:
             raise ContractError(f"{owner_label}.{state_name} {label} selector references undeclared slot: {selector}")
         return
-    if selector.startswith("action."):
-        ref = selector[len("action."):]
-        if ref not in actions:
-            raise ContractError(f"{owner_label}.{state_name} {label} selector references undeclared action: {ref}")
+    if selector.startswith("operation."):
+        ref = selector[len("operation."):]
+        if ref not in operations:
+            raise ContractError(f"{owner_label}.{state_name} {label} selector references undeclared operation: {ref}")
         return
     raise ContractError(f"{owner_label}.{state_name} {label} selector is not supported: {selector}")
 
@@ -1688,10 +1765,10 @@ def _validate_composition_selector(state_machine_id: str, selector: str, regions
         if region not in regions:
             raise ContractError(f"composed state machine {state_machine_id} {label} selector references undeclared layout region: {selector}")
         return
-    if selector.startswith("mount."):
-        mount = selector[len("mount."):]
+    if selector.startswith("child_state_machine."):
+        mount = selector[len("child_state_machine."):]
         if mount not in mounts:
-            raise ContractError(f"composed state machine {state_machine_id} {label} selector references undeclared state machine mount: {selector}")
+            raise ContractError(f"composed state machine {state_machine_id} {label} selector references undeclared child state machine: {selector}")
         return
     raise ContractError(f"composed state machine {state_machine_id} {label} selector is not supported: {selector}")
 
@@ -1699,18 +1776,18 @@ def _validate_composition_selector(state_machine_id: str, selector: str, regions
 def _validate_entries(contract: dict[str, Any]) -> None:
     for eid, entry in contract["entry_points"].items():
         adapter_kind, adapter = entry_point_adapter_pair(entry)
-        trigger_kind, trigger = entry_point_trigger_pair(entry)
-        kind = "state_machine" if trigger_kind == "state_machine" else trigger_kind
-        value = trigger["ref"]
+        target_kind, target = entry_point_target_pair(entry)
+        kind = "state_machine" if target_kind == "state_machine" else target_kind
+        value = target["ref"]
         _validate_entry_point_fields(eid, entry, adapter_kind)
         _validate_entry_input_shape(eid, entry, adapter_kind)
         if adapter_kind == "ui":
             if kind != "state_machine" or value not in contract["state_machines"]:
                 raise ContractError(f"UI entry point {eid} must target a known state machine")
-            render = adapter.get("render")
-            if render and "render" not in trigger:
-                trigger["render"] = render
-            _validate_state_machine_target_surface(contract, eid, entry, value, allowed_surfaces={"html"})
+            renderer = adapter.get("renderer")
+            if renderer and "renderer" not in target:
+                target["renderer"] = renderer
+            _validate_state_machine_target_renderer(contract, eid, entry, value, allowed_renderers={"html"})
             _require_adapter(adapter, eid, "path")
             _validate_path_params(entry, eid)
             declared = _entry_input_map(entry, "params")
@@ -1741,17 +1818,17 @@ def _validate_entries(contract: dict[str, Any]) -> None:
             elif kind == "state_machine":
                 if value not in contract["state_machines"]:
                     raise ContractError(f"CLI entry point {eid} must target a known state machine")
-                _validate_state_machine_target_surface(contract, eid, entry, value, allowed_surfaces=set(STATE_MACHINE_RENDER_SURFACES))
+                _validate_state_machine_target_renderer(contract, eid, entry, value, allowed_renderers=set(STATE_MACHINE_RENDERERS))
                 _validate_state_machine_entry_inputs(contract, eid, value, declared=args, input_label="input.args")
                 _validate_target_bindings(contract, eid, entry, args)
-                target_surface = entry_state_machine_surface(entry)
-                assert target_surface is not None
+                target_renderer = entry_state_machine_renderer(entry)
+                assert target_renderer is not None
                 if entry_point_responses(entry):
                     raise ContractError(f"CLI entry point {eid} targeting a state machine must not declare responses")
             elif kind == "workflow":
                 if value not in contract["workflows"]:
                     raise ContractError(f"CLI entry point {eid} must target a known workflow")
-                _validate_workflow_entry_trigger(contract, eid, entry, value)
+                _validate_workflow_entry_target_source(contract, eid, entry, value)
                 if args:
                     raise ContractError(f"CLI entry point {eid} targeting a workflow must not declare input.args")
                 _validate_async_entry_responses(eid, entry, require_failure_disposition=False)
@@ -1760,7 +1837,7 @@ def _validate_entries(contract: dict[str, Any]) -> None:
         elif adapter_kind in {"worker", "scheduled"}:
             if kind != "workflow" or value not in contract["workflows"]:
                 raise ContractError(f"{adapter_kind} entry point {eid} must target a known workflow")
-            _validate_workflow_entry_trigger(contract, eid, entry, value)
+            _validate_workflow_entry_target_source(contract, eid, entry, value)
             if adapter_kind == "scheduled":
                 _require_adapter(adapter, eid, "schedule_expression")
                 if entry_point_input(entry):
@@ -1771,7 +1848,7 @@ def _validate_entries(contract: dict[str, Any]) -> None:
         elif adapter_kind == "webhook":
             if kind != "workflow" or value not in contract["workflows"]:
                 raise ContractError(f"Webhook entry point {eid} must target a known workflow")
-            _validate_workflow_entry_trigger(contract, eid, entry, value)
+            _validate_workflow_entry_target_source(contract, eid, entry, value)
             _require_adapter(adapter, eid, "path")
             _validate_path_params(entry, eid)
             _validate_event_payload_entry_input(contract, eid, entry, value)
@@ -1779,7 +1856,7 @@ def _validate_entries(contract: dict[str, Any]) -> None:
 
 
 def _validate_entry_point_fields(entry_id: str, entry: dict[str, Any], adapter_kind: str) -> None:
-    allowed = {"adapter", "trigger", "rationale", "policy_guard"}
+    allowed = {"adapter", "target", "rationale", "authorization_policy"}
     generated = {
         "ui": {"route"},
         "http": {"endpoint"},
@@ -1819,39 +1896,38 @@ def _validate_entry_input_shape(entry_id: str, entry: dict[str, Any], adapter_ki
             seen[name] = type_name
 
 
-def _validate_state_machine_target_surface(
+def _validate_state_machine_target_renderer(
     contract: dict[str, Any],
     entry_id: str,
     entry: dict[str, Any],
     state_machine_id: str,
     *,
-    allowed_surfaces: set[str],
+    allowed_renderers: set[str],
 ) -> None:
-    surface = entry_state_machine_surface(entry)
-    if surface is None:
-        raise ContractError(f"Entry {entry_id} state machine target must declare surface")
-    if surface not in allowed_surfaces:
-        raise ContractError(f"Entry {entry_id} cannot target state machine surface {surface!r}")
-    if not _state_machine_supports_render_surface(contract["state_machines"][state_machine_id], surface):
-        raise ContractError(f"Entry {entry_id} targets state machine {state_machine_id} surface {surface} but that state machine does not declare it")
+    renderer = entry_state_machine_renderer(entry)
+    if renderer is None:
+        raise ContractError(f"Entry {entry_id} state machine target must declare renderer")
+    if renderer not in allowed_renderers:
+        raise ContractError(f"Entry {entry_id} cannot target state machine renderer {renderer!r}")
+    if not _state_machine_supports_renderer(contract["state_machines"][state_machine_id], renderer):
+        raise ContractError(f"Entry {entry_id} targets state machine {state_machine_id} renderer {renderer} but that state machine does not declare it")
 
 
-def _state_machine_supports_render_surface(state_machine: dict[str, Any], surface: str) -> bool:
-    platform = "web" if surface == "html" else surface
+def _state_machine_supports_renderer(state_machine: dict[str, Any], renderer: str) -> bool:
     return any(
-        bool((state.get("renderers") or {}).get(platform, {}).get("layout"))
-        or (not state.get("child_state_machines") and bool((state.get("renderers") or {}).get(platform, {}).get("presentation")))
+        bool((state.get("renderers") or {}).get(renderer, {}).get("layout"))
+        or (not state.get("child_state_machines") and bool((state.get("renderers") or {}).get(renderer, {}).get("presentation")))
         for state in state_machine.get("view_states", {}).values()
     )
 
 
-def _validate_workflow_entry_trigger(contract: dict[str, Any], entry_id: str, entry: dict[str, Any], workflow_id: str) -> None:
-    trigger = entry_workflow_trigger(entry)
-    if trigger is None:
-        raise ContractError(f"Entry {entry_id} workflow target must declare trigger")
+def _validate_workflow_entry_target_source(contract: dict[str, Any], entry_id: str, entry: dict[str, Any], workflow_id: str) -> None:
+    source = entry_workflow_target_source(entry)
+    if source is None:
+        raise ContractError(f"Entry {entry_id} workflow target must declare when")
     workflow_trigger = contract["workflows"][workflow_id]["trigger"]
-    if trigger != workflow_trigger:
-        raise ContractError(f"Entry {entry_id} workflow trigger must match workflow {workflow_id} trigger")
+    if source != workflow_trigger:
+        raise ContractError(f"Entry {entry_id} workflow target source must match workflow {workflow_id} trigger")
 
 
 def _validate_api_entry_input(
@@ -1884,13 +1960,13 @@ def _validate_api_entry_input(
 
 
 def _validate_event_payload_entry_input(contract: dict[str, Any], entry_id: str, entry: dict[str, Any], workflow_id: str) -> None:
-    trigger = entry_workflow_trigger(entry)
-    if not trigger or "event" not in trigger:
+    source = entry_workflow_target_source(entry)
+    if not source or "event" not in source:
         return
-    event_id = trigger["event"]
+    event_id = source["event"]
     event = contract["events"].get(event_id)
     if not event:
-        raise ContractError(f"Entry {entry_id} workflow trigger references unknown event {event_id}")
+        raise ContractError(f"Entry {entry_id} workflow target source references unknown event {event_id}")
     payload_type = entry_point_input(entry).get("payload")
     if not type_equals(payload_type, event["payload_schema"]):
         raise ContractError(f"Entry {entry_id} input.payload must be {type_display(event['payload_schema'])}, got {type_display(payload_type)}")
@@ -1903,14 +1979,14 @@ def _validate_target_bindings(
     target_input_types: dict[str, Any],
 ) -> None:
     kind, value = entry_target_pair(entry)
-    bindings = entry_point_bindings(entry)
+    bindings = entry_point_input_bindings(entry)
     if kind == "operation":
         expected = contract["operations"][value]["input"]
     elif kind == "state_machine":
         expected = {name: contract["state_machines"][value].get("context", {})[name] for name in target_input_types}
     else:
         if bindings:
-            raise ContractError(f"Entry {entry_id} target.bindings is not supported for workflow targets")
+            raise ContractError(f"Entry {entry_id} target.input_bindings is not supported for workflow targets")
         return
     if set(bindings) != set(expected):
         missing = sorted(set(expected) - set(bindings))
@@ -1920,19 +1996,19 @@ def _validate_target_bindings(
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"Entry {entry_id} target.bindings must exactly bind target input" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"Entry {entry_id} target.input_bindings must exactly bind target input" + (": " + "; ".join(parts) if parts else ""))
     source_scopes: TypeScopes = {"input": _entry_input_source_types(contract, entry)}
     for target_name, source in bindings.items():
         actual_type = _reference_expression_type(
             contract,
-            f"Entry {entry_id} target.bindings.{target_name}",
+            f"Entry {entry_id} target.input_bindings.{target_name}",
             source,
             source_scopes,
         )
         expected_type = expected[target_name]
         if not type_equals(actual_type, expected_type):
             raise ContractError(
-                f"Entry {entry_id} target.bindings.{target_name} type mismatch: "
+                f"Entry {entry_id} target.input_bindings.{target_name} type mismatch: "
                 f"expected {type_display(expected_type)}, got {type_display(actual_type)} from {source}"
             )
 
@@ -2021,11 +2097,11 @@ def _validate_response_value(label: str, value: dict[str, Any], expected_type: A
 def _validate_async_entry_responses(entry_id: str, entry: dict[str, Any], *, require_failure_disposition: bool) -> None:
     responses = entry_point_responses(entry)
     accepted = responses.get("accepted")
-    if accepted != {"disposition": "ack"}:
-        raise ContractError(f"Entry {entry_id} responses.accepted must declare disposition: ack")
+    if accepted != {"disposition": "acknowledge"}:
+        raise ContractError(f"Entry {entry_id} responses.accepted must declare disposition: acknowledge")
     failure_responses = {name: response for name, response in responses.items() if name != "accepted"}
     if require_failure_disposition and not failure_responses:
-        raise ContractError(f"Entry {entry_id} must declare at least one non-ack disposition such as retry, reject, or dead_letter")
+        raise ContractError(f"Entry {entry_id} must declare at least one non-acknowledge disposition such as retry, reject, or dead_letter")
     for response_id, response in failure_responses.items():
         if set(response) != {"disposition", "problem"}:
             raise ContractError(f"Entry {entry_id} disposition {response_id} must declare exactly disposition and problem")
@@ -2268,22 +2344,22 @@ def _validate_workflows(contract: dict[str, Any]) -> None:
             raise ContractError(f"Workflow {wid} step ids must be unique")
         step_id_set = set(step_ids)
         source_types = _workflow_trigger_source_types(contract, wid, workflow)
-        routed_terminals: set[str] = set()
+        routed_outcomes: set[str] = set()
         for step in workflow["steps"]:
             if step["operation"] not in contract["operations"]:
                 raise ContractError(f"Workflow {wid} step references unknown operation {step['operation']}")
             operation = contract["operations"][step["operation"]]
             _validate_workflow_step_bindings(contract, wid, step, operation, source_types)
-            routed_terminals.update(_validate_workflow_step_routes(wid, workflow, step, operation, step_id_set))
+            routed_outcomes.update(_validate_workflow_step_routes(wid, workflow, step, operation, step_id_set))
             _merge_type_scopes(source_types, _workflow_step_source_types(contract, step, operation))
-        if routed_terminals != set(workflow["outcomes"]):
-            missing = sorted(set(workflow["outcomes"]) - routed_terminals)
-            extra = sorted(routed_terminals - set(workflow["outcomes"]))
+        if routed_outcomes != set(workflow["outcomes"]):
+            missing = sorted(set(workflow["outcomes"]) - routed_outcomes)
+            extra = sorted(routed_outcomes - set(workflow["outcomes"]))
             parts = []
             if missing:
-                parts.append("missing terminal routes: " + ", ".join(missing))
+                parts.append("missing outcome routes: " + ", ".join(missing))
             if extra:
-                parts.append("unknown terminal routes: " + ", ".join(extra))
+                parts.append("unknown outcome routes: " + ", ".join(extra))
             raise ContractError(f"Workflow {wid} outcomes must be reachable from step routes" + (": " + "; ".join(parts) if parts else ""))
 
 
@@ -2315,7 +2391,7 @@ def _workflow_step_source_types(contract: dict[str, Any], step: dict[str, Any], 
     return {"steps": sources}
 
 
-WORKFLOW_ROUTE_ACTIONS = ("next_step", "complete_as", "fail_as", "retry_policy", "dead_letter")
+WORKFLOW_ROUTE_ACTIONS = ("next_step", "complete_as", "fail_as", "retry_policy", "dead_letter_as")
 
 
 def _workflow_route_action(route: dict[str, Any]) -> tuple[str, Any]:
@@ -2329,8 +2405,8 @@ def _workflow_route_action(route: dict[str, Any]) -> tuple[str, Any]:
     return action, route[action]
 
 
-def _workflow_route_terminal(action: str, value: Any) -> str | None:
-    if action in {"complete_as", "fail_as", "dead_letter"}:
+def _workflow_route_outcome(action: str, value: Any) -> str | None:
+    if action in {"complete_as", "fail_as", "dead_letter_as"}:
         return value
     if action == "retry_policy":
         return value["fail_as"]
@@ -2388,7 +2464,7 @@ def _validate_workflow_step_routes(
             parts.append("extra: " + ", ".join(extra))
         raise ContractError(f"Workflow {workflow_id} step {step['id']} outcome_routes must exactly map operation outcomes" + (": " + "; ".join(parts) if parts else ""))
 
-    routed_terminals: set[str] = set()
+    routed_outcomes: set[str] = set()
     for outcome_id, route in routes.items():
         try:
             action, value = _workflow_route_action(route)
@@ -2402,29 +2478,29 @@ def _validate_workflow_step_routes(
             if next_step == step["id"]:
                 raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} cannot loop to itself")
         else:
-            terminal_id = _workflow_route_terminal(action, value)
-            assert terminal_id is not None
-            terminal = workflow["outcomes"].get(terminal_id)
-            if not terminal:
-                raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} references unknown workflow outcome {terminal_id}")
+            routed_outcome_id = _workflow_route_outcome(action, value)
+            assert routed_outcome_id is not None
+            routed_outcome = workflow["outcomes"].get(routed_outcome_id)
+            if not routed_outcome:
+                raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} references unknown workflow outcome {routed_outcome_id}")
             expected_kind = "success" if action == "complete_as" else "failure"
-            if outcome["kind"] != expected_kind or terminal["kind"] != expected_kind:
+            if outcome["kind"] != expected_kind or routed_outcome["kind"] != expected_kind:
                 raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} must preserve {outcome['kind']} outcome semantics")
-            if not type_equals(terminal["result"], outcome["result"]):
+            if not type_equals(routed_outcome["result"], outcome["result"]):
                 raise ContractError(
-                    f"Workflow {workflow_id} outcome {terminal_id} result must be "
+                    f"Workflow {workflow_id} outcome {routed_outcome_id} result must be "
                     f"{type_display(outcome['result'])} to receive step outcome {outcome_id}"
                 )
-            routed_terminals.add(terminal_id)
+            routed_outcomes.add(routed_outcome_id)
         if action == "retry_policy":
             if outcome["kind"] != "failure":
                 raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} retry_policy is only valid for failure outcomes")
             retry = value
             if retry["attempts"] < 1 or retry["attempts"] > 10:
                 raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} retry_policy attempts must be between 1 and 10")
-        if action == "dead_letter" and outcome["kind"] != "failure":
-            raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} dead_letter is only valid for failure outcomes")
-    return routed_terminals
+        if action == "dead_letter_as" and outcome["kind"] != "failure":
+            raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} dead_letter_as is only valid for failure outcomes")
+    return routed_outcomes
 
 
 def _validate_fixtures(contract: dict[str, Any]) -> None:
@@ -2682,7 +2758,7 @@ def _validate_test_case_then(contract: dict[str, Any], test_case_id: str, test_c
                 child_state_machine_id = mounted_instances[instance_id]["state_machine"]
                 if expectation["view_state"] not in contract["state_machines"][child_state_machine_id]["view_states"]:
                     raise ContractError(f"Test case {test_case_id} references unknown state machine view state {child_state_machine_id}.{expectation['view_state']}")
-        for sync_id in (expected_state_machine.get("message_sync_rules") or {}).get("observed", []):
+        for sync_id in (expected_state_machine.get("message_sync_rules") or {}).get("observed_rules", []):
             state_name = expected_state_machine.get("view_state")
             selected_state = state_machine.get("view_states", {}).get(state_name, {}) if state_name else {}
             if sync_id not in {rule["id"] for rule in selected_state.get("message_sync_rules", [])}:
@@ -2702,9 +2778,9 @@ def _validate_test_case_then(contract: dict[str, Any], test_case_id: str, test_c
                 raise ContractError(f"Test case {test_case_id} policy.{effect} unknown operation {ref}")
             if kind == "entry_point" and ref not in contract["entry_points"]:
                 raise ContractError(f"Test case {test_case_id} policy.{effect} unknown entry point {ref}")
-            guard = assertion.get("guard")
-            if guard and guard not in contract["policies"]:
-                raise ContractError(f"Test case {test_case_id} policy.{effect} unknown guard {guard}")
+            authorization_policy = assertion.get("authorization_policy")
+            if authorization_policy and authorization_policy["policy"] not in contract["policies"]:
+                raise ContractError(f"Test case {test_case_id} policy.{effect} unknown authorization_policy {authorization_policy['policy']}")
     model_exists = (then.get("model") or {}).get("exists")
     if model_exists:
         model_id = model_exists["model"]
@@ -2936,13 +3012,13 @@ def _expand_test_cases(contract: dict[str, Any]) -> None:
                 parent_state_machine = state_machine
                 parent_state = parent_state_machine["view_states"][state_name]
                 mounts = {mount["id"]: mount for mount in parent_state.get("child_state_machines", [])}
-                required = {"queries": [datum["query"] for datum in parent_state_machine.get("data_dependencies", [])], "surfaces": [], "text": [], "assets": [], "operation_refs": []}
+                required = {"queries": [datum["query"] for datum in parent_state_machine.get("data_dependencies", [])], "surfaces": [], "text": [], "assets": [], "available_operations": []}
                 state_machine_assertion["surface"] = parent_state["surface"]
                 required["surfaces"].append(parent_state["surface"])
                 required["queries"].extend(datum["query"] for datum in parent_state.get("data_dependencies", []))
                 required["text"].extend(parent_state["text"])
                 required["assets"].extend(parent_state["assets"])
-                required["operation_refs"].extend(parent_state["operation_refs"])
+                required["available_operations"].extend(parent_state["available_operations"])
                 for instance_id, expected in state_machine_assertion["instances"].items():
                     mount = mounts[instance_id]
                     mounted_state_machine = contract["state_machines"][mount["state_machine"]]
@@ -2954,7 +3030,7 @@ def _expand_test_cases(contract: dict[str, Any]) -> None:
                     required["surfaces"].append(mounted_state["surface"])
                     required["text"].extend(mounted_state["text"])
                     required["assets"].extend(mounted_state["assets"])
-                    required["operation_refs"].extend(mounted_state["operation_refs"])
+                    required["available_operations"].extend(mounted_state["available_operations"])
                 state_machine_assertion["composition"] = {
                     "renderers": parent_state.get("renderers", {}),
                     "child_state_machines": parent_state.get("child_state_machines", []),
@@ -2970,7 +3046,7 @@ def _expand_test_cases(contract: dict[str, Any]) -> None:
                     "surfaces": [state["surface"]],
                     "text": list(state["text"]),
                     "assets": list(state["assets"]),
-                    "operation_refs": list(state["operation_refs"]),
+                    "available_operations": list(state["available_operations"]),
                 }
         when_kind, when_body = _one(test_case["when"], "test case when")
         cap_id = None
@@ -2992,15 +3068,15 @@ def _expand_policy_assertions(contract: dict[str, Any], assertions: dict[str, An
         return
     for effect in ("allowed", "denied"):
         for assertion in policy.get(effect, []):
-            if "guard" in assertion:
+            if "authorization_policy" in assertion:
                 continue
             kind, ref = _policy_assertion_target(assertion, f"policy.{effect}")
             if kind == "operation":
-                assertion["guard"] = contract["operations"][ref]["policy_guard"]["policy"]
+                assertion["authorization_policy"] = {"policy": contract["operations"][ref]["authorization_policy"]["policy"]}
             elif kind == "entry_point":
-                guard = contract["entry_points"][ref].get("policy_guard")
-                if guard:
-                    assertion["guard"] = guard["policy"]
+                authorization_policy = contract["entry_points"][ref].get("authorization_policy")
+                if authorization_policy:
+                    assertion["authorization_policy"] = {"policy": authorization_policy["policy"]}
 
 
 def _stash_generated_tree(root: Path) -> tuple[Path | None, Path | None]:

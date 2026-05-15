@@ -28,6 +28,10 @@ ROOT = EXAMPLE_ROOT
 PNG_HEADER = bytes([137, 80, 78, 71, 13, 10, 26, 10])
 
 
+def P(name: str) -> dict[str, str]:
+    return {"primitive": name}
+
+
 def _contract(root: Path = ROOT) -> dict:
     return read_yaml(root / COMPILED_SPEC_PATH)
 
@@ -37,17 +41,17 @@ def test_audit_outputs_cover_full_contract() -> None:
     expected = audit_expected_files(contract)
     assert "spec/generated/audit_evidence/state_machines/state_machine_project_list/state_machine.svg" in expected
     assert "spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/composition.svg" in expected
-    assert "spec/generated/audit_evidence/entrypoints/ui/entry_point_web_project_board/flow.svg" in expected
+    assert "spec/generated/audit_evidence/entrypoints/ui/entry_point_html_project_board/flow.svg" in expected
     assert "spec/generated/audit_evidence/entrypoints/cli/entry_point_cli_project_board/flow.svg" in expected
     assert "spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg" in expected
     assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/view_states/" in path and path.endswith("/text.yaml") for path in expected)
     assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/view_states/" in path and "/renders/" in path and path.endswith(".png") for path in expected)
     assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/cases/" in path and "/renders/" in path and path.endswith(".html") for path in expected)
     assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/cases/" in path and "/renders/" in path and path.endswith(".svg") for path in expected)
-    assert audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "default", "wide", "html").endswith("/renders/html.default.wide.source.html")
-    assert audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "default", "wide", "png").endswith("/renders/html.default.wide.screenshot.png")
-    assert audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "default", "wide", "py").endswith("/renders/terminal.default.wide.source.py")
-    assert audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "default", "wide", "svg").endswith("/renders/terminal.default.wide.capture.svg")
+    assert audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "html").endswith("/renders/html.render_profile_default.wide.source.html")
+    assert audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "png").endswith("/renders/html.render_profile_default.wide.screenshot.png")
+    assert audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "py").endswith("/renders/textual.render_profile_default.wide.source.py")
+    assert audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "svg").endswith("/renders/textual.render_profile_default.wide.capture.svg")
     validate_audit_outputs(ROOT, contract)
 
 
@@ -56,7 +60,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     state_machine = state_machine_dot("state_machine.project.list", contract["state_machines"]["state_machine.project.list"], contract)
     board = contract["state_machines"]["state_machine.project.board"]
     composition = composition_dot("state_machine.project.board.ready", {"context": board["context"], **board["view_states"]["ready"]}, contract)
-    entrypoint = entrypoint_flow_dot("entry_point.web.project.board", contract["entry_points"]["entry_point.web.project.board"], contract)
+    entrypoint = entrypoint_flow_dot("entry_point.html.project.board", contract["entry_points"]["entry_point.html.project.board"], contract)
     api_entrypoint = entrypoint_flow_dot("entry_point.api.project.create", contract["entry_points"]["entry_point.api.project.create"], contract)
     cli_entrypoint = entrypoint_flow_dot("entry_point.cli.project.board", contract["entry_points"]["entry_point.cli.project.board"], contract)
     cli_approve_entrypoint = entrypoint_flow_dot("entry_point.cli.project.approve", contract["entry_points"]["entry_point.cli.project.approve"], contract)
@@ -76,9 +80,9 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "text.project.list.ready.heading" in state_machine
     assert "asset.project.list.empty.illustration" in state_machine
     assert state_machine.index("<B>text</B>") < state_machine.index("<B>assets:</B>")
-    assert state_machine.index("<B>assets:</B>") < state_machine.index("<B>operation_refs:</B>")
+    assert state_machine.index("<B>assets:</B>") < state_machine.index("<B>available_operations:</B>")
     assert state_machine.index("<B>text:</B>&#160;&#160;text.project.list.ready.heading") < state_machine.index("<B>operation.project.list fields</B>")
-    assert state_machine.index("<B>operation.project.list fields</B>") < state_machine.index("<B>operation_refs</B>")
+    assert state_machine.index("<B>operation.project.list fields</B>") < state_machine.index("<B>available_operations</B>")
     assert "<B>emit:</B>&#160;&#160;message.project.selected" in state_machine
     payload_project = '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
     assert payload_project in state_machine
@@ -98,7 +102,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     load_project = '<FONT POINT-SIZE="10"><B>load:</B>&#160;&#160;operation.project.read</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>'
     assert selection_card.index("<B>query:</B>&#160;&#160;query.project.detail.read") < selection_card.index(load_project)
     assert "<B>operation.project.list fields</B>" in state_machine
-    assert '<FONT POINT-SIZE="10"><B>operation_refs:</B>&#160;&#160;operation.project.create</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in state_machine
+    assert '<FONT POINT-SIZE="10"><B>available_operations:</B>&#160;&#160;operation.project.create</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in state_machine
     assert '<FONT POINT-SIZE="10">operation.project.submit</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in state_machine
     assert '<FONT POINT-SIZE="10">title</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Text</FONT>' in state_machine
     assert '<FONT POINT-SIZE="10">status</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;enum&lt;draft|submitted|approved|archived&gt;</FONT>' in state_machine
@@ -107,7 +111,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "status: enum" not in state_machine
     assert "<B>Project fields</B>" not in state_machine
     assert state_machine.count("query.project.list.list") == 4
-    assert "<B>policy_guards:</B>&#160;&#160;operation.project.create: policy.project.create" in state_machine
+    assert "<B>authorization_policies:</B>&#160;&#160;operation.project.create: policy.project.create" in state_machine
     assert "<B>model:</B>" not in state_machine
     assert "<B>context:</B>" not in state_machine
     assert "$message." not in state_machine
@@ -172,15 +176,15 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">target workflow (event event.project.approved)</FONT>' in worker_entrypoint
     assert "<B>event payload</B>" in worker_entrypoint
     assert "<B>message disposition</B>" in worker_entrypoint
-    assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ProjectApproved</FONT>' in worker_entrypoint
-    assert "<B>surface handoff</B>" not in entrypoint
+    assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.approved</FONT>' in worker_entrypoint
+    assert "<B>html renderer handoff</B>" not in entrypoint
     assert 'label="ui loop"' not in entrypoint
     assert "entry_exit" not in entrypoint
     assert "<B>entry input</B>" not in entrypoint
     assert "<B>entry output</B>" not in entrypoint
     assert "entrypoint_mount" not in entrypoint
     assert "nav mount" not in entrypoint
-    assert "<B>surface handoff</B>" not in cli_entrypoint
+    assert "<B>html renderer handoff</B>" not in cli_entrypoint
     assert "<B>command input</B>" in cli_entrypoint
     assert 'label="tui loop"' not in cli_entrypoint
     assert "entry_exit" not in cli_entrypoint
@@ -217,16 +221,17 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>emit:</B>&#160;&#160;created → event.project.created" in target_card
     assert '<FONT POINT-SIZE="10"><B>payload_schema:</B>&#160;&#160;payload_schema</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in target_card
     assert "<B>emits:</B>&#160;&#160;event.project.created" not in target_card
-    assert "<B>policy_guard:</B>&#160;&#160;policy.project.create" in target_card
+    assert "<B>authorization_policy:</B>&#160;&#160;policy.project.create" in target_card
     assert "<B>policy_effect:</B>&#160;&#160;allow" in target_card
-    assert "<B>policy_actions:</B>&#160;&#160;operation: operation.project.create" in target_card
-    assert "<B>policy_resources:</B>&#160;&#160;model: Project" in target_card
+    assert "<B>policy_targets</B>" in target_card
+    assert "<FONT POINT-SIZE=\"10\">operation: operation.project.create</FONT>" in target_card
+    assert "<FONT POINT-SIZE=\"10\">model: Project</FONT>" in target_card
     assert "<B>policy_conditions:</B>&#160;&#160;always true" in target_card
     cli_approve_target_card = cli_approve_entrypoint[cli_approve_entrypoint.index('"entrypoint_target_operation_project_approve"') : cli_approve_entrypoint.index('"entrypoint_response_entry_point_cli_project_approve_approved"')]
     assert "<B>emit:</B>&#160;&#160;approved → event.project.approved" in cli_approve_target_card
-    assert '<FONT POINT-SIZE="10"><B>payload_schema:</B>&#160;&#160;payload_schema</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ProjectApproved</FONT>' in cli_approve_target_card
+    assert '<FONT POINT-SIZE="10"><B>payload_schema:</B>&#160;&#160;payload_schema</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.approved</FONT>' in cli_approve_target_card
     assert "<B>emits:</B>&#160;&#160;event.project.approved" not in cli_approve_target_card
-    assert "<B>policy_guard:</B>&#160;&#160;policy.project.approve" in cli_approve_entrypoint
+    assert "<B>authorization_policy:</B>&#160;&#160;policy.project.approve" in cli_approve_entrypoint
     assert "actor ← input.approved_by" in cli_approve_target_card
     assert "<B>policy_conditions:</B>&#160;&#160;Project.status = submitted" in cli_approve_target_card
     entrypoint_input = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
@@ -238,20 +243,20 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "state_machine.selected_project_id" not in entrypoint
     assert "$state_machine." not in entrypoint
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">event trigger</FONT>' in workflow
-    assert '<FONT POINT-SIZE="10"><B>payload_schema:</B>&#160;&#160;payload_schema</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ProjectApproved</FONT>' in workflow
+    assert '<FONT POINT-SIZE="10"><B>payload_schema:</B>&#160;&#160;payload_schema</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.approved</FONT>' in workflow
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">workflow step</FONT>' in workflow
     assert "<B>operation:</B>&#160;&#160;operation.project.send_approval_notice" in workflow
     workflow_step = workflow[workflow.index('"workflow_step_workflow_project_approval_notice_send_notice"') :]
     assert '<FONT POINT-SIZE="10"><B>input</B></FONT>' in workflow_step
     assert '<FONT POINT-SIZE="10">approved_by</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in workflow_step
-    assert '<FONT POINT-SIZE="10">sent</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;NoticeResult</FONT>' in workflow
+    assert '<FONT POINT-SIZE="10">sent</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.notice_result</FONT>' in workflow
     assert '<FONT POINT-SIZE="10">delivery_failed</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Problem</FONT>' in workflow
-    assert "<B>policy_guard:</B>&#160;&#160;policy.project.send_approval_notice" in workflow
+    assert "<B>authorization_policy:</B>&#160;&#160;policy.project.send_approval_notice" in workflow
     assert "success workflow outcome" in workflow
     assert "failure workflow outcome" in workflow
     assert "sent: complete_as → completed" in workflow
     assert "delivery_failed: retry_policy → delivery_failed" in workflow
-    for graph_id, dot_source in {"state_machine_project_list": state_machine, "project_board": composition, "web_project_board": entrypoint, "api_project_create": api_entrypoint, "cli_project_approve": cli_approve_entrypoint, "project_approval_notice": workflow}.items():
+    for graph_id, dot_source in {"state_machine_project_list": state_machine, "project_board": composition, "html_project_board": entrypoint, "api_project_create": api_entrypoint, "cli_project_approve": cli_approve_entrypoint, "project_approval_notice": workflow}.items():
         svg = _render_graphviz_svg(dot_source, graph_id)
         assert svg.lstrip().startswith("<svg")
         assert "</svg>" in svg
@@ -261,10 +266,10 @@ def test_composition_dot_routes_messages_generically() -> None:
     state_machine = {
         "archetype": "workspace",
         "model": "generic.model",
-        "context": {"selected_id": "ID", "workspace_id": "ID"},
+        "context": {"selected_id": P("ID"), "workspace_id": P("ID")},
         "data_dependencies": [],
         "renderers": {
-            "web": {
+            "html": {
                 "layout": {
                     "regions": {
                         "target": {"order": 10, "element": "aside", "role": "complementary"},
@@ -275,15 +280,15 @@ def test_composition_dot_routes_messages_generically() -> None:
             }
         },
         "child_state_machines": [
-            {"id": "publisher", "region": "source", "state_machine": "state_machine.alpha", "initial_view_state": "idle", "context": {}},
-            {"id": "receiver", "region": "target", "state_machine": "state_machine.beta", "initial_view_state": "waiting", "context": {"item_id": "$state_machine.selected_id"}},
+            {"id": "publisher", "region": "source", "state_machine": "state_machine.alpha", "initial_view_state": "idle", "context_bindings": {}},
+            {"id": "receiver", "region": "target", "state_machine": "state_machine.beta", "initial_view_state": "waiting", "context_bindings": {"item_id": "$state_machine.selected_id"}},
         ],
         "message_sync_rules": [
             {
                 "id": "route_alpha_beta",
-                "when": {"instance": "publisher", "message": "alpha.ready"},
+                "when": {"instance": "publisher", "message": "message.alpha.ready"},
                 "effects": [
-                    {"send": {"instance": "receiver", "message": "beta.consume", "payload_bindings": {"item_id": "$message.id"}}},
+                    {"send": {"instance": "receiver", "message": "message.beta.consume", "payload_bindings": {"item_id": "$message.id"}}},
                     {"set": {"context": "selected_id", "from": "$message.id"}},
                 ],
             }
@@ -292,33 +297,33 @@ def test_composition_dot_routes_messages_generically() -> None:
     contract = {
         "state_machines": {
             "state_machine.alpha": {
-                "state_machine_messages": {
+                "messages": {
                     "accepts": {
-                        "alpha.submit": {"payload_schema": {"id": "ID"}},
+                        "message.alpha.submit": {"payload_schema": {"id": P("ID")}},
                     },
                     "emits": {
-                        "alpha.ready": {"payload_schema": {"id": "ID"}},
+                        "message.alpha.ready": {"payload_schema": {"id": P("ID")}},
                     },
                 },
                 "transitions": [
                     {
-                        "on": "alpha.submit",
+                        "on": "message.alpha.submit",
                         "from": "idle",
                         "to": "ready",
-                        "effects": [{"emit": {"message": "alpha.ready", "payload_bindings": {"id": "$message.id"}}}],
+                        "effects": [{"emit": {"message": "message.alpha.ready", "payload_bindings": {"id": "$message.id"}}}],
                     }
                 ]
             },
             "state_machine.beta": {
-                "state_machine_messages": {
+                "messages": {
                     "accepts": {
-                        "beta.consume": {"payload_schema": {"item_id": "ID"}},
+                        "message.beta.consume": {"payload_schema": {"item_id": P("ID")}},
                     },
                     "emits": {},
                 },
                 "transitions": [
                     {
-                        "on": "beta.consume",
+                        "on": "message.beta.consume",
                         "from": "waiting",
                         "to": "consumed",
                     }
@@ -333,10 +338,10 @@ def test_composition_dot_routes_messages_generically() -> None:
     assert "sent message" in composition
     assert "message route" in composition
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">source mount</FONT>' in composition
-    assert "<B>source:</B>&#160;&#160;alpha.submit" in composition
+    assert "<B>source:</B>&#160;&#160;message.alpha.submit" in composition
     assert "idle to ready" not in composition
     assert "<B>transition:</B>" not in composition
-    assert "beta.consume" in composition
+    assert "message.beta.consume" in composition
     assert "<B>causes:</B>&#160;&#160;to consumed" in composition
     assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in composition
     assert '<FONT POINT-SIZE="10"><B>set:</B>&#160;&#160;selected_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT><FONT POINT-SIZE="8">&#160;←&#160;id</FONT>' in composition
@@ -425,7 +430,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "loading &#45;&gt; empty" not in list_fsm
     assert "(initial)" not in list_fsm
     assert "initial:" not in list_fsm
-    assert "state machine surface" not in list_fsm
+    assert "state machine html renderer" not in list_fsm
     assert "declared, no arrow" not in list_fsm
     assert "transition events" not in list_fsm
     assert "emitted events" not in list_fsm
@@ -516,7 +521,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
 
 
 def test_audit_html_sources_render_copy_assets_and_fixture_fields() -> None:
-    ready = ROOT / audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "default", "wide", "html")
+    ready = ROOT / audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "html")
     text = ready.read_text(encoding="utf-8")
     assert "Dispatch queue" in text
     assert "Replace rooftop condenser fan · Atlas Foods" in text
@@ -527,7 +532,7 @@ def test_audit_html_sources_render_copy_assets_and_fixture_fields() -> None:
     assert "fixture.projects.audit_records" not in text
     assert "data-audit" not in text
 
-    empty = ROOT / audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.empty.audit", "default", "compact", "html")
+    empty = ROOT / audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.empty.audit", "render_profile.default", "compact", "html")
     empty_text = empty.read_text(encoding="utf-8")
     assert "No dispatch projects yet" in empty_text
     assert "asset.project.list.empty.illustration" in empty_text

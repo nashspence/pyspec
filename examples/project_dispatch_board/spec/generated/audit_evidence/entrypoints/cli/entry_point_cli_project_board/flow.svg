@@ -1,6 +1,6 @@
 <svg width="865pt" height="199pt"
  viewBox="0.00 0.00 865.00 199.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 7b430700beb6fc236ad67037e42b7b0a6f4953390bcb42b96bfcd3fc3ce24911 -->
+<!-- pyspec-contract-input-sha256: 6ff4ae2cd8623e6c34439ce1cf45d42260d0c7b149c7efa4d61f17a07450cdc5 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 181)">
 <title>entrypoint_entry_point_cli_project_board</title>
 <!-- entry_start -->
@@ -66,8 +66,8 @@
 <text text-anchor="start" x="542.5" y="-45.5" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
 <text text-anchor="start" x="566.5" y="-45.5" font-family="Arial" font-size="10.00">  operation.project.list</text>
 <text text-anchor="start" x="660.5" y="-45.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
-<text text-anchor="start" x="542.5" y="-33.5" font-family="Arial" font-weight="bold" font-size="10.00">policy_guards:</text>
-<text text-anchor="start" x="612.5" y="-33.5" font-family="Arial" font-size="10.00">  operation.project.list: policy.project.list</text>
+<text text-anchor="start" x="542.5" y="-33.5" font-family="Arial" font-weight="bold" font-size="10.00">authorization_policies:</text>
+<text text-anchor="start" x="649.5" y="-33.5" font-family="Arial" font-size="10.00">  operation.project.list: policy.project.list</text>
 <text text-anchor="start" x="542.5" y="-21.5" font-family="Arial" font-weight="bold" font-size="10.00">model:</text>
 <text text-anchor="start" x="575.5" y="-21.5" font-family="Arial" font-size="10.00">  Project</text>
 <text text-anchor="start" x="542.5" y="-9.5" font-family="Arial" font-weight="bold" font-size="10.00">message_sync_rules:</text>

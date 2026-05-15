@@ -1,7 +1,7 @@
 project: project_dispatch_board
 fixtures:
   fixture.workspace.member:
-    rationale: Workspace member fixture for web/API/TUI test cases.
+    rationale: Workspace member fixture for HTML/API/Textual test cases.
     values:
       actor:
         id: user_member_1
@@ -51,6 +51,33 @@ facts:
         title: Replace rooftop condenser fan
         updated_at: '2026-05-11T08:45:00Z'
         workspace_id: $fixture.workspace.id
+data_contracts:
+  data_contract.project.approved:
+    rationale: Approval events carry only the integration payload required by downstream workflows.
+    fields:
+      approved_by:
+        nullable: false
+        required: true
+        type:
+          primitive: ID
+      project_id:
+        nullable: false
+        required: true
+        type:
+          primitive: ID
+  data_contract.project.notice_result:
+    rationale: Approval notice commands return a transient delivery receipt rather than a durable product model.
+    fields:
+      notice_id:
+        nullable: false
+        required: true
+        type:
+          primitive: ID
+      queued_at:
+        nullable: false
+        required: true
+        type:
+          primitive: Timestamp
 models:
   Problem:
     rationale: A structured problem result explains intentional failure outcomes across API and CLI surfaces.
@@ -140,19 +167,6 @@ models:
       - from: approved
         to: archived
         triggered_by: operation.project.archive
-  ProjectApproved:
-    rationale: Approval events carry only the integration payload required by downstream workflows.
-    fields:
-      approved_by:
-        nullable: false
-        required: true
-        type:
-          primitive: ID
-      project_id:
-        nullable: false
-        required: true
-        type:
-          primitive: ID
 operations:
   operation.project.approve:
     rationale: Reviewers can approve submitted dispatch projects.
@@ -166,7 +180,7 @@ operations:
       approved:
         emits:
         - event: event.project.approved
-          bindings:
+          payload_bindings:
             approved_by: $input.approved_by
             project_id: $input.project_id
         kind: success
@@ -279,7 +293,7 @@ operations:
       sent:
         kind: success
         result:
-          model: NoticeResult
+          data_contract: data_contract.project.notice_result
   operation.project.submit:
     rationale: Draft dispatch projects can be submitted for review.
     input:
@@ -306,7 +320,7 @@ events:
   event.project.approved:
     rationale: Approval events carry the reviewer and project identity needed by notification workflows.
     payload_schema:
-      model: ProjectApproved
+      data_contract: data_contract.project.approved
 state_machines:
   state_machine.project.activity:
     rationale: The activity state machine summarizes latest status around the selected project.
@@ -316,7 +330,7 @@ state_machines:
     data_dependencies: []
     initial_view_state: empty
     model: Project
-    state_machine_messages:
+    messages:
       accepts:
         message.project.selection_changed:
           payload_schema:
@@ -391,14 +405,14 @@ state_machines:
               list:
                 view_state: ready
         child_state_machines:
-        - context:
+        - context_bindings:
             selected_project_id: $state_machine.selected_project_id
             workspace_id: $state_machine.workspace_id
           id: list
           initial_view_state: loading
           region: nav
           state_machine: state_machine.project.list
-        - context:
+        - context_bindings:
             project_id: $state_machine.selected_project_id
           id: detail
           initial_view_state: none
@@ -408,7 +422,7 @@ state_machines:
             when:
               context_present: selected_project_id
           state_machine: state_machine.project.detail
-        - context:
+        - context_bindings:
             project_id: $state_machine.selected_project_id
           id: activity
           initial_view_state: empty
@@ -443,17 +457,17 @@ state_machines:
               containers:
                 aside:
                   id: aside
-                  kind: Container
+                  container_class: Container
                   order: 3
                   must_render: true
                 main:
                   id: main
-                  kind: Container
+                  container_class: Container
                   order: 2
                   must_render: true
                 nav:
                   id: nav
-                  kind: Container
+                  container_class: Container
                   order: 1
                   must_render: true
               screen_class: ProjectBoardScreen
@@ -468,7 +482,7 @@ state_machines:
               - declarations:
                   width: '28'
                 selector: region.aside
-          web:
+          html:
             layout:
               regions:
                 aside:
@@ -525,7 +539,7 @@ state_machines:
     data_dependencies: []
     initial_view_state: none
     model: Project
-    state_machine_messages:
+    messages:
       accepts:
         data.error: {}
         data.ready: {}
@@ -576,7 +590,7 @@ state_machines:
         - status
         - assignee
         - summary
-        operation_refs:
+        available_operations:
         - operation.project.approve
         - operation.project.archive
   state_machine.project.list:
@@ -590,7 +604,7 @@ state_machines:
     - operation.project.list
     initial_view_state: loading
     model: Project
-    state_machine_messages:
+    messages:
       accepts:
         data.empty: {}
         data.error: {}
@@ -632,7 +646,7 @@ state_machines:
         text_slots:
         - heading
         - body
-        operation_refs:
+        available_operations:
         - operation.project.create
       error:
         text_slots:
@@ -649,7 +663,7 @@ state_machines:
         - customer
         - priority
         - status
-        operation_refs:
+        available_operations:
         - operation.project.create
         - operation.project.submit
 entry_points:
@@ -683,10 +697,10 @@ entry_points:
                 model: Problem
             status: 422
     rationale: HTTP endpoint for creating a dispatch project.
-    trigger:
+    target:
       operation:
         ref: operation.project.create
-        bindings:
+        input_bindings:
           customer: $input.body.customer
           priority: $input.body.priority
           title: $input.body.title
@@ -715,10 +729,10 @@ entry_points:
                 model: Problem
             status: 503
     rationale: HTTP endpoint for listing dispatch projects.
-    trigger:
+    target:
       operation:
         ref: operation.project.list
-        bindings:
+        input_bindings:
           workspace_id: $input.params.workspace_id
   entry_point.cli.project.approve:
     adapter:
@@ -750,10 +764,10 @@ entry_points:
               type:
                 model: Problem
     rationale: CLI entry for approval automation.
-    trigger:
+    target:
       operation:
         ref: operation.project.approve
-        bindings:
+        input_bindings:
           approved_by: $input.args.approved_by
           project_id: $input.args.project_id
   entry_point.cli.project.board:
@@ -765,13 +779,13 @@ entry_points:
             workspace_id:
               primitive: ID
     rationale: CLI launcher for the Textual dispatch board.
-    trigger:
+    target:
       state_machine:
         ref: state_machine.project.board
-        render: textual
-        bindings:
+        renderer: textual
+        input_bindings:
           workspace_id: $input.args.workspace_id
-  entry_point.web.project.board:
+  entry_point.html.project.board:
     adapter:
       ui:
         input:
@@ -779,28 +793,28 @@ entry_points:
             workspace_id:
               primitive: ID
         path: /workspaces/{workspace_id}/dispatch
-    rationale: Web entry for the dispatch board.
-    trigger:
+    rationale: HTML entry for the dispatch board.
+    target:
       state_machine:
         ref: state_machine.project.board
-        render: html
-        bindings:
+        renderer: html
+        input_bindings:
           workspace_id: $input.params.workspace_id
   entry_point.worker.project.approval_notice:
     adapter:
       worker:
         input:
           payload:
-            model: ProjectApproved
+            data_contract: data_contract.project.approved
         responses:
           accepted:
-            disposition: ack
+            disposition: acknowledge
           malformed:
             disposition: dead_letter
             problem:
               model: Problem
     rationale: Worker entry exposing the approval notice workflow.
-    trigger:
+    target:
       workflow:
         ref: workflow.project.approval_notice
         when:
@@ -812,7 +826,7 @@ workflows:
       completed:
         kind: success
         result:
-          model: NoticeResult
+          data_contract: data_contract.project.notice_result
       delivery_failed:
         kind: failure
         result:
@@ -837,7 +851,7 @@ test_cases:
   test_case.project.approval_notice.workflow:
     archetype: workflow_event_success
     rationale: Approval event dispatches the notification workflow.
-    feature: feature.project.approval_notice
+    feature_tag: project.approval_notice
     subject_ref:
       workflow: workflow.project.approval_notice
     given:
@@ -864,7 +878,7 @@ test_cases:
   test_case.project.approve.success:
     archetype: operation_outcome
     rationale: Approval transitions a submitted project to approved and emits the event.
-    feature: feature.project.approve
+    feature_tag: project.approve
     subject_ref:
       operation: operation.project.approve
     given:
@@ -895,7 +909,7 @@ test_cases:
   test_case.project.board.empty:
     archetype: state_machine_composition
     rationale: An empty workspace shows empty list, no detail, and no activity.
-    feature: feature.project.board
+    feature_tag: project.board
     subject_ref:
       state_machine: state_machine.project.board
     given:
@@ -921,7 +935,7 @@ test_cases:
           list:
             view_state: empty
         message_sync_rules:
-          observed:
+          observed_rules:
           - select_project_updates_state_machines
         ref: state_machine.project.board
         view_state: ready
@@ -930,11 +944,11 @@ test_cases:
       open_entry:
         input:
           workspace_id: $fixture.workspace.id
-        ref: entry_point.web.project.board
+        ref: entry_point.html.project.board
   test_case.project.board.ready:
     archetype: state_machine_composition
     rationale: A populated workspace shows the ready list while detail awaits explicit selection.
-    feature: feature.project.board
+    feature_tag: project.board
     subject_ref:
       state_machine: state_machine.project.board
     given:
@@ -955,7 +969,7 @@ test_cases:
           list:
             view_state: ready
         message_sync_rules:
-          observed:
+          observed_rules:
           - select_project_updates_state_machines
         ref: state_machine.project.board
         view_state: ready
@@ -964,11 +978,11 @@ test_cases:
       open_entry:
         input:
           workspace_id: $fixture.workspace.id
-        ref: entry_point.web.project.board
+        ref: entry_point.html.project.board
   test_case.project.create.api.success:
     archetype: entry_response
     rationale: The API create endpoint delegates to the create operation and emits project.created.
-    feature: feature.project.create
+    feature_tag: project.create
     subject_ref:
       entry_point: entry_point.api.project.create
     given:
@@ -1008,42 +1022,42 @@ text_resources:
     rationale: Empty activity body.
     max_chars: 120
     placeholder: Activity appears after a project is selected.
-    tone: instructional
+    intent: instructional
   text.project.activity.empty.heading:
     rationale: Empty activity heading.
     max_chars: 80
     placeholder: No project selected
-    tone: neutral
+    intent: neutral
   text.project.activity.ready.heading:
     rationale: Ready activity heading.
     max_chars: 80
     placeholder: Latest activity
-    tone: neutral
+    intent: neutral
   text.project.detail.error.body:
     rationale: Error body for the detail state machine.
     max_chars: 120
     placeholder: Refresh the selection or return to the queue.
-    tone: error
+    intent: error
   text.project.detail.error.heading:
     rationale: Error heading for the detail state machine.
     max_chars: 80
     placeholder: Project detail is unavailable
-    tone: error
+    intent: error
   text.project.detail.loading.message:
     rationale: Loading message for the detail state machine.
     max_chars: 80
     placeholder: Loading project detail…
-    tone: neutral
+    intent: neutral
   text.project.detail.none.body:
     rationale: No-selection body for the detail state machine.
     max_chars: 160
     placeholder: Choose a project from the queue to review customer, assignment, and approval details.
-    tone: instructional
+    intent: instructional
   text.project.detail.none.heading:
     rationale: No-selection heading for the detail state machine.
     max_chars: 80
     placeholder: Select a project
-    tone: instructional
+    intent: instructional
   text.project.detail.ready.heading:
     args:
       customer:
@@ -1054,37 +1068,37 @@ text_resources:
     max_chars: 80
     placeholder: Project detail
     source_ref: text.project.detail.ready.heading
-    tone: neutral
+    intent: neutral
   text.project.list.empty.body:
     rationale: Empty body for the project list state machine.
     max_chars: 160
     placeholder: Create the first project to start coordinating work for this workspace.
-    tone: instructional
+    intent: instructional
   text.project.list.empty.heading:
     rationale: Empty heading for the project list state machine.
     max_chars: 80
     placeholder: No dispatch projects yet
-    tone: neutral
+    intent: neutral
   text.project.list.error.body:
     rationale: Error body for the project list state machine.
     max_chars: 120
     placeholder: Check the workspace connection and try again.
-    tone: error
+    intent: error
   text.project.list.error.heading:
     rationale: Error heading for the project list state machine.
     max_chars: 80
     placeholder: Projects could not be loaded
-    tone: error
+    intent: error
   text.project.list.loading.message:
     rationale: Loading message for the project list state machine.
     max_chars: 80
     placeholder: Loading dispatch projects…
-    tone: neutral
+    intent: neutral
   text.project.list.ready.heading:
     rationale: Ready heading for the project list state machine.
     max_chars: 80
     placeholder: Dispatch queue
-    tone: neutral
+    intent: neutral
 assets:
   asset.project.detail.ready.priority_badge:
     args:
@@ -1096,7 +1110,7 @@ assets:
     placeholder:
       aspect_ratio: '1:1'
       label: Project priority badge
-      visual_metaphor: square
+      placeholder_symbol: square
     source_ref: asset.project.detail.ready.priority_badge
   asset.project.list.empty.illustration:
     alt_text: text.project.list.empty.heading
@@ -1106,21 +1120,21 @@ assets:
     placeholder:
       aspect_ratio: '4:3'
       label: Empty dispatch queue illustration
-      visual_metaphor: square
+      placeholder_symbol: square
 content_cases:
-  content.project.detail.heading.high_priority:
+  content_case.project.detail.heading.high_priority:
     args:
       customer: Atlas Foods
       title: Replace rooftop condenser fan
     rationale: Exercise final detail heading text with representative fixture-backed content.
     ref: text.project.detail.ready.heading
-  content.project.detail.priority_badge.high_priority:
+  content_case.project.detail.priority_badge.high_priority:
     args:
       priority: High
     rationale: Exercise final dynamic priority badge asset.
     ref: asset.project.detail.ready.priority_badge
 render_profiles:
-  default:
+  render_profile.default:
     rationale: Two viewport breakpoints are enough to demonstrate visual audit coverage in the canonical example.
     html_viewports:
       compact:
@@ -1129,7 +1143,7 @@ render_profiles:
       wide:
         height: 820
         width: 1280
-    terminal_viewports:
+    textual_viewports:
       compact:
         columns: 80
         rows: 26

@@ -3,7 +3,7 @@
     {
       "child_state_machines": [
         {
-          "context": {
+          "context_bindings": {
             "selected_project_id": "$state_machine.selected_project_id",
             "workspace_id": "$state_machine.workspace_id"
           },
@@ -13,7 +13,7 @@
           "state_machine": "state_machine.project.list"
         },
         {
-          "context": {
+          "context_bindings": {
             "project_id": "$state_machine.selected_project_id"
           },
           "id": "detail",
@@ -28,7 +28,7 @@
           "state_machine": "state_machine.project.detail"
         },
         {
-          "context": {
+          "context_bindings": {
             "project_id": "$state_machine.selected_project_id"
           },
           "id": "activity",
@@ -88,54 +88,7 @@
         }
       ],
       "renderers": {
-        "textual": {
-          "layout": {
-            "containers": {
-              "aside": {
-                "id": "aside",
-                "kind": "Container",
-                "must_render": true,
-                "order": 3
-              },
-              "main": {
-                "id": "main",
-                "kind": "Container",
-                "must_render": true,
-                "order": 2
-              },
-              "nav": {
-                "id": "nav",
-                "kind": "Container",
-                "must_render": true,
-                "order": 1
-              }
-            },
-            "screen_class": "ProjectBoardScreen"
-          },
-          "style": {
-            "rules": [
-              {
-                "declarations": {
-                  "layout": "horizontal"
-                },
-                "selector": "screen"
-              },
-              {
-                "declarations": {
-                  "width": "32"
-                },
-                "selector": "region.nav"
-              },
-              {
-                "declarations": {
-                  "width": "28"
-                },
-                "selector": "region.aside"
-              }
-            ]
-          }
-        },
-        "web": {
+        "html": {
           "layout": {
             "regions": {
               "aside": {
@@ -209,6 +162,53 @@
               "nav_width": "20rem"
             }
           }
+        },
+        "textual": {
+          "layout": {
+            "containers": {
+              "aside": {
+                "container_class": "Container",
+                "id": "aside",
+                "must_render": true,
+                "order": 3
+              },
+              "main": {
+                "container_class": "Container",
+                "id": "main",
+                "must_render": true,
+                "order": 2
+              },
+              "nav": {
+                "container_class": "Container",
+                "id": "nav",
+                "must_render": true,
+                "order": 1
+              }
+            },
+            "screen_class": "ProjectBoardScreen"
+          },
+          "style": {
+            "rules": [
+              {
+                "declarations": {
+                  "layout": "horizontal"
+                },
+                "selector": "screen"
+              },
+              {
+                "declarations": {
+                  "width": "32"
+                },
+                "selector": "region.nav"
+              },
+              {
+                "declarations": {
+                  "width": "28"
+                },
+                "selector": "region.aside"
+              }
+            ]
+          }
         }
       },
       "state_machine": "state_machine.project.board",
@@ -224,8 +224,8 @@
       "owner_kind": "state_machine",
       "slots": {
         "assets": [],
+        "available_operations": [],
         "fields": [],
-        "operation_refs": [],
         "text": [
           "text.project.activity.empty.heading",
           "text.project.activity.empty.body"
@@ -273,12 +273,12 @@
       "owner_kind": "state_machine",
       "slots": {
         "assets": [],
+        "available_operations": [],
         "fields": [
           "updated_at",
           "status",
           "assignee"
         ],
-        "operation_refs": [],
         "text": [
           "text.project.activity.ready.heading"
         ]
@@ -319,32 +319,7 @@
       "owner": "state_machine.project.board",
       "owner_kind": "state_machine",
       "renderers": {
-        "textual": {
-          "layout": {
-            "containers": {
-              "aside": {
-                "id": "aside",
-                "kind": "Container",
-                "must_render": true,
-                "order": 3
-              },
-              "main": {
-                "id": "main",
-                "kind": "Container",
-                "must_render": true,
-                "order": 2
-              },
-              "nav": {
-                "id": "nav",
-                "kind": "Container",
-                "must_render": true,
-                "order": 1
-              }
-            },
-            "screen_class": "ProjectBoardScreen"
-          }
-        },
-        "web": {
+        "html": {
           "layout": {
             "regions": {
               "aside": {
@@ -383,12 +358,37 @@
               "role": "region"
             }
           }
+        },
+        "textual": {
+          "layout": {
+            "containers": {
+              "aside": {
+                "container_class": "Container",
+                "id": "aside",
+                "must_render": true,
+                "order": 3
+              },
+              "main": {
+                "container_class": "Container",
+                "id": "main",
+                "must_render": true,
+                "order": 2
+              },
+              "nav": {
+                "container_class": "Container",
+                "id": "nav",
+                "must_render": true,
+                "order": 1
+              }
+            },
+            "screen_class": "ProjectBoardScreen"
+          }
         }
       },
       "slots": {
         "assets": [],
+        "available_operations": [],
         "fields": [],
-        "operation_refs": [],
         "text": []
       },
       "state_machine": {
@@ -412,8 +412,8 @@
       "owner_kind": "state_machine",
       "slots": {
         "assets": [],
+        "available_operations": [],
         "fields": [],
-        "operation_refs": [],
         "text": [
           "text.project.detail.error.heading",
           "text.project.detail.error.body"
@@ -471,8 +471,8 @@
       "owner_kind": "state_machine",
       "slots": {
         "assets": [],
+        "available_operations": [],
         "fields": [],
-        "operation_refs": [],
         "text": [
           "text.project.detail.loading.message"
         ]
@@ -524,8 +524,8 @@
       "owner_kind": "state_machine",
       "slots": {
         "assets": [],
+        "available_operations": [],
         "fields": [],
-        "operation_refs": [],
         "text": [
           "text.project.detail.none.heading",
           "text.project.detail.none.body"
@@ -580,16 +580,16 @@
         "assets": [
           "asset.project.detail.ready.priority_badge"
         ],
+        "available_operations": [
+          "operation.project.approve",
+          "operation.project.archive"
+        ],
         "fields": [
           "title",
           "customer",
           "status",
           "assignee",
           "summary"
-        ],
-        "operation_refs": [
-          "operation.project.approve",
-          "operation.project.archive"
         ],
         "text": [
           "text.project.detail.ready.heading"
@@ -644,10 +644,10 @@
         "assets": [
           "asset.project.list.empty.illustration"
         ],
-        "fields": [],
-        "operation_refs": [
+        "available_operations": [
           "operation.project.create"
         ],
+        "fields": [],
         "text": [
           "text.project.list.empty.heading",
           "text.project.list.empty.body"
@@ -710,8 +710,8 @@
       "owner_kind": "state_machine",
       "slots": {
         "assets": [],
+        "available_operations": [],
         "fields": [],
-        "operation_refs": [],
         "text": [
           "text.project.list.error.heading",
           "text.project.list.error.body"
@@ -774,8 +774,8 @@
       "owner_kind": "state_machine",
       "slots": {
         "assets": [],
+        "available_operations": [],
         "fields": [],
-        "operation_refs": [],
         "text": [
           "text.project.list.loading.message"
         ]
@@ -837,15 +837,15 @@
       "owner_kind": "state_machine",
       "slots": {
         "assets": [],
+        "available_operations": [
+          "operation.project.create",
+          "operation.project.submit"
+        ],
         "fields": [
           "title",
           "customer",
           "priority",
           "status"
-        ],
-        "operation_refs": [
-          "operation.project.create",
-          "operation.project.submit"
         ],
         "text": [
           "text.project.list.ready.heading"

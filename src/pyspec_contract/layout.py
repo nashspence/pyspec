@@ -7,40 +7,40 @@ def renderers(item: dict[str, Any]) -> dict[str, Any]:
     return item.get("renderers") or {}
 
 
-def renderer_web(item: dict[str, Any]) -> dict[str, Any]:
-    return renderers(item).get("web") or {}
+def renderer_html(item: dict[str, Any]) -> dict[str, Any]:
+    return renderers(item).get("html") or {}
 
 
 def renderer_textual(item: dict[str, Any]) -> dict[str, Any]:
     return renderers(item).get("textual") or {}
 
 
-def renderer_web_layout(item: dict[str, Any]) -> dict[str, Any]:
-    return renderer_web(item).get("layout") or {}
+def renderer_html_layout(item: dict[str, Any]) -> dict[str, Any]:
+    return renderer_html(item).get("layout") or {}
 
 
 def renderer_textual_layout(item: dict[str, Any]) -> dict[str, Any]:
     return renderer_textual(item).get("layout") or {}
 
 
-def renderer_web_presentation(item: dict[str, Any]) -> dict[str, Any]:
-    return renderer_web(item).get("presentation") or {}
+def renderer_html_presentation(item: dict[str, Any]) -> dict[str, Any]:
+    return renderer_html(item).get("presentation") or {}
 
 
 def renderer_textual_presentation(item: dict[str, Any]) -> dict[str, Any]:
     return renderer_textual(item).get("presentation") or {}
 
 
-def renderer_web_style(item: dict[str, Any]) -> dict[str, Any]:
-    return renderer_web(item).get("style") or {}
+def renderer_html_style(item: dict[str, Any]) -> dict[str, Any]:
+    return renderer_html(item).get("style") or {}
 
 
 def renderer_textual_style(item: dict[str, Any]) -> dict[str, Any]:
     return renderer_textual(item).get("style") or {}
 
 
-def renderer_web_regions(item: dict[str, Any]) -> dict[str, dict[str, Any]]:
-    return renderer_web_layout(item).get("regions") or {}
+def renderer_html_regions(item: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    return renderer_html_layout(item).get("regions") or {}
 
 
 def renderer_textual_containers(item: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -49,7 +49,7 @@ def renderer_textual_containers(item: dict[str, Any]) -> dict[str, dict[str, Any
 
 def renderer_regions(item: dict[str, Any]) -> dict[str, dict[str, Any]]:
     regions: dict[str, dict[str, Any]] = {}
-    for name, region in renderer_web_regions(item).items():
+    for name, region in renderer_html_regions(item).items():
         regions[name] = dict(region)
     for name, container in renderer_textual_containers(item).items():
         region_item = regions.setdefault(name, {})

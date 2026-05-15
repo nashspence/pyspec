@@ -11,8 +11,8 @@ PRIMITIVES: dict[str, dict[str, Any]] = {
     "Markdown": {"type": "string"},
     "Date": {"type": "string", "format": "date"},
     "Timestamp": {"type": "string", "format": "date-time"},
-    "Bool": {"type": "boolean"},
-    "Int": {"type": "integer"},
+    "Boolean": {"type": "boolean"},
+    "Integer": {"type": "integer"},
     "Decimal": {"type": "number"},
     "JSON": {"type": "object", "additionalProperties": True},
 }
@@ -35,17 +35,7 @@ def array_of(item: Any) -> dict[str, Any]:
 
 
 def normalize_type_expr(expr: Any) -> dict[str, Any]:
-    """Return the canonical structured form for a contract type expression.
-
-    The string branch is only a migration/interop shim for older in-memory tests
-    and hand-built values. The JSON Schemas require structured expressions.
-    """
-    if isinstance(expr, str):
-        if expr.startswith("list[") and expr.endswith("]"):
-            return {"array": normalize_type_expr(expr[5:-1])}
-        if expr in PRIMITIVES:
-            return {"primitive": expr}
-        return {"model": expr}
+    """Return the canonical structured form for a contract type expression."""
     if not isinstance(expr, Mapping):
         raise TypeExpressionError(f"Type expression must be an object: {expr!r}")
     if len(expr) != 1:
@@ -55,7 +45,7 @@ def normalize_type_expr(expr: Any) -> dict[str, Any]:
         if value not in PRIMITIVES:
             raise TypeExpressionError(f"Unknown primitive type: {value!r}")
         return {"primitive": value}
-    if kind in {"model", "contract"}:
+    if kind in {"model", "data_contract"}:
         if not isinstance(value, str):
             raise TypeExpressionError(f"{kind} type must name a reusable contract")
         return {kind: value}
@@ -79,11 +69,7 @@ def normalize_type_map(fields: Mapping[str, Any] | None) -> dict[str, dict[str, 
 
 
 def normalize_field_schema(field: Any) -> dict[str, Any]:
-    """Normalize a field declaration to explicit presence/nullability metadata.
-
-    The non-``type`` branch keeps older in-memory field maps readable while the
-    authored/compiled schemas require the explicit object form.
-    """
+    """Normalize a field declaration to explicit presence/nullability metadata."""
     if isinstance(field, Mapping) and "type" in field:
         unknown = set(field) - {"type", "required", "nullable"}
         if unknown:
@@ -153,7 +139,7 @@ def type_key(expr: Any) -> str:
 def type_display(expr: Any) -> str:
     expr = normalize_type_expr(expr)
     kind, value = next(iter(expr.items()))
-    if kind in {"primitive", "model", "contract"}:
+    if kind in {"primitive", "model", "data_contract"}:
         return value
     if kind == "array":
         return f"array<{type_display(value)}>"
@@ -194,8 +180,13 @@ def model_name(expr: Any) -> str | None:
     expr = unwrap_nullable_optional(expr)
     if "model" in expr:
         return expr["model"]
-    if "contract" in expr:
-        return expr["contract"]
+    return None
+
+
+def data_contract_name(expr: Any) -> str | None:
+    expr = unwrap_nullable_optional(expr)
+    if "data_contract" in expr:
+        return expr["data_contract"]
     return None
 
 
@@ -223,6 +214,9 @@ def object_fields_for_type(contract: Mapping[str, Any] | None, expr: Any) -> dic
     name = model_name(expr)
     if name and contract and name in contract.get("models", {}):
         return effective_type_map(contract["models"][name]["fields"])
+    data_name = data_contract_name(expr)
+    if data_name and contract and data_name in contract.get("data_contracts", {}):
+        return effective_type_map(contract["data_contracts"][data_name]["fields"])
     return None
 
 
@@ -233,7 +227,7 @@ def dereference_type(contract: Mapping[str, Any] | None, expr: Any, path: Iterab
         if fields is None:
             raise TypeExpressionError(f"cannot dereference non-object field: {source}")
         if segment not in fields:
-            container = model_name(current) or "inline object"
+            container = model_name(current) or data_contract_name(current) or "inline object"
             raise TypeExpressionError(f"unknown {container} field: {segment}")
         current = fields[segment]
     return normalize_type_expr(current)
@@ -242,7 +236,7 @@ def dereference_type(contract: Mapping[str, Any] | None, expr: Any, path: Iterab
 def referenced_named_types(expr: Any) -> set[str]:
     expr = normalize_type_expr(expr)
     kind, value = next(iter(expr.items()))
-    if kind in {"model", "contract"}:
+    if kind in {"model", "data_contract"}:
         return {value}
     if kind in {"array", "map", "nullable", "optional"}:
         return referenced_named_types(value)
@@ -256,9 +250,9 @@ def referenced_named_types(expr: Any) -> set[str]:
 
 def literal_type_expr(value: Any) -> dict[str, str] | None:
     if isinstance(value, bool):
-        return primitive("Bool")
+        return primitive("Boolean")
     if isinstance(value, int) and not isinstance(value, bool):
-        return primitive("Int")
+        return primitive("Integer")
     if isinstance(value, float):
         return primitive("Decimal")
     if isinstance(value, (dict, list)):
@@ -271,7 +265,7 @@ def type_to_json_schema(expr: Any) -> dict[str, Any]:
     kind, value = next(iter(expr.items()))
     if kind == "primitive":
         return copy.deepcopy(PRIMITIVES[value])
-    if kind in {"model", "contract"}:
+    if kind in {"model", "data_contract"}:
         return {"$ref": f"#/components/schemas/{value}"}
     if kind == "array":
         return {"type": "array", "items": type_to_json_schema(value)}
@@ -308,14 +302,14 @@ def type_to_cwl(expr: Any) -> str | dict[str, Any] | list[Any]:
     if kind == "primitive":
         if value in {"ID", "Text", "Markdown", "Date", "Timestamp"}:
             return "string"
-        if value == "Bool":
+        if value == "Boolean":
             return "boolean"
-        if value == "Int":
+        if value == "Integer":
             return "int"
         if value == "Decimal":
             return "double"
         return "Any"
-    if kind in {"model", "contract", "enum", "object", "map"}:
+    if kind in {"model", "data_contract", "enum", "object", "map"}:
         return "Any"
     if kind == "array":
         return {"type": "array", "items": type_to_cwl(value)}
@@ -330,14 +324,14 @@ def type_to_python(expr: Any) -> str:
     if kind == "primitive":
         if value in {"ID", "Text", "Markdown", "Date", "Timestamp"}:
             return "str"
-        if value == "Bool":
+        if value == "Boolean":
             return "bool"
-        if value == "Int":
+        if value == "Integer":
             return "int"
         if value == "Decimal":
             return "float"
         return "object"
-    if kind in {"model", "contract", "enum", "object"}:
+    if kind in {"model", "data_contract", "enum", "object"}:
         return "dict[str, object]" if kind == "object" else "str"
     if kind == "array":
         return f"list[{type_to_python(value)}]"
@@ -353,12 +347,12 @@ def sample_value(expr: Any) -> Any:
     kind, value = next(iter(normalize_type_expr(expr).items()))
     if kind == "primitive":
         return {
-            "Bool": True,
-            "Int": 1,
+            "Boolean": True,
+            "Integer": 1,
             "Decimal": 1.0,
             "JSON": {},
         }.get(value, "sample")
-    if kind in {"model", "contract", "map"}:
+    if kind in {"model", "data_contract", "map"}:
         return {}
     if kind == "object":
         return {

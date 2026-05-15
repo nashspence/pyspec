@@ -8,11 +8,11 @@ from pathlib import Path
 from typing import Any
 
 from .io import read_json
-from .targets import entry_state_machine_surface, entry_point_adapter_pair, entry_point_trigger_pair
+from .targets import entry_state_machine_renderer, entry_point_adapter_pair, entry_point_target_pair
 
 ROOT = Path(__file__).resolve().parent
 
-LAYERS = {"core", "http", "events", "workflow", "ui", "textual", "web"}
+LAYERS = {"core", "http", "events", "workflow", "ui", "textual", "html"}
 LAYER_ALIASES = {"full": "full", "all": "full", "api": "http", "cli": "workflow", "tui": "textual"}
 
 # Coarse target gates. Field-level surface gates below remain stricter.
@@ -30,6 +30,7 @@ TARGET_LAYERS: dict[str, set[str]] = {
     "asset": {"ui"},
     "content_case": {"ui"},
     "render_profile": {"ui"},
+    "data_contract": {"core"},
     # entry_point is adapter-specific and handled separately.
     "entry_point": set(),
 }
@@ -54,6 +55,7 @@ AUTHOR_SECTIONS: dict[str, str] = {
     "policies": "policy",
     "operations": "operation",
     "events": "event",
+    "data_contracts": "data_contract",
     "state_machines": "state_machine",
     "entry_points": "entry_point",
     "workflows": "workflow",
@@ -61,8 +63,8 @@ AUTHOR_SECTIONS: dict[str, str] = {
 }
 
 
-RENDER_SURFACE_LAYER = {"html": "web", "textual": "textual"}
-RENDER_PROFILE_LAYER = {"html_viewports": "web", "terminal_viewports": "textual"}
+RENDER_SURFACE_LAYER = {"html": "html", "textual": "textual"}
+RENDER_PROFILE_LAYER = {"html_viewports": "html", "textual_viewports": "textual"}
 
 COMMON_LAYER_SETS: dict[str, set[str]] = {
     "core": {"core"},
@@ -70,7 +72,7 @@ COMMON_LAYER_SETS: dict[str, set[str]] = {
     "core_events": {"core", "events"},
     "core_workflow": {"core", "workflow"},
     "core_ui_textual": {"core", "ui", "textual"},
-    "core_ui_web": {"core", "ui", "web"},
+    "core_ui_html": {"core", "ui", "html"},
     "full": set(LAYERS),
 }
 
@@ -101,7 +103,7 @@ def normalize_layers(layers: set[str] | None) -> set[str] | None:
         raise ValueError(f"Unknown authoring layers: {', '.join(sorted(unknown))}")
     result = set(layers)
     result.add("core")
-    if "web" in result or "textual" in result:
+    if "html" in result or "textual" in result:
         result.add("ui")
     return result
 
@@ -145,15 +147,15 @@ def _validate_author_spec_layers(label: str, target: str, spec: dict[str, Any], 
             raise LayerError(f"{label} uses unsupported entry point adapter {adapter_kind!r}")
         _require_layers(label, f"entry point adapter {adapter_kind}", {required_layer}, layers)
         try:
-            trigger_kind, _ = entry_point_trigger_pair(spec)
+            target_kind, _ = entry_point_target_pair(spec)
         except KeyError as exc:
-            raise LayerError(f"{label} uses unsupported entry point trigger") from exc
-        if trigger_kind == "state_machine":
-            render_surface = entry_state_machine_surface(spec)
-            required_render_layer = RENDER_SURFACE_LAYER.get(render_surface or "")
+            raise LayerError(f"{label} uses unsupported entry point target") from exc
+        if target_kind == "state_machine":
+            renderer = entry_state_machine_renderer(spec)
+            required_render_layer = RENDER_SURFACE_LAYER.get(renderer or "")
             if not required_render_layer:
-                raise LayerError(f"{label} uses unsupported state_machine target render {render_surface!r}")
-            _require_layers(label, f"state machine target surface {render_surface}", {"ui", required_render_layer}, layers)
+                raise LayerError(f"{label} uses unsupported state_machine target renderer {renderer!r}")
+            _require_layers(label, f"state machine target renderer {renderer}", {"ui", required_render_layer}, layers)
         return
 
     if target == "render_profile":
@@ -167,8 +169,8 @@ def _validate_author_spec_layers(label: str, target: str, spec: dict[str, Any], 
     if target == "state_machine":
         for state_name, state in spec.get("view_states", {}).items():
             renderers = state.get("renderers") or {}
-            if "web" in renderers:
-                _require_layers(label, "state machine view_state renderer web", {"web"}, layers)
+            if "html" in renderers:
+                _require_layers(label, "state machine view_state renderer html", {"html"}, layers)
             if "textual" in renderers:
                 _require_layers(label, "state machine view_state renderer textual", {"textual"}, layers)
         return

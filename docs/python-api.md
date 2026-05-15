@@ -23,5 +23,5 @@ from pyspec_contract import (
 )
 ```
 
-`compile_project` and `validate_project` accept either a layer string such as `"core,ui,web"` or a normalized layer set.
+`compile_project` and `validate_project` accept either a layer string such as `"core,ui,html"` or a normalized layer set.
 `write_agent_prompts(".", layers="core,http")` writes the PM/design, test, dev, and review prompt templates without requiring a compiled spec.

@@ -1,5 +1,5 @@
 {
-  "entry_point_guards": {
+  "entry_point_authorization_policies": {
     "entry_point.api.project.create": {
       "policy": "policy.project.create"
     },
@@ -10,7 +10,7 @@
       "policy": "policy.project.approve"
     }
   },
-  "operation_guards": {
+  "operation_authorization_policies": {
     "operation.project.approve": {
       "policy": "policy.project.approve"
     },
@@ -35,11 +35,6 @@
   },
   "policies": {
     "policy.project.approve": {
-      "actions": [
-        {
-          "operation": "operation.project.approve"
-        }
-      ],
       "conditions": [
         {
           "resource_state": {
@@ -51,24 +46,22 @@
       ],
       "effect": "allow",
       "rationale": "Reviewers can approve submitted dispatch projects.",
-      "resources": [
-        {
-          "model": "Project"
-        }
-      ],
       "subjects": [
         {
           "kind": "actor",
           "source": "$input.approved_by"
         }
+      ],
+      "targets": [
+        {
+          "operation": "operation.project.approve"
+        },
+        {
+          "model": "Project"
+        }
       ]
     },
     "policy.project.archive": {
-      "actions": [
-        {
-          "operation": "operation.project.archive"
-        }
-      ],
       "conditions": [
         {
           "resource_state": {
@@ -80,23 +73,21 @@
       ],
       "effect": "allow",
       "rationale": "Approved dispatch projects can be archived.",
-      "resources": [
-        {
-          "model": "Project"
-        }
-      ],
       "subjects": [
         {
           "kind": "actor"
         }
+      ],
+      "targets": [
+        {
+          "operation": "operation.project.archive"
+        },
+        {
+          "model": "Project"
+        }
       ]
     },
     "policy.project.create": {
-      "actions": [
-        {
-          "operation": "operation.project.create"
-        }
-      ],
       "conditions": [
         {
           "always": true
@@ -104,23 +95,21 @@
       ],
       "effect": "allow",
       "rationale": "Members can create a new dispatch project.",
-      "resources": [
-        {
-          "model": "Project"
-        }
-      ],
       "subjects": [
         {
           "kind": "actor"
         }
+      ],
+      "targets": [
+        {
+          "operation": "operation.project.create"
+        },
+        {
+          "model": "Project"
+        }
       ]
     },
     "policy.project.list": {
-      "actions": [
-        {
-          "operation": "operation.project.list"
-        }
-      ],
       "conditions": [
         {
           "always": true
@@ -128,23 +117,21 @@
       ],
       "effect": "allow",
       "rationale": "The board requires a project list query scoped by workspace.",
-      "resources": [
-        {
-          "model": "Project"
-        }
-      ],
       "subjects": [
         {
           "kind": "actor"
         }
+      ],
+      "targets": [
+        {
+          "operation": "operation.project.list"
+        },
+        {
+          "model": "Project"
+        }
       ]
     },
     "policy.project.read": {
-      "actions": [
-        {
-          "operation": "operation.project.read"
-        }
-      ],
       "conditions": [
         {
           "always": true
@@ -152,23 +139,21 @@
       ],
       "effect": "allow",
       "rationale": "The detail state machine loads the selected project by id.",
-      "resources": [
-        {
-          "model": "Project"
-        }
-      ],
       "subjects": [
         {
           "kind": "actor"
         }
+      ],
+      "targets": [
+        {
+          "operation": "operation.project.read"
+        },
+        {
+          "model": "Project"
+        }
       ]
     },
     "policy.project.send_approval_notice": {
-      "actions": [
-        {
-          "operation": "operation.project.send_approval_notice"
-        }
-      ],
       "conditions": [
         {
           "always": true
@@ -176,24 +161,19 @@
       ],
       "effect": "allow",
       "rationale": "Approval triggers a notification command for downstream coordination.",
-      "resources": [
-        {
-          "operation": "operation.project.send_approval_notice"
-        }
-      ],
       "subjects": [
         {
           "kind": "actor",
           "source": "$input.approved_by"
         }
+      ],
+      "targets": [
+        {
+          "operation": "operation.project.send_approval_notice"
+        }
       ]
     },
     "policy.project.submit": {
-      "actions": [
-        {
-          "operation": "operation.project.submit"
-        }
-      ],
       "conditions": [
         {
           "resource_state": {
@@ -205,14 +185,17 @@
       ],
       "effect": "allow",
       "rationale": "Draft dispatch projects can be submitted for review.",
-      "resources": [
-        {
-          "model": "Project"
-        }
-      ],
       "subjects": [
         {
           "kind": "actor"
+        }
+      ],
+      "targets": [
+        {
+          "operation": "operation.project.submit"
+        },
+        {
+          "model": "Project"
         }
       ]
     }

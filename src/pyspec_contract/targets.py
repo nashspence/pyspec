@@ -3,9 +3,9 @@ from __future__ import annotations
 from typing import Any
 
 
-STATE_MACHINE_RENDER_SURFACES = ("html", "textual")
+STATE_MACHINE_RENDERERS = ("html", "textual")
 ENTRY_POINT_ADAPTER_KINDS = ("http", "cli", "webhook", "scheduled", "worker", "ui")
-ENTRY_POINT_TRIGGER_KINDS = ("operation", "state_machine", "workflow")
+ENTRY_POINT_TARGET_KINDS = ("operation", "state_machine", "workflow")
 
 
 def entry_point_adapter_pair(entry_or_adapter: dict[str, Any]) -> tuple[str, dict[str, Any]]:
@@ -24,22 +24,22 @@ def entry_point_adapter(entry_or_adapter: dict[str, Any], kind: str | None = Non
     return adapter
 
 
-def entry_point_trigger_pair(entry_or_trigger: dict[str, Any]) -> tuple[str, dict[str, Any]]:
-    trigger = entry_or_trigger.get("trigger", entry_or_trigger)
-    for kind in ENTRY_POINT_TRIGGER_KINDS:
-        if kind in trigger:
-            value = trigger[kind]
+def entry_point_target_pair(entry_or_target: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+    target = entry_or_target.get("target", entry_or_target)
+    for kind in ENTRY_POINT_TARGET_KINDS:
+        if kind in target:
+            value = target[kind]
             if isinstance(value, dict):
                 return kind, value
             return kind, {"ref": value}
-    raise KeyError("entry point trigger must declare operation, state_machine, or workflow")
+    raise KeyError("entry point target must declare operation, state_machine, or workflow")
 
 
-def entry_point_trigger(entry_or_trigger: dict[str, Any], kind: str | None = None) -> dict[str, Any]:
-    actual_kind, trigger = entry_point_trigger_pair(entry_or_trigger)
+def entry_point_target(entry_or_target: dict[str, Any], kind: str | None = None) -> dict[str, Any]:
+    actual_kind, target = entry_point_target_pair(entry_or_target)
     if kind is not None and actual_kind != kind:
-        raise KeyError(f"entry point trigger is {actual_kind}, not {kind}")
-    return trigger
+        raise KeyError(f"entry point target is {actual_kind}, not {kind}")
+    return target
 
 
 def entry_point_input(entry: dict[str, Any]) -> dict[str, Any]:
@@ -84,13 +84,13 @@ def entry_point_schedule_expression(entry: dict[str, Any]) -> str | None:
     return adapter.get("schedule_expression") if kind == "scheduled" else None
 
 
-def entry_point_bindings(entry_or_trigger: dict[str, Any]) -> dict[str, Any]:
-    return entry_point_trigger_pair(entry_or_trigger)[1].get("bindings", {})
+def entry_point_input_bindings(entry_or_target: dict[str, Any]) -> dict[str, Any]:
+    return entry_point_target_pair(entry_or_target)[1].get("input_bindings", {})
 
 
 def entry_target_pair(target: dict[str, Any]) -> tuple[str, str]:
-    if "trigger" in target:
-        kind, body = entry_point_trigger_pair(target)
+    if "target" in target:
+        kind, body = entry_point_target_pair(target)
         if kind == "state_machine":
             return "state_machine", state_machine_target_name(body)
         return kind, operation_target_name(body) if kind == "operation" else workflow_target_name(body)
@@ -107,13 +107,11 @@ def entry_target_pair(target: dict[str, Any]) -> tuple[str, str]:
 
 
 def entry_state_machine_target(entry_or_target: dict[str, Any]) -> dict[str, str]:
-    if "trigger" in entry_or_target or "state_machine" in entry_or_target:
-        value = entry_point_trigger(entry_or_target, "state_machine")
+    if "target" in entry_or_target or "state_machine" in entry_or_target:
+        value = entry_point_target(entry_or_target, "state_machine")
         result: dict[str, str] = {"name": value["ref"]}
-        if "render" in value:
-            result["surface"] = value["render"]
-        elif "surface" in value:
-            result["surface"] = value["surface"]
+        if "renderer" in value:
+            result["renderer"] = value["renderer"]
         return result
     target = entry_or_target.get("target", entry_or_target)
     value = target["state_machine"]
@@ -126,8 +124,8 @@ def entry_state_machine_name(entry_or_target: dict[str, Any]) -> str:
     return entry_state_machine_target(entry_or_target)["name"]
 
 
-def entry_state_machine_surface(entry_or_target: dict[str, Any]) -> str | None:
-    return entry_state_machine_target(entry_or_target).get("surface")
+def entry_state_machine_renderer(entry_or_target: dict[str, Any]) -> str | None:
+    return entry_state_machine_target(entry_or_target).get("renderer")
 
 
 def state_machine_target_name(value: Any) -> str:
@@ -143,13 +141,11 @@ def operation_target_name(value: Any) -> str:
 
 
 def entry_workflow_target(entry_or_target: dict[str, Any]) -> dict[str, Any]:
-    if "trigger" in entry_or_target or "workflow" in entry_or_target:
-        value = entry_point_trigger(entry_or_target, "workflow")
+    if "target" in entry_or_target or "workflow" in entry_or_target:
+        value = entry_point_target(entry_or_target, "workflow")
         result = {"name": value["ref"]}
         if "when" in value:
-            result["trigger"] = value["when"]
-        elif "trigger" in value:
-            result["trigger"] = value["trigger"]
+            result["source"] = value["when"]
         return result
     target = entry_or_target.get("target", entry_or_target)
     value = target["workflow"]
@@ -162,8 +158,8 @@ def entry_workflow_name(entry_or_target: dict[str, Any]) -> str:
     return entry_workflow_target(entry_or_target)["name"]
 
 
-def entry_workflow_trigger(entry_or_target: dict[str, Any]) -> dict[str, str] | None:
-    return entry_workflow_target(entry_or_target).get("trigger")
+def entry_workflow_target_source(entry_or_target: dict[str, Any]) -> dict[str, str] | None:
+    return entry_workflow_target(entry_or_target).get("source")
 
 
 def workflow_target_name(value: Any) -> str:

@@ -64,8 +64,8 @@ def infer_contract_layers(contract: dict[str, Any]) -> set[str]:
         active.add("workflow")
     if _contract_has_ui(contract):
         active.add("ui")
-    if _contract_has_web(contract):
-        active.update({"ui", "web"})
+    if _contract_has_html(contract):
+        active.update({"ui", "html"})
     if _contract_has_textual(contract):
         active.update({"ui", "textual"})
     return normalize_layers(active) or set(LAYERS)
@@ -87,20 +87,20 @@ def _contract_has_ui(contract: dict[str, Any]) -> bool:
     )
 
 
-def _contract_has_web(contract: dict[str, Any]) -> bool:
+def _contract_has_html(contract: dict[str, Any]) -> bool:
     if "ui" in _entry_adapter_kinds(contract):
         return True
     if any("html_viewports" in profile for profile in (contract.get("render_profiles") or {}).values()):
         return True
     for owner in (contract.get("state_machines") or {}).values():
         for state in (owner.get("view_states") or {}).values():
-            if "web" in (state.get("renderers") or {}):
+            if "html" in (state.get("renderers") or {}):
                 return True
     return False
 
 
 def _contract_has_textual(contract: dict[str, Any]) -> bool:
-    if any("terminal_viewports" in profile for profile in (contract.get("render_profiles") or {}).values()):
+    if any("textual_viewports" in profile for profile in (contract.get("render_profiles") or {}).values()):
         return True
     for owner in (contract.get("state_machines") or {}).values():
         for state in (owner.get("view_states") or {}).values():
@@ -196,12 +196,12 @@ def _pm_design_prompt(context: _PromptContext) -> str:
         lines.append("- UI: state machines with view-state-local layouts, child state machines, audit cases, text resources/assets, content cases, and render profiles.")
     else:
         lines.append("- Do not author UI state machines, text resources/assets, audit cases, or surface presentation.")
-    if "web" in context.layers:
-        lines.append("- Web UI: web renderer layout, presentation, style, UI entry points, routes, and HTML audit surfaces.")
+    if "html" in context.layers:
+        lines.append("- HTML UI: html renderer layout, presentation, style, UI entry points, routes, and HTML audit surfaces.")
     elif "ui" in context.layers:
-        lines.append("- Do not author web renderer details or web routes; the web layer is inactive.")
+        lines.append("- Do not author html renderer details or html routes; the html layer is inactive.")
     if "textual" in context.layers:
-        lines.append("- Textual UI: Textual presentation, screen projection, and terminal audit surfaces.")
+        lines.append("- Textual UI: Textual presentation, screen projection, and Textual audit surfaces.")
     elif "ui" in context.layers:
         lines.append("- Do not author Textual renderer details; the textual layer is inactive.")
     lines.extend(
@@ -214,10 +214,10 @@ def _pm_design_prompt(context: _PromptContext) -> str:
             "- Use test-case archetypes from `src/pyspec_contract/patterns.yaml`; define every seed fixture explicitly.",
             "- Models are product data models: fields, lifecycle, and invariants only.",
             "- Use `rationale` only when it preserves non-obvious product intent.",
-            "- For entry points, declare one explicit `adapter` (`http`, `cli`, `webhook`, `scheduled`, `worker`, or `ui`) and one explicit `trigger` (`operation`, `state_machine`, or `workflow`).",
-            "- For state-machine entry points, keep invocation and rendering separate with adapter input and trigger `render` (`html` or `textual`).",
-            "- For workflow entry points, bind the entry point trigger to the workflow trigger with `trigger.workflow.ref` and `trigger.workflow.when`.",
-            "- For rendered screens, put platform-owned `layout`, `presentation`, and `style` under `renderers.web` or `renderers.textual`.",
+            "- For entry points, declare one explicit `adapter` (`http`, `cli`, `webhook`, `scheduled`, `worker`, or `ui`) and one explicit `target` (`operation`, `state_machine`, or `workflow`).",
+            "- For state-machine entry points, keep invocation and rendering separate with adapter input and target `renderer` (`html` or `textual`).",
+            "- For workflow entry points, bind the entry point target to the workflow trigger with `target.workflow.ref` and `target.workflow.when`.",
+            "- For rendered screens, put framework-owned `layout`, `presentation`, and `style` under `renderers.html` or `renderers.textual`.",
             "- Every rendered text or asset ref must be backed by a declared text resource or asset item.",
         ]
     )
@@ -331,12 +331,12 @@ def _dev_prompt(context: _PromptContext) -> str:
         lines.append("- `spec/generated/product_interfaces/events.asyncapi.yaml`")
     if "workflow" in context.layers:
         lines.append("- `spec/generated/product_interfaces/workflow.cwl.yaml`")
-    if "web" in context.layers:
-        lines.append("- `spec/generated/product_interfaces/web.routes.json`, `spec/generated/product_interfaces/web.state_machines.json`, and HTML audit evidence")
+    if "html" in context.layers:
+        lines.append("- `spec/generated/product_interfaces/html.routes.json`, `spec/generated/product_interfaces/html.state_machines.json`, and HTML audit evidence")
     elif "ui" in context.layers:
-        lines.append("- `spec/generated/product_interfaces/web.state_machines.json` when state machines are declared")
+        lines.append("- `spec/generated/product_interfaces/html.state_machines.json` when state machines are declared")
     if "textual" in context.layers:
-        lines.append("- `spec/generated/product_interfaces/textual.projection.py` and terminal audit evidence")
+        lines.append("- `spec/generated/product_interfaces/textual.projection.py` and Textual audit evidence")
     if "ui" in context.layers:
         lines.append("- `spec/generated/content_resolvers/` when generated content source signatures or stubs exist")
     lines.extend(

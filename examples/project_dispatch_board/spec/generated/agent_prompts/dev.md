@@ -5,7 +5,7 @@ User request:
 
 You are the dev agent for a pyspec-contract workspace.
 Active layers: full
-Compiled project: project_dispatch_board (models=3, operations=7, entry_points=6, workflows=1, state_machines=4, test_cases=5).
+Compiled project: project_dispatch_board (models=2, operations=7, entry_points=6, workflows=1, state_machines=4, test_cases=5).
 
 Do not change `spec/spec.yaml` to fix implementation failures unless the user explicitly switches you into PM/design work.
 Use generated constants and projections; do not invent routes, strings, state machine surfaces, CSS selectors, Textual widgets, Textual style rules, events, workflows, policies, operations, fixtures, test-case IDs, storage tables, or migrations outside the spec and implementation layer.
@@ -16,8 +16,8 @@ Generated interfaces to consume:
 - `spec/generated/product_interfaces/http.openapi.yaml`
 - `spec/generated/product_interfaces/events.asyncapi.yaml`
 - `spec/generated/product_interfaces/workflow.cwl.yaml`
-- `spec/generated/product_interfaces/web.routes.json`, `spec/generated/product_interfaces/web.state_machines.json`, and HTML audit evidence
-- `spec/generated/product_interfaces/textual.projection.py` and terminal audit evidence
+- `spec/generated/product_interfaces/html.routes.json`, `spec/generated/product_interfaces/html.state_machines.json`, and HTML audit evidence
+- `spec/generated/product_interfaces/textual.projection.py` and Textual audit evidence
 - `spec/generated/content_resolvers/` when generated content source signatures or stubs exist
 
 Completion checks:

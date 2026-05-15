@@ -2,7 +2,7 @@ project: project_dispatch_board
 test_cases:
   test_case.project.approval_notice.workflow:
     archetype: workflow_event_success
-    feature: feature.project.approval_notice
+    feature_tag: project.approval_notice
     given:
       domain_facts: []
       seed_fixtures:
@@ -29,7 +29,7 @@ test_cases:
         ref: event.project.approved
   test_case.project.approve.success:
     archetype: operation_outcome
-    feature: feature.project.approve
+    feature_tag: project.approve
     given:
       domain_facts:
       - present:
@@ -65,7 +65,8 @@ test_cases:
       outcome: approved
       policy:
         allowed:
-        - guard: policy.project.approve
+        - authorization_policy:
+            policy: policy.project.approve
           operation: operation.project.approve
     title: Approve submitted dispatch project
     when:
@@ -76,7 +77,7 @@ test_cases:
         ref: operation.project.approve
   test_case.project.board.empty:
     archetype: state_machine_composition
-    feature: feature.project.board
+    feature_tag: project.board
     given:
       domain_facts:
       - absent:
@@ -93,12 +94,13 @@ test_cases:
       - operation.project.create
       policy:
         denied:
-        - guard: policy.project.approve
+        - authorization_policy:
+            policy: policy.project.approve
           operation: operation.project.approve
       requires:
         assets:
         - asset.project.list.empty.illustration
-        operation_refs:
+        available_operations:
         - operation.project.create
         queries:
         - query.project.board.list
@@ -118,14 +120,14 @@ test_cases:
       state_machine:
         composition:
           child_state_machines:
-          - context:
+          - context_bindings:
               selected_project_id: $state_machine.selected_project_id
               workspace_id: $state_machine.workspace_id
             id: list
             initial_view_state: loading
             region: nav
             state_machine: state_machine.project.list
-          - context:
+          - context_bindings:
               project_id: $state_machine.selected_project_id
             id: detail
             initial_view_state: none
@@ -135,7 +137,7 @@ test_cases:
               when:
                 context_present: selected_project_id
             state_machine: state_machine.project.detail
-          - context:
+          - context_bindings:
               project_id: $state_machine.selected_project_id
             id: activity
             initial_view_state: empty
@@ -165,37 +167,7 @@ test_cases:
               instance: list
               message: message.project.selected
           renderers:
-            textual:
-              layout:
-                containers:
-                  aside:
-                    id: aside
-                    kind: Container
-                    must_render: true
-                    order: 3
-                  main:
-                    id: main
-                    kind: Container
-                    must_render: true
-                    order: 2
-                  nav:
-                    id: nav
-                    kind: Container
-                    must_render: true
-                    order: 1
-                screen_class: ProjectBoardScreen
-              style:
-                rules:
-                - declarations:
-                    layout: horizontal
-                  selector: screen
-                - declarations:
-                    width: '32'
-                  selector: region.nav
-                - declarations:
-                    width: '28'
-                  selector: region.aside
-            web:
+            html:
               layout:
                 regions:
                   aside:
@@ -244,6 +216,36 @@ test_cases:
                   aside_width: 16rem
                   gap: 1rem
                   nav_width: 20rem
+            textual:
+              layout:
+                containers:
+                  aside:
+                    container_class: Container
+                    id: aside
+                    must_render: true
+                    order: 3
+                  main:
+                    container_class: Container
+                    id: main
+                    must_render: true
+                    order: 2
+                  nav:
+                    container_class: Container
+                    id: nav
+                    must_render: true
+                    order: 1
+                screen_class: ProjectBoardScreen
+              style:
+                rules:
+                - declarations:
+                    layout: horizontal
+                  selector: screen
+                - declarations:
+                    width: '32'
+                  selector: region.nav
+                - declarations:
+                    width: '28'
+                  selector: region.aside
         instances:
           activity:
             source: state_machine.project.activity
@@ -258,7 +260,7 @@ test_cases:
             surface: state_machine.project.list.empty
             view_state: empty
         message_sync_rules:
-          observed:
+          observed_rules:
           - select_project_updates_state_machines
         ref: state_machine.project.board
         surface: state_machine.project.board.ready
@@ -268,10 +270,10 @@ test_cases:
       open_entry:
         input:
           workspace_id: $fixture.workspace.id
-        ref: entry_point.web.project.board
+        ref: entry_point.html.project.board
   test_case.project.board.ready:
     archetype: state_machine_composition
-    feature: feature.project.board
+    feature_tag: project.board
     given:
       domain_facts:
       - present:
@@ -298,7 +300,7 @@ test_cases:
       - operation.project.submit
       requires:
         assets: []
-        operation_refs:
+        available_operations:
         - operation.project.create
         - operation.project.submit
         queries:
@@ -318,14 +320,14 @@ test_cases:
       state_machine:
         composition:
           child_state_machines:
-          - context:
+          - context_bindings:
               selected_project_id: $state_machine.selected_project_id
               workspace_id: $state_machine.workspace_id
             id: list
             initial_view_state: loading
             region: nav
             state_machine: state_machine.project.list
-          - context:
+          - context_bindings:
               project_id: $state_machine.selected_project_id
             id: detail
             initial_view_state: none
@@ -335,7 +337,7 @@ test_cases:
               when:
                 context_present: selected_project_id
             state_machine: state_machine.project.detail
-          - context:
+          - context_bindings:
               project_id: $state_machine.selected_project_id
             id: activity
             initial_view_state: empty
@@ -365,37 +367,7 @@ test_cases:
               instance: list
               message: message.project.selected
           renderers:
-            textual:
-              layout:
-                containers:
-                  aside:
-                    id: aside
-                    kind: Container
-                    must_render: true
-                    order: 3
-                  main:
-                    id: main
-                    kind: Container
-                    must_render: true
-                    order: 2
-                  nav:
-                    id: nav
-                    kind: Container
-                    must_render: true
-                    order: 1
-                screen_class: ProjectBoardScreen
-              style:
-                rules:
-                - declarations:
-                    layout: horizontal
-                  selector: screen
-                - declarations:
-                    width: '32'
-                  selector: region.nav
-                - declarations:
-                    width: '28'
-                  selector: region.aside
-            web:
+            html:
               layout:
                 regions:
                   aside:
@@ -444,6 +416,36 @@ test_cases:
                   aside_width: 16rem
                   gap: 1rem
                   nav_width: 20rem
+            textual:
+              layout:
+                containers:
+                  aside:
+                    container_class: Container
+                    id: aside
+                    must_render: true
+                    order: 3
+                  main:
+                    container_class: Container
+                    id: main
+                    must_render: true
+                    order: 2
+                  nav:
+                    container_class: Container
+                    id: nav
+                    must_render: true
+                    order: 1
+                screen_class: ProjectBoardScreen
+              style:
+                rules:
+                - declarations:
+                    layout: horizontal
+                  selector: screen
+                - declarations:
+                    width: '32'
+                  selector: region.nav
+                - declarations:
+                    width: '28'
+                  selector: region.aside
         instances:
           activity:
             source: state_machine.project.activity
@@ -458,7 +460,7 @@ test_cases:
             surface: state_machine.project.list.ready
             view_state: ready
         message_sync_rules:
-          observed:
+          observed_rules:
           - select_project_updates_state_machines
         ref: state_machine.project.board
         surface: state_machine.project.board.ready
@@ -468,10 +470,10 @@ test_cases:
       open_entry:
         input:
           workspace_id: $fixture.workspace.id
-        ref: entry_point.web.project.board
+        ref: entry_point.html.project.board
   test_case.project.create.api.success:
     archetype: entry_response
-    feature: feature.project.create
+    feature_tag: project.create
     given:
       domain_facts:
       - absent:
@@ -498,7 +500,8 @@ test_cases:
       outcome: created
       policy:
         allowed:
-        - guard: policy.project.create
+        - authorization_policy:
+            policy: policy.project.create
           operation: operation.project.create
       response:
         status: 201

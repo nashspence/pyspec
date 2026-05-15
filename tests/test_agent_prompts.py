@@ -28,7 +28,7 @@ def test_agent_prompts_can_be_generated_from_layers_without_spec(tmp_path: Path)
     assert "Do not edit `spec/spec.yaml` as the test agent." in test
     assert "report the exact needed spec change" in test
     assert "http.openapi.yaml" in dev
-    assert "web.state_machines.json" not in dev
+    assert "html.state_machines.json" not in dev
     assert f"User request:\n{USER_PROMPT_PLACEHOLDER}" in review
     assert "very strict independent third-party auditor" in review
     assert "PM/design audit:" in review
@@ -43,10 +43,10 @@ def test_agent_prompts_can_be_generated_from_layers_without_spec(tmp_path: Path)
 
 
 def test_init_writes_layer_specific_starter_prompts(tmp_path: Path) -> None:
-    assert main(["init", str(tmp_path), "--layers", "core,ui,web"]) == 0
+    assert main(["init", str(tmp_path), "--layers", "core,ui,html"]) == 0
 
     assert (tmp_path / "spec" / "spec.yaml").exists()
     pm_design = (tmp_path / "spec" / "generated" / "agent_prompts" / "pm_design.md").read_text(encoding="utf-8")
-    assert "Active layers: core,ui,web" in pm_design
-    assert "Web UI: web renderer layout, presentation, style" in pm_design
+    assert "Active layers: core,html,ui" in pm_design
+    assert "HTML UI: html renderer layout, presentation, style" in pm_design
     assert "Do not author Textual renderer details" in pm_design

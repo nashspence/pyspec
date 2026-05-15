@@ -2,7 +2,7 @@ authoring_layers:
   rule: Layers constrain authored spec vocabulary only. They are never written into spec/generated/compiled/spec.yaml and never imply absent adapters are planned.
   layers:
     core:
-      targets: [fixture, model, operation, test_case]
+      targets: [fixture, model, data_contract, operation, test_case]
       projections: [spec/generated/agent_prompts, spec/generated/behavior/fixtures.yaml, spec/generated/behavior/test_cases.yaml, spec/generated/test_adapters/pytest_bdd_features, spec/generated/test_adapters/python_refs.py]
     http:
       opens: [entry_point.adapter.http]
@@ -19,21 +19,21 @@ authoring_layers:
     ui:
       opens: [state_machine, text_resource, asset, content_case, render_profile, audit_case]
       requires: [core]
-      projections_when_declared: [spec/generated/product_interfaces/web.state_machines.json, spec/generated/audit_evidence]
+      projections_when_declared: [spec/generated/product_interfaces/html.state_machines.json, spec/generated/audit_evidence]
     textual:
-      opens: [renderers.textual, render_profile.terminal_viewports]
+      opens: [renderers.textual, render_profile.textual_viewports]
       requires: [core, ui]
       projections_when_declared: [spec/generated/product_interfaces/textual.projection.py, spec/generated/audit_evidence/**/renders/*.svg]
-    web:
-      opens: [entry_point.adapter.ui, renderers.web, render_profile.html_viewports]
+    html:
+      opens: [entry_point.adapter.ui, renderers.html, render_profile.html_viewports]
       requires: [core, ui]
-      projections_when_declared: [spec/generated/product_interfaces/web.routes.json, spec/generated/audit_evidence/**/renders/*.png]
+      projections_when_declared: [spec/generated/product_interfaces/html.routes.json, spec/generated/audit_evidence/**/renders/*.png]
   common_sets:
     api_only: core,http
     evented_api: core,events
     ci_client: core,workflow
     textual_app: core,ui,textual
-    web_app: core,ui,web
+    html_app: core,ui,html
     full: full
 
 purity_rules:
@@ -54,7 +54,7 @@ test_case_archetypes:
     then: [state_machine.instances, enables, policy.denied]
   state_machine_composition_sync:
     when: open_entry
-    then: [state_machine.instances, state_machine.context, state_machine.message_sync_rules.observed]
+    then: [state_machine.instances, state_machine.context, state_machine.message_sync_rules.observed_rules]
   operation_outcome:
     when: invoke_operation
     then: [outcome, model.exists, events.emitted, invoked]
@@ -92,27 +92,27 @@ entry_point_adapters:
   ui:
     target: state_machine
     requires: [path]
-    layer: web
+    layer: html
 
 entry_target_contracts:
-  boundary: 'Entry points declare adapter-specific input and responses. trigger.*.bindings maps adapter input onto the target operation or state-machine context.'
-  state_machine: 'State-machine entry triggers use trigger.state_machine.ref plus trigger.state_machine.render to distinguish invocation from html/textual rendering.'
-  workflow: 'Workflow entry triggers use trigger.workflow.ref plus trigger.workflow.when so the entry point declares the trigger data it consumes. Workers declare message dispositions; workflows declare terminal outcomes and route each step outcome explicitly.'
+  boundary: 'Entry points declare adapter-specific input and responses. target.*.input_bindings maps adapter input onto the target operation or state-machine context.'
+  state_machine: 'State-machine entry targets use target.state_machine.ref plus target.state_machine.renderer to distinguish invocation from html/textual rendering.'
+  workflow: 'Workflow entry targets use target.workflow.ref plus target.workflow.when so the entry point declares the trigger data it consumes. Workers declare message dispositions; workflows declare named outcomes and route each step outcome explicitly.'
 
 renderer_contracts:
-  web_layout:
-    layer: web
-    location: 'target: state_machine -> spec.view_states.<view_state>.renderers.web.layout'
-    purpose: Web renderer root container and composition regions.
-  web_presentation:
-    layer: web
-    location: 'target: state_machine -> spec.view_states.<view_state>.renderers.web.presentation'
-    purpose: Web renderer slots/components and slot bindings.
-  web_style:
-    layer: web
-    location: 'target: state_machine -> spec.view_states.<view_state>.renderers.web.style'
-    purpose: Web renderer style tokens and selector-scoped declarations.
-    selectors_allowed: [root, slot.<declared_slot>, action.<declared_action>, region.<declared_region>, mount.<declared_mount>]
+  html_layout:
+    layer: html
+    location: 'target: state_machine -> spec.view_states.<view_state>.renderers.html.layout'
+    purpose: HTML renderer root container and composition regions.
+  html_presentation:
+    layer: html
+    location: 'target: state_machine -> spec.view_states.<view_state>.renderers.html.presentation'
+    purpose: HTML renderer slots/components and slot bindings.
+  html_style:
+    layer: html
+    location: 'target: state_machine -> spec.view_states.<view_state>.renderers.html.style'
+    purpose: HTML renderer style tokens and selector-scoped declarations.
+    selectors_allowed: [root, slot.<declared_slot>, operation.<declared_operation>, region.<declared_region>, child_state_machine.<declared_child_state_machine>]
   textual_layout:
     layer: textual
     location: 'target: state_machine -> spec.view_states.<view_state>.renderers.textual.layout'
@@ -125,7 +125,7 @@ renderer_contracts:
     layer: textual
     location: 'target: state_machine -> spec.view_states.<view_state>.renderers.textual.style'
     purpose: Textual renderer style tokens and selector-scoped declarations.
-    selectors_allowed: [screen, slot.<declared_slot>, action.<declared_action>, region.<declared_region>, mount.<declared_mount>]
+    selectors_allowed: [screen, slot.<declared_slot>, operation.<declared_operation>, region.<declared_region>, child_state_machine.<declared_child_state_machine>]
 
 gherkin_policy:
   source_of_truth: spec/generated/behavior/test_cases.yaml
@@ -140,7 +140,7 @@ composition_contracts:
 audit_contracts:
   text_resource: 'target: text_resource declares placeholder text for every rendered text ref.'
   asset: 'target: asset declares media kind, asset role, placeholder visual intent, and optional source_ref; the compiler emits generic SVG placeholder assets.'
-  render_profile: 'target: render_profile declares fixed HTML and/or terminal viewport profiles.'
+  render_profile: 'target: render_profile declares fixed HTML and/or Textual viewport profiles.'
   audit_case: 'state-local audit cases bind a state-machine view state or composed state-machine instance vector to fixtures and contexts; render surfaces and artifacts are derived from the referenced view states.'
   content_case: 'target: content_case exercises every source_ref-backed text resource or asset with deterministic args.'
   final_content: 'target: text_resource or asset may declare args and source_ref; generated content stubs constrain spec/spec.py.'
@@ -149,6 +149,6 @@ audit_contracts:
     state_machine: svg
     composition: svg
     workflow: svg
-    terminal: svg
+    textual: svg
     html: png
   forbidden: [spec/generated/audit_evidence/review.html, spec/generated/audit_evidence/change_report.md, spec/generated/audit_evidence/manifest.json]

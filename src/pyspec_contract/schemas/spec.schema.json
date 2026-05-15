@@ -49,7 +49,7 @@
           "enum": [
             "illustration",
             "icon",
-            "photo"
+            "photograph"
           ]
         },
         "placeholder": {
@@ -77,7 +77,7 @@
           "minLength": 1,
           "type": "string"
         },
-        "visual_metaphor": {
+        "placeholder_symbol": {
           "enum": [
             "folder",
             "document",
@@ -89,13 +89,13 @@
             "circle",
             "square",
             "card",
-            "terminal"
+            "textual"
           ]
         }
       },
       "required": [
         "label",
-        "visual_metaphor"
+        "placeholder_symbol"
       ],
       "type": "object"
     },
@@ -113,7 +113,7 @@
         },
         {
           "required": [
-            "terminal_viewports"
+            "textual_viewports"
           ]
         }
       ],
@@ -131,9 +131,9 @@
           },
           "type": "object"
         },
-        "terminal_viewports": {
+        "textual_viewports": {
           "additionalProperties": {
-            "$ref": "#/$defs/terminal_viewport"
+            "$ref": "#/$defs/textual_viewport"
           },
           "minProperties": 1,
           "propertyNames": {
@@ -148,7 +148,7 @@
       "type": "object"
     },
     "render_profile_ref": {
-      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "pattern": "^render_profile\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
     "rationale": {
@@ -163,9 +163,6 @@
     "child_state_machine_item": {
       "additionalProperties": false,
       "properties": {
-        "context": {
-          "$ref": "#/$defs/context_bindings"
-        },
         "id": {
           "$ref": "#/$defs/instance_id"
         },
@@ -182,6 +179,9 @@
           "$ref": "#/$defs/state_machine_ref",
           "pattern": "^state_machine\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
           "type": "string"
+        },
+        "context_bindings": {
+          "$ref": "#/$defs/context_bindings"
         }
       },
       "required": [
@@ -189,7 +189,7 @@
         "state_machine",
         "region",
         "initial_view_state",
-        "context"
+        "context_bindings"
       ],
       "type": "object"
     },
@@ -200,7 +200,7 @@
           "$ref": "#/$defs/view_state_name"
         },
         "when": {
-          "$ref": "#/$defs/condition_contract"
+          "$ref": "#/$defs/context_condition"
         }
       },
       "required": [
@@ -236,7 +236,7 @@
       },
       "type": "object"
     },
-    "condition_contract": {
+    "context_condition": {
       "oneOf": [
         {
           "additionalProperties": false,
@@ -337,7 +337,7 @@
       "type": "object"
     },
     "content_case_ref": {
-      "pattern": "^content\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "pattern": "^content_case\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
     "content_source_ref": {
@@ -345,7 +345,14 @@
       "type": "string"
     },
     "context_bindings": {
-      "$ref": "#/$defs/content_arg_values"
+      "additionalProperties": {
+        "$ref": "#/$defs/runtime_expression"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/field_name"
+      },
+      "type": "object",
+      "description": "Runtime-expression bindings that populate child state-machine context fields."
     },
     "context_set_effect": {
       "additionalProperties": false,
@@ -406,7 +413,7 @@
         "source_ref": {
           "$ref": "#/$defs/content_source_ref"
         },
-        "tone": {
+        "intent": {
           "enum": [
             "neutral",
             "instructional",
@@ -463,13 +470,13 @@
       ],
       "type": "object"
     },
-    "entry_operation_trigger": {
+    "entry_operation_target": {
       "additionalProperties": false,
       "properties": {
         "ref": {
           "$ref": "#/$defs/operation_ref"
         },
-        "bindings": {
+        "input_bindings": {
           "$ref": "#/$defs/runtime_bindings"
         }
       },
@@ -543,8 +550,8 @@
         "rationale": {
           "$ref": "#/$defs/rationale"
         },
-        "policy_guard": {
-          "$ref": "#/$defs/policy_guard"
+        "authorization_policy": {
+          "$ref": "#/$defs/authorization_policy"
         },
         "cli_command_ref": {
           "pattern": "^cli_command\\.",
@@ -558,17 +565,17 @@
           "pattern": "^route\\.",
           "type": "string"
         },
-        "trigger": {
-          "$ref": "#/$defs/entry_point_trigger"
-        },
         "workflow_ref": {
           "pattern": "^workflow\\.",
           "type": "string"
+        },
+        "target": {
+          "$ref": "#/$defs/entry_point_target"
         }
       },
       "required": [
         "adapter",
-        "trigger",
+        "target",
         "rationale"
       ],
       "type": "object"
@@ -577,7 +584,7 @@
       "pattern": "^entry_point\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
     },
-    "entry_point_trigger": {
+    "entry_point_target": {
       "additionalProperties": false,
       "oneOf": [
         {
@@ -598,13 +605,13 @@
       ],
       "properties": {
         "operation": {
-          "$ref": "#/$defs/entry_operation_trigger"
+          "$ref": "#/$defs/entry_operation_target"
         },
         "state_machine": {
-          "$ref": "#/$defs/entry_state_machine_trigger"
+          "$ref": "#/$defs/entry_state_machine_target"
         },
         "workflow": {
-          "$ref": "#/$defs/entry_workflow_trigger"
+          "$ref": "#/$defs/entry_workflow_target"
         }
       },
       "type": "object"
@@ -617,7 +624,7 @@
         },
         "disposition": {
           "enum": [
-            "ack",
+            "acknowledge",
             "retry",
             "reject",
             "dead_letter"
@@ -671,29 +678,29 @@
       },
       "type": "object"
     },
-    "entry_state_machine_trigger": {
+    "entry_state_machine_target": {
       "additionalProperties": false,
       "properties": {
         "ref": {
           "$ref": "#/$defs/state_machine_ref"
         },
-        "render": {
+        "renderer": {
           "enum": [
             "html",
             "textual"
           ]
         },
-        "bindings": {
+        "input_bindings": {
           "$ref": "#/$defs/runtime_bindings"
         }
       },
       "required": [
         "ref",
-        "render"
+        "renderer"
       ],
       "type": "object"
     },
-    "entry_workflow_trigger": {
+    "entry_workflow_target": {
       "additionalProperties": false,
       "properties": {
         "ref": {
@@ -867,10 +874,6 @@
         "ref"
       ],
       "type": "object"
-    },
-    "feature_ref": {
-      "pattern": "^feature\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
-      "type": "string"
     },
     "field_name": {
       "pattern": "^[a-z][a-z0-9_]*$",
@@ -1076,7 +1079,14 @@
         "id": {
           "$ref": "#/$defs/python_identifier"
         },
-        "kind": {
+        "order": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "must_render": {
+          "type": "boolean"
+        },
+        "container_class": {
           "enum": [
             "Container",
             "Vertical",
@@ -1084,18 +1094,11 @@
             "Grid",
             "ScrollableContainer"
           ]
-        },
-        "order": {
-          "minimum": 0,
-          "type": "integer"
-        },
-        "must_render": {
-          "type": "boolean"
         }
       },
       "required": [
         "id",
-        "kind",
+        "container_class",
         "must_render"
       ],
       "type": "object"
@@ -1149,13 +1152,13 @@
       "type": "object"
     },
     "message_ref": {
-      "pattern": "^(message|data)\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "pattern": "^message\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
     "message_sync_assertion": {
       "additionalProperties": false,
       "properties": {
-        "observed": {
+        "observed_rules": {
           "items": {
             "$ref": "#/$defs/field_name"
           },
@@ -1209,11 +1212,10 @@
               "$ref": "#/$defs/instance_id"
             },
             "message": {
-              "pattern": "^([a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+|data\\.[a-z][a-z0-9_]*)$",
-              "type": "string"
+              "$ref": "#/$defs/message_ref"
             },
             "payload_bindings": {
-              "$ref": "#/$defs/value_map"
+              "$ref": "#/$defs/runtime_bindings"
             }
           },
           "required": [
@@ -1337,7 +1339,7 @@
         },
         {
           "required": [
-            "bindings"
+            "payload_bindings"
           ]
         }
       ],
@@ -1348,7 +1350,7 @@
         "payload": {
           "$ref": "#/$defs/runtime_expression"
         },
-        "bindings": {
+        "payload_bindings": {
           "$ref": "#/$defs/runtime_bindings"
         }
       },
@@ -1363,14 +1365,6 @@
         "rationale": {
           "$ref": "#/$defs/rationale"
         },
-        "actions": {
-          "items": {
-            "$ref": "#/$defs/policy_action"
-          },
-          "minItems": 1,
-          "type": "array",
-          "uniqueItems": true
-        },
         "conditions": {
           "items": {
             "$ref": "#/$defs/policy_condition"
@@ -1384,17 +1378,17 @@
             "deny"
           ]
         },
-        "resources": {
+        "subjects": {
           "items": {
-            "$ref": "#/$defs/policy_resource"
+            "$ref": "#/$defs/policy_subject"
           },
           "minItems": 1,
           "type": "array",
           "uniqueItems": true
         },
-        "subjects": {
+        "targets": {
           "items": {
-            "$ref": "#/$defs/policy_subject"
+            "$ref": "#/$defs/policy_target"
           },
           "minItems": 1,
           "type": "array",
@@ -1403,8 +1397,7 @@
       },
       "required": [
         "subjects",
-        "actions",
-        "resources",
+        "targets",
         "effect",
         "conditions",
         "rationale"
@@ -1444,8 +1437,8 @@
         "outcomes": {
           "$ref": "#/$defs/operation_outcomes"
         },
-        "policy_guard": {
-          "$ref": "#/$defs/policy_guard"
+        "authorization_policy": {
+          "$ref": "#/$defs/authorization_policy"
         },
         "reads": {
           "items": {
@@ -1490,7 +1483,7 @@
         "operation_kind",
         "input",
         "outcomes",
-        "policy_guard",
+        "authorization_policy",
         "rationale",
         "reads",
         "creates",
@@ -1539,30 +1532,6 @@
     "operation_ref": {
       "pattern": "^operation\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
-    },
-    "policy_action": {
-      "additionalProperties": false,
-      "oneOf": [
-        {
-          "required": [
-            "operation"
-          ]
-        },
-        {
-          "required": [
-            "entry_point"
-          ]
-        }
-      ],
-      "properties": {
-        "entry_point": {
-          "$ref": "#/$defs/entry_point_ref"
-        },
-        "operation": {
-          "$ref": "#/$defs/operation_ref"
-        }
-      },
-      "type": "object"
     },
     "policy_assertion": {
       "additionalProperties": false,
@@ -1676,16 +1645,16 @@
         "entry_point": {
           "$ref": "#/$defs/entry_point_ref"
         },
-        "guard": {
-          "$ref": "#/$defs/policy_ref"
-        },
         "operation": {
           "$ref": "#/$defs/operation_ref"
+        },
+        "authorization_policy": {
+          "$ref": "#/$defs/authorization_policy"
         }
       },
       "type": "object"
     },
-    "policy_guard": {
+    "authorization_policy": {
       "additionalProperties": false,
       "properties": {
         "policy": {
@@ -1700,38 +1669,6 @@
     "policy_ref": {
       "pattern": "^policy\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
-    },
-    "policy_resource": {
-      "additionalProperties": false,
-      "oneOf": [
-        {
-          "required": [
-            "model"
-          ]
-        },
-        {
-          "required": [
-            "operation"
-          ]
-        },
-        {
-          "required": [
-            "entry_point"
-          ]
-        }
-      ],
-      "properties": {
-        "entry_point": {
-          "$ref": "#/$defs/entry_point_ref"
-        },
-        "model": {
-          "$ref": "#/$defs/model_ref"
-        },
-        "operation": {
-          "$ref": "#/$defs/operation_ref"
-        }
-      },
-      "type": "object"
     },
     "policy_subject": {
       "additionalProperties": false,
@@ -1767,8 +1704,8 @@
         "textual": {
           "$ref": "#/$defs/textual_renderer_contract"
         },
-        "web": {
-          "$ref": "#/$defs/web_renderer_contract"
+        "html": {
+          "$ref": "#/$defs/html_renderer_contract"
         }
       },
       "type": "object"
@@ -1829,9 +1766,6 @@
         "rationale": {
           "$ref": "#/$defs/rationale"
         },
-        "feature": {
-          "$ref": "#/$defs/feature_ref"
-        },
         "given": {
           "$ref": "#/$defs/given"
         },
@@ -1846,10 +1780,13 @@
         },
         "when": {
           "$ref": "#/$defs/when"
+        },
+        "feature_tag": {
+          "$ref": "#/$defs/feature_tag"
         }
       },
       "required": [
-        "feature",
+        "feature_tag",
         "title",
         "archetype",
         "subject_ref",
@@ -1920,12 +1857,12 @@
         {
           "additionalProperties": false,
           "properties": {
-            "action": {
+            "operation": {
               "$ref": "#/$defs/operation_ref"
             }
           },
           "required": [
-            "action"
+            "operation"
           ],
           "type": "object"
         },
@@ -1951,7 +1888,7 @@
           "$ref": "#/$defs/rationale"
         },
         "context": {
-          "$ref": "#/$defs/context_bindings"
+          "$ref": "#/$defs/value_map"
         },
         "facts": {
           "items": {
@@ -2007,8 +1944,8 @@
         "model": {
           "$ref": "#/$defs/model_ref"
         },
-        "state_machine_messages": {
-          "$ref": "#/$defs/state_machine_messages"
+        "messages": {
+          "$ref": "#/$defs/messages"
         },
         "transitions": {
           "items": {
@@ -2031,7 +1968,7 @@
         "model",
         "context",
         "data_dependencies",
-        "state_machine_messages",
+        "messages",
         "initial_view_state",
         "view_states",
         "transitions",
@@ -2054,7 +1991,7 @@
       ],
       "type": "object"
     },
-    "state_machine_messages": {
+    "messages": {
       "additionalProperties": false,
       "properties": {
         "accepts": {
@@ -2062,7 +1999,14 @@
             "$ref": "#/$defs/state_machine_message"
           },
           "propertyNames": {
-            "$ref": "#/$defs/message_ref"
+            "oneOf": [
+              {
+                "$ref": "#/$defs/message_ref"
+              },
+              {
+                "$ref": "#/$defs/data_signal_ref"
+              }
+            ]
           },
           "type": "object"
         },
@@ -2108,7 +2052,7 @@
                         "$ref": "#/$defs/message_ref"
                       },
                       "payload_bindings": {
-                        "$ref": "#/$defs/value_map"
+                        "$ref": "#/$defs/runtime_bindings"
                       }
                     },
                     "required": [
@@ -2131,8 +2075,14 @@
           "$ref": "#/$defs/view_state_name"
         },
         "on": {
-          "pattern": "^([a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+|data\\.[a-z][a-z0-9_]*)$",
-          "type": "string"
+          "oneOf": [
+            {
+              "$ref": "#/$defs/message_ref"
+            },
+            {
+              "$ref": "#/$defs/data_signal_ref"
+            }
+          ]
         },
         "to": {
           "$ref": "#/$defs/view_state_name"
@@ -2184,7 +2134,7 @@
       "type": "object"
     },
     "style_selector": {
-      "pattern": "^(root|screen|(slot|region)\\.[a-z][a-z0-9_]*|action\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+|mount\\.[a-z][a-z0-9_]*)$",
+      "pattern": "^(root|screen|(slot|region)\\.[a-z][a-z0-9_]*|operation\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+|child_state_machine\\.[a-z][a-z0-9_]*)$",
       "type": "string"
     },
     "text_ref": {
@@ -2239,7 +2189,7 @@
       },
       "type": "object"
     },
-    "terminal_viewport": {
+    "textual_viewport": {
       "additionalProperties": false,
       "properties": {
         "columns": {
@@ -2273,7 +2223,7 @@
         "id": {
           "$ref": "#/$defs/python_identifier"
         },
-        "kind": {
+        "widget_class": {
           "enum": [
             "Static",
             "Button",
@@ -2286,13 +2236,13 @@
       },
       "required": [
         "id",
-        "kind",
+        "widget_class",
         "binding"
       ],
       "type": "object"
     },
     "type_expr": {
-      "description": "Structured data type expression. Supports primitives, named model/data-contract references, arrays, maps, nullable and optional wrappers, enums, and inline object schemas.",
+      "description": "Structured data type expression. Supports formal primitives, PascalCase model references (the exception to collection-prefixed refs because model ids are type names), data-contract references, arrays, maps, nullable and optional wrappers, enums, and inline object schemas.",
       "oneOf": [
         {
           "additionalProperties": false,
@@ -2304,8 +2254,8 @@
                 "Markdown",
                 "Date",
                 "Timestamp",
-                "Bool",
-                "Int",
+                "Boolean",
+                "Integer",
                 "Decimal",
                 "JSON"
               ]
@@ -2331,12 +2281,12 @@
         {
           "additionalProperties": false,
           "properties": {
-            "contract": {
-              "$ref": "#/$defs/model_ref"
+            "data_contract": {
+              "$ref": "#/$defs/data_contract_ref"
             }
           },
           "required": [
-            "contract"
+            "data_contract"
           ],
           "type": "object"
         },
@@ -2513,18 +2463,18 @@
           },
           "type": "array"
         },
-        "operation_refs": {
-          "items": {
-            "$ref": "#/$defs/operation_ref"
-          },
-          "type": "array"
-        },
         "renderers": {
           "$ref": "#/$defs/renderer_contracts"
         },
         "surface": {
           "pattern": "^state_machine\\.",
           "type": "string"
+        },
+        "available_operations": {
+          "items": {
+            "$ref": "#/$defs/operation_ref"
+          },
+          "type": "array"
         }
       },
       "required": [
@@ -2532,7 +2482,7 @@
         "data_dependencies",
         "text",
         "assets",
-        "operation_refs",
+        "available_operations",
         "fields"
       ],
       "type": "object"
@@ -2559,15 +2509,15 @@
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
     },
-    "web_renderer_contract": {
+    "html_renderer_contract": {
       "additionalProperties": false,
       "minProperties": 1,
       "properties": {
         "layout": {
-          "$ref": "#/$defs/web_renderer_layout"
+          "$ref": "#/$defs/html_renderer_layout"
         },
         "presentation": {
-          "$ref": "#/$defs/web_renderer_presentation"
+          "$ref": "#/$defs/html_renderer_presentation"
         },
         "style": {
           "$ref": "#/$defs/style_contract"
@@ -2575,7 +2525,7 @@
       },
       "type": "object"
     },
-    "web_renderer_layout": {
+    "html_renderer_layout": {
       "additionalProperties": false,
       "minProperties": 1,
       "properties": {
@@ -2595,19 +2545,19 @@
       },
       "type": "object"
     },
-    "web_renderer_presentation": {
+    "html_renderer_presentation": {
       "additionalProperties": false,
       "properties": {
         "slots": {
           "items": {
-            "$ref": "#/$defs/web_slot"
+            "$ref": "#/$defs/html_slot"
           },
           "type": "array"
         }
       },
       "type": "object"
     },
-    "web_slot": {
+    "html_slot": {
       "additionalProperties": false,
       "properties": {
         "binding": {
@@ -2933,15 +2883,12 @@
         },
         {
           "required": [
-            "dead_letter"
+            "dead_letter_as"
           ]
         }
       ],
       "properties": {
         "complete_as": {
-          "$ref": "#/$defs/field_name"
-        },
-        "dead_letter": {
           "$ref": "#/$defs/field_name"
         },
         "fail_as": {
@@ -2953,6 +2900,9 @@
         },
         "retry_policy": {
           "$ref": "#/$defs/workflow_retry_policy"
+        },
+        "dead_letter_as": {
+          "$ref": "#/$defs/field_name"
         }
       },
       "type": "object"
@@ -3160,13 +3110,6 @@
               "type": "array",
               "uniqueItems": true
             },
-            "operation_refs": {
-              "items": {
-                "$ref": "#/$defs/operation_ref"
-              },
-              "type": "array",
-              "uniqueItems": true
-            },
             "queries": {
               "items": {
                 "type": "string"
@@ -3187,9 +3130,77 @@
               },
               "type": "array",
               "uniqueItems": true
+            },
+            "available_operations": {
+              "items": {
+                "$ref": "#/$defs/operation_ref"
+              },
+              "type": "array",
+              "uniqueItems": true
             }
           },
           "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "data_contract_ref": {
+      "pattern": "^data_contract\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "type": "string"
+    },
+    "data_contract_item": {
+      "additionalProperties": false,
+      "properties": {
+        "rationale": {
+          "$ref": "#/$defs/rationale"
+        },
+        "fields": {
+          "$ref": "#/$defs/field_schema_map"
+        }
+      },
+      "required": [
+        "fields",
+        "rationale"
+      ],
+      "type": "object"
+    },
+    "feature_tag": {
+      "description": "Unprefixed dotted feature grouping tag; feature tags are labels, not typed references.",
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "type": "string"
+    },
+    "data_signal_ref": {
+      "pattern": "^data\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "type": "string"
+    },
+    "policy_target": {
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "model"
+          ]
+        },
+        {
+          "required": [
+            "operation"
+          ]
+        },
+        {
+          "required": [
+            "entry_point"
+          ]
+        }
+      ],
+      "properties": {
+        "entry_point": {
+          "$ref": "#/$defs/entry_point_ref"
+        },
+        "model": {
+          "$ref": "#/$defs/model_ref"
+        },
+        "operation": {
+          "$ref": "#/$defs/operation_ref"
         }
       },
       "type": "object"
@@ -3281,6 +3292,15 @@
       },
       "type": "object"
     },
+    "data_contracts": {
+      "additionalProperties": {
+        "$ref": "#/$defs/data_contract_item"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/data_contract_ref"
+      },
+      "type": "object"
+    },
     "policies": {
       "additionalProperties": {
         "$ref": "#/$defs/policy_item"
@@ -3348,6 +3368,7 @@
     "fixtures",
     "facts",
     "models",
+    "data_contracts",
     "operations",
     "events",
     "entry_points",

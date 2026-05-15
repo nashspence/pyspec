@@ -13,8 +13,8 @@ class CliCommand:
     CLI_COMMAND_PROJECT_BOARD = 'cli_command.project.board'
 
 class ContentCase:
-    CONTENT_PROJECT_DETAIL_HEADING_HIGH_PRIORITY = 'content.project.detail.heading.high_priority'
-    CONTENT_PROJECT_DETAIL_PRIORITY_BADGE_HIGH_PRIORITY = 'content.project.detail.priority_badge.high_priority'
+    CONTENT_CASE_PROJECT_DETAIL_HEADING_HIGH_PRIORITY = 'content_case.project.detail.heading.high_priority'
+    CONTENT_CASE_PROJECT_DETAIL_PRIORITY_BADGE_HIGH_PRIORITY = 'content_case.project.detail.priority_badge.high_priority'
 
 class Endpoint:
     ENDPOINT_PROJECT_CREATE = 'endpoint.project.create'
@@ -25,7 +25,7 @@ class EntryPoint:
     ENTRY_POINT_API_PROJECT_LIST = 'entry_point.api.project.list'
     ENTRY_POINT_CLI_PROJECT_APPROVE = 'entry_point.cli.project.approve'
     ENTRY_POINT_CLI_PROJECT_BOARD = 'entry_point.cli.project.board'
-    ENTRY_POINT_WEB_PROJECT_BOARD = 'entry_point.web.project.board'
+    ENTRY_POINT_HTML_PROJECT_BOARD = 'entry_point.html.project.board'
     ENTRY_POINT_WORKER_PROJECT_APPROVAL_NOTICE = 'entry_point.worker.project.approval_notice'
 
 class Event:
@@ -67,7 +67,7 @@ class Query:
     QUERY_PROJECT_LIST_LIST = 'query.project.list.list'
 
 class RenderProfile:
-    DEFAULT = 'default'
+    RENDER_PROFILE_DEFAULT = 'render_profile.default'
 
 class Route:
     ROUTE_PROJECT_BOARD = 'route.project.board'

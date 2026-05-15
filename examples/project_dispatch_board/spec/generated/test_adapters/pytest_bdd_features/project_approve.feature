@@ -1,4 +1,4 @@
-Feature: Feature Project Approve
+Feature: Project Approve
 
   @spec @test_case_project_approve_success
   Scenario: Approve submitted dispatch project

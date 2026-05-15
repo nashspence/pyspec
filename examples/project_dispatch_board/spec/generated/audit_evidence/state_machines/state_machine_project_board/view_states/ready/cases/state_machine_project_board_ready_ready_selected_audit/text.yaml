@@ -1,23 +1,23 @@
 project: project_dispatch_board
 text_resources:
   text.project.activity.ready.heading:
+    intent: neutral
     max_chars: 80
     placeholder: Latest activity
     rationale: Ready activity heading.
-    tone: neutral
   text.project.detail.ready.heading:
     args:
       customer:
         primitive: Text
       title:
         primitive: Text
+    intent: neutral
     max_chars: 80
     placeholder: Project detail
     rationale: Ready heading for the detail state machine.
     source_ref: text.project.detail.ready.heading
-    tone: neutral
   text.project.list.ready.heading:
+    intent: neutral
     max_chars: 80
     placeholder: Dispatch queue
     rationale: Ready heading for the project list state machine.
-    tone: neutral

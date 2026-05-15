@@ -1,6 +1,6 @@
 fixtures:
   fixture.workspace.member:
-    rationale: Workspace member fixture for web/API/TUI test cases.
+    rationale: Workspace member fixture for HTML/API/Textual test cases.
     values:
       actor:
         id: user_member_1

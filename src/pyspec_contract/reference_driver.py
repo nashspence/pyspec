@@ -7,7 +7,7 @@ from .io import read_json, read_yaml
 from .paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR
 from .runtime import fixture_namespace, resolve_map
 from .runtime_refs import resolve_reference_expression
-from .targets import entry_state_machine_name, entry_point_input, entry_point_responses, entry_target_pair, entry_point_bindings
+from .targets import entry_state_machine_name, entry_point_input, entry_point_responses, entry_target_pair, entry_point_input_bindings
 from .type_expr import is_array_of_model, model_name
 
 
@@ -17,7 +17,7 @@ class ReferenceSpecDriver:
     def __init__(self, root: Path):
         self.root = root
         self.contract = read_yaml(root / COMPILED_SPEC_PATH)
-        self.surfaces = {p["id"]: p for p in read_json(root / GENERATED_SPEC_DIR / "product_interfaces" / "web.state_machines.json")["state_machines"]}
+        self.surfaces = {p["id"]: p for p in read_json(root / GENERATED_SPEC_DIR / "product_interfaces" / "html.state_machines.json")["state_machines"]}
         self.reset()
 
     def reset(self) -> None:
@@ -75,7 +75,7 @@ class ReferenceSpecDriver:
                     actual = self.last_state_machine["instances"][instance_id]
                     assert actual["view_state"] == state_machine_expected["view_state"]
                     assert actual["surface"] == state_machine_expected["surface"]
-                for sync_id in (expected.get("message_sync_rules") or {}).get("observed", []):
+                for sync_id in (expected.get("message_sync_rules") or {}).get("observed_rules", []):
                     assert sync_id in self.last_state_machine.get("message_sync_rules", [])
         requires = assertions.get("requires", {})
         if requires:
@@ -83,7 +83,7 @@ class ReferenceSpecDriver:
             rendered_state_machines = self._rendered_state_machine_ids()
             rendered_text = self._rendered_values("text")
             rendered_assets = self._rendered_values("assets")
-            rendered_actions = self._rendered_values("operation_refs")
+            rendered_actions = self._rendered_values("available_operations")
             for state_machine in requires.get("surfaces", []):
                 assert state_machine in self.surfaces
                 assert state_machine in rendered_state_machines
@@ -91,7 +91,7 @@ class ReferenceSpecDriver:
                 assert key in rendered_text
             for key in requires.get("assets", []):
                 assert key in rendered_assets
-            for cap in requires.get("operation_refs", []):
+            for cap in requires.get("available_operations", []):
                 assert cap in rendered_actions
             state_machine = self.contract["state_machines"][self.last_state_machine["ref"]]
             queries = [datum["query"] for datum in state_machine.get("data_dependencies", [])]
@@ -101,9 +101,9 @@ class ReferenceSpecDriver:
             for query in requires.get("queries", []):
                 assert query in queries
         for cap in assertions.get("enables", []):
-            assert cap in self._rendered_values("operation_refs")
+            assert cap in self._rendered_values("available_operations")
         for cap in assertions.get("forbids", []):
-            assert cap not in self._rendered_values("operation_refs")
+            assert cap not in self._rendered_values("available_operations")
         exists = (assertions.get("model") or {}).get("exists")
         if exists:
             where = self._resolve_map(exists["where"])
@@ -153,7 +153,7 @@ class ReferenceSpecDriver:
         context = self._entry_target_input(entry, params)
         records = self._filter(state_machine["model"], context)
         parent_state_name = "ready" if "ready" in state_machine.get("view_states", {}) else next(iter(state_machine.get("view_states", {"ready": {}})))
-        state = state_machine["view_states"].get(parent_state_name, {"surface": None, "text": [], "assets": [], "operation_refs": [], "data_dependencies": []})
+        state = state_machine["view_states"].get(parent_state_name, {"surface": None, "text": [], "assets": [], "available_operations": [], "data_dependencies": []})
         if state.get("child_state_machines"):
             state_machines: dict[str, Any] = {}
             for mount in state["child_state_machines"]:
@@ -168,7 +168,7 @@ class ReferenceSpecDriver:
                     "data_dependencies": list(state_machine.get("data_dependencies", [])) + list(child_state.get("data_dependencies", [])),
                     "text": child_state["text"],
                     "assets": child_state["assets"],
-                    "operation_refs": child_state["operation_refs"],
+                    "available_operations": child_state["available_operations"],
                 }
             return {
                 "ref": state_machine_id,
@@ -177,7 +177,7 @@ class ReferenceSpecDriver:
                 "data_dependencies": list(state_machine.get("data_dependencies", [])) + list(state.get("data_dependencies", [])),
                 "text": state.get("text", []),
                 "assets": state.get("assets", []),
-                "operation_refs": state.get("operation_refs", []),
+                "available_operations": state.get("available_operations", []),
                 "context": context,
                 "instances": state_machines,
                 "message_sync_rules": [rule["id"] for rule in state.get("message_sync_rules", [])],
@@ -190,7 +190,7 @@ class ReferenceSpecDriver:
             "surface": state["surface"],
             "text": state["text"],
             "assets": state["assets"],
-            "operation_refs": state["operation_refs"],
+            "available_operations": state["available_operations"],
         }
 
     def _choose_state_machine_view_state(self, state_machine: dict[str, Any], mount: dict[str, Any], records: list[dict[str, Any]], context: dict[str, Any]) -> str:
@@ -231,9 +231,9 @@ class ReferenceSpecDriver:
         target_kind, cap_id = entry_target_pair(entry)
         assert target_kind == "operation"
         target_input = self._entry_target_input(entry, input_values)
-        guard = entry.get("policy_guard")
-        if guard:
-            policy_id = guard["policy"]
+        authorization_policy = entry.get("authorization_policy")
+        if authorization_policy:
+            policy_id = authorization_policy["policy"]
             self.policy_decisions[("entry_point", entry_id, policy_id)] = self._evaluate_policy(policy_id, "entry_point", entry_id, target_input)
         result = self._invoke(cap_id, target_input, outcome_id)
         response = entry_point_responses(entry)[self.last_outcome]
@@ -249,13 +249,13 @@ class ReferenceSpecDriver:
             fields = entry_point_input(entry).get(section, {})
             if fields:
                 namespace["input"][section] = {name: input_values[name] for name in fields}
-        bindings = entry_point_bindings(entry)
+        bindings = entry_point_input_bindings(entry)
         return {name: _resolve_binding(source, namespace) for name, source in bindings.items()}
 
     def _invoke(self, cap_id: str, input_values: dict[str, Any], outcome_id: str | None = None) -> Any:
         self.invoked.append(cap_id)
         cap = self.contract["operations"][cap_id]
-        policy_id = cap["policy_guard"]["policy"]
+        policy_id = cap["authorization_policy"]["policy"]
         self.policy_decisions[("operation", cap_id, policy_id)] = self._evaluate_policy(policy_id, "operation", cap_id, input_values)
         outcome_id = outcome_id or _success_outcome_id(cap)
         outcome = cap["outcomes"][outcome_id]
@@ -328,8 +328,8 @@ class ReferenceSpecDriver:
                 return route["fail_as"]
             if "retry_policy" in route:
                 return route["retry_policy"]["fail_as"]
-            if "dead_letter" in route:
-                return route["dead_letter"]
+            if "dead_letter_as" in route:
+                return route["dead_letter_as"]
             current = route["next_step"]
 
     def _event_payload_from_emit(
@@ -345,7 +345,7 @@ class ReferenceSpecDriver:
         namespace = {"input": dict(input_values), "outcome": {"result": dict(result)}}
         if "payload" in emit:
             return emit["event"], _resolve_binding(emit["payload"], namespace)
-        return emit["event"], {field: _resolve_binding(source, namespace) for field, source in emit["bindings"].items()}
+        return emit["event"], {field: _resolve_binding(source, namespace) for field, source in emit["payload_bindings"].items()}
 
     def _record_event(self, event_id: str, payload: dict[str, Any]) -> None:
         self.emitted.append(event_id)
@@ -375,12 +375,13 @@ class ReferenceSpecDriver:
     def _policy_assertion_allowed(self, assertion: Mapping[str, Any]) -> bool:
         kind = "operation" if "operation" in assertion else "entry_point"
         target_ref = assertion[kind]
-        policy_id = assertion.get("guard")
-        if not policy_id:
-            if kind == "operation":
-                policy_id = self.contract["operations"][target_ref]["policy_guard"]["policy"]
-            else:
-                policy_id = self.contract["entry_points"][target_ref]["policy_guard"]["policy"]
+        authorization_policy = assertion.get("authorization_policy")
+        if authorization_policy:
+            policy_id = authorization_policy["policy"]
+        elif kind == "operation":
+            policy_id = self.contract["operations"][target_ref]["authorization_policy"]["policy"]
+        else:
+            policy_id = self.contract["entry_points"][target_ref]["authorization_policy"]["policy"]
         recorded = self.policy_decisions.get((kind, target_ref, policy_id))
         if recorded is not None:
             return recorded
@@ -391,10 +392,10 @@ class ReferenceSpecDriver:
 
     def _evaluate_policy(self, policy_id: str, kind: str, target_ref: str, input_values: Mapping[str, Any]) -> bool:
         policy = self.contract["policies"][policy_id]
-        if not _policy_covers_action(policy, kind, target_ref):
+        if not _policy_covers_target(policy, kind, target_ref):
             if kind == "entry_point":
                 target_kind, target = entry_target_pair(self.contract["entry_points"][target_ref])
-                if not _policy_covers_action(policy, target_kind, target):
+                if not _policy_covers_target(policy, target_kind, target):
                     return False
             else:
                 return False
@@ -460,5 +461,5 @@ def _condition_matches(condition: Mapping[str, Any], context: Mapping[str, Any])
     return False
 
 
-def _policy_covers_action(policy: Mapping[str, Any], kind: str, target_ref: str) -> bool:
-    return any(action == {kind: target_ref} for action in policy.get("actions", []))
+def _policy_covers_target(policy: Mapping[str, Any], kind: str, target_ref: str) -> bool:
+    return any(target == {kind: target_ref} for target in policy.get("targets", []))

@@ -96,10 +96,10 @@ def validate_generated_projections(root: Path, contract: dict[str, Any]) -> None
         validate_openapi(contract, read_yaml(generated / "product_interfaces" / "http.openapi.yaml"))
     if g("product_interfaces", "events.asyncapi.yaml") in expected_paths:
         validate_asyncapi(contract, read_yaml(generated / "product_interfaces" / "events.asyncapi.yaml"))
-    if g("product_interfaces", "web.routes.json") in expected_paths:
-        validate_routes(contract, read_json(generated / "product_interfaces" / "web.routes.json"))
-    if g("product_interfaces", "web.state_machines.json") in expected_paths:
-        validate_state_machines_json(contract, read_json(generated / "product_interfaces" / "web.state_machines.json"))
+    if g("product_interfaces", "html.routes.json") in expected_paths:
+        validate_routes(contract, read_json(generated / "product_interfaces" / "html.routes.json"))
+    if g("product_interfaces", "html.state_machines.json") in expected_paths:
+        validate_state_machines_json(contract, read_json(generated / "product_interfaces" / "html.state_machines.json"))
     if g("product_interfaces", "textual.projection.py") in expected_paths:
         validate_textual_contract(root, contract)
     if g("content_resolvers", "signatures.py") in expected_paths:
@@ -169,7 +169,7 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             raise ContractError(f"OpenAPI operationId must equal operation id for {entry_id}")
         if operation.get("x-entry") != entry_id or operation.get("x-operation") != cap_id:
             raise ContractError(f"OpenAPI extensions do not point back to {entry_id}/{cap_id}")
-        if operation.get("x-policy") != cap["policy_guard"]["policy"]:
+        if operation.get("x-policy") != cap["authorization_policy"]["policy"]:
             raise ContractError(f"OpenAPI policy extension does not match operation {cap_id}")
 
         placeholders = _path_params(path)
@@ -620,17 +620,17 @@ def validate_fixtures_and_test_cases(root: Path, contract: dict[str, Any]) -> No
 
 def validate_policies_json(contract: dict[str, Any], doc: dict[str, Any]) -> None:
     if doc != policies_projection(contract):
-        raise ContractError("policies.json does not match contract policy guards")
-    for operation_id, guard in doc["operation_guards"].items():
+        raise ContractError("policies.json does not match contract authorization policies")
+    for operation_id, authorization_policy in doc["operation_authorization_policies"].items():
         if operation_id not in contract["operations"]:
-            raise ContractError(f"policies.json has unknown operation guard {operation_id}")
-        if guard["policy"] not in doc["policies"]:
-            raise ContractError(f"policies.json operation guard references unknown policy {guard['policy']}")
-    for entry_id, guard in doc["entry_point_guards"].items():
+            raise ContractError(f"policies.json has unknown operation authorization policy {operation_id}")
+        if authorization_policy["policy"] not in doc["policies"]:
+            raise ContractError(f"policies.json operation authorization policy references unknown policy {authorization_policy['policy']}")
+    for entry_id, authorization_policy in doc["entry_point_authorization_policies"].items():
         if entry_id not in contract["entry_points"]:
-            raise ContractError(f"policies.json has unknown entry point guard {entry_id}")
-        if guard["policy"] not in doc["policies"]:
-            raise ContractError(f"policies.json entry point guard references unknown policy {guard['policy']}")
+            raise ContractError(f"policies.json has unknown entry point authorization policy {entry_id}")
+        if authorization_policy["policy"] not in doc["policies"]:
+            raise ContractError(f"policies.json entry point authorization policy references unknown policy {authorization_policy['policy']}")
 
 
 
@@ -671,14 +671,14 @@ def validate_audit_outputs(root: Path, contract: dict[str, Any]) -> None:
                 png_path = root / _projection_surface_file(state_machine, profile_id, breakpoint, "png")
                 _assert_html_source(html_path, f"HTML state_machine audit {state_machine['id']}/{breakpoint}")
                 _assert_png(png_path, f"HTML state_machine audit {state_machine['id']}/{breakpoint}", viewport)
-        if "terminal" in render_surfaces:
-            for profile_id, breakpoint, _ in _profile_viewports(contract, "terminal"):
+        if "textual" in render_surfaces:
+            for profile_id, breakpoint, _ in _profile_viewports(contract, "textual"):
                 py_path = root / _projection_surface_file(state_machine, profile_id, breakpoint, "py")
                 svg_path = root / _projection_surface_file(state_machine, profile_id, breakpoint, "svg")
-                _assert_textual_source(py_path, f"Terminal state_machine audit {state_machine['id']}/{breakpoint}")
-                _assert_svg(svg_path, f"Terminal state_machine audit {state_machine['id']}/{breakpoint}")
+                _assert_textual_source(py_path, f"Textual state_machine audit {state_machine['id']}/{breakpoint}")
+                _assert_svg(svg_path, f"Textual state_machine audit {state_machine['id']}/{breakpoint}")
                 if "rich-terminal" not in svg_path.read_text(encoding="utf-8"):
-                    raise ContractError(f"Terminal audit SVG does not look like a terminal capture: {state_machine['id']}/{breakpoint}")
+                    raise ContractError(f"Textual audit SVG does not look like a Textual capture: {state_machine['id']}/{breakpoint}")
 
     for case_id, case in audit_cases(contract).items():
         _validate_audit_scope_inputs(root, contract, _case_root(contract, case_id, case), *_case_scope_inputs(contract, case))
@@ -689,14 +689,14 @@ def validate_audit_outputs(root: Path, contract: dict[str, Any]) -> None:
                 png_path = root / _case_file(contract, case_id, case, profile_id, breakpoint, "png")
                 _assert_html_source(html_path, f"HTML state_machine audit {case_id}/{breakpoint}")
                 _assert_png(png_path, f"HTML state_machine audit {case_id}/{breakpoint}", viewport)
-        if "terminal" in render_surfaces:
-            for profile_id, breakpoint, _ in _profile_viewports(contract, "terminal"):
+        if "textual" in render_surfaces:
+            for profile_id, breakpoint, _ in _profile_viewports(contract, "textual"):
                 py_path = root / _case_file(contract, case_id, case, profile_id, breakpoint, "py")
                 svg_path = root / _case_file(contract, case_id, case, profile_id, breakpoint, "svg")
-                _assert_textual_source(py_path, f"Terminal state_machine audit {case_id}/{breakpoint}")
-                _assert_svg(svg_path, f"Terminal state_machine audit {case_id}/{breakpoint}")
+                _assert_textual_source(py_path, f"Textual state_machine audit {case_id}/{breakpoint}")
+                _assert_svg(svg_path, f"Textual state_machine audit {case_id}/{breakpoint}")
                 if "rich-terminal" not in svg_path.read_text(encoding="utf-8"):
-                    raise ContractError(f"Terminal audit SVG does not look like a terminal capture: {case_id}/{breakpoint}")
+                    raise ContractError(f"Textual audit SVG does not look like a Textual capture: {case_id}/{breakpoint}")
 
 
 def _validate_audit_scope_inputs(
@@ -926,19 +926,19 @@ def _load_generated_module(path: Path, module_name: str):
 def _expected_textual_compose(state_machine: dict[str, Any]) -> list[tuple[str, str]]:
     widgets = renderer_textual_presentation(state_machine).get("widgets") or []
     if widgets:
-        return [(widget["kind"], _widget_label(widget)) for widget in widgets]
+        return [(widget["widget_class"], _widget_label(widget)) for widget in widgets]
     slots = state_machine["slots"]
     result: list[tuple[str, str]] = []
     result.extend(("Static", key) for key in slots["text"])
     result.extend(("Static", key) for key in slots["assets"])
     result.extend(("Static", key) for key in slots.get("fields", []))
-    result.extend(("Button", action) for action in slots["operation_refs"])
+    result.extend(("Button", operation) for operation in slots["available_operations"])
     return result
 
 
 def _widget_label(widget: dict[str, Any]) -> str:
     binding = widget["binding"]
-    for key in ["text", "asset", "action", "field", "literal"]:
+    for key in ["text", "asset", "operation", "field", "literal"]:
         if key in binding:
             return binding[key]
     return widget["id"]
@@ -955,12 +955,12 @@ def _textual_selector(state_machine: dict[str, Any], selector: str) -> str:
             if binding.get("text") == slot or binding.get("asset") == slot or binding.get("field") == slot:
                 return "#" + safe_id(widget["id"])
         return "#" + slot
-    if selector.startswith("action."):
-        action = selector[len("action."):]
+    if selector.startswith("operation."):
+        operation = selector[len("operation."):]
         for widget in widgets:
-            if widget["binding"].get("action") == action:
+            if widget["binding"].get("operation") == operation:
                 return "#" + safe_id(widget["id"])
-        return "#" + safe_id(action)
+        return "#" + safe_id(operation)
     return selector
 
 
@@ -968,9 +968,9 @@ def _textual_selector(state_machine: dict[str, Any], selector: str) -> str:
 def _sample_sql_value(column: dict[str, Any]) -> Any:
     if column["primary_key"]:
         return f"{column['name']}-sample"
-    if column["type"] == "Bool":
+    if column["type"] == "Boolean":
         return 1
-    if column["type"] == "Int":
+    if column["type"] == "Integer":
         return 1
     if column["type"] == "Decimal":
         return 1.5

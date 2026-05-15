@@ -30,7 +30,7 @@ def test_author_contract_compiles_to_checked_in_machine_contract() -> None:
     assert compile_source(author) == read_yaml(ROOT / "spec" / "generated" / "compiled" / "spec.yaml")
 
 
-def test_author_contract_can_be_minimal_and_surface_invisible() -> None:
+def test_author_contract_can_be_minimal_and_renderer_invisible() -> None:
     author = {
         "project": "minimal_author",
         "models": {
