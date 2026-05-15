@@ -158,33 +158,33 @@ class ProductApp:
         self.invoked_capabilities.append(capability_id)
         self.last_outcome = _success_outcome_id(self.contract["capabilities"][capability_id])
         values = dict(input_values)
-        if capability_id == "project.create":
+        if capability_id == "operation.project.create":
             project = self._project(values)
             self.projects.append(project)
-            self._record_event("project.created")
+            self._record_event("event.project.created")
             return project
-        if capability_id == "project.list":
+        if capability_id == "operation.project.list":
             return [p for p in self.projects if p["workspace_id"] == values.get("workspace_id")]
-        if capability_id == "project.submit":
+        if capability_id == "operation.project.submit":
             project = self._find_project(values["project_id"])
             assert project["status"] == "draft"
             project["status"] = "submitted"
-            self._record_event("project.submitted")
+            self._record_event("event.project.submitted")
             return project
-        if capability_id == "project.approve":
+        if capability_id == "operation.project.approve":
             project = self._find_project(values["project_id"])
             assert project["status"] == "submitted"
             project["status"] = "approved"
             project["approved_by"] = values["approved_by"]
-            self._record_event("project.approved")
+            self._record_event("event.project.approved")
             return project
-        if capability_id == "project.archive":
+        if capability_id == "operation.project.archive":
             project = self._find_project(values["project_id"])
             assert project["status"] == "approved"
             project["status"] = "archived"
-            self._record_event("project.archived")
+            self._record_event("event.project.archived")
             return project
-        if capability_id == "project.send_approval_notice":
+        if capability_id == "operation.project.send_approval_notice":
             return {"ok": True, "sent": True, **values}
         raise AssertionError(f"Unsupported capability: {capability_id}")
 

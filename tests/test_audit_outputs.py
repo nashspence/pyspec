@@ -35,33 +35,33 @@ def _contract(root: Path = ROOT) -> dict:
 def test_audit_outputs_cover_full_contract() -> None:
     contract = _contract()
     expected = audit_expected_files(contract)
-    assert "spec/generated/audit_evidence/fsms/fsm_project_list/fsm.svg" in expected
-    assert "spec/generated/audit_evidence/fsms/fsm_project_board/states/ready/composition.svg" in expected
-    assert "spec/generated/audit_evidence/entrypoints/web/web_project_board/flow.svg" in expected
-    assert "spec/generated/audit_evidence/entrypoints/cli/cli_project_board/flow.svg" in expected
-    assert "spec/generated/audit_evidence/workflows/project_approval_notice/flow.svg" in expected
+    assert "spec/generated/audit_evidence/fsms/state_machine_project_list/fsm.svg" in expected
+    assert "spec/generated/audit_evidence/fsms/state_machine_project_board/states/ready/composition.svg" in expected
+    assert "spec/generated/audit_evidence/entrypoints/web/entry_point_web_project_board/flow.svg" in expected
+    assert "spec/generated/audit_evidence/entrypoints/cli/entry_point_cli_project_board/flow.svg" in expected
+    assert "spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg" in expected
     assert any(path.startswith("spec/generated/audit_evidence/fsms/") and "/states/" in path and path.endswith("/copy.yaml") for path in expected)
     assert any(path.startswith("spec/generated/audit_evidence/fsms/") and "/states/" in path and "/renders/" in path and path.endswith(".png") for path in expected)
     assert any(path.startswith("spec/generated/audit_evidence/fsms/") and "/cases/" in path and "/renders/" in path and path.endswith(".html") for path in expected)
     assert any(path.startswith("spec/generated/audit_evidence/fsms/") and "/cases/" in path and "/renders/" in path and path.endswith(".svg") for path in expected)
-    assert audit_case_render_file("fsm.project.board", "fsm.project.board.ready.ready_selected.audit", "default", "wide", "html").endswith("/renders/html.default.wide.source.html")
-    assert audit_case_render_file("fsm.project.board", "fsm.project.board.ready.ready_selected.audit", "default", "wide", "png").endswith("/renders/html.default.wide.screenshot.png")
-    assert audit_case_render_file("fsm.project.board", "fsm.project.board.ready.ready_selected.audit", "default", "wide", "py").endswith("/renders/textual.default.wide.source.py")
-    assert audit_case_render_file("fsm.project.board", "fsm.project.board.ready.ready_selected.audit", "default", "wide", "svg").endswith("/renders/textual.default.wide.capture.svg")
+    assert audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "default", "wide", "html").endswith("/renders/html.default.wide.source.html")
+    assert audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "default", "wide", "png").endswith("/renders/html.default.wide.screenshot.png")
+    assert audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "default", "wide", "py").endswith("/renders/textual.default.wide.source.py")
+    assert audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "default", "wide", "svg").endswith("/renders/textual.default.wide.capture.svg")
     validate_audit_outputs(ROOT, contract)
 
 
 def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     contract = _contract()
-    fsm = fsm_dot("fsm.project.list", contract["fsms"]["fsm.project.list"], contract)
-    board = contract["fsms"]["fsm.project.board"]
-    composition = composition_dot("fsm.project.board.ready", {"context": board["context"], **board["states"]["ready"]}, contract)
-    entrypoint = entrypoint_flow_dot("web.project.board", contract["entries"]["web.project.board"], contract)
-    api_entrypoint = entrypoint_flow_dot("api.project.create", contract["entries"]["api.project.create"], contract)
-    cli_entrypoint = entrypoint_flow_dot("cli.project.board", contract["entries"]["cli.project.board"], contract)
-    cli_approve_entrypoint = entrypoint_flow_dot("cli.project.approve", contract["entries"]["cli.project.approve"], contract)
-    worker_entrypoint = entrypoint_flow_dot("worker.project.approval_notice", contract["entries"]["worker.project.approval_notice"], contract)
-    workflow = workflow_flow_dot("project.approval_notice", contract["workflows"]["project.approval_notice"], contract)
+    fsm = fsm_dot("state_machine.project.list", contract["fsms"]["state_machine.project.list"], contract)
+    board = contract["fsms"]["state_machine.project.board"]
+    composition = composition_dot("state_machine.project.board.ready", {"context": board["context"], **board["states"]["ready"]}, contract)
+    entrypoint = entrypoint_flow_dot("entry_point.web.project.board", contract["entries"]["entry_point.web.project.board"], contract)
+    api_entrypoint = entrypoint_flow_dot("entry_point.api.project.create", contract["entries"]["entry_point.api.project.create"], contract)
+    cli_entrypoint = entrypoint_flow_dot("entry_point.cli.project.board", contract["entries"]["entry_point.cli.project.board"], contract)
+    cli_approve_entrypoint = entrypoint_flow_dot("entry_point.cli.project.approve", contract["entries"]["entry_point.cli.project.approve"], contract)
+    worker_entrypoint = entrypoint_flow_dot("entry_point.worker.project.approval_notice", contract["entries"]["entry_point.worker.project.approval_notice"], contract)
+    workflow = workflow_flow_dot("workflow.project.approval_notice", contract["workflows"]["workflow.project.approval_notice"], contract)
     assert fsm.startswith("digraph ")
     assert composition.startswith("digraph ")
     assert entrypoint.startswith("digraph ")
@@ -73,33 +73,33 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">initial state</FONT>' in fsm
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">state</FONT>' in fsm
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">transition event</FONT>' in fsm
-    assert "copy.project.list.ready.heading" in fsm
+    assert "text.project.list.ready.heading" in fsm
     assert "asset.project.list.empty.illustration" in fsm
     assert fsm.index("<B>copy</B>") < fsm.index("<B>assets:</B>")
     assert fsm.index("<B>assets:</B>") < fsm.index("<B>actions:</B>")
-    assert fsm.index("<B>copy:</B>&#160;&#160;copy.project.list.ready.heading") < fsm.index("<B>project.list fields</B>")
-    assert fsm.index("<B>project.list fields</B>") < fsm.index("<B>actions</B>")
-    assert "<B>emit:</B>&#160;&#160;project.selected" in fsm
+    assert fsm.index("<B>copy:</B>&#160;&#160;text.project.list.ready.heading") < fsm.index("<B>operation.project.list fields</B>")
+    assert fsm.index("<B>operation.project.list fields</B>") < fsm.index("<B>actions</B>")
+    assert "<B>emit:</B>&#160;&#160;message.project.selected" in fsm
     payload_project = '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
     assert payload_project in fsm
     assert "<B>effects:</B>" not in fsm
-    assert "emit project.selected" not in fsm
+    assert "emit message.project.selected" not in fsm
     assert "<B>projection:</B>" not in fsm
-    assert '<FONT POINT-SIZE="10"><B>load:</B>&#160;&#160;project.list</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;list[Project]</FONT>' in fsm
+    assert '<FONT POINT-SIZE="10"><B>load:</B>&#160;&#160;operation.project.list</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;list[Project]</FONT>' in fsm
     assert "<B>query:</B>&#160;&#160;query.project.list.list" in fsm
     input_workspace = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
     assert input_workspace in fsm
     assert fsm.index(input_workspace) < fsm.index("<B>query:</B>&#160;&#160;query.project.list.list")
-    assert fsm.index("<B>query:</B>&#160;&#160;query.project.list.list") < fsm.index("<B>load:</B>&#160;&#160;project.list")
-    detail_transition = fsm_dot("fsm.project.detail", contract["fsms"]["fsm.project.detail"], contract)
-    selection_card = detail_transition[detail_transition.index("project.selection_changed") :]
+    assert fsm.index("<B>query:</B>&#160;&#160;query.project.list.list") < fsm.index("<B>load:</B>&#160;&#160;operation.project.list")
+    detail_transition = fsm_dot("state_machine.project.detail", contract["fsms"]["state_machine.project.detail"], contract)
+    selection_card = detail_transition[detail_transition.index("message.project.selection_changed") :]
     input_project = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
     assert selection_card.index(input_project) < selection_card.index("<B>query:</B>&#160;&#160;query.project.detail.read")
-    load_project = '<FONT POINT-SIZE="10"><B>load:</B>&#160;&#160;project.read</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>'
+    load_project = '<FONT POINT-SIZE="10"><B>load:</B>&#160;&#160;operation.project.read</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>'
     assert selection_card.index("<B>query:</B>&#160;&#160;query.project.detail.read") < selection_card.index(load_project)
-    assert "<B>project.list fields</B>" in fsm
-    assert '<FONT POINT-SIZE="10"><B>actions:</B>&#160;&#160;project.create</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in fsm
-    assert '<FONT POINT-SIZE="10">project.submit</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in fsm
+    assert "<B>operation.project.list fields</B>" in fsm
+    assert '<FONT POINT-SIZE="10"><B>actions:</B>&#160;&#160;operation.project.create</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in fsm
+    assert '<FONT POINT-SIZE="10">operation.project.submit</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in fsm
     assert '<FONT POINT-SIZE="10">title</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Text</FONT>' in fsm
     assert '<FONT POINT-SIZE="10">status</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ProjectStatus</FONT>' in fsm
     assert '<FONT POINT-SIZE="10">summary</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Text</FONT>' in detail_transition
@@ -115,12 +115,12 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "sent message" in composition
     assert "message route" in composition
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">nav mount</FONT>' in composition
-    board_fsm = fsm_dot("fsm.project.board", contract["fsms"]["fsm.project.board"], contract)
+    board_fsm = fsm_dot("state_machine.project.board", contract["fsms"]["state_machine.project.board"], contract)
     assert "<B>mounts</B>" in board_fsm
-    assert '<FONT POINT-SIZE="10">nav</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;fsm.project.list</FONT>' in board_fsm
-    assert "nav: fsm.project.list" not in board_fsm
+    assert '<FONT POINT-SIZE="10">nav</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;state_machine.project.list</FONT>' in board_fsm
+    assert "nav: state_machine.project.list" not in board_fsm
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">emitted message</FONT>' in composition
-    assert "<B>source:</B>&#160;&#160;project.select" in composition
+    assert "<B>source:</B>&#160;&#160;message.project.select" in composition
     assert "ready to ready" not in composition
     assert "<B>transition:</B>" not in composition
     assert "selected state:" not in composition
@@ -132,14 +132,14 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "set selected_project_id" not in composition
     assert "<B>flow:</B>" not in composition
     assert "FSM context" not in composition
-    assert "fsm.project.board" not in composition
+    assert "state_machine.project.board" not in composition
     assert "dashboard FSM" not in composition
     assert "query.project.board.list" not in composition
     assert "<B>model:</B>" not in composition
     assert "<B>context</B>" not in composition
     assert "$message." not in composition
     assert "$event." not in composition
-    assert "$fsm." not in composition
+    assert "$state_machine." not in composition
     assert "<B>from:</B>" not in composition
     assert "<B>do:</B>" not in composition
     assert "Layout / mounted FSMs" not in composition
@@ -149,11 +149,11 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>list</B>" in composition
     assert "<B>detail</B>" in composition
     assert "<B>activity</B>" in composition
-    assert "<B>fsm:</B>&#160;&#160;fsm.project.list" in composition
-    assert "<B>fsm:</B>&#160;&#160;fsm.project.detail" in composition
+    assert "<B>fsm:</B>&#160;&#160;state_machine.project.list" in composition
+    assert "<B>fsm:</B>&#160;&#160;state_machine.project.detail" in composition
     assert "<B>causes:</B>&#160;&#160;to loading" in composition
     assert "context binding" not in composition
-    assert "fsm.selected_project_id" not in composition
+    assert "state_machine.selected_project_id" not in composition
     assert "FSM context" not in composition
     assert "order:" not in composition
     assert "element:" not in composition
@@ -162,13 +162,13 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "layout_region_nav" not in composition
     assert "fontcolor" not in composition
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">web entry</FONT>' in entrypoint
-    assert "<B>route:</B>&#160;&#160;route.fsm.project.board" in entrypoint
+    assert "<B>route:</B>&#160;&#160;route.project.board" in entrypoint
     assert "<B>request</B>" in entrypoint
     assert "<B>params</B>" in entrypoint
     assert '<FONT POINT-SIZE="10">workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in entrypoint
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">target FSM (html)</FONT>' in entrypoint
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">target FSM (textual)</FONT>' in cli_entrypoint
-    assert '<FONT POINT-SIZE="8" COLOR="#64748b">target workflow (event project.approved)</FONT>' in worker_entrypoint
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">target workflow (event event.project.approved)</FONT>' in worker_entrypoint
     assert "<B>event payload</B>" in worker_entrypoint
     assert "<B>message disposition</B>" in worker_entrypoint
     assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ProjectApproved</FONT>' in worker_entrypoint
@@ -206,33 +206,33 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>body</B>" in api_entrypoint
     assert 'body</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT><FONT POINT-SIZE="8">&#160;←&#160;outcome.result</FONT>' in api_entrypoint
     assert "validation_failed" in api_entrypoint
-    target_card = api_entrypoint[api_entrypoint.index('"entrypoint_target_project_create"') : api_entrypoint.index('"entrypoint_response_api_project_create_created"')]
+    target_card = api_entrypoint[api_entrypoint.index('"entrypoint_target_operation_project_create"') : api_entrypoint.index('"entrypoint_response_entry_point_api_project_create_created"')]
     assert '<FONT POINT-SIZE="10"><B>input</B></FONT>' in target_card
     assert '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;customer</FONT>' not in target_card
     assert target_card.index("<B>input</B>") < target_card.index('<FONT POINT-SIZE="10">customer</FONT>')
     assert '<FONT POINT-SIZE="10">workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in target_card
     assert "<B>success</B>" in target_card
     assert "<B>failure</B>" in target_card
-    assert "<B>emit:</B>&#160;&#160;created → project.created" in target_card
+    assert "<B>emit:</B>&#160;&#160;created → event.project.created" in target_card
     assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in target_card
-    assert "<B>emits:</B>&#160;&#160;project.created" not in target_card
-    cli_approve_target_card = cli_approve_entrypoint[cli_approve_entrypoint.index('"entrypoint_target_project_approve"') : cli_approve_entrypoint.index('"entrypoint_response_cli_project_approve_approved"')]
-    assert "<B>emit:</B>&#160;&#160;approved → project.approved" in cli_approve_target_card
+    assert "<B>emits:</B>&#160;&#160;event.project.created" not in target_card
+    cli_approve_target_card = cli_approve_entrypoint[cli_approve_entrypoint.index('"entrypoint_target_operation_project_approve"') : cli_approve_entrypoint.index('"entrypoint_response_entry_point_cli_project_approve_approved"')]
+    assert "<B>emit:</B>&#160;&#160;approved → event.project.approved" in cli_approve_target_card
     assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ProjectApproved</FONT>' in cli_approve_target_card
-    assert "<B>emits:</B>&#160;&#160;project.approved" not in cli_approve_target_card
+    assert "<B>emits:</B>&#160;&#160;event.project.approved" not in cli_approve_target_card
     entrypoint_input = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
     assert entrypoint_input in entrypoint
     assert entrypoint.index(entrypoint_input) < entrypoint.index("<B>query:</B>&#160;&#160;query.project.board.list")
-    assert entrypoint.index("<B>query:</B>&#160;&#160;query.project.board.list") < entrypoint.index("<B>load:</B>&#160;&#160;project.list")
+    assert entrypoint.index("<B>query:</B>&#160;&#160;query.project.board.list") < entrypoint.index("<B>load:</B>&#160;&#160;operation.project.list")
     assert "<B>sync:</B>&#160;&#160;select_project_updates_fsms" in entrypoint
     assert "<B>fsm:</B>" not in entrypoint
-    assert "fsm.selected_project_id" not in entrypoint
-    assert "$fsm." not in entrypoint
+    assert "state_machine.selected_project_id" not in entrypoint
+    assert "$state_machine." not in entrypoint
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">event trigger</FONT>' in workflow
     assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ProjectApproved</FONT>' in workflow
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">workflow step</FONT>' in workflow
-    assert "<B>capability:</B>&#160;&#160;project.send_approval_notice" in workflow
-    workflow_step = workflow[workflow.index('"workflow_step_project_approval_notice_send_notice"') :]
+    assert "<B>capability:</B>&#160;&#160;operation.project.send_approval_notice" in workflow
+    workflow_step = workflow[workflow.index('"workflow_step_workflow_project_approval_notice_send_notice"') :]
     assert '<FONT POINT-SIZE="10"><B>input</B></FONT>' in workflow_step
     assert '<FONT POINT-SIZE="10">approved_by</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in workflow_step
     assert '<FONT POINT-SIZE="10">sent</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;NoticeResult</FONT>' in workflow
@@ -241,7 +241,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "failure workflow outcome" in workflow
     assert "sent: complete → completed" in workflow
     assert "delivery_failed: fail → delivery_failed" in workflow
-    for graph_id, dot_source in {"fsm_project_list": fsm, "project_board": composition, "web_project_board": entrypoint, "api_project_create": api_entrypoint, "cli_project_approve": cli_approve_entrypoint, "project_approval_notice": workflow}.items():
+    for graph_id, dot_source in {"state_machine_project_list": fsm, "project_board": composition, "web_project_board": entrypoint, "api_project_create": api_entrypoint, "cli_project_approve": cli_approve_entrypoint, "project_approval_notice": workflow}.items():
         svg = _render_graphviz_svg(dot_source, graph_id)
         assert svg.lstrip().startswith("<svg")
         assert "</svg>" in svg
@@ -263,8 +263,8 @@ def test_composition_dot_routes_messages_generically() -> None:
             }
         },
         "mounts": [
-            {"id": "publisher", "region": "source", "fsm": "fsm.alpha", "initial": "idle", "context": {}},
-            {"id": "receiver", "region": "target", "fsm": "fsm.beta", "initial": "waiting", "context": {"item_id": "$fsm.selected_id"}},
+            {"id": "publisher", "region": "source", "fsm": "state_machine.alpha", "initial": "idle", "context": {}},
+            {"id": "receiver", "region": "target", "fsm": "state_machine.beta", "initial": "waiting", "context": {"item_id": "$state_machine.selected_id"}},
         ],
         "sync": [
             {
@@ -279,7 +279,7 @@ def test_composition_dot_routes_messages_generically() -> None:
     }
     contract = {
         "fsms": {
-            "fsm.alpha": {
+            "state_machine.alpha": {
                 "messages": {
                     "accepts": {
                         "alpha.submit": {"payload": {"id": "ID"}},
@@ -297,7 +297,7 @@ def test_composition_dot_routes_messages_generically() -> None:
                     }
                 ]
             },
-            "fsm.beta": {
+            "state_machine.beta": {
                 "messages": {
                     "accepts": {
                         "beta.consume": {"payload": {"item_id": "ID"}},
@@ -329,11 +329,11 @@ def test_composition_dot_routes_messages_generically() -> None:
     assert '<FONT POINT-SIZE="10"><B>data:</B>&#160;&#160;id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in composition
     assert '<FONT POINT-SIZE="10"><B>set:</B>&#160;&#160;selected_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT><FONT POINT-SIZE="8">&#160;←&#160;id</FONT>' in composition
     assert 'item_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT><FONT POINT-SIZE="8">&#160;←&#160;id</FONT>' in composition
-    assert "item_id &lt;- fsm.selected_id" not in composition
+    assert "item_id &lt;- state_machine.selected_id" not in composition
     assert "context binding" not in composition
     assert "$message." not in composition
     assert "$event." not in composition
-    assert "$fsm." not in composition
+    assert "$state_machine." not in composition
     assert "<B>target:</B>" not in composition
     assert "<B>from:</B>" not in composition
     assert "<B>do:</B>" not in composition
@@ -346,8 +346,8 @@ def test_composition_dot_routes_messages_generically() -> None:
     assert "<B>region:</B>" not in composition
     assert "<B>publisher</B>" in composition
     assert "<B>receiver</B>" in composition
-    assert "<B>fsm:</B>&#160;&#160;fsm.alpha" in composition
-    assert "<B>fsm:</B>&#160;&#160;fsm.beta" in composition
+    assert "<B>fsm:</B>&#160;&#160;state_machine.alpha" in composition
+    assert "<B>fsm:</B>&#160;&#160;state_machine.beta" in composition
     assert "unused" not in composition
     assert "order:" not in composition
     assert "element:" not in composition
@@ -355,7 +355,7 @@ def test_composition_dot_routes_messages_generically() -> None:
     assert "required:" not in composition
     assert "layout_instance" not in composition
     assert "layout_region_empty" not in composition
-    assert "fsm.project.board" not in composition
+    assert "state_machine.project.board" not in composition
     assert "fsm.project" not in composition
     svg = _render_graphviz_svg(composition, "generic_composition")
     assert svg.lstrip().startswith("<svg")
@@ -363,38 +363,38 @@ def test_composition_dot_routes_messages_generically() -> None:
 
 def test_audit_transition_basis_renders_for_otherwise_sparse_card() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
-    activity = author["fsms"]["fsm.project.activity"]
-    cleared = next(transition for transition in activity["transitions"] if transition["on"] == "selection.cleared")
+    activity = author["fsms"]["state_machine.project.activity"]
+    cleared = next(transition for transition in activity["transitions"] if transition["on"] == "message.selection.cleared")
     cleared.pop("effects")
     cleared["basis"] = "Clearing the selection returns the activity FSM to its empty state."
     contract = compile_source(author)
 
-    fsm = fsm_dot("fsm.project.activity", contract["fsms"]["fsm.project.activity"], contract)
+    fsm = fsm_dot("state_machine.project.activity", contract["fsms"]["state_machine.project.activity"], contract)
 
     assert "Clearing the selection returns the activity FSM" in fsm
     assert "its empty state." in fsm
 
 
 def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
-    list_fsm = (ROOT / fsm_graph_file("fsm.project.list")).read_text(encoding="utf-8")
-    detail_fsm = (ROOT / fsm_graph_file("fsm.project.detail")).read_text(encoding="utf-8")
-    activity_fsm = (ROOT / fsm_graph_file("fsm.project.activity")).read_text(encoding="utf-8")
-    composition = (ROOT / composition_file("fsm.project.board")).read_text(encoding="utf-8")
+    list_fsm = (ROOT / fsm_graph_file("state_machine.project.list")).read_text(encoding="utf-8")
+    detail_fsm = (ROOT / fsm_graph_file("state_machine.project.detail")).read_text(encoding="utf-8")
+    activity_fsm = (ROOT / fsm_graph_file("state_machine.project.activity")).read_text(encoding="utf-8")
+    composition = (ROOT / composition_file("state_machine.project.board")).read_text(encoding="utf-8")
     assert "data.ready" in list_fsm
     assert "on data.ready" not in list_fsm
-    assert "copy.project.list.ready.heading" in list_fsm
+    assert "text.project.list.ready.heading" in list_fsm
     assert "asset.project.list.empty.illustration" in list_fsm
     assert "emit:" in list_fsm
-    assert "project.selected" in list_fsm
+    assert "message.project.selected" in list_fsm
     assert "payload:" in list_fsm
-    assert "emit project.selected" not in list_fsm
+    assert "emit message.project.selected" not in list_fsm
     assert "effects:" not in list_fsm
-    assert "capability: project.list" not in list_fsm
+    assert "capability: operation.project.list" not in list_fsm
     assert "query.project.list.list" in list_fsm
     assert "workspace_id: ID" not in list_fsm
     assert 'workspace_id</text>' in list_fsm
     assert 'fill="#94a3b8">\xa0\xa0ID</text>' in list_fsm
-    assert "project.list fields" in list_fsm
+    assert "operation.project.list fields" in list_fsm
     assert "title: Text" not in list_fsm
     assert "status: ProjectStatus" not in list_fsm
     assert 'fill="#94a3b8">\xa0\xa0Text</text>' in list_fsm
@@ -404,7 +404,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "model:" not in list_fsm
     assert "context:" not in list_fsm
     assert "&#45; data.ready" not in list_fsm
-    assert "&#45; copy.project" not in list_fsm
+    assert "&#45; text.project" not in list_fsm
     assert "&#45; none" not in list_fsm
     assert ">basis<" not in list_fsm
     assert "loading &#45;&gt; empty" not in list_fsm
@@ -416,16 +416,16 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "emitted events" not in list_fsm
     assert "$message." not in list_fsm
     assert "$event." not in list_fsm
-    assert "copy.project.detail.ready.heading" in detail_fsm
-    assert "project.read fields" in detail_fsm
+    assert "text.project.detail.ready.heading" in detail_fsm
+    assert "operation.project.read fields" in detail_fsm
     assert "list[Project]" in list_fsm
-    assert "project.read" in detail_fsm
+    assert "operation.project.read" in detail_fsm
     assert 'fill="#94a3b8">\xa0\xa0Project</text>' in detail_fsm
     assert "summary: Text" not in detail_fsm
     assert 'fill="#94a3b8">\xa0\xa0Text</text>' in detail_fsm
-    assert "project.approve" in detail_fsm
-    assert "project.archive" in detail_fsm
-    assert "project.read fields" in activity_fsm
+    assert "operation.project.approve" in detail_fsm
+    assert "operation.project.archive" in detail_fsm
+    assert "operation.project.read fields" in activity_fsm
     assert "updated_at: Timestamp" not in activity_fsm
     assert "assignee: Text" not in activity_fsm
     assert 'fill="#94a3b8">\xa0\xa0Timestamp</text>' in activity_fsm
@@ -434,7 +434,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "project_id: ID" not in detail_fsm
     assert 'project_id</text>' in detail_fsm
     assert 'fill="#94a3b8">\xa0\xa0ID</text>' in detail_fsm
-    assert "capability: project.read" not in detail_fsm
+    assert "capability: operation.project.read" not in detail_fsm
     assert "set:" in detail_fsm
     assert "project_id &lt;&#45; null" not in detail_fsm
     assert 'fill="#94a3b8">\xa0\xa0ID</text>' in detail_fsm
@@ -451,8 +451,8 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert '\xa0←\xa0null</text>' in activity_fsm
     assert "emitted message" in composition
     assert "sent message" in composition
-    assert "project.select" in composition
-    assert "project.selection_changed" in composition
+    assert "message.project.select" in composition
+    assert "message.project.selection_changed" in composition
     assert "to loading" in composition
     assert "to ready" in composition
     assert "none to loading" not in composition
@@ -466,15 +466,15 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "set selected_project_id" not in composition
     assert "flow:" not in composition
     assert "FSM context" not in composition
-    assert "fsm.project.board" not in composition
+    assert "state_machine.project.board" not in composition
     assert "dashboard FSM" not in composition
     assert "query.project.board.list" not in composition
     assert "context binding" not in composition
-    assert "fsm.selected_project_id" not in composition
+    assert "state_machine.selected_project_id" not in composition
     assert "FSM context" not in composition
     assert "$message." not in composition
     assert "$event." not in composition
-    assert "$fsm." not in composition
+    assert "$state_machine." not in composition
     assert "region:" not in composition
     assert "mount" in composition
     assert "fsm:" in composition
@@ -495,7 +495,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
 
 
 def test_audit_html_sources_render_copy_assets_and_fixture_fields() -> None:
-    ready = ROOT / audit_case_render_file("fsm.project.board", "fsm.project.board.ready.ready_selected.audit", "default", "wide", "html")
+    ready = ROOT / audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "default", "wide", "html")
     text = ready.read_text(encoding="utf-8")
     assert "Dispatch queue" in text
     assert "Replace rooftop condenser fan · Atlas Foods" in text
@@ -506,7 +506,7 @@ def test_audit_html_sources_render_copy_assets_and_fixture_fields() -> None:
     assert "fixture.projects.audit_records" not in text
     assert "data-audit" not in text
 
-    empty = ROOT / audit_case_render_file("fsm.project.board", "fsm.project.board.ready.empty.audit", "default", "compact", "html")
+    empty = ROOT / audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.empty.audit", "default", "compact", "html")
     empty_text = empty.read_text(encoding="utf-8")
     assert "No dispatch projects yet" in empty_text
     assert "asset.project.list.empty.illustration" in empty_text
@@ -514,7 +514,7 @@ def test_audit_html_sources_render_copy_assets_and_fixture_fields() -> None:
 
 
 def test_audit_asset_placeholder_is_generic_and_not_named() -> None:
-    asset = ROOT / fsm_state_root("fsm.project.list", "empty") / "assets" / "asset_project_list_empty_illustration.svg"
+    asset = ROOT / fsm_state_root("state_machine.project.list", "empty") / "assets" / "asset_project_list_empty_illustration.svg"
     text = asset.read_text(encoding="utf-8")
     assert text.lstrip().startswith("<svg")
     assert "asset.project.list.empty.illustration" not in text
@@ -548,7 +548,7 @@ def test_asset_placeholder_schema_rejects_missing_visual_intent() -> None:
 
 def test_audit_case_coverage_is_required() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
-    author["fsms"]["fsm.project.board"]["states"]["ready"].pop("audit")
+    author["fsms"]["state_machine.project.board"]["states"]["ready"].pop("audit")
     with pytest.raises(ContractError, match="Missing audit coverage for composed FSM states"):
         compile_source(author)
 

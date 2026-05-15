@@ -2,9 +2,9 @@
   "project": "project_dispatch_board",
   "routes": [
     {
-      "entry": "web.project.board",
-      "fsm": "fsm.project.board",
-      "id": "route.fsm.project.board",
+      "entry": "entry_point.web.project.board",
+      "fsm": "state_machine.project.board",
+      "id": "route.project.board",
       "params": {
         "workspace_id": "ID"
       },

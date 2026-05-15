@@ -48,11 +48,11 @@ def test_canonical_contract_is_fresh_and_complete() -> None:
 
 def test_canonical_openapi_asyncapi_and_cwl_are_visible() -> None:
     openapi = read_yaml(ROOT / "spec" / "generated" / "product_interfaces" / "http.openapi.yaml")
-    assert openapi["paths"]["/workspaces/{workspace_id}/projects"]["post"]["operationId"] == "project.create"
+    assert openapi["paths"]["/workspaces/{workspace_id}/projects"]["post"]["operationId"] == "operation.project.create"
     asyncapi = read_yaml(ROOT / "spec" / "generated" / "product_interfaces" / "events.asyncapi.yaml")
-    assert any(channel.get("address") == "project.approved" for channel in asyncapi["channels"].values() if isinstance(channel, dict))
+    assert any(channel.get("address") == "event.project.approved" for channel in asyncapi["channels"].values() if isinstance(channel, dict))
     cwl = read_yaml(ROOT / "spec" / "generated" / "product_interfaces" / "workflow.cwl.yaml")
-    assert "#project_approval_notice" in {item["id"] for item in cwl["$graph"]}
+    assert "#workflow_project_approval_notice" in {item["id"] for item in cwl["$graph"]}
     assert not (ROOT / "spec" / "generated" / "persistence.sql").exists()
     assert not (ROOT / "spec" / "generated" / "persistence.json").exists()
 
@@ -63,21 +63,21 @@ def test_canonical_textual_contract_imports_and_composes() -> None:
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    assert module.SCREENS[0]["id"] == "screen.fsm.project.board"
+    assert module.SCREENS[0]["id"] == "screen.state_machine.project.board"
     assert "entry" not in module.SCREENS[0]
     assert module.SCREENS[0]["screen_class"] == "ProjectBoardScreen"
-    assert module.COMPOSITIONS[0]["id"] == "fsm.project.board.ready"
-    fsm_items = module.compose_contract_fsm("fsm.project.list.empty")
-    assert ("Static", "copy.project.list.empty.heading") in fsm_items
+    assert module.COMPOSITIONS[0]["id"] == "state_machine.project.board.ready"
+    fsm_items = module.compose_contract_fsm("state_machine.project.list.empty")
+    assert ("Static", "text.project.list.empty.heading") in fsm_items
     assert ("Static", "asset.project.list.empty.illustration") in fsm_items
-    assert ("Button", "project.create") in fsm_items
+    assert ("Button", "operation.project.create") in fsm_items
 
 
 def test_textual_screens_are_driven_by_textual_fsm_layout() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
-    del author["fsms"]["fsm.project.board"]["states"]["ready"]["layout"]["textual"]
-    author["entries"]["cli.project.board"]["target"]["fsm"]["surface"] = "html"
-    for audit_case in author["fsms"]["fsm.project.board"]["states"]["ready"]["audit"].values():
+    del author["fsms"]["state_machine.project.board"]["states"]["ready"]["layout"]["textual"]
+    author["entries"]["entry_point.cli.project.board"]["target"]["fsm"]["surface"] = "html"
+    for audit_case in author["fsms"]["state_machine.project.board"]["states"]["ready"]["audit"].values():
         audit_case["surfaces"] = ["html"]
     contract = compile_source(author)
     projection = fsms_projection(contract)
@@ -85,9 +85,9 @@ def test_textual_screens_are_driven_by_textual_fsm_layout() -> None:
 
 
 def test_canonical_audit_contains_real_visual_references() -> None:
-    html = (ROOT / audit_case_render_file("fsm.project.board", "fsm.project.board.ready.ready_selected.audit", "default", "wide", "html")).read_text(encoding="utf-8")
+    html = (ROOT / audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "default", "wide", "html")).read_text(encoding="utf-8")
     assert "Replace rooftop condenser fan" in html
     assert "Atlas Foods" in html
     assert "Dispatch queue" in html
-    assert (ROOT / audit_case_render_file("fsm.project.board", "fsm.project.board.ready.ready_selected.audit", "default", "wide", "png")).exists()
-    assert (ROOT / audit_case_render_file("fsm.project.board", "fsm.project.board.ready.ready_selected.audit", "default", "wide", "svg")).exists()
+    assert (ROOT / audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "default", "wide", "png")).exists()
+    assert (ROOT / audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "default", "wide", "svg")).exists()

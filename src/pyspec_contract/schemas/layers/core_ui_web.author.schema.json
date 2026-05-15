@@ -23,10 +23,6 @@
         "table"
       ]
     },
-    "asset_id": {
-      "pattern": "^asset\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
-      "type": "string"
-    },
     "asset_placeholder": {
       "additionalProperties": false,
       "properties": {
@@ -60,7 +56,11 @@
       ],
       "type": "object"
     },
-    "audit_profile_id": {
+    "asset_ref": {
+      "pattern": "^asset\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "type": "string"
+    },
+    "audit_profile_ref": {
       "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
@@ -68,7 +68,7 @@
       "additionalProperties": false,
       "properties": {
         "alt_copy": {
-          "$ref": "#/$defs/copy_id"
+          "$ref": "#/$defs/text_ref"
         },
         "args": {
           "$ref": "#/$defs/content_args"
@@ -208,7 +208,7 @@
               "type": "string"
             },
             "model": {
-              "$ref": "#/$defs/model_id"
+              "$ref": "#/$defs/model_ref"
             },
             "to": {
               "pattern": "^[a-z][a-z0-9_]*$",
@@ -248,7 +248,7 @@
         },
         "fixtures": {
           "items": {
-            "$ref": "#/$defs/fixture_id"
+            "$ref": "#/$defs/fixture_ref"
           },
           "type": "array",
           "uniqueItems": true
@@ -256,10 +256,10 @@
         "ref": {
           "oneOf": [
             {
-              "$ref": "#/$defs/copy_id"
+              "$ref": "#/$defs/text_ref"
             },
             {
-              "$ref": "#/$defs/asset_id"
+              "$ref": "#/$defs/asset_ref"
             }
           ]
         },
@@ -394,7 +394,7 @@
               "additionalProperties": false,
               "properties": {
                 "model": {
-                  "$ref": "#/$defs/model_id"
+                  "$ref": "#/$defs/model_ref"
                 },
                 "where": {
                   "$ref": "#/$defs/value_map"
@@ -428,7 +428,7 @@
               "additionalProperties": false,
               "properties": {
                 "model": {
-                  "$ref": "#/$defs/model_id"
+                  "$ref": "#/$defs/model_ref"
                 },
                 "values": {
                   "$ref": "#/$defs/value_map"
@@ -493,7 +493,7 @@
         },
         "data": {
           "items": {
-            "$ref": "#/$defs/dotted_id"
+            "$ref": "#/$defs/operation_ref"
           },
           "type": "array",
           "uniqueItems": true
@@ -505,7 +505,7 @@
           "$ref": "#/$defs/fsm_messages"
         },
         "model": {
-          "$ref": "#/$defs/model_id"
+          "$ref": "#/$defs/model_ref"
         },
         "states": {
           "additionalProperties": {
@@ -539,7 +539,7 @@
       "properties": {
         "actions": {
           "items": {
-            "$ref": "#/$defs/dotted_id"
+            "$ref": "#/$defs/operation_ref"
           },
           "type": "array",
           "uniqueItems": true
@@ -569,7 +569,7 @@
         },
         "data": {
           "items": {
-            "$ref": "#/$defs/dotted_id"
+            "$ref": "#/$defs/operation_ref"
           },
           "type": "array",
           "uniqueItems": true
@@ -643,7 +643,7 @@
                 "additionalProperties": false,
                 "properties": {
                   "by": {
-                    "$ref": "#/$defs/dotted_id"
+                    "$ref": "#/$defs/operation_ref"
                   },
                   "from": {
                     "pattern": "^[a-z][a-z0-9_]*$",
@@ -688,7 +688,7 @@
           "$ref": "#/$defs/context_bindings"
         },
         "fsm": {
-          "pattern": "^fsm\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+          "pattern": "^state_machine\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
           "type": "string"
         },
         "id": {
@@ -732,7 +732,7 @@
           "$ref": "#/$defs/basis"
         },
         "feature": {
-          "$ref": "#/$defs/dotted_id"
+          "$ref": "#/$defs/feature_ref"
         },
         "given": {
           "$ref": "#/$defs/given"
@@ -816,7 +816,7 @@
       ],
       "properties": {
         "event": {
-          "$ref": "#/$defs/dotted_id"
+          "$ref": "#/$defs/event_ref"
         },
         "payload": {
           "$ref": "#/$defs/capability_emit_source"
@@ -946,12 +946,12 @@
       },
       "type": "object"
     },
-    "content_case_id": {
-      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+    "content_case_ref": {
+      "pattern": "^content\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
     },
     "content_resolver_id": {
-      "pattern": "^(copy|asset)\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "pattern": "^(text|asset)\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
       "type": "string"
     },
     "context_bindings": {
@@ -961,7 +961,7 @@
             "$ref": "#/$defs/scalar"
           },
           {
-            "pattern": "^\\$(fsm|fixture|event)\\.[a-z][A-Za-z0-9_.]*$",
+            "pattern": "^\\$(state_machine|fixture|event)\\.[a-z][A-Za-z0-9_.]*$",
             "type": "string"
           }
         ]
@@ -993,7 +993,7 @@
               "$ref": "#/$defs/field_name"
             },
             "from": {
-              "pattern": "^\\$(message|fsm)\\.[a-z][A-Za-z0-9_.]*$",
+              "pattern": "^\\$(message|state_machine)\\.[a-z][A-Za-z0-9_.]*$",
               "type": "string"
             },
             "value": {
@@ -1010,10 +1010,6 @@
         "set"
       ],
       "type": "object"
-    },
-    "copy_id": {
-      "pattern": "^copy\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
-      "type": "string"
     },
     "css_class": {
       "pattern": "^[a-z][a-z0-9_-]*$",
@@ -1039,10 +1035,6 @@
       "pattern": "^[^;{}<>]+$",
       "type": "string"
     },
-    "dotted_id": {
-      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
-      "type": "string"
-    },
     "entry_bindings": {
       "additionalProperties": {
         "pattern": "^input\\.(params|body|args|payload)(\\.[a-z][a-z0-9_]*)?$",
@@ -1057,7 +1049,7 @@
       "additionalProperties": false,
       "properties": {
         "name": {
-          "$ref": "#/$defs/dotted_id"
+          "$ref": "#/$defs/state_machine_ref"
         },
         "surface": {
           "enum": [
@@ -1089,6 +1081,10 @@
         }
       },
       "type": "object"
+    },
+    "entry_point_ref": {
+      "pattern": "^entry_point\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "type": "string"
     },
     "entry_response": {
       "additionalProperties": false,
@@ -1173,7 +1169,7 @@
       ],
       "properties": {
         "capability": {
-          "$ref": "#/$defs/dotted_id"
+          "$ref": "#/$defs/operation_ref"
         },
         "fsm": {
           "$ref": "#/$defs/entry_fsm_target"
@@ -1191,7 +1187,7 @@
       "additionalProperties": false,
       "properties": {
         "name": {
-          "$ref": "#/$defs/dotted_id"
+          "$ref": "#/$defs/workflow_ref"
         },
         "trigger": {
           "$ref": "#/$defs/workflow_trigger_target"
@@ -1202,6 +1198,10 @@
         "trigger"
       ],
       "type": "object"
+    },
+    "event_ref": {
+      "pattern": "^event\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "type": "string"
     },
     "expression_map": {
       "additionalProperties": {
@@ -1221,7 +1221,7 @@
               "additionalProperties": false,
               "properties": {
                 "model": {
-                  "$ref": "#/$defs/model_id"
+                  "$ref": "#/$defs/model_ref"
                 },
                 "where": {
                   "$ref": "#/$defs/value_map"
@@ -1246,7 +1246,7 @@
               "additionalProperties": false,
               "properties": {
                 "model": {
-                  "$ref": "#/$defs/model_id"
+                  "$ref": "#/$defs/model_ref"
                 },
                 "values": {
                   "$ref": "#/$defs/value_map"
@@ -1266,7 +1266,7 @@
         }
       ]
     },
-    "fact_id": {
+    "fact_ref": {
       "pattern": "^fact\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
@@ -1274,7 +1274,7 @@
       "additionalProperties": false,
       "properties": {
         "use": {
-          "$ref": "#/$defs/fact_id"
+          "$ref": "#/$defs/fact_ref"
         }
       },
       "required": [
@@ -1282,11 +1282,15 @@
       ],
       "type": "object"
     },
+    "feature_ref": {
+      "pattern": "^feature\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "type": "string"
+    },
     "field_name": {
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
     },
-    "fixture_id": {
+    "fixture_ref": {
       "pattern": "^fixture\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
@@ -1323,7 +1327,7 @@
           "type": "object"
         },
         "profile": {
-          "$ref": "#/$defs/audit_profile_id"
+          "$ref": "#/$defs/audit_profile_ref"
         },
         "surfaces": {
           "items": {
@@ -1343,10 +1347,6 @@
         "fixtures"
       ],
       "type": "object"
-    },
-    "fsm_id": {
-      "pattern": "^fsm\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
-      "type": "string"
     },
     "fsm_message": {
       "additionalProperties": false,
@@ -1368,7 +1368,7 @@
             "$ref": "#/$defs/fsm_message"
           },
           "propertyNames": {
-            "$ref": "#/$defs/dotted_id"
+            "$ref": "#/$defs/message_ref"
           },
           "type": "object"
         },
@@ -1377,7 +1377,7 @@
             "$ref": "#/$defs/fsm_message"
           },
           "propertyNames": {
-            "$ref": "#/$defs/dotted_id"
+            "$ref": "#/$defs/message_ref"
           },
           "type": "object"
         }
@@ -1447,7 +1447,7 @@
                         "$ref": "#/$defs/expression_map"
                       },
                       "message": {
-                        "$ref": "#/$defs/dotted_id"
+                        "$ref": "#/$defs/message_ref"
                       }
                     },
                     "required": [
@@ -1528,7 +1528,7 @@
           "const": "action"
         },
         "ref": {
-          "$ref": "#/$defs/dotted_id"
+          "$ref": "#/$defs/operation_ref"
         },
         "role": {
           "$ref": "#/$defs/aria_role"
@@ -1916,17 +1916,25 @@
       ],
       "type": "object"
     },
-    "model_id": {
+    "message_ref": {
+      "pattern": "^(message|data)\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "type": "string"
+    },
+    "model_ref": {
       "pattern": "^[A-Z][A-Za-z0-9]*$",
       "type": "string"
     },
     "model_refs": {
       "items": {
-        "$ref": "#/$defs/model_id"
+        "$ref": "#/$defs/model_ref"
       },
       "minItems": 1,
       "type": "array",
       "uniqueItems": true
+    },
+    "operation_ref": {
+      "pattern": "^operation\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "type": "string"
     },
     "presentation_contract": {
       "additionalProperties": false,
@@ -1959,6 +1967,14 @@
         "boolean",
         "null"
       ]
+    },
+    "scenario_ref": {
+      "pattern": "^scenario\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "type": "string"
+    },
+    "state_machine_ref": {
+      "pattern": "^state_machine\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "type": "string"
     },
     "state_name": {
       "pattern": "^[a-z][a-z0-9_]*$",
@@ -2071,7 +2087,7 @@
                   "$ref": "#/$defs/instance_id"
                 },
                 "message": {
-                  "$ref": "#/$defs/dotted_id"
+                  "$ref": "#/$defs/message_ref"
                 }
               },
               "required": [
@@ -2150,7 +2166,7 @@
           "$ref": "#/$defs/instance_id"
         },
         "message": {
-          "$ref": "#/$defs/dotted_id"
+          "$ref": "#/$defs/message_ref"
         }
       },
       "required": [
@@ -2165,19 +2181,23 @@
       "minProperties": 1,
       "properties": {
         "capability": {
-          "$ref": "#/$defs/dotted_id"
+          "$ref": "#/$defs/operation_ref"
         },
         "event": {
-          "$ref": "#/$defs/dotted_id"
+          "$ref": "#/$defs/event_ref"
         },
         "fsm": {
-          "$ref": "#/$defs/dotted_id"
+          "$ref": "#/$defs/state_machine_ref"
         },
         "workflow": {
-          "$ref": "#/$defs/dotted_id"
+          "$ref": "#/$defs/workflow_ref"
         }
       },
       "type": "object"
+    },
+    "text_ref": {
+      "pattern": "^text\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "type": "string"
     },
     "textual_bind": {
       "oneOf": [
@@ -2209,7 +2229,7 @@
           "additionalProperties": false,
           "properties": {
             "action": {
-              "$ref": "#/$defs/dotted_id"
+              "$ref": "#/$defs/operation_ref"
             }
           },
           "required": [
@@ -2319,7 +2339,7 @@
       "properties": {
         "enables": {
           "items": {
-            "$ref": "#/$defs/dotted_id"
+            "$ref": "#/$defs/operation_ref"
           },
           "type": "array",
           "uniqueItems": true
@@ -2329,14 +2349,14 @@
           "properties": {
             "emitted": {
               "items": {
-                "$ref": "#/$defs/dotted_id"
+                "$ref": "#/$defs/event_ref"
               },
               "type": "array",
               "uniqueItems": true
             },
             "not_emitted": {
               "items": {
-                "$ref": "#/$defs/dotted_id"
+                "$ref": "#/$defs/event_ref"
               },
               "type": "array",
               "uniqueItems": true
@@ -2346,7 +2366,7 @@
         },
         "forbids": {
           "items": {
-            "$ref": "#/$defs/dotted_id"
+            "$ref": "#/$defs/operation_ref"
           },
           "type": "array",
           "uniqueItems": true
@@ -2367,7 +2387,7 @@
               "type": "object"
             },
             "ref": {
-              "$ref": "#/$defs/dotted_id"
+              "$ref": "#/$defs/state_machine_ref"
             },
             "state": {
               "$ref": "#/$defs/state_name"
@@ -2383,7 +2403,7 @@
         },
         "invoked": {
           "items": {
-            "$ref": "#/$defs/dotted_id"
+            "$ref": "#/$defs/operation_ref"
           },
           "type": "array",
           "uniqueItems": true
@@ -2395,7 +2415,7 @@
               "additionalProperties": false,
               "properties": {
                 "model": {
-                  "$ref": "#/$defs/model_id"
+                  "$ref": "#/$defs/model_ref"
                 },
                 "where": {
                   "$ref": "#/$defs/value_map"
@@ -2437,7 +2457,7 @@
               "type": "boolean"
             },
             "ref": {
-              "$ref": "#/$defs/dotted_id"
+              "$ref": "#/$defs/workflow_ref"
             }
           },
           "required": [
@@ -2483,7 +2503,7 @@
                   "$ref": "#/$defs/value_map"
                 },
                 "ref": {
-                  "$ref": "#/$defs/dotted_id"
+                  "$ref": "#/$defs/entry_point_ref"
                 }
               },
               "required": [
@@ -2507,7 +2527,7 @@
                   "$ref": "#/$defs/value_map"
                 },
                 "ref": {
-                  "$ref": "#/$defs/dotted_id"
+                  "$ref": "#/$defs/entry_point_ref"
                 }
               },
               "required": [
@@ -2531,7 +2551,7 @@
                   "$ref": "#/$defs/value_map"
                 },
                 "ref": {
-                  "$ref": "#/$defs/dotted_id"
+                  "$ref": "#/$defs/operation_ref"
                 }
               },
               "required": [
@@ -2555,7 +2575,7 @@
                   "$ref": "#/$defs/value_map"
                 },
                 "ref": {
-                  "$ref": "#/$defs/dotted_id"
+                  "$ref": "#/$defs/event_ref"
                 }
               },
               "required": [
@@ -2608,6 +2628,10 @@
         "$ref": "#/$defs/field_name"
       },
       "type": "object"
+    },
+    "workflow_ref": {
+      "pattern": "^workflow\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "type": "string"
     },
     "workflow_retry": {
       "additionalProperties": false,
@@ -2671,7 +2695,7 @@
       "additionalProperties": false,
       "properties": {
         "capability": {
-          "$ref": "#/$defs/dotted_id"
+          "$ref": "#/$defs/operation_ref"
         },
         "id": {
           "pattern": "^[a-z][a-z0-9_]*$",
@@ -2698,10 +2722,10 @@
       "minProperties": 1,
       "properties": {
         "capability": {
-          "$ref": "#/$defs/dotted_id"
+          "$ref": "#/$defs/operation_ref"
         },
         "event": {
-          "$ref": "#/$defs/dotted_id"
+          "$ref": "#/$defs/event_ref"
         }
       },
       "type": "object"
@@ -2717,7 +2741,7 @@
         "$ref": "#/$defs/authored_asset"
       },
       "propertyNames": {
-        "$ref": "#/$defs/asset_id"
+        "$ref": "#/$defs/asset_ref"
       },
       "type": "object"
     },
@@ -2726,7 +2750,7 @@
         "$ref": "#/$defs/authored_audit_profile"
       },
       "propertyNames": {
-        "$ref": "#/$defs/audit_profile_id"
+        "$ref": "#/$defs/audit_profile_ref"
       },
       "type": "object"
     },
@@ -2735,7 +2759,7 @@
         "$ref": "#/$defs/authored_capability"
       },
       "propertyNames": {
-        "$ref": "#/$defs/dotted_id"
+        "$ref": "#/$defs/operation_ref"
       },
       "type": "object"
     },
@@ -2744,7 +2768,7 @@
         "$ref": "#/$defs/authored_content_case"
       },
       "propertyNames": {
-        "$ref": "#/$defs/content_case_id"
+        "$ref": "#/$defs/content_case_ref"
       },
       "type": "object"
     },
@@ -2753,7 +2777,7 @@
         "$ref": "#/$defs/authored_copy"
       },
       "propertyNames": {
-        "$ref": "#/$defs/copy_id"
+        "$ref": "#/$defs/text_ref"
       },
       "type": "object"
     },
@@ -2762,7 +2786,7 @@
         "$ref": "#/$defs/authored_entry"
       },
       "propertyNames": {
-        "$ref": "#/$defs/dotted_id"
+        "$ref": "#/$defs/entry_point_ref"
       },
       "type": "object"
     },
@@ -2771,7 +2795,7 @@
         "$ref": "#/$defs/authored_event"
       },
       "propertyNames": {
-        "$ref": "#/$defs/dotted_id"
+        "$ref": "#/$defs/event_ref"
       },
       "type": "object"
     },
@@ -2780,7 +2804,7 @@
         "$ref": "#/$defs/authored_fact"
       },
       "propertyNames": {
-        "$ref": "#/$defs/fact_id"
+        "$ref": "#/$defs/fact_ref"
       },
       "type": "object"
     },
@@ -2789,7 +2813,7 @@
         "$ref": "#/$defs/authored_fixture"
       },
       "propertyNames": {
-        "$ref": "#/$defs/fixture_id"
+        "$ref": "#/$defs/fixture_ref"
       },
       "type": "object"
     },
@@ -2798,7 +2822,7 @@
         "$ref": "#/$defs/authored_fsm"
       },
       "propertyNames": {
-        "$ref": "#/$defs/fsm_id"
+        "$ref": "#/$defs/state_machine_ref"
       },
       "type": "object"
     },
@@ -2807,7 +2831,7 @@
         "$ref": "#/$defs/authored_model"
       },
       "propertyNames": {
-        "$ref": "#/$defs/model_id"
+        "$ref": "#/$defs/model_ref"
       },
       "type": "object"
     },
@@ -2820,7 +2844,7 @@
         "$ref": "#/$defs/authored_scenario"
       },
       "propertyNames": {
-        "$ref": "#/$defs/dotted_id"
+        "$ref": "#/$defs/scenario_ref"
       },
       "type": "object"
     }

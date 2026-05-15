@@ -5,69 +5,37 @@ class Asset:
     ASSET_PROJECT_LIST_EMPTY_ILLUSTRATION = 'asset.project.list.empty.illustration'
 
 class AuditCase:
-    FSM_PROJECT_BOARD_READY_EMPTY_AUDIT = 'fsm.project.board.ready.empty.audit'
-    FSM_PROJECT_BOARD_READY_READY_SELECTED_AUDIT = 'fsm.project.board.ready.ready_selected.audit'
+    STATE_MACHINE_PROJECT_BOARD_READY_EMPTY_AUDIT = 'state_machine.project.board.ready.empty.audit'
+    STATE_MACHINE_PROJECT_BOARD_READY_READY_SELECTED_AUDIT = 'state_machine.project.board.ready.ready_selected.audit'
 
 class AuditProfile:
     DEFAULT = 'default'
 
-class Capability:
-    PROJECT_APPROVE = 'project.approve'
-    PROJECT_ARCHIVE = 'project.archive'
-    PROJECT_CREATE = 'project.create'
-    PROJECT_LIST = 'project.list'
-    PROJECT_READ = 'project.read'
-    PROJECT_SEND_APPROVAL_NOTICE = 'project.send_approval_notice'
-    PROJECT_SUBMIT = 'project.submit'
-
 class Command:
-    COMMAND_FSM_PROJECT_BOARD = 'command.fsm.project.board'
     COMMAND_PROJECT_APPROVE = 'command.project.approve'
+    COMMAND_PROJECT_BOARD = 'command.project.board'
 
 class ContentCase:
     CONTENT_PROJECT_DETAIL_HEADING_HIGH_PRIORITY = 'content.project.detail.heading.high_priority'
     CONTENT_PROJECT_DETAIL_PRIORITY_BADGE_HIGH_PRIORITY = 'content.project.detail.priority_badge.high_priority'
 
-class Copy:
-    COPY_PROJECT_ACTIVITY_EMPTY_BODY = 'copy.project.activity.empty.body'
-    COPY_PROJECT_ACTIVITY_EMPTY_HEADING = 'copy.project.activity.empty.heading'
-    COPY_PROJECT_ACTIVITY_READY_HEADING = 'copy.project.activity.ready.heading'
-    COPY_PROJECT_DETAIL_ERROR_BODY = 'copy.project.detail.error.body'
-    COPY_PROJECT_DETAIL_ERROR_HEADING = 'copy.project.detail.error.heading'
-    COPY_PROJECT_DETAIL_LOADING_MESSAGE = 'copy.project.detail.loading.message'
-    COPY_PROJECT_DETAIL_NONE_BODY = 'copy.project.detail.none.body'
-    COPY_PROJECT_DETAIL_NONE_HEADING = 'copy.project.detail.none.heading'
-    COPY_PROJECT_DETAIL_READY_HEADING = 'copy.project.detail.ready.heading'
-    COPY_PROJECT_LIST_EMPTY_BODY = 'copy.project.list.empty.body'
-    COPY_PROJECT_LIST_EMPTY_HEADING = 'copy.project.list.empty.heading'
-    COPY_PROJECT_LIST_ERROR_BODY = 'copy.project.list.error.body'
-    COPY_PROJECT_LIST_ERROR_HEADING = 'copy.project.list.error.heading'
-    COPY_PROJECT_LIST_LOADING_MESSAGE = 'copy.project.list.loading.message'
-    COPY_PROJECT_LIST_READY_HEADING = 'copy.project.list.ready.heading'
-
 class Endpoint:
     ENDPOINT_PROJECT_CREATE = 'endpoint.project.create'
     ENDPOINT_PROJECT_LIST = 'endpoint.project.list'
 
-class Entry:
-    API_PROJECT_CREATE = 'api.project.create'
-    API_PROJECT_LIST = 'api.project.list'
-    CLI_PROJECT_APPROVE = 'cli.project.approve'
-    CLI_PROJECT_BOARD = 'cli.project.board'
-    WEB_PROJECT_BOARD = 'web.project.board'
-    WORKER_PROJECT_APPROVAL_NOTICE = 'worker.project.approval_notice'
+class EntryPoint:
+    ENTRY_POINT_API_PROJECT_CREATE = 'entry_point.api.project.create'
+    ENTRY_POINT_API_PROJECT_LIST = 'entry_point.api.project.list'
+    ENTRY_POINT_CLI_PROJECT_APPROVE = 'entry_point.cli.project.approve'
+    ENTRY_POINT_CLI_PROJECT_BOARD = 'entry_point.cli.project.board'
+    ENTRY_POINT_WEB_PROJECT_BOARD = 'entry_point.web.project.board'
+    ENTRY_POINT_WORKER_PROJECT_APPROVAL_NOTICE = 'entry_point.worker.project.approval_notice'
 
 class Event:
-    PROJECT_APPROVED = 'project.approved'
-    PROJECT_ARCHIVED = 'project.archived'
-    PROJECT_CREATED = 'project.created'
-    PROJECT_SUBMITTED = 'project.submitted'
-
-class FSM:
-    FSM_PROJECT_ACTIVITY = 'fsm.project.activity'
-    FSM_PROJECT_BOARD = 'fsm.project.board'
-    FSM_PROJECT_DETAIL = 'fsm.project.detail'
-    FSM_PROJECT_LIST = 'fsm.project.list'
+    EVENT_PROJECT_APPROVED = 'event.project.approved'
+    EVENT_PROJECT_ARCHIVED = 'event.project.archived'
+    EVENT_PROJECT_CREATED = 'event.project.created'
+    EVENT_PROJECT_SUBMITTED = 'event.project.submitted'
 
 class Fact:
     FACT_PROJECT_DRAFT = 'fact.project.draft'
@@ -77,11 +45,14 @@ class Fixture:
     FIXTURE_WORKSPACE_MEMBER = 'fixture.workspace.member'
     FIXTURE_WORKSPACE_REVIEWER = 'fixture.workspace.reviewer'
 
-class Fsm:
-    FSM_PROJECT_ACTIVITY = 'fsm.project.activity'
-    FSM_PROJECT_BOARD = 'fsm.project.board'
-    FSM_PROJECT_DETAIL = 'fsm.project.detail'
-    FSM_PROJECT_LIST = 'fsm.project.list'
+class Operation:
+    OPERATION_PROJECT_APPROVE = 'operation.project.approve'
+    OPERATION_PROJECT_ARCHIVE = 'operation.project.archive'
+    OPERATION_PROJECT_CREATE = 'operation.project.create'
+    OPERATION_PROJECT_LIST = 'operation.project.list'
+    OPERATION_PROJECT_READ = 'operation.project.read'
+    OPERATION_PROJECT_SEND_APPROVAL_NOTICE = 'operation.project.send_approval_notice'
+    OPERATION_PROJECT_SUBMIT = 'operation.project.submit'
 
 class Policy:
     POLICY_PROJECT_APPROVE = 'policy.project.approve'
@@ -99,30 +70,53 @@ class Query:
     QUERY_PROJECT_LIST_LIST = 'query.project.list.list'
 
 class Route:
-    ROUTE_FSM_PROJECT_BOARD = 'route.fsm.project.board'
+    ROUTE_PROJECT_BOARD = 'route.project.board'
 
 class Scenario:
-    PROJECT_APPROVAL_NOTICE_WORKFLOW = 'project.approval_notice.workflow'
-    PROJECT_APPROVE_SUCCESS = 'project.approve.success'
-    PROJECT_BOARD_EMPTY = 'project.board.empty'
-    PROJECT_BOARD_READY = 'project.board.ready'
-    PROJECT_CREATE_API_SUCCESS = 'project.create.api.success'
+    SCENARIO_PROJECT_APPROVAL_NOTICE_WORKFLOW = 'scenario.project.approval_notice.workflow'
+    SCENARIO_PROJECT_APPROVE_SUCCESS = 'scenario.project.approve.success'
+    SCENARIO_PROJECT_BOARD_EMPTY = 'scenario.project.board.empty'
+    SCENARIO_PROJECT_BOARD_READY = 'scenario.project.board.ready'
+    SCENARIO_PROJECT_CREATE_API_SUCCESS = 'scenario.project.create.api.success'
 
 class Screen:
-    SCREEN_FSM_PROJECT_BOARD = 'screen.fsm.project.board'
+    SCREEN_PROJECT_BOARD = 'screen.project.board'
+
+class StateMachine:
+    STATE_MACHINE_PROJECT_ACTIVITY = 'state_machine.project.activity'
+    STATE_MACHINE_PROJECT_BOARD = 'state_machine.project.board'
+    STATE_MACHINE_PROJECT_DETAIL = 'state_machine.project.detail'
+    STATE_MACHINE_PROJECT_LIST = 'state_machine.project.list'
 
 class Surface:
-    FSM_PROJECT_ACTIVITY_EMPTY = 'fsm.project.activity.empty'
-    FSM_PROJECT_ACTIVITY_READY = 'fsm.project.activity.ready'
-    FSM_PROJECT_BOARD_READY = 'fsm.project.board.ready'
-    FSM_PROJECT_DETAIL_ERROR = 'fsm.project.detail.error'
-    FSM_PROJECT_DETAIL_LOADING = 'fsm.project.detail.loading'
-    FSM_PROJECT_DETAIL_NONE = 'fsm.project.detail.none'
-    FSM_PROJECT_DETAIL_READY = 'fsm.project.detail.ready'
-    FSM_PROJECT_LIST_EMPTY = 'fsm.project.list.empty'
-    FSM_PROJECT_LIST_ERROR = 'fsm.project.list.error'
-    FSM_PROJECT_LIST_LOADING = 'fsm.project.list.loading'
-    FSM_PROJECT_LIST_READY = 'fsm.project.list.ready'
+    STATE_MACHINE_PROJECT_ACTIVITY_EMPTY = 'state_machine.project.activity.empty'
+    STATE_MACHINE_PROJECT_ACTIVITY_READY = 'state_machine.project.activity.ready'
+    STATE_MACHINE_PROJECT_BOARD_READY = 'state_machine.project.board.ready'
+    STATE_MACHINE_PROJECT_DETAIL_ERROR = 'state_machine.project.detail.error'
+    STATE_MACHINE_PROJECT_DETAIL_LOADING = 'state_machine.project.detail.loading'
+    STATE_MACHINE_PROJECT_DETAIL_NONE = 'state_machine.project.detail.none'
+    STATE_MACHINE_PROJECT_DETAIL_READY = 'state_machine.project.detail.ready'
+    STATE_MACHINE_PROJECT_LIST_EMPTY = 'state_machine.project.list.empty'
+    STATE_MACHINE_PROJECT_LIST_ERROR = 'state_machine.project.list.error'
+    STATE_MACHINE_PROJECT_LIST_LOADING = 'state_machine.project.list.loading'
+    STATE_MACHINE_PROJECT_LIST_READY = 'state_machine.project.list.ready'
+
+class Text:
+    TEXT_PROJECT_ACTIVITY_EMPTY_BODY = 'text.project.activity.empty.body'
+    TEXT_PROJECT_ACTIVITY_EMPTY_HEADING = 'text.project.activity.empty.heading'
+    TEXT_PROJECT_ACTIVITY_READY_HEADING = 'text.project.activity.ready.heading'
+    TEXT_PROJECT_DETAIL_ERROR_BODY = 'text.project.detail.error.body'
+    TEXT_PROJECT_DETAIL_ERROR_HEADING = 'text.project.detail.error.heading'
+    TEXT_PROJECT_DETAIL_LOADING_MESSAGE = 'text.project.detail.loading.message'
+    TEXT_PROJECT_DETAIL_NONE_BODY = 'text.project.detail.none.body'
+    TEXT_PROJECT_DETAIL_NONE_HEADING = 'text.project.detail.none.heading'
+    TEXT_PROJECT_DETAIL_READY_HEADING = 'text.project.detail.ready.heading'
+    TEXT_PROJECT_LIST_EMPTY_BODY = 'text.project.list.empty.body'
+    TEXT_PROJECT_LIST_EMPTY_HEADING = 'text.project.list.empty.heading'
+    TEXT_PROJECT_LIST_ERROR_BODY = 'text.project.list.error.body'
+    TEXT_PROJECT_LIST_ERROR_HEADING = 'text.project.list.error.heading'
+    TEXT_PROJECT_LIST_LOADING_MESSAGE = 'text.project.list.loading.message'
+    TEXT_PROJECT_LIST_READY_HEADING = 'text.project.list.ready.heading'
 
 class Workflow:
     WORKFLOW_PROJECT_APPROVAL_NOTICE = 'workflow.project.approval_notice'

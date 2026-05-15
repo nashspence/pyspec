@@ -44,7 +44,7 @@ def test_author_contract_reuses_layer_guardrails() -> None:
     author = {
         "project": "blocked_author",
         "copies": {
-            "copy.project.empty.heading": {
+            "text.project.empty.heading": {
                 "basis": "UI copy is not part of a core-only source.",
                 "placeholder": "No projects",
             }

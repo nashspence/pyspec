@@ -1,12 +1,12 @@
 $graph:
 - class: Workflow
-  doc: 'contract workflow project.approval_notice; trigger={''event'': ''project.approved''}; outcomes=[''completed'', ''delivery_failed''];
-    ref=workflow.project.approval_notice'
-  id: '#project_approval_notice'
+  doc: 'contract workflow workflow.project.approval_notice; trigger={''event'': ''event.project.approved''}; outcomes=[''completed'',
+    ''delivery_failed'']; ref=workflow.project.approval_notice'
+  id: '#workflow_project_approval_notice'
   inputs:
     trigger_payload:
       type: Any
-  label: project.approval_notice
+  label: workflow.project.approval_notice
   outputs:
     completed:
       type: Any
@@ -23,18 +23,18 @@ $graph:
       out:
       - delivery_failed
       - sent
-      run: '#project_send_approval_notice'
+      run: '#operation_project_send_approval_notice'
 - baseCommand:
   - contract-capability
-  - project.approve
+  - operation.project.approve
   class: CommandLineTool
-  id: '#project_approve'
+  id: '#operation_project_approve'
   inputs:
     approved_by:
       type: string
     project_id:
       type: string
-  label: project.approve
+  label: operation.project.approve
   outputs:
     approved:
       type: Any
@@ -44,13 +44,13 @@ $graph:
       type: Any
 - baseCommand:
   - contract-capability
-  - project.archive
+  - operation.project.archive
   class: CommandLineTool
-  id: '#project_archive'
+  id: '#operation_project_archive'
   inputs:
     project_id:
       type: string
-  label: project.archive
+  label: operation.project.archive
   outputs:
     archived:
       type: Any
@@ -60,9 +60,9 @@ $graph:
       type: Any
 - baseCommand:
   - contract-capability
-  - project.create
+  - operation.project.create
   class: CommandLineTool
-  id: '#project_create'
+  id: '#operation_project_create'
   inputs:
     customer:
       type: string
@@ -72,7 +72,7 @@ $graph:
       type: string
     workspace_id:
       type: string
-  label: project.create
+  label: operation.project.create
   outputs:
     created:
       type: Any
@@ -80,13 +80,13 @@ $graph:
       type: Any
 - baseCommand:
   - contract-capability
-  - project.list
+  - operation.project.list
   class: CommandLineTool
-  id: '#project_list'
+  id: '#operation_project_list'
   inputs:
     workspace_id:
       type: string
-  label: project.list
+  label: operation.project.list
   outputs:
     listed:
       type:
@@ -96,13 +96,13 @@ $graph:
       type: Any
 - baseCommand:
   - contract-capability
-  - project.read
+  - operation.project.read
   class: CommandLineTool
-  id: '#project_read'
+  id: '#operation_project_read'
   inputs:
     project_id:
       type: string
-  label: project.read
+  label: operation.project.read
   outputs:
     found:
       type: Any
@@ -110,15 +110,15 @@ $graph:
       type: Any
 - baseCommand:
   - contract-capability
-  - project.send_approval_notice
+  - operation.project.send_approval_notice
   class: CommandLineTool
-  id: '#project_send_approval_notice'
+  id: '#operation_project_send_approval_notice'
   inputs:
     approved_by:
       type: string
     project_id:
       type: string
-  label: project.send_approval_notice
+  label: operation.project.send_approval_notice
   outputs:
     delivery_failed:
       type: Any
@@ -126,13 +126,13 @@ $graph:
       type: Any
 - baseCommand:
   - contract-capability
-  - project.submit
+  - operation.project.submit
   class: CommandLineTool
-  id: '#project_submit'
+  id: '#operation_project_submit'
   inputs:
     project_id:
       type: string
-  label: project.submit
+  label: operation.project.submit
   outputs:
     invalid_state:
       type: Any

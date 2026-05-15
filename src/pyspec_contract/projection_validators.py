@@ -456,7 +456,7 @@ def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
         namespace = fixture_namespace(contract, case.get("fixtures", []))
         args = {key: resolve(value, namespace) for key, value in case.get("args", {}).items()}
         ref = case["ref"]
-        if ref.startswith("copy."):
+        if ref.startswith("text."):
             item = contract["copies"][ref]
             if not item.get("resolver"):
                 result = item["placeholder"]
@@ -764,14 +764,14 @@ def validate_refs_py(root: Path, contract: dict[str, Any]) -> None:
     expected_groups: dict[str, list[str]] = {
         "Asset": sorted(contract.get("assets", {})),
         "AuditProfile": sorted(contract.get("audit_profiles", {})),
-        "Capability": sorted(contract["capabilities"]),
-        "Copy": sorted(contract.get("copies", {})),
         "ContentCase": sorted(contract.get("content_cases", {})),
-        "Entry": sorted(contract["entries"]),
+        "EntryPoint": sorted(contract["entries"]),
         "Event": sorted(contract["events"]),
         "Fact": sorted(contract.get("facts", {})),
         "Fixture": sorted(contract["fixtures"]),
-        "FSM": sorted(contract.get("fsms", {})),
+        "Operation": sorted(contract["capabilities"]),
+        "StateMachine": sorted(contract.get("fsms", {})),
+        "Text": sorted(contract.get("copies", {})),
         "AuditCase": sorted(audit_cases(contract)),
         "Scenario": sorted(contract["scenarios"]),
     }

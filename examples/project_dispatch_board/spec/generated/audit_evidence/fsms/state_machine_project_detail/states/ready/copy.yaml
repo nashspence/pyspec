@@ -1,0 +1,11 @@
+copy:
+  text.project.detail.ready.heading:
+    args:
+      customer: Text
+      title: Text
+    basis: Ready heading for the detail FSM.
+    max_chars: 80
+    placeholder: Project detail
+    resolver: text.project.detail.ready.heading
+    tone: neutral
+project: project_dispatch_board

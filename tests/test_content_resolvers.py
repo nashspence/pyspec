@@ -17,7 +17,7 @@ ROOT = EXAMPLE_ROOT
 def test_final_copy_resolver_is_contract_declared_and_executable() -> None:
     result = call_copy(
         ROOT,
-        "copy.project.detail.ready.heading",
+        "text.project.detail.ready.heading",
         {"title": "Replace rooftop condenser fan", "customer": "Atlas Foods"},
         ContentContext(surface="test"),
     )

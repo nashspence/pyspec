@@ -21,6 +21,17 @@ DEPRECATED_DEFINITION_NAMES = {
     "scenario",
     "workflow",
 }
+DEPRECATED_REFERENCE_DEFINITION_NAMES = {
+    "asset_id",
+    "audit_profile_id",
+    "content_case_id",
+    "copy_id",
+    "dotted_id",
+    "fact_id",
+    "fixture_id",
+    "fsm_id",
+    "model_id",
+}
 
 
 def _json_without_duplicate_keys(path: Path) -> dict[str, Any]:
@@ -78,7 +89,7 @@ def test_spec_ontology_documents_every_top_level_property() -> None:
 def test_schema_inventory_rejects_deprecated_definition_terminology() -> None:
     names = _schema_definition_names()
     deprecated_suffixes = sorted(name for name in names if name.endswith(("_author", "_spec")))
-    deprecated_bare_items = sorted(names & DEPRECATED_DEFINITION_NAMES)
+    deprecated_bare_items = sorted(names & (DEPRECATED_DEFINITION_NAMES | DEPRECATED_REFERENCE_DEFINITION_NAMES))
     assert deprecated_suffixes == []
     assert deprecated_bare_items == []
 
@@ -87,6 +98,12 @@ def test_schema_inventory_rejects_deprecated_definition_terminology() -> None:
         deprecated_refs = sorted(
             ref
             for ref in refs
-            if ref.endswith(("_author", "_spec")) or ref in DEPRECATED_DEFINITION_NAMES
+            if ref.endswith(("_author", "_spec")) or ref in DEPRECATED_DEFINITION_NAMES | DEPRECATED_REFERENCE_DEFINITION_NAMES
         )
         assert deprecated_refs == [], f"{path} contains deprecated schema refs: {deprecated_refs}"
+
+
+def test_spec_ontology_rejects_deprecated_reference_terminology() -> None:
+    text = DOC_PATH.read_text(encoding="utf-8")
+    deprecated_terms = sorted(term for term in DEPRECATED_REFERENCE_DEFINITION_NAMES if term in text)
+    assert deprecated_terms == []

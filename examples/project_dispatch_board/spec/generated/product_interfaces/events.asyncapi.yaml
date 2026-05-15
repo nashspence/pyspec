@@ -1,59 +1,59 @@
 asyncapi: 3.1.0
 channels:
-  event_project_approved:
-    address: project.approved
+  event_event_project_approved:
+    address: event.project.approved
     messages:
-      message_project_approved:
-        $ref: '#/components/messages/message_project_approved'
-    x-event: project.approved
-  event_project_archived:
-    address: project.archived
+      message_event_project_approved:
+        $ref: '#/components/messages/message_event_project_approved'
+    x-event: event.project.approved
+  event_event_project_archived:
+    address: event.project.archived
     messages:
-      message_project_archived:
-        $ref: '#/components/messages/message_project_archived'
-    x-event: project.archived
-  event_project_created:
-    address: project.created
+      message_event_project_archived:
+        $ref: '#/components/messages/message_event_project_archived'
+    x-event: event.project.archived
+  event_event_project_created:
+    address: event.project.created
     messages:
-      message_project_created:
-        $ref: '#/components/messages/message_project_created'
-    x-event: project.created
-  event_project_submitted:
-    address: project.submitted
+      message_event_project_created:
+        $ref: '#/components/messages/message_event_project_created'
+    x-event: event.project.created
+  event_event_project_submitted:
+    address: event.project.submitted
     messages:
-      message_project_submitted:
-        $ref: '#/components/messages/message_project_submitted'
-    x-event: project.submitted
+      message_event_project_submitted:
+        $ref: '#/components/messages/message_event_project_submitted'
+    x-event: event.project.submitted
 components:
   messages:
-    message_project_approved:
-      name: project.approved
+    message_event_project_approved:
+      name: event.project.approved
       payload:
         $ref: '#/components/schemas/ProjectApproved'
-      title: Project Approved
+      title: Event Project Approved
       x-emitted-by:
-      - project.approve
-    message_project_archived:
-      name: project.archived
+      - operation.project.approve
+    message_event_project_archived:
+      name: event.project.archived
       payload:
         $ref: '#/components/schemas/Project'
-      title: Project Archived
+      title: Event Project Archived
       x-emitted-by:
-      - project.archive
-    message_project_created:
-      name: project.created
+      - operation.project.archive
+    message_event_project_created:
+      name: event.project.created
       payload:
         $ref: '#/components/schemas/Project'
-      title: Project Created
+      title: Event Project Created
       x-emitted-by:
-      - project.create
-    message_project_submitted:
-      name: project.submitted
+      - operation.project.create
+    message_event_project_submitted:
+      name: event.project.submitted
       payload:
         $ref: '#/components/schemas/Project'
-      title: Project Submitted
+      title: Event Project Submitted
       x-emitted-by:
-      - project.submit
+      - operation.project.submit
   schemas:
     NoticeResult:
       additionalProperties: true
@@ -128,50 +128,50 @@ info:
   title: project_dispatch_board
   version: 0.0.0-contract
 operations:
-  receive_project_approval_notice:
+  receive_workflow_project_approval_notice:
     action: receive
     channel:
-      $ref: '#/channels/event_project_approved'
+      $ref: '#/channels/event_event_project_approved'
     messages:
-    - $ref: '#/components/messages/message_project_approved'
+    - $ref: '#/components/messages/message_event_project_approved'
     x-contract-ref: workflow.project.approval_notice
     x-dispositions:
-      worker.project.approval_notice:
+      entry_point.worker.project.approval_notice:
         accepted:
           disposition: ack
         malformed:
           disposition: dead_letter
           problem: Problem
-    x-workflow: project.approval_notice
-  send_project_approved:
+    x-workflow: workflow.project.approval_notice
+  send_event_project_approved:
     action: send
     channel:
-      $ref: '#/channels/event_project_approved'
+      $ref: '#/channels/event_event_project_approved'
     messages:
-    - $ref: '#/components/messages/message_project_approved'
+    - $ref: '#/components/messages/message_event_project_approved'
     x-emitted-by:
-    - project.approve
-  send_project_archived:
+    - operation.project.approve
+  send_event_project_archived:
     action: send
     channel:
-      $ref: '#/channels/event_project_archived'
+      $ref: '#/channels/event_event_project_archived'
     messages:
-    - $ref: '#/components/messages/message_project_archived'
+    - $ref: '#/components/messages/message_event_project_archived'
     x-emitted-by:
-    - project.archive
-  send_project_created:
+    - operation.project.archive
+  send_event_project_created:
     action: send
     channel:
-      $ref: '#/channels/event_project_created'
+      $ref: '#/channels/event_event_project_created'
     messages:
-    - $ref: '#/components/messages/message_project_created'
+    - $ref: '#/components/messages/message_event_project_created'
     x-emitted-by:
-    - project.create
-  send_project_submitted:
+    - operation.project.create
+  send_event_project_submitted:
     action: send
     channel:
-      $ref: '#/channels/event_project_submitted'
+      $ref: '#/channels/event_event_project_submitted'
     messages:
-    - $ref: '#/components/messages/message_project_submitted'
+    - $ref: '#/components/messages/message_event_project_submitted'
     x-emitted-by:
-    - project.submit
+    - operation.project.submit

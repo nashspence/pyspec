@@ -1,0 +1,32 @@
+copy:
+  text.project.activity.empty.body:
+    basis: Empty activity body.
+    max_chars: 120
+    placeholder: Activity appears after a project is selected.
+    tone: instructional
+  text.project.activity.empty.heading:
+    basis: Empty activity heading.
+    max_chars: 80
+    placeholder: No project selected
+    tone: neutral
+  text.project.detail.none.body:
+    basis: No-selection body for the detail FSM.
+    max_chars: 160
+    placeholder: Choose a project from the queue to review customer, assignment, and approval details.
+    tone: instructional
+  text.project.detail.none.heading:
+    basis: No-selection heading for the detail FSM.
+    max_chars: 80
+    placeholder: Select a project
+    tone: instructional
+  text.project.list.empty.body:
+    basis: Empty body for the project list FSM.
+    max_chars: 160
+    placeholder: Create the first project to start coordinating work for this workspace.
+    tone: instructional
+  text.project.list.empty.heading:
+    basis: Empty heading for the project list FSM.
+    max_chars: 80
+    placeholder: No dispatch projects yet
+    tone: neutral
+project: project_dispatch_board

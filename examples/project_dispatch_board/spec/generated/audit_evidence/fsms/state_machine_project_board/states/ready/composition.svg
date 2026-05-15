@@ -1,0 +1,145 @@
+<svg width="1216pt" height="211pt"
+ viewBox="0.00 0.00 1216.00 211.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: e08eb94b708ec322985b628dea8fd627ecb15818ef5a3836c9041e3116875b57 -->
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 193)">
+<title>composition_state_machine_project_board_ready</title>
+<!-- fsm_mount_list -->
+<g id="node1" class="node">
+<title>fsm_mount_list</title>
+<polygon fill="#ffffff" stroke="transparent" points="0,-50 0,-124 151,-124 151,-50 0,-50"/>
+<polygon fill="#047857" stroke="transparent" points="1.5,-115 1.5,-123 150.5,-123 150.5,-115 1.5,-115"/>
+<polygon fill="#ecfdf5" stroke="transparent" points="1.5,-84 1.5,-115 150.5,-115 150.5,-84 1.5,-84"/>
+<text text-anchor="start" x="5.5" y="-101.6" font-family="Arial" font-weight="bold" font-size="13.00">list</text>
+<text text-anchor="start" x="5.5" y="-90.6" font-family="Arial" font-size="8.00" fill="#64748b">nav mount</text>
+<text text-anchor="start" x="6.5" y="-72" font-family="Arial" font-weight="bold" font-size="10.00">fsm:</text>
+<text text-anchor="start" x="27.5" y="-72" font-family="Arial" font-size="10.00">  state_machine.project.list</text>
+<text text-anchor="start" x="6.5" y="-60" font-family="Arial" font-weight="bold" font-size="10.00">initial:</text>
+<text text-anchor="start" x="36.5" y="-60" font-family="Arial" font-size="10.00">  loading</text>
+<polygon fill="none" stroke="#047857" points="0,-50 0,-124 151,-124 151,-50 0,-50"/>
+</g>
+<!-- message_emit_select_project_updates_fsms_list_message_project_selected -->
+<g id="node4" class="node">
+<title>message_emit_select_project_updates_fsms_list_message_project_selected</title>
+<polygon fill="#ffffff" stroke="transparent" points="212,-50 212,-124 386,-124 386,-50 212,-50"/>
+<polygon fill="#4f46e5" stroke="transparent" points="213,-115 213,-123 385,-123 385,-115 213,-115"/>
+<polygon fill="#eef2ff" stroke="transparent" points="213,-84 213,-115 385,-115 385,-84 213,-84"/>
+<text text-anchor="start" x="217" y="-101.6" font-family="Arial" font-weight="bold" font-size="13.00">message.project.selected</text>
+<text text-anchor="start" x="217" y="-90.6" font-family="Arial" font-size="8.00" fill="#64748b">emitted message</text>
+<text text-anchor="start" x="218" y="-72" font-family="Arial" font-weight="bold" font-size="10.00">source:</text>
+<text text-anchor="start" x="253" y="-72" font-family="Arial" font-size="10.00">  message.project.select</text>
+<text text-anchor="start" x="218" y="-60" font-family="Arial" font-weight="bold" font-size="10.00">data:</text>
+<text text-anchor="start" x="241" y="-60" font-family="Arial" font-size="10.00">  project_id</text>
+<text text-anchor="start" x="290" y="-60" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<polygon fill="none" stroke="#4f46e5" points="212,-50 212,-124 386,-124 386,-50 212,-50"/>
+</g>
+<!-- fsm_mount_list&#45;&gt;message_emit_select_project_updates_fsms_list_message_project_selected -->
+<g id="edge2" class="edge">
+<title>fsm_mount_list&#45;&gt;message_emit_select_project_updates_fsms_list_message_project_selected</title>
+<path fill="none" stroke="#4f46e5" stroke-width="1.4" d="M151.18,-87C168.06,-87 186.2,-87 203.77,-87"/>
+<polygon fill="#4f46e5" stroke="#4f46e5" stroke-width="1.4" points="203.79,-89.8 211.79,-87 203.79,-84.2 203.79,-89.8"/>
+</g>
+<!-- fsm_mount_detail -->
+<g id="node2" class="node">
+<title>fsm_mount_detail</title>
+<polygon fill="#ffffff" stroke="transparent" points="1014,-101 1014,-175 1176,-175 1176,-101 1014,-101"/>
+<polygon fill="#047857" stroke="transparent" points="1015,-166 1015,-174 1175,-174 1175,-166 1015,-166"/>
+<polygon fill="#ecfdf5" stroke="transparent" points="1015,-135 1015,-166 1175,-166 1175,-135 1015,-135"/>
+<text text-anchor="start" x="1019" y="-152.6" font-family="Arial" font-weight="bold" font-size="13.00">detail</text>
+<text text-anchor="start" x="1019" y="-141.6" font-family="Arial" font-size="8.00" fill="#64748b">main mount</text>
+<text text-anchor="start" x="1020" y="-123" font-family="Arial" font-weight="bold" font-size="10.00">fsm:</text>
+<text text-anchor="start" x="1041" y="-123" font-family="Arial" font-size="10.00">  state_machine.project.detail</text>
+<text text-anchor="start" x="1020" y="-111" font-family="Arial" font-weight="bold" font-size="10.00">initial:</text>
+<text text-anchor="start" x="1050" y="-111" font-family="Arial" font-size="10.00">  none</text>
+<polygon fill="none" stroke="#047857" points="1014,-101 1014,-175 1176,-175 1176,-101 1014,-101"/>
+</g>
+<!-- fsm_mount_activity -->
+<g id="node3" class="node">
+<title>fsm_mount_activity</title>
+<polygon fill="#ffffff" stroke="transparent" points="1010,0 1010,-74 1180,-74 1180,0 1010,0"/>
+<polygon fill="#047857" stroke="transparent" points="1011,-65 1011,-73 1179,-73 1179,-65 1011,-65"/>
+<polygon fill="#ecfdf5" stroke="transparent" points="1011,-34 1011,-65 1179,-65 1179,-34 1011,-34"/>
+<text text-anchor="start" x="1015" y="-51.6" font-family="Arial" font-weight="bold" font-size="13.00">activity</text>
+<text text-anchor="start" x="1015" y="-40.6" font-family="Arial" font-size="8.00" fill="#64748b">aside mount</text>
+<text text-anchor="start" x="1016" y="-22" font-family="Arial" font-weight="bold" font-size="10.00">fsm:</text>
+<text text-anchor="start" x="1037" y="-22" font-family="Arial" font-size="10.00">  state_machine.project.activity</text>
+<text text-anchor="start" x="1016" y="-10" font-family="Arial" font-weight="bold" font-size="10.00">initial:</text>
+<text text-anchor="start" x="1046" y="-10" font-family="Arial" font-size="10.00">  empty</text>
+<polygon fill="none" stroke="#047857" points="1010,0 1010,-74 1180,-74 1180,0 1010,0"/>
+</g>
+<!-- message_route_select_project_updates_fsms -->
+<g id="node5" class="node">
+<title>message_route_select_project_updates_fsms</title>
+<polygon fill="#ffffff" stroke="transparent" points="447,-56 447,-118 646,-118 646,-56 447,-56"/>
+<polygon fill="#a16207" stroke="transparent" points="448.5,-109 448.5,-117 645.5,-117 645.5,-109 448.5,-109"/>
+<polygon fill="#fefce8" stroke="transparent" points="448.5,-78 448.5,-109 645.5,-109 645.5,-78 448.5,-78"/>
+<text text-anchor="start" x="452.5" y="-95.6" font-family="Arial" font-weight="bold" font-size="13.00">select_project_updates_fsms</text>
+<text text-anchor="start" x="452.5" y="-84.6" font-family="Arial" font-size="8.00" fill="#64748b">message route</text>
+<text text-anchor="start" x="453.5" y="-66" font-family="Arial" font-weight="bold" font-size="10.00">set:</text>
+<text text-anchor="start" x="470.5" y="-66" font-family="Arial" font-size="10.00">  selected_project_id</text>
+<text text-anchor="start" x="561.5" y="-66" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<text text-anchor="start" x="574.5" y="-66" font-family="Arial" font-size="8.00"> ← project_id</text>
+<polygon fill="none" stroke="#a16207" points="447,-56 447,-118 646,-118 646,-56 447,-56"/>
+</g>
+<!-- message_emit_select_project_updates_fsms_list_message_project_selected&#45;&gt;message_route_select_project_updates_fsms -->
+<g id="edge3" class="edge">
+<title>message_emit_select_project_updates_fsms_list_message_project_selected&#45;&gt;message_route_select_project_updates_fsms</title>
+<path fill="none" stroke="#4f46e5" stroke-width="1.2" d="M386.21,-87C403.22,-87 421.27,-87 438.86,-87"/>
+<polygon fill="#4f46e5" stroke="#4f46e5" stroke-width="1.2" points="438.91,-89.8 446.91,-87 438.91,-84.2 438.91,-89.8"/>
+</g>
+<!-- message_effect_select_project_updates_fsms_1 -->
+<g id="node6" class="node">
+<title>message_effect_select_project_updates_fsms_1</title>
+<polygon fill="#ffffff" stroke="transparent" points="707,-101 707,-175 949,-175 949,-101 707,-101"/>
+<polygon fill="#be185d" stroke="transparent" points="708,-166 708,-174 948,-174 948,-166 708,-166"/>
+<polygon fill="#fdf2f8" stroke="transparent" points="708,-135 708,-166 948,-166 948,-135 708,-135"/>
+<text text-anchor="start" x="712" y="-152.6" font-family="Arial" font-weight="bold" font-size="13.00">message.project.selection_changed</text>
+<text text-anchor="start" x="712" y="-141.6" font-family="Arial" font-size="8.00" fill="#64748b">sent message</text>
+<text text-anchor="start" x="713" y="-123" font-family="Arial" font-weight="bold" font-size="10.00">causes:</text>
+<text text-anchor="start" x="749" y="-123" font-family="Arial" font-size="10.00">  to loading</text>
+<text text-anchor="start" x="713" y="-111" font-family="Arial" font-weight="bold" font-size="10.00">data:</text>
+<text text-anchor="start" x="736" y="-111" font-family="Arial" font-size="10.00">  project_id</text>
+<text text-anchor="start" x="785" y="-111" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<polygon fill="none" stroke="#be185d" points="707,-101 707,-175 949,-175 949,-101 707,-101"/>
+</g>
+<!-- message_route_select_project_updates_fsms&#45;&gt;message_effect_select_project_updates_fsms_1 -->
+<g id="edge4" class="edge">
+<title>message_route_select_project_updates_fsms&#45;&gt;message_effect_select_project_updates_fsms_1</title>
+<path fill="none" stroke="#be185d" stroke-width="1.3" d="M646.04,-104.98C663.08,-108.09 681.01,-111.36 698.7,-114.59"/>
+<polygon fill="#be185d" stroke="#be185d" stroke-width="1.3" points="698.43,-117.39 706.81,-116.07 699.44,-111.88 698.43,-117.39"/>
+</g>
+<!-- message_effect_select_project_updates_fsms_2 -->
+<g id="node7" class="node">
+<title>message_effect_select_project_updates_fsms_2</title>
+<polygon fill="#ffffff" stroke="transparent" points="707,0 707,-74 949,-74 949,0 707,0"/>
+<polygon fill="#be185d" stroke="transparent" points="708,-65 708,-73 948,-73 948,-65 708,-65"/>
+<polygon fill="#fdf2f8" stroke="transparent" points="708,-34 708,-65 948,-65 948,-34 708,-34"/>
+<text text-anchor="start" x="712" y="-51.6" font-family="Arial" font-weight="bold" font-size="13.00">message.project.selection_changed</text>
+<text text-anchor="start" x="712" y="-40.6" font-family="Arial" font-size="8.00" fill="#64748b">sent message</text>
+<text text-anchor="start" x="713" y="-22" font-family="Arial" font-weight="bold" font-size="10.00">causes:</text>
+<text text-anchor="start" x="749" y="-22" font-family="Arial" font-size="10.00">  to ready</text>
+<text text-anchor="start" x="713" y="-10" font-family="Arial" font-weight="bold" font-size="10.00">data:</text>
+<text text-anchor="start" x="736" y="-10" font-family="Arial" font-size="10.00">  project_id</text>
+<text text-anchor="start" x="785" y="-10" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<polygon fill="none" stroke="#be185d" points="707,0 707,-74 949,-74 949,0 707,0"/>
+</g>
+<!-- message_route_select_project_updates_fsms&#45;&gt;message_effect_select_project_updates_fsms_2 -->
+<g id="edge6" class="edge">
+<title>message_route_select_project_updates_fsms&#45;&gt;message_effect_select_project_updates_fsms_2</title>
+<path fill="none" stroke="#be185d" stroke-width="1.3" d="M646.04,-69.37C663.08,-66.32 681.01,-63.12 698.7,-59.95"/>
+<polygon fill="#be185d" stroke="#be185d" stroke-width="1.3" points="699.42,-62.67 706.81,-58.5 698.44,-57.15 699.42,-62.67"/>
+</g>
+<!-- message_effect_select_project_updates_fsms_1&#45;&gt;fsm_mount_detail -->
+<g id="edge5" class="edge">
+<title>message_effect_select_project_updates_fsms_1&#45;&gt;fsm_mount_detail</title>
+<path fill="none" stroke="#be185d" stroke-width="1.4" d="M949.09,-138C968.1,-138 987.44,-138 1005.55,-138"/>
+<polygon fill="#be185d" stroke="#be185d" stroke-width="1.4" points="1005.77,-140.8 1013.77,-138 1005.77,-135.2 1005.77,-140.8"/>
+</g>
+<!-- message_effect_select_project_updates_fsms_1&#45;&gt;message_effect_select_project_updates_fsms_2 -->
+<!-- message_effect_select_project_updates_fsms_2&#45;&gt;fsm_mount_activity -->
+<g id="edge7" class="edge">
+<title>message_effect_select_project_updates_fsms_2&#45;&gt;fsm_mount_activity</title>
+<path fill="none" stroke="#be185d" stroke-width="1.4" d="M949.09,-37C966.75,-37 984.7,-37 1001.67,-37"/>
+<polygon fill="#be185d" stroke="#be185d" stroke-width="1.4" points="1001.92,-39.8 1009.92,-37 1001.92,-34.2 1001.92,-39.8"/>
+</g>
+</g>
+</svg>

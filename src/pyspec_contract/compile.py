@@ -67,7 +67,7 @@ ENTITY_SECTIONS: dict[str, str] = {
 }
 
 
-REF_KINDS = ["asset", "command", "copy", "endpoint", "fsm", "surface", "policy", "query", "route", "screen", "workflow"]
+REF_KINDS = ["asset", "command", "endpoint", "policy", "query", "route", "screen", "state_machine", "surface", "text", "workflow"]
 
 
 def empty_compiled_contract(project: str) -> dict[str, Any]:
@@ -346,13 +346,11 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
 
 
 def _ref_subject(owner_id: str) -> str:
-    if owner_id.startswith("fsm."):
-        return owner_id[len("fsm."):]
-    return owner_id
+    return rules.resource_tail(owner_id)
 
 
 def _state_surface_ref(owner_id: str, state_name: str) -> str:
-    if owner_id.startswith("fsm."):
+    if owner_id.startswith("state_machine."):
         return f"{owner_id}.{state_name}"
     return rules.fsm_ref(owner_id, state_name)
 
@@ -477,10 +475,10 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
     refs: dict[str, set[str]] = {kind: set() for kind in REF_KINDS}
     for capability_id, capability in contract["capabilities"].items():
         refs["policy"].add(capability["policy"])
-    refs["copy"].update(contract.get("copies", {}))
+    refs["text"].update(contract.get("copies", {}))
     refs["asset"].update(contract.get("assets", {}))
     for fsm_id in contract["fsms"]:
-        refs["fsm"].add(fsm_id)
+        refs["state_machine"].add(fsm_id)
     for owner in contract["fsms"].values():
         for datum in owner.get("data", []):
             refs["query"].add(datum["query"])
@@ -488,7 +486,7 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
             for datum in state.get("data", []):
                 refs["query"].add(datum["query"])
             refs["surface"].add(state["surface"])
-            refs["copy"].update(state["copy"])
+            refs["text"].update(state["copy"])
             refs["asset"].update(state["assets"])
     for entry in contract["entries"].values():
         for ref_kind, field in [
@@ -575,7 +573,7 @@ def _validate_content_cases(contract: dict[str, Any]) -> None:
                 pass
     for case_id, case in contract.get("content_cases", {}).items():
         ref = case["ref"]
-        section = "copies" if ref.startswith("copy.") else "assets"
+        section = "copies" if ref.startswith("text.") else "assets"
         if ref not in contract.get(section, {}):
             raise ContractError(f"Content case {case_id} references unknown {section[:-1]} {ref}")
         for fixture_id in case.get("fixtures", []):
@@ -880,8 +878,8 @@ def _validate_emit_payload_mapping(
 
 def _validate_fsms(contract: dict[str, Any]) -> None:
     for fsm_id, fsm in contract["fsms"].items():
-        if not fsm_id.startswith("fsm."):
-            raise ContractError(f"FSM id must start with fsm.: {fsm_id}")
+        if not fsm_id.startswith("state_machine."):
+            raise ContractError(f"FSM id must start with state_machine.: {fsm_id}")
         if fsm["model"] not in contract["models"]:
             raise ContractError(f"FSM {fsm_id} references unknown model {fsm['model']}")
         _validate_data_bindings(
@@ -1124,7 +1122,7 @@ def _validate_condition_context(fsm_id: str, context: dict[str, str], condition:
         else:
             keys = []
     else:
-        keys = re.findall(r"\$fsm\.([a-z][a-z0-9_]*)", str(condition))
+        keys = re.findall(r"\$state_machine\.([a-z][a-z0-9_]*)", str(condition))
     for key in keys:
         if key not in context:
             raise ContractError(f"Composed FSM {fsm_id} condition references undeclared context: {key}")
@@ -1132,8 +1130,8 @@ def _validate_condition_context(fsm_id: str, context: dict[str, str], condition:
 
 def _validate_fsm_context_refs(fsm_id: str, context: dict[str, str], mapping: dict[str, Any]) -> None:
     for value in mapping.values():
-        if isinstance(value, str) and value.startswith("$fsm."):
-            key = value[len("$fsm."):]
+        if isinstance(value, str) and value.startswith("$state_machine."):
+            key = value[len("$state_machine."):]
             if key not in context:
                 raise ContractError(f"Composed FSM {fsm_id} references undeclared FSM context: {value}")
 
@@ -1195,7 +1193,7 @@ def _validate_expression_type(
 
 def _expression_type(contract: dict[str, Any] | None, expression: Any, scopes: dict[str, dict[str, str]], label: str) -> str | None:
     if isinstance(expression, str) and expression.startswith("$"):
-        match = re.fullmatch(r"\$(message|fsm|context)\.([a-z][A-Za-z0-9_.]*)", expression)
+        match = re.fullmatch(r"\$(message|state_machine|context)\.([a-z][A-Za-z0-9_.]*)", expression)
         if not match:
             raise ContractError(f"{label} references unsupported expression: {expression}")
         scope, path = match.groups()
@@ -1299,7 +1297,7 @@ def _validate_sync_rules(
                         f"Composed FSM state {label} sync set {body['context']}",
                         body["from"],
                         context[body["context"]],
-                        {"message": source_payload, "fsm": context},
+                        {"message": source_payload, "state_machine": context},
                     )
             elif kind == "send":
                 target_id = body["instance"]
@@ -1314,7 +1312,7 @@ def _validate_sync_rules(
                     label=f"Composed FSM state {label} sync send {body['message']} to {target_id} data",
                     data=body["data"],
                     payload=target_payload,
-                    scopes={"message": source_payload, "fsm": context},
+                    scopes={"message": source_payload, "state_machine": context},
                 )
             else:  # pragma: no cover - schema prevents this.
                 raise ContractError(f"Composed FSM state {label} unsupported sync effect: {kind}")
@@ -1810,9 +1808,9 @@ def _add_mount_context_requirements(
             if child_fsm_context.get(child_key) != expected_type:
                 raise ContractError(f"Composed FSM {fsm_id}.{mount['id']} FSM context {child_key} type must be {expected_type}")
             value = mount_context.get(child_key)
-            if not (isinstance(value, str) and value.startswith("$fsm.")):
+            if not (isinstance(value, str) and value.startswith("$state_machine.")):
                 continue
-            parent_key = value[len("$fsm."):]
+            parent_key = value[len("$state_machine."):]
             actual_type = parent_fsm_context.get(parent_key)
             if actual_type != expected_type:
                 raise ContractError(f"Composed FSM {fsm_id}.{mount['id']} parent context {parent_key} type must be {expected_type}, got {actual_type}")

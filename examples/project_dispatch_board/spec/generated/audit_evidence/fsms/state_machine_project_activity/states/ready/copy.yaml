@@ -1,0 +1,7 @@
+copy:
+  text.project.activity.ready.heading:
+    basis: Ready activity heading.
+    max_chars: 80
+    placeholder: Latest activity
+    tone: neutral
+project: project_dispatch_board

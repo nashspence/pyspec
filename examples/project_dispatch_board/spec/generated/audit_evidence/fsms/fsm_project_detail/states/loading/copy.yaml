@@ -1,7 +1,0 @@
-copy:
-  copy.project.detail.loading.message:
-    basis: Loading message for the detail FSM.
-    max_chars: 80
-    placeholder: Loading project detail…
-    tone: neutral
-project: project_dispatch_board

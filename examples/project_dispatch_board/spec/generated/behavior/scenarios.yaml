@@ -1,6 +1,6 @@
 project: project_dispatch_board
 scenarios:
-  project.approval_notice.workflow:
+  scenario.project.approval_notice.workflow:
     archetype: workflow_event_success
     arrange:
       facts: []
@@ -9,23 +9,23 @@ scenarios:
     assert:
       events:
         emitted:
-        - project.approved
+        - event.project.approved
       invoked:
-      - project.send_approval_notice
+      - operation.project.send_approval_notice
       workflow:
         outcome: completed
         ran: true
-        ref: project.approval_notice
+        ref: workflow.project.approval_notice
     basis: Approval event dispatches the notification workflow.
     execute:
       emit_event:
         payload:
           approved_by: $fixture.actor.id
           project_id: project_submitted_1
-        ref: project.approved
-    feature: project.approval_notice
+        ref: event.project.approved
+    feature: feature.project.approval_notice
     title: Approval event sends notice
-  project.approve.success:
+  scenario.project.approve.success:
     archetype: capability_outcome
     arrange:
       facts:
@@ -47,9 +47,9 @@ scenarios:
     assert:
       events:
         emitted:
-        - project.approved
+        - event.project.approved
       invoked:
-      - project.approve
+      - operation.project.approve
       model:
         exists:
           model: Project
@@ -64,10 +64,10 @@ scenarios:
         input:
           approved_by: $fixture.actor.id
           project_id: project_submitted_1
-        ref: project.approve
-    feature: project.approve
+        ref: operation.project.approve
+    feature: feature.project.approve
     title: Approve submitted dispatch project
-  project.board.empty:
+  scenario.project.board.empty:
     archetype: fsm_composition
     arrange:
       facts:
@@ -79,9 +79,9 @@ scenarios:
       - fixture.workspace.member
     assert:
       enables:
-      - project.create
+      - operation.project.create
       forbids:
-      - project.approve
+      - operation.project.approve
       fsm:
         composition:
           layout:
@@ -164,15 +164,15 @@ scenarios:
                   selector: region.aside
           mounts:
           - context:
-              selected_project_id: $fsm.selected_project_id
-              workspace_id: $fsm.workspace_id
-            fsm: fsm.project.list
+              selected_project_id: $state_machine.selected_project_id
+              workspace_id: $state_machine.workspace_id
+            fsm: state_machine.project.list
             id: list
             initial: loading
             region: nav
           - context:
-              project_id: $fsm.selected_project_id
-            fsm: fsm.project.detail
+              project_id: $state_machine.selected_project_id
+            fsm: state_machine.project.detail
             id: detail
             initial: none
             region: main
@@ -181,8 +181,8 @@ scenarios:
               when:
                 context_present: selected_project_id
           - context:
-              project_id: $fsm.selected_project_id
-            fsm: fsm.project.activity
+              project_id: $state_machine.selected_project_id
+            fsm: state_machine.project.activity
             id: activity
             initial: empty
             region: aside
@@ -199,64 +199,64 @@ scenarios:
                 data:
                   project_id: $message.project_id
                 instance: detail
-                message: project.selection_changed
+                message: message.project.selection_changed
             - send:
                 data:
                   project_id: $message.project_id
                 instance: activity
-                message: project.selection_changed
+                message: message.project.selection_changed
             id: select_project_updates_fsms
             when:
               instance: list
-              message: project.selected
+              message: message.project.selected
         instances:
           activity:
-            source: fsm.project.activity
+            source: state_machine.project.activity
             state: empty
-            surface: fsm.project.activity.empty
+            surface: state_machine.project.activity.empty
           detail:
-            source: fsm.project.detail
+            source: state_machine.project.detail
             state: none
-            surface: fsm.project.detail.none
+            surface: state_machine.project.detail.none
           list:
-            source: fsm.project.list
+            source: state_machine.project.list
             state: empty
-            surface: fsm.project.list.empty
-        ref: fsm.project.board
+            surface: state_machine.project.list.empty
+        ref: state_machine.project.board
         state: ready
-        surface: fsm.project.board.ready
+        surface: state_machine.project.board.ready
         sync:
           observed:
           - select_project_updates_fsms
       requires:
         actions:
-        - project.create
+        - operation.project.create
         assets:
         - asset.project.list.empty.illustration
         copy:
-        - copy.project.activity.empty.heading
-        - copy.project.activity.empty.body
-        - copy.project.detail.none.heading
-        - copy.project.detail.none.body
-        - copy.project.list.empty.heading
-        - copy.project.list.empty.body
+        - text.project.activity.empty.heading
+        - text.project.activity.empty.body
+        - text.project.detail.none.heading
+        - text.project.detail.none.body
+        - text.project.list.empty.heading
+        - text.project.list.empty.body
         queries:
         - query.project.board.list
         - query.project.list.list
         surfaces:
-        - fsm.project.board.ready
-        - fsm.project.activity.empty
-        - fsm.project.detail.none
-        - fsm.project.list.empty
+        - state_machine.project.board.ready
+        - state_machine.project.activity.empty
+        - state_machine.project.detail.none
+        - state_machine.project.list.empty
     basis: An empty workspace shows empty list, no detail, and no activity.
     execute:
       open_entry:
         input:
           workspace_id: $fixture.workspace.id
-        ref: web.project.board
-    feature: project.board
+        ref: entry_point.web.project.board
+    feature: feature.project.board
     title: Empty dispatch board
-  project.board.ready:
+  scenario.project.board.ready:
     archetype: fsm_composition
     arrange:
       facts:
@@ -277,8 +277,8 @@ scenarios:
       - fixture.workspace.member
     assert:
       enables:
-      - project.create
-      - project.submit
+      - operation.project.create
+      - operation.project.submit
       fsm:
         composition:
           layout:
@@ -361,15 +361,15 @@ scenarios:
                   selector: region.aside
           mounts:
           - context:
-              selected_project_id: $fsm.selected_project_id
-              workspace_id: $fsm.workspace_id
-            fsm: fsm.project.list
+              selected_project_id: $state_machine.selected_project_id
+              workspace_id: $state_machine.workspace_id
+            fsm: state_machine.project.list
             id: list
             initial: loading
             region: nav
           - context:
-              project_id: $fsm.selected_project_id
-            fsm: fsm.project.detail
+              project_id: $state_machine.selected_project_id
+            fsm: state_machine.project.detail
             id: detail
             initial: none
             region: main
@@ -378,8 +378,8 @@ scenarios:
               when:
                 context_present: selected_project_id
           - context:
-              project_id: $fsm.selected_project_id
-            fsm: fsm.project.activity
+              project_id: $state_machine.selected_project_id
+            fsm: state_machine.project.activity
             id: activity
             initial: empty
             region: aside
@@ -396,63 +396,63 @@ scenarios:
                 data:
                   project_id: $message.project_id
                 instance: detail
-                message: project.selection_changed
+                message: message.project.selection_changed
             - send:
                 data:
                   project_id: $message.project_id
                 instance: activity
-                message: project.selection_changed
+                message: message.project.selection_changed
             id: select_project_updates_fsms
             when:
               instance: list
-              message: project.selected
+              message: message.project.selected
         instances:
           activity:
-            source: fsm.project.activity
+            source: state_machine.project.activity
             state: empty
-            surface: fsm.project.activity.empty
+            surface: state_machine.project.activity.empty
           detail:
-            source: fsm.project.detail
+            source: state_machine.project.detail
             state: none
-            surface: fsm.project.detail.none
+            surface: state_machine.project.detail.none
           list:
-            source: fsm.project.list
+            source: state_machine.project.list
             state: ready
-            surface: fsm.project.list.ready
-        ref: fsm.project.board
+            surface: state_machine.project.list.ready
+        ref: state_machine.project.board
         state: ready
-        surface: fsm.project.board.ready
+        surface: state_machine.project.board.ready
         sync:
           observed:
           - select_project_updates_fsms
       requires:
         actions:
-        - project.create
-        - project.submit
+        - operation.project.create
+        - operation.project.submit
         assets: []
         copy:
-        - copy.project.activity.empty.heading
-        - copy.project.activity.empty.body
-        - copy.project.detail.none.heading
-        - copy.project.detail.none.body
-        - copy.project.list.ready.heading
+        - text.project.activity.empty.heading
+        - text.project.activity.empty.body
+        - text.project.detail.none.heading
+        - text.project.detail.none.body
+        - text.project.list.ready.heading
         queries:
         - query.project.board.list
         - query.project.list.list
         surfaces:
-        - fsm.project.board.ready
-        - fsm.project.activity.empty
-        - fsm.project.detail.none
-        - fsm.project.list.ready
+        - state_machine.project.board.ready
+        - state_machine.project.activity.empty
+        - state_machine.project.detail.none
+        - state_machine.project.list.ready
     basis: A populated workspace shows the ready list while detail awaits explicit selection.
     execute:
       open_entry:
         input:
           workspace_id: $fixture.workspace.id
-        ref: web.project.board
-    feature: project.board
+        ref: entry_point.web.project.board
+    feature: feature.project.board
     title: Ready dispatch board
-  project.create.api.success:
+  scenario.project.create.api.success:
     archetype: entry_response
     arrange:
       facts:
@@ -465,9 +465,9 @@ scenarios:
     assert:
       events:
         emitted:
-        - project.created
+        - event.project.created
       invoked:
-      - project.create
+      - operation.project.create
       model:
         exists:
           model: Project
@@ -486,6 +486,6 @@ scenarios:
           priority: High
           title: Replace rooftop condenser fan
           workspace_id: $fixture.workspace.id
-        ref: api.project.create
-    feature: project.create
+        ref: entry_point.api.project.create
+    feature: feature.project.create
     title: Create dispatch project through API

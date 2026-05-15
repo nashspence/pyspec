@@ -748,7 +748,7 @@ def content_stubs_projection(contract: dict[str, Any]) -> str:
         "",
         "from pyspec_contract.content import AssetResult, ContentContext, asset, copy",
         "from generated.content_resolvers.signatures import *  # generated arg classes",
-        "from generated.test_adapters.python_refs import Asset, Copy",
+        "from generated.test_adapters.python_refs import Asset, Text",
         "",
     ]
     for ref, spec, class_name in _content_signature_items(contract, "copies"):
@@ -756,7 +756,7 @@ def content_stubs_projection(contract: dict[str, Any]) -> str:
         if not resolver:
             continue
         lines.extend([
-            f"@copy.implements(Copy.{constant_name(ref)})",
+            f"@copy.implements(Text.{constant_name(ref)})",
             f"def {safe_id(ref)}(args: {class_name}, ctx: ContentContext) -> str:",
             f"    raise NotImplementedError({ref!r})",
             "",
@@ -780,14 +780,14 @@ def refs_py_projection(contract: dict[str, Any]) -> str:
     groups: dict[str, list[str]] = {
         "Asset": sorted(contract.get("assets", {})),
         "AuditProfile": sorted(contract.get("audit_profiles", {})),
-        "Capability": sorted(contract["capabilities"]),
-        "Copy": sorted(contract.get("copies", {})),
+        "EntryPoint": sorted(contract["entries"]),
+        "Operation": sorted(contract["capabilities"]),
+        "Text": sorted(contract.get("copies", {})),
         "ContentCase": sorted(contract.get("content_cases", {})),
-        "Entry": sorted(contract["entries"]),
         "Event": sorted(contract["events"]),
         "Fact": sorted(contract.get("facts", {})),
         "Fixture": sorted(contract["fixtures"]),
-        "FSM": sorted(contract.get("fsms", {})),
+        "StateMachine": sorted(contract.get("fsms", {})),
         "AuditCase": sorted(
             f"{fsm_id}.{state_name}.{case_name}.audit"
             for fsm_id, fsm in contract.get("fsms", {}).items()

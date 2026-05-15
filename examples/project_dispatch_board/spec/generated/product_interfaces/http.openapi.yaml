@@ -76,7 +76,7 @@ openapi: 3.1.0
 paths:
   /workspaces/{workspace_id}/projects:
     get:
-      operationId: project.list
+      operationId: operation.project.list
       parameters:
       - in: path
         name: workspace_id
@@ -98,11 +98,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: Unavailable
-      x-capability: project.list
-      x-entry: api.project.list
+      x-capability: operation.project.list
+      x-entry: entry_point.api.project.list
       x-policy: policy.project.list
     post:
-      operationId: project.create
+      operationId: operation.project.create
       parameters:
       - in: path
         name: workspace_id
@@ -140,6 +140,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: Validation Failed
-      x-capability: project.create
-      x-entry: api.project.create
+      x-capability: operation.project.create
+      x-entry: entry_point.api.project.create
       x-policy: policy.project.create

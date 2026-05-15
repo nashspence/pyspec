@@ -1,0 +1,107 @@
+<svg width="1094pt" height="190pt"
+ viewBox="0.00 0.00 1094.00 190.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: 262af7aff31a228efed1b327bf643a31de1ee54ec703bac00a010bf53df8522a -->
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 172)">
+<title>fsm_state_machine_project_activity</title>
+<!-- initial -->
+<g id="node1" class="node">
+<title>initial</title>
+<ellipse fill="none" stroke="#0891b2" cx="21" cy="-41" rx="21" ry="21"/>
+<text text-anchor="middle" x="21" y="-38.8" font-family="Arial" font-size="9.00" fill="#155e75">initial</text>
+</g>
+<!-- state_empty -->
+<g id="node2" class="node">
+<title>state_empty</title>
+<polygon fill="#ffffff" stroke="transparent" points="103,0 103,-82 262,-82 262,0 103,0"/>
+<polygon fill="#0891b2" stroke="transparent" points="104.5,-73 104.5,-81 261.5,-81 261.5,-73 104.5,-73"/>
+<polygon fill="#ecfeff" stroke="transparent" points="104.5,-42 104.5,-73 261.5,-73 261.5,-42 104.5,-42"/>
+<text text-anchor="start" x="108.5" y="-59.6" font-family="Arial" font-weight="bold" font-size="13.00">empty</text>
+<text text-anchor="start" x="108.5" y="-48.6" font-family="Arial" font-size="8.00" fill="#64748b">initial state</text>
+<text text-anchor="start" x="108.5" y="-31" font-family="Arial" font-weight="bold" font-size="10.00">copy</text>
+<text text-anchor="start" x="108.5" y="-19" font-family="Arial" font-size="10.00">text.project.activity.empty.heading</text>
+<text text-anchor="start" x="108.5" y="-8" font-family="Arial" font-size="10.00">text.project.activity.empty.body</text>
+<polygon fill="none" stroke="#0891b2" points="103,0 103,-82 262,-82 262,0 103,0"/>
+</g>
+<!-- initial&#45;&gt;state_empty -->
+<g id="edge1" class="edge">
+<title>initial&#45;&gt;state_empty</title>
+<path fill="none" stroke="#3f3f46" d="M42.2,-41C55.9,-41 75.06,-41 94.78,-41"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="94.96,-43.8 102.96,-41 94.96,-38.2 94.96,-43.8"/>
+</g>
+<!-- transition_0_empty_ready_message_project_selection_changed -->
+<g id="node4" class="node">
+<title>transition_0_empty_ready_message_project_selection_changed</title>
+<polygon fill="#ffffff" stroke="transparent" points="323,-47 323,-133 565,-133 565,-47 323,-47"/>
+<polygon fill="#2563eb" stroke="transparent" points="324,-124 324,-132 564,-132 564,-124 324,-124"/>
+<polygon fill="#eff6ff" stroke="transparent" points="324,-93 324,-124 564,-124 564,-93 324,-93"/>
+<text text-anchor="start" x="328" y="-110.6" font-family="Arial" font-weight="bold" font-size="13.00">message.project.selection_changed</text>
+<text text-anchor="start" x="328" y="-99.6" font-family="Arial" font-size="8.00" fill="#64748b">transition event</text>
+<text text-anchor="start" x="329" y="-81" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
+<text text-anchor="start" x="357" y="-81" font-family="Arial" font-size="10.00">  project_id</text>
+<text text-anchor="start" x="406" y="-81" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<text text-anchor="start" x="329" y="-69" font-family="Arial" font-weight="bold" font-size="10.00">query:</text>
+<text text-anchor="start" x="359" y="-69" font-family="Arial" font-size="10.00">  query.project.activity.read</text>
+<text text-anchor="start" x="329" y="-57" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
+<text text-anchor="start" x="353" y="-57" font-family="Arial" font-size="10.00">  operation.project.read</text>
+<text text-anchor="start" x="453" y="-57" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
+<polygon fill="none" stroke="#2563eb" points="323,-47 323,-133 565,-133 565,-47 323,-47"/>
+</g>
+<!-- state_empty&#45;&gt;transition_0_empty_ready_message_project_selection_changed -->
+<g id="edge2" class="edge">
+<title>state_empty&#45;&gt;transition_0_empty_ready_message_project_selection_changed</title>
+<path fill="none" stroke="#3f3f46" d="M262.06,-55.83C278.62,-58.96 296.5,-62.34 314.36,-65.71"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="314.18,-68.52 322.56,-67.26 315.21,-63.02 314.18,-68.52"/>
+</g>
+<!-- state_ready -->
+<g id="node3" class="node">
+<title>state_ready</title>
+<polygon fill="#ffffff" stroke="transparent" points="626,-40 626,-154 816,-154 816,-40 626,-40"/>
+<polygon fill="#71717a" stroke="transparent" points="627,-145 627,-153 815,-153 815,-145 627,-145"/>
+<polygon fill="#f8fafc" stroke="transparent" points="627,-114 627,-145 815,-145 815,-114 627,-114"/>
+<text text-anchor="start" x="631" y="-131.6" font-family="Arial" font-weight="bold" font-size="13.00">ready</text>
+<text text-anchor="start" x="631" y="-120.6" font-family="Arial" font-size="8.00" fill="#64748b">state</text>
+<text text-anchor="start" x="632" y="-102" font-family="Arial" font-weight="bold" font-size="10.00">copy:</text>
+<text text-anchor="start" x="658" y="-102" font-family="Arial" font-size="10.00">  text.project.activity.ready.heading</text>
+<text text-anchor="start" x="631" y="-82" font-family="Arial" font-weight="bold" font-size="10.00">operation.project.read fields</text>
+<text text-anchor="start" x="631" y="-71" font-family="Arial" font-size="10.00">updated_at</text>
+<text text-anchor="start" x="680" y="-71" font-family="Arial" font-size="8.00" fill="#94a3b8">  Timestamp</text>
+<text text-anchor="start" x="631" y="-60" font-family="Arial" font-size="10.00">status</text>
+<text text-anchor="start" x="659" y="-60" font-family="Arial" font-size="8.00" fill="#94a3b8">  ProjectStatus</text>
+<text text-anchor="start" x="631" y="-49" font-family="Arial" font-size="10.00">assignee</text>
+<text text-anchor="start" x="671" y="-49" font-family="Arial" font-size="8.00" fill="#94a3b8">  Text</text>
+<polygon fill="none" stroke="#71717a" points="626,-40 626,-154 816,-154 816,-40 626,-40"/>
+</g>
+<!-- transition_1_ready_empty_message_selection_cleared -->
+<g id="node5" class="node">
+<title>transition_1_ready_empty_message_selection_cleared</title>
+<polygon fill="#ffffff" stroke="transparent" points="877,-17 877,-79 1058,-79 1058,-17 877,-17"/>
+<polygon fill="#2563eb" stroke="transparent" points="878.5,-70 878.5,-78 1057.5,-78 1057.5,-70 878.5,-70"/>
+<polygon fill="#eff6ff" stroke="transparent" points="878.5,-39 878.5,-70 1057.5,-70 1057.5,-39 878.5,-39"/>
+<text text-anchor="start" x="882.5" y="-56.6" font-family="Arial" font-weight="bold" font-size="13.00">message.selection.cleared</text>
+<text text-anchor="start" x="882.5" y="-45.6" font-family="Arial" font-size="8.00" fill="#64748b">transition event</text>
+<text text-anchor="start" x="883.5" y="-27" font-family="Arial" font-weight="bold" font-size="10.00">set:</text>
+<text text-anchor="start" x="900.5" y="-27" font-family="Arial" font-size="10.00">  project_id</text>
+<text text-anchor="start" x="949.5" y="-27" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<text text-anchor="start" x="962.5" y="-27" font-family="Arial" font-size="8.00"> ← null</text>
+<polygon fill="none" stroke="#2563eb" points="877,-17 877,-79 1058,-79 1058,-17 877,-17"/>
+</g>
+<!-- state_ready&#45;&gt;transition_1_ready_empty_message_selection_cleared -->
+<g id="edge4" class="edge">
+<title>state_ready&#45;&gt;transition_1_ready_empty_message_selection_cleared</title>
+<path fill="none" stroke="#3f3f46" d="M816.18,-78.13C833.45,-74.67 851.5,-71.05 868.86,-67.57"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="869.49,-70.3 876.79,-65.98 868.39,-64.81 869.49,-70.3"/>
+</g>
+<!-- transition_0_empty_ready_message_project_selection_changed&#45;&gt;state_ready -->
+<g id="edge3" class="edge">
+<title>transition_0_empty_ready_message_project_selection_changed&#45;&gt;state_ready</title>
+<path fill="none" stroke="#3f3f46" d="M565.22,-93.06C582.61,-93.5 600.37,-93.95 617.37,-94.39"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="617.58,-97.19 625.65,-94.6 617.73,-91.6 617.58,-97.19"/>
+</g>
+<!-- transition_1_ready_empty_message_selection_cleared&#45;&gt;state_empty -->
+<g id="edge5" class="edge">
+<title>transition_1_ready_empty_message_selection_cleared&#45;&gt;state_empty</title>
+<path fill="none" stroke="#3f3f46" d="M876.79,-33.41C856.83,-30.74 835.74,-28.37 816,-27 621.59,-13.5 392.85,-25.44 270.74,-34.04"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="270.28,-31.26 262.49,-34.62 270.67,-36.85 270.28,-31.26"/>
+</g>
+</g>
+</svg>

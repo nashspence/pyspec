@@ -5,8 +5,8 @@
         "selected_project_id": "ID",
         "workspace_id": "ID"
       },
-      "fsm": "fsm.project.board",
-      "id": "fsm.project.board.ready",
+      "fsm": "state_machine.project.board",
+      "id": "state_machine.project.board.ready",
       "layout": {
         "html": {
           "css": {
@@ -130,19 +130,19 @@
       "mounts": [
         {
           "context": {
-            "selected_project_id": "$fsm.selected_project_id",
-            "workspace_id": "$fsm.workspace_id"
+            "selected_project_id": "$state_machine.selected_project_id",
+            "workspace_id": "$state_machine.workspace_id"
           },
-          "fsm": "fsm.project.list",
+          "fsm": "state_machine.project.list",
           "id": "list",
           "initial": "loading",
           "region": "nav"
         },
         {
           "context": {
-            "project_id": "$fsm.selected_project_id"
+            "project_id": "$state_machine.selected_project_id"
           },
-          "fsm": "fsm.project.detail",
+          "fsm": "state_machine.project.detail",
           "id": "detail",
           "initial": "none",
           "region": "main",
@@ -155,9 +155,9 @@
         },
         {
           "context": {
-            "project_id": "$fsm.selected_project_id"
+            "project_id": "$state_machine.selected_project_id"
           },
-          "fsm": "fsm.project.activity",
+          "fsm": "state_machine.project.activity",
           "id": "activity",
           "initial": "empty",
           "region": "aside",
@@ -185,7 +185,7 @@
                   "project_id": "$message.project_id"
                 },
                 "instance": "detail",
-                "message": "project.selection_changed"
+                "message": "message.project.selection_changed"
               }
             },
             {
@@ -194,14 +194,14 @@
                   "project_id": "$message.project_id"
                 },
                 "instance": "activity",
-                "message": "project.selection_changed"
+                "message": "message.project.selection_changed"
               }
             }
           ],
           "id": "select_project_updates_fsms",
           "when": {
             "instance": "list",
-            "message": "project.selected"
+            "message": "message.project.selected"
           }
         }
       ]
@@ -218,7 +218,7 @@
         "transitions": [
           {
             "from": "empty",
-            "on": "project.selection_changed",
+            "on": "message.project.selection_changed",
             "to": "ready"
           },
           {
@@ -231,21 +231,21 @@
               }
             ],
             "from": "ready",
-            "on": "selection.cleared",
+            "on": "message.selection.cleared",
             "to": "empty"
           }
         ]
       },
-      "id": "fsm.project.activity.empty",
-      "owner": "fsm.project.activity",
+      "id": "state_machine.project.activity.empty",
+      "owner": "state_machine.project.activity",
       "owner_kind": "fsm",
       "presentation": {},
       "slots": {
         "actions": [],
         "assets": [],
         "copy": [
-          "copy.project.activity.empty.heading",
-          "copy.project.activity.empty.body"
+          "text.project.activity.empty.heading",
+          "text.project.activity.empty.body"
         ],
         "fields": []
       },
@@ -254,7 +254,7 @@
     {
       "data": [
         {
-          "capability": "project.read",
+          "capability": "operation.project.read",
           "query": "query.project.activity.read"
         }
       ],
@@ -266,7 +266,7 @@
         "transitions": [
           {
             "from": "empty",
-            "on": "project.selection_changed",
+            "on": "message.project.selection_changed",
             "to": "ready"
           },
           {
@@ -279,20 +279,20 @@
               }
             ],
             "from": "ready",
-            "on": "selection.cleared",
+            "on": "message.selection.cleared",
             "to": "empty"
           }
         ]
       },
-      "id": "fsm.project.activity.ready",
-      "owner": "fsm.project.activity",
+      "id": "state_machine.project.activity.ready",
+      "owner": "state_machine.project.activity",
       "owner_kind": "fsm",
       "presentation": {},
       "slots": {
         "actions": [],
         "assets": [],
         "copy": [
-          "copy.project.activity.ready.heading"
+          "text.project.activity.ready.heading"
         ],
         "fields": [
           "updated_at",
@@ -312,8 +312,8 @@
         "initial": "ready",
         "transitions": []
       },
-      "id": "fsm.project.board.ready",
-      "owner": "fsm.project.board",
+      "id": "state_machine.project.board.ready",
+      "owner": "state_machine.project.board",
       "owner_kind": "fsm",
       "presentation": {},
       "slots": {
@@ -334,7 +334,7 @@
         "transitions": [
           {
             "from": "none",
-            "on": "project.selection_changed",
+            "on": "message.project.selection_changed",
             "to": "loading"
           },
           {
@@ -357,21 +357,21 @@
               }
             ],
             "from": "ready",
-            "on": "selection.cleared",
+            "on": "message.selection.cleared",
             "to": "none"
           }
         ]
       },
-      "id": "fsm.project.detail.error",
-      "owner": "fsm.project.detail",
+      "id": "state_machine.project.detail.error",
+      "owner": "state_machine.project.detail",
       "owner_kind": "fsm",
       "presentation": {},
       "slots": {
         "actions": [],
         "assets": [],
         "copy": [
-          "copy.project.detail.error.heading",
-          "copy.project.detail.error.body"
+          "text.project.detail.error.heading",
+          "text.project.detail.error.body"
         ],
         "fields": []
       },
@@ -380,7 +380,7 @@
     {
       "data": [
         {
-          "capability": "project.read",
+          "capability": "operation.project.read",
           "query": "query.project.detail.read"
         }
       ],
@@ -392,7 +392,7 @@
         "transitions": [
           {
             "from": "none",
-            "on": "project.selection_changed",
+            "on": "message.project.selection_changed",
             "to": "loading"
           },
           {
@@ -415,20 +415,20 @@
               }
             ],
             "from": "ready",
-            "on": "selection.cleared",
+            "on": "message.selection.cleared",
             "to": "none"
           }
         ]
       },
-      "id": "fsm.project.detail.loading",
-      "owner": "fsm.project.detail",
+      "id": "state_machine.project.detail.loading",
+      "owner": "state_machine.project.detail",
       "owner_kind": "fsm",
       "presentation": {},
       "slots": {
         "actions": [],
         "assets": [],
         "copy": [
-          "copy.project.detail.loading.message"
+          "text.project.detail.loading.message"
         ],
         "fields": []
       },
@@ -444,7 +444,7 @@
         "transitions": [
           {
             "from": "none",
-            "on": "project.selection_changed",
+            "on": "message.project.selection_changed",
             "to": "loading"
           },
           {
@@ -467,21 +467,21 @@
               }
             ],
             "from": "ready",
-            "on": "selection.cleared",
+            "on": "message.selection.cleared",
             "to": "none"
           }
         ]
       },
-      "id": "fsm.project.detail.none",
-      "owner": "fsm.project.detail",
+      "id": "state_machine.project.detail.none",
+      "owner": "state_machine.project.detail",
       "owner_kind": "fsm",
       "presentation": {},
       "slots": {
         "actions": [],
         "assets": [],
         "copy": [
-          "copy.project.detail.none.heading",
-          "copy.project.detail.none.body"
+          "text.project.detail.none.heading",
+          "text.project.detail.none.body"
         ],
         "fields": []
       },
@@ -497,7 +497,7 @@
         "transitions": [
           {
             "from": "none",
-            "on": "project.selection_changed",
+            "on": "message.project.selection_changed",
             "to": "loading"
           },
           {
@@ -520,25 +520,25 @@
               }
             ],
             "from": "ready",
-            "on": "selection.cleared",
+            "on": "message.selection.cleared",
             "to": "none"
           }
         ]
       },
-      "id": "fsm.project.detail.ready",
-      "owner": "fsm.project.detail",
+      "id": "state_machine.project.detail.ready",
+      "owner": "state_machine.project.detail",
       "owner_kind": "fsm",
       "presentation": {},
       "slots": {
         "actions": [
-          "project.approve",
-          "project.archive"
+          "operation.project.approve",
+          "operation.project.archive"
         ],
         "assets": [
           "asset.project.detail.ready.priority_badge"
         ],
         "copy": [
-          "copy.project.detail.ready.heading"
+          "text.project.detail.ready.heading"
         ],
         "fields": [
           "title",
@@ -586,30 +586,30 @@
                   "data": {
                     "project_id": "$message.project_id"
                   },
-                  "message": "project.selected"
+                  "message": "message.project.selected"
                 }
               }
             ],
             "from": "ready",
-            "on": "project.select",
+            "on": "message.project.select",
             "to": "ready"
           }
         ]
       },
-      "id": "fsm.project.list.empty",
-      "owner": "fsm.project.list",
+      "id": "state_machine.project.list.empty",
+      "owner": "state_machine.project.list",
       "owner_kind": "fsm",
       "presentation": {},
       "slots": {
         "actions": [
-          "project.create"
+          "operation.project.create"
         ],
         "assets": [
           "asset.project.list.empty.illustration"
         ],
         "copy": [
-          "copy.project.list.empty.heading",
-          "copy.project.list.empty.body"
+          "text.project.list.empty.heading",
+          "text.project.list.empty.body"
         ],
         "fields": []
       },
@@ -651,26 +651,26 @@
                   "data": {
                     "project_id": "$message.project_id"
                   },
-                  "message": "project.selected"
+                  "message": "message.project.selected"
                 }
               }
             ],
             "from": "ready",
-            "on": "project.select",
+            "on": "message.project.select",
             "to": "ready"
           }
         ]
       },
-      "id": "fsm.project.list.error",
-      "owner": "fsm.project.list",
+      "id": "state_machine.project.list.error",
+      "owner": "state_machine.project.list",
       "owner_kind": "fsm",
       "presentation": {},
       "slots": {
         "actions": [],
         "assets": [],
         "copy": [
-          "copy.project.list.error.heading",
-          "copy.project.list.error.body"
+          "text.project.list.error.heading",
+          "text.project.list.error.body"
         ],
         "fields": []
       },
@@ -712,25 +712,25 @@
                   "data": {
                     "project_id": "$message.project_id"
                   },
-                  "message": "project.selected"
+                  "message": "message.project.selected"
                 }
               }
             ],
             "from": "ready",
-            "on": "project.select",
+            "on": "message.project.select",
             "to": "ready"
           }
         ]
       },
-      "id": "fsm.project.list.loading",
-      "owner": "fsm.project.list",
+      "id": "state_machine.project.list.loading",
+      "owner": "state_machine.project.list",
       "owner_kind": "fsm",
       "presentation": {},
       "slots": {
         "actions": [],
         "assets": [],
         "copy": [
-          "copy.project.list.loading.message"
+          "text.project.list.loading.message"
         ],
         "fields": []
       },
@@ -772,28 +772,28 @@
                   "data": {
                     "project_id": "$message.project_id"
                   },
-                  "message": "project.selected"
+                  "message": "message.project.selected"
                 }
               }
             ],
             "from": "ready",
-            "on": "project.select",
+            "on": "message.project.select",
             "to": "ready"
           }
         ]
       },
-      "id": "fsm.project.list.ready",
-      "owner": "fsm.project.list",
+      "id": "state_machine.project.list.ready",
+      "owner": "state_machine.project.list",
       "owner_kind": "fsm",
       "presentation": {},
       "slots": {
         "actions": [
-          "project.create",
-          "project.submit"
+          "operation.project.create",
+          "operation.project.submit"
         ],
         "assets": [],
         "copy": [
-          "copy.project.list.ready.heading"
+          "text.project.list.ready.heading"
         ],
         "fields": [
           "title",
