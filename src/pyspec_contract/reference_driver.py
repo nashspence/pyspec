@@ -146,12 +146,12 @@ class ReferenceSpecDriver:
                 where = self._resolve_map(body["where"])
                 assert not any(_matches(record, where) for record in self.store[body["model"]]), f"Unexpected assertion fact {body}"
 
-    def _open_entry_point(self, entry_id: str, params: dict[str, Any]) -> dict[str, Any]:
+    def _open_entry_point(self, entry_id: str, input_values: dict[str, Any]) -> dict[str, Any]:
         entry = self.contract["entry_points"][entry_id]
         state_machine_id = entry_state_machine_name(entry)
         state_machine = self.contract["state_machines"][state_machine_id]
-        context = self._entry_target_input(entry, params)
-        records = self._filter(state_machine["model"], context)
+        context = self._entry_target_input(entry, input_values)
+        records = self._filter(state_machine["model"], context) if state_machine.get("model") else []
         parent_state_name = "ready" if "ready" in state_machine.get("view_states", {}) else next(iter(state_machine.get("view_states", {"ready": {}})))
         state = state_machine["view_states"].get(parent_state_name, {"surface": None, "text": [], "assets": [], "available_operations": [], "query_dependencies": []})
         if state.get("child_state_machines"):
@@ -244,7 +244,7 @@ class ReferenceSpecDriver:
 
     def _entry_target_input(self, entry: dict[str, Any], input_values: dict[str, Any]) -> dict[str, Any]:
         namespace = {"input": {}}
-        for section in ("params", "body", "args"):
+        for section in ("path_params", "query_params", "body", "args"):
             fields = entry_point_input(entry).get(section, {})
             if fields:
                 namespace["input"][section] = {name: input_values[name] for name in fields}
@@ -416,6 +416,10 @@ class ReferenceSpecDriver:
             role = condition["subject_has_role"]
             actor = self.fixtures.get("actor", {})
             return role in actor.get("roles", [])
+        if "value_equals" in condition:
+            body = condition["value_equals"]
+            namespace = {"input": dict(input_values), "fixture": self.fixtures}
+            return _resolve_binding(body["left"], namespace) == _resolve_binding(body["right"], namespace)
         return False
 
     def _authorization_records(self, model_id: str, input_values: Mapping[str, Any]) -> list[dict[str, Any]]:
@@ -446,8 +450,13 @@ def _success_outcome_id(operation: Mapping[str, Any]) -> str:
     return successes[0]
 
 
-def _resolve_binding(source: str, namespace: Mapping[str, Any]) -> Any:
-    return resolve_reference_expression(source, namespace)
+def _resolve_binding(binding: Any, namespace: Mapping[str, Any]) -> Any:
+    if isinstance(binding, Mapping):
+        if "from" in binding:
+            return resolve_reference_expression(binding["from"], namespace)
+        if "value" in binding:
+            return binding["value"]
+    return resolve_reference_expression(binding, namespace)
 
 
 def _condition_matches(condition: Mapping[str, Any], context: Mapping[str, Any]) -> bool:

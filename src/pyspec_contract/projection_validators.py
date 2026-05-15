@@ -13,7 +13,7 @@ from jsonschema import Draft202012Validator
 from .agent_prompts import USER_PROMPT_PLACEHOLDER, agent_prompt_paths
 from .compile import ContractError, audit_cases
 from .content import ContentContext, ContentError, asset as asset_registry, call_asset, call_text, text as text_registry, instantiate_args, load_resolvers, validate_resolver_function
-from .runtime import fixture_namespace, resolve
+from .runtime import fixture_namespace, resolve, resolve_binding
 from .runtime_refs import ReferenceExpressionError, parse_reference_expression
 from .io import read_json, read_yaml
 from .layout import renderer_textual_presentation, renderer_textual_style
@@ -173,15 +173,19 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             raise ContractError(f"OpenAPI authorization policy extension does not match operation {cap_id}")
 
         placeholders = _path_params(path)
-        params = entry_point_input(entry).get("params", {})
-        if placeholders != set(params):
-            raise ContractError(f"OpenAPI path params for {entry_id} do not match declared params")
+        path_params = entry_point_input(entry).get("path_params", {})
+        query_params = entry_point_input(entry).get("query_params", {})
+        if placeholders != set(path_params):
+            raise ContractError(f"OpenAPI path params for {entry_id} do not match declared path_params")
         expected_params = [
             {"name": name, "in": "path", "required": True, "schema": type_schema(type_name)}
-            for name, type_name in sorted(params.items())
+            for name, type_name in sorted(path_params.items())
+        ] + [
+            {"name": name, "in": "query", "required": True, "schema": type_schema(type_name)}
+            for name, type_name in sorted(query_params.items())
         ]
         if operation.get("parameters", []) != expected_params:
-            raise ContractError(f"OpenAPI parameters do not match entry params for {entry_id}")
+            raise ContractError(f"OpenAPI parameters do not match entry path/query params for {entry_id}")
 
         body_fields = entry_point_input(entry).get("body", {})
         if body_fields and method not in {"get", "delete"}:
@@ -322,14 +326,15 @@ def validate_routes(contract: dict[str, Any], doc: dict[str, Any]) -> None:
                 "id": entry["route"],
                 "entry": entry_id,
                 "path": entry_point_path(entry),
-                "params": entry_point_input(entry).get("params", {}),
+                "path_params": entry_point_input(entry).get("path_params", {}),
+                "query_params": entry_point_input(entry).get("query_params", {}),
                 "state_machine": entry_state_machine_name(entry),
             })
     if doc["routes"] != expected:
         raise ContractError("routes.json does not exactly match UI entry points")
     for route in doc["routes"]:
-        if _path_params(route["path"]) != set(route["params"]):
-            raise ContractError(f"Route {route['id']} path params do not match declared params")
+        if _path_params(route["path"]) != set(route["path_params"]):
+            raise ContractError(f"Route {route['id']} path params do not match declared path_params")
 
 
 def validate_state_machines_json(contract: dict[str, Any], doc: dict[str, Any]) -> None:
@@ -380,7 +385,7 @@ def validate_textual_contract(root: Path, contract: dict[str, Any]) -> None:
     for composition in compositions:
         if module.composition(composition["id"]) != composition:
             raise ContractError(f"{label} composition lookup failed for {composition['id']}")
-        expected = [(mount["region"], mount["id"], mount["state_machine"]) for mount in composition["child_state_machines"]]
+        expected = [((mount.get("textual_container") or mount.get("html_region")), mount["id"], mount["state_machine"]) for mount in composition["child_state_machines"]]
         if module.compose_contract_composition(composition["id"]) != expected:
             raise ContractError(f"{label} compose_contract_composition mismatch for {composition['id']}")
 
@@ -464,7 +469,7 @@ def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
     exercised: set[str] = set()
     for case_id, case in contract.get("content_cases", {}).items():
         namespace = fixture_namespace(contract, case.get("seed_fixtures", []))
-        args = {key: resolve(value, namespace) for key, value in case.get("args", {}).items()}
+        args = {key: resolve_binding(value, {"fixture": namespace}) for key, value in case.get("args", {}).items()}
         ref = case["ref"]
         if ref.startswith("text."):
             item = contract["text_resources"][ref]
@@ -584,7 +589,12 @@ def _workflow_trigger_payload_type(contract: dict[str, Any], workflow: dict[str,
     return successes[0]
 
 
-def _workflow_cwl_source(source: str) -> str:
+def _workflow_cwl_source(source: Any) -> str:
+    if isinstance(source, dict):
+        if "from" in source:
+            source = source["from"]
+        elif "value" in source:
+            return repr(source["value"])
     try:
         ref = parse_reference_expression(source)
     except ReferenceExpressionError:

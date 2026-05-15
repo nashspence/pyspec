@@ -85,12 +85,12 @@ ALLOWED_DUPLICATE_DEFINITION_GROUPS = {
 }
 ALLOWED_ANY_OF_PATHS_BY_SCHEMA = {
     "author.schema.json": {
+        "$defs.authored_child_state_machine.anyOf",
         "$defs.authored_render_profile.anyOf",
-        "$defs.content_arg_values.additionalProperties.anyOf",
     },
     "spec.schema.json": {
+        "$defs.child_state_machine_item.anyOf",
         "$defs.render_profile_item.anyOf",
-        "$defs.content_arg_values.additionalProperties.anyOf",
     },
 }
 ALLOWED_ONE_OF_WITHOUT_OBJECT_DISCRIMINATORS = {
@@ -145,6 +145,7 @@ ALLOWED_JSON_SCHEMA_KEYWORD_PROPERTIES = {
     ("entry_point_response_value", "type"),
     ("field_schema", "required"),
     ("field_schema", "type"),
+    ("field_type_expr", "enum"),
     ("test_case_item", "then"),
     ("test_case_item", "title"),
     ("type_expr", "enum"),

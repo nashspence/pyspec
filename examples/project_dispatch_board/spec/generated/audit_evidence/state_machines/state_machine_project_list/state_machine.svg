@@ -1,6 +1,6 @@
-<svg width="1933pt" height="367pt"
- viewBox="0.00 0.00 1933.00 366.50" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 9c1928117a520ff92edf4ac578c47ab74aafd95a50f7b6811e5fcb8e7d7442c6 -->
+<svg width="1937pt" height="367pt"
+ viewBox="0.00 0.00 1937.00 366.50" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: d9ef2e3226db494648f5c9465e0564bcc41a2cba61099ca013b636aadf4a41ad -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 348.5)">
 <title>state_machine_state_machine_project_list</title>
 <!-- initial_view_state -->
@@ -55,7 +55,7 @@
 <polygon fill="#2563eb" stroke="transparent" points="1071.5,-301 1071.5,-309 1422.5,-309 1422.5,-301 1071.5,-301"/>
 <polygon fill="#eff6ff" stroke="transparent" points="1071.5,-270 1071.5,-301 1422.5,-301 1422.5,-270 1071.5,-270"/>
 <text text-anchor="start" x="1075.5" y="-287.6" font-family="Arial" font-weight="bold" font-size="13.00">data_signal.ready</text>
-<text text-anchor="start" x="1075.5" y="-276.6" font-family="Arial" font-size="8.00" fill="#64748b">transition event</text>
+<text text-anchor="start" x="1075.5" y="-276.6" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
 <text text-anchor="start" x="1076.5" y="-258" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
 <text text-anchor="start" x="1104.5" y="-258" font-family="Arial" font-size="10.00">  workspace_id</text>
 <text text-anchor="start" x="1171.5" y="-258" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
@@ -94,7 +94,7 @@
 <polygon fill="#2563eb" stroke="transparent" points="345.5,-281 345.5,-289 696.5,-289 696.5,-281 345.5,-281"/>
 <polygon fill="#eff6ff" stroke="transparent" points="345.5,-250 345.5,-281 696.5,-281 696.5,-250 345.5,-250"/>
 <text text-anchor="start" x="349.5" y="-267.6" font-family="Arial" font-weight="bold" font-size="13.00">data_signal.empty</text>
-<text text-anchor="start" x="349.5" y="-256.6" font-family="Arial" font-size="8.00" fill="#64748b">transition event</text>
+<text text-anchor="start" x="349.5" y="-256.6" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
 <text text-anchor="start" x="350.5" y="-238" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
 <text text-anchor="start" x="378.5" y="-238" font-family="Arial" font-size="10.00">  workspace_id</text>
 <text text-anchor="start" x="445.5" y="-238" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
@@ -120,7 +120,7 @@
 <polygon fill="#2563eb" stroke="transparent" points="1071.5,-176 1071.5,-184 1422.5,-184 1422.5,-176 1071.5,-176"/>
 <polygon fill="#eff6ff" stroke="transparent" points="1071.5,-145 1071.5,-176 1422.5,-176 1422.5,-145 1071.5,-145"/>
 <text text-anchor="start" x="1075.5" y="-162.6" font-family="Arial" font-weight="bold" font-size="13.00">data_signal.ready</text>
-<text text-anchor="start" x="1075.5" y="-151.6" font-family="Arial" font-size="8.00" fill="#64748b">transition event</text>
+<text text-anchor="start" x="1075.5" y="-151.6" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
 <text text-anchor="start" x="1076.5" y="-133" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
 <text text-anchor="start" x="1104.5" y="-133" font-family="Arial" font-size="10.00">  workspace_id</text>
 <text text-anchor="start" x="1171.5" y="-133" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
@@ -146,7 +146,7 @@
 <polygon fill="#2563eb" stroke="transparent" points="345.5,-89 345.5,-97 696.5,-97 696.5,-89 345.5,-89"/>
 <polygon fill="#eff6ff" stroke="transparent" points="345.5,-58 345.5,-89 696.5,-89 696.5,-58 345.5,-58"/>
 <text text-anchor="start" x="349.5" y="-75.6" font-family="Arial" font-weight="bold" font-size="13.00">data_signal.error</text>
-<text text-anchor="start" x="349.5" y="-64.6" font-family="Arial" font-size="8.00" fill="#64748b">transition event</text>
+<text text-anchor="start" x="349.5" y="-64.6" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
 <text text-anchor="start" x="350.5" y="-46" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
 <text text-anchor="start" x="378.5" y="-46" font-family="Arial" font-size="10.00">  workspace_id</text>
 <text text-anchor="start" x="445.5" y="-46" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
@@ -199,23 +199,23 @@
 <!-- transition_4_ready_ready_message_project_select -->
 <g id="node10" class="node">
 <title>transition_4_ready_ready_message_project_select</title>
-<polygon fill="#ffffff" stroke="transparent" points="1739,-161 1739,-235 1897,-235 1897,-161 1739,-161"/>
-<polygon fill="#2563eb" stroke="transparent" points="1740,-226 1740,-234 1896,-234 1896,-226 1740,-226"/>
-<polygon fill="#eff6ff" stroke="transparent" points="1740,-195 1740,-226 1896,-226 1896,-195 1740,-195"/>
-<text text-anchor="start" x="1744" y="-212.6" font-family="Arial" font-weight="bold" font-size="13.00">message.project.select</text>
-<text text-anchor="start" x="1744" y="-201.6" font-family="Arial" font-size="8.00" fill="#64748b">transition event</text>
+<polygon fill="#ffffff" stroke="transparent" points="1739,-161 1739,-235 1901,-235 1901,-161 1739,-161"/>
+<polygon fill="#2563eb" stroke="transparent" points="1740,-226 1740,-234 1900,-234 1900,-226 1740,-226"/>
+<polygon fill="#eff6ff" stroke="transparent" points="1740,-195 1740,-226 1900,-226 1900,-195 1740,-195"/>
+<text text-anchor="start" x="1744" y="-212.6" font-family="Arial" font-weight="bold" font-size="13.00">message.project_select</text>
+<text text-anchor="start" x="1744" y="-201.6" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
 <text text-anchor="start" x="1745" y="-183" font-family="Arial" font-weight="bold" font-size="10.00">emit:</text>
-<text text-anchor="start" x="1769" y="-183" font-family="Arial" font-size="10.00">  message.project.selected</text>
+<text text-anchor="start" x="1769" y="-183" font-family="Arial" font-size="10.00">  message.project_selected</text>
 <text text-anchor="start" x="1745" y="-171" font-family="Arial" font-weight="bold" font-size="10.00">payload:</text>
 <text text-anchor="start" x="1785" y="-171" font-family="Arial" font-size="10.00">  project_id</text>
 <text text-anchor="start" x="1834" y="-171" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
-<polygon fill="none" stroke="#2563eb" points="1739,-161 1739,-235 1897,-235 1897,-161 1739,-161"/>
+<polygon fill="none" stroke="#2563eb" points="1739,-161 1739,-235 1901,-235 1901,-161 1739,-161"/>
 </g>
 <!-- view_state_ready&#45;&gt;transition_4_ready_ready_message_project_select -->
 <g id="edge10" class="edge">
 <title>view_state_ready&#45;&gt;transition_4_ready_ready_message_project_select</title>
-<path fill="none" stroke="#3f3f46" d="M1678.26,-188.39C1695.58,-188.16 1713.54,-188.21 1730.56,-188.56"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1730.77,-191.36 1738.83,-188.75 1730.9,-185.77 1730.77,-191.36"/>
+<path fill="none" stroke="#3f3f46" d="M1678.06,-188.41C1695.37,-188.16 1713.34,-188.2 1730.43,-188.53"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1730.68,-191.34 1738.74,-188.72 1730.8,-185.74 1730.68,-191.34"/>
 </g>
 <!-- transition_0_loading_empty_data_signal_empty&#45;&gt;view_state_empty -->
 <g id="edge3" class="edge">
@@ -244,8 +244,8 @@
 <!-- transition_4_ready_ready_message_project_select&#45;&gt;view_state_ready -->
 <g id="edge11" class="edge">
 <title>transition_4_ready_ready_message_project_select&#45;&gt;view_state_ready</title>
-<path fill="none" stroke="#3f3f46" d="M1738.83,-207.96C1722.01,-208.44 1703.97,-208.6 1686.33,-208.44"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1686.29,-205.64 1678.26,-208.35 1686.23,-211.24 1686.29,-205.64"/>
+<path fill="none" stroke="#3f3f46" d="M1738.74,-208C1721.83,-208.46 1703.76,-208.6 1686.12,-208.43"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1686.09,-205.63 1678.06,-208.33 1686.02,-211.23 1686.09,-205.63"/>
 </g>
 </g>
 </svg>

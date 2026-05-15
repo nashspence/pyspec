@@ -5,8 +5,7 @@ from typing import Any, Mapping
 
 from pyspec_contract.io import read_json, read_yaml
 from pyspec_contract.paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR
-from pyspec_contract.runtime import fixture_namespace, resolve_map
-from pyspec_contract.runtime_refs import resolve_reference_expression
+from pyspec_contract.runtime import fixture_namespace, resolve_binding, resolve_map
 from pyspec_contract.targets import entry_state_machine_name, entry_point_adapter_pair, entry_point_input_bindings, entry_point_input, entry_point_responses, entry_target_pair
 
 
@@ -49,12 +48,12 @@ class ProductApp:
             elif kind == "present":
                 self.projects.append(self._project(self._resolve_map(body["values"])))
 
-    def open_web_entry(self, entry_id: str, params: Mapping[str, Any]) -> dict[str, Any]:
+    def open_web_entry(self, entry_id: str, input_values: Mapping[str, Any]) -> dict[str, Any]:
         entry = self.contract["entry_points"][entry_id]
         assert entry_point_adapter_pair(entry)[0] == "html_route"
         state_machine_id = entry_state_machine_name(entry)
         state_machine = self.contract["state_machines"][state_machine_id]
-        context = self._entry_target_input(entry, params)
+        context = self._entry_target_input(entry, input_values)
         workspace_id = context.get("workspace_id")
         matching = [p for p in self.projects if p.get("workspace_id") == workspace_id]
         parent_state_name = "ready" if "ready" in state_machine.get("view_states", {}) else next(iter(state_machine.get("view_states", {"ready": {}})))
@@ -155,12 +154,12 @@ class ProductApp:
 
     def _entry_target_input(self, entry: Mapping[str, Any], input_values: Mapping[str, Any]) -> dict[str, Any]:
         namespace = {"input": {}}
-        for section in ("params", "body", "args"):
+        for section in ("path_params", "query_params", "body", "args"):
             fields = entry_point_input(dict(entry)).get(section, {})
             if fields:
                 namespace["input"][section] = {name: input_values[name] for name in fields}
         bindings = entry_point_input_bindings(dict(entry))
-        return {name: _resolve_binding(source, namespace) for name, source in bindings.items()}
+        return {name: resolve_binding(source, namespace) for name, source in bindings.items()}
 
     def invoke_operation(self, operation_id: str, input_values: Mapping[str, Any]) -> Any:
         self.invoked_operations.append(operation_id)
@@ -211,7 +210,7 @@ class ProductApp:
         namespace: dict[str, Any] = {"trigger": {"payload": dict(payload)}, "steps": {}}
         while True:
             step = step_by_id[current]
-            input_values = {name: _resolve_binding(source, namespace) for name, source in step["input_bindings"].items()}
+            input_values = {name: resolve_binding(source, namespace) for name, source in step["input_bindings"].items()}
             result = self.invoke_operation(step["operation"], input_values)
             assert self.last_outcome is not None
             namespace["steps"].setdefault(step["id"], {"outcomes": {}})["outcomes"][self.last_outcome] = {"result": result}
@@ -366,6 +365,10 @@ class ProductApp:
             return any(project.get(body["field"]) == body["equals"] for project in self._authorization_records(body["model"], input_values))
         if "subject_has_role" in condition:
             return condition["subject_has_role"] in self.fixtures.get("actor", {}).get("roles", [])
+        if "value_equals" in condition:
+            body = condition["value_equals"]
+            namespace = {"input": dict(input_values), "fixture": self.fixtures}
+            return resolve_binding(body["left"], namespace) == resolve_binding(body["right"], namespace)
         return False
 
     def _authorization_records(self, model_id: str, input_values: Mapping[str, Any]) -> list[dict[str, Any]]:
@@ -382,10 +385,6 @@ class ProductApp:
 
 def _matches(record: Mapping[str, Any], where: Mapping[str, Any]) -> bool:
     return all(record.get(key) == value for key, value in where.items())
-
-
-def _resolve_binding(source: str, namespace: Mapping[str, Any]) -> Any:
-    return resolve_reference_expression(source, namespace)
 
 
 def _success_outcome_id(operation: Mapping[str, Any]) -> str:

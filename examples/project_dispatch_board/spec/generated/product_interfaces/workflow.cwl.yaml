@@ -14,7 +14,7 @@ $graph:
       type: Any
   steps:
     send_notice:
-      doc: 'input_bindings={''approved_by'': ''$trigger.payload.approved_by'', ''project_id'': ''$trigger.payload.project_id''};
+      doc: 'input_bindings={''approved_by'': {''from'': ''$trigger.payload.approved_by''}, ''project_id'': {''from'': ''$trigger.payload.project_id''}};
         outcome_routes={''delivery_failed'': {''retry_policy'': {''attempts'': 3, ''backoff'': ''exponential'', ''fail_as'':
         ''delivery_failed''}}, ''sent'': {''complete_as'': ''completed''}}'
       in:

@@ -104,13 +104,16 @@ authorization_policies:
 content_cases:
   content_case.project.detail.heading.high_priority:
     args:
-      customer: Atlas Foods
-      title: Replace rooftop condenser fan
+      customer:
+        value: Atlas Foods
+      title:
+        value: Replace rooftop condenser fan
     rationale: Exercise final detail heading text with representative fixture-backed content.
     ref: text.project.detail.ready.heading
   content_case.project.detail.priority_badge.high_priority:
     args:
-      priority: High
+      priority:
+        value: High
     rationale: Exercise final dynamic priority badge asset.
     ref: asset.project.detail.ready.priority_badge
 data_contracts:
@@ -152,7 +155,7 @@ entry_points:
               primitive: Text
             title:
               primitive: Text
-          params:
+          path_params:
             workspace_id:
               primitive: ID
         method: POST
@@ -176,16 +179,20 @@ entry_points:
     target:
       operation:
         input_bindings:
-          customer: $input.body.customer
-          priority: $input.body.priority
-          title: $input.body.title
-          workspace_id: $input.params.workspace_id
+          customer:
+            from: $input.body.customer
+          priority:
+            from: $input.body.priority
+          title:
+            from: $input.body.title
+          workspace_id:
+            from: $input.path_params.workspace_id
         ref: operation.project.create
   entry_point.api.project.list:
     adapter:
       http_api:
         input:
-          params:
+          path_params:
             workspace_id:
               primitive: ID
         method: GET
@@ -210,7 +217,8 @@ entry_points:
     target:
       operation:
         input_bindings:
-          workspace_id: $input.params.workspace_id
+          workspace_id:
+            from: $input.path_params.workspace_id
         ref: operation.project.list
   entry_point.cli.project.approve:
     adapter:
@@ -247,8 +255,10 @@ entry_points:
     target:
       operation:
         input_bindings:
-          approved_by: $input.args.approved_by
-          project_id: $input.args.project_id
+          approved_by:
+            from: $input.args.approved_by
+          project_id:
+            from: $input.args.project_id
         ref: operation.project.approve
   entry_point.cli.project.board:
     adapter:
@@ -263,14 +273,15 @@ entry_points:
     target:
       state_machine:
         input_bindings:
-          workspace_id: $input.args.workspace_id
+          workspace_id:
+            from: $input.args.workspace_id
         ref: state_machine.project.board
         renderer: textual
   entry_point.html.project.board:
     adapter:
       html_route:
         input:
-          params:
+          path_params:
             workspace_id:
               primitive: ID
         path: /workspaces/{workspace_id}/dispatch
@@ -279,7 +290,8 @@ entry_points:
     target:
       state_machine:
         input_bindings:
-          workspace_id: $input.params.workspace_id
+          workspace_id:
+            from: $input.path_params.workspace_id
         ref: state_machine.project.board
         renderer: html
   entry_point.worker.project.approval_notice:
@@ -299,8 +311,11 @@ entry_points:
     target:
       workflow:
         ref: workflow.project.approval_notice
-        trigger_source:
-          event: event.project.approved
+        trigger_bindings:
+          approved_by:
+            from: $input.payload.approved_by
+          project_id:
+            from: $input.payload.project_id
     workflow_ref: workflow.project.approval_notice
 events:
   event.project.approved:
@@ -485,8 +500,10 @@ operations:
         emits:
         - event: event.project.approved
           payload_bindings:
-            approved_by: $input.approved_by
-            project_id: $input.project_id
+            approved_by:
+              from: $input.approved_by
+            project_id:
+              from: $input.project_id
         kind: success
         result:
           model: Project
@@ -769,23 +786,28 @@ state_machines:
     rationale: The activity state machine summarizes latest status around the selected project.
     signals:
       accepts:
-        message.project.selection_changed:
-          payload_schema:
-            project_id:
-              primitive: ID
-        message.selection.cleared:
-          payload_schema: {}
-      emits: {}
+        data_signals: {}
+        messages:
+          selection_changed:
+            payload_schema:
+              project_id:
+                primitive: ID
+          selection_cleared:
+            payload_schema: {}
+      emits:
+        messages: {}
     transitions:
     - from: empty
-      on: message.project.selection_changed
+      on:
+        message: selection_changed
       to: ready
     - effects:
       - set:
           context: project_id
           value: null
       from: ready
-      on: message.selection.cleared
+      on:
+        message: selection_cleared
       to: empty
     view_states:
       empty:
@@ -824,8 +846,11 @@ state_machines:
       query: query.project.board.list
     rationale: The dispatch board composes list, detail, and activity state machines through shared selected-project context.
     signals:
-      accepts: {}
-      emits: {}
+      accepts:
+        data_signals: {}
+        messages: {}
+      emits:
+        messages: {}
     transitions: []
     view_states:
       ready:
@@ -833,32 +858,39 @@ state_machines:
         available_operations: []
         child_state_machines:
         - context_bindings:
-            selected_project_id: $state_machine.selected_project_id
-            workspace_id: $state_machine.workspace_id
+            selected_project_id:
+              from: $state_machine.selected_project_id
+            workspace_id:
+              from: $state_machine.workspace_id
+          html_region: nav
           id: list
           initial_view_state: loading
-          region: nav
           state_machine: state_machine.project.list
+          textual_container: nav
         - context_bindings:
-            project_id: $state_machine.selected_project_id
+            project_id:
+              from: $state_machine.selected_project_id
+          html_region: main
           id: detail
           initial_view_state: none
-          region: main
           selected:
             view_state: loading
             when:
               context_present: selected_project_id
           state_machine: state_machine.project.detail
+          textual_container: main
         - context_bindings:
-            project_id: $state_machine.selected_project_id
+            project_id:
+              from: $state_machine.selected_project_id
+          html_region: aside
           id: activity
           initial_view_state: empty
-          region: aside
           selected:
             view_state: ready
             when:
               context_present: selected_project_id
           state_machine: state_machine.project.activity
+          textual_container: aside
         fields: []
         query_dependencies: []
         render_audit_cases:
@@ -976,18 +1008,20 @@ state_machines:
               from: $message.project_id
           - send:
               instance: detail
-              message: message.project.selection_changed
+              message: selection_changed
               payload_bindings:
-                project_id: $message.project_id
+                project_id:
+                  from: $message.project_id
           - send:
               instance: activity
-              message: message.project.selection_changed
+              message: selection_changed
               payload_bindings:
-                project_id: $message.project_id
+                project_id:
+                  from: $message.project_id
           id: select_project_updates_state_machines
           when:
             instance: list
-            message: message.project.selected
+            message: project_selected
         surface: state_machine.project.board.ready
         text: []
   state_machine.project.detail:
@@ -1000,33 +1034,40 @@ state_machines:
     rationale: The detail state machine is independent from the list and reacts to selected project context.
     signals:
       accepts:
-        data_signal.error:
-          payload_schema: {}
-        data_signal.ready:
-          payload_schema: {}
-        message.project.selection_changed:
-          payload_schema:
-            project_id:
-              primitive: ID
-        message.selection.cleared:
-          payload_schema: {}
-      emits: {}
+        data_signals:
+          error:
+            payload_schema: {}
+          ready:
+            payload_schema: {}
+        messages:
+          selection_changed:
+            payload_schema:
+              project_id:
+                primitive: ID
+          selection_cleared:
+            payload_schema: {}
+      emits:
+        messages: {}
     transitions:
     - from: none
-      on: message.project.selection_changed
+      on:
+        message: selection_changed
       to: loading
     - from: loading
-      on: data_signal.ready
+      on:
+        data_signal: ready
       to: ready
     - from: loading
-      on: data_signal.error
+      on:
+        data_signal: error
       to: error
     - effects:
       - set:
           context: project_id
           value: null
       from: ready
-      on: message.selection.cleared
+      on:
+        message: selection_cleared
       to: none
     view_states:
       error:
@@ -1087,41 +1128,50 @@ state_machines:
     rationale: The list state machine owns collection loading, empty, ready, error, and selection behavior.
     signals:
       accepts:
-        data_signal.empty:
-          payload_schema: {}
-        data_signal.error:
-          payload_schema: {}
-        data_signal.ready:
-          payload_schema: {}
-        message.project.select:
-          payload_schema:
-            project_id:
-              primitive: ID
+        data_signals:
+          empty:
+            payload_schema: {}
+          error:
+            payload_schema: {}
+          ready:
+            payload_schema: {}
+        messages:
+          project_select:
+            payload_schema:
+              project_id:
+                primitive: ID
       emits:
-        message.project.selected:
-          payload_schema:
-            project_id:
-              primitive: ID
+        messages:
+          project_selected:
+            payload_schema:
+              project_id:
+                primitive: ID
     transitions:
     - from: loading
-      on: data_signal.empty
+      on:
+        data_signal: empty
       to: empty
     - from: loading
-      on: data_signal.ready
+      on:
+        data_signal: ready
       to: ready
     - from: loading
-      on: data_signal.error
+      on:
+        data_signal: error
       to: error
     - from: empty
-      on: data_signal.ready
+      on:
+        data_signal: ready
       to: ready
     - effects:
       - emit:
-          message: message.project.selected
+          message: project_selected
           payload_bindings:
-            project_id: $message.project_id
+            project_id:
+              from: $message.project_id
       from: ready
-      on: message.project.select
+      on:
+        message: project_select
       to: ready
     view_states:
       empty:
@@ -1286,32 +1336,39 @@ test_cases:
         composition:
           child_state_machines:
           - context_bindings:
-              selected_project_id: $state_machine.selected_project_id
-              workspace_id: $state_machine.workspace_id
+              selected_project_id:
+                from: $state_machine.selected_project_id
+              workspace_id:
+                from: $state_machine.workspace_id
+            html_region: nav
             id: list
             initial_view_state: loading
-            region: nav
             state_machine: state_machine.project.list
+            textual_container: nav
           - context_bindings:
-              project_id: $state_machine.selected_project_id
+              project_id:
+                from: $state_machine.selected_project_id
+            html_region: main
             id: detail
             initial_view_state: none
-            region: main
             selected:
               view_state: loading
               when:
                 context_present: selected_project_id
             state_machine: state_machine.project.detail
+            textual_container: main
           - context_bindings:
-              project_id: $state_machine.selected_project_id
+              project_id:
+                from: $state_machine.selected_project_id
+            html_region: aside
             id: activity
             initial_view_state: empty
-            region: aside
             selected:
               view_state: ready
               when:
                 context_present: selected_project_id
             state_machine: state_machine.project.activity
+            textual_container: aside
           renderers:
             html:
               layout:
@@ -1399,18 +1456,20 @@ test_cases:
                 from: $message.project_id
             - send:
                 instance: detail
-                message: message.project.selection_changed
+                message: selection_changed
                 payload_bindings:
-                  project_id: $message.project_id
+                  project_id:
+                    from: $message.project_id
             - send:
                 instance: activity
-                message: message.project.selection_changed
+                message: selection_changed
                 payload_bindings:
-                  project_id: $message.project_id
+                  project_id:
+                    from: $message.project_id
             id: select_project_updates_state_machines
             when:
               instance: list
-              message: message.project.selected
+              message: project_selected
         instances:
           activity:
             source: state_machine.project.activity
@@ -1486,32 +1545,39 @@ test_cases:
         composition:
           child_state_machines:
           - context_bindings:
-              selected_project_id: $state_machine.selected_project_id
-              workspace_id: $state_machine.workspace_id
+              selected_project_id:
+                from: $state_machine.selected_project_id
+              workspace_id:
+                from: $state_machine.workspace_id
+            html_region: nav
             id: list
             initial_view_state: loading
-            region: nav
             state_machine: state_machine.project.list
+            textual_container: nav
           - context_bindings:
-              project_id: $state_machine.selected_project_id
+              project_id:
+                from: $state_machine.selected_project_id
+            html_region: main
             id: detail
             initial_view_state: none
-            region: main
             selected:
               view_state: loading
               when:
                 context_present: selected_project_id
             state_machine: state_machine.project.detail
+            textual_container: main
           - context_bindings:
-              project_id: $state_machine.selected_project_id
+              project_id:
+                from: $state_machine.selected_project_id
+            html_region: aside
             id: activity
             initial_view_state: empty
-            region: aside
             selected:
               view_state: ready
               when:
                 context_present: selected_project_id
             state_machine: state_machine.project.activity
+            textual_container: aside
           renderers:
             html:
               layout:
@@ -1599,18 +1665,20 @@ test_cases:
                 from: $message.project_id
             - send:
                 instance: detail
-                message: message.project.selection_changed
+                message: selection_changed
                 payload_bindings:
-                  project_id: $message.project_id
+                  project_id:
+                    from: $message.project_id
             - send:
                 instance: activity
-                message: message.project.selection_changed
+                message: selection_changed
                 payload_bindings:
-                  project_id: $message.project_id
+                  project_id:
+                    from: $message.project_id
             id: select_project_updates_state_machines
             when:
               instance: list
-              message: message.project.selected
+              message: project_selected
         instances:
           activity:
             source: state_machine.project.activity
@@ -1776,8 +1844,10 @@ workflows:
     steps:
     - id: send_notice
       input_bindings:
-        approved_by: $trigger.payload.approved_by
-        project_id: $trigger.payload.project_id
+        approved_by:
+          from: $trigger.payload.approved_by
+        project_id:
+          from: $trigger.payload.project_id
       operation: operation.project.send_approval_notice
       outcome_routes:
         delivery_failed:

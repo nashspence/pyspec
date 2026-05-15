@@ -88,6 +88,10 @@ def entry_point_input_bindings(entry_or_target: dict[str, Any]) -> dict[str, Any
     return entry_point_target_pair(entry_or_target)[1].get("input_bindings", {})
 
 
+def entry_workflow_trigger_bindings(entry_or_target: dict[str, Any]) -> dict[str, Any]:
+    return entry_point_target_pair(entry_or_target)[1].get("trigger_bindings", {})
+
+
 def entry_target_pair(target: dict[str, Any]) -> tuple[str, str]:
     if "target" in target:
         kind, body = entry_point_target_pair(target)
@@ -144,8 +148,8 @@ def entry_workflow_target(entry_or_target: dict[str, Any]) -> dict[str, Any]:
     if "target" in entry_or_target or "workflow" in entry_or_target:
         value = entry_point_target(entry_or_target, "workflow")
         result = {"name": value["ref"]}
-        if "trigger_source" in value:
-            result["source"] = value["trigger_source"]
+        if "trigger_bindings" in value:
+            result["trigger_bindings"] = value["trigger_bindings"]
         return result
     target = entry_or_target.get("target", entry_or_target)
     value = target["workflow"]
@@ -156,10 +160,6 @@ def entry_workflow_target(entry_or_target: dict[str, Any]) -> dict[str, Any]:
 
 def entry_workflow_name(entry_or_target: dict[str, Any]) -> str:
     return entry_workflow_target(entry_or_target)["name"]
-
-
-def entry_workflow_target_source(entry_or_target: dict[str, Any]) -> dict[str, str] | None:
-    return entry_workflow_target(entry_or_target).get("source")
 
 
 def workflow_target_name(value: Any) -> str:

@@ -49,7 +49,7 @@ def normalize_type_expr(expr: Any) -> dict[str, Any]:
         if not isinstance(value, str):
             raise TypeExpressionError(f"{kind} type must name a reusable contract")
         return {kind: value}
-    if kind in {"array", "map", "nullable", "optional"}:
+    if kind in {"array", "map", "nullable"}:
         return {kind: normalize_type_expr(value)}
     if kind == "enum":
         if not isinstance(value, list) or not value or not all(isinstance(item, str) for item in value):
@@ -87,13 +87,8 @@ def normalize_field_schema(field: Any) -> dict[str, Any]:
     if not isinstance(nullable, bool):
         raise TypeExpressionError("Field schema nullable must be a boolean")
 
-    while "optional" in type_expr or "nullable" in type_expr:
-        if "optional" in type_expr:
-            required = False
-            type_expr = normalize_type_expr(type_expr["optional"])
-        else:
-            nullable = True
-            type_expr = normalize_type_expr(type_expr["nullable"])
+    if "nullable" in type_expr:
+        raise TypeExpressionError("Field schema type must not use nullable; use field_schema.nullable")
     return {"type": type_expr, "required": required, "nullable": nullable}
 
 
@@ -119,8 +114,6 @@ def effective_field_type(field: Any) -> dict[str, Any]:
     type_expr = normalized["type"]
     if normalized["nullable"]:
         type_expr = {"nullable": type_expr}
-    if not normalized["required"]:
-        type_expr = {"optional": type_expr}
     return normalize_type_expr(type_expr)
 
 
@@ -147,8 +140,6 @@ def type_display(expr: Any) -> str:
         return f"map<{type_display(value)}>"
     if kind == "nullable":
         return f"nullable<{type_display(value)}>"
-    if kind == "optional":
-        return f"optional<{type_display(value)}>"
     if kind == "enum":
         return "enum<" + "|".join(value) + ">"
     if kind == "object":
@@ -160,45 +151,36 @@ def type_display(expr: Any) -> str:
     raise TypeExpressionError(f"Unsupported type expression kind: {kind}")
 
 
-def unwrap_optional(expr: Any) -> dict[str, Any]:
+def unwrap_nullable(expr: Any) -> dict[str, Any]:
     expr = normalize_type_expr(expr)
-    return normalize_type_expr(expr["optional"]) if "optional" in expr else expr
-
-
-def unwrap_nullable_optional(expr: Any) -> dict[str, Any]:
-    expr = normalize_type_expr(expr)
-    while "optional" in expr or "nullable" in expr:
-        expr = normalize_type_expr(expr.get("optional", expr.get("nullable")))
+    while "nullable" in expr:
+        expr = normalize_type_expr(expr["nullable"])
     return expr
 
 
-def is_optional(expr: Any) -> bool:
-    return "optional" in normalize_type_expr(expr)
-
-
 def model_name(expr: Any) -> str | None:
-    expr = unwrap_nullable_optional(expr)
+    expr = unwrap_nullable(expr)
     if "model" in expr:
         return expr["model"]
     return None
 
 
 def data_contract_name(expr: Any) -> str | None:
-    expr = unwrap_nullable_optional(expr)
+    expr = unwrap_nullable(expr)
     if "data_contract" in expr:
         return expr["data_contract"]
     return None
 
 
 def base_model_name(expr: Any) -> str | None:
-    expr = unwrap_nullable_optional(expr)
+    expr = unwrap_nullable(expr)
     if "array" in expr:
         return model_name(expr["array"])
     return model_name(expr)
 
 
 def is_array_of_model(expr: Any, model_id: str) -> bool:
-    expr = unwrap_nullable_optional(expr)
+    expr = unwrap_nullable(expr)
     return "array" in expr and model_name(expr["array"]) == model_id
 
 
@@ -208,7 +190,7 @@ def is_problem_type(expr: Any) -> bool:
 
 
 def object_fields_for_type(contract: Mapping[str, Any] | None, expr: Any) -> dict[str, Any] | None:
-    expr = unwrap_nullable_optional(expr)
+    expr = unwrap_nullable(expr)
     if "object" in expr:
         return effective_type_map(expr["object"]["fields"])
     name = model_name(expr)
@@ -238,7 +220,7 @@ def referenced_named_types(expr: Any) -> set[str]:
     kind, value = next(iter(expr.items()))
     if kind in {"model", "data_contract"}:
         return {value}
-    if kind in {"array", "map", "nullable", "optional"}:
+    if kind in {"array", "map", "nullable"}:
         return referenced_named_types(value)
     if kind == "object":
         names: set[str] = set()
@@ -274,8 +256,6 @@ def type_to_json_schema(expr: Any) -> dict[str, Any]:
     if kind == "nullable":
         schema = type_to_json_schema(value)
         return {"anyOf": [schema, {"type": "null"}]}
-    if kind == "optional":
-        return type_to_json_schema(value)
     if kind == "enum":
         return {"type": "string", "enum": value}
     if kind == "object":
@@ -313,7 +293,7 @@ def type_to_cwl(expr: Any) -> str | dict[str, Any] | list[Any]:
         return "Any"
     if kind == "array":
         return {"type": "array", "items": type_to_cwl(value)}
-    if kind in {"nullable", "optional"}:
+    if kind == "nullable":
         return ["null", type_to_cwl(value)]
     raise TypeExpressionError(f"Unsupported type expression kind: {kind}")
 
@@ -337,13 +317,12 @@ def type_to_python(expr: Any) -> str:
         return f"list[{type_to_python(value)}]"
     if kind == "map":
         return f"dict[str, {type_to_python(value)}]"
-    if kind in {"nullable", "optional"}:
+    if kind == "nullable":
         return f"{type_to_python(value)} | None"
     raise TypeExpressionError(f"Unsupported type expression kind: {kind}")
 
 
 def sample_value(expr: Any) -> Any:
-    expr = unwrap_optional(expr)
     kind, value = next(iter(normalize_type_expr(expr).items()))
     if kind == "primitive":
         return {

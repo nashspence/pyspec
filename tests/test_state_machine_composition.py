@@ -37,10 +37,10 @@ def test_composed_state_machine_contract_is_closed_and_projected() -> None:
     state_machine = contract["state_machines"]["state_machine.project.board"]["view_states"]["ready"]
     assert set(state_machine["renderers"]["html"]["layout"]["regions"]) == {"nav", "main", "aside"}
     assert set(state_machine["renderers"]["textual"]["layout"]["containers"]) == {"nav", "main", "aside"}
-    assert [(item["id"], item["state_machine"], item["region"], item["initial_view_state"]) for item in state_machine["child_state_machines"]] == [
-        ("list", "state_machine.project.list", "nav", "loading"),
-        ("detail", "state_machine.project.detail", "main", "none"),
-        ("activity", "state_machine.project.activity", "aside", "empty"),
+    assert [(item["id"], item["state_machine"], item["html_region"], item["textual_container"], item["initial_view_state"]) for item in state_machine["child_state_machines"]] == [
+        ("list", "state_machine.project.list", "nav", "nav", "loading"),
+        ("detail", "state_machine.project.detail", "main", "main", "none"),
+        ("activity", "state_machine.project.activity", "aside", "aside", "empty"),
     ]
 
     generated = read_json(ROOT / "spec" / "generated" / "product_interfaces" / "html.state_machines.json")
@@ -52,8 +52,8 @@ def test_composed_state_machine_contract_is_closed_and_projected() -> None:
 def test_state_machine_composition_rejects_unknown_html_region() -> None:
     author = _author()
     state_machine = _item(author, "state_machines", "state_machine.project.board")["view_states"]["ready"]
-    state_machine["child_state_machines"][0]["region"] = "ghost"
-    with pytest.raises(ContractError, match="undeclared region"):
+    state_machine["child_state_machines"][0]["html_region"] = "ghost"
+    with pytest.raises(ContractError, match="undeclared HTML region"):
         compile_source(author)
 
 
@@ -68,7 +68,7 @@ def test_state_machine_composition_rejects_context_binding_drift() -> None:
 def test_state_machine_composition_rejects_sync_message_not_emitted_by_source_instance() -> None:
     author = _author()
     state_machine = _item(author, "state_machines", "state_machine.project.board")["view_states"]["ready"]
-    state_machine["signal_sync_rules"][0]["when"]["message"] = "message.project.unannounced"
+    state_machine["signal_sync_rules"][0]["when"]["message"] = "unannounced"
     with pytest.raises(ContractError, match="sync listens for signal the source does not emit"):
         compile_source(author)
 

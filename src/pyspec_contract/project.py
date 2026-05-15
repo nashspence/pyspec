@@ -178,7 +178,8 @@ def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
             continue
         cap = contract["operations"][cap_id]
         entry_input = entry_point_input(entry)
-        params = entry_input.get("params", {})
+        path_params = entry_input.get("path_params", {})
+        query_params = entry_input.get("query_params", {})
         body_fields = entry_input.get("body", {})
         responses = {}
         for outcome_id, response in sorted(entry_point_responses(entry).items()):
@@ -195,7 +196,10 @@ def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
             "x-authorization-policy": cap["authorization_policy"],
             "parameters": [
                 {"name": name, "in": "path", "required": True, "schema": type_schema(type_name)}
-                for name, type_name in sorted(params.items())
+                for name, type_name in sorted(path_params.items())
+            ] + [
+                {"name": name, "in": "query", "required": True, "schema": type_schema(type_name)}
+                for name, type_name in sorted(query_params.items())
             ],
             "responses": responses,
         }
@@ -292,7 +296,8 @@ def routes_projection(contract: dict[str, Any]) -> dict[str, Any]:
                 "id": entry["route"],
                 "entry": entry_id,
                 "path": entry_point_path(entry),
-                "params": entry_point_input(entry).get("params", {}),
+                "path_params": entry_point_input(entry).get("path_params", {}),
+                "query_params": entry_point_input(entry).get("query_params", {}),
                 "state_machine": entry_state_machine_name(entry),
             }
             for entry_id, entry in sorted(contract["entry_points"].items())
@@ -470,7 +475,7 @@ def compose_contract_state_machine(surface_id: str) -> list[tuple[str, str]]:
 
 def compose_contract_composition(composition_id: str) -> list[tuple[str, str, str]]:
     item = composition(composition_id)
-    return [(mount["region"], mount["id"], mount["state_machine"]) for mount in item["child_state_machines"]]
+    return [((mount.get("textual_container") or mount.get("html_region")), mount["id"], mount["state_machine"]) for mount in item["child_state_machines"]]
 
 
 def widget_label(widget: dict) -> str:
@@ -713,7 +718,12 @@ def _workflow_trigger_payload_type(contract: dict[str, Any], workflow: dict[str,
     return successes[0]
 
 
-def _workflow_cwl_source(source: str) -> str:
+def _workflow_cwl_source(source: Any) -> str:
+    if isinstance(source, dict):
+        if "from" in source:
+            source = source["from"]
+        elif "value" in source:
+            return repr(source["value"])
     try:
         ref = parse_reference_expression(source)
     except ReferenceExpressionError:

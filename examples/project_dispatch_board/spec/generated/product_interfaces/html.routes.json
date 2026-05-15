@@ -4,12 +4,13 @@
     {
       "entry": "entry_point.html.project.board",
       "id": "route.project.board",
-      "params": {
+      "path": "/workspaces/{workspace_id}/dispatch",
+      "path_params": {
         "workspace_id": {
           "primitive": "ID"
         }
       },
-      "path": "/workspaces/{workspace_id}/dispatch",
+      "query_params": {},
       "state_machine": "state_machine.project.board"
     }
   ]

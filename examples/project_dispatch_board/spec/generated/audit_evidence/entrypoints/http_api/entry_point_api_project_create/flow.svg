@@ -1,6 +1,6 @@
 <svg width="1209pt" height="371pt"
  viewBox="0.00 0.00 1209.00 371.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 3a88d1941370716829782f5cecfc37c361a7523edf24b19a895dda5ff98cb429 -->
+<!-- pyspec-contract-input-sha256: c0f49d8ddfb471a0b734bf01d648bad0bec68f2f1804ebb2eb0d3ee051f5c500 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 353)">
 <title>entrypoint_entry_point_api_project_create</title>
 <!-- entry_start -->
@@ -38,7 +38,7 @@
 <polygon fill="#f8fafc" stroke="transparent" points="455,-188.5 455,-219.5 537,-219.5 537,-188.5 455,-188.5"/>
 <text text-anchor="start" x="459" y="-206.1" font-family="Arial" font-weight="bold" font-size="13.00">request</text>
 <text text-anchor="start" x="459" y="-195.1" font-family="Arial" font-size="8.00" fill="#64748b">external data</text>
-<text text-anchor="start" x="459" y="-177.5" font-family="Arial" font-weight="bold" font-size="10.00">params</text>
+<text text-anchor="start" x="459" y="-177.5" font-family="Arial" font-weight="bold" font-size="10.00">path params</text>
 <text text-anchor="start" x="459" y="-166.5" font-family="Arial" font-size="10.00">workspace_id</text>
 <text text-anchor="start" x="520" y="-166.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
 <text text-anchor="start" x="459" y="-147.5" font-family="Arial" font-weight="bold" font-size="10.00">body</text>

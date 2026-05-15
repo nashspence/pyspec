@@ -32,7 +32,6 @@ from .targets import (
     entry_point_responses,
     entry_point_schedule_expression,
     entry_target_pair,
-    entry_workflow_target_source,
 )
 from .type_expr import effective_field_type, type_display
 
@@ -859,13 +858,14 @@ def state_machine_dot(state_machine_id: str, state_machine: dict[str, Any], cont
     for index, transition in enumerate(state_machine.get("transitions", [])):
         source = _dot_node_id("view_state", transition["from"])
         target = _dot_node_id("view_state", transition["to"])
-        transition_id = _dot_node_id("transition", f"{index}_{transition['from']}_{transition['to']}_{transition['on']}")
+        transition_label = _signal_label(transition["on"])
+        transition_id = _dot_node_id("transition", f"{index}_{transition['from']}_{transition['to']}_{transition_label}")
         lines.append(
             _dot_html_node(
                 transition_id,
                 _dot_card(
-                    transition["on"],
-                    "transition event",
+                    transition_label,
+                    "transition signal",
                     _format_transition_sections(state_machine, transition, contract),
                     rationale=transition.get("rationale", ""),
                     style=_DOT_STYLE_CAPABILITY,
@@ -909,7 +909,7 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
             _dot_html_node(
                 emit_id,
                 _dot_card(
-                    signal_id,
+                    _message_label(signal_id),
                     "emitted message",
                     [
                         ("source", _emitting_transition_refs(rule["when"]["instance"], signal_id, mount_by_id, contract)),
@@ -960,7 +960,6 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
     adapter_kind, _ = entry_point_adapter_pair(entry)
     target_kind, target_value = entry_target_pair(entry)
     target_renderer = entry_state_machine_renderer(entry) if target_kind == "state_machine" else None
-    target_source = entry_workflow_target_source(entry) if target_kind == "workflow" else None
     start_id = "entry_start"
     entry_node = _dot_node_id("entrypoint", entry_id)
     input_node = _dot_node_id("entrypoint_input", entry_id)
@@ -993,7 +992,7 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
                 _dot_card(input_title, "external data", input_sections, style=_DOT_STYLE_EXTERNAL),
             )
         )
-    lines.append(_dot_html_node(target_node, _entry_target_card(target_kind, target_value, contract, renderer=target_renderer, source=target_source)))
+    lines.append(_dot_html_node(target_node, _entry_target_card(target_kind, target_value, contract, renderer=target_renderer)))
     if response_nodes:
         lines.append(_dot_circle_node(exit_id, "exit", width="0.58", color=_DOT_COLOR_ENTRY, fontcolor=_DOT_COLOR_ENTRY_TEXT, shape="doublecircle"))
         lines.extend(
@@ -1130,8 +1129,10 @@ def _entry_binding_sections(entry: dict[str, Any], contract: dict[str, Any]) -> 
 def _entry_input_sections(entry: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
     entry_input = entry_point_input(entry)
-    if entry_input.get("params"):
-        sections.append(("params", _typed_fields(entry_input["params"])))
+    if entry_input.get("path_params"):
+        sections.append(("path params", _typed_fields(entry_input["path_params"])))
+    if entry_input.get("query_params"):
+        sections.append(("query params", _typed_fields(entry_input["query_params"])))
     if entry_input.get("body"):
         sections.append(("body", _typed_fields(entry_input["body"])))
     if entry_input.get("args"):
@@ -1184,7 +1185,6 @@ def _entry_target_card(
     contract: dict[str, Any],
     *,
     renderer: str | None = None,
-    source: dict[str, str] | None = None,
 ) -> str:
     if target_kind == "state_machine":
         state_machine = contract["state_machines"][target_value]
@@ -1206,12 +1206,9 @@ def _entry_target_card(
         )
     if target_kind == "workflow":
         workflow = contract["workflows"][target_value]
-        target_subtitle = "target workflow"
-        if source:
-            target_subtitle = f"target workflow ({_target_label(*_target_pair(source))})"
         return _dot_card(
             target_value,
-            target_subtitle,
+            "target workflow",
             [
                 ("trigger", [_target_label(*_target_pair(workflow["trigger"]))]),
                 ("steps", [f"{step['id']} {_DOT_ARROW_FORWARD} {step['operation']}" for step in workflow["steps"]]),
@@ -1491,15 +1488,17 @@ def _target_label(kind: str, value: str) -> str:
 
 def _format_mounts(mounts: Iterable[dict[str, Any]]) -> list[_DotTypedField]:
     lines: list[_DotTypedField] = []
-    for mount in sorted(mounts, key=lambda item: (item["region"], item["id"])):
-        lines.append(_DotReferenceField(mount["region"], mount["state_machine"]))
+    for mount in sorted(mounts, key=lambda item: (item.get("html_region") or item.get("textual_container") or "", item["id"])):
+        placement = mount.get("html_region") or mount.get("textual_container")
+        lines.append(_DotReferenceField(placement or "", mount["state_machine"]))
     return lines
 
 
 def _dot_mount_card(mount: dict[str, Any]) -> str:
+    placement = mount.get("html_region") or mount.get("textual_container")
     return _dot_card(
         mount["id"],
-        f"{mount['region']} mount",
+        f"{placement} mount",
         [
             ("state_machine", [mount["state_machine"]]),
             ("initial_view_state", [mount["initial_view_state"]]),
@@ -1516,7 +1515,7 @@ def _dot_sync_effect_card(
     if "send" in effect:
         send = effect["send"]
         return _dot_card(
-            send["message"],
+            _message_label(send["message"]),
             "sent message",
             [
                 ("causes", _receiving_transition_refs(send["instance"], send["message"], mount_by_id, contract)),
@@ -1587,7 +1586,7 @@ def _message_payload_for_instance(
 ) -> dict[str, str]:
     mount = mount_by_id[instance_id]
     state_machine = contract["state_machines"][mount["state_machine"]]
-    return state_machine["signals"][direction][message]["payload_schema"]
+    return state_machine["signals"][direction]["messages"][message]["payload_schema"]
 
 
 def _emitting_transition_emits(
@@ -1624,7 +1623,7 @@ def _emitting_transition_refs(
         return refs
     for transition in state_machine.get("transitions", []):
         if any(effect.get("emit", {}).get("message") == emitted for effect in transition.get("effects", [])):
-            refs.append(transition["on"])
+            refs.append(_signal_label(transition["on"]))
     return refs
 
 
@@ -1644,7 +1643,7 @@ def _receiving_transition_refs(
         return []
     target_sources: dict[str, list[str]] = {}
     for transition in state_machine.get("transitions", []):
-        if transition["on"] == message:
+        if transition["on"] == {"message": message}:
             target_sources.setdefault(transition["to"], []).append(transition["from"])
     if len(target_sources) == 1:
         target = next(iter(target_sources))
@@ -2000,6 +1999,10 @@ def _format_flow_assignment(target: str, value: Any, *, identity_scope: str | No
 
 
 def _format_flow_source(value: Any) -> str:
+    if isinstance(value, dict) and set(value) == {"from"}:
+        return value["from"][1:] if isinstance(value["from"], str) and value["from"].startswith("$") else str(value["from"])
+    if isinstance(value, dict) and set(value) == {"value"}:
+        return _format_scalar(value["value"])
     if isinstance(value, str) and value.startswith("$"):
         return value[1:]
     return _format_scalar(value)
@@ -2055,7 +2058,9 @@ def _state_field_section_title(state_machine: dict[str, Any], state_name: str, s
         return f"{unique[0]} fields"
     if unique:
         return "data fields"
-    return f"{state_machine['model']} fields"
+    if state_machine.get("model"):
+        return f"{state_machine['model']} fields"
+    return "state machine context fields"
 
 
 def _state_field_data_bindings(state_machine: dict[str, Any], state_name: str, state: dict[str, Any]) -> list[dict[str, Any]]:
@@ -2072,8 +2077,15 @@ def _state_field_data_bindings(state_machine: dict[str, Any], state_name: str, s
 
 
 def _format_state_fields(state_machine: dict[str, Any], state: dict[str, Any], contract: dict[str, Any]) -> list[_DotTypedField]:
-    model_fields = contract["models"][state_machine["model"]]["fields"]
-    return [_DotTypedField(field, effective_field_type(model_fields[field])) for field in state["fields"]]
+    model_fields = contract["models"][state_machine["model"]]["fields"] if state_machine.get("model") else {}
+    context_fields = state_machine.get("context", {})
+    fields: list[_DotTypedField] = []
+    for field in state["fields"]:
+        if field in model_fields:
+            fields.append(_DotTypedField(field, effective_field_type(model_fields[field])))
+        elif field in context_fields:
+            fields.append(_DotTypedField(field, context_fields[field]))
+    return fields
 
 
 def _format_operation_outputs(operation_ids: Iterable[str], contract: dict[str, Any]) -> list[_DotTypedField]:
@@ -2117,8 +2129,20 @@ def _format_data_inputs(
     return inputs
 
 
-def _is_data_signal(event: str) -> bool:
-    return event.startswith("data_signal.")
+def _is_data_signal(signal: dict[str, str]) -> bool:
+    return "data_signal" in signal
+
+
+def _signal_label(signal: dict[str, str]) -> str:
+    if "message" in signal:
+        return _message_label(signal["message"])
+    if "data_signal" in signal:
+        return f"data_signal.{signal['data_signal']}"
+    return str(signal)
+
+
+def _message_label(message: str) -> str:
+    return f"message.{message}"
 
 
 def _transition_data_bindings(state_machine: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
@@ -2143,8 +2167,8 @@ def _format_transition_effect_sections(state_machine: dict[str, Any], transition
     for effect in transition.get("effects", []):
         if "emit" in effect:
             emit = effect["emit"]
-            sections.append(("emit", [emit["message"]]))
-            payload_types = state_machine["signals"]["emits"][emit["message"]]["payload_schema"]
+            sections.append(("emit", [_message_label(emit["message"])]))
+            payload_types = state_machine["signals"]["emits"]["messages"][emit["message"]]["payload_schema"]
             payload = _format_typed_data_flow(emit.get("payload_bindings", {}), payload_types)
             if payload:
                 sections.append(("payload", payload))
@@ -2274,7 +2298,7 @@ def render_composed_case_html(root: Path, contract: dict[str, Any], case: dict[s
         if region.get("role") and region["role"] != "none":
             region_attrs["role"] = region["role"]
         parts.append(f"<{region_tag}{format_attrs(region_attrs)}>")
-        for mount in [item for item in state["child_state_machines"] if item["region"] == region_name]:
+        for mount in [item for item in state["child_state_machines"] if item.get("html_region") == region_name]:
             state_name = case["instances"][mount["id"]]["view_state"]
             state_machine = next(item for item in projection["state_machines"] if item["owner_kind"] == "state_machine" and item["owner"] == mount["state_machine"] and item["view_state"] == state_name)
             parts.append(render_state_machine_audit_html(root, contract, state_machine, case))

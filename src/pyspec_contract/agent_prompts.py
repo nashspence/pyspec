@@ -216,7 +216,7 @@ def _pm_design_prompt(context: _PromptContext) -> str:
             "- Use `rationale` only when it preserves non-obvious product intent.",
             "- For entry points, declare one explicit `adapter` (`http_api`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`) and one explicit `target` (`operation`, `state_machine`, or `workflow`).",
             "- For state-machine entry points, keep invocation and rendering separate with adapter input and target `renderer` (`html` or `textual`).",
-            "- For workflow entry points, bind the entry point target to the workflow trigger with `target.workflow.ref` and `target.workflow.trigger_source`.",
+            "- For workflow entry points, bind entry-point input into the workflow trigger payload with `target.workflow.ref` and `target.workflow.trigger_bindings`.",
             "- For rendered screens, put framework-owned `layout`, `presentation`, and `style` under `renderers.html` or `renderers.textual`.",
             "- Every rendered text or asset ref must be backed by a declared text resource or asset item.",
         ]

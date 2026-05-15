@@ -119,32 +119,39 @@ test_cases:
         composition:
           child_state_machines:
           - context_bindings:
-              selected_project_id: $state_machine.selected_project_id
-              workspace_id: $state_machine.workspace_id
+              selected_project_id:
+                from: $state_machine.selected_project_id
+              workspace_id:
+                from: $state_machine.workspace_id
+            html_region: nav
             id: list
             initial_view_state: loading
-            region: nav
             state_machine: state_machine.project.list
+            textual_container: nav
           - context_bindings:
-              project_id: $state_machine.selected_project_id
+              project_id:
+                from: $state_machine.selected_project_id
+            html_region: main
             id: detail
             initial_view_state: none
-            region: main
             selected:
               view_state: loading
               when:
                 context_present: selected_project_id
             state_machine: state_machine.project.detail
+            textual_container: main
           - context_bindings:
-              project_id: $state_machine.selected_project_id
+              project_id:
+                from: $state_machine.selected_project_id
+            html_region: aside
             id: activity
             initial_view_state: empty
-            region: aside
             selected:
               view_state: ready
               when:
                 context_present: selected_project_id
             state_machine: state_machine.project.activity
+            textual_container: aside
           renderers:
             html:
               layout:
@@ -232,18 +239,20 @@ test_cases:
                 from: $message.project_id
             - send:
                 instance: detail
-                message: message.project.selection_changed
+                message: selection_changed
                 payload_bindings:
-                  project_id: $message.project_id
+                  project_id:
+                    from: $message.project_id
             - send:
                 instance: activity
-                message: message.project.selection_changed
+                message: selection_changed
                 payload_bindings:
-                  project_id: $message.project_id
+                  project_id:
+                    from: $message.project_id
             id: select_project_updates_state_machines
             when:
               instance: list
-              message: message.project.selected
+              message: project_selected
         instances:
           activity:
             source: state_machine.project.activity
@@ -319,32 +328,39 @@ test_cases:
         composition:
           child_state_machines:
           - context_bindings:
-              selected_project_id: $state_machine.selected_project_id
-              workspace_id: $state_machine.workspace_id
+              selected_project_id:
+                from: $state_machine.selected_project_id
+              workspace_id:
+                from: $state_machine.workspace_id
+            html_region: nav
             id: list
             initial_view_state: loading
-            region: nav
             state_machine: state_machine.project.list
+            textual_container: nav
           - context_bindings:
-              project_id: $state_machine.selected_project_id
+              project_id:
+                from: $state_machine.selected_project_id
+            html_region: main
             id: detail
             initial_view_state: none
-            region: main
             selected:
               view_state: loading
               when:
                 context_present: selected_project_id
             state_machine: state_machine.project.detail
+            textual_container: main
           - context_bindings:
-              project_id: $state_machine.selected_project_id
+              project_id:
+                from: $state_machine.selected_project_id
+            html_region: aside
             id: activity
             initial_view_state: empty
-            region: aside
             selected:
               view_state: ready
               when:
                 context_present: selected_project_id
             state_machine: state_machine.project.activity
+            textual_container: aside
           renderers:
             html:
               layout:
@@ -432,18 +448,20 @@ test_cases:
                 from: $message.project_id
             - send:
                 instance: detail
-                message: message.project.selection_changed
+                message: selection_changed
                 payload_bindings:
-                  project_id: $message.project_id
+                  project_id:
+                    from: $message.project_id
             - send:
                 instance: activity
-                message: message.project.selection_changed
+                message: selection_changed
                 payload_bindings:
-                  project_id: $message.project_id
+                  project_id:
+                    from: $message.project_id
             id: select_project_updates_state_machines
             when:
               instance: list
-              message: message.project.selected
+              message: project_selected
         instances:
           activity:
             source: state_machine.project.activity

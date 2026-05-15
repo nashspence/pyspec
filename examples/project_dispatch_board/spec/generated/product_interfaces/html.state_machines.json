@@ -4,43 +4,54 @@
       "child_state_machines": [
         {
           "context_bindings": {
-            "selected_project_id": "$state_machine.selected_project_id",
-            "workspace_id": "$state_machine.workspace_id"
+            "selected_project_id": {
+              "from": "$state_machine.selected_project_id"
+            },
+            "workspace_id": {
+              "from": "$state_machine.workspace_id"
+            }
           },
+          "html_region": "nav",
           "id": "list",
           "initial_view_state": "loading",
-          "region": "nav",
-          "state_machine": "state_machine.project.list"
+          "state_machine": "state_machine.project.list",
+          "textual_container": "nav"
         },
         {
           "context_bindings": {
-            "project_id": "$state_machine.selected_project_id"
+            "project_id": {
+              "from": "$state_machine.selected_project_id"
+            }
           },
+          "html_region": "main",
           "id": "detail",
           "initial_view_state": "none",
-          "region": "main",
           "selected": {
             "view_state": "loading",
             "when": {
               "context_present": "selected_project_id"
             }
           },
-          "state_machine": "state_machine.project.detail"
+          "state_machine": "state_machine.project.detail",
+          "textual_container": "main"
         },
         {
           "context_bindings": {
-            "project_id": "$state_machine.selected_project_id"
+            "project_id": {
+              "from": "$state_machine.selected_project_id"
+            }
           },
+          "html_region": "aside",
           "id": "activity",
           "initial_view_state": "empty",
-          "region": "aside",
           "selected": {
             "view_state": "ready",
             "when": {
               "context_present": "selected_project_id"
             }
           },
-          "state_machine": "state_machine.project.activity"
+          "state_machine": "state_machine.project.activity",
+          "textual_container": "aside"
         }
       ],
       "context": {
@@ -188,18 +199,22 @@
             {
               "send": {
                 "instance": "detail",
-                "message": "message.project.selection_changed",
+                "message": "selection_changed",
                 "payload_bindings": {
-                  "project_id": "$message.project_id"
+                  "project_id": {
+                    "from": "$message.project_id"
+                  }
                 }
               }
             },
             {
               "send": {
                 "instance": "activity",
-                "message": "message.project.selection_changed",
+                "message": "selection_changed",
                 "payload_bindings": {
-                  "project_id": "$message.project_id"
+                  "project_id": {
+                    "from": "$message.project_id"
+                  }
                 }
               }
             }
@@ -207,7 +222,7 @@
           "id": "select_project_updates_state_machines",
           "when": {
             "instance": "list",
-            "message": "message.project.selected"
+            "message": "project_selected"
           }
         }
       ],
@@ -241,7 +256,9 @@
         "transitions": [
           {
             "from": "empty",
-            "on": "message.project.selection_changed",
+            "on": {
+              "message": "selection_changed"
+            },
             "to": "ready"
           },
           {
@@ -254,7 +271,9 @@
               }
             ],
             "from": "ready",
-            "on": "message.selection.cleared",
+            "on": {
+              "message": "selection_cleared"
+            },
             "to": "empty"
           }
         ]
@@ -293,7 +312,9 @@
         "transitions": [
           {
             "from": "empty",
-            "on": "message.project.selection_changed",
+            "on": {
+              "message": "selection_changed"
+            },
             "to": "ready"
           },
           {
@@ -306,7 +327,9 @@
               }
             ],
             "from": "ready",
-            "on": "message.selection.cleared",
+            "on": {
+              "message": "selection_cleared"
+            },
             "to": "empty"
           }
         ]
@@ -429,17 +452,23 @@
         "transitions": [
           {
             "from": "none",
-            "on": "message.project.selection_changed",
+            "on": {
+              "message": "selection_changed"
+            },
             "to": "loading"
           },
           {
             "from": "loading",
-            "on": "data_signal.ready",
+            "on": {
+              "data_signal": "ready"
+            },
             "to": "ready"
           },
           {
             "from": "loading",
-            "on": "data_signal.error",
+            "on": {
+              "data_signal": "error"
+            },
             "to": "error"
           },
           {
@@ -452,7 +481,9 @@
               }
             ],
             "from": "ready",
-            "on": "message.selection.cleared",
+            "on": {
+              "message": "selection_cleared"
+            },
             "to": "none"
           }
         ]
@@ -487,17 +518,23 @@
         "transitions": [
           {
             "from": "none",
-            "on": "message.project.selection_changed",
+            "on": {
+              "message": "selection_changed"
+            },
             "to": "loading"
           },
           {
             "from": "loading",
-            "on": "data_signal.ready",
+            "on": {
+              "data_signal": "ready"
+            },
             "to": "ready"
           },
           {
             "from": "loading",
-            "on": "data_signal.error",
+            "on": {
+              "data_signal": "error"
+            },
             "to": "error"
           },
           {
@@ -510,7 +547,9 @@
               }
             ],
             "from": "ready",
-            "on": "message.selection.cleared",
+            "on": {
+              "message": "selection_cleared"
+            },
             "to": "none"
           }
         ]
@@ -541,17 +580,23 @@
         "transitions": [
           {
             "from": "none",
-            "on": "message.project.selection_changed",
+            "on": {
+              "message": "selection_changed"
+            },
             "to": "loading"
           },
           {
             "from": "loading",
-            "on": "data_signal.ready",
+            "on": {
+              "data_signal": "ready"
+            },
             "to": "ready"
           },
           {
             "from": "loading",
-            "on": "data_signal.error",
+            "on": {
+              "data_signal": "error"
+            },
             "to": "error"
           },
           {
@@ -564,7 +609,9 @@
               }
             ],
             "from": "ready",
-            "on": "message.selection.cleared",
+            "on": {
+              "message": "selection_cleared"
+            },
             "to": "none"
           }
         ]
@@ -605,17 +652,23 @@
         "transitions": [
           {
             "from": "none",
-            "on": "message.project.selection_changed",
+            "on": {
+              "message": "selection_changed"
+            },
             "to": "loading"
           },
           {
             "from": "loading",
-            "on": "data_signal.ready",
+            "on": {
+              "data_signal": "ready"
+            },
             "to": "ready"
           },
           {
             "from": "loading",
-            "on": "data_signal.error",
+            "on": {
+              "data_signal": "error"
+            },
             "to": "error"
           },
           {
@@ -628,7 +681,9 @@
               }
             ],
             "from": "ready",
-            "on": "message.selection.cleared",
+            "on": {
+              "message": "selection_cleared"
+            },
             "to": "none"
           }
         ]
@@ -666,37 +721,49 @@
         "transitions": [
           {
             "from": "loading",
-            "on": "data_signal.empty",
+            "on": {
+              "data_signal": "empty"
+            },
             "to": "empty"
           },
           {
             "from": "loading",
-            "on": "data_signal.ready",
+            "on": {
+              "data_signal": "ready"
+            },
             "to": "ready"
           },
           {
             "from": "loading",
-            "on": "data_signal.error",
+            "on": {
+              "data_signal": "error"
+            },
             "to": "error"
           },
           {
             "from": "empty",
-            "on": "data_signal.ready",
+            "on": {
+              "data_signal": "ready"
+            },
             "to": "ready"
           },
           {
             "effects": [
               {
                 "emit": {
-                  "message": "message.project.selected",
+                  "message": "project_selected",
                   "payload_bindings": {
-                    "project_id": "$message.project_id"
+                    "project_id": {
+                      "from": "$message.project_id"
+                    }
                   }
                 }
               }
             ],
             "from": "ready",
-            "on": "message.project.select",
+            "on": {
+              "message": "project_select"
+            },
             "to": "ready"
           }
         ]
@@ -730,37 +797,49 @@
         "transitions": [
           {
             "from": "loading",
-            "on": "data_signal.empty",
+            "on": {
+              "data_signal": "empty"
+            },
             "to": "empty"
           },
           {
             "from": "loading",
-            "on": "data_signal.ready",
+            "on": {
+              "data_signal": "ready"
+            },
             "to": "ready"
           },
           {
             "from": "loading",
-            "on": "data_signal.error",
+            "on": {
+              "data_signal": "error"
+            },
             "to": "error"
           },
           {
             "from": "empty",
-            "on": "data_signal.ready",
+            "on": {
+              "data_signal": "ready"
+            },
             "to": "ready"
           },
           {
             "effects": [
               {
                 "emit": {
-                  "message": "message.project.selected",
+                  "message": "project_selected",
                   "payload_bindings": {
-                    "project_id": "$message.project_id"
+                    "project_id": {
+                      "from": "$message.project_id"
+                    }
                   }
                 }
               }
             ],
             "from": "ready",
-            "on": "message.project.select",
+            "on": {
+              "message": "project_select"
+            },
             "to": "ready"
           }
         ]
@@ -793,37 +872,49 @@
         "transitions": [
           {
             "from": "loading",
-            "on": "data_signal.empty",
+            "on": {
+              "data_signal": "empty"
+            },
             "to": "empty"
           },
           {
             "from": "loading",
-            "on": "data_signal.ready",
+            "on": {
+              "data_signal": "ready"
+            },
             "to": "ready"
           },
           {
             "from": "loading",
-            "on": "data_signal.error",
+            "on": {
+              "data_signal": "error"
+            },
             "to": "error"
           },
           {
             "from": "empty",
-            "on": "data_signal.ready",
+            "on": {
+              "data_signal": "ready"
+            },
             "to": "ready"
           },
           {
             "effects": [
               {
                 "emit": {
-                  "message": "message.project.selected",
+                  "message": "project_selected",
                   "payload_bindings": {
-                    "project_id": "$message.project_id"
+                    "project_id": {
+                      "from": "$message.project_id"
+                    }
                   }
                 }
               }
             ],
             "from": "ready",
-            "on": "message.project.select",
+            "on": {
+              "message": "project_select"
+            },
             "to": "ready"
           }
         ]
@@ -864,37 +955,49 @@
         "transitions": [
           {
             "from": "loading",
-            "on": "data_signal.empty",
+            "on": {
+              "data_signal": "empty"
+            },
             "to": "empty"
           },
           {
             "from": "loading",
-            "on": "data_signal.ready",
+            "on": {
+              "data_signal": "ready"
+            },
             "to": "ready"
           },
           {
             "from": "loading",
-            "on": "data_signal.error",
+            "on": {
+              "data_signal": "error"
+            },
             "to": "error"
           },
           {
             "from": "empty",
-            "on": "data_signal.ready",
+            "on": {
+              "data_signal": "ready"
+            },
             "to": "ready"
           },
           {
             "effects": [
               {
                 "emit": {
-                  "message": "message.project.selected",
+                  "message": "project_selected",
                   "payload_bindings": {
-                    "project_id": "$message.project_id"
+                    "project_id": {
+                      "from": "$message.project_id"
+                    }
                   }
                 }
               }
             ],
             "from": "ready",
-            "on": "message.project.select",
+            "on": {
+              "message": "project_select"
+            },
             "to": "ready"
           }
         ]

@@ -76,18 +76,18 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "on data_signal.ready" not in state_machine
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">initial view state</FONT>' in state_machine
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">view state</FONT>' in state_machine
-    assert '<FONT POINT-SIZE="8" COLOR="#64748b">transition event</FONT>' in state_machine
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">transition signal</FONT>' in state_machine
     assert "text.project.list.ready.heading" in state_machine
     assert "asset.project.list.empty.illustration" in state_machine
     assert state_machine.index("<B>text</B>") < state_machine.index("<B>assets:</B>")
     assert state_machine.index("<B>assets:</B>") < state_machine.index("<B>available_operations:</B>")
     assert state_machine.index("<B>text:</B>&#160;&#160;text.project.list.ready.heading") < state_machine.index("<B>operation.project.list fields</B>")
     assert state_machine.index("<B>operation.project.list fields</B>") < state_machine.index("<B>available_operations</B>")
-    assert "<B>emit:</B>&#160;&#160;message.project.selected" in state_machine
+    assert "<B>emit:</B>&#160;&#160;message.project_selected" in state_machine
     payload_project = '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
     assert payload_project in state_machine
     assert "<B>effects:</B>" not in state_machine
-    assert "emit message.project.selected" not in state_machine
+    assert "emit message.project_selected" not in state_machine
     assert "<B>projection:</B>" not in state_machine
     assert '<FONT POINT-SIZE="10"><B>load:</B>&#160;&#160;operation.project.list</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;array&lt;Project&gt;</FONT>' in state_machine
     assert "<B>query:</B>&#160;&#160;query.project.list.list" in state_machine
@@ -96,7 +96,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert state_machine.index(input_workspace) < state_machine.index("<B>query:</B>&#160;&#160;query.project.list.list")
     assert state_machine.index("<B>query:</B>&#160;&#160;query.project.list.list") < state_machine.index("<B>load:</B>&#160;&#160;operation.project.list")
     detail_transition = state_machine_dot("state_machine.project.detail", contract["state_machines"]["state_machine.project.detail"], contract)
-    selection_card = detail_transition[detail_transition.index("message.project.selection_changed") :]
+    selection_card = detail_transition[detail_transition.index("message.selection_changed") :]
     input_project = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
     assert selection_card.index(input_project) < selection_card.index("<B>query:</B>&#160;&#160;query.project.detail.read")
     load_project = '<FONT POINT-SIZE="10"><B>load:</B>&#160;&#160;operation.project.read</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>'
@@ -126,7 +126,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert '<FONT POINT-SIZE="10">nav</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;state_machine.project.list</FONT>' in board_fsm
     assert "nav: state_machine.project.list" not in board_fsm
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">emitted message</FONT>' in composition
-    assert "<B>source:</B>&#160;&#160;message.project.select" in composition
+    assert "<B>source:</B>&#160;&#160;message.project_select" in composition
     assert "ready to ready" not in composition
     assert "<B>transition:</B>" not in composition
     assert "selected state:" not in composition
@@ -170,11 +170,11 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">html_route entry point</FONT>' in entrypoint
     assert "<B>route:</B>&#160;&#160;route.project.board" in entrypoint
     assert "<B>request</B>" in entrypoint
-    assert "<B>params</B>" in entrypoint
+    assert "<B>path params</B>" in entrypoint
     assert '<FONT POINT-SIZE="10">workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in entrypoint
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">target state machine (html)</FONT>' in entrypoint
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">target state machine (textual)</FONT>' in cli_entrypoint
-    assert '<FONT POINT-SIZE="8" COLOR="#64748b">target workflow (event event.project.approved)</FONT>' in worker_entrypoint
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">target workflow</FONT>' in worker_entrypoint
     assert "<B>event payload</B>" in worker_entrypoint
     assert "<B>message disposition</B>" in worker_entrypoint
     assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.approved</FONT>' in worker_entrypoint
@@ -281,15 +281,15 @@ def test_composition_dot_routes_messages_generically() -> None:
             }
         },
         "child_state_machines": [
-            {"id": "publisher", "region": "source", "state_machine": "state_machine.alpha", "initial_view_state": "idle", "context_bindings": {}},
-            {"id": "receiver", "region": "target", "state_machine": "state_machine.beta", "initial_view_state": "waiting", "context_bindings": {"item_id": "$state_machine.selected_id"}},
+            {"id": "publisher", "html_region": "source", "state_machine": "state_machine.alpha", "initial_view_state": "idle", "context_bindings": {}},
+            {"id": "receiver", "html_region": "target", "state_machine": "state_machine.beta", "initial_view_state": "waiting", "context_bindings": {"item_id": {"from": "$state_machine.selected_id"}}},
         ],
         "signal_sync_rules": [
             {
                 "id": "route_alpha_beta",
-                "when": {"instance": "publisher", "message": "message.alpha.ready"},
+                "when": {"instance": "publisher", "message": "ready"},
                 "effects": [
-                    {"send": {"instance": "receiver", "message": "message.beta.consume", "payload_bindings": {"item_id": "$message.id"}}},
+                    {"send": {"instance": "receiver", "message": "consume", "payload_bindings": {"item_id": {"from": "$message.id"}}}},
                     {"set": {"context": "selected_id", "from": "$message.id"}},
                 ],
             }
@@ -300,31 +300,33 @@ def test_composition_dot_routes_messages_generically() -> None:
             "state_machine.alpha": {
                 "signals": {
                     "accepts": {
-                        "message.alpha.submit": {"payload_schema": {"id": P("ID")}},
+                        "messages": {"submit": {"payload_schema": {"id": P("ID")}}},
+                        "data_signals": {},
                     },
                     "emits": {
-                        "message.alpha.ready": {"payload_schema": {"id": P("ID")}},
+                        "messages": {"ready": {"payload_schema": {"id": P("ID")}}},
                     },
                 },
                 "transitions": [
                     {
-                        "on": "message.alpha.submit",
+                        "on": {"message": "submit"},
                         "from": "idle",
                         "to": "ready",
-                        "effects": [{"emit": {"message": "message.alpha.ready", "payload_bindings": {"id": "$message.id"}}}],
+                        "effects": [{"emit": {"message": "ready", "payload_bindings": {"id": {"from": "$message.id"}}}}],
                     }
                 ]
             },
             "state_machine.beta": {
                 "signals": {
                     "accepts": {
-                        "message.beta.consume": {"payload_schema": {"item_id": P("ID")}},
+                        "messages": {"consume": {"payload_schema": {"item_id": P("ID")}}},
+                        "data_signals": {},
                     },
-                    "emits": {},
+                    "emits": {"messages": {}},
                 },
                 "transitions": [
                     {
-                        "on": "message.beta.consume",
+                        "on": {"message": "consume"},
                         "from": "waiting",
                         "to": "consumed",
                     }
@@ -339,10 +341,10 @@ def test_composition_dot_routes_messages_generically() -> None:
     assert "sent message" in composition
     assert "message route" in composition
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">source mount</FONT>' in composition
-    assert "<B>source:</B>&#160;&#160;message.alpha.submit" in composition
+    assert "<B>source:</B>&#160;&#160;message.submit" in composition
     assert "idle to ready" not in composition
     assert "<B>transition:</B>" not in composition
-    assert "message.beta.consume" in composition
+    assert "message.consume" in composition
     assert "<B>causes:</B>&#160;&#160;to consumed" in composition
     assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in composition
     assert '<FONT POINT-SIZE="10"><B>set:</B>&#160;&#160;selected_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT><FONT POINT-SIZE="8">&#160;←&#160;id</FONT>' in composition
@@ -382,7 +384,7 @@ def test_composition_dot_routes_messages_generically() -> None:
 def test_audit_transition_rationale_renders_for_otherwise_sparse_card() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
     activity = author["state_machines"]["state_machine.project.activity"]
-    cleared = next(transition for transition in activity["transitions"] if transition["on"] == "message.selection.cleared")
+    cleared = next(transition for transition in activity["transitions"] if transition["on"] == {"message": "selection_cleared"})
     cleared.pop("effects")
     cleared["rationale"] = "Clearing the selection returns the activity state to its empty state."
     contract = compile_source(author)
@@ -406,9 +408,9 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "text.project.list.ready.heading" in list_fsm
     assert "asset.project.list.empty.illustration" in list_fsm
     assert "emit:" in list_fsm
-    assert "message.project.selected" in list_fsm
+    assert "message.project_selected" in list_fsm
     assert "payload:" in list_fsm
-    assert "emit message.project.selected" not in list_fsm
+    assert "emit message.project_selected" not in list_fsm
     assert "effects:" not in list_fsm
     assert "operation: operation.project.list" not in list_fsm
     assert "query.project.list.list" in list_fsm
@@ -474,8 +476,8 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert '\xa0←\xa0null</text>' in activity_fsm
     assert "emitted message" in composition
     assert "sent message" in composition
-    assert "message.project.select" in composition
-    assert "message.project.selection_changed" in composition
+    assert "message.project_select" in composition
+    assert "selection_changed" in composition
     assert "to loading" in composition
     assert "to ready" in composition
     assert "none to loading" not in composition

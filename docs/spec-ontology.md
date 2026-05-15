@@ -4,14 +4,14 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 
 ## Top-Level Resource Kinds
 
-- <!-- top-level:assets --> `assets`: content assets with media kind, asset role, placeholders, and optional source-backed resolution.
+- <!-- top-level:assets --> `assets`: content assets with media kind, asset role, placeholders, and source-backed resolution when present.
 - <!-- top-level:content_cases --> `content_cases`: named content-source examples for dynamic text and asset content.
 - <!-- top-level:data_contracts --> `data_contracts`: first-class typed payload/data contracts referenced by type expressions with `data_contract.*` ids.
 - <!-- top-level:entry_points --> `entry_points`: external invocation declarations split into explicit adapter and target objects.
 - <!-- top-level:events --> `events`: durable domain/application or system events with payload_schema contracts and compiled emitters.
-- <!-- top-level:facts --> `facts`: reusable domain facts and assertion facts for model presence or absence.
+- <!-- top-level:facts --> `facts`: reusable model presence/absence setup or assertion facts; facts are not broad domain invariants.
 - <!-- top-level:fixtures --> `fixtures`: named seed data namespaces used by test cases, facts, content cases, and render audit cases.
-- <!-- top-level:models --> `models`: PascalCase product data models and lifecycle declarations; model ids are the documented reference-prefix exception because they are also type names.
+- <!-- top-level:models --> `models`: PascalCase product/domain entity type names and lifecycle declarations. Models are not ORM models, API contracts, generated implementation classes, or storage schemas.
 - <!-- top-level:operations --> `operations`: executable product operations with typed input, effects, outcomes, emitted events, and authorization policies.
 - <!-- top-level:authorization_policies --> `authorization_policies`: authorization policies with subjects, authorization targets, conditions, and effect.
 - <!-- top-level:project --> `project`: the project slug for the specification workspace.
@@ -27,12 +27,12 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `asset_ref`: `asset.<domain>...`; asset declarations, generated asset slots, content cases, and audit evidence.
 - `content_case_ref`: `content_case.<domain>...`; content source examples.
 - `data_contract_ref`: `data_contract.<domain>...`; reusable typed payload/data contracts in `type_expr.data_contract`.
-- `data_signal_ref`: `data_signal.<domain>...`; state-machine data-result signals used in transition and listener positions.
+- `data_signal_name`: local state-machine data-signal name; authored sources do not use global-looking `data_signal.*` references for local data signals.
 - `entry_point_ref`: `entry_point.<adapter-or-target>.<domain>...`; entry-point declarations and test-case `open_entry_point` or `call_entry_point` actions.
 - `event_ref`: `event.<domain>...`; durable domain/application event declarations, operation emissions, workflow triggers, and test-case event assertions.
 - `fact_ref`: `fact.<domain>...`; named domain or assertion facts referenced through `fact_use.ref`.
 - `fixture_ref`: `fixture.<domain>...`; seed data fixtures used by test cases, content cases, facts, and render audit cases.
-- `message_ref`: `message.<domain>...`; local UI/component/state-machine messages only.
+- `message_name`: local state-machine message name; authored sources do not use global-looking `message.*` references for local messages.
 - `model_ref`: `PascalCase`; model references are the sole collection-prefix exception because model ids are also type names.
 - `operation_ref`: `operation.<domain>...`; operation declarations, state-machine `available_operations` and `query_dependencies`, workflow steps, entry-point operation targets, and test-case assertions.
 - `authorization_policy_ref`: `authorization_policy.<domain>...`; authorization-policy declarations, direct authorization_policy references, generated authorization projections, and authorization test assertions.
@@ -48,13 +48,13 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `subject_ref`: exactly one typed reference to the resource under test: `entry_point`, `event`, `operation`, `state_machine`, or `workflow`.
 - `given`: setup contract split into `seed_fixtures` and `domain_facts`.
 - `when`: one executable stimulus: `open_entry_point`, `call_entry_point`, `invoke_operation`, or `emit_event`.
-- `then`: assertions for model existence, emitted events, workflow execution, authorization decisions, responses, operation invocations, state-machine states, and optional `expected_facts`.
+- `then`: assertions for model existence, emitted events, workflow execution, authorization decisions, responses, operation invocations, state-machine states, and `expected_facts`.
 - `entry_point_adapter`: exactly one adapter object: `http_api`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`.
 - `entry_point_target`: exactly one target object: `operation`, `state_machine`, or `workflow`.
 - `workflow_route`: exclusive route target via `next_step`, `complete_as`, `fail_as`, `retry_policy`, or `dead_letter_as`.
 - `signals`: local UI/component/state-machine signal contracts split into accepted message/data-signal maps and emitted message maps with `payload_schema` maps.
 - `renderer_contracts`: view-state renderer declarations keyed by concrete target. `renderers.html` and `renderers.textual` each own target-local `layout`, `presentation`, and `style`.
-- `type_expr`: structured primitive, model, data_contract, array, map, nullable, optional, enum, or inline object type expression.
+- `type_expr`: structured primitive, model, data_contract, array, map, nullable whole-value wrapper, enum, or inline object type expression. Object field presence and nullability are controlled only by `field_schema.required` and `field_schema.nullable`.
 - `authorization_policy`: direct `authorization_policy_ref` fields identify the authorization policy applied to an operation, entry point, or authorization assertion.
 
 ## Runtime Expression Namespaces
@@ -63,7 +63,8 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `$state_machine.<field>` reads parent state-machine context in child state-machine context bindings and composition conditions.
 - `$message.<field>` reads the current state-machine message payload in transition effects and sync sends.
 - `$context.<field>` reads current state-machine context in transition effects.
-- `$input.params.<field>` reads HTTP/UI path or query params in entry-point input bindings.
+- `$input.path_params.<field>` reads HTTP API or HTML route path parameters in entry-point input bindings.
+- `$input.query_params.<field>` reads HTTP API or HTML route query parameters in entry-point input bindings.
 - `$input.body.<field>` reads HTTP request body fields in operation input bindings.
 - `$input.args.<field>` reads CLI argument fields in operation/state-machine input bindings.
 - `$input.payload[.<field>]` reads worker or webhook payload data.
@@ -127,7 +128,6 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:cli_adapter --> `$defs/cli_adapter`: entry-point adapter, target, input, or response contract component.
 - <!-- schema-def:cli_adapter_input --> `$defs/cli_adapter_input`: entry-point adapter, target, input, or response contract component.
 - <!-- schema-def:context_condition --> `$defs/context_condition`: state-machine contract component.
-- <!-- schema-def:content_arg_values --> `$defs/content_arg_values`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:content_args --> `$defs/content_args`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:content_case_ref --> `$defs/content_case_ref`: typed reference definition for its namespace.
 - <!-- schema-def:content_source_ref --> `$defs/content_source_ref`: typed reference definition for its namespace.
@@ -164,7 +164,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:textual_layout_container --> `$defs/textual_layout_container`: Textual renderer contract component.
 - <!-- schema-def:html_layout_region --> `$defs/html_layout_region`: HTML renderer contract component.
 - <!-- schema-def:html_layout_root --> `$defs/html_layout_root`: HTML renderer contract component.
-- <!-- schema-def:message_ref --> `$defs/message_ref`: typed reference definition for its namespace.
+- <!-- schema-def:message_name --> `$defs/message_name`: state-machine-local message identifier.
 - <!-- schema-def:signal_sync_action --> `$defs/signal_sync_action`: state-machine signal synchronization contract component.
 - <!-- schema-def:signal_sync_assertion --> `$defs/signal_sync_assertion`: state-machine signal synchronization contract component.
 - <!-- schema-def:signal_sync_rule --> `$defs/signal_sync_rule`: state-machine signal synchronization contract component.
@@ -182,6 +182,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:renderer_contracts --> `$defs/renderer_contracts`: renderer contract component scoped to HTML and/or Textual targets.
 - <!-- schema-def:runtime_expression --> `$defs/runtime_expression`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:runtime_bindings --> `$defs/runtime_bindings`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:binding_value --> `$defs/binding_value`: explicit binding value object using either `from` for runtime expressions or `value` for literal JSON.
 - <!-- schema-def:scalar --> `$defs/scalar`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:authored_test_case --> `$defs/authored_test_case`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:subject_ref --> `$defs/subject_ref`: typed reference definition for its namespace.
@@ -200,6 +201,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:textual_widget --> `$defs/textual_widget`: Textual renderer contract component.
 - <!-- schema-def:then --> `$defs/then`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:type_expr --> `$defs/type_expr`: structured type-expression and object-schema contract component.
+- <!-- schema-def:field_type_expr --> `$defs/field_type_expr`: field type expression without nullable or presence wrappers.
 - <!-- schema-def:type_expr_map --> `$defs/type_expr_map`: structured type-expression and object-schema contract component.
 - <!-- schema-def:html_route_adapter --> `$defs/html_route_adapter`: HTML renderer contract component.
 - <!-- schema-def:html_route_adapter_input --> `$defs/html_route_adapter_input`: HTML renderer contract component.
@@ -226,9 +228,11 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:data_contract_ref --> `$defs/data_contract_ref`: typed reference definition for its namespace.
 - <!-- schema-def:authored_data_contract --> `$defs/authored_data_contract`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:feature_tag --> `$defs/feature_tag`: unprefixed test-case feature grouping tag, not a typed reference.
-- <!-- schema-def:data_signal_ref --> `$defs/data_signal_ref`: typed reference definition for its namespace.
+- <!-- schema-def:data_signal_name --> `$defs/data_signal_name`: state-machine-local data signal identifier.
 - <!-- schema-def:state_machine_signals --> `$defs/state_machine_signals`: state-machine contract component.
 - <!-- schema-def:viewport_id --> `$defs/viewport_id`: local identifier contract component.
+- <!-- schema-def:region_id --> `$defs/region_id`: local HTML layout region identifier within a view state.
+- <!-- schema-def:container_id --> `$defs/container_id`: local Textual layout container identifier within a view state.
 - <!-- schema-def:http_api_adapter --> `$defs/http_api_adapter`: entry-point adapter, target, input, or response contract component.
 - <!-- schema-def:http_api_adapter_input --> `$defs/http_api_adapter_input`: entry-point adapter, target, input, or response contract component.
 - <!-- schema-def:authorization_assertion --> `$defs/authorization_assertion`: authorization-policy contract component.

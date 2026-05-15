@@ -1,6 +1,6 @@
 <svg width="1292pt" height="217pt"
  viewBox="0.00 0.00 1292.00 217.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 46d88e799a71a2b087c16b3a67f616d7b6fe401aa7fa3adc7124c99668cc1b32 -->
+<!-- pyspec-contract-input-sha256: b9a74938a0595cd76ffcdf8f81e69c2b8bdcdc304c36f1a43239a75e84624850 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 199)">
 <title>entrypoint_entry_point_worker_project_approval_notice</title>
 <!-- entry_start -->
@@ -55,7 +55,7 @@
 <polygon fill="#a16207" stroke="transparent" points="658,-156 658,-164 940,-164 940,-156 658,-156"/>
 <polygon fill="#fefce8" stroke="transparent" points="658,-125 658,-156 940,-156 940,-125 658,-125"/>
 <text text-anchor="start" x="662" y="-142.6" font-family="Arial" font-weight="bold" font-size="13.00">workflow.project.approval_notice</text>
-<text text-anchor="start" x="662" y="-131.6" font-family="Arial" font-size="8.00" fill="#64748b">target workflow (event event.project.approved)</text>
+<text text-anchor="start" x="662" y="-131.6" font-family="Arial" font-size="8.00" fill="#64748b">target workflow</text>
 <text text-anchor="start" x="662" y="-114" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approval event sends a downstream notice.</text>
 <text text-anchor="start" x="663" y="-94" font-family="Arial" font-weight="bold" font-size="10.00">trigger:</text>
 <text text-anchor="start" x="697" y="-94" font-family="Arial" font-size="10.00">  event event.project.approved</text>

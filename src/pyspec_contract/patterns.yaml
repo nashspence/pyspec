@@ -97,7 +97,7 @@ entry_point_adapters:
 entry_target_contracts:
   boundary: 'Entry points declare adapter-specific input and responses. target.*.input_bindings maps adapter input onto the target operation or state-machine context.'
   state_machine: 'State-machine entry targets use target.state_machine.ref plus target.state_machine.renderer to distinguish invocation from html/textual rendering.'
-  workflow: 'Workflow entry targets use target.workflow.ref plus target.workflow.trigger_source so the entry point declares the trigger data it consumes. Workers declare message dispositions; workflows declare named outcomes and route each step outcome explicitly.'
+  workflow: 'Workflow entry targets use target.workflow.ref plus target.workflow.trigger_bindings so the entry point binds input into the workflow trigger payload. Workers declare message dispositions; workflows declare named outcomes and route each step outcome explicitly.'
 
 renderer_contracts:
   html_layout:
@@ -134,12 +134,12 @@ gherkin_corpus:
   rule: PM agents never author raw .feature files; spec and prod pytest-bdd harnesses consume the same generated corpus.
 
 composition_contracts:
-  state_machine: 'target: state_machine defines context, initial view state, view states, state-local query dependencies, transitions, emitted signals, and optional state-local composition.'
+  state_machine: 'target: state_machine defines context, initial view state, view states, state-local query dependencies, transitions, emitted signals, and state-local composition when present.'
   test_case: 'target: test_case asserts a state-machine view state or composed state-machine instance vector.'
 
 audit_contracts:
   text_resource: 'target: text_resource declares placeholder text for every rendered text ref.'
-  asset: 'target: asset declares media kind, asset role, placeholder visual intent, and optional source_ref; the compiler emits generic SVG placeholder assets.'
+  asset: 'target: asset declares media kind, asset role, placeholder visual intent, and source_ref when source-backed; the compiler emits generic SVG placeholder assets.'
   render_profile: 'target: render_profile declares fixed HTML and/or Textual viewport profiles.'
   render_audit_case: 'state-local render audit cases bind a state-machine view state or composed state-machine instance vector to fixtures and contexts; render surfaces and artifacts are derived from the referenced view states.'
   content_case: 'target: content_case exercises every source_ref-backed text resource or asset with deterministic args.'

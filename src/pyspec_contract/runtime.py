@@ -25,6 +25,22 @@ def resolve_map(values: Mapping[str, Any], fixtures: Mapping[str, Any]) -> dict[
     return {key: resolve(value, fixtures) for key, value in values.items()}
 
 
+def resolve_binding(binding: Any, namespace: Mapping[str, Any]) -> Any:
+    if isinstance(binding, Mapping):
+        if "from" in binding:
+            try:
+                return resolve_reference_expression(binding["from"], namespace)
+            except ReferenceExpressionError as exc:
+                raise FixtureError(str(exc)) from exc
+        if "value" in binding:
+            return binding["value"]
+    return resolve(binding, namespace.get("fixture", namespace))
+
+
+def resolve_bindings(bindings: Mapping[str, Any], namespace: Mapping[str, Any]) -> dict[str, Any]:
+    return {key: resolve_binding(value, namespace) for key, value in bindings.items()}
+
+
 def resolve(value: Any, fixtures: Mapping[str, Any]) -> Any:
     if is_reference_expression(value):
         try:
