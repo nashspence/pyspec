@@ -75,6 +75,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "data_signal.ready" in state_machine
     assert "on data_signal.ready" not in state_machine
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">initial view state</FONT>' in state_machine
+    assert "initial_view_state" not in state_machine
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">view state</FONT>' in state_machine
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">transition signal</FONT>' in state_machine
     assert "text.project.list.ready.heading" in state_machine

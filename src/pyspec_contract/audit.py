@@ -839,7 +839,6 @@ async def _render_textual_svg(
 
 def state_machine_dot(state_machine_id: str, state_machine: dict[str, Any], contract: dict[str, Any]) -> str:
     lines = _dot_graph_preamble("state_machine_" + safe_id(state_machine_id))
-    lines.append(_dot_circle_node("initial_view_state", "initial_view_state", width="0.58", color=_DOT_COLOR_ENTRY, fontcolor=_DOT_COLOR_ENTRY_TEXT))
     for state_name in sorted(state_machine["view_states"]):
         state = state_machine["view_states"][state_name]
         sections = _state_machine_view_state_sections(state_machine, state_name, state, contract)
@@ -854,7 +853,6 @@ def state_machine_dot(state_machine_id: str, state_machine: dict[str, Any], cont
                 ),
             )
         )
-    lines.append(_dot_edge("initial_view_state", _dot_node_id("view_state", state_machine["initial_view_state"])))
     for index, transition in enumerate(state_machine.get("transitions", [])):
         source = _dot_node_id("view_state", transition["from"])
         target = _dot_node_id("view_state", transition["to"])
