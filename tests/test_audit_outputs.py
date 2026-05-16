@@ -179,9 +179,13 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>event payload</B>" in worker_entrypoint
     assert "<B>message disposition</B>" in worker_entrypoint
     assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.approved</FONT>' in worker_entrypoint
+    for entrypoint_flow in (entrypoint, cli_entrypoint, cli_approve_entrypoint, api_entrypoint, worker_entrypoint):
+        assert 'label="entry"' not in entrypoint_flow
+        assert 'label="exit"' not in entrypoint_flow
+        assert "entry_start" not in entrypoint_flow
+        assert "entry_exit" not in entrypoint_flow
     assert "<B>html renderer handoff</B>" not in entrypoint
     assert 'label="ui loop"' not in entrypoint
-    assert "entry_exit" not in entrypoint
     assert "<B>entry input</B>" not in entrypoint
     assert "<B>entry output</B>" not in entrypoint
     assert "entrypoint_mount" not in entrypoint
@@ -189,7 +193,6 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>html renderer handoff</B>" not in cli_entrypoint
     assert "<B>command input</B>" in cli_entrypoint
     assert 'label="tui loop"' not in cli_entrypoint
-    assert "entry_exit" not in cli_entrypoint
     assert "<B>entry input</B>" not in cli_entrypoint
     assert "entrypoint_mount" not in cli_entrypoint
     assert "<B>transitions</B>" in cli_approve_entrypoint
@@ -209,7 +212,6 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>entry output</B>" not in api_entrypoint
     assert "<B>entry input</B>" not in worker_entrypoint
     assert "<B>entry output</B>" not in worker_entrypoint
-    assert 'label="exit"' in api_entrypoint
     assert "<B>body</B>" in api_entrypoint
     assert 'body</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT><FONT POINT-SIZE="8">&#160;←&#160;$outcome.result</FONT>' in api_entrypoint
     assert "validation_failed" in api_entrypoint

@@ -958,19 +958,16 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
     adapter_kind, _ = entry_point_adapter_pair(entry)
     target_kind, target_value = entry_target_pair(entry)
     target_renderer = entry_state_machine_renderer(entry) if target_kind == "state_machine" else None
-    start_id = "entry_start"
     entry_node = _dot_node_id("entrypoint", entry_id)
     input_node = _dot_node_id("entrypoint_input", entry_id)
     target_node = _dot_node_id("entrypoint_target", target_value)
     response_nodes = _entry_point_response_nodes(entry_id, entry, contract)
-    exit_id = "entry_exit"
     target_tail = [] if target_kind == "state_machine" else _entry_target_tail_nodes(target_kind, target_value, contract)
     input_sections = _entry_input_sections(entry, contract)
     input_title, output_title = _entry_io_card_titles(adapter_kind)
     lines = _dot_graph_preamble("entrypoint_" + safe_id(entry_id))
     lines.extend(
         [
-            _dot_circle_node(start_id, "entry", width="0.58", color=_DOT_COLOR_ENTRY, fontcolor=_DOT_COLOR_ENTRY_TEXT),
             _dot_html_node(
                 entry_node,
                 _dot_card(
@@ -989,10 +986,9 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
                 input_node,
                 _dot_card(input_title, "external data", input_sections, style=_DOT_STYLE_EXTERNAL),
             )
-        )
+    )
     lines.append(_dot_html_node(target_node, _entry_target_card(target_kind, target_value, contract, renderer=target_renderer)))
     if response_nodes:
-        lines.append(_dot_circle_node(exit_id, "exit", width="0.58", color=_DOT_COLOR_ENTRY, fontcolor=_DOT_COLOR_ENTRY_TEXT, shape="doublecircle"))
         lines.extend(
             _dot_html_node(
                 node_id,
@@ -1001,7 +997,6 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
             for node_id, outcome_id, subtitle, sections in response_nodes
         )
     lines.extend(_dot_html_node(node_id, label) for node_id, label in target_tail)
-    lines.append(_dot_edge(start_id, entry_node))
     if input_sections:
         lines.append(_dot_edge(entry_node, input_node))
         lines.append(_dot_edge(input_node, target_node))
@@ -1012,7 +1007,6 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
     if response_nodes:
         for node_id, _, _, _ in response_nodes:
             lines.append(_dot_edge(target_node, node_id))
-            lines.append(_dot_edge(node_id, exit_id))
         if len(response_nodes) > 1:
             lines.append("  { rank=same; " + " ".join(_dot_quote(node_id) for node_id, _, _, _ in response_nodes) + " }")
             lines.extend(_dot_invisible_order([node_id for node_id, _, _, _ in response_nodes], indent="  "))
