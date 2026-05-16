@@ -7,7 +7,7 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - <!-- top-level:assets --> `assets`: content assets with media kind, asset role, placeholders, and source-backed resolution when present.
 - <!-- top-level:content_cases --> `content_cases`: named content-source examples for dynamic text and asset content.
 - <!-- top-level:data_contracts --> `data_contracts`: first-class typed payload/data contracts referenced by type expressions with `data_contract.*` ids.
-- <!-- top-level:entry_points --> `entry_points`: external invocation declarations split into explicit adapter and target objects.
+- <!-- top-level:entry_points --> `entry_points`: external invocation declarations split into explicit adapter and target objects. An entry point is an externally invokable adapter plus a target.
 - <!-- top-level:events --> `events`: durable domain/application or system events with payload_schema contracts and compiled emitters.
 - <!-- top-level:facts --> `facts`: reusable model presence/absence setup or assertion facts; facts are not broad domain invariants.
 - <!-- top-level:fixtures --> `fixtures`: named seed data namespaces used by test cases, facts, content cases, and render audit cases.
@@ -28,7 +28,7 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `content_case_ref`: `content_case.<domain>...`; content source examples.
 - `data_contract_ref`: `data_contract.<domain>...`; reusable typed payload/data contracts in `type_expr.data_contract`.
 - `data_signal_name`: local state-machine data-signal name; authored sources do not use global-looking `data_signal.*` references for local data signals.
-- `entry_point_ref`: `entry_point.<adapter-or-target>.<domain>...`; entry-point declarations and test-case `open_entry_point` or `call_entry_point` actions.
+- `entry_point_ref`: `entry_point.<adapter-or-target>.<domain>...`; entry-point declarations, entry-point delegation targets, and test-case `open_entry_point` or `call_entry_point` actions.
 - `event_ref`: `event.<domain>...`; durable domain/application event declarations, operation emissions, workflow triggers, and test-case event assertions.
 - `fact_ref`: `fact.<domain>...`; named domain or assertion facts referenced through `fact_use.ref`.
 - `fixture_ref`: `fixture.<domain>...`; seed data fixtures used by test cases, content cases, facts, and render audit cases.
@@ -41,7 +41,7 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `test_case_ref`: `test_case.<domain>...`; formal test-case declarations and generated feature tags.
 - `text_ref`: `text.<domain>...`; text resource declarations, generated text slots, content cases, and content source signatures.
 - `workflow_ref`: `workflow.<domain>...`; workflow declarations, workflow entry-point targets, and generated workflow references.
-- Generated refs use `asset`, `authorization_policy`, `cli_command`, `endpoint`, `query`, `route`, `screen`, `state_machine`, `surface`, `text`, and `workflow` buckets in compiled `refs`.
+- Generated refs use `asset`, `authorization_policy`, `cli_command`, `cli_response_handler`, `endpoint`, `entry_point_delegate`, `entry_point_target`, `query`, `route`, `runtime_response`, `screen`, `state_machine`, `surface`, `text`, and `workflow` buckets in compiled `refs`.
 
 ## Reference Types
 
@@ -50,7 +50,13 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `when`: one executable stimulus: `open_entry_point`, `call_entry_point`, `invoke_operation`, or `emit_event`.
 - `then`: assertions for model existence, emitted events, workflow execution, authorization decisions, responses, operation invocations, state-machine states, and `expected_facts`.
 - `entry_point_adapter`: exactly one adapter object: `http_api`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`.
-- `entry_point_target`: exactly one target object: `operation`, `state_machine`, or `workflow`.
+- `entry_point_target`: exactly one target object: `operation`, `state_machine`, `workflow`, or `entry_point`.
+- `entry-point delegation`: an entry point whose `target.entry_point.ref` points at another entry point. Delegation is general and is not CLI-to-HTTP-specific.
+- `delegating entry point`: the outer entry point whose adapter exposes a facade and binds its input into the delegated entry point input shape.
+- `delegated entry point`: the inner entry point that receives delegated invocation. Its `authorization_policy` still applies.
+- `response handler`: adapter-specific projection of a target or delegated response outcome.
+- `CLI response handler`: maps a named response outcome to stdout, stderr, an exit code, and optionally a retry policy. It does not restate HTTP status classification when the delegated entry point is an HTTP API.
+- `retry_safe`: explicit entry-point marker permitting automatic retry of delegated invocations; the default is false.
 - `workflow_route`: exclusive route target via `next_step`, `complete_as`, `fail_as`, `retry_policy`, or `dead_letter_as`.
 - `signals`: local UI/component/state-machine signal contracts split into accepted message/data-signal maps and emitted message maps with `payload_schema` maps.
 - `renderer_contracts`: view-state renderer declarations keyed by concrete target. `renderers.html` and `renderers.textual` each own target-local `layout`, `presentation`, and `style`.
@@ -70,6 +76,7 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `$input.payload[.<field>]` reads worker or webhook payload data.
 - `$input.<field>` reads operation input during operation event emission mapping.
 - `$outcome.result[.<field>]` reads operation outcome result during response and event emission mapping.
+- `$response.body[.<field>]` reads the delegated entry-point response body inside delegating CLI `response_handlers`.
 - `$trigger.payload[.<field>]` reads workflow trigger payload.
 - `$steps.<step>.outcomes.<outcome>.result[.<field>]` reads previous workflow step result.
 - The shared grammar is `$source.path.to.field`; semantic validation checks available roots and declared field paths for each context.
@@ -127,6 +134,9 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:child_state_machine_selected --> `$defs/child_state_machine_selected`: state-machine contract component.
 - <!-- schema-def:cli_adapter --> `$defs/cli_adapter`: entry-point adapter, target, input, or response contract component.
 - <!-- schema-def:cli_adapter_input --> `$defs/cli_adapter_input`: entry-point adapter, target, input, or response contract component.
+- <!-- schema-def:cli_output --> `$defs/cli_output`: CLI response handler output text and bindings.
+- <!-- schema-def:cli_response_handler --> `$defs/cli_response_handler`: CLI response handler for a named response outcome.
+- <!-- schema-def:cli_response_handlers --> `$defs/cli_response_handlers`: map from named response outcomes to CLI response handlers.
 - <!-- schema-def:context_condition --> `$defs/context_condition`: state-machine contract component.
 - <!-- schema-def:content_args --> `$defs/content_args`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:content_case_ref --> `$defs/content_case_ref`: typed reference definition for its namespace.
@@ -135,11 +145,14 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:context_set_effect --> `$defs/context_set_effect`: state-machine contract component.
 - <!-- schema-def:entry_operation_target --> `$defs/entry_operation_target`: entry-point adapter, target, input, or response contract component.
 - <!-- schema-def:entry_point_adapter --> `$defs/entry_point_adapter`: entry-point adapter, target, input, or response contract component.
+- <!-- schema-def:entry_point_delegate_input_bindings --> `$defs/entry_point_delegate_input_bindings`: adapter-input-shaped bindings from a delegating entry point into a delegated entry point.
+- <!-- schema-def:entry_point_delegate_target --> `$defs/entry_point_delegate_target`: entry-point target variant that delegates to another entry point.
 - <!-- schema-def:entry_point_ref --> `$defs/entry_point_ref`: typed reference definition for its namespace.
 - <!-- schema-def:entry_point_target --> `$defs/entry_point_target`: entry-point adapter, target, input, or response contract component.
 - <!-- schema-def:entry_point_response --> `$defs/entry_point_response`: entry-point adapter, target, input, or response contract component.
 - <!-- schema-def:entry_point_response_value --> `$defs/entry_point_response_value`: entry-point adapter, target, input, or response contract component.
 - <!-- schema-def:entry_point_responses --> `$defs/entry_point_responses`: entry-point adapter, target, input, or response contract component.
+- <!-- schema-def:entry_point_retry_policy --> `$defs/entry_point_retry_policy`: bounded automatic retry policy for retry-safe delegated entry points.
 - <!-- schema-def:entry_state_machine_target --> `$defs/entry_state_machine_target`: entry-point adapter, target, input, or response contract component.
 - <!-- schema-def:entry_workflow_target --> `$defs/entry_workflow_target`: entry-point adapter, target, input, or response contract component.
 - <!-- schema-def:event_ref --> `$defs/event_ref`: typed reference definition for its namespace.

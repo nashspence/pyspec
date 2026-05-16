@@ -7,7 +7,14 @@ from .io import read_json, read_yaml
 from .paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR
 from .runtime import fixture_namespace, resolve_map
 from .runtime_refs import resolve_reference_expression
-from .targets import entry_state_machine_name, entry_point_input, entry_point_responses, entry_target_pair, entry_point_input_bindings
+from .targets import (
+    entry_state_machine_name,
+    entry_point_input,
+    entry_point_response_handlers,
+    entry_point_responses,
+    entry_target_pair,
+    entry_point_input_bindings,
+)
 from .type_expr import is_array_of_model, model_name
 
 
@@ -229,18 +236,25 @@ class ReferenceSpecDriver:
     def _call_entry_point(self, entry_id: str, input_values: dict[str, Any], outcome_id: str | None = None) -> dict[str, Any]:
         entry = self.contract["entry_points"][entry_id]
         target_kind, cap_id = entry_target_pair(entry)
-        assert target_kind == "operation"
-        target_input = self._entry_target_input(entry, input_values)
         policy_id = entry.get("authorization_policy")
         if policy_id:
-            self.authorization_decisions[("entry_point", entry_id, policy_id)] = self._evaluate_policy(policy_id, "entry_point", entry_id, target_input)
+            self.authorization_decisions[("entry_point", entry_id, policy_id)] = self._evaluate_policy(policy_id, "entry_point", entry_id, input_values)
+        if target_kind == "entry_point":
+            target_input = self._entry_delegate_input(entry, input_values)
+            delegated_response = self._call_entry_point(cap_id, target_input, outcome_id)
+            handler = entry_point_response_handlers(entry)[self.last_outcome]
+            if "stdout" in handler:
+                return {"exit_code": handler["exit_code"], "stdout": self._cli_output(handler["stdout"], delegated_response, input_values)}
+            return {"exit_code": handler["exit_code"], "stderr": self._cli_output(handler["stderr"], delegated_response, input_values)}
+        assert target_kind == "operation"
+        target_input = self._entry_target_input(entry, input_values)
         result = self._invoke(cap_id, target_input, outcome_id)
-        response = entry_point_responses(entry)[self.last_outcome]
+        response = _entry_point_response(entry, self.last_outcome)
         if "status" in response:
             return {"status": response["status"], "body": result}
         if "stdout" in response:
-            return {"exit_code": response["exit_code"], "stdout": result}
-        return {"exit_code": response["exit_code"], "stderr": result}
+            return {"exit_code": response["exit_code"], "stdout": self._cli_output(response["stdout"], {"body": result}, input_values)}
+        return {"exit_code": response["exit_code"], "stderr": self._cli_output(response["stderr"], {"body": result}, input_values)}
 
     def _entry_target_input(self, entry: dict[str, Any], input_values: dict[str, Any]) -> dict[str, Any]:
         namespace = {"input": {}}
@@ -250,6 +264,34 @@ class ReferenceSpecDriver:
                 namespace["input"][section] = {name: input_values[name] for name in fields}
         bindings = entry_point_input_bindings(entry)
         return {name: _resolve_binding(source, namespace) for name, source in bindings.items()}
+
+    def _entry_delegate_input(self, entry: dict[str, Any], input_values: dict[str, Any]) -> dict[str, Any]:
+        namespace = {"input": {}}
+        for section in ("path_params", "query_params", "body", "args"):
+            fields = entry_point_input(entry).get(section, {})
+            if fields:
+                namespace["input"][section] = {name: input_values[name] for name in fields}
+        if "payload" in entry_point_input(entry):
+            namespace["input"]["payload"] = input_values.get("payload", input_values)
+        delegated_input: dict[str, Any] = {}
+        for section, section_bindings in entry_point_input_bindings(entry).items():
+            if section == "payload" and isinstance(section_bindings, Mapping) and "from" in section_bindings:
+                delegated_input["payload"] = _resolve_binding(section_bindings, namespace)
+                continue
+            if isinstance(section_bindings, Mapping):
+                for name, source in section_bindings.items():
+                    delegated_input[name] = _resolve_binding(source, namespace)
+        return delegated_input
+
+    def _cli_output(self, output: Mapping[str, Any], response: Mapping[str, Any], input_values: Mapping[str, Any]) -> dict[str, Any]:
+        namespace = {"response": response, "outcome": {"result": response.get("body")}, "input": dict(input_values)}
+        return {
+            "text": output["text"],
+            "bindings": {
+                name: _resolve_binding(binding, namespace)
+                for name, binding in (output.get("bindings") or {}).items()
+            },
+        }
 
     def _invoke(self, cap_id: str, input_values: dict[str, Any], outcome_id: str | None = None) -> Any:
         self.invoked.append(cap_id)
@@ -448,6 +490,14 @@ def _success_outcome_id(operation: Mapping[str, Any]) -> str:
     successes = [outcome_id for outcome_id, outcome in operation["outcomes"].items() if outcome["kind"] == "success"]
     assert len(successes) == 1, "Expected exactly one success outcome"
     return successes[0]
+
+
+def _entry_point_response(entry: Mapping[str, Any], outcome_id: str | None) -> Mapping[str, Any]:
+    assert outcome_id is not None
+    responses = entry_point_responses(dict(entry))
+    if outcome_id in responses:
+        return responses[outcome_id]
+    return entry_point_response_handlers(dict(entry))[outcome_id]
 
 
 def _resolve_binding(binding: Any, namespace: Mapping[str, Any]) -> Any:

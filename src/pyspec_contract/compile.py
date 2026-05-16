@@ -37,6 +37,7 @@ from .targets import (
     entry_point_input,
     entry_point_method,
     entry_point_path,
+    entry_point_response_handlers,
     entry_point_responses,
     entry_point_schedule_expression,
     entry_point_target_pair,
@@ -128,7 +129,23 @@ ENTITY_SECTIONS: dict[str, str] = {
 }
 
 
-REF_KINDS = ["asset", "authorization_policy", "cli_command", "endpoint", "query", "route", "screen", "state_machine", "surface", "text", "workflow"]
+REF_KINDS = [
+    "asset",
+    "authorization_policy",
+    "cli_command",
+    "cli_response_handler",
+    "endpoint",
+    "entry_point_delegate",
+    "entry_point_target",
+    "query",
+    "route",
+    "runtime_response",
+    "screen",
+    "state_machine",
+    "surface",
+    "text",
+    "workflow",
+]
 
 
 def empty_compiled_contract(project: str) -> dict[str, Any]:
@@ -399,6 +416,8 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
         }
         if "authorization_policy" in spec:
             entry["authorization_policy"] = copy.deepcopy(spec["authorization_policy"])
+        if spec.get("retry_safe"):
+            entry["retry_safe"] = True
         adapter_kind, _ = entry_point_adapter_pair(entry)
         target_kind, target = entry_point_target_pair(entry)
         if adapter_kind == "html_route" and target_kind == "state_machine":
@@ -408,7 +427,9 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             if target["ref"] in contract["operations"]:
                 entry.setdefault("authorization_policy", copy.deepcopy(contract["operations"][target["ref"]]["authorization_policy"]))
         elif adapter_kind == "cli":
-            entry["cli_command_ref"] = rules.cli_command_ref(target["ref"])
+            entry_id = spec["id"]
+            command_ref_source = entry_id[len("entry_point.cli."):] if target_kind == "entry_point" and entry_id.startswith("entry_point.cli.") else target["ref"]
+            entry["cli_command_ref"] = rules.cli_command_ref(command_ref_source)
             if target_kind == "operation" and target["ref"] in contract["operations"]:
                 entry.setdefault("authorization_policy", copy.deepcopy(contract["operations"][target["ref"]]["authorization_policy"]))
         elif adapter_kind in {"worker", "scheduled"} and target_kind == "workflow":
@@ -626,7 +647,20 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
             refs["surface"].add(state["surface"])
             refs["text"].update(state["text"])
             refs["asset"].update(state["assets"])
-    for entry in contract["entry_points"].values():
+    for entry_id, entry in contract["entry_points"].items():
+        target_kind, target_ref = entry_target_pair(entry)
+        refs["entry_point_target"].add(_generated_entry_point_target_ref(entry_id, target_kind, target_ref))
+        if target_kind == "entry_point":
+            refs["entry_point_delegate"].add(_generated_entry_point_delegate_ref(entry_id, target_ref))
+        if entry_point_adapter_pair(entry)[0] == "cli":
+            for outcome_id, handler in sorted(entry_point_response_handlers(entry).items()):
+                refs["cli_response_handler"].add(_generated_cli_response_handler_ref(entry_id, outcome_id))
+                for stream_name in ("stdout", "stderr"):
+                    output = handler.get(stream_name) or {}
+                    bindings = output.get("bindings") or {}
+                    for binding_name, binding in sorted(bindings.items()):
+                        if _binding_references_root(binding, "response"):
+                            refs["runtime_response"].add(_generated_runtime_response_ref(entry_id, outcome_id, stream_name, binding_name))
         for ref_kind, field in [
             ("route", "route"),
             ("endpoint", "endpoint"),
@@ -641,6 +675,31 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
     for workflow in contract["workflows"].values():
         refs["workflow"].add(workflow["ref"])
     return {kind: sorted(values) for kind, values in sorted(refs.items()) if values}
+
+
+def _generated_entry_point_target_ref(entry_id: str, target_kind: str, target_ref: str) -> str:
+    return f"entry_point_target.{rules.resource_tail(entry_id)}.{target_kind}.{rules.resource_tail(target_ref)}"
+
+
+def _generated_entry_point_delegate_ref(entry_id: str, delegated_entry_id: str) -> str:
+    return f"entry_point_delegate.{rules.resource_tail(entry_id)}.to.{rules.resource_tail(delegated_entry_id)}"
+
+
+def _generated_cli_response_handler_ref(entry_id: str, outcome_id: str) -> str:
+    return f"cli_response_handler.{rules.resource_tail(entry_id)}.{outcome_id}"
+
+
+def _generated_runtime_response_ref(entry_id: str, outcome_id: str, stream_name: str, binding_name: str) -> str:
+    return f"runtime_response.{rules.resource_tail(entry_id)}.{outcome_id}.{stream_name}.{binding_name}"
+
+
+def _binding_references_root(binding: Any, root: str) -> bool:
+    if not isinstance(binding, dict) or "from" not in binding:
+        return False
+    try:
+        return parse_reference_expression(binding["from"]).root == root
+    except ReferenceExpressionError:
+        return False
 
 
 def _state_machine_has_textual_screen(state_machine: dict[str, Any]) -> bool:
@@ -679,6 +738,12 @@ def _validate_text_assets(contract: dict[str, Any]) -> None:
         for state in owner.get("view_states", {}).values():
             used_text.update(state.get("text", []))
             used_assets.update(state.get("assets", []))
+    for entry in contract.get("entry_points", {}).values():
+        for handler in entry_point_response_handlers(entry).values():
+            for stream in ("stdout", "stderr"):
+                output = handler.get(stream) or {}
+                if output.get("text"):
+                    used_text.add(output["text"])
     declared_text = set(contract.get("text_resources", {}))
     declared_assets = set(contract.get("assets", {}))
     if declared_text != used_text:
@@ -1836,6 +1901,7 @@ def _validate_composition_selector(state_machine_id: str, selector: str, regions
 
 
 def _validate_entries(contract: dict[str, Any]) -> None:
+    _validate_entry_point_delegation_graph(contract)
     for eid, entry in contract["entry_points"].items():
         adapter_kind, adapter = entry_point_adapter_pair(entry)
         target_kind, target = entry_point_target_pair(entry)
@@ -1843,6 +1909,12 @@ def _validate_entries(contract: dict[str, Any]) -> None:
         value = target["ref"]
         _validate_entry_point_fields(eid, entry, adapter_kind)
         _validate_entry_input_shape(eid, entry, adapter_kind)
+        if kind == "entry_point":
+            _validate_delegating_entry_adapter_surface(eid, entry, adapter_kind, adapter)
+            _validate_entry_point_delegate_target(contract, eid, entry, value)
+            if adapter_kind == "cli":
+                _validate_cli_delegated_response_handlers(contract, eid, entry, value)
+            continue
         if adapter_kind == "html_route":
             if kind != "state_machine" or value not in contract["state_machines"]:
                 raise ContractError(f"UI entry point {eid} must target a known state machine")
@@ -1877,7 +1949,7 @@ def _validate_entries(contract: dict[str, Any]) -> None:
                 operation = contract["operations"][value]
                 _validate_exact_entry_inputs(eid, "input.args", args, operation["input"])
                 _validate_target_bindings(contract, eid, entry, args)
-                _validate_cli_operation_responses(eid, entry, operation)
+                _validate_cli_operation_response_handlers(contract, eid, entry, operation)
             elif kind == "state_machine":
                 if value not in contract["state_machines"]:
                     raise ContractError(f"CLI entry point {eid} must target a known state machine")
@@ -1886,8 +1958,8 @@ def _validate_entries(contract: dict[str, Any]) -> None:
                 _validate_target_bindings(contract, eid, entry, args)
                 target_renderer = entry_state_machine_renderer(entry)
                 assert target_renderer is not None
-                if entry_point_responses(entry):
-                    raise ContractError(f"CLI entry point {eid} targeting a state machine must not declare responses")
+                if entry_point_response_handlers(entry):
+                    raise ContractError(f"CLI entry point {eid} targeting a state machine must not declare response_handlers")
             elif kind == "workflow":
                 if value not in contract["workflows"]:
                     raise ContractError(f"CLI entry point {eid} must target a known workflow")
@@ -1918,8 +1990,146 @@ def _validate_entries(contract: dict[str, Any]) -> None:
             _validate_webhook_entry_point_responses(eid, entry)
 
 
+def _validate_entry_point_delegation_graph(contract: dict[str, Any]) -> None:
+    graph: dict[str, str] = {}
+    for entry_id, entry in contract.get("entry_points", {}).items():
+        target_kind, target_ref = entry_target_pair(entry)
+        if target_kind != "entry_point":
+            continue
+        if target_ref not in contract["entry_points"]:
+            raise ContractError(f"Entry point {entry_id} delegates to unknown entry point {target_ref}")
+        if target_ref == entry_id:
+            raise ContractError(f"Entry point {entry_id} must not delegate to itself")
+        graph[entry_id] = target_ref
+
+    visiting: set[str] = set()
+    visited: set[str] = set()
+
+    def visit(entry_id: str, path: list[str]) -> None:
+        if entry_id in visited or entry_id not in graph:
+            return
+        if entry_id in visiting:
+            cycle_start = path.index(entry_id)
+            cycle = path[cycle_start:] + [entry_id]
+            raise ContractError("Entry point delegation cycle is invalid: " + " -> ".join(cycle))
+        visiting.add(entry_id)
+        visit(graph[entry_id], [*path, entry_id])
+        visiting.remove(entry_id)
+        visited.add(entry_id)
+
+    for entry_id in graph:
+        visit(entry_id, [])
+
+
+def _validate_delegating_entry_adapter_surface(
+    entry_id: str,
+    entry: dict[str, Any],
+    adapter_kind: str,
+    adapter: dict[str, Any],
+) -> None:
+    if adapter_kind == "html_route":
+        _require_adapter(adapter, entry_id, "path")
+        _validate_path_params(entry, entry_id)
+    elif adapter_kind == "http_api":
+        _require_adapter(adapter, entry_id, "method")
+        _require_adapter(adapter, entry_id, "path")
+        _validate_path_params(entry, entry_id)
+    elif adapter_kind == "cli":
+        _require_adapter(adapter, entry_id, "cli_command")
+    elif adapter_kind == "scheduled":
+        _require_adapter(adapter, entry_id, "schedule_expression")
+        if entry_point_input(entry):
+            raise ContractError(f"Scheduled entry point {entry_id} must not declare input")
+    elif adapter_kind == "webhook":
+        _require_adapter(adapter, entry_id, "path")
+        _validate_path_params(entry, entry_id)
+
+
+def _validate_entry_point_delegate_target(
+    contract: dict[str, Any],
+    entry_id: str,
+    entry: dict[str, Any],
+    delegated_entry_id: str,
+) -> None:
+    delegated_entry = contract["entry_points"][delegated_entry_id]
+    bindings = entry_point_input_bindings(entry)
+    expected_input = entry_point_input(delegated_entry)
+    expected_sections = set(expected_input)
+    actual_sections = set(bindings)
+    if actual_sections != expected_sections:
+        missing = sorted(expected_sections - actual_sections)
+        extra = sorted(actual_sections - expected_sections)
+        parts = []
+        if missing:
+            parts.append("missing sections: " + ", ".join(missing))
+        if extra:
+            parts.append("extra sections: " + ", ".join(extra))
+        raise ContractError(
+            f"Entry {entry_id} target.entry_point.input_bindings must exactly bind delegated entry input"
+            + (": " + "; ".join(parts) if parts else "")
+        )
+    source_scopes: TypeScopes = {"input": _entry_input_source_types(contract, entry)}
+    for section, expected in expected_input.items():
+        section_bindings = bindings.get(section)
+        label = f"Entry {entry_id} target.entry_point.input_bindings.{section}"
+        if section == "payload":
+            _validate_delegated_payload_binding(contract, label, section_bindings, expected, source_scopes)
+            continue
+        if not isinstance(expected, dict):
+            raise ContractError(f"Entry {entry_id} delegated input section {section} must be an object-shaped adapter input")
+        if not isinstance(section_bindings, dict):
+            raise ContractError(f"{label} must declare field bindings")
+        _validate_runtime_binding_map(contract, label, section_bindings, expected, source_scopes)
+
+
+def _validate_delegated_payload_binding(
+    contract: dict[str, Any],
+    label: str,
+    binding: Any,
+    expected_type: Any,
+    source_scopes: TypeScopes,
+) -> None:
+    if isinstance(binding, dict) and set(binding) in ({"from"}, {"value"}):
+        actual_type = _expression_type(contract, binding, source_scopes, label)
+        if actual_type and not type_equals(actual_type, expected_type):
+            raise ContractError(f"{label} type mismatch: expected {type_display(expected_type)}, got {type_display(actual_type)}")
+        return
+    expected_fields = object_fields_for_type(contract, expected_type)
+    if not expected_fields:
+        raise ContractError(f"{label} must bind payload as a single binding value for {type_display(expected_type)}")
+    if not isinstance(binding, dict):
+        raise ContractError(f"{label} must declare payload field bindings")
+    _validate_runtime_binding_map(contract, label, binding, expected_fields, source_scopes)
+
+
+def _validate_runtime_binding_map(
+    contract: dict[str, Any],
+    label: str,
+    bindings: dict[str, Any],
+    expected: dict[str, Any],
+    source_scopes: TypeScopes,
+) -> None:
+    if set(bindings) != set(expected):
+        missing = sorted(set(expected) - set(bindings))
+        extra = sorted(set(bindings) - set(expected))
+        parts = []
+        if missing:
+            parts.append("missing: " + ", ".join(missing))
+        if extra:
+            parts.append("extra: " + ", ".join(extra))
+        raise ContractError(f"{label} must exactly bind target input" + (": " + "; ".join(parts) if parts else ""))
+    for name, source in bindings.items():
+        actual_type = _expression_type(contract, source, source_scopes, f"{label}.{name}")
+        expected_type = expected[name]
+        if actual_type and not type_equals(actual_type, expected_type):
+            raise ContractError(
+                f"{label}.{name} type mismatch: expected {type_display(expected_type)}, "
+                f"got {type_display(actual_type)} from {source}"
+            )
+
+
 def _validate_entry_point_fields(entry_id: str, entry: dict[str, Any], adapter_kind: str) -> None:
-    allowed = {"adapter", "target", "rationale", "authorization_policy"}
+    allowed = {"adapter", "target", "rationale", "authorization_policy", "retry_safe"}
     generated = {
         "html_route": {"route"},
         "http_api": {"endpoint"},
@@ -2124,39 +2334,133 @@ def _validate_api_entry_point_responses(entry_id: str, entry: dict[str, Any], op
         )
 
 
-def _validate_cli_operation_responses(entry_id: str, entry: dict[str, Any], operation: dict[str, Any]) -> None:
-    responses = _operation_entry_point_responses(entry_id, entry, operation)
+def _validate_cli_operation_response_handlers(
+    contract: dict[str, Any],
+    entry_id: str,
+    entry: dict[str, Any],
+    operation: dict[str, Any],
+) -> None:
+    responses = _operation_entry_point_response_handlers(entry_id, entry, operation)
     exit_codes: dict[int, str] = {}
     for outcome_id, response in responses.items():
         outcome = operation["outcomes"][outcome_id]
-        if "exit_code" not in response:
-            raise ContractError(f"CLI entry {entry_id} response {outcome_id} must declare exit_code")
-        exit_code = response["exit_code"]
-        if outcome["kind"] == "success":
-            if set(response) != {"exit_code", "stdout"}:
-                raise ContractError(f"CLI entry {entry_id} success response {outcome_id} must declare exactly exit_code and stdout")
-            if exit_code != 0:
-                raise ContractError(f"CLI entry {entry_id} success response {outcome_id} exit_code must be 0")
-            _validate_response_value(
-                f"CLI entry {entry_id} response {outcome_id}.stdout",
-                response["stdout"],
-                outcome["result"],
-            )
-        else:
-            if set(response) != {"exit_code", "stderr"}:
-                raise ContractError(f"CLI entry {entry_id} failure response {outcome_id} must declare exactly exit_code and stderr")
-            if exit_code == 0:
-                raise ContractError(f"CLI entry {entry_id} failure response {outcome_id} exit_code must be nonzero")
-            _validate_response_value(
-                f"CLI entry {entry_id} response {outcome_id}.stderr",
-                response["stderr"],
-                outcome["result"],
-            )
-        if exit_code in exit_codes:
+        _validate_cli_response_handler(
+            contract,
+            entry_id,
+            outcome_id,
+            response,
+            outcome_kind=outcome["kind"],
+            source_scopes={
+                "input": _entry_input_source_types(contract, entry),
+                "outcome": _typed_source_paths(contract, ("result",), outcome["result"]),
+            },
+            delegated_entry_id=None,
+            exit_codes=exit_codes,
+        )
+
+
+def _validate_cli_delegated_response_handlers(
+    contract: dict[str, Any],
+    entry_id: str,
+    entry: dict[str, Any],
+    delegated_entry_id: str,
+) -> None:
+    delegated_entry = contract["entry_points"][delegated_entry_id]
+    expected = _entry_point_named_response_outcomes(contract, delegated_entry_id)
+    handlers = entry_point_response_handlers(entry)
+    if set(handlers) != expected:
+        missing = sorted(expected - set(handlers))
+        extra = sorted(set(handlers) - expected)
+        parts = []
+        if missing:
+            parts.append("missing: " + ", ".join(missing))
+        if extra:
+            parts.append("extra: " + ", ".join(extra))
+        raise ContractError(
+            f"CLI entry {entry_id} response_handlers must exactly map delegated entry outcomes"
+            + (": " + "; ".join(parts) if parts else "")
+        )
+    exit_codes: dict[int, str] = {}
+    outcome_kinds = _entry_point_outcome_kinds(contract, delegated_entry_id)
+    response_types = _entry_point_response_body_types(contract, delegated_entry_id)
+    for outcome_id, handler in handlers.items():
+        if handler.get("retry_policy") and not delegated_entry.get("retry_safe", False):
             raise ContractError(
-                f"CLI entry {entry_id} responses {exit_codes[exit_code]} and {outcome_id} cannot share exit_code {exit_code}"
+                f"CLI entry {entry_id} response handler {outcome_id} retry_policy requires delegated entry point "
+                f"{delegated_entry_id} to declare retry_safe: true"
             )
-        exit_codes[exit_code] = outcome_id
+        source_scopes: TypeScopes = {"input": _entry_input_source_types(contract, entry)}
+        response_type = response_types.get(outcome_id)
+        if response_type is not None:
+            source_scopes["response"] = _typed_source_paths(contract, ("body",), response_type)
+        _validate_cli_response_handler(
+            contract,
+            entry_id,
+            outcome_id,
+            handler,
+            outcome_kind=outcome_kinds.get(outcome_id),
+            source_scopes=source_scopes,
+            delegated_entry_id=delegated_entry_id,
+            exit_codes=exit_codes,
+        )
+
+
+def _validate_cli_response_handler(
+    contract: dict[str, Any],
+    entry_id: str,
+    outcome_id: str,
+    handler: dict[str, Any],
+    *,
+    outcome_kind: str | None,
+    source_scopes: TypeScopes,
+    delegated_entry_id: str | None,
+    exit_codes: dict[int, str],
+) -> None:
+    exit_code = handler["exit_code"]
+    streams = [stream for stream in ("stdout", "stderr") if stream in handler]
+    if len(streams) != 1:
+        raise ContractError(f"CLI entry {entry_id} response handler {outcome_id} must declare exactly one of stdout or stderr")
+    if outcome_kind == "success" and streams[0] != "stdout":
+        raise ContractError(f"CLI entry {entry_id} success response handler {outcome_id} must declare stdout")
+    if outcome_kind == "success" and exit_code != 0:
+        raise ContractError(f"CLI entry {entry_id} success response handler {outcome_id} exit_code must be 0")
+    if outcome_kind == "failure" and streams[0] != "stderr":
+        raise ContractError(f"CLI entry {entry_id} failure response handler {outcome_id} must declare stderr")
+    if outcome_kind == "failure" and exit_code == 0:
+        raise ContractError(f"CLI entry {entry_id} failure response handler {outcome_id} exit_code must be nonzero")
+    if handler.get("retry_policy") and delegated_entry_id is None:
+        raise ContractError(f"CLI entry {entry_id} response handler {outcome_id} retry_policy is only supported for delegated entry points")
+    if exit_code in exit_codes:
+        raise ContractError(
+            f"CLI entry {entry_id} response handlers {exit_codes[exit_code]} and {outcome_id} cannot share exit_code {exit_code}"
+        )
+    exit_codes[exit_code] = outcome_id
+    output = handler[streams[0]]
+    text_ref = output["text"]
+    if text_ref not in contract.get("text_resources", {}):
+        raise ContractError(f"CLI entry {entry_id} response handler {outcome_id} references unknown text resource {text_ref}")
+    bindings = output.get("bindings") or {}
+    expected_text_args = contract["text_resources"][text_ref].get("args", {})
+    if set(bindings) != set(expected_text_args):
+        missing = sorted(set(expected_text_args) - set(bindings))
+        extra = sorted(set(bindings) - set(expected_text_args))
+        parts = []
+        if missing:
+            parts.append("missing: " + ", ".join(missing))
+        if extra:
+            parts.append("extra: " + ", ".join(extra))
+        raise ContractError(
+            f"CLI entry {entry_id} response handler {outcome_id} bindings must match text args"
+            + (": " + "; ".join(parts) if parts else "")
+        )
+    for binding_name, binding in bindings.items():
+        actual_type = _expression_type(contract, binding, source_scopes, f"CLI entry {entry_id} response handler {outcome_id}.{streams[0]}.bindings.{binding_name}")
+        expected_type = expected_text_args[binding_name]
+        if actual_type and not type_equals(actual_type, expected_type):
+            raise ContractError(
+                f"CLI entry {entry_id} response handler {outcome_id}.{streams[0]}.bindings.{binding_name} "
+                f"type mismatch: expected {type_display(expected_type)}, got {type_display(actual_type)}"
+            )
 
 
 def _operation_entry_point_responses(entry_id: str, entry: dict[str, Any], operation: dict[str, Any]) -> dict[str, Any]:
@@ -2171,6 +2475,69 @@ def _operation_entry_point_responses(entry_id: str, entry: dict[str, Any], opera
             parts.append("extra: " + ", ".join(extra))
         raise ContractError(f"Entry {entry_id} responses must exactly map operation outcomes" + (": " + "; ".join(parts) if parts else ""))
     return responses
+
+
+def _operation_entry_point_response_handlers(entry_id: str, entry: dict[str, Any], operation: dict[str, Any]) -> dict[str, Any]:
+    handlers = entry_point_response_handlers(entry)
+    if set(handlers) != set(operation["outcomes"]):
+        missing = sorted(set(operation["outcomes"]) - set(handlers))
+        extra = sorted(set(handlers) - set(operation["outcomes"]))
+        parts = []
+        if missing:
+            parts.append("missing: " + ", ".join(missing))
+        if extra:
+            parts.append("extra: " + ", ".join(extra))
+        raise ContractError(f"Entry {entry_id} response_handlers must exactly map operation outcomes" + (": " + "; ".join(parts) if parts else ""))
+    return handlers
+
+
+def _entry_point_named_response_outcomes(contract: dict[str, Any], entry_id: str) -> set[str]:
+    entry = contract["entry_points"][entry_id]
+    handlers = entry_point_response_handlers(entry)
+    if handlers:
+        return set(handlers)
+    responses = entry_point_responses(entry)
+    if responses:
+        return set(responses)
+    target_kind, target_ref = entry_target_pair(entry)
+    if target_kind == "operation":
+        return set(contract["operations"][target_ref]["outcomes"])
+    if target_kind == "workflow":
+        return set(contract["workflows"][target_ref]["outcomes"])
+    if target_kind == "entry_point":
+        return _entry_point_named_response_outcomes(contract, target_ref)
+    return set()
+
+
+def _entry_point_outcome_kinds(contract: dict[str, Any], entry_id: str) -> dict[str, str]:
+    target_kind, target_ref = entry_target_pair(contract["entry_points"][entry_id])
+    if target_kind == "operation":
+        return {name: outcome["kind"] for name, outcome in contract["operations"][target_ref]["outcomes"].items()}
+    if target_kind == "workflow":
+        return {name: outcome["kind"] for name, outcome in contract["workflows"][target_ref]["outcomes"].items()}
+    if target_kind == "entry_point":
+        return _entry_point_outcome_kinds(contract, target_ref)
+    return {}
+
+
+def _entry_point_response_body_types(contract: dict[str, Any], entry_id: str) -> dict[str, Any]:
+    entry = contract["entry_points"][entry_id]
+    responses = entry_point_responses(entry)
+    result: dict[str, Any] = {}
+    for outcome_id, response in responses.items():
+        body = response.get("body")
+        if body:
+            result[outcome_id] = body["type"]
+    if result:
+        return result
+    target_kind, target_ref = entry_target_pair(entry)
+    if target_kind == "operation":
+        return {name: outcome["result"] for name, outcome in contract["operations"][target_ref]["outcomes"].items()}
+    if target_kind == "workflow":
+        return {name: outcome["result"] for name, outcome in contract["workflows"][target_ref]["outcomes"].items()}
+    if target_kind == "entry_point":
+        return _entry_point_response_body_types(contract, target_ref)
+    return {}
 
 
 def _validate_response_value(label: str, value: dict[str, Any], expected_type: Any) -> None:
@@ -2716,7 +3083,7 @@ def _validate_test_case_when(contract: dict[str, Any], test_case_id: str, test_c
         entry_target_kind, _ = entry_target_pair(entry)
         if kind == "open_entry_point" and not (adapter_kind in {"html_route", "cli"} and entry_target_kind == "state_machine"):
             raise ContractError(f"Test case {test_case_id} open_entry_point must reference an HTML route or CLI state machine entry point")
-        if kind == "call_entry_point" and not (adapter_kind in {"http_api", "cli"} and entry_target_kind == "operation"):
+        if kind == "call_entry_point" and not (adapter_kind in {"http_api", "cli"} and _entry_point_effective_operation_ref(contract, ref)):
             raise ContractError(f"Test case {test_case_id} call_entry_point must reference an HTTP API or CLI operation entry point")
         _validate_test_case_entry_input(test_case_id, kind, body, entry)
     elif kind == "invoke_operation":
@@ -2814,9 +3181,16 @@ def _test_case_operation_ref(contract: dict[str, Any], when_kind: str, when_body
     if when_kind == "invoke_operation":
         return when_body["ref"]
     if when_kind == "call_entry_point":
-        target_kind, target_ref = entry_target_pair(contract["entry_points"][when_body["ref"]])
-        if target_kind == "operation":
-            return target_ref
+        return _entry_point_effective_operation_ref(contract, when_body["ref"])
+    return None
+
+
+def _entry_point_effective_operation_ref(contract: dict[str, Any], entry_id: str) -> str | None:
+    target_kind, target_ref = entry_target_pair(contract["entry_points"][entry_id])
+    if target_kind == "operation":
+        return target_ref
+    if target_kind == "entry_point":
+        return _entry_point_effective_operation_ref(contract, target_ref)
     return None
 
 
@@ -2980,8 +3354,8 @@ def _validate_test_case_outcome(contract: dict[str, Any], test_case_id: str, tes
         cap = contract["operations"][when_body["ref"]]
     elif when_kind == "call_entry_point":
         entry = contract["entry_points"][when_body["ref"]]
-        target_kind, target_ref = entry_target_pair(entry)
-        if target_kind == "operation":
+        target_ref = _entry_point_effective_operation_ref(contract, when_body["ref"])
+        if target_ref:
             cap = contract["operations"][target_ref]
     if cap is None:
         if outcome_id:
@@ -2993,14 +3367,24 @@ def _validate_test_case_outcome(contract: dict[str, Any], test_case_id: str, tes
         raise ContractError(f"Test case {test_case_id} asserts unknown outcome {outcome_id}")
     if entry is None:
         return
-    if outcome_id not in entry_point_responses(entry):
+    if outcome_id not in _entry_point_named_response_outcomes(contract, when_body["ref"]):
         raise ContractError(f"Test case {test_case_id} outcome {outcome_id} is not mapped by entry point {when_body['ref']}")
     response_assertion = then.get("response")
     if response_assertion:
-        response = entry_point_responses(entry)[outcome_id]
+        response = _entry_point_test_response_projection(entry, outcome_id)
         for key in ("status", "exit_code"):
             if key in response_assertion and response.get(key) != response_assertion[key]:
                 raise ContractError(f"Test case {test_case_id} response.{key} does not match entry point response for outcome {outcome_id}")
+
+
+def _entry_point_test_response_projection(entry: dict[str, Any], outcome_id: str) -> dict[str, Any]:
+    responses = entry_point_responses(entry)
+    if outcome_id in responses:
+        return responses[outcome_id]
+    handlers = entry_point_response_handlers(entry)
+    if outcome_id in handlers:
+        return handlers[outcome_id]
+    return {}
 
 
 def _validate_test_case_archetype(test_case_id: str, test_case: dict[str, Any]) -> None:
@@ -3148,10 +3532,7 @@ def _expand_test_cases(contract: dict[str, Any]) -> None:
         if when_kind == "invoke_operation":
             cap_id = when_body["ref"]
         elif when_kind == "call_entry_point":
-            entry = contract["entry_points"][when_body["ref"]]
-            target_kind, target_ref = entry_target_pair(entry)
-            if target_kind == "operation":
-                cap_id = target_ref
+            cap_id = _entry_point_effective_operation_ref(contract, when_body["ref"])
         if cap_id:
             assertions.setdefault("authorization", {"allowed": [{"operation": cap_id}]})
         _expand_authorization_assertions(contract, assertions)

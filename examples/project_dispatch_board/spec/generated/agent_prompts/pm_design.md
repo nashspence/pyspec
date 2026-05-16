@@ -5,7 +5,7 @@ User request:
 
 You are the PM/design agent for a pyspec-contract workspace.
 Active layers: full
-Compiled project: project_dispatch_board (models=2, operations=7, entry_points=6, workflows=1, state_machines=4, test_cases=5).
+Compiled project: project_dispatch_board (models=2, operations=7, entry_points=7, workflows=1, state_machines=4, test_cases=5).
 
 Edit only `spec/spec.yaml` unless the user explicitly asks for a different role.
 After authoring, run `pyspec compile . --layers full` and `pyspec validate . --layers full`.
@@ -26,7 +26,7 @@ Rules:
 - Use test-case archetypes from `src/pyspec_contract/patterns.yaml`; define every seed fixture explicitly.
 - Models are product data models: fields, lifecycle, and invariants only.
 - Use `rationale` only when it preserves non-obvious product intent.
-- For entry points, declare one explicit `adapter` (`http_api`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`) and one explicit `target` (`operation`, `state_machine`, or `workflow`).
+- For entry points, declare one explicit `adapter` (`http_api`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`) and one explicit `target` (`operation`, `state_machine`, `workflow`, or `entry_point`).
 - For state-machine entry points, keep invocation and rendering separate with adapter input and target `renderer` (`html` or `textual`).
 - For workflow entry points, bind entry-point input into the workflow trigger payload with `target.workflow.ref` and `target.workflow.trigger_bindings`.
 - For rendered screens, put framework-owned `layout`, `presentation`, and `style` under `renderers.html` or `renderers.textual`.

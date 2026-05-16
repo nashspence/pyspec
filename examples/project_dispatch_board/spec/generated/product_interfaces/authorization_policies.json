@@ -167,9 +167,9 @@
     }
   },
   "entry_point_authorization_policies": {
+    "entry_point.api.project.approve": "authorization_policy.project.approve",
     "entry_point.api.project.create": "authorization_policy.project.create",
-    "entry_point.api.project.list": "authorization_policy.project.list",
-    "entry_point.cli.project.approve": "authorization_policy.project.approve"
+    "entry_point.api.project.list": "authorization_policy.project.list"
   },
   "operation_authorization_policies": {
     "operation.project.approve": "authorization_policy.project.approve",

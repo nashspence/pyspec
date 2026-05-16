@@ -706,7 +706,20 @@ def _cwl_operation_ids(contract: dict[str, Any]) -> list[str]:
         target_kind, target_ref = entry_target_pair(entry)
         if adapter_kind == "cli" and target_kind == "operation":
             operation_ids.add(target_ref)
+        elif adapter_kind == "cli" and target_kind == "entry_point":
+            operation_id = _entry_point_effective_operation_ref(contract, target_ref)
+            if operation_id:
+                operation_ids.add(operation_id)
     return sorted(operation_ids)
+
+
+def _entry_point_effective_operation_ref(contract: dict[str, Any], entry_id: str) -> str | None:
+    target_kind, target_ref = entry_target_pair(contract["entry_points"][entry_id])
+    if target_kind == "operation":
+        return target_ref
+    if target_kind == "entry_point":
+        return _entry_point_effective_operation_ref(contract, target_ref)
+    return None
 
 
 def _workflow_trigger_payload_type(contract: dict[str, Any], workflow: dict[str, Any]) -> str:

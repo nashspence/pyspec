@@ -451,8 +451,8 @@
         "input": {
           "$ref": "#/$defs/cli_adapter_input"
         },
-        "responses": {
-          "$ref": "#/$defs/entry_point_responses"
+        "response_handlers": {
+          "$ref": "#/$defs/cli_response_handlers"
         }
       },
       "required": [
@@ -466,6 +466,52 @@
         "args": {
           "$ref": "#/$defs/type_expr_map"
         }
+      },
+      "type": "object"
+    },
+    "cli_output": {
+      "additionalProperties": false,
+      "properties": {
+        "bindings": {
+          "$ref": "#/$defs/runtime_bindings"
+        },
+        "text": {
+          "$ref": "#/$defs/text_ref"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "type": "object"
+    },
+    "cli_response_handler": {
+      "additionalProperties": false,
+      "properties": {
+        "exit_code": {
+          "type": "integer"
+        },
+        "retry_policy": {
+          "$ref": "#/$defs/entry_point_retry_policy"
+        },
+        "stderr": {
+          "$ref": "#/$defs/cli_output"
+        },
+        "stdout": {
+          "$ref": "#/$defs/cli_output"
+        }
+      },
+      "required": [
+        "exit_code"
+      ],
+      "type": "object"
+    },
+    "cli_response_handlers": {
+      "additionalProperties": {
+        "$ref": "#/$defs/cli_response_handler"
+      },
+      "minProperties": 1,
+      "propertyNames": {
+        "$ref": "#/$defs/outcome_name"
       },
       "type": "object"
     },
@@ -661,6 +707,43 @@
       ],
       "type": "object"
     },
+    "entry_point_delegate_input_bindings": {
+      "additionalProperties": false,
+      "properties": {
+        "args": {
+          "$ref": "#/$defs/runtime_bindings"
+        },
+        "body": {
+          "$ref": "#/$defs/runtime_bindings"
+        },
+        "path_params": {
+          "$ref": "#/$defs/runtime_bindings"
+        },
+        "payload": {
+          "$ref": "#/$defs/runtime_bindings"
+        },
+        "query_params": {
+          "$ref": "#/$defs/runtime_bindings"
+        }
+      },
+      "type": "object"
+    },
+    "entry_point_delegate_target": {
+      "additionalProperties": false,
+      "properties": {
+        "input_bindings": {
+          "$ref": "#/$defs/entry_point_delegate_input_bindings"
+        },
+        "ref": {
+          "$ref": "#/$defs/entry_point_ref"
+        }
+      },
+      "required": [
+        "ref",
+        "input_bindings"
+      ],
+      "type": "object"
+    },
     "entry_point_adapter": {
       "additionalProperties": false,
       "oneOf": [
@@ -736,6 +819,9 @@
         },
         "rationale": {
           "$ref": "#/$defs/rationale"
+        },
+        "retry_safe": {
+          "type": "boolean"
         },
         "route": {
           "pattern": "^route\\.",
@@ -822,6 +908,28 @@
       },
       "type": "object"
     },
+    "entry_point_retry_policy": {
+      "additionalProperties": false,
+      "properties": {
+        "attempts": {
+          "maximum": 10,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "backoff": {
+          "enum": [
+            "fixed",
+            "linear",
+            "exponential"
+          ]
+        }
+      },
+      "required": [
+        "attempts",
+        "backoff"
+      ],
+      "type": "object"
+    },
     "entry_point_target": {
       "additionalProperties": false,
       "oneOf": [
@@ -839,9 +947,17 @@
           "required": [
             "workflow"
           ]
+        },
+        {
+          "required": [
+            "entry_point"
+          ]
         }
       ],
       "properties": {
+        "entry_point": {
+          "$ref": "#/$defs/entry_point_delegate_target"
+        },
         "operation": {
           "$ref": "#/$defs/entry_operation_target"
         },

@@ -81,6 +81,55 @@ info:
   version: 0.0.0-contract
 openapi: 3.1.0
 paths:
+  /projects/{project_id}/approve:
+    post:
+      operationId: operation.project.approve
+      parameters:
+      - in: path
+        name: project_id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: false
+              properties:
+                approved_by:
+                  type: string
+              required:
+              - approved_by
+              type: object
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+          description: Approved
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: Not Found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: Invalid State
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: Unavailable
+      x-authorization-policy: authorization_policy.project.approve
+      x-entry: entry_point.api.project.approve
+      x-operation: operation.project.approve
   /workspaces/{workspace_id}/projects:
     get:
       operationId: operation.project.list

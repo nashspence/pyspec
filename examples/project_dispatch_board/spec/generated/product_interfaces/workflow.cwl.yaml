@@ -42,6 +42,8 @@ $graph:
       type: Any
     not_found:
       type: Any
+    unavailable:
+      type: Any
 - baseCommand:
   - contract-operation
   - operation.project.send_approval_notice

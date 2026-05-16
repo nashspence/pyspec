@@ -4,9 +4,11 @@ from pathlib import Path
 
 import pytest
 
+from pyspec_contract.api import write_generated
 from pyspec_contract.compile import ContractError, audit_cases, author_from_source, compile_author, compile_source, validate_against_schema
 from pyspec_contract.io import read_yaml, write_yaml
 from pyspec_contract.paths import COMPILED_SPEC_PATH, SOURCE_SPEC_PATH
+from pyspec_contract.reference_driver import ReferenceSpecDriver
 from pyspec_contract.validate import validate_project
 from tests.helpers import EXAMPLE_ROOT, copy_project_tree
 
@@ -1107,10 +1109,10 @@ def test_textual_is_not_an_entrypoint_renderer() -> None:
         compile_source(author)
 
 
-def test_cli_entry_args_must_exactly_match_operation_input() -> None:
+def test_cli_delegation_bindings_use_outer_input_shape() -> None:
     author = _author()
     del author["entry_points"]["entry_point.cli.project.approve"]["adapter"]["cli"]["input"]["args"]
-    with pytest.raises(ContractError, match=r"Entry entry_point.cli\.project\.approve input\.args must exactly match target input: missing: approved_by, project_id"):
+    with pytest.raises(ContractError, match=r"target\.entry_point\.input_bindings\.body\.approved_by references unknown \$input field: args"):
         compile_source(author)
 
 
@@ -1170,9 +1172,179 @@ def test_entry_point_responses_must_map_all_operation_outcomes() -> None:
 
 def test_cli_failure_response_must_use_nonzero_exit_and_stderr() -> None:
     author = _author()
-    author["entry_points"]["entry_point.cli.project.approve"]["adapter"]["cli"]["responses"]["invalid_state"]["exit_code"] = 0
-    with pytest.raises(ContractError, match=r"CLI entry entry_point.cli\.project\.approve failure response invalid_state exit_code must be nonzero"):
+    author["entry_points"]["entry_point.cli.project.approve"]["adapter"]["cli"]["response_handlers"]["invalid_state"]["exit_code"] = 0
+    with pytest.raises(ContractError, match=r"CLI entry entry_point.cli\.project\.approve failure response handler invalid_state exit_code must be nonzero"):
         compile_source(author)
+
+
+def test_entry_point_delegation_compiles_and_generates_refs() -> None:
+    contract = compile_source(_author())
+    cli_entry = contract["entry_points"]["entry_point.cli.project.approve"]
+    assert cli_entry["target"]["entry_point"]["ref"] == "entry_point.api.project.approve"
+    assert "entry_point_target.cli.project.approve.entry_point.api.project.approve" in contract["refs"]["entry_point_target"]
+    assert "entry_point_delegate.cli.project.approve.to.api.project.approve" in contract["refs"]["entry_point_delegate"]
+    assert "cli_response_handler.cli.project.approve.approved" in contract["refs"]["cli_response_handler"]
+    assert "runtime_response.cli.project.approve.approved.stdout.project_id" in contract["refs"]["runtime_response"]
+
+
+def test_entry_point_delegate_target_requires_ref_and_input_bindings() -> None:
+    author = _author()
+    del author["entry_points"]["entry_point.cli.project.approve"]["target"]["entry_point"]["ref"]
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_source(author)
+
+    author = _author()
+    del author["entry_points"]["entry_point.cli.project.approve"]["target"]["entry_point"]["input_bindings"]
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_source(author)
+
+
+def test_cli_response_handlers_require_binding_values() -> None:
+    author = _author()
+    author["entry_points"]["entry_point.cli.project.approve"]["adapter"]["cli"]["response_handlers"]["approved"]["stdout"]["bindings"]["project_id"] = "$response.body.id"
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_source(author)
+
+
+def test_old_cli_delegation_shapes_are_rejected() -> None:
+    author = _author()
+    cli = author["entry_points"]["entry_point.cli.project.approve"]["adapter"]["cli"]
+    cli["invokes"] = {"http_api": "entry_point.api.project.approve"}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_source(author)
+
+    author = _author()
+    cli = author["entry_points"]["entry_point.cli.project.approve"]["adapter"]["cli"]
+    cli["handling"] = {"approved": {"exit_code": 0}}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_source(author)
+
+
+def test_entry_point_delegate_ref_must_resolve_and_not_self_delegate() -> None:
+    author = _author()
+    author["entry_points"]["entry_point.cli.project.approve"]["target"]["entry_point"]["ref"] = "entry_point.api.project.missing"
+    with pytest.raises(ContractError, match=r"delegates to unknown entry point entry_point\.api\.project\.missing"):
+        compile_source(author)
+
+    author = _author()
+    author["entry_points"]["entry_point.cli.project.approve"]["target"]["entry_point"]["ref"] = "entry_point.cli.project.approve"
+    with pytest.raises(ContractError, match=r"must not delegate to itself"):
+        compile_source(author)
+
+
+def test_entry_point_delegation_cycles_are_rejected() -> None:
+    author = _author()
+    author["entry_points"]["entry_point.api.project.approve"]["target"] = {
+        "entry_point": {
+            "ref": "entry_point.cli.project.approve",
+            "input_bindings": {
+                "args": {
+                    "approved_by": {"from": "$input.body.approved_by"},
+                    "project_id": {"from": "$input.path_params.project_id"},
+                }
+            },
+        }
+    }
+    with pytest.raises(ContractError, match="delegation cycle is invalid"):
+        compile_source(author)
+
+
+def test_delegation_input_bindings_must_match_delegated_adapter_input() -> None:
+    author = _author()
+    del author["entry_points"]["entry_point.cli.project.approve"]["target"]["entry_point"]["input_bindings"]["body"]["approved_by"]
+    with pytest.raises(ContractError, match=r"input_bindings\.body must exactly bind target input: missing: approved_by"):
+        compile_source(author)
+
+
+def test_delegation_input_bindings_use_outer_input_roots() -> None:
+    author = _author()
+    author["entry_points"]["entry_point.cli.project.approve"]["target"]["entry_point"]["input_bindings"]["path_params"]["project_id"] = {
+        "from": "$response.body.id"
+    }
+    with pytest.raises(ContractError, match=r"input_bindings\.path_params\.project_id references unavailable runtime root: \$response"):
+        compile_source(author)
+
+
+def test_cli_response_handler_names_match_delegated_response_names() -> None:
+    author = _author()
+    del author["entry_points"]["entry_point.cli.project.approve"]["adapter"]["cli"]["response_handlers"]["invalid_state"]
+    del author["text_resources"]["text.project.approve.invalid_state"]
+    with pytest.raises(ContractError, match=r"response_handlers must exactly map delegated entry outcomes: missing: invalid_state"):
+        compile_source(author)
+
+
+def test_cli_response_handlers_do_not_restate_http_status_matching() -> None:
+    author = _author()
+    author["entry_points"]["entry_point.cli.project.approve"]["adapter"]["cli"]["response_handlers"]["approved"]["status"] = 200
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_source(author)
+
+
+def test_response_root_is_only_available_inside_delegated_cli_response_handlers() -> None:
+    contract = compile_source(_author())
+    assert contract["entry_points"]["entry_point.cli.project.approve"]["adapter"]["cli"]["response_handlers"]["approved"]["stdout"]["bindings"]["project_id"] == {
+        "from": "$response.body.id"
+    }
+
+    author = _author()
+    author["entry_points"]["entry_point.api.project.create"]["target"]["operation"]["input_bindings"]["title"] = {"from": "$response.body.title"}
+    with pytest.raises(ContractError, match=r"target\.input_bindings\.title references unavailable runtime root: \$response"):
+        compile_source(author)
+
+
+def test_cli_retry_policy_requires_retry_safe_delegated_entry_point() -> None:
+    author = _author()
+    del author["entry_points"]["entry_point.api.project.approve"]["retry_safe"]
+    with pytest.raises(ContractError, match=r"retry_policy requires delegated entry point entry_point\.api\.project\.approve to declare retry_safe: true"):
+        compile_source(author)
+
+
+def test_delegated_and_outer_authorization_policies_are_both_evaluated(tmp_path: Path) -> None:
+    author = _author()
+    outer_policy = "authorization_policy.project.cli_approve"
+    author.setdefault("authorization_policies", {})[outer_policy] = {
+        "subjects": [{"kind": "actor"}],
+        "targets": [{"entry_point": "entry_point.cli.project.approve"}],
+        "effect": "allow",
+        "conditions": [{"subject_has_role": "reviewer"}],
+        "rationale": "CLI approval also requires reviewer role.",
+    }
+    author["entry_points"]["entry_point.cli.project.approve"]["authorization_policy"] = outer_policy
+    author["test_cases"]["test_case.project.approve.cli.success"] = {
+        "archetype": "entry_point_response",
+        "feature_tag": "project.approve.cli",
+        "subject_ref": {"entry_point": "entry_point.cli.project.approve"},
+        "given": {"domain_facts": [{"ref": "fact.project.submitted"}], "seed_fixtures": ["fixture.workspace.reviewer"]},
+        "when": {
+            "call_entry_point": {
+                "ref": "entry_point.cli.project.approve",
+                "input": {"approved_by": "$fixture.actor.id", "project_id": "project_submitted_1"},
+            }
+        },
+        "then": {
+            "outcome": "approved",
+            "response": {"exit_code": 0},
+            "invoked": ["operation.project.approve"],
+            "authorization": {
+                "allowed": [
+                    {"entry_point": "entry_point.cli.project.approve", "authorization_policy": outer_policy},
+                    {"entry_point": "entry_point.api.project.approve", "authorization_policy": "authorization_policy.project.approve"},
+                    {"operation": "operation.project.approve", "authorization_policy": "authorization_policy.project.approve"},
+                ]
+            },
+        },
+        "title": "Approve through CLI delegation",
+        "rationale": "Delegated entry point authorization remains part of the invocation.",
+    }
+    contract = compile_source(author)
+    project = tmp_path / "project"
+    copy_project_tree(ROOT, project)
+    write_generated(project, contract, render_audit=False)
+    driver = ReferenceSpecDriver(project)
+    test_case = contract["test_cases"]["test_case.project.approve.cli.success"]
+    driver.given("test_case.project.approve.cli.success", test_case)
+    driver.when("test_case.project.approve.cli.success", test_case)
+    driver.then("test_case.project.approve.cli.success", test_case)
 
 
 def test_state_machine_entry_must_not_declare_output() -> None:

@@ -17,21 +17,41 @@ class CliCommand:
     CLI_COMMAND_PROJECT_APPROVE = 'cli_command.project.approve'
     CLI_COMMAND_PROJECT_BOARD = 'cli_command.project.board'
 
+class CliResponseHandler:
+    CLI_RESPONSE_HANDLER_CLI_PROJECT_APPROVE_APPROVED = 'cli_response_handler.cli.project.approve.approved'
+    CLI_RESPONSE_HANDLER_CLI_PROJECT_APPROVE_INVALID_STATE = 'cli_response_handler.cli.project.approve.invalid_state'
+    CLI_RESPONSE_HANDLER_CLI_PROJECT_APPROVE_NOT_FOUND = 'cli_response_handler.cli.project.approve.not_found'
+    CLI_RESPONSE_HANDLER_CLI_PROJECT_APPROVE_UNAVAILABLE = 'cli_response_handler.cli.project.approve.unavailable'
+
 class ContentCase:
     CONTENT_CASE_PROJECT_DETAIL_HEADING_HIGH_PRIORITY = 'content_case.project.detail.heading.high_priority'
     CONTENT_CASE_PROJECT_DETAIL_PRIORITY_BADGE_HIGH_PRIORITY = 'content_case.project.detail.priority_badge.high_priority'
 
 class Endpoint:
+    ENDPOINT_PROJECT_APPROVE = 'endpoint.project.approve'
     ENDPOINT_PROJECT_CREATE = 'endpoint.project.create'
     ENDPOINT_PROJECT_LIST = 'endpoint.project.list'
 
 class EntryPoint:
+    ENTRY_POINT_API_PROJECT_APPROVE = 'entry_point.api.project.approve'
     ENTRY_POINT_API_PROJECT_CREATE = 'entry_point.api.project.create'
     ENTRY_POINT_API_PROJECT_LIST = 'entry_point.api.project.list'
     ENTRY_POINT_CLI_PROJECT_APPROVE = 'entry_point.cli.project.approve'
     ENTRY_POINT_CLI_PROJECT_BOARD = 'entry_point.cli.project.board'
     ENTRY_POINT_HTML_PROJECT_BOARD = 'entry_point.html.project.board'
     ENTRY_POINT_WORKER_PROJECT_APPROVAL_NOTICE = 'entry_point.worker.project.approval_notice'
+
+class EntryPointDelegate:
+    ENTRY_POINT_DELEGATE_CLI_PROJECT_APPROVE_TO_API_PROJECT_APPROVE = 'entry_point_delegate.cli.project.approve.to.api.project.approve'
+
+class EntryPointTarget:
+    ENTRY_POINT_TARGET_API_PROJECT_APPROVE_OPERATION_PROJECT_APPROVE = 'entry_point_target.api.project.approve.operation.project.approve'
+    ENTRY_POINT_TARGET_API_PROJECT_CREATE_OPERATION_PROJECT_CREATE = 'entry_point_target.api.project.create.operation.project.create'
+    ENTRY_POINT_TARGET_API_PROJECT_LIST_OPERATION_PROJECT_LIST = 'entry_point_target.api.project.list.operation.project.list'
+    ENTRY_POINT_TARGET_CLI_PROJECT_APPROVE_ENTRY_POINT_API_PROJECT_APPROVE = 'entry_point_target.cli.project.approve.entry_point.api.project.approve'
+    ENTRY_POINT_TARGET_CLI_PROJECT_BOARD_STATE_MACHINE_PROJECT_BOARD = 'entry_point_target.cli.project.board.state_machine.project.board'
+    ENTRY_POINT_TARGET_HTML_PROJECT_BOARD_STATE_MACHINE_PROJECT_BOARD = 'entry_point_target.html.project.board.state_machine.project.board'
+    ENTRY_POINT_TARGET_WORKER_PROJECT_APPROVAL_NOTICE_WORKFLOW_PROJECT_APPROVAL_NOTICE = 'entry_point_target.worker.project.approval_notice.workflow.project.approval_notice'
 
 class Event:
     EVENT_PROJECT_APPROVED = 'event.project.approved'
@@ -72,6 +92,11 @@ class RenderProfile:
 class Route:
     ROUTE_PROJECT_BOARD = 'route.project.board'
 
+class RuntimeResponse:
+    RUNTIME_RESPONSE_CLI_PROJECT_APPROVE_APPROVED_STDOUT_PROJECT_ID = 'runtime_response.cli.project.approve.approved.stdout.project_id'
+    RUNTIME_RESPONSE_CLI_PROJECT_APPROVE_INVALID_STATE_STDERR_MESSAGE = 'runtime_response.cli.project.approve.invalid_state.stderr.message'
+    RUNTIME_RESPONSE_CLI_PROJECT_APPROVE_NOT_FOUND_STDERR_MESSAGE = 'runtime_response.cli.project.approve.not_found.stderr.message'
+
 class Screen:
     SCREEN_PROJECT_BOARD = 'screen.project.board'
 
@@ -105,6 +130,10 @@ class Text:
     TEXT_PROJECT_ACTIVITY_EMPTY_BODY = 'text.project.activity.empty.body'
     TEXT_PROJECT_ACTIVITY_EMPTY_HEADING = 'text.project.activity.empty.heading'
     TEXT_PROJECT_ACTIVITY_READY_HEADING = 'text.project.activity.ready.heading'
+    TEXT_PROJECT_APPROVE_INVALID_STATE = 'text.project.approve.invalid_state'
+    TEXT_PROJECT_APPROVE_NOT_FOUND = 'text.project.approve.not_found'
+    TEXT_PROJECT_APPROVE_SUCCESS = 'text.project.approve.success'
+    TEXT_PROJECT_APPROVE_UNAVAILABLE = 'text.project.approve.unavailable'
     TEXT_PROJECT_DETAIL_ERROR_BODY = 'text.project.detail.error.body'
     TEXT_PROJECT_DETAIL_ERROR_HEADING = 'text.project.detail.error.heading'
     TEXT_PROJECT_DETAIL_LOADING_MESSAGE = 'text.project.detail.loading.message'

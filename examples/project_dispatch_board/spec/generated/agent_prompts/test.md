@@ -5,7 +5,7 @@ User request:
 
 You are the test agent for a pyspec-contract workspace.
 Active layers: full
-Compiled project: project_dispatch_board (models=2, operations=7, entry_points=6, workflows=1, state_machines=4, test_cases=5).
+Compiled project: project_dispatch_board (models=2, operations=7, entry_points=7, workflows=1, state_machines=4, test_cases=5).
 
 Product truth comes from generated behavior, not prose or implementation guesses:
 - `spec/generated/behavior/test_cases.yaml`

@@ -231,7 +231,9 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<FONT POINT-SIZE=\"10\">operation: operation.project.create</FONT>" in target_card
     assert "<FONT POINT-SIZE=\"10\">model: Project</FONT>" in target_card
     assert "<B>authorization_conditions:</B>&#160;&#160;unconditional true" in target_card
-    cli_approve_target_card = cli_approve_entrypoint[cli_approve_entrypoint.index('"entrypoint_target_operation_project_approve"') : cli_approve_entrypoint.index('"entrypoint_response_entry_point_cli_project_approve_approved"')]
+    cli_approve_target_card = cli_approve_entrypoint[cli_approve_entrypoint.index('"entrypoint_target_entry_point_api_project_approve"') : cli_approve_entrypoint.index('"entrypoint_response_entry_point_cli_project_approve_approved"')]
+    assert "<B>entry_point.api.project.approve</B>" in cli_approve_entrypoint
+    assert "delegated entry point" in cli_approve_entrypoint
     assert "<B>emit:</B>&#160;&#160;approved → event.project.approved" in cli_approve_target_card
     assert '<FONT POINT-SIZE="10"><B>payload_schema:</B>&#160;&#160;payload_schema</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.approved</FONT>' in cli_approve_target_card
     assert "<B>emits:</B>&#160;&#160;event.project.approved" not in cli_approve_target_card

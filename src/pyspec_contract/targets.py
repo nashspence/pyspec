@@ -5,7 +5,7 @@ from typing import Any
 
 STATE_MACHINE_RENDERERS = ("html", "textual")
 ENTRY_POINT_ADAPTER_KINDS = ("http_api", "cli", "webhook", "scheduled", "worker", "html_route")
-ENTRY_POINT_TARGET_KINDS = ("operation", "state_machine", "workflow")
+ENTRY_POINT_TARGET_KINDS = ("operation", "state_machine", "workflow", "entry_point")
 
 
 def entry_point_adapter_pair(entry_or_adapter: dict[str, Any]) -> tuple[str, dict[str, Any]]:
@@ -32,7 +32,7 @@ def entry_point_target_pair(entry_or_target: dict[str, Any]) -> tuple[str, dict[
             if isinstance(value, dict):
                 return kind, value
             return kind, {"ref": value}
-    raise KeyError("entry point target must declare operation, state_machine, or workflow")
+    raise KeyError("entry point target must declare operation, state_machine, workflow, or entry_point")
 
 
 def entry_point_target(entry_or_target: dict[str, Any], kind: str | None = None) -> dict[str, Any]:
@@ -98,7 +98,7 @@ def entry_target_pair(target: dict[str, Any]) -> tuple[str, str]:
         if kind == "state_machine":
             return "state_machine", state_machine_target_name(body)
         return kind, operation_target_name(body) if kind == "operation" else workflow_target_name(body)
-    for kind in ("operation", "state_machine", "workflow"):
+    for kind in ENTRY_POINT_TARGET_KINDS:
         if kind not in target:
             continue
         value = target[kind]
@@ -106,8 +106,10 @@ def entry_target_pair(target: dict[str, Any]) -> tuple[str, str]:
             return kind, state_machine_target_name(value)
         if kind == "workflow":
             return kind, workflow_target_name(value)
+        if kind == "entry_point":
+            return kind, entry_point_delegate_target_name(value)
         return kind, operation_target_name(value)
-    raise KeyError("entry target must declare operation, state_machine, or workflow")
+    raise KeyError("entry target must declare operation, state_machine, workflow, or entry_point")
 
 
 def entry_state_machine_target(entry_or_target: dict[str, Any]) -> dict[str, str]:
@@ -166,3 +168,18 @@ def workflow_target_name(value: Any) -> str:
     if isinstance(value, dict):
         return value.get("ref") or value["name"]
     return value
+
+
+def entry_point_delegate_target_name(value: Any) -> str:
+    if isinstance(value, dict):
+        return value.get("ref") or value["name"]
+    return value
+
+
+def entry_point_response_handlers(entry: dict[str, Any]) -> dict[str, Any]:
+    if "adapter" in entry:
+        kind, adapter = entry_point_adapter_pair(entry)
+        if kind == "cli":
+            return adapter.get("response_handlers", {})
+        return {}
+    return entry.get("response_handlers", {})

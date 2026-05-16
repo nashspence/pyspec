@@ -196,6 +196,10 @@ operations:
         kind: failure
         result:
           model: Problem
+      unavailable:
+        kind: failure
+        result:
+          model: Problem
   operation.project.archive:
     rationale: Approved dispatch projects can be archived.
     input:
@@ -768,6 +772,53 @@ entry_points:
         input_bindings:
           workspace_id:
             from: $input.path_params.workspace_id
+  entry_point.api.project.approve:
+    retry_safe: true
+    adapter:
+      http_api:
+        input:
+          body:
+            approved_by:
+              primitive: ID
+          path_params:
+            project_id:
+              primitive: ID
+        method: POST
+        path: /projects/{project_id}/approve
+        responses:
+          approved:
+            body:
+              from: $outcome.result
+              type:
+                model: Project
+            status: 200
+          invalid_state:
+            body:
+              from: $outcome.result
+              type:
+                model: Problem
+            status: 409
+          not_found:
+            body:
+              from: $outcome.result
+              type:
+                model: Problem
+            status: 404
+          unavailable:
+            body:
+              from: $outcome.result
+              type:
+                model: Problem
+            status: 503
+    rationale: HTTP endpoint for approving submitted dispatch projects.
+    target:
+      operation:
+        ref: operation.project.approve
+        input_bindings:
+          approved_by:
+            from: $input.body.approved_by
+          project_id:
+            from: $input.path_params.project_id
   entry_point.cli.project.approve:
     adapter:
       cli:
@@ -778,34 +829,46 @@ entry_points:
               primitive: ID
             project_id:
               primitive: ID
-        responses:
+        response_handlers:
           approved:
             exit_code: 0
             stdout:
-              from: $outcome.result
-              type:
-                model: Project
+              text: text.project.approve.success
+              bindings:
+                project_id:
+                  from: $response.body.id
           invalid_state:
             exit_code: 2
             stderr:
-              from: $outcome.result
-              type:
-                model: Problem
+              text: text.project.approve.invalid_state
+              bindings:
+                message:
+                  from: $response.body.message
           not_found:
             exit_code: 3
             stderr:
-              from: $outcome.result
-              type:
-                model: Problem
+              text: text.project.approve.not_found
+              bindings:
+                message:
+                  from: $response.body.message
+          unavailable:
+            exit_code: 75
+            retry_policy:
+              attempts: 3
+              backoff: exponential
+            stderr:
+              text: text.project.approve.unavailable
     rationale: CLI entry for approval automation.
     target:
-      operation:
-        ref: operation.project.approve
+      entry_point:
+        ref: entry_point.api.project.approve
         input_bindings:
-          approved_by:
-            from: $input.args.approved_by
-          project_id:
-            from: $input.args.project_id
+          body:
+            approved_by:
+              from: $input.args.approved_by
+          path_params:
+            project_id:
+              from: $input.args.project_id
   entry_point.cli.project.board:
     adapter:
       cli:
@@ -1061,6 +1124,35 @@ test_cases:
           workspace_id: $fixture.workspace.id
         ref: entry_point.api.project.create
 text_resources:
+  text.project.approve.invalid_state:
+    rationale: CLI approval invalid-state message.
+    max_chars: 120
+    placeholder: 'Cannot approve project: {message}'
+    intent: error
+    args:
+      message:
+        primitive: Text
+  text.project.approve.not_found:
+    rationale: CLI approval not-found message.
+    max_chars: 120
+    placeholder: 'Cannot approve project: {message}'
+    intent: error
+    args:
+      message:
+        primitive: Text
+  text.project.approve.success:
+    rationale: CLI approval success message.
+    max_chars: 120
+    placeholder: Approved project {project_id}
+    intent: success
+    args:
+      project_id:
+        primitive: ID
+  text.project.approve.unavailable:
+    rationale: CLI approval unavailable message.
+    max_chars: 120
+    placeholder: Approval service is unavailable. Retry later.
+    intent: error
   text.project.activity.empty.body:
     rationale: Empty activity body.
     max_chars: 120

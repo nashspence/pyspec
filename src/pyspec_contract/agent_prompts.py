@@ -214,7 +214,7 @@ def _pm_design_prompt(context: _PromptContext) -> str:
             "- Use test-case archetypes from `src/pyspec_contract/patterns.yaml`; define every seed fixture explicitly.",
             "- Models are product data models: fields, lifecycle, and invariants only.",
             "- Use `rationale` only when it preserves non-obvious product intent.",
-            "- For entry points, declare one explicit `adapter` (`http_api`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`) and one explicit `target` (`operation`, `state_machine`, or `workflow`).",
+            "- For entry points, declare one explicit `adapter` (`http_api`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`) and one explicit `target` (`operation`, `state_machine`, `workflow`, or `entry_point`).",
             "- For state-machine entry points, keep invocation and rendering separate with adapter input and target `renderer` (`html` or `textual`).",
             "- For workflow entry points, bind entry-point input into the workflow trigger payload with `target.workflow.ref` and `target.workflow.trigger_bindings`.",
             "- For rendered screens, put framework-owned `layout`, `presentation`, and `style` under `renderers.html` or `renderers.textual`.",

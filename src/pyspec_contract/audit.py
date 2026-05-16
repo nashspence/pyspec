@@ -29,6 +29,7 @@ from .targets import (
     entry_point_input,
     entry_point_method,
     entry_point_path,
+    entry_point_response_handlers,
     entry_point_responses,
     entry_point_schedule_expression,
     entry_target_pair,
@@ -1136,17 +1137,32 @@ def _entry_input_sections(entry: dict[str, Any], contract: dict[str, Any]) -> li
 
 def _entry_point_response_nodes(entry_id: str, entry: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, str, str | None, list[tuple[str, list[object]]]]]:
     responses = entry_point_responses(entry)
-    if not responses:
+    handlers = entry_point_response_handlers(entry)
+    if not responses and not handlers:
         return []
     target_kind, target_value = entry_target_pair(entry)
-    outcomes = contract["operations"][target_value]["outcomes"] if target_kind == "operation" else {}
+    outcomes = _entry_point_response_outcomes(contract, target_kind, target_value)
     nodes = []
     for outcome_id, response in sorted(responses.items()):
         outcome = outcomes.get(outcome_id)
         subtitle = f"{outcome['kind']} response" if outcome else None
         node_id = _dot_node_id("entrypoint_response", f"{entry_id}_{outcome_id}")
         nodes.append((node_id, outcome_id, subtitle, _entry_point_response_sections(response)))
+    for outcome_id, handler in sorted(handlers.items()):
+        outcome = outcomes.get(outcome_id)
+        subtitle = f"{outcome['kind']} response handler" if outcome else "response handler"
+        node_id = _dot_node_id("entrypoint_response", f"{entry_id}_{outcome_id}")
+        nodes.append((node_id, outcome_id, subtitle, _entry_point_response_sections(handler)))
     return nodes
+
+
+def _entry_point_response_outcomes(contract: dict[str, Any], target_kind: str, target_value: str) -> dict[str, Any]:
+    if target_kind == "operation":
+        return contract["operations"][target_value]["outcomes"]
+    if target_kind == "entry_point":
+        delegated_kind, delegated_value = entry_target_pair(contract["entry_points"][target_value])
+        return _entry_point_response_outcomes(contract, delegated_kind, delegated_value)
+    return {}
 
 
 def _entry_point_response_sections(response: dict[str, Any]) -> list[tuple[str, list[object]]]:
@@ -1158,17 +1174,42 @@ def _entry_point_response_sections(response: dict[str, Any]) -> list[tuple[str, 
         sections.append(("body", [_DotTypedField("body", body["type"], body.get("from"))]))
     if "stdout" in response:
         stdout = response["stdout"]
-        sections.append(("stdout", [_DotTypedField("stdout", stdout["type"], stdout.get("from"))]))
+        if "type" in stdout:
+            sections.append(("stdout", [_DotTypedField("stdout", stdout["type"], stdout.get("from"))]))
+        else:
+            sections.append(("stdout", [stdout["text"]]))
+            if stdout.get("bindings"):
+                sections.append(("stdout bindings", _format_binding_lines(stdout["bindings"])))
     if "stderr" in response:
         stderr = response["stderr"]
-        sections.append(("stderr", [_DotTypedField("stderr", stderr["type"], stderr.get("from"))]))
+        if "type" in stderr:
+            sections.append(("stderr", [_DotTypedField("stderr", stderr["type"], stderr.get("from"))]))
+        else:
+            sections.append(("stderr", [stderr["text"]]))
+            if stderr.get("bindings"):
+                sections.append(("stderr bindings", _format_binding_lines(stderr["bindings"])))
     if "exit_code" in response:
         sections.append(("exit_code", [str(response["exit_code"])]))
     if "disposition" in response:
         sections.append(("disposition", [response["disposition"]]))
     if "problem" in response:
         sections.append(("problem", [_DotTypedField("problem", response["problem"])]))
+    if "retry_policy" in response:
+        retry = response["retry_policy"]
+        sections.append(("retry", [f"{retry['attempts']} {retry['backoff']}"]))
     return sections
+
+
+def _format_binding_lines(bindings: dict[str, Any]) -> list[str]:
+    lines = []
+    for name, binding in sorted(bindings.items()):
+        if isinstance(binding, dict) and "from" in binding:
+            lines.append(f"{name} {_DOT_ARROW_ASSIGN} {binding['from']}")
+        elif isinstance(binding, dict) and "value" in binding:
+            lines.append(f"{name} = {binding['value']!r}")
+        else:
+            lines.append(f"{name} = {binding!r}")
+    return lines
 
 
 def _entry_target_card(
@@ -1208,6 +1249,24 @@ def _entry_target_card(
             ],
             rationale=workflow.get("rationale", ""),
             style=_DOT_STYLE_WORKFLOW,
+        )
+    if target_kind == "entry_point":
+        delegated = contract["entry_points"][target_value]
+        adapter_kind, _ = entry_point_adapter_pair(delegated)
+        delegated_target_kind, delegated_target_value = entry_target_pair(delegated)
+        sections: list[tuple[str, list[object]]] = [
+            ("adapter", [adapter_kind]),
+            ("target", [_target_label(delegated_target_kind, delegated_target_value)]),
+        ]
+        sections.extend(_authorization_policy_sections(delegated.get("authorization_policy"), contract, include_details=True))
+        if delegated_target_kind == "operation":
+            sections.extend(_operation_sections(contract["operations"][delegated_target_value], contract))
+        return _dot_card(
+            target_value,
+            "delegated entry point",
+            sections,
+            rationale=delegated.get("rationale", ""),
+            style=_DOT_STYLE_ENTRY,
         )
     if target_kind == "event":
         return _event_card(target_value, contract)
