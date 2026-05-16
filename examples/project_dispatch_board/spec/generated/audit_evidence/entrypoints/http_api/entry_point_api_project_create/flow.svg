@@ -1,6 +1,6 @@
 <svg width="995pt" height="371pt"
  viewBox="0.00 0.00 995.00 371.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 11490ab82ce056e08d1e4d87153dccc4ea56ed7129fabe3a87656b13bba06fd8 -->
+<!-- pyspec-contract-input-sha256: f1f00a5300ce69cd47064cbad2cec0c3d284387187ef52b6f381d83e92b78191 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 353)">
 <title>entrypoint_entry_point_api_project_create</title>
 <!-- entrypoint_entry_point_api_project_create -->
@@ -98,8 +98,8 @@
 <g id="node4" class="node">
 <title>entrypoint_response_entry_point_api_project_create_created</title>
 <polygon fill="#ffffff" stroke="transparent" points="824.5,-181.5 824.5,-273.5 956.5,-273.5 956.5,-181.5 824.5,-181.5"/>
-<polygon fill="#64748b" stroke="transparent" points="825.5,-264.5 825.5,-272.5 955.5,-272.5 955.5,-264.5 825.5,-264.5"/>
-<polygon fill="#f8fafc" stroke="transparent" points="825.5,-233.5 825.5,-264.5 955.5,-264.5 955.5,-233.5 825.5,-233.5"/>
+<polygon fill="#16a34a" stroke="transparent" points="825.5,-264.5 825.5,-272.5 955.5,-272.5 955.5,-264.5 825.5,-264.5"/>
+<polygon fill="#f0fdf4" stroke="transparent" points="825.5,-233.5 825.5,-264.5 955.5,-264.5 955.5,-233.5 825.5,-233.5"/>
 <text text-anchor="start" x="829.5" y="-251.1" font-family="Arial" font-weight="bold" font-size="13.00">created</text>
 <text text-anchor="start" x="829.5" y="-240.1" font-family="Arial" font-size="8.00" fill="#64748b">success response</text>
 <text text-anchor="start" x="830.5" y="-221.5" font-family="Arial" font-weight="bold" font-size="10.00">status:</text>
@@ -108,7 +108,7 @@
 <text text-anchor="start" x="829.5" y="-190.5" font-family="Arial" font-size="10.00">body</text>
 <text text-anchor="start" x="851.5" y="-190.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
 <text text-anchor="start" x="881.5" y="-190.5" font-family="Arial" font-size="8.00"> ← $outcome.result</text>
-<polygon fill="none" stroke="#64748b" points="824.5,-181.5 824.5,-273.5 956.5,-273.5 956.5,-181.5 824.5,-181.5"/>
+<polygon fill="none" stroke="#16a34a" points="824.5,-181.5 824.5,-273.5 956.5,-273.5 956.5,-181.5 824.5,-181.5"/>
 </g>
 <!-- entrypoint_target_operation_project_create&#45;&gt;entrypoint_response_entry_point_api_project_create_created -->
 <g id="edge3" class="edge">
@@ -120,8 +120,8 @@
 <g id="node5" class="node">
 <title>entrypoint_response_entry_point_api_project_create_validation_failed</title>
 <polygon fill="#ffffff" stroke="transparent" points="822,-62.5 822,-154.5 959,-154.5 959,-62.5 822,-62.5"/>
-<polygon fill="#64748b" stroke="transparent" points="823.5,-145.5 823.5,-153.5 958.5,-153.5 958.5,-145.5 823.5,-145.5"/>
-<polygon fill="#f8fafc" stroke="transparent" points="823.5,-114.5 823.5,-145.5 958.5,-145.5 958.5,-114.5 823.5,-114.5"/>
+<polygon fill="#dc2626" stroke="transparent" points="823.5,-145.5 823.5,-153.5 958.5,-153.5 958.5,-145.5 823.5,-145.5"/>
+<polygon fill="#fef2f2" stroke="transparent" points="823.5,-114.5 823.5,-145.5 958.5,-145.5 958.5,-114.5 823.5,-114.5"/>
 <text text-anchor="start" x="827.5" y="-132.1" font-family="Arial" font-weight="bold" font-size="13.00">validation_failed</text>
 <text text-anchor="start" x="827.5" y="-121.1" font-family="Arial" font-size="8.00" fill="#64748b">failure response</text>
 <text text-anchor="start" x="828.5" y="-102.5" font-family="Arial" font-weight="bold" font-size="10.00">status:</text>
@@ -130,7 +130,7 @@
 <text text-anchor="start" x="827.5" y="-71.5" font-family="Arial" font-size="10.00">body</text>
 <text text-anchor="start" x="849.5" y="-71.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
 <text text-anchor="start" x="884.5" y="-71.5" font-family="Arial" font-size="8.00"> ← $outcome.result</text>
-<polygon fill="none" stroke="#64748b" points="822,-62.5 822,-154.5 959,-154.5 959,-62.5 822,-62.5"/>
+<polygon fill="none" stroke="#dc2626" points="822,-62.5 822,-154.5 959,-154.5 959,-62.5 822,-62.5"/>
 </g>
 <!-- entrypoint_target_operation_project_create&#45;&gt;entrypoint_response_entry_point_api_project_create_validation_failed -->
 <g id="edge4" class="edge">

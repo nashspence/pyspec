@@ -1,6 +1,6 @@
 <svg width="848pt" height="199pt"
  viewBox="0.00 0.00 848.00 199.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 49a8e07911eaa2dd7b5ce95b8b30d0c381dda3724b436240231e8ec7ac06d3ee -->
+<!-- pyspec-contract-input-sha256: 528629c27a2c6331a1aeed3f86a40e0f6eb79fa1d88299ba76ddc6ebb34c6960 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 181)">
 <title>entrypoint_entry_point_html_project_board</title>
 <!-- entrypoint_entry_point_html_project_board -->
@@ -39,8 +39,8 @@
 <g id="node3" class="node">
 <title>entrypoint_target_state_machine_project_board</title>
 <polygon fill="#ffffff" stroke="transparent" points="459,0 459,-163 812,-163 812,0 459,0"/>
-<polygon fill="#047857" stroke="transparent" points="460.5,-153.5 460.5,-161.5 811.5,-161.5 811.5,-153.5 460.5,-153.5"/>
-<polygon fill="#ecfdf5" stroke="transparent" points="460.5,-122.5 460.5,-153.5 811.5,-153.5 811.5,-122.5 460.5,-122.5"/>
+<polygon fill="#9333ea" stroke="transparent" points="460.5,-153.5 460.5,-161.5 811.5,-161.5 811.5,-153.5 460.5,-153.5"/>
+<polygon fill="#faf5ff" stroke="transparent" points="460.5,-122.5 460.5,-153.5 811.5,-153.5 811.5,-122.5 460.5,-122.5"/>
 <text text-anchor="start" x="464.5" y="-140.1" font-family="Arial" font-weight="bold" font-size="13.00">state_machine.project.board</text>
 <text text-anchor="start" x="464.5" y="-129.1" font-family="Arial" font-size="8.00" fill="#64748b">target state machine (html)</text>
 <text text-anchor="start" x="464.5" y="-111.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">The dispatch board composes list, detail, and</text>
@@ -60,7 +60,7 @@
 <text text-anchor="start" x="498.5" y="-21.5" font-family="Arial" font-size="10.00">  Project</text>
 <text text-anchor="start" x="465.5" y="-9.5" font-family="Arial" font-weight="bold" font-size="10.00">signal_sync_rules:</text>
 <text text-anchor="start" x="553.5" y="-9.5" font-family="Arial" font-size="10.00">  select_project_updates_state_machines</text>
-<polygon fill="none" stroke="#047857" points="459,0 459,-163 812,-163 812,0 459,0"/>
+<polygon fill="none" stroke="#9333ea" points="459,0 459,-163 812,-163 812,0 459,0"/>
 </g>
 <!-- entrypoint_input_entry_point_html_project_board&#45;&gt;entrypoint_target_state_machine_project_board -->
 <g id="edge2" class="edge">

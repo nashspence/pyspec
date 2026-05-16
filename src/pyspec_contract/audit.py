@@ -60,6 +60,12 @@ _DOT_COLOR_ENTRY_HEADER = "#ecfeff"
 _DOT_COLOR_NEUTRAL_BORDER = "#71717a"
 _DOT_COLOR_NEUTRAL_HEADER = "#f8fafc"
 _DOT_COLOR_BOUNDARY_BORDER = "#64748b"
+_DOT_COLOR_TARGET_BORDER = "#9333ea"
+_DOT_COLOR_TARGET_HEADER = "#faf5ff"
+_DOT_COLOR_SUCCESS_BORDER = "#16a34a"
+_DOT_COLOR_SUCCESS_HEADER = "#f0fdf4"
+_DOT_COLOR_FAILURE_BORDER = "#dc2626"
+_DOT_COLOR_FAILURE_HEADER = "#fef2f2"
 
 _DOT_COLOR_CAPABILITY_BORDER = "#2563eb"
 _DOT_COLOR_CAPABILITY_HEADER = "#eff6ff"
@@ -88,6 +94,9 @@ class _DotCardStyle:
 
 _DOT_STYLE_ENTRY = _DotCardStyle(header_bg=_DOT_COLOR_ENTRY_HEADER, border=_DOT_COLOR_ENTRY)
 _DOT_STYLE_EXTERNAL = _DotCardStyle(header_bg=_DOT_COLOR_NEUTRAL_HEADER, border=_DOT_COLOR_BOUNDARY_BORDER)
+_DOT_STYLE_TARGET = _DotCardStyle(header_bg=_DOT_COLOR_TARGET_HEADER, border=_DOT_COLOR_TARGET_BORDER)
+_DOT_STYLE_SUCCESS_EXIT = _DotCardStyle(header_bg=_DOT_COLOR_SUCCESS_HEADER, border=_DOT_COLOR_SUCCESS_BORDER)
+_DOT_STYLE_FAILURE_EXIT = _DotCardStyle(header_bg=_DOT_COLOR_FAILURE_HEADER, border=_DOT_COLOR_FAILURE_BORDER)
 _DOT_STYLE_NEUTRAL = _DotCardStyle(header_bg=_DOT_COLOR_NEUTRAL_HEADER, border=_DOT_COLOR_NEUTRAL_BORDER)
 _DOT_STYLE_CAPABILITY = _DotCardStyle(header_bg=_DOT_COLOR_CAPABILITY_HEADER, border=_DOT_COLOR_CAPABILITY_BORDER)
 _DOT_STYLE_EVENT = _DotCardStyle(header_bg=_DOT_COLOR_EVENT_HEADER, border=_DOT_COLOR_EVENT_BORDER)
@@ -993,9 +1002,9 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
         lines.extend(
             _dot_html_node(
                 node_id,
-                _dot_card(outcome_id if subtitle else output_title, subtitle or outcome_id, sections, style=_DOT_STYLE_EXTERNAL),
+                _dot_card(outcome_id if subtitle else output_title, subtitle or outcome_id, sections, style=_exit_card_style(outcome_kind)),
             )
-            for node_id, outcome_id, subtitle, sections in response_nodes
+            for node_id, outcome_id, subtitle, outcome_kind, sections in response_nodes
         )
     lines.extend(_dot_html_node(node_id, label) for node_id, label in target_tail)
     if input_sections:
@@ -1006,11 +1015,11 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
     for node_id, _ in target_tail:
         lines.append(_dot_edge(target_node, node_id))
     if response_nodes:
-        for node_id, _, _, _ in response_nodes:
+        for node_id, _, _, _, _ in response_nodes:
             lines.append(_dot_edge(target_node, node_id))
         if len(response_nodes) > 1:
-            lines.append("  { rank=same; " + " ".join(_dot_quote(node_id) for node_id, _, _, _ in response_nodes) + " }")
-            lines.extend(_dot_invisible_order([node_id for node_id, _, _, _ in response_nodes], indent="  "))
+            lines.append("  { rank=same; " + " ".join(_dot_quote(node_id) for node_id, _, _, _, _ in response_nodes) + " }")
+            lines.extend(_dot_invisible_order([node_id for node_id, _, _, _, _ in response_nodes], indent="  "))
     if len(target_tail) > 1:
         lines.append("  { rank=same; " + " ".join(_dot_quote(node_id) for node_id, _ in target_tail) + " }")
         lines.extend(_dot_invisible_order([node_id for node_id, _ in target_tail], indent="  "))
@@ -1032,7 +1041,6 @@ def _entry_io_card_titles(adapter_kind: str) -> tuple[str, str]:
 
 def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict[str, Any]) -> str:
     trigger_kind, trigger_value = _target_pair(workflow["trigger"])
-    start_id = "workflow_start"
     trigger_node = _dot_node_id("workflow_trigger", f"{trigger_kind}_{trigger_value}")
     workflow_node = _dot_node_id("workflow", workflow_id)
     step_nodes = [(_dot_node_id("workflow_step", f"{workflow_id}_{step['id']}"), step) for step in workflow["steps"]]
@@ -1045,7 +1053,6 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
     lines = _dot_graph_preamble("workflow_" + safe_id(workflow_id))
     lines.extend(
         [
-            _dot_circle_node(start_id, "trigger", width="0.68", color=_DOT_COLOR_EVENT_BORDER, fontcolor=_DOT_COLOR_EVENT_TEXT),
             _dot_html_node(trigger_node, _workflow_trigger_card(trigger_kind, trigger_value, contract)),
             _dot_html_node(
                 workflow_node,
@@ -1067,7 +1074,6 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
         lines.append(_dot_html_node(node_id, _workflow_step_card(step, contract)))
     for node_id, outcome_id, outcome in outcome_nodes:
         lines.append(_dot_html_node(node_id, _workflow_outcome_card(outcome_id, outcome)))
-    lines.append(_dot_edge(start_id, trigger_node))
     lines.append(_dot_edge(trigger_node, workflow_node))
     if step_nodes:
         lines.append(_dot_edge(workflow_node, step_nodes[0][0]))
@@ -1135,7 +1141,7 @@ def _entry_input_sections(entry: dict[str, Any], contract: dict[str, Any]) -> li
     return sections
 
 
-def _entry_point_response_nodes(entry_id: str, entry: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, str, str | None, list[tuple[str, list[object]]]]]:
+def _entry_point_response_nodes(entry_id: str, entry: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, str, str | None, str | None, list[tuple[str, list[object]]]]]:
     responses = entry_point_responses(entry)
     handlers = entry_point_response_handlers(entry)
     if not responses and not handlers:
@@ -1145,15 +1151,42 @@ def _entry_point_response_nodes(entry_id: str, entry: dict[str, Any], contract: 
     nodes = []
     for outcome_id, response in sorted(responses.items()):
         outcome = outcomes.get(outcome_id)
-        subtitle = f"{outcome['kind']} response" if outcome else None
+        outcome_kind = outcome["kind"] if outcome else _entry_response_style_kind(response)
+        subtitle = f"{outcome['kind']} response" if outcome else _entry_disposition_subtitle(response, outcome_kind)
         node_id = _dot_node_id("entrypoint_response", f"{entry_id}_{outcome_id}")
-        nodes.append((node_id, outcome_id, subtitle, _entry_point_response_sections(response)))
+        nodes.append((node_id, outcome_id, subtitle, outcome_kind, _entry_point_response_sections(response)))
     for outcome_id, handler in sorted(handlers.items()):
         outcome = outcomes.get(outcome_id)
-        subtitle = f"{outcome['kind']} response handler" if outcome else "response handler"
+        outcome_kind = outcome["kind"] if outcome else _entry_response_style_kind(handler)
+        subtitle = f"{outcome['kind']} response handler" if outcome else _entry_disposition_subtitle(handler, outcome_kind) or "response handler"
         node_id = _dot_node_id("entrypoint_response", f"{entry_id}_{outcome_id}")
-        nodes.append((node_id, outcome_id, subtitle, _entry_point_response_sections(handler)))
+        nodes.append((node_id, outcome_id, subtitle, outcome_kind, _entry_point_response_sections(handler)))
     return nodes
+
+
+def _entry_disposition_subtitle(response: dict[str, Any], outcome_kind: str | None) -> str | None:
+    if "disposition" not in response:
+        return None
+    if outcome_kind in {"success", "failure"}:
+        return f"{outcome_kind} disposition"
+    return "disposition"
+
+
+def _entry_response_style_kind(response: dict[str, Any]) -> str | None:
+    disposition = response.get("disposition")
+    if disposition == "acknowledge":
+        return "success"
+    if disposition in {"retry", "reject", "dead_letter"} or "problem" in response:
+        return "failure"
+    return None
+
+
+def _exit_card_style(outcome_kind: str | None) -> _DotCardStyle:
+    if outcome_kind == "success":
+        return _DOT_STYLE_SUCCESS_EXIT
+    if outcome_kind == "failure":
+        return _DOT_STYLE_FAILURE_EXIT
+    return _DOT_STYLE_TARGET
 
 
 def _entry_point_response_outcomes(contract: dict[str, Any], target_kind: str, target_value: str) -> dict[str, Any]:
@@ -1226,7 +1259,7 @@ def _entry_target_card(
             f"target state machine ({renderer})" if renderer else "target state machine",
             _state_machine_summary_sections(state_machine, contract),
             rationale=state_machine.get("rationale", ""),
-            style=_DOT_STYLE_STATE_MACHINE,
+            style=_DOT_STYLE_TARGET,
         )
     if target_kind == "operation":
         operation = contract["operations"][target_value]
@@ -1403,7 +1436,7 @@ def _workflow_outcome_card(outcome_id: str, outcome: dict[str, Any]) -> str:
         outcome_id,
         f"{outcome['kind']} workflow outcome",
         [("result", [_DotTypedField("result", outcome["result"])])],
-        style=_DOT_STYLE_EXTERNAL,
+        style=_exit_card_style(outcome["kind"]),
     )
 
 

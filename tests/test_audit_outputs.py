@@ -174,11 +174,22 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>path params</B>" in entrypoint
     assert '<FONT POINT-SIZE="10">workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in entrypoint
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">target state machine (html)</FONT>' in entrypoint
+    state_machine_target_card = entrypoint[entrypoint.index('"entrypoint_target_state_machine_project_board"') :]
+    assert 'COLOR="#9333ea" BGCOLOR="#ffffff"' in state_machine_target_card
+    assert 'BGCOLOR="#faf5ff"' in state_machine_target_card
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">target state machine (textual)</FONT>' in cli_entrypoint
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">target workflow</FONT>' in worker_entrypoint
     assert "<B>event payload</B>" in worker_entrypoint
-    assert "<B>message disposition</B>" in worker_entrypoint
+    assert "<B>message disposition</B>" not in worker_entrypoint
     assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.approved</FONT>' in worker_entrypoint
+    worker_accepted_card = worker_entrypoint[worker_entrypoint.index('"entrypoint_response_entry_point_worker_project_approval_notice_accepted"') : worker_entrypoint.index('"entrypoint_response_entry_point_worker_project_approval_notice_malformed"')]
+    worker_malformed_card = worker_entrypoint[worker_entrypoint.index('"entrypoint_response_entry_point_worker_project_approval_notice_malformed"') :]
+    assert "<B>accepted</B>" in worker_accepted_card
+    assert "success disposition" in worker_accepted_card
+    assert 'COLOR="#16a34a" BGCOLOR="#ffffff"' in worker_accepted_card
+    assert "<B>malformed</B>" in worker_malformed_card
+    assert "failure disposition" in worker_malformed_card
+    assert 'COLOR="#dc2626" BGCOLOR="#ffffff"' in worker_malformed_card
     for entrypoint_flow in (entrypoint, cli_entrypoint, cli_approve_entrypoint, api_entrypoint, worker_entrypoint):
         assert 'label="entry"' not in entrypoint_flow
         assert 'label="exit"' not in entrypoint_flow
@@ -208,6 +219,14 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>request</B>" in api_entrypoint
     assert "success response" in api_entrypoint
     assert "failure response" in api_entrypoint
+    request_card = api_entrypoint[api_entrypoint.index('"entrypoint_input_entry_point_api_project_create"') : api_entrypoint.index('"entrypoint_target_operation_project_create"')]
+    success_response_card = api_entrypoint[api_entrypoint.index('"entrypoint_response_entry_point_api_project_create_created"') : api_entrypoint.index('"entrypoint_response_entry_point_api_project_create_validation_failed"')]
+    failure_response_card = api_entrypoint[api_entrypoint.index('"entrypoint_response_entry_point_api_project_create_validation_failed"') :]
+    assert 'COLOR="#64748b" BGCOLOR="#ffffff"' in request_card
+    assert 'COLOR="#16a34a" BGCOLOR="#ffffff"' in success_response_card
+    assert 'BGCOLOR="#f0fdf4"' in success_response_card
+    assert 'COLOR="#dc2626" BGCOLOR="#ffffff"' in failure_response_card
+    assert 'BGCOLOR="#fef2f2"' in failure_response_card
     assert "<B>entry input</B>" not in api_entrypoint
     assert "<B>entry output</B>" not in api_entrypoint
     assert "<B>entry input</B>" not in worker_entrypoint
@@ -248,6 +267,12 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>state_machine:</B>" not in entrypoint
     assert "state_machine.selected_project_id" not in entrypoint
     assert "$state_machine." not in entrypoint
+    assert "workflow_start" not in workflow
+    assert '"workflow_trigger_event_event_project_approved" -> "workflow_workflow_project_approval_notice"' in workflow
+    workflow_completed_card = workflow[workflow.index('"workflow_outcome_workflow_project_approval_notice_completed"') : workflow.index('"workflow_outcome_workflow_project_approval_notice_delivery_failed"')]
+    workflow_failed_card = workflow[workflow.index('"workflow_outcome_workflow_project_approval_notice_delivery_failed"') :]
+    assert 'COLOR="#16a34a" BGCOLOR="#ffffff"' in workflow_completed_card
+    assert 'COLOR="#dc2626" BGCOLOR="#ffffff"' in workflow_failed_card
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">event trigger</FONT>' in workflow
     assert '<FONT POINT-SIZE="10"><B>payload_schema:</B>&#160;&#160;payload_schema</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.approved</FONT>' in workflow
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">workflow step</FONT>' in workflow
