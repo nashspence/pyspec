@@ -39,6 +39,7 @@ from .audit import (
     audit_expected_files,
     composition_file,
     entrypoint_flow_file,
+    operation_flow_file,
     state_machine_graph_file,
     workflow_flow_file,
 )
@@ -673,6 +674,8 @@ def validate_audit_outputs(root: Path, contract: dict[str, Any]) -> None:
         _assert_svg(root / entrypoint_flow_file(entry_id, adapter_kind), f"entrypoint {entry_id}")
     for workflow_id in contract.get("workflows", {}):
         _assert_svg(root / workflow_flow_file(workflow_id), f"workflow {workflow_id}")
+    for operation_id in contract.get("operations", {}):
+        _assert_svg(root / operation_flow_file(operation_id), f"operation {operation_id}")
 
     projection = state_machines_projection(contract)
     for state_machine in _audit_projection_surfaces(contract, projection):

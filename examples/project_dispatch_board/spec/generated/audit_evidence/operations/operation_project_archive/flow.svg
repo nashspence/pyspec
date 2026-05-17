@@ -1,0 +1,148 @@
+<svg width="1331pt" height="367pt"
+ viewBox="0.00 0.00 1331.00 366.50" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: bc5d1c11d4cf45b68651406c002ca081f76eb7ae3ccdf55349e808409dfb5062 -->
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 348.5)">
+<title>operation_operation_project_archive</title>
+<!-- operation_input_operation_project_archive -->
+<g id="node1" class="node">
+<title>operation_input_operation_project_archive</title>
+<polygon fill="#ffffff" stroke="transparent" points="0,-125 0,-196 66,-196 66,-125 0,-125"/>
+<polygon fill="#64748b" stroke="transparent" points="1,-186.5 1,-194.5 65,-194.5 65,-186.5 1,-186.5"/>
+<polygon fill="#f8fafc" stroke="transparent" points="1,-155.5 1,-186.5 65,-186.5 65,-155.5 1,-155.5"/>
+<text text-anchor="start" x="5" y="-173.1" font-family="Arial" font-weight="bold" font-size="13.00">input</text>
+<text text-anchor="start" x="5" y="-162.1" font-family="Arial" font-size="8.00" fill="#64748b">operation input</text>
+<text text-anchor="start" x="5" y="-144.5" font-family="Arial" font-weight="bold" font-size="10.00">fields</text>
+<text text-anchor="start" x="5" y="-133.5" font-family="Arial" font-size="10.00">project_id</text>
+<text text-anchor="start" x="48" y="-133.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<polygon fill="none" stroke="#64748b" points="0,-125 0,-196 66,-196 66,-125 0,-125"/>
+</g>
+<!-- operation_policy_authorization_policy_project_archive -->
+<g id="node2" class="node">
+<title>operation_policy_authorization_policy_project_archive</title>
+<polygon fill="#ffffff" stroke="transparent" points="168,-108 168,-213 408,-213 408,-108 168,-108"/>
+<polygon fill="#c2410c" stroke="transparent" points="169,-203.5 169,-211.5 407,-211.5 407,-203.5 169,-203.5"/>
+<polygon fill="#fff7ed" stroke="transparent" points="169,-172.5 169,-203.5 407,-203.5 407,-172.5 169,-172.5"/>
+<text text-anchor="start" x="173" y="-190.1" font-family="Arial" font-weight="bold" font-size="13.00">authorization_policy.project.archive</text>
+<text text-anchor="start" x="173" y="-179.1" font-family="Arial" font-size="8.00" fill="#64748b">authorization gate</text>
+<text text-anchor="start" x="173" y="-161.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approved dispatch projects can be archived.</text>
+<text text-anchor="start" x="174" y="-141.5" font-family="Arial" font-weight="bold" font-size="10.00">effect:</text>
+<text text-anchor="start" x="202" y="-141.5" font-family="Arial" font-size="10.00">  allow</text>
+<text text-anchor="start" x="174" y="-129.5" font-family="Arial" font-weight="bold" font-size="10.00">subjects:</text>
+<text text-anchor="start" x="217" y="-129.5" font-family="Arial" font-size="10.00">  actor</text>
+<text text-anchor="start" x="174" y="-117.5" font-family="Arial" font-weight="bold" font-size="10.00">conditions:</text>
+<text text-anchor="start" x="227" y="-117.5" font-family="Arial" font-size="10.00">  Project.status = approved</text>
+<polygon fill="none" stroke="#c2410c" points="168,-108 168,-213 408,-213 408,-108 168,-108"/>
+</g>
+<!-- operation_input_operation_project_archive&#45;&gt;operation_policy_authorization_policy_project_archive -->
+<g id="edge1" class="edge">
+<title>operation_input_operation_project_archive&#45;&gt;operation_policy_authorization_policy_project_archive</title>
+<path fill="none" stroke="#c2410c" stroke-width="1.2" d="M66.04,-160.5C90.11,-160.5 124.77,-160.5 159.53,-160.5"/>
+<polygon fill="#c2410c" stroke="#c2410c" stroke-width="1.2" points="159.89,-163.3 167.89,-160.5 159.89,-157.7 159.89,-163.3"/>
+<text text-anchor="middle" x="117" y="-163.5" font-family="Arial" font-size="10.00">authorize</text>
+</g>
+<!-- operation_resource_operation_project_archive_transition_Project_status -->
+<g id="node3" class="node">
+<title>operation_resource_operation_project_archive_transition_Project_status</title>
+<polygon fill="#ffffff" stroke="transparent" points="510,-125 510,-196 819,-196 819,-125 510,-125"/>
+<polygon fill="#15803d" stroke="transparent" points="511.5,-186.5 511.5,-194.5 818.5,-194.5 818.5,-186.5 511.5,-186.5"/>
+<polygon fill="#f0fdfa" stroke="transparent" points="511.5,-155.5 511.5,-186.5 818.5,-186.5 818.5,-155.5 511.5,-155.5"/>
+<text text-anchor="start" x="515.5" y="-173.1" font-family="Arial" font-weight="bold" font-size="13.00">Project</text>
+<text text-anchor="start" x="515.5" y="-162.1" font-family="Arial" font-size="8.00" fill="#64748b">model resource</text>
+<text text-anchor="start" x="515.5" y="-144.5" font-family="Arial" font-weight="bold" font-size="10.00">change</text>
+<text text-anchor="start" x="515.5" y="-133.5" font-family="Arial" font-size="10.00">Project.status</text>
+<text text-anchor="start" x="576.5" y="-133.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  enum&lt;draft|submitted|approved|archived&gt;</text>
+<text text-anchor="start" x="732.5" y="-133.5" font-family="Arial" font-size="8.00">  approved → archived</text>
+<polygon fill="none" stroke="#15803d" points="510,-125 510,-196 819,-196 819,-125 510,-125"/>
+</g>
+<!-- operation_policy_authorization_policy_project_archive&#45;&gt;operation_resource_operation_project_archive_transition_Project_status -->
+<g id="edge2" class="edge">
+<title>operation_policy_authorization_policy_project_archive&#45;&gt;operation_resource_operation_project_archive_transition_Project_status</title>
+<path fill="none" stroke="#15803d" d="M408.01,-160.5C437.7,-160.5 470.04,-160.5 501.41,-160.5"/>
+<polygon fill="#15803d" stroke="#15803d" points="501.8,-163.3 509.8,-160.5 501.8,-157.7 501.8,-163.3"/>
+<text text-anchor="middle" x="459" y="-163.5" font-family="Arial" font-size="10.00">transition</text>
+</g>
+<!-- operation_outcome_operation_project_archive_archived -->
+<g id="node4" class="node">
+<title>operation_outcome_operation_project_archive_archived</title>
+<polygon fill="#ffffff" stroke="transparent" points="928.5,-250 928.5,-321 999.5,-321 999.5,-250 928.5,-250"/>
+<polygon fill="#16a34a" stroke="transparent" points="930,-311.5 930,-319.5 999,-319.5 999,-311.5 930,-311.5"/>
+<polygon fill="#f0fdf4" stroke="transparent" points="930,-280.5 930,-311.5 999,-311.5 999,-280.5 930,-280.5"/>
+<text text-anchor="start" x="934" y="-298.1" font-family="Arial" font-weight="bold" font-size="13.00">archived</text>
+<text text-anchor="start" x="934" y="-287.1" font-family="Arial" font-size="8.00" fill="#64748b">success outcome</text>
+<text text-anchor="start" x="934" y="-269.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
+<text text-anchor="start" x="934" y="-258.5" font-family="Arial" font-size="10.00">result</text>
+<text text-anchor="start" x="959" y="-258.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
+<polygon fill="none" stroke="#16a34a" points="928.5,-250 928.5,-321 999.5,-321 999.5,-250 928.5,-250"/>
+</g>
+<!-- operation_resource_operation_project_archive_transition_Project_status&#45;&gt;operation_outcome_operation_project_archive_archived -->
+<g id="edge3" class="edge">
+<title>operation_resource_operation_project_archive_transition_Project_status&#45;&gt;operation_outcome_operation_project_archive_archived</title>
+<path fill="none" stroke="#16a34a" d="M750.35,-196.15C806.2,-219.62 876.89,-249.32 921.04,-267.87"/>
+<polygon fill="#16a34a" stroke="#16a34a" points="919.96,-270.45 928.42,-270.97 922.13,-265.29 919.96,-270.45"/>
+<text text-anchor="middle" x="868.5" y="-254.5" font-family="Arial" font-size="10.00">success</text>
+</g>
+<!-- operation_outcome_operation_project_archive_invalid_state -->
+<g id="node5" class="node">
+<title>operation_outcome_operation_project_archive_invalid_state</title>
+<polygon fill="#ffffff" stroke="transparent" points="918,-125 918,-196 1010,-196 1010,-125 918,-125"/>
+<polygon fill="#dc2626" stroke="transparent" points="919,-186.5 919,-194.5 1009,-194.5 1009,-186.5 919,-186.5"/>
+<polygon fill="#fef2f2" stroke="transparent" points="919,-155.5 919,-186.5 1009,-186.5 1009,-155.5 919,-155.5"/>
+<text text-anchor="start" x="923" y="-173.1" font-family="Arial" font-weight="bold" font-size="13.00">invalid_state</text>
+<text text-anchor="start" x="923" y="-162.1" font-family="Arial" font-size="8.00" fill="#64748b">failure outcome</text>
+<text text-anchor="start" x="923" y="-144.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
+<text text-anchor="start" x="923" y="-133.5" font-family="Arial" font-size="10.00">result</text>
+<text text-anchor="start" x="948" y="-133.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<polygon fill="none" stroke="#dc2626" points="918,-125 918,-196 1010,-196 1010,-125 918,-125"/>
+</g>
+<!-- operation_resource_operation_project_archive_transition_Project_status&#45;&gt;operation_outcome_operation_project_archive_invalid_state -->
+<g id="edge5" class="edge">
+<title>operation_resource_operation_project_archive_transition_Project_status&#45;&gt;operation_outcome_operation_project_archive_invalid_state</title>
+<path fill="none" stroke="#dc2626" d="M819.04,-160.5C851.73,-160.5 884.12,-160.5 909.87,-160.5"/>
+<polygon fill="#dc2626" stroke="#dc2626" points="909.98,-163.3 917.98,-160.5 909.98,-157.7 909.98,-163.3"/>
+<text text-anchor="middle" x="868.5" y="-163.5" font-family="Arial" font-size="10.00">failure</text>
+</g>
+<!-- operation_outcome_operation_project_archive_not_found -->
+<g id="node6" class="node">
+<title>operation_outcome_operation_project_archive_not_found</title>
+<polygon fill="#ffffff" stroke="transparent" points="925.5,0 925.5,-71 1002.5,-71 1002.5,0 925.5,0"/>
+<polygon fill="#dc2626" stroke="transparent" points="927,-61.5 927,-69.5 1002,-69.5 1002,-61.5 927,-61.5"/>
+<polygon fill="#fef2f2" stroke="transparent" points="927,-30.5 927,-61.5 1002,-61.5 1002,-30.5 927,-30.5"/>
+<text text-anchor="start" x="931" y="-48.1" font-family="Arial" font-weight="bold" font-size="13.00">not_found</text>
+<text text-anchor="start" x="931" y="-37.1" font-family="Arial" font-size="8.00" fill="#64748b">failure outcome</text>
+<text text-anchor="start" x="931" y="-19.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
+<text text-anchor="start" x="931" y="-8.5" font-family="Arial" font-size="10.00">result</text>
+<text text-anchor="start" x="956" y="-8.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<polygon fill="none" stroke="#dc2626" points="925.5,0 925.5,-71 1002.5,-71 1002.5,0 925.5,0"/>
+</g>
+<!-- operation_resource_operation_project_archive_transition_Project_status&#45;&gt;operation_outcome_operation_project_archive_not_found -->
+<g id="edge6" class="edge">
+<title>operation_resource_operation_project_archive_transition_Project_status&#45;&gt;operation_outcome_operation_project_archive_not_found</title>
+<path fill="none" stroke="#dc2626" d="M750.35,-124.85C804.9,-101.93 873.61,-73.06 917.91,-54.44"/>
+<polygon fill="#dc2626" stroke="#dc2626" points="919.06,-57 925.35,-51.32 916.89,-51.84 919.06,-57"/>
+<text text-anchor="middle" x="868.5" y="-82.5" font-family="Arial" font-size="10.00">failure</text>
+</g>
+<!-- operation_outcome_operation_project_archive_archived&#45;&gt;operation_outcome_operation_project_archive_invalid_state -->
+<!-- operation_event_operation_project_archive_event_project_archived -->
+<g id="node7" class="node">
+<title>operation_event_operation_project_archive_event_project_archived</title>
+<polygon fill="#ffffff" stroke="transparent" points="1091,-240.5 1091,-330.5 1295,-330.5 1295,-240.5 1091,-240.5"/>
+<polygon fill="#4f46e5" stroke="transparent" points="1092,-321.5 1092,-329.5 1294,-329.5 1294,-321.5 1092,-321.5"/>
+<polygon fill="#eef2ff" stroke="transparent" points="1092,-290.5 1092,-321.5 1294,-321.5 1294,-290.5 1092,-290.5"/>
+<text text-anchor="start" x="1096" y="-308.1" font-family="Arial" font-weight="bold" font-size="13.00">event.project.archived</text>
+<text text-anchor="start" x="1096" y="-297.1" font-family="Arial" font-size="8.00" fill="#64748b">emitted event</text>
+<text text-anchor="start" x="1096" y="-279.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approved dispatch projects can be archived.</text>
+<text text-anchor="start" x="1096" y="-260.5" font-family="Arial" font-weight="bold" font-size="10.00">payload</text>
+<text text-anchor="start" x="1096" y="-249.5" font-family="Arial" font-size="10.00">payload</text>
+<text text-anchor="start" x="1130" y="-249.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
+<polygon fill="none" stroke="#4f46e5" points="1091,-240.5 1091,-330.5 1295,-330.5 1295,-240.5 1091,-240.5"/>
+</g>
+<!-- operation_outcome_operation_project_archive_archived&#45;&gt;operation_event_operation_project_archive_event_project_archived -->
+<g id="edge4" class="edge">
+<title>operation_outcome_operation_project_archive_archived&#45;&gt;operation_event_operation_project_archive_event_project_archived</title>
+<path fill="none" stroke="#4f46e5" stroke-width="1.2" d="M999.97,-285.5C1022.35,-285.5 1052.71,-285.5 1082.68,-285.5"/>
+<polygon fill="#4f46e5" stroke="#4f46e5" stroke-width="1.2" points="1082.7,-288.3 1090.7,-285.5 1082.7,-282.7 1082.7,-288.3"/>
+<text text-anchor="middle" x="1050.5" y="-288.5" font-family="Arial" font-size="10.00">emit</text>
+</g>
+<!-- operation_outcome_operation_project_archive_invalid_state&#45;&gt;operation_outcome_operation_project_archive_not_found -->
+</g>
+</svg>

@@ -130,6 +130,8 @@ spec/generated/
       flow.svg
     workflows/<workflow>/
       flow.svg
+    operations/<operation>/
+      flow.svg
     state_machines/<state_machine>/
       state_machine.svg
       view_states/<view_state>/

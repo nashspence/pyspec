@@ -13,6 +13,8 @@ from pyspec_contract.audit import (
     composition_file,
     entrypoint_flow_dot,
     entrypoint_flow_file,
+    operation_flow_dot,
+    operation_flow_file,
     state_machine_dot,
     state_machine_graph_file,
     view_state_root,
@@ -48,6 +50,7 @@ def test_audit_outputs_cover_full_contract() -> None:
     assert "spec/generated/audit_evidence/entrypoints/html_route/entry_point_html_project_board/flow.svg" in expected
     assert "spec/generated/audit_evidence/entrypoints/cli/entry_point_cli_project_board/flow.svg" in expected
     assert "spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg" in expected
+    assert operation_flow_file("operation.project.approve") in expected
     assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/view_states/" in path and path.endswith("/text.yaml") for path in expected)
     assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/view_states/" in path and "/renders/" in path and path.endswith(".png") for path in expected)
     assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/cases/" in path and "/renders/" in path and path.endswith(".html") for path in expected)
@@ -84,10 +87,19 @@ def test_audit_coverage_index_maps_compiled_paths_to_evidence() -> None:
         "tokens": ["authorization_policy.project.approve"],
     }
     approved_payload_set = index["visual_audit"]["required"]["covered"]["/events/event.project.approved/payload_schema/data_contract"]
+    assert "spec/generated/audit_evidence/operations/operation_project_approve/flow.svg" in visual_evidence_sets[approved_payload_set]
     assert "spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg" in visual_evidence_sets[approved_payload_set]
+    assert text_witnesses["/events/event.project.approved/payload_schema/data_contract"] == {
+        "visual_evidence_set": approved_payload_set,
+        "tokens": ["data_contract.project.approved"],
+    }
     notice_result_set = index["visual_audit"]["required"]["covered"]["/data_contracts/data_contract.project.notice_result/fields/notice_id/type/primitive"]
+    assert "spec/generated/audit_evidence/operations/operation_project_send_approval_notice/flow.svg" in visual_evidence_sets[notice_result_set]
     assert "spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg" in visual_evidence_sets[notice_result_set]
     assert "/data_contracts/data_contract.project.notice_result/fields/notice_id/type/primitive" not in text_witnesses
+    lifecycle_set = index["visual_audit"]["required"]["covered"]["/models/Project/lifecycle/transitions/1/triggered_by"]
+    assert "spec/generated/audit_evidence/operations/operation_project_approve/flow.svg" in visual_evidence_sets[lifecycle_set]
+    assert "/models/Project/lifecycle/transitions/1/triggered_by" not in text_witnesses
     renderer_set = index["visual_audit"]["required"]["covered"]["/state_machines/state_machine.project.board/view_states/ready/renderers/html/layout/regions/aside/classes/0"]
     assert any(path.endswith(".screenshot.png") for path in visual_evidence_sets[renderer_set])
     assert index["render_presence"]["assets"]["not_rendered"] == []
@@ -100,7 +112,7 @@ def test_audit_coverage_index_rejects_missing_required_visual_paths(tmp_path: Pa
     project = tmp_path / "project"
     copy_project_tree(ROOT, project)
     contract = copy.deepcopy(_contract(project))
-    contract["operations"]["operation.project.unvisualized"] = copy.deepcopy(contract["operations"]["operation.project.create"])
+    contract["unvisualized_required"] = {"path": "value"}
     coverage_path = project / audit_coverage_file()
     write_yaml(coverage_path, audit_coverage_index(contract), sort_keys=False)
     with pytest.raises(ContractError, match="missing required visual audit paths"):
@@ -130,10 +142,13 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     cli_approve_entrypoint = entrypoint_flow_dot("entry_point.cli.project.approve", contract["entry_points"]["entry_point.cli.project.approve"], contract)
     worker_entrypoint = entrypoint_flow_dot("entry_point.worker.project.approval_notice", contract["entry_points"]["entry_point.worker.project.approval_notice"], contract)
     workflow = workflow_flow_dot("workflow.project.approval_notice", contract["workflows"]["workflow.project.approval_notice"], contract)
+    operation = operation_flow_dot("operation.project.approve", contract["operations"]["operation.project.approve"], contract)
+    create_operation = operation_flow_dot("operation.project.create", contract["operations"]["operation.project.create"], contract)
     assert state_machine.startswith("digraph ")
     assert composition.startswith("digraph ")
     assert entrypoint.startswith("digraph ")
     assert workflow.startswith("digraph ")
+    assert operation.startswith("digraph ")
     assert "stateDiagram" not in state_machine
     assert "flowchart" not in composition
     assert "data_signal.ready" in state_machine
@@ -191,6 +206,41 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert '<FONT POINT-SIZE="10">nav</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;state_machine.project.list</FONT>' in board_fsm
     assert "nav: state_machine.project.list" not in board_fsm
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">emitted message</FONT>' in composition
+    assert "authorization_policy.project.approve" in operation
+    assert 'graph [label="operation.project.approve"' not in operation
+    assert "Project.status" in operation
+    assert "event.project.approved" in operation
+    assert "event.project.created" in create_operation
+    assert '<FONT POINT-SIZE="10"><B>payload</B></FONT>' in operation
+    assert '<FONT POINT-SIZE="10">payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.approved</FONT>' in operation
+    assert "payload:" not in operation
+    assert "payload_schema:" not in operation
+    assert "emitted by" not in operation
+    assert "<B>conditions:</B>&#160;&#160;unconditional true" in create_operation
+    assert "authorization_conditions" not in create_operation
+    assert '"operation_operation_project_approve" [shape=' not in operation
+    assert "transition operation" not in operation
+    assert operation.index('"operation_input_operation_project_approve"') < operation.index('"operation_policy_authorization_policy_project_approve"')
+    assert operation.index('"operation_policy_authorization_policy_project_approve"') < operation.index('"operation_resource_operation_project_approve_transition_Project_status"')
+    assert operation.index('"operation_resource_operation_project_approve_transition_Project_status"') < operation.index('"operation_outcome_operation_project_approve_approved"')
+    assert operation.index('"operation_outcome_operation_project_approve_approved"') < operation.index('"operation_event_operation_project_approve_event_project_approved"')
+    assert '"operation_input_operation_project_approve" -> "operation_policy_authorization_policy_project_approve" [label="authorize"' in operation
+    assert '"operation_policy_authorization_policy_project_approve" -> "operation_resource_operation_project_approve_transition_Project_status" [label="transition"' in operation
+    assert '"operation_resource_operation_project_approve_transition_Project_status" -> "operation_outcome_operation_project_approve_approved" [label="success"' in operation
+    assert '"operation_outcome_operation_project_approve_approved" -> "operation_event_operation_project_approve_event_project_approved" [label="emit"' in operation
+    assert "<B>authorization_policy:</B>" not in operation
+    assert "<B>creates:</B>" not in create_operation
+    assert "<B>kind:</B>" not in operation
+    assert "<B>authorization_targets</B>" not in create_operation
+    assert "<FONT POINT-SIZE=\"10\">operation: operation.project.create</FONT>" not in create_operation
+    assert "<B>emits</B>" not in operation
+    assert "delegated entry point" in cli_approve_entrypoint
+    assert "operation.project.approve operation map" not in cli_approve_entrypoint
+    assert "Project.status" not in cli_approve_entrypoint
+    assert "authorization_policy.project.approve" not in cli_approve_entrypoint
+    assert "authorization_effect" not in operation
+    assert "authorization_subjects" not in operation
+    assert "authorization_conditions" not in operation
     assert "<B>source:</B>&#160;&#160;message.project_select" in composition
     assert "ready to ready" not in composition
     assert "<B>transition:</B>" not in composition
@@ -270,8 +320,9 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert 'label="tui loop"' not in cli_entrypoint
     assert "<B>entry input</B>" not in cli_entrypoint
     assert "entrypoint_mount" not in cli_entrypoint
-    assert "<B>transitions</B>" in cli_approve_entrypoint
-    assert '<FONT POINT-SIZE="10">Project.status</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;enum&lt;draft|submitted|approved|archived&gt;</FONT><FONT POINT-SIZE="8">&#160;&#160;submitted → approved</FONT>' in cli_approve_entrypoint
+    assert "<B>transitions</B>" not in cli_approve_entrypoint
+    assert '<FONT POINT-SIZE="10">Project.status</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;enum&lt;draft|submitted|approved|archived&gt;</FONT><FONT POINT-SIZE="8">&#160;&#160;submitted → approved</FONT>' not in cli_approve_entrypoint
+    assert "operation.project.approve operation map" not in cli_approve_entrypoint
     assert "<B>state:</B>" not in cli_approve_entrypoint
     assert "<B>change:</B>" not in cli_approve_entrypoint
     assert "<B>transition:</B>" not in cli_approve_entrypoint
@@ -299,30 +350,34 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert 'body</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT><FONT POINT-SIZE="8">&#160;←&#160;$outcome.result</FONT>' in api_entrypoint
     assert "validation_failed" in api_entrypoint
     target_card = api_entrypoint[api_entrypoint.index('"entrypoint_target_operation_project_create"') : api_entrypoint.index('"entrypoint_response_entry_point_api_project_create_created"')]
-    assert '<FONT POINT-SIZE="10"><B>input</B></FONT>' in target_card
+    assert '<FONT POINT-SIZE="10"><B>input</B></FONT>' not in target_card
     assert '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;customer</FONT>' not in target_card
-    assert target_card.index("<B>input</B>") < target_card.index('<FONT POINT-SIZE="10">customer</FONT>')
-    assert '<FONT POINT-SIZE="10">workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in target_card
-    assert "<B>success</B>" in target_card
-    assert "<B>failure</B>" in target_card
-    assert "<B>emit:</B>&#160;&#160;created → event.project.created" in target_card
-    assert '<FONT POINT-SIZE="10"><B>payload_schema:</B>&#160;&#160;payload_schema</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in target_card
+    assert '<FONT POINT-SIZE="10">customer</FONT>' not in target_card
+    assert '<FONT POINT-SIZE="10">workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' not in target_card
+    assert "<B>outcomes</B>" not in target_card
+    assert "validation_failed" not in target_card
+    assert "operation.project.create operation map" not in target_card
+    assert "<B>detail:</B>" not in target_card
+    assert "<B>emit:</B>&#160;&#160;created → event.project.created" not in target_card
+    assert '<FONT POINT-SIZE="10"><B>payload_schema:</B>&#160;&#160;payload_schema</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' not in target_card
     assert "<B>emits:</B>&#160;&#160;event.project.created" not in target_card
-    assert "<B>authorization_policy:</B>&#160;&#160;authorization_policy.project.create" in target_card
-    assert "<B>authorization_effect:</B>&#160;&#160;allow" in target_card
-    assert "<B>authorization_targets</B>" in target_card
-    assert "<FONT POINT-SIZE=\"10\">operation: operation.project.create</FONT>" in target_card
-    assert "<FONT POINT-SIZE=\"10\">model: Project</FONT>" in target_card
-    assert "<B>authorization_conditions:</B>&#160;&#160;unconditional true" in target_card
+    assert "<B>authorization_policy:</B>" not in target_card
+    assert "authorization_policy.project.create" not in target_card
+    assert "<B>authorization_effect:</B>&#160;&#160;allow" not in target_card
+    assert "<B>authorization_targets</B>" not in target_card
+    assert "<FONT POINT-SIZE=\"10\">operation: operation.project.create</FONT>" not in target_card
+    assert "<FONT POINT-SIZE=\"10\">model: Project</FONT>" not in target_card
+    assert "<B>authorization_conditions:</B>&#160;&#160;unconditional true" not in target_card
     cli_approve_target_card = cli_approve_entrypoint[cli_approve_entrypoint.index('"entrypoint_target_entry_point_api_project_approve"') : cli_approve_entrypoint.index('"entrypoint_response_entry_point_cli_project_approve_approved"')]
     assert "<B>entry_point.api.project.approve</B>" in cli_approve_entrypoint
     assert "delegated entry point" in cli_approve_entrypoint
-    assert "<B>emit:</B>&#160;&#160;approved → event.project.approved" in cli_approve_target_card
-    assert '<FONT POINT-SIZE="10"><B>payload_schema:</B>&#160;&#160;payload_schema</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.approved</FONT>' in cli_approve_target_card
+    assert "<B>emit:</B>&#160;&#160;approved → event.project.approved" not in cli_approve_target_card
+    assert '<FONT POINT-SIZE="10"><B>payload_schema:</B>&#160;&#160;payload_schema</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.approved</FONT>' not in cli_approve_target_card
     assert "<B>emits:</B>&#160;&#160;event.project.approved" not in cli_approve_target_card
-    assert "<B>authorization_policy:</B>&#160;&#160;authorization_policy.project.approve" in cli_approve_entrypoint
-    assert "actor ← input.approved_by" in cli_approve_target_card
-    assert "<B>authorization_conditions:</B>&#160;&#160;Project.status = submitted" in cli_approve_target_card
+    assert "<B>authorization_policy:</B>" not in cli_approve_target_card
+    assert "authorization_policy.project.approve" not in cli_approve_target_card
+    assert "actor ← input.approved_by" not in cli_approve_target_card
+    assert "<B>authorization_conditions:</B>&#160;&#160;Project.status = submitted" not in cli_approve_target_card
     entrypoint_input = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
     assert entrypoint_input in entrypoint
     assert entrypoint.index(entrypoint_input) < entrypoint.index("<B>query:</B>&#160;&#160;query.project.board.list")
@@ -338,15 +393,15 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert 'COLOR="#16a34a" BGCOLOR="#ffffff"' in workflow_completed_card
     assert 'COLOR="#dc2626" BGCOLOR="#ffffff"' in workflow_failed_card
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">event trigger</FONT>' in workflow
-    assert '<FONT POINT-SIZE="10"><B>payload_schema:</B>&#160;&#160;payload_schema</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.approved</FONT>' in workflow
+    assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.approved</FONT>' in workflow
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">workflow step</FONT>' in workflow
     assert "<B>operation:</B>&#160;&#160;operation.project.send_approval_notice" in workflow
     workflow_step = workflow[workflow.index('"workflow_step_workflow_project_approval_notice_send_notice"') :]
-    assert '<FONT POINT-SIZE="10"><B>input</B></FONT>' in workflow_step
-    assert '<FONT POINT-SIZE="10">approved_by</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in workflow_step
-    assert '<FONT POINT-SIZE="10">sent</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.notice_result</FONT>' in workflow
+    assert '<FONT POINT-SIZE="10"><B>input</B></FONT>' not in workflow_step
+    assert "approved_by ← trigger.payload.approved_by" in workflow_step
+    assert '<FONT POINT-SIZE="10">completed</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.notice_result</FONT>' in workflow
     assert '<FONT POINT-SIZE="10">delivery_failed</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Problem</FONT>' in workflow
-    assert "<B>authorization_policy:</B>&#160;&#160;authorization_policy.project.send_approval_notice" in workflow
+    assert "authorization_policy.project.send_approval_notice" not in workflow_step
     assert "success workflow outcome" in workflow
     assert "failure workflow outcome" in workflow
     assert "sent: complete_as → completed" in workflow
@@ -497,6 +552,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     api_entrypoint = (ROOT / entrypoint_flow_file("entry_point.api.project.create", "http_api")).read_text(encoding="utf-8")
     cli_approve_entrypoint = (ROOT / entrypoint_flow_file("entry_point.cli.project.approve", "cli")).read_text(encoding="utf-8")
     workflow = (ROOT / workflow_flow_file("workflow.project.approval_notice")).read_text(encoding="utf-8")
+    approve_operation = (ROOT / operation_flow_file("operation.project.approve")).read_text(encoding="utf-8")
     assert "data_signal.ready" in list_fsm
     assert "on data_signal.ready" not in list_fsm
     assert "text.project.list.ready.heading" in list_fsm
@@ -612,10 +668,15 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "role:" not in composition
     assert "required:" not in composition
     assert "authorization_policy.project.create" in api_entrypoint
-    assert "authorization_conditions" in api_entrypoint
-    assert "authorization_policy.project.approve" in cli_approve_entrypoint
-    assert "Project.status = submitted" in cli_approve_entrypoint
-    assert "authorization_policy.project.send_approval_notice" in workflow
+    assert "authorization_conditions" not in api_entrypoint
+    assert "authorization_policy.project.approve" not in cli_approve_entrypoint
+    assert "Project.status = submitted" not in cli_approve_entrypoint
+    assert "authorization_policy.project.send_approval_notice" not in workflow
+    assert "authorization_policy.project.approve" in approve_operation
+    assert "authorization_conditions" not in approve_operation
+    assert "conditions" in approve_operation
+    assert "Project.status = submitted" in approve_operation
+    assert "event.project.approved" in approve_operation
 
 
 def test_audit_html_sources_render_copy_assets_and_fixture_fields() -> None:

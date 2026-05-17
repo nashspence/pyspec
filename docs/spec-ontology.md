@@ -76,6 +76,8 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 
 Audit validation fails when any `missing_required_visual_path` exists or when a declared `required_visual_text_witness` is absent from its SVG evidence set. Required paths without a text witness are still required to have diagram or render-capture evidence, but their semantics are audited through the visual artifact rather than a machine-readable token.
 
+The visual audit includes state-machine and composition diagrams, entry-point and workflow flowcharts, plus operation flows. Operation flows are chronological branching data flows for input, authorization, touched resources, outcomes, and emitted events; other diagrams reference operations compactly instead of repeating the same cards.
+
 ## Runtime Expression Namespaces
 
 - `$fixture.<path>` reads merged seed fixture data in test cases, facts, content cases, and render audit cases.
@@ -115,6 +117,7 @@ Audit validation fails when any `missing_required_visual_path` exists or when a 
 - `spec/generated/audit_evidence/entrypoints/{adapter}/{entry_point}/flow.svg`: entry-point flow diagrams grouped by adapter kind.
 - `spec/generated/audit_evidence/coverage.yaml`: generated visual coverage index mapping compiled spec paths to diagram and render-capture evidence, including explicit render coverage gaps for assets, text, fixtures, facts, and content cases.
 - `spec/generated/audit_evidence/workflows/{workflow}/flow.svg`: workflow flow diagrams.
+- `spec/generated/audit_evidence/operations/{operation}/flow.svg`: chronological operation flows showing input, authorization, touched resources, outcomes, and emitted events.
 - `spec/generated/audit_evidence/state_machines/{state_machine}/state_machine.svg`: state-machine diagrams.
 - `spec/generated/audit_evidence/state_machines/{state_machine}/view_states/{view_state}/composition.svg`: composed state-machine view-state diagrams.
 - `spec/generated/audit_evidence/state_machines/{state_machine}/view_states/{view_state}/{text.yaml,fixtures.yaml,assets/*}`: view-state-scoped audit inputs.

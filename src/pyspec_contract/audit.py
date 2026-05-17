@@ -13,7 +13,7 @@ import tempfile
 import textwrap
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Iterable, Literal
 
 from .compile import ContractError, audit_cases
 from .content import AssetResult, ContentContext, ContentError, call_asset, call_text
@@ -37,6 +37,8 @@ from .targets import (
 from .type_expr import effective_field_type, type_display
 
 ROOT = Path(__file__).resolve().parent
+
+_EventCardMode = Literal["reference", "emitted"]
 
 _DOT_FONT = "Arial"
 _DOT_ARROW_FORWARD = "→"
@@ -81,6 +83,12 @@ _DOT_COLOR_MESSAGE_BORDER = "#be185d"
 _DOT_COLOR_MESSAGE_HEADER = "#fdf2f8"
 _DOT_COLOR_CONTEXT_BORDER = "#15803d"
 _DOT_COLOR_CONTEXT_HEADER = "#f0fdf4"
+_DOT_COLOR_MODEL_BORDER = "#15803d"
+_DOT_COLOR_MODEL_HEADER = "#f0fdfa"
+_DOT_COLOR_DATA_CONTRACT_BORDER = "#7c3aed"
+_DOT_COLOR_DATA_CONTRACT_HEADER = "#f5f3ff"
+_DOT_COLOR_POLICY_BORDER = "#c2410c"
+_DOT_COLOR_POLICY_HEADER = "#fff7ed"
 
 _GRAPHVIZ_INPUT_HASH_PREFIX = "pyspec-contract-input-sha256:"
 _TEXTUAL_INPUT_HASH_PREFIX = "pyspec-contract-textual-input-sha256:"
@@ -104,6 +112,9 @@ _DOT_STYLE_STATE_MACHINE = _DotCardStyle(header_bg=_DOT_COLOR_STATE_MACHINE_HEAD
 _DOT_STYLE_WORKFLOW = _DotCardStyle(header_bg=_DOT_COLOR_WORKFLOW_HEADER, border=_DOT_COLOR_WORKFLOW_BORDER)
 _DOT_STYLE_MESSAGE = _DotCardStyle(header_bg=_DOT_COLOR_MESSAGE_HEADER, border=_DOT_COLOR_MESSAGE_BORDER)
 _DOT_STYLE_CONTEXT = _DotCardStyle(header_bg=_DOT_COLOR_CONTEXT_HEADER, border=_DOT_COLOR_CONTEXT_BORDER)
+_DOT_STYLE_MODEL = _DotCardStyle(header_bg=_DOT_COLOR_MODEL_HEADER, border=_DOT_COLOR_MODEL_BORDER)
+_DOT_STYLE_DATA_CONTRACT = _DotCardStyle(header_bg=_DOT_COLOR_DATA_CONTRACT_HEADER, border=_DOT_COLOR_DATA_CONTRACT_BORDER)
+_DOT_STYLE_POLICY = _DotCardStyle(header_bg=_DOT_COLOR_POLICY_HEADER, border=_DOT_COLOR_POLICY_BORDER)
 
 
 def _under(relative: str, *parts: str) -> str:
@@ -128,6 +139,10 @@ def entrypoint_flow_file(entry_id: str, adapter_kind: str) -> str:
 
 def workflow_flow_file(workflow_id: str) -> str:
     return g("audit_evidence", "workflows", safe_id(workflow_id), "flow.svg")
+
+
+def operation_flow_file(operation_id: str) -> str:
+    return g("audit_evidence", "operations", safe_id(operation_id), "flow.svg")
 
 
 def audit_coverage_file() -> str:
@@ -360,6 +375,8 @@ def _audit_visual_expected_files(contract: dict[str, Any]) -> set[str]:
         files.add(entrypoint_flow_file(entry_id, adapter_kind))
     for workflow_id in contract.get("workflows", {}):
         files.add(workflow_flow_file(workflow_id))
+    for operation_id in contract.get("operations", {}):
+        files.add(operation_flow_file(operation_id))
 
     projection = state_machines_projection(contract)
     for state_machine in _audit_projection_surfaces(contract, projection):
@@ -411,6 +428,8 @@ def _audit_visual_evidence_files(contract: dict[str, Any]) -> set[str]:
         files.add(entrypoint_flow_file(entry_id, adapter_kind))
     for workflow_id in contract.get("workflows", {}):
         files.add(workflow_flow_file(workflow_id))
+    for operation_id in contract.get("operations", {}):
+        files.add(operation_flow_file(operation_id))
 
     projection = state_machines_projection(contract)
     for surface in _audit_projection_surfaces(contract, projection):
@@ -713,6 +732,8 @@ def _visual_text_witness_tokens(contract: dict[str, Any], pointer: str, evidence
         tokens.extend(_workflow_text_witness_tokens(contract, parts, value))
     elif collection == "state_machines":
         tokens.extend(_state_machine_text_witness_tokens(contract, parts, value))
+    elif collection == "models":
+        tokens.extend(_model_text_witness_tokens(contract, parts, value))
     return _unique_visual_text_tokens(tokens)
 
 
@@ -759,7 +780,11 @@ def _state_machine_reference_witness_allowed(parts: list[str]) -> bool:
 
 
 def _has_detail_card_evidence(evidence_files: Iterable[str]) -> bool:
-    return any("/entrypoints/" in path or "/workflows/" in path for path in evidence_files)
+    return any(
+        f"/{folder}/" in path
+        for path in evidence_files
+        for folder in ("entrypoints", "workflows", "operations")
+    )
 
 
 def _unique_visual_text_tokens(tokens: Iterable[object]) -> list[str]:
@@ -780,14 +805,14 @@ def _authorization_policy_text_witness_tokens(contract: dict[str, Any], parts: l
     policy_id = parts[1]
     policy = contract.get("authorization_policies", {}).get(policy_id, {})
     if parts[2] == "effect" and isinstance(value, str):
-        return ["authorization_effect", value]
+        return ["effect", value]
     if parts[2] == "subjects" and len(parts) >= 5:
         if parts[-1] == "kind" and isinstance(value, str):
-            return ["authorization_subjects", value]
+            return ["subjects", value]
         if parts[-1] == "source" and isinstance(value, str):
-            return ["authorization_subjects", _format_flow_source(value)]
+            return ["subjects", _format_flow_source(value)]
     if parts[2] == "targets" and isinstance(value, str):
-        return ["authorization_targets", value]
+        return [value]
     if parts[2] == "conditions" and len(parts) >= 5:
         try:
             condition = policy.get("conditions", [])[int(parts[3])]
@@ -823,7 +848,7 @@ def _entry_point_text_witness_tokens(contract: dict[str, Any], parts: list[str],
         elif parts[-1] == "backoff":
             tokens.extend(["retry", value])
         elif parts[-1] == "from" and "bindings" in parts:
-            tokens.append(value)
+            tokens.append(_format_flow_source(value))
     elif isinstance(value, int):
         if parts[-1] == "status":
             tokens.extend(["status", str(value)])
@@ -894,10 +919,20 @@ def _state_machine_text_witness_tokens(contract: dict[str, Any], parts: list[str
     return tokens
 
 
+def _model_text_witness_tokens(contract: dict[str, Any], parts: list[str], value: Any) -> list[str]:
+    tokens = _type_leaf_text_witness_tokens(contract, parts)
+    if len(parts) >= 4 and parts[2] == "lifecycle" and isinstance(value, str):
+        if parts[-1] in {"field", "initial"}:
+            tokens.append(value)
+        elif "states" in parts or parts[-1] in {"from", "to"}:
+            tokens.append(value)
+    return tokens
+
+
 def _type_leaf_text_witness_tokens(contract: dict[str, Any], parts: list[str]) -> list[str]:
     if not parts or parts[-1] not in {"primitive", "model", "data_contract", "array"}:
         return []
-    if parts[0] not in {"entry_points", "operations", "state_machines", "workflows"}:
+    if parts[0] not in {"entry_points", "models", "operations", "state_machines", "workflows"}:
         return []
     parent_parts = parts[:-1]
     try:
@@ -911,6 +946,8 @@ def _type_leaf_text_witness_tokens(contract: dict[str, Any], parts: list[str]) -
 
 
 def _type_field_name(parts: list[str]) -> str | None:
+    if len(parts) >= 5 and parts[0] == "models" and parts[2] == "fields":
+        return parts[3]
     if len(parts) >= 5 and parts[0] == "operations" and parts[2] == "input":
         return parts[3]
     if parts[0] == "entry_points":
@@ -982,7 +1019,7 @@ def _state_machine_evidence_files(contract: dict[str, Any], state_machine_id: st
 def _operation_evidence_files(contract: dict[str, Any], operation_id: str) -> list[str]:
     if operation_id not in contract.get("operations", {}):
         return []
-    files: list[str] = []
+    files: list[str] = [operation_flow_file(operation_id)]
     for entry_id, entry in sorted(contract.get("entry_points", {}).items()):
         target_kind, target_value = entry_target_pair(entry)
         if target_kind == "operation" and target_value == operation_id:
@@ -1304,6 +1341,9 @@ def _render_visual_audit(
     for workflow_id, workflow in sorted(contract.get("workflows", {}).items()):
         path = root / workflow_flow_file(workflow_id)
         _write_graphviz_svg(path, workflow_flow_dot(workflow_id, workflow, contract), _previous_audit_path(root, previous_audit_root, path))
+    for operation_id, operation in sorted(contract.get("operations", {}).items()):
+        path = root / operation_flow_file(operation_id)
+        _write_graphviz_svg(path, operation_flow_dot(operation_id, operation, contract), _previous_audit_path(root, previous_audit_root, path))
 
     has_html_audit = bool(_profile_viewports(contract, "html")) and (
         any("html" in _projection_render_surfaces(state_machine) for state_machine in _audit_projection_surfaces(contract, projection))
@@ -1921,6 +1961,138 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
     return "\n".join(lines) + "\n"
 
 
+def operation_flow_dot(operation_id: str, operation: dict[str, Any], contract: dict[str, Any]) -> str:
+    input_node = _dot_node_id("operation_input", operation_id)
+    policy_id = operation.get("authorization_policy")
+    policy_node = _dot_node_id("operation_policy", policy_id) if policy_id else None
+    resource_nodes = _operation_resource_nodes(operation_id, operation, contract)
+    outcome_nodes = [
+        (_dot_node_id("operation_outcome", f"{operation_id}_{outcome_id}"), outcome_id, outcome)
+        for outcome_id, outcome in sorted(operation.get("outcomes", {}).items())
+    ]
+    event_nodes: dict[str, str] = {}
+    for _, outcome in sorted(operation.get("outcomes", {}).items()):
+        for emit in outcome.get("emits", []):
+            event_id = emit["event"] if isinstance(emit, dict) else emit
+            event_nodes.setdefault(event_id, _dot_node_id("operation_event", f"{operation_id}_{event_id}"))
+
+    lines = _dot_graph_preamble("operation_" + safe_id(operation_id))
+    if operation.get("input"):
+        lines.append(_dot_html_node(input_node, _dot_card("input", "operation input", [("fields", _typed_fields(operation["input"]))], style=_DOT_STYLE_EXTERNAL)))
+    if policy_id:
+        lines.append(_dot_html_node(policy_node or "", _policy_reference_card(policy_id, contract, subtitle="authorization gate", include_targets=False)))
+    for node_id, _, target_id, target_kind, sections in resource_nodes:
+        style = _DOT_STYLE_MODEL if target_kind == "model" else _DOT_STYLE_DATA_CONTRACT
+        lines.append(_dot_html_node(node_id, _dot_card(target_id, f"{target_kind} resource", sections, style=style)))
+    for node_id, outcome_id, outcome in outcome_nodes:
+        lines.append(_dot_html_node(node_id, _operation_outcome_card(outcome_id, outcome)))
+    for event_id, node_id in event_nodes.items():
+        lines.append(_dot_html_node(node_id, _event_card(event_id, contract, subtitle="emitted event", mode="emitted")))
+
+    entry_node = input_node if operation.get("input") else None
+    if entry_node and policy_node:
+        lines.append(_dot_edge(entry_node, policy_node, {"label": "authorize", "color": _DOT_COLOR_POLICY_BORDER, "penwidth": "1.2"}))
+        entry_node = policy_node
+    elif policy_node:
+        entry_node = policy_node
+
+    flow_tail = entry_node
+    for node_id, action, _, target_kind, _ in resource_nodes:
+        if flow_tail:
+            resource_color = _DOT_COLOR_MODEL_BORDER if target_kind == "model" else _DOT_COLOR_DATA_CONTRACT_BORDER
+            lines.append(_dot_edge(flow_tail, node_id, {"label": action, "color": resource_color}))
+        flow_tail = node_id
+
+    for node_id, outcome_id, outcome in outcome_nodes:
+        if flow_tail:
+            lines.append(_dot_edge(flow_tail, node_id, {"label": outcome["kind"], "color": _outcome_edge_color(outcome["kind"])}))
+        for emit in outcome.get("emits", []):
+            event_id = emit["event"] if isinstance(emit, dict) else emit
+            lines.append(_dot_edge(node_id, event_nodes[event_id], {"label": "emit", "color": _DOT_COLOR_EVENT_BORDER, "penwidth": "1.2"}))
+    if outcome_nodes:
+        lines.append("  { rank=same; " + " ".join(_dot_quote(node_id) for node_id, _, _ in outcome_nodes) + " }")
+        lines.extend(_dot_invisible_order([node_id for node_id, _, _ in outcome_nodes], indent="  "))
+    lines.append("}")
+    return "\n".join(lines) + "\n"
+
+
+def _operation_reference_sections(operation_id: str, operation: dict[str, Any]) -> list[tuple[str, list[object]]]:
+    sections: list[tuple[str, list[object]]] = []
+    if operation.get("operation_kind"):
+        sections.append(("kind", [operation["operation_kind"]]))
+    return sections
+
+
+def _operation_resource_nodes(
+    operation_id: str,
+    operation: dict[str, Any],
+    contract: dict[str, Any],
+) -> list[tuple[str, str, str, str, list[tuple[str, list[object]]]]]:
+    nodes: list[tuple[str, str, str, str, list[tuple[str, list[object]]]]] = []
+    seen: set[tuple[str, str, str]] = set()
+    for action in ["creates", "reads", "updates", "deletes"]:
+        for target_id in operation.get(action, []):
+            target_kind = "model" if target_id in contract.get("models", {}) else "data_contract"
+            key = (action, target_kind, target_id)
+            if key in seen:
+                continue
+            seen.add(key)
+            fields = contract.get("models", {}).get(target_id, contract.get("data_contracts", {}).get(target_id, {})).get("fields", {})
+            nodes.append((
+                _dot_node_id("operation_resource", f"{operation_id}_{action}_{target_id}"),
+                action,
+                target_id,
+                target_kind,
+                [("fields", _schema_fields(fields))],
+            ))
+    if operation.get("transition"):
+        transition = operation["transition"]
+        field = contract["models"][transition["model"]]["fields"][transition["field"]]
+        nodes.append((
+            _dot_node_id("operation_resource", f"{operation_id}_transition_{transition['model']}_{transition['field']}"),
+            "transition",
+            transition["model"],
+            "model",
+            [("change", [_DotTransitionField(f"{transition['model']}.{transition['field']}", effective_field_type(field), f"{transition['from']} {_DOT_ARROW_FORWARD} {transition['to']}")])],
+        ))
+    return nodes
+
+
+def _operation_outcome_card(outcome_id: str, outcome: dict[str, Any]) -> str:
+    sections: list[tuple[str, list[object]]] = [("result", [_DotTypedField("result", outcome["result"])])]
+    return _dot_card(outcome_id, f"{outcome['kind']} outcome", sections, style=_exit_card_style(outcome["kind"]))
+
+
+def _outcome_edge_color(kind: str) -> str:
+    if kind == "success":
+        return _DOT_COLOR_SUCCESS_BORDER
+    if kind == "failure":
+        return _DOT_COLOR_FAILURE_BORDER
+    return _DOT_COLOR_TARGET_BORDER
+
+
+def _policy_reference_card(
+    policy_id: str,
+    contract: dict[str, Any],
+    *,
+    subtitle: str = "authorization policy",
+    include_targets: bool = True,
+) -> str:
+    policy = contract.get("authorization_policies", {}).get(policy_id, {})
+    sections = [("effect", [policy.get("effect", "")])]
+    if policy.get("subjects"):
+        sections.append(("subjects", _format_authorization_subjects(policy["subjects"])))
+    if include_targets and policy.get("targets"):
+        sections.append(("targets", _format_authorization_targets(policy["targets"])))
+    if policy.get("conditions"):
+        sections.append(("conditions", _format_authorization_conditions(policy["conditions"])))
+    return _dot_card(policy_id, subtitle, sections, rationale=policy.get("rationale", ""), style=_DOT_STYLE_POLICY)
+
+
+def _schema_fields(fields: dict[str, Any]) -> list[_DotTypedField]:
+    return [_DotTypedField(name, effective_field_type(field)) for name, field in sorted(fields.items())]
+
+
 def _entry_surface_title(entry: dict[str, Any]) -> str:
     adapter_kind, _ = entry_point_adapter_pair(entry)
     if adapter_kind == "http_api":
@@ -2064,11 +2236,11 @@ def _format_binding_lines(bindings: dict[str, Any]) -> list[str]:
     lines = []
     for name, binding in sorted(bindings.items()):
         if isinstance(binding, dict) and "from" in binding:
-            lines.append(f"{name} {_DOT_ARROW_ASSIGN} {binding['from']}")
+            lines.append(f"{name} {_DOT_ARROW_ASSIGN} {_format_flow_source(binding)}")
         elif isinstance(binding, dict) and "value" in binding:
-            lines.append(f"{name} = {binding['value']!r}")
+            lines.append(f"{name} = {_format_flow_source(binding)}")
         else:
-            lines.append(f"{name} = {binding!r}")
+            lines.append(f"{name} = {_format_flow_source(binding)}")
     return lines
 
 
@@ -2093,7 +2265,7 @@ def _entry_target_card(
         return _dot_card(
             target_value,
             "target operation",
-            _operation_sections(operation, contract),
+            _operation_reference_sections(target_value, operation),
             rationale=operation.get("rationale", ""),
             style=_DOT_STYLE_CAPABILITY,
         )
@@ -2118,9 +2290,10 @@ def _entry_target_card(
             ("adapter", [adapter_kind]),
             ("target", [_target_label(delegated_target_kind, delegated_target_value)]),
         ]
-        sections.extend(_authorization_policy_sections(delegated.get("authorization_policy"), contract, include_details=True))
         if delegated_target_kind == "operation":
-            sections.extend(_operation_sections(contract["operations"][delegated_target_value], contract))
+            sections.extend(_operation_reference_sections(delegated_target_value, contract["operations"][delegated_target_value]))
+        else:
+            sections.extend(_authorization_policy_sections(delegated.get("authorization_policy"), contract, include_details=False))
         return _dot_card(
             target_value,
             "delegated entry point",
@@ -2207,7 +2380,7 @@ def _workflow_trigger_card(trigger_kind: str, trigger_value: str, contract: dict
         return _dot_card(
             trigger_value,
             "operation trigger",
-            _operation_sections(operation, contract),
+            _operation_reference_sections(trigger_value, operation),
             rationale=operation.get("rationale", ""),
             style=_DOT_STYLE_EVENT,
         )
@@ -2216,14 +2389,16 @@ def _workflow_trigger_card(trigger_kind: str, trigger_value: str, contract: dict
 
 def _workflow_step_card(step: dict[str, Any], contract: dict[str, Any]) -> str:
     operation = contract["operations"][step["operation"]]
+    sections: list[tuple[str, list[object]]] = [
+        ("operation", [step["operation"]]),
+        ("input bindings", _format_binding_lines(step["input_bindings"])),
+        ("routes", _workflow_route_lines(step)),
+    ]
+    sections.extend(_operation_reference_sections(step["operation"], operation))
     return _dot_card(
         step["id"],
         "workflow step",
-        [
-            ("operation", [step["operation"]]),
-            ("input bindings", [f"{name} {_DOT_ARROW_ASSIGN} {source}" for name, source in sorted(step["input_bindings"].items())]),
-            ("routes", _workflow_route_lines(step)),
-        ] + _operation_sections(operation, contract),
+        sections,
         rationale=operation.get("rationale", ""),
         style=_DOT_STYLE_NEUTRAL,
     )
@@ -2267,12 +2442,19 @@ def _workflow_outcome_card(outcome_id: str, outcome: dict[str, Any]) -> str:
     )
 
 
-def _event_card(event_id: str, contract: dict[str, Any], *, subtitle: str = "target event") -> str:
+def _event_card(
+    event_id: str,
+    contract: dict[str, Any],
+    *,
+    subtitle: str = "target event",
+    mode: _EventCardMode = "reference",
+) -> str:
     event = contract.get("events", {}).get(event_id, {})
     sections: list[tuple[str, list[object]]] = []
     if event.get("payload_schema"):
-        sections.append(("payload_schema", [_DotTypedField("payload_schema", event["payload_schema"])]))
-    if event.get("emitted_by"):
+        payload_field = _DotExpandedTypedField("payload", event["payload_schema"]) if mode == "emitted" else _DotTypedField("payload", event["payload_schema"])
+        sections.append(("payload", [payload_field]))
+    if mode == "reference" and event.get("emitted_by"):
         sections.append(("emitted by", event["emitted_by"]))
     return _dot_card(
         event_id,
@@ -2281,35 +2463,6 @@ def _event_card(event_id: str, contract: dict[str, Any], *, subtitle: str = "tar
         rationale=event.get("rationale", ""),
         style=_DOT_STYLE_EVENT,
     )
-
-
-def _operation_sections(operation: dict[str, Any], contract: dict[str, Any], *, include_output: bool = True) -> list[tuple[str, list[object]]]:
-    sections: list[tuple[str, list[object]]] = []
-    sections.extend(_authorization_policy_sections(operation.get("authorization_policy"), contract))
-    for field in ["creates", "reads", "updates", "deletes"]:
-        if operation.get(field):
-            sections.append((field, operation[field]))
-    if operation.get("transition"):
-        transition = operation["transition"]
-        type_name = effective_field_type(contract["models"][transition["model"]]["fields"][transition["field"]])
-        sections.append(
-            (
-                "transitions",
-                [
-                    _DotTransitionField(
-                        f"{transition['model']}.{transition['field']}",
-                        type_name,
-                        f"{transition['from']} {_DOT_ARROW_FORWARD} {transition['to']}",
-                    )
-                ],
-            )
-        )
-    if operation.get("input"):
-        sections.append(("input", _typed_fields(operation["input"])))
-    if include_output:
-        sections.extend(_operation_outcome_sections(operation))
-    sections.extend(_operation_emit_sections(operation, contract))
-    return sections
 
 
 def _authorization_policy_sections(
@@ -2326,10 +2479,10 @@ def _authorization_policy_sections(
     policy = contract.get("authorization_policies", {}).get(policy_id)
     if not policy:
         return sections
-    sections.append(("authorization_effect", [policy["effect"]]))
-    sections.append(("authorization_subjects", _format_authorization_subjects(policy.get("subjects", []))))
-    sections.append(("authorization_targets", _format_authorization_targets(policy.get("targets", []))))
-    sections.append(("authorization_conditions", _format_authorization_conditions(policy.get("conditions", []))))
+    sections.append(("effect", [policy["effect"]]))
+    sections.append(("subjects", _format_authorization_subjects(policy.get("subjects", []))))
+    sections.append(("targets", _format_authorization_targets(policy.get("targets", []))))
+    sections.append(("conditions", _format_authorization_conditions(policy.get("conditions", []))))
     return sections
 
 
@@ -2364,25 +2517,6 @@ def _format_authorization_conditions(conditions: Iterable[dict[str, Any]]) -> li
         else:
             lines.append(f"{kind}: {_format_scalar(body)}")
     return lines
-
-
-def _operation_outcome_sections(operation: dict[str, Any]) -> list[tuple[str, list[object]]]:
-    sections: list[tuple[str, list[object]]] = []
-    for outcome_id, outcome in sorted(operation["outcomes"].items()):
-        sections.append((outcome["kind"], [_DotTypedField(outcome_id, outcome["result"])]))
-    return sections
-
-
-def _operation_emit_sections(operation: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, list[object]]]:
-    sections: list[tuple[str, list[object]]] = []
-    for outcome_id, outcome in sorted(operation["outcomes"].items()):
-        for event_id in outcome.get("emits", []):
-            event_ref = event_id["event"] if isinstance(event_id, dict) else event_id
-            sections.append(("emit", [f"{outcome_id} {_DOT_ARROW_FORWARD} {event_ref}"]))
-            event = contract.get("events", {}).get(event_ref, {})
-            if event.get("payload_schema"):
-                sections.append(("payload_schema", [_DotTypedField("payload_schema", event["payload_schema"])]))
-    return sections
 
 
 def _typed_fields(fields: dict[str, str]) -> list[_DotTypedField]:
@@ -2628,6 +2762,10 @@ class _DotTypedField:
         return f"{self.field} {self.type_name}{suffix}"
 
 
+class _DotExpandedTypedField(_DotTypedField):
+    pass
+
+
 class _DotReferenceField(_DotTypedField):
     def __init__(self, field: str, ref: str, source: str | None = None) -> None:
         self.field = field
@@ -2758,7 +2896,8 @@ def _dot_section_inner_rows(title: str, values: Iterable[object]) -> tuple[bool,
 
 
 def _dot_typed_field_section_inner_rows(title: str, values: list[object]) -> tuple[bool, list[str]]:
-    if (title in {"input", "output", "payload", "payload_schema", "query_dependencies", "set", "load"} or title == "available_operations") and len(values) == 1:
+    compactable = all(not isinstance(value, _DotExpandedTypedField) for value in values)
+    if compactable and (title in {"input", "output", "payload", "payload_schema", "query_dependencies", "set", "load"} or title == "available_operations") and len(values) == 1:
         rows = []
         for index, value in enumerate(values):
             if isinstance(value, _DotTypedField):

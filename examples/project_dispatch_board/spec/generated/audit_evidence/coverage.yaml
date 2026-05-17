@@ -3,11 +3,11 @@ project: project_dispatch_board
 summary:
   required_visual_paths: 652
   missing_required_visual_paths: 0
-  required_visual_text_witnesses: 181
+  required_visual_text_witnesses: 243
   optional_visual_paths: 459
   optional_visual_paths_not_shown: 5
   non_visual_paths: 71
-  visual_evidence_sets: 29
+  visual_evidence_sets: 32
 visual_evidence_sets:
   V0001:
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.compact.screenshot.png
@@ -24,14 +24,18 @@ visual_evidence_sets:
   V0003:
   - spec/generated/audit_evidence/entrypoints/cli/entry_point_cli_project_approve/flow.svg
   - spec/generated/audit_evidence/entrypoints/http_api/entry_point_api_project_approve/flow.svg
+  - spec/generated/audit_evidence/operations/operation_project_approve/flow.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_detail/state_machine.svg
   V0004:
+  - spec/generated/audit_evidence/operations/operation_project_archive/flow.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_detail/state_machine.svg
   V0005:
   - spec/generated/audit_evidence/entrypoints/http_api/entry_point_api_project_create/flow.svg
+  - spec/generated/audit_evidence/operations/operation_project_create/flow.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_list/state_machine.svg
   V0006:
   - spec/generated/audit_evidence/entrypoints/http_api/entry_point_api_project_list/flow.svg
+  - spec/generated/audit_evidence/operations/operation_project_list/flow.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/state_machine.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.compact.screenshot.png
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.wide.screenshot.png
@@ -44,16 +48,20 @@ visual_evidence_sets:
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/composition.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_list/state_machine.svg
   V0007:
+  - spec/generated/audit_evidence/operations/operation_project_read/flow.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_activity/state_machine.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_detail/state_machine.svg
   V0008:
+  - spec/generated/audit_evidence/operations/operation_project_send_approval_notice/flow.svg
   - spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg
   V0009:
+  - spec/generated/audit_evidence/operations/operation_project_submit/flow.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_list/state_machine.svg
   V0010:
   - spec/generated/audit_evidence/entrypoints/cli/entry_point_cli_project_approve/flow.svg
   - spec/generated/audit_evidence/entrypoints/http_api/entry_point_api_project_approve/flow.svg
   - spec/generated/audit_evidence/entrypoints/worker/entry_point_worker_project_approval_notice/flow.svg
+  - spec/generated/audit_evidence/operations/operation_project_approve/flow.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_detail/state_machine.svg
   - spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg
   V0011:
@@ -73,6 +81,7 @@ visual_evidence_sets:
   V0018:
   - spec/generated/audit_evidence/entrypoints/cli/entry_point_cli_project_approve/flow.svg
   - spec/generated/audit_evidence/entrypoints/http_api/entry_point_api_project_approve/flow.svg
+  - spec/generated/audit_evidence/operations/operation_project_approve/flow.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_detail/state_machine.svg
   - spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg
   V0019:
@@ -95,6 +104,13 @@ visual_evidence_sets:
   - spec/generated/audit_evidence/entrypoints/http_api/entry_point_api_project_create/flow.svg
   - spec/generated/audit_evidence/entrypoints/http_api/entry_point_api_project_list/flow.svg
   - spec/generated/audit_evidence/entrypoints/worker/entry_point_worker_project_approval_notice/flow.svg
+  - spec/generated/audit_evidence/operations/operation_project_approve/flow.svg
+  - spec/generated/audit_evidence/operations/operation_project_archive/flow.svg
+  - spec/generated/audit_evidence/operations/operation_project_create/flow.svg
+  - spec/generated/audit_evidence/operations/operation_project_list/flow.svg
+  - spec/generated/audit_evidence/operations/operation_project_read/flow.svg
+  - spec/generated/audit_evidence/operations/operation_project_send_approval_notice/flow.svg
+  - spec/generated/audit_evidence/operations/operation_project_submit/flow.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_activity/state_machine.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/state_machine.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.compact.screenshot.png
@@ -114,6 +130,12 @@ visual_evidence_sets:
   - spec/generated/audit_evidence/entrypoints/http_api/entry_point_api_project_approve/flow.svg
   - spec/generated/audit_evidence/entrypoints/http_api/entry_point_api_project_create/flow.svg
   - spec/generated/audit_evidence/entrypoints/http_api/entry_point_api_project_list/flow.svg
+  - spec/generated/audit_evidence/operations/operation_project_approve/flow.svg
+  - spec/generated/audit_evidence/operations/operation_project_archive/flow.svg
+  - spec/generated/audit_evidence/operations/operation_project_create/flow.svg
+  - spec/generated/audit_evidence/operations/operation_project_list/flow.svg
+  - spec/generated/audit_evidence/operations/operation_project_read/flow.svg
+  - spec/generated/audit_evidence/operations/operation_project_submit/flow.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_activity/state_machine.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/state_machine.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.compact.screenshot.png
@@ -141,30 +163,36 @@ visual_evidence_sets:
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.wide.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/composition.svg
   V0025:
+  - spec/generated/audit_evidence/state_machines/state_machine_project_detail/state_machine.svg
+  V0026:
+  - spec/generated/audit_evidence/state_machines/state_machine_project_list/state_machine.svg
+  V0027:
   - spec/generated/audit_evidence/state_machines/state_machine_project_activity/state_machine.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.compact.screenshot.png
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.wide.screenshot.png
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.compact.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.wide.capture.svg
-  V0026:
+  V0028:
   - spec/generated/audit_evidence/state_machines/state_machine_project_activity/state_machine.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.compact.screenshot.png
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.wide.screenshot.png
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.compact.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.wide.capture.svg
-  V0027:
+  V0029:
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.compact.screenshot.png
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.wide.screenshot.png
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.compact.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.wide.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_detail/state_machine.svg
-  V0028:
+  V0030:
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.compact.screenshot.png
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.wide.screenshot.png
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.compact.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.wide.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_list/state_machine.svg
-  V0029:
+  V0031:
+  - spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg
+  V0032:
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.compact.screenshot.png
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.wide.screenshot.png
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.compact.capture.svg
@@ -173,18 +201,18 @@ render_presence:
   assets:
     rendered:
       asset.project.detail.ready.priority_badge: V0019
-      asset.project.list.empty.illustration: V0029
+      asset.project.list.empty.illustration: V0032
     not_rendered: []
   text_resources:
     rendered:
-      text.project.activity.empty.body: V0029
-      text.project.activity.empty.heading: V0029
+      text.project.activity.empty.body: V0032
+      text.project.activity.empty.heading: V0032
       text.project.activity.ready.heading: V0019
-      text.project.detail.none.body: V0029
-      text.project.detail.none.heading: V0029
+      text.project.detail.none.body: V0032
+      text.project.detail.none.heading: V0032
       text.project.detail.ready.heading: V0019
-      text.project.list.empty.body: V0029
-      text.project.list.empty.heading: V0029
+      text.project.list.empty.body: V0032
+      text.project.list.empty.heading: V0032
       text.project.list.ready.heading: V0019
     not_rendered:
     - text.project.approve.invalid_state
@@ -745,137 +773,137 @@ visual_audit:
       /state_machines/state_machine.project.board/view_states/ready/signal_sync_rules/0/when/message: V0024
       /state_machines/state_machine.project.board/view_states/ready/surface: V0024
       /state_machines/state_machine.project.board/view_states/ready/text: V0024
-      /state_machines/state_machine.project.detail/context/project_id/primitive: V0004
-      /state_machines/state_machine.project.detail/initial_view_state: V0004
-      /state_machines/state_machine.project.detail/model: V0004
-      /state_machines/state_machine.project.detail/query_dependencies: V0004
-      /state_machines/state_machine.project.detail/rationale: V0004
-      /state_machines/state_machine.project.detail/signals/accepts/data_signals/error/payload_schema: V0004
-      /state_machines/state_machine.project.detail/signals/accepts/data_signals/ready/payload_schema: V0004
+      /state_machines/state_machine.project.detail/context/project_id/primitive: V0025
+      /state_machines/state_machine.project.detail/initial_view_state: V0025
+      /state_machines/state_machine.project.detail/model: V0025
+      /state_machines/state_machine.project.detail/query_dependencies: V0025
+      /state_machines/state_machine.project.detail/rationale: V0025
+      /state_machines/state_machine.project.detail/signals/accepts/data_signals/error/payload_schema: V0025
+      /state_machines/state_machine.project.detail/signals/accepts/data_signals/ready/payload_schema: V0025
       ? /state_machines/state_machine.project.detail/signals/accepts/messages/selection_changed/payload_schema/project_id/primitive
-      : V0004
-      /state_machines/state_machine.project.detail/signals/accepts/messages/selection_cleared/payload_schema: V0004
-      /state_machines/state_machine.project.detail/signals/emits/messages: V0004
-      /state_machines/state_machine.project.detail/transitions/0/from: V0004
-      /state_machines/state_machine.project.detail/transitions/0/on/message: V0004
-      /state_machines/state_machine.project.detail/transitions/0/to: V0004
-      /state_machines/state_machine.project.detail/transitions/1/from: V0004
-      /state_machines/state_machine.project.detail/transitions/1/on/data_signal: V0004
-      /state_machines/state_machine.project.detail/transitions/1/to: V0004
-      /state_machines/state_machine.project.detail/transitions/2/from: V0004
-      /state_machines/state_machine.project.detail/transitions/2/on/data_signal: V0004
-      /state_machines/state_machine.project.detail/transitions/2/to: V0004
-      /state_machines/state_machine.project.detail/transitions/3/effects/0/set/context: V0004
-      /state_machines/state_machine.project.detail/transitions/3/effects/0/set/value: V0004
-      /state_machines/state_machine.project.detail/transitions/3/from: V0004
-      /state_machines/state_machine.project.detail/transitions/3/on/message: V0004
-      /state_machines/state_machine.project.detail/transitions/3/to: V0004
-      /state_machines/state_machine.project.detail/view_states/error/assets: V0004
-      /state_machines/state_machine.project.detail/view_states/error/available_operations: V0004
-      /state_machines/state_machine.project.detail/view_states/error/fields: V0004
-      /state_machines/state_machine.project.detail/view_states/error/query_dependencies: V0004
-      /state_machines/state_machine.project.detail/view_states/error/surface: V0004
-      /state_machines/state_machine.project.detail/view_states/error/text/0: V0004
-      /state_machines/state_machine.project.detail/view_states/error/text/1: V0004
-      /state_machines/state_machine.project.detail/view_states/loading/assets: V0004
-      /state_machines/state_machine.project.detail/view_states/loading/available_operations: V0004
-      /state_machines/state_machine.project.detail/view_states/loading/fields: V0004
-      /state_machines/state_machine.project.detail/view_states/loading/query_dependencies/0/operation: V0004
-      /state_machines/state_machine.project.detail/view_states/loading/query_dependencies/0/query: V0004
-      /state_machines/state_machine.project.detail/view_states/loading/surface: V0004
-      /state_machines/state_machine.project.detail/view_states/loading/text/0: V0004
-      /state_machines/state_machine.project.detail/view_states/none/assets: V0004
-      /state_machines/state_machine.project.detail/view_states/none/available_operations: V0004
-      /state_machines/state_machine.project.detail/view_states/none/fields: V0004
-      /state_machines/state_machine.project.detail/view_states/none/query_dependencies: V0004
-      /state_machines/state_machine.project.detail/view_states/none/surface: V0004
-      /state_machines/state_machine.project.detail/view_states/none/text/0: V0004
-      /state_machines/state_machine.project.detail/view_states/none/text/1: V0004
-      /state_machines/state_machine.project.detail/view_states/ready/assets/0: V0004
-      /state_machines/state_machine.project.detail/view_states/ready/available_operations/0: V0004
-      /state_machines/state_machine.project.detail/view_states/ready/available_operations/1: V0004
-      /state_machines/state_machine.project.detail/view_states/ready/fields/0: V0004
-      /state_machines/state_machine.project.detail/view_states/ready/fields/1: V0004
-      /state_machines/state_machine.project.detail/view_states/ready/fields/2: V0004
-      /state_machines/state_machine.project.detail/view_states/ready/fields/3: V0004
-      /state_machines/state_machine.project.detail/view_states/ready/fields/4: V0004
-      /state_machines/state_machine.project.detail/view_states/ready/query_dependencies: V0004
-      /state_machines/state_machine.project.detail/view_states/ready/surface: V0004
-      /state_machines/state_machine.project.detail/view_states/ready/text/0: V0004
-      /state_machines/state_machine.project.list/context/selected_project_id/primitive: V0009
-      /state_machines/state_machine.project.list/context/workspace_id/primitive: V0009
-      /state_machines/state_machine.project.list/initial_view_state: V0009
-      /state_machines/state_machine.project.list/model: V0009
-      /state_machines/state_machine.project.list/query_dependencies/0/operation: V0009
-      /state_machines/state_machine.project.list/query_dependencies/0/query: V0009
-      /state_machines/state_machine.project.list/rationale: V0009
-      /state_machines/state_machine.project.list/signals/accepts/data_signals/empty/payload_schema: V0009
-      /state_machines/state_machine.project.list/signals/accepts/data_signals/error/payload_schema: V0009
-      /state_machines/state_machine.project.list/signals/accepts/data_signals/ready/payload_schema: V0009
-      /state_machines/state_machine.project.list/signals/accepts/messages/project_select/payload_schema/project_id/primitive: V0009
-      /state_machines/state_machine.project.list/signals/emits/messages/project_selected/payload_schema/project_id/primitive: V0009
-      /state_machines/state_machine.project.list/transitions/0/from: V0009
-      /state_machines/state_machine.project.list/transitions/0/on/data_signal: V0009
-      /state_machines/state_machine.project.list/transitions/0/to: V0009
-      /state_machines/state_machine.project.list/transitions/1/from: V0009
-      /state_machines/state_machine.project.list/transitions/1/on/data_signal: V0009
-      /state_machines/state_machine.project.list/transitions/1/to: V0009
-      /state_machines/state_machine.project.list/transitions/2/from: V0009
-      /state_machines/state_machine.project.list/transitions/2/on/data_signal: V0009
-      /state_machines/state_machine.project.list/transitions/2/to: V0009
-      /state_machines/state_machine.project.list/transitions/3/from: V0009
-      /state_machines/state_machine.project.list/transitions/3/on/data_signal: V0009
-      /state_machines/state_machine.project.list/transitions/3/to: V0009
-      /state_machines/state_machine.project.list/transitions/4/effects/0/emit/message: V0009
-      /state_machines/state_machine.project.list/transitions/4/effects/0/emit/payload_bindings/project_id/from: V0009
-      /state_machines/state_machine.project.list/transitions/4/from: V0009
-      /state_machines/state_machine.project.list/transitions/4/on/message: V0009
-      /state_machines/state_machine.project.list/transitions/4/to: V0009
-      /state_machines/state_machine.project.list/view_states/empty/assets/0: V0009
-      /state_machines/state_machine.project.list/view_states/empty/available_operations/0: V0009
-      /state_machines/state_machine.project.list/view_states/empty/fields: V0009
-      /state_machines/state_machine.project.list/view_states/empty/query_dependencies: V0009
-      /state_machines/state_machine.project.list/view_states/empty/surface: V0009
-      /state_machines/state_machine.project.list/view_states/empty/text/0: V0009
-      /state_machines/state_machine.project.list/view_states/empty/text/1: V0009
-      /state_machines/state_machine.project.list/view_states/error/assets: V0009
-      /state_machines/state_machine.project.list/view_states/error/available_operations: V0009
-      /state_machines/state_machine.project.list/view_states/error/fields: V0009
-      /state_machines/state_machine.project.list/view_states/error/query_dependencies: V0009
-      /state_machines/state_machine.project.list/view_states/error/surface: V0009
-      /state_machines/state_machine.project.list/view_states/error/text/0: V0009
-      /state_machines/state_machine.project.list/view_states/error/text/1: V0009
-      /state_machines/state_machine.project.list/view_states/loading/assets: V0009
-      /state_machines/state_machine.project.list/view_states/loading/available_operations: V0009
-      /state_machines/state_machine.project.list/view_states/loading/fields: V0009
-      /state_machines/state_machine.project.list/view_states/loading/query_dependencies: V0009
-      /state_machines/state_machine.project.list/view_states/loading/surface: V0009
-      /state_machines/state_machine.project.list/view_states/loading/text/0: V0009
-      /state_machines/state_machine.project.list/view_states/ready/assets: V0009
-      /state_machines/state_machine.project.list/view_states/ready/available_operations/0: V0009
-      /state_machines/state_machine.project.list/view_states/ready/available_operations/1: V0009
-      /state_machines/state_machine.project.list/view_states/ready/fields/0: V0009
-      /state_machines/state_machine.project.list/view_states/ready/fields/1: V0009
-      /state_machines/state_machine.project.list/view_states/ready/fields/2: V0009
-      /state_machines/state_machine.project.list/view_states/ready/fields/3: V0009
-      /state_machines/state_machine.project.list/view_states/ready/query_dependencies: V0009
-      /state_machines/state_machine.project.list/view_states/ready/surface: V0009
-      /state_machines/state_machine.project.list/view_states/ready/text/0: V0009
-      /workflows/workflow.project.approval_notice/outcomes/completed/kind: V0008
-      /workflows/workflow.project.approval_notice/outcomes/completed/result/data_contract: V0008
-      /workflows/workflow.project.approval_notice/outcomes/delivery_failed/kind: V0008
-      /workflows/workflow.project.approval_notice/outcomes/delivery_failed/result/model: V0008
-      /workflows/workflow.project.approval_notice/rationale: V0008
-      /workflows/workflow.project.approval_notice/ref: V0008
-      /workflows/workflow.project.approval_notice/steps/0/id: V0008
-      /workflows/workflow.project.approval_notice/steps/0/input_bindings/approved_by/from: V0008
-      /workflows/workflow.project.approval_notice/steps/0/input_bindings/project_id/from: V0008
-      /workflows/workflow.project.approval_notice/steps/0/operation: V0008
-      /workflows/workflow.project.approval_notice/steps/0/outcome_routes/delivery_failed/retry_policy/attempts: V0008
-      /workflows/workflow.project.approval_notice/steps/0/outcome_routes/delivery_failed/retry_policy/backoff: V0008
-      /workflows/workflow.project.approval_notice/steps/0/outcome_routes/delivery_failed/retry_policy/fail_as: V0008
-      /workflows/workflow.project.approval_notice/steps/0/outcome_routes/sent/complete_as: V0008
-      /workflows/workflow.project.approval_notice/trigger/event: V0008
+      : V0025
+      /state_machines/state_machine.project.detail/signals/accepts/messages/selection_cleared/payload_schema: V0025
+      /state_machines/state_machine.project.detail/signals/emits/messages: V0025
+      /state_machines/state_machine.project.detail/transitions/0/from: V0025
+      /state_machines/state_machine.project.detail/transitions/0/on/message: V0025
+      /state_machines/state_machine.project.detail/transitions/0/to: V0025
+      /state_machines/state_machine.project.detail/transitions/1/from: V0025
+      /state_machines/state_machine.project.detail/transitions/1/on/data_signal: V0025
+      /state_machines/state_machine.project.detail/transitions/1/to: V0025
+      /state_machines/state_machine.project.detail/transitions/2/from: V0025
+      /state_machines/state_machine.project.detail/transitions/2/on/data_signal: V0025
+      /state_machines/state_machine.project.detail/transitions/2/to: V0025
+      /state_machines/state_machine.project.detail/transitions/3/effects/0/set/context: V0025
+      /state_machines/state_machine.project.detail/transitions/3/effects/0/set/value: V0025
+      /state_machines/state_machine.project.detail/transitions/3/from: V0025
+      /state_machines/state_machine.project.detail/transitions/3/on/message: V0025
+      /state_machines/state_machine.project.detail/transitions/3/to: V0025
+      /state_machines/state_machine.project.detail/view_states/error/assets: V0025
+      /state_machines/state_machine.project.detail/view_states/error/available_operations: V0025
+      /state_machines/state_machine.project.detail/view_states/error/fields: V0025
+      /state_machines/state_machine.project.detail/view_states/error/query_dependencies: V0025
+      /state_machines/state_machine.project.detail/view_states/error/surface: V0025
+      /state_machines/state_machine.project.detail/view_states/error/text/0: V0025
+      /state_machines/state_machine.project.detail/view_states/error/text/1: V0025
+      /state_machines/state_machine.project.detail/view_states/loading/assets: V0025
+      /state_machines/state_machine.project.detail/view_states/loading/available_operations: V0025
+      /state_machines/state_machine.project.detail/view_states/loading/fields: V0025
+      /state_machines/state_machine.project.detail/view_states/loading/query_dependencies/0/operation: V0025
+      /state_machines/state_machine.project.detail/view_states/loading/query_dependencies/0/query: V0025
+      /state_machines/state_machine.project.detail/view_states/loading/surface: V0025
+      /state_machines/state_machine.project.detail/view_states/loading/text/0: V0025
+      /state_machines/state_machine.project.detail/view_states/none/assets: V0025
+      /state_machines/state_machine.project.detail/view_states/none/available_operations: V0025
+      /state_machines/state_machine.project.detail/view_states/none/fields: V0025
+      /state_machines/state_machine.project.detail/view_states/none/query_dependencies: V0025
+      /state_machines/state_machine.project.detail/view_states/none/surface: V0025
+      /state_machines/state_machine.project.detail/view_states/none/text/0: V0025
+      /state_machines/state_machine.project.detail/view_states/none/text/1: V0025
+      /state_machines/state_machine.project.detail/view_states/ready/assets/0: V0025
+      /state_machines/state_machine.project.detail/view_states/ready/available_operations/0: V0025
+      /state_machines/state_machine.project.detail/view_states/ready/available_operations/1: V0025
+      /state_machines/state_machine.project.detail/view_states/ready/fields/0: V0025
+      /state_machines/state_machine.project.detail/view_states/ready/fields/1: V0025
+      /state_machines/state_machine.project.detail/view_states/ready/fields/2: V0025
+      /state_machines/state_machine.project.detail/view_states/ready/fields/3: V0025
+      /state_machines/state_machine.project.detail/view_states/ready/fields/4: V0025
+      /state_machines/state_machine.project.detail/view_states/ready/query_dependencies: V0025
+      /state_machines/state_machine.project.detail/view_states/ready/surface: V0025
+      /state_machines/state_machine.project.detail/view_states/ready/text/0: V0025
+      /state_machines/state_machine.project.list/context/selected_project_id/primitive: V0026
+      /state_machines/state_machine.project.list/context/workspace_id/primitive: V0026
+      /state_machines/state_machine.project.list/initial_view_state: V0026
+      /state_machines/state_machine.project.list/model: V0026
+      /state_machines/state_machine.project.list/query_dependencies/0/operation: V0026
+      /state_machines/state_machine.project.list/query_dependencies/0/query: V0026
+      /state_machines/state_machine.project.list/rationale: V0026
+      /state_machines/state_machine.project.list/signals/accepts/data_signals/empty/payload_schema: V0026
+      /state_machines/state_machine.project.list/signals/accepts/data_signals/error/payload_schema: V0026
+      /state_machines/state_machine.project.list/signals/accepts/data_signals/ready/payload_schema: V0026
+      /state_machines/state_machine.project.list/signals/accepts/messages/project_select/payload_schema/project_id/primitive: V0026
+      /state_machines/state_machine.project.list/signals/emits/messages/project_selected/payload_schema/project_id/primitive: V0026
+      /state_machines/state_machine.project.list/transitions/0/from: V0026
+      /state_machines/state_machine.project.list/transitions/0/on/data_signal: V0026
+      /state_machines/state_machine.project.list/transitions/0/to: V0026
+      /state_machines/state_machine.project.list/transitions/1/from: V0026
+      /state_machines/state_machine.project.list/transitions/1/on/data_signal: V0026
+      /state_machines/state_machine.project.list/transitions/1/to: V0026
+      /state_machines/state_machine.project.list/transitions/2/from: V0026
+      /state_machines/state_machine.project.list/transitions/2/on/data_signal: V0026
+      /state_machines/state_machine.project.list/transitions/2/to: V0026
+      /state_machines/state_machine.project.list/transitions/3/from: V0026
+      /state_machines/state_machine.project.list/transitions/3/on/data_signal: V0026
+      /state_machines/state_machine.project.list/transitions/3/to: V0026
+      /state_machines/state_machine.project.list/transitions/4/effects/0/emit/message: V0026
+      /state_machines/state_machine.project.list/transitions/4/effects/0/emit/payload_bindings/project_id/from: V0026
+      /state_machines/state_machine.project.list/transitions/4/from: V0026
+      /state_machines/state_machine.project.list/transitions/4/on/message: V0026
+      /state_machines/state_machine.project.list/transitions/4/to: V0026
+      /state_machines/state_machine.project.list/view_states/empty/assets/0: V0026
+      /state_machines/state_machine.project.list/view_states/empty/available_operations/0: V0026
+      /state_machines/state_machine.project.list/view_states/empty/fields: V0026
+      /state_machines/state_machine.project.list/view_states/empty/query_dependencies: V0026
+      /state_machines/state_machine.project.list/view_states/empty/surface: V0026
+      /state_machines/state_machine.project.list/view_states/empty/text/0: V0026
+      /state_machines/state_machine.project.list/view_states/empty/text/1: V0026
+      /state_machines/state_machine.project.list/view_states/error/assets: V0026
+      /state_machines/state_machine.project.list/view_states/error/available_operations: V0026
+      /state_machines/state_machine.project.list/view_states/error/fields: V0026
+      /state_machines/state_machine.project.list/view_states/error/query_dependencies: V0026
+      /state_machines/state_machine.project.list/view_states/error/surface: V0026
+      /state_machines/state_machine.project.list/view_states/error/text/0: V0026
+      /state_machines/state_machine.project.list/view_states/error/text/1: V0026
+      /state_machines/state_machine.project.list/view_states/loading/assets: V0026
+      /state_machines/state_machine.project.list/view_states/loading/available_operations: V0026
+      /state_machines/state_machine.project.list/view_states/loading/fields: V0026
+      /state_machines/state_machine.project.list/view_states/loading/query_dependencies: V0026
+      /state_machines/state_machine.project.list/view_states/loading/surface: V0026
+      /state_machines/state_machine.project.list/view_states/loading/text/0: V0026
+      /state_machines/state_machine.project.list/view_states/ready/assets: V0026
+      /state_machines/state_machine.project.list/view_states/ready/available_operations/0: V0026
+      /state_machines/state_machine.project.list/view_states/ready/available_operations/1: V0026
+      /state_machines/state_machine.project.list/view_states/ready/fields/0: V0026
+      /state_machines/state_machine.project.list/view_states/ready/fields/1: V0026
+      /state_machines/state_machine.project.list/view_states/ready/fields/2: V0026
+      /state_machines/state_machine.project.list/view_states/ready/fields/3: V0026
+      /state_machines/state_machine.project.list/view_states/ready/query_dependencies: V0026
+      /state_machines/state_machine.project.list/view_states/ready/surface: V0026
+      /state_machines/state_machine.project.list/view_states/ready/text/0: V0026
+      /workflows/workflow.project.approval_notice/outcomes/completed/kind: V0031
+      /workflows/workflow.project.approval_notice/outcomes/completed/result/data_contract: V0031
+      /workflows/workflow.project.approval_notice/outcomes/delivery_failed/kind: V0031
+      /workflows/workflow.project.approval_notice/outcomes/delivery_failed/result/model: V0031
+      /workflows/workflow.project.approval_notice/rationale: V0031
+      /workflows/workflow.project.approval_notice/ref: V0031
+      /workflows/workflow.project.approval_notice/steps/0/id: V0031
+      /workflows/workflow.project.approval_notice/steps/0/input_bindings/approved_by/from: V0031
+      /workflows/workflow.project.approval_notice/steps/0/input_bindings/project_id/from: V0031
+      /workflows/workflow.project.approval_notice/steps/0/operation: V0031
+      /workflows/workflow.project.approval_notice/steps/0/outcome_routes/delivery_failed/retry_policy/attempts: V0031
+      /workflows/workflow.project.approval_notice/steps/0/outcome_routes/delivery_failed/retry_policy/backoff: V0031
+      /workflows/workflow.project.approval_notice/steps/0/outcome_routes/delivery_failed/retry_policy/fail_as: V0031
+      /workflows/workflow.project.approval_notice/steps/0/outcome_routes/sent/complete_as: V0031
+      /workflows/workflow.project.approval_notice/trigger/event: V0031
     missing: {}
     text_witnesses:
       /authorization_policies/authorization_policy.project.approve/conditions/0/model_state/equals:
@@ -894,88 +922,161 @@ visual_audit:
       /authorization_policies/authorization_policy.project.approve/effect:
         visual_evidence_set: V0003
         tokens:
-        - authorization_effect
+        - effect
         - allow
       /authorization_policies/authorization_policy.project.approve/subjects/0/kind:
         visual_evidence_set: V0003
         tokens:
-        - authorization_subjects
+        - subjects
         - actor
       /authorization_policies/authorization_policy.project.approve/subjects/0/source:
         visual_evidence_set: V0003
         tokens:
-        - authorization_subjects
+        - subjects
         - input.approved_by
       /authorization_policies/authorization_policy.project.approve/targets/0/operation:
         visual_evidence_set: V0003
         tokens:
         - operation.project.approve
-        - authorization_targets
       /authorization_policies/authorization_policy.project.approve/targets/1/model:
         visual_evidence_set: V0003
         tokens:
-        - authorization_targets
+        - Project
+      /authorization_policies/authorization_policy.project.archive/conditions/0/model_state/equals:
+        visual_evidence_set: V0004
+        tokens:
+        - Project.status
+        - approved
+      /authorization_policies/authorization_policy.project.archive/conditions/0/model_state/field:
+        visual_evidence_set: V0004
+        tokens:
+        - Project.status
+      /authorization_policies/authorization_policy.project.archive/conditions/0/model_state/model:
+        visual_evidence_set: V0004
+        tokens:
+        - Project.status
+      /authorization_policies/authorization_policy.project.archive/effect:
+        visual_evidence_set: V0004
+        tokens:
+        - effect
+        - allow
+      /authorization_policies/authorization_policy.project.archive/subjects/0/kind:
+        visual_evidence_set: V0004
+        tokens:
+        - subjects
+        - actor
+      /authorization_policies/authorization_policy.project.archive/targets/0/operation:
+        visual_evidence_set: V0004
+        tokens:
+        - operation.project.archive
+      /authorization_policies/authorization_policy.project.archive/targets/1/model:
+        visual_evidence_set: V0004
+        tokens:
         - Project
       /authorization_policies/authorization_policy.project.create/effect:
         visual_evidence_set: V0005
         tokens:
-        - authorization_effect
+        - effect
         - allow
       /authorization_policies/authorization_policy.project.create/subjects/0/kind:
         visual_evidence_set: V0005
         tokens:
-        - authorization_subjects
+        - subjects
         - actor
       /authorization_policies/authorization_policy.project.create/targets/0/operation:
         visual_evidence_set: V0005
         tokens:
         - operation.project.create
-        - authorization_targets
       /authorization_policies/authorization_policy.project.create/targets/1/model:
         visual_evidence_set: V0005
         tokens:
-        - authorization_targets
         - Project
       /authorization_policies/authorization_policy.project.list/effect:
         visual_evidence_set: V0006
         tokens:
-        - authorization_effect
+        - effect
         - allow
       /authorization_policies/authorization_policy.project.list/subjects/0/kind:
         visual_evidence_set: V0006
         tokens:
-        - authorization_subjects
+        - subjects
         - actor
       /authorization_policies/authorization_policy.project.list/targets/0/operation:
         visual_evidence_set: V0006
         tokens:
         - operation.project.list
-        - authorization_targets
       /authorization_policies/authorization_policy.project.list/targets/1/model:
         visual_evidence_set: V0006
         tokens:
-        - authorization_targets
+        - Project
+      /authorization_policies/authorization_policy.project.read/effect:
+        visual_evidence_set: V0007
+        tokens:
+        - effect
+        - allow
+      /authorization_policies/authorization_policy.project.read/subjects/0/kind:
+        visual_evidence_set: V0007
+        tokens:
+        - subjects
+        - actor
+      /authorization_policies/authorization_policy.project.read/targets/0/operation:
+        visual_evidence_set: V0007
+        tokens:
+        - operation.project.read
+      /authorization_policies/authorization_policy.project.read/targets/1/model:
+        visual_evidence_set: V0007
+        tokens:
         - Project
       /authorization_policies/authorization_policy.project.send_approval_notice/effect:
         visual_evidence_set: V0008
         tokens:
-        - authorization_effect
+        - effect
         - allow
       /authorization_policies/authorization_policy.project.send_approval_notice/subjects/0/kind:
         visual_evidence_set: V0008
         tokens:
-        - authorization_subjects
+        - subjects
         - actor
       /authorization_policies/authorization_policy.project.send_approval_notice/subjects/0/source:
         visual_evidence_set: V0008
         tokens:
-        - authorization_subjects
+        - subjects
         - input.approved_by
       /authorization_policies/authorization_policy.project.send_approval_notice/targets/0/operation:
         visual_evidence_set: V0008
         tokens:
         - operation.project.send_approval_notice
-        - authorization_targets
+      /authorization_policies/authorization_policy.project.submit/conditions/0/model_state/equals:
+        visual_evidence_set: V0009
+        tokens:
+        - Project.status
+        - draft
+      /authorization_policies/authorization_policy.project.submit/conditions/0/model_state/field:
+        visual_evidence_set: V0009
+        tokens:
+        - Project.status
+      /authorization_policies/authorization_policy.project.submit/conditions/0/model_state/model:
+        visual_evidence_set: V0009
+        tokens:
+        - Project.status
+      /authorization_policies/authorization_policy.project.submit/effect:
+        visual_evidence_set: V0009
+        tokens:
+        - effect
+        - allow
+      /authorization_policies/authorization_policy.project.submit/subjects/0/kind:
+        visual_evidence_set: V0009
+        tokens:
+        - subjects
+        - actor
+      /authorization_policies/authorization_policy.project.submit/targets/0/operation:
+        visual_evidence_set: V0009
+        tokens:
+        - operation.project.submit
+      /authorization_policies/authorization_policy.project.submit/targets/1/model:
+        visual_evidence_set: V0009
+        tokens:
+        - Project
       /entry_points/entry_point.api.project.approve/adapter/http_api/input/body/approved_by/primitive:
         visual_evidence_set: V0011
         tokens:
@@ -1173,7 +1274,7 @@ visual_audit:
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/approved/stdout/bindings/project_id/from:
         visual_evidence_set: V0014
         tokens:
-        - $response.body.id
+        - response.body.id
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/approved/stdout/text:
         visual_evidence_set: V0014
         tokens:
@@ -1186,7 +1287,7 @@ visual_audit:
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/invalid_state/stderr/bindings/message/from:
         visual_evidence_set: V0014
         tokens:
-        - $response.body.message
+        - response.body.message
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/invalid_state/stderr/text:
         visual_evidence_set: V0014
         tokens:
@@ -1199,7 +1300,7 @@ visual_audit:
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/not_found/stderr/bindings/message/from:
         visual_evidence_set: V0014
         tokens:
-        - $response.body.message
+        - response.body.message
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/not_found/stderr/text:
         visual_evidence_set: V0014
         tokens:
@@ -1313,6 +1414,109 @@ visual_audit:
         visual_evidence_set: V0009
         tokens:
         - operation.project.submit
+      /models/Problem/fields/code/type/primitive:
+        visual_evidence_set: V0021
+        tokens:
+        - code
+        - Text
+      /models/Problem/fields/message/type/primitive:
+        visual_evidence_set: V0021
+        tokens:
+        - message
+        - Text
+      /models/Project/fields/assignee/type/primitive:
+        visual_evidence_set: V0022
+        tokens:
+        - assignee
+        - Text
+      /models/Project/fields/created_at/type/primitive:
+        visual_evidence_set: V0022
+        tokens:
+        - created_at
+        - Timestamp
+      /models/Project/fields/customer/type/primitive:
+        visual_evidence_set: V0022
+        tokens:
+        - customer
+        - Text
+      /models/Project/fields/id/type/primitive:
+        visual_evidence_set: V0022
+        tokens:
+        - id
+        - ID
+      /models/Project/fields/priority/type/primitive:
+        visual_evidence_set: V0022
+        tokens:
+        - priority
+        - Text
+      /models/Project/fields/summary/type/primitive:
+        visual_evidence_set: V0022
+        tokens:
+        - summary
+        - Text
+      /models/Project/fields/title/type/primitive:
+        visual_evidence_set: V0022
+        tokens:
+        - title
+        - Text
+      /models/Project/fields/updated_at/type/primitive:
+        visual_evidence_set: V0022
+        tokens:
+        - updated_at
+        - Timestamp
+      /models/Project/fields/workspace_id/type/primitive:
+        visual_evidence_set: V0022
+        tokens:
+        - workspace_id
+        - ID
+      /models/Project/lifecycle/field:
+        visual_evidence_set: V0022
+        tokens:
+        - status
+      /models/Project/lifecycle/initial:
+        visual_evidence_set: V0022
+        tokens:
+        - draft
+      /models/Project/lifecycle/states/0:
+        visual_evidence_set: V0022
+        tokens:
+        - draft
+      /models/Project/lifecycle/states/1:
+        visual_evidence_set: V0022
+        tokens:
+        - submitted
+      /models/Project/lifecycle/states/2:
+        visual_evidence_set: V0022
+        tokens:
+        - approved
+      /models/Project/lifecycle/states/3:
+        visual_evidence_set: V0022
+        tokens:
+        - archived
+      /models/Project/lifecycle/transitions/0/from:
+        visual_evidence_set: V0022
+        tokens:
+        - draft
+      /models/Project/lifecycle/transitions/0/to:
+        visual_evidence_set: V0022
+        tokens:
+        - submitted
+      /models/Project/lifecycle/transitions/1/from:
+        visual_evidence_set: V0022
+        tokens:
+        - submitted
+      /models/Project/lifecycle/transitions/1/to:
+        visual_evidence_set: V0022
+        tokens:
+        - approved
+      /models/Project/lifecycle/transitions/2/from:
+        visual_evidence_set: V0022
+        tokens:
+        - approved
+      /models/Project/lifecycle/transitions/2/to:
+        visual_evidence_set: V0022
+        tokens:
+        - archived
       /operations/operation.project.approve/authorization_policy:
         visual_evidence_set: V0003
         tokens:
@@ -1375,6 +1579,45 @@ visual_audit:
         visual_evidence_set: V0004
         tokens:
         - authorization_policy.project.archive
+      /operations/operation.project.archive/input/project_id/primitive:
+        visual_evidence_set: V0004
+        tokens:
+        - project_id
+        - ID
+      /operations/operation.project.archive/outcomes/archived/emits/0/event:
+        visual_evidence_set: V0004
+        tokens:
+        - event.project.archived
+      /operations/operation.project.archive/outcomes/archived/kind:
+        visual_evidence_set: V0004
+        tokens:
+        - archived
+        - success
+      /operations/operation.project.archive/outcomes/archived/result/model:
+        visual_evidence_set: V0004
+        tokens:
+        - archived
+        - Project
+      /operations/operation.project.archive/outcomes/invalid_state/kind:
+        visual_evidence_set: V0004
+        tokens:
+        - invalid_state
+        - failure
+      /operations/operation.project.archive/outcomes/invalid_state/result/model:
+        visual_evidence_set: V0004
+        tokens:
+        - invalid_state
+        - Problem
+      /operations/operation.project.archive/outcomes/not_found/kind:
+        visual_evidence_set: V0004
+        tokens:
+        - not_found
+        - failure
+      /operations/operation.project.archive/outcomes/not_found/result/model:
+        visual_evidence_set: V0004
+        tokens:
+        - not_found
+        - Problem
       /operations/operation.project.create/authorization_policy:
         visual_evidence_set: V0005
         tokens:
@@ -1451,6 +1694,31 @@ visual_audit:
         visual_evidence_set: V0007
         tokens:
         - authorization_policy.project.read
+      /operations/operation.project.read/input/project_id/primitive:
+        visual_evidence_set: V0007
+        tokens:
+        - project_id
+        - ID
+      /operations/operation.project.read/outcomes/found/kind:
+        visual_evidence_set: V0007
+        tokens:
+        - found
+        - success
+      /operations/operation.project.read/outcomes/found/result/model:
+        visual_evidence_set: V0007
+        tokens:
+        - found
+        - Project
+      /operations/operation.project.read/outcomes/not_found/kind:
+        visual_evidence_set: V0007
+        tokens:
+        - not_found
+        - failure
+      /operations/operation.project.read/outcomes/not_found/result/model:
+        visual_evidence_set: V0007
+        tokens:
+        - not_found
+        - Problem
       /operations/operation.project.send_approval_notice/authorization_policy:
         visual_evidence_set: V0008
         tokens:
@@ -1488,6 +1756,45 @@ visual_audit:
         visual_evidence_set: V0009
         tokens:
         - authorization_policy.project.submit
+      /operations/operation.project.submit/input/project_id/primitive:
+        visual_evidence_set: V0009
+        tokens:
+        - project_id
+        - ID
+      /operations/operation.project.submit/outcomes/invalid_state/kind:
+        visual_evidence_set: V0009
+        tokens:
+        - invalid_state
+        - failure
+      /operations/operation.project.submit/outcomes/invalid_state/result/model:
+        visual_evidence_set: V0009
+        tokens:
+        - invalid_state
+        - Problem
+      /operations/operation.project.submit/outcomes/not_found/kind:
+        visual_evidence_set: V0009
+        tokens:
+        - not_found
+        - failure
+      /operations/operation.project.submit/outcomes/not_found/result/model:
+        visual_evidence_set: V0009
+        tokens:
+        - not_found
+        - Problem
+      /operations/operation.project.submit/outcomes/submitted/emits/0/event:
+        visual_evidence_set: V0009
+        tokens:
+        - event.project.submitted
+      /operations/operation.project.submit/outcomes/submitted/kind:
+        visual_evidence_set: V0009
+        tokens:
+        - submitted
+        - success
+      /operations/operation.project.submit/outcomes/submitted/result/model:
+        visual_evidence_set: V0009
+        tokens:
+        - submitted
+        - Project
       ? /state_machines/state_machine.project.activity/signals/accepts/messages/selection_changed/payload_schema/project_id/primitive
       : visual_evidence_set: V0023
         tokens:
@@ -1554,143 +1861,143 @@ visual_audit:
         tokens:
         - aside
       ? /state_machines/state_machine.project.detail/signals/accepts/messages/selection_changed/payload_schema/project_id/primitive
-      : visual_evidence_set: V0004
+      : visual_evidence_set: V0025
         tokens:
         - project_id
         - ID
       /state_machines/state_machine.project.detail/view_states/error/text/0:
-        visual_evidence_set: V0004
+        visual_evidence_set: V0025
         tokens:
         - text.project.detail.error.heading
       /state_machines/state_machine.project.detail/view_states/error/text/1:
-        visual_evidence_set: V0004
+        visual_evidence_set: V0025
         tokens:
         - text.project.detail.error.body
       /state_machines/state_machine.project.detail/view_states/loading/text/0:
-        visual_evidence_set: V0004
+        visual_evidence_set: V0025
         tokens:
         - text.project.detail.loading.message
       /state_machines/state_machine.project.detail/view_states/none/text/0:
-        visual_evidence_set: V0004
+        visual_evidence_set: V0025
         tokens:
         - text.project.detail.none.heading
       /state_machines/state_machine.project.detail/view_states/none/text/1:
-        visual_evidence_set: V0004
+        visual_evidence_set: V0025
         tokens:
         - text.project.detail.none.body
       /state_machines/state_machine.project.detail/view_states/ready/assets/0:
-        visual_evidence_set: V0004
+        visual_evidence_set: V0025
         tokens:
         - asset.project.detail.ready.priority_badge
       /state_machines/state_machine.project.detail/view_states/ready/available_operations/0:
-        visual_evidence_set: V0004
+        visual_evidence_set: V0025
         tokens:
         - operation.project.approve
       /state_machines/state_machine.project.detail/view_states/ready/available_operations/1:
-        visual_evidence_set: V0004
+        visual_evidence_set: V0025
         tokens:
         - operation.project.archive
       /state_machines/state_machine.project.detail/view_states/ready/text/0:
-        visual_evidence_set: V0004
+        visual_evidence_set: V0025
         tokens:
         - text.project.detail.ready.heading
       /state_machines/state_machine.project.list/signals/accepts/messages/project_select/payload_schema/project_id/primitive:
-        visual_evidence_set: V0009
+        visual_evidence_set: V0026
         tokens:
         - project_id
         - ID
       /state_machines/state_machine.project.list/signals/emits/messages/project_selected/payload_schema/project_id/primitive:
-        visual_evidence_set: V0009
+        visual_evidence_set: V0026
         tokens:
         - project_id
         - ID
       /state_machines/state_machine.project.list/view_states/empty/assets/0:
-        visual_evidence_set: V0009
+        visual_evidence_set: V0026
         tokens:
         - asset.project.list.empty.illustration
       /state_machines/state_machine.project.list/view_states/empty/available_operations/0:
-        visual_evidence_set: V0009
+        visual_evidence_set: V0026
         tokens:
         - operation.project.create
       /state_machines/state_machine.project.list/view_states/empty/text/0:
-        visual_evidence_set: V0009
+        visual_evidence_set: V0026
         tokens:
         - text.project.list.empty.heading
       /state_machines/state_machine.project.list/view_states/empty/text/1:
-        visual_evidence_set: V0009
+        visual_evidence_set: V0026
         tokens:
         - text.project.list.empty.body
       /state_machines/state_machine.project.list/view_states/error/text/0:
-        visual_evidence_set: V0009
+        visual_evidence_set: V0026
         tokens:
         - text.project.list.error.heading
       /state_machines/state_machine.project.list/view_states/error/text/1:
-        visual_evidence_set: V0009
+        visual_evidence_set: V0026
         tokens:
         - text.project.list.error.body
       /state_machines/state_machine.project.list/view_states/loading/text/0:
-        visual_evidence_set: V0009
+        visual_evidence_set: V0026
         tokens:
         - text.project.list.loading.message
       /state_machines/state_machine.project.list/view_states/ready/available_operations/0:
-        visual_evidence_set: V0009
+        visual_evidence_set: V0026
         tokens:
         - operation.project.create
       /state_machines/state_machine.project.list/view_states/ready/available_operations/1:
-        visual_evidence_set: V0009
+        visual_evidence_set: V0026
         tokens:
         - operation.project.submit
       /state_machines/state_machine.project.list/view_states/ready/text/0:
-        visual_evidence_set: V0009
+        visual_evidence_set: V0026
         tokens:
         - text.project.list.ready.heading
       /workflows/workflow.project.approval_notice/outcomes/completed/kind:
-        visual_evidence_set: V0008
+        visual_evidence_set: V0031
         tokens:
         - completed
         - success
       /workflows/workflow.project.approval_notice/outcomes/completed/result/data_contract:
-        visual_evidence_set: V0008
+        visual_evidence_set: V0031
         tokens:
         - data_contract.project.notice_result
         - completed
       /workflows/workflow.project.approval_notice/outcomes/delivery_failed/kind:
-        visual_evidence_set: V0008
+        visual_evidence_set: V0031
         tokens:
         - delivery_failed
         - failure
       /workflows/workflow.project.approval_notice/ref:
-        visual_evidence_set: V0008
+        visual_evidence_set: V0031
         tokens:
         - workflow.project.approval_notice
       /workflows/workflow.project.approval_notice/steps/0/id:
-        visual_evidence_set: V0008
+        visual_evidence_set: V0031
         tokens:
         - send_notice
       /workflows/workflow.project.approval_notice/steps/0/operation:
-        visual_evidence_set: V0008
+        visual_evidence_set: V0031
         tokens:
         - operation.project.send_approval_notice
       /workflows/workflow.project.approval_notice/steps/0/outcome_routes/delivery_failed/retry_policy/attempts:
-        visual_evidence_set: V0008
+        visual_evidence_set: V0031
         tokens:
         - retry_policy
         - '3'
       /workflows/workflow.project.approval_notice/steps/0/outcome_routes/delivery_failed/retry_policy/backoff:
-        visual_evidence_set: V0008
+        visual_evidence_set: V0031
         tokens:
         - retry_policy
         - exponential
       /workflows/workflow.project.approval_notice/steps/0/outcome_routes/delivery_failed/retry_policy/fail_as:
-        visual_evidence_set: V0008
+        visual_evidence_set: V0031
         tokens:
         - delivery_failed
       /workflows/workflow.project.approval_notice/steps/0/outcome_routes/sent/complete_as:
-        visual_evidence_set: V0008
+        visual_evidence_set: V0031
         tokens:
         - completed
       /workflows/workflow.project.approval_notice/trigger/event:
-        visual_evidence_set: V0008
+        visual_evidence_set: V0031
         tokens:
         - event.project.approved
   optional:
@@ -2109,18 +2416,18 @@ visual_audit:
       /test_cases/test_case.project.create.api.success/when/call_entry_point/input/title: V0012
       /test_cases/test_case.project.create.api.success/when/call_entry_point/input/workspace_id: V0012
       /test_cases/test_case.project.create.api.success/when/call_entry_point/ref: V0012
-      /text_resources/text.project.activity.empty.body/intent: V0025
-      /text_resources/text.project.activity.empty.body/max_chars: V0025
-      /text_resources/text.project.activity.empty.body/placeholder: V0025
-      /text_resources/text.project.activity.empty.body/rationale: V0025
-      /text_resources/text.project.activity.empty.heading/intent: V0025
-      /text_resources/text.project.activity.empty.heading/max_chars: V0025
-      /text_resources/text.project.activity.empty.heading/placeholder: V0025
-      /text_resources/text.project.activity.empty.heading/rationale: V0025
-      /text_resources/text.project.activity.ready.heading/intent: V0026
-      /text_resources/text.project.activity.ready.heading/max_chars: V0026
-      /text_resources/text.project.activity.ready.heading/placeholder: V0026
-      /text_resources/text.project.activity.ready.heading/rationale: V0026
+      /text_resources/text.project.activity.empty.body/intent: V0027
+      /text_resources/text.project.activity.empty.body/max_chars: V0027
+      /text_resources/text.project.activity.empty.body/placeholder: V0027
+      /text_resources/text.project.activity.empty.body/rationale: V0027
+      /text_resources/text.project.activity.empty.heading/intent: V0027
+      /text_resources/text.project.activity.empty.heading/max_chars: V0027
+      /text_resources/text.project.activity.empty.heading/placeholder: V0027
+      /text_resources/text.project.activity.empty.heading/rationale: V0027
+      /text_resources/text.project.activity.ready.heading/intent: V0028
+      /text_resources/text.project.activity.ready.heading/max_chars: V0028
+      /text_resources/text.project.activity.ready.heading/placeholder: V0028
+      /text_resources/text.project.activity.ready.heading/rationale: V0028
       /text_resources/text.project.approve.invalid_state/args/message/primitive: V0014
       /text_resources/text.project.approve.invalid_state/intent: V0014
       /text_resources/text.project.approve.invalid_state/max_chars: V0014
@@ -2140,26 +2447,26 @@ visual_audit:
       /text_resources/text.project.approve.unavailable/max_chars: V0014
       /text_resources/text.project.approve.unavailable/placeholder: V0014
       /text_resources/text.project.approve.unavailable/rationale: V0014
-      /text_resources/text.project.detail.error.body/intent: V0004
-      /text_resources/text.project.detail.error.body/max_chars: V0004
-      /text_resources/text.project.detail.error.body/placeholder: V0004
-      /text_resources/text.project.detail.error.body/rationale: V0004
-      /text_resources/text.project.detail.error.heading/intent: V0004
-      /text_resources/text.project.detail.error.heading/max_chars: V0004
-      /text_resources/text.project.detail.error.heading/placeholder: V0004
-      /text_resources/text.project.detail.error.heading/rationale: V0004
-      /text_resources/text.project.detail.loading.message/intent: V0004
-      /text_resources/text.project.detail.loading.message/max_chars: V0004
-      /text_resources/text.project.detail.loading.message/placeholder: V0004
-      /text_resources/text.project.detail.loading.message/rationale: V0004
-      /text_resources/text.project.detail.none.body/intent: V0027
-      /text_resources/text.project.detail.none.body/max_chars: V0027
-      /text_resources/text.project.detail.none.body/placeholder: V0027
-      /text_resources/text.project.detail.none.body/rationale: V0027
-      /text_resources/text.project.detail.none.heading/intent: V0027
-      /text_resources/text.project.detail.none.heading/max_chars: V0027
-      /text_resources/text.project.detail.none.heading/placeholder: V0027
-      /text_resources/text.project.detail.none.heading/rationale: V0027
+      /text_resources/text.project.detail.error.body/intent: V0025
+      /text_resources/text.project.detail.error.body/max_chars: V0025
+      /text_resources/text.project.detail.error.body/placeholder: V0025
+      /text_resources/text.project.detail.error.body/rationale: V0025
+      /text_resources/text.project.detail.error.heading/intent: V0025
+      /text_resources/text.project.detail.error.heading/max_chars: V0025
+      /text_resources/text.project.detail.error.heading/placeholder: V0025
+      /text_resources/text.project.detail.error.heading/rationale: V0025
+      /text_resources/text.project.detail.loading.message/intent: V0025
+      /text_resources/text.project.detail.loading.message/max_chars: V0025
+      /text_resources/text.project.detail.loading.message/placeholder: V0025
+      /text_resources/text.project.detail.loading.message/rationale: V0025
+      /text_resources/text.project.detail.none.body/intent: V0029
+      /text_resources/text.project.detail.none.body/max_chars: V0029
+      /text_resources/text.project.detail.none.body/placeholder: V0029
+      /text_resources/text.project.detail.none.body/rationale: V0029
+      /text_resources/text.project.detail.none.heading/intent: V0029
+      /text_resources/text.project.detail.none.heading/max_chars: V0029
+      /text_resources/text.project.detail.none.heading/placeholder: V0029
+      /text_resources/text.project.detail.none.heading/rationale: V0029
       /text_resources/text.project.detail.ready.heading/args/customer/primitive: V0001
       /text_resources/text.project.detail.ready.heading/args/title/primitive: V0001
       /text_resources/text.project.detail.ready.heading/intent: V0001
@@ -2175,22 +2482,22 @@ visual_audit:
       /text_resources/text.project.list.empty.heading/max_chars: V0002
       /text_resources/text.project.list.empty.heading/placeholder: V0002
       /text_resources/text.project.list.empty.heading/rationale: V0002
-      /text_resources/text.project.list.error.body/intent: V0009
-      /text_resources/text.project.list.error.body/max_chars: V0009
-      /text_resources/text.project.list.error.body/placeholder: V0009
-      /text_resources/text.project.list.error.body/rationale: V0009
-      /text_resources/text.project.list.error.heading/intent: V0009
-      /text_resources/text.project.list.error.heading/max_chars: V0009
-      /text_resources/text.project.list.error.heading/placeholder: V0009
-      /text_resources/text.project.list.error.heading/rationale: V0009
-      /text_resources/text.project.list.loading.message/intent: V0009
-      /text_resources/text.project.list.loading.message/max_chars: V0009
-      /text_resources/text.project.list.loading.message/placeholder: V0009
-      /text_resources/text.project.list.loading.message/rationale: V0009
-      /text_resources/text.project.list.ready.heading/intent: V0028
-      /text_resources/text.project.list.ready.heading/max_chars: V0028
-      /text_resources/text.project.list.ready.heading/placeholder: V0028
-      /text_resources/text.project.list.ready.heading/rationale: V0028
+      /text_resources/text.project.list.error.body/intent: V0026
+      /text_resources/text.project.list.error.body/max_chars: V0026
+      /text_resources/text.project.list.error.body/placeholder: V0026
+      /text_resources/text.project.list.error.body/rationale: V0026
+      /text_resources/text.project.list.error.heading/intent: V0026
+      /text_resources/text.project.list.error.heading/max_chars: V0026
+      /text_resources/text.project.list.error.heading/placeholder: V0026
+      /text_resources/text.project.list.error.heading/rationale: V0026
+      /text_resources/text.project.list.loading.message/intent: V0026
+      /text_resources/text.project.list.loading.message/max_chars: V0026
+      /text_resources/text.project.list.loading.message/placeholder: V0026
+      /text_resources/text.project.list.loading.message/rationale: V0026
+      /text_resources/text.project.list.ready.heading/intent: V0030
+      /text_resources/text.project.list.ready.heading/max_chars: V0030
+      /text_resources/text.project.list.ready.heading/placeholder: V0030
+      /text_resources/text.project.list.ready.heading/rationale: V0030
     not_shown:
       /fixtures/fixture.workspace.reviewer/rationale:
         reason: fixtures may support behavior or content tests without appearing in render audit cases
