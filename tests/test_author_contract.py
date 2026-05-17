@@ -25,6 +25,18 @@ def test_author_contract_schema_validates() -> None:
     validate_against_schema(read_yaml(ROOT / SOURCE_SPEC_PATH), "author.schema.json")
 
 
+def test_author_query_invocations_must_be_non_empty_when_present() -> None:
+    author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+    author["state_machines"]["state_machine.project.activity"]["query_invocations"] = {}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(author, "author.schema.json")
+
+    author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+    author["state_machines"]["state_machine.project.detail"]["view_states"]["loading"]["query_invocations"] = {}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(author, "author.schema.json")
+
+
 def test_author_contract_compiles_to_checked_in_machine_contract() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
     assert compile_source(author) == read_yaml(ROOT / "spec" / "generated" / "compiled" / "spec.yaml")

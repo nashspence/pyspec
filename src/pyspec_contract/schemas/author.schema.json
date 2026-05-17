@@ -562,6 +562,7 @@
           "additionalProperties": {
             "$ref": "#/$defs/state_machine_query_invocation"
           },
+          "minProperties": 1,
           "propertyNames": {
             "$ref": "#/$defs/query_invocation_id"
           },
@@ -714,8 +715,9 @@
         },
         "query_invocations": {
           "additionalProperties": {
-            "$ref": "#/$defs/state_machine_query_invocation"
+            "$ref": "#/$defs/view_state_query_invocation"
           },
+          "minProperties": 1,
           "propertyNames": {
             "$ref": "#/$defs/query_invocation_id"
           },
@@ -2652,6 +2654,9 @@
         "outcome_routes"
       ],
       "type": "object"
+    },
+    "view_state_query_invocation": {
+      "$ref": "#/$defs/state_machine_query_invocation"
     },
     "state_machine_query_outcome_route": {
       "additionalProperties": false,

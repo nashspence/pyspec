@@ -443,7 +443,6 @@ state_machines:
     context:
       project_id:
         primitive: ID
-    query_invocations: {}
     initial_view_state: empty
     model: Project
     signals:
@@ -704,7 +703,6 @@ state_machines:
     context:
       project_id:
         primitive: ID
-    query_invocations: {}
     initial_view_state: none
     model: Project
     signals:

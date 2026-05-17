@@ -318,6 +318,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:state_machine_signal_raise --> `$defs/state_machine_signal_raise`: state-machine local signal raise contract component.
 - <!-- schema-def:state_machine_signal_trigger --> `$defs/state_machine_signal_trigger`: tagged local message/data-signal trigger contract component.
 - <!-- schema-def:state_machine_signal --> `$defs/state_machine_signal`: state-machine contract component.
+- <!-- schema-def:view_state_query_invocation --> `$defs/view_state_query_invocation`: view-state query invocation contract component.
 - <!-- schema-def:state_machine_ref --> `$defs/state_machine_ref`: typed reference definition for its namespace.
 - <!-- schema-def:state_machine_transition --> `$defs/state_machine_transition`: state-machine contract component.
 - <!-- schema-def:text_ref --> `$defs/text_ref`: typed reference definition for its namespace.

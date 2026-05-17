@@ -841,7 +841,7 @@ def test_state_machine_transition_messages_must_be_declared_as_accepted() -> Non
 def test_state_machine_data_events_require_data_binding() -> None:
     author = _author()
     detail = _item(author, "state_machines", "state_machine.project.detail")
-    detail["view_states"]["loading"]["query_invocations"] = {}
+    del detail["view_states"]["loading"]["query_invocations"]
     detail["view_states"]["ready"].pop("field_slots")
     with pytest.raises(ContractError, match=r"state machine state_machine\.project\.detail transition uses data signal without state machine or source-state data: data_signal\.ready"):
         compile_source(author)
@@ -1462,7 +1462,6 @@ def test_authoring_layers_reject_irrelevant_ui_targets() -> None:
         "state_machine.ticket.list": {
             "model": "Ticket",
             "context": {},
-            "query_invocations": {},
             "initial_view_state": "empty",
             "view_states": {"empty": {}},
             "transitions": [],
