@@ -1021,13 +1021,13 @@ def _expected_textual_compose(state_machine: dict[str, Any]) -> list[tuple[str, 
     result.extend(("Static", key) for key in slots["text"])
     result.extend(("Static", key) for key in slots["assets"])
     result.extend(("Static", key) for key in slots.get("fields", []))
-    result.extend(("Button", operation) for operation in slots["available_operations"])
+    result.extend(("Button", invocation_id) for invocation_id in slots["operation_invocations"])
     return result
 
 
 def _widget_label(widget: dict[str, Any]) -> str:
     binding = widget["binding"]
-    for key in ["text_slot", "asset_slot", "operation", "field_slot", "literal"]:
+    for key in ["text_slot", "asset_slot", "operation_invocation", "field_slot", "literal"]:
         if key in binding:
             return binding[key]
     return widget["id"]
@@ -1044,10 +1044,10 @@ def _textual_selector(state_machine: dict[str, Any], selector: str) -> str:
             if binding.get("text_slot") == slot or binding.get("asset_slot") == slot or binding.get("field_slot") == slot:
                 return "#" + safe_id(widget["id"])
         return "#" + slot
-    if selector.startswith("operation."):
-        operation = selector[len("operation."):]
+    if selector.startswith("operation_invocation."):
+        operation = selector[len("operation_invocation."):]
         for widget in widgets:
-            if widget["binding"].get("operation") == operation:
+            if widget["binding"].get("operation_invocation") == operation:
                 return "#" + safe_id(widget["id"])
         return "#" + safe_id(operation)
     return selector

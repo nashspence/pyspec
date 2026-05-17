@@ -70,7 +70,7 @@ def test_canonical_textual_contract_imports_and_composes() -> None:
     state_machine_items = module.compose_contract_state_machine("state_machine.project.list.empty")
     assert ("Static", "text.project.list.empty.heading") in state_machine_items
     assert ("Static", "asset.project.list.empty.illustration") in state_machine_items
-    assert ("Button", "operation.project.create") in state_machine_items
+    assert ("Button", "create") in state_machine_items
 
 
 def test_textual_screens_are_driven_by_textual_state_machine_layout() -> None:

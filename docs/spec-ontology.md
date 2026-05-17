@@ -17,7 +17,7 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - <!-- top-level:project --> `project`: the project slug for the specification workspace.
 - <!-- top-level:refs --> `refs`: compiled-only index of generated references used by projections and tests.
 - <!-- top-level:render_profiles --> `render_profiles`: global HTML and Textual viewport profiles for audit/golden-image rendering; state-machine render audit cases do not reference profiles directly.
-- <!-- top-level:state_machines --> `state_machines`: UI/component state-machine contracts with context, query dependencies, view states, transitions, signals, child state machines, and sync rules.
+- <!-- top-level:state_machines --> `state_machines`: UI/component state-machine contracts with context, query invocations, view states, operation invocations, transitions, signals, child state machines, and sync rules.
 - <!-- top-level:test_cases --> `test_cases`: formal behavior test cases with subject_ref, given, when, and then contracts.
 - <!-- top-level:text_resources --> `text_resources`: text resources used by state-machine slots and content-source projections.
 - <!-- top-level:workflows --> `workflows`: asynchronous or long-running flows with workflow triggers, steps, input bindings, exclusive outcome routes, and outcomes.
@@ -34,14 +34,16 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `fixture_ref`: `fixture.<domain>...`; seed data fixtures used by test cases, content cases, facts, and render audit cases.
 - `message_name`: local state-machine message name; authored sources do not use global-looking `message.*` references for local messages.
 - `model_ref`: `PascalCase`; model references are the sole collection-prefix exception because model ids are also type names.
-- `operation_ref`: `operation.<domain>...`; operation declarations, state-machine `available_operations` and `query_dependencies`, workflow steps, entry-point operation targets, and test-case assertions.
+- `operation_ref`: `operation.<domain>...`; operation declarations, state-machine operation/query invocations, workflow steps, entry-point operation targets, and test-case assertions.
+- `operation_invocation_id`: local view-state operation invocation name; authored sources do not use global-looking `operation_invocation.*` references for local invocation keys.
+- `query_invocation_id`: local state-machine or view-state query invocation name; authored sources do not use global-looking `query_invocation.*` references for local invocation keys.
 - `authorization_policy_ref`: `authorization_policy.<domain>...`; authorization-policy declarations, `operation.authorization.policy`, entry-point `authorization_policy` fields, generated authorization projections, and authorization test assertions.
 - `render_profile_ref`: `render_profile.<domain>...`; named HTML/Textual viewport profiles.
 - `state_machine_ref`: `state_machine.<domain>...`; state-machine declarations, `child_state_machines`, state-machine entry-point targets, and test-case state-machine assertions.
 - `test_case_ref`: `test_case.<domain>...`; formal test-case declarations and generated feature tags.
 - `text_ref`: `text.<domain>...`; text resource declarations, generated text slots, content cases, and content source signatures.
 - `workflow_ref`: `workflow.<domain>...`; workflow declarations, workflow entry-point targets, and generated workflow references.
-- Generated refs use `asset`, `authorization_policy`, `cli_command`, `cli_response_handler`, `endpoint`, `entry_point_delegate`, `entry_point_target`, `query`, `route`, `runtime_response`, `screen`, `state_machine`, `surface`, `text`, and `workflow` buckets in compiled `refs`.
+- Generated refs use `asset`, `authorization_policy`, `cli_command`, `cli_response_handler`, `endpoint`, `entry_point_delegate`, `entry_point_target`, `local_signal_raise`, `operation_invocation`, `operation_outcome_route`, `query_invocation`, `query_outcome_route`, `route`, `runtime_response`, `screen`, `state_machine`, `surface`, `text`, and `workflow` buckets in compiled `refs`.
 
 ## Reference Types
 
@@ -58,6 +60,18 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `CLI response handler`: maps a named response outcome to stdout, stderr, an exit code, and optionally a retry policy. It does not restate HTTP status classification when the delegated entry point is an HTTP API.
 - `retry_safe`: explicit entry-point marker permitting automatic retry of delegated invocations; the default is false.
 - `workflow_route`: exclusive route target via `next_step`, `complete_as`, `fail_as`, `retry_policy`, or `dead_letter_as`.
+- `Operation invocation`: local view-state use of a global operation, normally user/action-triggered, including input bindings and outcome routing. A renderer action binds to this local invocation, not directly to `operation_ref`.
+- `Query invocation`: local state-machine or view-state use of a query operation for data loading or refresh, including input bindings, load policy, context updates, and outcome routing.
+- `Outcome route`: mapping from an operation/query outcome to context updates, a local signal raise, or explicit no-signal handling.
+- `No-signal route`: explicit declaration that an outcome is covered but intentionally raises no local signal. It is not omission and does not suppress durable/global events.
+- `Local signal raise`: creation of a state-machine-local message or data signal.
+- `Data signal`: local state-machine signal commonly used for data refresh, invalidation, loaded/missing states, or render updates. Data signals are not sent between child state-machine instances.
+- `Message`: local state-machine signal that may also be sent between child state-machine instances where sync rules support message sends.
+- `Durable event`: global event emitted by an operation outcome, distinct from local state-machine messages and data signals.
+- `operation_outcome.emits`: durable/global event emission from an operation outcome. It is not used for local state-machine transition routing.
+- `operation_invocation.outcome_routes.raise`: local state-machine message or data-signal raise after a user/action operation invocation.
+- `query_invocation.outcome_routes.raise`: local state-machine message or data-signal raise after a query load or refresh outcome.
+- `no_signal`: explicit local non-routing for an operation/query outcome.
 - `signals`: local UI/component/state-machine signal contracts split into accepted message/data-signal maps and emitted message maps with `payload_schema` maps.
 - `renderer_contracts`: view-state renderer declarations keyed by concrete target. `renderers.html` and `renderers.textual` each own target-local `layout`, `presentation`, and `style`.
 - `type_expr`: structured primitive, model, data_contract, array, map, nullable whole-value wrapper, enum, or inline object type expression. Object field presence and nullability are controlled only by `field_schema.required` and `field_schema.nullable`.
@@ -71,6 +85,65 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `transition applicability`: lifecycle source-state check derived from `model.lifecycle.transitions[*]`, not authorization.
 - `invalid_state`: transition applicability/domain failure outcome for lifecycle source-state mismatch. It is not an authorization failure and should be asserted with `operation_outcome` or `entry_point_response`, not `authorization_denial`.
 - `authorization_condition.model_state`: explicit author-authored access-control condition when model state is truly part of who may attempt an operation. The compiler does not generate this condition from lifecycle transition `from` states; lifecycle source-state mismatch remains transition applicability and maps to `invalid_state`.
+
+## Operation Invocation Example
+
+```yaml
+view_states:
+  ready:
+    operation_invocations:
+      approve:
+        operation: operation.project.approve
+        input_bindings:
+          project_id:
+            from: $context.project_id
+        outcome_routes:
+          approved:
+            raise:
+              data_signal: project_updated
+              payload_bindings:
+                project_id:
+                  from: $outcome.result.id
+          invalid_state:
+            raise:
+              message: show_invalid_state
+              payload_bindings:
+                message:
+                  from: $outcome.result.message
+          forbidden:
+            no_signal:
+              reason: handled_by_response_surface
+              rationale: The response surface reports authorization failure.
+```
+
+## Query Invocation Example
+
+```yaml
+query_invocations:
+  load_project:
+    operation: operation.project.read
+    input_bindings:
+      project_id:
+        from: $context.project_id
+    load:
+      on_enter: true
+      refresh_on:
+      - data_signal: project_updated
+    outcome_routes:
+      found:
+        context_updates:
+          project:
+            from: $outcome.result
+        raise:
+          data_signal: project_loaded
+      not_found:
+        raise:
+          message: show_project_not_found
+      unavailable:
+        no_signal:
+          reason: handled_by_response_surface
+          rationale: The entry-point adapter reports unavailable state.
+```
 
 ## Visual Audit Coverage
 
@@ -92,7 +165,7 @@ The visual audit includes state-machine and composition diagrams, entry-point an
 - `$fixture.<path>` reads merged seed fixture data in test cases, facts, content cases, and render audit cases.
 - `$state_machine.<field>` reads parent state-machine context in child state-machine context bindings and composition conditions.
 - `$message.<field>` reads the current state-machine message payload in transition effects and sync sends.
-- `$context.<field>` reads current state-machine context in transition effects.
+- `$context.<field>` reads current state-machine context in transition effects, operation invocation input bindings, and local outcome-route signal payload binding.
 - `$input.path_params.<field>` reads HTTP API or HTML route path parameters in entry-point input bindings.
 - `$input.query_params.<field>` reads HTTP API or HTML route query parameters in entry-point input bindings.
 - `$input.body.<field>` reads HTTP request body fields in operation input bindings.
@@ -100,6 +173,8 @@ The visual audit includes state-machine and composition diagrams, entry-point an
 - `$input.payload[.<field>]` reads worker or webhook payload data.
 - `$input.<field>` reads operation input during operation event emission mapping.
 - `$outcome.result[.<field>]` reads operation outcome result during response and event emission mapping.
+- `$outcome.kind` reads the operation outcome kind during local outcome-route signal payload binding.
+- `$invocation.input.<field>` reads the bound operation invocation input during local outcome-route signal payload binding.
 - `$response.body[.<field>]` reads the delegated entry-point response body inside delegating CLI `response_handlers`.
 - `$trigger.payload[.<field>]` reads workflow trigger payload.
 - `$steps.<step>.outcomes.<outcome>.result[.<field>]` reads previous workflow step result.
@@ -213,12 +288,15 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:object_schema --> `$defs/object_schema`: structured type-expression and object-schema contract component.
 - <!-- schema-def:operation_authorization --> `$defs/operation_authorization`: explicit operation authorization policy and mapped authorization failure outcomes.
 - <!-- schema-def:operation_emit --> `$defs/operation_emit`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:operation_invocation_id --> `$defs/operation_invocation_id`: local view-state operation invocation identifier.
 - <!-- schema-def:operation_outcome --> `$defs/operation_outcome`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:operation_outcomes --> `$defs/operation_outcomes`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:operation_ref --> `$defs/operation_ref`: typed reference definition for its namespace.
 - <!-- schema-def:authorization_policy_ref --> `$defs/authorization_policy_ref`: typed reference definition for its namespace.
 - <!-- schema-def:python_class_name --> `$defs/python_class_name`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:python_identifier --> `$defs/python_identifier`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:query_invocation_id --> `$defs/query_invocation_id`: local state-machine or view-state query invocation identifier.
+- <!-- schema-def:query_invocation_load_policy --> `$defs/query_invocation_load_policy`: query invocation load and refresh trigger policy.
 - <!-- schema-def:renderer_contracts --> `$defs/renderer_contracts`: renderer contract component scoped to HTML and/or Textual targets.
 - <!-- schema-def:runtime_expression --> `$defs/runtime_expression`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:runtime_bindings --> `$defs/runtime_bindings`: shared schema component used by authored source or compiled output.
@@ -229,7 +307,16 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:test_case_ref --> `$defs/test_case_ref`: typed reference definition for its namespace.
 - <!-- schema-def:scheduled_adapter --> `$defs/scheduled_adapter`: entry-point adapter, target, input, or response contract component.
 - <!-- schema-def:slot_binding --> `$defs/slot_binding`: renderer contract component scoped to HTML and/or Textual targets.
+- <!-- schema-def:local_no_signal_route --> `$defs/local_no_signal_route`: explicit local non-routing outcome coverage contract component.
+- <!-- schema-def:state_machine_operation_invocation --> `$defs/state_machine_operation_invocation`: state-machine operation invocation contract component.
+- <!-- schema-def:state_machine_operation_outcome_route --> `$defs/state_machine_operation_outcome_route`: state-machine operation invocation outcome-route contract component.
+- <!-- schema-def:state_machine_operation_outcome_routes --> `$defs/state_machine_operation_outcome_routes`: state-machine operation invocation outcome-route map.
+- <!-- schema-def:state_machine_query_invocation --> `$defs/state_machine_query_invocation`: state-machine query invocation contract component.
+- <!-- schema-def:state_machine_query_outcome_route --> `$defs/state_machine_query_outcome_route`: state-machine query invocation outcome-route contract component.
+- <!-- schema-def:state_machine_query_outcome_routes --> `$defs/state_machine_query_outcome_routes`: state-machine query invocation outcome-route map.
 - <!-- schema-def:state_machine_render_audit_case --> `$defs/state_machine_render_audit_case`: state-machine contract component.
+- <!-- schema-def:state_machine_signal_raise --> `$defs/state_machine_signal_raise`: state-machine local signal raise contract component.
+- <!-- schema-def:state_machine_signal_trigger --> `$defs/state_machine_signal_trigger`: tagged local message/data-signal trigger contract component.
 - <!-- schema-def:state_machine_signal --> `$defs/state_machine_signal`: state-machine contract component.
 - <!-- schema-def:state_machine_ref --> `$defs/state_machine_ref`: typed reference definition for its namespace.
 - <!-- schema-def:state_machine_transition --> `$defs/state_machine_transition`: state-machine contract component.
@@ -312,4 +399,3 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:view_state --> `$defs/view_state`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:workflow_item --> `$defs/workflow_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:data_contract_item --> `$defs/data_contract_item`: compiled-output object for this resource or nested contract.
-- <!-- schema-def:query_dependency --> `$defs/query_dependency`: state-machine contract component.

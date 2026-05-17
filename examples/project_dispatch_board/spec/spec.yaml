@@ -443,7 +443,7 @@ state_machines:
     context:
       project_id:
         primitive: ID
-    query_dependencies: []
+    query_invocations: {}
     initial_view_state: empty
     model: Project
     signals:
@@ -475,8 +475,28 @@ state_machines:
       ready:
         text_slots:
         - heading
-        query_dependencies:
-        - operation.project.read
+        query_invocations:
+          read_activity:
+            operation: operation.project.read
+            input_bindings:
+              project_id:
+                from: $context.project_id
+            outcome_routes:
+              found:
+                no_signal:
+                  reason: state_unchanged
+              forbidden:
+                no_signal:
+                  reason: handled_by_response_surface
+                  rationale: The activity panel remains in its current state when authorization blocks the refresh.
+              not_found:
+                no_signal:
+                  reason: handled_by_response_surface
+                  rationale: The parent detail panel owns not-found display for the selected project.
+              unauthenticated:
+                no_signal:
+                  reason: handled_by_response_surface
+                  rationale: The entry response surface owns unauthenticated display.
         field_slots:
         - updated_at
         - status
@@ -489,8 +509,28 @@ state_machines:
         primitive: ID
       workspace_id:
         primitive: ID
-    query_dependencies:
-    - operation.project.list
+    query_invocations:
+      list_board:
+        operation: operation.project.list
+        input_bindings:
+          workspace_id:
+            from: $context.workspace_id
+        outcome_routes:
+          listed:
+            no_signal:
+              reason: handled_by_query_refresh
+          forbidden:
+            no_signal:
+              reason: handled_by_response_surface
+              rationale: The board shell leaves child surfaces unchanged when list access is forbidden.
+          unauthenticated:
+            no_signal:
+              reason: handled_by_response_surface
+              rationale: The entry response surface owns unauthenticated display.
+          unavailable:
+            no_signal:
+              reason: handled_by_response_surface
+              rationale: The board shell leaves child surfaces unchanged while the list service is unavailable.
     initial_view_state: ready
     model: Project
     view_states:
@@ -664,7 +704,7 @@ state_machines:
     context:
       project_id:
         primitive: ID
-    query_dependencies: []
+    query_invocations: {}
     initial_view_state: none
     model: Project
     signals:
@@ -675,6 +715,10 @@ state_machines:
               project_id:
                 primitive: ID
           selection_cleared: {}
+          show_invalid_state:
+            payload_schema:
+              message:
+                primitive: Text
         data_signals:
           error: {}
           ready: {}
@@ -699,6 +743,16 @@ state_machines:
       on:
         message: selection_cleared
       to: none
+    - from: ready
+      on:
+        data_signal: ready
+      rationale: Successful detail operations refresh the ready-state project data.
+      to: ready
+    - from: ready
+      on:
+        message: show_invalid_state
+      rationale: Invalid detail operations move the detail panel into its displayable error state.
+      to: error
     view_states:
       error:
         text_slots:
@@ -707,8 +761,25 @@ state_machines:
       loading:
         text_slots:
         - message
-        query_dependencies:
-        - operation.project.read
+        query_invocations:
+          read_project:
+            operation: operation.project.read
+            input_bindings:
+              project_id:
+                from: $context.project_id
+            outcome_routes:
+              found:
+                raise:
+                  data_signal: ready
+              forbidden:
+                raise:
+                  data_signal: error
+              not_found:
+                raise:
+                  data_signal: error
+              unauthenticated:
+                raise:
+                  data_signal: error
       none:
         text_slots:
         - heading
@@ -716,6 +787,34 @@ state_machines:
       ready:
         asset_slots:
         - priority_badge
+        query_invocations:
+          read_project:
+            operation: operation.project.read
+            input_bindings:
+              project_id:
+                from: $context.project_id
+            outcome_routes:
+              found:
+                no_signal:
+                  reason: handled_by_query_refresh
+              forbidden:
+                raise:
+                  message: show_invalid_state
+                  payload_bindings:
+                    message:
+                      from: $outcome.result.message
+              not_found:
+                raise:
+                  message: show_invalid_state
+                  payload_bindings:
+                    message:
+                      from: $outcome.result.message
+              unauthenticated:
+                raise:
+                  message: show_invalid_state
+                  payload_bindings:
+                    message:
+                      from: $outcome.result.message
         text_slots:
         - heading
         field_slots:
@@ -724,9 +823,67 @@ state_machines:
         - status
         - assignee
         - summary
-        available_operations:
-        - operation.project.approve
-        - operation.project.archive
+        operation_invocations:
+          approve:
+            operation: operation.project.approve
+            input_bindings:
+              approved_by:
+                value: reviewer_1
+              project_id:
+                from: $context.project_id
+            outcome_routes:
+              approved:
+                raise:
+                  data_signal: ready
+              forbidden:
+                no_signal:
+                  reason: handled_by_response_surface
+                  rationale: The response surface keeps the detail panel unchanged for forbidden approval.
+              invalid_state:
+                raise:
+                  message: show_invalid_state
+                  payload_bindings:
+                    message:
+                      from: $outcome.result.message
+              not_found:
+                no_signal:
+                  reason: handled_by_response_surface
+                  rationale: The response surface reports a missing project without a local transition.
+              unavailable:
+                no_signal:
+                  reason: handled_by_response_surface
+                  rationale: The response surface reports temporary unavailability without a local transition.
+              unauthenticated:
+                no_signal:
+                  reason: handled_by_response_surface
+                  rationale: The response surface reports authentication failure without a local transition.
+          archive:
+            operation: operation.project.archive
+            input_bindings:
+              project_id:
+                from: $context.project_id
+            outcome_routes:
+              archived:
+                raise:
+                  data_signal: ready
+              forbidden:
+                no_signal:
+                  reason: handled_by_response_surface
+                  rationale: The response surface keeps the detail panel unchanged for forbidden archive.
+              invalid_state:
+                raise:
+                  message: show_invalid_state
+                  payload_bindings:
+                    message:
+                      from: $outcome.result.message
+              not_found:
+                no_signal:
+                  reason: handled_by_response_surface
+                  rationale: The response surface reports a missing project without a local transition.
+              unauthenticated:
+                no_signal:
+                  reason: handled_by_response_surface
+                  rationale: The response surface reports authentication failure without a local transition.
   state_machine.project.list:
     rationale: The list state machine owns collection loading, empty, ready, error, and selection behavior.
     context:
@@ -734,8 +891,28 @@ state_machines:
         primitive: ID
       workspace_id:
         primitive: ID
-    query_dependencies:
-    - operation.project.list
+    query_invocations:
+      list_projects:
+        operation: operation.project.list
+        input_bindings:
+          workspace_id:
+            from: $context.workspace_id
+        outcome_routes:
+          listed:
+            context_updates:
+              workspace_id:
+                from: $invocation.input.workspace_id
+            raise:
+              data_signal: ready
+          forbidden:
+            raise:
+              data_signal: error
+          unauthenticated:
+            raise:
+              data_signal: error
+          unavailable:
+            raise:
+              data_signal: error
     initial_view_state: loading
     model: Project
     signals:
@@ -745,6 +922,10 @@ state_machines:
             payload_schema:
               project_id:
                 primitive: ID
+          show_invalid_state:
+            payload_schema:
+              message:
+                primitive: Text
         data_signals:
           empty: {}
           error: {}
@@ -772,6 +953,11 @@ state_machines:
       on:
         data_signal: ready
       to: ready
+    - from: empty
+      on:
+        message: show_invalid_state
+      rationale: Invalid create attempts move the list into its displayable error state.
+      to: error
     - effects:
       - emit:
           message: project_selected
@@ -782,6 +968,16 @@ state_machines:
       on:
         message: project_select
       to: ready
+    - from: ready
+      on:
+        data_signal: ready
+      rationale: Successful list operations refresh ready-state collection data.
+      to: ready
+    - from: ready
+      on:
+        message: show_invalid_state
+      rationale: Invalid list operations move the list into its displayable error state.
+      to: error
     view_states:
       empty:
         asset_slots:
@@ -789,8 +985,36 @@ state_machines:
         text_slots:
         - heading
         - body
-        available_operations:
-        - operation.project.create
+        operation_invocations:
+          create:
+            operation: operation.project.create
+            input_bindings:
+              customer:
+                value: Atlas Foods
+              priority:
+                value: High
+              title:
+                value: Replace rooftop condenser fan
+              workspace_id:
+                from: $context.workspace_id
+            outcome_routes:
+              created:
+                raise:
+                  data_signal: ready
+              forbidden:
+                no_signal:
+                  reason: handled_by_response_surface
+                  rationale: The response surface keeps the empty list visible for forbidden create.
+              unauthenticated:
+                no_signal:
+                  reason: handled_by_response_surface
+                  rationale: The response surface reports authentication failure without a local transition.
+              validation_failed:
+                raise:
+                  message: show_invalid_state
+                  payload_bindings:
+                    message:
+                      from: $outcome.result.message
       error:
         text_slots:
         - heading
@@ -806,9 +1030,61 @@ state_machines:
         - customer
         - priority
         - status
-        available_operations:
-        - operation.project.create
-        - operation.project.submit
+        operation_invocations:
+          create:
+            operation: operation.project.create
+            input_bindings:
+              customer:
+                value: Atlas Foods
+              priority:
+                value: High
+              title:
+                value: Replace rooftop condenser fan
+              workspace_id:
+                from: $context.workspace_id
+            outcome_routes:
+              created:
+                raise:
+                  data_signal: ready
+              forbidden:
+                no_signal:
+                  reason: handled_by_response_surface
+                  rationale: The response surface keeps the ready list visible for forbidden create.
+              unauthenticated:
+                no_signal:
+                  reason: handled_by_response_surface
+                  rationale: The response surface reports authentication failure without a local transition.
+              validation_failed:
+                no_signal:
+                  reason: handled_by_response_surface
+                  rationale: The ready list keeps focus while the response surface shows validation errors.
+          submit:
+            operation: operation.project.submit
+            input_bindings:
+              project_id:
+                from: $context.selected_project_id
+            outcome_routes:
+              forbidden:
+                no_signal:
+                  reason: handled_by_response_surface
+                  rationale: The response surface keeps the ready list visible for forbidden submit.
+              invalid_state:
+                raise:
+                  message: show_invalid_state
+                  payload_bindings:
+                    message:
+                      from: $outcome.result.message
+              not_found:
+                no_signal:
+                  reason: handled_by_response_surface
+                  rationale: The response surface reports a missing project without a local transition.
+              submitted:
+                raise:
+                  data_signal: ready
+              unauthenticated:
+                no_signal:
+                  reason: handled_by_response_surface
+                  rationale: The response surface reports authentication failure without a local transition.
 entry_points:
   entry_point.api.project.create:
     adapter:

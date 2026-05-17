@@ -112,7 +112,7 @@ renderer_contracts:
     layer: html
     location: 'target: state_machine -> spec.view_states.<view_state>.renderers.html.style'
     purpose: HTML renderer style tokens and selector-scoped declarations.
-    selectors_allowed: [root, slot.<declared_slot>, operation.<declared_operation>, region.<declared_region>, child_state_machine.<declared_child_state_machine>]
+    selectors_allowed: [root, slot.<declared_slot>, operation_invocation.<declared_operation_invocation>, region.<declared_region>, child_state_machine.<declared_child_state_machine>]
   textual_layout:
     layer: textual
     location: 'target: state_machine -> spec.view_states.<view_state>.renderers.textual.layout'
@@ -125,7 +125,7 @@ renderer_contracts:
     layer: textual
     location: 'target: state_machine -> spec.view_states.<view_state>.renderers.textual.style'
     purpose: Textual renderer style tokens and selector-scoped declarations.
-    selectors_allowed: [screen, slot.<declared_slot>, operation.<declared_operation>, container.<declared_container>, child_state_machine.<declared_child_state_machine>]
+    selectors_allowed: [screen, slot.<declared_slot>, operation_invocation.<declared_operation_invocation>, container.<declared_container>, child_state_machine.<declared_child_state_machine>]
 
 gherkin_corpus:
   source_of_truth: spec/generated/behavior/test_cases.yaml

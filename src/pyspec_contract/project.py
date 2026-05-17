@@ -340,12 +340,12 @@ def state_machine_projection_item(owner_kind: str, owner_id: str, state_name: st
         "owner_kind": owner_kind,
         "owner": owner_id,
         "view_state": state_name,
-        "query_dependencies": state.get("query_dependencies", []),
+        "query_invocations": state.get("query_invocations", {}),
         "slots": {
             "text": state["text"],
             "assets": state["assets"],
             "fields": state.get("fields", []),
-            "available_operations": state["available_operations"],
+            "operation_invocations": state["operation_invocations"],
         },
     }
     if state.get("renderers"):
@@ -470,7 +470,7 @@ def compose_contract_state_machine(surface_id: str) -> list[tuple[str, str]]:
     result.extend(("Static", key) for key in slots["text"])
     result.extend(("Static", key) for key in slots["assets"])
     result.extend(("Static", key) for key in slots.get("fields", []))
-    result.extend(("Button", operation) for operation in slots["available_operations"])
+    result.extend(("Button", invocation_id) for invocation_id in slots["operation_invocations"])
     return result
 
 
@@ -485,8 +485,8 @@ def widget_label(widget: dict) -> str:
         return binding["text_slot"]
     if "asset_slot" in binding:
         return binding["asset_slot"]
-    if "operation" in binding:
-        return binding["operation"]
+    if "operation_invocation" in binding:
+        return binding["operation_invocation"]
     if "field_slot" in binding:
         return binding["field_slot"]
     return binding.get("literal", widget["id"])
@@ -553,8 +553,8 @@ def default_html_slots(state_machine: dict[str, Any]) -> list[dict[str, Any]]:
         slots.append({"binding": {"asset_slot": asset_ref.rsplit(".", 1)[-1]}, "component": "image", "element": "img"})
     for field in state_machine["slots"].get("fields", []):
         slots.append({"binding": {"field_slot": field}, "component": "field", "element": "p"})
-    for operation in state_machine["slots"]["available_operations"]:
-        slots.append({"binding": {"operation": operation}, "component": "button", "element": "button"})
+    for invocation_id in state_machine["slots"]["operation_invocations"]:
+        slots.append({"binding": {"operation_invocation": invocation_id}, "component": "button", "element": "button"})
     return slots
 
 
@@ -565,9 +565,9 @@ def css_selector(state_machine: dict[str, Any], selector: str) -> str:
     if selector.startswith("slot."):
         slot = selector[len("slot."):]
         return f'{root} [data-contract-slot="{slot}"]'
-    if selector.startswith("operation."):
-        operation = selector[len("operation."):]
-        return f'{root} [data-operation="{operation}"]'
+    if selector.startswith("operation_invocation."):
+        invocation_id = selector[len("operation_invocation."):]
+        return f'{root} [data-operation-invocation="{invocation_id}"]'
     return root
 
 
@@ -621,10 +621,10 @@ def tcss_selector(state_machine: dict[str, Any], selector: str) -> str:
             if binding.get("text_slot") == slot or binding.get("asset_slot") == slot or binding.get("field_slot") == slot:
                 return "#" + safe_id(widget["id"])
         return "#" + slot
-    if selector.startswith("operation."):
-        operation = selector[len("operation."):]
+    if selector.startswith("operation_invocation."):
+        operation = selector[len("operation_invocation."):]
         for widget in widgets:
-            if widget["binding"].get("operation") == operation:
+            if widget["binding"].get("operation_invocation") == operation:
                 return "#" + safe_id(widget["id"])
         return "#" + safe_id(operation)
     return selector

@@ -1,7 +1,7 @@
-<svg width="977pt" height="185pt"
- viewBox="0.00 0.00 977.00 185.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: fa2e14a9da31d98171db02258b08c6f7e96c03d525b68b190bfe3c9b6f40e993 -->
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 167)">
+<svg width="1076pt" height="235pt"
+ viewBox="0.00 0.00 1076.00 234.50" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: d410b8921f4e248da47762cbd29515be3eeca3b3d2b6cdb9eb73e4091f5b12d0 -->
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 216.5)">
 <title>state_machine_state_machine_project_activity</title>
 <!-- view_state_empty -->
 <g id="node1" class="node">
@@ -19,80 +19,86 @@
 <!-- transition_0_empty_ready_message_selection_changed -->
 <g id="node3" class="node">
 <title>transition_0_empty_ready_message_selection_changed</title>
-<polygon fill="#ffffff" stroke="transparent" points="220,-33 220,-149 440,-149 440,-33 220,-33"/>
-<polygon fill="#2563eb" stroke="transparent" points="221,-140 221,-148 439,-148 439,-140 221,-140"/>
-<polygon fill="#eff6ff" stroke="transparent" points="221,-109 221,-140 439,-140 439,-109 221,-109"/>
-<text text-anchor="start" x="225" y="-126.6" font-family="Arial" font-weight="bold" font-size="13.00">message.selection_changed</text>
-<text text-anchor="start" x="225" y="-115.6" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
-<text text-anchor="start" x="226" y="-97" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
-<text text-anchor="start" x="254" y="-97" font-family="Arial" font-size="10.00">  project_id</text>
-<text text-anchor="start" x="303" y="-97" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
-<text text-anchor="start" x="226" y="-85" font-family="Arial" font-weight="bold" font-size="10.00">query:</text>
-<text text-anchor="start" x="256" y="-85" font-family="Arial" font-size="10.00">  query.project.activity.read</text>
-<text text-anchor="start" x="226" y="-73" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
-<text text-anchor="start" x="250" y="-73" font-family="Arial" font-size="10.00">  operation.project.read</text>
-<text text-anchor="start" x="350" y="-73" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
-<text text-anchor="start" x="225" y="-53" font-family="Arial" font-weight="bold" font-size="10.00">authorization_policies:</text>
-<text text-anchor="start" x="332" y="-53" font-family="Arial" font-size="10.00">  operation.project.read:</text>
-<text text-anchor="start" x="225" y="-41" font-family="Arial" font-size="10.00">  authorization_policy.project.member</text>
-<polygon fill="none" stroke="#2563eb" points="220,-33 220,-149 440,-149 440,-33 220,-33"/>
+<polygon fill="#ffffff" stroke="transparent" points="220,-45 220,-161 440,-161 440,-45 220,-45"/>
+<polygon fill="#2563eb" stroke="transparent" points="221,-152 221,-160 439,-160 439,-152 221,-152"/>
+<polygon fill="#eff6ff" stroke="transparent" points="221,-121 221,-152 439,-152 439,-121 221,-121"/>
+<text text-anchor="start" x="225" y="-138.6" font-family="Arial" font-weight="bold" font-size="13.00">message.selection_changed</text>
+<text text-anchor="start" x="225" y="-127.6" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
+<text text-anchor="start" x="226" y="-109" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
+<text text-anchor="start" x="254" y="-109" font-family="Arial" font-size="10.00">  read_activity.project_id</text>
+<text text-anchor="start" x="360" y="-109" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<text text-anchor="start" x="226" y="-97" font-family="Arial" font-weight="bold" font-size="10.00">query_invocations:</text>
+<text text-anchor="start" x="315" y="-97" font-family="Arial" font-size="10.00">  read_activity</text>
+<text text-anchor="start" x="226" y="-85" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
+<text text-anchor="start" x="250" y="-85" font-family="Arial" font-size="10.00">  operation.project.read</text>
+<text text-anchor="start" x="350" y="-85" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
+<text text-anchor="start" x="225" y="-65" font-family="Arial" font-weight="bold" font-size="10.00">authorization_policies:</text>
+<text text-anchor="start" x="332" y="-65" font-family="Arial" font-size="10.00">  operation.project.read:</text>
+<text text-anchor="start" x="225" y="-53" font-family="Arial" font-size="10.00">  authorization_policy.project.member</text>
+<polygon fill="none" stroke="#2563eb" points="220,-45 220,-161 440,-161 440,-45 220,-45"/>
 </g>
 <!-- view_state_empty&#45;&gt;transition_0_empty_ready_message_selection_changed -->
 <g id="edge1" class="edge">
 <title>view_state_empty&#45;&gt;transition_0_empty_ready_message_selection_changed</title>
-<path fill="none" stroke="#3f3f46" d="M159.13,-56.82C175.77,-60.17 193.69,-63.77 211.42,-67.34"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="211.16,-70.15 219.55,-68.98 212.26,-64.66 211.16,-70.15"/>
+<path fill="none" stroke="#3f3f46" d="M159.13,-60.62C175.77,-64.77 193.69,-69.24 211.42,-73.66"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="211.11,-76.47 219.55,-75.69 212.47,-71.04 211.11,-76.47"/>
 </g>
 <!-- view_state_ready -->
 <g id="node2" class="node">
 <title>view_state_ready</title>
-<polygon fill="#ffffff" stroke="transparent" points="501,-33 501,-147 695,-147 695,-33 501,-33"/>
-<polygon fill="#71717a" stroke="transparent" points="502,-138 502,-146 694,-146 694,-138 502,-138"/>
-<polygon fill="#f8fafc" stroke="transparent" points="502,-107 502,-138 694,-138 694,-107 502,-107"/>
-<text text-anchor="start" x="506" y="-124.6" font-family="Arial" font-weight="bold" font-size="13.00">ready</text>
-<text text-anchor="start" x="506" y="-113.6" font-family="Arial" font-size="8.00" fill="#64748b">view state</text>
-<text text-anchor="start" x="507" y="-95" font-family="Arial" font-weight="bold" font-size="10.00">text:</text>
-<text text-anchor="start" x="527" y="-95" font-family="Arial" font-size="10.00">  text.project.activity.ready.heading</text>
-<text text-anchor="start" x="506" y="-75" font-family="Arial" font-weight="bold" font-size="10.00">operation.project.read fields</text>
-<text text-anchor="start" x="506" y="-64" font-family="Arial" font-size="10.00">updated_at</text>
-<text text-anchor="start" x="555" y="-64" font-family="Arial" font-size="8.00" fill="#94a3b8">  Timestamp</text>
-<text text-anchor="start" x="506" y="-53" font-family="Arial" font-size="10.00">status</text>
-<text text-anchor="start" x="534" y="-53" font-family="Arial" font-size="8.00" fill="#94a3b8">  enum&lt;draft|submitted|approved|archived&gt;</text>
-<text text-anchor="start" x="506" y="-42" font-family="Arial" font-size="10.00">assignee</text>
-<text text-anchor="start" x="546" y="-42" font-family="Arial" font-size="8.00" fill="#94a3b8">  Text</text>
-<polygon fill="none" stroke="#71717a" points="501,-33 501,-147 695,-147 695,-33 501,-33"/>
+<polygon fill="#ffffff" stroke="transparent" points="501,-33.5 501,-198.5 794,-198.5 794,-33.5 501,-33.5"/>
+<polygon fill="#71717a" stroke="transparent" points="502.5,-189 502.5,-197 793.5,-197 793.5,-189 502.5,-189"/>
+<polygon fill="#f8fafc" stroke="transparent" points="502.5,-158 502.5,-189 793.5,-189 793.5,-158 502.5,-158"/>
+<text text-anchor="start" x="506.5" y="-175.6" font-family="Arial" font-weight="bold" font-size="13.00">ready</text>
+<text text-anchor="start" x="506.5" y="-164.6" font-family="Arial" font-size="8.00" fill="#64748b">view state</text>
+<text text-anchor="start" x="507.5" y="-146" font-family="Arial" font-weight="bold" font-size="10.00">text:</text>
+<text text-anchor="start" x="527.5" y="-146" font-family="Arial" font-size="10.00">  text.project.activity.ready.heading</text>
+<text text-anchor="start" x="506.5" y="-126" font-family="Arial" font-weight="bold" font-size="10.00">operation.project.read fields</text>
+<text text-anchor="start" x="506.5" y="-115" font-family="Arial" font-size="10.00">updated_at</text>
+<text text-anchor="start" x="555.5" y="-115" font-family="Arial" font-size="8.00" fill="#94a3b8">  Timestamp</text>
+<text text-anchor="start" x="506.5" y="-104" font-family="Arial" font-size="10.00">status</text>
+<text text-anchor="start" x="534.5" y="-104" font-family="Arial" font-size="8.00" fill="#94a3b8">  enum&lt;draft|submitted|approved|archived&gt;</text>
+<text text-anchor="start" x="506.5" y="-93" font-family="Arial" font-size="10.00">assignee</text>
+<text text-anchor="start" x="546.5" y="-93" font-family="Arial" font-size="8.00" fill="#94a3b8">  Text</text>
+<text text-anchor="start" x="507.5" y="-73" font-family="Arial" font-weight="bold" font-size="10.00">query_invocations:</text>
+<text text-anchor="start" x="596.5" y="-73" font-family="Arial" font-size="10.00">  read_activity: operation.project.read</text>
+<text text-anchor="start" x="758.5" y="-73" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
+<text text-anchor="start" x="506.5" y="-53" font-family="Arial" font-weight="bold" font-size="10.00">authorization_policies:</text>
+<text text-anchor="start" x="613.5" y="-53" font-family="Arial" font-size="10.00">  operation.project.read:</text>
+<text text-anchor="start" x="506.5" y="-41" font-family="Arial" font-size="10.00">  authorization_policy.project.member</text>
+<polygon fill="none" stroke="#71717a" points="501,-33.5 501,-198.5 794,-198.5 794,-33.5 501,-33.5"/>
 </g>
 <!-- transition_1_ready_empty_message_selection_cleared -->
 <g id="node4" class="node">
 <title>transition_1_ready_empty_message_selection_cleared</title>
-<polygon fill="#ffffff" stroke="transparent" points="756,-10 756,-72 941,-72 941,-10 756,-10"/>
-<polygon fill="#2563eb" stroke="transparent" points="757.5,-63 757.5,-71 940.5,-71 940.5,-63 757.5,-63"/>
-<polygon fill="#eff6ff" stroke="transparent" points="757.5,-32 757.5,-63 940.5,-63 940.5,-32 757.5,-32"/>
-<text text-anchor="start" x="761.5" y="-49.6" font-family="Arial" font-weight="bold" font-size="13.00">message.selection_cleared</text>
-<text text-anchor="start" x="761.5" y="-38.6" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
-<text text-anchor="start" x="762.5" y="-20" font-family="Arial" font-weight="bold" font-size="10.00">set:</text>
-<text text-anchor="start" x="779.5" y="-20" font-family="Arial" font-size="10.00">  project_id</text>
-<text text-anchor="start" x="828.5" y="-20" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
-<text text-anchor="start" x="841.5" y="-20" font-family="Arial" font-size="8.00"> ← null</text>
-<polygon fill="none" stroke="#2563eb" points="756,-10 756,-72 941,-72 941,-10 756,-10"/>
+<polygon fill="#ffffff" stroke="transparent" points="855,-23 855,-85 1040,-85 1040,-23 855,-23"/>
+<polygon fill="#2563eb" stroke="transparent" points="856.5,-76 856.5,-84 1039.5,-84 1039.5,-76 856.5,-76"/>
+<polygon fill="#eff6ff" stroke="transparent" points="856.5,-45 856.5,-76 1039.5,-76 1039.5,-45 856.5,-45"/>
+<text text-anchor="start" x="860.5" y="-62.6" font-family="Arial" font-weight="bold" font-size="13.00">message.selection_cleared</text>
+<text text-anchor="start" x="860.5" y="-51.6" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
+<text text-anchor="start" x="861.5" y="-33" font-family="Arial" font-weight="bold" font-size="10.00">set:</text>
+<text text-anchor="start" x="878.5" y="-33" font-family="Arial" font-size="10.00">  project_id</text>
+<text text-anchor="start" x="927.5" y="-33" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<text text-anchor="start" x="940.5" y="-33" font-family="Arial" font-size="8.00"> ← null</text>
+<polygon fill="none" stroke="#2563eb" points="855,-23 855,-85 1040,-85 1040,-23 855,-23"/>
 </g>
 <!-- view_state_ready&#45;&gt;transition_1_ready_empty_message_selection_cleared -->
 <g id="edge3" class="edge">
 <title>view_state_ready&#45;&gt;transition_1_ready_empty_message_selection_cleared</title>
-<path fill="none" stroke="#3f3f46" d="M695.08,-71.06C712.37,-67.65 730.43,-64.08 747.82,-60.66"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="748.45,-63.38 755.76,-59.09 747.37,-57.89 748.45,-63.38"/>
+<path fill="none" stroke="#3f3f46" d="M794.01,-85.73C811.78,-82.03 829.63,-78.32 846.52,-74.8"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="847.47,-77.46 854.73,-73.09 846.33,-71.98 847.47,-77.46"/>
 </g>
 <!-- transition_0_empty_ready_message_selection_changed&#45;&gt;view_state_ready -->
 <g id="edge2" class="edge">
 <title>transition_0_empty_ready_message_selection_changed&#45;&gt;view_state_ready</title>
-<path fill="none" stroke="#3f3f46" d="M440.34,-90.59C457.58,-90.52 475.37,-90.46 492.5,-90.39"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="492.86,-93.19 500.85,-90.36 492.84,-87.59 492.86,-93.19"/>
+<path fill="none" stroke="#3f3f46" d="M440.02,-107.49C457.01,-108.19 474.84,-108.93 492.6,-109.66"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="492.64,-112.46 500.75,-109.99 492.87,-106.87 492.64,-112.46"/>
 </g>
 <!-- transition_1_ready_empty_message_selection_cleared&#45;&gt;view_state_empty -->
 <g id="edge4" class="edge">
 <title>transition_1_ready_empty_message_selection_cleared&#45;&gt;view_state_empty</title>
-<path fill="none" stroke="#3f3f46" d="M755.78,-26.3C735.8,-23.68 714.73,-21.35 695,-20 484.38,-5.57 430.52,-4.24 220,-20 202.84,-21.28 184.6,-23.44 167.16,-25.9"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="166.72,-23.14 159.21,-27.05 167.53,-28.68 166.72,-23.14"/>
+<path fill="none" stroke="#3f3f46" d="M854.71,-30.13C834.83,-25.91 813.82,-22.18 794,-20 569.13,4.76 302.15,-16.47 167.46,-30.69"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="166.84,-27.94 159.18,-31.57 167.43,-33.51 166.84,-27.94"/>
 </g>
 </g>
 </svg>

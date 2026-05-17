@@ -251,7 +251,7 @@ def _fixtures_doc(
 
 
 def _state_needs_data(contract: dict[str, Any], state_machine: dict[str, Any]) -> bool:
-    if state_machine.get("query_dependencies") or state_machine["slots"].get("fields"):
+    if state_machine.get("query_invocations") or state_machine["slots"].get("fields"):
         return True
     text_refs = state_machine["slots"].get("text", [])
     asset_refs = state_machine["slots"].get("assets", [])
@@ -771,7 +771,7 @@ def _generic_reference_witness_allowed(parts: list[str], detail_evidence: bool) 
 
 def _state_machine_reference_witness_allowed(parts: list[str]) -> bool:
     if "view_states" in parts:
-        return any(marker in parts for marker in {"text", "assets", "available_operations", "child_state_machines", "signal_sync_rules"})
+        return any(marker in parts for marker in {"text", "assets", "operation_invocations", "child_state_machines", "signal_sync_rules"})
     if "transitions" in parts:
         return parts[-1] in {"data_signal", "message", "operation", "state_machine", "workflow", "event"}
     if "signals" in parts:
@@ -2336,16 +2336,16 @@ def _entry_target_tail_nodes(target_kind: str, target_value: str, contract: dict
 
 def _state_machine_summary_sections(state_machine: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
-    bindings = _unique_data_bindings(state_machine.get("query_dependencies", []))
+    bindings = _query_invocation_bindings(state_machine.get("query_invocations", {}))
     operation_ids = [binding["operation"] for binding in bindings]
     inputs = _format_data_inputs(state_machine, bindings, contract)
-    queries = [binding["query"] for binding in bindings]
+    queries = [binding["query_invocation"] for binding in bindings]
     loads = _format_operation_outputs(operation_ids, contract)
     guards = _format_operation_authorization_policies(operation_ids, contract)
     if inputs:
         sections.append(("input", inputs))
     if queries:
-        sections.append(("query", queries))
+        sections.append(("query_invocations", queries))
     if loads:
         sections.append(("load", loads))
     if guards:
@@ -2372,13 +2372,17 @@ def _state_machine_view_state_sections(
     state: dict[str, Any],
     contract: dict[str, Any],
 ) -> list[tuple[str, Iterable[object]]]:
-    available_operations = state.get("available_operations", [])
+    query_invocations = state.get("query_invocations", {})
+    operation_invocations = state.get("operation_invocations", {})
+    query_operation_ids = [invocation["operation"] for invocation in query_invocations.values()]
+    operation_ids = [invocation["operation"] for invocation in operation_invocations.values()]
     return [
         ("text", state.get("text", [])),
         ("assets", state.get("assets", [])),
         (_state_field_section_title(state_machine, state_name, state), _format_state_fields(state_machine, state, contract)),
-        ("available_operations", _format_operation_outputs(available_operations, contract)),
-        ("authorization_policies", _format_operation_authorization_policies(available_operations, contract)),
+        ("query_invocations", _format_operation_invocation_outputs(query_invocations, contract)),
+        ("operation_invocations", _format_operation_invocation_outputs(operation_invocations, contract)),
+        ("authorization_policies", _format_operation_authorization_policies([*query_operation_ids, *operation_ids], contract)),
         ("child_state_machines", _format_mounts(state.get("child_state_machines", []))),
         ("signal_sync_rules", [rule["id"] for rule in state.get("signal_sync_rules", [])]),
     ]
@@ -2910,7 +2914,7 @@ def _dot_section_inner_rows(title: str, values: Iterable[object]) -> tuple[bool,
 
 def _dot_typed_field_section_inner_rows(title: str, values: list[object]) -> tuple[bool, list[str]]:
     compactable = all(not isinstance(value, _DotExpandedTypedField) for value in values)
-    if compactable and (title in {"input", "output", "payload", "payload_schema", "query_dependencies", "set", "load"} or title == "available_operations") and len(values) == 1:
+    if compactable and (title in {"input", "output", "payload", "payload_schema", "query_invocations", "set", "load", "operation_invocations"}) and len(values) == 1:
         rows = []
         for index, value in enumerate(values):
             if isinstance(value, _DotTypedField):
@@ -3080,12 +3084,12 @@ def _format_transition_sections(
         operation_ids = [binding["operation"] for binding in bindings]
         data_sources = _format_operation_outputs(operation_ids, contract)
         guards = _format_operation_authorization_policies(operation_ids, contract)
-        queries = [binding["query"] for binding in bindings]
+        queries = [binding["query_invocation"] for binding in bindings]
         inputs = _format_data_inputs(state_machine, bindings, contract)
         if inputs:
             sections.append(("input", inputs))
         if queries:
-            sections.append(("query", queries))
+            sections.append(("query_invocations", queries))
         if data_sources:
             sections.append(("load", data_sources))
         if guards:
@@ -3095,12 +3099,12 @@ def _format_transition_sections(
         operation_ids = [binding["operation"] for binding in target_bindings]
         data_sources = _format_operation_outputs(operation_ids, contract)
         guards = _format_operation_authorization_policies(operation_ids, contract)
-        queries = [binding["query"] for binding in target_bindings]
+        queries = [binding["query_invocation"] for binding in target_bindings]
         required_context = _format_data_inputs(state_machine, target_bindings, contract)
         if required_context:
             sections.append(("input", required_context))
         if queries:
-            sections.append(("query", queries))
+            sections.append(("query_invocations", queries))
         if data_sources:
             sections.append(("load", data_sources))
         if guards:
@@ -3111,7 +3115,7 @@ def _format_transition_sections(
 
 def _transition_target_data_bindings(state_machine: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
     target_state = state_machine.get("view_states", {}).get(transition["to"], {})
-    return _unique_data_bindings(target_state.get("query_dependencies", []))
+    return _query_invocation_bindings(target_state.get("query_invocations", {}))
 
 
 def _state_field_section_title(state_machine: dict[str, Any], state_name: str, state: dict[str, Any]) -> str:
@@ -3127,7 +3131,7 @@ def _state_field_section_title(state_machine: dict[str, Any], state_name: str, s
 
 
 def _state_field_data_bindings(state_machine: dict[str, Any], state_name: str, state: dict[str, Any]) -> list[dict[str, Any]]:
-    bindings = _unique_data_bindings(state.get("query_dependencies", []))
+    bindings = _query_invocation_bindings(state.get("query_invocations", {}))
     if bindings:
         return bindings
     incoming_data_bindings: list[dict[str, Any]] = []
@@ -3136,7 +3140,7 @@ def _state_field_data_bindings(state_machine: dict[str, Any], state_name: str, s
             incoming_data_bindings.extend(_transition_data_bindings(state_machine, transition))
     if incoming_data_bindings:
         return _unique_data_bindings(incoming_data_bindings)
-    return _unique_data_bindings(state_machine.get("query_dependencies", []))
+    return _query_invocation_bindings(state_machine.get("query_invocations", {}))
 
 
 def _format_state_fields(state_machine: dict[str, Any], state: dict[str, Any], contract: dict[str, Any]) -> list[_DotTypedField]:
@@ -3161,6 +3165,17 @@ def _format_operation_outputs(operation_ids: Iterable[str], contract: dict[str, 
     return fields
 
 
+def _format_operation_invocation_outputs(invocations: dict[str, Any], contract: dict[str, Any]) -> list[_DotTypedField]:
+    operations = contract["operations"]
+    fields: list[_DotTypedField] = []
+    for invocation_id, invocation in sorted(invocations.items()):
+        operation_id = invocation["operation"]
+        for _, outcome in sorted(operations[operation_id]["outcomes"].items()):
+            if outcome["kind"] == "success":
+                fields.append(_DotTypedField(f"{invocation_id}: {operation_id}", outcome["result"]))
+    return fields
+
+
 def _format_operation_authorization_policies(operation_ids: Iterable[str], contract: dict[str, Any]) -> list[str]:
     lines: list[str] = []
     seen: set[str] = set()
@@ -3178,16 +3193,17 @@ def _format_operation_authorization_policies(operation_ids: Iterable[str], contr
 def _format_data_inputs(
     state_machine: dict[str, Any], bindings: Iterable[dict[str, Any]], contract: dict[str, Any]
 ) -> list[_DotTypedField]:
-    context = state_machine.get("context", {})
     operations = contract["operations"]
     inputs: list[_DotTypedField] = []
     seen: set[str] = set()
     for binding in bindings:
         operation = operations[binding["operation"]]
         for key in sorted(operation["input"]):
-            signature = f"{key} {context[key]}"
+            input_type = operation["input"][key]
+            input_label = f"{binding.get('query_invocation', binding['operation'])}.{key}"
+            signature = f"{input_label} {input_type}"
             if signature not in seen:
-                inputs.append(_DotTypedField(key, context[key]))
+                inputs.append(_DotTypedField(input_label, input_type))
                 seen.add(signature)
     return inputs
 
@@ -3210,15 +3226,22 @@ def _message_label(message: str) -> str:
 
 def _transition_data_bindings(state_machine: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
     source_state = state_machine.get("view_states", {}).get(transition["from"], {})
-    bindings = source_state.get("query_dependencies", []) or state_machine.get("query_dependencies", [])
-    return _unique_data_bindings(bindings)
+    bindings = source_state.get("query_invocations", {}) or state_machine.get("query_invocations", {})
+    return _query_invocation_bindings(bindings)
+
+
+def _query_invocation_bindings(invocations: dict[str, Any]) -> list[dict[str, Any]]:
+    return _unique_data_bindings(
+        {"query_invocation": invocation_id, "operation": invocation["operation"]}
+        for invocation_id, invocation in sorted((invocations or {}).items())
+    )
 
 
 def _unique_data_bindings(bindings: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
     unique: list[dict[str, Any]] = []
     seen: set[tuple[Any, Any]] = set()
     for binding in bindings:
-        key = (binding.get("operation"), binding.get("query"))
+        key = (binding.get("operation"), binding.get("query_invocation"))
         if key not in seen:
             unique.append(binding)
             seen.add(key)
@@ -3437,7 +3460,7 @@ def render_html_slot_runtime(root: Path, contract: dict[str, Any], state_machine
     if kind == "literal":
         return [f"<{tag}{format_attrs(attrs)}>{html.escape(str(bind_value))}</{tag}>"]
     operation = bind_value
-    attrs["data-operation"] = operation
+    attrs["data-operation-invocation"] = operation
     if tag == "a":
         attrs.setdefault("href", "#")
     if tag == "button":
@@ -3506,7 +3529,7 @@ def state_machine_textual_lines(root: Path, contract: dict[str, Any], state_mach
                 lines.append(("static", resolve_asset_result(root, contract, ref, record, context, namespace).alt or contract["assets"][ref]["placeholder"]["label"]))
             elif bind_kind == "field_slot":
                 lines.append(("static", str(record.get(bind_value, "—"))))
-            elif bind_kind == "operation":
+            elif bind_kind == "operation_invocation":
                 lines.append(("button", humanize(bind_value)))
             elif bind_kind == "literal":
                 lines.append(("static", str(bind_value)))
@@ -3524,8 +3547,8 @@ def state_machine_textual_lines(root: Path, contract: dict[str, Any], state_mach
         for record in (records_for_state_machine(contract, state_machine, case)[:4] or [{}]):
             for field in fields:
                 lines.append(("static", f"{humanize(field)}: {record.get(field, '—')}"))
-    for operation in state_machine["slots"]["available_operations"]:
-        lines.append(("button", humanize(operation)))
+    for invocation_id in state_machine["slots"]["operation_invocations"]:
+        lines.append(("button", humanize(invocation_id)))
     return lines or [("static", " ")]
 
 

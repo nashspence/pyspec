@@ -558,13 +558,14 @@
         "model": {
           "$ref": "#/$defs/model_ref"
         },
-        "query_dependencies": {
-          "description": "Query dependency declaration. The compiler validates that each referenced operation has operation_kind: query.",
-          "items": {
-            "$ref": "#/$defs/operation_ref"
+        "query_invocations": {
+          "additionalProperties": {
+            "$ref": "#/$defs/state_machine_query_invocation"
           },
-          "type": "array",
-          "uniqueItems": true
+          "propertyNames": {
+            "$ref": "#/$defs/query_invocation_id"
+          },
+          "type": "object"
         },
         "rationale": {
           "$ref": "#/$defs/rationale"
@@ -689,13 +690,6 @@
           "type": "array",
           "uniqueItems": true
         },
-        "available_operations": {
-          "items": {
-            "$ref": "#/$defs/operation_ref"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
         "child_state_machines": {
           "items": {
             "$ref": "#/$defs/authored_child_state_machine"
@@ -709,13 +703,23 @@
           "type": "array",
           "uniqueItems": true
         },
-        "query_dependencies": {
-          "description": "Query dependency declaration. The compiler validates that each referenced operation has operation_kind: query.",
-          "items": {
-            "$ref": "#/$defs/operation_ref"
+        "operation_invocations": {
+          "additionalProperties": {
+            "$ref": "#/$defs/state_machine_operation_invocation"
           },
-          "type": "array",
-          "uniqueItems": true
+          "propertyNames": {
+            "$ref": "#/$defs/operation_invocation_id"
+          },
+          "type": "object"
+        },
+        "query_invocations": {
+          "additionalProperties": {
+            "$ref": "#/$defs/state_machine_query_invocation"
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/query_invocation_id"
+          },
+          "type": "object"
         },
         "render_audit_cases": {
           "additionalProperties": {
@@ -2225,6 +2229,10 @@
       "pattern": "^operation\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
+    "operation_invocation_id": {
+      "$ref": "#/$defs/local_name",
+      "description": "Local operation invocation identifier within a view state."
+    },
     "outcome_name": {
       "$ref": "#/$defs/local_name",
       "description": "Local operation or workflow outcome identifier."
@@ -2236,6 +2244,10 @@
     "python_identifier": {
       "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$",
       "type": "string"
+    },
+    "query_invocation_id": {
+      "$ref": "#/$defs/local_name",
+      "description": "Local query invocation identifier within a state machine or view state."
     },
     "rationale": {
       "maxLength": 280,
@@ -2285,6 +2297,26 @@
       "description": "Shared runtime reference expression using $root.path.to.field syntax. Context-specific compiler validation restricts allowed roots and field paths.",
       "pattern": "^\\$[a-z][a-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+$",
       "type": "string"
+    },
+    "local_no_signal_route": {
+      "additionalProperties": false,
+      "properties": {
+        "rationale": {
+          "$ref": "#/$defs/rationale"
+        },
+        "reason": {
+          "enum": [
+            "state_unchanged",
+            "handled_by_response_surface",
+            "handled_by_query_refresh",
+            "intentionally_unobservable"
+          ]
+        }
+      },
+      "required": [
+        "reason"
+      ],
+      "type": "object"
     },
     "scalar": {
       "type": [
@@ -2405,7 +2437,7 @@
       "type": "object"
     },
     "slot_binding": {
-      "description": "View-state-local slot binding. text_slot, asset_slot, and field_slot refer to local slots; operation binds an operation reference; literal binds fixed text.",
+      "description": "View-state-local slot binding. text_slot, asset_slot, and field_slot refer to local slots; operation_invocation binds a local view-state operation invocation; literal binds fixed text.",
       "oneOf": [
         {
           "additionalProperties": false,
@@ -2449,12 +2481,12 @@
         {
           "additionalProperties": false,
           "properties": {
-            "operation": {
-              "$ref": "#/$defs/operation_ref"
+            "operation_invocation": {
+              "$ref": "#/$defs/operation_invocation_id"
             }
           },
           "required": [
-            "operation"
+            "operation_invocation"
           ],
           "type": "object"
         },
@@ -2519,6 +2551,217 @@
         "seed_fixtures"
       ],
       "type": "object"
+    },
+    "state_machine_operation_invocation": {
+      "additionalProperties": false,
+      "properties": {
+        "input_bindings": {
+          "$ref": "#/$defs/runtime_bindings"
+        },
+        "operation": {
+          "$ref": "#/$defs/operation_ref"
+        },
+        "outcome_routes": {
+          "$ref": "#/$defs/state_machine_operation_outcome_routes"
+        },
+        "rationale": {
+          "$ref": "#/$defs/rationale"
+        }
+      },
+      "required": [
+        "operation",
+        "outcome_routes"
+      ],
+      "type": "object"
+    },
+    "state_machine_operation_outcome_route": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "raise": {
+              "$ref": "#/$defs/state_machine_signal_raise"
+            }
+          },
+          "required": [
+            "raise"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "no_signal": {
+              "$ref": "#/$defs/local_no_signal_route"
+            }
+          },
+          "required": [
+            "no_signal"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "state_machine_operation_outcome_routes": {
+      "additionalProperties": {
+        "$ref": "#/$defs/state_machine_operation_outcome_route"
+      },
+      "minProperties": 1,
+      "propertyNames": {
+        "$ref": "#/$defs/outcome_name"
+      },
+      "type": "object"
+    },
+    "query_invocation_load_policy": {
+      "additionalProperties": false,
+      "properties": {
+        "on_enter": {
+          "type": "boolean"
+        },
+        "refresh_on": {
+          "items": {
+            "$ref": "#/$defs/state_machine_signal_trigger"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "type": "object"
+    },
+    "state_machine_query_invocation": {
+      "additionalProperties": false,
+      "properties": {
+        "input_bindings": {
+          "$ref": "#/$defs/runtime_bindings"
+        },
+        "load": {
+          "$ref": "#/$defs/query_invocation_load_policy"
+        },
+        "operation": {
+          "$ref": "#/$defs/operation_ref"
+        },
+        "outcome_routes": {
+          "$ref": "#/$defs/state_machine_query_outcome_routes"
+        },
+        "rationale": {
+          "$ref": "#/$defs/rationale"
+        }
+      },
+      "required": [
+        "operation",
+        "outcome_routes"
+      ],
+      "type": "object"
+    },
+    "state_machine_query_outcome_route": {
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "context_updates"
+          ]
+        },
+        {
+          "required": [
+            "raise"
+          ]
+        },
+        {
+          "required": [
+            "no_signal"
+          ]
+        }
+      ],
+      "properties": {
+        "context_updates": {
+          "additionalProperties": {
+            "$ref": "#/$defs/binding_value"
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/field_name"
+          },
+          "type": "object"
+        },
+        "no_signal": {
+          "$ref": "#/$defs/local_no_signal_route"
+        },
+        "raise": {
+          "$ref": "#/$defs/state_machine_signal_raise"
+        }
+      },
+      "type": "object"
+    },
+    "state_machine_query_outcome_routes": {
+      "additionalProperties": {
+        "$ref": "#/$defs/state_machine_query_outcome_route"
+      },
+      "minProperties": 1,
+      "propertyNames": {
+        "$ref": "#/$defs/outcome_name"
+      },
+      "type": "object"
+    },
+    "state_machine_signal_raise": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "message": {
+              "$ref": "#/$defs/message_name"
+            },
+            "payload_bindings": {
+              "$ref": "#/$defs/runtime_bindings"
+            }
+          },
+          "required": [
+            "message"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "data_signal": {
+              "$ref": "#/$defs/data_signal_name"
+            },
+            "payload_bindings": {
+              "$ref": "#/$defs/runtime_bindings"
+            }
+          },
+          "required": [
+            "data_signal"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "state_machine_signal_trigger": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "message": {
+              "$ref": "#/$defs/message_name"
+            }
+          },
+          "required": [
+            "message"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "data_signal": {
+              "$ref": "#/$defs/data_signal_name"
+            }
+          },
+          "required": [
+            "data_signal"
+          ],
+          "type": "object"
+        }
+      ]
     },
     "state_machine_signal": {
       "additionalProperties": false,
@@ -2620,32 +2863,7 @@
           "$ref": "#/$defs/view_state_name"
         },
         "on": {
-          "oneOf": [
-            {
-              "additionalProperties": false,
-              "properties": {
-                "message": {
-                  "$ref": "#/$defs/message_name"
-                }
-              },
-              "required": [
-                "message"
-              ],
-              "type": "object"
-            },
-            {
-              "additionalProperties": false,
-              "properties": {
-                "data_signal": {
-                  "$ref": "#/$defs/data_signal_name"
-                }
-              },
-              "required": [
-                "data_signal"
-              ],
-              "type": "object"
-            }
-          ]
+          "$ref": "#/$defs/state_machine_signal_trigger"
         },
         "rationale": {
           "$ref": "#/$defs/rationale"

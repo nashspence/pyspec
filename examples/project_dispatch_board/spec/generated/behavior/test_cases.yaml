@@ -137,11 +137,11 @@ test_cases:
       requires:
         assets:
         - asset.project.list.empty.illustration
-        available_operations:
-        - operation.project.create
-        queries:
-        - query.project.board.list
-        - query.project.list.list
+        operation_invocations:
+        - create
+        query_invocations:
+        - list_board
+        - list_projects
         surfaces:
         - state_machine.project.board.ready
         - state_machine.project.activity.empty
@@ -346,12 +346,12 @@ test_cases:
       - operation.project.submit
       requires:
         assets: []
-        available_operations:
-        - operation.project.create
-        - operation.project.submit
-        queries:
-        - query.project.board.list
-        - query.project.list.list
+        operation_invocations:
+        - create
+        - submit
+        query_invocations:
+        - list_board
+        - list_projects
         surfaces:
         - state_machine.project.board.ready
         - state_machine.project.activity.empty

@@ -177,9 +177,9 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "text.project.list.ready.heading" in state_machine
     assert "asset.project.list.empty.illustration" in state_machine
     assert state_machine.index("<B>text</B>") < state_machine.index("<B>assets:</B>")
-    assert state_machine.index("<B>assets:</B>") < state_machine.index("<B>available_operations:</B>")
+    assert state_machine.index("<B>assets:</B>") < state_machine.index("<B>operation_invocations:</B>")
     assert state_machine.index("<B>text:</B>&#160;&#160;text.project.list.ready.heading") < state_machine.index("<B>operation.project.list fields</B>")
-    assert state_machine.index("<B>operation.project.list fields</B>") < state_machine.index("<B>available_operations</B>")
+    assert state_machine.index("<B>operation.project.list fields</B>") < state_machine.index("<B>operation_invocations</B>")
     assert "<B>emit:</B>&#160;&#160;message.project_selected" in state_machine
     payload_project = '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
     assert payload_project in state_machine
@@ -187,27 +187,27 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "emit message.project_selected" not in state_machine
     assert "<B>projection:</B>" not in state_machine
     assert '<FONT POINT-SIZE="10"><B>load:</B>&#160;&#160;operation.project.list</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;array&lt;Project&gt;</FONT>' in state_machine
-    assert "<B>query:</B>&#160;&#160;query.project.list.list" in state_machine
-    input_workspace = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
+    assert "<B>query_invocations:</B>&#160;&#160;list_projects" in state_machine
+    input_workspace = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;list_projects.workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
     assert input_workspace in state_machine
-    assert state_machine.index(input_workspace) < state_machine.index("<B>query:</B>&#160;&#160;query.project.list.list")
-    assert state_machine.index("<B>query:</B>&#160;&#160;query.project.list.list") < state_machine.index("<B>load:</B>&#160;&#160;operation.project.list")
+    assert state_machine.index(input_workspace) < state_machine.index("<B>query_invocations:</B>&#160;&#160;list_projects")
+    assert state_machine.index("<B>query_invocations:</B>&#160;&#160;list_projects") < state_machine.index("<B>load:</B>&#160;&#160;operation.project.list")
     detail_transition = state_machine_dot("state_machine.project.detail", contract["state_machines"]["state_machine.project.detail"], contract)
     selection_card = detail_transition[detail_transition.index("message.selection_changed") :]
-    input_project = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
-    assert selection_card.index(input_project) < selection_card.index("<B>query:</B>&#160;&#160;query.project.detail.read")
+    input_project = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;read_project.project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
+    assert selection_card.index(input_project) < selection_card.index("<B>query_invocations:</B>&#160;&#160;read_project")
     load_project = '<FONT POINT-SIZE="10"><B>load:</B>&#160;&#160;operation.project.read</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>'
-    assert selection_card.index("<B>query:</B>&#160;&#160;query.project.detail.read") < selection_card.index(load_project)
+    assert selection_card.index("<B>query_invocations:</B>&#160;&#160;read_project") < selection_card.index(load_project)
     assert "<B>operation.project.list fields</B>" in state_machine
-    assert '<FONT POINT-SIZE="10"><B>available_operations:</B>&#160;&#160;operation.project.create</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in state_machine
-    assert '<FONT POINT-SIZE="10">operation.project.submit</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in state_machine
+    assert '<FONT POINT-SIZE="10"><B>operation_invocations:</B>&#160;&#160;create: operation.project.create</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in state_machine
+    assert '<FONT POINT-SIZE="10">submit: operation.project.submit</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in state_machine
     assert '<FONT POINT-SIZE="10">title</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Text</FONT>' in state_machine
     assert '<FONT POINT-SIZE="10">status</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;enum&lt;draft|submitted|approved|archived&gt;</FONT>' in state_machine
     assert '<FONT POINT-SIZE="10">summary</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Text</FONT>' in detail_transition
     assert "title: Text" not in state_machine
     assert "status: enum" not in state_machine
     assert "<B>Project fields</B>" not in state_machine
-    assert state_machine.count("query.project.list.list") == 4
+    assert state_machine.count("list_projects") >= 5
     assert "<B>authorization_policies:</B>&#160;&#160;operation.project.create:" in state_machine
     assert "authorization_policy.project.member" in state_machine
     assert "<B>model:</B>" not in state_machine
@@ -398,10 +398,10 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "authorization_policy.project.reviewer" in cli_approve_target_card
     assert "actor ← input.approved_by" not in cli_approve_target_card
     assert "<B>authorization_conditions:</B>&#160;&#160;Project.status = submitted" not in cli_approve_target_card
-    entrypoint_input = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
+    entrypoint_input = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;list_board.workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
     assert entrypoint_input in entrypoint
-    assert entrypoint.index(entrypoint_input) < entrypoint.index("<B>query:</B>&#160;&#160;query.project.board.list")
-    assert entrypoint.index("<B>query:</B>&#160;&#160;query.project.board.list") < entrypoint.index("<B>load:</B>&#160;&#160;operation.project.list")
+    assert entrypoint.index(entrypoint_input) < entrypoint.index("<B>query_invocations:</B>&#160;&#160;list_board")
+    assert entrypoint.index("<B>query_invocations:</B>&#160;&#160;list_board") < entrypoint.index("<B>load:</B>&#160;&#160;operation.project.list")
     assert "<B>signal_sync_rules:</B>&#160;&#160;select_project_updates_state_machines" in entrypoint
     assert "<B>state_machine:</B>" not in entrypoint
     assert "state_machine.selected_project_id" not in entrypoint
@@ -437,7 +437,7 @@ def test_composition_dot_routes_messages_generically() -> None:
         "archetype": "workspace",
         "model": "generic.model",
         "context": {"selected_id": P("ID"), "workspace_id": P("ID")},
-        "query_dependencies": [],
+        "query_invocations": {},
         "renderers": {
             "html": {
                 "layout": {
@@ -583,7 +583,8 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "emit message.project_selected" not in list_fsm
     assert "effects:" not in list_fsm
     assert "operation: operation.project.list" not in list_fsm
-    assert "query.project.list.list" in list_fsm
+    assert "query_invocations:" in list_fsm
+    assert "list_projects" in list_fsm
     assert "workspace_id: ID" not in list_fsm
     assert 'workspace_id</text>' in list_fsm
     assert 'fill="#94a3b8">\xa0\xa0ID</text>' in list_fsm
@@ -625,7 +626,8 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "assignee: Text" not in activity_fsm
     assert 'fill="#94a3b8">\xa0\xa0Timestamp</text>' in activity_fsm
     assert "input:" in detail_fsm
-    assert "query.project.detail.read" in detail_fsm
+    assert "query_invocations:" in detail_fsm
+    assert "read_project" in detail_fsm
     assert "project_id: ID" not in detail_fsm
     assert 'project_id</text>' in detail_fsm
     assert 'fill="#94a3b8">\xa0\xa0ID</text>' in detail_fsm
@@ -637,7 +639,8 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "select_project_updates_state_machines" not in detail_fsm
     assert "data_signal.ready" not in activity_fsm
     assert "input:" in activity_fsm
-    assert "query.project.activity.read" in activity_fsm
+    assert "query_invocations:" in activity_fsm
+    assert "read_activity" in activity_fsm
     assert "project_id: ID" not in activity_fsm
     assert 'project_id</text>' in activity_fsm
     assert 'fill="#94a3b8">\xa0\xa0ID</text>' in activity_fsm

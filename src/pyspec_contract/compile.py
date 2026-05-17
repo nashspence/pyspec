@@ -138,7 +138,11 @@ REF_KINDS = [
     "endpoint",
     "entry_point_delegate",
     "entry_point_target",
-    "query",
+    "local_signal_raise",
+    "operation_invocation",
+    "operation_outcome_route",
+    "query_invocation",
+    "query_outcome_route",
     "route",
     "runtime_response",
     "screen",
@@ -294,7 +298,7 @@ def _apply_author_defaults(entity: str, spec: dict[str, Any]) -> None:
     spec.setdefault("rationale", _default_rationale(entity, spec["id"]))
     if entity == "state_machine":
         spec.setdefault("context", {})
-        spec.setdefault("query_dependencies", [])
+        spec.setdefault("query_invocations", {})
         spec["signals"] = _normalize_signals(spec.get("signals"))
         spec.setdefault("transitions", [])
     elif entity == "operation":
@@ -395,7 +399,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
         state_machine_id = spec["id"]
         state_machine: dict[str, Any] = {
             "context": spec["context"],
-            "query_dependencies": _compile_query_dependencies(state_machine_id, spec.get("query_dependencies", [])),
+            "query_invocations": _compile_query_invocations(spec.get("query_invocations", {})),
             "signals": _normalize_signals(spec.get("signals")),
             "initial_view_state": spec["initial_view_state"],
             "view_states": _compile_view_states(state_machine_id, spec.get("view_states", {})),
@@ -474,13 +478,11 @@ def _state_surface_ref(owner_id: str, state_name: str) -> str:
     return rules.state_machine_surface_ref(owner_id, state_name)
 
 
-def _compile_query_dependencies(owner_id: str, operation_ids: list[str]) -> list[dict[str, str]]:
-    subject = _ref_subject(owner_id)
-    data = []
-    for cap_id in operation_ids:
-        qref = rules.query_ref(subject, cap_id, many=len(operation_ids) > 1)
-        data.append({"query": qref, "operation": cap_id})
-    return data
+def _compile_query_invocations(invocations: dict[str, Any]) -> dict[str, Any]:
+    compiled = copy.deepcopy(invocations or {})
+    for invocation in compiled.values():
+        invocation.setdefault("load", {"on_enter": True})
+    return compiled
 
 
 def _compile_view_states(owner_id: str, states: dict[str, Any]) -> dict[str, Any]:
@@ -489,11 +491,11 @@ def _compile_view_states(owner_id: str, states: dict[str, Any]) -> dict[str, Any
     for state_name, state in states.items():
         item = {
             "surface": _state_surface_ref(owner_id, state_name),
-            "query_dependencies": _compile_query_dependencies(owner_id, state.get("query_dependencies", [])),
+            "query_invocations": _compile_query_invocations(state.get("query_invocations", {})),
             "text": [rules.text_ref(subject, state_name, slot) for slot in state.get("text_slots", [])],
             "assets": [rules.asset_ref(subject, state_name, slot) for slot in state.get("asset_slots", [])],
             "fields": state.get("field_slots", []),
-            "available_operations": state.get("available_operations", []),
+            "operation_invocations": copy.deepcopy(state.get("operation_invocations", {})),
         }
         if "renderers" in state:
             item["renderers"] = state["renderers"]
@@ -595,15 +597,41 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
     refs["asset"].update(contract.get("assets", {}))
     for state_machine_id in contract["state_machines"]:
         refs["state_machine"].add(state_machine_id)
-    for owner in contract["state_machines"].values():
-        for dependency in owner.get("query_dependencies", []):
-            refs["query"].add(dependency["query"])
-        for state in owner.get("view_states", {}).values():
-            for dependency in state.get("query_dependencies", []):
-                refs["query"].add(dependency["query"])
+    for state_machine_id, owner in contract["state_machines"].items():
+        for invocation_id, invocation in sorted((owner.get("query_invocations") or {}).items()):
+            refs["query_invocation"].add(_generated_query_invocation_ref(state_machine_id, None, invocation_id))
+            for outcome_id, route in sorted(invocation.get("outcome_routes", {}).items()):
+                refs["query_outcome_route"].add(_generated_query_outcome_route_ref(state_machine_id, None, invocation_id, outcome_id))
+                signal = route.get("raise")
+                if signal:
+                    kind, signal_id = _signal_raise_selector_key(signal)
+                    refs["local_signal_raise"].add(
+                        _generated_query_local_signal_raise_ref(state_machine_id, None, invocation_id, outcome_id, kind, signal_id)
+                    )
+        for state_name, state in owner.get("view_states", {}).items():
             refs["surface"].add(state["surface"])
             refs["text"].update(state["text"])
             refs["asset"].update(state["assets"])
+            for invocation_id, invocation in sorted((state.get("query_invocations") or {}).items()):
+                refs["query_invocation"].add(_generated_query_invocation_ref(state_machine_id, state_name, invocation_id))
+                for outcome_id, route in sorted(invocation.get("outcome_routes", {}).items()):
+                    refs["query_outcome_route"].add(_generated_query_outcome_route_ref(state_machine_id, state_name, invocation_id, outcome_id))
+                    signal = route.get("raise")
+                    if signal:
+                        kind, signal_id = _signal_raise_selector_key(signal)
+                        refs["local_signal_raise"].add(
+                            _generated_query_local_signal_raise_ref(state_machine_id, state_name, invocation_id, outcome_id, kind, signal_id)
+                        )
+            for invocation_id, invocation in sorted((state.get("operation_invocations") or {}).items()):
+                refs["operation_invocation"].add(_generated_operation_invocation_ref(state_machine_id, state_name, invocation_id))
+                for outcome_id, route in sorted(invocation.get("outcome_routes", {}).items()):
+                    refs["operation_outcome_route"].add(_generated_operation_outcome_route_ref(state_machine_id, state_name, invocation_id, outcome_id))
+                    signal = route.get("raise")
+                    if signal:
+                        kind, signal_id = _signal_raise_selector_key(signal)
+                        refs["local_signal_raise"].add(
+                            _generated_operation_local_signal_raise_ref(state_machine_id, state_name, invocation_id, outcome_id, kind, signal_id)
+                        )
     for entry_id, entry in contract["entry_points"].items():
         target_kind, target_ref = entry_target_pair(entry)
         refs["entry_point_target"].add(_generated_entry_point_target_ref(entry_id, target_kind, target_ref))
@@ -648,6 +676,47 @@ def _generated_cli_response_handler_ref(entry_id: str, outcome_id: str) -> str:
 
 def _generated_runtime_response_ref(entry_id: str, outcome_id: str, stream_name: str, binding_name: str) -> str:
     return f"runtime_response.{rules.resource_tail(entry_id)}.{outcome_id}.{stream_name}.{binding_name}"
+
+
+def _generated_operation_invocation_ref(state_machine_id: str, state_name: str, invocation_id: str) -> str:
+    return f"operation_invocation.{rules.resource_tail(state_machine_id)}.{state_name}.{invocation_id}"
+
+
+def _generated_operation_outcome_route_ref(state_machine_id: str, state_name: str, invocation_id: str, outcome_id: str) -> str:
+    return f"operation_outcome_route.{rules.resource_tail(state_machine_id)}.{state_name}.{invocation_id}.{outcome_id}"
+
+
+def _generated_query_invocation_ref(state_machine_id: str, state_name: str | None, invocation_id: str) -> str:
+    state_part = f".{state_name}" if state_name else ""
+    return f"query_invocation.{rules.resource_tail(state_machine_id)}{state_part}.{invocation_id}"
+
+
+def _generated_query_outcome_route_ref(state_machine_id: str, state_name: str | None, invocation_id: str, outcome_id: str) -> str:
+    state_part = f".{state_name}" if state_name else ""
+    return f"query_outcome_route.{rules.resource_tail(state_machine_id)}{state_part}.{invocation_id}.{outcome_id}"
+
+
+def _generated_operation_local_signal_raise_ref(
+    state_machine_id: str,
+    state_name: str,
+    invocation_id: str,
+    outcome_id: str,
+    signal_kind: str,
+    signal_id: str,
+) -> str:
+    return f"local_signal_raise.{rules.resource_tail(state_machine_id)}.{state_name}.operation_invocation.{invocation_id}.{outcome_id}.{signal_kind}.{signal_id}"
+
+
+def _generated_query_local_signal_raise_ref(
+    state_machine_id: str,
+    state_name: str | None,
+    invocation_id: str,
+    outcome_id: str,
+    signal_kind: str,
+    signal_id: str,
+) -> str:
+    state_part = f".{state_name}" if state_name else ""
+    return f"local_signal_raise.{rules.resource_tail(state_machine_id)}{state_part}.query_invocation.{invocation_id}.{outcome_id}.{signal_kind}.{signal_id}"
 
 
 def _binding_references_root(binding: Any, root: str) -> bool:
@@ -1244,8 +1313,12 @@ def _validate_state_machines(contract: dict[str, Any]) -> None:
         model = state_machine.get("model")
         if model and model not in contract["models"]:
             raise ContractError(f"state machine {state_machine_id} references unknown model {model}")
-        _validate_data_bindings(
-            contract, f"state machine {state_machine_id}", state_machine.get("query_dependencies", []), state_machine.get("context", {}), model=model
+        _validate_query_invocations(
+            contract,
+            f"state machine {state_machine_id}",
+            state_machine,
+            state_machine.get("query_invocations", {}),
+            model=model,
         )
         if state_machine["initial_view_state"] not in state_machine["view_states"]:
             raise ContractError(f"state machine {state_machine_id} initial view state is not declared: {state_machine['initial_view_state']}")
@@ -1255,6 +1328,7 @@ def _validate_state_machines(contract: dict[str, Any]) -> None:
             _validate_state_machine_view_state(
                 contract,
                 f"state machine {state_machine_id}",
+                state_machine,
                 state_name,
                 state,
                 field_names=field_names,
@@ -1263,7 +1337,14 @@ def _validate_state_machines(contract: dict[str, Any]) -> None:
             )
             if state.get("child_state_machines") or state.get("renderers") or state.get("signal_sync_rules"):
                 _validate_state_composition(contract, state_machine_id, state_machine, state_name, state)
-        _validate_field_state_data_sources(f"state machine {state_machine_id}", state_machine["view_states"], state_machine.get("query_dependencies", []), state_machine.get("transitions", []), set(state_machine.get("context", {})))
+        _validate_query_invocation_id_scope(state_machine_id, state_machine)
+        _validate_field_state_data_sources(
+            f"state machine {state_machine_id}",
+            state_machine["view_states"],
+            state_machine.get("query_invocations", {}),
+            state_machine.get("transitions", []),
+            set(state_machine.get("context", {})),
+        )
         _validate_state_machine_transitions(contract, state_machine_id, state_machine)
         _validate_signals(state_machine_id, state_machine)
 
@@ -1271,52 +1352,248 @@ def _validate_state_machines(contract: dict[str, Any]) -> None:
 def _validate_state_machine_view_state(
     contract: dict[str, Any],
     owner_label: str,
+    state_machine: dict[str, Any],
     state_name: str,
     state: dict[str, Any],
     field_names: set[str],
     data_context: dict[str, Any] | None = None,
     model: str | None = None,
 ) -> None:
-    _validate_data_bindings(contract, f"{owner_label}.{state_name}", state.get("query_dependencies", []), data_context, model=model)
+    _validate_query_invocations(
+        contract,
+        f"{owner_label}.{state_name}",
+        state_machine,
+        state.get("query_invocations", {}),
+        model=model,
+    )
     for field in state.get("fields", []):
         if field not in field_names:
             raise ContractError(f"{owner_label}.{state_name} field slot is not declared on the model/context: {field}")
-    for operation in state["available_operations"]:
-        if operation not in contract["operations"]:
-            raise ContractError(f"{owner_label}.{state_name} available operation references unknown operation {operation}")
+    _validate_operation_invocations(contract, owner_label, state_machine, state_name, state)
     _validate_presentation(contract, owner_label, field_names, state_name, state)
 
 
-def _validate_data_bindings(
+def _validate_operation_invocations(
     contract: dict[str, Any],
     owner_label: str,
-    data: list[dict[str, Any]],
-    context: dict[str, Any] | None,
+    state_machine: dict[str, Any],
+    state_name: str,
+    state: dict[str, Any],
+) -> None:
+    context = state_machine.get("context", {})
+    for invocation_id, invocation in sorted((state.get("operation_invocations") or {}).items()):
+        label = f"{owner_label}.{state_name} operation_invocation {invocation_id}"
+        operation_id = invocation["operation"]
+        if operation_id not in contract["operations"]:
+            raise ContractError(f"{label} references unknown operation {operation_id}")
+        operation = contract["operations"][operation_id]
+        expected_input = operation.get("input") or {}
+        bindings = invocation.get("input_bindings") or {}
+        _validate_runtime_binding_map(
+            contract,
+            f"{label} input_bindings",
+            bindings,
+            expected_input,
+            {"context": _type_scope(context)},
+        )
+        _validate_operation_invocation_routes(contract, label, state_machine, invocation, operation)
+
+
+def _validate_operation_invocation_routes(
+    contract: dict[str, Any],
+    label: str,
+    state_machine: dict[str, Any],
+    invocation: dict[str, Any],
+    operation: dict[str, Any],
+) -> None:
+    routes = invocation["outcome_routes"]
+    expected_outcomes = set(operation["outcomes"])
+    actual_outcomes = set(routes)
+    if actual_outcomes != expected_outcomes:
+        missing = sorted(expected_outcomes - actual_outcomes)
+        extra = sorted(actual_outcomes - expected_outcomes)
+        parts = []
+        if missing:
+            parts.append("missing: " + ", ".join(missing))
+        if extra:
+            parts.append("extra: " + ", ".join(extra))
+        raise ContractError(f"{label} outcome_routes must exactly map operation outcomes" + (": " + "; ".join(parts) if parts else ""))
+
+    for outcome_id, route in sorted(routes.items()):
+        route_label = f"{label} outcome_routes.{outcome_id}"
+        outcome = operation["outcomes"][outcome_id]
+        if _validate_no_signal_route(route_label, outcome, route):
+            continue
+        signal = route.get("raise")
+        if not signal:
+            raise ContractError(f"{route_label} must raise a local signal or declare no_signal")
+        payload = _state_machine_signal_payload(
+            state_machine,
+            "accepts",
+            _signal_raise_selector(signal),
+            f"{route_label} raise",
+        )
+        _validate_optional_payload_bindings(
+            contract=contract,
+            label=f"{route_label} raise payload_bindings",
+            bindings=signal.get("payload_bindings"),
+            payload=payload,
+            scopes=_operation_outcome_route_scopes(state_machine, operation, outcome),
+        )
+
+
+def _validate_no_signal_route(label: str, outcome: dict[str, Any], route: dict[str, Any]) -> bool:
+    no_signal = route.get("no_signal")
+    if not no_signal:
+        return False
+    if outcome.get("kind") == "failure":
+        reason = no_signal.get("reason")
+        if reason not in {"handled_by_response_surface", "intentionally_unobservable"} or not no_signal.get("rationale"):
+            raise ContractError(
+                f"{label} failure outcome no_signal must use reason handled_by_response_surface "
+                "or intentionally_unobservable and declare rationale"
+            )
+    return True
+
+
+def _operation_outcome_route_scopes(
+    state_machine: dict[str, Any],
+    operation: dict[str, Any],
+    outcome: dict[str, Any],
+) -> TypeScopes:
+    operation_input = operation.get("input") or {}
+    invocation_scope = {("input",): {"object": operation_input}}
+    invocation_scope.update(_prefixed_type_scope(("input",), operation_input))
+    return {
+        "outcome": {
+            ("kind",): {"primitive": "Text"},
+            ("result",): outcome["result"],
+        },
+        "invocation": invocation_scope,
+        "context": _type_scope(state_machine.get("context", {})),
+    }
+
+
+def _validate_query_invocation_id_scope(state_machine_id: str, state_machine: dict[str, Any]) -> None:
+    owner_ids = set(state_machine.get("query_invocations", {}))
+    for state_name, state in state_machine.get("view_states", {}).items():
+        overlap = sorted(owner_ids & set(state.get("query_invocations", {})))
+        if overlap:
+            raise ContractError(
+                f"state machine {state_machine_id}.{state_name} query_invocations duplicate state-machine-scope ids: {overlap}"
+            )
+
+
+def _validate_query_invocations(
+    contract: dict[str, Any],
+    owner_label: str,
+    state_machine: dict[str, Any],
+    invocations: dict[str, Any],
     *,
     model: str | None = None,
 ) -> None:
-    context_keys = set((context or {}).keys())
-    for dependency in data:
-        operation_id = dependency["operation"]
+    context = state_machine.get("context", {})
+    for invocation_id, invocation in sorted((invocations or {}).items()):
+        label = f"{owner_label} query_invocation {invocation_id}"
+        operation_id = invocation["operation"]
         if operation_id not in contract["operations"]:
-            raise ContractError(f"{owner_label} data references unknown operation {operation_id}")
+            raise ContractError(f"{label} references unknown operation {operation_id}")
         operation = contract["operations"][operation_id]
         if operation["operation_kind"] != "query":
-            raise ContractError(f"{owner_label} data operation must be query: {operation_id}")
+            raise ContractError(f"{label} operation must have operation_kind: query")
+        if operation.get("creates") or operation.get("updates") or operation.get("deletes"):
+            raise ContractError(f"{label} query operation must not create, update, or delete models")
+        if operation.get("transition"):
+            raise ContractError(f"{label} query operation must not be a lifecycle transition")
+        emitting_outcomes = sorted(
+            outcome_id
+            for outcome_id, outcome in operation.get("outcomes", {}).items()
+            if outcome.get("emits")
+        )
+        if emitting_outcomes:
+            raise ContractError(f"{label} query operation outcomes must not emit durable events: {emitting_outcomes}")
         if model and model not in operation.get("reads", []):
-            raise ContractError(f"{owner_label} data operation {operation_id} must read model {model}")
-        input_keys = set((operation.get("input") or {}).keys())
-        missing = sorted(input_keys - context_keys)
+            raise ContractError(f"{label} operation must read model {model}")
+        _validate_runtime_binding_map(
+            contract,
+            f"{label} input_bindings",
+            invocation.get("input_bindings") or {},
+            operation.get("input") or {},
+            {"context": _type_scope(context)},
+        )
+        _validate_query_load_policy(contract, label, state_machine, invocation.get("load") or {})
+        _validate_query_invocation_routes(contract, label, state_machine, invocation, operation)
+
+
+def _validate_query_load_policy(
+    contract: dict[str, Any],
+    label: str,
+    state_machine: dict[str, Any],
+    load: dict[str, Any],
+) -> None:
+    for trigger in load.get("refresh_on", []):
+        _state_machine_signal_payload(state_machine, "accepts", trigger, f"{label} load.refresh_on")
+
+
+def _validate_query_invocation_routes(
+    contract: dict[str, Any],
+    label: str,
+    state_machine: dict[str, Any],
+    invocation: dict[str, Any],
+    operation: dict[str, Any],
+) -> None:
+    routes = invocation["outcome_routes"]
+    expected_outcomes = set(operation["outcomes"])
+    actual_outcomes = set(routes)
+    if actual_outcomes != expected_outcomes:
+        missing = sorted(expected_outcomes - actual_outcomes)
+        extra = sorted(actual_outcomes - expected_outcomes)
+        parts = []
         if missing:
-            raise ContractError(
-                f"{owner_label} data operation {operation_id} input not provided by context: {missing}"
+            parts.append("missing: " + ", ".join(missing))
+        if extra:
+            parts.append("extra: " + ", ".join(extra))
+        raise ContractError(f"{label} outcome_routes must exactly map query operation outcomes" + (": " + "; ".join(parts) if parts else ""))
+
+    for outcome_id, route in sorted(routes.items()):
+        outcome = operation["outcomes"][outcome_id]
+        route_label = f"{label} outcome_routes.{outcome_id}"
+        if not any(key in route for key in ("context_updates", "raise", "no_signal")):
+            raise ContractError(f"{route_label} must declare context_updates, raise, or no_signal")
+        _validate_no_signal_route(route_label, outcome, route)
+        scopes = _operation_outcome_route_scopes(state_machine, operation, outcome)
+        for field, binding in (route.get("context_updates") or {}).items():
+            context = state_machine.get("context", {})
+            if field not in context:
+                raise ContractError(f"{route_label} context_updates references undeclared context field: {field}")
+            _validate_expression_type(
+                contract,
+                f"{route_label} context_updates.{field}",
+                binding,
+                context[field],
+                scopes,
+            )
+        signal = route.get("raise")
+        if signal:
+            payload = _state_machine_signal_payload(
+                state_machine,
+                "accepts",
+                _signal_raise_selector(signal),
+                f"{route_label} raise",
+            )
+            _validate_optional_payload_bindings(
+                contract=contract,
+                label=f"{route_label} raise payload_bindings",
+                bindings=signal.get("payload_bindings"),
+                payload=payload,
+                scopes=scopes,
             )
 
 
 def _validate_field_state_data_sources(
     owner_label: str,
     states: dict[str, Any],
-    owner_data: list[dict[str, Any]],
+    owner_data: dict[str, Any],
     transitions: list[dict[str, Any]],
     context_fields: set[str],
 ) -> None:
@@ -1330,16 +1607,16 @@ def _validate_field_state_data_sources(
 def _state_has_data_source(
     state_name: str,
     states: dict[str, Any],
-    owner_data: list[dict[str, Any]],
+    owner_data: dict[str, Any],
     transitions: list[dict[str, Any]],
 ) -> bool:
-    if owner_data or states[state_name].get("query_dependencies"):
+    if owner_data or states[state_name].get("query_invocations"):
         return True
     for transition in transitions:
         if transition["to"] != state_name or not _is_data_signal(transition["on"]):
             continue
         source_state = states.get(transition["from"], {})
-        if owner_data or source_state.get("query_dependencies"):
+        if owner_data or source_state.get("query_invocations"):
             return True
     return False
 
@@ -1563,7 +1840,15 @@ def _state_machine_emits(state_machine: dict[str, Any]) -> set[tuple[str, str]]:
 
 
 def _state_machine_accepts(state_machine: dict[str, Any]) -> set[tuple[str, str]]:
-    return {_signal_selector_key(transition["on"]) for transition in state_machine.get("transitions", [])}
+    accepts = {_signal_selector_key(transition["on"]) for transition in state_machine.get("transitions", [])}
+    for invocation in (state_machine.get("query_invocations") or {}).values():
+        for trigger in (invocation.get("load") or {}).get("refresh_on", []):
+            accepts.add(_signal_selector_key(trigger))
+    for state in state_machine.get("view_states", {}).values():
+        for invocation in (state.get("query_invocations") or {}).values():
+            for trigger in (invocation.get("load") or {}).get("refresh_on", []):
+                accepts.add(_signal_selector_key(trigger))
+    return accepts
 
 
 def _state_machine_signal_payload(state_machine: dict[str, Any], direction: str, selector: dict[str, str], label: str) -> dict[str, Any]:
@@ -1595,6 +1880,22 @@ def _validate_payload_bindings(
         raise ContractError(f"{label} must exactly match payload fields" + (": " + "; ".join(parts) if parts else ""))
     for field, expected_type in payload.items():
         _validate_expression_type(contract, f"{label}.{field}", bindings[field], expected_type, scopes)
+
+
+def _validate_optional_payload_bindings(
+    contract: dict[str, Any] | None,
+    label: str,
+    bindings: dict[str, Any] | None,
+    payload: dict[str, Any],
+    scopes: TypeScopes,
+) -> None:
+    if not payload:
+        if bindings:
+            raise ContractError(f"{label} must be absent or empty because the signal has no payload_schema")
+        return
+    if bindings is None:
+        raise ContractError(f"{label} must exactly match payload fields: missing: {', '.join(sorted(payload))}")
+    _validate_payload_bindings(contract, label, bindings, payload, scopes)
 
 
 def _validate_expression_type(
@@ -1678,6 +1979,19 @@ def _signal_selector_key(selector: dict[str, str]) -> tuple[str, str]:
     return kind, name
 
 
+def _signal_raise_selector_key(selector: dict[str, Any]) -> tuple[str, str]:
+    if "message" in selector:
+        return "message", selector["message"]
+    if "data_signal" in selector:
+        return "data_signal", selector["data_signal"]
+    raise ContractError(f"state-machine signal raise must declare message or data_signal: {selector}")
+
+
+def _signal_raise_selector(selector: dict[str, Any]) -> dict[str, str]:
+    kind, name = _signal_raise_selector_key(selector)
+    return {kind: name}
+
+
 def _signal_label(selector: dict[str, str] | tuple[str, str]) -> str:
     kind, name = selector if isinstance(selector, tuple) else _signal_selector_key(selector)
     return f"{kind}.{name}"
@@ -1687,14 +2001,14 @@ def _is_data_signal(signal: dict[str, str]) -> bool:
     return _signal_selector_key(signal)[0] == "data_signal"
 
 
-def _transition_data_bindings(state_machine: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
+def _transition_data_bindings(state_machine: dict[str, Any], transition: dict[str, Any]) -> dict[str, Any]:
     source_state = state_machine.get("view_states", {}).get(transition["from"], {})
-    return source_state.get("query_dependencies", []) or state_machine.get("query_dependencies", [])
+    return source_state.get("query_invocations", {}) or state_machine.get("query_invocations", {})
 
 
-def _transition_target_data_bindings(state_machine: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
+def _transition_target_data_bindings(state_machine: dict[str, Any], transition: dict[str, Any]) -> dict[str, Any]:
     target_state = state_machine.get("view_states", {}).get(transition["to"], {})
-    return target_state.get("query_dependencies", [])
+    return target_state.get("query_invocations", {})
 
 
 def _transition_has_audit_content(state_machine: dict[str, Any], transition: dict[str, Any]) -> bool:
@@ -1767,7 +2081,7 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
     text_slots = {ref.rsplit(".", 1)[-1] for ref in state["text"]}
     asset_slots = {ref.rsplit(".", 1)[-1] for ref in state["assets"]}
     field_slots = set(state.get("fields", []))
-    operations = set(state["available_operations"])
+    operation_invocations = set(state["operation_invocations"])
     html_regions = set(renderer_html_regions(state))
     textual_containers = set(renderer_textual_containers(state))
     mounts = {mount["id"] for mount in state.get("child_state_machines", [])}
@@ -1777,7 +2091,7 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
         if slot["region"] not in html_regions:
             raise ContractError(f"{owner_label}.{state_name} HTML slot references undeclared layout region: {slot['region']}")
         bind_kind, bind_value = _one(slot["binding"], f"{owner_label}.{state_name} html slot binding")
-        _validate_slot_binding(owner_label, state_name, "HTML slot", bind_kind, bind_value, text_slots, asset_slots, field_slots, operations)
+        _validate_slot_binding(owner_label, state_name, "HTML slot", bind_kind, bind_value, text_slots, asset_slots, field_slots, operation_invocations)
 
     for rule in renderer_html_style(state).get("rules", []):
         _validate_renderer_style_selector(
@@ -1787,7 +2101,7 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
             text_slots,
             asset_slots,
             field_slots,
-            operations,
+            operation_invocations,
             html_regions,
             mounts,
             "html style",
@@ -1798,12 +2112,12 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
     widget_ids = [widget["id"] for widget in widgets]
     if len(widget_ids) != len(set(widget_ids)):
         raise ContractError(f"{owner_label}.{state_name} Textual widgets contain duplicate ids")
-    widget_targets = {"text_slot": set(), "asset_slot": set(), "field_slot": set(), "operation": set()}
+    widget_targets = {"text_slot": set(), "asset_slot": set(), "field_slot": set(), "operation_invocation": set()}
     for widget in widgets:
         if widget["container"] not in textual_containers:
             raise ContractError(f"{owner_label}.{state_name} Textual widget references undeclared layout container: {widget['container']}")
         bind_kind, bind_value = _one(widget["binding"], f"{owner_label}.{state_name} textual widget binding")
-        _validate_slot_binding(owner_label, state_name, "Textual widget", bind_kind, bind_value, text_slots, asset_slots, field_slots, operations)
+        _validate_slot_binding(owner_label, state_name, "Textual widget", bind_kind, bind_value, text_slots, asset_slots, field_slots, operation_invocations)
         if bind_kind in widget_targets:
             widget_targets[bind_kind].add(bind_value)
     for rule in renderer_textual_style(state).get("rules", []):
@@ -1815,7 +2129,7 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
             text_slots,
             asset_slots,
             field_slots,
-            operations,
+            operation_invocations,
             textual_containers,
             mounts,
             "textual style",
@@ -1824,9 +2138,9 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
             name = selector[len("slot."):]
             if name not in widget_targets["text_slot"] and name not in widget_targets["asset_slot"] and name not in widget_targets["field_slot"]:
                 raise ContractError(f"{owner_label}.{state_name} textual style selector has no matching Textual widget: {selector}")
-        if widgets and selector.startswith("operation."):
-            operation = selector[len("operation."):]
-            if operation not in widget_targets["operation"]:
+        if widgets and selector.startswith("operation_invocation."):
+            operation = selector[len("operation_invocation."):]
+            if operation not in widget_targets["operation_invocation"]:
                 raise ContractError(f"{owner_label}.{state_name} textual style selector has no matching Textual widget: {selector}")
 
 
@@ -1839,14 +2153,14 @@ def _validate_slot_binding(
     text_slots: set[str],
     asset_slots: set[str],
     field_slots: set[str],
-    operations: set[str],
+    operation_invocations: set[str],
 ) -> None:
     if bind_kind == "text_slot" and bind_value not in text_slots:
         raise ContractError(f"{owner_label}.{state_name} {label} text_slot binding is not declared: {bind_value}")
     if bind_kind == "asset_slot" and bind_value not in asset_slots:
         raise ContractError(f"{owner_label}.{state_name} {label} asset_slot binding is not declared: {bind_value}")
-    if bind_kind == "operation" and bind_value not in operations:
-        raise ContractError(f"{owner_label}.{state_name} {label} operation binding is not declared: {bind_value}")
+    if bind_kind == "operation_invocation" and bind_value not in operation_invocations:
+        raise ContractError(f"{owner_label}.{state_name} {label} operation_invocation binding is not declared: {bind_value}")
     if bind_kind == "field_slot" and bind_value not in field_slots:
         raise ContractError(f"{owner_label}.{state_name} {label} field_slot binding is not declared: {bind_value}")
 
@@ -1858,7 +2172,7 @@ def _validate_renderer_style_selector(
     text_slots: set[str],
     asset_slots: set[str],
     field_slots: set[str],
-    operations: set[str],
+    operation_invocations: set[str],
     regions: set[str],
     mounts: set[str],
     label: str,
@@ -1866,7 +2180,7 @@ def _validate_renderer_style_selector(
     if selector.startswith("region.") or selector.startswith("container.") or selector.startswith("child_state_machine."):
         _validate_composition_selector(f"{owner_label}.{state_name}", selector, regions, mounts, label)
         return
-    _validate_style_selector(owner_label, state_name, selector, text_slots, asset_slots, field_slots, operations, label)
+    _validate_style_selector(owner_label, state_name, selector, text_slots, asset_slots, field_slots, operation_invocations, label)
 
 
 def _validate_style_selector(
@@ -1876,7 +2190,7 @@ def _validate_style_selector(
     text_slots: set[str],
     asset_slots: set[str],
     field_slots: set[str],
-    operations: set[str],
+    operation_invocations: set[str],
     label: str,
 ) -> None:
     if selector == "root" and label.startswith("html"):
@@ -1888,10 +2202,10 @@ def _validate_style_selector(
         if name not in text_slots and name not in asset_slots and name not in field_slots:
             raise ContractError(f"{owner_label}.{state_name} {label} selector references undeclared slot: {selector}")
         return
-    if selector.startswith("operation."):
-        ref = selector[len("operation."):]
-        if ref not in operations:
-            raise ContractError(f"{owner_label}.{state_name} {label} selector references undeclared operation: {ref}")
+    if selector.startswith("operation_invocation."):
+        ref = selector[len("operation_invocation."):]
+        if ref not in operation_invocations:
+            raise ContractError(f"{owner_label}.{state_name} {label} selector references undeclared operation_invocation: {ref}")
         return
     raise ContractError(f"{owner_label}.{state_name} {label} selector is not supported: {selector}")
 
@@ -2614,31 +2928,55 @@ def _validate_state_machine_entry_inputs(
 def _required_entry_state_machine_context(contract: dict[str, Any], state_machine_id: str) -> dict[str, Any]:
     state_machine = contract["state_machines"][state_machine_id]
     required: dict[str, Any] = {}
-    _add_data_context_requirements(contract, f"state machine {state_machine_id}", state_machine.get("query_dependencies", []), state_machine.get("context", {}), required)
+    _add_query_context_requirements(
+        contract,
+        f"state machine {state_machine_id}",
+        state_machine.get("query_invocations", {}),
+        state_machine.get("context", {}),
+        required,
+    )
     for state_name, state in state_machine.get("view_states", {}).items():
-        _add_data_context_requirements(contract, f"state machine {state_machine_id}.{state_name}", state.get("query_dependencies", []), state_machine.get("context", {}), required)
+        _add_query_context_requirements(
+            contract,
+            f"state machine {state_machine_id}.{state_name}",
+            state.get("query_invocations", {}),
+            state_machine.get("context", {}),
+            required,
+        )
         for mount in state.get("child_state_machines", []):
-            state_machine = contract["state_machines"][mount["state_machine"]]
-            initial_state = state_machine["view_states"][mount["initial_view_state"]]
-            _add_mount_context_requirements(contract, state_machine_id, mount, state_machine, state_machine.get("query_dependencies", []), required)
-            _add_mount_context_requirements(contract, state_machine_id, mount, state_machine, initial_state.get("query_dependencies", []), required)
+            child_state_machine = contract["state_machines"][mount["state_machine"]]
+            initial_state = child_state_machine["view_states"][mount["initial_view_state"]]
+            _add_mount_context_requirements(
+                contract,
+                state_machine_id,
+                mount,
+                child_state_machine,
+                child_state_machine.get("query_invocations", {}),
+                required,
+            )
+            _add_mount_context_requirements(
+                contract,
+                state_machine_id,
+                mount,
+                child_state_machine,
+                initial_state.get("query_invocations", {}),
+                required,
+            )
     return required
 
 
-def _add_data_context_requirements(
+def _add_query_context_requirements(
     contract: dict[str, Any],
     label: str,
-    data: list[dict[str, Any]],
+    invocations: dict[str, Any],
     context: dict[str, Any],
     required: dict[str, Any],
 ) -> None:
-    for dependency in data:
-        operation = contract["operations"][dependency["operation"]]
-        for key, expected_type in operation["input"].items():
-            actual_type = context.get(key)
-            if not type_equals(actual_type, expected_type):
-                raise ContractError(f"{label} context {key} type must be {type_display(expected_type)}, got {type_display(actual_type)}")
-            _add_required_entry_context(required, key, expected_type, label)
+    for invocation_id, invocation in sorted((invocations or {}).items()):
+        for key in _context_roots_from_input_bindings(f"{label} query_invocation {invocation_id}", invocation.get("input_bindings") or {}):
+            if key not in context:
+                raise ContractError(f"{label} query_invocation {invocation_id} references undeclared context field: {key}")
+            _add_required_entry_context(required, key, context[key], label)
 
 
 def _add_mount_context_requirements(
@@ -2646,17 +2984,18 @@ def _add_mount_context_requirements(
     state_machine_id: str,
     mount: dict[str, Any],
     state_machine: dict[str, Any],
-    data: list[dict[str, Any]],
+    invocations: dict[str, Any],
     required: dict[str, Any],
 ) -> None:
     mount_context = mount.get("context_bindings", {})
     child_state_machine_context = state_machine.get("context", {})
     parent_state_machine_context = contract["state_machines"][state_machine_id].get("context", {})
-    for dependency in data:
-        operation = contract["operations"][dependency["operation"]]
-        for child_key, expected_type in operation["input"].items():
-            if not type_equals(child_state_machine_context.get(child_key), expected_type):
-                raise ContractError(f"composed state machine {state_machine_id}.{mount['id']} state machine context {child_key} type must be {type_display(expected_type)}")
+    for invocation_id, invocation in sorted((invocations or {}).items()):
+        label = f"composed state machine {state_machine_id}.{mount['id']} query_invocation {invocation_id}"
+        for child_key in _context_roots_from_input_bindings(label, invocation.get("input_bindings") or {}):
+            if child_key not in child_state_machine_context:
+                raise ContractError(f"{label} references undeclared child context field: {child_key}")
+            expected_type = child_state_machine_context[child_key]
             value = mount_context.get(child_key)
             if not (isinstance(value, dict) and "from" in value and is_reference_expression(value["from"])):
                 continue
@@ -2682,8 +3021,22 @@ def _add_mount_context_requirements(
                 required,
                 parent_key,
                 parent_state_machine_context[parent_key],
-                f"composed state machine {state_machine_id}.{mount['id']}",
+                label,
             )
+
+
+def _context_roots_from_input_bindings(label: str, bindings: dict[str, Any]) -> set[str]:
+    roots: set[str] = set()
+    for field, binding in bindings.items():
+        if not (isinstance(binding, dict) and set(binding) == {"from"}):
+            continue
+        try:
+            ref = parse_reference_expression(binding["from"])
+        except ReferenceExpressionError as exc:
+            raise ContractError(f"{label} input_bindings.{field} references unsupported expression: {binding['from']}") from exc
+        if ref.root == "context" and ref.path:
+            roots.add(ref.path[0])
+    return roots
 
 
 def _add_required_entry_context(required: dict[str, Any], key: str, type_name: Any, label: str) -> None:
@@ -2746,6 +3099,10 @@ def _validate_problem_type(label: str, type_name: Any) -> None:
 
 def _type_scope(types: dict[str, Any]) -> TypeScope:
     return {(name,): type_name for name, type_name in types.items()}
+
+
+def _prefixed_type_scope(prefix: tuple[str, ...], types: dict[str, Any]) -> TypeScope:
+    return {(*prefix, name): type_name for name, type_name in types.items()}
 
 
 def _typed_source_paths(contract: dict[str, Any], prefix: tuple[str, ...], type_name: Any) -> TypeScope:
@@ -3536,25 +3893,31 @@ def _expand_test_cases(contract: dict[str, Any]) -> None:
                 parent_state_machine = state_machine
                 parent_state = parent_state_machine["view_states"][state_name]
                 mounts = {mount["id"]: mount for mount in parent_state.get("child_state_machines", [])}
-                required = {"queries": [dependency["query"] for dependency in parent_state_machine.get("query_dependencies", [])], "surfaces": [], "text": [], "assets": [], "available_operations": []}
+                required = {
+                    "query_invocations": list(parent_state_machine.get("query_invocations", {})),
+                    "surfaces": [],
+                    "text": [],
+                    "assets": [],
+                    "operation_invocations": [],
+                }
                 state_machine_assertion["surface"] = parent_state["surface"]
                 required["surfaces"].append(parent_state["surface"])
-                required["queries"].extend(dependency["query"] for dependency in parent_state.get("query_dependencies", []))
+                required["query_invocations"].extend(parent_state.get("query_invocations", {}))
                 required["text"].extend(parent_state["text"])
                 required["assets"].extend(parent_state["assets"])
-                required["available_operations"].extend(parent_state["available_operations"])
+                required["operation_invocations"].extend(parent_state["operation_invocations"])
                 for instance_id, expected in state_machine_assertion["instances"].items():
                     mount = mounts[instance_id]
                     mounted_state_machine = contract["state_machines"][mount["state_machine"]]
                     mounted_state = mounted_state_machine["view_states"][expected["view_state"]]
                     expected["surface"] = mounted_state["surface"]
                     expected["source"] = mount["state_machine"]
-                    required["queries"].extend(dependency["query"] for dependency in mounted_state_machine.get("query_dependencies", []))
-                    required["queries"].extend(dependency["query"] for dependency in mounted_state.get("query_dependencies", []))
+                    required["query_invocations"].extend(mounted_state_machine.get("query_invocations", {}))
+                    required["query_invocations"].extend(mounted_state.get("query_invocations", {}))
                     required["surfaces"].append(mounted_state["surface"])
                     required["text"].extend(mounted_state["text"])
                     required["assets"].extend(mounted_state["assets"])
-                    required["available_operations"].extend(mounted_state["available_operations"])
+                    required["operation_invocations"].extend(mounted_state["operation_invocations"])
                 state_machine_assertion["composition"] = {
                     "renderers": parent_state.get("renderers", {}),
                     "child_state_machines": parent_state.get("child_state_machines", []),
@@ -3566,11 +3929,11 @@ def _expand_test_cases(contract: dict[str, Any]) -> None:
                 state = state_machine["view_states"][state_name]
                 state_machine_assertion["surface"] = state["surface"]
                 assertions["requires"] = {
-                    "queries": [dependency["query"] for dependency in state_machine.get("query_dependencies", [])] + [dependency["query"] for dependency in state.get("query_dependencies", [])],
+                    "query_invocations": list(state_machine.get("query_invocations", {})) + list(state.get("query_invocations", {})),
                     "surfaces": [state["surface"]],
                     "text": list(state["text"]),
                     "assets": list(state["assets"]),
-                    "available_operations": list(state["available_operations"]),
+                    "operation_invocations": list(state["operation_invocations"]),
                 }
         when_kind, when_body = _one(test_case["when"], "test case when")
         cap_id = None

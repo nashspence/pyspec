@@ -57,8 +57,9 @@ class ProductApp:
         workspace_id = context.get("workspace_id")
         matching = [p for p in self.projects if p.get("workspace_id") == workspace_id]
         parent_state_name = "ready" if "ready" in state_machine.get("view_states", {}) else next(iter(state_machine.get("view_states", {"ready": {}})))
-        parent_state = state_machine["view_states"].get(parent_state_name, {"surface": None, "text": [], "assets": [], "available_operations": [], "query_dependencies": []})
+        parent_state = state_machine["view_states"].get(parent_state_name, {"surface": None, "text": [], "assets": [], "operation_invocations": {}, "query_invocations": {}})
         if parent_state.get("child_state_machines"):
+            parent_state_machine = state_machine
             state_machines: dict[str, Any] = {}
             for mount in parent_state["child_state_machines"]:
                 source_id = mount["state_machine"]
@@ -69,19 +70,25 @@ class ProductApp:
                     "source": source_id,
                     "view_state": state_name,
                     "surface": state["surface"],
-                    "query_dependencies": list(child_state_machine.get("query_dependencies", [])) + list(state.get("query_dependencies", [])),
+                    "query_invocations": {
+                        **child_state_machine.get("query_invocations", {}),
+                        **state.get("query_invocations", {}),
+                    },
                     "text": list(state["text"]),
                     "assets": list(state["assets"]),
-                    "available_operations": list(state["available_operations"]),
+                    "operation_invocations": dict(state["operation_invocations"]),
                 }
             self.rendered_state_machine = {
                 "ref": state_machine_id,
                 "view_state": parent_state_name,
                 "surface": parent_state.get("surface"),
-                "query_dependencies": list(state_machine.get("query_dependencies", [])) + list(parent_state.get("query_dependencies", [])),
+                "query_invocations": {
+                    **parent_state_machine.get("query_invocations", {}),
+                    **parent_state.get("query_invocations", {}),
+                },
                 "text": list(parent_state.get("text", [])),
                 "assets": list(parent_state.get("assets", [])),
-                "available_operations": list(parent_state.get("available_operations", [])),
+                "operation_invocations": dict(parent_state.get("operation_invocations", {})),
                 "context": context,
                 "instances": state_machines,
                 "signal_sync_rules": [rule["id"] for rule in parent_state.get("signal_sync_rules", [])],
@@ -95,7 +102,11 @@ class ProductApp:
             "surface": state["surface"],
             "text": list(state["text"]),
             "assets": list(state["assets"]),
-            "available_operations": list(state["available_operations"]),
+            "query_invocations": {
+                **state_machine.get("query_invocations", {}),
+                **state.get("query_invocations", {}),
+            },
+            "operation_invocations": dict(state["operation_invocations"]),
         }
         return self.rendered_state_machine
 
@@ -105,7 +116,7 @@ class ProductApp:
             if _condition_matches(selected["when"], context):
                 return selected["view_state"]
             return mount["initial_view_state"]
-        if records and "ready" in state_machine["view_states"] and (state_machine.get("query_dependencies") or state_machine["view_states"]["ready"].get("query_dependencies")):
+        if records and "ready" in state_machine["view_states"] and (state_machine.get("query_invocations") or state_machine["view_states"]["ready"].get("query_invocations")):
             return "ready"
         if not records and "empty" in state_machine["view_states"]:
             return "empty"
@@ -131,6 +142,21 @@ class ProductApp:
                 values.update(state_machine.get(key, []))
             return values
         return set(self.rendered_state_machine.get(key, []))
+
+    def _rendered_operation_refs(self) -> set[str]:
+        if not self.rendered_state_machine:
+            return set()
+
+        def operations(item: dict[str, Any]) -> set[str]:
+            invocations = item.get("operation_invocations") or {}
+            return {invocation["operation"] for invocation in invocations.values()}
+
+        if "instances" in self.rendered_state_machine:
+            refs = operations(self.rendered_state_machine)
+            for state_machine in self.rendered_state_machine["instances"].values():
+                refs.update(operations(state_machine))
+            return refs
+        return operations(self.rendered_state_machine)
 
     def call_entry_point(self, entry_id: str, input_values: Mapping[str, Any]) -> dict[str, Any]:
         entry = self.contract["entry_points"][entry_id]
@@ -259,7 +285,7 @@ class ProductApp:
             rendered_state_machines = self._rendered_state_machine_ids()
             rendered_text = self._rendered_values("text")
             rendered_assets = self._rendered_values("assets")
-            rendered_actions = self._rendered_values("available_operations")
+            rendered_actions = self._rendered_values("operation_invocations")
             for state_machine in requires.get("surfaces", []):
                 assert state_machine in self.surfaces
                 assert state_machine in rendered_state_machines
@@ -267,12 +293,12 @@ class ProductApp:
                 assert key in rendered_text
             for key in requires.get("assets", []):
                 assert key in rendered_assets
-            for cap in requires.get("available_operations", []):
+            for cap in requires.get("operation_invocations", []):
                 assert cap in rendered_actions
         for cap in assertions.get("enables", []):
-            assert cap in self._rendered_values("available_operations")
+            assert cap in self._rendered_operation_refs()
         for cap in assertions.get("forbids", []):
-            assert cap not in self._rendered_values("available_operations")
+            assert cap not in self._rendered_operation_refs()
         exists = (assertions.get("model") or {}).get("exists")
         if exists:
             where = self._resolve_map(exists["where"])

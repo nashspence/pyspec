@@ -236,11 +236,11 @@
       "id": "state_machine.project.activity.empty",
       "owner": "state_machine.project.activity",
       "owner_kind": "state_machine",
-      "query_dependencies": [],
+      "query_invocations": {},
       "slots": {
         "assets": [],
-        "available_operations": [],
         "fields": [],
+        "operation_invocations": {},
         "text": [
           "text.project.activity.empty.heading",
           "text.project.activity.empty.body"
@@ -284,20 +284,52 @@
       "id": "state_machine.project.activity.ready",
       "owner": "state_machine.project.activity",
       "owner_kind": "state_machine",
-      "query_dependencies": [
-        {
+      "query_invocations": {
+        "read_activity": {
+          "input_bindings": {
+            "project_id": {
+              "from": "$context.project_id"
+            }
+          },
+          "load": {
+            "on_enter": true
+          },
           "operation": "operation.project.read",
-          "query": "query.project.activity.read"
+          "outcome_routes": {
+            "forbidden": {
+              "no_signal": {
+                "rationale": "The activity panel remains in its current state when authorization blocks the refresh.",
+                "reason": "handled_by_response_surface"
+              }
+            },
+            "found": {
+              "no_signal": {
+                "reason": "state_unchanged"
+              }
+            },
+            "not_found": {
+              "no_signal": {
+                "rationale": "The parent detail panel owns not-found display for the selected project.",
+                "reason": "handled_by_response_surface"
+              }
+            },
+            "unauthenticated": {
+              "no_signal": {
+                "rationale": "The entry response surface owns unauthenticated display.",
+                "reason": "handled_by_response_surface"
+              }
+            }
+          }
         }
-      ],
+      },
       "slots": {
         "assets": [],
-        "available_operations": [],
         "fields": [
           "updated_at",
           "status",
           "assignee"
         ],
+        "operation_invocations": {},
         "text": [
           "text.project.activity.ready.heading"
         ]
@@ -340,7 +372,7 @@
       "id": "state_machine.project.board.ready",
       "owner": "state_machine.project.board",
       "owner_kind": "state_machine",
-      "query_dependencies": [],
+      "query_invocations": {},
       "renderers": {
         "html": {
           "layout": {
@@ -410,8 +442,8 @@
       },
       "slots": {
         "assets": [],
-        "available_operations": [],
         "fields": [],
+        "operation_invocations": {},
         "text": []
       },
       "state_machine": {
@@ -432,11 +464,11 @@
       "id": "state_machine.project.detail.error",
       "owner": "state_machine.project.detail",
       "owner_kind": "state_machine",
-      "query_dependencies": [],
+      "query_invocations": {},
       "slots": {
         "assets": [],
-        "available_operations": [],
         "fields": [],
+        "operation_invocations": {},
         "text": [
           "text.project.detail.error.heading",
           "text.project.detail.error.body"
@@ -485,6 +517,22 @@
               "message": "selection_cleared"
             },
             "to": "none"
+          },
+          {
+            "from": "ready",
+            "on": {
+              "data_signal": "ready"
+            },
+            "rationale": "Successful detail operations refresh the ready-state project data.",
+            "to": "ready"
+          },
+          {
+            "from": "ready",
+            "on": {
+              "message": "show_invalid_state"
+            },
+            "rationale": "Invalid detail operations move the detail panel into its displayable error state.",
+            "to": "error"
           }
         ]
       },
@@ -494,16 +542,45 @@
       "id": "state_machine.project.detail.loading",
       "owner": "state_machine.project.detail",
       "owner_kind": "state_machine",
-      "query_dependencies": [
-        {
+      "query_invocations": {
+        "read_project": {
+          "input_bindings": {
+            "project_id": {
+              "from": "$context.project_id"
+            }
+          },
+          "load": {
+            "on_enter": true
+          },
           "operation": "operation.project.read",
-          "query": "query.project.detail.read"
+          "outcome_routes": {
+            "forbidden": {
+              "raise": {
+                "data_signal": "error"
+              }
+            },
+            "found": {
+              "raise": {
+                "data_signal": "ready"
+              }
+            },
+            "not_found": {
+              "raise": {
+                "data_signal": "error"
+              }
+            },
+            "unauthenticated": {
+              "raise": {
+                "data_signal": "error"
+              }
+            }
+          }
         }
-      ],
+      },
       "slots": {
         "assets": [],
-        "available_operations": [],
         "fields": [],
+        "operation_invocations": {},
         "text": [
           "text.project.detail.loading.message"
         ]
@@ -551,6 +628,22 @@
               "message": "selection_cleared"
             },
             "to": "none"
+          },
+          {
+            "from": "ready",
+            "on": {
+              "data_signal": "ready"
+            },
+            "rationale": "Successful detail operations refresh the ready-state project data.",
+            "to": "ready"
+          },
+          {
+            "from": "ready",
+            "on": {
+              "message": "show_invalid_state"
+            },
+            "rationale": "Invalid detail operations move the detail panel into its displayable error state.",
+            "to": "error"
           }
         ]
       },
@@ -560,11 +653,11 @@
       "id": "state_machine.project.detail.none",
       "owner": "state_machine.project.detail",
       "owner_kind": "state_machine",
-      "query_dependencies": [],
+      "query_invocations": {},
       "slots": {
         "assets": [],
-        "available_operations": [],
         "fields": [],
+        "operation_invocations": {},
         "text": [
           "text.project.detail.none.heading",
           "text.project.detail.none.body"
@@ -613,6 +706,22 @@
               "message": "selection_cleared"
             },
             "to": "none"
+          },
+          {
+            "from": "ready",
+            "on": {
+              "data_signal": "ready"
+            },
+            "rationale": "Successful detail operations refresh the ready-state project data.",
+            "to": "ready"
+          },
+          {
+            "from": "ready",
+            "on": {
+              "message": "show_invalid_state"
+            },
+            "rationale": "Invalid detail operations move the detail panel into its displayable error state.",
+            "to": "error"
           }
         ]
       },
@@ -622,14 +731,59 @@
       "id": "state_machine.project.detail.ready",
       "owner": "state_machine.project.detail",
       "owner_kind": "state_machine",
-      "query_dependencies": [],
+      "query_invocations": {
+        "read_project": {
+          "input_bindings": {
+            "project_id": {
+              "from": "$context.project_id"
+            }
+          },
+          "load": {
+            "on_enter": true
+          },
+          "operation": "operation.project.read",
+          "outcome_routes": {
+            "forbidden": {
+              "raise": {
+                "message": "show_invalid_state",
+                "payload_bindings": {
+                  "message": {
+                    "from": "$outcome.result.message"
+                  }
+                }
+              }
+            },
+            "found": {
+              "no_signal": {
+                "reason": "handled_by_query_refresh"
+              }
+            },
+            "not_found": {
+              "raise": {
+                "message": "show_invalid_state",
+                "payload_bindings": {
+                  "message": {
+                    "from": "$outcome.result.message"
+                  }
+                }
+              }
+            },
+            "unauthenticated": {
+              "raise": {
+                "message": "show_invalid_state",
+                "payload_bindings": {
+                  "message": {
+                    "from": "$outcome.result.message"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "slots": {
         "assets": [
           "asset.project.detail.ready.priority_badge"
-        ],
-        "available_operations": [
-          "operation.project.approve",
-          "operation.project.archive"
         ],
         "fields": [
           "title",
@@ -638,6 +792,103 @@
           "assignee",
           "summary"
         ],
+        "operation_invocations": {
+          "approve": {
+            "input_bindings": {
+              "approved_by": {
+                "value": "reviewer_1"
+              },
+              "project_id": {
+                "from": "$context.project_id"
+              }
+            },
+            "operation": "operation.project.approve",
+            "outcome_routes": {
+              "approved": {
+                "raise": {
+                  "data_signal": "ready"
+                }
+              },
+              "forbidden": {
+                "no_signal": {
+                  "rationale": "The response surface keeps the detail panel unchanged for forbidden approval.",
+                  "reason": "handled_by_response_surface"
+                }
+              },
+              "invalid_state": {
+                "raise": {
+                  "message": "show_invalid_state",
+                  "payload_bindings": {
+                    "message": {
+                      "from": "$outcome.result.message"
+                    }
+                  }
+                }
+              },
+              "not_found": {
+                "no_signal": {
+                  "rationale": "The response surface reports a missing project without a local transition.",
+                  "reason": "handled_by_response_surface"
+                }
+              },
+              "unauthenticated": {
+                "no_signal": {
+                  "rationale": "The response surface reports authentication failure without a local transition.",
+                  "reason": "handled_by_response_surface"
+                }
+              },
+              "unavailable": {
+                "no_signal": {
+                  "rationale": "The response surface reports temporary unavailability without a local transition.",
+                  "reason": "handled_by_response_surface"
+                }
+              }
+            }
+          },
+          "archive": {
+            "input_bindings": {
+              "project_id": {
+                "from": "$context.project_id"
+              }
+            },
+            "operation": "operation.project.archive",
+            "outcome_routes": {
+              "archived": {
+                "raise": {
+                  "data_signal": "ready"
+                }
+              },
+              "forbidden": {
+                "no_signal": {
+                  "rationale": "The response surface keeps the detail panel unchanged for forbidden archive.",
+                  "reason": "handled_by_response_surface"
+                }
+              },
+              "invalid_state": {
+                "raise": {
+                  "message": "show_invalid_state",
+                  "payload_bindings": {
+                    "message": {
+                      "from": "$outcome.result.message"
+                    }
+                  }
+                }
+              },
+              "not_found": {
+                "no_signal": {
+                  "rationale": "The response surface reports a missing project without a local transition.",
+                  "reason": "handled_by_response_surface"
+                }
+              },
+              "unauthenticated": {
+                "no_signal": {
+                  "rationale": "The response surface reports authentication failure without a local transition.",
+                  "reason": "handled_by_response_surface"
+                }
+              }
+            }
+          }
+        },
         "text": [
           "text.project.detail.ready.heading"
         ]
@@ -685,6 +936,22 @@
               "message": "selection_cleared"
             },
             "to": "none"
+          },
+          {
+            "from": "ready",
+            "on": {
+              "data_signal": "ready"
+            },
+            "rationale": "Successful detail operations refresh the ready-state project data.",
+            "to": "ready"
+          },
+          {
+            "from": "ready",
+            "on": {
+              "message": "show_invalid_state"
+            },
+            "rationale": "Invalid detail operations move the detail panel into its displayable error state.",
+            "to": "error"
           }
         ]
       },
@@ -694,15 +961,60 @@
       "id": "state_machine.project.list.empty",
       "owner": "state_machine.project.list",
       "owner_kind": "state_machine",
-      "query_dependencies": [],
+      "query_invocations": {},
       "slots": {
         "assets": [
           "asset.project.list.empty.illustration"
         ],
-        "available_operations": [
-          "operation.project.create"
-        ],
         "fields": [],
+        "operation_invocations": {
+          "create": {
+            "input_bindings": {
+              "customer": {
+                "value": "Atlas Foods"
+              },
+              "priority": {
+                "value": "High"
+              },
+              "title": {
+                "value": "Replace rooftop condenser fan"
+              },
+              "workspace_id": {
+                "from": "$context.workspace_id"
+              }
+            },
+            "operation": "operation.project.create",
+            "outcome_routes": {
+              "created": {
+                "raise": {
+                  "data_signal": "ready"
+                }
+              },
+              "forbidden": {
+                "no_signal": {
+                  "rationale": "The response surface keeps the empty list visible for forbidden create.",
+                  "reason": "handled_by_response_surface"
+                }
+              },
+              "unauthenticated": {
+                "no_signal": {
+                  "rationale": "The response surface reports authentication failure without a local transition.",
+                  "reason": "handled_by_response_surface"
+                }
+              },
+              "validation_failed": {
+                "raise": {
+                  "message": "show_invalid_state",
+                  "payload_bindings": {
+                    "message": {
+                      "from": "$outcome.result.message"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
         "text": [
           "text.project.list.empty.heading",
           "text.project.list.empty.body"
@@ -748,6 +1060,14 @@
             "to": "ready"
           },
           {
+            "from": "empty",
+            "on": {
+              "message": "show_invalid_state"
+            },
+            "rationale": "Invalid create attempts move the list into its displayable error state.",
+            "to": "error"
+          },
+          {
             "effects": [
               {
                 "emit": {
@@ -765,6 +1085,22 @@
               "message": "project_select"
             },
             "to": "ready"
+          },
+          {
+            "from": "ready",
+            "on": {
+              "data_signal": "ready"
+            },
+            "rationale": "Successful list operations refresh ready-state collection data.",
+            "to": "ready"
+          },
+          {
+            "from": "ready",
+            "on": {
+              "message": "show_invalid_state"
+            },
+            "rationale": "Invalid list operations move the list into its displayable error state.",
+            "to": "error"
           }
         ]
       },
@@ -774,11 +1110,11 @@
       "id": "state_machine.project.list.error",
       "owner": "state_machine.project.list",
       "owner_kind": "state_machine",
-      "query_dependencies": [],
+      "query_invocations": {},
       "slots": {
         "assets": [],
-        "available_operations": [],
         "fields": [],
+        "operation_invocations": {},
         "text": [
           "text.project.list.error.heading",
           "text.project.list.error.body"
@@ -824,6 +1160,14 @@
             "to": "ready"
           },
           {
+            "from": "empty",
+            "on": {
+              "message": "show_invalid_state"
+            },
+            "rationale": "Invalid create attempts move the list into its displayable error state.",
+            "to": "error"
+          },
+          {
             "effects": [
               {
                 "emit": {
@@ -841,6 +1185,22 @@
               "message": "project_select"
             },
             "to": "ready"
+          },
+          {
+            "from": "ready",
+            "on": {
+              "data_signal": "ready"
+            },
+            "rationale": "Successful list operations refresh ready-state collection data.",
+            "to": "ready"
+          },
+          {
+            "from": "ready",
+            "on": {
+              "message": "show_invalid_state"
+            },
+            "rationale": "Invalid list operations move the list into its displayable error state.",
+            "to": "error"
           }
         ]
       },
@@ -850,11 +1210,11 @@
       "id": "state_machine.project.list.loading",
       "owner": "state_machine.project.list",
       "owner_kind": "state_machine",
-      "query_dependencies": [],
+      "query_invocations": {},
       "slots": {
         "assets": [],
-        "available_operations": [],
         "fields": [],
+        "operation_invocations": {},
         "text": [
           "text.project.list.loading.message"
         ]
@@ -899,6 +1259,14 @@
             "to": "ready"
           },
           {
+            "from": "empty",
+            "on": {
+              "message": "show_invalid_state"
+            },
+            "rationale": "Invalid create attempts move the list into its displayable error state.",
+            "to": "error"
+          },
+          {
             "effects": [
               {
                 "emit": {
@@ -916,6 +1284,22 @@
               "message": "project_select"
             },
             "to": "ready"
+          },
+          {
+            "from": "ready",
+            "on": {
+              "data_signal": "ready"
+            },
+            "rationale": "Successful list operations refresh ready-state collection data.",
+            "to": "ready"
+          },
+          {
+            "from": "ready",
+            "on": {
+              "message": "show_invalid_state"
+            },
+            "rationale": "Invalid list operations move the list into its displayable error state.",
+            "to": "error"
           }
         ]
       },
@@ -925,19 +1309,102 @@
       "id": "state_machine.project.list.ready",
       "owner": "state_machine.project.list",
       "owner_kind": "state_machine",
-      "query_dependencies": [],
+      "query_invocations": {},
       "slots": {
         "assets": [],
-        "available_operations": [
-          "operation.project.create",
-          "operation.project.submit"
-        ],
         "fields": [
           "title",
           "customer",
           "priority",
           "status"
         ],
+        "operation_invocations": {
+          "create": {
+            "input_bindings": {
+              "customer": {
+                "value": "Atlas Foods"
+              },
+              "priority": {
+                "value": "High"
+              },
+              "title": {
+                "value": "Replace rooftop condenser fan"
+              },
+              "workspace_id": {
+                "from": "$context.workspace_id"
+              }
+            },
+            "operation": "operation.project.create",
+            "outcome_routes": {
+              "created": {
+                "raise": {
+                  "data_signal": "ready"
+                }
+              },
+              "forbidden": {
+                "no_signal": {
+                  "rationale": "The response surface keeps the ready list visible for forbidden create.",
+                  "reason": "handled_by_response_surface"
+                }
+              },
+              "unauthenticated": {
+                "no_signal": {
+                  "rationale": "The response surface reports authentication failure without a local transition.",
+                  "reason": "handled_by_response_surface"
+                }
+              },
+              "validation_failed": {
+                "no_signal": {
+                  "rationale": "The ready list keeps focus while the response surface shows validation errors.",
+                  "reason": "handled_by_response_surface"
+                }
+              }
+            }
+          },
+          "submit": {
+            "input_bindings": {
+              "project_id": {
+                "from": "$context.selected_project_id"
+              }
+            },
+            "operation": "operation.project.submit",
+            "outcome_routes": {
+              "forbidden": {
+                "no_signal": {
+                  "rationale": "The response surface keeps the ready list visible for forbidden submit.",
+                  "reason": "handled_by_response_surface"
+                }
+              },
+              "invalid_state": {
+                "raise": {
+                  "message": "show_invalid_state",
+                  "payload_bindings": {
+                    "message": {
+                      "from": "$outcome.result.message"
+                    }
+                  }
+                }
+              },
+              "not_found": {
+                "no_signal": {
+                  "rationale": "The response surface reports a missing project without a local transition.",
+                  "reason": "handled_by_response_surface"
+                }
+              },
+              "submitted": {
+                "raise": {
+                  "data_signal": "ready"
+                }
+              },
+              "unauthenticated": {
+                "no_signal": {
+                  "rationale": "The response surface reports authentication failure without a local transition.",
+                  "reason": "handled_by_response_surface"
+                }
+              }
+            }
+          }
+        },
         "text": [
           "text.project.list.ready.heading"
         ]
@@ -982,6 +1449,14 @@
             "to": "ready"
           },
           {
+            "from": "empty",
+            "on": {
+              "message": "show_invalid_state"
+            },
+            "rationale": "Invalid create attempts move the list into its displayable error state.",
+            "to": "error"
+          },
+          {
             "effects": [
               {
                 "emit": {
@@ -999,6 +1474,22 @@
               "message": "project_select"
             },
             "to": "ready"
+          },
+          {
+            "from": "ready",
+            "on": {
+              "data_signal": "ready"
+            },
+            "rationale": "Successful list operations refresh ready-state collection data.",
+            "to": "ready"
+          },
+          {
+            "from": "ready",
+            "on": {
+              "message": "show_invalid_state"
+            },
+            "rationale": "Invalid list operations move the list into its displayable error state.",
+            "to": "error"
           }
         ]
       },

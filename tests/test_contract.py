@@ -571,7 +571,7 @@ def test_state_machine_data_operation_must_read_state_machine_model() -> None:
     author["operations"]["operation.project.read"]["operation_kind"] = "query"
     author["operations"]["operation.project.read"]["reads"] = ["Workspace"]
     author["operations"]["operation.project.read"]["outcomes"]["found"]["result"] = M("Workspace")
-    with pytest.raises(ContractError, match=r"state machine state_machine\.project\.activity\.ready data operation operation.project\.read must read model Project"):
+    with pytest.raises(ContractError, match=r"state machine state_machine\.project\.activity\.ready query_invocation read_activity operation must read model Project"):
         compile_source(author)
 
 
@@ -661,7 +661,7 @@ def test_author_state_machine_defaults_empty_collections() -> None:
     contract = compile_author(author, layers=parse_layers("core,ui,html"))
     state_machine = contract["state_machines"]["state_machine.ticket.empty"]
     assert state_machine["context"] == {}
-    assert state_machine["query_dependencies"] == []
+    assert state_machine["query_invocations"] == {}
     assert state_machine["signals"] == {"accepts": {"messages": {}, "data_signals": {}}, "emits": {"messages": {}}}
     assert state_machine["transitions"] == []
     assert "kind" not in state_machine
@@ -841,7 +841,7 @@ def test_state_machine_transition_messages_must_be_declared_as_accepted() -> Non
 def test_state_machine_data_events_require_data_binding() -> None:
     author = _author()
     detail = _item(author, "state_machines", "state_machine.project.detail")
-    detail["view_states"]["loading"]["query_dependencies"] = []
+    detail["view_states"]["loading"]["query_invocations"] = {}
     detail["view_states"]["ready"].pop("field_slots")
     with pytest.raises(ContractError, match=r"state machine state_machine\.project\.detail transition uses data signal without state machine or source-state data: data_signal\.ready"):
         compile_source(author)
@@ -884,7 +884,7 @@ def test_state_machine_data_inputs_must_come_from_context() -> None:
             mount["context_bindings"].pop("workspace_id", None)
     with pytest.raises(
         ContractError,
-        match=r"state machine state_machine\.project\.list data operation operation.project\.list input not provided by context: .*workspace_id",
+        match=r"state machine state_machine\.project\.list query_invocation list_projects input_bindings\.workspace_id references unknown \$context field: workspace_id",
     ):
         compile_source(author)
 
@@ -892,7 +892,7 @@ def test_state_machine_data_inputs_must_come_from_context() -> None:
 def test_state_machine_field_slots_require_data_source() -> None:
     author = _author()
     activity = _item(author, "state_machines", "state_machine.project.activity")
-    del activity["view_states"]["ready"]["query_dependencies"]
+    del activity["view_states"]["ready"]["query_invocations"]
     with pytest.raises(
         ContractError,
         match=r"state machine state_machine\.project\.activity\.ready declares field slots without data source",
@@ -903,10 +903,10 @@ def test_state_machine_field_slots_require_data_source() -> None:
 def test_state_machine_data_source_must_be_query_like_operation() -> None:
     author = _author()
     activity = _item(author, "state_machines", "state_machine.project.activity")
-    activity["view_states"]["ready"]["query_dependencies"] = ["operation.project.submit"]
+    activity["view_states"]["ready"]["query_invocations"]["read_activity"]["operation"] = "operation.project.submit"
     with pytest.raises(
         ContractError,
-        match=r"state machine state_machine\.project\.activity\.ready data operation must be query: operation.project.submit",
+        match=r"state machine state_machine\.project\.activity\.ready query_invocation read_activity operation must have operation_kind: query",
     ):
         compile_source(author)
 
@@ -1014,21 +1014,301 @@ def test_html_slots_and_textual_widgets_must_reference_declared_layout_targets()
         compile_source(author)
 
 
-def test_presentation_rejects_undeclared_textual_operation() -> None:
+def test_presentation_rejects_undeclared_textual_operation_invocation() -> None:
     author = _author()
     state = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]
     state["renderers"] = {
         "textual": {
             "presentation": {
-                "widgets": [{"id": "delete", "widget_class": "Button", "binding": {"operation": "operation.project.delete"}, "container": "main"}],
+                "widgets": [{"id": "delete", "widget_class": "Button", "binding": {"operation_invocation": "delete"}, "container": "main"}],
             },
             "layout": {
                 "containers": {"main": {"id": "main", "container_class": "Container", "must_render": True}},
             }
         }
     }
-    with pytest.raises(ContractError, match="operation binding is not declared"):
+    with pytest.raises(ContractError, match="operation_invocation binding is not declared"):
         compile_source(author)
+
+
+def test_view_state_rejects_legacy_operation_array() -> None:
+    author = _author()
+    state = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]
+    state["available_" + "operations"] = ["operation.project.create"]
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_source(author)
+
+
+def test_operation_invocation_keys_are_local_names() -> None:
+    author = _author()
+    state = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]
+    state["operation_invocations"]["operation.create"] = state["operation_invocations"].pop("create")
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_source(author)
+
+
+def test_legacy_state_machine_action_and_query_fields_are_rejected() -> None:
+    author = _author()
+    state = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]
+    state["available_" + "operations"] = ["operation.project.create"]
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_source(author)
+
+    author = _author()
+    state_machine = _item(author, "state_machines", "state_machine.project.list")
+    state_machine["query_" + "dependencies"] = ["operation.project.list"]
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_source(author)
+
+    author = _author()
+    state = _item(author, "state_machines", "state_machine.project.activity")["view_states"]["ready"]
+    state["query_" + "dependencies"] = ["operation.project.read"]
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_source(author)
+
+
+def test_renderer_slot_binding_accepts_operation_invocation_and_rejects_operation_ref() -> None:
+    author = _author()
+    state = _item(author, "state_machines", "state_machine.project.board")["view_states"]["ready"]
+    state["operation_invocations"] = {
+        "create": {
+            "operation": "operation.project.create",
+            "input_bindings": {
+                "customer": {"value": "Atlas Foods"},
+                "priority": {"value": "High"},
+                "title": {"value": "Replace rooftop condenser fan"},
+                "workspace_id": {"from": "$context.workspace_id"},
+            },
+            "outcome_routes": {
+                "created": {"no_signal": {"reason": "state_unchanged"}},
+                "forbidden": {"no_signal": {"reason": "handled_by_response_surface", "rationale": "Renderer test covers forbidden without local routing."}},
+                "unauthenticated": {"no_signal": {"reason": "handled_by_response_surface", "rationale": "Renderer test covers unauthenticated without local routing."}},
+                "validation_failed": {"no_signal": {"reason": "handled_by_response_surface", "rationale": "Renderer test covers validation without local routing."}},
+            },
+        }
+    }
+    state["renderers"]["textual"]["presentation"] = {
+        "widgets": [{"id": "create", "widget_class": "Button", "binding": {"operation_invocation": "create"}, "container": "nav"}],
+    }
+    compile_source(author)
+
+    bad = _author()
+    state = _item(bad, "state_machines", "state_machine.project.board")["view_states"]["ready"]
+    state["operation_invocations"] = {
+        "create": {
+            "operation": "operation.project.create",
+            "input_bindings": {
+                "customer": {"value": "Atlas Foods"},
+                "priority": {"value": "High"},
+                "title": {"value": "Replace rooftop condenser fan"},
+                "workspace_id": {"from": "$context.workspace_id"},
+            },
+            "outcome_routes": {
+                "created": {"no_signal": {"reason": "state_unchanged"}},
+                "forbidden": {"no_signal": {"reason": "handled_by_response_surface", "rationale": "Renderer test covers forbidden without local routing."}},
+                "unauthenticated": {"no_signal": {"reason": "handled_by_response_surface", "rationale": "Renderer test covers unauthenticated without local routing."}},
+                "validation_failed": {"no_signal": {"reason": "handled_by_response_surface", "rationale": "Renderer test covers validation without local routing."}},
+            },
+        }
+    }
+    state["renderers"]["textual"]["presentation"] = {
+        "widgets": [{"id": "create", "widget_class": "Button", "binding": {"operation": "operation.project.create"}, "container": "nav"}],
+    }
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_source(bad)
+
+
+def test_operation_invocation_operation_must_resolve() -> None:
+    author = _author()
+    invocation = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["submit"]
+    invocation["operation"] = "operation.project.missing"
+    with pytest.raises(ContractError, match=r"operation_invocation submit references unknown operation operation\.project\.missing"):
+        compile_source(author)
+
+
+def test_operation_invocation_routes_must_cover_exact_operation_outcomes() -> None:
+    author = _author()
+    routes = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["submit"]["outcome_routes"]
+    del routes["not_found"]
+    with pytest.raises(ContractError, match=r"outcome_routes must exactly map operation outcomes: missing: not_found"):
+        compile_source(author)
+
+    author = _author()
+    routes = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["submit"]["outcome_routes"]
+    routes["ghost"] = {"no_signal": {"reason": "state_unchanged"}}
+    with pytest.raises(ContractError, match=r"outcome_routes must exactly map operation outcomes: extra: ghost"):
+        compile_source(author)
+
+
+def test_operation_invocation_rejects_legacy_non_routing_route() -> None:
+    author = _author()
+    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["submit"]["outcome_routes"]["forbidden"]
+    route.clear()
+    route["ig" + "nore"] = True
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_source(author)
+
+
+def test_operation_invocation_failure_no_signal_requires_reason_and_rationale() -> None:
+    author = _author()
+    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["submit"]["outcome_routes"]["forbidden"]
+    route["no_signal"].pop("rationale")
+    with pytest.raises(ContractError, match=r"failure outcome no_signal must use reason handled_by_response_surface or intentionally_unobservable and declare rationale"):
+        compile_source(author)
+
+    author = _author()
+    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["submit"]["outcome_routes"]["forbidden"]
+    route["no_signal"]["reason"] = "state_unchanged"
+    with pytest.raises(ContractError, match=r"failure outcome no_signal must use reason handled_by_response_surface or intentionally_unobservable and declare rationale"):
+        compile_source(author)
+
+
+def test_operation_invocation_raised_signals_must_be_declared_locally() -> None:
+    author = _author()
+    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["submit"]["outcome_routes"]["submitted"]
+    route["raise"]["data_signal"] = "ghost"
+    with pytest.raises(ContractError, match=r"raise references undeclared state-machine signal: data_signal\.ghost"):
+        compile_source(author)
+
+    author = _author()
+    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["submit"]["outcome_routes"]["invalid_state"]
+    route["raise"]["message"] = "ghost"
+    with pytest.raises(ContractError, match=r"raise references undeclared state-machine signal: message\.ghost"):
+        compile_source(author)
+
+
+def test_operation_invocation_payload_and_input_bindings_are_type_checked() -> None:
+    author = _author()
+    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["submit"]["outcome_routes"]["invalid_state"]
+    del route["raise"]["payload_bindings"]["message"]
+    with pytest.raises(ContractError, match=r"payload_bindings must exactly match payload fields: missing: message"):
+        compile_source(author)
+
+    author = _author()
+    invocation = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["submit"]
+    del invocation["input_bindings"]["project_id"]
+    with pytest.raises(ContractError, match=r"input_bindings must exactly bind target input: missing: project_id"):
+        compile_source(author)
+
+
+def test_operation_outcome_emits_is_not_local_state_machine_routing() -> None:
+    author = _author()
+    routes = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["create"]["outcome_routes"]
+    del routes["created"]
+    with pytest.raises(ContractError, match=r"outcome_routes must exactly map operation outcomes: missing: created"):
+        compile_source(author)
+
+
+def test_operation_invocation_routes_are_local_per_view_state() -> None:
+    contract = compile_source(_author())
+    empty_create = contract["state_machines"]["state_machine.project.list"]["view_states"]["empty"]["operation_invocations"]["create"]
+    ready_create = contract["state_machines"]["state_machine.project.list"]["view_states"]["ready"]["operation_invocations"]["create"]
+    assert empty_create["operation"] == ready_create["operation"] == "operation.project.create"
+    assert "raise" in empty_create["outcome_routes"]["validation_failed"]
+    assert ready_create["outcome_routes"]["validation_failed"] == {
+        "no_signal": {
+            "reason": "handled_by_response_surface",
+            "rationale": "The ready list keeps focus while the response surface shows validation errors.",
+        }
+    }
+
+
+def test_query_invocation_operation_and_routes_are_validated() -> None:
+    author = _author()
+    invocation = _item(author, "state_machines", "state_machine.project.list")["query_invocations"]["list_projects"]
+    invocation["operation"] = "operation.project.missing"
+    with pytest.raises(ContractError, match=r"query_invocation list_projects references unknown operation operation\.project\.missing"):
+        compile_source(author)
+
+    author = _author()
+    routes = _item(author, "state_machines", "state_machine.project.list")["query_invocations"]["list_projects"]["outcome_routes"]
+    del routes["unavailable"]
+    with pytest.raises(ContractError, match=r"query_invocation list_projects outcome_routes must exactly map query operation outcomes: missing: unavailable"):
+        compile_source(author)
+
+    author = _author()
+    routes = _item(author, "state_machines", "state_machine.project.list")["query_invocations"]["list_projects"]["outcome_routes"]
+    routes["ghost"] = {"no_signal": {"reason": "state_unchanged"}}
+    with pytest.raises(ContractError, match=r"query_invocation list_projects outcome_routes must exactly map query operation outcomes: extra: ghost"):
+        compile_source(author)
+
+
+def test_query_invocation_bindings_context_updates_and_signals_are_validated() -> None:
+    author = _author()
+    invocation = _item(author, "state_machines", "state_machine.project.list")["query_invocations"]["list_projects"]
+    del invocation["input_bindings"]["workspace_id"]
+    with pytest.raises(ContractError, match=r"query_invocation list_projects input_bindings must exactly bind target input: missing: workspace_id"):
+        compile_source(author)
+
+    author = _author()
+    route = _item(author, "state_machines", "state_machine.project.list")["query_invocations"]["list_projects"]["outcome_routes"]["listed"]
+    route["context_updates"]["ghost"] = {"value": "nope"}
+    with pytest.raises(ContractError, match=r"context_updates references undeclared context field: ghost"):
+        compile_source(author)
+
+    author = _author()
+    route = _item(author, "state_machines", "state_machine.project.list")["query_invocations"]["list_projects"]["outcome_routes"]["listed"]
+    route["raise"]["data_signal"] = "ghost"
+    with pytest.raises(ContractError, match=r"raise references undeclared state-machine signal: data_signal\.ghost"):
+        compile_source(author)
+
+    author = _author()
+    route = _item(author, "state_machines", "state_machine.project.detail")["view_states"]["ready"]["query_invocations"]["read_project"]["outcome_routes"]["not_found"]
+    route["raise"]["message"] = "ghost"
+    with pytest.raises(ContractError, match=r"raise references undeclared state-machine signal: message\.ghost"):
+        compile_source(author)
+
+
+def test_query_invocation_load_policy_and_operation_purity_are_validated() -> None:
+    author = _author()
+    invocation = _item(author, "state_machines", "state_machine.project.list")["query_invocations"]["list_projects"]
+    invocation["load"] = {"refresh_on": [{"data_signal": "ghost"}]}
+    with pytest.raises(ContractError, match=r"load\.refresh_on references undeclared state-machine signal: data_signal\.ghost"):
+        compile_source(author)
+
+    author = _author()
+    author["operations"]["operation.project.list"]["outcomes"]["listed"]["emits"] = [
+        {"event": "event.project.listed", "payload_source": "$outcome.result"}
+    ]
+    author["events"]["event.project.listed"] = {
+        "payload_schema": {"array": {"model": "Project"}},
+        "rationale": "List events are deliberately invalid for query invocations.",
+    }
+    with pytest.raises(ContractError, match=r"Query operation operation\.project\.list must not emit events: .*listed"):
+        compile_source(author)
+
+    author = _author()
+    author["operations"]["operation.project.list"]["updates"] = ["Project"]
+    with pytest.raises(ContractError, match=r"Operation operation\.project\.list operation_kind query does not support effects: .*updates"):
+        compile_source(author)
+
+
+def test_query_invocation_ids_cannot_shadow_state_machine_scope() -> None:
+    author = _author()
+    list_fsm = _item(author, "state_machines", "state_machine.project.list")
+    list_fsm["view_states"]["ready"]["query_invocations"] = {
+        "list_projects": {
+            "operation": "operation.project.list",
+            "input_bindings": {"workspace_id": {"from": "$context.workspace_id"}},
+            "outcome_routes": {
+                "listed": {"no_signal": {"reason": "handled_by_query_refresh"}},
+                "forbidden": {"no_signal": {"reason": "handled_by_response_surface", "rationale": "Shadow test."}},
+                "unauthenticated": {"no_signal": {"reason": "handled_by_response_surface", "rationale": "Shadow test."}},
+                "unavailable": {"no_signal": {"reason": "handled_by_response_surface", "rationale": "Shadow test."}},
+            },
+        }
+    }
+    with pytest.raises(ContractError, match=r"query_invocations duplicate state-machine-scope ids: .*list_projects"):
+        compile_source(author)
+
+
+def test_query_invocation_routes_are_local_per_state() -> None:
+    contract = compile_source(_author())
+    loading_read = contract["state_machines"]["state_machine.project.detail"]["view_states"]["loading"]["query_invocations"]["read_project"]
+    ready_read = contract["state_machines"]["state_machine.project.detail"]["view_states"]["ready"]["query_invocations"]["read_project"]
+    assert loading_read["operation"] == ready_read["operation"] == "operation.project.read"
+    assert loading_read["outcome_routes"]["found"] == {"raise": {"data_signal": "ready"}}
+    assert ready_read["outcome_routes"]["found"] == {"no_signal": {"reason": "handled_by_query_refresh"}}
 
 
 def test_missing_referenced_operation_is_rejected() -> None:
@@ -1059,7 +1339,11 @@ def test_state_machine_composition_rejects_unknown_sync_target_message() -> None
 
 def test_state_machine_emit_data_must_exactly_match_emitted_message_payload() -> None:
     author = _author()
-    transition = _item(author, "state_machines", "state_machine.project.list")["transitions"][-1]
+    transition = next(
+        transition
+        for transition in _item(author, "state_machines", "state_machine.project.list")["transitions"]
+        if transition.get("effects") and "emit" in transition["effects"][0]
+    )
     transition["effects"][0]["emit"]["payload_bindings"] = {}
     with pytest.raises(ContractError, match=r"transition emit project_selected payload_bindings must exactly match payload fields: missing: project_id"):
         compile_source(author)
@@ -1178,7 +1462,7 @@ def test_authoring_layers_reject_irrelevant_ui_targets() -> None:
         "state_machine.ticket.list": {
             "model": "Ticket",
             "context": {},
-            "query_dependencies": [],
+            "query_invocations": {},
             "initial_view_state": "empty",
             "view_states": {"empty": {}},
             "transitions": [],

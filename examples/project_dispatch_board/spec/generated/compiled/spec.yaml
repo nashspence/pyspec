@@ -878,11 +878,85 @@ refs:
   - entry_point_target.cli.project.board.state_machine.project.board
   - entry_point_target.html.project.board.state_machine.project.board
   - entry_point_target.worker.project.approval_notice.workflow.project.approval_notice
-  query:
-  - query.project.activity.read
-  - query.project.board.list
-  - query.project.detail.read
-  - query.project.list.list
+  local_signal_raise:
+  - local_signal_raise.project.detail.loading.query_invocation.read_project.forbidden.data_signal.error
+  - local_signal_raise.project.detail.loading.query_invocation.read_project.found.data_signal.ready
+  - local_signal_raise.project.detail.loading.query_invocation.read_project.not_found.data_signal.error
+  - local_signal_raise.project.detail.loading.query_invocation.read_project.unauthenticated.data_signal.error
+  - local_signal_raise.project.detail.ready.operation_invocation.approve.approved.data_signal.ready
+  - local_signal_raise.project.detail.ready.operation_invocation.approve.invalid_state.message.show_invalid_state
+  - local_signal_raise.project.detail.ready.operation_invocation.archive.archived.data_signal.ready
+  - local_signal_raise.project.detail.ready.operation_invocation.archive.invalid_state.message.show_invalid_state
+  - local_signal_raise.project.detail.ready.query_invocation.read_project.forbidden.message.show_invalid_state
+  - local_signal_raise.project.detail.ready.query_invocation.read_project.not_found.message.show_invalid_state
+  - local_signal_raise.project.detail.ready.query_invocation.read_project.unauthenticated.message.show_invalid_state
+  - local_signal_raise.project.list.empty.operation_invocation.create.created.data_signal.ready
+  - local_signal_raise.project.list.empty.operation_invocation.create.validation_failed.message.show_invalid_state
+  - local_signal_raise.project.list.query_invocation.list_projects.forbidden.data_signal.error
+  - local_signal_raise.project.list.query_invocation.list_projects.listed.data_signal.ready
+  - local_signal_raise.project.list.query_invocation.list_projects.unauthenticated.data_signal.error
+  - local_signal_raise.project.list.query_invocation.list_projects.unavailable.data_signal.error
+  - local_signal_raise.project.list.ready.operation_invocation.create.created.data_signal.ready
+  - local_signal_raise.project.list.ready.operation_invocation.submit.invalid_state.message.show_invalid_state
+  - local_signal_raise.project.list.ready.operation_invocation.submit.submitted.data_signal.ready
+  operation_invocation:
+  - operation_invocation.project.detail.ready.approve
+  - operation_invocation.project.detail.ready.archive
+  - operation_invocation.project.list.empty.create
+  - operation_invocation.project.list.ready.create
+  - operation_invocation.project.list.ready.submit
+  operation_outcome_route:
+  - operation_outcome_route.project.detail.ready.approve.approved
+  - operation_outcome_route.project.detail.ready.approve.forbidden
+  - operation_outcome_route.project.detail.ready.approve.invalid_state
+  - operation_outcome_route.project.detail.ready.approve.not_found
+  - operation_outcome_route.project.detail.ready.approve.unauthenticated
+  - operation_outcome_route.project.detail.ready.approve.unavailable
+  - operation_outcome_route.project.detail.ready.archive.archived
+  - operation_outcome_route.project.detail.ready.archive.forbidden
+  - operation_outcome_route.project.detail.ready.archive.invalid_state
+  - operation_outcome_route.project.detail.ready.archive.not_found
+  - operation_outcome_route.project.detail.ready.archive.unauthenticated
+  - operation_outcome_route.project.list.empty.create.created
+  - operation_outcome_route.project.list.empty.create.forbidden
+  - operation_outcome_route.project.list.empty.create.unauthenticated
+  - operation_outcome_route.project.list.empty.create.validation_failed
+  - operation_outcome_route.project.list.ready.create.created
+  - operation_outcome_route.project.list.ready.create.forbidden
+  - operation_outcome_route.project.list.ready.create.unauthenticated
+  - operation_outcome_route.project.list.ready.create.validation_failed
+  - operation_outcome_route.project.list.ready.submit.forbidden
+  - operation_outcome_route.project.list.ready.submit.invalid_state
+  - operation_outcome_route.project.list.ready.submit.not_found
+  - operation_outcome_route.project.list.ready.submit.submitted
+  - operation_outcome_route.project.list.ready.submit.unauthenticated
+  query_invocation:
+  - query_invocation.project.activity.ready.read_activity
+  - query_invocation.project.board.list_board
+  - query_invocation.project.detail.loading.read_project
+  - query_invocation.project.detail.ready.read_project
+  - query_invocation.project.list.list_projects
+  query_outcome_route:
+  - query_outcome_route.project.activity.ready.read_activity.forbidden
+  - query_outcome_route.project.activity.ready.read_activity.found
+  - query_outcome_route.project.activity.ready.read_activity.not_found
+  - query_outcome_route.project.activity.ready.read_activity.unauthenticated
+  - query_outcome_route.project.board.list_board.forbidden
+  - query_outcome_route.project.board.list_board.listed
+  - query_outcome_route.project.board.list_board.unauthenticated
+  - query_outcome_route.project.board.list_board.unavailable
+  - query_outcome_route.project.detail.loading.read_project.forbidden
+  - query_outcome_route.project.detail.loading.read_project.found
+  - query_outcome_route.project.detail.loading.read_project.not_found
+  - query_outcome_route.project.detail.loading.read_project.unauthenticated
+  - query_outcome_route.project.detail.ready.read_project.forbidden
+  - query_outcome_route.project.detail.ready.read_project.found
+  - query_outcome_route.project.detail.ready.read_project.not_found
+  - query_outcome_route.project.detail.ready.read_project.unauthenticated
+  - query_outcome_route.project.list.list_projects.forbidden
+  - query_outcome_route.project.list.list_projects.listed
+  - query_outcome_route.project.list.list_projects.unauthenticated
+  - query_outcome_route.project.list.list_projects.unavailable
   route:
   - route.project.board
   runtime_response:
@@ -958,7 +1032,7 @@ state_machines:
         primitive: ID
     initial_view_state: empty
     model: Project
-    query_dependencies: []
+    query_invocations: {}
     rationale: The activity state machine summarizes latest status around the selected project.
     signals:
       accepts:
@@ -988,23 +1062,44 @@ state_machines:
     view_states:
       empty:
         assets: []
-        available_operations: []
         fields: []
-        query_dependencies: []
+        operation_invocations: {}
+        query_invocations: {}
         surface: state_machine.project.activity.empty
         text:
         - text.project.activity.empty.heading
         - text.project.activity.empty.body
       ready:
         assets: []
-        available_operations: []
         fields:
         - updated_at
         - status
         - assignee
-        query_dependencies:
-        - operation: operation.project.read
-          query: query.project.activity.read
+        operation_invocations: {}
+        query_invocations:
+          read_activity:
+            input_bindings:
+              project_id:
+                from: $context.project_id
+            load:
+              on_enter: true
+            operation: operation.project.read
+            outcome_routes:
+              forbidden:
+                no_signal:
+                  rationale: The activity panel remains in its current state when authorization blocks the refresh.
+                  reason: handled_by_response_surface
+              found:
+                no_signal:
+                  reason: state_unchanged
+              not_found:
+                no_signal:
+                  rationale: The parent detail panel owns not-found display for the selected project.
+                  reason: handled_by_response_surface
+              unauthenticated:
+                no_signal:
+                  rationale: The entry response surface owns unauthenticated display.
+                  reason: handled_by_response_surface
         surface: state_machine.project.activity.ready
         text:
         - text.project.activity.ready.heading
@@ -1017,9 +1112,30 @@ state_machines:
         primitive: ID
     initial_view_state: ready
     model: Project
-    query_dependencies:
-    - operation: operation.project.list
-      query: query.project.board.list
+    query_invocations:
+      list_board:
+        input_bindings:
+          workspace_id:
+            from: $context.workspace_id
+        load:
+          on_enter: true
+        operation: operation.project.list
+        outcome_routes:
+          forbidden:
+            no_signal:
+              rationale: The board shell leaves child surfaces unchanged when list access is forbidden.
+              reason: handled_by_response_surface
+          listed:
+            no_signal:
+              reason: handled_by_query_refresh
+          unauthenticated:
+            no_signal:
+              rationale: The entry response surface owns unauthenticated display.
+              reason: handled_by_response_surface
+          unavailable:
+            no_signal:
+              rationale: The board shell leaves child surfaces unchanged while the list service is unavailable.
+              reason: handled_by_response_surface
     rationale: The dispatch board composes list, detail, and activity state machines through shared selected-project context.
     signals:
       accepts:
@@ -1031,7 +1147,6 @@ state_machines:
     view_states:
       ready:
         assets: []
-        available_operations: []
         child_state_machines:
         - context_bindings:
             selected_project_id:
@@ -1068,7 +1183,8 @@ state_machines:
           state_machine: state_machine.project.activity
           textual_container: aside
         fields: []
-        query_dependencies: []
+        operation_invocations: {}
+        query_invocations: {}
         render_audit_cases:
           empty:
             instances:
@@ -1206,7 +1322,7 @@ state_machines:
         primitive: ID
     initial_view_state: none
     model: Project
-    query_dependencies: []
+    query_invocations: {}
     rationale: The detail state machine is independent from the list and reacts to selected project context.
     signals:
       accepts:
@@ -1222,6 +1338,10 @@ state_machines:
                 primitive: ID
           selection_cleared:
             payload_schema: {}
+          show_invalid_state:
+            payload_schema:
+              message:
+                primitive: Text
       emits:
         messages: {}
     transitions:
@@ -1245,31 +1365,59 @@ state_machines:
       on:
         message: selection_cleared
       to: none
+    - from: ready
+      on:
+        data_signal: ready
+      rationale: Successful detail operations refresh the ready-state project data.
+      to: ready
+    - from: ready
+      on:
+        message: show_invalid_state
+      rationale: Invalid detail operations move the detail panel into its displayable error state.
+      to: error
     view_states:
       error:
         assets: []
-        available_operations: []
         fields: []
-        query_dependencies: []
+        operation_invocations: {}
+        query_invocations: {}
         surface: state_machine.project.detail.error
         text:
         - text.project.detail.error.heading
         - text.project.detail.error.body
       loading:
         assets: []
-        available_operations: []
         fields: []
-        query_dependencies:
-        - operation: operation.project.read
-          query: query.project.detail.read
+        operation_invocations: {}
+        query_invocations:
+          read_project:
+            input_bindings:
+              project_id:
+                from: $context.project_id
+            load:
+              on_enter: true
+            operation: operation.project.read
+            outcome_routes:
+              forbidden:
+                raise:
+                  data_signal: error
+              found:
+                raise:
+                  data_signal: ready
+              not_found:
+                raise:
+                  data_signal: error
+              unauthenticated:
+                raise:
+                  data_signal: error
         surface: state_machine.project.detail.loading
         text:
         - text.project.detail.loading.message
       none:
         assets: []
-        available_operations: []
         fields: []
-        query_dependencies: []
+        operation_invocations: {}
+        query_invocations: {}
         surface: state_machine.project.detail.none
         text:
         - text.project.detail.none.heading
@@ -1277,16 +1425,103 @@ state_machines:
       ready:
         assets:
         - asset.project.detail.ready.priority_badge
-        available_operations:
-        - operation.project.approve
-        - operation.project.archive
         fields:
         - title
         - customer
         - status
         - assignee
         - summary
-        query_dependencies: []
+        operation_invocations:
+          approve:
+            input_bindings:
+              approved_by:
+                value: reviewer_1
+              project_id:
+                from: $context.project_id
+            operation: operation.project.approve
+            outcome_routes:
+              approved:
+                raise:
+                  data_signal: ready
+              forbidden:
+                no_signal:
+                  rationale: The response surface keeps the detail panel unchanged for forbidden approval.
+                  reason: handled_by_response_surface
+              invalid_state:
+                raise:
+                  message: show_invalid_state
+                  payload_bindings:
+                    message:
+                      from: $outcome.result.message
+              not_found:
+                no_signal:
+                  rationale: The response surface reports a missing project without a local transition.
+                  reason: handled_by_response_surface
+              unauthenticated:
+                no_signal:
+                  rationale: The response surface reports authentication failure without a local transition.
+                  reason: handled_by_response_surface
+              unavailable:
+                no_signal:
+                  rationale: The response surface reports temporary unavailability without a local transition.
+                  reason: handled_by_response_surface
+          archive:
+            input_bindings:
+              project_id:
+                from: $context.project_id
+            operation: operation.project.archive
+            outcome_routes:
+              archived:
+                raise:
+                  data_signal: ready
+              forbidden:
+                no_signal:
+                  rationale: The response surface keeps the detail panel unchanged for forbidden archive.
+                  reason: handled_by_response_surface
+              invalid_state:
+                raise:
+                  message: show_invalid_state
+                  payload_bindings:
+                    message:
+                      from: $outcome.result.message
+              not_found:
+                no_signal:
+                  rationale: The response surface reports a missing project without a local transition.
+                  reason: handled_by_response_surface
+              unauthenticated:
+                no_signal:
+                  rationale: The response surface reports authentication failure without a local transition.
+                  reason: handled_by_response_surface
+        query_invocations:
+          read_project:
+            input_bindings:
+              project_id:
+                from: $context.project_id
+            load:
+              on_enter: true
+            operation: operation.project.read
+            outcome_routes:
+              forbidden:
+                raise:
+                  message: show_invalid_state
+                  payload_bindings:
+                    message:
+                      from: $outcome.result.message
+              found:
+                no_signal:
+                  reason: handled_by_query_refresh
+              not_found:
+                raise:
+                  message: show_invalid_state
+                  payload_bindings:
+                    message:
+                      from: $outcome.result.message
+              unauthenticated:
+                raise:
+                  message: show_invalid_state
+                  payload_bindings:
+                    message:
+                      from: $outcome.result.message
         surface: state_machine.project.detail.ready
         text:
         - text.project.detail.ready.heading
@@ -1298,9 +1533,30 @@ state_machines:
         primitive: ID
     initial_view_state: loading
     model: Project
-    query_dependencies:
-    - operation: operation.project.list
-      query: query.project.list.list
+    query_invocations:
+      list_projects:
+        input_bindings:
+          workspace_id:
+            from: $context.workspace_id
+        load:
+          on_enter: true
+        operation: operation.project.list
+        outcome_routes:
+          forbidden:
+            raise:
+              data_signal: error
+          listed:
+            context_updates:
+              workspace_id:
+                from: $invocation.input.workspace_id
+            raise:
+              data_signal: ready
+          unauthenticated:
+            raise:
+              data_signal: error
+          unavailable:
+            raise:
+              data_signal: error
     rationale: The list state machine owns collection loading, empty, ready, error, and selection behavior.
     signals:
       accepts:
@@ -1316,6 +1572,10 @@ state_machines:
             payload_schema:
               project_id:
                 primitive: ID
+          show_invalid_state:
+            payload_schema:
+              message:
+                primitive: Text
       emits:
         messages:
           project_selected:
@@ -1339,6 +1599,11 @@ state_machines:
       on:
         data_signal: ready
       to: ready
+    - from: empty
+      on:
+        message: show_invalid_state
+      rationale: Invalid create attempts move the list into its displayable error state.
+      to: error
     - effects:
       - emit:
           message: project_selected
@@ -1349,46 +1614,136 @@ state_machines:
       on:
         message: project_select
       to: ready
+    - from: ready
+      on:
+        data_signal: ready
+      rationale: Successful list operations refresh ready-state collection data.
+      to: ready
+    - from: ready
+      on:
+        message: show_invalid_state
+      rationale: Invalid list operations move the list into its displayable error state.
+      to: error
     view_states:
       empty:
         assets:
         - asset.project.list.empty.illustration
-        available_operations:
-        - operation.project.create
         fields: []
-        query_dependencies: []
+        operation_invocations:
+          create:
+            input_bindings:
+              customer:
+                value: Atlas Foods
+              priority:
+                value: High
+              title:
+                value: Replace rooftop condenser fan
+              workspace_id:
+                from: $context.workspace_id
+            operation: operation.project.create
+            outcome_routes:
+              created:
+                raise:
+                  data_signal: ready
+              forbidden:
+                no_signal:
+                  rationale: The response surface keeps the empty list visible for forbidden create.
+                  reason: handled_by_response_surface
+              unauthenticated:
+                no_signal:
+                  rationale: The response surface reports authentication failure without a local transition.
+                  reason: handled_by_response_surface
+              validation_failed:
+                raise:
+                  message: show_invalid_state
+                  payload_bindings:
+                    message:
+                      from: $outcome.result.message
+        query_invocations: {}
         surface: state_machine.project.list.empty
         text:
         - text.project.list.empty.heading
         - text.project.list.empty.body
       error:
         assets: []
-        available_operations: []
         fields: []
-        query_dependencies: []
+        operation_invocations: {}
+        query_invocations: {}
         surface: state_machine.project.list.error
         text:
         - text.project.list.error.heading
         - text.project.list.error.body
       loading:
         assets: []
-        available_operations: []
         fields: []
-        query_dependencies: []
+        operation_invocations: {}
+        query_invocations: {}
         surface: state_machine.project.list.loading
         text:
         - text.project.list.loading.message
       ready:
         assets: []
-        available_operations:
-        - operation.project.create
-        - operation.project.submit
         fields:
         - title
         - customer
         - priority
         - status
-        query_dependencies: []
+        operation_invocations:
+          create:
+            input_bindings:
+              customer:
+                value: Atlas Foods
+              priority:
+                value: High
+              title:
+                value: Replace rooftop condenser fan
+              workspace_id:
+                from: $context.workspace_id
+            operation: operation.project.create
+            outcome_routes:
+              created:
+                raise:
+                  data_signal: ready
+              forbidden:
+                no_signal:
+                  rationale: The response surface keeps the ready list visible for forbidden create.
+                  reason: handled_by_response_surface
+              unauthenticated:
+                no_signal:
+                  rationale: The response surface reports authentication failure without a local transition.
+                  reason: handled_by_response_surface
+              validation_failed:
+                no_signal:
+                  rationale: The ready list keeps focus while the response surface shows validation errors.
+                  reason: handled_by_response_surface
+          submit:
+            input_bindings:
+              project_id:
+                from: $context.selected_project_id
+            operation: operation.project.submit
+            outcome_routes:
+              forbidden:
+                no_signal:
+                  rationale: The response surface keeps the ready list visible for forbidden submit.
+                  reason: handled_by_response_surface
+              invalid_state:
+                raise:
+                  message: show_invalid_state
+                  payload_bindings:
+                    message:
+                      from: $outcome.result.message
+              not_found:
+                no_signal:
+                  rationale: The response surface reports a missing project without a local transition.
+                  reason: handled_by_response_surface
+              submitted:
+                raise:
+                  data_signal: ready
+              unauthenticated:
+                no_signal:
+                  rationale: The response surface reports authentication failure without a local transition.
+                  reason: handled_by_response_surface
+        query_invocations: {}
         surface: state_machine.project.list.ready
         text:
         - text.project.list.ready.heading
@@ -1530,11 +1885,11 @@ test_cases:
       requires:
         assets:
         - asset.project.list.empty.illustration
-        available_operations:
-        - operation.project.create
-        queries:
-        - query.project.board.list
-        - query.project.list.list
+        operation_invocations:
+        - create
+        query_invocations:
+        - list_board
+        - list_projects
         surfaces:
         - state_machine.project.board.ready
         - state_machine.project.activity.empty
@@ -1739,12 +2094,12 @@ test_cases:
       - operation.project.submit
       requires:
         assets: []
-        available_operations:
-        - operation.project.create
-        - operation.project.submit
-        queries:
-        - query.project.board.list
-        - query.project.list.list
+        operation_invocations:
+        - create
+        - submit
+        query_invocations:
+        - list_board
+        - list_projects
         surfaces:
         - state_machine.project.board.ready
         - state_machine.project.activity.empty

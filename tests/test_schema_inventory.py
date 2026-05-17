@@ -87,10 +87,12 @@ ALLOWED_ANY_OF_PATHS_BY_SCHEMA = {
     "author.schema.json": {
         "$defs.authored_child_state_machine.anyOf",
         "$defs.authored_render_profile.anyOf",
+        "$defs.state_machine_query_outcome_route.anyOf",
     },
     "spec.schema.json": {
         "$defs.child_state_machine_item.anyOf",
         "$defs.render_profile_item.anyOf",
+        "$defs.state_machine_query_outcome_route.anyOf",
     },
 }
 ALLOWED_ONE_OF_WITHOUT_OBJECT_DISCRIMINATORS = {
@@ -100,7 +102,7 @@ ALLOWED_ONE_OF_WITHOUT_OBJECT_DISCRIMINATORS = {
     "$defs.given.properties.domain_facts.items.oneOf",
     "$defs.json_value.oneOf",
     "$defs.state_machine_signals.properties.accepts.propertyNames.oneOf",
-    "$defs.state_machine_transition.properties.on.oneOf",
+    "$defs.state_machine_signal_trigger.oneOf",
     "$defs.then.properties.expected_facts.items.oneOf",
 }
 JSON_SCHEMA_KEYWORD_PROPERTY_NAMES = {

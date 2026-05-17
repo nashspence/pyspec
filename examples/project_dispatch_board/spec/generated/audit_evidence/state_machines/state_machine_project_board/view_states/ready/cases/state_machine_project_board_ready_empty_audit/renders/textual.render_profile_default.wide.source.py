@@ -4,7 +4,7 @@ from textual.app import App, ComposeResult
 from textual.containers import Container
 from textual.widgets import Button, Static
 
-LINES = [('static', 'No dispatch projects yet'), ('static', 'Create the first project to start coordinating work for this workspace.'), ('static', 'Empty dispatch queue illustration'), ('button', 'Operation Project Create'), ('static', 'Select a project'), ('static', 'Choose a project from the queue to review customer, assignment, and approval details.'), ('static', 'No project selected'), ('static', 'Activity appears after a project is selected.')]
+LINES = [('static', 'No dispatch projects yet'), ('static', 'Create the first project to start coordinating work for this workspace.'), ('static', 'Empty dispatch queue illustration'), ('button', 'Create'), ('static', 'Select a project'), ('static', 'Choose a project from the queue to review customer, assignment, and approval details.'), ('static', 'No project selected'), ('static', 'Activity appears after a project is selected.')]
 
 
 class AuditApp(App[None]):

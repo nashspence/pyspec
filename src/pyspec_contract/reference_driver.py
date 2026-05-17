@@ -90,7 +90,7 @@ class ReferenceSpecDriver:
             rendered_state_machines = self._rendered_state_machine_ids()
             rendered_text = self._rendered_values("text")
             rendered_assets = self._rendered_values("assets")
-            rendered_actions = self._rendered_values("available_operations")
+            rendered_actions = self._rendered_values("operation_invocations")
             for state_machine in requires.get("surfaces", []):
                 assert state_machine in self.surfaces
                 assert state_machine in rendered_state_machines
@@ -98,19 +98,15 @@ class ReferenceSpecDriver:
                 assert key in rendered_text
             for key in requires.get("assets", []):
                 assert key in rendered_assets
-            for cap in requires.get("available_operations", []):
+            for cap in requires.get("operation_invocations", []):
                 assert cap in rendered_actions
-            state_machine = self.contract["state_machines"][self.last_state_machine["ref"]]
-            queries = [dependency["query"] for dependency in state_machine.get("query_dependencies", [])]
-            if "instances" in self.last_state_machine:
-                for instance in self.last_state_machine["instances"].values():
-                    queries.extend(dependency["query"] for dependency in instance.get("query_dependencies", []))
-            for query in requires.get("queries", []):
-                assert query in queries
+            rendered_queries = self._rendered_values("query_invocations")
+            for query in requires.get("query_invocations", []):
+                assert query in rendered_queries
         for cap in assertions.get("enables", []):
-            assert cap in self._rendered_values("available_operations")
+            assert cap in self._rendered_operation_refs()
         for cap in assertions.get("forbids", []):
-            assert cap not in self._rendered_values("available_operations")
+            assert cap not in self._rendered_operation_refs()
         exists = (assertions.get("model") or {}).get("exists")
         if exists:
             where = self._resolve_map(exists["where"])
@@ -160,31 +156,38 @@ class ReferenceSpecDriver:
         context = self._entry_target_input(entry, input_values)
         records = self._filter(state_machine["model"], context) if state_machine.get("model") else []
         parent_state_name = "ready" if "ready" in state_machine.get("view_states", {}) else next(iter(state_machine.get("view_states", {"ready": {}})))
-        state = state_machine["view_states"].get(parent_state_name, {"surface": None, "text": [], "assets": [], "available_operations": [], "query_dependencies": []})
+        state = state_machine["view_states"].get(parent_state_name, {"surface": None, "text": [], "assets": [], "operation_invocations": {}, "query_invocations": {}})
         if state.get("child_state_machines"):
+            parent_state_machine = state_machine
             state_machines: dict[str, Any] = {}
             for mount in state["child_state_machines"]:
                 source_id = mount["state_machine"]
-                state_machine = self.contract["state_machines"][source_id]
-                child_state_name = self._choose_state_machine_view_state(state_machine, mount, records, context)
-                child_state = state_machine["view_states"][child_state_name]
+                child_state_machine = self.contract["state_machines"][source_id]
+                child_state_name = self._choose_state_machine_view_state(child_state_machine, mount, records, context)
+                child_state = child_state_machine["view_states"][child_state_name]
                 state_machines[mount["id"]] = {
                     "source": source_id,
                     "view_state": child_state_name,
                     "surface": child_state["surface"],
-                    "query_dependencies": list(state_machine.get("query_dependencies", [])) + list(child_state.get("query_dependencies", [])),
+                    "query_invocations": {
+                        **child_state_machine.get("query_invocations", {}),
+                        **child_state.get("query_invocations", {}),
+                    },
                     "text": child_state["text"],
                     "assets": child_state["assets"],
-                    "available_operations": child_state["available_operations"],
+                    "operation_invocations": child_state["operation_invocations"],
                 }
             return {
                 "ref": state_machine_id,
                 "view_state": parent_state_name,
                 "surface": state.get("surface"),
-                "query_dependencies": list(state_machine.get("query_dependencies", [])) + list(state.get("query_dependencies", [])),
+                "query_invocations": {
+                    **parent_state_machine.get("query_invocations", {}),
+                    **state.get("query_invocations", {}),
+                },
                 "text": state.get("text", []),
                 "assets": state.get("assets", []),
-                "available_operations": state.get("available_operations", []),
+                "operation_invocations": state.get("operation_invocations", {}),
                 "context": context,
                 "instances": state_machines,
                 "signal_sync_rules": [rule["id"] for rule in state.get("signal_sync_rules", [])],
@@ -197,7 +200,11 @@ class ReferenceSpecDriver:
             "surface": state["surface"],
             "text": state["text"],
             "assets": state["assets"],
-            "available_operations": state["available_operations"],
+            "query_invocations": {
+                **state_machine.get("query_invocations", {}),
+                **state.get("query_invocations", {}),
+            },
+            "operation_invocations": state["operation_invocations"],
         }
 
     def _choose_state_machine_view_state(self, state_machine: dict[str, Any], mount: dict[str, Any], records: list[dict[str, Any]], context: dict[str, Any]) -> str:
@@ -206,7 +213,7 @@ class ReferenceSpecDriver:
             if _condition_matches(selected["when"], context):
                 return selected["view_state"]
             return mount["initial_view_state"]
-        if records and "ready" in state_machine["view_states"] and (state_machine.get("query_dependencies") or state_machine["view_states"]["ready"].get("query_dependencies")):
+        if records and "ready" in state_machine["view_states"] and (state_machine.get("query_invocations") or state_machine["view_states"]["ready"].get("query_invocations")):
             return "ready"
         if not records and "empty" in state_machine["view_states"]:
             return "empty"
@@ -232,6 +239,21 @@ class ReferenceSpecDriver:
                 values.update(state_machine.get(key, []))
             return values
         return set(self.last_state_machine.get(key, []))
+
+    def _rendered_operation_refs(self) -> set[str]:
+        if not self.last_state_machine:
+            return set()
+
+        def operations(item: dict[str, Any]) -> set[str]:
+            invocations = item.get("operation_invocations") or {}
+            return {invocation["operation"] for invocation in invocations.values()}
+
+        if "instances" in self.last_state_machine:
+            refs = operations(self.last_state_machine)
+            for state_machine in self.last_state_machine["instances"].values():
+                refs.update(operations(state_machine))
+            return refs
+        return operations(self.last_state_machine)
 
     def _call_entry_point(self, entry_id: str, input_values: dict[str, Any], outcome_id: str | None = None) -> dict[str, Any]:
         entry = self.contract["entry_points"][entry_id]

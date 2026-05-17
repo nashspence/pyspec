@@ -1,6 +1,6 @@
 <svg width="579pt" height="226pt"
  viewBox="0.00 0.00 579.00 226.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 06b91aa274ac487789d9c9b56a127a5f1e1c710797a4882e134ded15783e3ed2 -->
+<!-- pyspec-contract-input-sha256: d032541f20123be308d65cf470c92d1e0200be2a398f97c1369bbedcdaf3a8a9 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 208)">
 <title>entrypoint_entry_point_cli_project_board</title>
 <!-- entrypoint_entry_point_cli_project_board -->
@@ -31,10 +31,10 @@
 <text text-anchor="start" x="267.5" y="-128" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">activity state machines through shared</text>
 <text text-anchor="start" x="267.5" y="-117" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">selected&#45;project context.</text>
 <text text-anchor="start" x="268.5" y="-97" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
-<text text-anchor="start" x="296.5" y="-97" font-family="Arial" font-size="10.00">  workspace_id</text>
-<text text-anchor="start" x="363.5" y="-97" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
-<text text-anchor="start" x="268.5" y="-85" font-family="Arial" font-weight="bold" font-size="10.00">query:</text>
-<text text-anchor="start" x="298.5" y="-85" font-family="Arial" font-size="10.00">  query.project.board.list</text>
+<text text-anchor="start" x="296.5" y="-97" font-family="Arial" font-size="10.00">  list_board.workspace_id</text>
+<text text-anchor="start" x="408.5" y="-97" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<text text-anchor="start" x="268.5" y="-85" font-family="Arial" font-weight="bold" font-size="10.00">query_invocations:</text>
+<text text-anchor="start" x="357.5" y="-85" font-family="Arial" font-size="10.00">  list_board</text>
 <text text-anchor="start" x="268.5" y="-73" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
 <text text-anchor="start" x="292.5" y="-73" font-family="Arial" font-size="10.00">  operation.project.list</text>
 <text text-anchor="start" x="386.5" y="-73" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
