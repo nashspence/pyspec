@@ -1,6 +1,6 @@
 <svg width="1729pt" height="527pt"
  viewBox="0.00 0.00 1729.00 527.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 4721f7a36a955bad551341342fd199e8c78fc854dff36992af8e857b28a0f707 -->
+<!-- pyspec-contract-input-sha256: 3e65e0817c3bb2047cfff4c1d828eca160d116de0ec04ae3051b367ef023dda3 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 509)">
 <title>state_machine_state_machine_project_detail</title>
 <!-- view_state_error -->
@@ -188,16 +188,16 @@
 <path fill="none" stroke="#3f3f46" d="M924.02,-391.17C944.49,-399.52 965.27,-407.99 985,-416 992.89,-419.2 1001.1,-422.53 1009.32,-425.86"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="1008.4,-428.51 1016.87,-428.91 1010.5,-423.32 1008.4,-428.51"/>
 </g>
-<!-- transition_4_ready_ready_data_signal_project_loaded -->
+<!-- transition_4_ready_ready_data_signal_project_changed -->
 <g id="node9" class="node">
-<title>transition_4_ready_ready_data_signal_project_loaded</title>
+<title>transition_4_ready_ready_data_signal_project_changed</title>
 <polygon fill="#ffffff" stroke="transparent" points="985,-256 985,-402 1205,-402 1205,-256 985,-256"/>
 <polygon fill="#2563eb" stroke="transparent" points="986,-393 986,-401 1204,-401 1204,-393 986,-393"/>
 <polygon fill="#eff6ff" stroke="transparent" points="986,-362 986,-393 1204,-393 1204,-362 986,-362"/>
-<text text-anchor="start" x="990" y="-379.6" font-family="Arial" font-weight="bold" font-size="13.00">data_signal.project_loaded</text>
+<text text-anchor="start" x="990" y="-379.6" font-family="Arial" font-weight="bold" font-size="13.00">data_signal.project_changed</text>
 <text text-anchor="start" x="990" y="-368.6" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
-<text text-anchor="start" x="990" y="-351" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Successful detail operations refresh the</text>
-<text text-anchor="start" x="990" y="-340" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">ready&#45;state project data.</text>
+<text text-anchor="start" x="990" y="-351" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Detail mutations mark ready&#45;state project data</text>
+<text text-anchor="start" x="990" y="-340" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">stale and trigger query refresh.</text>
 <text text-anchor="start" x="991" y="-320" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
 <text text-anchor="start" x="1019" y="-320" font-family="Arial" font-size="10.00">  read_project.project_id</text>
 <text text-anchor="start" x="1124" y="-320" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
@@ -211,9 +211,9 @@
 <text text-anchor="start" x="990" y="-264" font-family="Arial" font-size="10.00">  authorization_policy.project.member</text>
 <polygon fill="none" stroke="#2563eb" points="985,-256 985,-402 1205,-402 1205,-256 985,-256"/>
 </g>
-<!-- view_state_ready&#45;&gt;transition_4_ready_ready_data_signal_project_loaded -->
+<!-- view_state_ready&#45;&gt;transition_4_ready_ready_data_signal_project_changed -->
 <g id="edge9" class="edge">
-<title>view_state_ready&#45;&gt;transition_4_ready_ready_data_signal_project_loaded</title>
+<title>view_state_ready&#45;&gt;transition_4_ready_ready_data_signal_project_changed</title>
 <path fill="none" stroke="#3f3f46" d="M924.32,-320.9C941.78,-320.65 959.44,-320.57 976.44,-320.65"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="976.71,-323.45 984.73,-320.71 976.75,-317.85 976.71,-323.45"/>
 </g>
@@ -259,9 +259,9 @@
 <path fill="none" stroke="#3f3f46" d="M1175.24,-428.89C1201.95,-418.41 1231.76,-406.71 1258.49,-396.21"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="1259.52,-398.82 1265.94,-393.29 1257.48,-393.6 1259.52,-398.82"/>
 </g>
-<!-- transition_4_ready_ready_data_signal_project_loaded&#45;&gt;view_state_ready -->
+<!-- transition_4_ready_ready_data_signal_project_changed&#45;&gt;view_state_ready -->
 <g id="edge10" class="edge">
-<title>transition_4_ready_ready_data_signal_project_loaded&#45;&gt;view_state_ready</title>
+<title>transition_4_ready_ready_data_signal_project_changed&#45;&gt;view_state_ready</title>
 <path fill="none" stroke="#3f3f46" d="M984.73,-340.1C967.82,-340.58 950.09,-340.9 932.43,-341.04"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="932.3,-338.24 924.32,-341.09 932.34,-343.84 932.3,-338.24"/>
 </g>

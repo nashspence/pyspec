@@ -1,7 +1,7 @@
 $graph:
 - class: Workflow
   doc: 'contract workflow workflow.project.approval_notice; trigger={''event'': ''event.project.approved''}; outcomes=[''completed'',
-    ''delivery_failed'']; ref=workflow.project.approval_notice'
+    ''delivery_failed'', ''notice_forbidden'', ''notice_unauthenticated'']; ref=workflow.project.approval_notice'
   id: '#workflow_project_approval_notice'
   inputs:
     trigger_payload:
@@ -12,12 +12,16 @@ $graph:
       type: Any
     delivery_failed:
       type: Any
+    notice_forbidden:
+      type: Any
+    notice_unauthenticated:
+      type: Any
   steps:
     send_notice:
       doc: 'input_bindings={''approved_by'': {''from'': ''$trigger.payload.approved_by''}, ''project_id'': {''from'': ''$trigger.payload.project_id''}};
         outcome_routes={''delivery_failed'': {''retry_policy'': {''attempts'': 3, ''backoff'': ''exponential'', ''fail_as'':
-        ''delivery_failed''}}, ''forbidden'': {''fail_as'': ''delivery_failed''}, ''sent'': {''complete_as'': ''completed''},
-        ''unauthenticated'': {''fail_as'': ''delivery_failed''}}'
+        ''delivery_failed''}}, ''forbidden'': {''fail_as'': ''notice_forbidden''}, ''sent'': {''complete_as'': ''completed''},
+        ''unauthenticated'': {''fail_as'': ''notice_unauthenticated''}}'
       in:
         approved_by: trigger_payload
         project_id: trigger_payload

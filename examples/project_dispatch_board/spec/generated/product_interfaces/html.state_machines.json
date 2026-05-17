@@ -319,8 +319,10 @@
                 "reason": "result_bound_without_signal"
               },
               "result_binding": {
-                "field": "activity",
-                "from": "$outcome.result"
+                "data_key": "activity",
+                "from": {
+                  "from": "$outcome.result"
+                }
               }
             },
             "not_found": {
@@ -553,9 +555,9 @@
           {
             "from": "ready",
             "on": {
-              "data_signal": "project_loaded"
+              "data_signal": "project_changed"
             },
-            "rationale": "Successful detail operations refresh the ready-state project data.",
+            "rationale": "Detail mutations mark ready-state project data stale and trigger query refresh.",
             "to": "ready"
           },
           {
@@ -596,8 +598,10 @@
                 "data_signal": "project_loaded"
               },
               "result_binding": {
-                "field": "project",
-                "from": "$outcome.result"
+                "data_key": "project",
+                "from": {
+                  "from": "$outcome.result"
+                }
               }
             },
             "not_found": {
@@ -672,9 +676,9 @@
           {
             "from": "ready",
             "on": {
-              "data_signal": "project_loaded"
+              "data_signal": "project_changed"
             },
-            "rationale": "Successful detail operations refresh the ready-state project data.",
+            "rationale": "Detail mutations mark ready-state project data stale and trigger query refresh.",
             "to": "ready"
           },
           {
@@ -754,9 +758,9 @@
           {
             "from": "ready",
             "on": {
-              "data_signal": "project_loaded"
+              "data_signal": "project_changed"
             },
-            "rationale": "Successful detail operations refresh the ready-state project data.",
+            "rationale": "Detail mutations mark ready-state project data stale and trigger query refresh.",
             "to": "ready"
           },
           {
@@ -783,7 +787,12 @@
             }
           },
           "load": {
-            "on_enter": true
+            "on_enter": true,
+            "refresh_on": [
+              {
+                "data_signal": "project_changed"
+              }
+            ]
           },
           "operation": "operation.project.read",
           "outcome_routes": {
@@ -802,8 +811,10 @@
                 "reason": "result_bound_without_signal"
               },
               "result_binding": {
-                "field": "project",
-                "from": "$outcome.result"
+                "data_key": "project",
+                "from": {
+                  "from": "$outcome.result"
+                }
               }
             },
             "not_found": {
@@ -844,7 +855,7 @@
           "approve": {
             "input_bindings": {
               "approved_by": {
-                "value": "reviewer_1"
+                "from": "$actor.id"
               },
               "project_id": {
                 "from": "$context.project_id"
@@ -854,7 +865,7 @@
             "outcome_routes": {
               "approved": {
                 "raise": {
-                  "data_signal": "project_loaded"
+                  "data_signal": "project_changed"
                 }
               },
               "forbidden": {
@@ -903,7 +914,7 @@
             "outcome_routes": {
               "archived": {
                 "raise": {
-                  "data_signal": "project_loaded"
+                  "data_signal": "project_changed"
                 }
               },
               "forbidden": {
@@ -1004,9 +1015,9 @@
           {
             "from": "ready",
             "on": {
-              "data_signal": "project_loaded"
+              "data_signal": "project_changed"
             },
-            "rationale": "Successful detail operations refresh the ready-state project data.",
+            "rationale": "Detail mutations mark ready-state project data stale and trigger query refresh.",
             "to": "ready"
           },
           {
@@ -1051,7 +1062,7 @@
             "outcome_routes": {
               "created": {
                 "raise": {
-                  "data_signal": "projects_loaded"
+                  "data_signal": "projects_changed"
                 }
               },
               "forbidden": {
@@ -1134,6 +1145,14 @@
           {
             "from": "empty",
             "on": {
+              "data_signal": "projects_changed"
+            },
+            "rationale": "List mutations invalidate the empty collection and let the list query refresh it.",
+            "to": "empty"
+          },
+          {
+            "from": "empty",
+            "on": {
               "message": "show_invalid_state"
             },
             "rationale": "Invalid create attempts move the list into its displayable error state.",
@@ -1161,9 +1180,17 @@
           {
             "from": "ready",
             "on": {
+              "data_signal": "projects_changed"
+            },
+            "rationale": "List mutations mark ready-state collection data stale and trigger query refresh.",
+            "to": "ready"
+          },
+          {
+            "from": "ready",
+            "on": {
               "data_signal": "projects_loaded"
             },
-            "rationale": "Successful list operations refresh ready-state collection data.",
+            "rationale": "Successful list queries refresh ready-state collection data.",
             "to": "ready"
           },
           {
@@ -1242,6 +1269,14 @@
           {
             "from": "empty",
             "on": {
+              "data_signal": "projects_changed"
+            },
+            "rationale": "List mutations invalidate the empty collection and let the list query refresh it.",
+            "to": "empty"
+          },
+          {
+            "from": "empty",
+            "on": {
               "message": "show_invalid_state"
             },
             "rationale": "Invalid create attempts move the list into its displayable error state.",
@@ -1269,9 +1304,17 @@
           {
             "from": "ready",
             "on": {
+              "data_signal": "projects_changed"
+            },
+            "rationale": "List mutations mark ready-state collection data stale and trigger query refresh.",
+            "to": "ready"
+          },
+          {
+            "from": "ready",
+            "on": {
               "data_signal": "projects_loaded"
             },
-            "rationale": "Successful list operations refresh ready-state collection data.",
+            "rationale": "Successful list queries refresh ready-state collection data.",
             "to": "ready"
           },
           {
@@ -1349,6 +1392,14 @@
           {
             "from": "empty",
             "on": {
+              "data_signal": "projects_changed"
+            },
+            "rationale": "List mutations invalidate the empty collection and let the list query refresh it.",
+            "to": "empty"
+          },
+          {
+            "from": "empty",
+            "on": {
               "message": "show_invalid_state"
             },
             "rationale": "Invalid create attempts move the list into its displayable error state.",
@@ -1376,9 +1427,17 @@
           {
             "from": "ready",
             "on": {
+              "data_signal": "projects_changed"
+            },
+            "rationale": "List mutations mark ready-state collection data stale and trigger query refresh.",
+            "to": "ready"
+          },
+          {
+            "from": "ready",
+            "on": {
               "data_signal": "projects_loaded"
             },
-            "rationale": "Successful list operations refresh ready-state collection data.",
+            "rationale": "Successful list queries refresh ready-state collection data.",
             "to": "ready"
           },
           {
@@ -1426,7 +1485,7 @@
             "outcome_routes": {
               "created": {
                 "raise": {
-                  "data_signal": "projects_loaded"
+                  "data_signal": "projects_changed"
                 }
               },
               "forbidden": {
@@ -1489,7 +1548,7 @@
               },
               "submitted": {
                 "raise": {
-                  "data_signal": "projects_loaded"
+                  "data_signal": "projects_changed"
                 }
               },
               "unauthenticated": {
@@ -1559,6 +1618,14 @@
           {
             "from": "empty",
             "on": {
+              "data_signal": "projects_changed"
+            },
+            "rationale": "List mutations invalidate the empty collection and let the list query refresh it.",
+            "to": "empty"
+          },
+          {
+            "from": "empty",
+            "on": {
               "message": "show_invalid_state"
             },
             "rationale": "Invalid create attempts move the list into its displayable error state.",
@@ -1586,9 +1653,17 @@
           {
             "from": "ready",
             "on": {
+              "data_signal": "projects_changed"
+            },
+            "rationale": "List mutations mark ready-state collection data stale and trigger query refresh.",
+            "to": "ready"
+          },
+          {
+            "from": "ready",
+            "on": {
               "data_signal": "projects_loaded"
             },
-            "rationale": "Successful list operations refresh ready-state collection data.",
+            "rationale": "Successful list queries refresh ready-state collection data.",
             "to": "ready"
           },
           {

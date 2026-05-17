@@ -501,6 +501,8 @@ state_machines:
         - heading
         query_invocations:
           read_activity:
+            load:
+              on_enter: true
             operation: operation.project.read
             input_bindings:
               project_id:
@@ -508,8 +510,9 @@ state_machines:
             outcome_routes:
               found:
                 result_binding:
-                  field: activity
-                  from: $outcome.result
+                  data_key: activity
+                  from:
+                    from: $outcome.result
                 no_signal:
                   reason: result_bound_without_signal
               forbidden:
@@ -544,6 +547,8 @@ state_machines:
         nullable: false
     query_invocations:
       list_board:
+        load:
+          on_start: true
         operation: operation.project.list
         input_bindings:
           workspace_id:
@@ -551,8 +556,9 @@ state_machines:
         outcome_routes:
           listed:
             result_binding:
-              field: projects
-              from: $outcome.result
+              data_key: projects
+              from:
+                from: $outcome.result
             no_signal:
               reason: result_bound_without_signal
           forbidden:
@@ -759,6 +765,7 @@ state_machines:
               message:
                 primitive: Text
         data_signals:
+          project_changed: {}
           project_load_failed: {}
           project_loaded: {}
     transitions:
@@ -784,8 +791,8 @@ state_machines:
       to: none
     - from: ready
       on:
-        data_signal: project_loaded
-      rationale: Successful detail operations refresh the ready-state project data.
+        data_signal: project_changed
+      rationale: Detail mutations mark ready-state project data stale and trigger query refresh.
       to: ready
     - from: ready
       on:
@@ -802,6 +809,8 @@ state_machines:
         - message
         query_invocations:
           read_project:
+            load:
+              on_enter: true
             operation: operation.project.read
             input_bindings:
               project_id:
@@ -809,8 +818,9 @@ state_machines:
             outcome_routes:
               found:
                 result_binding:
-                  field: project
-                  from: $outcome.result
+                  data_key: project
+                  from:
+                    from: $outcome.result
                 raise:
                   data_signal: project_loaded
               forbidden:
@@ -831,6 +841,10 @@ state_machines:
         - priority_badge
         query_invocations:
           read_project:
+            load:
+              on_enter: true
+              refresh_on:
+              - data_signal: project_changed
             operation: operation.project.read
             input_bindings:
               project_id:
@@ -838,8 +852,9 @@ state_machines:
             outcome_routes:
               found:
                 result_binding:
-                  field: project
-                  from: $outcome.result
+                  data_key: project
+                  from:
+                    from: $outcome.result
                 no_signal:
                   reason: result_bound_without_signal
               forbidden:
@@ -873,13 +888,13 @@ state_machines:
             operation: operation.project.approve
             input_bindings:
               approved_by:
-                value: reviewer_1
+                from: $actor.id
               project_id:
                 from: $context.project_id
             outcome_routes:
               approved:
                 raise:
-                  data_signal: project_loaded
+                  data_signal: project_changed
               forbidden:
                 no_signal:
                   reason: handled_by_response_surface
@@ -910,7 +925,7 @@ state_machines:
             outcome_routes:
               archived:
                 raise:
-                  data_signal: project_loaded
+                  data_signal: project_changed
               forbidden:
                 raise:
                   message: show_invalid_state
@@ -950,6 +965,10 @@ state_machines:
         nullable: false
     query_invocations:
       list_projects:
+        load:
+          on_start: true
+          refresh_on:
+          - data_signal: projects_changed
         operation: operation.project.list
         input_bindings:
           workspace_id:
@@ -957,8 +976,9 @@ state_machines:
         outcome_routes:
           listed:
             result_binding:
-              field: projects
-              from: $outcome.result
+              data_key: projects
+              from:
+                from: $outcome.result
             context_updates:
               workspace_id:
                 from: $invocation.input.workspace_id
@@ -989,6 +1009,7 @@ state_machines:
         data_signals:
           project_collection_empty: {}
           project_list_failed: {}
+          projects_changed: {}
           projects_loaded: {}
       emits:
         messages:
@@ -1015,6 +1036,11 @@ state_machines:
       to: ready
     - from: empty
       on:
+        data_signal: projects_changed
+      rationale: List mutations invalidate the empty collection and let the list query refresh it.
+      to: empty
+    - from: empty
+      on:
         message: show_invalid_state
       rationale: Invalid create attempts move the list into its displayable error state.
       to: error
@@ -1030,8 +1056,13 @@ state_machines:
       to: ready
     - from: ready
       on:
+        data_signal: projects_changed
+      rationale: List mutations mark ready-state collection data stale and trigger query refresh.
+      to: ready
+    - from: ready
+      on:
         data_signal: projects_loaded
-      rationale: Successful list operations refresh ready-state collection data.
+      rationale: Successful list queries refresh ready-state collection data.
       to: ready
     - from: ready
       on:
@@ -1060,7 +1091,7 @@ state_machines:
             outcome_routes:
               created:
                 raise:
-                  data_signal: projects_loaded
+                  data_signal: projects_changed
               forbidden:
                 no_signal:
                   reason: handled_by_response_surface
@@ -1105,7 +1136,7 @@ state_machines:
             outcome_routes:
               created:
                 raise:
-                  data_signal: projects_loaded
+                  data_signal: projects_changed
               forbidden:
                 no_signal:
                   reason: handled_by_response_surface
@@ -1144,7 +1175,7 @@ state_machines:
                       from: $outcome.result.message
               submitted:
                 raise:
-                  data_signal: projects_loaded
+                  data_signal: projects_changed
               unauthenticated:
                 raise:
                   message: show_invalid_state
@@ -1437,6 +1468,14 @@ workflows:
         kind: failure
         result:
           model: Problem
+      notice_forbidden:
+        kind: failure
+        result:
+          model: Problem
+      notice_unauthenticated:
+        kind: failure
+        result:
+          model: Problem
     steps:
     - id: send_notice
       input_bindings:
@@ -1452,11 +1491,11 @@ workflows:
             backoff: exponential
             fail_as: delivery_failed
         forbidden:
-          fail_as: delivery_failed
+          fail_as: notice_forbidden
         sent:
           complete_as: completed
         unauthenticated:
-          fail_as: delivery_failed
+          fail_as: notice_unauthenticated
     trigger:
       event: event.project.approved
 test_cases:

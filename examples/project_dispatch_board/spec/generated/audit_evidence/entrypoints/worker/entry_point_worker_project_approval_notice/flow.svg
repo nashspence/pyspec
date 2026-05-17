@@ -1,6 +1,6 @@
 <svg width="798pt" height="217pt"
  viewBox="0.00 0.00 798.00 217.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 3594474b5afe103bc44d39c3bd49c673f0a53a62a7df1d617404e280b9a6478c -->
+<!-- pyspec-contract-input-sha256: d5f5a332d3a0205ebfbc8e063615f029f99908cbb762600041478ff294312088 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 199)">
 <title>entrypoint_entry_point_worker_project_approval_notice</title>
 <!-- entrypoint_entry_point_worker_project_approval_notice -->
@@ -23,24 +23,30 @@
 <!-- entrypoint_target_workflow_project_approval_notice -->
 <g id="node2" class="node">
 <title>entrypoint_target_workflow_project_approval_notice</title>
-<polygon fill="#ffffff" stroke="transparent" points="285,-31 285,-165 569,-165 569,-31 285,-31"/>
-<polygon fill="#a16207" stroke="transparent" points="286,-156 286,-164 568,-164 568,-156 286,-156"/>
-<polygon fill="#fefce8" stroke="transparent" points="286,-125 286,-156 568,-156 568,-125 286,-125"/>
-<text text-anchor="start" x="290" y="-142.6" font-family="Arial" font-weight="bold" font-size="13.00">workflow.project.approval_notice</text>
-<text text-anchor="start" x="290" y="-131.6" font-family="Arial" font-size="8.00" fill="#64748b">target workflow</text>
-<text text-anchor="start" x="290" y="-114" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approval event sends a downstream notice.</text>
-<text text-anchor="start" x="291" y="-94" font-family="Arial" font-weight="bold" font-size="10.00">trigger:</text>
-<text text-anchor="start" x="325" y="-94" font-family="Arial" font-size="10.00">  event event.project.approved</text>
-<text text-anchor="start" x="291" y="-82" font-family="Arial" font-weight="bold" font-size="10.00">steps:</text>
-<text text-anchor="start" x="319" y="-82" font-family="Arial" font-size="10.00">  send_notice → operation.project.send_approval_notice</text>
-<text text-anchor="start" x="290" y="-62" font-family="Arial" font-weight="bold" font-size="10.00">outcomes</text>
-<text text-anchor="start" x="290" y="-51" font-family="Arial" font-size="10.00">completed</text>
-<text text-anchor="start" x="336" y="-51" font-family="Arial" font-size="8.00" fill="#94a3b8">  data_contract.project.notice_result</text>
-<text text-anchor="start" x="463" y="-51" font-family="Arial" font-size="8.00"> ← success</text>
-<text text-anchor="start" x="290" y="-40" font-family="Arial" font-size="10.00">delivery_failed</text>
-<text text-anchor="start" x="353" y="-40" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<text text-anchor="start" x="388" y="-40" font-family="Arial" font-size="8.00"> ← failure</text>
-<polygon fill="none" stroke="#a16207" points="285,-31 285,-165 569,-165 569,-31 285,-31"/>
+<polygon fill="#ffffff" stroke="transparent" points="285,-20 285,-176 569,-176 569,-20 285,-20"/>
+<polygon fill="#a16207" stroke="transparent" points="286,-167 286,-175 568,-175 568,-167 286,-167"/>
+<polygon fill="#fefce8" stroke="transparent" points="286,-136 286,-167 568,-167 568,-136 286,-136"/>
+<text text-anchor="start" x="290" y="-153.6" font-family="Arial" font-weight="bold" font-size="13.00">workflow.project.approval_notice</text>
+<text text-anchor="start" x="290" y="-142.6" font-family="Arial" font-size="8.00" fill="#64748b">target workflow</text>
+<text text-anchor="start" x="290" y="-125" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approval event sends a downstream notice.</text>
+<text text-anchor="start" x="291" y="-105" font-family="Arial" font-weight="bold" font-size="10.00">trigger:</text>
+<text text-anchor="start" x="325" y="-105" font-family="Arial" font-size="10.00">  event event.project.approved</text>
+<text text-anchor="start" x="291" y="-93" font-family="Arial" font-weight="bold" font-size="10.00">steps:</text>
+<text text-anchor="start" x="319" y="-93" font-family="Arial" font-size="10.00">  send_notice → operation.project.send_approval_notice</text>
+<text text-anchor="start" x="290" y="-73" font-family="Arial" font-weight="bold" font-size="10.00">outcomes</text>
+<text text-anchor="start" x="290" y="-62" font-family="Arial" font-size="10.00">completed</text>
+<text text-anchor="start" x="336" y="-62" font-family="Arial" font-size="8.00" fill="#94a3b8">  data_contract.project.notice_result</text>
+<text text-anchor="start" x="463" y="-62" font-family="Arial" font-size="8.00"> ← success</text>
+<text text-anchor="start" x="290" y="-51" font-family="Arial" font-size="10.00">delivery_failed</text>
+<text text-anchor="start" x="353" y="-51" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<text text-anchor="start" x="388" y="-51" font-family="Arial" font-size="8.00"> ← failure</text>
+<text text-anchor="start" x="290" y="-40" font-family="Arial" font-size="10.00">notice_forbidden</text>
+<text text-anchor="start" x="362" y="-40" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<text text-anchor="start" x="397" y="-40" font-family="Arial" font-size="8.00"> ← failure</text>
+<text text-anchor="start" x="290" y="-29" font-family="Arial" font-size="10.00">notice_unauthenticated</text>
+<text text-anchor="start" x="391" y="-29" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<text text-anchor="start" x="426" y="-29" font-family="Arial" font-size="8.00"> ← failure</text>
+<polygon fill="none" stroke="#a16207" points="285,-20 285,-176 569,-176 569,-20 285,-20"/>
 </g>
 <!-- entrypoint_entry_point_worker_project_approval_notice&#45;&gt;entrypoint_target_workflow_project_approval_notice -->
 <g id="edge1" class="edge">

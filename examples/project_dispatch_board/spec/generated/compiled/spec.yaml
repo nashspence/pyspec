@@ -905,9 +905,9 @@ refs:
   - local_signal_raise.project.detail.loading.query_invocation.read_project.found.data_signal.project_loaded
   - local_signal_raise.project.detail.loading.query_invocation.read_project.not_found.data_signal.project_load_failed
   - local_signal_raise.project.detail.loading.query_invocation.read_project.unauthenticated.data_signal.project_load_failed
-  - local_signal_raise.project.detail.ready.operation_invocation.approve.approved.data_signal.project_loaded
+  - local_signal_raise.project.detail.ready.operation_invocation.approve.approved.data_signal.project_changed
   - local_signal_raise.project.detail.ready.operation_invocation.approve.invalid_state.message.show_invalid_state
-  - local_signal_raise.project.detail.ready.operation_invocation.archive.archived.data_signal.project_loaded
+  - local_signal_raise.project.detail.ready.operation_invocation.archive.archived.data_signal.project_changed
   - local_signal_raise.project.detail.ready.operation_invocation.archive.forbidden.message.show_invalid_state
   - local_signal_raise.project.detail.ready.operation_invocation.archive.invalid_state.message.show_invalid_state
   - local_signal_raise.project.detail.ready.operation_invocation.archive.not_found.message.show_invalid_state
@@ -915,17 +915,17 @@ refs:
   - local_signal_raise.project.detail.ready.query_invocation.read_project.forbidden.message.show_invalid_state
   - local_signal_raise.project.detail.ready.query_invocation.read_project.not_found.message.show_invalid_state
   - local_signal_raise.project.detail.ready.query_invocation.read_project.unauthenticated.message.show_invalid_state
-  - local_signal_raise.project.list.empty.operation_invocation.create.created.data_signal.projects_loaded
+  - local_signal_raise.project.list.empty.operation_invocation.create.created.data_signal.projects_changed
   - local_signal_raise.project.list.empty.operation_invocation.create.validation_failed.message.show_invalid_state
   - local_signal_raise.project.list.query_invocation.list_projects.forbidden.data_signal.project_list_failed
   - local_signal_raise.project.list.query_invocation.list_projects.listed.data_signal.projects_loaded
   - local_signal_raise.project.list.query_invocation.list_projects.unauthenticated.data_signal.project_list_failed
   - local_signal_raise.project.list.query_invocation.list_projects.unavailable.data_signal.project_list_failed
-  - local_signal_raise.project.list.ready.operation_invocation.create.created.data_signal.projects_loaded
+  - local_signal_raise.project.list.ready.operation_invocation.create.created.data_signal.projects_changed
   - local_signal_raise.project.list.ready.operation_invocation.submit.forbidden.message.show_invalid_state
   - local_signal_raise.project.list.ready.operation_invocation.submit.invalid_state.message.show_invalid_state
   - local_signal_raise.project.list.ready.operation_invocation.submit.not_found.message.show_invalid_state
-  - local_signal_raise.project.list.ready.operation_invocation.submit.submitted.data_signal.projects_loaded
+  - local_signal_raise.project.list.ready.operation_invocation.submit.submitted.data_signal.projects_changed
   - local_signal_raise.project.list.ready.operation_invocation.submit.unauthenticated.message.show_invalid_state
   operation_invocation:
   - operation_invocation.project.detail.ready.approve
@@ -1124,8 +1124,9 @@ state_machines:
                 no_signal:
                   reason: result_bound_without_signal
                 result_binding:
-                  field: activity
-                  from: $outcome.result
+                  data_key: activity
+                  from:
+                    from: $outcome.result
               not_found:
                 no_signal:
                   rationale: The parent detail panel owns not-found display for the selected project.
@@ -1169,8 +1170,9 @@ state_machines:
             no_signal:
               reason: result_bound_without_signal
             result_binding:
-              field: projects
-              from: $outcome.result
+              data_key: projects
+              from:
+                from: $outcome.result
           unauthenticated:
             no_signal:
               rationale: The entry response surface owns unauthenticated display.
@@ -1374,6 +1376,8 @@ state_machines:
     signals:
       accepts:
         data_signals:
+          project_changed:
+            payload_schema: {}
           project_load_failed:
             payload_schema: {}
           project_loaded:
@@ -1414,8 +1418,8 @@ state_machines:
       to: none
     - from: ready
       on:
-        data_signal: project_loaded
-      rationale: Successful detail operations refresh the ready-state project data.
+        data_signal: project_changed
+      rationale: Detail mutations mark ready-state project data stale and trigger query refresh.
       to: ready
     - from: ready
       on:
@@ -1452,8 +1456,9 @@ state_machines:
                 raise:
                   data_signal: project_loaded
                 result_binding:
-                  field: project
-                  from: $outcome.result
+                  data_key: project
+                  from:
+                    from: $outcome.result
               not_found:
                 raise:
                   data_signal: project_load_failed
@@ -1485,14 +1490,14 @@ state_machines:
           approve:
             input_bindings:
               approved_by:
-                value: reviewer_1
+                from: $actor.id
               project_id:
                 from: $context.project_id
             operation: operation.project.approve
             outcome_routes:
               approved:
                 raise:
-                  data_signal: project_loaded
+                  data_signal: project_changed
               forbidden:
                 no_signal:
                   rationale: The response surface keeps the detail panel unchanged for forbidden approval.
@@ -1523,7 +1528,7 @@ state_machines:
             outcome_routes:
               archived:
                 raise:
-                  data_signal: project_loaded
+                  data_signal: project_changed
               forbidden:
                 raise:
                   message: show_invalid_state
@@ -1555,6 +1560,8 @@ state_machines:
                 from: $context.project_id
             load:
               on_enter: true
+              refresh_on:
+              - data_signal: project_changed
             operation: operation.project.read
             outcome_routes:
               forbidden:
@@ -1567,8 +1574,9 @@ state_machines:
                 no_signal:
                   reason: result_bound_without_signal
                 result_binding:
-                  field: project
-                  from: $outcome.result
+                  data_key: project
+                  from:
+                    from: $outcome.result
               not_found:
                 raise:
                   message: show_invalid_state
@@ -1605,6 +1613,8 @@ state_machines:
             from: $context.workspace_id
         load:
           on_start: true
+          refresh_on:
+          - data_signal: projects_changed
         operation: operation.project.list
         outcome_routes:
           forbidden:
@@ -1617,8 +1627,9 @@ state_machines:
             raise:
               data_signal: projects_loaded
             result_binding:
-              field: projects
-              from: $outcome.result
+              data_key: projects
+              from:
+                from: $outcome.result
           unauthenticated:
             raise:
               data_signal: project_list_failed
@@ -1632,6 +1643,8 @@ state_machines:
           project_collection_empty:
             payload_schema: {}
           project_list_failed:
+            payload_schema: {}
+          projects_changed:
             payload_schema: {}
           projects_loaded:
             payload_schema: {}
@@ -1669,6 +1682,11 @@ state_machines:
       to: ready
     - from: empty
       on:
+        data_signal: projects_changed
+      rationale: List mutations invalidate the empty collection and let the list query refresh it.
+      to: empty
+    - from: empty
+      on:
         message: show_invalid_state
       rationale: Invalid create attempts move the list into its displayable error state.
       to: error
@@ -1684,8 +1702,13 @@ state_machines:
       to: ready
     - from: ready
       on:
+        data_signal: projects_changed
+      rationale: List mutations mark ready-state collection data stale and trigger query refresh.
+      to: ready
+    - from: ready
+      on:
         data_signal: projects_loaded
-      rationale: Successful list operations refresh ready-state collection data.
+      rationale: Successful list queries refresh ready-state collection data.
       to: ready
     - from: ready
       on:
@@ -1712,7 +1735,7 @@ state_machines:
             outcome_routes:
               created:
                 raise:
-                  data_signal: projects_loaded
+                  data_signal: projects_changed
               forbidden:
                 no_signal:
                   rationale: The response surface keeps the empty list visible for forbidden create.
@@ -1771,7 +1794,7 @@ state_machines:
             outcome_routes:
               created:
                 raise:
-                  data_signal: projects_loaded
+                  data_signal: projects_changed
               forbidden:
                 no_signal:
                   rationale: The response surface keeps the ready list visible for forbidden create.
@@ -1810,7 +1833,7 @@ state_machines:
                       from: $outcome.result.message
               submitted:
                 raise:
-                  data_signal: projects_loaded
+                  data_signal: projects_changed
               unauthenticated:
                 raise:
                   message: show_invalid_state
@@ -2576,6 +2599,14 @@ workflows:
         kind: failure
         result:
           model: Problem
+      notice_forbidden:
+        kind: failure
+        result:
+          model: Problem
+      notice_unauthenticated:
+        kind: failure
+        result:
+          model: Problem
     rationale: Approval event sends a downstream notice.
     ref: workflow.project.approval_notice
     steps:
@@ -2593,10 +2624,10 @@ workflows:
             backoff: exponential
             fail_as: delivery_failed
         forbidden:
-          fail_as: delivery_failed
+          fail_as: notice_forbidden
         sent:
           complete_as: completed
         unauthenticated:
-          fail_as: delivery_failed
+          fail_as: notice_unauthenticated
     trigger:
       event: event.project.approved

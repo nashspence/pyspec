@@ -64,12 +64,16 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `retry safety`: validation that a retry policy applies only to a retry-safe delegated entry point and final target, a query, an explicitly retry-safe operation or entry point, or an ingress/disposition outcome where no target operation has executed. Transport retry, ingress retry, workflow retry, and operation retry are separate scopes.
 - `workflow_route`: exclusive route target via `next_step`, `complete_as`, `fail_as`, `retry_policy`, or `dead_letter_as`.
 - `state-machine context schema`: explicit `field_schema_map` for local machine context. Each context field declares `type`, `required`, and `nullable`; effects may set a context field to null only when that field is nullable.
+- `context_present`: state-machine condition meaning the declared context field is present and non-null. Nullable context fields with a current `null` value are not present for this condition.
 - `Operation invocation`: local view-state use of a global operation, normally user/action-triggered, including input bindings and outcome routing. A renderer action binds to this local invocation, not directly to `operation_ref`.
 - `Query invocation`: local state-machine or view-state use of a query operation for data loading or refresh, including input bindings, load policy, context updates, result binding, and outcome routing. State-machine-level queries load with `on_start`/`on_mount`; view-state-level queries load with `on_enter`.
-- `Query invocation effect`: each query outcome route must update context, bind/cache a result, raise a local signal, or explicitly declare a scoped no-signal route. `result_binding` names the state-machine/view-state data field populated from an outcome expression.
+- `Query invocation effect`: each query outcome route must update context, bind/cache a result, raise a local signal, or explicitly declare a scoped no-signal route. `result_binding.data_key` names the state-machine/view-state result data populated from a binding value.
+- `Query refresh signal`: local data signal raised by a mutation or other invalidation route, such as `project_changed`, and consumed by `query_invocation.load.refresh_on`. Loaded/missing/error data signals should come from query outcomes after data has actually been bound or classified.
 - `Outcome route`: mapping from an operation/query outcome to context updates, result binding, a local signal raise, or explicit no-signal handling.
-- `No-signal route`: explicit declaration that an outcome is covered but intentionally raises no local signal. It is not omission and does not suppress durable/global events. Reasons are scope-sensitive: response-surface handling needs a real adapter/renderer surface, query refresh needs explicit result/context refresh, result-bound-without-signal needs `result_binding`, and failure outcomes need rationale unless response-surface handling is proven.
+- `No-signal route`: explicit declaration that an outcome is covered but intentionally raises no local signal. It is not omission and does not suppress durable/global events. Reasons are scope-sensitive: response-surface handling needs a real adapter/renderer surface, query refresh needs explicit result/context refresh, result-bound-without-signal needs result binding or context/cache update, and failure outcomes must use proven response-surface handling or `intentionally_unobservable` with rationale.
 - `Authored value`: explicit literal-or-runtime-reference value used in authored value maps. Use `{value: ...}` for JSON literals, including literal strings beginning with `$`, and `{from: $fixture...}` or another valid runtime expression for references. Raw `$...` strings are not interpreted as references.
+- `Runtime root`: the first segment of a runtime expression. Operation and query input bindings may use `$context` and `$actor`; operation/query outcome routes may use `$outcome`, `$invocation`, and `$context`; child context bindings use `$state_machine` for the parent machine context; entry response/delegation handlers use the adapter/delegation-specific `$input`, `$response`, or `$outcome` roots documented by that target. Authored test, fact, and render-audit value maps use their own authored-value roots such as `$fixture`.
+- `Actor/user binding source`: local operation invocations should bind actor-like input fields such as `actor_id`, `approved_by`, or `reviewer_id` from `$actor.id` or an explicit context source. Literal actor/user ids are linted because they usually hide fixture-only assumptions in authored UI behavior.
 - `Local signal raise`: creation of a state-machine-local message or data signal.
 - `Data signal`: local state-machine signal commonly used for data refresh, invalidation, loaded/missing states, or render updates. Data signals are not sent between child state-machine instances.
 - `Message`: local state-machine signal that may also be sent between child state-machine instances where sync rules support message sends.
@@ -107,10 +111,7 @@ view_states:
         outcome_routes:
           approved:
             raise:
-              data_signal: project_updated
-              payload_bindings:
-                project_id:
-                  from: $outcome.result.id
+              data_signal: project_changed
           invalid_state:
             raise:
               message: show_invalid_state
@@ -135,15 +136,16 @@ query_invocations:
     load:
       on_enter: true
       refresh_on:
-      - data_signal: project_updated
+      - data_signal: project_changed
     outcome_routes:
       found:
         result_binding:
-          field: project
-          from: $outcome.result
-        context_updates:
-          project:
+          data_key: project
+          from:
             from: $outcome.result
+        context_updates:
+          project_id:
+            from: $invocation.input.project_id
         raise:
           data_signal: project_loaded
       not_found:
@@ -154,6 +156,18 @@ query_invocations:
           reason: intentionally_unobservable
           rationale: The query result is not shown while the current view keeps its existing data.
 ```
+
+## Runtime Roots
+
+| Context | Valid roots |
+| --- | --- |
+| Operation invocation `input_bindings` | `$context`, `$actor` |
+| Operation invocation outcome routes | `$outcome`, `$invocation`, `$context` |
+| Query invocation `input_bindings` | `$context`, `$actor` |
+| Query invocation outcome routes | `$outcome`, `$invocation`, `$context` |
+| Child state-machine `context_bindings` | `$state_machine` for parent state-machine context |
+| Entry-point delegation/response handlers | adapter-specific `$input`, `$response`, or target `$outcome` roots |
+| Authored test/fact/render-audit value maps | context-specific authored roots such as `$fixture`, `$input`, and `$context` |
 
 ## Visual Audit Coverage
 
@@ -309,7 +323,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:python_identifier --> `$defs/python_identifier`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:query_invocation_id --> `$defs/query_invocation_id`: local state-machine or view-state query invocation identifier.
 - <!-- schema-def:query_invocation_load_policy --> `$defs/query_invocation_load_policy`: query invocation load and refresh trigger policy.
-- <!-- schema-def:query_result_binding --> `$defs/query_result_binding`: explicit query result binding to a named local data field.
+- <!-- schema-def:query_result_binding --> `$defs/query_result_binding`: explicit query result binding to a named local `data_key`.
 - <!-- schema-def:renderer_contracts --> `$defs/renderer_contracts`: renderer contract component scoped to HTML and/or Textual targets.
 - <!-- schema-def:runtime_expression --> `$defs/runtime_expression`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:runtime_bindings --> `$defs/runtime_bindings`: shared schema component used by authored source or compiled output.

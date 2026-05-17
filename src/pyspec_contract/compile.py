@@ -80,6 +80,20 @@ TypeScope = dict[tuple[str, ...], Any]
 TypeScopes = dict[str, TypeScope]
 
 
+ACTOR_SOURCE_SCOPE: TypeScope = {
+    ("id",): {"primitive": "ID"},
+}
+
+ACTOR_LITERAL_FIELD_NAMES = {
+    "actor_id",
+    "approved_by",
+    "created_by",
+    "reviewer_id",
+    "updated_by",
+    "user_id",
+}
+
+
 def _schema_path(name: str) -> Path:
     return ROOT / "schemas" / name
 
@@ -1411,9 +1425,22 @@ def _validate_operation_invocations(
             f"{label} input_bindings",
             bindings,
             expected_input,
-            {"context": _type_scope(context)},
+            {"context": _type_scope(context), "actor": ACTOR_SOURCE_SCOPE},
         )
+        _lint_literal_actor_bindings(label, bindings)
         _validate_operation_invocation_routes(contract, label, state_machine, invocation, operation_id, operation)
+
+
+def _lint_literal_actor_bindings(label: str, bindings: dict[str, Any]) -> None:
+    for field_name, binding in sorted(bindings.items()):
+        if field_name not in ACTOR_LITERAL_FIELD_NAMES:
+            continue
+        if isinstance(binding, dict) and set(binding) == {"value"} and isinstance(binding["value"], str):
+            warnings.warn(
+                f"{label} input_bindings.{field_name} uses a literal actor/user id; prefer $actor.id or an explicit context binding",
+                ContractLintWarning,
+                stacklevel=3,
+            )
 
 
 def _validate_operation_invocation_routes(
@@ -1452,6 +1479,7 @@ def _validate_operation_invocation_routes(
         signal = route.get("raise")
         if not signal:
             raise ContractError(f"{route_label} must raise a local signal or declare no_signal")
+        _lint_mutation_loaded_signal(route_label, operation, signal, route)
         payload = _state_machine_signal_payload(
             state_machine,
             "accepts",
@@ -1467,6 +1495,20 @@ def _validate_operation_invocation_routes(
         )
 
 
+def _lint_mutation_loaded_signal(label: str, operation: dict[str, Any], signal: dict[str, Any], route: dict[str, Any]) -> None:
+    data_signal = signal.get("data_signal")
+    if operation.get("operation_kind") not in {"command", "transition"} or not data_signal:
+        return
+    if data_signal == "loaded" or data_signal.endswith("_loaded"):
+        has_loaded_payload = bool(signal.get("payload_bindings")) or "result_binding" in route or "context_updates" in route
+        if not has_loaded_payload:
+            warnings.warn(
+                f"{label} raises data signal {data_signal!r} from a mutation without binding loaded data; prefer changed/invalidated/completed signals and query refresh",
+                ContractLintWarning,
+                stacklevel=3,
+            )
+
+
 def _validate_no_signal_route(
     label: str,
     outcome: dict[str, Any],
@@ -1476,6 +1518,7 @@ def _validate_no_signal_route(
     has_response_surface: bool = False,
     has_query_refresh: bool = False,
     has_result_binding: bool = False,
+    has_data_effect: bool = False,
     authorization_outcome: bool = False,
 ) -> bool:
     no_signal = route.get("no_signal")
@@ -1488,18 +1531,21 @@ def _validate_no_signal_route(
         raise ContractError(f"{label} no_signal.reason handled_by_response_surface requires an adapter or renderer response surface for this outcome")
     if reason == "handled_by_query_refresh" and not has_query_refresh:
         raise ContractError(f"{label} no_signal.reason handled_by_query_refresh requires an explicit query result binding or context refresh")
-    if reason == "result_bound_without_signal" and not has_result_binding:
-        raise ContractError(f"{label} no_signal.reason result_bound_without_signal requires result_binding")
+    if reason == "result_bound_without_signal" and not (has_result_binding or has_data_effect):
+        raise ContractError(f"{label} no_signal.reason result_bound_without_signal requires result_binding or context/cache update")
     if authorization_outcome and route_scope == "operation_invocation" and reason != "handled_by_response_surface":
         raise ContractError(f"{label} authorization failure no_signal requires handled_by_response_surface")
     if outcome.get("kind") == "failure":
-        if reason not in {"handled_by_response_surface", "intentionally_unobservable", "state_unchanged"}:
+        if reason == "handled_by_response_surface":
+            if not has_response_surface:
+                raise ContractError(f"{label} failure outcome no_signal handled_by_response_surface requires a proven response surface")
+            return True
+        if reason != "intentionally_unobservable":
             raise ContractError(
-                f"{label} failure outcome no_signal must use reason handled_by_response_surface, intentionally_unobservable, or state_unchanged"
+                f"{label} failure outcome no_signal must use reason handled_by_response_surface with a proven response surface or intentionally_unobservable with rationale"
             )
-        if reason != "handled_by_response_surface" or not has_response_surface:
-            if not no_signal.get("rationale"):
-                raise ContractError(f"{label} failure outcome no_signal must declare rationale")
+        if not no_signal.get("rationale"):
+            raise ContractError(f"{label} failure outcome no_signal must declare rationale")
     return True
 
 
@@ -1599,7 +1645,7 @@ def _validate_query_invocations(
             f"{label} input_bindings",
             invocation.get("input_bindings") or {},
             operation.get("input") or {},
-            {"context": _type_scope(context)},
+            {"context": _type_scope(context), "actor": ACTOR_SOURCE_SCOPE},
         )
         _validate_query_load_policy(contract, label, state_machine, invocation.get("load") or {}, scope=scope)
         _validate_query_invocation_routes(contract, label, state_machine, invocation, operation)
@@ -1664,11 +1710,14 @@ def _validate_query_invocation_routes(
             )
         result_binding = route.get("result_binding")
         if result_binding:
+            data_key = result_binding["data_key"]
+            if data_key in state_machine.get("context", {}):
+                raise ContractError(f"{route_label} result_binding.data_key {data_key!r} conflicts with state-machine context field")
             _expression_type(
                 contract,
-                {"from": result_binding["from"]},
+                result_binding["from"],
                 scopes,
-                f"{route_label} result_binding.{result_binding['field']}",
+                f"{route_label} result_binding.{data_key}",
             )
         has_query_refresh = has_result_binding or has_context_updates
         _validate_no_signal_route(
@@ -1679,6 +1728,7 @@ def _validate_query_invocation_routes(
             has_response_surface=_operation_has_response_surface(contract, invocation["operation"], outcome_id),
             has_query_refresh=has_query_refresh,
             has_result_binding=has_result_binding,
+            has_data_effect=has_context_updates,
             authorization_outcome=outcome_id in _operation_authorization_outcomes(operation),
         )
         if outcome["kind"] == "success" and "no_signal" in route and not any((has_context_updates, has_result_binding, has_raise)):
@@ -1805,13 +1855,21 @@ def _validate_signals(state_machine_id: str, state_machine: dict[str, Any]) -> N
 def _lint_signal_names(state_machine_id: str, state_machine: dict[str, Any], signals: dict[str, Any]) -> None:
     view_states = set(state_machine.get("view_states", {}))
     messages = set(signals.get("accepts", {}).get("messages", {})) | set(signals.get("emits", {}).get("messages", {}))
-    data_signals = set(signals.get("accepts", {}).get("data_signals", {}))
+    data_signal_specs = signals.get("accepts", {}).get("data_signals", {}) or {}
+    data_signals = set(data_signal_specs)
     for name in sorted((messages | data_signals) & view_states):
         warnings.warn(
             f"state machine {state_machine_id} signal {name!r} also names a view state; prefer event-like names such as project_loaded, project_load_failed, collection_empty, or operation_failed",
             ContractLintWarning,
             stacklevel=3,
         )
+    for name, signal in sorted(data_signal_specs.items()):
+        if name in {"ready", "error", "empty", "loaded"} and not signal.get("rationale"):
+            warnings.warn(
+                f"state machine {state_machine_id} data signal {name!r} is state-like; prefer event-like names such as project_loaded, project_load_failed, collection_empty, or operation_failed",
+                ContractLintWarning,
+                stacklevel=3,
+            )
     for transition in state_machine.get("transitions", []):
         _, trigger_name = _signal_selector_key(transition["on"])
         if trigger_name == transition["to"]:
@@ -3597,6 +3655,10 @@ def _validate_workflow_step_routes(
                     f"Workflow {workflow_id} outcome {routed_outcome_id} result must be "
                     f"{type_display(outcome['result'])} to receive step outcome {outcome_id}"
                 )
+            if outcome_id in _operation_authorization_outcomes(operation) and not _is_explicit_authorization_workflow_outcome(routed_outcome_id) and not route.get("rationale"):
+                raise ContractError(
+                    f"Workflow {workflow_id} step {step['id']} route {outcome_id} collapses authorization failure into {routed_outcome_id}; declare an explicit authorization outcome or add rationale"
+                )
             routed_outcomes.add(routed_outcome_id)
         if action == "retry_policy":
             if outcome["kind"] != "failure":
@@ -3612,6 +3674,10 @@ def _validate_workflow_step_routes(
         if action == "dead_letter_as" and outcome["kind"] != "failure":
             raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} dead_letter_as is only valid for failure outcomes")
     return routed_outcomes
+
+
+def _is_explicit_authorization_workflow_outcome(outcome_id: str) -> bool:
+    return any(token in outcome_id for token in ("authorization", "unauthenticated", "forbidden"))
 
 
 def _validate_fixtures(contract: dict[str, Any]) -> None:

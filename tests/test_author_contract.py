@@ -47,6 +47,19 @@ def test_author_state_machine_context_uses_explicit_field_schema() -> None:
     validate_against_schema(author, "author.schema.json")
 
 
+def test_author_query_result_binding_uses_data_key() -> None:
+    author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+    route = author["state_machines"]["state_machine.project.list"]["query_invocations"]["list_projects"]["outcome_routes"]["listed"]
+    route["result_binding"]["field"] = route["result_binding"].pop("data_key")
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(author, "author.schema.json")
+
+    author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+    route = author["state_machines"]["state_machine.project.list"]["query_invocations"]["list_projects"]["outcome_routes"]["listed"]
+    route["result_binding"] = {"data_key": "projects", "from": {"from": "$outcome.result"}}
+    validate_against_schema(author, "author.schema.json")
+
+
 def test_author_value_maps_require_tagged_literals_or_runtime_sources() -> None:
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
     body = author["test_cases"]["test_case.project.board.empty"]["when"]["open_entry_point"]

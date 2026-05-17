@@ -2748,15 +2748,15 @@
       "additionalProperties": false,
       "description": "Explicitly binds a query outcome value into named state-machine or view-state data for rendering or later bindings.",
       "properties": {
-        "field": {
-          "$ref": "#/$defs/field_name"
+        "data_key": {
+          "$ref": "#/$defs/local_name"
         },
         "from": {
-          "$ref": "#/$defs/runtime_expression"
+          "$ref": "#/$defs/binding_value"
         }
       },
       "required": [
-        "field",
+        "data_key",
         "from"
       ],
       "type": "object"
@@ -3760,6 +3760,9 @@
         },
         "retry_policy": {
           "$ref": "#/$defs/workflow_retry_policy"
+        },
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         }
       },
       "type": "object"

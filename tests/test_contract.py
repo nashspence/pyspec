@@ -1225,6 +1225,15 @@ def test_operation_invocation_failure_no_signal_requires_reason_and_rationale() 
         compile_source(author)
 
 
+def test_operation_invocation_failure_no_signal_rejects_state_unchanged() -> None:
+    author = _author()
+    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["submit"]["outcome_routes"]["invalid_state"]
+    route.clear()
+    route["no_signal"] = {"reason": "state_unchanged", "rationale": "Invalid submit leaves the list unchanged."}
+    with pytest.raises(ContractError, match=r"failure outcome no_signal must use reason handled_by_response_surface with a proven response surface or intentionally_unobservable with rationale"):
+        compile_source(author)
+
+
 def test_operation_invocation_raised_signals_must_be_declared_locally() -> None:
     author = _author()
     route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["submit"]["outcome_routes"]["submitted"]
@@ -1250,6 +1259,22 @@ def test_operation_invocation_payload_and_input_bindings_are_type_checked() -> N
     invocation = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["submit"]
     del invocation["input_bindings"]["project_id"]
     with pytest.raises(ContractError, match=r"input_bindings must exactly bind target input: missing: project_id"):
+        compile_source(author)
+
+
+def test_operation_invocation_literal_actor_ids_emit_lint_warning() -> None:
+    author = _author()
+    invocation = _item(author, "state_machines", "state_machine.project.detail")["view_states"]["ready"]["operation_invocations"]["approve"]
+    invocation["input_bindings"]["approved_by"] = {"value": "reviewer_1"}
+    with pytest.warns(ContractLintWarning, match=r"approved_by uses a literal actor/user id"):
+        compile_source(author)
+
+
+def test_mutation_routes_raising_loaded_signal_emit_lint_warning() -> None:
+    author = _author()
+    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["create"]["outcome_routes"]["created"]
+    route["raise"]["data_signal"] = "projects_loaded"
+    with pytest.warns(ContractLintWarning, match=r"raises data signal 'projects_loaded' from a mutation"):
         compile_source(author)
 
 
@@ -1386,7 +1411,7 @@ def test_query_invocation_ids_cannot_shadow_state_machine_scope() -> None:
             "input_bindings": {"workspace_id": {"from": "$context.workspace_id"}},
             "outcome_routes": {
                 "listed": {
-                    "result_binding": {"field": "projects", "from": "$outcome.result"},
+                    "result_binding": {"data_key": "projects", "from": {"from": "$outcome.result"}},
                     "no_signal": {"reason": "result_bound_without_signal"},
                 },
                 "forbidden": {"no_signal": {"reason": "handled_by_response_surface", "rationale": "Shadow test."}},
@@ -1405,11 +1430,11 @@ def test_query_invocation_routes_are_local_per_state() -> None:
     ready_read = contract["state_machines"]["state_machine.project.detail"]["view_states"]["ready"]["query_invocations"]["read_project"]
     assert loading_read["operation"] == ready_read["operation"] == "operation.project.read"
     assert loading_read["outcome_routes"]["found"] == {
-        "result_binding": {"field": "project", "from": "$outcome.result"},
+        "result_binding": {"data_key": "project", "from": {"from": "$outcome.result"}},
         "raise": {"data_signal": "project_loaded"},
     }
     assert ready_read["outcome_routes"]["found"] == {
-        "result_binding": {"field": "project", "from": "$outcome.result"},
+        "result_binding": {"data_key": "project", "from": {"from": "$outcome.result"}},
         "no_signal": {"reason": "result_bound_without_signal"},
     }
 
@@ -1934,6 +1959,18 @@ def test_workflow_steps_must_route_authorization_failure_outcomes() -> None:
     del author["workflows"]["workflow.project.approval_notice"]["steps"][0]["outcome_routes"]["forbidden"]
     with pytest.raises(ContractError, match=r"Workflow workflow.project\.approval_notice step send_notice outcome_routes must exactly map operation outcomes: missing: forbidden"):
         compile_source(author)
+
+
+def test_workflow_authorization_failure_collapse_requires_rationale() -> None:
+    author = _author()
+    workflow = author["workflows"]["workflow.project.approval_notice"]
+    del workflow["outcomes"]["notice_forbidden"]
+    workflow["steps"][0]["outcome_routes"]["forbidden"] = {"fail_as": "delivery_failed"}
+    with pytest.raises(ContractError, match=r"collapses authorization failure into delivery_failed"):
+        compile_source(author)
+
+    workflow["steps"][0]["outcome_routes"]["forbidden"]["rationale"] = "The worker deliberately treats policy denial as a delivery failure for this integration."
+    compile_source(author)
 
 
 def test_workflow_route_actions_must_be_exclusive() -> None:
