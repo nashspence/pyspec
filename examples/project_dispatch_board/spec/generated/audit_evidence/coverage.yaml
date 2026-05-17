@@ -3,6 +3,7 @@ project: project_dispatch_board
 summary:
   required_visual_paths: 652
   missing_required_visual_paths: 0
+  required_visual_text_witnesses: 181
   optional_visual_paths: 459
   optional_visual_paths_not_shown: 5
   non_visual_paths: 71
@@ -876,6 +877,822 @@ visual_audit:
       /workflows/workflow.project.approval_notice/steps/0/outcome_routes/sent/complete_as: V0008
       /workflows/workflow.project.approval_notice/trigger/event: V0008
     missing: {}
+    text_witnesses:
+      /authorization_policies/authorization_policy.project.approve/conditions/0/model_state/equals:
+        visual_evidence_set: V0003
+        tokens:
+        - Project.status
+        - submitted
+      /authorization_policies/authorization_policy.project.approve/conditions/0/model_state/field:
+        visual_evidence_set: V0003
+        tokens:
+        - Project.status
+      /authorization_policies/authorization_policy.project.approve/conditions/0/model_state/model:
+        visual_evidence_set: V0003
+        tokens:
+        - Project.status
+      /authorization_policies/authorization_policy.project.approve/effect:
+        visual_evidence_set: V0003
+        tokens:
+        - authorization_effect
+        - allow
+      /authorization_policies/authorization_policy.project.approve/subjects/0/kind:
+        visual_evidence_set: V0003
+        tokens:
+        - authorization_subjects
+        - actor
+      /authorization_policies/authorization_policy.project.approve/subjects/0/source:
+        visual_evidence_set: V0003
+        tokens:
+        - authorization_subjects
+        - input.approved_by
+      /authorization_policies/authorization_policy.project.approve/targets/0/operation:
+        visual_evidence_set: V0003
+        tokens:
+        - operation.project.approve
+        - authorization_targets
+      /authorization_policies/authorization_policy.project.approve/targets/1/model:
+        visual_evidence_set: V0003
+        tokens:
+        - authorization_targets
+        - Project
+      /authorization_policies/authorization_policy.project.create/effect:
+        visual_evidence_set: V0005
+        tokens:
+        - authorization_effect
+        - allow
+      /authorization_policies/authorization_policy.project.create/subjects/0/kind:
+        visual_evidence_set: V0005
+        tokens:
+        - authorization_subjects
+        - actor
+      /authorization_policies/authorization_policy.project.create/targets/0/operation:
+        visual_evidence_set: V0005
+        tokens:
+        - operation.project.create
+        - authorization_targets
+      /authorization_policies/authorization_policy.project.create/targets/1/model:
+        visual_evidence_set: V0005
+        tokens:
+        - authorization_targets
+        - Project
+      /authorization_policies/authorization_policy.project.list/effect:
+        visual_evidence_set: V0006
+        tokens:
+        - authorization_effect
+        - allow
+      /authorization_policies/authorization_policy.project.list/subjects/0/kind:
+        visual_evidence_set: V0006
+        tokens:
+        - authorization_subjects
+        - actor
+      /authorization_policies/authorization_policy.project.list/targets/0/operation:
+        visual_evidence_set: V0006
+        tokens:
+        - operation.project.list
+        - authorization_targets
+      /authorization_policies/authorization_policy.project.list/targets/1/model:
+        visual_evidence_set: V0006
+        tokens:
+        - authorization_targets
+        - Project
+      /authorization_policies/authorization_policy.project.send_approval_notice/effect:
+        visual_evidence_set: V0008
+        tokens:
+        - authorization_effect
+        - allow
+      /authorization_policies/authorization_policy.project.send_approval_notice/subjects/0/kind:
+        visual_evidence_set: V0008
+        tokens:
+        - authorization_subjects
+        - actor
+      /authorization_policies/authorization_policy.project.send_approval_notice/subjects/0/source:
+        visual_evidence_set: V0008
+        tokens:
+        - authorization_subjects
+        - input.approved_by
+      /authorization_policies/authorization_policy.project.send_approval_notice/targets/0/operation:
+        visual_evidence_set: V0008
+        tokens:
+        - operation.project.send_approval_notice
+        - authorization_targets
+      /entry_points/entry_point.api.project.approve/adapter/http_api/input/body/approved_by/primitive:
+        visual_evidence_set: V0011
+        tokens:
+        - approved_by
+        - ID
+      /entry_points/entry_point.api.project.approve/adapter/http_api/input/path_params/project_id/primitive:
+        visual_evidence_set: V0011
+        tokens:
+        - project_id
+        - ID
+      /entry_points/entry_point.api.project.approve/adapter/http_api/method:
+        visual_evidence_set: V0011
+        tokens:
+        - POST
+      /entry_points/entry_point.api.project.approve/adapter/http_api/path:
+        visual_evidence_set: V0011
+        tokens:
+        - /projects/{project_id}/approve
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/approved/body/type/model:
+        visual_evidence_set: V0011
+        tokens:
+        - body
+        - Project
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/approved/status:
+        visual_evidence_set: V0011
+        tokens:
+        - status
+        - '200'
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/invalid_state/body/type/model:
+        visual_evidence_set: V0011
+        tokens:
+        - body
+        - Problem
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/invalid_state/status:
+        visual_evidence_set: V0011
+        tokens:
+        - status
+        - '409'
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/not_found/body/type/model:
+        visual_evidence_set: V0011
+        tokens:
+        - body
+        - Problem
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/not_found/status:
+        visual_evidence_set: V0011
+        tokens:
+        - status
+        - '404'
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/unavailable/body/type/model:
+        visual_evidence_set: V0011
+        tokens:
+        - body
+        - Problem
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/unavailable/status:
+        visual_evidence_set: V0011
+        tokens:
+        - status
+        - '503'
+      /entry_points/entry_point.api.project.approve/authorization_policy:
+        visual_evidence_set: V0011
+        tokens:
+        - authorization_policy.project.approve
+      /entry_points/entry_point.api.project.approve/endpoint:
+        visual_evidence_set: V0011
+        tokens:
+        - endpoint.project.approve
+      /entry_points/entry_point.api.project.approve/target/operation/ref:
+        visual_evidence_set: V0011
+        tokens:
+        - operation.project.approve
+      /entry_points/entry_point.api.project.create/adapter/http_api/input/body/customer/primitive:
+        visual_evidence_set: V0012
+        tokens:
+        - customer
+        - Text
+      /entry_points/entry_point.api.project.create/adapter/http_api/input/body/priority/primitive:
+        visual_evidence_set: V0012
+        tokens:
+        - priority
+        - Text
+      /entry_points/entry_point.api.project.create/adapter/http_api/input/body/title/primitive:
+        visual_evidence_set: V0012
+        tokens:
+        - title
+        - Text
+      /entry_points/entry_point.api.project.create/adapter/http_api/input/path_params/workspace_id/primitive:
+        visual_evidence_set: V0012
+        tokens:
+        - workspace_id
+        - ID
+      /entry_points/entry_point.api.project.create/adapter/http_api/method:
+        visual_evidence_set: V0012
+        tokens:
+        - POST
+      /entry_points/entry_point.api.project.create/adapter/http_api/path:
+        visual_evidence_set: V0012
+        tokens:
+        - /workspaces/{workspace_id}/projects
+      /entry_points/entry_point.api.project.create/adapter/http_api/responses/created/body/type/model:
+        visual_evidence_set: V0012
+        tokens:
+        - body
+        - Project
+      /entry_points/entry_point.api.project.create/adapter/http_api/responses/created/status:
+        visual_evidence_set: V0012
+        tokens:
+        - status
+        - '201'
+      /entry_points/entry_point.api.project.create/adapter/http_api/responses/validation_failed/body/type/model:
+        visual_evidence_set: V0012
+        tokens:
+        - body
+        - Problem
+      /entry_points/entry_point.api.project.create/adapter/http_api/responses/validation_failed/status:
+        visual_evidence_set: V0012
+        tokens:
+        - status
+        - '422'
+      /entry_points/entry_point.api.project.create/authorization_policy:
+        visual_evidence_set: V0012
+        tokens:
+        - authorization_policy.project.create
+      /entry_points/entry_point.api.project.create/endpoint:
+        visual_evidence_set: V0012
+        tokens:
+        - endpoint.project.create
+      /entry_points/entry_point.api.project.create/target/operation/ref:
+        visual_evidence_set: V0012
+        tokens:
+        - operation.project.create
+      /entry_points/entry_point.api.project.list/adapter/http_api/input/path_params/workspace_id/primitive:
+        visual_evidence_set: V0013
+        tokens:
+        - workspace_id
+        - ID
+      /entry_points/entry_point.api.project.list/adapter/http_api/method:
+        visual_evidence_set: V0013
+        tokens:
+        - GET
+      /entry_points/entry_point.api.project.list/adapter/http_api/path:
+        visual_evidence_set: V0013
+        tokens:
+        - /workspaces/{workspace_id}/projects
+      /entry_points/entry_point.api.project.list/adapter/http_api/responses/listed/body/type/array/model:
+        visual_evidence_set: V0013
+        tokens:
+        - body
+        - Project
+      /entry_points/entry_point.api.project.list/adapter/http_api/responses/listed/status:
+        visual_evidence_set: V0013
+        tokens:
+        - status
+        - '200'
+      /entry_points/entry_point.api.project.list/adapter/http_api/responses/unavailable/body/type/model:
+        visual_evidence_set: V0013
+        tokens:
+        - body
+        - Problem
+      /entry_points/entry_point.api.project.list/adapter/http_api/responses/unavailable/status:
+        visual_evidence_set: V0013
+        tokens:
+        - status
+        - '503'
+      /entry_points/entry_point.api.project.list/authorization_policy:
+        visual_evidence_set: V0013
+        tokens:
+        - authorization_policy.project.list
+      /entry_points/entry_point.api.project.list/endpoint:
+        visual_evidence_set: V0013
+        tokens:
+        - endpoint.project.list
+      /entry_points/entry_point.api.project.list/target/operation/ref:
+        visual_evidence_set: V0013
+        tokens:
+        - operation.project.list
+      /entry_points/entry_point.cli.project.approve/adapter/cli/cli_command:
+        visual_evidence_set: V0014
+        tokens:
+        - project approve
+      /entry_points/entry_point.cli.project.approve/adapter/cli/input/args/approved_by/primitive:
+        visual_evidence_set: V0014
+        tokens:
+        - approved_by
+        - ID
+      /entry_points/entry_point.cli.project.approve/adapter/cli/input/args/project_id/primitive:
+        visual_evidence_set: V0014
+        tokens:
+        - project_id
+        - ID
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/approved/exit_code:
+        visual_evidence_set: V0014
+        tokens:
+        - exit_code
+        - '0'
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/approved/stdout/bindings/project_id/from:
+        visual_evidence_set: V0014
+        tokens:
+        - $response.body.id
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/approved/stdout/text:
+        visual_evidence_set: V0014
+        tokens:
+        - text.project.approve.success
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/invalid_state/exit_code:
+        visual_evidence_set: V0014
+        tokens:
+        - exit_code
+        - '2'
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/invalid_state/stderr/bindings/message/from:
+        visual_evidence_set: V0014
+        tokens:
+        - $response.body.message
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/invalid_state/stderr/text:
+        visual_evidence_set: V0014
+        tokens:
+        - text.project.approve.invalid_state
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/not_found/exit_code:
+        visual_evidence_set: V0014
+        tokens:
+        - exit_code
+        - '3'
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/not_found/stderr/bindings/message/from:
+        visual_evidence_set: V0014
+        tokens:
+        - $response.body.message
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/not_found/stderr/text:
+        visual_evidence_set: V0014
+        tokens:
+        - text.project.approve.not_found
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unavailable/exit_code:
+        visual_evidence_set: V0014
+        tokens:
+        - exit_code
+        - '75'
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unavailable/retry_policy/attempts:
+        visual_evidence_set: V0014
+        tokens:
+        - retry
+        - '3'
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unavailable/retry_policy/backoff:
+        visual_evidence_set: V0014
+        tokens:
+        - retry
+        - exponential
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unavailable/stderr/text:
+        visual_evidence_set: V0014
+        tokens:
+        - text.project.approve.unavailable
+      /entry_points/entry_point.cli.project.approve/cli_command_ref:
+        visual_evidence_set: V0014
+        tokens:
+        - cli_command.project.approve
+      /entry_points/entry_point.cli.project.approve/target/entry_point/ref:
+        visual_evidence_set: V0014
+        tokens:
+        - entry_point.api.project.approve
+      /entry_points/entry_point.cli.project.board/adapter/cli/cli_command:
+        visual_evidence_set: V0015
+        tokens:
+        - project board
+      /entry_points/entry_point.cli.project.board/adapter/cli/input/args/workspace_id/primitive:
+        visual_evidence_set: V0015
+        tokens:
+        - workspace_id
+        - ID
+      /entry_points/entry_point.cli.project.board/cli_command_ref:
+        visual_evidence_set: V0015
+        tokens:
+        - cli_command.project.board
+      /entry_points/entry_point.cli.project.board/target/state_machine/ref:
+        visual_evidence_set: V0015
+        tokens:
+        - state_machine.project.board
+      /entry_points/entry_point.html.project.board/adapter/html_route/input/path_params/workspace_id/primitive:
+        visual_evidence_set: V0016
+        tokens:
+        - workspace_id
+        - ID
+      /entry_points/entry_point.html.project.board/adapter/html_route/path:
+        visual_evidence_set: V0016
+        tokens:
+        - /workspaces/{workspace_id}/dispatch
+      /entry_points/entry_point.html.project.board/route:
+        visual_evidence_set: V0016
+        tokens:
+        - route.project.board
+      /entry_points/entry_point.html.project.board/target/state_machine/ref:
+        visual_evidence_set: V0016
+        tokens:
+        - state_machine.project.board
+      /entry_points/entry_point.worker.project.approval_notice/adapter/worker/input/payload/data_contract:
+        visual_evidence_set: V0017
+        tokens:
+        - data_contract.project.approved
+        - payload
+      /entry_points/entry_point.worker.project.approval_notice/adapter/worker/responses/accepted/disposition:
+        visual_evidence_set: V0017
+        tokens:
+        - disposition
+        - acknowledge
+      /entry_points/entry_point.worker.project.approval_notice/adapter/worker/responses/malformed/disposition:
+        visual_evidence_set: V0017
+        tokens:
+        - disposition
+        - dead_letter
+      /entry_points/entry_point.worker.project.approval_notice/adapter/worker/responses/malformed/problem/model:
+        visual_evidence_set: V0017
+        tokens:
+        - problem
+        - Problem
+      /entry_points/entry_point.worker.project.approval_notice/target/workflow/ref:
+        visual_evidence_set: V0017
+        tokens:
+        - workflow.project.approval_notice
+      /entry_points/entry_point.worker.project.approval_notice/workflow_ref:
+        visual_evidence_set: V0017
+        tokens:
+        - workflow.project.approval_notice
+      /events/event.project.approved/emitted_by/0:
+        visual_evidence_set: V0018
+        tokens:
+        - operation.project.approve
+      /events/event.project.approved/payload_schema/data_contract:
+        visual_evidence_set: V0018
+        tokens:
+        - data_contract.project.approved
+      /events/event.project.archived/emitted_by/0:
+        visual_evidence_set: V0004
+        tokens:
+        - operation.project.archive
+      /events/event.project.created/emitted_by/0:
+        visual_evidence_set: V0005
+        tokens:
+        - operation.project.create
+      /events/event.project.submitted/emitted_by/0:
+        visual_evidence_set: V0009
+        tokens:
+        - operation.project.submit
+      /operations/operation.project.approve/authorization_policy:
+        visual_evidence_set: V0003
+        tokens:
+        - authorization_policy.project.approve
+      /operations/operation.project.approve/input/approved_by/primitive:
+        visual_evidence_set: V0003
+        tokens:
+        - approved_by
+        - ID
+      /operations/operation.project.approve/input/project_id/primitive:
+        visual_evidence_set: V0003
+        tokens:
+        - project_id
+        - ID
+      /operations/operation.project.approve/outcomes/approved/emits/0/event:
+        visual_evidence_set: V0003
+        tokens:
+        - event.project.approved
+      /operations/operation.project.approve/outcomes/approved/kind:
+        visual_evidence_set: V0003
+        tokens:
+        - approved
+        - success
+      /operations/operation.project.approve/outcomes/approved/result/model:
+        visual_evidence_set: V0003
+        tokens:
+        - approved
+        - Project
+      /operations/operation.project.approve/outcomes/invalid_state/kind:
+        visual_evidence_set: V0003
+        tokens:
+        - invalid_state
+        - failure
+      /operations/operation.project.approve/outcomes/invalid_state/result/model:
+        visual_evidence_set: V0003
+        tokens:
+        - invalid_state
+        - Problem
+      /operations/operation.project.approve/outcomes/not_found/kind:
+        visual_evidence_set: V0003
+        tokens:
+        - not_found
+        - failure
+      /operations/operation.project.approve/outcomes/not_found/result/model:
+        visual_evidence_set: V0003
+        tokens:
+        - not_found
+        - Problem
+      /operations/operation.project.approve/outcomes/unavailable/kind:
+        visual_evidence_set: V0003
+        tokens:
+        - unavailable
+        - failure
+      /operations/operation.project.approve/outcomes/unavailable/result/model:
+        visual_evidence_set: V0003
+        tokens:
+        - unavailable
+        - Problem
+      /operations/operation.project.archive/authorization_policy:
+        visual_evidence_set: V0004
+        tokens:
+        - authorization_policy.project.archive
+      /operations/operation.project.create/authorization_policy:
+        visual_evidence_set: V0005
+        tokens:
+        - authorization_policy.project.create
+      /operations/operation.project.create/input/customer/primitive:
+        visual_evidence_set: V0005
+        tokens:
+        - customer
+        - Text
+      /operations/operation.project.create/input/priority/primitive:
+        visual_evidence_set: V0005
+        tokens:
+        - priority
+        - Text
+      /operations/operation.project.create/input/title/primitive:
+        visual_evidence_set: V0005
+        tokens:
+        - title
+        - Text
+      /operations/operation.project.create/input/workspace_id/primitive:
+        visual_evidence_set: V0005
+        tokens:
+        - workspace_id
+        - ID
+      /operations/operation.project.create/outcomes/created/emits/0/event:
+        visual_evidence_set: V0005
+        tokens:
+        - event.project.created
+      /operations/operation.project.create/outcomes/created/kind:
+        visual_evidence_set: V0005
+        tokens:
+        - created
+        - success
+      /operations/operation.project.create/outcomes/created/result/model:
+        visual_evidence_set: V0005
+        tokens:
+        - created
+        - Project
+      /operations/operation.project.create/outcomes/validation_failed/kind:
+        visual_evidence_set: V0005
+        tokens:
+        - validation_failed
+        - failure
+      /operations/operation.project.create/outcomes/validation_failed/result/model:
+        visual_evidence_set: V0005
+        tokens:
+        - validation_failed
+        - Problem
+      /operations/operation.project.list/authorization_policy:
+        visual_evidence_set: V0006
+        tokens:
+        - authorization_policy.project.list
+      /operations/operation.project.list/input/workspace_id/primitive:
+        visual_evidence_set: V0006
+        tokens:
+        - workspace_id
+        - ID
+      /operations/operation.project.list/outcomes/listed/kind:
+        visual_evidence_set: V0006
+        tokens:
+        - listed
+        - success
+      /operations/operation.project.list/outcomes/unavailable/kind:
+        visual_evidence_set: V0006
+        tokens:
+        - unavailable
+        - failure
+      /operations/operation.project.list/outcomes/unavailable/result/model:
+        visual_evidence_set: V0006
+        tokens:
+        - unavailable
+        - Problem
+      /operations/operation.project.read/authorization_policy:
+        visual_evidence_set: V0007
+        tokens:
+        - authorization_policy.project.read
+      /operations/operation.project.send_approval_notice/authorization_policy:
+        visual_evidence_set: V0008
+        tokens:
+        - authorization_policy.project.send_approval_notice
+      /operations/operation.project.send_approval_notice/input/approved_by/primitive:
+        visual_evidence_set: V0008
+        tokens:
+        - approved_by
+        - ID
+      /operations/operation.project.send_approval_notice/input/project_id/primitive:
+        visual_evidence_set: V0008
+        tokens:
+        - project_id
+        - ID
+      /operations/operation.project.send_approval_notice/outcomes/delivery_failed/kind:
+        visual_evidence_set: V0008
+        tokens:
+        - delivery_failed
+        - failure
+      /operations/operation.project.send_approval_notice/outcomes/delivery_failed/result/model:
+        visual_evidence_set: V0008
+        tokens:
+        - delivery_failed
+        - Problem
+      /operations/operation.project.send_approval_notice/outcomes/sent/kind:
+        visual_evidence_set: V0008
+        tokens:
+        - sent
+        - success
+      /operations/operation.project.send_approval_notice/outcomes/sent/result/data_contract:
+        visual_evidence_set: V0008
+        tokens:
+        - data_contract.project.notice_result
+      /operations/operation.project.submit/authorization_policy:
+        visual_evidence_set: V0009
+        tokens:
+        - authorization_policy.project.submit
+      ? /state_machines/state_machine.project.activity/signals/accepts/messages/selection_changed/payload_schema/project_id/primitive
+      : visual_evidence_set: V0023
+        tokens:
+        - project_id
+        - ID
+      /state_machines/state_machine.project.activity/view_states/empty/text/0:
+        visual_evidence_set: V0023
+        tokens:
+        - text.project.activity.empty.heading
+      /state_machines/state_machine.project.activity/view_states/empty/text/1:
+        visual_evidence_set: V0023
+        tokens:
+        - text.project.activity.empty.body
+      /state_machines/state_machine.project.activity/view_states/ready/text/0:
+        visual_evidence_set: V0023
+        tokens:
+        - text.project.activity.ready.heading
+      /state_machines/state_machine.project.board/view_states/ready/child_state_machines/0/html_region:
+        visual_evidence_set: V0024
+        tokens:
+        - nav
+      /state_machines/state_machine.project.board/view_states/ready/child_state_machines/0/initial_view_state:
+        visual_evidence_set: V0024
+        tokens:
+        - loading
+      /state_machines/state_machine.project.board/view_states/ready/child_state_machines/0/state_machine:
+        visual_evidence_set: V0024
+        tokens:
+        - state_machine.project.list
+      /state_machines/state_machine.project.board/view_states/ready/child_state_machines/0/textual_container:
+        visual_evidence_set: V0024
+        tokens:
+        - nav
+      /state_machines/state_machine.project.board/view_states/ready/child_state_machines/1/html_region:
+        visual_evidence_set: V0024
+        tokens:
+        - main
+      /state_machines/state_machine.project.board/view_states/ready/child_state_machines/1/initial_view_state:
+        visual_evidence_set: V0024
+        tokens:
+        - none
+      /state_machines/state_machine.project.board/view_states/ready/child_state_machines/1/state_machine:
+        visual_evidence_set: V0024
+        tokens:
+        - state_machine.project.detail
+      /state_machines/state_machine.project.board/view_states/ready/child_state_machines/1/textual_container:
+        visual_evidence_set: V0024
+        tokens:
+        - main
+      /state_machines/state_machine.project.board/view_states/ready/child_state_machines/2/html_region:
+        visual_evidence_set: V0024
+        tokens:
+        - aside
+      /state_machines/state_machine.project.board/view_states/ready/child_state_machines/2/initial_view_state:
+        visual_evidence_set: V0024
+        tokens:
+        - empty
+      /state_machines/state_machine.project.board/view_states/ready/child_state_machines/2/state_machine:
+        visual_evidence_set: V0024
+        tokens:
+        - state_machine.project.activity
+      /state_machines/state_machine.project.board/view_states/ready/child_state_machines/2/textual_container:
+        visual_evidence_set: V0024
+        tokens:
+        - aside
+      ? /state_machines/state_machine.project.detail/signals/accepts/messages/selection_changed/payload_schema/project_id/primitive
+      : visual_evidence_set: V0004
+        tokens:
+        - project_id
+        - ID
+      /state_machines/state_machine.project.detail/view_states/error/text/0:
+        visual_evidence_set: V0004
+        tokens:
+        - text.project.detail.error.heading
+      /state_machines/state_machine.project.detail/view_states/error/text/1:
+        visual_evidence_set: V0004
+        tokens:
+        - text.project.detail.error.body
+      /state_machines/state_machine.project.detail/view_states/loading/text/0:
+        visual_evidence_set: V0004
+        tokens:
+        - text.project.detail.loading.message
+      /state_machines/state_machine.project.detail/view_states/none/text/0:
+        visual_evidence_set: V0004
+        tokens:
+        - text.project.detail.none.heading
+      /state_machines/state_machine.project.detail/view_states/none/text/1:
+        visual_evidence_set: V0004
+        tokens:
+        - text.project.detail.none.body
+      /state_machines/state_machine.project.detail/view_states/ready/assets/0:
+        visual_evidence_set: V0004
+        tokens:
+        - asset.project.detail.ready.priority_badge
+      /state_machines/state_machine.project.detail/view_states/ready/available_operations/0:
+        visual_evidence_set: V0004
+        tokens:
+        - operation.project.approve
+      /state_machines/state_machine.project.detail/view_states/ready/available_operations/1:
+        visual_evidence_set: V0004
+        tokens:
+        - operation.project.archive
+      /state_machines/state_machine.project.detail/view_states/ready/text/0:
+        visual_evidence_set: V0004
+        tokens:
+        - text.project.detail.ready.heading
+      /state_machines/state_machine.project.list/signals/accepts/messages/project_select/payload_schema/project_id/primitive:
+        visual_evidence_set: V0009
+        tokens:
+        - project_id
+        - ID
+      /state_machines/state_machine.project.list/signals/emits/messages/project_selected/payload_schema/project_id/primitive:
+        visual_evidence_set: V0009
+        tokens:
+        - project_id
+        - ID
+      /state_machines/state_machine.project.list/view_states/empty/assets/0:
+        visual_evidence_set: V0009
+        tokens:
+        - asset.project.list.empty.illustration
+      /state_machines/state_machine.project.list/view_states/empty/available_operations/0:
+        visual_evidence_set: V0009
+        tokens:
+        - operation.project.create
+      /state_machines/state_machine.project.list/view_states/empty/text/0:
+        visual_evidence_set: V0009
+        tokens:
+        - text.project.list.empty.heading
+      /state_machines/state_machine.project.list/view_states/empty/text/1:
+        visual_evidence_set: V0009
+        tokens:
+        - text.project.list.empty.body
+      /state_machines/state_machine.project.list/view_states/error/text/0:
+        visual_evidence_set: V0009
+        tokens:
+        - text.project.list.error.heading
+      /state_machines/state_machine.project.list/view_states/error/text/1:
+        visual_evidence_set: V0009
+        tokens:
+        - text.project.list.error.body
+      /state_machines/state_machine.project.list/view_states/loading/text/0:
+        visual_evidence_set: V0009
+        tokens:
+        - text.project.list.loading.message
+      /state_machines/state_machine.project.list/view_states/ready/available_operations/0:
+        visual_evidence_set: V0009
+        tokens:
+        - operation.project.create
+      /state_machines/state_machine.project.list/view_states/ready/available_operations/1:
+        visual_evidence_set: V0009
+        tokens:
+        - operation.project.submit
+      /state_machines/state_machine.project.list/view_states/ready/text/0:
+        visual_evidence_set: V0009
+        tokens:
+        - text.project.list.ready.heading
+      /workflows/workflow.project.approval_notice/outcomes/completed/kind:
+        visual_evidence_set: V0008
+        tokens:
+        - completed
+        - success
+      /workflows/workflow.project.approval_notice/outcomes/completed/result/data_contract:
+        visual_evidence_set: V0008
+        tokens:
+        - data_contract.project.notice_result
+        - completed
+      /workflows/workflow.project.approval_notice/outcomes/delivery_failed/kind:
+        visual_evidence_set: V0008
+        tokens:
+        - delivery_failed
+        - failure
+      /workflows/workflow.project.approval_notice/ref:
+        visual_evidence_set: V0008
+        tokens:
+        - workflow.project.approval_notice
+      /workflows/workflow.project.approval_notice/steps/0/id:
+        visual_evidence_set: V0008
+        tokens:
+        - send_notice
+      /workflows/workflow.project.approval_notice/steps/0/operation:
+        visual_evidence_set: V0008
+        tokens:
+        - operation.project.send_approval_notice
+      /workflows/workflow.project.approval_notice/steps/0/outcome_routes/delivery_failed/retry_policy/attempts:
+        visual_evidence_set: V0008
+        tokens:
+        - retry_policy
+        - '3'
+      /workflows/workflow.project.approval_notice/steps/0/outcome_routes/delivery_failed/retry_policy/backoff:
+        visual_evidence_set: V0008
+        tokens:
+        - retry_policy
+        - exponential
+      /workflows/workflow.project.approval_notice/steps/0/outcome_routes/delivery_failed/retry_policy/fail_as:
+        visual_evidence_set: V0008
+        tokens:
+        - delivery_failed
+      /workflows/workflow.project.approval_notice/steps/0/outcome_routes/sent/complete_as:
+        visual_evidence_set: V0008
+        tokens:
+        - completed
+      /workflows/workflow.project.approval_notice/trigger/event:
+        visual_evidence_set: V0008
+        tokens:
+        - event.project.approved
   optional:
     covered:
       /assets/asset.project.detail.ready.priority_badge/args/priority/primitive: V0001

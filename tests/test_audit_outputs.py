@@ -66,17 +66,28 @@ def test_audit_coverage_index_maps_compiled_paths_to_evidence() -> None:
     visual_evidence_sets = index["visual_evidence_sets"]
     assert all(path.startswith("spec/generated/audit_evidence/") and path.endswith((".svg", ".png")) for files in visual_evidence_sets.values() for path in files)
     assert index["summary"]["missing_required_visual_paths"] == 0
+    assert index["summary"]["required_visual_text_witnesses"] > 0
     assert index["visual_audit"]["required"]["missing"] == {}
+    text_witnesses = index["visual_audit"]["required"]["text_witnesses"]
     cli_delegate_set = index["visual_audit"]["required"]["covered"]["/entry_points/entry_point.cli.project.approve/target/entry_point/ref"]
     assert visual_evidence_sets[cli_delegate_set] == [
         "spec/generated/audit_evidence/entrypoints/cli/entry_point_cli_project_approve/flow.svg"
     ]
+    assert text_witnesses["/entry_points/entry_point.cli.project.approve/target/entry_point/ref"] == {
+        "visual_evidence_set": cli_delegate_set,
+        "tokens": ["entry_point.api.project.approve"],
+    }
     approve_policy_set = index["visual_audit"]["required"]["covered"]["/operations/operation.project.approve/authorization_policy"]
     assert "spec/generated/audit_evidence/entrypoints/cli/entry_point_cli_project_approve/flow.svg" in visual_evidence_sets[approve_policy_set]
+    assert text_witnesses["/operations/operation.project.approve/authorization_policy"] == {
+        "visual_evidence_set": approve_policy_set,
+        "tokens": ["authorization_policy.project.approve"],
+    }
     approved_payload_set = index["visual_audit"]["required"]["covered"]["/events/event.project.approved/payload_schema/data_contract"]
     assert "spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg" in visual_evidence_sets[approved_payload_set]
     notice_result_set = index["visual_audit"]["required"]["covered"]["/data_contracts/data_contract.project.notice_result/fields/notice_id/type/primitive"]
     assert "spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg" in visual_evidence_sets[notice_result_set]
+    assert "/data_contracts/data_contract.project.notice_result/fields/notice_id/type/primitive" not in text_witnesses
     renderer_set = index["visual_audit"]["required"]["covered"]["/state_machines/state_machine.project.board/view_states/ready/renderers/html/layout/regions/aside/classes/0"]
     assert any(path.endswith(".screenshot.png") for path in visual_evidence_sets[renderer_set])
     assert index["render_presence"]["assets"]["not_rendered"] == []
@@ -94,6 +105,18 @@ def test_audit_coverage_index_rejects_missing_required_visual_paths(tmp_path: Pa
     write_yaml(coverage_path, audit_coverage_index(contract), sort_keys=False)
     with pytest.raises(ContractError, match="missing required visual audit paths"):
         validate_audit_outputs(project, contract)
+
+
+def test_audit_coverage_index_rejects_missing_required_visual_text_witness(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    copy_project_tree(ROOT, project)
+    flow_path = project / entrypoint_flow_file("entry_point.cli.project.approve", "cli")
+    flow_path.write_text(
+        flow_path.read_text(encoding="utf-8").replace("entry_point.api.project.approve", "entry_point.api.project.REMOVED"),
+        encoding="utf-8",
+    )
+    with pytest.raises(ContractError, match="visual text witness missing"):
+        validate_audit_outputs(project, _contract(project))
 
 
 def test_audit_flowcharts_use_graphviz_dot_sources() -> None:

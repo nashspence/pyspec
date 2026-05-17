@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import html
 import importlib.util
 import json
 import py_compile
@@ -745,6 +746,38 @@ def _validate_audit_coverage_index(root: Path, contract: dict[str, Any]) -> None
         for resource_id, evidence_set in collection["rendered"].items():
             if evidence_set not in visual_evidence_sets:
                 raise ContractError(f"audit render coverage references unknown evidence set for {resource_id}: {evidence_set}")
+    _validate_visual_text_witnesses(root, expected)
+
+
+def _validate_visual_text_witnesses(root: Path, coverage_index: dict[str, Any]) -> None:
+    visual_evidence_sets = coverage_index["visual_evidence_sets"]
+    svg_text_cache: dict[str, str] = {}
+    for spec_path, witness in coverage_index["visual_audit"]["required"].get("text_witnesses", {}).items():
+        evidence_set = witness["visual_evidence_set"]
+        if evidence_set not in visual_evidence_sets:
+            raise ContractError(f"audit visual text witness references unknown evidence set for {spec_path}: {evidence_set}")
+        evidence_files = visual_evidence_sets[evidence_set]
+        svg_files = [relative for relative in evidence_files if relative.endswith(".svg")]
+        if not svg_files:
+            raise ContractError(f"audit visual text witness has no SVG evidence for {spec_path}: {evidence_set}")
+        evidence_text = "\n".join(_audit_svg_visible_text(root / relative, svg_text_cache) for relative in svg_files)
+        for token in witness["tokens"]:
+            if token not in evidence_text:
+                raise ContractError(f"audit visual text witness missing for {spec_path}: {token!r} in {evidence_set}")
+
+
+def _audit_svg_visible_text(path: Path, cache: dict[str, str]) -> str:
+    key = str(path)
+    if key in cache:
+        return cache[key]
+    source = path.read_text(encoding="utf-8")
+    fragments: list[str] = []
+    for match in re.finditer(r"<text\b[^>]*>(.*?)</text>", source, flags=re.IGNORECASE | re.DOTALL):
+        fragment = re.sub(r"<[^>]+>", "", match.group(1))
+        fragments.append(html.unescape(fragment).replace("\xa0", " "))
+    text = "\n".join(fragments)
+    cache[key] = text
+    return text
 
 
 def _validate_audit_scope_inputs(

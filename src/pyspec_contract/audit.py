@@ -464,12 +464,14 @@ def audit_coverage_index(contract: dict[str, Any]) -> dict[str, Any]:
         else:
             optional_not_shown[pointer] = {"reason": obligation["reason"]}
     render_presence = _render_resource_coverage(contract, visual_evidence_set_id)
+    required_text_witnesses = _visual_text_witnesses(contract, required_covered, visual_evidence_sets)
     return {
         "version": 1,
         "project": contract.get("project"),
         "summary": {
             "required_visual_paths": len(required_covered) + len(required_missing),
             "missing_required_visual_paths": len(required_missing),
+            "required_visual_text_witnesses": len(required_text_witnesses),
             "optional_visual_paths": len(optional_covered) + len(optional_not_shown),
             "optional_visual_paths_not_shown": len(optional_not_shown),
             "non_visual_paths": len(non_visual_paths),
@@ -481,6 +483,7 @@ def audit_coverage_index(contract: dict[str, Any]) -> dict[str, Any]:
             "required": {
                 "covered": required_covered,
                 "missing": required_missing,
+                "text_witnesses": required_text_witnesses,
             },
             "optional": {
                 "covered": optional_covered,
@@ -643,6 +646,306 @@ def _render_content_case_coverage(contract: dict[str, Any], evidence_set_id: Any
         else:
             not_rendered.append(content_case_id)
     return {"rendered": rendered, "not_rendered": not_rendered}
+
+
+_VISUAL_TEXT_REF_PREFIXES = (
+    "asset.",
+    "authorization_policy.",
+    "cli_command.",
+    "data_contract.",
+    "data_signal.",
+    "entry_point.",
+    "event.",
+    "message.",
+    "operation.",
+    "query.",
+    "state_machine.",
+    "text.",
+    "workflow.",
+)
+
+
+def _visual_text_witnesses(
+    contract: dict[str, Any],
+    required_covered: dict[str, str],
+    visual_evidence_sets: dict[str, list[str]],
+) -> dict[str, dict[str, Any]]:
+    witnesses: dict[str, dict[str, Any]] = {}
+    for pointer, evidence_set in sorted(required_covered.items()):
+        evidence_files = visual_evidence_sets[evidence_set]
+        if not any(path.endswith(".svg") for path in evidence_files):
+            continue
+        tokens = _visual_text_witness_tokens(contract, pointer, evidence_files)
+        if tokens:
+            witnesses[pointer] = {
+                "visual_evidence_set": evidence_set,
+                "tokens": tokens,
+            }
+    return witnesses
+
+
+def _visual_text_witness_tokens(contract: dict[str, Any], pointer: str, evidence_files: Iterable[str]) -> list[str]:
+    parts = _json_pointer_parts(pointer)
+    if len(parts) < 2:
+        return []
+    try:
+        value = _contract_value_at_parts(contract, parts)
+    except (KeyError, IndexError, TypeError, ValueError):
+        return []
+
+    tokens: list[str] = []
+    detail_evidence = _has_detail_card_evidence(evidence_files)
+    if isinstance(value, str) and _generic_reference_witness_allowed(parts, detail_evidence) and _is_visual_text_reference(value):
+        tokens.append(value)
+
+    collection = parts[0]
+    if collection == "authorization_policies":
+        if not detail_evidence:
+            return _unique_visual_text_tokens(tokens)
+        tokens.extend(_authorization_policy_text_witness_tokens(contract, parts, value))
+    elif collection == "entry_points":
+        tokens.extend(_entry_point_text_witness_tokens(contract, parts, value))
+    elif collection == "operations":
+        tokens.extend(_operation_text_witness_tokens(contract, parts, value, detail_evidence))
+    elif collection == "events":
+        tokens.extend(_event_text_witness_tokens(contract, parts, value))
+    elif collection == "workflows":
+        tokens.extend(_workflow_text_witness_tokens(contract, parts, value))
+    elif collection == "state_machines":
+        tokens.extend(_state_machine_text_witness_tokens(contract, parts, value))
+    return _unique_visual_text_tokens(tokens)
+
+
+def _contract_value_at_parts(value: Any, parts: Iterable[str]) -> Any:
+    current = value
+    for part in parts:
+        if isinstance(current, list):
+            current = current[int(part)]
+        else:
+            current = current[part]
+    return current
+
+
+def _is_visual_text_reference(value: str) -> bool:
+    if any(value.startswith(prefix) for prefix in _VISUAL_TEXT_REF_PREFIXES):
+        return True
+    return False
+
+
+def _generic_reference_witness_allowed(parts: list[str], detail_evidence: bool) -> bool:
+    if not parts:
+        return False
+    if parts[0] in {"entry_points", "state_machines", "workflows"}:
+        if parts[0] == "state_machines":
+            return _state_machine_reference_witness_allowed(parts)
+        return True
+    if parts[0] == "operations":
+        return detail_evidence or parts[-1] == "authorization_policy"
+    if parts[0] == "events":
+        return detail_evidence
+    if parts[0] == "authorization_policies":
+        return detail_evidence
+    return False
+
+
+def _state_machine_reference_witness_allowed(parts: list[str]) -> bool:
+    if "view_states" in parts:
+        return any(marker in parts for marker in {"text", "assets", "available_operations", "child_state_machines", "signal_sync_rules"})
+    if "transitions" in parts:
+        return parts[-1] in {"data_signal", "message", "operation", "state_machine", "workflow", "event"}
+    if "signals" in parts:
+        return "messages" in parts
+    return False
+
+
+def _has_detail_card_evidence(evidence_files: Iterable[str]) -> bool:
+    return any("/entrypoints/" in path or "/workflows/" in path for path in evidence_files)
+
+
+def _unique_visual_text_tokens(tokens: Iterable[object]) -> list[str]:
+    unique: list[str] = []
+    seen: set[str] = set()
+    for token in tokens:
+        text = str(token).strip()
+        if not text or text in seen:
+            continue
+        unique.append(text)
+        seen.add(text)
+    return unique
+
+
+def _authorization_policy_text_witness_tokens(contract: dict[str, Any], parts: list[str], value: Any) -> list[str]:
+    if len(parts) < 3:
+        return []
+    policy_id = parts[1]
+    policy = contract.get("authorization_policies", {}).get(policy_id, {})
+    if parts[2] == "effect" and isinstance(value, str):
+        return ["authorization_effect", value]
+    if parts[2] == "subjects" and len(parts) >= 5:
+        if parts[-1] == "kind" and isinstance(value, str):
+            return ["authorization_subjects", value]
+        if parts[-1] == "source" and isinstance(value, str):
+            return ["authorization_subjects", _format_flow_source(value)]
+    if parts[2] == "targets" and isinstance(value, str):
+        return ["authorization_targets", value]
+    if parts[2] == "conditions" and len(parts) >= 5:
+        try:
+            condition = policy.get("conditions", [])[int(parts[3])]
+        except (IndexError, TypeError, ValueError):
+            return []
+        if "model_state" in condition:
+            body = condition["model_state"]
+            tokens = [f"{body['model']}.{body['field']}"]
+            if parts[-1] == "equals":
+                tokens.append(_format_scalar(value))
+            return tokens
+        if "model_exists" in condition and isinstance(value, str):
+            return [f"{value} exists"]
+        if "input_present" in condition and isinstance(value, str):
+            return ["input_present", value]
+        if "subject_has_role" in condition and isinstance(value, str):
+            return ["subject_has_role", value]
+    return []
+
+
+def _entry_point_text_witness_tokens(contract: dict[str, Any], parts: list[str], value: Any) -> list[str]:
+    _ = contract
+    tokens: list[str] = []
+    if isinstance(value, str):
+        if parts[-1] == "cli_command":
+            tokens.append(value)
+        elif parts[-1] == "method":
+            tokens.append(value.upper())
+        elif parts[-1] in {"path", "route", "endpoint", "screen"}:
+            tokens.append(value)
+        elif parts[-1] == "disposition":
+            tokens.extend(["disposition", value])
+        elif parts[-1] == "backoff":
+            tokens.extend(["retry", value])
+        elif parts[-1] == "from" and "bindings" in parts:
+            tokens.append(value)
+    elif isinstance(value, int):
+        if parts[-1] == "status":
+            tokens.extend(["status", str(value)])
+        elif parts[-1] == "exit_code":
+            tokens.extend(["exit_code", str(value)])
+        elif parts[-1] == "attempts":
+            tokens.extend(["retry", str(value)])
+    tokens.extend(_type_leaf_text_witness_tokens(contract, parts))
+    return tokens
+
+
+def _operation_text_witness_tokens(contract: dict[str, Any], parts: list[str], value: Any, detail_evidence: bool) -> list[str]:
+    if not detail_evidence:
+        return []
+    tokens: list[str] = []
+    if len(parts) >= 5 and parts[2] == "transition":
+        transition = contract["operations"][parts[1]]["transition"]
+        field_token = f"{transition['model']}.{transition['field']}"
+        tokens.append(field_token)
+        if parts[-1] in {"from", "to"}:
+            tokens.append(_format_scalar(value))
+        return tokens
+    if len(parts) >= 5 and parts[2] == "outcomes":
+        outcome_id = parts[3]
+        outcome = contract["operations"][parts[1]]["outcomes"][outcome_id]
+        if parts[-1] == "kind" and isinstance(value, str):
+            return [outcome_id, value]
+        if parts[-2:] == ["result", "model"] and isinstance(value, str):
+            return [outcome_id, value]
+    tokens.extend(_type_leaf_text_witness_tokens(contract, parts))
+    return tokens
+
+
+def _event_text_witness_tokens(contract: dict[str, Any], parts: list[str], value: Any) -> list[str]:
+    _ = contract
+    if len(parts) >= 3 and parts[2] == "emitted_by" and isinstance(value, str):
+        return [value]
+    return []
+
+
+def _workflow_text_witness_tokens(contract: dict[str, Any], parts: list[str], value: Any) -> list[str]:
+    _ = contract
+    tokens: list[str] = []
+    if isinstance(value, str):
+        if parts[-1] == "id" and "steps" in parts:
+            tokens.append(value)
+        elif len(parts) >= 5 and parts[2] == "outcomes":
+            outcome_id = parts[3]
+            if parts[-1] == "kind":
+                tokens.extend([outcome_id, value])
+            elif parts[-2:] == ["result", "data_contract"]:
+                tokens.extend([outcome_id, value])
+        elif parts[-1] in {"complete_as", "fail_as", "dead_letter_as", "next_step"}:
+            tokens.append(value)
+        elif parts[-1] == "backoff":
+            tokens.extend(["retry_policy", value])
+    elif isinstance(value, int) and parts[-1] == "attempts":
+        tokens.extend(["retry_policy", str(value)])
+    return tokens
+
+
+def _state_machine_text_witness_tokens(contract: dict[str, Any], parts: list[str], value: Any) -> list[str]:
+    _ = contract
+    tokens: list[str] = []
+    if isinstance(value, str) and "child_state_machines" in parts and parts[-1] in {"html_region", "textual_container", "initial_view_state"}:
+        tokens.append(value)
+    tokens.extend(_type_leaf_text_witness_tokens(contract, parts))
+    return tokens
+
+
+def _type_leaf_text_witness_tokens(contract: dict[str, Any], parts: list[str]) -> list[str]:
+    if not parts or parts[-1] not in {"primitive", "model", "data_contract", "array"}:
+        return []
+    if parts[0] not in {"entry_points", "operations", "state_machines", "workflows"}:
+        return []
+    parent_parts = parts[:-1]
+    try:
+        type_expr = _contract_value_at_parts(contract, parent_parts)
+    except (KeyError, IndexError, TypeError, ValueError):
+        return []
+    field = _type_field_name(parts)
+    if not field:
+        return []
+    return [field, type_display(type_expr)]
+
+
+def _type_field_name(parts: list[str]) -> str | None:
+    if len(parts) >= 5 and parts[0] == "operations" and parts[2] == "input":
+        return parts[3]
+    if parts[0] == "entry_points":
+        if "path_params" in parts:
+            return _part_after(parts, "path_params")
+        if "query_params" in parts:
+            return _part_after(parts, "query_params")
+        if "body" in parts:
+            field = _part_after(parts, "body")
+            return "body" if field == "type" else field
+        if "args" in parts:
+            return _part_after(parts, "args")
+        if "payload" in parts:
+            return "payload"
+        if "stdout" in parts:
+            return "stdout"
+        if "stderr" in parts:
+            return "stderr"
+        if "problem" in parts:
+            return "problem"
+        if "result" in parts:
+            return parts[parts.index("result") - 1] if parts.index("result") > 0 else None
+    if len(parts) >= 5 and parts[0] == "workflows" and parts[2] == "outcomes" and parts[4] == "result":
+        return parts[3]
+    if parts[0] == "state_machines" and "payload_schema" in parts:
+        return _part_after(parts, "payload_schema")
+    return None
+
+
+def _part_after(parts: list[str], marker: str) -> str | None:
+    try:
+        index = parts.index(marker) + 1
+    except ValueError:
+        return None
+    return parts[index] if index < len(parts) else None
 
 
 def _entry_point_evidence_files(contract: dict[str, Any], entry_id: str) -> list[str]:
