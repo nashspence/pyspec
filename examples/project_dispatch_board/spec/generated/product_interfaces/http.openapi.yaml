@@ -139,7 +139,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: Unavailable
-      x-authorization-policy: authorization_policy.project.approve
+      x-authorization-policy: authorization_policy.project.reviewer
       x-entry: entry_point.api.project.approve
       x-operation: operation.project.approve
   /workspaces/{workspace_id}/projects:
@@ -178,7 +178,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: Unavailable
-      x-authorization-policy: authorization_policy.project.list
+      x-authorization-policy: authorization_policy.project.member
       x-entry: entry_point.api.project.list
       x-operation: operation.project.list
     post:
@@ -232,6 +232,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: Validation Failed
-      x-authorization-policy: authorization_policy.project.create
+      x-authorization-policy: authorization_policy.project.member
       x-entry: entry_point.api.project.create
       x-operation: operation.project.create

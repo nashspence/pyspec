@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+import json
 import os
 from functools import lru_cache
 import re
@@ -1116,6 +1117,7 @@ def _validate_authorization_policies(contract: dict[str, Any]) -> None:
     authorization_policies = contract["authorization_policies"]
     operations = contract["operations"]
     entry_points = contract["entry_points"]
+    _validate_authorization_policy_reuse(authorization_policies)
     for operation_id, operation in operations.items():
         authorization = operation.get("authorization")
         if not authorization:
@@ -1155,6 +1157,35 @@ def _validate_authorization_policies(contract: dict[str, Any]) -> None:
                     raise ContractError(f"Authorization policy {policy_id} condition references unknown {model_id} field {body['field']}")
                 continue
             raise ContractError(f"Authorization policy {policy_id} condition is unsupported: {kind}")
+
+
+def _validate_authorization_policy_reuse(authorization_policies: dict[str, Any]) -> None:
+    fingerprints: dict[str, str] = {}
+    for policy_id, policy in authorization_policies.items():
+        fingerprint = _authorization_policy_rule_fingerprint(policy)
+        existing = fingerprints.get(fingerprint)
+        if existing:
+            raise ContractError(
+                f"Authorization policies {existing} and {policy_id} have identical subjects, effect, and conditions; "
+                "reuse one authorization_policy with combined targets instead of duplicating rule sets"
+            )
+        fingerprints[fingerprint] = policy_id
+
+
+def _authorization_policy_rule_fingerprint(policy: dict[str, Any]) -> str:
+    subjects = sorted(_canonical_json(subject) for subject in policy.get("subjects", []))
+    conditions = sorted(_canonical_json(condition) for condition in policy.get("conditions", []))
+    return _canonical_json(
+        {
+            "subjects": subjects,
+            "effect": policy.get("effect"),
+            "conditions": conditions,
+        }
+    )
+
+
+def _canonical_json(value: Any) -> str:
+    return json.dumps(value, sort_keys=True, separators=(",", ":"))
 
 
 def _authorization_policy_covers_target(policy: dict[str, Any], kind: str, ref: str) -> bool:

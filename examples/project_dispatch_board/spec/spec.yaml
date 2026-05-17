@@ -168,82 +168,36 @@ models:
         to: archived
         triggered_by: operation.project.archive
 authorization_policies:
-  authorization_policy.project.approve:
-    subjects:
-    - kind: actor
-      source: $input.approved_by
-    targets:
-    - operation: operation.project.approve
-    - model: Project
-    effect: allow
-    conditions:
-    - subject_has_role: reviewer
-    rationale: Reviewers may approve submitted dispatch projects.
-  authorization_policy.project.archive:
-    subjects:
-    - kind: actor
-    targets:
-    - operation: operation.project.archive
-    - model: Project
-    effect: allow
-    conditions:
-    - subject_has_role: reviewer
-    rationale: Reviewers may archive approved dispatch projects.
-  authorization_policy.project.create:
+  authorization_policy.project.member:
     subjects:
     - kind: actor
     targets:
     - operation: operation.project.create
-    - model: Project
-    effect: allow
-    conditions:
-    - subject_has_role: member
-    rationale: Workspace members may create dispatch projects.
-  authorization_policy.project.list:
-    subjects:
-    - kind: actor
-    targets:
     - operation: operation.project.list
-    - model: Project
-    effect: allow
-    conditions:
-    - subject_has_role: member
-    rationale: Workspace members may list dispatch projects.
-  authorization_policy.project.read:
-    subjects:
-    - kind: actor
-    targets:
     - operation: operation.project.read
-    - model: Project
-    effect: allow
-    conditions:
-    - subject_has_role: member
-    rationale: Workspace members may read dispatch project details.
-  authorization_policy.project.send_approval_notice:
-    subjects:
-    - kind: actor
-      source: $input.approved_by
-    targets:
-    - operation: operation.project.send_approval_notice
-    effect: allow
-    conditions:
-    - subject_has_role: reviewer
-    rationale: Approval notice dispatch runs on behalf of the approving reviewer.
-  authorization_policy.project.submit:
-    subjects:
-    - kind: actor
-    targets:
     - operation: operation.project.submit
     - model: Project
     effect: allow
     conditions:
     - subject_has_role: member
-    rationale: Workspace members may submit draft dispatch projects.
+    rationale: Workspace members may create, read, list, and submit dispatch projects.
+  authorization_policy.project.reviewer:
+    subjects:
+    - kind: actor
+    targets:
+    - operation: operation.project.approve
+    - operation: operation.project.archive
+    - operation: operation.project.send_approval_notice
+    - model: Project
+    effect: allow
+    conditions:
+    - subject_has_role: reviewer
+    rationale: Reviewers may approve, archive, and send approval notices for dispatch projects.
 operations:
   operation.project.approve:
     rationale: Reviewers can approve submitted dispatch projects.
     authorization:
-      policy: authorization_policy.project.approve
+      policy: authorization_policy.project.reviewer
       unauthenticated_as: unauthenticated
       forbidden_as: forbidden
     input:
@@ -287,7 +241,7 @@ operations:
   operation.project.archive:
     rationale: Approved dispatch projects can be archived.
     authorization:
-      policy: authorization_policy.project.archive
+      policy: authorization_policy.project.reviewer
       unauthenticated_as: unauthenticated
       forbidden_as: forbidden
     input:
@@ -321,7 +275,7 @@ operations:
   operation.project.create:
     rationale: Members can create a new dispatch project.
     authorization:
-      policy: authorization_policy.project.create
+      policy: authorization_policy.project.member
       unauthenticated_as: unauthenticated
       forbidden_as: forbidden
     creates:
@@ -359,7 +313,7 @@ operations:
   operation.project.list:
     rationale: The board requires a project list query scoped by workspace.
     authorization:
-      policy: authorization_policy.project.list
+      policy: authorization_policy.project.member
       unauthenticated_as: unauthenticated
       forbidden_as: forbidden
     input:
@@ -389,7 +343,7 @@ operations:
   operation.project.read:
     rationale: The detail state machine loads the selected project by id.
     authorization:
-      policy: authorization_policy.project.read
+      policy: authorization_policy.project.member
       unauthenticated_as: unauthenticated
       forbidden_as: forbidden
     input:
@@ -418,7 +372,7 @@ operations:
   operation.project.send_approval_notice:
     rationale: Approval triggers a notification command for downstream coordination.
     authorization:
-      policy: authorization_policy.project.send_approval_notice
+      policy: authorization_policy.project.reviewer
       unauthenticated_as: unauthenticated
       forbidden_as: forbidden
     input:
@@ -447,7 +401,7 @@ operations:
   operation.project.submit:
     rationale: Draft dispatch projects can be submitted for review.
     authorization:
-      policy: authorization_policy.project.submit
+      policy: authorization_policy.project.member
       unauthenticated_as: unauthenticated
       forbidden_as: forbidden
     input:

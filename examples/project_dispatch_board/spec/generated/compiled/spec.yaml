@@ -21,76 +21,30 @@ assets:
       placeholder_symbol: square
     rationale: Generic placeholder illustration used by the empty queue state machine state.
 authorization_policies:
-  authorization_policy.project.approve:
-    conditions:
-    - subject_has_role: reviewer
-    effect: allow
-    rationale: Reviewers may approve submitted dispatch projects.
-    subjects:
-    - kind: actor
-      source: $input.approved_by
-    targets:
-    - operation: operation.project.approve
-    - model: Project
-  authorization_policy.project.archive:
-    conditions:
-    - subject_has_role: reviewer
-    effect: allow
-    rationale: Reviewers may archive approved dispatch projects.
-    subjects:
-    - kind: actor
-    targets:
-    - operation: operation.project.archive
-    - model: Project
-  authorization_policy.project.create:
+  authorization_policy.project.member:
     conditions:
     - subject_has_role: member
     effect: allow
-    rationale: Workspace members may create dispatch projects.
+    rationale: Workspace members may create, read, list, and submit dispatch projects.
     subjects:
     - kind: actor
     targets:
     - operation: operation.project.create
-    - model: Project
-  authorization_policy.project.list:
-    conditions:
-    - subject_has_role: member
-    effect: allow
-    rationale: Workspace members may list dispatch projects.
-    subjects:
-    - kind: actor
-    targets:
     - operation: operation.project.list
-    - model: Project
-  authorization_policy.project.read:
-    conditions:
-    - subject_has_role: member
-    effect: allow
-    rationale: Workspace members may read dispatch project details.
-    subjects:
-    - kind: actor
-    targets:
     - operation: operation.project.read
+    - operation: operation.project.submit
     - model: Project
-  authorization_policy.project.send_approval_notice:
+  authorization_policy.project.reviewer:
     conditions:
     - subject_has_role: reviewer
     effect: allow
-    rationale: Approval notice dispatch runs on behalf of the approving reviewer.
+    rationale: Reviewers may approve, archive, and send approval notices for dispatch projects.
     subjects:
     - kind: actor
-      source: $input.approved_by
     targets:
+    - operation: operation.project.approve
+    - operation: operation.project.archive
     - operation: operation.project.send_approval_notice
-  authorization_policy.project.submit:
-    conditions:
-    - subject_has_role: member
-    effect: allow
-    rationale: Workspace members may submit draft dispatch projects.
-    subjects:
-    - kind: actor
-    targets:
-    - operation: operation.project.submit
     - model: Project
 content_cases:
   content_case.project.detail.heading.high_priority:
@@ -184,7 +138,7 @@ entry_points:
               type:
                 model: Problem
             status: 503
-    authorization_policy: authorization_policy.project.approve
+    authorization_policy: authorization_policy.project.reviewer
     endpoint: endpoint.project.approve
     rationale: HTTP endpoint for approving submitted dispatch projects.
     retry_safe: true
@@ -237,7 +191,7 @@ entry_points:
               type:
                 model: Problem
             status: 422
-    authorization_policy: authorization_policy.project.create
+    authorization_policy: authorization_policy.project.member
     endpoint: endpoint.project.create
     rationale: HTTP endpoint for creating a dispatch project.
     target:
@@ -287,7 +241,7 @@ entry_points:
               type:
                 model: Problem
             status: 503
-    authorization_policy: authorization_policy.project.list
+    authorization_policy: authorization_policy.project.member
     endpoint: endpoint.project.list
     rationale: HTTP endpoint for listing dispatch projects.
     target:
@@ -589,7 +543,7 @@ operations:
   operation.project.approve:
     authorization:
       forbidden_as: forbidden
-      policy: authorization_policy.project.approve
+      policy: authorization_policy.project.reviewer
       unauthenticated_as: unauthenticated
     creates: []
     deletes: []
@@ -647,7 +601,7 @@ operations:
   operation.project.archive:
     authorization:
       forbidden_as: forbidden
-      policy: authorization_policy.project.archive
+      policy: authorization_policy.project.reviewer
       unauthenticated_as: unauthenticated
     creates: []
     deletes: []
@@ -694,7 +648,7 @@ operations:
   operation.project.create:
     authorization:
       forbidden_as: forbidden
-      policy: authorization_policy.project.create
+      policy: authorization_policy.project.member
       unauthenticated_as: unauthenticated
     creates:
     - Project
@@ -738,7 +692,7 @@ operations:
   operation.project.list:
     authorization:
       forbidden_as: forbidden
-      policy: authorization_policy.project.list
+      policy: authorization_policy.project.member
       unauthenticated_as: unauthenticated
     creates: []
     deletes: []
@@ -775,7 +729,7 @@ operations:
   operation.project.read:
     authorization:
       forbidden_as: forbidden
-      policy: authorization_policy.project.read
+      policy: authorization_policy.project.member
       unauthenticated_as: unauthenticated
     creates: []
     deletes: []
@@ -811,7 +765,7 @@ operations:
   operation.project.send_approval_notice:
     authorization:
       forbidden_as: forbidden
-      policy: authorization_policy.project.send_approval_notice
+      policy: authorization_policy.project.reviewer
       unauthenticated_as: unauthenticated
     creates: []
     deletes: []
@@ -848,7 +802,7 @@ operations:
   operation.project.submit:
     authorization:
       forbidden_as: forbidden
-      policy: authorization_policy.project.submit
+      policy: authorization_policy.project.member
       unauthenticated_as: unauthenticated
     creates: []
     deletes: []
@@ -898,13 +852,8 @@ refs:
   - asset.project.detail.ready.priority_badge
   - asset.project.list.empty.illustration
   authorization_policy:
-  - authorization_policy.project.approve
-  - authorization_policy.project.archive
-  - authorization_policy.project.create
-  - authorization_policy.project.list
-  - authorization_policy.project.read
-  - authorization_policy.project.send_approval_notice
-  - authorization_policy.project.submit
+  - authorization_policy.project.member
+  - authorization_policy.project.reviewer
   cli_command:
   - cli_command.project.approve
   - cli_command.project.board
@@ -1497,7 +1446,7 @@ test_cases:
     then:
       authorization:
         denied:
-        - authorization_policy: authorization_policy.project.approve
+        - authorization_policy: authorization_policy.project.reviewer
           operation: operation.project.approve
       events:
         not_emitted:
@@ -1536,7 +1485,7 @@ test_cases:
     then:
       authorization:
         allowed:
-        - authorization_policy: authorization_policy.project.approve
+        - authorization_policy: authorization_policy.project.reviewer
           operation: operation.project.approve
       events:
         emitted:
@@ -1574,7 +1523,7 @@ test_cases:
     then:
       authorization:
         denied:
-        - authorization_policy: authorization_policy.project.approve
+        - authorization_policy: authorization_policy.project.reviewer
           operation: operation.project.approve
       enables:
       - operation.project.create
@@ -1987,7 +1936,7 @@ test_cases:
     then:
       authorization:
         allowed:
-        - authorization_policy: authorization_policy.project.create
+        - authorization_policy: authorization_policy.project.member
           operation: operation.project.create
       events:
         emitted:

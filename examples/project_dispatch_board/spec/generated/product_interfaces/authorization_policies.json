@@ -1,58 +1,13 @@
 {
   "authorization_policies": {
-    "authorization_policy.project.approve": {
-      "conditions": [
-        {
-          "subject_has_role": "reviewer"
-        }
-      ],
-      "effect": "allow",
-      "rationale": "Reviewers may approve submitted dispatch projects.",
-      "subjects": [
-        {
-          "kind": "actor",
-          "source": "$input.approved_by"
-        }
-      ],
-      "targets": [
-        {
-          "operation": "operation.project.approve"
-        },
-        {
-          "model": "Project"
-        }
-      ]
-    },
-    "authorization_policy.project.archive": {
-      "conditions": [
-        {
-          "subject_has_role": "reviewer"
-        }
-      ],
-      "effect": "allow",
-      "rationale": "Reviewers may archive approved dispatch projects.",
-      "subjects": [
-        {
-          "kind": "actor"
-        }
-      ],
-      "targets": [
-        {
-          "operation": "operation.project.archive"
-        },
-        {
-          "model": "Project"
-        }
-      ]
-    },
-    "authorization_policy.project.create": {
+    "authorization_policy.project.member": {
       "conditions": [
         {
           "subject_has_role": "member"
         }
       ],
       "effect": "allow",
-      "rationale": "Workspace members may create dispatch projects.",
+      "rationale": "Workspace members may create, read, list, and submit dispatch projects.",
       "subjects": [
         {
           "kind": "actor"
@@ -63,82 +18,27 @@
           "operation": "operation.project.create"
         },
         {
-          "model": "Project"
-        }
-      ]
-    },
-    "authorization_policy.project.list": {
-      "conditions": [
-        {
-          "subject_has_role": "member"
-        }
-      ],
-      "effect": "allow",
-      "rationale": "Workspace members may list dispatch projects.",
-      "subjects": [
-        {
-          "kind": "actor"
-        }
-      ],
-      "targets": [
-        {
           "operation": "operation.project.list"
         },
-        {
-          "model": "Project"
-        }
-      ]
-    },
-    "authorization_policy.project.read": {
-      "conditions": [
-        {
-          "subject_has_role": "member"
-        }
-      ],
-      "effect": "allow",
-      "rationale": "Workspace members may read dispatch project details.",
-      "subjects": [
-        {
-          "kind": "actor"
-        }
-      ],
-      "targets": [
         {
           "operation": "operation.project.read"
         },
         {
+          "operation": "operation.project.submit"
+        },
+        {
           "model": "Project"
         }
       ]
     },
-    "authorization_policy.project.send_approval_notice": {
+    "authorization_policy.project.reviewer": {
       "conditions": [
         {
           "subject_has_role": "reviewer"
         }
       ],
       "effect": "allow",
-      "rationale": "Approval notice dispatch runs on behalf of the approving reviewer.",
-      "subjects": [
-        {
-          "kind": "actor",
-          "source": "$input.approved_by"
-        }
-      ],
-      "targets": [
-        {
-          "operation": "operation.project.send_approval_notice"
-        }
-      ]
-    },
-    "authorization_policy.project.submit": {
-      "conditions": [
-        {
-          "subject_has_role": "member"
-        }
-      ],
-      "effect": "allow",
-      "rationale": "Workspace members may submit draft dispatch projects.",
+      "rationale": "Reviewers may approve, archive, and send approval notices for dispatch projects.",
       "subjects": [
         {
           "kind": "actor"
@@ -146,7 +46,13 @@
       ],
       "targets": [
         {
-          "operation": "operation.project.submit"
+          "operation": "operation.project.approve"
+        },
+        {
+          "operation": "operation.project.archive"
+        },
+        {
+          "operation": "operation.project.send_approval_notice"
         },
         {
           "model": "Project"
@@ -155,44 +61,44 @@
     }
   },
   "entry_point_authorization_policies": {
-    "entry_point.api.project.approve": "authorization_policy.project.approve",
-    "entry_point.api.project.create": "authorization_policy.project.create",
-    "entry_point.api.project.list": "authorization_policy.project.list"
+    "entry_point.api.project.approve": "authorization_policy.project.reviewer",
+    "entry_point.api.project.create": "authorization_policy.project.member",
+    "entry_point.api.project.list": "authorization_policy.project.member"
   },
   "operation_authorizations": {
     "operation.project.approve": {
       "forbidden_as": "forbidden",
-      "policy": "authorization_policy.project.approve",
+      "policy": "authorization_policy.project.reviewer",
       "unauthenticated_as": "unauthenticated"
     },
     "operation.project.archive": {
       "forbidden_as": "forbidden",
-      "policy": "authorization_policy.project.archive",
+      "policy": "authorization_policy.project.reviewer",
       "unauthenticated_as": "unauthenticated"
     },
     "operation.project.create": {
       "forbidden_as": "forbidden",
-      "policy": "authorization_policy.project.create",
+      "policy": "authorization_policy.project.member",
       "unauthenticated_as": "unauthenticated"
     },
     "operation.project.list": {
       "forbidden_as": "forbidden",
-      "policy": "authorization_policy.project.list",
+      "policy": "authorization_policy.project.member",
       "unauthenticated_as": "unauthenticated"
     },
     "operation.project.read": {
       "forbidden_as": "forbidden",
-      "policy": "authorization_policy.project.read",
+      "policy": "authorization_policy.project.member",
       "unauthenticated_as": "unauthenticated"
     },
     "operation.project.send_approval_notice": {
       "forbidden_as": "forbidden",
-      "policy": "authorization_policy.project.send_approval_notice",
+      "policy": "authorization_policy.project.reviewer",
       "unauthenticated_as": "unauthenticated"
     },
     "operation.project.submit": {
       "forbidden_as": "forbidden",
-      "policy": "authorization_policy.project.submit",
+      "policy": "authorization_policy.project.member",
       "unauthenticated_as": "unauthenticated"
     }
   },

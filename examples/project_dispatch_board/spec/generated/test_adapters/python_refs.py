@@ -5,13 +5,8 @@ class Asset:
     ASSET_PROJECT_LIST_EMPTY_ILLUSTRATION = 'asset.project.list.empty.illustration'
 
 class AuthorizationPolicy:
-    AUTHORIZATION_POLICY_PROJECT_APPROVE = 'authorization_policy.project.approve'
-    AUTHORIZATION_POLICY_PROJECT_ARCHIVE = 'authorization_policy.project.archive'
-    AUTHORIZATION_POLICY_PROJECT_CREATE = 'authorization_policy.project.create'
-    AUTHORIZATION_POLICY_PROJECT_LIST = 'authorization_policy.project.list'
-    AUTHORIZATION_POLICY_PROJECT_READ = 'authorization_policy.project.read'
-    AUTHORIZATION_POLICY_PROJECT_SEND_APPROVAL_NOTICE = 'authorization_policy.project.send_approval_notice'
-    AUTHORIZATION_POLICY_PROJECT_SUBMIT = 'authorization_policy.project.submit'
+    AUTHORIZATION_POLICY_PROJECT_MEMBER = 'authorization_policy.project.member'
+    AUTHORIZATION_POLICY_PROJECT_REVIEWER = 'authorization_policy.project.reviewer'
 
 class CliCommand:
     CLI_COMMAND_PROJECT_APPROVE = 'cli_command.project.approve'

@@ -53,7 +53,7 @@ test_cases:
     then:
       authorization:
         denied:
-        - authorization_policy: authorization_policy.project.approve
+        - authorization_policy: authorization_policy.project.reviewer
           operation: operation.project.approve
       events:
         not_emitted:
@@ -92,7 +92,7 @@ test_cases:
     then:
       authorization:
         allowed:
-        - authorization_policy: authorization_policy.project.approve
+        - authorization_policy: authorization_policy.project.reviewer
           operation: operation.project.approve
       events:
         emitted:
@@ -130,7 +130,7 @@ test_cases:
     then:
       authorization:
         denied:
-        - authorization_policy: authorization_policy.project.approve
+        - authorization_policy: authorization_policy.project.reviewer
           operation: operation.project.approve
       enables:
       - operation.project.create
@@ -543,7 +543,7 @@ test_cases:
     then:
       authorization:
         allowed:
-        - authorization_policy: authorization_policy.project.create
+        - authorization_policy: authorization_policy.project.member
           operation: operation.project.create
       events:
         emitted:

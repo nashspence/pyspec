@@ -318,6 +318,19 @@ def test_authorization_policies_require_explicit_conditions_and_support_value_eq
     }
 
 
+def test_authorization_policies_reject_duplicated_rule_sets() -> None:
+    author = _authorized_transition_author()
+    author["authorization_policies"]["authorization_policy.ticket.submit_duplicate"] = {
+        "subjects": [{"kind": "actor"}],
+        "targets": [{"model": "Ticket"}],
+        "effect": "allow",
+        "conditions": [{"subject_has_role": "member"}],
+        "rationale": "This should reuse the member submit policy instead.",
+    }
+    with pytest.raises(ContractError, match=r"reuse one authorization_policy with combined targets"):
+        compile_author(author)
+
+
 def _authorized_transition_author() -> dict:
     author = _derived_transition_author()
     operation = author["operations"]["operation.ticket.submit"]
@@ -1426,8 +1439,8 @@ def test_delegated_and_outer_authorization_policies_are_both_evaluated(tmp_path:
         "subjects": [{"kind": "actor"}],
         "targets": [{"entry_point": "entry_point.cli.project.approve"}],
         "effect": "allow",
-        "conditions": [{"subject_has_role": "reviewer"}],
-        "rationale": "CLI approval also requires reviewer role.",
+        "conditions": [{"subject_has_role": "reviewer"}, {"input_present": "approved_by"}],
+        "rationale": "CLI approval requires reviewer role and an explicit approver argument.",
     }
     author["entry_points"]["entry_point.cli.project.approve"]["authorization_policy"] = outer_policy
     author["test_cases"]["test_case.project.approve.cli.success"] = {
@@ -1448,8 +1461,8 @@ def test_delegated_and_outer_authorization_policies_are_both_evaluated(tmp_path:
             "authorization": {
                 "allowed": [
                     {"entry_point": "entry_point.cli.project.approve", "authorization_policy": outer_policy},
-                    {"entry_point": "entry_point.api.project.approve", "authorization_policy": "authorization_policy.project.approve"},
-                    {"operation": "operation.project.approve", "authorization_policy": "authorization_policy.project.approve"},
+                    {"entry_point": "entry_point.api.project.approve", "authorization_policy": "authorization_policy.project.reviewer"},
+                    {"operation": "operation.project.approve", "authorization_policy": "authorization_policy.project.reviewer"},
                 ]
             },
         },

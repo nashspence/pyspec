@@ -1,6 +1,6 @@
 <svg width="822pt" height="485pt"
  viewBox="0.00 0.00 822.00 485.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 9fee6d499751227eeb31d183a183a12ea2fa2c4163ca227d162072864fcab7b0 -->
+<!-- pyspec-contract-input-sha256: c2237d3cd80f32000afff69a2e4539129d63dd4d73670b1c2db32ca205a7f083 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 467)">
 <title>entrypoint_entry_point_api_project_list</title>
 <!-- entrypoint_entry_point_api_project_list -->
@@ -15,7 +15,7 @@
 <text text-anchor="start" x="6.5" y="-214" font-family="Arial" font-weight="bold" font-size="10.00">endpoint:</text>
 <text text-anchor="start" x="51.5" y="-214" font-family="Arial" font-size="10.00">  endpoint.project.list</text>
 <text text-anchor="start" x="6.5" y="-202" font-family="Arial" font-weight="bold" font-size="10.00">authorization_policy:</text>
-<text text-anchor="start" x="105.5" y="-202" font-family="Arial" font-size="10.00">  authorization_policy.project.list</text>
+<text text-anchor="start" x="105.5" y="-202" font-family="Arial" font-size="10.00">  authorization_policy.project.member</text>
 <text text-anchor="start" x="5.5" y="-182" font-family="Arial" font-weight="bold" font-size="10.00">path params</text>
 <text text-anchor="start" x="5.5" y="-171" font-family="Arial" font-size="10.00">workspace_id</text>
 <text text-anchor="start" x="66.5" y="-171" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
@@ -34,7 +34,7 @@
 <text text-anchor="start" x="348.5" y="-214" font-family="Arial" font-weight="bold" font-size="10.00">kind:</text>
 <text text-anchor="start" x="372.5" y="-214" font-family="Arial" font-size="10.00">  query</text>
 <text text-anchor="start" x="347.5" y="-194" font-family="Arial" font-weight="bold" font-size="10.00">authorization</text>
-<text text-anchor="start" x="347.5" y="-182" font-family="Arial" font-size="10.00">policy: authorization_policy.project.list</text>
+<text text-anchor="start" x="347.5" y="-182" font-family="Arial" font-size="10.00">policy: authorization_policy.project.member</text>
 <text text-anchor="start" x="347.5" y="-171" font-family="Arial" font-size="10.00">unauthenticated_as: unauthenticated</text>
 <text text-anchor="start" x="347.5" y="-160" font-family="Arial" font-size="10.00">forbidden_as: forbidden</text>
 <polygon fill="none" stroke="#2563eb" points="342,-152 342,-296 565,-296 565,-152 342,-152"/>

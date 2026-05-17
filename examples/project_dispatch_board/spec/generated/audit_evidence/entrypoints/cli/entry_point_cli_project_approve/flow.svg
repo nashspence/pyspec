@@ -1,6 +1,6 @@
 <svg width="844pt" height="687pt"
  viewBox="0.00 0.00 844.00 687.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: be11fe2ed04817509857439b1c72f5aec8b821e793269c5970ab5c6a61b44213 -->
+<!-- pyspec-contract-input-sha256: bc114338c7eb943e297465c4397d336503e6d0421794e6f330f34e987cbdd8bd -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 669)">
 <title>entrypoint_entry_point_cli_project_approve</title>
 <!-- entrypoint_entry_point_cli_project_approve -->
@@ -38,7 +38,7 @@
 <text text-anchor="start" x="277.5" y="-303" font-family="Arial" font-weight="bold" font-size="10.00">kind:</text>
 <text text-anchor="start" x="301.5" y="-303" font-family="Arial" font-size="10.00">  transition</text>
 <text text-anchor="start" x="276.5" y="-283" font-family="Arial" font-weight="bold" font-size="10.00">authorization</text>
-<text text-anchor="start" x="276.5" y="-271" font-family="Arial" font-size="10.00">policy: authorization_policy.project.approve</text>
+<text text-anchor="start" x="276.5" y="-271" font-family="Arial" font-size="10.00">policy: authorization_policy.project.reviewer</text>
 <text text-anchor="start" x="276.5" y="-260" font-family="Arial" font-size="10.00">unauthenticated_as: unauthenticated</text>
 <text text-anchor="start" x="276.5" y="-249" font-family="Arial" font-size="10.00">forbidden_as: forbidden</text>
 <polygon fill="none" stroke="#0891b2" points="271,-241 271,-409 492,-409 492,-241 271,-241"/>
