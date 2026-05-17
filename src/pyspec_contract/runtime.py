@@ -42,14 +42,18 @@ def resolve_bindings(bindings: Mapping[str, Any], namespace: Mapping[str, Any]) 
 
 
 def resolve(value: Any, fixtures: Mapping[str, Any]) -> Any:
-    if is_reference_expression(value):
+    if isinstance(value, Mapping) and set(value) == {"from"}:
         try:
-            ref = parse_reference_expression(value)
+            ref = parse_reference_expression(value["from"])
             if ref.root != "fixture":
                 raise FixtureError(f"Unsupported fixture runtime reference root: ${ref.root}")
-            return resolve_reference_expression(value, {"fixture": fixtures})
+            return resolve_reference_expression(value["from"], {"fixture": fixtures})
         except ReferenceExpressionError as exc:
             raise FixtureError(str(exc)) from exc
+    if isinstance(value, Mapping) and set(value) == {"value"}:
+        return value["value"]
+    if is_reference_expression(value):
+        raise FixtureError(f"Raw runtime reference strings are not allowed in authored value maps: {value}")
     if isinstance(value, list):
         return [resolve(item, fixtures) for item in value]
     if isinstance(value, dict):

@@ -56,10 +56,18 @@
       ],
       "context": {
         "selected_project_id": {
-          "primitive": "ID"
+          "nullable": true,
+          "required": false,
+          "type": {
+            "primitive": "ID"
+          }
         },
         "workspace_id": {
-          "primitive": "ID"
+          "nullable": false,
+          "required": true,
+          "type": {
+            "primitive": "ID"
+          }
         }
       },
       "id": "state_machine.project.board.ready",
@@ -249,7 +257,11 @@
       "state_machine": {
         "context": {
           "project_id": {
-            "primitive": "ID"
+            "nullable": true,
+            "required": false,
+            "type": {
+              "primitive": "ID"
+            }
           }
         },
         "initial_view_state": "empty",
@@ -299,24 +311,28 @@
             "forbidden": {
               "no_signal": {
                 "rationale": "The activity panel remains in its current state when authorization blocks the refresh.",
-                "reason": "handled_by_response_surface"
+                "reason": "intentionally_unobservable"
               }
             },
             "found": {
               "no_signal": {
-                "reason": "state_unchanged"
+                "reason": "result_bound_without_signal"
+              },
+              "result_binding": {
+                "field": "activity",
+                "from": "$outcome.result"
               }
             },
             "not_found": {
               "no_signal": {
                 "rationale": "The parent detail panel owns not-found display for the selected project.",
-                "reason": "handled_by_response_surface"
+                "reason": "intentionally_unobservable"
               }
             },
             "unauthenticated": {
               "no_signal": {
                 "rationale": "The entry response surface owns unauthenticated display.",
-                "reason": "handled_by_response_surface"
+                "reason": "intentionally_unobservable"
               }
             }
           }
@@ -337,7 +353,11 @@
       "state_machine": {
         "context": {
           "project_id": {
-            "primitive": "ID"
+            "nullable": true,
+            "required": false,
+            "type": {
+              "primitive": "ID"
+            }
           }
         },
         "initial_view_state": "empty",
@@ -449,10 +469,18 @@
       "state_machine": {
         "context": {
           "selected_project_id": {
-            "primitive": "ID"
+            "nullable": true,
+            "required": false,
+            "type": {
+              "primitive": "ID"
+            }
           },
           "workspace_id": {
-            "primitive": "ID"
+            "nullable": false,
+            "required": true,
+            "type": {
+              "primitive": "ID"
+            }
           }
         },
         "initial_view_state": "ready",
@@ -477,7 +505,11 @@
       "state_machine": {
         "context": {
           "project_id": {
-            "primitive": "ID"
+            "nullable": true,
+            "required": false,
+            "type": {
+              "primitive": "ID"
+            }
           }
         },
         "initial_view_state": "none",
@@ -492,14 +524,14 @@
           {
             "from": "loading",
             "on": {
-              "data_signal": "ready"
+              "data_signal": "project_loaded"
             },
             "to": "ready"
           },
           {
             "from": "loading",
             "on": {
-              "data_signal": "error"
+              "data_signal": "project_load_failed"
             },
             "to": "error"
           },
@@ -521,7 +553,7 @@
           {
             "from": "ready",
             "on": {
-              "data_signal": "ready"
+              "data_signal": "project_loaded"
             },
             "rationale": "Successful detail operations refresh the ready-state project data.",
             "to": "ready"
@@ -556,22 +588,26 @@
           "outcome_routes": {
             "forbidden": {
               "raise": {
-                "data_signal": "error"
+                "data_signal": "project_load_failed"
               }
             },
             "found": {
               "raise": {
-                "data_signal": "ready"
+                "data_signal": "project_loaded"
+              },
+              "result_binding": {
+                "field": "project",
+                "from": "$outcome.result"
               }
             },
             "not_found": {
               "raise": {
-                "data_signal": "error"
+                "data_signal": "project_load_failed"
               }
             },
             "unauthenticated": {
               "raise": {
-                "data_signal": "error"
+                "data_signal": "project_load_failed"
               }
             }
           }
@@ -588,7 +624,11 @@
       "state_machine": {
         "context": {
           "project_id": {
-            "primitive": "ID"
+            "nullable": true,
+            "required": false,
+            "type": {
+              "primitive": "ID"
+            }
           }
         },
         "initial_view_state": "none",
@@ -603,14 +643,14 @@
           {
             "from": "loading",
             "on": {
-              "data_signal": "ready"
+              "data_signal": "project_loaded"
             },
             "to": "ready"
           },
           {
             "from": "loading",
             "on": {
-              "data_signal": "error"
+              "data_signal": "project_load_failed"
             },
             "to": "error"
           },
@@ -632,7 +672,7 @@
           {
             "from": "ready",
             "on": {
-              "data_signal": "ready"
+              "data_signal": "project_loaded"
             },
             "rationale": "Successful detail operations refresh the ready-state project data.",
             "to": "ready"
@@ -666,7 +706,11 @@
       "state_machine": {
         "context": {
           "project_id": {
-            "primitive": "ID"
+            "nullable": true,
+            "required": false,
+            "type": {
+              "primitive": "ID"
+            }
           }
         },
         "initial_view_state": "none",
@@ -681,14 +725,14 @@
           {
             "from": "loading",
             "on": {
-              "data_signal": "ready"
+              "data_signal": "project_loaded"
             },
             "to": "ready"
           },
           {
             "from": "loading",
             "on": {
-              "data_signal": "error"
+              "data_signal": "project_load_failed"
             },
             "to": "error"
           },
@@ -710,7 +754,7 @@
           {
             "from": "ready",
             "on": {
-              "data_signal": "ready"
+              "data_signal": "project_loaded"
             },
             "rationale": "Successful detail operations refresh the ready-state project data.",
             "to": "ready"
@@ -755,7 +799,11 @@
             },
             "found": {
               "no_signal": {
-                "reason": "handled_by_query_refresh"
+                "reason": "result_bound_without_signal"
+              },
+              "result_binding": {
+                "field": "project",
+                "from": "$outcome.result"
               }
             },
             "not_found": {
@@ -806,7 +854,7 @@
             "outcome_routes": {
               "approved": {
                 "raise": {
-                  "data_signal": "ready"
+                  "data_signal": "project_loaded"
                 }
               },
               "forbidden": {
@@ -855,13 +903,17 @@
             "outcome_routes": {
               "archived": {
                 "raise": {
-                  "data_signal": "ready"
+                  "data_signal": "project_loaded"
                 }
               },
               "forbidden": {
-                "no_signal": {
-                  "rationale": "The response surface keeps the detail panel unchanged for forbidden archive.",
-                  "reason": "handled_by_response_surface"
+                "raise": {
+                  "message": "show_invalid_state",
+                  "payload_bindings": {
+                    "message": {
+                      "from": "$outcome.result.message"
+                    }
+                  }
                 }
               },
               "invalid_state": {
@@ -875,15 +927,23 @@
                 }
               },
               "not_found": {
-                "no_signal": {
-                  "rationale": "The response surface reports a missing project without a local transition.",
-                  "reason": "handled_by_response_surface"
+                "raise": {
+                  "message": "show_invalid_state",
+                  "payload_bindings": {
+                    "message": {
+                      "from": "$outcome.result.message"
+                    }
+                  }
                 }
               },
               "unauthenticated": {
-                "no_signal": {
-                  "rationale": "The response surface reports authentication failure without a local transition.",
-                  "reason": "handled_by_response_surface"
+                "raise": {
+                  "message": "show_invalid_state",
+                  "payload_bindings": {
+                    "message": {
+                      "from": "$outcome.result.message"
+                    }
+                  }
                 }
               }
             }
@@ -896,7 +956,11 @@
       "state_machine": {
         "context": {
           "project_id": {
-            "primitive": "ID"
+            "nullable": true,
+            "required": false,
+            "type": {
+              "primitive": "ID"
+            }
           }
         },
         "initial_view_state": "none",
@@ -911,14 +975,14 @@
           {
             "from": "loading",
             "on": {
-              "data_signal": "ready"
+              "data_signal": "project_loaded"
             },
             "to": "ready"
           },
           {
             "from": "loading",
             "on": {
-              "data_signal": "error"
+              "data_signal": "project_load_failed"
             },
             "to": "error"
           },
@@ -940,7 +1004,7 @@
           {
             "from": "ready",
             "on": {
-              "data_signal": "ready"
+              "data_signal": "project_loaded"
             },
             "rationale": "Successful detail operations refresh the ready-state project data.",
             "to": "ready"
@@ -987,7 +1051,7 @@
             "outcome_routes": {
               "created": {
                 "raise": {
-                  "data_signal": "ready"
+                  "data_signal": "projects_loaded"
                 }
               },
               "forbidden": {
@@ -1023,10 +1087,18 @@
       "state_machine": {
         "context": {
           "selected_project_id": {
-            "primitive": "ID"
+            "nullable": true,
+            "required": false,
+            "type": {
+              "primitive": "ID"
+            }
           },
           "workspace_id": {
-            "primitive": "ID"
+            "nullable": false,
+            "required": true,
+            "type": {
+              "primitive": "ID"
+            }
           }
         },
         "initial_view_state": "loading",
@@ -1034,28 +1106,28 @@
           {
             "from": "loading",
             "on": {
-              "data_signal": "empty"
+              "data_signal": "project_collection_empty"
             },
             "to": "empty"
           },
           {
             "from": "loading",
             "on": {
-              "data_signal": "ready"
+              "data_signal": "projects_loaded"
             },
             "to": "ready"
           },
           {
             "from": "loading",
             "on": {
-              "data_signal": "error"
+              "data_signal": "project_list_failed"
             },
             "to": "error"
           },
           {
             "from": "empty",
             "on": {
-              "data_signal": "ready"
+              "data_signal": "projects_loaded"
             },
             "to": "ready"
           },
@@ -1089,7 +1161,7 @@
           {
             "from": "ready",
             "on": {
-              "data_signal": "ready"
+              "data_signal": "projects_loaded"
             },
             "rationale": "Successful list operations refresh ready-state collection data.",
             "to": "ready"
@@ -1123,10 +1195,18 @@
       "state_machine": {
         "context": {
           "selected_project_id": {
-            "primitive": "ID"
+            "nullable": true,
+            "required": false,
+            "type": {
+              "primitive": "ID"
+            }
           },
           "workspace_id": {
-            "primitive": "ID"
+            "nullable": false,
+            "required": true,
+            "type": {
+              "primitive": "ID"
+            }
           }
         },
         "initial_view_state": "loading",
@@ -1134,28 +1214,28 @@
           {
             "from": "loading",
             "on": {
-              "data_signal": "empty"
+              "data_signal": "project_collection_empty"
             },
             "to": "empty"
           },
           {
             "from": "loading",
             "on": {
-              "data_signal": "ready"
+              "data_signal": "projects_loaded"
             },
             "to": "ready"
           },
           {
             "from": "loading",
             "on": {
-              "data_signal": "error"
+              "data_signal": "project_list_failed"
             },
             "to": "error"
           },
           {
             "from": "empty",
             "on": {
-              "data_signal": "ready"
+              "data_signal": "projects_loaded"
             },
             "to": "ready"
           },
@@ -1189,7 +1269,7 @@
           {
             "from": "ready",
             "on": {
-              "data_signal": "ready"
+              "data_signal": "projects_loaded"
             },
             "rationale": "Successful list operations refresh ready-state collection data.",
             "to": "ready"
@@ -1222,10 +1302,18 @@
       "state_machine": {
         "context": {
           "selected_project_id": {
-            "primitive": "ID"
+            "nullable": true,
+            "required": false,
+            "type": {
+              "primitive": "ID"
+            }
           },
           "workspace_id": {
-            "primitive": "ID"
+            "nullable": false,
+            "required": true,
+            "type": {
+              "primitive": "ID"
+            }
           }
         },
         "initial_view_state": "loading",
@@ -1233,28 +1321,28 @@
           {
             "from": "loading",
             "on": {
-              "data_signal": "empty"
+              "data_signal": "project_collection_empty"
             },
             "to": "empty"
           },
           {
             "from": "loading",
             "on": {
-              "data_signal": "ready"
+              "data_signal": "projects_loaded"
             },
             "to": "ready"
           },
           {
             "from": "loading",
             "on": {
-              "data_signal": "error"
+              "data_signal": "project_list_failed"
             },
             "to": "error"
           },
           {
             "from": "empty",
             "on": {
-              "data_signal": "ready"
+              "data_signal": "projects_loaded"
             },
             "to": "ready"
           },
@@ -1288,7 +1376,7 @@
           {
             "from": "ready",
             "on": {
-              "data_signal": "ready"
+              "data_signal": "projects_loaded"
             },
             "rationale": "Successful list operations refresh ready-state collection data.",
             "to": "ready"
@@ -1338,7 +1426,7 @@
             "outcome_routes": {
               "created": {
                 "raise": {
-                  "data_signal": "ready"
+                  "data_signal": "projects_loaded"
                 }
               },
               "forbidden": {
@@ -1370,9 +1458,13 @@
             "operation": "operation.project.submit",
             "outcome_routes": {
               "forbidden": {
-                "no_signal": {
-                  "rationale": "The response surface keeps the ready list visible for forbidden submit.",
-                  "reason": "handled_by_response_surface"
+                "raise": {
+                  "message": "show_invalid_state",
+                  "payload_bindings": {
+                    "message": {
+                      "from": "$outcome.result.message"
+                    }
+                  }
                 }
               },
               "invalid_state": {
@@ -1386,20 +1478,28 @@
                 }
               },
               "not_found": {
-                "no_signal": {
-                  "rationale": "The response surface reports a missing project without a local transition.",
-                  "reason": "handled_by_response_surface"
+                "raise": {
+                  "message": "show_invalid_state",
+                  "payload_bindings": {
+                    "message": {
+                      "from": "$outcome.result.message"
+                    }
+                  }
                 }
               },
               "submitted": {
                 "raise": {
-                  "data_signal": "ready"
+                  "data_signal": "projects_loaded"
                 }
               },
               "unauthenticated": {
-                "no_signal": {
-                  "rationale": "The response surface reports authentication failure without a local transition.",
-                  "reason": "handled_by_response_surface"
+                "raise": {
+                  "message": "show_invalid_state",
+                  "payload_bindings": {
+                    "message": {
+                      "from": "$outcome.result.message"
+                    }
+                  }
                 }
               }
             }
@@ -1412,10 +1512,18 @@
       "state_machine": {
         "context": {
           "selected_project_id": {
-            "primitive": "ID"
+            "nullable": true,
+            "required": false,
+            "type": {
+              "primitive": "ID"
+            }
           },
           "workspace_id": {
-            "primitive": "ID"
+            "nullable": false,
+            "required": true,
+            "type": {
+              "primitive": "ID"
+            }
           }
         },
         "initial_view_state": "loading",
@@ -1423,28 +1531,28 @@
           {
             "from": "loading",
             "on": {
-              "data_signal": "empty"
+              "data_signal": "project_collection_empty"
             },
             "to": "empty"
           },
           {
             "from": "loading",
             "on": {
-              "data_signal": "ready"
+              "data_signal": "projects_loaded"
             },
             "to": "ready"
           },
           {
             "from": "loading",
             "on": {
-              "data_signal": "error"
+              "data_signal": "project_list_failed"
             },
             "to": "error"
           },
           {
             "from": "empty",
             "on": {
-              "data_signal": "ready"
+              "data_signal": "projects_loaded"
             },
             "to": "ready"
           },
@@ -1478,7 +1586,7 @@
           {
             "from": "ready",
             "on": {
-              "data_signal": "ready"
+              "data_signal": "projects_loaded"
             },
             "rationale": "Successful list operations refresh ready-state collection data.",
             "to": "ready"

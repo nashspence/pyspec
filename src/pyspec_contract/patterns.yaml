@@ -95,9 +95,9 @@ entry_point_adapters:
     layer: html
 
 entry_target_contracts:
-  boundary: 'Entry points declare adapter-specific input and responses. target.*.input_bindings maps adapter input onto the target operation or state-machine context.'
+  boundary: 'Entry points declare adapter-specific input plus either target outcome responses or async ingress responses. target.*.input_bindings maps adapter input onto the target operation or state-machine context.'
   state_machine: 'State-machine entry targets use target.state_machine.ref plus target.state_machine.renderer to distinguish invocation from html/textual rendering.'
-  workflow: 'Workflow entry targets use target.workflow.ref plus target.workflow.trigger_bindings so the entry point binds input into the workflow trigger payload. Workers declare message dispositions; workflows declare named outcomes and route each step outcome explicitly.'
+  workflow: 'Workflow entry targets use target.workflow.ref plus target.workflow.trigger_bindings so the entry point binds input into the workflow trigger payload. Workers declare ingress dispositions; workflows declare named execution outcomes and route each step outcome explicitly.'
 
 renderer_contracts:
   html_layout:

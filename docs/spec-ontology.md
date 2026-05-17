@@ -56,14 +56,20 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `entry-point delegation`: an entry point whose `target.entry_point.ref` points at another entry point. Delegation is general and is not CLI-to-HTTP-specific.
 - `delegating entry point`: the outer entry point whose adapter exposes a facade and binds its input into the delegated entry point input shape.
 - `delegated entry point`: the inner entry point that receives delegated invocation. Its entry-point `authorization_policy` and the delegated target operation's authorization outcomes remain visible to the delegating entry point.
+- `target outcome response`: synchronous adapter response keyed by operation, workflow, state-machine, or delegated entry-point outcome names. HTTP API `responses` and delegated CLI `response_handlers` are target-outcome response surfaces.
+- `adapter ingress response`: asynchronous adapter acknowledgement or disposition keyed by adapter-level outcomes, such as accepted, malformed, retry, reject, or dead-letter handling. Worker, webhook, and scheduled adapters use `ingress_responses` when receipt/disposition is distinct from target workflow execution outcomes.
 - `response handler`: adapter-specific projection of a target or delegated response outcome.
 - `CLI response handler`: maps a named response outcome to stdout, stderr, an exit code, and optionally a retry policy. It does not restate HTTP status classification when the delegated entry point is an HTTP API.
-- `retry_safe`: explicit entry-point marker permitting automatic retry of delegated invocations; the default is false.
+- `retry_safe`: explicit operation or entry-point marker permitting automatic retry of delegated, command, transition, or workflow execution. The default is false. Queries are retry-safe by operation kind.
+- `retry safety`: validation that a retry policy applies only to a retry-safe delegated entry point and final target, a query, an explicitly retry-safe operation or entry point, or an ingress/disposition outcome where no target operation has executed. Transport retry, ingress retry, workflow retry, and operation retry are separate scopes.
 - `workflow_route`: exclusive route target via `next_step`, `complete_as`, `fail_as`, `retry_policy`, or `dead_letter_as`.
+- `state-machine context schema`: explicit `field_schema_map` for local machine context. Each context field declares `type`, `required`, and `nullable`; effects may set a context field to null only when that field is nullable.
 - `Operation invocation`: local view-state use of a global operation, normally user/action-triggered, including input bindings and outcome routing. A renderer action binds to this local invocation, not directly to `operation_ref`.
-- `Query invocation`: local state-machine or view-state use of a query operation for data loading or refresh, including input bindings, load policy, context updates, and outcome routing.
-- `Outcome route`: mapping from an operation/query outcome to context updates, a local signal raise, or explicit no-signal handling.
-- `No-signal route`: explicit declaration that an outcome is covered but intentionally raises no local signal. It is not omission and does not suppress durable/global events.
+- `Query invocation`: local state-machine or view-state use of a query operation for data loading or refresh, including input bindings, load policy, context updates, result binding, and outcome routing. State-machine-level queries load with `on_start`/`on_mount`; view-state-level queries load with `on_enter`.
+- `Query invocation effect`: each query outcome route must update context, bind/cache a result, raise a local signal, or explicitly declare a scoped no-signal route. `result_binding` names the state-machine/view-state data field populated from an outcome expression.
+- `Outcome route`: mapping from an operation/query outcome to context updates, result binding, a local signal raise, or explicit no-signal handling.
+- `No-signal route`: explicit declaration that an outcome is covered but intentionally raises no local signal. It is not omission and does not suppress durable/global events. Reasons are scope-sensitive: response-surface handling needs a real adapter/renderer surface, query refresh needs explicit result/context refresh, result-bound-without-signal needs `result_binding`, and failure outcomes need rationale unless response-surface handling is proven.
+- `Authored value`: explicit literal-or-runtime-reference value used in authored value maps. Use `{value: ...}` for JSON literals, including literal strings beginning with `$`, and `{from: $fixture...}` or another valid runtime expression for references. Raw `$...` strings are not interpreted as references.
 - `Local signal raise`: creation of a state-machine-local message or data signal.
 - `Data signal`: local state-machine signal commonly used for data refresh, invalidation, loaded/missing states, or render updates. Data signals are not sent between child state-machine instances.
 - `Message`: local state-machine signal that may also be sent between child state-machine instances where sync rules support message sends.
@@ -74,6 +80,7 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `no_signal`: explicit local non-routing for an operation/query outcome.
 - `signals`: local UI/component/state-machine signal contracts split into accepted message/data-signal maps and emitted message maps with `payload_schema` maps.
 - `renderer_contracts`: view-state renderer declarations keyed by concrete target. `renderers.html` and `renderers.textual` each own target-local `layout`, `presentation`, and `style`.
+- `renderer placement validation`: HTML slots and child machines must reference declared HTML `region_id`s; Textual widgets and child machines must reference declared Textual `container_id`s. Placement ids are layout ids, not field names.
 - `type_expr`: structured primitive, model, data_contract, array, map, nullable whole-value wrapper, enum, or inline object type expression. Object field presence and nullability are controlled only by `field_schema.required` and `field_schema.nullable`.
 - `authorization_policy`: direct `authorization_policy_ref` fields identify the authorization policy applied to an entry point or authorization assertion. Operations use `authorization.policy` plus explicit `unauthenticated_as` and `forbidden_as` outcome mappings.
 - `operation_authorization`: operation-local authorization mapping with `policy`, `unauthenticated_as`, and `forbidden_as`. The mapped names must be normal operation outcomes with `kind: failure`.
@@ -131,6 +138,9 @@ query_invocations:
       - data_signal: project_updated
     outcome_routes:
       found:
+        result_binding:
+          field: project
+          from: $outcome.result
         context_updates:
           project:
             from: $outcome.result
@@ -141,8 +151,8 @@ query_invocations:
           message: show_project_not_found
       unavailable:
         no_signal:
-          reason: handled_by_response_surface
-          rationale: The entry-point adapter reports unavailable state.
+          reason: intentionally_unobservable
+          rationale: The query result is not shown while the current view keeps its existing data.
 ```
 
 ## Visual Audit Coverage
@@ -178,6 +188,8 @@ The visual audit includes state-machine and composition diagrams, entry-point an
 - `$response.body[.<field>]` reads the delegated entry-point response body inside delegating CLI `response_handlers`.
 - `$trigger.payload[.<field>]` reads workflow trigger payload.
 - `$steps.<step>.outcomes.<outcome>.result[.<field>]` reads previous workflow step result.
+
+Runtime expressions appear inside binding objects. Authored value maps use `{from: ...}` for these expressions and `{value: ...}` for literal JSON values; a raw string beginning with `$` is a literal only when wrapped with `value`.
 - The shared grammar is `$source.path.to.field`; semantic validation checks available roots and declared field paths for each context.
 
 ## Generated Artifacts
@@ -297,10 +309,12 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:python_identifier --> `$defs/python_identifier`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:query_invocation_id --> `$defs/query_invocation_id`: local state-machine or view-state query invocation identifier.
 - <!-- schema-def:query_invocation_load_policy --> `$defs/query_invocation_load_policy`: query invocation load and refresh trigger policy.
+- <!-- schema-def:query_result_binding --> `$defs/query_result_binding`: explicit query result binding to a named local data field.
 - <!-- schema-def:renderer_contracts --> `$defs/renderer_contracts`: renderer contract component scoped to HTML and/or Textual targets.
 - <!-- schema-def:runtime_expression --> `$defs/runtime_expression`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:runtime_bindings --> `$defs/runtime_bindings`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:binding_value --> `$defs/binding_value`: explicit binding value object using either `from` for runtime expressions or `value` for literal JSON.
+- <!-- schema-def:authored_value --> `$defs/authored_value`: explicit authored value object using either `from` for runtime expressions or `value` for literal JSON.
 - <!-- schema-def:scalar --> `$defs/scalar`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:authored_test_case --> `$defs/authored_test_case`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:subject_ref --> `$defs/subject_ref`: typed reference definition for its namespace.

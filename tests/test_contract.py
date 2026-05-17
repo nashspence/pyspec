@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from pyspec_contract.api import write_generated
-from pyspec_contract.compile import ContractError, audit_cases, author_from_source, compile_author, compile_source, validate_against_schema
+from pyspec_contract.compile import ContractError, ContractLintWarning, audit_cases, author_from_source, compile_author, compile_source, validate_against_schema
 from pyspec_contract.io import read_yaml, write_yaml
 from pyspec_contract.paths import COMPILED_SPEC_PATH, SOURCE_SPEC_PATH
 from pyspec_contract.reference_driver import ReferenceSpecDriver
@@ -208,10 +208,10 @@ def test_unused_fact_is_rejected() -> None:
         "present": {
             "model": "Project",
             "values": {
-                "id": "project_unused_1",
-                "status": "submitted",
-                "title": "Unused project",
-                "workspace_id": "$fixture.workspace.id",
+                "id": {"value": "project_unused_1"},
+                "status": {"value": "submitted"},
+                "title": {"value": "Unused project"},
+                "workspace_id": {"from": "$fixture.workspace.id"},
             },
         },
         "rationale": "Unused facts are dead setup, so they should be removed.",
@@ -232,7 +232,7 @@ def test_fact_use_requires_declared_fixture_namespace() -> None:
 
 def test_fact_template_fields_must_belong_to_model() -> None:
     author = _author()
-    author["facts"]["fact.project.submitted"]["present"]["values"]["unknown_field"] = "nope"
+    author["facts"]["fact.project.submitted"]["present"]["values"]["unknown_field"] = {"value": "nope"}
     with pytest.raises(ContractError, match=r"Fact fact\.project\.submitted seeds unknown Project fields: \['unknown_field'\]"):
         compile_author(author)
 
@@ -247,7 +247,7 @@ def test_test_case_subject_ref_must_match_operation_under_test() -> None:
 def test_model_exists_assertion_rejects_unknown_field() -> None:
     author = _author()
     exists = author["test_cases"]["test_case.project.approve.success"]["then"]["model"]["exists"]
-    exists["where"]["ghost"] = "nope"
+    exists["where"]["ghost"] = {"value": "nope"}
     with pytest.raises(ContractError, match=r"model\.exists filters unknown Project fields: \['ghost'\]"):
         compile_author(author)
 
@@ -672,7 +672,7 @@ def test_nested_json_values_binding_values_and_model_less_state_machines_compile
         "project": "nested_values",
         "state_machines": {
             "state_machine.settings.panel": {
-                "context": {"settings": P("JSON")},
+                "context": {"settings": F(P("JSON"))},
                 "signals": {
                     "accepts": {
                         "messages": {
@@ -705,6 +705,60 @@ def test_nested_json_values_binding_values_and_model_less_state_machines_compile
     state_machine = contract["state_machines"]["state_machine.settings.panel"]
     assert "model" not in state_machine
     assert state_machine["transitions"][0]["effects"][0]["set"]["value"]["theme"]["density"]["compact"] is True
+
+
+def test_context_set_effect_respects_context_nullability() -> None:
+    author = {
+        "project": "context_nullability",
+        "state_machines": {
+            "state_machine.project.panel": {
+                "context": {"project_id": F(P("ID"), required=False, nullable=True)},
+                "signals": {"accepts": {"messages": {"clear": {}}}},
+                "initial_view_state": "ready",
+                "view_states": {"ready": {}},
+                "transitions": [
+                    {
+                        "from": "ready",
+                        "to": "ready",
+                        "on": {"message": "clear"},
+                        "effects": [{"set": {"context": "project_id", "value": None}}],
+                    }
+                ],
+                "rationale": "Nullable local context may be cleared explicitly.",
+            }
+        },
+    }
+    compile_author(author)
+
+    author["state_machines"]["state_machine.project.panel"]["context"]["project_id"]["nullable"] = False
+    with pytest.raises(ContractError, match=r"transition set project_id cannot assign null to non-nullable ID"):
+        compile_author(author)
+
+    author = {
+        "project": "context_nullable_source",
+        "state_machines": {
+            "state_machine.project.panel": {
+                "context": {
+                    "source_project_id": F(P("ID"), required=False, nullable=True),
+                    "target_project_id": F(P("ID")),
+                },
+                "signals": {"accepts": {"messages": {"copy": {}}}},
+                "initial_view_state": "ready",
+                "view_states": {"ready": {}},
+                "transitions": [
+                    {
+                        "from": "ready",
+                        "to": "ready",
+                        "on": {"message": "copy"},
+                        "effects": [{"set": {"context": "target_project_id", "from": "$context.source_project_id"}}],
+                    }
+                ],
+                "rationale": "Nullable sources cannot feed non-nullable context fields.",
+            }
+        },
+    }
+    with pytest.raises(ContractError, match=r"transition set target_project_id cannot assign nullable source to non-nullable ID"):
+        compile_author(author)
 
 
 def test_workflow_input_bindings_support_runtime_sources_and_literal_values() -> None:
@@ -843,7 +897,7 @@ def test_state_machine_data_events_require_data_binding() -> None:
     detail = _item(author, "state_machines", "state_machine.project.detail")
     del detail["view_states"]["loading"]["query_invocations"]
     detail["view_states"]["ready"].pop("field_slots")
-    with pytest.raises(ContractError, match=r"state machine state_machine\.project\.detail transition uses data signal without state machine or source-state data: data_signal\.ready"):
+    with pytest.raises(ContractError, match=r"state machine state_machine\.project\.detail transition uses data signal without state machine or source-state data: data_signal\.project_loaded"):
         compile_source(author)
 
 
@@ -945,7 +999,7 @@ def test_unresolved_fixture_reference_is_rejected() -> None:
     author = _author()
     test_case = _item(author, "test_cases", "test_case.project.board.empty")
     _, body = next(iter(test_case["when"].items()))
-    body.setdefault("input", {})["workspace_id"] = "$fixture.workspace.missing"
+    body.setdefault("input", {})["workspace_id"] = {"from": "$fixture.workspace.missing"}
     with pytest.raises(ContractError, match="cannot resolve"):
         compile_source(author)
 
@@ -1069,7 +1123,10 @@ def test_legacy_state_machine_action_and_query_fields_are_rejected() -> None:
 
 def test_renderer_slot_binding_accepts_operation_invocation_and_rejects_operation_ref() -> None:
     author = _author()
-    state = _item(author, "state_machines", "state_machine.project.board")["view_states"]["ready"]
+    board = _item(author, "state_machines", "state_machine.project.board")
+    board["signals"] = {"accepts": {"data_signals": {"operation_completed": {}}}}
+    board["transitions"] = [{"from": "ready", "to": "ready", "on": {"data_signal": "operation_completed"}}]
+    state = board["view_states"]["ready"]
     state["operation_invocations"] = {
         "create": {
             "operation": "operation.project.create",
@@ -1080,10 +1137,10 @@ def test_renderer_slot_binding_accepts_operation_invocation_and_rejects_operatio
                 "workspace_id": {"from": "$context.workspace_id"},
             },
             "outcome_routes": {
-                "created": {"no_signal": {"reason": "state_unchanged"}},
-                "forbidden": {"no_signal": {"reason": "handled_by_response_surface", "rationale": "Renderer test covers forbidden without local routing."}},
-                "unauthenticated": {"no_signal": {"reason": "handled_by_response_surface", "rationale": "Renderer test covers unauthenticated without local routing."}},
-                "validation_failed": {"no_signal": {"reason": "handled_by_response_surface", "rationale": "Renderer test covers validation without local routing."}},
+                "created": {"raise": {"data_signal": "operation_completed"}},
+                "forbidden": {"raise": {"data_signal": "operation_completed"}},
+                "unauthenticated": {"raise": {"data_signal": "operation_completed"}},
+                "validation_failed": {"raise": {"data_signal": "operation_completed"}},
             },
         }
     }
@@ -1093,7 +1150,10 @@ def test_renderer_slot_binding_accepts_operation_invocation_and_rejects_operatio
     compile_source(author)
 
     bad = _author()
-    state = _item(bad, "state_machines", "state_machine.project.board")["view_states"]["ready"]
+    board = _item(bad, "state_machines", "state_machine.project.board")
+    board["signals"] = {"accepts": {"data_signals": {"operation_completed": {}}}}
+    board["transitions"] = [{"from": "ready", "to": "ready", "on": {"data_signal": "operation_completed"}}]
+    state = board["view_states"]["ready"]
     state["operation_invocations"] = {
         "create": {
             "operation": "operation.project.create",
@@ -1104,10 +1164,10 @@ def test_renderer_slot_binding_accepts_operation_invocation_and_rejects_operatio
                 "workspace_id": {"from": "$context.workspace_id"},
             },
             "outcome_routes": {
-                "created": {"no_signal": {"reason": "state_unchanged"}},
-                "forbidden": {"no_signal": {"reason": "handled_by_response_surface", "rationale": "Renderer test covers forbidden without local routing."}},
-                "unauthenticated": {"no_signal": {"reason": "handled_by_response_surface", "rationale": "Renderer test covers unauthenticated without local routing."}},
-                "validation_failed": {"no_signal": {"reason": "handled_by_response_surface", "rationale": "Renderer test covers validation without local routing."}},
+                "created": {"raise": {"data_signal": "operation_completed"}},
+                "forbidden": {"raise": {"data_signal": "operation_completed"}},
+                "unauthenticated": {"raise": {"data_signal": "operation_completed"}},
+                "validation_failed": {"raise": {"data_signal": "operation_completed"}},
             },
         }
     }
@@ -1151,15 +1211,17 @@ def test_operation_invocation_rejects_legacy_non_routing_route() -> None:
 
 def test_operation_invocation_failure_no_signal_requires_reason_and_rationale() -> None:
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["submit"]["outcome_routes"]["forbidden"]
-    route["no_signal"].pop("rationale")
-    with pytest.raises(ContractError, match=r"failure outcome no_signal must use reason handled_by_response_surface or intentionally_unobservable and declare rationale"):
+    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["submit"]["outcome_routes"]["invalid_state"]
+    route.clear()
+    route["no_signal"] = {"reason": "intentionally_unobservable"}
+    with pytest.raises(ContractError, match=r"failure outcome no_signal must declare rationale"):
         compile_source(author)
 
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["submit"]["outcome_routes"]["forbidden"]
-    route["no_signal"]["reason"] = "state_unchanged"
-    with pytest.raises(ContractError, match=r"failure outcome no_signal must use reason handled_by_response_surface or intentionally_unobservable and declare rationale"):
+    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["submit"]["outcome_routes"]["invalid_state"]
+    route.clear()
+    route["no_signal"] = {"reason": "handled_by_response_surface", "rationale": "test route"}
+    with pytest.raises(ContractError, match=r"handled_by_response_surface requires an adapter or renderer response surface"):
         compile_source(author)
 
 
@@ -1283,6 +1345,38 @@ def test_query_invocation_load_policy_and_operation_purity_are_validated() -> No
         compile_source(author)
 
 
+def test_query_invocation_success_cannot_be_semantically_inert() -> None:
+    author = _author()
+    route = _item(author, "state_machines", "state_machine.project.list")["query_invocations"]["list_projects"]["outcome_routes"]["listed"]
+    route.clear()
+    route["no_signal"] = {"reason": "state_unchanged"}
+    with pytest.raises(ContractError, match=r"successful query no_signal must bind/cache data"):
+        compile_source(author)
+
+
+def test_query_invocation_query_refresh_requires_explicit_result_or_context_refresh() -> None:
+    author = _author()
+    route = _item(author, "state_machines", "state_machine.project.list")["query_invocations"]["list_projects"]["outcome_routes"]["listed"]
+    route.clear()
+    route["no_signal"] = {"reason": "handled_by_query_refresh"}
+    with pytest.raises(ContractError, match=r"handled_by_query_refresh requires an explicit query result binding or context refresh"):
+        compile_source(author)
+
+
+def test_query_invocation_load_policy_is_scope_sensitive() -> None:
+    author = _author()
+    invocation = _item(author, "state_machines", "state_machine.project.list")["query_invocations"]["list_projects"]
+    invocation["load"] = {"on_enter": True}
+    with pytest.raises(ContractError, match=r"state-machine-level load policy must use on_start or on_mount, not on_enter"):
+        compile_source(author)
+
+    author = _author()
+    invocation = _item(author, "state_machines", "state_machine.project.detail")["view_states"]["loading"]["query_invocations"]["read_project"]
+    invocation["load"] = {"on_start": True}
+    with pytest.raises(ContractError, match=r"view-state-level load policy must use on_enter, not on_start or on_mount"):
+        compile_source(author)
+
+
 def test_query_invocation_ids_cannot_shadow_state_machine_scope() -> None:
     author = _author()
     list_fsm = _item(author, "state_machines", "state_machine.project.list")
@@ -1291,7 +1385,10 @@ def test_query_invocation_ids_cannot_shadow_state_machine_scope() -> None:
             "operation": "operation.project.list",
             "input_bindings": {"workspace_id": {"from": "$context.workspace_id"}},
             "outcome_routes": {
-                "listed": {"no_signal": {"reason": "handled_by_query_refresh"}},
+                "listed": {
+                    "result_binding": {"field": "projects", "from": "$outcome.result"},
+                    "no_signal": {"reason": "result_bound_without_signal"},
+                },
                 "forbidden": {"no_signal": {"reason": "handled_by_response_surface", "rationale": "Shadow test."}},
                 "unauthenticated": {"no_signal": {"reason": "handled_by_response_surface", "rationale": "Shadow test."}},
                 "unavailable": {"no_signal": {"reason": "handled_by_response_surface", "rationale": "Shadow test."}},
@@ -1307,8 +1404,14 @@ def test_query_invocation_routes_are_local_per_state() -> None:
     loading_read = contract["state_machines"]["state_machine.project.detail"]["view_states"]["loading"]["query_invocations"]["read_project"]
     ready_read = contract["state_machines"]["state_machine.project.detail"]["view_states"]["ready"]["query_invocations"]["read_project"]
     assert loading_read["operation"] == ready_read["operation"] == "operation.project.read"
-    assert loading_read["outcome_routes"]["found"] == {"raise": {"data_signal": "ready"}}
-    assert ready_read["outcome_routes"]["found"] == {"no_signal": {"reason": "handled_by_query_refresh"}}
+    assert loading_read["outcome_routes"]["found"] == {
+        "result_binding": {"field": "project", "from": "$outcome.result"},
+        "raise": {"data_signal": "project_loaded"},
+    }
+    assert ready_read["outcome_routes"]["found"] == {
+        "result_binding": {"field": "project", "from": "$outcome.result"},
+        "no_signal": {"reason": "result_bound_without_signal"},
+    }
 
 
 def test_missing_referenced_operation_is_rejected() -> None:
@@ -1363,7 +1466,7 @@ def test_sync_send_data_must_match_target_message_payload_type() -> None:
     state_machine = _item(author, "state_machines", "state_machine.project.board")["view_states"]["ready"]
     send = next(effect["send"] for effect in state_machine["signal_sync_rules"][0]["effects"] if "send" in effect)
     send["payload_bindings"]["project_id"] = {"value": 1}
-    with pytest.raises(ContractError, match=r"payload_bindings\.project_id type mismatch"):
+    with pytest.raises(ContractError, match=r"payload_bindings\.project_id literal value is not compatible with ID"):
         compile_source(author)
 
 
@@ -1381,6 +1484,33 @@ def test_state_machine_signal_direction_must_be_unambiguous() -> None:
     state_machine["signals"]["emits"]["messages"]["project_select"] = {"payload_schema": {"project_id": P("ID")}}
     with pytest.raises(ContractError, match=r"declares state-machine signal as both accepted and emitted: .*message\.project_select"):
         compile_source(author)
+
+
+def test_signal_names_that_match_view_states_emit_lint_warnings() -> None:
+    author = {
+        "project": "signal_lint",
+        "state_machines": {
+            "state_machine.panel": {
+                "signals": {"accepts": {"messages": {"ready": {}}}},
+                "initial_view_state": "ready",
+                "view_states": {"ready": {}},
+                "transitions": [
+                    {
+                        "from": "ready",
+                        "to": "ready",
+                        "on": {"message": "ready"},
+                        "rationale": "Self-transition is present only to exercise lint warnings.",
+                    }
+                ],
+                "rationale": "Synthetic state machine exercises signal-name linting.",
+            }
+        },
+    }
+    with pytest.warns(ContractLintWarning) as warnings_record:
+        compile_author(author)
+    messages = [str(item.message) for item in warnings_record]
+    assert any("signal 'ready' also names a view state" in message for message in messages)
+    assert any("transition trigger 'ready' matches target view state" in message for message in messages)
 
 
 def test_composed_test_case_rejects_unknown_state_machine_instance() -> None:
@@ -1711,7 +1841,14 @@ def test_response_root_is_only_available_inside_delegated_cli_response_handlers(
 def test_cli_retry_policy_requires_retry_safe_delegated_entry_point() -> None:
     author = _author()
     del author["entry_points"]["entry_point.api.project.approve"]["retry_safe"]
-    with pytest.raises(ContractError, match=r"retry_policy requires delegated entry point entry_point\.api\.project\.approve to declare retry_safe: true"):
+    with pytest.raises(ContractError, match=r"retry_policy requires delegated entry point entry_point\.api\.project\.approve and its final target to be retry_safe or query"):
+        compile_source(author)
+
+
+def test_cli_retry_policy_requires_retry_safe_final_operation() -> None:
+    author = _author()
+    del author["operations"]["operation.project.approve"]["retry_safe"]
+    with pytest.raises(ContractError, match=r"retry_policy requires delegated entry point entry_point\.api\.project\.approve and its final target to be retry_safe or query"):
         compile_source(author)
 
 
@@ -1731,12 +1868,12 @@ def test_delegated_and_outer_authorization_policies_are_both_evaluated(tmp_path:
         "feature_tag": "project.approve.cli",
         "subject_ref": {"entry_point": "entry_point.cli.project.approve"},
         "given": {"domain_facts": [{"ref": "fact.project.submitted"}], "seed_fixtures": ["fixture.workspace.reviewer"]},
-        "when": {
-            "call_entry_point": {
-                "ref": "entry_point.cli.project.approve",
-                "input": {"approved_by": "$fixture.actor.id", "project_id": "project_submitted_1"},
-            }
-        },
+            "when": {
+                "call_entry_point": {
+                    "ref": "entry_point.cli.project.approve",
+                    "input": {"approved_by": {"from": "$fixture.actor.id"}, "project_id": {"value": "project_submitted_1"}},
+                }
+            },
         "then": {
             "outcome": "approved",
             "response": {"exit_code": 0},
@@ -1780,8 +1917,8 @@ def test_worker_entry_payload_must_match_trigger_event_payload() -> None:
 
 def test_worker_entry_must_declare_realistic_dispositions() -> None:
     author = _author()
-    author["entry_points"]["entry_point.worker.project.approval_notice"]["adapter"]["worker"]["responses"] = {"accepted": {"disposition": "acknowledge"}}
-    with pytest.raises(ContractError, match=r"Entry entry_point.worker\.project\.approval_notice must declare at least one non-acknowledge disposition"):
+    author["entry_points"]["entry_point.worker.project.approval_notice"]["adapter"]["worker"]["ingress_responses"] = {"accepted": {"disposition": "acknowledge"}}
+    with pytest.raises(ContractError, match=r"Entry entry_point.worker\.project\.approval_notice must declare at least one non-acknowledge ingress disposition"):
         compile_source(author)
 
 

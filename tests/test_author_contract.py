@@ -37,6 +37,44 @@ def test_author_query_invocations_must_be_non_empty_when_present() -> None:
         validate_against_schema(author, "author.schema.json")
 
 
+def test_author_state_machine_context_uses_explicit_field_schema() -> None:
+    author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+    author["state_machines"]["state_machine.project.list"]["context"]["workspace_id"] = P("ID")
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(author, "author.schema.json")
+
+    author["state_machines"]["state_machine.project.list"]["context"]["workspace_id"] = F(P("ID"))
+    validate_against_schema(author, "author.schema.json")
+
+
+def test_author_value_maps_require_tagged_literals_or_runtime_sources() -> None:
+    author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+    body = author["test_cases"]["test_case.project.board.empty"]["when"]["open_entry_point"]
+    body["input"]["workspace_id"] = "$fixture.workspace.id"
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(author, "author.schema.json")
+
+    body["input"]["workspace_id"] = {"from": "$fixture.workspace.id"}
+    body["input"]["literal_dollar"] = {"value": "$literal"}
+    validate_against_schema(author, "author.schema.json")
+
+
+def test_author_no_signal_reasons_are_closed_vocabulary() -> None:
+    author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+    route = author["state_machines"]["state_machine.project.list"]["view_states"]["ready"]["operation_invocations"]["create"]["outcome_routes"]["validation_failed"]
+    route["no_signal"]["reason"] = "ignored"
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(author, "author.schema.json")
+
+
+def test_author_async_adapters_use_ingress_responses() -> None:
+    author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+    worker = author["entry_points"]["entry_point.worker.project.approval_notice"]["adapter"]["worker"]
+    worker["responses"] = worker.pop("ingress_responses")
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(author, "author.schema.json")
+
+
 def test_author_contract_compiles_to_checked_in_machine_contract() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
     assert compile_source(author) == read_yaml(ROOT / "spec" / "generated" / "compiled" / "spec.yaml")

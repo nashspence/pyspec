@@ -9,6 +9,7 @@ import re
 import shutil
 import sys
 import tempfile
+import warnings
 from pathlib import Path
 from typing import Any
 
@@ -50,6 +51,7 @@ from .type_expr import (
     array_of,
     base_model_name,
     dereference_type,
+    effective_field_type,
     is_array_of_model,
     is_problem_type,
     literal_type_expr,
@@ -60,12 +62,17 @@ from .type_expr import (
     object_fields_for_type,
     type_display,
     type_equals,
+    unwrap_nullable,
 )
 
 ROOT = Path(__file__).resolve().parent
 
 
 class ContractError(ValueError):
+    pass
+
+
+class ContractLintWarning(UserWarning):
     pass
 
 
@@ -375,6 +382,8 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             "deletes": list(spec.get("deletes", [])),
             "rationale": spec["rationale"],
         }
+        if spec.get("retry_safe"):
+            operation["retry_safe"] = True
         if "authorization" in spec:
             operation["authorization"] = copy.deepcopy(spec["authorization"])
         return operation
@@ -398,8 +407,8 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
     if entity == "state_machine":
         state_machine_id = spec["id"]
         state_machine: dict[str, Any] = {
-            "context": spec["context"],
-            "query_invocations": _compile_query_invocations(spec.get("query_invocations", {})),
+            "context": normalize_field_map(spec["context"]),
+            "query_invocations": _compile_query_invocations(spec.get("query_invocations", {}), scope="state_machine"),
             "signals": _normalize_signals(spec.get("signals")),
             "initial_view_state": spec["initial_view_state"],
             "view_states": _compile_view_states(state_machine_id, spec.get("view_states", {})),
@@ -478,10 +487,11 @@ def _state_surface_ref(owner_id: str, state_name: str) -> str:
     return rules.state_machine_surface_ref(owner_id, state_name)
 
 
-def _compile_query_invocations(invocations: dict[str, Any]) -> dict[str, Any]:
+def _compile_query_invocations(invocations: dict[str, Any], *, scope: str) -> dict[str, Any]:
     compiled = copy.deepcopy(invocations or {})
     for invocation in compiled.values():
-        invocation.setdefault("load", {"on_enter": True})
+        default_load = {"on_start": True} if scope == "state_machine" else {"on_enter": True}
+        invocation.setdefault("load", default_load)
     return compiled
 
 
@@ -491,7 +501,7 @@ def _compile_view_states(owner_id: str, states: dict[str, Any]) -> dict[str, Any
     for state_name, state in states.items():
         item = {
             "surface": _state_surface_ref(owner_id, state_name),
-            "query_invocations": _compile_query_invocations(state.get("query_invocations", {})),
+            "query_invocations": _compile_query_invocations(state.get("query_invocations", {}), scope="view_state"),
             "text": [rules.text_ref(subject, state_name, slot) for slot in state.get("text_slots", [])],
             "assets": [rules.asset_ref(subject, state_name, slot) for slot in state.get("asset_slots", [])],
             "fields": state.get("field_slots", []),
@@ -744,6 +754,8 @@ def _semantic_validate(contract: dict[str, Any], used_facts: set[str]) -> None:
     _validate_models(contract)
     _validate_type_references(contract)
     _validate_operations(contract)
+    _validate_entry_point_delegation_graph(contract)
+    _validate_entry_point_response_maps(contract)
     _validate_state_machines(contract)
     _validate_state_machine_signal_payload_consistency(contract)
     _validate_entries(contract)
@@ -989,6 +1001,9 @@ def _validate_type_references(contract: dict[str, Any]) -> None:
             _validate_type_reference(contract, f"Operation {operation_id} input {field_name}", type_expr)
         for outcome_id, outcome in operation.get("outcomes", {}).items():
             _validate_type_reference(contract, f"Operation {operation_id} outcome {outcome_id}", outcome["result"])
+    for state_machine_id, state_machine in contract.get("state_machines", {}).items():
+        for field_name, field in state_machine.get("context", {}).items():
+            _validate_type_reference(contract, f"State machine {state_machine_id} context {field_name}", field["type"])
     for event_id, event in contract.get("events", {}).items():
         _validate_type_reference(contract, f"Event {event_id} payload_schema", event["payload_schema"])
 
@@ -1318,6 +1333,7 @@ def _validate_state_machines(contract: dict[str, Any]) -> None:
             f"state machine {state_machine_id}",
             state_machine,
             state_machine.get("query_invocations", {}),
+            scope="state_machine",
             model=model,
         )
         if state_machine["initial_view_state"] not in state_machine["view_states"]:
@@ -1364,6 +1380,7 @@ def _validate_state_machine_view_state(
         f"{owner_label}.{state_name}",
         state_machine,
         state.get("query_invocations", {}),
+        scope="view_state",
         model=model,
     )
     for field in state.get("fields", []):
@@ -1396,7 +1413,7 @@ def _validate_operation_invocations(
             expected_input,
             {"context": _type_scope(context)},
         )
-        _validate_operation_invocation_routes(contract, label, state_machine, invocation, operation)
+        _validate_operation_invocation_routes(contract, label, state_machine, invocation, operation_id, operation)
 
 
 def _validate_operation_invocation_routes(
@@ -1404,6 +1421,7 @@ def _validate_operation_invocation_routes(
     label: str,
     state_machine: dict[str, Any],
     invocation: dict[str, Any],
+    operation_id: str,
     operation: dict[str, Any],
 ) -> None:
     routes = invocation["outcome_routes"]
@@ -1422,7 +1440,14 @@ def _validate_operation_invocation_routes(
     for outcome_id, route in sorted(routes.items()):
         route_label = f"{label} outcome_routes.{outcome_id}"
         outcome = operation["outcomes"][outcome_id]
-        if _validate_no_signal_route(route_label, outcome, route):
+        if _validate_no_signal_route(
+            route_label,
+            outcome,
+            route,
+            route_scope="operation_invocation",
+            has_response_surface=_operation_has_response_surface(contract, operation_id, outcome_id),
+            authorization_outcome=outcome_id in _operation_authorization_outcomes(operation),
+        ):
             continue
         signal = route.get("raise")
         if not signal:
@@ -1442,18 +1467,72 @@ def _validate_operation_invocation_routes(
         )
 
 
-def _validate_no_signal_route(label: str, outcome: dict[str, Any], route: dict[str, Any]) -> bool:
+def _validate_no_signal_route(
+    label: str,
+    outcome: dict[str, Any],
+    route: dict[str, Any],
+    *,
+    route_scope: str,
+    has_response_surface: bool = False,
+    has_query_refresh: bool = False,
+    has_result_binding: bool = False,
+    authorization_outcome: bool = False,
+) -> bool:
     no_signal = route.get("no_signal")
     if not no_signal:
         return False
+    reason = no_signal.get("reason")
+    if outcome.get("emits"):
+        raise ContractError(f"{label} no_signal must not suppress durable operation_outcome.emits")
+    if reason == "handled_by_response_surface" and not has_response_surface:
+        raise ContractError(f"{label} no_signal.reason handled_by_response_surface requires an adapter or renderer response surface for this outcome")
+    if reason == "handled_by_query_refresh" and not has_query_refresh:
+        raise ContractError(f"{label} no_signal.reason handled_by_query_refresh requires an explicit query result binding or context refresh")
+    if reason == "result_bound_without_signal" and not has_result_binding:
+        raise ContractError(f"{label} no_signal.reason result_bound_without_signal requires result_binding")
+    if authorization_outcome and route_scope == "operation_invocation" and reason != "handled_by_response_surface":
+        raise ContractError(f"{label} authorization failure no_signal requires handled_by_response_surface")
     if outcome.get("kind") == "failure":
-        reason = no_signal.get("reason")
-        if reason not in {"handled_by_response_surface", "intentionally_unobservable"} or not no_signal.get("rationale"):
+        if reason not in {"handled_by_response_surface", "intentionally_unobservable", "state_unchanged"}:
             raise ContractError(
-                f"{label} failure outcome no_signal must use reason handled_by_response_surface "
-                "or intentionally_unobservable and declare rationale"
+                f"{label} failure outcome no_signal must use reason handled_by_response_surface, intentionally_unobservable, or state_unchanged"
             )
+        if reason != "handled_by_response_surface" or not has_response_surface:
+            if not no_signal.get("rationale"):
+                raise ContractError(f"{label} failure outcome no_signal must declare rationale")
     return True
+
+
+def _operation_authorization_outcomes(operation: dict[str, Any]) -> set[str]:
+    authorization = operation.get("authorization") or {}
+    return {value for key, value in authorization.items() if key in {"unauthenticated_as", "forbidden_as"}}
+
+
+def _operation_has_response_surface(contract: dict[str, Any], operation_id: str, outcome_id: str) -> bool:
+    for entry_id in contract.get("entry_points", {}):
+        if _entry_point_effective_operation_ref(contract, entry_id) != operation_id:
+            continue
+        if outcome_id in _entry_point_named_response_outcomes(contract, entry_id):
+            return True
+    return False
+
+
+def _operation_retry_safe(operation: dict[str, Any]) -> bool:
+    return operation.get("operation_kind") == "query" or bool(operation.get("retry_safe"))
+
+
+def _entry_point_retry_safe(contract: dict[str, Any], entry_id: str) -> bool:
+    entry = contract["entry_points"][entry_id]
+    target_kind, target_ref = entry_target_pair(entry)
+    if target_kind == "operation":
+        return _operation_retry_safe(contract["operations"][target_ref]) and (
+            contract["operations"][target_ref]["operation_kind"] == "query" or bool(entry.get("retry_safe"))
+        )
+    if target_kind == "entry_point":
+        return bool(entry.get("retry_safe")) and _entry_point_retry_safe(contract, target_ref)
+    if target_kind == "workflow":
+        return bool(entry.get("retry_safe"))
+    return bool(entry.get("retry_safe"))
 
 
 def _operation_outcome_route_scopes(
@@ -1490,6 +1569,7 @@ def _validate_query_invocations(
     state_machine: dict[str, Any],
     invocations: dict[str, Any],
     *,
+    scope: str,
     model: str | None = None,
 ) -> None:
     context = state_machine.get("context", {})
@@ -1521,7 +1601,7 @@ def _validate_query_invocations(
             operation.get("input") or {},
             {"context": _type_scope(context)},
         )
-        _validate_query_load_policy(contract, label, state_machine, invocation.get("load") or {})
+        _validate_query_load_policy(contract, label, state_machine, invocation.get("load") or {}, scope=scope)
         _validate_query_invocation_routes(contract, label, state_machine, invocation, operation)
 
 
@@ -1530,7 +1610,13 @@ def _validate_query_load_policy(
     label: str,
     state_machine: dict[str, Any],
     load: dict[str, Any],
+    *,
+    scope: str,
 ) -> None:
+    if scope == "state_machine" and load.get("on_enter"):
+        raise ContractError(f"{label} state-machine-level load policy must use on_start or on_mount, not on_enter")
+    if scope == "view_state" and (load.get("on_start") or load.get("on_mount")):
+        raise ContractError(f"{label} view-state-level load policy must use on_enter, not on_start or on_mount")
     for trigger in load.get("refresh_on", []):
         _state_machine_signal_payload(state_machine, "accepts", trigger, f"{label} load.refresh_on")
 
@@ -1558,10 +1644,12 @@ def _validate_query_invocation_routes(
     for outcome_id, route in sorted(routes.items()):
         outcome = operation["outcomes"][outcome_id]
         route_label = f"{label} outcome_routes.{outcome_id}"
-        if not any(key in route for key in ("context_updates", "raise", "no_signal")):
-            raise ContractError(f"{route_label} must declare context_updates, raise, or no_signal")
-        _validate_no_signal_route(route_label, outcome, route)
         scopes = _operation_outcome_route_scopes(state_machine, operation, outcome)
+        has_context_updates = bool(route.get("context_updates"))
+        has_result_binding = "result_binding" in route
+        has_raise = "raise" in route
+        if not any((has_context_updates, has_result_binding, has_raise, "no_signal" in route)):
+            raise ContractError(f"{route_label} must declare context_updates, result_binding, raise, or no_signal")
         for field, binding in (route.get("context_updates") or {}).items():
             context = state_machine.get("context", {})
             if field not in context:
@@ -1572,7 +1660,31 @@ def _validate_query_invocation_routes(
                 binding,
                 context[field],
                 scopes,
+                allow_nullable_source=False,
             )
+        result_binding = route.get("result_binding")
+        if result_binding:
+            _expression_type(
+                contract,
+                {"from": result_binding["from"]},
+                scopes,
+                f"{route_label} result_binding.{result_binding['field']}",
+            )
+        has_query_refresh = has_result_binding or has_context_updates
+        _validate_no_signal_route(
+            route_label,
+            outcome,
+            route,
+            route_scope="query_invocation",
+            has_response_surface=_operation_has_response_surface(contract, invocation["operation"], outcome_id),
+            has_query_refresh=has_query_refresh,
+            has_result_binding=has_result_binding,
+            authorization_outcome=outcome_id in _operation_authorization_outcomes(operation),
+        )
+        if outcome["kind"] == "success" and "no_signal" in route and not any((has_context_updates, has_result_binding, has_raise)):
+            no_signal = route["no_signal"]
+            if no_signal.get("reason") != "intentionally_unobservable" or not no_signal.get("rationale"):
+                raise ContractError(f"{route_label} successful query no_signal must bind/cache data, update context, raise a signal, or declare intentionally_unobservable with rationale")
         signal = route.get("raise")
         if signal:
             payload = _state_machine_signal_payload(
@@ -1588,6 +1700,8 @@ def _validate_query_invocation_routes(
                 payload=payload,
                 scopes=scopes,
             )
+    if all("no_signal" in route and not any(key in route for key in ("context_updates", "result_binding", "raise")) for route in routes.values()):
+        raise ContractError(f"{label} query_invocation has only no_signal routes and no explicit result binding, context update, or signal")
 
 
 def _validate_field_state_data_sources(
@@ -1643,6 +1757,7 @@ def _validate_state_machine_transitions(contract: dict[str, Any], state_machine_
                     binding,
                     state_machine["context"][body["context"]],
                     {"message": _type_scope(message_payload), "context": _type_scope(state_machine.get("context", {}))},
+                    allow_nullable_source=False,
                 )
             elif kind == "emit":
                 emitted_payload = _state_machine_signal_payload(state_machine, "emits", {"message": body["message"]}, f"state machine {state_machine_id} transition emit")
@@ -1665,6 +1780,7 @@ def _validate_state_machine_transitions(contract: dict[str, Any], state_machine_
 
 def _validate_signals(state_machine_id: str, state_machine: dict[str, Any]) -> None:
     signals = state_machine.get("signals", _empty_signals())
+    _lint_signal_names(state_machine_id, state_machine, signals)
     declared_accepts = _declared_signal_keys(signals, "accepts")
     declared_emits = _declared_signal_keys(signals, "emits")
     ambiguous = sorted(declared_accepts & declared_emits)
@@ -1684,6 +1800,26 @@ def _validate_signals(state_machine_id: str, state_machine: dict[str, Any]) -> N
     undeclared_emits = sorted(emitted - declared_emits)
     if undeclared_emits:
         raise ContractError(f"state machine {state_machine_id} emits state-machine signal without declaring it: {[_signal_label(item) for item in undeclared_emits]}")
+
+
+def _lint_signal_names(state_machine_id: str, state_machine: dict[str, Any], signals: dict[str, Any]) -> None:
+    view_states = set(state_machine.get("view_states", {}))
+    messages = set(signals.get("accepts", {}).get("messages", {})) | set(signals.get("emits", {}).get("messages", {}))
+    data_signals = set(signals.get("accepts", {}).get("data_signals", {}))
+    for name in sorted((messages | data_signals) & view_states):
+        warnings.warn(
+            f"state machine {state_machine_id} signal {name!r} also names a view state; prefer event-like names such as project_loaded, project_load_failed, collection_empty, or operation_failed",
+            ContractLintWarning,
+            stacklevel=3,
+        )
+    for transition in state_machine.get("transitions", []):
+        _, trigger_name = _signal_selector_key(transition["on"])
+        if trigger_name == transition["to"]:
+            warnings.warn(
+                f"state machine {state_machine_id} transition trigger {trigger_name!r} matches target view state; prefer an event-like trigger name",
+                ContractLintWarning,
+                stacklevel=3,
+            )
 
 
 def _declared_signal_keys(signals: dict[str, Any], direction: str) -> set[tuple[str, str]]:
@@ -1757,19 +1893,27 @@ def _validate_state_composition(contract: dict[str, Any], state_machine_id: str,
         if selected and selected["view_state"] not in child_state_machine["view_states"]:
             raise ContractError(f"composed state machine view state {label}.{mount['id']} selected view state is unknown: {selected['view_state']}")
         if selected:
-            _validate_condition_context(label, parent_state_machine.get("context", {}), selected["when"])
+            _validate_condition_context(contract, label, parent_state_machine.get("context", {}), selected["when"])
         mount_context = mount.get("context_bindings", {})
-        expected_context = set(child_state_machine.get("context", {}))
-        if set(mount_context) != expected_context:
+        child_context = child_state_machine.get("context", {})
+        expected_context = {name for name, field in child_context.items() if field.get("required", True)}
+        unknown_context = sorted(set(mount_context) - set(child_context))
+        missing_context = sorted(expected_context - set(mount_context))
+        if unknown_context or missing_context:
+            parts = []
+            if missing_context:
+                parts.append("missing required: " + ", ".join(missing_context))
+            if unknown_context:
+                parts.append("unknown: " + ", ".join(unknown_context))
             raise ContractError(
-                f"composed state machine state {label}.{mount['id']} context keys {sorted(mount_context)} "
-                f"must exactly match state machine context {sorted(expected_context)}"
+                f"composed state machine state {label}.{mount['id']} context bindings must satisfy state machine context"
+                + (": " + "; ".join(parts) if parts else "")
             )
         _validate_state_machine_context_refs(
             contract,
             label,
             parent_state_machine.get("context", {}),
-            child_state_machine.get("context", {}),
+            child_context,
             mount_context,
         )
     used_html_regions = {mount.get("html_region") for mount in state["child_state_machines"]}
@@ -1788,12 +1932,14 @@ def _validate_renderer_layouts(state_machine_id: str, state: dict[str, Any]) -> 
     return None
 
 
-def _validate_condition_context(state_machine_id: str, context: dict[str, Any], condition: Any) -> None:
+def _validate_condition_context(contract: dict[str, Any], state_machine_id: str, context: dict[str, Any], condition: Any) -> None:
+    comparisons: list[tuple[str, Any]] = []
     if isinstance(condition, dict):
         if "context_present" in condition:
             keys = [condition["context_present"]]
         elif "context_equals" in condition:
             keys = [condition["context_equals"]["field"]]
+            comparisons.append((condition["context_equals"]["field"], condition["context_equals"]["value"]))
         else:
             keys = []
     elif is_reference_expression(condition):
@@ -1809,6 +1955,14 @@ def _validate_condition_context(state_machine_id: str, context: dict[str, Any], 
     for key in keys:
         if key not in context:
             raise ContractError(f"composed state machine {state_machine_id} condition references undeclared context: {key}")
+    for key, value in comparisons:
+        _validate_expression_type(
+            contract,
+            f"composed state machine {state_machine_id} condition context_equals.{key}",
+            {"value": value},
+            context[key],
+            {},
+        )
 
 
 def _validate_state_machine_context_refs(
@@ -1820,6 +1974,12 @@ def _validate_state_machine_context_refs(
 ) -> None:
     scopes = {"state_machine": _type_scope(parent_context)}
     for key, value in mapping.items():
+        actual_type = _expression_type(contract, value, scopes, f"composed state machine {state_machine_id} context {key}")
+        if actual_type and _type_allows_null(actual_type) and not _type_allows_null(child_context[key]):
+            raise ContractError(
+                f"composed state machine {state_machine_id} context {key} cannot bind nullable source "
+                f"to non-nullable child context"
+            )
         _validate_expression_type(
             contract,
             f"composed state machine {state_machine_id} context {key}",
@@ -1904,10 +2064,87 @@ def _validate_expression_type(
     expression: Any,
     expected_type: Any,
     scopes: TypeScopes,
+    *,
+    allow_nullable_source: bool = True,
 ) -> None:
+    if _is_null_expression(expression):
+        if not _type_allows_null(expected_type):
+            raise ContractError(f"{label} cannot assign null to non-nullable {type_display(_effective_type(expected_type))}")
+        return
+    literal = _literal_expression_value(expression)
+    if literal is not _NO_LITERAL and not _literal_value_compatible(literal, expected_type):
+        raise ContractError(f"{label} literal value is not compatible with {type_display(_effective_type(expected_type))}")
     actual_type = _expression_type(contract, expression, scopes, label)
-    if actual_type and not type_equals(actual_type, expected_type):
-        raise ContractError(f"{label} type mismatch: expected {type_display(expected_type)}, got {type_display(actual_type)}")
+    if actual_type and not allow_nullable_source and _type_allows_null(actual_type) and not _type_allows_null(expected_type):
+        raise ContractError(f"{label} cannot assign nullable source to non-nullable {type_display(_effective_type(expected_type))}")
+    if actual_type and not _type_assignable(actual_type, expected_type):
+        raise ContractError(f"{label} type mismatch: expected {type_display(_effective_type(expected_type))}, got {type_display(_effective_type(actual_type))}")
+
+
+def _effective_type(type_name: Any) -> Any:
+    if isinstance(type_name, dict) and len(type_name) == 1 and next(iter(type_name)) in {"primitive", "model", "data_contract", "array", "map", "nullable", "enum", "object"}:
+        return normalize_type_expr(type_name)
+    if isinstance(type_name, dict) and "type" in type_name and isinstance(type_name["type"], dict) and "nullable" in type_name["type"]:
+        return normalize_type_expr(type_name["type"])
+    return effective_field_type(type_name)
+
+
+def _type_allows_null(type_name: Any) -> bool:
+    if isinstance(type_name, dict) and "type" in type_name and "nullable" in type_name:
+        return bool(type_name["nullable"])
+    return "nullable" in normalize_type_expr(type_name)
+
+
+def _type_assignable(actual_type: Any, expected_type: Any) -> bool:
+    actual = _effective_type(actual_type)
+    expected = _effective_type(expected_type)
+    if type_equals(actual, expected):
+        return True
+    if _type_allows_null(expected) or _type_allows_null(actual):
+        return type_equals(unwrap_nullable(actual), unwrap_nullable(expected))
+    return type_equals(actual, expected)
+
+
+def _is_null_expression(expression: Any) -> bool:
+    return expression is None or (isinstance(expression, dict) and set(expression) == {"value"} and expression["value"] is None)
+
+
+_NO_LITERAL = object()
+
+
+def _literal_expression_value(expression: Any) -> Any:
+    if isinstance(expression, dict) and set(expression) == {"from"}:
+        return _NO_LITERAL
+    if isinstance(expression, dict) and set(expression) == {"value"}:
+        return expression["value"]
+    if is_reference_expression(expression):
+        return _NO_LITERAL
+    return expression
+
+
+def _literal_value_compatible(value: Any, expected_type: Any) -> bool:
+    if value is None:
+        return _type_allows_null(expected_type)
+    expected = unwrap_nullable(_effective_type(expected_type))
+    kind, body = next(iter(expected.items()))
+    if kind == "primitive":
+        if body in {"ID", "Text", "Markdown", "Date", "Timestamp"}:
+            return isinstance(value, str)
+        if body == "Boolean":
+            return isinstance(value, bool)
+        if body == "Integer":
+            return isinstance(value, int) and not isinstance(value, bool)
+        if body == "Decimal":
+            return isinstance(value, (int, float)) and not isinstance(value, bool)
+        if body == "JSON":
+            return isinstance(value, (dict, list))
+    if kind == "enum":
+        return isinstance(value, str) and value in body
+    if kind == "array":
+        return isinstance(value, list)
+    if kind in {"map", "object", "model", "data_contract"}:
+        return isinstance(value, dict)
+    return False
 
 
 def _expression_type(contract: dict[str, Any] | None, expression: Any, scopes: TypeScopes, label: str) -> Any | None:
@@ -2054,6 +2291,7 @@ def _validate_sync_rules(
                     binding,
                     context[body["context"]],
                     {"message": _type_scope(source_payload), "state_machine": _type_scope(context)},
+                    allow_nullable_source=False,
                 )
             elif kind == "send":
                 target_id = body["instance"]
@@ -2358,6 +2596,18 @@ def _validate_entry_point_delegation_graph(contract: dict[str, Any]) -> None:
         visit(entry_id, [])
 
 
+def _validate_entry_point_response_maps(contract: dict[str, Any]) -> None:
+    """Validate synchronous target response keys before local routes depend on them."""
+    for entry_id, entry in contract.get("entry_points", {}).items():
+        adapter_kind, _adapter = entry_point_adapter_pair(entry)
+        target_kind, target = entry_point_target_pair(entry)
+        target_ref = target["ref"]
+        if adapter_kind == "http_api" and target_kind == "operation" and target_ref in contract["operations"]:
+            _operation_entry_point_responses(entry_id, entry, contract["operations"][target_ref])
+        elif adapter_kind == "cli" and target_kind == "operation" and target_ref in contract["operations"]:
+            _operation_entry_point_response_handlers(entry_id, entry, contract["operations"][target_ref])
+
+
 def _validate_delegating_entry_adapter_surface(
     entry_id: str,
     entry: dict[str, Any],
@@ -2428,8 +2678,8 @@ def _validate_delegated_payload_binding(
 ) -> None:
     if isinstance(binding, dict) and set(binding) in ({"from"}, {"value"}):
         actual_type = _expression_type(contract, binding, source_scopes, label)
-        if actual_type and not type_equals(actual_type, expected_type):
-            raise ContractError(f"{label} type mismatch: expected {type_display(expected_type)}, got {type_display(actual_type)}")
+        if actual_type and not _type_assignable(actual_type, expected_type):
+            raise ContractError(f"{label} type mismatch: expected {type_display(_effective_type(expected_type))}, got {type_display(_effective_type(actual_type))}")
         return
     expected_fields = object_fields_for_type(contract, expected_type)
     if not expected_fields:
@@ -2458,10 +2708,10 @@ def _validate_runtime_binding_map(
     for name, source in bindings.items():
         actual_type = _expression_type(contract, source, source_scopes, f"{label}.{name}")
         expected_type = expected[name]
-        if actual_type and not type_equals(actual_type, expected_type):
+        if actual_type and not _type_assignable(actual_type, expected_type):
             raise ContractError(
-                f"{label}.{name} type mismatch: expected {type_display(expected_type)}, "
-                f"got {type_display(actual_type)} from {source}"
+                f"{label}.{name} type mismatch: expected {type_display(_effective_type(expected_type))}, "
+                f"got {type_display(_effective_type(actual_type))} from {source}"
             )
 
 
@@ -2549,10 +2799,10 @@ def _validate_workflow_entry_target_source(contract: dict[str, Any], entry_id: s
     for name, binding in bindings.items():
         actual_type = _expression_type(contract, binding, scopes, f"Entry {entry_id} target.trigger_bindings.{name}")
         expected_type = expected[name]
-        if actual_type and not type_equals(actual_type, expected_type):
+        if actual_type and not _type_assignable(actual_type, expected_type):
             raise ContractError(
                 f"Entry {entry_id} target.trigger_bindings.{name} type mismatch: "
-                f"expected {type_display(expected_type)}, got {type_display(actual_type)} from {binding}"
+                f"expected {type_display(_effective_type(expected_type))}, got {type_display(_effective_type(actual_type))} from {binding}"
             )
 
 
@@ -2637,10 +2887,10 @@ def _validate_target_bindings(
             f"Entry {entry_id} target.input_bindings.{target_name}",
         )
         expected_type = expected[target_name]
-        if actual_type and not type_equals(actual_type, expected_type):
+        if actual_type and not _type_assignable(actual_type, expected_type):
             raise ContractError(
                 f"Entry {entry_id} target.input_bindings.{target_name} type mismatch: "
-                f"expected {type_display(expected_type)}, got {type_display(actual_type)} from {source}"
+                f"expected {type_display(_effective_type(expected_type))}, got {type_display(_effective_type(actual_type))} from {source}"
             )
 
 
@@ -2692,6 +2942,8 @@ def _validate_cli_operation_response_handlers(
                 "outcome": _typed_source_paths(contract, ("result",), outcome["result"]),
             },
             delegated_entry_id=None,
+            retry_allowed=_operation_retry_safe(operation),
+            retry_error=f"CLI entry {entry_id} response handler {outcome_id} retry_policy requires a query or retry_safe target operation",
             exit_codes=exit_codes,
         )
 
@@ -2720,11 +2972,12 @@ def _validate_cli_delegated_response_handlers(
     exit_codes: dict[int, str] = {}
     outcome_kinds = _entry_point_outcome_kinds(contract, delegated_entry_id)
     response_types = _entry_point_response_body_types(contract, delegated_entry_id)
+    retry_allowed = _entry_point_retry_safe(contract, delegated_entry_id)
     for outcome_id, handler in handlers.items():
-        if handler.get("retry_policy") and not delegated_entry.get("retry_safe", False):
+        if handler.get("retry_policy") and not retry_allowed:
             raise ContractError(
                 f"CLI entry {entry_id} response handler {outcome_id} retry_policy requires delegated entry point "
-                f"{delegated_entry_id} to declare retry_safe: true"
+                f"{delegated_entry_id} and its final target to be retry_safe or query"
             )
         source_scopes: TypeScopes = {"input": _entry_input_source_types(contract, entry)}
         response_type = response_types.get(outcome_id)
@@ -2738,6 +2991,11 @@ def _validate_cli_delegated_response_handlers(
             outcome_kind=outcome_kinds.get(outcome_id),
             source_scopes=source_scopes,
             delegated_entry_id=delegated_entry_id,
+            retry_allowed=retry_allowed,
+            retry_error=(
+                f"CLI entry {entry_id} response handler {outcome_id} retry_policy requires delegated entry point "
+                f"{delegated_entry_id} and its final target to be retry_safe or query"
+            ),
             exit_codes=exit_codes,
         )
 
@@ -2751,6 +3009,8 @@ def _validate_cli_response_handler(
     outcome_kind: str | None,
     source_scopes: TypeScopes,
     delegated_entry_id: str | None,
+    retry_allowed: bool,
+    retry_error: str,
     exit_codes: dict[int, str],
 ) -> None:
     exit_code = handler["exit_code"]
@@ -2765,8 +3025,8 @@ def _validate_cli_response_handler(
         raise ContractError(f"CLI entry {entry_id} failure response handler {outcome_id} must declare stderr")
     if outcome_kind == "failure" and exit_code == 0:
         raise ContractError(f"CLI entry {entry_id} failure response handler {outcome_id} exit_code must be nonzero")
-    if handler.get("retry_policy") and delegated_entry_id is None:
-        raise ContractError(f"CLI entry {entry_id} response handler {outcome_id} retry_policy is only supported for delegated entry points")
+    if handler.get("retry_policy") and not retry_allowed:
+        raise ContractError(retry_error)
     if exit_code in exit_codes:
         raise ContractError(
             f"CLI entry {entry_id} response handlers {exit_codes[exit_code]} and {outcome_id} cannot share exit_code {exit_code}"
@@ -2793,10 +3053,10 @@ def _validate_cli_response_handler(
     for binding_name, binding in bindings.items():
         actual_type = _expression_type(contract, binding, source_scopes, f"CLI entry {entry_id} response handler {outcome_id}.{streams[0]}.bindings.{binding_name}")
         expected_type = expected_text_args[binding_name]
-        if actual_type and not type_equals(actual_type, expected_type):
+        if actual_type and not _type_assignable(actual_type, expected_type):
             raise ContractError(
                 f"CLI entry {entry_id} response handler {outcome_id}.{streams[0]}.bindings.{binding_name} "
-                f"type mismatch: expected {type_display(expected_type)}, got {type_display(actual_type)}"
+                f"type mismatch: expected {type_display(_effective_type(expected_type))}, got {type_display(_effective_type(actual_type))}"
             )
 
 
@@ -2886,23 +3146,23 @@ def _validate_async_entry_point_responses(entry_id: str, entry: dict[str, Any], 
     responses = entry_point_responses(entry)
     accepted = responses.get("accepted")
     if accepted != {"disposition": "acknowledge"}:
-        raise ContractError(f"Entry {entry_id} responses.accepted must declare disposition: acknowledge")
+        raise ContractError(f"Entry {entry_id} ingress_responses.accepted must declare disposition: acknowledge")
     failure_responses = {name: response for name, response in responses.items() if name != "accepted"}
     if require_failure_disposition and not failure_responses:
-        raise ContractError(f"Entry {entry_id} must declare at least one non-acknowledge disposition such as retry, reject, or dead_letter")
+        raise ContractError(f"Entry {entry_id} must declare at least one non-acknowledge ingress disposition such as retry, reject, or dead_letter")
     for response_id, response in failure_responses.items():
         if set(response) != {"disposition", "problem"}:
-            raise ContractError(f"Entry {entry_id} disposition {response_id} must declare exactly disposition and problem")
+            raise ContractError(f"Entry {entry_id} ingress disposition {response_id} must declare exactly disposition and problem")
         if response["disposition"] not in {"retry", "reject", "dead_letter"}:
-            raise ContractError(f"Entry {entry_id} disposition {response_id} must be retry, reject, or dead_letter")
+            raise ContractError(f"Entry {entry_id} ingress disposition {response_id} must be retry, reject, or dead_letter")
         _validate_problem_type(f"Entry {entry_id} disposition {response_id} problem", response["problem"])
     if require_failure_disposition and not any(response["disposition"] in {"reject", "dead_letter"} for response in failure_responses.values()):
-        raise ContractError(f"Entry {entry_id} must declare a reject or dead_letter disposition for malformed or poison messages")
+        raise ContractError(f"Entry {entry_id} must declare a reject or dead_letter ingress disposition for malformed or poison messages")
 
 
 def _validate_webhook_entry_point_responses(entry_id: str, entry: dict[str, Any]) -> None:
     if entry_point_responses(entry) != {"accepted": {"status": 202}}:
-        raise ContractError(f"Webhook entry {entry_id} responses.accepted.status must be 202")
+        raise ContractError(f"Webhook entry {entry_id} ingress_responses.accepted.status must be 202")
 
 
 def _validate_state_machine_entry_inputs(
@@ -2927,7 +3187,11 @@ def _validate_state_machine_entry_inputs(
 
 def _required_entry_state_machine_context(contract: dict[str, Any], state_machine_id: str) -> dict[str, Any]:
     state_machine = contract["state_machines"][state_machine_id]
-    required: dict[str, Any] = {}
+    required: dict[str, Any] = {
+        name: field
+        for name, field in state_machine.get("context", {}).items()
+        if field.get("required", True)
+    }
     _add_query_context_requirements(
         contract,
         f"state machine {state_machine_id}",
@@ -3012,10 +3276,10 @@ def _add_mount_context_requirements(
                 {"state_machine": _type_scope(parent_state_machine_context)},
                 f"composed state machine {state_machine_id}.{mount['id']} parent context {parent_key}",
             )
-            if not type_equals(actual_type, expected_type):
+            if not _type_assignable(actual_type, expected_type):
                 raise ContractError(
                     f"composed state machine {state_machine_id}.{mount['id']} parent context {parent_key} type must be "
-                    f"{type_display(expected_type)}, got {type_display(actual_type)}"
+                    f"{type_display(_effective_type(expected_type))}, got {type_display(_effective_type(actual_type))}"
                 )
             _add_required_entry_context(
                 required,
@@ -3041,10 +3305,10 @@ def _context_roots_from_input_bindings(label: str, bindings: dict[str, Any]) -> 
 
 def _add_required_entry_context(required: dict[str, Any], key: str, type_name: Any, label: str) -> None:
     existing = required.get(key)
-    if existing and not type_equals(existing, type_name):
+    if existing and not type_equals(unwrap_nullable(_effective_type(existing)), unwrap_nullable(_effective_type(type_name))):
         raise ContractError(
             f"{label} requires conflicting entry input type for {key}: "
-            f"{type_display(existing)} vs {type_display(type_name)}"
+            f"{type_display(_effective_type(existing))} vs {type_display(_effective_type(type_name))}"
         )
     required[key] = type_name
 
@@ -3065,10 +3329,10 @@ def _validate_exact_entry_inputs(entry_id: str, field: str, actual: dict[str, An
 def _validate_entry_input_types(entry_id: str, field: str, actual: dict[str, Any], expected: dict[str, Any]) -> None:
     for name, type_name in actual.items():
         expected_type = expected.get(name)
-        if not type_equals(expected_type, type_name):
+        if not _type_assignable(type_name, expected_type):
             raise ContractError(
                 f"Entry {entry_id} {field}.{name} type mismatch: "
-                f"expected {type_display(expected_type)}, got {type_display(type_name)}"
+                f"expected {type_display(_effective_type(expected_type))}, got {type_display(_effective_type(type_name))}"
             )
 
 
@@ -3098,11 +3362,11 @@ def _validate_problem_type(label: str, type_name: Any) -> None:
 
 
 def _type_scope(types: dict[str, Any]) -> TypeScope:
-    return {(name,): type_name for name, type_name in types.items()}
+    return {(name,): _effective_type(type_name) for name, type_name in types.items()}
 
 
 def _prefixed_type_scope(prefix: tuple[str, ...], types: dict[str, Any]) -> TypeScope:
-    return {(*prefix, name): type_name for name, type_name in types.items()}
+    return {(*prefix, name): _effective_type(type_name) for name, type_name in types.items()}
 
 
 def _typed_source_paths(contract: dict[str, Any], prefix: tuple[str, ...], type_name: Any) -> TypeScope:
@@ -3136,10 +3400,10 @@ def _validate_mapping_to_type(
     for field, source in mapping.items():
         actual_type = _expression_type(contract, source, source_scopes, f"{label} mapping {field}")
         expected_type = expected[field]
-        if actual_type and not type_equals(actual_type, expected_type):
+        if actual_type and not _type_assignable(actual_type, expected_type):
             raise ContractError(
                 f"{label} mapping {field} source {source} type must be "
-                f"{type_display(expected_type)}, got {type_display(actual_type)}"
+                f"{type_display(_effective_type(expected_type))}, got {type_display(_effective_type(actual_type))}"
             )
 
 
@@ -3281,10 +3545,10 @@ def _validate_workflow_step_bindings(
             f"Workflow {workflow_id} step {step['id']} input {name}",
         )
         expected_type = expected[name]
-        if actual_type and not type_equals(actual_type, expected_type):
+        if actual_type and not _type_assignable(actual_type, expected_type):
             raise ContractError(
                 f"Workflow {workflow_id} step {step['id']} input {name} source {source} type must be "
-                f"{type_display(expected_type)}, got {type_display(actual_type)}"
+                f"{type_display(_effective_type(expected_type))}, got {type_display(_effective_type(actual_type))}"
             )
 
 
@@ -3337,6 +3601,11 @@ def _validate_workflow_step_routes(
         if action == "retry_policy":
             if outcome["kind"] != "failure":
                 raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} retry_policy is only valid for failure outcomes")
+            if not _operation_retry_safe(operation):
+                raise ContractError(
+                    f"Workflow {workflow_id} step {step['id']} route {outcome_id} retry_policy requires "
+                    "a query or retry_safe target operation"
+                )
             retry = value
             if retry["attempts"] < 1 or retry["attempts"] > 10:
                 raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} retry_policy attempts must be between 1 and 10")
@@ -3422,10 +3691,12 @@ def _validate_fixture_templates(node: Any, fixture_values: dict[str, Any], test_
 
 def _fixture_refs(node: Any) -> list[str]:
     refs: list[str] = []
-    if isinstance(node, str):
-        if is_reference_expression(node):
-            refs.append(node)
-    elif isinstance(node, dict):
+    if isinstance(node, dict):
+        if set(node) == {"from"} and is_reference_expression(node["from"]):
+            refs.append(node["from"])
+            return refs
+        if set(node) == {"value"}:
+            return refs
         for value in node.values():
             refs.extend(_fixture_refs(value))
     elif isinstance(node, list):

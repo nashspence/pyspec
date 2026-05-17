@@ -37,6 +37,10 @@ def P(name: str) -> dict[str, str]:
     return {"primitive": name}
 
 
+def F(type_expr: dict, *, required: bool = True, nullable: bool = False) -> dict:
+    return {"type": type_expr, "required": required, "nullable": nullable}
+
+
 def _contract(root: Path = ROOT) -> dict:
     return read_yaml(root / COMPILED_SPEC_PATH)
 
@@ -168,8 +172,8 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert operation.startswith("digraph ")
     assert "stateDiagram" not in state_machine
     assert "flowchart" not in composition
-    assert "data_signal.ready" in state_machine
-    assert "on data_signal.ready" not in state_machine
+    assert "data_signal.projects_loaded" in state_machine
+    assert "on data_signal.projects_loaded" not in state_machine
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">initial view state</FONT>' in state_machine
     assert "initial_view_state" not in state_machine
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">view state</FONT>' in state_machine
@@ -263,7 +267,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>transition:</B>" not in composition
     assert "selected state:" not in composition
     composition_data_project = '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
-    composition_set_project = '<FONT POINT-SIZE="10"><B>set:</B>&#160;&#160;selected_project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT><FONT POINT-SIZE="8">&#160;←&#160;project_id</FONT>'
+    composition_set_project = '<FONT POINT-SIZE="10"><B>set:</B>&#160;&#160;selected_project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;nullable&lt;ID&gt;</FONT><FONT POINT-SIZE="8">&#160;←&#160;project_id</FONT>'
     assert composition_data_project in composition
     assert composition_set_project in composition
     assert "selected_project_id &lt;- project_id" not in composition
@@ -436,7 +440,7 @@ def test_composition_dot_routes_messages_generically() -> None:
     state_machine = {
         "archetype": "workspace",
         "model": "generic.model",
-        "context": {"selected_id": P("ID"), "workspace_id": P("ID")},
+        "context": {"selected_id": F(P("ID")), "workspace_id": F(P("ID"))},
         "query_invocations": {},
         "renderers": {
             "html": {
@@ -573,8 +577,8 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     cli_approve_entrypoint = (ROOT / entrypoint_flow_file("entry_point.cli.project.approve", "cli")).read_text(encoding="utf-8")
     workflow = (ROOT / workflow_flow_file("workflow.project.approval_notice")).read_text(encoding="utf-8")
     approve_operation = (ROOT / operation_flow_file("operation.project.approve")).read_text(encoding="utf-8")
-    assert "data_signal.ready" in list_fsm
-    assert "on data_signal.ready" not in list_fsm
+    assert "data_signal.projects_loaded" in list_fsm
+    assert "on data_signal.projects_loaded" not in list_fsm
     assert "text.project.list.ready.heading" in list_fsm
     assert "asset.project.list.empty.illustration" in list_fsm
     assert "emit:" in list_fsm
@@ -597,7 +601,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "projection:" not in list_fsm
     assert "model:" not in list_fsm
     assert "context:" not in list_fsm
-    assert "&#45; data_signal.ready" not in list_fsm
+    assert "&#45; data_signal.projects_loaded" not in list_fsm
     assert "&#45; text.project" not in list_fsm
     assert "&#45; none" not in list_fsm
     assert ">rationale<" not in list_fsm
@@ -637,7 +641,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert 'fill="#94a3b8">\xa0\xa0ID</text>' in detail_fsm
     assert '\xa0←\xa0null</text>' in detail_fsm
     assert "select_project_updates_state_machines" not in detail_fsm
-    assert "data_signal.ready" not in activity_fsm
+    assert "data_signal.project_loaded" not in activity_fsm
     assert "input:" in activity_fsm
     assert "query_invocations:" in activity_fsm
     assert "read_activity" in activity_fsm

@@ -1,6 +1,6 @@
 <svg width="1339pt" height="211pt"
  viewBox="0.00 0.00 1339.00 211.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 114dabea5c029efe0a16f3fe7890accd81a388a7027ecd3183e152d9d529df90 -->
+<!-- pyspec-contract-input-sha256: 32fd2cc848796d2e2e0220db5733945fe90ef0382f8aa64602806826c0ee42f5 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 193)">
 <title>composition_state_machine_project_board_ready</title>
 <!-- child_state_machine_list -->
@@ -76,8 +76,8 @@
 <text text-anchor="start" x="505.5" y="-84.6" font-family="Arial" font-size="8.00" fill="#64748b">message route</text>
 <text text-anchor="start" x="506.5" y="-66" font-family="Arial" font-weight="bold" font-size="10.00">set:</text>
 <text text-anchor="start" x="523.5" y="-66" font-family="Arial" font-size="10.00">  selected_project_id</text>
-<text text-anchor="start" x="614.5" y="-66" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
-<text text-anchor="start" x="627.5" y="-66" font-family="Arial" font-size="8.00"> ← project_id</text>
+<text text-anchor="start" x="614.5" y="-66" font-family="Arial" font-size="8.00" fill="#94a3b8">  nullable&lt;ID&gt;</text>
+<text text-anchor="start" x="663.5" y="-66" font-family="Arial" font-size="8.00"> ← project_id</text>
 <polygon fill="none" stroke="#a16207" points="500,-56 500,-118 769,-118 769,-56 500,-56"/>
 </g>
 <!-- message_emit_select_project_updates_state_machines_list_project_selected&#45;&gt;message_route_select_project_updates_state_machines -->

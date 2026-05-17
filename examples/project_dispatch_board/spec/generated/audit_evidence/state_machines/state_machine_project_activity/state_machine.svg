@@ -1,6 +1,6 @@
 <svg width="1076pt" height="235pt"
  viewBox="0.00 0.00 1076.00 234.50" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: d410b8921f4e248da47762cbd29515be3eeca3b3d2b6cdb9eb73e4091f5b12d0 -->
+<!-- pyspec-contract-input-sha256: a9032f586d3f073dbe5a3cec35c602045f6ddf166e42749a4b0f1c29b6ce19bd -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 216.5)">
 <title>state_machine_state_machine_project_activity</title>
 <!-- view_state_empty -->
@@ -78,8 +78,8 @@
 <text text-anchor="start" x="860.5" y="-51.6" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
 <text text-anchor="start" x="861.5" y="-33" font-family="Arial" font-weight="bold" font-size="10.00">set:</text>
 <text text-anchor="start" x="878.5" y="-33" font-family="Arial" font-size="10.00">  project_id</text>
-<text text-anchor="start" x="927.5" y="-33" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
-<text text-anchor="start" x="940.5" y="-33" font-family="Arial" font-size="8.00"> ← null</text>
+<text text-anchor="start" x="927.5" y="-33" font-family="Arial" font-size="8.00" fill="#94a3b8">  nullable&lt;ID&gt;</text>
+<text text-anchor="start" x="976.5" y="-33" font-family="Arial" font-size="8.00"> ← null</text>
 <polygon fill="none" stroke="#2563eb" points="855,-23 855,-85 1040,-85 1040,-23 855,-23"/>
 </g>
 <!-- view_state_ready&#45;&gt;transition_1_ready_empty_message_selection_cleared -->

@@ -469,6 +469,10 @@
         "rationale": {
           "$ref": "#/$defs/rationale"
         },
+        "retry_safe": {
+          "description": "Explicitly marks a command or transition operation as safe for automatic operation-level retries.",
+          "type": "boolean"
+        },
         "reads": {
           "items": {
             "$ref": "#/$defs/model_ref"
@@ -550,7 +554,7 @@
           ]
         },
         "context": {
-          "$ref": "#/$defs/type_expr_map"
+          "$ref": "#/$defs/field_schema_map"
         },
         "initial_view_state": {
           "$ref": "#/$defs/view_state_name"
@@ -1395,6 +1399,35 @@
         "$ref": "#/$defs/outcome_name"
       },
       "type": "object"
+    },
+    "authored_value": {
+      "description": "Explicit authored literal-or-runtime-reference value used by tests, facts, and render audit inputs.",
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "$ref": "#/$defs/json_value"
+            }
+          },
+          "required": [
+            "value"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "from": {
+              "$ref": "#/$defs/runtime_expression"
+            }
+          },
+          "required": [
+            "from"
+          ],
+          "type": "object"
+        }
+      ]
     },
     "entry_point_retry_policy": {
       "additionalProperties": false,
@@ -2311,7 +2344,8 @@
             "state_unchanged",
             "handled_by_response_surface",
             "handled_by_query_refresh",
-            "intentionally_unobservable"
+            "intentionally_unobservable",
+            "result_bound_without_signal"
           ]
         }
       },
@@ -2332,7 +2366,7 @@
     "scheduled_adapter": {
       "additionalProperties": false,
       "properties": {
-        "responses": {
+        "ingress_responses": {
           "$ref": "#/$defs/entry_point_responses"
         },
         "schedule_expression": {
@@ -2620,6 +2654,12 @@
         "on_enter": {
           "type": "boolean"
         },
+        "on_mount": {
+          "type": "boolean"
+        },
+        "on_start": {
+          "type": "boolean"
+        },
         "refresh_on": {
           "items": {
             "$ref": "#/$defs/state_machine_signal_trigger"
@@ -2673,6 +2713,11 @@
         },
         {
           "required": [
+            "result_binding"
+          ]
+        },
+        {
+          "required": [
             "no_signal"
           ]
         }
@@ -2692,8 +2737,28 @@
         },
         "raise": {
           "$ref": "#/$defs/state_machine_signal_raise"
+        },
+        "result_binding": {
+          "$ref": "#/$defs/query_result_binding"
         }
       },
+      "type": "object"
+    },
+    "query_result_binding": {
+      "additionalProperties": false,
+      "description": "Explicitly binds a query outcome value into named state-machine or view-state data for rendering or later bindings.",
+      "properties": {
+        "field": {
+          "$ref": "#/$defs/field_name"
+        },
+        "from": {
+          "$ref": "#/$defs/runtime_expression"
+        }
+      },
+      "required": [
+        "field",
+        "from"
+      ],
       "type": "object"
     },
     "state_machine_query_outcome_routes": {
@@ -3399,7 +3464,7 @@
     },
     "value_map": {
       "additionalProperties": {
-        "$ref": "#/$defs/json_value"
+        "$ref": "#/$defs/authored_value"
       },
       "propertyNames": {
         "$ref": "#/$defs/field_name"
@@ -3436,7 +3501,7 @@
           "pattern": "^/",
           "type": "string"
         },
-        "responses": {
+        "ingress_responses": {
           "$ref": "#/$defs/entry_point_responses"
         }
       },
@@ -3566,7 +3631,7 @@
         "input": {
           "$ref": "#/$defs/worker_adapter_input"
         },
-        "responses": {
+        "ingress_responses": {
           "$ref": "#/$defs/entry_point_responses"
         }
       },

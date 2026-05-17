@@ -50,8 +50,9 @@ def entry_point_input(entry: dict[str, Any]) -> dict[str, Any]:
 
 def entry_point_responses(entry: dict[str, Any]) -> dict[str, Any]:
     if "adapter" in entry:
-        return entry_point_adapter_pair(entry)[1].get("responses", {})
-    return entry.get("responses", {})
+        adapter = entry_point_adapter_pair(entry)[1]
+        return adapter.get("responses", adapter.get("ingress_responses", {}))
+    return entry.get("responses", entry.get("ingress_responses", {}))
 
 
 def entry_point_path(entry: dict[str, Any]) -> str | None:

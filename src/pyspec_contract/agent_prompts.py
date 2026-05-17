@@ -189,7 +189,7 @@ def _pm_design_prompt(context: _PromptContext) -> str:
     else:
         lines.append("- Do not add event/webhook vocabulary unless the active layers change.")
     if "workflow" in context.layers:
-        lines.append("- Workflow: workflows with explicit outcomes, step outcome routing, and CLI/worker/scheduled entry points with adapter-appropriate responses.")
+        lines.append("- Workflow: workflows with explicit outcomes, step outcome routing, CLI target-outcome response handlers, and worker/scheduled ingress responses.")
     else:
         lines.append("- Do not add workflow, CLI, worker, or schedule vocabulary.")
     if "ui" in context.layers:

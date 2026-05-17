@@ -59,8 +59,8 @@ def test_state_machine_composition_rejects_unknown_html_region() -> None:
 def test_state_machine_composition_rejects_context_binding_drift() -> None:
     author = _author()
     state_machine = _item(author, "state_machines", "state_machine.project.board")["view_states"]["ready"]
-    del state_machine["child_state_machines"][0]["context_bindings"]["selected_project_id"]
-    with pytest.raises(ContractError, match="context keys"):
+    del state_machine["child_state_machines"][0]["context_bindings"]["workspace_id"]
+    with pytest.raises(ContractError, match="context bindings must satisfy state machine context"):
         compile_source(author)
 
 

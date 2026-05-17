@@ -2771,7 +2771,7 @@ class _DotHtml(str):
 class _DotTypedField:
     def __init__(self, field: str, type_name: Any, source: str | None = None) -> None:
         self.field = field
-        self.type_name = type_display(type_name)
+        self.type_name = type_display(_display_type(type_name))
         self.source = source
 
     def __str__(self) -> str:
@@ -2793,11 +2793,17 @@ class _DotReferenceField(_DotTypedField):
 class _DotTransitionField:
     def __init__(self, field: str, type_name: Any, change: str) -> None:
         self.field = field
-        self.type_name = type_display(type_name)
+        self.type_name = type_display(_display_type(type_name))
         self.change = change
 
     def __str__(self) -> str:
         return f"{self.field} {self.type_name} {self.change}"
+
+
+def _display_type(type_name: Any) -> Any:
+    if isinstance(type_name, dict) and "type" in type_name and "required" in type_name and "nullable" in type_name:
+        return effective_field_type(type_name)
+    return type_name
 
 
 def _dot_html_node(node_id: str, label: str, attrs: dict[str, object] | None = None, indent: str = "  ") -> str:

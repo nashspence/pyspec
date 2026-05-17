@@ -24,8 +24,10 @@ test_cases:
     when:
       emit_event:
         payload:
-          approved_by: $fixture.actor.id
-          project_id: project_submitted_1
+          approved_by:
+            from: $fixture.actor.id
+          project_id:
+            value: project_submitted_1
         ref: event.project.approved
   test_case.project.approve.forbidden:
     archetype: authorization_denial
@@ -35,16 +37,26 @@ test_cases:
       - present:
           model: Project
           values:
-            assignee: Maya Chen
-            created_at: '2026-05-10T09:00:00Z'
-            customer: Atlas Foods
-            id: project_submitted_1
-            priority: High
-            status: submitted
-            summary: Technician needs approval before ordering the replacement fan motor.
-            title: Replace rooftop condenser fan
-            updated_at: '2026-05-11T08:45:00Z'
-            workspace_id: $fixture.workspace.id
+            assignee:
+              value: Maya Chen
+            created_at:
+              value: '2026-05-10T09:00:00Z'
+            customer:
+              value: Atlas Foods
+            id:
+              value: project_submitted_1
+            priority:
+              value: High
+            status:
+              value: submitted
+            summary:
+              value: Technician needs approval before ordering the replacement fan motor.
+            title:
+              value: Replace rooftop condenser fan
+            updated_at:
+              value: '2026-05-11T08:45:00Z'
+            workspace_id:
+              from: $fixture.workspace.id
       seed_fixtures:
       - fixture.workspace.member
     rationale: A workspace member who is not a reviewer receives the mapped forbidden outcome before approval executes.
@@ -63,8 +75,10 @@ test_cases:
     when:
       invoke_operation:
         input:
-          approved_by: $fixture.actor.id
-          project_id: project_submitted_1
+          approved_by:
+            from: $fixture.actor.id
+          project_id:
+            value: project_submitted_1
         ref: operation.project.approve
   test_case.project.approve.success:
     archetype: operation_outcome
@@ -74,16 +88,26 @@ test_cases:
       - present:
           model: Project
           values:
-            assignee: Maya Chen
-            created_at: '2026-05-10T09:00:00Z'
-            customer: Atlas Foods
-            id: project_submitted_1
-            priority: High
-            status: submitted
-            summary: Technician needs approval before ordering the replacement fan motor.
-            title: Replace rooftop condenser fan
-            updated_at: '2026-05-11T08:45:00Z'
-            workspace_id: $fixture.workspace.id
+            assignee:
+              value: Maya Chen
+            created_at:
+              value: '2026-05-10T09:00:00Z'
+            customer:
+              value: Atlas Foods
+            id:
+              value: project_submitted_1
+            priority:
+              value: High
+            status:
+              value: submitted
+            summary:
+              value: Technician needs approval before ordering the replacement fan motor.
+            title:
+              value: Replace rooftop condenser fan
+            updated_at:
+              value: '2026-05-11T08:45:00Z'
+            workspace_id:
+              from: $fixture.workspace.id
       seed_fixtures:
       - fixture.workspace.reviewer
     rationale: Approval transitions a submitted project to approved and emits the event.
@@ -103,15 +127,19 @@ test_cases:
         exists:
           model: Project
           where:
-            id: project_submitted_1
-            status: approved
+            id:
+              value: project_submitted_1
+            status:
+              value: approved
       outcome: approved
     title: Approve submitted dispatch project
     when:
       invoke_operation:
         input:
-          approved_by: $fixture.actor.id
-          project_id: project_submitted_1
+          approved_by:
+            from: $fixture.actor.id
+          project_id:
+            value: project_submitted_1
         ref: operation.project.approve
   test_case.project.board.empty:
     archetype: state_machine_composition
@@ -121,7 +149,8 @@ test_cases:
       - absent:
           model: Project
           where:
-            workspace_id: $fixture.workspace.id
+            workspace_id:
+              from: $fixture.workspace.id
       seed_fixtures:
       - fixture.workspace.member
     rationale: An empty workspace shows empty list, no detail, and no activity.
@@ -315,7 +344,8 @@ test_cases:
     when:
       open_entry_point:
         input:
-          workspace_id: $fixture.workspace.id
+          workspace_id:
+            from: $fixture.workspace.id
         ref: entry_point.html.project.board
   test_case.project.board.ready:
     archetype: state_machine_composition
@@ -325,16 +355,26 @@ test_cases:
       - present:
           model: Project
           values:
-            assignee: Maya Chen
-            created_at: '2026-05-10T09:00:00Z'
-            customer: Atlas Foods
-            id: project_submitted_1
-            priority: High
-            status: submitted
-            summary: Technician needs approval before ordering the replacement fan motor.
-            title: Replace rooftop condenser fan
-            updated_at: '2026-05-11T08:45:00Z'
-            workspace_id: $fixture.workspace.id
+            assignee:
+              value: Maya Chen
+            created_at:
+              value: '2026-05-10T09:00:00Z'
+            customer:
+              value: Atlas Foods
+            id:
+              value: project_submitted_1
+            priority:
+              value: High
+            status:
+              value: submitted
+            summary:
+              value: Technician needs approval before ordering the replacement fan motor.
+            title:
+              value: Replace rooftop condenser fan
+            updated_at:
+              value: '2026-05-11T08:45:00Z'
+            workspace_id:
+              from: $fixture.workspace.id
       seed_fixtures:
       - fixture.workspace.member
     rationale: A populated workspace shows the ready list while detail awaits explicit selection.
@@ -524,7 +564,8 @@ test_cases:
     when:
       open_entry_point:
         input:
-          workspace_id: $fixture.workspace.id
+          workspace_id:
+            from: $fixture.workspace.id
         ref: entry_point.html.project.board
   test_case.project.create.api.success:
     archetype: entry_point_response
@@ -534,7 +575,8 @@ test_cases:
       - absent:
           model: Project
           where:
-            workspace_id: $fixture.workspace.id
+            workspace_id:
+              from: $fixture.workspace.id
       seed_fixtures:
       - fixture.workspace.member
     rationale: The API create endpoint delegates to the create operation and emits project.created.
@@ -554,8 +596,10 @@ test_cases:
         exists:
           model: Project
           where:
-            title: Replace rooftop condenser fan
-            workspace_id: $fixture.workspace.id
+            title:
+              value: Replace rooftop condenser fan
+            workspace_id:
+              from: $fixture.workspace.id
       outcome: created
       response:
         status: 201
@@ -563,8 +607,12 @@ test_cases:
     when:
       call_entry_point:
         input:
-          customer: Atlas Foods
-          priority: High
-          title: Replace rooftop condenser fan
-          workspace_id: $fixture.workspace.id
+          customer:
+            value: Atlas Foods
+          priority:
+            value: High
+          title:
+            value: Replace rooftop condenser fan
+          workspace_id:
+            from: $fixture.workspace.id
         ref: entry_point.api.project.create

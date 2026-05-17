@@ -26,31 +26,51 @@ facts:
     present:
       model: Project
       values:
-        assignee: Unassigned
-        created_at: '2026-05-10T11:30:00Z'
-        customer: Harbor Logistics
-        id: project_beta
-        priority: Normal
-        status: draft
-        summary: Customer reports intermittent alerts from dock door 3.
-        title: Inspect loading dock sensor
-        updated_at: '2026-05-11T07:15:00Z'
-        workspace_id: $fixture.workspace.id
+        assignee:
+          value: Unassigned
+        created_at:
+          value: '2026-05-10T11:30:00Z'
+        customer:
+          value: Harbor Logistics
+        id:
+          value: project_beta
+        priority:
+          value: Normal
+        status:
+          value: draft
+        summary:
+          value: Customer reports intermittent alerts from dock door 3.
+        title:
+          value: Inspect loading dock sensor
+        updated_at:
+          value: '2026-05-11T07:15:00Z'
+        workspace_id:
+          from: $fixture.workspace.id
   fact.project.submitted:
     rationale: Submitted dispatch project shared by approval, ready-board, and visual audit test cases.
     present:
       model: Project
       values:
-        assignee: Maya Chen
-        created_at: '2026-05-10T09:00:00Z'
-        customer: Atlas Foods
-        id: project_submitted_1
-        priority: High
-        status: submitted
-        summary: Technician needs approval before ordering the replacement fan motor.
-        title: Replace rooftop condenser fan
-        updated_at: '2026-05-11T08:45:00Z'
-        workspace_id: $fixture.workspace.id
+        assignee:
+          value: Maya Chen
+        created_at:
+          value: '2026-05-10T09:00:00Z'
+        customer:
+          value: Atlas Foods
+        id:
+          value: project_submitted_1
+        priority:
+          value: High
+        status:
+          value: submitted
+        summary:
+          value: Technician needs approval before ordering the replacement fan motor.
+        title:
+          value: Replace rooftop condenser fan
+        updated_at:
+          value: '2026-05-11T08:45:00Z'
+        workspace_id:
+          from: $fixture.workspace.id
 data_contracts:
   data_contract.project.approved:
     rationale: Approval events carry only the integration payload required by downstream workflows.
@@ -195,6 +215,7 @@ authorization_policies:
     rationale: Reviewers may approve, archive, and send approval notices for dispatch projects.
 operations:
   operation.project.approve:
+    retry_safe: true
     rationale: Reviewers can approve submitted dispatch projects.
     authorization:
       policy: authorization_policy.project.reviewer
@@ -370,6 +391,7 @@ operations:
     reads:
     - Project
   operation.project.send_approval_notice:
+    retry_safe: true
     rationale: Approval triggers a notification command for downstream coordination.
     authorization:
       policy: authorization_policy.project.reviewer
@@ -442,7 +464,10 @@ state_machines:
     rationale: The activity state machine summarizes latest status around the selected project.
     context:
       project_id:
-        primitive: ID
+        type:
+          primitive: ID
+        required: false
+        nullable: true
     initial_view_state: empty
     model: Project
     signals:
@@ -482,19 +507,22 @@ state_machines:
                 from: $context.project_id
             outcome_routes:
               found:
+                result_binding:
+                  field: activity
+                  from: $outcome.result
                 no_signal:
-                  reason: state_unchanged
+                  reason: result_bound_without_signal
               forbidden:
                 no_signal:
-                  reason: handled_by_response_surface
+                  reason: intentionally_unobservable
                   rationale: The activity panel remains in its current state when authorization blocks the refresh.
               not_found:
                 no_signal:
-                  reason: handled_by_response_surface
+                  reason: intentionally_unobservable
                   rationale: The parent detail panel owns not-found display for the selected project.
               unauthenticated:
                 no_signal:
-                  reason: handled_by_response_surface
+                  reason: intentionally_unobservable
                   rationale: The entry response surface owns unauthenticated display.
         field_slots:
         - updated_at
@@ -505,9 +533,15 @@ state_machines:
     rationale: The dispatch board composes list, detail, and activity state machines through shared selected-project context.
     context:
       selected_project_id:
-        primitive: ID
+        type:
+          primitive: ID
+        required: false
+        nullable: true
       workspace_id:
-        primitive: ID
+        type:
+          primitive: ID
+        required: true
+        nullable: false
     query_invocations:
       list_board:
         operation: operation.project.list
@@ -516,8 +550,11 @@ state_machines:
             from: $context.workspace_id
         outcome_routes:
           listed:
+            result_binding:
+              field: projects
+              from: $outcome.result
             no_signal:
-              reason: handled_by_query_refresh
+              reason: result_bound_without_signal
           forbidden:
             no_signal:
               reason: handled_by_response_surface
@@ -549,7 +586,8 @@ state_machines:
           ready_selected:
             rationale: Audit render for selected-project board state vector using named project facts.
             context:
-              selected_project_id: project_submitted_1
+              selected_project_id:
+                value: project_submitted_1
             fact_refs:
             - ref: fact.project.submitted
             - ref: fact.project.draft
@@ -702,7 +740,10 @@ state_machines:
     rationale: The detail state machine is independent from the list and reacts to selected project context.
     context:
       project_id:
-        primitive: ID
+        type:
+          primitive: ID
+        required: false
+        nullable: true
     initial_view_state: none
     model: Project
     signals:
@@ -718,8 +759,8 @@ state_machines:
               message:
                 primitive: Text
         data_signals:
-          error: {}
-          ready: {}
+          project_load_failed: {}
+          project_loaded: {}
     transitions:
     - from: none
       on:
@@ -727,11 +768,11 @@ state_machines:
       to: loading
     - from: loading
       on:
-        data_signal: ready
+        data_signal: project_loaded
       to: ready
     - from: loading
       on:
-        data_signal: error
+        data_signal: project_load_failed
       to: error
     - effects:
       - set:
@@ -743,7 +784,7 @@ state_machines:
       to: none
     - from: ready
       on:
-        data_signal: ready
+        data_signal: project_loaded
       rationale: Successful detail operations refresh the ready-state project data.
       to: ready
     - from: ready
@@ -767,17 +808,20 @@ state_machines:
                 from: $context.project_id
             outcome_routes:
               found:
+                result_binding:
+                  field: project
+                  from: $outcome.result
                 raise:
-                  data_signal: ready
+                  data_signal: project_loaded
               forbidden:
                 raise:
-                  data_signal: error
+                  data_signal: project_load_failed
               not_found:
                 raise:
-                  data_signal: error
+                  data_signal: project_load_failed
               unauthenticated:
                 raise:
-                  data_signal: error
+                  data_signal: project_load_failed
       none:
         text_slots:
         - heading
@@ -793,8 +837,11 @@ state_machines:
                 from: $context.project_id
             outcome_routes:
               found:
+                result_binding:
+                  field: project
+                  from: $outcome.result
                 no_signal:
-                  reason: handled_by_query_refresh
+                  reason: result_bound_without_signal
               forbidden:
                 raise:
                   message: show_invalid_state
@@ -832,7 +879,7 @@ state_machines:
             outcome_routes:
               approved:
                 raise:
-                  data_signal: ready
+                  data_signal: project_loaded
               forbidden:
                 no_signal:
                   reason: handled_by_response_surface
@@ -863,11 +910,13 @@ state_machines:
             outcome_routes:
               archived:
                 raise:
-                  data_signal: ready
+                  data_signal: project_loaded
               forbidden:
-                no_signal:
-                  reason: handled_by_response_surface
-                  rationale: The response surface keeps the detail panel unchanged for forbidden archive.
+                raise:
+                  message: show_invalid_state
+                  payload_bindings:
+                    message:
+                      from: $outcome.result.message
               invalid_state:
                 raise:
                   message: show_invalid_state
@@ -875,20 +924,30 @@ state_machines:
                     message:
                       from: $outcome.result.message
               not_found:
-                no_signal:
-                  reason: handled_by_response_surface
-                  rationale: The response surface reports a missing project without a local transition.
+                raise:
+                  message: show_invalid_state
+                  payload_bindings:
+                    message:
+                      from: $outcome.result.message
               unauthenticated:
-                no_signal:
-                  reason: handled_by_response_surface
-                  rationale: The response surface reports authentication failure without a local transition.
+                raise:
+                  message: show_invalid_state
+                  payload_bindings:
+                    message:
+                      from: $outcome.result.message
   state_machine.project.list:
     rationale: The list state machine owns collection loading, empty, ready, error, and selection behavior.
     context:
       selected_project_id:
-        primitive: ID
+        type:
+          primitive: ID
+        required: false
+        nullable: true
       workspace_id:
-        primitive: ID
+        type:
+          primitive: ID
+        required: true
+        nullable: false
     query_invocations:
       list_projects:
         operation: operation.project.list
@@ -897,20 +956,23 @@ state_machines:
             from: $context.workspace_id
         outcome_routes:
           listed:
+            result_binding:
+              field: projects
+              from: $outcome.result
             context_updates:
               workspace_id:
                 from: $invocation.input.workspace_id
             raise:
-              data_signal: ready
+              data_signal: projects_loaded
           forbidden:
             raise:
-              data_signal: error
+              data_signal: project_list_failed
           unauthenticated:
             raise:
-              data_signal: error
+              data_signal: project_list_failed
           unavailable:
             raise:
-              data_signal: error
+              data_signal: project_list_failed
     initial_view_state: loading
     model: Project
     signals:
@@ -925,9 +987,9 @@ state_machines:
               message:
                 primitive: Text
         data_signals:
-          empty: {}
-          error: {}
-          ready: {}
+          project_collection_empty: {}
+          project_list_failed: {}
+          projects_loaded: {}
       emits:
         messages:
           project_selected:
@@ -937,19 +999,19 @@ state_machines:
     transitions:
     - from: loading
       on:
-        data_signal: empty
+        data_signal: project_collection_empty
       to: empty
     - from: loading
       on:
-        data_signal: ready
+        data_signal: projects_loaded
       to: ready
     - from: loading
       on:
-        data_signal: error
+        data_signal: project_list_failed
       to: error
     - from: empty
       on:
-        data_signal: ready
+        data_signal: projects_loaded
       to: ready
     - from: empty
       on:
@@ -968,7 +1030,7 @@ state_machines:
       to: ready
     - from: ready
       on:
-        data_signal: ready
+        data_signal: projects_loaded
       rationale: Successful list operations refresh ready-state collection data.
       to: ready
     - from: ready
@@ -998,7 +1060,7 @@ state_machines:
             outcome_routes:
               created:
                 raise:
-                  data_signal: ready
+                  data_signal: projects_loaded
               forbidden:
                 no_signal:
                   reason: handled_by_response_surface
@@ -1043,7 +1105,7 @@ state_machines:
             outcome_routes:
               created:
                 raise:
-                  data_signal: ready
+                  data_signal: projects_loaded
               forbidden:
                 no_signal:
                   reason: handled_by_response_surface
@@ -1063,9 +1125,11 @@ state_machines:
                 from: $context.selected_project_id
             outcome_routes:
               forbidden:
-                no_signal:
-                  reason: handled_by_response_surface
-                  rationale: The response surface keeps the ready list visible for forbidden submit.
+                raise:
+                  message: show_invalid_state
+                  payload_bindings:
+                    message:
+                      from: $outcome.result.message
               invalid_state:
                 raise:
                   message: show_invalid_state
@@ -1073,16 +1137,20 @@ state_machines:
                     message:
                       from: $outcome.result.message
               not_found:
-                no_signal:
-                  reason: handled_by_response_surface
-                  rationale: The response surface reports a missing project without a local transition.
+                raise:
+                  message: show_invalid_state
+                  payload_bindings:
+                    message:
+                      from: $outcome.result.message
               submitted:
                 raise:
-                  data_signal: ready
+                  data_signal: projects_loaded
               unauthenticated:
-                no_signal:
-                  reason: handled_by_response_surface
-                  rationale: The response surface reports authentication failure without a local transition.
+                raise:
+                  message: show_invalid_state
+                  payload_bindings:
+                    message:
+                      from: $outcome.result.message
 entry_points:
   entry_point.api.project.create:
     adapter:
@@ -1341,7 +1409,7 @@ entry_points:
         input:
           payload:
             data_contract: data_contract.project.approved
-        responses:
+        ingress_responses:
           accepted:
             disposition: acknowledge
           malformed:
@@ -1416,8 +1484,10 @@ test_cases:
     when:
       emit_event:
         payload:
-          approved_by: $fixture.actor.id
-          project_id: project_submitted_1
+          approved_by:
+            from: $fixture.actor.id
+          project_id:
+            value: project_submitted_1
         ref: event.project.approved
   test_case.project.approve.success:
     archetype: operation_outcome
@@ -1440,15 +1510,19 @@ test_cases:
         exists:
           model: Project
           where:
-            id: project_submitted_1
-            status: approved
+            id:
+              value: project_submitted_1
+            status:
+              value: approved
       outcome: approved
     title: Approve submitted dispatch project
     when:
       invoke_operation:
         input:
-          approved_by: $fixture.actor.id
-          project_id: project_submitted_1
+          approved_by:
+            from: $fixture.actor.id
+          project_id:
+            value: project_submitted_1
         ref: operation.project.approve
   test_case.project.approve.forbidden:
     archetype: authorization_denial
@@ -1473,8 +1547,10 @@ test_cases:
     when:
       invoke_operation:
         input:
-          approved_by: $fixture.actor.id
-          project_id: project_submitted_1
+          approved_by:
+            from: $fixture.actor.id
+          project_id:
+            value: project_submitted_1
         ref: operation.project.approve
   test_case.project.board.empty:
     archetype: state_machine_composition
@@ -1487,7 +1563,8 @@ test_cases:
       - absent:
           model: Project
           where:
-            workspace_id: $fixture.workspace.id
+            workspace_id:
+              from: $fixture.workspace.id
       seed_fixtures:
       - fixture.workspace.member
     then:
@@ -1513,7 +1590,8 @@ test_cases:
     when:
       open_entry_point:
         input:
-          workspace_id: $fixture.workspace.id
+          workspace_id:
+            from: $fixture.workspace.id
         ref: entry_point.html.project.board
   test_case.project.board.ready:
     archetype: state_machine_composition
@@ -1547,7 +1625,8 @@ test_cases:
     when:
       open_entry_point:
         input:
-          workspace_id: $fixture.workspace.id
+          workspace_id:
+            from: $fixture.workspace.id
         ref: entry_point.html.project.board
   test_case.project.create.api.success:
     archetype: entry_point_response
@@ -1560,7 +1639,8 @@ test_cases:
       - absent:
           model: Project
           where:
-            workspace_id: $fixture.workspace.id
+            workspace_id:
+              from: $fixture.workspace.id
       seed_fixtures:
       - fixture.workspace.member
     then:
@@ -1573,8 +1653,10 @@ test_cases:
         exists:
           model: Project
           where:
-            title: Replace rooftop condenser fan
-            workspace_id: $fixture.workspace.id
+            title:
+              value: Replace rooftop condenser fan
+            workspace_id:
+              from: $fixture.workspace.id
       outcome: created
       response:
         status: 201
@@ -1582,10 +1664,14 @@ test_cases:
     when:
       call_entry_point:
         input:
-          customer: Atlas Foods
-          priority: High
-          title: Replace rooftop condenser fan
-          workspace_id: $fixture.workspace.id
+          customer:
+            value: Atlas Foods
+          priority:
+            value: High
+          title:
+            value: Replace rooftop condenser fan
+          workspace_id:
+            from: $fixture.workspace.id
         ref: entry_point.api.project.create
 text_resources:
   text.project.approve.forbidden:

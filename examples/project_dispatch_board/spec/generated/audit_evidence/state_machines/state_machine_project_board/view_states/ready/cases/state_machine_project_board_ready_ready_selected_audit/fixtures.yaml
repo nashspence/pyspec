@@ -1,35 +1,56 @@
 context:
-  selected_project_id: project_submitted_1
+  selected_project_id:
+    value: project_submitted_1
 facts:
   fact.project.draft:
     present:
       model: Project
       values:
-        assignee: Unassigned
-        created_at: '2026-05-10T11:30:00Z'
-        customer: Harbor Logistics
-        id: project_beta
-        priority: Normal
-        status: draft
-        summary: Customer reports intermittent alerts from dock door 3.
-        title: Inspect loading dock sensor
-        updated_at: '2026-05-11T07:15:00Z'
-        workspace_id: $fixture.workspace.id
+        assignee:
+          value: Unassigned
+        created_at:
+          value: '2026-05-10T11:30:00Z'
+        customer:
+          value: Harbor Logistics
+        id:
+          value: project_beta
+        priority:
+          value: Normal
+        status:
+          value: draft
+        summary:
+          value: Customer reports intermittent alerts from dock door 3.
+        title:
+          value: Inspect loading dock sensor
+        updated_at:
+          value: '2026-05-11T07:15:00Z'
+        workspace_id:
+          from: $fixture.workspace.id
     rationale: Draft dispatch project used as a secondary row in ready-board audit renders.
   fact.project.submitted:
     present:
       model: Project
       values:
-        assignee: Maya Chen
-        created_at: '2026-05-10T09:00:00Z'
-        customer: Atlas Foods
-        id: project_submitted_1
-        priority: High
-        status: submitted
-        summary: Technician needs approval before ordering the replacement fan motor.
-        title: Replace rooftop condenser fan
-        updated_at: '2026-05-11T08:45:00Z'
-        workspace_id: $fixture.workspace.id
+        assignee:
+          value: Maya Chen
+        created_at:
+          value: '2026-05-10T09:00:00Z'
+        customer:
+          value: Atlas Foods
+        id:
+          value: project_submitted_1
+        priority:
+          value: High
+        status:
+          value: submitted
+        summary:
+          value: Technician needs approval before ordering the replacement fan motor.
+        title:
+          value: Replace rooftop condenser fan
+        updated_at:
+          value: '2026-05-11T08:45:00Z'
+        workspace_id:
+          from: $fixture.workspace.id
     rationale: Submitted dispatch project shared by approval, ready-board, and visual audit test cases.
 fixtures:
   fixture.workspace.member:
