@@ -626,12 +626,13 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
             refs["query_invocation"].add(_generated_query_invocation_ref(state_machine_id, None, invocation_id))
             for outcome_id, route in sorted(invocation.get("outcome_routes", {}).items()):
                 refs["query_outcome_route"].add(_generated_query_outcome_route_ref(state_machine_id, None, invocation_id, outcome_id))
-                signal = route.get("raise")
-                if signal:
-                    kind, signal_id = _signal_raise_selector_key(signal)
-                    refs["local_signal_raise"].add(
-                        _generated_query_local_signal_raise_ref(state_machine_id, None, invocation_id, outcome_id, kind, signal_id)
-                    )
+                for branch in _query_route_effect_branches(route):
+                    signal = branch.get("raise")
+                    if signal:
+                        kind, signal_id = _signal_raise_selector_key(signal)
+                        refs["local_signal_raise"].add(
+                            _generated_query_local_signal_raise_ref(state_machine_id, None, invocation_id, outcome_id, kind, signal_id)
+                        )
         for state_name, state in owner.get("view_states", {}).items():
             refs["surface"].add(state["surface"])
             refs["text"].update(state["text"])
@@ -640,12 +641,13 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
                 refs["query_invocation"].add(_generated_query_invocation_ref(state_machine_id, state_name, invocation_id))
                 for outcome_id, route in sorted(invocation.get("outcome_routes", {}).items()):
                     refs["query_outcome_route"].add(_generated_query_outcome_route_ref(state_machine_id, state_name, invocation_id, outcome_id))
-                    signal = route.get("raise")
-                    if signal:
-                        kind, signal_id = _signal_raise_selector_key(signal)
-                        refs["local_signal_raise"].add(
-                            _generated_query_local_signal_raise_ref(state_machine_id, state_name, invocation_id, outcome_id, kind, signal_id)
-                        )
+                    for branch in _query_route_effect_branches(route):
+                        signal = branch.get("raise")
+                        if signal:
+                            kind, signal_id = _signal_raise_selector_key(signal)
+                            refs["local_signal_raise"].add(
+                                _generated_query_local_signal_raise_ref(state_machine_id, state_name, invocation_id, outcome_id, kind, signal_id)
+                            )
             for invocation_id, invocation in sorted((state.get("operation_invocations") or {}).items()):
                 refs["operation_invocation"].add(_generated_operation_invocation_ref(state_machine_id, state_name, invocation_id))
                 for outcome_id, route in sorted(invocation.get("outcome_routes", {}).items()):
@@ -1369,12 +1371,15 @@ def _validate_state_machines(contract: dict[str, Any]) -> None:
                 _validate_state_composition(contract, state_machine_id, state_machine, state_name, state)
         _validate_query_invocation_id_scope(state_machine_id, state_machine)
         _validate_field_state_data_sources(
+            contract,
             f"state machine {state_machine_id}",
+            state_machine,
             state_machine["view_states"],
             state_machine.get("query_invocations", {}),
-            state_machine.get("transitions", []),
             set(state_machine.get("context", {})),
         )
+        _validate_collection_empty_signal_routes(state_machine_id, state_machine)
+        _validate_machine_query_ownership(contract, state_machine_id, state_machine)
         _validate_state_machine_transitions(contract, state_machine_id, state_machine)
         _validate_signals(state_machine_id, state_machine)
 
@@ -1396,6 +1401,7 @@ def _validate_state_machine_view_state(
         state.get("query_invocations", {}),
         scope="view_state",
         model=model,
+        view_state=state,
     )
     for field in state.get("fields", []):
         if field not in field_names:
@@ -1617,10 +1623,17 @@ def _validate_query_invocations(
     *,
     scope: str,
     model: str | None = None,
+    view_state: dict[str, Any] | None = None,
 ) -> None:
     context = state_machine.get("context", {})
     for invocation_id, invocation in sorted((invocations or {}).items()):
         label = f"{owner_label} query_invocation {invocation_id}"
+        if scope == "state_machine" and "result_scope" not in invocation:
+            raise ContractError(f"{label} state-machine-level query_invocation must declare result_scope")
+        if invocation.get("result_scope") in {"shared", "prefetch"} and not invocation.get("rationale"):
+            raise ContractError(f"{label} result_scope {invocation['result_scope']} must declare rationale")
+        if scope == "state_machine" and _query_invocation_has_result_bound_no_signal(invocation) and invocation.get("result_scope") not in {"shared", "prefetch"}:
+            raise ContractError(f"{label} result_binding with no_signal must declare result_scope shared or prefetch")
         operation_id = invocation["operation"]
         if operation_id not in contract["operations"]:
             raise ContractError(f"{label} references unknown operation {operation_id}")
@@ -1648,7 +1661,7 @@ def _validate_query_invocations(
             {"context": _type_scope(context), "actor": ACTOR_SOURCE_SCOPE},
         )
         _validate_query_load_policy(contract, label, state_machine, invocation.get("load") or {}, scope=scope)
-        _validate_query_invocation_routes(contract, label, state_machine, invocation, operation)
+        _validate_query_invocation_routes(contract, label, state_machine, invocation, operation, scope=scope, view_state=view_state)
 
 
 def _validate_query_load_policy(
@@ -1673,6 +1686,9 @@ def _validate_query_invocation_routes(
     state_machine: dict[str, Any],
     invocation: dict[str, Any],
     operation: dict[str, Any],
+    *,
+    scope: str,
+    view_state: dict[str, Any] | None,
 ) -> None:
     routes = invocation["outcome_routes"]
     expected_outcomes = set(operation["outcomes"])
@@ -1690,6 +1706,87 @@ def _validate_query_invocation_routes(
     for outcome_id, route in sorted(routes.items()):
         outcome = operation["outcomes"][outcome_id]
         route_label = f"{label} outcome_routes.{outcome_id}"
+        if "conditional_routes" in route:
+            if any(key in route for key in ("context_updates", "result_binding", "raise", "no_signal")):
+                raise ContractError(f"{route_label} conditional_routes must not be mixed with top-level route effects")
+            _validate_query_conditional_routes(
+                contract,
+                route_label,
+                state_machine,
+                invocation,
+                operation,
+                outcome_id,
+                outcome,
+                scope=scope,
+                view_state=view_state,
+            )
+            continue
+        _validate_query_route_effect(
+            contract,
+            route_label,
+            state_machine,
+            invocation,
+            operation,
+            outcome_id,
+            outcome,
+            route,
+            scope=scope,
+            view_state=view_state,
+        )
+    if all(_query_route_is_only_no_signal(route) for route in routes.values()):
+        raise ContractError(f"{label} query_invocation has only no_signal routes and no explicit result binding, context update, or signal")
+
+
+def _validate_query_conditional_routes(
+    contract: dict[str, Any],
+    route_label: str,
+    state_machine: dict[str, Any],
+    invocation: dict[str, Any],
+    operation: dict[str, Any],
+    outcome_id: str,
+    outcome: dict[str, Any],
+    *,
+    scope: str,
+    view_state: dict[str, Any] | None,
+) -> None:
+    conditions: list[str] = []
+    for index, branch in enumerate(invocation["outcome_routes"][outcome_id]["conditional_routes"]):
+        condition = _query_result_condition_key(branch["when"])
+        branch_label = f"{route_label}.conditional_routes[{index}].{condition}"
+        if condition in conditions:
+            raise ContractError(f"{route_label} conditional_routes duplicate condition: {condition}")
+        conditions.append(condition)
+        if condition in {"result_empty", "result_non_empty"} and not _type_supports_emptiness(outcome["result"]):
+            raise ContractError(f"{branch_label} is valid only for array/list query results")
+        _validate_query_route_effect(
+            contract,
+            branch_label,
+            state_machine,
+            invocation,
+            operation,
+            outcome_id,
+            outcome,
+            branch,
+            scope=scope,
+            view_state=view_state,
+        )
+    if set(conditions) != {"result_empty", "result_non_empty"}:
+        raise ContractError(f"{route_label} conditional_routes for empty/non-empty result routing must declare both result_empty and result_non_empty branches")
+
+
+def _validate_query_route_effect(
+    contract: dict[str, Any],
+    route_label: str,
+    state_machine: dict[str, Any],
+    invocation: dict[str, Any],
+    operation: dict[str, Any],
+    outcome_id: str,
+    outcome: dict[str, Any],
+    route: dict[str, Any],
+    *,
+    scope: str,
+    view_state: dict[str, Any] | None,
+) -> None:
         scopes = _operation_outcome_route_scopes(state_machine, operation, outcome)
         has_context_updates = bool(route.get("context_updates"))
         has_result_binding = "result_binding" in route
@@ -1719,6 +1816,15 @@ def _validate_query_invocation_routes(
                 scopes,
                 f"{route_label} result_binding.{data_key}",
             )
+        has_result_consumption = bool(result_binding) and _query_result_binding_consumed(
+            contract,
+            state_machine,
+            invocation,
+            outcome,
+            result_binding,
+            scope=scope,
+            view_state=view_state,
+        )
         has_query_refresh = has_result_binding or has_context_updates
         _validate_no_signal_route(
             route_label,
@@ -1731,8 +1837,10 @@ def _validate_query_invocation_routes(
             has_data_effect=has_context_updates,
             authorization_outcome=outcome_id in _operation_authorization_outcomes(operation),
         )
+        no_signal = route.get("no_signal")
+        if no_signal and no_signal.get("reason") == "result_bound_without_signal" and has_result_binding and not has_result_consumption:
+            raise ContractError(f"{route_label} no_signal.reason result_bound_without_signal requires consumed result data or declared shared/prefetch ownership")
         if outcome["kind"] == "success" and "no_signal" in route and not any((has_context_updates, has_result_binding, has_raise)):
-            no_signal = route["no_signal"]
             if no_signal.get("reason") != "intentionally_unobservable" or not no_signal.get("rationale"):
                 raise ContractError(f"{route_label} successful query no_signal must bind/cache data, update context, raise a signal, or declare intentionally_unobservable with rationale")
         signal = route.get("raise")
@@ -1750,38 +1858,174 @@ def _validate_query_invocation_routes(
                 payload=payload,
                 scopes=scopes,
             )
-    if all("no_signal" in route and not any(key in route for key in ("context_updates", "result_binding", "raise")) for route in routes.values()):
-        raise ContractError(f"{label} query_invocation has only no_signal routes and no explicit result binding, context update, or signal")
+
+
+def _query_result_condition_key(condition: dict[str, Any]) -> str:
+    return next(iter(condition))
+
+
+def _query_route_is_only_no_signal(route: dict[str, Any]) -> bool:
+    branches = route.get("conditional_routes") or [route]
+    return all("no_signal" in branch and not any(key in branch for key in ("context_updates", "result_binding", "raise")) for branch in branches)
+
+
+def _type_supports_emptiness(type_expr: Any) -> bool:
+    return "array" in unwrap_nullable(_effective_type(type_expr))
+
+
+def _result_type_has_field(contract: dict[str, Any], result_type: Any, field: str) -> bool:
+    effective = unwrap_nullable(_effective_type(result_type))
+    if "array" in effective:
+        effective = unwrap_nullable(_effective_type(effective["array"]))
+    return field in object_fields_for_type(contract, effective)
+
+
+def _query_result_binding_consumed(
+    contract: dict[str, Any],
+    state_machine: dict[str, Any],
+    invocation: dict[str, Any],
+    outcome: dict[str, Any],
+    result_binding: dict[str, Any],
+    *,
+    scope: str,
+    view_state: dict[str, Any] | None,
+) -> bool:
+    if invocation.get("result_scope") in {"shared", "prefetch"} and invocation.get("rationale"):
+        return True
+    if scope == "view_state" and view_state:
+        return any(_result_type_has_field(contract, outcome["result"], field) for field in view_state.get("fields", []))
+    return False
 
 
 def _validate_field_state_data_sources(
+    contract: dict[str, Any],
     owner_label: str,
+    state_machine: dict[str, Any],
     states: dict[str, Any],
     owner_data: dict[str, Any],
-    transitions: list[dict[str, Any]],
     context_fields: set[str],
 ) -> None:
+    owner_sources_by_field = _query_result_field_sources(contract, owner_data)
     for state_name, state in states.items():
-        fields = set(state.get("fields", []))
-        if not fields or fields <= context_fields or _state_has_data_source(state_name, states, owner_data, transitions):
-            continue
-        raise ContractError(f"{owner_label}.{state_name} declares field slots without data source")
+        view_sources_by_field = _query_result_field_sources(contract, state.get("query_invocations", {}))
+        for field in sorted(state.get("fields", [])):
+            sources: set[str] = set()
+            if field in context_fields:
+                sources.add(f"context.{field}")
+            sources.update(view_sources_by_field.get(field, set()))
+            sources.update(owner_sources_by_field.get(field, set()))
+            if not sources:
+                raise ContractError(f"{owner_label}.{state_name} field slot {field} has no data source")
+            if len(sources) > 1:
+                raise ContractError(f"{owner_label}.{state_name} field slot {field} has ambiguous data sources: {sorted(sources)}")
 
 
-def _state_has_data_source(
-    state_name: str,
-    states: dict[str, Any],
-    owner_data: dict[str, Any],
-    transitions: list[dict[str, Any]],
-) -> bool:
-    if owner_data or states[state_name].get("query_invocations"):
-        return True
-    for transition in transitions:
-        if transition["to"] != state_name or not _is_data_signal(transition["on"]):
+def _query_result_field_sources(contract: dict[str, Any], invocations: dict[str, Any]) -> dict[str, set[str]]:
+    sources: dict[str, set[str]] = {}
+    operations = contract.get("operations", {})
+    for invocation_id, invocation in sorted((invocations or {}).items()):
+        operation = operations.get(invocation.get("operation"))
+        if not operation:
             continue
-        source_state = states.get(transition["from"], {})
-        if owner_data or source_state.get("query_invocations"):
+        for outcome_id, route in sorted((invocation.get("outcome_routes") or {}).items()):
+            outcome = operation.get("outcomes", {}).get(outcome_id)
+            if not outcome:
+                continue
+            fields = object_fields_for_type(contract, _query_result_item_type(outcome["result"]))
+            for branch in _query_route_effect_branches(route):
+                result_binding = branch.get("result_binding")
+                if not result_binding:
+                    continue
+                source_label = f"query_invocation {invocation_id} result_binding {result_binding['data_key']}"
+                for field in fields:
+                    sources.setdefault(field, set()).add(source_label)
+    return sources
+
+
+def _query_route_effect_branches(route: dict[str, Any]) -> list[dict[str, Any]]:
+    return list(route.get("conditional_routes") or [route])
+
+
+def _query_result_item_type(result_type: Any) -> Any:
+    effective = unwrap_nullable(_effective_type(result_type))
+    if "array" in effective:
+        return unwrap_nullable(_effective_type(effective["array"]))
+    return effective
+
+
+def _validate_collection_empty_signal_routes(state_machine_id: str, state_machine: dict[str, Any]) -> None:
+    for transition in state_machine.get("transitions", []):
+        if not _is_data_signal(transition["on"]):
+            continue
+        signal_name = transition["on"]["data_signal"]
+        if not _is_empty_collection_signal(signal_name):
+            continue
+        if not _query_routes_raise_data_signal(state_machine, signal_name):
+            raise ContractError(
+                f"state machine {state_machine_id} transition uses empty-collection signal data_signal.{signal_name} "
+                "without an explicit query route raising it"
+            )
+
+
+def _is_empty_collection_signal(signal_name: str) -> bool:
+    return signal_name.endswith("_empty") or "collection_empty" in signal_name
+
+
+def _query_routes_raise_data_signal(state_machine: dict[str, Any], signal_name: str) -> bool:
+    for invocation in (state_machine.get("query_invocations") or {}).values():
+        if _query_invocation_raises_data_signal(invocation, signal_name):
             return True
+    for state in state_machine.get("view_states", {}).values():
+        for invocation in (state.get("query_invocations") or {}).values():
+            if _query_invocation_raises_data_signal(invocation, signal_name):
+                return True
+    return False
+
+
+def _query_invocation_raises_data_signal(invocation: dict[str, Any], signal_name: str) -> bool:
+    for route in (invocation.get("outcome_routes") or {}).values():
+        for branch in _query_route_effect_branches(route):
+            signal = branch.get("raise") or {}
+            if signal.get("data_signal") == signal_name:
+                return True
+    return False
+
+
+def _validate_machine_query_ownership(contract: dict[str, Any], state_machine_id: str, state_machine: dict[str, Any]) -> None:
+    owner_queries = state_machine.get("query_invocations") or {}
+    if not owner_queries:
+        return
+    child_query_operations = _child_query_operations(contract, state_machine)
+    for invocation_id, invocation in sorted(owner_queries.items()):
+        label = f"state machine {state_machine_id} query_invocation {invocation_id}"
+        result_scope = invocation.get("result_scope")
+        if _query_invocation_has_result_bound_no_signal(invocation) and result_scope not in {"shared", "prefetch"}:
+            raise ContractError(f"{label} result_binding with no_signal must declare result_scope shared or prefetch")
+        if invocation["operation"] in child_query_operations and result_scope not in {"shared", "prefetch"}:
+            raise ContractError(f"{label} duplicates child-owned query loading and must declare result_scope shared or prefetch")
+
+
+def _child_query_operations(contract: dict[str, Any], state_machine: dict[str, Any]) -> set[str]:
+    operations: set[str] = set()
+    for state in state_machine.get("view_states", {}).values():
+        for mount in state.get("child_state_machines", []):
+            child = contract["state_machines"].get(mount["state_machine"])
+            if not child:
+                continue
+            for invocation in (child.get("query_invocations") or {}).values():
+                operations.add(invocation["operation"])
+            for child_state in child.get("view_states", {}).values():
+                for invocation in (child_state.get("query_invocations") or {}).values():
+                    operations.add(invocation["operation"])
+    return operations
+
+
+def _query_invocation_has_result_bound_no_signal(invocation: dict[str, Any]) -> bool:
+    for route in (invocation.get("outcome_routes") or {}).values():
+        for branch in _query_route_effect_branches(route):
+            no_signal = branch.get("no_signal") or {}
+            if branch.get("result_binding") and no_signal.get("reason") == "result_bound_without_signal":
+                return True
     return False
 
 

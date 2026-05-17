@@ -1,12 +1,12 @@
 version: 1
 project: project_dispatch_board
 summary:
-  required_visual_paths: 855
+  required_visual_paths: 864
   missing_required_visual_paths: 0
   required_visual_text_witnesses: 286
   optional_visual_paths: 493
   optional_visual_paths_not_shown: 5
-  non_visual_paths: 148
+  non_visual_paths: 149
   visual_evidence_sets: 34
 visual_evidence_sets:
   V0001:
@@ -775,6 +775,8 @@ visual_audit:
       /state_machines/state_machine.project.board/query_invocations/list_board/outcome_routes/unauthenticated/no_signal/reason: V0026
       /state_machines/state_machine.project.board/query_invocations/list_board/outcome_routes/unavailable/no_signal/rationale: V0026
       /state_machines/state_machine.project.board/query_invocations/list_board/outcome_routes/unavailable/no_signal/reason: V0026
+      /state_machines/state_machine.project.board/query_invocations/list_board/rationale: V0026
+      /state_machines/state_machine.project.board/query_invocations/list_board/result_scope: V0026
       /state_machines/state_machine.project.board/rationale: V0026
       /state_machines/state_machine.project.board/signals/accepts/data_signals: V0026
       /state_machines/state_machine.project.board/signals/accepts/messages: V0026
@@ -1055,14 +1057,30 @@ visual_audit:
       /state_machines/state_machine.project.list/query_invocations/list_projects/load/refresh_on/0/data_signal: V0028
       /state_machines/state_machine.project.list/query_invocations/list_projects/operation: V0028
       /state_machines/state_machine.project.list/query_invocations/list_projects/outcome_routes/forbidden/raise/data_signal: V0028
-      ? /state_machines/state_machine.project.list/query_invocations/list_projects/outcome_routes/listed/context_updates/workspace_id/from
+      ? /state_machines/state_machine.project.list/query_invocations/list_projects/outcome_routes/listed/conditional_routes/0/context_updates/workspace_id/from
       : V0028
-      /state_machines/state_machine.project.list/query_invocations/list_projects/outcome_routes/listed/raise/data_signal: V0028
-      /state_machines/state_machine.project.list/query_invocations/list_projects/outcome_routes/listed/result_binding/data_key: V0028
-      /state_machines/state_machine.project.list/query_invocations/list_projects/outcome_routes/listed/result_binding/from/from: V0028
+      ? /state_machines/state_machine.project.list/query_invocations/list_projects/outcome_routes/listed/conditional_routes/0/raise/data_signal
+      : V0028
+      ? /state_machines/state_machine.project.list/query_invocations/list_projects/outcome_routes/listed/conditional_routes/0/result_binding/data_key
+      : V0028
+      ? /state_machines/state_machine.project.list/query_invocations/list_projects/outcome_routes/listed/conditional_routes/0/result_binding/from/from
+      : V0028
+      ? /state_machines/state_machine.project.list/query_invocations/list_projects/outcome_routes/listed/conditional_routes/0/when/result_empty
+      : V0028
+      ? /state_machines/state_machine.project.list/query_invocations/list_projects/outcome_routes/listed/conditional_routes/1/context_updates/workspace_id/from
+      : V0028
+      ? /state_machines/state_machine.project.list/query_invocations/list_projects/outcome_routes/listed/conditional_routes/1/raise/data_signal
+      : V0028
+      ? /state_machines/state_machine.project.list/query_invocations/list_projects/outcome_routes/listed/conditional_routes/1/result_binding/data_key
+      : V0028
+      ? /state_machines/state_machine.project.list/query_invocations/list_projects/outcome_routes/listed/conditional_routes/1/result_binding/from/from
+      : V0028
+      ? /state_machines/state_machine.project.list/query_invocations/list_projects/outcome_routes/listed/conditional_routes/1/when/result_non_empty
+      : V0028
       ? /state_machines/state_machine.project.list/query_invocations/list_projects/outcome_routes/unauthenticated/raise/data_signal
       : V0028
       /state_machines/state_machine.project.list/query_invocations/list_projects/outcome_routes/unavailable/raise/data_signal: V0028
+      /state_machines/state_machine.project.list/query_invocations/list_projects/result_scope: V0028
       /state_machines/state_machine.project.list/rationale: V0028
       /state_machines/state_machine.project.list/signals/accepts/data_signals/project_collection_empty/payload_schema: V0028
       /state_machines/state_machine.project.list/signals/accepts/data_signals/project_list_failed/payload_schema: V0028
@@ -3158,6 +3176,8 @@ visual_audit:
     /refs/local_signal_raise/24:
       reason: compiled reference index metadata; owning resources are covered at their compiled spec paths
     /refs/local_signal_raise/25:
+      reason: compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /refs/local_signal_raise/26:
       reason: compiled reference index metadata; owning resources are covered at their compiled spec paths
     /refs/local_signal_raise/3:
       reason: compiled reference index metadata; owning resources are covered at their compiled spec paths

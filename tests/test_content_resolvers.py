@@ -37,6 +37,21 @@ def test_final_asset_resolver_is_contract_declared_and_svg() -> None:
     assert result.alt == "High priority"
 
 
+def test_priority_badge_escapes_dynamic_svg_values() -> None:
+    priority = "High & <urgent> \"quoted\" 'single'"
+    result = call_asset(
+        ROOT,
+        "asset.project.detail.ready.priority_badge",
+        {"priority": priority},
+        ContentContext(surface="test"),
+    )
+    assert "High &amp; &lt;urgent&gt;" in result.body
+    assert 'aria-label="High &amp; &lt;urgent&gt; &quot;quoted&quot; &#x27;single&#x27; priority"' in result.body
+    assert "<urgent>" not in result.body
+    assert '"quoted"' in result.body
+    assert result.alt == "High &amp; &lt;urgent&gt; &quot;quoted&quot; &#x27;single&#x27; priority"
+
+
 def test_content_contract_validator_executes_content_cases() -> None:
     validate_content_contract(ROOT, read_yaml(ROOT / COMPILED_SPEC_PATH))
 

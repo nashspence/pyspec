@@ -69,6 +69,9 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `Query invocation`: local state-machine or view-state use of a query operation for data loading or refresh, including input bindings, load policy, context updates, result binding, and outcome routing. State-machine-level queries load with `on_start`/`on_mount`; view-state-level queries load with `on_enter`.
 - `Query invocation effect`: each query outcome route must update context, bind/cache a result, raise a local signal, or explicitly declare a scoped no-signal route. `result_binding.data_key` names the state-machine/view-state result data populated from a binding value.
 - `Query refresh signal`: local data signal raised by a mutation or other invalidation route, such as `project_changed`, and consumed by `query_invocation.load.refresh_on`. Loaded/missing/error data signals should come from query outcomes after data has actually been bound or classified.
+- `Empty/non-empty query routing`: array-valued query outcomes split the outcome route with `conditional_routes` using `when.result_empty` and `when.result_non_empty`. Both branches must be declared so empty collection states are reachable through authored routing rather than compiler length guesses.
+- `Machine-scoped query ownership`: state-machine-level query invocations declare `result_scope: local`, `shared`, or `prefetch`. Machine-scoped result bindings that do not raise a signal must use shared/prefetch ownership with rationale, especially when a child machine also owns visible loading.
+- `Field-slot source resolution`: every field slot resolves to exactly one context field or query result binding. A bound model or array item can feed field slots when the slot name exists on the result type; ambiguous or missing sources fail semantic validation.
 - `Outcome route`: mapping from an operation/query outcome to context updates, result binding, a local signal raise, or explicit no-signal handling.
 - `No-signal route`: explicit declaration that an outcome is covered but intentionally raises no local signal. It is not omission and does not suppress durable/global events. Reasons are scope-sensitive: response-surface handling needs a real adapter/renderer surface, query refresh needs explicit result/context refresh, result-bound-without-signal needs result binding or context/cache update, and failure outcomes must use proven response-surface handling or `intentionally_unobservable` with rationale.
 - `Authored value`: explicit literal-or-runtime-reference value used in authored value maps. Use `{value: ...}` for JSON literals, including literal strings beginning with `$`, and `{from: $fixture...}` or another valid runtime expression for references. Raw `$...` strings are not interpreted as references.
@@ -85,6 +88,7 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `signals`: local UI/component/state-machine signal contracts split into accepted message/data-signal maps and emitted message maps with `payload_schema` maps.
 - `renderer_contracts`: view-state renderer declarations keyed by concrete target. `renderers.html` and `renderers.textual` each own target-local `layout`, `presentation`, and `style`.
 - `renderer placement validation`: HTML slots and child machines must reference declared HTML `region_id`s; Textual widgets and child machines must reference declared Textual `container_id`s. Placement ids are layout ids, not field names.
+- `resolver output escaping`: text, SVG, XML, and HTML resolvers must escape dynamic values before placing them in markup text or attributes. Plain-text outputs and alt text must not expose unescaped markup-sensitive values where they may be rendered into HTML/XML.
 - `type_expr`: structured primitive, model, data_contract, array, map, nullable whole-value wrapper, enum, or inline object type expression. Object field presence and nullability are controlled only by `field_schema.required` and `field_schema.nullable`.
 - `authorization_policy`: direct `authorization_policy_ref` fields identify the authorization policy applied to an entry point or authorization assertion. Operations use `authorization.policy` plus explicit `unauthenticated_as` and `forbidden_as` outcome mappings.
 - `operation_authorization`: operation-local authorization mapping with `policy`, `unauthenticated_as`, and `forbidden_as`. The mapped names must be normal operation outcomes with `kind: failure`.
@@ -155,6 +159,37 @@ query_invocations:
         no_signal:
           reason: intentionally_unobservable
           rationale: The query result is not shown while the current view keeps its existing data.
+```
+
+## Collection Query Routing
+
+```yaml
+query_invocations:
+  list_projects:
+    result_scope: local
+    operation: operation.project.list
+    input_bindings:
+      workspace_id:
+        from: $context.workspace_id
+    outcome_routes:
+      listed:
+        conditional_routes:
+        - when:
+            result_empty: true
+          result_binding:
+            data_key: projects
+            from:
+              from: $outcome.result
+          raise:
+            data_signal: project_collection_empty
+        - when:
+            result_non_empty: true
+          result_binding:
+            data_key: projects
+            from:
+              from: $outcome.result
+          raise:
+            data_signal: projects_loaded
 ```
 
 ## Runtime Roots
@@ -323,6 +358,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:python_identifier --> `$defs/python_identifier`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:query_invocation_id --> `$defs/query_invocation_id`: local state-machine or view-state query invocation identifier.
 - <!-- schema-def:query_invocation_load_policy --> `$defs/query_invocation_load_policy`: query invocation load and refresh trigger policy.
+- <!-- schema-def:query_result_condition --> `$defs/query_result_condition`: explicit query-result shape condition for empty/non-empty array routing.
 - <!-- schema-def:query_result_binding --> `$defs/query_result_binding`: explicit query result binding to a named local `data_key`.
 - <!-- schema-def:renderer_contracts --> `$defs/renderer_contracts`: renderer contract component scoped to HTML and/or Textual targets.
 - <!-- schema-def:runtime_expression --> `$defs/runtime_expression`: shared schema component used by authored source or compiled output.
@@ -340,6 +376,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:state_machine_operation_outcome_route --> `$defs/state_machine_operation_outcome_route`: state-machine operation invocation outcome-route contract component.
 - <!-- schema-def:state_machine_operation_outcome_routes --> `$defs/state_machine_operation_outcome_routes`: state-machine operation invocation outcome-route map.
 - <!-- schema-def:state_machine_query_invocation --> `$defs/state_machine_query_invocation`: state-machine query invocation contract component.
+- <!-- schema-def:state_machine_query_conditional_route --> `$defs/state_machine_query_conditional_route`: conditional query route branch with result-shape guard and normal query route effects.
 - <!-- schema-def:state_machine_query_outcome_route --> `$defs/state_machine_query_outcome_route`: state-machine query invocation outcome-route contract component.
 - <!-- schema-def:state_machine_query_outcome_routes --> `$defs/state_machine_query_outcome_routes`: state-machine query invocation outcome-route map.
 - <!-- schema-def:state_machine_render_audit_case --> `$defs/state_machine_render_audit_case`: state-machine contract component.

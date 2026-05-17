@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 from pathlib import Path
 
 import pytest
@@ -896,6 +897,7 @@ def test_state_machine_data_events_require_data_binding() -> None:
     author = _author()
     detail = _item(author, "state_machines", "state_machine.project.detail")
     del detail["view_states"]["loading"]["query_invocations"]
+    del detail["view_states"]["ready"]["query_invocations"]
     detail["view_states"]["ready"].pop("field_slots")
     with pytest.raises(ContractError, match=r"state machine state_machine\.project\.detail transition uses data signal without state machine or source-state data: data_signal\.project_loaded"):
         compile_source(author)
@@ -949,7 +951,7 @@ def test_state_machine_field_slots_require_data_source() -> None:
     del activity["view_states"]["ready"]["query_invocations"]
     with pytest.raises(
         ContractError,
-        match=r"state machine state_machine\.project\.activity\.ready declares field slots without data source",
+        match=r"state machine state_machine\.project\.activity\.ready field slot assignee has no data source",
     ):
         compile_source(author)
 
@@ -1329,13 +1331,13 @@ def test_query_invocation_bindings_context_updates_and_signals_are_validated() -
 
     author = _author()
     route = _item(author, "state_machines", "state_machine.project.list")["query_invocations"]["list_projects"]["outcome_routes"]["listed"]
-    route["context_updates"]["ghost"] = {"value": "nope"}
+    route["conditional_routes"][0]["context_updates"]["ghost"] = {"value": "nope"}
     with pytest.raises(ContractError, match=r"context_updates references undeclared context field: ghost"):
         compile_source(author)
 
     author = _author()
     route = _item(author, "state_machines", "state_machine.project.list")["query_invocations"]["list_projects"]["outcome_routes"]["listed"]
-    route["raise"]["data_signal"] = "ghost"
+    route["conditional_routes"][1]["raise"]["data_signal"] = "ghost"
     with pytest.raises(ContractError, match=r"raise references undeclared state-machine signal: data_signal\.ghost"):
         compile_source(author)
 
@@ -1385,6 +1387,83 @@ def test_query_invocation_query_refresh_requires_explicit_result_or_context_refr
     route.clear()
     route["no_signal"] = {"reason": "handled_by_query_refresh"}
     with pytest.raises(ContractError, match=r"handled_by_query_refresh requires an explicit query result binding or context refresh"):
+        compile_source(author)
+
+
+def test_query_invocation_collection_empty_and_non_empty_routes_are_explicit() -> None:
+    contract = compile_source(_author())
+    route = contract["state_machines"]["state_machine.project.list"]["query_invocations"]["list_projects"]["outcome_routes"]["listed"]
+    branches = {next(iter(branch["when"])): branch["raise"]["data_signal"] for branch in route["conditional_routes"]}
+    assert branches == {"result_empty": "project_collection_empty", "result_non_empty": "projects_loaded"}
+
+    author = _author()
+    route = _item(author, "state_machines", "state_machine.project.list")["query_invocations"]["list_projects"]["outcome_routes"]["listed"]
+    route["conditional_routes"] = [route["conditional_routes"][0]]
+    with pytest.raises(ContractError, match=r"must declare both result_empty and result_non_empty branches"):
+        compile_source(author)
+
+    author = _author()
+    route = _item(author, "state_machines", "state_machine.project.list")["query_invocations"]["list_projects"]["outcome_routes"]["listed"]
+    route["conditional_routes"][0]["raise"]["data_signal"] = "projects_loaded"
+    with pytest.raises(ContractError, match=r"empty-collection signal data_signal\.project_collection_empty without an explicit query route raising it"):
+        compile_source(author)
+
+
+def test_query_empty_non_empty_conditions_require_array_results() -> None:
+    author = _author()
+    route = _item(author, "state_machines", "state_machine.project.detail")["view_states"]["loading"]["query_invocations"]["read_project"]["outcome_routes"]["found"]
+    route.clear()
+    route["conditional_routes"] = [
+        {
+            "when": {"result_empty": True},
+            "result_binding": {"data_key": "project", "from": {"from": "$outcome.result"}},
+            "raise": {"data_signal": "project_loaded"},
+        },
+        {
+            "when": {"result_non_empty": True},
+            "result_binding": {"data_key": "project", "from": {"from": "$outcome.result"}},
+            "raise": {"data_signal": "project_loaded"},
+        },
+    ]
+    with pytest.raises(ContractError, match=r"valid only for array/list query results"):
+        compile_source(author)
+
+
+def test_state_machine_level_query_scope_is_explicit() -> None:
+    author = _author()
+    del _item(author, "state_machines", "state_machine.project.board")["query_invocations"]["list_board"]["result_scope"]
+    with pytest.raises(ContractError, match=r"state-machine-level query_invocation must declare result_scope"):
+        compile_source(author)
+
+    author = _author()
+    invocation = _item(author, "state_machines", "state_machine.project.board")["query_invocations"]["list_board"]
+    invocation["result_scope"] = "local"
+    with pytest.raises(ContractError, match=r"result_binding with no_signal must declare result_scope shared or prefetch"):
+        compile_source(author)
+
+    author = _author()
+    invocation = _item(author, "state_machines", "state_machine.project.board")["query_invocations"]["list_board"]
+    del invocation["rationale"]
+    with pytest.raises(ContractError, match=r"result_scope shared must declare rationale"):
+        compile_source(author)
+
+
+def test_result_bound_without_signal_requires_consumed_result_data() -> None:
+    author = _author()
+    detail = _item(author, "state_machines", "state_machine.project.detail")
+    detail["view_states"]["ready"].pop("field_slots")
+    with pytest.raises(ContractError, match=r"result_bound_without_signal requires consumed result data or declared shared/prefetch ownership"):
+        compile_source(author)
+
+
+def test_field_slot_sources_must_be_unambiguous() -> None:
+    author = _author()
+    detail = _item(author, "state_machines", "state_machine.project.detail")
+    owner_query = copy.deepcopy(detail["view_states"]["loading"]["query_invocations"]["read_project"])
+    owner_query["load"] = {"on_start": True}
+    owner_query["result_scope"] = "local"
+    detail.setdefault("query_invocations", {})["read_project_owner"] = owner_query
+    with pytest.raises(ContractError, match=r"field slot assignee has ambiguous data sources"):
         compile_source(author)
 
 

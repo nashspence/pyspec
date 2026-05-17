@@ -918,6 +918,7 @@ refs:
   - local_signal_raise.project.list.empty.operation_invocation.create.created.data_signal.projects_changed
   - local_signal_raise.project.list.empty.operation_invocation.create.validation_failed.message.show_invalid_state
   - local_signal_raise.project.list.query_invocation.list_projects.forbidden.data_signal.project_list_failed
+  - local_signal_raise.project.list.query_invocation.list_projects.listed.data_signal.project_collection_empty
   - local_signal_raise.project.list.query_invocation.list_projects.listed.data_signal.projects_loaded
   - local_signal_raise.project.list.query_invocation.list_projects.unauthenticated.data_signal.project_list_failed
   - local_signal_raise.project.list.query_invocation.list_projects.unavailable.data_signal.project_list_failed
@@ -1181,6 +1182,9 @@ state_machines:
             no_signal:
               rationale: The board shell leaves child surfaces unchanged while the list service is unavailable.
               reason: handled_by_response_surface
+        rationale: Board-level project list is shared shell data for composed child state machines; the child list machine
+          owns visible loading and empty/non-empty transitions.
+        result_scope: shared
     rationale: The dispatch board composes list, detail, and activity state machines through shared selected-project context.
     signals:
       accepts:
@@ -1621,21 +1625,36 @@ state_machines:
             raise:
               data_signal: project_list_failed
           listed:
-            context_updates:
-              workspace_id:
-                from: $invocation.input.workspace_id
-            raise:
-              data_signal: projects_loaded
-            result_binding:
-              data_key: projects
-              from:
-                from: $outcome.result
+            conditional_routes:
+            - context_updates:
+                workspace_id:
+                  from: $invocation.input.workspace_id
+              raise:
+                data_signal: project_collection_empty
+              result_binding:
+                data_key: projects
+                from:
+                  from: $outcome.result
+              when:
+                result_empty: true
+            - context_updates:
+                workspace_id:
+                  from: $invocation.input.workspace_id
+              raise:
+                data_signal: projects_loaded
+              result_binding:
+                data_key: projects
+                from:
+                  from: $outcome.result
+              when:
+                result_non_empty: true
           unauthenticated:
             raise:
               data_signal: project_list_failed
           unavailable:
             raise:
               data_signal: project_list_failed
+        result_scope: local
     rationale: The list state machine owns collection loading, empty, ready, error, and selection behavior.
     signals:
       accepts:

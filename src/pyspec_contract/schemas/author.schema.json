@@ -2687,6 +2687,14 @@
         },
         "rationale": {
           "$ref": "#/$defs/rationale"
+        },
+        "result_scope": {
+          "enum": [
+            "local",
+            "shared",
+            "prefetch"
+          ],
+          "type": "string"
         }
       },
       "required": [
@@ -2699,6 +2707,64 @@
       "$ref": "#/$defs/state_machine_query_invocation"
     },
     "state_machine_query_outcome_route": {
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "context_updates"
+          ]
+        },
+        {
+          "required": [
+            "raise"
+          ]
+        },
+        {
+          "required": [
+            "result_binding"
+          ]
+        },
+        {
+          "required": [
+            "no_signal"
+          ]
+        },
+        {
+          "required": [
+            "conditional_routes"
+          ]
+        }
+      ],
+      "properties": {
+        "conditional_routes": {
+          "items": {
+            "$ref": "#/$defs/state_machine_query_conditional_route"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "context_updates": {
+          "additionalProperties": {
+            "$ref": "#/$defs/binding_value"
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/field_name"
+          },
+          "type": "object"
+        },
+        "no_signal": {
+          "$ref": "#/$defs/local_no_signal_route"
+        },
+        "raise": {
+          "$ref": "#/$defs/state_machine_signal_raise"
+        },
+        "result_binding": {
+          "$ref": "#/$defs/query_result_binding"
+        }
+      },
+      "type": "object"
+    },
+    "state_machine_query_conditional_route": {
       "additionalProperties": false,
       "anyOf": [
         {
@@ -2740,6 +2806,36 @@
         },
         "result_binding": {
           "$ref": "#/$defs/query_result_binding"
+        },
+        "when": {
+          "$ref": "#/$defs/query_result_condition"
+        }
+      },
+      "required": [
+        "when"
+      ],
+      "type": "object"
+    },
+    "query_result_condition": {
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "result_empty"
+          ]
+        },
+        {
+          "required": [
+            "result_non_empty"
+          ]
+        }
+      ],
+      "properties": {
+        "result_empty": {
+          "const": true
+        },
+        "result_non_empty": {
+          "const": true
         }
       },
       "type": "object"

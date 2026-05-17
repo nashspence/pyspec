@@ -49,15 +49,28 @@ def test_author_state_machine_context_uses_explicit_field_schema() -> None:
 
 def test_author_query_result_binding_uses_data_key() -> None:
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
-    route = author["state_machines"]["state_machine.project.list"]["query_invocations"]["list_projects"]["outcome_routes"]["listed"]
+    route = author["state_machines"]["state_machine.project.board"]["query_invocations"]["list_board"]["outcome_routes"]["listed"]
     route["result_binding"]["field"] = route["result_binding"].pop("data_key")
     with pytest.raises(ContractError, match="Schema validation failed"):
         validate_against_schema(author, "author.schema.json")
 
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
-    route = author["state_machines"]["state_machine.project.list"]["query_invocations"]["list_projects"]["outcome_routes"]["listed"]
+    route = author["state_machines"]["state_machine.project.board"]["query_invocations"]["list_board"]["outcome_routes"]["listed"]
     route["result_binding"] = {"data_key": "projects", "from": {"from": "$outcome.result"}}
     validate_against_schema(author, "author.schema.json")
+
+
+def test_author_query_conditional_routes_and_result_scope_validate() -> None:
+    author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+    invocation = author["state_machines"]["state_machine.project.list"]["query_invocations"]["list_projects"]
+    assert invocation["result_scope"] == "local"
+    route = invocation["outcome_routes"]["listed"]
+    assert {next(iter(branch["when"])) for branch in route["conditional_routes"]} == {"result_empty", "result_non_empty"}
+    validate_against_schema(author, "author.schema.json")
+
+    route["conditional_routes"][0]["when"] = {"result_empty": False}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(author, "author.schema.json")
 
 
 def test_author_value_maps_require_tagged_literals_or_runtime_sources() -> None:

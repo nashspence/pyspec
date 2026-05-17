@@ -547,6 +547,9 @@ state_machines:
         nullable: false
     query_invocations:
       list_board:
+        result_scope: shared
+        rationale: Board-level project list is shared shell data for composed child state machines; the child list machine
+          owns visible loading and empty/non-empty transitions.
         load:
           on_start: true
         operation: operation.project.list
@@ -965,6 +968,7 @@ state_machines:
         nullable: false
     query_invocations:
       list_projects:
+        result_scope: local
         load:
           on_start: true
           refresh_on:
@@ -975,15 +979,29 @@ state_machines:
             from: $context.workspace_id
         outcome_routes:
           listed:
-            result_binding:
-              data_key: projects
-              from:
-                from: $outcome.result
-            context_updates:
-              workspace_id:
-                from: $invocation.input.workspace_id
-            raise:
-              data_signal: projects_loaded
+            conditional_routes:
+            - when:
+                result_empty: true
+              result_binding:
+                data_key: projects
+                from:
+                  from: $outcome.result
+              context_updates:
+                workspace_id:
+                  from: $invocation.input.workspace_id
+              raise:
+                data_signal: project_collection_empty
+            - when:
+                result_non_empty: true
+              result_binding:
+                data_key: projects
+                from:
+                  from: $outcome.result
+              context_updates:
+                workspace_id:
+                  from: $invocation.input.workspace_id
+              raise:
+                data_signal: projects_loaded
           forbidden:
             raise:
               data_signal: project_list_failed
