@@ -1,6 +1,6 @@
 # Spec Ontology
 
-This glossary is the vocabulary contract for the authored-source and compiled-output schemas. The authored schema describes sparse human-authored input. The compiled schema describes normalized output in `spec/generated/compiled/spec.yaml`, including generated references, derived events, derived routes, endpoint expansions, and expanded empty-collection states.
+This glossary is the vocabulary contract for the authored-source, layer-pruned authored-source, and compiled-output schemas. The authored schema describes sparse human-authored input. Layer-pruned authored schemas are generated from the same source schema and hide sections outside the active authoring layers. The compiled schema describes normalized output in `spec/generated/compiled/spec.yaml`, including generated references, derived events, derived routes, endpoint expansions, and expanded empty-collection states.
 
 ## Top-Level Resource Kinds
 
@@ -32,16 +32,22 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `event_ref`: `event.<domain>...`; durable domain/application event declarations, operation emissions, workflow triggers, and test-case event assertions.
 - `fact_ref`: `fact.<domain>...`; named domain or assertion facts referenced through `fact_use.ref`.
 - `fixture_ref`: `fixture.<domain>...`; seed data fixtures used by test cases, content cases, facts, and render audit cases.
+- `feature_tag`: unprefixed dotted feature grouping label used by test cases and generated feature files; it is not a typed reference.
+- `instance_id`: local child state-machine instance id within a composed view state.
 - `message_name`: local state-machine message name; authored sources do not use global-looking `message.*` references for local messages.
 - `model_ref`: `PascalCase`; model references are the sole collection-prefix exception because model ids are also type names.
 - `operation_ref`: `operation.<domain>...`; operation declarations, state-machine operation/query invocations, workflow steps, entry-point operation targets, and test-case assertions.
 - `operation_invocation_id`: local view-state operation invocation name; authored sources do not use global-looking `operation_invocation.*` references for local invocation keys.
 - `query_invocation_id`: local state-machine or view-state query invocation name; authored sources do not use global-looking `query_invocation.*` references for local invocation keys.
+- `region_id`: local HTML layout region id within one view state.
 - `authorization_policy_ref`: `authorization_policy.<domain>...`; authorization-policy declarations, `operation.authorization.policy`, entry-point `authorization_policy` fields, generated authorization projections, and authorization test assertions.
 - `render_profile_ref`: `render_profile.<domain>...`; named HTML/Textual viewport profiles.
+- `rule_id`: local state-machine signal-sync rule id within one composed view state.
 - `state_machine_ref`: `state_machine.<domain>...`; state-machine declarations, `child_state_machines`, state-machine entry-point targets, and test-case state-machine assertions.
 - `test_case_ref`: `test_case.<domain>...`; formal test-case declarations and generated feature tags.
 - `text_ref`: `text.<domain>...`; text resource declarations, generated text slots, content cases, and content source signatures.
+- `container_id`: local Textual layout container id within one view state.
+- `viewport_id`: local render-profile viewport id within `html_viewports` or `textual_viewports`.
 - `workflow_ref`: `workflow.<domain>...`; workflow declarations, workflow entry-point targets, and generated workflow references.
 - Generated refs use `asset`, `authorization_policy`, `cli_command`, `cli_response_handler`, `endpoint`, `entry_point_delegate`, `entry_point_target`, `local_signal_raise`, `operation_invocation`, `operation_outcome_route`, `query_invocation`, `query_outcome_route`, `route`, `runtime_response`, `screen`, `state_machine`, `surface`, `text`, and `workflow` buckets in compiled `refs`.
 
@@ -50,9 +56,14 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `subject_ref`: exactly one typed reference to the resource under test: `entry_point`, `event`, `operation`, `state_machine`, or `workflow`.
 - `given`: setup contract split into `seed_fixtures` and `domain_facts`.
 - `when`: one executable stimulus: `open_entry_point`, `call_entry_point`, `invoke_operation`, or `emit_event`.
-- `then`: assertions for model existence, emitted events, workflow execution, authorization decisions, responses, operation invocations, state-machine states, and `expected_facts`.
+- `then`: assertions for `outcome`, model existence, emitted/not-emitted events, workflow execution, authorization decisions, responses, invoked/enabled/forbidden operations, state-machine state, and `expected_facts`. Compiled state-machine assertions may add `surface`, `composition`, and top-level `requires`.
+- `then.requires`: compiled-only derived projection dependencies for a state-machine assertion, split into `surfaces`, `text`, `assets`, `query_invocations`, and `operation_invocations`.
 - `entry_point_adapter`: exactly one adapter object: `http_api`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`.
+- `adapter input shape`: HTTP API input may use `path_params`, `query_params`, and `body`; HTML route input may use `path_params` and `query_params`; CLI input uses `args`; worker input uses `payload`; webhook input may use `path_params`, `query_params`, and `payload`; scheduled input has no external input sections.
 - `entry_point_target`: exactly one target object: `operation`, `state_machine`, `workflow`, or `entry_point`.
+- `operation/state-machine target bindings`: `target.operation.input_bindings` and `target.state_machine.input_bindings` bind adapter input into target input/context and must exactly cover the target fields. Workflow targets use `trigger_bindings` instead of `input_bindings`.
+- `state-machine entry target`: `target.state_machine` must declare `renderer: html` or `renderer: textual`. HTML route entries can target only `html`; CLI entries can launch `html` or `textual`; the target state machine must declare the selected renderer in at least one view state.
+- `workflow entry target`: `target.workflow.trigger_bindings` binds adapter input into workflow trigger payload fields and must exactly cover the workflow trigger payload.
 - `entry-point delegation`: an entry point whose `target.entry_point.ref` points at another entry point. Delegation is general and is not CLI-to-HTTP-specific.
 - `delegating entry point`: the outer entry point whose adapter exposes a facade and binds its input into the delegated entry point input shape.
 - `delegated entry point`: the inner entry point that receives delegated invocation. Its entry-point `authorization_policy` and the delegated target operation's authorization outcomes remain visible to the delegating entry point.
@@ -65,6 +76,10 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `workflow_route`: exclusive route target via `next_step`, `complete_as`, `fail_as`, `retry_policy`, or `dead_letter_as`.
 - `state-machine context schema`: explicit `field_schema_map` for local machine context. Each context field declares `type`, `required`, and `nullable`; effects may set a context field to null only when that field is nullable.
 - `context_present`: state-machine condition meaning the declared context field is present and non-null. Nullable context fields with a current `null` value are not present for this condition.
+- `render profile`: global audit/golden-image viewport map. Renderable state machines require at least one render profile, and profiles must include viewport sets for each declared renderer surface (`html_viewports` for HTML, `textual_viewports` for Textual).
+- `render audit case`: view-state-local visual evidence input. It supplies seed fixtures, optional context, optional fact references, and, for composed states, an exact child instance view-state vector; it never names render profiles directly.
+- `content source`: a final resolver declaration where `text_resource.source_ref` or `asset.source_ref` equals the resource id. Final content resolvers require at least one matching `content_case`, and case args must exactly match the resource args.
+- `rationale`: bounded plain text used on authored resources and on intentionally unobservable routes. Missing top-level resource rationale is filled by a deterministic compiler default.
 - `Operation invocation`: local view-state use of a global operation, normally user/action-triggered, including input bindings and outcome routing. A renderer action binds to this local invocation, not directly to `operation_ref`.
 - `Query invocation`: local state-machine or view-state use of a query operation for data loading or refresh, including input bindings, load policy, context updates, result binding, and outcome routing. State-machine-level queries load with `on_start`/`on_mount`; view-state-level queries load with `on_enter`.
 - `Query invocation effect`: each query outcome route must update context, bind/cache a result, raise a local signal, or explicitly declare a scoped no-signal route. `result_binding.data_key` names the state-machine/view-state result data populated from a binding value.
@@ -74,8 +89,8 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `Field-slot source resolution`: every field slot resolves to exactly one context field or query result binding. A bound model or array item can feed field slots when the slot name exists on the result type; ambiguous or missing sources fail semantic validation.
 - `Outcome route`: mapping from an operation/query outcome to context updates, result binding, a local signal raise, or explicit no-signal handling.
 - `No-signal route`: explicit declaration that an outcome is covered but intentionally raises no local signal. It is not omission and does not suppress durable/global events. Reasons are scope-sensitive: response-surface handling needs a real adapter/renderer surface, query refresh needs explicit result/context refresh, result-bound-without-signal needs result binding or context/cache update, and failure outcomes must use proven response-surface handling or `intentionally_unobservable` with rationale.
-- `Authored value`: explicit literal-or-runtime-reference value used in authored value maps. Use `{value: ...}` for JSON literals, including literal strings beginning with `$`, and `{from: $fixture...}` or another valid runtime expression for references. Raw `$...` strings are not interpreted as references.
-- `Runtime root`: the first segment of a runtime expression. Operation and query input bindings may use `$context` and `$actor`; operation/query outcome routes may use `$outcome`, `$invocation`, and `$context`; child context bindings use `$state_machine` for the parent machine context; entry response/delegation handlers use the adapter/delegation-specific `$input`, `$response`, or `$outcome` roots documented by that target. Authored test, fact, and render-audit value maps use their own authored-value roots such as `$fixture`.
+- `Authored value`: explicit literal-or-fixture-reference value used in authored test, fact, content-case, and render-audit value maps. Use `{value: ...}` for JSON literals, including literal strings beginning with `$`, and `{from: $fixture...}` for fixture references. Raw `$...` strings are not interpreted as references.
+- `Runtime root`: the first segment of a runtime expression. Operation and query input bindings may use `$context` and `$actor`; operation/query outcome routes may use `$outcome`, `$invocation`, and `$context`; operation event-emission mappings use `$input` and `$outcome`; workflow step bindings use `$trigger` and `$steps`; child context bindings use `$state_machine` for the parent machine context; entry response/delegation handlers use the adapter/delegation-specific `$input`, `$response`, or `$outcome` roots documented by that target. Authored test, fact, content-case, and render-audit value maps use `$fixture` for fixture data.
 - `Actor/user binding source`: local operation invocations should bind actor-like input fields such as `actor_id`, `approved_by`, or `reviewer_id` from `$actor.id` or an explicit context source. Literal actor/user ids are linted because they usually hide fixture-only assumptions in authored UI behavior.
 - `Local signal raise`: creation of a state-machine-local message or data signal.
 - `Data signal`: local state-machine signal commonly used for data refresh, invalidation, loaded/missing states, or render updates. Data signals are not sent between child state-machine instances.
@@ -192,6 +207,20 @@ query_invocations:
             data_signal: projects_loaded
 ```
 
+## Authoring Layers
+
+Layers are compile/validate guardrails and are not written into `spec/generated/compiled/spec.yaml`.
+
+- `core`: `fixtures`, `facts`, `data_contracts`, `models`, `authorization_policies`, `operations`, `events`, and `test_cases`.
+- `http`: HTTP API entry-point adapters.
+- `events`: webhook entry-point adapters.
+- `workflow`: `workflows` plus CLI, worker, and scheduled entry-point adapters.
+- `ui`: `state_machines`, `text_resources`, `assets`, `content_cases`, `render_profiles`, and HTML route entry-point adapters.
+- `html`: HTML renderer contracts and `render_profile.html_viewports`.
+- `textual`: Textual renderer contracts and `render_profile.textual_viewports`.
+- Layer normalization always includes `core`; selecting `html` or `textual` also includes `ui`. Aliases normalize as `api -> http`, `cli -> workflow`, `tui -> textual`, and `all`/`full` -> every layer.
+- Common layer-pruned authored schemas are generated for `core`, `core_http`, `core_events`, `core_workflow`, `core_ui_textual`, `core_ui_html`, and `full`.
+
 ## Runtime Roots
 
 | Context | Valid roots |
@@ -200,9 +229,16 @@ query_invocations:
 | Operation invocation outcome routes | `$outcome`, `$invocation`, `$context` |
 | Query invocation `input_bindings` | `$context`, `$actor` |
 | Query invocation outcome routes | `$outcome`, `$invocation`, `$context` |
-| Child state-machine `context_bindings` | `$state_machine` for parent state-machine context |
-| Entry-point delegation/response handlers | adapter-specific `$input`, `$response`, or target `$outcome` roots |
-| Authored test/fact/render-audit value maps | context-specific authored roots such as `$fixture`, `$input`, and `$context` |
+| State-machine transition effects | `$message`, `$context` |
+| Child state-machine `context_bindings` and selected-state conditions | `$state_machine` for parent state-machine context |
+| Operation event-emission payload mappings | `$input`, `$outcome` |
+| Entry-point operation/state-machine/delegation target bindings | `$input` |
+| Entry-point workflow `trigger_bindings` | `$input` |
+| HTTP API response bodies | `$outcome.result` only |
+| CLI operation response handlers | `$input`, `$outcome` |
+| CLI delegated response handlers | `$input`, `$response` |
+| Workflow step `input_bindings` | `$trigger`, `$steps` |
+| Authored test/fact/content-case/render-audit value maps | `$fixture` |
 
 ## Visual Audit Coverage
 
@@ -224,14 +260,14 @@ The visual audit includes state-machine and composition diagrams, entry-point an
 - `$fixture.<path>` reads merged seed fixture data in test cases, facts, content cases, and render audit cases.
 - `$state_machine.<field>` reads parent state-machine context in child state-machine context bindings and composition conditions.
 - `$message.<field>` reads the current state-machine message payload in transition effects and sync sends.
-- `$context.<field>` reads current state-machine context in transition effects, operation invocation input bindings, and local outcome-route signal payload binding.
-- `$input.path_params.<field>` reads HTTP API or HTML route path parameters in entry-point input bindings.
-- `$input.query_params.<field>` reads HTTP API or HTML route query parameters in entry-point input bindings.
-- `$input.body.<field>` reads HTTP request body fields in operation input bindings.
-- `$input.args.<field>` reads CLI argument fields in operation/state-machine input bindings.
-- `$input.payload[.<field>]` reads worker or webhook payload data.
+- `$context.<field>` reads current state-machine context in transition effects, operation/query invocation input bindings, and local outcome-route signal payload binding.
+- `$input.path_params.<field>` reads HTTP API or HTML route path parameters in entry target or delegation bindings.
+- `$input.query_params.<field>` reads HTTP API or HTML route query parameters in entry target or delegation bindings.
+- `$input.body.<field>` reads HTTP request body fields in entry target or delegation bindings.
+- `$input.args.<field>` reads CLI argument fields in entry target or delegation bindings.
+- `$input.payload[.<field>]` reads worker or webhook payload data in entry target or workflow trigger bindings.
 - `$input.<field>` reads operation input during operation event emission mapping.
-- `$outcome.result[.<field>]` reads operation outcome result during response and event emission mapping.
+- `$outcome.result[.<field>]` reads operation outcome result during response, event emission, and local outcome-route mapping.
 - `$outcome.kind` reads the operation outcome kind during local outcome-route signal payload binding.
 - `$invocation.input.<field>` reads the bound operation invocation input during local outcome-route signal payload binding.
 - `$response.body[.<field>]` reads the delegated entry-point response body inside delegating CLI `response_handlers`.
@@ -244,7 +280,7 @@ Runtime expressions appear inside binding objects. Authored value maps use `{fro
 ## Generated Artifacts
 
 - `spec/generated/compiled/spec.yaml`: compiled-output spec with normalized IDs, generated refs, derived events, and expanded empty collections.
-- `spec/generated/agent_prompts/{pm_design,test,dev,review}.md`: role-specific agent prompts.
+- `spec/generated/agent_prompts/{pm_design,test,dev,review}.md`: layer-specific role prompts.
 - `spec/generated/behavior/fixtures.yaml`: seed fixture projection.
 - `spec/generated/behavior/test_cases.yaml`: semantic test-case projection.
 - `spec/generated/product_interfaces/http.openapi.yaml`: OpenAPI projection generated only from HTTP API entry points.
