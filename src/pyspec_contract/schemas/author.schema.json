@@ -434,8 +434,8 @@
     "authored_operation": {
       "additionalProperties": false,
       "properties": {
-        "authorization_policy": {
-          "$ref": "#/$defs/authorization_policy_ref"
+        "authorization": {
+          "$ref": "#/$defs/operation_authorization"
         },
         "creates": {
           "items": {
@@ -2132,6 +2132,26 @@
       },
       "required": [
         "fields"
+      ],
+      "type": "object"
+    },
+    "operation_authorization": {
+      "additionalProperties": false,
+      "properties": {
+        "forbidden_as": {
+          "$ref": "#/$defs/outcome_name"
+        },
+        "policy": {
+          "$ref": "#/$defs/authorization_policy_ref"
+        },
+        "unauthenticated_as": {
+          "$ref": "#/$defs/outcome_name"
+        }
+      },
+      "required": [
+        "policy",
+        "unauthenticated_as",
+        "forbidden_as"
       ],
       "type": "object"
     },

@@ -167,9 +167,85 @@ models:
       - from: approved
         to: archived
         triggered_by: operation.project.archive
+authorization_policies:
+  authorization_policy.project.approve:
+    subjects:
+    - kind: actor
+      source: $input.approved_by
+    targets:
+    - operation: operation.project.approve
+    - model: Project
+    effect: allow
+    conditions:
+    - subject_has_role: reviewer
+    rationale: Reviewers may approve submitted dispatch projects.
+  authorization_policy.project.archive:
+    subjects:
+    - kind: actor
+    targets:
+    - operation: operation.project.archive
+    - model: Project
+    effect: allow
+    conditions:
+    - subject_has_role: reviewer
+    rationale: Reviewers may archive approved dispatch projects.
+  authorization_policy.project.create:
+    subjects:
+    - kind: actor
+    targets:
+    - operation: operation.project.create
+    - model: Project
+    effect: allow
+    conditions:
+    - subject_has_role: member
+    rationale: Workspace members may create dispatch projects.
+  authorization_policy.project.list:
+    subjects:
+    - kind: actor
+    targets:
+    - operation: operation.project.list
+    - model: Project
+    effect: allow
+    conditions:
+    - subject_has_role: member
+    rationale: Workspace members may list dispatch projects.
+  authorization_policy.project.read:
+    subjects:
+    - kind: actor
+    targets:
+    - operation: operation.project.read
+    - model: Project
+    effect: allow
+    conditions:
+    - subject_has_role: member
+    rationale: Workspace members may read dispatch project details.
+  authorization_policy.project.send_approval_notice:
+    subjects:
+    - kind: actor
+      source: $input.approved_by
+    targets:
+    - operation: operation.project.send_approval_notice
+    effect: allow
+    conditions:
+    - subject_has_role: reviewer
+    rationale: Approval notice dispatch runs on behalf of the approving reviewer.
+  authorization_policy.project.submit:
+    subjects:
+    - kind: actor
+    targets:
+    - operation: operation.project.submit
+    - model: Project
+    effect: allow
+    conditions:
+    - subject_has_role: member
+    rationale: Workspace members may submit draft dispatch projects.
 operations:
   operation.project.approve:
     rationale: Reviewers can approve submitted dispatch projects.
+    authorization:
+      policy: authorization_policy.project.approve
+      unauthenticated_as: unauthenticated
+      forbidden_as: forbidden
     input:
       approved_by:
         primitive: ID
@@ -188,6 +264,10 @@ operations:
         kind: success
         result:
           model: Project
+      forbidden:
+        kind: failure
+        result:
+          model: Problem
       invalid_state:
         kind: failure
         result:
@@ -200,8 +280,16 @@ operations:
         kind: failure
         result:
           model: Problem
+      unauthenticated:
+        kind: failure
+        result:
+          model: Problem
   operation.project.archive:
     rationale: Approved dispatch projects can be archived.
+    authorization:
+      policy: authorization_policy.project.archive
+      unauthenticated_as: unauthenticated
+      forbidden_as: forbidden
     input:
       project_id:
         primitive: ID
@@ -214,6 +302,10 @@ operations:
         kind: success
         result:
           model: Project
+      forbidden:
+        kind: failure
+        result:
+          model: Problem
       invalid_state:
         kind: failure
         result:
@@ -222,8 +314,16 @@ operations:
         kind: failure
         result:
           model: Problem
+      unauthenticated:
+        kind: failure
+        result:
+          model: Problem
   operation.project.create:
     rationale: Members can create a new dispatch project.
+    authorization:
+      policy: authorization_policy.project.create
+      unauthenticated_as: unauthenticated
+      forbidden_as: forbidden
     creates:
     - Project
     input:
@@ -244,12 +344,24 @@ operations:
         kind: success
         result:
           model: Project
+      forbidden:
+        kind: failure
+        result:
+          model: Problem
+      unauthenticated:
+        kind: failure
+        result:
+          model: Problem
       validation_failed:
         kind: failure
         result:
           model: Problem
   operation.project.list:
     rationale: The board requires a project list query scoped by workspace.
+    authorization:
+      policy: authorization_policy.project.list
+      unauthenticated_as: unauthenticated
+      forbidden_as: forbidden
     input:
       workspace_id:
         primitive: ID
@@ -260,6 +372,14 @@ operations:
         result:
           array:
             model: Project
+      forbidden:
+        kind: failure
+        result:
+          model: Problem
+      unauthenticated:
+        kind: failure
+        result:
+          model: Problem
       unavailable:
         kind: failure
         result:
@@ -268,6 +388,10 @@ operations:
     - Project
   operation.project.read:
     rationale: The detail state machine loads the selected project by id.
+    authorization:
+      policy: authorization_policy.project.read
+      unauthenticated_as: unauthenticated
+      forbidden_as: forbidden
     input:
       project_id:
         primitive: ID
@@ -277,7 +401,15 @@ operations:
         kind: success
         result:
           model: Project
+      forbidden:
+        kind: failure
+        result:
+          model: Problem
       not_found:
+        kind: failure
+        result:
+          model: Problem
+      unauthenticated:
         kind: failure
         result:
           model: Problem
@@ -285,6 +417,10 @@ operations:
     - Project
   operation.project.send_approval_notice:
     rationale: Approval triggers a notification command for downstream coordination.
+    authorization:
+      policy: authorization_policy.project.send_approval_notice
+      unauthenticated_as: unauthenticated
+      forbidden_as: forbidden
     input:
       approved_by:
         primitive: ID
@@ -296,18 +432,34 @@ operations:
         kind: failure
         result:
           model: Problem
+      forbidden:
+        kind: failure
+        result:
+          model: Problem
       sent:
         kind: success
         result:
           data_contract: data_contract.project.notice_result
+      unauthenticated:
+        kind: failure
+        result:
+          model: Problem
   operation.project.submit:
     rationale: Draft dispatch projects can be submitted for review.
+    authorization:
+      policy: authorization_policy.project.submit
+      unauthenticated_as: unauthenticated
+      forbidden_as: forbidden
     input:
       project_id:
         primitive: ID
     operation_kind: transition
     outcomes:
       invalid_state:
+        kind: failure
+        result:
+          model: Problem
+      forbidden:
         kind: failure
         result:
           model: Problem
@@ -322,6 +474,10 @@ operations:
         kind: success
         result:
           model: Project
+      unauthenticated:
+        kind: failure
+        result:
+          model: Problem
 events:
   event.project.approved:
     rationale: Approval events carry the reviewer and project identity needed by notification workflows.
@@ -723,6 +879,18 @@ entry_points:
               type:
                 model: Project
             status: 201
+          forbidden:
+            body:
+              from: $outcome.result
+              type:
+                model: Problem
+            status: 403
+          unauthenticated:
+            body:
+              from: $outcome.result
+              type:
+                model: Problem
+            status: 401
           validation_failed:
             body:
               from: $outcome.result
@@ -759,6 +927,18 @@ entry_points:
                 array:
                   model: Project
             status: 200
+          forbidden:
+            body:
+              from: $outcome.result
+              type:
+                model: Problem
+            status: 403
+          unauthenticated:
+            body:
+              from: $outcome.result
+              type:
+                model: Problem
+            status: 401
           unavailable:
             body:
               from: $outcome.result
@@ -792,6 +972,12 @@ entry_points:
               type:
                 model: Project
             status: 200
+          forbidden:
+            body:
+              from: $outcome.result
+              type:
+                model: Problem
+            status: 403
           invalid_state:
             body:
               from: $outcome.result
@@ -810,6 +996,12 @@ entry_points:
               type:
                 model: Problem
             status: 503
+          unauthenticated:
+            body:
+              from: $outcome.result
+              type:
+                model: Problem
+            status: 401
     rationale: HTTP endpoint for approving submitted dispatch projects.
     target:
       operation:
@@ -837,6 +1029,13 @@ entry_points:
               bindings:
                 project_id:
                   from: $response.body.id
+          forbidden:
+            exit_code: 5
+            stderr:
+              text: text.project.approve.forbidden
+              bindings:
+                message:
+                  from: $response.body.message
           invalid_state:
             exit_code: 2
             stderr:
@@ -858,6 +1057,13 @@ entry_points:
               backoff: exponential
             stderr:
               text: text.project.approve.unavailable
+          unauthenticated:
+            exit_code: 4
+            stderr:
+              text: text.project.approve.unauthenticated
+              bindings:
+                message:
+                  from: $response.body.message
     rationale: CLI entry for approval automation.
     target:
       entry_point:
@@ -949,8 +1155,12 @@ workflows:
             attempts: 3
             backoff: exponential
             fail_as: delivery_failed
+        forbidden:
+          fail_as: delivery_failed
         sent:
           complete_as: completed
+        unauthenticated:
+          fail_as: delivery_failed
     trigger:
       event: event.project.approved
 test_cases:
@@ -1006,6 +1216,32 @@ test_cases:
             status: approved
       outcome: approved
     title: Approve submitted dispatch project
+    when:
+      invoke_operation:
+        input:
+          approved_by: $fixture.actor.id
+          project_id: project_submitted_1
+        ref: operation.project.approve
+  test_case.project.approve.forbidden:
+    archetype: authorization_denial
+    rationale: A workspace member who is not a reviewer receives the mapped forbidden outcome before approval executes.
+    feature_tag: project.approve
+    subject_ref:
+      operation: operation.project.approve
+    given:
+      domain_facts:
+      - ref: fact.project.submitted
+      seed_fixtures:
+      - fixture.workspace.member
+    then:
+      authorization:
+        denied:
+        - operation: operation.project.approve
+      events:
+        not_emitted:
+        - event.project.approved
+      outcome: forbidden
+    title: Approval authorization maps forbidden outcome
     when:
       invoke_operation:
         input:
@@ -1124,6 +1360,14 @@ test_cases:
           workspace_id: $fixture.workspace.id
         ref: entry_point.api.project.create
 text_resources:
+  text.project.approve.forbidden:
+    rationale: CLI approval forbidden message.
+    max_chars: 120
+    placeholder: 'Approval is forbidden: {message}'
+    intent: error
+    args:
+      message:
+        primitive: Text
   text.project.approve.invalid_state:
     rationale: CLI approval invalid-state message.
     max_chars: 120
@@ -1148,6 +1392,14 @@ text_resources:
     args:
       project_id:
         primitive: ID
+  text.project.approve.unauthenticated:
+    rationale: CLI approval unauthenticated message.
+    max_chars: 120
+    placeholder: 'Sign in before approving: {message}'
+    intent: error
+    args:
+      message:
+        primitive: Text
   text.project.approve.unavailable:
     rationale: CLI approval unavailable message.
     max_chars: 120

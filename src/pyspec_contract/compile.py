@@ -280,7 +280,6 @@ def compile_author(author: dict[str, Any], layers: set[str] | None = None) -> di
             section[entity_id] = _compile_entity(entity, spec, contract)
 
     _derive_operation_transitions(contract)
-    _derive_authorization_policies(contract)
     contract["events"] = _derive_events(contract)
     contract["refs"] = _derive_refs(contract)
     used_facts = _expand_test_case_fact_uses(contract)
@@ -355,7 +354,6 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
         }
 
     if entity == "operation":
-        authorization_policy = copy.deepcopy(spec.get("authorization_policy", rules.authorization_policy_ref(spec["id"])))
         outcomes = {}
         for outcome_id, outcome in spec["outcomes"].items():
             normalized_outcome = copy.deepcopy(outcome)
@@ -370,9 +368,10 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             "creates": list(spec.get("creates", [])),
             "updates": list(spec.get("updates", [])),
             "deletes": list(spec.get("deletes", [])),
-            "authorization_policy": authorization_policy,
             "rationale": spec["rationale"],
         }
+        if "authorization" in spec:
+            operation["authorization"] = copy.deepcopy(spec["authorization"])
         return operation
 
     if entity == "authorization_policy":
@@ -425,13 +424,17 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
         elif adapter_kind == "http_api" and target_kind == "operation":
             entry["endpoint"] = rules.endpoint_ref(target["ref"])
             if target["ref"] in contract["operations"]:
-                entry.setdefault("authorization_policy", copy.deepcopy(contract["operations"][target["ref"]]["authorization_policy"]))
+                operation_authorization = contract["operations"][target["ref"]].get("authorization")
+                if operation_authorization:
+                    entry.setdefault("authorization_policy", copy.deepcopy(operation_authorization["policy"]))
         elif adapter_kind == "cli":
             entry_id = spec["id"]
             command_ref_source = entry_id[len("entry_point.cli."):] if target_kind == "entry_point" and entry_id.startswith("entry_point.cli.") else target["ref"]
             entry["cli_command_ref"] = rules.cli_command_ref(command_ref_source)
             if target_kind == "operation" and target["ref"] in contract["operations"]:
-                entry.setdefault("authorization_policy", copy.deepcopy(contract["operations"][target["ref"]]["authorization_policy"]))
+                operation_authorization = contract["operations"][target["ref"]].get("authorization")
+                if operation_authorization:
+                    entry.setdefault("authorization_policy", copy.deepcopy(operation_authorization["policy"]))
         elif adapter_kind in {"worker", "scheduled"} and target_kind == "workflow":
             entry["workflow_ref"] = rules.workflow_ref(target["ref"])
         return entry
@@ -557,53 +560,6 @@ def _derive_operation_transitions(contract: dict[str, Any]) -> None:
         if not derived:
             continue
         operation["transition"] = derived
-
-
-def _derive_authorization_policies(contract: dict[str, Any]) -> None:
-    for operation_id, operation in sorted(contract["operations"].items()):
-        policy_id = operation["authorization_policy"]
-        contract["authorization_policies"].setdefault(policy_id, _default_operation_authorization_policy(operation_id, operation))
-
-
-def _default_operation_authorization_policy(operation_id: str, operation: dict[str, Any]) -> dict[str, Any]:
-    targets = [{"operation": operation_id}, *_operation_authorization_targets(operation_id, operation)]
-    conditions: list[dict[str, Any]] = []
-    transition = operation.get("transition")
-    if transition:
-        conditions.append({
-            "model_state": {
-                "model": transition["model"],
-                "field": transition["field"],
-                "equals": transition["from"],
-            }
-        })
-    return {
-        "subjects": [_operation_authorization_subject(operation)],
-        "targets": targets,
-        "effect": "allow",
-        "conditions": conditions or [{"unconditional": True}],
-        "rationale": operation["rationale"],
-    }
-
-
-def _operation_authorization_subject(operation: dict[str, Any]) -> dict[str, Any]:
-    for field in sorted(operation.get("input", {})):
-        if field.endswith("_by"):
-            return {"kind": "actor", "source": f"$input.{field}"}
-    return {"kind": "actor"}
-
-
-def _operation_authorization_targets(operation_id: str, operation: dict[str, Any]) -> list[dict[str, str]]:
-    models: list[str] = []
-    transition = operation.get("transition")
-    if transition:
-        models.append(transition["model"])
-    for field in ("reads", "creates", "updates", "deletes"):
-        models.extend(operation.get(field, []))
-    unique_models = list(dict.fromkeys(models))
-    if unique_models:
-        return [{"model": model_id} for model_id in unique_models]
-    return []
 
 
 def _derive_events(contract: dict[str, Any]) -> dict[str, Any]:
@@ -991,6 +947,7 @@ def _validate_operations(contract: dict[str, Any]) -> None:
     operations = contract["operations"]
     for cid, cap in operations.items():
         _validate_operation_relationships(cid, cap, models)
+        _validate_operation_authorization_outcomes(cid, cap)
         transition = cap.get("transition")
         if transition:
             model_id = transition["model"]
@@ -1011,6 +968,11 @@ def _validate_operations(contract: dict[str, Any]) -> None:
             if operation["operation_kind"] != "transition":
                 raise ContractError(
                     f"Model {rid} lifecycle transition {triggered_by} must reference a transition operation"
+                )
+            invalid_state = operation["outcomes"].get("invalid_state")
+            if not invalid_state or invalid_state["kind"] != "failure":
+                raise ContractError(
+                    f"Transition operation {triggered_by} referenced by model lifecycle must declare invalid_state failure outcome"
                 )
             cap_transition = operation.get("transition")
             if not cap_transition:
@@ -1123,16 +1085,46 @@ def _validate_operation_outcomes(cid: str, cap: dict[str, Any]) -> None:
                 raise ContractError(f"Operation {cid} failure outcome {outcome_id} result must be Problem or a *Problem type")
 
 
+def _validate_operation_authorization_outcomes(operation_id: str, operation: dict[str, Any]) -> None:
+    authorization = operation.get("authorization")
+    if not authorization:
+        return
+    unauthenticated_as = authorization["unauthenticated_as"]
+    forbidden_as = authorization["forbidden_as"]
+    if unauthenticated_as == forbidden_as:
+        raise ContractError(
+            f"Operation {operation_id} authorization unauthenticated_as and forbidden_as must be distinct outcomes"
+        )
+    for field in ("unauthenticated_as", "forbidden_as"):
+        outcome_id = authorization[field]
+        outcome = operation["outcomes"].get(outcome_id)
+        if not outcome:
+            raise ContractError(
+                f"Operation {operation_id} authorization.{field} references unknown outcome {outcome_id}"
+            )
+        if outcome["kind"] != "failure":
+            raise ContractError(
+                f"Operation {operation_id} authorization.{field} must map to a failure outcome: {outcome_id}"
+            )
+        if outcome.get("emits"):
+            raise ContractError(
+                f"Operation {operation_id} authorization.{field} outcome {outcome_id} must not emit events"
+            )
+
+
 def _validate_authorization_policies(contract: dict[str, Any]) -> None:
     authorization_policies = contract["authorization_policies"]
     operations = contract["operations"]
     entry_points = contract["entry_points"]
     for operation_id, operation in operations.items():
-        policy_id = operation["authorization_policy"]
+        authorization = operation.get("authorization")
+        if not authorization:
+            continue
+        policy_id = authorization["policy"]
         if policy_id not in authorization_policies:
-            raise ContractError(f"Operation {operation_id} references unknown authorization policy {policy_id}")
+            raise ContractError(f"Operation {operation_id} authorization.policy references unknown authorization policy {policy_id}")
         if not _authorization_policy_covers_target(authorization_policies[policy_id], "operation", operation_id):
-            raise ContractError(f"Operation {operation_id} authorization_policy {policy_id} must cover operation target")
+            raise ContractError(f"Operation {operation_id} authorization.policy {policy_id} must cover operation target")
     for entry_id, entry in entry_points.items():
         policy_id = entry.get("authorization_policy")
         if not policy_id:
@@ -3282,6 +3274,28 @@ def _validate_test_case_then(contract: dict[str, Any], test_case_id: str, test_c
         when_kind, _ = _one(test_case["when"], f"test case {test_case_id} when")
         if when_kind != "call_entry_point":
             raise ContractError(f"Test case {test_case_id} response assertions require call_entry_point")
+    _validate_authorization_denial_outcome(contract, test_case_id, test_case)
+
+
+def _validate_authorization_denial_outcome(contract: dict[str, Any], test_case_id: str, test_case: dict[str, Any]) -> None:
+    if test_case["archetype"] != "authorization_denial":
+        return
+    outcome_id = test_case["then"].get("outcome")
+    if not outcome_id:
+        return
+    when_kind, when_body = _one(test_case["when"], f"test case {test_case_id} when")
+    operation_id = _test_case_operation_ref(contract, when_kind, when_body)
+    if not operation_id:
+        raise ContractError(f"Test case {test_case_id} authorization_denial outcome requires an operation invocation")
+    authorization = contract["operations"][operation_id].get("authorization")
+    if not authorization:
+        raise ContractError(f"Test case {test_case_id} authorization_denial outcome requires operation authorization")
+    mapped = {authorization["unauthenticated_as"], authorization["forbidden_as"]}
+    if outcome_id not in mapped:
+        raise ContractError(
+            f"Test case {test_case_id} authorization_denial outcome must be one of operation authorization failure outcomes: "
+            + ", ".join(sorted(mapped))
+        )
 
 
 def _validate_test_case_event_emissions(
@@ -3548,7 +3562,9 @@ def _expand_authorization_assertions(contract: dict[str, Any], assertions: dict[
                 continue
             kind, ref = _authorization_assertion_target(assertion, f"authorization_policy.{effect}")
             if kind == "operation":
-                assertion["authorization_policy"] = contract["operations"][ref]["authorization_policy"]
+                authorization = contract["operations"][ref].get("authorization")
+                if authorization:
+                    assertion["authorization_policy"] = authorization["policy"]
             elif kind == "entry_point":
                 authorization_policy = contract["entry_points"][ref].get("authorization_policy")
                 if authorization_policy:

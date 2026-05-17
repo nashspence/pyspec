@@ -294,10 +294,23 @@ class ReferenceSpecDriver:
         }
 
     def _invoke(self, cap_id: str, input_values: dict[str, Any], outcome_id: str | None = None) -> Any:
-        self.invoked.append(cap_id)
         cap = self.contract["operations"][cap_id]
-        policy_id = cap["authorization_policy"]
-        self.authorization_decisions[("operation", cap_id, policy_id)] = self._evaluate_policy(policy_id, "operation", cap_id, input_values)
+        authorization = cap.get("authorization")
+        if authorization:
+            policy_id = authorization["policy"]
+            allowed = self._evaluate_policy(policy_id, "operation", cap_id, input_values)
+            self.authorization_decisions[("operation", cap_id, policy_id)] = allowed
+            if not allowed:
+                policy = self.contract["authorization_policies"][policy_id]
+                outcome_id = (
+                    authorization["forbidden_as"]
+                    if self._authorization_subject_available(policy, input_values)
+                    else authorization["unauthenticated_as"]
+                )
+                self.last_outcome = outcome_id
+                self.last_result = {"code": outcome_id, "message": outcome_id.replace("_", " ")}
+                return self.last_result
+        self.invoked.append(cap_id)
         outcome_id = outcome_id or _success_outcome_id(cap)
         outcome = cap["outcomes"][outcome_id]
         self.last_outcome = outcome_id
@@ -420,7 +433,10 @@ class ReferenceSpecDriver:
         if authorization_policy:
             policy_id = authorization_policy
         elif kind == "operation":
-            policy_id = self.contract["operations"][target_ref]["authorization_policy"]
+            authorization = self.contract["operations"][target_ref].get("authorization")
+            if not authorization:
+                return False
+            policy_id = authorization["policy"]
         else:
             policy_id = self.contract["entry_points"][target_ref]["authorization_policy"]
         recorded = self.authorization_decisions.get((kind, target_ref, policy_id))
@@ -442,6 +458,21 @@ class ReferenceSpecDriver:
                 return False
         matched = all(self._authorization_condition_matches(condition, input_values) for condition in policy.get("conditions", []))
         return matched if policy["effect"] == "allow" else not matched
+
+    def _authorization_subject_available(self, policy: Mapping[str, Any], input_values: Mapping[str, Any]) -> bool:
+        for subject in policy.get("subjects", []):
+            if subject.get("kind") != "actor":
+                continue
+            source = subject.get("source")
+            if source:
+                try:
+                    return _resolve_binding({"from": source}, {"input": dict(input_values), "fixture": self.fixtures}) is not None
+                except (KeyError, ReferenceExpressionError):
+                    return False
+            actor = self.fixtures.get("actor", {})
+            if actor.get("id"):
+                return True
+        return False
 
     def _authorization_condition_matches(self, condition: Mapping[str, Any], input_values: Mapping[str, Any]) -> bool:
         if "unconditional" in condition:

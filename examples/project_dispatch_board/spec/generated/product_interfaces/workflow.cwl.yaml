@@ -16,13 +16,16 @@ $graph:
     send_notice:
       doc: 'input_bindings={''approved_by'': {''from'': ''$trigger.payload.approved_by''}, ''project_id'': {''from'': ''$trigger.payload.project_id''}};
         outcome_routes={''delivery_failed'': {''retry_policy'': {''attempts'': 3, ''backoff'': ''exponential'', ''fail_as'':
-        ''delivery_failed''}}, ''sent'': {''complete_as'': ''completed''}}'
+        ''delivery_failed''}}, ''forbidden'': {''fail_as'': ''delivery_failed''}, ''sent'': {''complete_as'': ''completed''},
+        ''unauthenticated'': {''fail_as'': ''delivery_failed''}}'
       in:
         approved_by: trigger_payload
         project_id: trigger_payload
       out:
       - delivery_failed
+      - forbidden
       - sent
+      - unauthenticated
       run: '#operation_project_send_approval_notice'
 - baseCommand:
   - contract-operation
@@ -38,9 +41,13 @@ $graph:
   outputs:
     approved:
       type: Any
+    forbidden:
+      type: Any
     invalid_state:
       type: Any
     not_found:
+      type: Any
+    unauthenticated:
       type: Any
     unavailable:
       type: Any
@@ -58,6 +65,10 @@ $graph:
   outputs:
     delivery_failed:
       type: Any
+    forbidden:
+      type: Any
     sent:
+      type: Any
+    unauthenticated:
       type: Any
 cwlVersion: v1.2

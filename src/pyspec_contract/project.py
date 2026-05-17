@@ -193,7 +193,6 @@ def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
             "operationId": cap_id,
             "x-entry": entry_id,
             "x-operation": cap_id,
-            "x-authorization-policy": cap["authorization_policy"],
             "parameters": [
                 {"name": name, "in": "path", "required": True, "schema": type_schema(type_name)}
                 for name, type_name in sorted(path_params.items())
@@ -203,6 +202,8 @@ def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
             ],
             "responses": responses,
         }
+        if cap.get("authorization"):
+            op["x-authorization-policy"] = cap["authorization"]["policy"]
         method = (entry_point_method(entry) or "").lower()
         if body_fields and method not in {"get", "delete"}:
             op["requestBody"] = {
@@ -760,9 +761,10 @@ def authorization_policies_projection(contract: dict[str, Any]) -> dict[str, Any
     return {
         "project": contract["project"],
         "authorization_policies": contract.get("authorization_policies", {}),
-        "operation_authorization_policies": {
-            operation_id: operation["authorization_policy"]
+        "operation_authorizations": {
+            operation_id: operation["authorization"]
             for operation_id, operation in sorted(contract.get("operations", {}).items())
+            if "authorization" in operation
         },
         "entry_point_authorization_policies": {
             entry_id: entry["authorization_policy"]

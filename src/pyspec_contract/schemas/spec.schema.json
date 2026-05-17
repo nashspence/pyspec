@@ -1848,8 +1848,8 @@
     "operation_item": {
       "additionalProperties": false,
       "properties": {
-        "authorization_policy": {
-          "$ref": "#/$defs/authorization_policy_ref"
+        "authorization": {
+          "$ref": "#/$defs/operation_authorization"
         },
         "creates": {
           "items": {
@@ -1924,12 +1924,31 @@
         "operation_kind",
         "input",
         "outcomes",
-        "authorization_policy",
         "rationale",
         "reads",
         "creates",
         "updates",
         "deletes"
+      ],
+      "type": "object"
+    },
+    "operation_authorization": {
+      "additionalProperties": false,
+      "properties": {
+        "forbidden_as": {
+          "$ref": "#/$defs/outcome_name"
+        },
+        "policy": {
+          "$ref": "#/$defs/authorization_policy_ref"
+        },
+        "unauthenticated_as": {
+          "$ref": "#/$defs/outcome_name"
+        }
+      },
+      "required": [
+        "policy",
+        "unauthenticated_as",
+        "forbidden_as"
       ],
       "type": "object"
     },

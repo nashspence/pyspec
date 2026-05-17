@@ -3,15 +3,11 @@
     "authorization_policy.project.approve": {
       "conditions": [
         {
-          "model_state": {
-            "equals": "submitted",
-            "field": "status",
-            "model": "Project"
-          }
+          "subject_has_role": "reviewer"
         }
       ],
       "effect": "allow",
-      "rationale": "Reviewers can approve submitted dispatch projects.",
+      "rationale": "Reviewers may approve submitted dispatch projects.",
       "subjects": [
         {
           "kind": "actor",
@@ -30,15 +26,11 @@
     "authorization_policy.project.archive": {
       "conditions": [
         {
-          "model_state": {
-            "equals": "approved",
-            "field": "status",
-            "model": "Project"
-          }
+          "subject_has_role": "reviewer"
         }
       ],
       "effect": "allow",
-      "rationale": "Approved dispatch projects can be archived.",
+      "rationale": "Reviewers may archive approved dispatch projects.",
       "subjects": [
         {
           "kind": "actor"
@@ -56,11 +48,11 @@
     "authorization_policy.project.create": {
       "conditions": [
         {
-          "unconditional": true
+          "subject_has_role": "member"
         }
       ],
       "effect": "allow",
-      "rationale": "Members can create a new dispatch project.",
+      "rationale": "Workspace members may create dispatch projects.",
       "subjects": [
         {
           "kind": "actor"
@@ -78,11 +70,11 @@
     "authorization_policy.project.list": {
       "conditions": [
         {
-          "unconditional": true
+          "subject_has_role": "member"
         }
       ],
       "effect": "allow",
-      "rationale": "The board requires a project list query scoped by workspace.",
+      "rationale": "Workspace members may list dispatch projects.",
       "subjects": [
         {
           "kind": "actor"
@@ -100,11 +92,11 @@
     "authorization_policy.project.read": {
       "conditions": [
         {
-          "unconditional": true
+          "subject_has_role": "member"
         }
       ],
       "effect": "allow",
-      "rationale": "The detail state machine loads the selected project by id.",
+      "rationale": "Workspace members may read dispatch project details.",
       "subjects": [
         {
           "kind": "actor"
@@ -122,11 +114,11 @@
     "authorization_policy.project.send_approval_notice": {
       "conditions": [
         {
-          "unconditional": true
+          "subject_has_role": "reviewer"
         }
       ],
       "effect": "allow",
-      "rationale": "Approval triggers a notification command for downstream coordination.",
+      "rationale": "Approval notice dispatch runs on behalf of the approving reviewer.",
       "subjects": [
         {
           "kind": "actor",
@@ -142,15 +134,11 @@
     "authorization_policy.project.submit": {
       "conditions": [
         {
-          "model_state": {
-            "equals": "draft",
-            "field": "status",
-            "model": "Project"
-          }
+          "subject_has_role": "member"
         }
       ],
       "effect": "allow",
-      "rationale": "Draft dispatch projects can be submitted for review.",
+      "rationale": "Workspace members may submit draft dispatch projects.",
       "subjects": [
         {
           "kind": "actor"
@@ -171,14 +159,42 @@
     "entry_point.api.project.create": "authorization_policy.project.create",
     "entry_point.api.project.list": "authorization_policy.project.list"
   },
-  "operation_authorization_policies": {
-    "operation.project.approve": "authorization_policy.project.approve",
-    "operation.project.archive": "authorization_policy.project.archive",
-    "operation.project.create": "authorization_policy.project.create",
-    "operation.project.list": "authorization_policy.project.list",
-    "operation.project.read": "authorization_policy.project.read",
-    "operation.project.send_approval_notice": "authorization_policy.project.send_approval_notice",
-    "operation.project.submit": "authorization_policy.project.submit"
+  "operation_authorizations": {
+    "operation.project.approve": {
+      "forbidden_as": "forbidden",
+      "policy": "authorization_policy.project.approve",
+      "unauthenticated_as": "unauthenticated"
+    },
+    "operation.project.archive": {
+      "forbidden_as": "forbidden",
+      "policy": "authorization_policy.project.archive",
+      "unauthenticated_as": "unauthenticated"
+    },
+    "operation.project.create": {
+      "forbidden_as": "forbidden",
+      "policy": "authorization_policy.project.create",
+      "unauthenticated_as": "unauthenticated"
+    },
+    "operation.project.list": {
+      "forbidden_as": "forbidden",
+      "policy": "authorization_policy.project.list",
+      "unauthenticated_as": "unauthenticated"
+    },
+    "operation.project.read": {
+      "forbidden_as": "forbidden",
+      "policy": "authorization_policy.project.read",
+      "unauthenticated_as": "unauthenticated"
+    },
+    "operation.project.send_approval_notice": {
+      "forbidden_as": "forbidden",
+      "policy": "authorization_policy.project.send_approval_notice",
+      "unauthenticated_as": "unauthenticated"
+    },
+    "operation.project.submit": {
+      "forbidden_as": "forbidden",
+      "policy": "authorization_policy.project.submit",
+      "unauthenticated_as": "unauthenticated"
+    }
   },
   "project": "project_dispatch_board"
 }

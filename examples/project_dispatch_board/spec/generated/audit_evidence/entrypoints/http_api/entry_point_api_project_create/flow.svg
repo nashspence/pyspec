@@ -1,76 +1,124 @@
-<svg width="789pt" height="247pt"
- viewBox="0.00 0.00 789.00 247.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: c426c1f13aafea18513c9eaa4e9ec6f1efabd97a15ffee6788639592dd15d8a6 -->
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 229)">
+<svg width="789pt" height="485pt"
+ viewBox="0.00 0.00 789.00 485.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: 917c4df4610da72cb85f2323941eb7baa118296527896460701dff401e7096d5 -->
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 467)">
 <title>entrypoint_entry_point_api_project_create</title>
 <!-- entrypoint_entry_point_api_project_create -->
 <g id="node1" class="node">
 <title>entrypoint_entry_point_api_project_create</title>
-<polygon fill="#ffffff" stroke="transparent" points="0,-17.5 0,-192.5 290,-192.5 290,-17.5 0,-17.5"/>
-<polygon fill="#0891b2" stroke="transparent" points="1,-183 1,-191 289,-191 289,-183 1,-183"/>
-<polygon fill="#ecfeff" stroke="transparent" points="1,-152 1,-183 289,-183 289,-152 1,-152"/>
-<text text-anchor="start" x="5" y="-169.6" font-family="Arial" font-weight="bold" font-size="13.00">POST /workspaces/{workspace_id}/projects</text>
-<text text-anchor="start" x="5" y="-158.6" font-family="Arial" font-size="8.00" fill="#64748b">http_api entry point</text>
-<text text-anchor="start" x="5" y="-141" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">HTTP endpoint for creating a dispatch project.</text>
-<text text-anchor="start" x="6" y="-121" font-family="Arial" font-weight="bold" font-size="10.00">endpoint:</text>
-<text text-anchor="start" x="51" y="-121" font-family="Arial" font-size="10.00">  endpoint.project.create</text>
-<text text-anchor="start" x="6" y="-109" font-family="Arial" font-weight="bold" font-size="10.00">authorization_policy:</text>
-<text text-anchor="start" x="105" y="-109" font-family="Arial" font-size="10.00">  authorization_policy.project.create</text>
-<text text-anchor="start" x="5" y="-89" font-family="Arial" font-weight="bold" font-size="10.00">path params</text>
-<text text-anchor="start" x="5" y="-78" font-family="Arial" font-size="10.00">workspace_id</text>
-<text text-anchor="start" x="66" y="-78" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
-<text text-anchor="start" x="5" y="-59" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
-<text text-anchor="start" x="5" y="-48" font-family="Arial" font-size="10.00">customer</text>
-<text text-anchor="start" x="46" y="-48" font-family="Arial" font-size="8.00" fill="#94a3b8">  Text</text>
-<text text-anchor="start" x="5" y="-37" font-family="Arial" font-size="10.00">priority</text>
-<text text-anchor="start" x="35" y="-37" font-family="Arial" font-size="8.00" fill="#94a3b8">  Text</text>
-<text text-anchor="start" x="5" y="-26" font-family="Arial" font-size="10.00">title</text>
-<text text-anchor="start" x="21" y="-26" font-family="Arial" font-size="8.00" fill="#94a3b8">  Text</text>
-<polygon fill="none" stroke="#0891b2" points="0,-17.5 0,-192.5 290,-192.5 290,-17.5 0,-17.5"/>
+<polygon fill="#ffffff" stroke="transparent" points="0,-136.5 0,-311.5 290,-311.5 290,-136.5 0,-136.5"/>
+<polygon fill="#0891b2" stroke="transparent" points="1,-302 1,-310 289,-310 289,-302 1,-302"/>
+<polygon fill="#ecfeff" stroke="transparent" points="1,-271 1,-302 289,-302 289,-271 1,-271"/>
+<text text-anchor="start" x="5" y="-288.6" font-family="Arial" font-weight="bold" font-size="13.00">POST /workspaces/{workspace_id}/projects</text>
+<text text-anchor="start" x="5" y="-277.6" font-family="Arial" font-size="8.00" fill="#64748b">http_api entry point</text>
+<text text-anchor="start" x="5" y="-260" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">HTTP endpoint for creating a dispatch project.</text>
+<text text-anchor="start" x="6" y="-240" font-family="Arial" font-weight="bold" font-size="10.00">endpoint:</text>
+<text text-anchor="start" x="51" y="-240" font-family="Arial" font-size="10.00">  endpoint.project.create</text>
+<text text-anchor="start" x="6" y="-228" font-family="Arial" font-weight="bold" font-size="10.00">authorization_policy:</text>
+<text text-anchor="start" x="105" y="-228" font-family="Arial" font-size="10.00">  authorization_policy.project.create</text>
+<text text-anchor="start" x="5" y="-208" font-family="Arial" font-weight="bold" font-size="10.00">path params</text>
+<text text-anchor="start" x="5" y="-197" font-family="Arial" font-size="10.00">workspace_id</text>
+<text text-anchor="start" x="66" y="-197" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<text text-anchor="start" x="5" y="-178" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
+<text text-anchor="start" x="5" y="-167" font-family="Arial" font-size="10.00">customer</text>
+<text text-anchor="start" x="46" y="-167" font-family="Arial" font-size="8.00" fill="#94a3b8">  Text</text>
+<text text-anchor="start" x="5" y="-156" font-family="Arial" font-size="10.00">priority</text>
+<text text-anchor="start" x="35" y="-156" font-family="Arial" font-size="8.00" fill="#94a3b8">  Text</text>
+<text text-anchor="start" x="5" y="-145" font-family="Arial" font-size="10.00">title</text>
+<text text-anchor="start" x="21" y="-145" font-family="Arial" font-size="8.00" fill="#94a3b8">  Text</text>
+<polygon fill="none" stroke="#0891b2" points="0,-136.5 0,-311.5 290,-311.5 290,-136.5 0,-136.5"/>
 </g>
 <!-- entrypoint_target_operation_project_create -->
 <g id="node2" class="node">
 <title>entrypoint_target_operation_project_create</title>
-<polygon fill="#ffffff" stroke="transparent" points="351,-64.5 351,-145.5 555,-145.5 555,-64.5 351,-64.5"/>
-<polygon fill="#2563eb" stroke="transparent" points="352,-136 352,-144 554,-144 554,-136 352,-136"/>
-<polygon fill="#eff6ff" stroke="transparent" points="352,-105 352,-136 554,-136 554,-105 352,-105"/>
-<text text-anchor="start" x="356" y="-122.6" font-family="Arial" font-weight="bold" font-size="13.00">operation.project.create</text>
-<text text-anchor="start" x="356" y="-111.6" font-family="Arial" font-size="8.00" fill="#64748b">target operation</text>
-<text text-anchor="start" x="356" y="-94" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Members can create a new dispatch project.</text>
-<text text-anchor="start" x="357" y="-74" font-family="Arial" font-weight="bold" font-size="10.00">kind:</text>
-<text text-anchor="start" x="381" y="-74" font-family="Arial" font-size="10.00">  command</text>
-<polygon fill="none" stroke="#2563eb" points="351,-64.5 351,-145.5 555,-145.5 555,-64.5 351,-64.5"/>
+<polygon fill="#ffffff" stroke="transparent" points="351,-157.5 351,-290.5 555,-290.5 555,-157.5 351,-157.5"/>
+<polygon fill="#2563eb" stroke="transparent" points="352,-281 352,-289 554,-289 554,-281 352,-281"/>
+<polygon fill="#eff6ff" stroke="transparent" points="352,-250 352,-281 554,-281 554,-250 352,-250"/>
+<text text-anchor="start" x="356" y="-267.6" font-family="Arial" font-weight="bold" font-size="13.00">operation.project.create</text>
+<text text-anchor="start" x="356" y="-256.6" font-family="Arial" font-size="8.00" fill="#64748b">target operation</text>
+<text text-anchor="start" x="356" y="-239" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Members can create a new dispatch project.</text>
+<text text-anchor="start" x="357" y="-219" font-family="Arial" font-weight="bold" font-size="10.00">kind:</text>
+<text text-anchor="start" x="381" y="-219" font-family="Arial" font-size="10.00">  command</text>
+<text text-anchor="start" x="356" y="-199" font-family="Arial" font-weight="bold" font-size="10.00">authorization</text>
+<text text-anchor="start" x="356" y="-187" font-family="Arial" font-size="10.00">policy: authorization_policy.project.create</text>
+<text text-anchor="start" x="356" y="-176" font-family="Arial" font-size="10.00">unauthenticated_as: unauthenticated</text>
+<text text-anchor="start" x="356" y="-165" font-family="Arial" font-size="10.00">forbidden_as: forbidden</text>
+<polygon fill="none" stroke="#2563eb" points="351,-157.5 351,-290.5 555,-290.5 555,-157.5 351,-157.5"/>
 </g>
 <!-- entrypoint_entry_point_api_project_create&#45;&gt;entrypoint_target_operation_project_create -->
 <g id="edge1" class="edge">
 <title>entrypoint_entry_point_api_project_create&#45;&gt;entrypoint_target_operation_project_create</title>
-<path fill="none" stroke="#3f3f46" d="M290.04,-105C307.62,-105 325.37,-105 342.33,-105"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="342.6,-107.8 350.6,-105 342.6,-102.2 342.6,-107.8"/>
+<path fill="none" stroke="#3f3f46" d="M290.04,-224C307.62,-224 325.37,-224 342.33,-224"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="342.6,-226.8 350.6,-224 342.6,-221.2 342.6,-226.8"/>
 </g>
 <!-- entrypoint_response_entry_point_api_project_create_created -->
 <g id="node3" class="node">
 <title>entrypoint_response_entry_point_api_project_create_created</title>
-<polygon fill="#ffffff" stroke="transparent" points="618.5,-119 618.5,-211 750.5,-211 750.5,-119 618.5,-119"/>
-<polygon fill="#16a34a" stroke="transparent" points="619.5,-202 619.5,-210 749.5,-210 749.5,-202 619.5,-202"/>
-<polygon fill="#f0fdf4" stroke="transparent" points="619.5,-171 619.5,-202 749.5,-202 749.5,-171 619.5,-171"/>
-<text text-anchor="start" x="623.5" y="-188.6" font-family="Arial" font-weight="bold" font-size="13.00">created</text>
-<text text-anchor="start" x="623.5" y="-177.6" font-family="Arial" font-size="8.00" fill="#64748b">success response</text>
-<text text-anchor="start" x="624.5" y="-159" font-family="Arial" font-weight="bold" font-size="10.00">status:</text>
-<text text-anchor="start" x="655.5" y="-159" font-family="Arial" font-size="10.00">  201</text>
-<text text-anchor="start" x="623.5" y="-139" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
-<text text-anchor="start" x="623.5" y="-128" font-family="Arial" font-size="10.00">body</text>
-<text text-anchor="start" x="645.5" y="-128" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
-<text text-anchor="start" x="675.5" y="-128" font-family="Arial" font-size="8.00"> ← $outcome.result</text>
-<polygon fill="none" stroke="#16a34a" points="618.5,-119 618.5,-211 750.5,-211 750.5,-119 618.5,-119"/>
+<polygon fill="#ffffff" stroke="transparent" points="618.5,-357 618.5,-449 750.5,-449 750.5,-357 618.5,-357"/>
+<polygon fill="#16a34a" stroke="transparent" points="619.5,-440 619.5,-448 749.5,-448 749.5,-440 619.5,-440"/>
+<polygon fill="#f0fdf4" stroke="transparent" points="619.5,-409 619.5,-440 749.5,-440 749.5,-409 619.5,-409"/>
+<text text-anchor="start" x="623.5" y="-426.6" font-family="Arial" font-weight="bold" font-size="13.00">created</text>
+<text text-anchor="start" x="623.5" y="-415.6" font-family="Arial" font-size="8.00" fill="#64748b">success response</text>
+<text text-anchor="start" x="624.5" y="-397" font-family="Arial" font-weight="bold" font-size="10.00">status:</text>
+<text text-anchor="start" x="655.5" y="-397" font-family="Arial" font-size="10.00">  201</text>
+<text text-anchor="start" x="623.5" y="-377" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
+<text text-anchor="start" x="623.5" y="-366" font-family="Arial" font-size="10.00">body</text>
+<text text-anchor="start" x="645.5" y="-366" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
+<text text-anchor="start" x="675.5" y="-366" font-family="Arial" font-size="8.00"> ← $outcome.result</text>
+<polygon fill="none" stroke="#16a34a" points="618.5,-357 618.5,-449 750.5,-449 750.5,-357 618.5,-357"/>
 </g>
 <!-- entrypoint_target_operation_project_create&#45;&gt;entrypoint_response_entry_point_api_project_create_created -->
 <g id="edge2" class="edge">
 <title>entrypoint_target_operation_project_create&#45;&gt;entrypoint_response_entry_point_api_project_create_created</title>
-<path fill="none" stroke="#3f3f46" d="M555.33,-131.49C573.87,-136.34 592.87,-141.31 610.39,-145.89"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="609.87,-148.64 618.32,-147.96 611.29,-143.23 609.87,-148.64"/>
+<path fill="none" stroke="#3f3f46" d="M539.46,-290.65C565.43,-310.91 593.55,-332.84 617.98,-351.9"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="616.41,-354.23 624.44,-356.94 619.86,-349.81 616.41,-354.23"/>
+</g>
+<!-- entrypoint_response_entry_point_api_project_create_forbidden -->
+<g id="node4" class="node">
+<title>entrypoint_response_entry_point_api_project_create_forbidden</title>
+<polygon fill="#ffffff" stroke="transparent" points="616,-238 616,-330 753,-330 753,-238 616,-238"/>
+<polygon fill="#dc2626" stroke="transparent" points="617.5,-321 617.5,-329 752.5,-329 752.5,-321 617.5,-321"/>
+<polygon fill="#fef2f2" stroke="transparent" points="617.5,-290 617.5,-321 752.5,-321 752.5,-290 617.5,-290"/>
+<text text-anchor="start" x="621.5" y="-307.6" font-family="Arial" font-weight="bold" font-size="13.00">forbidden</text>
+<text text-anchor="start" x="621.5" y="-296.6" font-family="Arial" font-size="8.00" fill="#64748b">failure response</text>
+<text text-anchor="start" x="622.5" y="-278" font-family="Arial" font-weight="bold" font-size="10.00">status:</text>
+<text text-anchor="start" x="653.5" y="-278" font-family="Arial" font-size="10.00">  403</text>
+<text text-anchor="start" x="621.5" y="-258" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
+<text text-anchor="start" x="621.5" y="-247" font-family="Arial" font-size="10.00">body</text>
+<text text-anchor="start" x="643.5" y="-247" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<text text-anchor="start" x="678.5" y="-247" font-family="Arial" font-size="8.00"> ← $outcome.result</text>
+<polygon fill="none" stroke="#dc2626" points="616,-238 616,-330 753,-330 753,-238 616,-238"/>
+</g>
+<!-- entrypoint_target_operation_project_create&#45;&gt;entrypoint_response_entry_point_api_project_create_forbidden -->
+<g id="edge3" class="edge">
+<title>entrypoint_target_operation_project_create&#45;&gt;entrypoint_response_entry_point_api_project_create_forbidden</title>
+<path fill="none" stroke="#3f3f46" d="M555.33,-250.49C572.98,-255.1 591.05,-259.83 607.86,-264.22"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="607.55,-267.04 615.99,-266.35 608.96,-261.62 607.55,-267.04"/>
+</g>
+<!-- entrypoint_response_entry_point_api_project_create_unauthenticated -->
+<g id="node5" class="node">
+<title>entrypoint_response_entry_point_api_project_create_unauthenticated</title>
+<polygon fill="#ffffff" stroke="transparent" points="616,-119 616,-211 753,-211 753,-119 616,-119"/>
+<polygon fill="#dc2626" stroke="transparent" points="617.5,-202 617.5,-210 752.5,-210 752.5,-202 617.5,-202"/>
+<polygon fill="#fef2f2" stroke="transparent" points="617.5,-171 617.5,-202 752.5,-202 752.5,-171 617.5,-171"/>
+<text text-anchor="start" x="621.5" y="-188.6" font-family="Arial" font-weight="bold" font-size="13.00">unauthenticated</text>
+<text text-anchor="start" x="621.5" y="-177.6" font-family="Arial" font-size="8.00" fill="#64748b">failure response</text>
+<text text-anchor="start" x="622.5" y="-159" font-family="Arial" font-weight="bold" font-size="10.00">status:</text>
+<text text-anchor="start" x="653.5" y="-159" font-family="Arial" font-size="10.00">  401</text>
+<text text-anchor="start" x="621.5" y="-139" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
+<text text-anchor="start" x="621.5" y="-128" font-family="Arial" font-size="10.00">body</text>
+<text text-anchor="start" x="643.5" y="-128" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<text text-anchor="start" x="678.5" y="-128" font-family="Arial" font-size="8.00"> ← $outcome.result</text>
+<polygon fill="none" stroke="#dc2626" points="616,-119 616,-211 753,-211 753,-119 616,-119"/>
+</g>
+<!-- entrypoint_target_operation_project_create&#45;&gt;entrypoint_response_entry_point_api_project_create_unauthenticated -->
+<g id="edge4" class="edge">
+<title>entrypoint_target_operation_project_create&#45;&gt;entrypoint_response_entry_point_api_project_create_unauthenticated</title>
+<path fill="none" stroke="#3f3f46" d="M555.33,-197.95C572.98,-193.41 591.05,-188.77 607.86,-184.45"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="608.94,-187.06 615.99,-182.35 607.55,-181.63 608.94,-187.06"/>
 </g>
 <!-- entrypoint_response_entry_point_api_project_create_validation_failed -->
-<g id="node4" class="node">
+<g id="node6" class="node">
 <title>entrypoint_response_entry_point_api_project_create_validation_failed</title>
 <polygon fill="#ffffff" stroke="transparent" points="616,0 616,-92 753,-92 753,0 616,0"/>
 <polygon fill="#dc2626" stroke="transparent" points="617.5,-83 617.5,-91 752.5,-91 752.5,-83 617.5,-83"/>
@@ -86,11 +134,13 @@
 <polygon fill="none" stroke="#dc2626" points="616,0 616,-92 753,-92 753,0 616,0"/>
 </g>
 <!-- entrypoint_target_operation_project_create&#45;&gt;entrypoint_response_entry_point_api_project_create_validation_failed -->
-<g id="edge3" class="edge">
+<g id="edge5" class="edge">
 <title>entrypoint_target_operation_project_create&#45;&gt;entrypoint_response_entry_point_api_project_create_validation_failed</title>
-<path fill="none" stroke="#3f3f46" d="M555.33,-78.95C572.98,-74.41 591.05,-69.77 607.86,-65.45"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="608.94,-68.06 615.99,-63.35 607.55,-62.63 608.94,-68.06"/>
+<path fill="none" stroke="#3f3f46" d="M539.78,-157.47C565.5,-137.52 593.28,-115.97 617.51,-97.18"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="619.31,-99.33 623.92,-92.21 615.88,-94.9 619.31,-99.33"/>
 </g>
-<!-- entrypoint_response_entry_point_api_project_create_created&#45;&gt;entrypoint_response_entry_point_api_project_create_validation_failed -->
+<!-- entrypoint_response_entry_point_api_project_create_created&#45;&gt;entrypoint_response_entry_point_api_project_create_forbidden -->
+<!-- entrypoint_response_entry_point_api_project_create_forbidden&#45;&gt;entrypoint_response_entry_point_api_project_create_unauthenticated -->
+<!-- entrypoint_response_entry_point_api_project_create_unauthenticated&#45;&gt;entrypoint_response_entry_point_api_project_create_validation_failed -->
 </g>
 </svg>

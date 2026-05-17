@@ -761,7 +761,7 @@ def _generic_reference_witness_allowed(parts: list[str], detail_evidence: bool) 
             return _state_machine_reference_witness_allowed(parts)
         return True
     if parts[0] == "operations":
-        return detail_evidence or parts[-1] == "authorization_policy"
+        return detail_evidence or parts[-2:] == ["authorization", "policy"]
     if parts[0] == "events":
         return detail_evidence
     if parts[0] == "authorization_policies":
@@ -864,6 +864,11 @@ def _operation_text_witness_tokens(contract: dict[str, Any], parts: list[str], v
     if not detail_evidence:
         return []
     tokens: list[str] = []
+    if len(parts) >= 4 and parts[2] == "authorization":
+        if parts[-1] == "policy" and isinstance(value, str):
+            return [value]
+        if parts[-1] in {"unauthenticated_as", "forbidden_as"} and isinstance(value, str):
+            return [parts[-1], value]
     if len(parts) >= 5 and parts[2] == "transition":
         transition = contract["operations"][parts[1]]["transition"]
         field_token = f"{transition['model']}.{transition['field']}"
@@ -1047,7 +1052,7 @@ def _authorization_policy_evidence_files(contract: dict[str, Any], policy_id: st
         if entry.get("authorization_policy") == policy_id:
             files.extend(_entry_point_evidence_files(contract, entry_id))
     for operation_id, operation in sorted(contract.get("operations", {}).items()):
-        if operation.get("authorization_policy") == policy_id:
+        if (operation.get("authorization") or {}).get("policy") == policy_id:
             files.extend(_operation_evidence_files(contract, operation_id))
     return files
 
@@ -1952,8 +1957,13 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
 
 def operation_flow_dot(operation_id: str, operation: dict[str, Any], contract: dict[str, Any]) -> str:
     input_node = _dot_node_id("operation_input", operation_id)
-    policy_id = operation.get("authorization_policy")
+    authorization = operation.get("authorization") or {}
+    policy_id = authorization.get("policy")
     policy_node = _dot_node_id("operation_policy", policy_id) if policy_id else None
+    authorization_failure_labels = {
+        authorization.get("unauthenticated_as"): "unauthenticated_as",
+        authorization.get("forbidden_as"): "forbidden_as",
+    }
     resource_nodes = _operation_resource_nodes(operation_id, operation, contract)
     outcome_nodes = [
         (_dot_node_id("operation_outcome", f"{operation_id}_{outcome_id}"), outcome_id, outcome)
@@ -1993,7 +2003,10 @@ def operation_flow_dot(operation_id: str, operation: dict[str, Any], contract: d
         flow_tail = node_id
 
     for node_id, outcome_id, outcome in outcome_nodes:
-        if flow_tail:
+        authorization_failure_label = authorization_failure_labels.get(outcome_id)
+        if authorization_failure_label and policy_node:
+            lines.append(_dot_edge(policy_node, node_id, {"label": authorization_failure_label, "color": _DOT_COLOR_POLICY_BORDER}))
+        elif flow_tail:
             lines.append(_dot_edge(flow_tail, node_id, {"label": outcome["kind"], "color": _outcome_edge_color(outcome["kind"])}))
         for emit in outcome.get("emits", []):
             event_id = emit["event"] if isinstance(emit, dict) else emit
@@ -2009,6 +2022,16 @@ def _operation_reference_sections(operation_id: str, operation: dict[str, Any]) 
     sections: list[tuple[str, list[object]]] = []
     if operation.get("operation_kind"):
         sections.append(("kind", [operation["operation_kind"]]))
+    authorization = operation.get("authorization")
+    if authorization:
+        sections.append((
+            "authorization",
+            [
+                f"policy: {authorization['policy']}",
+                f"unauthenticated_as: {authorization['unauthenticated_as']}",
+                f"forbidden_as: {authorization['forbidden_as']}",
+            ],
+        ))
     return sections
 
 
@@ -3146,7 +3169,7 @@ def _format_operation_authorization_policies(operation_ids: Iterable[str], contr
             continue
         seen.add(operation_id)
         operation = contract["operations"].get(operation_id)
-        authorization_policy = operation.get("authorization_policy") if operation else None
+        authorization_policy = (operation.get("authorization") or {}).get("policy") if operation else None
         if authorization_policy:
             lines.append(f"{operation_id}: {authorization_policy}")
     return lines

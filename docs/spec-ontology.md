@@ -12,7 +12,7 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - <!-- top-level:facts --> `facts`: reusable model presence/absence setup or assertion facts; facts are not broad domain invariants.
 - <!-- top-level:fixtures --> `fixtures`: named seed data namespaces used by test cases, facts, content cases, and render audit cases.
 - <!-- top-level:models --> `models`: PascalCase product/domain entity type names and lifecycle declarations. Models are not ORM models, API contracts, generated implementation classes, or storage schemas.
-- <!-- top-level:operations --> `operations`: executable product operations with typed input, effects, outcomes, emitted events, and authorization policies.
+- <!-- top-level:operations --> `operations`: executable product operations with typed input, effects, outcomes, emitted events, and optional explicit authorization mapping.
 - <!-- top-level:authorization_policies --> `authorization_policies`: authorization policies with subjects, authorization targets, conditions, and effect.
 - <!-- top-level:project --> `project`: the project slug for the specification workspace.
 - <!-- top-level:refs --> `refs`: compiled-only index of generated references used by projections and tests.
@@ -35,7 +35,7 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `message_name`: local state-machine message name; authored sources do not use global-looking `message.*` references for local messages.
 - `model_ref`: `PascalCase`; model references are the sole collection-prefix exception because model ids are also type names.
 - `operation_ref`: `operation.<domain>...`; operation declarations, state-machine `available_operations` and `query_dependencies`, workflow steps, entry-point operation targets, and test-case assertions.
-- `authorization_policy_ref`: `authorization_policy.<domain>...`; authorization-policy declarations, direct authorization_policy references, generated authorization projections, and authorization test assertions.
+- `authorization_policy_ref`: `authorization_policy.<domain>...`; authorization-policy declarations, `operation.authorization.policy`, entry-point `authorization_policy` fields, generated authorization projections, and authorization test assertions.
 - `render_profile_ref`: `render_profile.<domain>...`; named HTML/Textual viewport profiles.
 - `state_machine_ref`: `state_machine.<domain>...`; state-machine declarations, `child_state_machines`, state-machine entry-point targets, and test-case state-machine assertions.
 - `test_case_ref`: `test_case.<domain>...`; formal test-case declarations and generated feature tags.
@@ -53,7 +53,7 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `entry_point_target`: exactly one target object: `operation`, `state_machine`, `workflow`, or `entry_point`.
 - `entry-point delegation`: an entry point whose `target.entry_point.ref` points at another entry point. Delegation is general and is not CLI-to-HTTP-specific.
 - `delegating entry point`: the outer entry point whose adapter exposes a facade and binds its input into the delegated entry point input shape.
-- `delegated entry point`: the inner entry point that receives delegated invocation. Its `authorization_policy` still applies.
+- `delegated entry point`: the inner entry point that receives delegated invocation. Its entry-point `authorization_policy` and the delegated target operation's authorization outcomes remain visible to the delegating entry point.
 - `response handler`: adapter-specific projection of a target or delegated response outcome.
 - `CLI response handler`: maps a named response outcome to stdout, stderr, an exit code, and optionally a retry policy. It does not restate HTTP status classification when the delegated entry point is an HTTP API.
 - `retry_safe`: explicit entry-point marker permitting automatic retry of delegated invocations; the default is false.
@@ -61,7 +61,16 @@ This glossary is the vocabulary contract for the authored-source and compiled-ou
 - `signals`: local UI/component/state-machine signal contracts split into accepted message/data-signal maps and emitted message maps with `payload_schema` maps.
 - `renderer_contracts`: view-state renderer declarations keyed by concrete target. `renderers.html` and `renderers.textual` each own target-local `layout`, `presentation`, and `style`.
 - `type_expr`: structured primitive, model, data_contract, array, map, nullable whole-value wrapper, enum, or inline object type expression. Object field presence and nullability are controlled only by `field_schema.required` and `field_schema.nullable`.
-- `authorization_policy`: direct `authorization_policy_ref` fields identify the authorization policy applied to an operation, entry point, or authorization assertion.
+- `authorization_policy`: direct `authorization_policy_ref` fields identify the authorization policy applied to an entry point or authorization assertion. Operations use `authorization.policy` plus explicit `unauthenticated_as` and `forbidden_as` outcome mappings.
+- `operation_authorization`: operation-local authorization mapping with `policy`, `unauthenticated_as`, and `forbidden_as`. The mapped names must be normal operation outcomes with `kind: failure`.
+- `authorization policy`: rule set that determines whether a subject may attempt an operation or entry point.
+- `authorization failure outcome`: named failure outcome produced before operation execution when authorization fails. These outcomes live in `operation.outcomes`; they are not a separate `errors` or `authorization_outcomes` collection.
+- `unauthenticated`: authorization failure where no acceptable subject identity is available. HTTP examples conventionally map this outcome to `401`; CLI examples map it to stderr plus a nonzero exit code.
+- `forbidden`: authorization failure where a subject identity exists but does not satisfy the authorization policy. HTTP examples conventionally map this outcome to `403`; CLI examples map it to stderr plus a nonzero exit code.
+- `domain failure outcome`: operation outcome produced by operation execution or domain validation, such as `validation_failed` or `not_found`.
+- `transition applicability`: lifecycle source-state check derived from `model.lifecycle.transitions[*]`, not authorization.
+- `invalid_state`: transition applicability/domain failure outcome for lifecycle source-state mismatch. It is not an authorization failure and should be asserted with `operation_outcome` or `entry_point_response`, not `authorization_denial`.
+- `authorization_condition.model_state`: explicit author-authored access-control condition when model state is truly part of who may attempt an operation. The compiler does not generate this condition from lifecycle transition `from` states; lifecycle source-state mismatch remains transition applicability and maps to `invalid_state`.
 
 ## Visual Audit Coverage
 
@@ -108,7 +117,7 @@ The visual audit includes state-machine and composition diagrams, entry-point an
 - `spec/generated/product_interfaces/html.state_machines.json`: state-machine HTML/Textual renderer contract projection, including composition layout and renderer-specific style contracts.
 - `spec/generated/product_interfaces/textual.projection.py`: Textual renderer projection generated from `renderers.textual.presentation` widgets, `renderers.textual.style`, and `renderers.textual.layout` containers.
 - `spec/generated/product_interfaces/workflow.cwl.yaml`: CWL projection generated for workflow/CLI/worker-relevant execution graphs.
-- `spec/generated/product_interfaces/authorization_policies.json`: authorization-policy projection for operations and entry points.
+- `spec/generated/product_interfaces/authorization_policies.json`: authorization-policy projection with operation authorization mappings and entry-point policies.
 - `spec/generated/content_resolvers/{signatures.py,stubs.py,cases.yaml}`: documented content-resolution contracts and examples.
 - `spec/generated/test_adapters/python_refs.py`: Python constants for resource and generated reference IDs.
 - `spec/generated/test_adapters/driver_protocol.py`: BDD driver protocol.
@@ -202,6 +211,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:signal_sync_trigger --> `$defs/signal_sync_trigger`: state-machine signal synchronization contract component.
 - <!-- schema-def:model_ref --> `$defs/model_ref`: typed reference definition for its namespace.
 - <!-- schema-def:object_schema --> `$defs/object_schema`: structured type-expression and object-schema contract component.
+- <!-- schema-def:operation_authorization --> `$defs/operation_authorization`: explicit operation authorization policy and mapped authorization failure outcomes.
 - <!-- schema-def:operation_emit --> `$defs/operation_emit`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:operation_outcome --> `$defs/operation_outcome`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:operation_outcomes --> `$defs/operation_outcomes`: shared schema component used by authored source or compiled output.

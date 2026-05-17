@@ -45,6 +45,7 @@ markers = [
   "test_case_project_board_empty: generated test-case tag",
   "test_case_project_board_ready: generated test-case tag",
   "test_case_project_create_api_success: generated test-case tag",
+  "test_case_project_approve_forbidden: generated test-case tag",
   "test_case_project_approve_success: generated test-case tag",
   "test_case_project_approval_notice_workflow: generated test-case tag",
   "test_case_project_workspace_composed: generated test-case tag",

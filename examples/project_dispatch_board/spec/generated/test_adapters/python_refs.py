@@ -19,8 +19,10 @@ class CliCommand:
 
 class CliResponseHandler:
     CLI_RESPONSE_HANDLER_CLI_PROJECT_APPROVE_APPROVED = 'cli_response_handler.cli.project.approve.approved'
+    CLI_RESPONSE_HANDLER_CLI_PROJECT_APPROVE_FORBIDDEN = 'cli_response_handler.cli.project.approve.forbidden'
     CLI_RESPONSE_HANDLER_CLI_PROJECT_APPROVE_INVALID_STATE = 'cli_response_handler.cli.project.approve.invalid_state'
     CLI_RESPONSE_HANDLER_CLI_PROJECT_APPROVE_NOT_FOUND = 'cli_response_handler.cli.project.approve.not_found'
+    CLI_RESPONSE_HANDLER_CLI_PROJECT_APPROVE_UNAUTHENTICATED = 'cli_response_handler.cli.project.approve.unauthenticated'
     CLI_RESPONSE_HANDLER_CLI_PROJECT_APPROVE_UNAVAILABLE = 'cli_response_handler.cli.project.approve.unavailable'
 
 class ContentCase:
@@ -94,8 +96,10 @@ class Route:
 
 class RuntimeResponse:
     RUNTIME_RESPONSE_CLI_PROJECT_APPROVE_APPROVED_STDOUT_PROJECT_ID = 'runtime_response.cli.project.approve.approved.stdout.project_id'
+    RUNTIME_RESPONSE_CLI_PROJECT_APPROVE_FORBIDDEN_STDERR_MESSAGE = 'runtime_response.cli.project.approve.forbidden.stderr.message'
     RUNTIME_RESPONSE_CLI_PROJECT_APPROVE_INVALID_STATE_STDERR_MESSAGE = 'runtime_response.cli.project.approve.invalid_state.stderr.message'
     RUNTIME_RESPONSE_CLI_PROJECT_APPROVE_NOT_FOUND_STDERR_MESSAGE = 'runtime_response.cli.project.approve.not_found.stderr.message'
+    RUNTIME_RESPONSE_CLI_PROJECT_APPROVE_UNAUTHENTICATED_STDERR_MESSAGE = 'runtime_response.cli.project.approve.unauthenticated.stderr.message'
 
 class Screen:
     SCREEN_PROJECT_BOARD = 'screen.project.board'
@@ -121,6 +125,7 @@ class Surface:
 
 class TestCase:
     TEST_CASE_PROJECT_APPROVAL_NOTICE_WORKFLOW = 'test_case.project.approval_notice.workflow'
+    TEST_CASE_PROJECT_APPROVE_FORBIDDEN = 'test_case.project.approve.forbidden'
     TEST_CASE_PROJECT_APPROVE_SUCCESS = 'test_case.project.approve.success'
     TEST_CASE_PROJECT_BOARD_EMPTY = 'test_case.project.board.empty'
     TEST_CASE_PROJECT_BOARD_READY = 'test_case.project.board.ready'
@@ -130,9 +135,11 @@ class Text:
     TEXT_PROJECT_ACTIVITY_EMPTY_BODY = 'text.project.activity.empty.body'
     TEXT_PROJECT_ACTIVITY_EMPTY_HEADING = 'text.project.activity.empty.heading'
     TEXT_PROJECT_ACTIVITY_READY_HEADING = 'text.project.activity.ready.heading'
+    TEXT_PROJECT_APPROVE_FORBIDDEN = 'text.project.approve.forbidden'
     TEXT_PROJECT_APPROVE_INVALID_STATE = 'text.project.approve.invalid_state'
     TEXT_PROJECT_APPROVE_NOT_FOUND = 'text.project.approve.not_found'
     TEXT_PROJECT_APPROVE_SUCCESS = 'text.project.approve.success'
+    TEXT_PROJECT_APPROVE_UNAUTHENTICATED = 'text.project.approve.unauthenticated'
     TEXT_PROJECT_APPROVE_UNAVAILABLE = 'text.project.approve.unavailable'
     TEXT_PROJECT_DETAIL_ERROR_BODY = 'text.project.detail.error.body'
     TEXT_PROJECT_DETAIL_ERROR_HEADING = 'text.project.detail.error.heading'

@@ -162,10 +162,22 @@ class ProductApp:
         return {name: resolve_binding(source, namespace) for name, source in bindings.items()}
 
     def invoke_operation(self, operation_id: str, input_values: Mapping[str, Any]) -> Any:
+        operation = self.contract["operations"][operation_id]
+        authorization = operation.get("authorization")
+        if authorization:
+            authorization_policy = authorization["policy"]
+            allowed = self._evaluate_policy(authorization_policy, "operation", operation_id, input_values)
+            self.authorization_decisions[("operation", operation_id, authorization_policy)] = allowed
+            if not allowed:
+                policy = self.contract["authorization_policies"][authorization_policy]
+                self.last_outcome = (
+                    authorization["forbidden_as"]
+                    if self._authorization_subject_available(policy, input_values)
+                    else authorization["unauthenticated_as"]
+                )
+                return {"code": self.last_outcome, "message": self.last_outcome.replace("_", " ")}
         self.invoked_operations.append(operation_id)
-        authorization_policy = self.contract["operations"][operation_id]["authorization_policy"]
-        self.authorization_decisions[("operation", operation_id, authorization_policy)] = self._evaluate_policy(authorization_policy, "operation", operation_id, input_values)
-        self.last_outcome = _success_outcome_id(self.contract["operations"][operation_id])
+        self.last_outcome = _success_outcome_id(operation)
         values = dict(input_values)
         if operation_id == "operation.project.create":
             project = self._project(values)
@@ -330,7 +342,10 @@ class ProductApp:
         if authorization_policy:
             policy_id = authorization_policy
         elif kind == "operation":
-            policy_id = self.contract["operations"][target]["authorization_policy"]
+            authorization = self.contract["operations"][target].get("authorization")
+            if not authorization:
+                return False
+            policy_id = authorization["policy"]
         else:
             policy_id = self.contract["entry_points"][target]["authorization_policy"]
         recorded = self.authorization_decisions.get((kind, target, policy_id))
@@ -351,6 +366,20 @@ class ProductApp:
                 return False
         matched = all(self._authorization_condition_matches(condition, input_values) for condition in policy.get("conditions", []))
         return matched if policy["effect"] == "allow" else not matched
+
+    def _authorization_subject_available(self, policy: Mapping[str, Any], input_values: Mapping[str, Any]) -> bool:
+        for subject in policy.get("subjects", []):
+            if subject.get("kind") != "actor":
+                continue
+            source = subject.get("source")
+            if source:
+                try:
+                    return resolve_binding({"from": source}, {"input": dict(input_values), "fixture": self.fixtures}) is not None
+                except Exception:
+                    return False
+            if self.fixtures.get("actor", {}).get("id"):
+                return True
+        return False
 
     def _authorization_condition_matches(self, condition: Mapping[str, Any], input_values: Mapping[str, Any]) -> bool:
         if "unconditional" in condition:
