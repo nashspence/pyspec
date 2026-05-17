@@ -1,107 +1,91 @@
-<svg width="1067pt" height="217pt"
- viewBox="0.00 0.00 1067.00 217.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: cb5410b3ea767acdab4217bfa2f8738071d71f38cb91f9cdd7f6cb59a7adf1bc -->
+<svg width="798pt" height="217pt"
+ viewBox="0.00 0.00 798.00 217.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: 3594474b5afe103bc44d39c3bd49c673f0a53a62a7df1d617404e280b9a6478c -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 199)">
 <title>entrypoint_entry_point_worker_project_approval_notice</title>
 <!-- entrypoint_entry_point_worker_project_approval_notice -->
 <g id="node1" class="node">
 <title>entrypoint_entry_point_worker_project_approval_notice</title>
-<polygon fill="#ffffff" stroke="transparent" points="0,-52 0,-144 224,-144 224,-52 0,-52"/>
-<polygon fill="#0891b2" stroke="transparent" points="1,-135 1,-143 223,-143 223,-135 1,-135"/>
-<polygon fill="#ecfeff" stroke="transparent" points="1,-104 1,-135 223,-135 223,-104 1,-104"/>
-<text text-anchor="start" x="5" y="-121.6" font-family="Arial" font-weight="bold" font-size="13.00">workflow.project.approval_notice</text>
-<text text-anchor="start" x="5" y="-110.6" font-family="Arial" font-size="8.00" fill="#64748b">worker entry point</text>
-<text text-anchor="start" x="5" y="-93" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Worker entry exposing the approval notice</text>
-<text text-anchor="start" x="5" y="-82" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">workflow.</text>
-<text text-anchor="start" x="6" y="-62" font-family="Arial" font-weight="bold" font-size="10.00">workflow:</text>
-<text text-anchor="start" x="52" y="-62" font-family="Arial" font-size="10.00">  workflow.project.approval_notice</text>
-<polygon fill="none" stroke="#0891b2" points="0,-52 0,-144 224,-144 224,-52 0,-52"/>
-</g>
-<!-- entrypoint_input_entry_point_worker_project_approval_notice -->
-<g id="node2" class="node">
-<title>entrypoint_input_entry_point_worker_project_approval_notice</title>
-<polygon fill="#ffffff" stroke="transparent" points="285,-67 285,-129 493,-129 493,-67 285,-67"/>
-<polygon fill="#64748b" stroke="transparent" points="286,-120 286,-128 492,-128 492,-120 286,-120"/>
-<polygon fill="#f8fafc" stroke="transparent" points="286,-89 286,-120 492,-120 492,-89 286,-89"/>
-<text text-anchor="start" x="290" y="-106.6" font-family="Arial" font-weight="bold" font-size="13.00">event payload</text>
-<text text-anchor="start" x="290" y="-95.6" font-family="Arial" font-size="8.00" fill="#64748b">external data</text>
-<text text-anchor="start" x="291" y="-77" font-family="Arial" font-weight="bold" font-size="10.00">payload:</text>
-<text text-anchor="start" x="331" y="-77" font-family="Arial" font-size="10.00">  payload</text>
-<text text-anchor="start" x="371" y="-77" font-family="Arial" font-size="8.00" fill="#94a3b8">  data_contract.project.approved</text>
-<polygon fill="none" stroke="#64748b" points="285,-67 285,-129 493,-129 493,-67 285,-67"/>
-</g>
-<!-- entrypoint_entry_point_worker_project_approval_notice&#45;&gt;entrypoint_input_entry_point_worker_project_approval_notice -->
-<g id="edge1" class="edge">
-<title>entrypoint_entry_point_worker_project_approval_notice&#45;&gt;entrypoint_input_entry_point_worker_project_approval_notice</title>
-<path fill="none" stroke="#3f3f46" d="M224.06,-98C241.35,-98 259.23,-98 276.53,-98"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="276.98,-100.8 284.98,-98 276.98,-95.2 276.98,-100.8"/>
+<polygon fill="#ffffff" stroke="transparent" points="0,-46 0,-150 224,-150 224,-46 0,-46"/>
+<polygon fill="#0891b2" stroke="transparent" points="1,-141 1,-149 223,-149 223,-141 1,-141"/>
+<polygon fill="#ecfeff" stroke="transparent" points="1,-110 1,-141 223,-141 223,-110 1,-110"/>
+<text text-anchor="start" x="5" y="-127.6" font-family="Arial" font-weight="bold" font-size="13.00">workflow.project.approval_notice</text>
+<text text-anchor="start" x="5" y="-116.6" font-family="Arial" font-size="8.00" fill="#64748b">worker entry point</text>
+<text text-anchor="start" x="5" y="-99" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Worker entry exposing the approval notice</text>
+<text text-anchor="start" x="5" y="-88" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">workflow.</text>
+<text text-anchor="start" x="6" y="-68" font-family="Arial" font-weight="bold" font-size="10.00">workflow:</text>
+<text text-anchor="start" x="52" y="-68" font-family="Arial" font-size="10.00">  workflow.project.approval_notice</text>
+<text text-anchor="start" x="6" y="-56" font-family="Arial" font-weight="bold" font-size="10.00">payload:</text>
+<text text-anchor="start" x="46" y="-56" font-family="Arial" font-size="10.00">  payload</text>
+<text text-anchor="start" x="86" y="-56" font-family="Arial" font-size="8.00" fill="#94a3b8">  data_contract.project.approved</text>
+<polygon fill="none" stroke="#0891b2" points="0,-46 0,-150 224,-150 224,-46 0,-46"/>
 </g>
 <!-- entrypoint_target_workflow_project_approval_notice -->
-<g id="node3" class="node">
+<g id="node2" class="node">
 <title>entrypoint_target_workflow_project_approval_notice</title>
-<polygon fill="#ffffff" stroke="transparent" points="554,-31 554,-165 838,-165 838,-31 554,-31"/>
-<polygon fill="#a16207" stroke="transparent" points="555,-156 555,-164 837,-164 837,-156 555,-156"/>
-<polygon fill="#fefce8" stroke="transparent" points="555,-125 555,-156 837,-156 837,-125 555,-125"/>
-<text text-anchor="start" x="559" y="-142.6" font-family="Arial" font-weight="bold" font-size="13.00">workflow.project.approval_notice</text>
-<text text-anchor="start" x="559" y="-131.6" font-family="Arial" font-size="8.00" fill="#64748b">target workflow</text>
-<text text-anchor="start" x="559" y="-114" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approval event sends a downstream notice.</text>
-<text text-anchor="start" x="560" y="-94" font-family="Arial" font-weight="bold" font-size="10.00">trigger:</text>
-<text text-anchor="start" x="594" y="-94" font-family="Arial" font-size="10.00">  event event.project.approved</text>
-<text text-anchor="start" x="560" y="-82" font-family="Arial" font-weight="bold" font-size="10.00">steps:</text>
-<text text-anchor="start" x="588" y="-82" font-family="Arial" font-size="10.00">  send_notice → operation.project.send_approval_notice</text>
-<text text-anchor="start" x="559" y="-62" font-family="Arial" font-weight="bold" font-size="10.00">outcomes</text>
-<text text-anchor="start" x="559" y="-51" font-family="Arial" font-size="10.00">completed</text>
-<text text-anchor="start" x="605" y="-51" font-family="Arial" font-size="8.00" fill="#94a3b8">  data_contract.project.notice_result</text>
-<text text-anchor="start" x="732" y="-51" font-family="Arial" font-size="8.00"> ← success</text>
-<text text-anchor="start" x="559" y="-40" font-family="Arial" font-size="10.00">delivery_failed</text>
-<text text-anchor="start" x="622" y="-40" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<text text-anchor="start" x="657" y="-40" font-family="Arial" font-size="8.00"> ← failure</text>
-<polygon fill="none" stroke="#a16207" points="554,-31 554,-165 838,-165 838,-31 554,-31"/>
+<polygon fill="#ffffff" stroke="transparent" points="285,-31 285,-165 569,-165 569,-31 285,-31"/>
+<polygon fill="#a16207" stroke="transparent" points="286,-156 286,-164 568,-164 568,-156 286,-156"/>
+<polygon fill="#fefce8" stroke="transparent" points="286,-125 286,-156 568,-156 568,-125 286,-125"/>
+<text text-anchor="start" x="290" y="-142.6" font-family="Arial" font-weight="bold" font-size="13.00">workflow.project.approval_notice</text>
+<text text-anchor="start" x="290" y="-131.6" font-family="Arial" font-size="8.00" fill="#64748b">target workflow</text>
+<text text-anchor="start" x="290" y="-114" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approval event sends a downstream notice.</text>
+<text text-anchor="start" x="291" y="-94" font-family="Arial" font-weight="bold" font-size="10.00">trigger:</text>
+<text text-anchor="start" x="325" y="-94" font-family="Arial" font-size="10.00">  event event.project.approved</text>
+<text text-anchor="start" x="291" y="-82" font-family="Arial" font-weight="bold" font-size="10.00">steps:</text>
+<text text-anchor="start" x="319" y="-82" font-family="Arial" font-size="10.00">  send_notice → operation.project.send_approval_notice</text>
+<text text-anchor="start" x="290" y="-62" font-family="Arial" font-weight="bold" font-size="10.00">outcomes</text>
+<text text-anchor="start" x="290" y="-51" font-family="Arial" font-size="10.00">completed</text>
+<text text-anchor="start" x="336" y="-51" font-family="Arial" font-size="8.00" fill="#94a3b8">  data_contract.project.notice_result</text>
+<text text-anchor="start" x="463" y="-51" font-family="Arial" font-size="8.00"> ← success</text>
+<text text-anchor="start" x="290" y="-40" font-family="Arial" font-size="10.00">delivery_failed</text>
+<text text-anchor="start" x="353" y="-40" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<text text-anchor="start" x="388" y="-40" font-family="Arial" font-size="8.00"> ← failure</text>
+<polygon fill="none" stroke="#a16207" points="285,-31 285,-165 569,-165 569,-31 285,-31"/>
 </g>
-<!-- entrypoint_input_entry_point_worker_project_approval_notice&#45;&gt;entrypoint_target_workflow_project_approval_notice -->
-<g id="edge2" class="edge">
-<title>entrypoint_input_entry_point_worker_project_approval_notice&#45;&gt;entrypoint_target_workflow_project_approval_notice</title>
-<path fill="none" stroke="#3f3f46" d="M493.26,-98C510.19,-98 528.04,-98 545.82,-98"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="545.98,-100.8 553.98,-98 545.98,-95.2 545.98,-100.8"/>
+<!-- entrypoint_entry_point_worker_project_approval_notice&#45;&gt;entrypoint_target_workflow_project_approval_notice -->
+<g id="edge1" class="edge">
+<title>entrypoint_entry_point_worker_project_approval_notice&#45;&gt;entrypoint_target_workflow_project_approval_notice</title>
+<path fill="none" stroke="#3f3f46" d="M224.23,-98C241.22,-98 258.99,-98 276.64,-98"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="276.74,-100.8 284.74,-98 276.74,-95.2 276.74,-100.8"/>
 </g>
 <!-- entrypoint_response_entry_point_worker_project_approval_notice_accepted -->
-<g id="node4" class="node">
+<g id="node3" class="node">
 <title>entrypoint_response_entry_point_worker_project_approval_notice_accepted</title>
-<polygon fill="#ffffff" stroke="transparent" points="899,-119 899,-181 1031,-181 1031,-119 899,-119"/>
-<polygon fill="#16a34a" stroke="transparent" points="900,-172 900,-180 1030,-180 1030,-172 900,-172"/>
-<polygon fill="#f0fdf4" stroke="transparent" points="900,-141 900,-172 1030,-172 1030,-141 900,-141"/>
-<text text-anchor="start" x="904" y="-158.6" font-family="Arial" font-weight="bold" font-size="13.00">accepted</text>
-<text text-anchor="start" x="904" y="-147.6" font-family="Arial" font-size="8.00" fill="#64748b">success disposition</text>
-<text text-anchor="start" x="905" y="-129" font-family="Arial" font-weight="bold" font-size="10.00">disposition:</text>
-<text text-anchor="start" x="961" y="-129" font-family="Arial" font-size="10.00">  acknowledge</text>
-<polygon fill="none" stroke="#16a34a" points="899,-119 899,-181 1031,-181 1031,-119 899,-119"/>
+<polygon fill="#ffffff" stroke="transparent" points="630,-119 630,-181 762,-181 762,-119 630,-119"/>
+<polygon fill="#16a34a" stroke="transparent" points="631,-172 631,-180 761,-180 761,-172 631,-172"/>
+<polygon fill="#f0fdf4" stroke="transparent" points="631,-141 631,-172 761,-172 761,-141 631,-141"/>
+<text text-anchor="start" x="635" y="-158.6" font-family="Arial" font-weight="bold" font-size="13.00">accepted</text>
+<text text-anchor="start" x="635" y="-147.6" font-family="Arial" font-size="8.00" fill="#64748b">success disposition</text>
+<text text-anchor="start" x="636" y="-129" font-family="Arial" font-weight="bold" font-size="10.00">disposition:</text>
+<text text-anchor="start" x="692" y="-129" font-family="Arial" font-size="10.00">  acknowledge</text>
+<polygon fill="none" stroke="#16a34a" points="630,-119 630,-181 762,-181 762,-119 630,-119"/>
 </g>
 <!-- entrypoint_target_workflow_project_approval_notice&#45;&gt;entrypoint_response_entry_point_worker_project_approval_notice_accepted -->
-<g id="edge3" class="edge">
+<g id="edge2" class="edge">
 <title>entrypoint_target_workflow_project_approval_notice&#45;&gt;entrypoint_response_entry_point_worker_project_approval_notice_accepted</title>
-<path fill="none" stroke="#3f3f46" d="M838.32,-125.52C856.49,-129.06 874.46,-132.56 890.89,-135.76"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="890.43,-138.52 898.82,-137.31 891.5,-133.03 890.43,-138.52"/>
+<path fill="none" stroke="#3f3f46" d="M569.32,-125.52C587.49,-129.06 605.46,-132.56 621.89,-135.76"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="621.43,-138.52 629.82,-137.31 622.5,-133.03 621.43,-138.52"/>
 </g>
 <!-- entrypoint_response_entry_point_worker_project_approval_notice_malformed -->
-<g id="node5" class="node">
+<g id="node4" class="node">
 <title>entrypoint_response_entry_point_worker_project_approval_notice_malformed</title>
-<polygon fill="#ffffff" stroke="transparent" points="903.5,0 903.5,-92 1026.5,-92 1026.5,0 903.5,0"/>
-<polygon fill="#dc2626" stroke="transparent" points="905,-83 905,-91 1026,-91 1026,-83 905,-83"/>
-<polygon fill="#fef2f2" stroke="transparent" points="905,-52 905,-83 1026,-83 1026,-52 905,-52"/>
-<text text-anchor="start" x="909" y="-69.6" font-family="Arial" font-weight="bold" font-size="13.00">malformed</text>
-<text text-anchor="start" x="909" y="-58.6" font-family="Arial" font-size="8.00" fill="#64748b">failure disposition</text>
-<text text-anchor="start" x="910" y="-40" font-family="Arial" font-weight="bold" font-size="10.00">disposition:</text>
-<text text-anchor="start" x="966" y="-40" font-family="Arial" font-size="10.00">  dead_letter</text>
-<text text-anchor="start" x="909" y="-20" font-family="Arial" font-weight="bold" font-size="10.00">problem</text>
-<text text-anchor="start" x="909" y="-9" font-family="Arial" font-size="10.00">problem</text>
-<text text-anchor="start" x="944" y="-9" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<polygon fill="none" stroke="#dc2626" points="903.5,0 903.5,-92 1026.5,-92 1026.5,0 903.5,0"/>
+<polygon fill="#ffffff" stroke="transparent" points="634.5,0 634.5,-92 757.5,-92 757.5,0 634.5,0"/>
+<polygon fill="#dc2626" stroke="transparent" points="636,-83 636,-91 757,-91 757,-83 636,-83"/>
+<polygon fill="#fef2f2" stroke="transparent" points="636,-52 636,-83 757,-83 757,-52 636,-52"/>
+<text text-anchor="start" x="640" y="-69.6" font-family="Arial" font-weight="bold" font-size="13.00">malformed</text>
+<text text-anchor="start" x="640" y="-58.6" font-family="Arial" font-size="8.00" fill="#64748b">failure disposition</text>
+<text text-anchor="start" x="641" y="-40" font-family="Arial" font-weight="bold" font-size="10.00">disposition:</text>
+<text text-anchor="start" x="697" y="-40" font-family="Arial" font-size="10.00">  dead_letter</text>
+<text text-anchor="start" x="640" y="-20" font-family="Arial" font-weight="bold" font-size="10.00">problem</text>
+<text text-anchor="start" x="640" y="-9" font-family="Arial" font-size="10.00">problem</text>
+<text text-anchor="start" x="675" y="-9" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<polygon fill="none" stroke="#dc2626" points="634.5,0 634.5,-92 757.5,-92 757.5,0 634.5,0"/>
 </g>
 <!-- entrypoint_target_workflow_project_approval_notice&#45;&gt;entrypoint_response_entry_point_worker_project_approval_notice_malformed -->
-<g id="edge4" class="edge">
+<g id="edge3" class="edge">
 <title>entrypoint_target_workflow_project_approval_notice&#45;&gt;entrypoint_response_entry_point_worker_project_approval_notice_malformed</title>
-<path fill="none" stroke="#3f3f46" d="M838.32,-70.48C858.17,-66.61 877.79,-62.79 895.41,-59.36"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="896.05,-62.09 903.36,-57.81 894.98,-56.59 896.05,-62.09"/>
+<path fill="none" stroke="#3f3f46" d="M569.32,-70.48C589.17,-66.61 608.79,-62.79 626.41,-59.36"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="627.05,-62.09 634.36,-57.81 625.98,-56.59 627.05,-62.09"/>
 </g>
 <!-- entrypoint_response_entry_point_worker_project_approval_notice_accepted&#45;&gt;entrypoint_response_entry_point_worker_project_approval_notice_malformed -->
 </g>

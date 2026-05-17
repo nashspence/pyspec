@@ -1,6 +1,6 @@
 <svg width="1244pt" height="242pt"
  viewBox="0.00 0.00 1244.00 241.50" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 1b602004d78ddb9ba785b2751bfcc56ea051367ecb23589e26b9019cdc464845 -->
+<!-- pyspec-contract-input-sha256: 3d3c59528be60cce3869748d50b5861465e22ca8c8480b47e8ab4db96cca3739 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 223.5)">
 <title>operation_operation_project_create</title>
 <!-- operation_input_operation_project_create -->
@@ -42,8 +42,8 @@
 <!-- operation_input_operation_project_create&#45;&gt;operation_policy_authorization_policy_project_create -->
 <g id="edge1" class="edge">
 <title>operation_input_operation_project_create&#45;&gt;operation_policy_authorization_policy_project_create</title>
-<path fill="none" stroke="#c2410c" stroke-width="1.2" d="M84.25,-97.5C109.78,-97.5 144.04,-97.5 177.8,-97.5"/>
-<polygon fill="#c2410c" stroke="#c2410c" stroke-width="1.2" points="177.9,-100.3 185.9,-97.5 177.9,-94.7 177.9,-100.3"/>
+<path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M84.25,-97.5C109.78,-97.5 144.04,-97.5 177.8,-97.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="177.9,-100.3 185.9,-97.5 177.9,-94.7 177.9,-100.3"/>
 <text text-anchor="middle" x="135" y="-100.5" font-family="Arial" font-size="10.00">authorize</text>
 </g>
 <!-- operation_resource_operation_project_create_creates_Project -->
@@ -80,8 +80,8 @@
 <!-- operation_policy_authorization_policy_project_create&#45;&gt;operation_resource_operation_project_create_creates_Project -->
 <g id="edge2" class="edge">
 <title>operation_policy_authorization_policy_project_create&#45;&gt;operation_resource_operation_project_create_creates_Project</title>
-<path fill="none" stroke="#15803d" d="M419.37,-97.5C447.76,-97.5 477.98,-97.5 505.78,-97.5"/>
-<polygon fill="#15803d" stroke="#15803d" points="505.94,-100.3 513.94,-97.5 505.94,-94.7 505.94,-100.3"/>
+<path fill="none" stroke="#3f3f46" d="M419.37,-97.5C447.76,-97.5 477.98,-97.5 505.78,-97.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="505.94,-100.3 513.94,-97.5 505.94,-94.7 505.94,-100.3"/>
 <text text-anchor="middle" x="466.5" y="-100.5" font-family="Arial" font-size="10.00">creates</text>
 </g>
 <!-- operation_outcome_operation_project_create_created -->
@@ -100,8 +100,8 @@
 <!-- operation_resource_operation_project_create_creates_Project&#45;&gt;operation_outcome_operation_project_create_created -->
 <g id="edge3" class="edge">
 <title>operation_resource_operation_project_create_creates_Project&#45;&gt;operation_outcome_operation_project_create_created</title>
-<path fill="none" stroke="#16a34a" d="M708.35,-121.59C747.38,-131.34 790.43,-142.11 821.35,-149.84"/>
-<polygon fill="#16a34a" stroke="#16a34a" points="820.89,-152.61 829.33,-151.83 822.25,-147.18 820.89,-152.61"/>
+<path fill="none" stroke="#3f3f46" d="M708.35,-121.59C747.38,-131.34 790.43,-142.11 821.35,-149.84"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="820.89,-152.61 829.33,-151.83 822.25,-147.18 820.89,-152.61"/>
 <text text-anchor="middle" x="757.5" y="-141.5" font-family="Arial" font-size="10.00">success</text>
 </g>
 <!-- operation_outcome_operation_project_create_validation_failed -->
@@ -120,8 +120,8 @@
 <!-- operation_resource_operation_project_create_creates_Project&#45;&gt;operation_outcome_operation_project_create_validation_failed -->
 <g id="edge5" class="edge">
 <title>operation_resource_operation_project_create_creates_Project&#45;&gt;operation_outcome_operation_project_create_validation_failed</title>
-<path fill="none" stroke="#dc2626" d="M708.35,-73.8C738.57,-66.36 771.21,-58.33 798.76,-51.55"/>
-<polygon fill="#dc2626" stroke="#dc2626" points="799.66,-54.21 806.76,-49.58 798.32,-48.78 799.66,-54.21"/>
+<path fill="none" stroke="#3f3f46" d="M708.35,-73.8C738.57,-66.36 771.21,-58.33 798.76,-51.55"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="799.66,-54.21 806.76,-49.58 798.32,-48.78 799.66,-54.21"/>
 <text text-anchor="middle" x="757.5" y="-68.5" font-family="Arial" font-size="10.00">failure</text>
 </g>
 <!-- operation_outcome_operation_project_create_created&#45;&gt;operation_outcome_operation_project_create_validation_failed -->
@@ -142,8 +142,8 @@
 <!-- operation_outcome_operation_project_create_created&#45;&gt;operation_event_operation_project_create_event_project_created -->
 <g id="edge4" class="edge">
 <title>operation_outcome_operation_project_create_created&#45;&gt;operation_event_operation_project_create_event_project_created</title>
-<path fill="none" stroke="#4f46e5" stroke-width="1.2" d="M900.75,-160.5C925.86,-160.5 961.26,-160.5 995.54,-160.5"/>
-<polygon fill="#4f46e5" stroke="#4f46e5" stroke-width="1.2" points="995.76,-163.3 1003.76,-160.5 995.76,-157.7 995.76,-163.3"/>
+<path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M900.75,-160.5C925.86,-160.5 961.26,-160.5 995.54,-160.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="995.76,-163.3 1003.76,-160.5 995.76,-157.7 995.76,-163.3"/>
 <text text-anchor="middle" x="963.5" y="-163.5" font-family="Arial" font-size="10.00">emit</text>
 </g>
 </g>

@@ -144,6 +144,22 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     workflow = workflow_flow_dot("workflow.project.approval_notice", contract["workflows"]["workflow.project.approval_notice"], contract)
     operation = operation_flow_dot("operation.project.approve", contract["operations"]["operation.project.approve"], contract)
     create_operation = operation_flow_dot("operation.project.create", contract["operations"]["operation.project.create"], contract)
+    diagram_sources = (
+        state_machine,
+        composition,
+        entrypoint,
+        api_entrypoint,
+        cli_entrypoint,
+        cli_approve_entrypoint,
+        worker_entrypoint,
+        workflow,
+        operation,
+        create_operation,
+    )
+    for dot_source in diagram_sources:
+        edge_lines = [line for line in dot_source.splitlines() if " -> " in line]
+        assert edge_lines
+        assert all("color=" not in line for line in edge_lines)
     assert state_machine.startswith("digraph ")
     assert composition.startswith("digraph ")
     assert entrypoint.startswith("digraph ")
@@ -284,7 +300,6 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "fontcolor" not in composition
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">html_route entry point</FONT>' in entrypoint
     assert "<B>route:</B>&#160;&#160;route.project.board" in entrypoint
-    assert "<B>request</B>" in entrypoint
     assert "<B>path params</B>" in entrypoint
     assert '<FONT POINT-SIZE="10">workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in entrypoint
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">target state machine (html)</FONT>' in entrypoint
@@ -293,9 +308,10 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert 'BGCOLOR="#faf5ff"' in state_machine_target_card
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">target state machine (textual)</FONT>' in cli_entrypoint
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">target workflow</FONT>' in worker_entrypoint
-    assert "<B>event payload</B>" in worker_entrypoint
     assert "<B>message disposition</B>" not in worker_entrypoint
     assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.approved</FONT>' in worker_entrypoint
+    worker_entry_card = worker_entrypoint[worker_entrypoint.index('"entrypoint_entry_point_worker_project_approval_notice"') : worker_entrypoint.index('"entrypoint_target_workflow_project_approval_notice"')]
+    assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.approved</FONT>' in worker_entry_card
     worker_accepted_card = worker_entrypoint[worker_entrypoint.index('"entrypoint_response_entry_point_worker_project_approval_notice_accepted"') : worker_entrypoint.index('"entrypoint_response_entry_point_worker_project_approval_notice_malformed"')]
     worker_malformed_card = worker_entrypoint[worker_entrypoint.index('"entrypoint_response_entry_point_worker_project_approval_notice_malformed"') :]
     assert "<B>accepted</B>" in worker_accepted_card
@@ -309,6 +325,8 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
         assert 'label="exit"' not in entrypoint_flow
         assert "entry_start" not in entrypoint_flow
         assert "entry_exit" not in entrypoint_flow
+        assert "entrypoint_input" not in entrypoint_flow
+        assert "external data" not in entrypoint_flow
     assert "<B>html renderer handoff</B>" not in entrypoint
     assert 'label="ui loop"' not in entrypoint
     assert "<B>entry input</B>" not in entrypoint
@@ -316,7 +334,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "entrypoint_mount" not in entrypoint
     assert "nav mount" not in entrypoint
     assert "<B>html renderer handoff</B>" not in cli_entrypoint
-    assert "<B>command input</B>" in cli_entrypoint
+    assert "<B>args</B>" in cli_entrypoint
     assert 'label="tui loop"' not in cli_entrypoint
     assert "<B>entry input</B>" not in cli_entrypoint
     assert "entrypoint_mount" not in cli_entrypoint
@@ -326,18 +344,19 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>state:</B>" not in cli_approve_entrypoint
     assert "<B>change:</B>" not in cli_approve_entrypoint
     assert "<B>transition:</B>" not in cli_approve_entrypoint
-    assert "<B>command input</B>" in cli_approve_entrypoint
+    assert "<B>args</B>" in cli_approve_entrypoint
     assert "success response" in cli_approve_entrypoint
     assert "failure response" in cli_approve_entrypoint
     assert "<B>entry input</B>" not in cli_approve_entrypoint
     assert "<B>entry output</B>" not in cli_approve_entrypoint
-    assert "<B>request</B>" in api_entrypoint
     assert "success response" in api_entrypoint
     assert "failure response" in api_entrypoint
-    request_card = api_entrypoint[api_entrypoint.index('"entrypoint_input_entry_point_api_project_create"') : api_entrypoint.index('"entrypoint_target_operation_project_create"')]
+    api_entry_card = api_entrypoint[api_entrypoint.index('"entrypoint_entry_point_api_project_create"') : api_entrypoint.index('"entrypoint_target_operation_project_create"')]
     success_response_card = api_entrypoint[api_entrypoint.index('"entrypoint_response_entry_point_api_project_create_created"') : api_entrypoint.index('"entrypoint_response_entry_point_api_project_create_validation_failed"')]
     failure_response_card = api_entrypoint[api_entrypoint.index('"entrypoint_response_entry_point_api_project_create_validation_failed"') :]
-    assert 'COLOR="#64748b" BGCOLOR="#ffffff"' in request_card
+    assert 'COLOR="#0891b2" BGCOLOR="#ffffff"' in api_entry_card
+    assert "<B>path params</B>" in api_entry_card
+    assert "<B>body</B>" in api_entry_card
     assert 'COLOR="#16a34a" BGCOLOR="#ffffff"' in success_response_card
     assert 'BGCOLOR="#f0fdf4"' in success_response_card
     assert 'COLOR="#dc2626" BGCOLOR="#ffffff"' in failure_response_card

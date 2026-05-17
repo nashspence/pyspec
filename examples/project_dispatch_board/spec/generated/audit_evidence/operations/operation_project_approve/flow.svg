@@ -1,6 +1,6 @@
 <svg width="1362pt" height="497pt"
  viewBox="0.00 0.00 1362.00 497.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 543e09dee3384e335a121bb0d2a38c1a39919477d20071d6c2c5006dd4df5424 -->
+<!-- pyspec-contract-input-sha256: 204aca37c4bc99ac3050d58941d50eca54e901c42b39bd6bbc8efd42cab3b6b9 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 479)">
 <title>operation_operation_project_approve</title>
 <!-- operation_input_operation_project_approve -->
@@ -38,8 +38,8 @@
 <!-- operation_input_operation_project_approve&#45;&gt;operation_policy_authorization_policy_project_approve -->
 <g id="edge1" class="edge">
 <title>operation_input_operation_project_approve&#45;&gt;operation_policy_authorization_policy_project_approve</title>
-<path fill="none" stroke="#c2410c" stroke-width="1.2" d="M79.16,-201.5C104.26,-201.5 138.57,-201.5 172.77,-201.5"/>
-<polygon fill="#c2410c" stroke="#c2410c" stroke-width="1.2" points="172.98,-204.3 180.98,-201.5 172.98,-198.7 172.98,-204.3"/>
+<path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M79.16,-201.5C104.26,-201.5 138.57,-201.5 172.77,-201.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="172.98,-204.3 180.98,-201.5 172.98,-198.7 172.98,-204.3"/>
 <text text-anchor="middle" x="130" y="-204.5" font-family="Arial" font-size="10.00">authorize</text>
 </g>
 <!-- operation_resource_operation_project_approve_transition_Project_status -->
@@ -59,8 +59,8 @@
 <!-- operation_policy_authorization_policy_project_approve&#45;&gt;operation_resource_operation_project_approve_transition_Project_status -->
 <g id="edge2" class="edge">
 <title>operation_policy_authorization_policy_project_approve&#45;&gt;operation_resource_operation_project_approve_transition_Project_status</title>
-<path fill="none" stroke="#15803d" d="M426.24,-201.5C455.95,-201.5 488.21,-201.5 519.53,-201.5"/>
-<polygon fill="#15803d" stroke="#15803d" points="519.9,-204.3 527.9,-201.5 519.9,-198.7 519.9,-204.3"/>
+<path fill="none" stroke="#3f3f46" d="M426.24,-201.5C455.95,-201.5 488.21,-201.5 519.53,-201.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="519.9,-204.3 527.9,-201.5 519.9,-198.7 519.9,-204.3"/>
 <text text-anchor="middle" x="477" y="-204.5" font-family="Arial" font-size="10.00">transition</text>
 </g>
 <!-- operation_outcome_operation_project_approve_approved -->
@@ -79,8 +79,8 @@
 <!-- operation_resource_operation_project_approve_transition_Project_status&#45;&gt;operation_outcome_operation_project_approve_approved -->
 <g id="edge3" class="edge">
 <title>operation_resource_operation_project_approve_transition_Project_status&#45;&gt;operation_outcome_operation_project_approve_approved</title>
-<path fill="none" stroke="#16a34a" d="M736.65,-237.19C795.13,-278 889.72,-344.01 943.72,-381.69"/>
-<polygon fill="#16a34a" stroke="#16a34a" points="942.26,-384.09 950.42,-386.37 945.46,-379.49 942.26,-384.09"/>
+<path fill="none" stroke="#3f3f46" d="M736.65,-237.19C795.13,-278 889.72,-344.01 943.72,-381.69"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="942.26,-384.09 950.42,-386.37 945.46,-379.49 942.26,-384.09"/>
 <text text-anchor="middle" x="890.5" y="-356.5" font-family="Arial" font-size="10.00">success</text>
 </g>
 <!-- operation_outcome_operation_project_approve_invalid_state -->
@@ -99,8 +99,8 @@
 <!-- operation_resource_operation_project_approve_transition_Project_status&#45;&gt;operation_outcome_operation_project_approve_invalid_state -->
 <g id="edge5" class="edge">
 <title>operation_resource_operation_project_approve_transition_Project_status&#45;&gt;operation_outcome_operation_project_approve_invalid_state</title>
-<path fill="none" stroke="#dc2626" d="M812.08,-237C854.06,-248.77 898.52,-261.25 931.85,-270.59"/>
-<polygon fill="#dc2626" stroke="#dc2626" points="931.18,-273.31 939.64,-272.78 932.7,-267.92 931.18,-273.31"/>
+<path fill="none" stroke="#3f3f46" d="M812.08,-237C854.06,-248.77 898.52,-261.25 931.85,-270.59"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="931.18,-273.31 939.64,-272.78 932.7,-267.92 931.18,-273.31"/>
 <text text-anchor="middle" x="890.5" y="-265.5" font-family="Arial" font-size="10.00">failure</text>
 </g>
 <!-- operation_outcome_operation_project_approve_not_found -->
@@ -119,8 +119,8 @@
 <!-- operation_resource_operation_project_approve_transition_Project_status&#45;&gt;operation_outcome_operation_project_approve_not_found -->
 <g id="edge6" class="edge">
 <title>operation_resource_operation_project_approve_transition_Project_status&#45;&gt;operation_outcome_operation_project_approve_not_found</title>
-<path fill="none" stroke="#dc2626" d="M841.39,-180.16C877.33,-175.24 912.79,-170.38 939.49,-166.73"/>
-<polygon fill="#dc2626" stroke="#dc2626" points="939.94,-169.5 947.48,-165.64 939.18,-163.95 939.94,-169.5"/>
+<path fill="none" stroke="#3f3f46" d="M841.39,-180.16C877.33,-175.24 912.79,-170.38 939.49,-166.73"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="939.94,-169.5 947.48,-165.64 939.18,-163.95 939.94,-169.5"/>
 <text text-anchor="middle" x="890.5" y="-177.5" font-family="Arial" font-size="10.00">failure</text>
 </g>
 <!-- operation_outcome_operation_project_approve_unavailable -->
@@ -139,8 +139,8 @@
 <!-- operation_resource_operation_project_approve_transition_Project_status&#45;&gt;operation_outcome_operation_project_approve_unavailable -->
 <g id="edge7" class="edge">
 <title>operation_resource_operation_project_approve_transition_Project_status&#45;&gt;operation_outcome_operation_project_approve_unavailable</title>
-<path fill="none" stroke="#dc2626" d="M749.75,-165.89C805.78,-134.84 885.82,-90.47 936.59,-62.33"/>
-<polygon fill="#dc2626" stroke="#dc2626" points="938.22,-64.63 943.86,-58.3 935.5,-59.73 938.22,-64.63"/>
+<path fill="none" stroke="#3f3f46" d="M749.75,-165.89C805.78,-134.84 885.82,-90.47 936.59,-62.33"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="938.22,-64.63 943.86,-58.3 935.5,-59.73 938.22,-64.63"/>
 <text text-anchor="middle" x="890.5" y="-96.5" font-family="Arial" font-size="10.00">failure</text>
 </g>
 <!-- operation_outcome_operation_project_approve_approved&#45;&gt;operation_outcome_operation_project_approve_invalid_state -->
@@ -162,8 +162,8 @@
 <!-- operation_outcome_operation_project_approve_approved&#45;&gt;operation_event_operation_project_approve_event_project_approved -->
 <g id="edge4" class="edge">
 <title>operation_outcome_operation_project_approve_approved&#45;&gt;operation_event_operation_project_approve_event_project_approved</title>
-<path fill="none" stroke="#4f46e5" stroke-width="1.2" d="M1021.66,-410.5C1044,-410.5 1074.46,-410.5 1104.73,-410.5"/>
-<polygon fill="#4f46e5" stroke="#4f46e5" stroke-width="1.2" points="1104.83,-413.3 1112.83,-410.5 1104.83,-407.7 1104.83,-413.3"/>
+<path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M1021.66,-410.5C1044,-410.5 1074.46,-410.5 1104.73,-410.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="1104.83,-413.3 1112.83,-410.5 1104.83,-407.7 1104.83,-413.3"/>
 <text text-anchor="middle" x="1072.5" y="-413.5" font-family="Arial" font-size="10.00">emit</text>
 </g>
 <!-- operation_outcome_operation_project_approve_invalid_state&#45;&gt;operation_outcome_operation_project_approve_not_found -->

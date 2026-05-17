@@ -1836,12 +1836,12 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
     target_kind, target_value = entry_target_pair(entry)
     target_renderer = entry_state_machine_renderer(entry) if target_kind == "state_machine" else None
     entry_node = _dot_node_id("entrypoint", entry_id)
-    input_node = _dot_node_id("entrypoint_input", entry_id)
     target_node = _dot_node_id("entrypoint_target", target_value)
     response_nodes = _entry_point_response_nodes(entry_id, entry, contract)
     target_tail = [] if target_kind == "state_machine" else _entry_target_tail_nodes(target_kind, target_value, contract)
-    input_sections = _entry_input_sections(entry, contract)
-    input_title, output_title = _entry_io_card_titles(adapter_kind)
+    entry_sections = _entry_binding_sections(entry, contract)
+    entry_sections.extend(_entry_input_sections(entry, contract))
+    _, output_title = _entry_io_card_titles(adapter_kind)
     lines = _dot_graph_preamble("entrypoint_" + safe_id(entry_id))
     lines.extend(
         [
@@ -1850,19 +1850,12 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
                 _dot_card(
                     _entry_surface_title(entry),
                     f"{adapter_kind} entry point",
-                    _entry_binding_sections(entry, contract),
+                    entry_sections,
                     rationale=entry.get("rationale", ""),
                     style=_DOT_STYLE_ENTRY,
                 ),
             ),
         ]
-    )
-    if input_sections:
-        lines.append(
-            _dot_html_node(
-                input_node,
-                _dot_card(input_title, "external data", input_sections, style=_DOT_STYLE_EXTERNAL),
-            )
     )
     lines.append(_dot_html_node(target_node, _entry_target_card(target_kind, target_value, contract, renderer=target_renderer)))
     if response_nodes:
@@ -1874,11 +1867,7 @@ def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str
             for node_id, outcome_id, subtitle, outcome_kind, sections in response_nodes
         )
     lines.extend(_dot_html_node(node_id, label) for node_id, label in target_tail)
-    if input_sections:
-        lines.append(_dot_edge(entry_node, input_node))
-        lines.append(_dot_edge(input_node, target_node))
-    else:
-        lines.append(_dot_edge(entry_node, target_node))
+    lines.append(_dot_edge(entry_node, target_node))
     for node_id, _ in target_tail:
         lines.append(_dot_edge(target_node, node_id))
     if response_nodes:
@@ -2737,7 +2726,8 @@ def _dot_plain_node(node_id: str, attrs: dict[str, object], indent: str = "  ") 
 
 
 def _dot_edge(source: str, target: str, attrs: dict[str, object] | None = None, indent: str = "  ") -> str:
-    return f"{indent}{_dot_quote(source)} -> {_dot_quote(target)}{_dot_attrs(attrs or {})};"
+    edge_attrs = {name: value for name, value in (attrs or {}).items() if name != "color"}
+    return f"{indent}{_dot_quote(source)} -> {_dot_quote(target)}{_dot_attrs(edge_attrs)};"
 
 
 def _dot_invisible_order(node_ids: list[str], indent: str) -> list[str]:

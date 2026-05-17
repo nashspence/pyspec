@@ -1,6 +1,6 @@
 <svg width="1331pt" height="367pt"
  viewBox="0.00 0.00 1331.00 366.50" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: bc5d1c11d4cf45b68651406c002ca081f76eb7ae3ccdf55349e808409dfb5062 -->
+<!-- pyspec-contract-input-sha256: a134dc692003897e412fd000d1e5ef962bd4bb68b7ec0e3607d3444556975d53 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 348.5)">
 <title>operation_operation_project_archive</title>
 <!-- operation_input_operation_project_archive -->
@@ -36,8 +36,8 @@
 <!-- operation_input_operation_project_archive&#45;&gt;operation_policy_authorization_policy_project_archive -->
 <g id="edge1" class="edge">
 <title>operation_input_operation_project_archive&#45;&gt;operation_policy_authorization_policy_project_archive</title>
-<path fill="none" stroke="#c2410c" stroke-width="1.2" d="M66.04,-160.5C90.11,-160.5 124.77,-160.5 159.53,-160.5"/>
-<polygon fill="#c2410c" stroke="#c2410c" stroke-width="1.2" points="159.89,-163.3 167.89,-160.5 159.89,-157.7 159.89,-163.3"/>
+<path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M66.04,-160.5C90.11,-160.5 124.77,-160.5 159.53,-160.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="159.89,-163.3 167.89,-160.5 159.89,-157.7 159.89,-163.3"/>
 <text text-anchor="middle" x="117" y="-163.5" font-family="Arial" font-size="10.00">authorize</text>
 </g>
 <!-- operation_resource_operation_project_archive_transition_Project_status -->
@@ -57,8 +57,8 @@
 <!-- operation_policy_authorization_policy_project_archive&#45;&gt;operation_resource_operation_project_archive_transition_Project_status -->
 <g id="edge2" class="edge">
 <title>operation_policy_authorization_policy_project_archive&#45;&gt;operation_resource_operation_project_archive_transition_Project_status</title>
-<path fill="none" stroke="#15803d" d="M408.01,-160.5C437.7,-160.5 470.04,-160.5 501.41,-160.5"/>
-<polygon fill="#15803d" stroke="#15803d" points="501.8,-163.3 509.8,-160.5 501.8,-157.7 501.8,-163.3"/>
+<path fill="none" stroke="#3f3f46" d="M408.01,-160.5C437.7,-160.5 470.04,-160.5 501.41,-160.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="501.8,-163.3 509.8,-160.5 501.8,-157.7 501.8,-163.3"/>
 <text text-anchor="middle" x="459" y="-163.5" font-family="Arial" font-size="10.00">transition</text>
 </g>
 <!-- operation_outcome_operation_project_archive_archived -->
@@ -77,8 +77,8 @@
 <!-- operation_resource_operation_project_archive_transition_Project_status&#45;&gt;operation_outcome_operation_project_archive_archived -->
 <g id="edge3" class="edge">
 <title>operation_resource_operation_project_archive_transition_Project_status&#45;&gt;operation_outcome_operation_project_archive_archived</title>
-<path fill="none" stroke="#16a34a" d="M750.35,-196.15C806.2,-219.62 876.89,-249.32 921.04,-267.87"/>
-<polygon fill="#16a34a" stroke="#16a34a" points="919.96,-270.45 928.42,-270.97 922.13,-265.29 919.96,-270.45"/>
+<path fill="none" stroke="#3f3f46" d="M750.35,-196.15C806.2,-219.62 876.89,-249.32 921.04,-267.87"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="919.96,-270.45 928.42,-270.97 922.13,-265.29 919.96,-270.45"/>
 <text text-anchor="middle" x="868.5" y="-254.5" font-family="Arial" font-size="10.00">success</text>
 </g>
 <!-- operation_outcome_operation_project_archive_invalid_state -->
@@ -97,8 +97,8 @@
 <!-- operation_resource_operation_project_archive_transition_Project_status&#45;&gt;operation_outcome_operation_project_archive_invalid_state -->
 <g id="edge5" class="edge">
 <title>operation_resource_operation_project_archive_transition_Project_status&#45;&gt;operation_outcome_operation_project_archive_invalid_state</title>
-<path fill="none" stroke="#dc2626" d="M819.04,-160.5C851.73,-160.5 884.12,-160.5 909.87,-160.5"/>
-<polygon fill="#dc2626" stroke="#dc2626" points="909.98,-163.3 917.98,-160.5 909.98,-157.7 909.98,-163.3"/>
+<path fill="none" stroke="#3f3f46" d="M819.04,-160.5C851.73,-160.5 884.12,-160.5 909.87,-160.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="909.98,-163.3 917.98,-160.5 909.98,-157.7 909.98,-163.3"/>
 <text text-anchor="middle" x="868.5" y="-163.5" font-family="Arial" font-size="10.00">failure</text>
 </g>
 <!-- operation_outcome_operation_project_archive_not_found -->
@@ -117,8 +117,8 @@
 <!-- operation_resource_operation_project_archive_transition_Project_status&#45;&gt;operation_outcome_operation_project_archive_not_found -->
 <g id="edge6" class="edge">
 <title>operation_resource_operation_project_archive_transition_Project_status&#45;&gt;operation_outcome_operation_project_archive_not_found</title>
-<path fill="none" stroke="#dc2626" d="M750.35,-124.85C804.9,-101.93 873.61,-73.06 917.91,-54.44"/>
-<polygon fill="#dc2626" stroke="#dc2626" points="919.06,-57 925.35,-51.32 916.89,-51.84 919.06,-57"/>
+<path fill="none" stroke="#3f3f46" d="M750.35,-124.85C804.9,-101.93 873.61,-73.06 917.91,-54.44"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="919.06,-57 925.35,-51.32 916.89,-51.84 919.06,-57"/>
 <text text-anchor="middle" x="868.5" y="-82.5" font-family="Arial" font-size="10.00">failure</text>
 </g>
 <!-- operation_outcome_operation_project_archive_archived&#45;&gt;operation_outcome_operation_project_archive_invalid_state -->
@@ -139,8 +139,8 @@
 <!-- operation_outcome_operation_project_archive_archived&#45;&gt;operation_event_operation_project_archive_event_project_archived -->
 <g id="edge4" class="edge">
 <title>operation_outcome_operation_project_archive_archived&#45;&gt;operation_event_operation_project_archive_event_project_archived</title>
-<path fill="none" stroke="#4f46e5" stroke-width="1.2" d="M999.97,-285.5C1022.35,-285.5 1052.71,-285.5 1082.68,-285.5"/>
-<polygon fill="#4f46e5" stroke="#4f46e5" stroke-width="1.2" points="1082.7,-288.3 1090.7,-285.5 1082.7,-282.7 1082.7,-288.3"/>
+<path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M999.97,-285.5C1022.35,-285.5 1052.71,-285.5 1082.68,-285.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="1082.7,-288.3 1090.7,-285.5 1082.7,-282.7 1082.7,-288.3"/>
 <text text-anchor="middle" x="1050.5" y="-288.5" font-family="Arial" font-size="10.00">emit</text>
 </g>
 <!-- operation_outcome_operation_project_archive_invalid_state&#45;&gt;operation_outcome_operation_project_archive_not_found -->

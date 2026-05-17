@@ -1,6 +1,6 @@
 <svg width="882pt" height="232pt"
  viewBox="0.00 0.00 882.00 232.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 4670bb808f3e29abde1d85f388931fff7325c5a5e04e2c2ae929af961d87365f -->
+<!-- pyspec-contract-input-sha256: 74e8dbc286aab1d8a485fed1686b327522b4991dcbc9377fba177e3797cd7a7f -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 214)">
 <title>operation_operation_project_read</title>
 <!-- operation_input_operation_project_read -->
@@ -37,8 +37,8 @@
 <!-- operation_input_operation_project_read&#45;&gt;operation_policy_authorization_policy_project_read -->
 <g id="edge1" class="edge">
 <title>operation_input_operation_project_read&#45;&gt;operation_policy_authorization_policy_project_read</title>
-<path fill="none" stroke="#c2410c" stroke-width="1.2" d="M66.08,-97.5C90.29,-97.5 125.12,-97.5 159.54,-97.5"/>
-<polygon fill="#c2410c" stroke="#c2410c" stroke-width="1.2" points="159.81,-100.3 167.81,-97.5 159.81,-94.7 159.81,-100.3"/>
+<path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M66.08,-97.5C90.29,-97.5 125.12,-97.5 159.54,-97.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="159.81,-100.3 167.81,-97.5 159.81,-94.7 159.81,-100.3"/>
 <text text-anchor="middle" x="117" y="-100.5" font-family="Arial" font-size="10.00">authorize</text>
 </g>
 <!-- operation_resource_operation_project_read_reads_Project -->
@@ -75,8 +75,8 @@
 <!-- operation_policy_authorization_policy_project_read&#45;&gt;operation_resource_operation_project_read_reads_Project -->
 <g id="edge2" class="edge">
 <title>operation_policy_authorization_policy_project_read&#45;&gt;operation_resource_operation_project_read_reads_Project</title>
-<path fill="none" stroke="#15803d" d="M389.25,-97.5C414.85,-97.5 442.04,-97.5 467.41,-97.5"/>
-<polygon fill="#15803d" stroke="#15803d" points="467.57,-100.3 475.57,-97.5 467.57,-94.7 467.57,-100.3"/>
+<path fill="none" stroke="#3f3f46" d="M389.25,-97.5C414.85,-97.5 442.04,-97.5 467.41,-97.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="467.57,-100.3 475.57,-97.5 467.57,-94.7 467.57,-100.3"/>
 <text text-anchor="middle" x="432.5" y="-100.5" font-family="Arial" font-size="10.00">reads</text>
 </g>
 <!-- operation_outcome_operation_project_read_found -->
@@ -95,8 +95,8 @@
 <!-- operation_resource_operation_project_read_reads_Project&#45;&gt;operation_outcome_operation_project_read_found -->
 <g id="edge3" class="edge">
 <title>operation_resource_operation_project_read_reads_Project&#45;&gt;operation_outcome_operation_project_read_found</title>
-<path fill="none" stroke="#16a34a" d="M670.24,-123.58C702.85,-132.41 737.62,-141.84 763.88,-148.95"/>
-<polygon fill="#16a34a" stroke="#16a34a" points="763.29,-151.69 771.74,-151.08 764.75,-146.29 763.29,-151.69"/>
+<path fill="none" stroke="#3f3f46" d="M670.24,-123.58C702.85,-132.41 737.62,-141.84 763.88,-148.95"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="763.29,-151.69 771.74,-151.08 764.75,-146.29 763.29,-151.69"/>
 <text text-anchor="middle" x="719.5" y="-144.5" font-family="Arial" font-size="10.00">success</text>
 </g>
 <!-- operation_outcome_operation_project_read_not_found -->
@@ -115,8 +115,8 @@
 <!-- operation_resource_operation_project_read_reads_Project&#45;&gt;operation_outcome_operation_project_read_not_found -->
 <g id="edge4" class="edge">
 <title>operation_resource_operation_project_read_reads_Project&#45;&gt;operation_outcome_operation_project_read_not_found</title>
-<path fill="none" stroke="#dc2626" d="M670.24,-71.83C701.72,-63.44 735.21,-54.51 761.11,-47.6"/>
-<polygon fill="#dc2626" stroke="#dc2626" points="761.89,-50.29 768.9,-45.53 760.44,-44.88 761.89,-50.29"/>
+<path fill="none" stroke="#3f3f46" d="M670.24,-71.83C701.72,-63.44 735.21,-54.51 761.11,-47.6"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="761.89,-50.29 768.9,-45.53 760.44,-44.88 761.89,-50.29"/>
 <text text-anchor="middle" x="719.5" y="-66.5" font-family="Arial" font-size="10.00">failure</text>
 </g>
 <!-- operation_outcome_operation_project_read_found&#45;&gt;operation_outcome_operation_project_read_not_found -->

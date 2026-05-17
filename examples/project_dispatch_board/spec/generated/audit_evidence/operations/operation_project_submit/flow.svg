@@ -1,6 +1,6 @@
 <svg width="1312pt" height="372pt"
  viewBox="0.00 0.00 1312.00 372.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: cd9fdd865b20fcf91d978dd680ee960dd13966f9e7c07f29c5e5c433630a89b2 -->
+<!-- pyspec-contract-input-sha256: c7abc2fd8d61d1f66dd8e1870ab42ba5c8610f4f7d8b88112b9b7d86b8ab42a2 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 354)">
 <title>operation_operation_project_submit</title>
 <!-- operation_input_operation_project_submit -->
@@ -37,8 +37,8 @@
 <!-- operation_input_operation_project_submit&#45;&gt;operation_policy_authorization_policy_project_submit -->
 <g id="edge1" class="edge">
 <title>operation_input_operation_project_submit&#45;&gt;operation_policy_authorization_policy_project_submit</title>
-<path fill="none" stroke="#c2410c" stroke-width="1.2" d="M66.04,-175.5C90.15,-175.5 124.86,-175.5 159.57,-175.5"/>
-<polygon fill="#c2410c" stroke="#c2410c" stroke-width="1.2" points="159.91,-178.3 167.91,-175.5 159.91,-172.7 159.91,-178.3"/>
+<path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M66.04,-175.5C90.15,-175.5 124.86,-175.5 159.57,-175.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="159.91,-178.3 167.91,-175.5 159.91,-172.7 159.91,-178.3"/>
 <text text-anchor="middle" x="117" y="-178.5" font-family="Arial" font-size="10.00">authorize</text>
 </g>
 <!-- operation_resource_operation_project_submit_transition_Project_status -->
@@ -58,8 +58,8 @@
 <!-- operation_policy_authorization_policy_project_submit&#45;&gt;operation_resource_operation_project_submit_transition_Project_status -->
 <g id="edge2" class="edge">
 <title>operation_policy_authorization_policy_project_submit&#45;&gt;operation_resource_operation_project_submit_transition_Project_status</title>
-<path fill="none" stroke="#15803d" d="M404.06,-175.5C433.82,-175.5 466.27,-175.5 497.6,-175.5"/>
-<polygon fill="#15803d" stroke="#15803d" points="497.98,-178.3 505.98,-175.5 497.98,-172.7 497.98,-178.3"/>
+<path fill="none" stroke="#3f3f46" d="M404.06,-175.5C433.82,-175.5 466.27,-175.5 497.6,-175.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="497.98,-178.3 505.98,-175.5 497.98,-172.7 497.98,-178.3"/>
 <text text-anchor="middle" x="455" y="-178.5" font-family="Arial" font-size="10.00">transition</text>
 </g>
 <!-- operation_outcome_operation_project_submit_invalid_state -->
@@ -78,8 +78,8 @@
 <!-- operation_resource_operation_project_submit_transition_Project_status&#45;&gt;operation_outcome_operation_project_submit_invalid_state -->
 <g id="edge3" class="edge">
 <title>operation_resource_operation_project_submit_transition_Project_status&#45;&gt;operation_outcome_operation_project_submit_invalid_state</title>
-<path fill="none" stroke="#dc2626" d="M738,-211.15C787.92,-232.6 849.96,-259.25 893.23,-277.83"/>
-<polygon fill="#dc2626" stroke="#dc2626" points="892.36,-280.51 900.82,-281.09 894.57,-275.36 892.36,-280.51"/>
+<path fill="none" stroke="#3f3f46" d="M738,-211.15C787.92,-232.6 849.96,-259.25 893.23,-277.83"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="892.36,-280.51 900.82,-281.09 894.57,-275.36 892.36,-280.51"/>
 <text text-anchor="middle" x="851.5" y="-269.5" font-family="Arial" font-size="10.00">failure</text>
 </g>
 <!-- operation_outcome_operation_project_submit_not_found -->
@@ -98,8 +98,8 @@
 <!-- operation_resource_operation_project_submit_transition_Project_status&#45;&gt;operation_outcome_operation_project_submit_not_found -->
 <g id="edge4" class="edge">
 <title>operation_resource_operation_project_submit_transition_Project_status&#45;&gt;operation_outcome_operation_project_submit_not_found</title>
-<path fill="none" stroke="#dc2626" d="M802.21,-175.5C837.98,-175.5 873.61,-175.5 900.46,-175.5"/>
-<polygon fill="#dc2626" stroke="#dc2626" points="900.5,-178.3 908.5,-175.5 900.5,-172.7 900.5,-178.3"/>
+<path fill="none" stroke="#3f3f46" d="M802.21,-175.5C837.98,-175.5 873.61,-175.5 900.46,-175.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="900.5,-178.3 908.5,-175.5 900.5,-172.7 900.5,-178.3"/>
 <text text-anchor="middle" x="851.5" y="-178.5" font-family="Arial" font-size="10.00">failure</text>
 </g>
 <!-- operation_outcome_operation_project_submit_submitted -->
@@ -118,8 +118,8 @@
 <!-- operation_resource_operation_project_submit_transition_Project_status&#45;&gt;operation_outcome_operation_project_submit_submitted -->
 <g id="edge5" class="edge">
 <title>operation_resource_operation_project_submit_transition_Project_status&#45;&gt;operation_outcome_operation_project_submit_submitted</title>
-<path fill="none" stroke="#16a34a" d="M738,-139.85C791.56,-116.84 859.08,-87.84 902.4,-69.23"/>
-<polygon fill="#16a34a" stroke="#16a34a" points="903.69,-71.72 909.93,-65.99 901.48,-66.58 903.69,-71.72"/>
+<path fill="none" stroke="#3f3f46" d="M738,-139.85C791.56,-116.84 859.08,-87.84 902.4,-69.23"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="903.69,-71.72 909.93,-65.99 901.48,-66.58 903.69,-71.72"/>
 <text text-anchor="middle" x="851.5" y="-100.5" font-family="Arial" font-size="10.00">success</text>
 </g>
 <!-- operation_outcome_operation_project_submit_invalid_state&#45;&gt;operation_outcome_operation_project_submit_not_found -->
@@ -142,8 +142,8 @@
 <!-- operation_outcome_operation_project_submit_submitted&#45;&gt;operation_event_operation_project_submit_event_project_submitted -->
 <g id="edge6" class="edge">
 <title>operation_outcome_operation_project_submit_submitted&#45;&gt;operation_event_operation_project_submit_event_project_submitted</title>
-<path fill="none" stroke="#4f46e5" stroke-width="1.2" d="M984.06,-50.5C1006.27,-50.5 1036.04,-50.5 1065.41,-50.5"/>
-<polygon fill="#4f46e5" stroke="#4f46e5" stroke-width="1.2" points="1065.67,-53.3 1073.67,-50.5 1065.67,-47.7 1065.67,-53.3"/>
+<path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M984.06,-50.5C1006.27,-50.5 1036.04,-50.5 1065.41,-50.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="1065.67,-53.3 1073.67,-50.5 1065.67,-47.7 1065.67,-53.3"/>
 <text text-anchor="middle" x="1033.5" y="-53.5" font-family="Arial" font-size="10.00">emit</text>
 </g>
 </g>

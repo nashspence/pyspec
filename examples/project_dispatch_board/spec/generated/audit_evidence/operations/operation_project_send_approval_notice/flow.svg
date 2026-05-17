@@ -1,6 +1,6 @@
 <svg width="813pt" height="232pt"
  viewBox="0.00 0.00 813.00 232.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 73c92a381a464e4a48a15301727c3de1a547a846f09965c7a855eaa01ddaa0cd -->
+<!-- pyspec-contract-input-sha256: 451ce6f76985264157f269fa05b4bde7def14d27ce7907aa35df919fceafdc55 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 214)">
 <title>operation_operation_project_send_approval_notice</title>
 <!-- operation_input_operation_project_send_approval_notice -->
@@ -39,8 +39,8 @@
 <!-- operation_input_operation_project_send_approval_notice&#45;&gt;operation_policy_authorization_policy_project_send_approval_notice -->
 <g id="edge1" class="edge">
 <title>operation_input_operation_project_send_approval_notice&#45;&gt;operation_policy_authorization_policy_project_send_approval_notice</title>
-<path fill="none" stroke="#c2410c" stroke-width="1.2" d="M79.07,-97.5C103.62,-97.5 137.36,-97.5 172.63,-97.5"/>
-<polygon fill="#c2410c" stroke="#c2410c" stroke-width="1.2" points="172.65,-100.3 180.65,-97.5 172.65,-94.7 172.65,-100.3"/>
+<path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M79.07,-97.5C103.62,-97.5 137.36,-97.5 172.63,-97.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="172.65,-100.3 180.65,-97.5 172.65,-94.7 172.65,-100.3"/>
 <text text-anchor="middle" x="130" y="-100.5" font-family="Arial" font-size="10.00">authorize</text>
 </g>
 <!-- operation_outcome_operation_project_send_approval_notice_delivery_failed -->
@@ -59,8 +59,8 @@
 <!-- operation_policy_authorization_policy_project_send_approval_notice&#45;&gt;operation_outcome_operation_project_send_approval_notice_delivery_failed -->
 <g id="edge2" class="edge">
 <title>operation_policy_authorization_policy_project_send_approval_notice&#45;&gt;operation_outcome_operation_project_send_approval_notice_delivery_failed</title>
-<path fill="none" stroke="#dc2626" d="M516.18,-127.89C558.97,-135.7 602.26,-143.59 635.53,-149.66"/>
-<polygon fill="#dc2626" stroke="#dc2626" points="635.39,-152.48 643.76,-151.16 636.39,-146.97 635.39,-152.48"/>
+<path fill="none" stroke="#3f3f46" d="M516.18,-127.89C558.97,-135.7 602.26,-143.59 635.53,-149.66"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="635.39,-152.48 643.76,-151.16 636.39,-146.97 635.39,-152.48"/>
 <text text-anchor="middle" x="565.5" y="-142.5" font-family="Arial" font-size="10.00">failure</text>
 </g>
 <!-- operation_outcome_operation_project_send_approval_notice_sent -->
@@ -79,8 +79,8 @@
 <!-- operation_policy_authorization_policy_project_send_approval_notice&#45;&gt;operation_outcome_operation_project_send_approval_notice_sent -->
 <g id="edge3" class="edge">
 <title>operation_policy_authorization_policy_project_send_approval_notice&#45;&gt;operation_outcome_operation_project_send_approval_notice_sent</title>
-<path fill="none" stroke="#16a34a" d="M516.18,-67.59C547.43,-61.98 578.95,-56.32 606.64,-51.36"/>
-<polygon fill="#16a34a" stroke="#16a34a" points="607.34,-54.08 614.72,-49.91 606.35,-48.56 607.34,-54.08"/>
+<path fill="none" stroke="#3f3f46" d="M516.18,-67.59C547.43,-61.98 578.95,-56.32 606.64,-51.36"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="607.34,-54.08 614.72,-49.91 606.35,-48.56 607.34,-54.08"/>
 <text text-anchor="middle" x="565.5" y="-64.5" font-family="Arial" font-size="10.00">success</text>
 </g>
 <!-- operation_outcome_operation_project_send_approval_notice_delivery_failed&#45;&gt;operation_outcome_operation_project_send_approval_notice_sent -->
