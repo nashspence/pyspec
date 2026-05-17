@@ -33,6 +33,8 @@ from .audit import (
     _scope_text_file,
     _text_doc,
     _scope_fixtures_file,
+    audit_coverage_file,
+    audit_coverage_index,
     audit_expected_files,
     composition_file,
     entrypoint_flow_file,
@@ -657,6 +659,8 @@ def validate_audit_outputs(root: Path, contract: dict[str, Any]) -> None:
     if actual != expected:
         raise ContractError(_diff_message("audit generated files", expected, actual))
 
+    _validate_audit_coverage_index(root, contract)
+
     for state_machine_id in contract.get("state_machines", {}):
         _assert_svg(root / state_machine_graph_file(state_machine_id), f"state machine {state_machine_id}")
     for state_machine_id, state_machine in contract.get("state_machines", {}).items():
@@ -707,6 +711,40 @@ def validate_audit_outputs(root: Path, contract: dict[str, Any]) -> None:
                 _assert_svg(svg_path, f"Textual state_machine audit {case_id}/{breakpoint}")
                 if "rich-terminal" not in svg_path.read_text(encoding="utf-8"):
                     raise ContractError(f"Textual audit SVG does not look like a Textual capture: {case_id}/{breakpoint}")
+
+
+def _validate_audit_coverage_index(root: Path, contract: dict[str, Any]) -> None:
+    expected = audit_coverage_index(contract)
+    actual = read_yaml(root / audit_coverage_file())
+    if actual != expected:
+        raise ContractError("audit coverage index does not match compiled contract")
+    visual_evidence_sets = expected["visual_evidence_sets"]
+    missing_required = expected["visual_audit"]["required"]["missing"]
+    if missing_required:
+        sample = ", ".join(list(missing_required)[:10])
+        raise ContractError(f"audit coverage index has missing required visual audit paths: {sample}")
+    for section in (expected["visual_audit"]["required"]["covered"], expected["visual_audit"]["optional"]["covered"]):
+        for spec_path, evidence_set in section.items():
+            if evidence_set not in visual_evidence_sets:
+                raise ContractError(f"audit coverage index references unknown evidence set for {spec_path}: {evidence_set}")
+            files = visual_evidence_sets[evidence_set]
+            for relative in files:
+                if not (root / relative).exists():
+                    raise ContractError(f"audit coverage index references missing evidence for {spec_path}: {relative}")
+    for spec_path, evidence_ref in expected["visual_audit"]["non_visual"].items():
+        evidence_set = evidence_ref.get("visual_evidence_set")
+        if evidence_set is None:
+            continue
+        if evidence_set not in visual_evidence_sets:
+            raise ContractError(f"audit coverage index references unknown evidence set for {spec_path}: {evidence_set}")
+        files = visual_evidence_sets[evidence_set]
+        for relative in files:
+            if not (root / relative).exists():
+                raise ContractError(f"audit coverage index references missing evidence for {spec_path}: {relative}")
+    for collection in expected["render_presence"].values():
+        for resource_id, evidence_set in collection["rendered"].items():
+            if evidence_set not in visual_evidence_sets:
+                raise ContractError(f"audit render coverage references unknown evidence set for {resource_id}: {evidence_set}")
 
 
 def _validate_audit_scope_inputs(

@@ -125,6 +125,7 @@ spec/generated/
     pytest_bdd_steps.py
     pytest_bdd_features/*.feature
   audit_evidence/
+    coverage.yaml
     entrypoints/<surface>/<entry>/
       flow.svg
     workflows/<workflow>/

@@ -130,6 +130,10 @@ def workflow_flow_file(workflow_id: str) -> str:
     return g("audit_evidence", "workflows", safe_id(workflow_id), "flow.svg")
 
 
+def audit_coverage_file() -> str:
+    return g("audit_evidence", "coverage.yaml")
+
+
 def audit_case_root(state_machine_id: str, case_id: str, state_name: str = "ready") -> str:
     return g("audit_evidence", "state_machines", safe_id(state_machine_id), "view_states", safe_id(state_name), "cases", safe_id(case_id))
 
@@ -343,7 +347,7 @@ def _audit_projection_surfaces(contract: dict[str, Any], projection: dict[str, A
     ]
 
 
-def audit_expected_files(contract: dict[str, Any]) -> set[str]:
+def _audit_visual_expected_files(contract: dict[str, Any]) -> set[str]:
     files: set[str] = set()
     for state_machine_id in contract.get("state_machines", {}):
         files.add(state_machine_graph_file(state_machine_id))
@@ -390,6 +394,525 @@ def audit_expected_files(contract: dict[str, Any]) -> set[str]:
     return files
 
 
+def audit_expected_files(contract: dict[str, Any]) -> set[str]:
+    return {audit_coverage_file()} | _audit_visual_expected_files(contract)
+
+
+def _audit_visual_evidence_files(contract: dict[str, Any]) -> set[str]:
+    files: set[str] = set()
+    for state_machine_id in contract.get("state_machines", {}):
+        files.add(state_machine_graph_file(state_machine_id))
+    for state_machine_id, state_machine in contract.get("state_machines", {}).items():
+        for state_name, state in state_machine.get("view_states", {}).items():
+            if state.get("child_state_machines"):
+                files.add(composition_file(state_machine_id, state_name))
+    for entry_id, entry in contract.get("entry_points", {}).items():
+        adapter_kind, _ = entry_point_adapter_pair(entry)
+        files.add(entrypoint_flow_file(entry_id, adapter_kind))
+    for workflow_id in contract.get("workflows", {}):
+        files.add(workflow_flow_file(workflow_id))
+
+    projection = state_machines_projection(contract)
+    for surface in _audit_projection_surfaces(contract, projection):
+        files.update(_projection_surface_render_capture_files(contract, surface))
+    for case_id, case in audit_cases(contract).items():
+        files.update(_case_render_capture_files(contract, case_id, case))
+    return files
+
+
+def _write_audit_coverage_index(root: Path, contract: dict[str, Any]) -> None:
+    path = root / audit_coverage_file()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    write_yaml(path, audit_coverage_index(contract), sort_keys=False)
+
+
+def audit_coverage_index(contract: dict[str, Any]) -> dict[str, Any]:
+    visual_evidence_sets: dict[str, list[str]] = {}
+    visual_evidence_set_ids: dict[tuple[str, ...], str] = {}
+    required_covered: dict[str, str] = {}
+    required_missing: dict[str, dict[str, str]] = {}
+    optional_covered: dict[str, str] = {}
+    optional_not_shown: dict[str, dict[str, str]] = {}
+    non_visual_paths: dict[str, dict[str, Any]] = {}
+
+    def visual_evidence_set_id(files: list[str]) -> str:
+        key = tuple(files)
+        if key not in visual_evidence_set_ids:
+            set_id = f"V{len(visual_evidence_set_ids) + 1:04d}"
+            visual_evidence_set_ids[key] = set_id
+            visual_evidence_sets[set_id] = files
+        return visual_evidence_set_ids[key]
+
+    for pointer in _contract_audit_pointers(contract):
+        non_visual_path = _non_visual_path_classification(contract, pointer)
+        if non_visual_path:
+            non_visual_evidence = non_visual_path.pop("evidence", [])
+            if non_visual_evidence:
+                non_visual_path["visual_evidence_set"] = visual_evidence_set_id(non_visual_evidence)
+            non_visual_paths[pointer] = non_visual_path
+            continue
+        obligation = _visual_path_obligation(contract, pointer)
+        evidence = _filter_evidence_files(contract, _audit_evidence_for_pointer(contract, pointer))
+        if obligation["level"] == "required":
+            if evidence:
+                required_covered[pointer] = visual_evidence_set_id(evidence)
+            else:
+                required_missing[pointer] = {"reason": obligation["reason"]}
+            continue
+        if evidence:
+            optional_covered[pointer] = visual_evidence_set_id(evidence)
+        else:
+            optional_not_shown[pointer] = {"reason": obligation["reason"]}
+    render_presence = _render_resource_coverage(contract, visual_evidence_set_id)
+    return {
+        "version": 1,
+        "project": contract.get("project"),
+        "summary": {
+            "required_visual_paths": len(required_covered) + len(required_missing),
+            "missing_required_visual_paths": len(required_missing),
+            "optional_visual_paths": len(optional_covered) + len(optional_not_shown),
+            "optional_visual_paths_not_shown": len(optional_not_shown),
+            "non_visual_paths": len(non_visual_paths),
+            "visual_evidence_sets": len(visual_evidence_sets),
+        },
+        "visual_evidence_sets": visual_evidence_sets,
+        "render_presence": render_presence,
+        "visual_audit": {
+            "required": {
+                "covered": required_covered,
+                "missing": required_missing,
+            },
+            "optional": {
+                "covered": optional_covered,
+                "not_shown": optional_not_shown,
+            },
+            "non_visual": non_visual_paths,
+        },
+    }
+
+
+def _contract_audit_pointers(contract: dict[str, Any]) -> list[str]:
+    return sorted(_iter_contract_leaf_pointers(contract, ()))
+
+
+def _iter_contract_leaf_pointers(value: Any, parts: tuple[str, ...]) -> Iterable[str]:
+    if isinstance(value, dict):
+        if not value:
+            yield _json_pointer(parts)
+            return
+        for key in sorted(value):
+            yield from _iter_contract_leaf_pointers(value[key], (*parts, str(key)))
+        return
+    if isinstance(value, list):
+        if not value:
+            yield _json_pointer(parts)
+            return
+        for index, item in enumerate(value):
+            yield from _iter_contract_leaf_pointers(item, (*parts, str(index)))
+        return
+    yield _json_pointer(parts)
+
+
+def _json_pointer(parts: Iterable[str]) -> str:
+    return "/" + "/".join(part.replace("~", "~0").replace("/", "~1") for part in parts)
+
+
+def _json_pointer_parts(pointer: str) -> list[str]:
+    if pointer == "/":
+        return []
+    return [part.replace("~1", "/").replace("~0", "~") for part in pointer.removeprefix("/").split("/")]
+
+
+def _non_visual_path_classification(contract: dict[str, Any], pointer: str) -> dict[str, Any] | None:
+    parts = _json_pointer_parts(pointer)
+    if not parts:
+        return None
+    _ = contract
+    if parts[0] == "project":
+        return {
+            "reason": "workspace metadata for generated artifacts; visual coverage tracks product contract paths",
+        }
+    if parts[0] == "refs":
+        return {
+            "reason": "compiled reference index metadata; owning resources are covered at their compiled spec paths",
+        }
+    return None
+
+
+def _visual_path_obligation(contract: dict[str, Any], pointer: str) -> dict[str, str]:
+    parts = _json_pointer_parts(pointer)
+    if parts and parts[0] in {"assets", "content_cases", "facts", "fixtures", "test_cases", "text_resources"}:
+        return {"level": "optional", "reason": _optional_visual_path_reason(parts[0])}
+    _ = contract
+    return {"level": "required", "reason": "required product contract path has no diagram or render-capture evidence"}
+
+
+def _optional_visual_path_reason(collection: str) -> str:
+    return {
+        "assets": "declared assets may be unused by rendered states",
+        "content_cases": "content examples are visual only when their referenced resource is rendered",
+        "facts": "facts may support behavior assertions without dedicated visual evidence",
+        "fixtures": "fixtures may support behavior or content tests without appearing in render audit cases",
+        "test_cases": "behavior cases may be represented by diagrams or renders, but are not required visual evidence",
+        "text_resources": "text resources may be adapter or branch-specific and need not appear in rendered states",
+    }[collection]
+
+
+def _audit_evidence_for_pointer(contract: dict[str, Any], pointer: str) -> list[str]:
+    parts = _json_pointer_parts(pointer)
+    if not parts:
+        return []
+    if parts[0] == "project":
+        return [audit_coverage_file()]
+    if len(parts) < 2:
+        return []
+    owner = parts[1]
+    if parts[0] == "assets":
+        return _asset_evidence_files(contract, owner)
+    if parts[0] == "authorization_policies":
+        return _authorization_policy_evidence_files(contract, owner)
+    if parts[0] == "content_cases":
+        return _content_case_evidence_files(contract, owner)
+    if parts[0] == "data_contracts":
+        return _data_contract_evidence_files(contract, owner)
+    if parts[0] == "entry_points":
+        return _entry_point_evidence_files(contract, owner)
+    if parts[0] == "events":
+        return _event_evidence_files(contract, owner)
+    if parts[0] == "facts":
+        return _fact_evidence_files(contract, owner)
+    if parts[0] == "fixtures":
+        return _fixture_evidence_files(contract, owner)
+    if parts[0] == "models":
+        return _model_evidence_files(contract, owner)
+    if parts[0] == "operations":
+        return _operation_evidence_files(contract, owner)
+    if parts[0] == "render_profiles":
+        return _all_render_evidence_files(contract)
+    if parts[0] == "state_machines":
+        state_name = parts[3] if len(parts) >= 4 and parts[2] == "view_states" else None
+        return _state_machine_evidence_files(contract, owner, state_name)
+    if parts[0] == "test_cases":
+        return _test_case_evidence_files(contract, owner)
+    if parts[0] == "text_resources":
+        return _text_resource_evidence_files(contract, owner)
+    if parts[0] == "workflows":
+        return _workflow_evidence_files(contract, owner)
+    return []
+
+
+def _filter_evidence_files(contract: dict[str, Any], files: Iterable[str]) -> list[str]:
+    valid = _audit_visual_evidence_files(contract)
+    return sorted({path for path in files if path in valid})
+
+
+def _render_resource_coverage(contract: dict[str, Any], evidence_set_id: Any) -> dict[str, Any]:
+    return {
+        "assets": _render_resource_collection_coverage(contract, "assets", "asset", evidence_set_id),
+        "text_resources": _render_resource_collection_coverage(contract, "text_resources", "text", evidence_set_id),
+        "fixtures": _render_resource_collection_coverage(contract, "fixtures", "fixture", evidence_set_id),
+        "facts": _render_resource_collection_coverage(contract, "facts", "fact", evidence_set_id),
+        "content_cases": _render_content_case_coverage(contract, evidence_set_id),
+    }
+
+
+def _render_resource_collection_coverage(contract: dict[str, Any], collection: str, kind: str, evidence_set_id: Any) -> dict[str, Any]:
+    rendered: dict[str, str] = {}
+    not_rendered: list[str] = []
+    for resource_id in sorted(contract.get(collection, {})):
+        evidence = _filter_evidence_files(contract, _scope_input_evidence_files(contract, resource_id, kind))
+        if evidence:
+            rendered[resource_id] = evidence_set_id(evidence)
+        else:
+            not_rendered.append(resource_id)
+    return {"rendered": rendered, "not_rendered": not_rendered}
+
+
+def _render_content_case_coverage(contract: dict[str, Any], evidence_set_id: Any) -> dict[str, Any]:
+    rendered: dict[str, str] = {}
+    not_rendered: list[str] = []
+    for content_case_id, content_case in sorted(contract.get("content_cases", {}).items()):
+        ref = content_case.get("ref")
+        evidence: list[str] = []
+        if ref in contract.get("text_resources", {}):
+            evidence = _filter_evidence_files(contract, _scope_input_evidence_files(contract, ref, "text"))
+        elif ref in contract.get("assets", {}):
+            evidence = _filter_evidence_files(contract, _scope_input_evidence_files(contract, ref, "asset"))
+        if evidence:
+            rendered[content_case_id] = evidence_set_id(evidence)
+        else:
+            not_rendered.append(content_case_id)
+    return {"rendered": rendered, "not_rendered": not_rendered}
+
+
+def _entry_point_evidence_files(contract: dict[str, Any], entry_id: str) -> list[str]:
+    entry = contract.get("entry_points", {}).get(entry_id)
+    if not entry:
+        return []
+    adapter_kind, _ = entry_point_adapter_pair(entry)
+    return [entrypoint_flow_file(entry_id, adapter_kind)]
+
+
+def _workflow_evidence_files(contract: dict[str, Any], workflow_id: str) -> list[str]:
+    if workflow_id not in contract.get("workflows", {}):
+        return []
+    return [workflow_flow_file(workflow_id)]
+
+
+def _state_machine_evidence_files(contract: dict[str, Any], state_machine_id: str, state_name: str | None = None) -> list[str]:
+    state_machine = contract.get("state_machines", {}).get(state_machine_id)
+    if not state_machine:
+        return []
+    files = [state_machine_graph_file(state_machine_id)]
+    states = {state_name: state_machine["view_states"][state_name]} if state_name else state_machine.get("view_states", {})
+    projection = state_machines_projection(contract)
+    for current_state_name, state in states.items():
+        if state.get("child_state_machines"):
+            files.append(composition_file(state_machine_id, current_state_name))
+        files.extend(_view_state_render_evidence_files(contract, state_machine_id, current_state_name))
+        for surface in _audit_projection_surfaces(contract, projection):
+            if surface["owner"] == state_machine_id and surface["view_state"] == current_state_name:
+                files.extend(_projection_surface_render_capture_files(contract, surface))
+    return files
+
+
+def _operation_evidence_files(contract: dict[str, Any], operation_id: str) -> list[str]:
+    if operation_id not in contract.get("operations", {}):
+        return []
+    files: list[str] = []
+    for entry_id, entry in sorted(contract.get("entry_points", {}).items()):
+        target_kind, target_value = entry_target_pair(entry)
+        if target_kind == "operation" and target_value == operation_id:
+            files.extend(_entry_point_evidence_files(contract, entry_id))
+        elif target_kind == "entry_point":
+            delegated = contract.get("entry_points", {}).get(target_value)
+            if delegated:
+                delegated_target_kind, delegated_target_value = entry_target_pair(delegated)
+                if delegated_target_kind == "operation" and delegated_target_value == operation_id:
+                    files.extend(_entry_point_evidence_files(contract, entry_id))
+    for workflow_id, workflow in sorted(contract.get("workflows", {}).items()):
+        if any(step.get("operation") == operation_id for step in workflow.get("steps", [])):
+            files.extend(_workflow_evidence_files(contract, workflow_id))
+    for state_machine_id, state_machine in sorted(contract.get("state_machines", {}).items()):
+        if _value_contains_string(state_machine, operation_id):
+            files.extend(_state_machine_evidence_files(contract, state_machine_id))
+    return files
+
+
+def _authorization_policy_evidence_files(contract: dict[str, Any], policy_id: str) -> list[str]:
+    if policy_id not in contract.get("authorization_policies", {}):
+        return []
+    files: list[str] = []
+    for entry_id, entry in sorted(contract.get("entry_points", {}).items()):
+        if entry.get("authorization_policy") == policy_id:
+            files.extend(_entry_point_evidence_files(contract, entry_id))
+    for operation_id, operation in sorted(contract.get("operations", {}).items()):
+        if operation.get("authorization_policy") == policy_id:
+            files.extend(_operation_evidence_files(contract, operation_id))
+    return files
+
+
+def _event_evidence_files(contract: dict[str, Any], event_id: str) -> list[str]:
+    if event_id not in contract.get("events", {}):
+        return []
+    files: list[str] = []
+    event = contract["events"][event_id]
+    for operation_id in event.get("emitted_by", []):
+        files.extend(_operation_evidence_files(contract, operation_id))
+    for workflow_id, workflow in sorted(contract.get("workflows", {}).items()):
+        if _value_contains_string(workflow.get("trigger", {}), event_id):
+            files.extend(_workflow_evidence_files(contract, workflow_id))
+    for entry_id, entry in sorted(contract.get("entry_points", {}).items()):
+        if _value_contains_string(entry, event_id):
+            files.extend(_entry_point_evidence_files(contract, entry_id))
+    return files
+
+
+def _data_contract_evidence_files(contract: dict[str, Any], data_contract_id: str) -> list[str]:
+    if data_contract_id not in contract.get("data_contracts", {}):
+        return []
+    files: list[str] = []
+    for event_id, event in sorted(contract.get("events", {}).items()):
+        if _value_contains_string(event.get("payload_schema", {}), data_contract_id):
+            files.extend(_event_evidence_files(contract, event_id))
+    for operation_id, operation in sorted(contract.get("operations", {}).items()):
+        if _value_contains_string(operation, data_contract_id):
+            files.extend(_operation_evidence_files(contract, operation_id))
+    for workflow_id, workflow in sorted(contract.get("workflows", {}).items()):
+        if _value_contains_string(workflow, data_contract_id):
+            files.extend(_workflow_evidence_files(contract, workflow_id))
+    for entry_id, entry in sorted(contract.get("entry_points", {}).items()):
+        if _value_contains_string(entry, data_contract_id):
+            files.extend(_entry_point_evidence_files(contract, entry_id))
+    return files
+
+
+def _model_evidence_files(contract: dict[str, Any], model_id: str) -> list[str]:
+    if model_id not in contract.get("models", {}):
+        return []
+    files: list[str] = []
+    for operation_id, operation in sorted(contract.get("operations", {}).items()):
+        if _value_contains_string(operation, model_id):
+            files.extend(_operation_evidence_files(contract, operation_id))
+    for event_id, event in sorted(contract.get("events", {}).items()):
+        if _value_contains_string(event, model_id):
+            files.extend(_event_evidence_files(contract, event_id))
+    for entry_id, entry in sorted(contract.get("entry_points", {}).items()):
+        if _value_contains_string(entry, model_id):
+            files.extend(_entry_point_evidence_files(contract, entry_id))
+    for state_machine_id, state_machine in sorted(contract.get("state_machines", {}).items()):
+        if state_machine.get("model") == model_id or _value_contains_string(state_machine.get("view_states", {}), model_id):
+            files.extend(_state_machine_evidence_files(contract, state_machine_id))
+    return files
+
+
+def _text_resource_evidence_files(contract: dict[str, Any], text_id: str) -> list[str]:
+    if text_id not in contract.get("text_resources", {}):
+        return []
+    files = _scope_input_evidence_files(contract, text_id, "text")
+    for entry_id, entry in sorted(contract.get("entry_points", {}).items()):
+        if _value_contains_string(entry, text_id):
+            files.extend(_entry_point_evidence_files(contract, entry_id))
+    for state_machine_id, state_machine in sorted(contract.get("state_machines", {}).items()):
+        if _value_contains_string(state_machine, text_id):
+            files.extend(_state_machine_evidence_files(contract, state_machine_id))
+    return files
+
+
+def _asset_evidence_files(contract: dict[str, Any], asset_id: str) -> list[str]:
+    if asset_id not in contract.get("assets", {}):
+        return []
+    files = _scope_input_evidence_files(contract, asset_id, "asset")
+    for state_machine_id, state_machine in sorted(contract.get("state_machines", {}).items()):
+        if _value_contains_string(state_machine, asset_id):
+            files.extend(_state_machine_evidence_files(contract, state_machine_id))
+    return files
+
+
+def _fixture_evidence_files(contract: dict[str, Any], fixture_id: str) -> list[str]:
+    if fixture_id not in contract.get("fixtures", {}):
+        return []
+    return _scope_input_evidence_files(contract, fixture_id, "fixture")
+
+
+def _fact_evidence_files(contract: dict[str, Any], fact_id: str) -> list[str]:
+    if fact_id not in contract.get("facts", {}):
+        return []
+    return _scope_input_evidence_files(contract, fact_id, "fact")
+
+
+def _test_case_evidence_files(contract: dict[str, Any], test_case_id: str) -> list[str]:
+    test_case = contract.get("test_cases", {}).get(test_case_id)
+    if not test_case:
+        return []
+    files: list[str] = []
+    when = test_case.get("when", {})
+    for action in ("open_entry_point", "call_entry_point"):
+        if action in when:
+            files.extend(_entry_point_evidence_files(contract, when[action]["ref"]))
+    if "invoke_operation" in when:
+        files.extend(_operation_evidence_files(contract, when["invoke_operation"]["ref"]))
+    if "emit_event" in when:
+        files.extend(_event_evidence_files(contract, when["emit_event"]["ref"]))
+    if "run_workflow" in when:
+        files.extend(_workflow_evidence_files(contract, when["run_workflow"]["ref"]))
+    for case_id, case in sorted(audit_cases(contract).items()):
+        if case_id == test_case_id or case.get("test_case") == test_case_id:
+            files.extend(_case_render_capture_files(contract, case_id, case))
+    return files
+
+
+def _content_case_evidence_files(contract: dict[str, Any], content_case_id: str) -> list[str]:
+    content_case = contract.get("content_cases", {}).get(content_case_id)
+    if not content_case:
+        return []
+    files: list[str] = []
+    ref = content_case.get("ref")
+    if ref in contract.get("text_resources", {}):
+        files.extend(_text_resource_evidence_files(contract, ref))
+    if ref in contract.get("assets", {}):
+        files.extend(_asset_evidence_files(contract, ref))
+    return files
+
+
+def _scope_input_evidence_files(contract: dict[str, Any], ref: str, kind: str) -> list[str]:
+    files: list[str] = []
+    projection = state_machines_projection(contract)
+    for surface in _audit_projection_surfaces(contract, projection):
+        text_refs, asset_refs, fixture_ids, fact_ids, _ = _surface_scope_inputs(contract, surface)
+        if kind == "text" and ref in text_refs:
+            files.extend(_projection_surface_render_capture_files(contract, surface))
+        elif kind == "asset" and ref in asset_refs:
+            files.extend(_projection_surface_render_capture_files(contract, surface))
+        elif kind == "fixture" and ref in fixture_ids:
+            files.extend(_projection_surface_render_capture_files(contract, surface))
+        elif kind == "fact" and ref in fact_ids:
+            files.extend(_projection_surface_render_capture_files(contract, surface))
+    for case_id, case in sorted(audit_cases(contract).items()):
+        text_refs, asset_refs, fixture_ids, fact_ids, _ = _case_scope_inputs(contract, case)
+        if kind == "text" and ref in text_refs:
+            files.extend(_case_render_capture_files(contract, case_id, case))
+        elif kind == "asset" and ref in asset_refs:
+            files.extend(_case_render_capture_files(contract, case_id, case))
+        elif kind == "fixture" and ref in fixture_ids:
+            files.extend(_case_render_capture_files(contract, case_id, case))
+        elif kind == "fact" and ref in fact_ids:
+            files.extend(_case_render_capture_files(contract, case_id, case))
+    return files
+
+
+def _projection_surface_render_capture_files(contract: dict[str, Any], surface: dict[str, Any]) -> list[str]:
+    files: list[str] = []
+    for render_surface in _projection_render_surfaces(surface):
+        for profile_id, breakpoint, _ in _profile_viewports(contract, render_surface):
+            extension = "png" if render_surface == "html" else "svg"
+            files.append(_projection_surface_file(surface, profile_id, breakpoint, extension))
+    return files
+
+
+def _case_render_capture_files(contract: dict[str, Any], case_id: str, case: dict[str, Any]) -> list[str]:
+    files: list[str] = []
+    for render_surface in _case_render_surfaces(contract, case):
+        for profile_id, breakpoint, _ in _profile_viewports(contract, render_surface):
+            extension = "png" if render_surface == "html" else "svg"
+            files.append(_case_file(contract, case_id, case, profile_id, breakpoint, extension))
+    return files
+
+
+def _all_render_evidence_files(contract: dict[str, Any]) -> list[str]:
+    files: list[str] = []
+    projection = state_machines_projection(contract)
+    for surface in _audit_projection_surfaces(contract, projection):
+        files.extend(_view_state_render_evidence_files(contract, surface["owner"], surface["view_state"]))
+    for case_id, case in sorted(audit_cases(contract).items()):
+        files.extend(_case_render_capture_files(contract, case_id, case))
+    return _filter_evidence_files(contract, files)
+
+
+def _view_state_render_evidence_files(contract: dict[str, Any], state_machine_id: str, state_name: str) -> list[str]:
+    files: list[str] = []
+    projection = state_machines_projection(contract)
+    for surface in _audit_projection_surfaces(contract, projection):
+        if surface["owner"] != state_machine_id or surface["view_state"] != state_name:
+            continue
+        files.extend(_projection_surface_render_capture_files(contract, surface))
+    for case_id, case in sorted(audit_cases(contract).items()):
+        if case.get("state_machine") != state_machine_id or case.get("view_state") != state_name:
+            continue
+        files.extend(_case_render_capture_files(contract, case_id, case))
+    return _filter_evidence_files(contract, files)
+
+
+def _value_contains_string(value: Any, needle: str) -> bool:
+    if isinstance(value, str):
+        return value == needle
+    if isinstance(value, dict):
+        return any(key == needle or _value_contains_string(item, needle) for key, item in value.items())
+    if isinstance(value, list):
+        return any(_value_contains_string(item, needle) for item in value)
+    return False
+
+
 def generate_audit(
     root: Path,
     contract: dict[str, Any],
@@ -412,8 +935,9 @@ def generate_audit(
     try:
         projection = state_machines_projection(contract)
         _write_audit_inputs(root, contract, projection)
+        _write_audit_coverage_index(root, contract)
 
-        if audit_expected_files(contract):
+        if _audit_visual_expected_files(contract):
             _render_visual_audit_subprocess(root, tools_root or root, previous_audit_root)
     except BaseException:
         if audit_root.exists():

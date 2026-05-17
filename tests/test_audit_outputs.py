@@ -1,10 +1,13 @@
 from __future__ import annotations
+import copy
 from pathlib import Path
 
 import pytest
 
 from pyspec_contract.audit import (
     _render_graphviz_svg,
+    audit_coverage_file,
+    audit_coverage_index,
     audit_expected_files,
     composition_dot,
     composition_file,
@@ -19,7 +22,7 @@ from pyspec_contract.audit import (
     workflow_flow_file,
 )
 from pyspec_contract.compile import ContractError, compile_source, write_compiled
-from pyspec_contract.io import read_yaml
+from pyspec_contract.io import read_yaml, write_yaml
 from pyspec_contract.paths import COMPILED_SPEC_PATH, SOURCE_SPEC_PATH
 from pyspec_contract.projection_validators import validate_audit_outputs
 from tests.helpers import EXAMPLE_ROOT, copy_project_tree
@@ -39,6 +42,7 @@ def _contract(root: Path = ROOT) -> dict:
 def test_audit_outputs_cover_full_contract() -> None:
     contract = _contract()
     expected = audit_expected_files(contract)
+    assert audit_coverage_file() in expected
     assert "spec/generated/audit_evidence/state_machines/state_machine_project_list/state_machine.svg" in expected
     assert "spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/composition.svg" in expected
     assert "spec/generated/audit_evidence/entrypoints/html_route/entry_point_html_project_board/flow.svg" in expected
@@ -53,6 +57,43 @@ def test_audit_outputs_cover_full_contract() -> None:
     assert audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "py").endswith("/renders/textual.render_profile_default.wide.source.py")
     assert audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "svg").endswith("/renders/textual.render_profile_default.wide.capture.svg")
     validate_audit_outputs(ROOT, contract)
+
+
+def test_audit_coverage_index_maps_compiled_paths_to_evidence() -> None:
+    contract = _contract()
+    index = read_yaml(ROOT / audit_coverage_file())
+    assert index == audit_coverage_index(contract)
+    visual_evidence_sets = index["visual_evidence_sets"]
+    assert all(path.startswith("spec/generated/audit_evidence/") and path.endswith((".svg", ".png")) for files in visual_evidence_sets.values() for path in files)
+    assert index["summary"]["missing_required_visual_paths"] == 0
+    assert index["visual_audit"]["required"]["missing"] == {}
+    cli_delegate_set = index["visual_audit"]["required"]["covered"]["/entry_points/entry_point.cli.project.approve/target/entry_point/ref"]
+    assert visual_evidence_sets[cli_delegate_set] == [
+        "spec/generated/audit_evidence/entrypoints/cli/entry_point_cli_project_approve/flow.svg"
+    ]
+    approve_policy_set = index["visual_audit"]["required"]["covered"]["/operations/operation.project.approve/authorization_policy"]
+    assert "spec/generated/audit_evidence/entrypoints/cli/entry_point_cli_project_approve/flow.svg" in visual_evidence_sets[approve_policy_set]
+    approved_payload_set = index["visual_audit"]["required"]["covered"]["/events/event.project.approved/payload_schema/data_contract"]
+    assert "spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg" in visual_evidence_sets[approved_payload_set]
+    notice_result_set = index["visual_audit"]["required"]["covered"]["/data_contracts/data_contract.project.notice_result/fields/notice_id/type/primitive"]
+    assert "spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg" in visual_evidence_sets[notice_result_set]
+    renderer_set = index["visual_audit"]["required"]["covered"]["/state_machines/state_machine.project.board/view_states/ready/renderers/html/layout/regions/aside/classes/0"]
+    assert any(path.endswith(".screenshot.png") for path in visual_evidence_sets[renderer_set])
+    assert index["render_presence"]["assets"]["not_rendered"] == []
+    assert "text.project.approve.success" in index["render_presence"]["text_resources"]["not_rendered"]
+    assert index["render_presence"]["fixtures"]["not_rendered"] == ["fixture.workspace.reviewer"]
+    assert "/fixtures/fixture.workspace.reviewer/values/actor/id" in index["visual_audit"]["optional"]["not_shown"]
+
+
+def test_audit_coverage_index_rejects_missing_required_visual_paths(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    copy_project_tree(ROOT, project)
+    contract = copy.deepcopy(_contract(project))
+    contract["operations"]["operation.project.unvisualized"] = copy.deepcopy(contract["operations"]["operation.project.create"])
+    coverage_path = project / audit_coverage_file()
+    write_yaml(coverage_path, audit_coverage_index(contract), sort_keys=False)
+    with pytest.raises(ContractError, match="missing required visual audit paths"):
+        validate_audit_outputs(project, contract)
 
 
 def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
