@@ -13,7 +13,7 @@ After authoring, run `pyspec compile . --layers full` and `pyspec validate . --l
 Authoring scope:
 - Core: fixtures, preconditions, assertions, entity_types, commands, queries, and product behavior scenarios.
 - HTTP: HTTP external interfaces that bind commands or queries to externally visible API endpoints.
-- Domain events: durable domain events and webhook-facing integration contracts when requested.
+- Eventing: webhook external interfaces and AsyncAPI integration-message projections when requested.
 - Workflow: workflows with explicit outcomes, step sequence flows, CLI invoked-outcome response handlers, and worker/scheduled ingress responses.
 - UI: state machines with state-local layouts, child state machines, render examples, text resources/assets, content examples, and viewport profiles.
 - HTML UI: html renderer layout, presentation, style, UI external interfaces, HTML routes, and HTML audit surfaces.

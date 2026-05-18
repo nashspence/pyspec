@@ -1801,6 +1801,14 @@ def test_authoring_layers_allow_api_only_contract_and_graph_driven_projections()
     assert "spec/generated/product_interfaces/workflow.cwl.yaml" not in paths
 
 
+def test_authoring_layers_use_eventing_for_webhook_adapters() -> None:
+    from pyspec_contract.layers import parse_layers
+
+    assert parse_layers("core,eventing") == {"core", "eventing"}
+    with pytest.raises(ValueError, match="Unknown authoring layer: domain_events"):
+        parse_layers("core,domain_events")
+
+
 def test_authoring_layers_reject_irrelevant_ui_targets() -> None:
     from pyspec_contract.layers import parse_layers
 

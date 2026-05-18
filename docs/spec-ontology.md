@@ -227,13 +227,13 @@ Layers are compile/validate guardrails and are not written into `spec/generated/
 
 - `core`: `fixtures`, `preconditions`, `assertions`, `schemas`, `entity_types`, `access_policies`, `commands`, `queries`, `domain_events`, and `behavior_scenarios`.
 - `http`: HTTP API external-interface adapters.
-- `domain_events`: webhook external-interface adapters.
+- `eventing`: webhook external-interface adapters and AsyncAPI integration-message projections.
 - `workflow`: `workflows` plus CLI, worker, and scheduled external-interface adapters.
 - `ui`: `state_machines`, `text_resources`, `media_assets`, `content_examples`, `viewport_profiles`, and HTML route external-interface adapters.
 - `html`: HTML renderer contracts and `viewport_profiles.*.html_viewports`.
 - `textual`: Textual renderer contracts and `viewport_profiles.*.textual_viewports`.
 - Layer normalization always includes `core`; selecting `html` or `textual` also includes `ui`. Aliases normalize as `api -> http`, `cli -> workflow`, `tui -> textual`, and `all`/`full` -> every layer.
-- Common layer-pruned authored schemas are generated for `core`, `core_http`, `core_domain_events`, `core_workflow`, `core_ui_textual`, `core_ui_html`, and `full`.
+- Common layer-pruned authored schemas are generated for `core`, `core_http`, `core_eventing`, `core_workflow`, `core_ui_textual`, `core_ui_html`, and `full`.
 
 ## Binding Roots
 

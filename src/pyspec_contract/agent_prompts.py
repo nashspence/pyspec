@@ -58,8 +58,8 @@ def infer_contract_layers(contract: dict[str, Any]) -> set[str]:
     adapter_kinds = _entry_adapter_kinds(contract)
     if "http_api" in adapter_kinds:
         active.add("http")
-    if contract.get("domain_events") or "webhook" in adapter_kinds:
-        active.add("domain_events")
+    if _contract_has_eventing_projection(contract, adapter_kinds):
+        active.add("eventing")
     if contract.get("workflows") or adapter_kinds & {"cli", "worker", "scheduled"}:
         active.add("workflow")
     if _contract_has_ui(contract):
@@ -75,6 +75,16 @@ def _coerce_layers(layers: str | set[str] | None) -> set[str] | None:
     if isinstance(layers, str):
         return parse_layers(layers)
     return normalize_layers(layers) if layers is not None else None
+
+
+def _contract_has_eventing_projection(contract: dict[str, Any], adapter_kinds: set[str]) -> bool:
+    if "webhook" in adapter_kinds:
+        return True
+    if not contract.get("domain_events"):
+        return False
+    return "worker" in adapter_kinds or any(
+        "domain_event" in workflow.get("inputs", {}) for workflow in (contract.get("workflows") or {}).values()
+    )
 
 
 def _contract_has_ui(contract: dict[str, Any]) -> bool:
@@ -185,10 +195,10 @@ def _pm_design_prompt(context: _PromptContext) -> str:
         lines.append("- HTTP: HTTP external interfaces that bind commands or queries to externally visible API endpoints.")
     else:
         lines.append("- Do not author HTTP/API external interfaces or OpenAPI details; the HTTP layer is inactive.")
-    if "domain_events" in context.layers:
-        lines.append("- Domain events: durable domain events and webhook-facing integration contracts when requested.")
+    if "eventing" in context.layers:
+        lines.append("- Eventing: webhook external interfaces and AsyncAPI integration-message projections when requested.")
     else:
-        lines.append("- Do not add domain-event, webhook, or integration-message vocabulary unless the active layers change.")
+        lines.append("- Do not add webhook external interfaces or integration-message projection vocabulary unless the active layers change.")
     if "workflow" in context.layers:
         lines.append("- Workflow: workflows with explicit outcomes, step sequence flows, CLI invoked-outcome response handlers, and worker/scheduled ingress responses.")
     else:
@@ -328,7 +338,7 @@ def _dev_prompt(context: _PromptContext) -> str:
     ]
     if "http" in context.layers:
         lines.append("- `spec/generated/product_interfaces/http.openapi.yaml`")
-    if "domain_events" in context.layers:
+    if "eventing" in context.layers or "workflow" in context.layers:
         lines.append("- `spec/generated/product_interfaces/integration_messages.asyncapi.yaml`")
     if "workflow" in context.layers:
         lines.append("- `spec/generated/product_interfaces/workflow.cwl.yaml`")

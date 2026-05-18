@@ -2,13 +2,13 @@ authoring_layers:
   rule: Layers constrain authored spec vocabulary only. They are never written into spec/generated/compiled/spec.yaml and never imply absent adapters are planned.
   layers:
     core:
-      invocations: [fixture, precondition, assertion, entity_type, schema, command, query, behavior_scenario]
+      invocations: [fixture, precondition, assertion, entity_type, schema, command, query, domain_event, behavior_scenario]
       projections: [spec/generated/agent_prompts, spec/generated/behavior/fixtures.yaml, spec/generated/behavior/behavior_scenarios.yaml, spec/generated/test_adapters/pytest_bdd_features, spec/generated/test_adapters/python_refs.py]
     http:
       opens: [external_interface.adapter.http_api]
       requires: [core]
       projections_when_declared: [spec/generated/product_interfaces/http.openapi.yaml, spec/generated/audit_evidence/external_interfaces]
-    domain_events:
+    eventing:
       opens: [external_interface.adapter.webhook]
       requires: [core]
       projections_when_declared: [spec/generated/product_interfaces/integration_messages.asyncapi.yaml, spec/generated/audit_evidence/external_interfaces]
@@ -30,7 +30,7 @@ authoring_layers:
       projections_when_declared: [spec/generated/product_interfaces/html.routes.json, spec/generated/audit_evidence/**/renders/*.png]
   common_sets:
     api_only: core,http
-    evented_api: core,domain_events
+    evented_api: core,eventing
     ci_client: core,workflow
     textual_app: core,ui,textual
     html_app: core,ui,html
@@ -88,7 +88,7 @@ external_interface_adapters:
   webhook:
     invokes: workflow
     requires: [path]
-    layer: domain_events
+    layer: eventing
   html_route:
     invokes: state_machine
     requires: [path]

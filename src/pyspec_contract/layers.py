@@ -12,7 +12,7 @@ from .targets import external_interface_state_machine_renderer, external_interfa
 
 ROOT = Path(__file__).resolve().parent
 
-LAYERS = {"core", "http", "domain_events", "workflow", "ui", "textual", "html"}
+LAYERS = {"core", "http", "eventing", "workflow", "ui", "textual", "html"}
 LAYER_ALIASES = {"full": "full", "all": "full", "api": "http", "cli": "workflow", "tui": "textual"}
 
 # Coarse target gates. Field-level surface gates below remain stricter.
@@ -43,7 +43,7 @@ ENTRY_ADAPTER_LAYER = {
     "cli": "workflow",
     "worker": "workflow",
     "scheduled": "workflow",
-    "webhook": "domain_events",
+    "webhook": "eventing",
 }
 
 AUTHOR_SECTIONS: dict[str, str] = {
@@ -73,7 +73,7 @@ RENDER_PROFILE_LAYER = {"html_viewports": "html", "textual_viewports": "textual"
 COMMON_LAYER_SETS: dict[str, set[str]] = {
     "core": {"core"},
     "core_http": {"core", "http"},
-    "core_domain_events": {"core", "domain_events"},
+    "core_eventing": {"core", "eventing"},
     "core_workflow": {"core", "workflow"},
     "core_ui_textual": {"core", "ui", "textual"},
     "core_ui_html": {"core", "ui", "html"},
