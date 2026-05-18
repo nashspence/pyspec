@@ -396,6 +396,623 @@ authorization_policies:
     - entity_type: entity_type.project
     subjects:
     - kind: actor
+behavior_scenarios:
+  behavior_scenario.project.approval_notice.workflow:
+    archetype: workflow_trigger_success
+    feature_tag: project.approval_notice
+    given:
+      preconditions: []
+      seed_fixtures:
+      - fixture.workspace.reviewer
+    rationale: Approval domain event dispatches the notification workflow.
+    system_under_test_ref:
+      workflow: workflow.project.approval_notice
+    then:
+      domain_events:
+        emitted:
+        - domain_event.project.approved
+      invoked:
+      - application_action.project.send_approval_notice
+      workflow:
+        executed: true
+        outcome: completed
+        ref: workflow.project.approval_notice
+    title: Approval domain event sends notice
+    when:
+      emit_domain_event:
+        payload:
+          approved_by:
+            from: $fixture.actor.id
+          project_id:
+            value: project_submitted_1
+        ref: domain_event.project.approved
+  behavior_scenario.project.approve.access_denied:
+    archetype: authorization_denial
+    feature_tag: project.approve
+    given:
+      preconditions:
+      - present:
+          entity_type: entity_type.project
+          values:
+            assignee:
+              value: Maya Chen
+            created_at:
+              value: '2026-05-10T09:00:00Z'
+            customer:
+              value: Atlas Foods
+            id:
+              value: project_submitted_1
+            priority:
+              value: High
+            status:
+              value: submitted
+            summary:
+              value: Technician needs approval before ordering the replacement fan motor.
+            title:
+              value: Replace rooftop condenser fan
+            updated_at:
+              value: '2026-05-11T08:45:00Z'
+            workspace_id:
+              from: $fixture.workspace.id
+      seed_fixtures:
+      - fixture.workspace.member
+    rationale: A workspace member who is not a reviewer receives the mapped access_denied outcome before approval executes.
+    system_under_test_ref:
+      application_action: application_action.project.approve
+    then:
+      authorization:
+        denied:
+        - application_action: application_action.project.approve
+          authorization_policy: authorization_policy.project.reviewer
+      domain_events:
+        not_emitted:
+        - domain_event.project.approved
+      outcome: access_denied
+    title: Approval authorization maps access_denied outcome
+    when:
+      invoke_application_action:
+        input:
+          approved_by:
+            from: $fixture.actor.id
+          project_id:
+            value: project_submitted_1
+        ref: application_action.project.approve
+  behavior_scenario.project.approve.success:
+    archetype: action_outcome
+    feature_tag: project.approve
+    given:
+      preconditions:
+      - present:
+          entity_type: entity_type.project
+          values:
+            assignee:
+              value: Maya Chen
+            created_at:
+              value: '2026-05-10T09:00:00Z'
+            customer:
+              value: Atlas Foods
+            id:
+              value: project_submitted_1
+            priority:
+              value: High
+            status:
+              value: submitted
+            summary:
+              value: Technician needs approval before ordering the replacement fan motor.
+            title:
+              value: Replace rooftop condenser fan
+            updated_at:
+              value: '2026-05-11T08:45:00Z'
+            workspace_id:
+              from: $fixture.workspace.id
+      seed_fixtures:
+      - fixture.workspace.reviewer
+    rationale: Approval transitions a submitted project to approved and emits the domain event.
+    system_under_test_ref:
+      application_action: application_action.project.approve
+    then:
+      authorization:
+        allowed:
+        - application_action: application_action.project.approve
+          authorization_policy: authorization_policy.project.reviewer
+      domain_events:
+        emitted:
+        - domain_event.project.approved
+      entity:
+        exists:
+          entity_type: entity_type.project
+          where:
+            id:
+              value: project_submitted_1
+            status:
+              value: approved
+      invoked:
+      - application_action.project.approve
+      outcome: approved
+    title: Approve submitted dispatch project
+    when:
+      invoke_application_action:
+        input:
+          approved_by:
+            from: $fixture.actor.id
+          project_id:
+            value: project_submitted_1
+        ref: application_action.project.approve
+  behavior_scenario.project.board.empty:
+    archetype: state_machine_composition
+    feature_tag: project.board
+    given:
+      preconditions:
+      - absent:
+          entity_type: entity_type.project
+          where:
+            workspace_id:
+              from: $fixture.workspace.id
+      seed_fixtures:
+      - fixture.workspace.member
+    rationale: An empty workspace shows empty list, no detail, and no activity.
+    system_under_test_ref:
+      state_machine: state_machine.project.board
+    then:
+      authorization:
+        denied:
+        - application_action: application_action.project.approve
+          authorization_policy: authorization_policy.project.reviewer
+      enables:
+      - application_action.project.create
+      requires:
+        action_bindings:
+        - create
+        assets:
+        - asset.project.list.empty.illustration
+        data_loaders:
+        - list_board
+        - list_projects
+        surfaces:
+        - state_machine.project.board.ready
+        - state_machine.project.activity.empty
+        - state_machine.project.detail.none
+        - state_machine.project.list.empty
+        text:
+        - text.project.activity.empty.heading
+        - text.project.activity.empty.body
+        - text.project.detail.none.heading
+        - text.project.detail.none.body
+        - text.project.list.empty.heading
+        - text.project.list.empty.body
+      state_machine:
+        composition:
+          child_state_machines:
+          - context_bindings:
+              selected_project_id:
+                from: $state_machine.selected_project_id
+              workspace_id:
+                from: $state_machine.workspace_id
+            html_region: nav
+            id: list
+            initial_view_state: loading
+            state_machine: state_machine.project.list
+            textual_container: nav
+          - context_bindings:
+              project_id:
+                from: $state_machine.selected_project_id
+            html_region: main
+            id: detail
+            initial_view_state: none
+            selected:
+              view_state: loading
+              when:
+                context_present: selected_project_id
+            state_machine: state_machine.project.detail
+            textual_container: main
+          - context_bindings:
+              project_id:
+                from: $state_machine.selected_project_id
+            html_region: aside
+            id: activity
+            initial_view_state: empty
+            selected:
+              view_state: ready
+              when:
+                context_present: selected_project_id
+            state_machine: state_machine.project.activity
+            textual_container: aside
+          renderers:
+            html:
+              layout:
+                regions:
+                  aside:
+                    classes:
+                    - dispatch-board-aside
+                    element: aside
+                    must_render: true
+                    order: 3
+                    role: complementary
+                  main:
+                    classes:
+                    - dispatch-board-main
+                    element: main
+                    must_render: true
+                    order: 2
+                    role: main
+                  nav:
+                    classes:
+                    - dispatch-board-nav
+                    element: nav
+                    must_render: true
+                    order: 1
+                    role: navigation
+                root:
+                  classes:
+                  - dispatch-board
+                  element: section
+                  role: region
+              style:
+                rules:
+                - declarations:
+                    display: grid
+                    gap: token.gap
+                    grid-template-columns: token.nav_width 1fr token.aside_width
+                  selector: root
+                - declarations:
+                    min-width: token.nav_width
+                  selector: region.nav
+                - declarations:
+                    min-width: '0'
+                  selector: region.main
+                - declarations:
+                    min-width: token.aside_width
+                  selector: region.aside
+                tokens:
+                  aside_width: 16rem
+                  gap: 1rem
+                  nav_width: 20rem
+            textual:
+              layout:
+                containers:
+                  aside:
+                    container_class: Container
+                    id: aside
+                    must_render: true
+                    order: 3
+                  main:
+                    container_class: Container
+                    id: main
+                    must_render: true
+                    order: 2
+                  nav:
+                    container_class: Container
+                    id: nav
+                    must_render: true
+                    order: 1
+                screen_class: ProjectBoardScreen
+              style:
+                rules:
+                - declarations:
+                    layout: horizontal
+                  selector: screen
+                - declarations:
+                    width: '32'
+                  selector: container.nav
+                - declarations:
+                    width: '28'
+                  selector: container.aside
+          signal_sync_rules:
+          - effects:
+            - set:
+                context: selected_project_id
+                from: $local_signal.project_id
+            - send:
+                instance: detail
+                local_signal: selection_changed
+                payload_bindings:
+                  project_id:
+                    from: $local_signal.project_id
+            - send:
+                instance: activity
+                local_signal: selection_changed
+                payload_bindings:
+                  project_id:
+                    from: $local_signal.project_id
+            id: select_project_updates_state_machines
+            when:
+              instance: list
+              local_signal: project_selected
+        instances:
+          activity:
+            source: state_machine.project.activity
+            surface: state_machine.project.activity.empty
+            view_state: empty
+          detail:
+            source: state_machine.project.detail
+            surface: state_machine.project.detail.none
+            view_state: none
+          list:
+            source: state_machine.project.list
+            surface: state_machine.project.list.empty
+            view_state: empty
+        ref: state_machine.project.board
+        signal_sync_rules:
+          observed_rules:
+          - select_project_updates_state_machines
+        surface: state_machine.project.board.ready
+        view_state: ready
+    title: Empty dispatch board
+    when:
+      open_entry_point:
+        input:
+          workspace_id:
+            from: $fixture.workspace.id
+        ref: entry_point.html.project.board
+  behavior_scenario.project.board.ready:
+    archetype: state_machine_composition
+    feature_tag: project.board
+    given:
+      preconditions:
+      - present:
+          entity_type: entity_type.project
+          values:
+            assignee:
+              value: Maya Chen
+            created_at:
+              value: '2026-05-10T09:00:00Z'
+            customer:
+              value: Atlas Foods
+            id:
+              value: project_submitted_1
+            priority:
+              value: High
+            status:
+              value: submitted
+            summary:
+              value: Technician needs approval before ordering the replacement fan motor.
+            title:
+              value: Replace rooftop condenser fan
+            updated_at:
+              value: '2026-05-11T08:45:00Z'
+            workspace_id:
+              from: $fixture.workspace.id
+      seed_fixtures:
+      - fixture.workspace.member
+    rationale: A populated workspace shows the ready list while detail awaits explicit selection.
+    system_under_test_ref:
+      state_machine: state_machine.project.board
+    then:
+      enables:
+      - application_action.project.create
+      - application_action.project.submit
+      requires:
+        action_bindings:
+        - create
+        - submit
+        assets: []
+        data_loaders:
+        - list_board
+        - list_projects
+        surfaces:
+        - state_machine.project.board.ready
+        - state_machine.project.activity.empty
+        - state_machine.project.detail.none
+        - state_machine.project.list.ready
+        text:
+        - text.project.activity.empty.heading
+        - text.project.activity.empty.body
+        - text.project.detail.none.heading
+        - text.project.detail.none.body
+        - text.project.list.ready.heading
+      state_machine:
+        composition:
+          child_state_machines:
+          - context_bindings:
+              selected_project_id:
+                from: $state_machine.selected_project_id
+              workspace_id:
+                from: $state_machine.workspace_id
+            html_region: nav
+            id: list
+            initial_view_state: loading
+            state_machine: state_machine.project.list
+            textual_container: nav
+          - context_bindings:
+              project_id:
+                from: $state_machine.selected_project_id
+            html_region: main
+            id: detail
+            initial_view_state: none
+            selected:
+              view_state: loading
+              when:
+                context_present: selected_project_id
+            state_machine: state_machine.project.detail
+            textual_container: main
+          - context_bindings:
+              project_id:
+                from: $state_machine.selected_project_id
+            html_region: aside
+            id: activity
+            initial_view_state: empty
+            selected:
+              view_state: ready
+              when:
+                context_present: selected_project_id
+            state_machine: state_machine.project.activity
+            textual_container: aside
+          renderers:
+            html:
+              layout:
+                regions:
+                  aside:
+                    classes:
+                    - dispatch-board-aside
+                    element: aside
+                    must_render: true
+                    order: 3
+                    role: complementary
+                  main:
+                    classes:
+                    - dispatch-board-main
+                    element: main
+                    must_render: true
+                    order: 2
+                    role: main
+                  nav:
+                    classes:
+                    - dispatch-board-nav
+                    element: nav
+                    must_render: true
+                    order: 1
+                    role: navigation
+                root:
+                  classes:
+                  - dispatch-board
+                  element: section
+                  role: region
+              style:
+                rules:
+                - declarations:
+                    display: grid
+                    gap: token.gap
+                    grid-template-columns: token.nav_width 1fr token.aside_width
+                  selector: root
+                - declarations:
+                    min-width: token.nav_width
+                  selector: region.nav
+                - declarations:
+                    min-width: '0'
+                  selector: region.main
+                - declarations:
+                    min-width: token.aside_width
+                  selector: region.aside
+                tokens:
+                  aside_width: 16rem
+                  gap: 1rem
+                  nav_width: 20rem
+            textual:
+              layout:
+                containers:
+                  aside:
+                    container_class: Container
+                    id: aside
+                    must_render: true
+                    order: 3
+                  main:
+                    container_class: Container
+                    id: main
+                    must_render: true
+                    order: 2
+                  nav:
+                    container_class: Container
+                    id: nav
+                    must_render: true
+                    order: 1
+                screen_class: ProjectBoardScreen
+              style:
+                rules:
+                - declarations:
+                    layout: horizontal
+                  selector: screen
+                - declarations:
+                    width: '32'
+                  selector: container.nav
+                - declarations:
+                    width: '28'
+                  selector: container.aside
+          signal_sync_rules:
+          - effects:
+            - set:
+                context: selected_project_id
+                from: $local_signal.project_id
+            - send:
+                instance: detail
+                local_signal: selection_changed
+                payload_bindings:
+                  project_id:
+                    from: $local_signal.project_id
+            - send:
+                instance: activity
+                local_signal: selection_changed
+                payload_bindings:
+                  project_id:
+                    from: $local_signal.project_id
+            id: select_project_updates_state_machines
+            when:
+              instance: list
+              local_signal: project_selected
+        instances:
+          activity:
+            source: state_machine.project.activity
+            surface: state_machine.project.activity.empty
+            view_state: empty
+          detail:
+            source: state_machine.project.detail
+            surface: state_machine.project.detail.none
+            view_state: none
+          list:
+            source: state_machine.project.list
+            surface: state_machine.project.list.ready
+            view_state: ready
+        ref: state_machine.project.board
+        signal_sync_rules:
+          observed_rules:
+          - select_project_updates_state_machines
+        surface: state_machine.project.board.ready
+        view_state: ready
+    title: Ready dispatch board
+    when:
+      open_entry_point:
+        input:
+          workspace_id:
+            from: $fixture.workspace.id
+        ref: entry_point.html.project.board
+  behavior_scenario.project.create.api.success:
+    archetype: entry_point_response
+    feature_tag: project.create
+    given:
+      preconditions:
+      - absent:
+          entity_type: entity_type.project
+          where:
+            workspace_id:
+              from: $fixture.workspace.id
+      seed_fixtures:
+      - fixture.workspace.member
+    rationale: The API create endpoint delegates to the create application action and emits project.created.
+    system_under_test_ref:
+      entry_point: entry_point.api.project.create
+    then:
+      authorization:
+        allowed:
+        - application_action: application_action.project.create
+          authorization_policy: authorization_policy.project.member
+      domain_events:
+        emitted:
+        - domain_event.project.created
+      entity:
+        exists:
+          entity_type: entity_type.project
+          where:
+            title:
+              value: Replace rooftop condenser fan
+            workspace_id:
+              from: $fixture.workspace.id
+      invoked:
+      - application_action.project.create
+      outcome: created
+      response:
+        status: 201
+    title: Create dispatch project through API
+    when:
+      call_entry_point:
+        input:
+          customer:
+            value: Atlas Foods
+          priority:
+            value: High
+          title:
+            value: Replace rooftop condenser fan
+          workspace_id:
+            from: $fixture.workspace.id
+        ref: entry_point.api.project.create
 content_cases:
   content_case.project.detail.heading.high_priority:
     args:
@@ -850,10 +1467,10 @@ facts:
           value: '2026-05-11T08:45:00Z'
         workspace_id:
           from: $fixture.workspace.id
-    rationale: Submitted dispatch project shared by approval, ready-board, and visual audit test cases.
+    rationale: Submitted dispatch project shared by approval, ready-board, and visual audit behavior scenarios.
 fixtures:
   fixture.workspace.member:
-    rationale: Workspace member fixture for HTML/API/Textual test cases.
+    rationale: Workspace member fixture for HTML/API/Textual behavior scenarios.
     values:
       actor:
         id: user_member_1
@@ -863,7 +1480,7 @@ fixtures:
         id: workspace_1
         name: North Region Dispatch
   fixture.workspace.reviewer:
-    rationale: Reviewer fixture for approval test cases.
+    rationale: Reviewer fixture for approval behavior scenarios.
     values:
       actor:
         id: user_reviewer_1
@@ -1969,623 +2586,6 @@ state_machines:
         surface: state_machine.project.list.ready
         text:
         - text.project.list.ready.heading
-test_cases:
-  test_case.project.approval_notice.workflow:
-    archetype: workflow_trigger_success
-    feature_tag: project.approval_notice
-    given:
-      domain_facts: []
-      seed_fixtures:
-      - fixture.workspace.reviewer
-    rationale: Approval domain event dispatches the notification workflow.
-    subject_ref:
-      workflow: workflow.project.approval_notice
-    then:
-      domain_events:
-        emitted:
-        - domain_event.project.approved
-      invoked:
-      - application_action.project.send_approval_notice
-      workflow:
-        executed: true
-        outcome: completed
-        ref: workflow.project.approval_notice
-    title: Approval domain event sends notice
-    when:
-      emit_domain_event:
-        payload:
-          approved_by:
-            from: $fixture.actor.id
-          project_id:
-            value: project_submitted_1
-        ref: domain_event.project.approved
-  test_case.project.approve.access_denied:
-    archetype: authorization_denial
-    feature_tag: project.approve
-    given:
-      domain_facts:
-      - present:
-          entity_type: entity_type.project
-          values:
-            assignee:
-              value: Maya Chen
-            created_at:
-              value: '2026-05-10T09:00:00Z'
-            customer:
-              value: Atlas Foods
-            id:
-              value: project_submitted_1
-            priority:
-              value: High
-            status:
-              value: submitted
-            summary:
-              value: Technician needs approval before ordering the replacement fan motor.
-            title:
-              value: Replace rooftop condenser fan
-            updated_at:
-              value: '2026-05-11T08:45:00Z'
-            workspace_id:
-              from: $fixture.workspace.id
-      seed_fixtures:
-      - fixture.workspace.member
-    rationale: A workspace member who is not a reviewer receives the mapped access_denied outcome before approval executes.
-    subject_ref:
-      application_action: application_action.project.approve
-    then:
-      authorization:
-        denied:
-        - application_action: application_action.project.approve
-          authorization_policy: authorization_policy.project.reviewer
-      domain_events:
-        not_emitted:
-        - domain_event.project.approved
-      outcome: access_denied
-    title: Approval authorization maps access_denied outcome
-    when:
-      invoke_application_action:
-        input:
-          approved_by:
-            from: $fixture.actor.id
-          project_id:
-            value: project_submitted_1
-        ref: application_action.project.approve
-  test_case.project.approve.success:
-    archetype: action_outcome
-    feature_tag: project.approve
-    given:
-      domain_facts:
-      - present:
-          entity_type: entity_type.project
-          values:
-            assignee:
-              value: Maya Chen
-            created_at:
-              value: '2026-05-10T09:00:00Z'
-            customer:
-              value: Atlas Foods
-            id:
-              value: project_submitted_1
-            priority:
-              value: High
-            status:
-              value: submitted
-            summary:
-              value: Technician needs approval before ordering the replacement fan motor.
-            title:
-              value: Replace rooftop condenser fan
-            updated_at:
-              value: '2026-05-11T08:45:00Z'
-            workspace_id:
-              from: $fixture.workspace.id
-      seed_fixtures:
-      - fixture.workspace.reviewer
-    rationale: Approval transitions a submitted project to approved and emits the domain event.
-    subject_ref:
-      application_action: application_action.project.approve
-    then:
-      authorization:
-        allowed:
-        - application_action: application_action.project.approve
-          authorization_policy: authorization_policy.project.reviewer
-      domain_events:
-        emitted:
-        - domain_event.project.approved
-      entity:
-        exists:
-          entity_type: entity_type.project
-          where:
-            id:
-              value: project_submitted_1
-            status:
-              value: approved
-      invoked:
-      - application_action.project.approve
-      outcome: approved
-    title: Approve submitted dispatch project
-    when:
-      invoke_application_action:
-        input:
-          approved_by:
-            from: $fixture.actor.id
-          project_id:
-            value: project_submitted_1
-        ref: application_action.project.approve
-  test_case.project.board.empty:
-    archetype: state_machine_composition
-    feature_tag: project.board
-    given:
-      domain_facts:
-      - absent:
-          entity_type: entity_type.project
-          where:
-            workspace_id:
-              from: $fixture.workspace.id
-      seed_fixtures:
-      - fixture.workspace.member
-    rationale: An empty workspace shows empty list, no detail, and no activity.
-    subject_ref:
-      state_machine: state_machine.project.board
-    then:
-      authorization:
-        denied:
-        - application_action: application_action.project.approve
-          authorization_policy: authorization_policy.project.reviewer
-      enables:
-      - application_action.project.create
-      requires:
-        action_bindings:
-        - create
-        assets:
-        - asset.project.list.empty.illustration
-        data_loaders:
-        - list_board
-        - list_projects
-        surfaces:
-        - state_machine.project.board.ready
-        - state_machine.project.activity.empty
-        - state_machine.project.detail.none
-        - state_machine.project.list.empty
-        text:
-        - text.project.activity.empty.heading
-        - text.project.activity.empty.body
-        - text.project.detail.none.heading
-        - text.project.detail.none.body
-        - text.project.list.empty.heading
-        - text.project.list.empty.body
-      state_machine:
-        composition:
-          child_state_machines:
-          - context_bindings:
-              selected_project_id:
-                from: $state_machine.selected_project_id
-              workspace_id:
-                from: $state_machine.workspace_id
-            html_region: nav
-            id: list
-            initial_view_state: loading
-            state_machine: state_machine.project.list
-            textual_container: nav
-          - context_bindings:
-              project_id:
-                from: $state_machine.selected_project_id
-            html_region: main
-            id: detail
-            initial_view_state: none
-            selected:
-              view_state: loading
-              when:
-                context_present: selected_project_id
-            state_machine: state_machine.project.detail
-            textual_container: main
-          - context_bindings:
-              project_id:
-                from: $state_machine.selected_project_id
-            html_region: aside
-            id: activity
-            initial_view_state: empty
-            selected:
-              view_state: ready
-              when:
-                context_present: selected_project_id
-            state_machine: state_machine.project.activity
-            textual_container: aside
-          renderers:
-            html:
-              layout:
-                regions:
-                  aside:
-                    classes:
-                    - dispatch-board-aside
-                    element: aside
-                    must_render: true
-                    order: 3
-                    role: complementary
-                  main:
-                    classes:
-                    - dispatch-board-main
-                    element: main
-                    must_render: true
-                    order: 2
-                    role: main
-                  nav:
-                    classes:
-                    - dispatch-board-nav
-                    element: nav
-                    must_render: true
-                    order: 1
-                    role: navigation
-                root:
-                  classes:
-                  - dispatch-board
-                  element: section
-                  role: region
-              style:
-                rules:
-                - declarations:
-                    display: grid
-                    gap: token.gap
-                    grid-template-columns: token.nav_width 1fr token.aside_width
-                  selector: root
-                - declarations:
-                    min-width: token.nav_width
-                  selector: region.nav
-                - declarations:
-                    min-width: '0'
-                  selector: region.main
-                - declarations:
-                    min-width: token.aside_width
-                  selector: region.aside
-                tokens:
-                  aside_width: 16rem
-                  gap: 1rem
-                  nav_width: 20rem
-            textual:
-              layout:
-                containers:
-                  aside:
-                    container_class: Container
-                    id: aside
-                    must_render: true
-                    order: 3
-                  main:
-                    container_class: Container
-                    id: main
-                    must_render: true
-                    order: 2
-                  nav:
-                    container_class: Container
-                    id: nav
-                    must_render: true
-                    order: 1
-                screen_class: ProjectBoardScreen
-              style:
-                rules:
-                - declarations:
-                    layout: horizontal
-                  selector: screen
-                - declarations:
-                    width: '32'
-                  selector: container.nav
-                - declarations:
-                    width: '28'
-                  selector: container.aside
-          signal_sync_rules:
-          - effects:
-            - set:
-                context: selected_project_id
-                from: $local_signal.project_id
-            - send:
-                instance: detail
-                local_signal: selection_changed
-                payload_bindings:
-                  project_id:
-                    from: $local_signal.project_id
-            - send:
-                instance: activity
-                local_signal: selection_changed
-                payload_bindings:
-                  project_id:
-                    from: $local_signal.project_id
-            id: select_project_updates_state_machines
-            when:
-              instance: list
-              local_signal: project_selected
-        instances:
-          activity:
-            source: state_machine.project.activity
-            surface: state_machine.project.activity.empty
-            view_state: empty
-          detail:
-            source: state_machine.project.detail
-            surface: state_machine.project.detail.none
-            view_state: none
-          list:
-            source: state_machine.project.list
-            surface: state_machine.project.list.empty
-            view_state: empty
-        ref: state_machine.project.board
-        signal_sync_rules:
-          observed_rules:
-          - select_project_updates_state_machines
-        surface: state_machine.project.board.ready
-        view_state: ready
-    title: Empty dispatch board
-    when:
-      open_entry_point:
-        input:
-          workspace_id:
-            from: $fixture.workspace.id
-        ref: entry_point.html.project.board
-  test_case.project.board.ready:
-    archetype: state_machine_composition
-    feature_tag: project.board
-    given:
-      domain_facts:
-      - present:
-          entity_type: entity_type.project
-          values:
-            assignee:
-              value: Maya Chen
-            created_at:
-              value: '2026-05-10T09:00:00Z'
-            customer:
-              value: Atlas Foods
-            id:
-              value: project_submitted_1
-            priority:
-              value: High
-            status:
-              value: submitted
-            summary:
-              value: Technician needs approval before ordering the replacement fan motor.
-            title:
-              value: Replace rooftop condenser fan
-            updated_at:
-              value: '2026-05-11T08:45:00Z'
-            workspace_id:
-              from: $fixture.workspace.id
-      seed_fixtures:
-      - fixture.workspace.member
-    rationale: A populated workspace shows the ready list while detail awaits explicit selection.
-    subject_ref:
-      state_machine: state_machine.project.board
-    then:
-      enables:
-      - application_action.project.create
-      - application_action.project.submit
-      requires:
-        action_bindings:
-        - create
-        - submit
-        assets: []
-        data_loaders:
-        - list_board
-        - list_projects
-        surfaces:
-        - state_machine.project.board.ready
-        - state_machine.project.activity.empty
-        - state_machine.project.detail.none
-        - state_machine.project.list.ready
-        text:
-        - text.project.activity.empty.heading
-        - text.project.activity.empty.body
-        - text.project.detail.none.heading
-        - text.project.detail.none.body
-        - text.project.list.ready.heading
-      state_machine:
-        composition:
-          child_state_machines:
-          - context_bindings:
-              selected_project_id:
-                from: $state_machine.selected_project_id
-              workspace_id:
-                from: $state_machine.workspace_id
-            html_region: nav
-            id: list
-            initial_view_state: loading
-            state_machine: state_machine.project.list
-            textual_container: nav
-          - context_bindings:
-              project_id:
-                from: $state_machine.selected_project_id
-            html_region: main
-            id: detail
-            initial_view_state: none
-            selected:
-              view_state: loading
-              when:
-                context_present: selected_project_id
-            state_machine: state_machine.project.detail
-            textual_container: main
-          - context_bindings:
-              project_id:
-                from: $state_machine.selected_project_id
-            html_region: aside
-            id: activity
-            initial_view_state: empty
-            selected:
-              view_state: ready
-              when:
-                context_present: selected_project_id
-            state_machine: state_machine.project.activity
-            textual_container: aside
-          renderers:
-            html:
-              layout:
-                regions:
-                  aside:
-                    classes:
-                    - dispatch-board-aside
-                    element: aside
-                    must_render: true
-                    order: 3
-                    role: complementary
-                  main:
-                    classes:
-                    - dispatch-board-main
-                    element: main
-                    must_render: true
-                    order: 2
-                    role: main
-                  nav:
-                    classes:
-                    - dispatch-board-nav
-                    element: nav
-                    must_render: true
-                    order: 1
-                    role: navigation
-                root:
-                  classes:
-                  - dispatch-board
-                  element: section
-                  role: region
-              style:
-                rules:
-                - declarations:
-                    display: grid
-                    gap: token.gap
-                    grid-template-columns: token.nav_width 1fr token.aside_width
-                  selector: root
-                - declarations:
-                    min-width: token.nav_width
-                  selector: region.nav
-                - declarations:
-                    min-width: '0'
-                  selector: region.main
-                - declarations:
-                    min-width: token.aside_width
-                  selector: region.aside
-                tokens:
-                  aside_width: 16rem
-                  gap: 1rem
-                  nav_width: 20rem
-            textual:
-              layout:
-                containers:
-                  aside:
-                    container_class: Container
-                    id: aside
-                    must_render: true
-                    order: 3
-                  main:
-                    container_class: Container
-                    id: main
-                    must_render: true
-                    order: 2
-                  nav:
-                    container_class: Container
-                    id: nav
-                    must_render: true
-                    order: 1
-                screen_class: ProjectBoardScreen
-              style:
-                rules:
-                - declarations:
-                    layout: horizontal
-                  selector: screen
-                - declarations:
-                    width: '32'
-                  selector: container.nav
-                - declarations:
-                    width: '28'
-                  selector: container.aside
-          signal_sync_rules:
-          - effects:
-            - set:
-                context: selected_project_id
-                from: $local_signal.project_id
-            - send:
-                instance: detail
-                local_signal: selection_changed
-                payload_bindings:
-                  project_id:
-                    from: $local_signal.project_id
-            - send:
-                instance: activity
-                local_signal: selection_changed
-                payload_bindings:
-                  project_id:
-                    from: $local_signal.project_id
-            id: select_project_updates_state_machines
-            when:
-              instance: list
-              local_signal: project_selected
-        instances:
-          activity:
-            source: state_machine.project.activity
-            surface: state_machine.project.activity.empty
-            view_state: empty
-          detail:
-            source: state_machine.project.detail
-            surface: state_machine.project.detail.none
-            view_state: none
-          list:
-            source: state_machine.project.list
-            surface: state_machine.project.list.ready
-            view_state: ready
-        ref: state_machine.project.board
-        signal_sync_rules:
-          observed_rules:
-          - select_project_updates_state_machines
-        surface: state_machine.project.board.ready
-        view_state: ready
-    title: Ready dispatch board
-    when:
-      open_entry_point:
-        input:
-          workspace_id:
-            from: $fixture.workspace.id
-        ref: entry_point.html.project.board
-  test_case.project.create.api.success:
-    archetype: entry_point_response
-    feature_tag: project.create
-    given:
-      domain_facts:
-      - absent:
-          entity_type: entity_type.project
-          where:
-            workspace_id:
-              from: $fixture.workspace.id
-      seed_fixtures:
-      - fixture.workspace.member
-    rationale: The API create endpoint delegates to the create application action and emits project.created.
-    subject_ref:
-      entry_point: entry_point.api.project.create
-    then:
-      authorization:
-        allowed:
-        - application_action: application_action.project.create
-          authorization_policy: authorization_policy.project.member
-      domain_events:
-        emitted:
-        - domain_event.project.created
-      entity:
-        exists:
-          entity_type: entity_type.project
-          where:
-            title:
-              value: Replace rooftop condenser fan
-            workspace_id:
-              from: $fixture.workspace.id
-      invoked:
-      - application_action.project.create
-      outcome: created
-      response:
-        status: 201
-    title: Create dispatch project through API
-    when:
-      call_entry_point:
-        input:
-          customer:
-            value: Atlas Foods
-          priority:
-            value: High
-          title:
-            value: Replace rooftop condenser fan
-          workspace_id:
-            from: $fixture.workspace.id
-        ref: entry_point.api.project.create
 text_resources:
   text.project.activity.empty.body:
     intent: instructional

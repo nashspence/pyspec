@@ -191,17 +191,17 @@ def test_author_contract_is_sparse_source() -> None:
     }
     assert "refs" not in author
     assert "lifecycle_transition" not in author["application_actions"]["application_action.project.submit"]
-    assert author["test_cases"]["test_case.project.approve.success"]["given"]["domain_facts"] == [{"ref": "fact.project.submitted"}]
+    assert author["behavior_scenarios"]["behavior_scenario.project.approve.success"]["given"]["preconditions"] == [{"ref": "fact.project.submitted"}]
     assert compile_author(author) == read_yaml(ROOT / COMPILED_SPEC_PATH)
 
 
-def test_named_fact_expands_into_compiled_test_case() -> None:
+def test_named_fact_expands_into_compiled_behavior_scenario() -> None:
     author = _author()
     contract = compile_author(author)
     fact = contract["facts"]["fact.project.submitted"]
-    test_case_fact = contract["test_cases"]["test_case.project.approve.success"]["given"]["domain_facts"][0]
-    assert "ref" not in test_case_fact
-    assert test_case_fact == {"present": fact["present"]}
+    behavior_scenario_fact = contract["behavior_scenarios"]["behavior_scenario.project.approve.success"]["given"]["preconditions"][0]
+    assert "ref" not in behavior_scenario_fact
+    assert behavior_scenario_fact == {"present": fact["present"]}
     assert audit_cases(contract)["state_machine.project.board.ready.ready_selected.audit"]["fact_refs"] == [
         {"ref": "fact.project.submitted"},
         {"ref": "fact.project.draft"},
@@ -211,18 +211,18 @@ def test_named_fact_expands_into_compiled_test_case() -> None:
 
 def test_unknown_fact_use_is_rejected() -> None:
     author = _author()
-    author["test_cases"]["test_case.project.approve.success"]["given"]["domain_facts"] = [{"ref": "fact.project.missing"}]
-    with pytest.raises(ContractError, match=r"Test case test_case.project\.approve\.success references unknown fact fact\.project\.missing"):
+    author["behavior_scenarios"]["behavior_scenario.project.approve.success"]["given"]["preconditions"] = [{"ref": "fact.project.missing"}]
+    with pytest.raises(ContractError, match=r"Behavior scenario behavior_scenario.project\.approve\.success references unknown fact fact\.project\.missing"):
         compile_author(author)
 
 
-def test_duplicate_fact_use_in_one_test_case_is_rejected() -> None:
+def test_duplicate_fact_use_in_one_behavior_scenario_is_rejected() -> None:
     author = _author()
-    author["test_cases"]["test_case.project.approve.success"]["given"]["domain_facts"] = [
+    author["behavior_scenarios"]["behavior_scenario.project.approve.success"]["given"]["preconditions"] = [
         {"ref": "fact.project.submitted"},
         {"ref": "fact.project.submitted"},
     ]
-    with pytest.raises(ContractError, match=r"Test case test_case.project\.approve\.success uses fact fact\.project\.submitted more than once"):
+    with pytest.raises(ContractError, match=r"Behavior scenario behavior_scenario.project\.approve\.success uses fact fact\.project\.submitted more than once"):
         compile_author(author)
 
 
@@ -263,10 +263,10 @@ def test_unused_fact_is_rejected() -> None:
 
 def test_fact_use_requires_declared_fixture_namespace() -> None:
     author = _author()
-    author["test_cases"]["test_case.project.approve.success"]["given"]["seed_fixtures"] = []
+    author["behavior_scenarios"]["behavior_scenario.project.approve.success"]["given"]["seed_fixtures"] = []
     with pytest.raises(
         ContractError,
-        match=r"Test case test_case.project\.approve\.success fixture ref \$fixture\.workspace\.id cannot resolve at workspace",
+        match=r"Behavior scenario behavior_scenario.project\.approve\.success fixture ref \$fixture\.workspace\.id cannot resolve at workspace",
     ):
         compile_author(author)
 
@@ -278,16 +278,16 @@ def test_fact_template_fields_must_belong_to_model() -> None:
         compile_author(author)
 
 
-def test_test_case_subject_ref_must_match_application_action_under_test() -> None:
+def test_behavior_scenario_system_under_test_ref_must_match_application_action_under_test() -> None:
     author = _author()
-    author["test_cases"]["test_case.project.approve.success"]["subject_ref"] = {"application_action": "application_action.project.create"}
-    with pytest.raises(ContractError, match="subject_ref.application_action must match the application action under test"):
+    author["behavior_scenarios"]["behavior_scenario.project.approve.success"]["system_under_test_ref"] = {"application_action": "application_action.project.create"}
+    with pytest.raises(ContractError, match="system_under_test_ref.application_action must match the application action under test"):
         compile_author(author)
 
 
 def test_entity_exists_assertion_rejects_unknown_field() -> None:
     author = _author()
-    exists = author["test_cases"]["test_case.project.approve.success"]["then"]["entity"]["exists"]
+    exists = author["behavior_scenarios"]["behavior_scenario.project.approve.success"]["then"]["entity"]["exists"]
     exists["where"]["ghost"] = {"value": "nope"}
     with pytest.raises(ContractError, match=r"entity\.exists filters unknown Project fields: \['ghost'\]"):
         compile_author(author)
@@ -295,14 +295,14 @@ def test_entity_exists_assertion_rejects_unknown_field() -> None:
 
 def test_response_assertion_requires_call_entry_point() -> None:
     author = _author()
-    author["test_cases"]["test_case.project.approve.success"]["then"]["response"] = {"status": 200}
+    author["behavior_scenarios"]["behavior_scenario.project.approve.success"]["then"]["response"] = {"status": 200}
     with pytest.raises(ContractError, match="response assertions require call_entry_point"):
         compile_author(author)
 
 
 def test_authorization_denial_outcome_must_be_mapped_authorization_failure() -> None:
     author = _author()
-    case = author["test_cases"]["test_case.project.approve.access_denied"]
+    case = author["behavior_scenarios"]["behavior_scenario.project.approve.access_denied"]
     case["then"]["outcome"] = "transition_not_allowed"
     with pytest.raises(ContractError, match=r"authorization_denial outcome must be one of application action authorization failure outcomes"):
         compile_author(author)
@@ -310,17 +310,17 @@ def test_authorization_denial_outcome_must_be_mapped_authorization_failure() -> 
 
 def test_invocation_assertion_must_follow_when() -> None:
     author = _author()
-    author["test_cases"]["test_case.project.approve.success"]["then"]["invoked"].append("application_action.project.create")
+    author["behavior_scenarios"]["behavior_scenario.project.approve.success"]["then"]["invoked"].append("application_action.project.create")
     with pytest.raises(ContractError, match="asserts action bindings unrelated to when"):
         compile_author(author)
 
 
-def test_named_assertion_fact_expands_into_compiled_test_case() -> None:
+def test_named_assertion_fact_expands_into_compiled_behavior_scenario() -> None:
     author = _author()
-    author["test_cases"]["test_case.project.approve.success"]["then"]["expected_facts"] = [{"ref": "fact.project.submitted"}]
+    author["behavior_scenarios"]["behavior_scenario.project.approve.success"]["then"]["postconditions"] = [{"ref": "fact.project.submitted"}]
     contract = compile_author(author)
     fact = contract["facts"]["fact.project.submitted"]
-    assert contract["test_cases"]["test_case.project.approve.success"]["then"]["expected_facts"] == [
+    assert contract["behavior_scenarios"]["behavior_scenario.project.approve.success"]["then"]["postconditions"] == [
         {"present": fact["present"]}
     ]
 
@@ -601,7 +601,7 @@ def test_command_application_action_allows_empty_crud_effects() -> None:
     author = _author()
     del author["application_actions"]["application_action.project.create"]["creates"]
     author["entry_points"]["entry_point.api.project.create"]["adapter"]["http_api"]["responses"]["created"]["status"] = 200
-    author["test_cases"]["test_case.project.create.api.success"]["then"]["response"]["status"] = 200
+    author["behavior_scenarios"]["behavior_scenario.project.create.api.success"]["then"]["response"]["status"] = 200
     contract = compile_source(author)
     assert contract["application_actions"]["application_action.project.create"]["creates"] == []
 
@@ -1043,16 +1043,16 @@ def test_generated_tree_is_closed(tmp_path: Path) -> None:
 
 def test_unknown_fixture_is_rejected() -> None:
     author = _author()
-    test_case = _first_item(author, "test_cases")
-    test_case["given"]["seed_fixtures"] = ["fixture.workspace.ghost"]
+    behavior_scenario = _first_item(author, "behavior_scenarios")
+    behavior_scenario["given"]["seed_fixtures"] = ["fixture.workspace.ghost"]
     with pytest.raises(ContractError, match="unknown seed fixture"):
         compile_source(author)
 
 
 def test_unresolved_fixture_reference_is_rejected() -> None:
     author = _author()
-    test_case = _item(author, "test_cases", "test_case.project.board.empty")
-    _, body = next(iter(test_case["when"].items()))
+    behavior_scenario = _item(author, "behavior_scenarios", "behavior_scenario.project.board.empty")
+    _, body = next(iter(behavior_scenario["when"].items()))
     body.setdefault("input", {})["workspace_id"] = {"from": "$fixture.workspace.missing"}
     with pytest.raises(ContractError, match="cannot resolve"):
         compile_source(author)
@@ -1669,10 +1669,10 @@ def test_signal_names_that_match_view_states_emit_lint_warnings() -> None:
     assert any("transition trigger 'ready' matches target view state" in message for message in messages)
 
 
-def test_composed_test_case_rejects_unknown_state_machine_instance() -> None:
+def test_composed_behavior_scenario_rejects_unknown_state_machine_instance() -> None:
     author = _author()
-    test_case = _item(author, "test_cases", "test_case.project.board.ready")
-    test_case["then"]["state_machine"]["instances"]["ghost"] = {"view_state": "ready"}
+    behavior_scenario = _item(author, "behavior_scenarios", "behavior_scenario.project.board.ready")
+    behavior_scenario["then"]["state_machine"]["instances"]["ghost"] = {"view_state": "ready"}
     with pytest.raises(ContractError, match="unknown state machine instance"):
         compile_source(author)
 
@@ -2021,11 +2021,11 @@ def test_delegated_and_outer_authorization_policies_are_both_evaluated(tmp_path:
         "rationale": "CLI approval requires reviewer role and an explicit approver argument.",
     }
     author["entry_points"]["entry_point.cli.project.approve"]["authorization_policy"] = outer_policy
-    author["test_cases"]["test_case.project.approve.cli.success"] = {
+    author["behavior_scenarios"]["behavior_scenario.project.approve.cli.success"] = {
         "archetype": "entry_point_response",
         "feature_tag": "project.approve.cli",
-        "subject_ref": {"entry_point": "entry_point.cli.project.approve"},
-        "given": {"domain_facts": [{"ref": "fact.project.submitted"}], "seed_fixtures": ["fixture.workspace.reviewer"]},
+        "system_under_test_ref": {"entry_point": "entry_point.cli.project.approve"},
+        "given": {"preconditions": [{"ref": "fact.project.submitted"}], "seed_fixtures": ["fixture.workspace.reviewer"]},
             "when": {
                 "call_entry_point": {
                     "ref": "entry_point.cli.project.approve",
@@ -2052,10 +2052,10 @@ def test_delegated_and_outer_authorization_policies_are_both_evaluated(tmp_path:
     copy_project_tree(ROOT, project)
     write_generated(project, contract, render_audit=False)
     driver = ReferenceSpecDriver(project)
-    test_case = contract["test_cases"]["test_case.project.approve.cli.success"]
-    driver.given("test_case.project.approve.cli.success", test_case)
-    driver.when("test_case.project.approve.cli.success", test_case)
-    driver.then("test_case.project.approve.cli.success", test_case)
+    behavior_scenario = contract["behavior_scenarios"]["behavior_scenario.project.approve.cli.success"]
+    driver.given("behavior_scenario.project.approve.cli.success", behavior_scenario)
+    driver.when("behavior_scenario.project.approve.cli.success", behavior_scenario)
+    driver.then("behavior_scenario.project.approve.cli.success", behavior_scenario)
 
 
 def test_state_machine_entry_must_not_declare_output() -> None:
@@ -2211,10 +2211,10 @@ def test_layer_pruned_author_schema_hides_irrelevant_sections() -> None:
     assert "audit_cases" not in schema["properties"]
 
 
-def test_pyspec_contract_rejects_test_case_harness_routing() -> None:
+def test_pyspec_contract_rejects_behavior_scenario_harness_routing() -> None:
     author = _author()
-    test_case = _first_item(author, "test_cases")
-    test_case["harnesses"] = ["spec", "prod"]
+    behavior_scenario = _first_item(author, "behavior_scenarios")
+    behavior_scenario["harnesses"] = ["spec", "prod"]
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 

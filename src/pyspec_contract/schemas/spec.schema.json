@@ -1503,7 +1503,7 @@
     "given": {
       "additionalProperties": false,
       "properties": {
-        "domain_facts": {
+        "preconditions": {
           "items": {
             "oneOf": [
               {
@@ -2907,7 +2907,7 @@
       ],
       "type": "object"
     },
-    "subject_ref": {
+    "system_under_test_ref": {
       "additionalProperties": false,
       "description": "Typed reference to the primary resource under test.",
       "maxProperties": 1,
@@ -2931,7 +2931,7 @@
       },
       "type": "object"
     },
-    "test_case_item": {
+    "behavior_scenario_item": {
       "additionalProperties": false,
       "properties": {
         "archetype": {
@@ -2946,8 +2946,8 @@
         "rationale": {
           "$ref": "#/$defs/rationale"
         },
-        "subject_ref": {
-          "$ref": "#/$defs/subject_ref"
+        "system_under_test_ref": {
+          "$ref": "#/$defs/system_under_test_ref"
         },
         "then": {
           "$ref": "#/$defs/then"
@@ -2963,7 +2963,7 @@
         "feature_tag",
         "title",
         "archetype",
-        "subject_ref",
+        "system_under_test_ref",
         "given",
         "when",
         "then",
@@ -2971,8 +2971,8 @@
       ],
       "type": "object"
     },
-    "test_case_ref": {
-      "pattern": "^test_case\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+    "behavior_scenario_ref": {
+      "pattern": "^behavior_scenario\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
     "text_ref": {
@@ -3273,7 +3273,7 @@
           },
           "type": "object"
         },
-        "expected_facts": {
+        "postconditions": {
           "items": {
             "oneOf": [
               {
@@ -4005,12 +4005,12 @@
       },
       "type": "object"
     },
-    "test_cases": {
+    "behavior_scenarios": {
       "additionalProperties": {
-        "$ref": "#/$defs/test_case_item"
+        "$ref": "#/$defs/behavior_scenario_item"
       },
       "propertyNames": {
-        "$ref": "#/$defs/test_case_ref"
+        "$ref": "#/$defs/behavior_scenario_ref"
       },
       "type": "object"
     },
@@ -4046,7 +4046,7 @@
     "domain_events",
     "entry_points",
     "workflows",
-    "test_cases",
+    "behavior_scenarios",
     "refs",
     "content_cases",
     "state_machines"

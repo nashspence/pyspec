@@ -40,13 +40,12 @@ filterwarnings = [
   "ignore:'maxsplit' is passed as positional argument:DeprecationWarning:gherkin.gherkin_line",
 ]
 markers = [
-  "spec: generated spec harness test case",
-  "prod: generated prod harness test case",
-  "test_case_project_board_empty: generated test-case tag",
-  "test_case_project_board_ready: generated test-case tag",
-  "test_case_project_create_api_success: generated test-case tag",
-  "test_case_project_approve_forbidden: generated test-case tag",
-  "test_case_project_approve_success: generated test-case tag",
-  "test_case_project_approval_notice_workflow: generated test-case tag",
-  "test_case_project_workspace_composed: generated test-case tag",
+  "spec: generated spec harness behavior scenario",
+  "prod: generated prod harness behavior scenario",
+  "behavior_scenario_project_approval_notice_workflow: generated behavior-scenario tag",
+  "behavior_scenario_project_approve_access_denied: generated behavior-scenario tag",
+  "behavior_scenario_project_approve_success: generated behavior-scenario tag",
+  "behavior_scenario_project_board_empty: generated behavior-scenario tag",
+  "behavior_scenario_project_board_ready: generated behavior-scenario tag",
+  "behavior_scenario_project_create_api_success: generated behavior-scenario tag",
 ]

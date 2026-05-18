@@ -113,7 +113,7 @@ def validate_generated_projections(root: Path, contract: dict[str, Any]) -> None
     if g("product_interfaces", "authorization_policies.json") in expected_paths:
         validate_authorization_policies_json(contract, read_json(generated / "product_interfaces" / "authorization_policies.json"))
     validate_agent_prompts(root)
-    validate_fixtures_and_test_cases(root, contract)
+    validate_fixtures_and_behavior_scenarios(root, contract)
     if (root / GENERATED_SPEC_DIR / "audit_evidence").exists() or any(path.startswith(g("audit_evidence") + "/") for path in audit_expected_files(contract)):
         validate_audit_outputs(root, contract)
 
@@ -622,21 +622,21 @@ def _workflow_cwl_source(source: Any) -> str:
     return source
 
 
-def validate_fixtures_and_test_cases(root: Path, contract: dict[str, Any]) -> None:
+def validate_fixtures_and_behavior_scenarios(root: Path, contract: dict[str, Any]) -> None:
     generated = root / GENERATED_SPEC_DIR
     behavior = generated / "behavior"
     fixtures = read_yaml(behavior / "fixtures.yaml")
-    test_cases = read_yaml(behavior / "test_cases.yaml")
+    behavior_scenarios = read_yaml(behavior / "behavior_scenarios.yaml")
     if fixtures != {"project": contract["project"], "fixtures": contract["fixtures"]}:
         raise ContractError("fixtures.yaml does not match contract fixtures")
-    if test_cases != {"project": contract["project"], "test_cases": contract["test_cases"]}:
-        raise ContractError("test_cases.yaml does not match spec test cases")
+    if behavior_scenarios != {"project": contract["project"], "behavior_scenarios": contract["behavior_scenarios"]}:
+        raise ContractError("behavior_scenarios.yaml does not match spec behavior scenarios")
 
-    expected_ids = set(contract["test_cases"])
+    expected_ids = set(contract["behavior_scenarios"])
     feature_root = generated / "test_adapters" / "pytest_bdd_features"
-    actual_ids = _feature_test_case_ids(feature_root)
+    actual_ids = _feature_behavior_scenario_ids(feature_root)
     if actual_ids != expected_ids:
-        raise ContractError(_diff_message("generated feature test cases", expected_ids, actual_ids))
+        raise ContractError(_diff_message("generated feature behavior scenarios", expected_ids, actual_ids))
 
     forbidden_harness_dirs = [feature_root / "spec", feature_root / "prod"]
     for path in forbidden_harness_dirs:
@@ -893,7 +893,7 @@ def validate_refs_py(root: Path, contract: dict[str, Any]) -> None:
         "StateMachine": sorted(contract.get("state_machines", {})),
         "Text": sorted(contract.get("text_resources", {})),
         "RenderAuditCase": sorted(audit_cases(contract)),
-        "TestCase": sorted(contract["test_cases"]),
+        "BehaviorScenario": sorted(contract["behavior_scenarios"]),
     }
     for kind, values in sorted(contract["refs"].items()):
         expected_groups[kind.title().replace("_", "")] = values
@@ -1100,7 +1100,7 @@ def _validate_cwl_type(type_spec: Any, label: str) -> None:
     raise ContractError(f"{label} has malformed CWL type: {type_spec!r}")
 
 
-def _feature_test_case_ids(folder: Path) -> set[str]:
+def _feature_behavior_scenario_ids(folder: Path) -> set[str]:
     if not folder.exists():
         return set()
     ids: set[str] = set()
@@ -1112,15 +1112,15 @@ def _feature_test_case_ids(folder: Path) -> set[str]:
         for idx, line in enumerate(lines):
             stripped = line.strip()
             if stripped.startswith("Given "):
-                match = re.fullmatch(r'Given spec test case "([a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)+)" is given', stripped)
+                match = re.fullmatch(r'Given spec behavior scenario "([a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)+)" is given', stripped)
                 if not match:
                     raise ContractError(f"Generated feature has non-spec Given step: {path}: {stripped}")
-                test_case_id = match.group(1)
-                ids.add(test_case_id)
-                expected_when = f'When spec test case "{test_case_id}" runs when'
-                expected_then = f'Then spec test case "{test_case_id}" then holds'
+                behavior_scenario_id = match.group(1)
+                ids.add(behavior_scenario_id)
+                expected_when = f'When spec behavior scenario "{behavior_scenario_id}" runs when'
+                expected_then = f'Then spec behavior scenario "{behavior_scenario_id}" then holds'
                 if idx + 2 >= len(lines) or lines[idx + 1].strip() != expected_when or lines[idx + 2].strip() != expected_then:
-                    raise ContractError(f"Generated feature test case {test_case_id} does not use canonical When/Then steps")
+                    raise ContractError(f"Generated feature behavior scenario {behavior_scenario_id} does not use canonical When/Then steps")
             elif stripped.startswith(("When ", "Then ")):
                 # These are validated only immediately after a matching Given.
                 continue

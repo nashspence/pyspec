@@ -19,7 +19,7 @@ from .json_schema import is_array_of_entity_type, entity_type_id, schema_propert
 
 
 class ReferenceSpecDriver:
-    """A fake/reference world for spec BDD. It proves test cases are coherent, not that prod works."""
+    """A fake/reference world for spec BDD. It proves behavior scenarios are coherent, not that prod works."""
 
     def __init__(self, root: Path):
         self.root = root
@@ -40,10 +40,10 @@ class ReferenceSpecDriver:
         self.last_result: Any = None
         self.last_outcome: str | None = None
 
-    def given(self, test_case_id: str, test_case: Mapping[str, Any]) -> None:
+    def given(self, behavior_scenario_id: str, behavior_scenario: Mapping[str, Any]) -> None:
         self.reset()
-        self.fixtures = fixture_namespace(self.contract, list(test_case.get("given", {}).get("seed_fixtures", [])))
-        for fact in test_case.get("given", {}).get("domain_facts", []):
+        self.fixtures = fixture_namespace(self.contract, list(behavior_scenario.get("given", {}).get("seed_fixtures", [])))
+        for fact in behavior_scenario.get("given", {}).get("preconditions", []):
             kind, body = next(iter(fact.items()))
             if kind == "absent":
                 where = self._resolve_map(body["where"])
@@ -54,21 +54,21 @@ class ReferenceSpecDriver:
             else:  # pragma: no cover - schema prevents this.
                 raise AssertionError(f"Unsupported fact kind: {kind}")
 
-    def when(self, test_case_id: str, test_case: Mapping[str, Any]) -> None:
-        kind, body = next(iter(test_case["when"].items()))
+    def when(self, behavior_scenario_id: str, behavior_scenario: Mapping[str, Any]) -> None:
+        kind, body = next(iter(behavior_scenario["when"].items()))
         if kind == "open_entry_point":
             self.last_state_machine = self._open_entry_point(body["ref"], self._resolve_map(body.get("input", {})))
         elif kind == "call_entry_point":
-            self.response = self._call_entry_point(body["ref"], self._resolve_map(body.get("input", {})), test_case["then"].get("outcome"))
+            self.response = self._call_entry_point(body["ref"], self._resolve_map(body.get("input", {})), behavior_scenario["then"].get("outcome"))
         elif kind == "invoke_application_action":
-            self.last_result = self._invoke(body["ref"], self._resolve_map(body.get("input", {})), test_case["then"].get("outcome"))
+            self.last_result = self._invoke(body["ref"], self._resolve_map(body.get("input", {})), behavior_scenario["then"].get("outcome"))
         elif kind == "emit_domain_event":
             self._emit(body["ref"], self._resolve_map(body.get("payload", {})))
         else:  # pragma: no cover - schema prevents this.
             raise AssertionError(f"Unsupported when kind: {kind}")
 
-    def then(self, test_case_id: str, test_case: Mapping[str, Any]) -> None:
-        assertions = test_case["then"]
+    def then(self, behavior_scenario_id: str, behavior_scenario: Mapping[str, Any]) -> None:
+        assertions = behavior_scenario["then"]
         if "state_machine" in assertions:
             assert self.last_state_machine is not None, "Expected a rendered state machine"
             expected = assertions["state_machine"]
@@ -140,7 +140,7 @@ class ReferenceSpecDriver:
             assert self._authorization_assertion_allowed(assertion), f"Expected authorization policy to permit {assertion}"
         for assertion in policy.get("denied", []):
             assert not self._authorization_assertion_allowed(assertion), f"Expected authorization policy to deny {assertion}"
-        for fact in assertions.get("expected_facts", []):
+        for fact in assertions.get("postconditions", []):
             kind, body = next(iter(fact.items()))
             if kind == "present":
                 values = self._resolve_map(body["values"])

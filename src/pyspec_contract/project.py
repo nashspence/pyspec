@@ -50,7 +50,7 @@ def projection_paths(contract: dict[str, Any]) -> list[str]:
         g("content_resolvers", "__init__.py"),
         g("test_adapters", "python_refs.py"),
         g("behavior", "fixtures.yaml"),
-        g("behavior", "test_cases.yaml"),
+        g("behavior", "behavior_scenarios.yaml"),
         g("test_adapters", "driver_protocol.py"),
         g("test_adapters", "pytest_bdd_steps.py"),
     ]
@@ -103,7 +103,7 @@ def projection_files(contract: dict[str, Any], *, layers: str | set[str] | None 
     if _has_authorization_policies(contract):
         yield g("product_interfaces", "authorization_policies.json"), authorization_policies_projection(contract), "json"
     yield g("behavior", "fixtures.yaml"), fixtures_projection(contract), "yaml"
-    yield g("behavior", "test_cases.yaml"), test_cases_projection(contract), "yaml"
+    yield g("behavior", "behavior_scenarios.yaml"), behavior_scenarios_projection(contract), "yaml"
     yield g("test_adapters", "python_refs.py"), refs_py_projection(contract), "text"
     if _has_content(contract):
         yield g("content_resolvers", "__init__.py"), "# Generated package. Do not edit.\n", "text"
@@ -760,8 +760,8 @@ def fixtures_projection(contract: dict[str, Any]) -> dict[str, Any]:
     return {"project": contract["project"], "fixtures": contract["fixtures"]}
 
 
-def test_cases_projection(contract: dict[str, Any]) -> dict[str, Any]:
-    return {"project": contract["project"], "test_cases": contract["test_cases"]}
+def behavior_scenarios_projection(contract: dict[str, Any]) -> dict[str, Any]:
+    return {"project": contract["project"], "behavior_scenarios": contract["behavior_scenarios"]}
 
 
 def authorization_policies_projection(contract: dict[str, Any]) -> dict[str, Any]:
@@ -887,7 +887,7 @@ def refs_py_projection(contract: dict[str, Any]) -> str:
             for state_name, state in state_machine.get("view_states", {}).items()
             for case_name in (state.get("render_audit_cases") or {})
         ),
-        "TestCase": sorted(contract["test_cases"]),
+        "BehaviorScenario": sorted(contract["behavior_scenarios"]),
     }
     for kind, values in sorted(contract["refs"].items()):
         groups[kind.title().replace("_", "")] = values
@@ -911,9 +911,9 @@ from typing import Any, Mapping, Protocol
 class SpecDriver(Protocol):
     """Implemented by pytest-bdd harness drivers. Generated; do not edit."""
 
-    def given(self, test_case_id: str, test_case: Mapping[str, Any]) -> None: ...
-    def when(self, test_case_id: str, test_case: Mapping[str, Any]) -> None: ...
-    def then(self, test_case_id: str, test_case: Mapping[str, Any]) -> None: ...
+    def given(self, behavior_scenario_id: str, behavior_scenario: Mapping[str, Any]) -> None: ...
+    def when(self, behavior_scenario_id: str, behavior_scenario: Mapping[str, Any]) -> None: ...
+    def then(self, behavior_scenario_id: str, behavior_scenario: Mapping[str, Any]) -> None: ...
 '''
 
 
@@ -930,54 +930,54 @@ from pyspec_contract.io import read_yaml
 
 
 @lru_cache(maxsize=1)
-def _test_cases() -> dict[str, Any]:
-    path = Path(__file__).resolve().parents[1] / "behavior" / "test_cases.yaml"
-    return read_yaml(path)["test_cases"]
+def _behavior_scenarios() -> dict[str, Any]:
+    path = Path(__file__).resolve().parents[1] / "behavior" / "behavior_scenarios.yaml"
+    return read_yaml(path)["behavior_scenarios"]
 
 
-def _test_case(test_case_id: str) -> dict[str, Any]:
+def _behavior_scenario(behavior_scenario_id: str) -> dict[str, Any]:
     try:
-        return _test_cases()[test_case_id]
+        return _behavior_scenarios()[behavior_scenario_id]
     except KeyError as exc:  # pragma: no cover - generated features should prevent this.
-        raise AssertionError(f"Unknown spec test case: {test_case_id}") from exc
+        raise AssertionError(f"Unknown spec behavior scenario: {behavior_scenario_id}") from exc
 
 
-@given(parsers.parse('spec test case "{test_case_id}" is given'))
-def given_spec_test_case(spec_driver, test_case_id: str) -> None:
-    spec_driver.given(test_case_id, _test_case(test_case_id))
+@given(parsers.parse('spec behavior scenario "{behavior_scenario_id}" is given'))
+def given_spec_behavior_scenario(spec_driver, behavior_scenario_id: str) -> None:
+    spec_driver.given(behavior_scenario_id, _behavior_scenario(behavior_scenario_id))
 
 
-@when(parsers.parse('spec test case "{test_case_id}" runs when'))
-def when_spec_test_case(spec_driver, test_case_id: str) -> None:
-    spec_driver.when(test_case_id, _test_case(test_case_id))
+@when(parsers.parse('spec behavior scenario "{behavior_scenario_id}" runs when'))
+def when_spec_behavior_scenario(spec_driver, behavior_scenario_id: str) -> None:
+    spec_driver.when(behavior_scenario_id, _behavior_scenario(behavior_scenario_id))
 
 
-@then(parsers.parse('spec test case "{test_case_id}" then holds'))
-def then_spec_test_case(spec_driver, test_case_id: str) -> None:
-    spec_driver.then(test_case_id, _test_case(test_case_id))
+@then(parsers.parse('spec behavior scenario "{behavior_scenario_id}" then holds'))
+def then_spec_behavior_scenario(spec_driver, behavior_scenario_id: str) -> None:
+    spec_driver.then(behavior_scenario_id, _behavior_scenario(behavior_scenario_id))
 '''
 
 
 def feature_projections(contract: dict[str, Any]) -> dict[str, str]:
     by_feature_tag: dict[str, list[tuple[str, dict[str, Any]]]] = defaultdict(list)
-    for test_case_id, test_case in sorted(contract["test_cases"].items()):
-        by_feature_tag[test_case["feature_tag"]].append((test_case_id, test_case))
+    for behavior_scenario_id, behavior_scenario in sorted(contract["behavior_scenarios"].items()):
+        by_feature_tag[behavior_scenario["feature_tag"]].append((behavior_scenario_id, behavior_scenario))
     files: dict[str, str] = {}
-    for feature_tag, test_cases in sorted(by_feature_tag.items()):
-        files[g("test_adapters", "pytest_bdd_features", f"{safe_id(feature_tag)}.feature")] = feature_text(feature_tag, test_cases)
+    for feature_tag, behavior_scenarios in sorted(by_feature_tag.items()):
+        files[g("test_adapters", "pytest_bdd_features", f"{safe_id(feature_tag)}.feature")] = feature_text(feature_tag, behavior_scenarios)
     return files
 
 
-def feature_text(feature_tag: str, test_cases: list[tuple[str, dict[str, Any]]]) -> str:
+def feature_text(feature_tag: str, behavior_scenarios: list[tuple[str, dict[str, Any]]]) -> str:
     lines = [f"Feature: {humanize(feature_tag)}", ""]
-    for test_case_id, test_case in test_cases:
-        tag_id = safe_id(test_case_id)
+    for behavior_scenario_id, behavior_scenario in behavior_scenarios:
+        tag_id = safe_id(behavior_scenario_id)
         lines.extend([
             f"  @spec @{tag_id}",
-            f"  Scenario: {test_case['title']}",
-            f"    Given spec test case \"{test_case_id}\" is given",
-            f"    When spec test case \"{test_case_id}\" runs when",
-            f"    Then spec test case \"{test_case_id}\" then holds",
+            f"  Scenario: {behavior_scenario['title']}",
+            f"    Given spec behavior scenario \"{behavior_scenario_id}\" is given",
+            f"    When spec behavior scenario \"{behavior_scenario_id}\" runs when",
+            f"    Then spec behavior scenario \"{behavior_scenario_id}\" then holds",
             "",
         ])
     return "\n".join(lines).rstrip() + "\n"
@@ -1030,7 +1030,7 @@ def snake_case(value: str) -> str:
 
 
 def safe_id(value: str) -> str:
-    return re.sub(r"[^A-Za-z0-9_]+", "_", value).strip("_") or "test_case"
+    return re.sub(r"[^A-Za-z0-9_]+", "_", value).strip("_") or "behavior_scenario"
 
 
 def constant_name(value: str) -> str:

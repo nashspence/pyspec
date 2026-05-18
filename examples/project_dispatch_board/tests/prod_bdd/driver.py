@@ -13,11 +13,11 @@ class ProdDriver:
     def __init__(self, root: Path):
         self.app = ProductApp(root)
 
-    def given(self, test_case_id: str, test_case: Mapping[str, Any]) -> None:
-        self.app.given(test_case["given"])
+    def given(self, behavior_scenario_id: str, behavior_scenario: Mapping[str, Any]) -> None:
+        self.app.given(behavior_scenario["given"])
 
-    def when(self, test_case_id: str, test_case: Mapping[str, Any]) -> None:
-        kind, body = next(iter(test_case["when"].items()))
+    def when(self, behavior_scenario_id: str, behavior_scenario: Mapping[str, Any]) -> None:
+        kind, body = next(iter(behavior_scenario["when"].items()))
         if kind == "open_entry_point":
             self.app.open_web_entry(body["ref"], self._resolve_map(body.get("input", {})))
         elif kind == "call_entry_point":
@@ -26,11 +26,11 @@ class ProdDriver:
             self.app.invoke_application_action(body["ref"], self._resolve_map(body.get("input", {})))
         elif kind == "emit_domain_event":
             self.app.emit_domain_event(body["ref"], self._resolve_map(body.get("payload", {})))
-        else:  # pragma: no cover - generated test cases prevent this.
+        else:  # pragma: no cover - generated behavior scenarios prevent this.
             raise AssertionError(f"Unsupported when kind: {kind}")
 
-    def then(self, test_case_id: str, test_case: Mapping[str, Any]) -> None:
-        self.app.assert_contract(test_case["then"])
+    def then(self, behavior_scenario_id: str, behavior_scenario: Mapping[str, Any]) -> None:
+        self.app.assert_contract(behavior_scenario["then"])
 
     def _resolve_map(self, values: Mapping[str, Any]) -> dict[str, Any]:
         return {key: self._resolve(value) for key, value in values.items()}

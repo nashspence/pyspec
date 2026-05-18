@@ -1,14 +1,13 @@
-project: project_dispatch_board
-test_cases:
-  test_case.project.approval_notice.workflow:
+behavior_scenarios:
+  behavior_scenario.project.approval_notice.workflow:
     archetype: workflow_trigger_success
     feature_tag: project.approval_notice
     given:
-      domain_facts: []
+      preconditions: []
       seed_fixtures:
       - fixture.workspace.reviewer
     rationale: Approval domain event dispatches the notification workflow.
-    subject_ref:
+    system_under_test_ref:
       workflow: workflow.project.approval_notice
     then:
       domain_events:
@@ -29,11 +28,11 @@ test_cases:
           project_id:
             value: project_submitted_1
         ref: domain_event.project.approved
-  test_case.project.approve.access_denied:
+  behavior_scenario.project.approve.access_denied:
     archetype: authorization_denial
     feature_tag: project.approve
     given:
-      domain_facts:
+      preconditions:
       - present:
           entity_type: entity_type.project
           values:
@@ -60,7 +59,7 @@ test_cases:
       seed_fixtures:
       - fixture.workspace.member
     rationale: A workspace member who is not a reviewer receives the mapped access_denied outcome before approval executes.
-    subject_ref:
+    system_under_test_ref:
       application_action: application_action.project.approve
     then:
       authorization:
@@ -80,11 +79,11 @@ test_cases:
           project_id:
             value: project_submitted_1
         ref: application_action.project.approve
-  test_case.project.approve.success:
+  behavior_scenario.project.approve.success:
     archetype: action_outcome
     feature_tag: project.approve
     given:
-      domain_facts:
+      preconditions:
       - present:
           entity_type: entity_type.project
           values:
@@ -111,7 +110,7 @@ test_cases:
       seed_fixtures:
       - fixture.workspace.reviewer
     rationale: Approval transitions a submitted project to approved and emits the domain event.
-    subject_ref:
+    system_under_test_ref:
       application_action: application_action.project.approve
     then:
       authorization:
@@ -141,11 +140,11 @@ test_cases:
           project_id:
             value: project_submitted_1
         ref: application_action.project.approve
-  test_case.project.board.empty:
+  behavior_scenario.project.board.empty:
     archetype: state_machine_composition
     feature_tag: project.board
     given:
-      domain_facts:
+      preconditions:
       - absent:
           entity_type: entity_type.project
           where:
@@ -154,7 +153,7 @@ test_cases:
       seed_fixtures:
       - fixture.workspace.member
     rationale: An empty workspace shows empty list, no detail, and no activity.
-    subject_ref:
+    system_under_test_ref:
       state_machine: state_machine.project.board
     then:
       authorization:
@@ -347,11 +346,11 @@ test_cases:
           workspace_id:
             from: $fixture.workspace.id
         ref: entry_point.html.project.board
-  test_case.project.board.ready:
+  behavior_scenario.project.board.ready:
     archetype: state_machine_composition
     feature_tag: project.board
     given:
-      domain_facts:
+      preconditions:
       - present:
           entity_type: entity_type.project
           values:
@@ -378,7 +377,7 @@ test_cases:
       seed_fixtures:
       - fixture.workspace.member
     rationale: A populated workspace shows the ready list while detail awaits explicit selection.
-    subject_ref:
+    system_under_test_ref:
       state_machine: state_machine.project.board
     then:
       enables:
@@ -567,11 +566,11 @@ test_cases:
           workspace_id:
             from: $fixture.workspace.id
         ref: entry_point.html.project.board
-  test_case.project.create.api.success:
+  behavior_scenario.project.create.api.success:
     archetype: entry_point_response
     feature_tag: project.create
     given:
-      domain_facts:
+      preconditions:
       - absent:
           entity_type: entity_type.project
           where:
@@ -580,7 +579,7 @@ test_cases:
       seed_fixtures:
       - fixture.workspace.member
     rationale: The API create endpoint delegates to the create application action and emits project.created.
-    subject_ref:
+    system_under_test_ref:
       entry_point: entry_point.api.project.create
     then:
       authorization:
@@ -616,3 +615,4 @@ test_cases:
           workspace_id:
             from: $fixture.workspace.id
         ref: entry_point.api.project.create
+project: project_dispatch_board

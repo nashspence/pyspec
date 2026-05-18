@@ -102,7 +102,7 @@ def test_author_query_conditional_effects_and_result_scope_validate() -> None:
 
 def test_author_value_maps_require_tagged_literals_or_runtime_sources() -> None:
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
-    body = author["test_cases"]["test_case.project.board.empty"]["when"]["open_entry_point"]
+    body = author["behavior_scenarios"]["behavior_scenario.project.board.empty"]["when"]["open_entry_point"]
     body["input"]["workspace_id"] = "$fixture.workspace.id"
     with pytest.raises(ContractError, match="Schema validation failed"):
         validate_against_schema(author, "author.schema.json")

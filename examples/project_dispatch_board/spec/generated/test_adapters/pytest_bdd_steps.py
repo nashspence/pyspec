@@ -10,28 +10,28 @@ from pyspec_contract.io import read_yaml
 
 
 @lru_cache(maxsize=1)
-def _test_cases() -> dict[str, Any]:
-    path = Path(__file__).resolve().parents[1] / "behavior" / "test_cases.yaml"
-    return read_yaml(path)["test_cases"]
+def _behavior_scenarios() -> dict[str, Any]:
+    path = Path(__file__).resolve().parents[1] / "behavior" / "behavior_scenarios.yaml"
+    return read_yaml(path)["behavior_scenarios"]
 
 
-def _test_case(test_case_id: str) -> dict[str, Any]:
+def _behavior_scenario(behavior_scenario_id: str) -> dict[str, Any]:
     try:
-        return _test_cases()[test_case_id]
+        return _behavior_scenarios()[behavior_scenario_id]
     except KeyError as exc:  # pragma: no cover - generated features should prevent this.
-        raise AssertionError(f"Unknown spec test case: {test_case_id}") from exc
+        raise AssertionError(f"Unknown spec behavior scenario: {behavior_scenario_id}") from exc
 
 
-@given(parsers.parse('spec test case "{test_case_id}" is given'))
-def given_spec_test_case(spec_driver, test_case_id: str) -> None:
-    spec_driver.given(test_case_id, _test_case(test_case_id))
+@given(parsers.parse('spec behavior scenario "{behavior_scenario_id}" is given'))
+def given_spec_behavior_scenario(spec_driver, behavior_scenario_id: str) -> None:
+    spec_driver.given(behavior_scenario_id, _behavior_scenario(behavior_scenario_id))
 
 
-@when(parsers.parse('spec test case "{test_case_id}" runs when'))
-def when_spec_test_case(spec_driver, test_case_id: str) -> None:
-    spec_driver.when(test_case_id, _test_case(test_case_id))
+@when(parsers.parse('spec behavior scenario "{behavior_scenario_id}" runs when'))
+def when_spec_behavior_scenario(spec_driver, behavior_scenario_id: str) -> None:
+    spec_driver.when(behavior_scenario_id, _behavior_scenario(behavior_scenario_id))
 
 
-@then(parsers.parse('spec test case "{test_case_id}" then holds'))
-def then_spec_test_case(spec_driver, test_case_id: str) -> None:
-    spec_driver.then(test_case_id, _test_case(test_case_id))
+@then(parsers.parse('spec behavior scenario "{behavior_scenario_id}" then holds'))
+def then_spec_behavior_scenario(spec_driver, behavior_scenario_id: str) -> None:
+    spec_driver.then(behavior_scenario_id, _behavior_scenario(behavior_scenario_id))

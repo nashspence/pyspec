@@ -23,7 +23,7 @@ COLLECTION_SECTIONS = {
     "entity_types": "entity_type",
     "schemas": "schema",
     "authorization_policies": "authorization_policy",
-    "test_cases": "test_case",
+    "behavior_scenarios": "behavior_scenario",
     "workflows": "workflow",
 }
 

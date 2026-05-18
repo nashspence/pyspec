@@ -42,7 +42,7 @@ def validate_project(root: Path, release: bool = False, layers: set[str] | None 
     if release:
         _release_gate(compiled)
 
-    if compiled["test_cases"]:
+    if compiled["behavior_scenarios"]:
         assert_prod_harness_is_real(root)
 
     expected = {str(COMPILED_SPEC_PATH)} | {relative for relative, _, _ in projection_files(compiled, layers=layers)} | audit_expected_files(compiled)

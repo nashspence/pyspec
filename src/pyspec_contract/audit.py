@@ -563,7 +563,7 @@ def _non_visual_path_classification(contract: dict[str, Any], pointer: str) -> d
 
 def _visual_path_obligation(contract: dict[str, Any], pointer: str) -> dict[str, str]:
     parts = _json_pointer_parts(pointer)
-    if parts and parts[0] in {"assets", "content_cases", "facts", "fixtures", "test_cases", "text_resources"}:
+    if parts and parts[0] in {"assets", "content_cases", "facts", "fixtures", "behavior_scenarios", "text_resources"}:
         return {"level": "optional", "reason": _optional_visual_path_reason(parts[0])}
     _ = contract
     return {"level": "required", "reason": "required product contract path has no diagram or render-capture evidence"}
@@ -575,7 +575,7 @@ def _optional_visual_path_reason(collection: str) -> str:
         "content_cases": "content examples are visual only when their referenced resource is rendered",
         "facts": "facts may support behavior assertions without dedicated visual evidence",
         "fixtures": "fixtures may support behavior or content tests without appearing in render audit cases",
-        "test_cases": "behavior cases may be represented by diagrams or renders, but are not required visual evidence",
+        "behavior_scenarios": "behavior cases may be represented by diagrams or renders, but are not required visual evidence",
         "text_resources": "text resources may be adapter or branch-specific and need not appear in rendered states",
     }[collection]
 
@@ -614,8 +614,8 @@ def _audit_evidence_for_pointer(contract: dict[str, Any], pointer: str) -> list[
     if parts[0] == "state_machines":
         state_name = parts[3] if len(parts) >= 4 and parts[2] == "view_states" else None
         return _state_machine_evidence_files(contract, owner, state_name)
-    if parts[0] == "test_cases":
-        return _test_case_evidence_files(contract, owner)
+    if parts[0] == "behavior_scenarios":
+        return _behavior_scenario_evidence_files(contract, owner)
     if parts[0] == "text_resources":
         return _text_resource_evidence_files(contract, owner)
     if parts[0] == "workflows":
@@ -1148,12 +1148,12 @@ def _fact_evidence_files(contract: dict[str, Any], fact_id: str) -> list[str]:
     return _scope_input_evidence_files(contract, fact_id, "fact")
 
 
-def _test_case_evidence_files(contract: dict[str, Any], test_case_id: str) -> list[str]:
-    test_case = contract.get("test_cases", {}).get(test_case_id)
-    if not test_case:
+def _behavior_scenario_evidence_files(contract: dict[str, Any], behavior_scenario_id: str) -> list[str]:
+    behavior_scenario = contract.get("behavior_scenarios", {}).get(behavior_scenario_id)
+    if not behavior_scenario:
         return []
     files: list[str] = []
-    when = test_case.get("when", {})
+    when = behavior_scenario.get("when", {})
     for action in ("open_entry_point", "call_entry_point"):
         if action in when:
             files.extend(_entry_point_evidence_files(contract, when[action]["ref"]))
@@ -1164,7 +1164,7 @@ def _test_case_evidence_files(contract: dict[str, Any], test_case_id: str) -> li
     if "run_workflow" in when:
         files.extend(_workflow_evidence_files(contract, when["run_workflow"]["ref"]))
     for case_id, case in sorted(audit_cases(contract).items()):
-        if case_id == test_case_id or case.get("test_case") == test_case_id:
+        if case_id == behavior_scenario_id or case.get("behavior_scenario") == behavior_scenario_id:
             files.extend(_case_render_capture_files(contract, case_id, case))
     return files
 

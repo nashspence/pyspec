@@ -72,9 +72,9 @@ def test_state_machine_composition_rejects_sync_local_signal_not_emitted_by_sour
         compile_source(author)
 
 
-def test_composed_test_case_rejects_unknown_state_machine_state() -> None:
+def test_composed_behavior_scenario_rejects_unknown_state_machine_state() -> None:
     author = _author()
-    test_case = _item(author, "test_cases", "test_case.project.board.ready")
-    test_case["then"]["state_machine"]["instances"]["detail"]["view_state"] = "ghost"
+    behavior_scenario = _item(author, "behavior_scenarios", "behavior_scenario.project.board.ready")
+    behavior_scenario["then"]["state_machine"]["instances"]["detail"]["view_state"] = "ghost"
     with pytest.raises(ContractError, match="unknown state machine view state"):
         compile_source(author)

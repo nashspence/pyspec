@@ -12,7 +12,7 @@ def resource_tail(value: str) -> str:
         "domain_event",
         "workflow",
         "state_machine",
-        "test_case",
+        "behavior_scenario",
         "fixture",
         "fact",
         "asset",

@@ -20,7 +20,7 @@ DEPRECATED_DEFINITION_NAMES = {
     "fsm",
     "entity_type",
     "scenario",
-    "test_case",
+    "behavior_scenario",
     "workflow",
 }
 DEPRECATED_REFERENCE_DEFINITION_NAMES = {
@@ -103,14 +103,14 @@ ALLOWED_ONE_OF_WITHOUT_OBJECT_DISCRIMINATORS = {
     "$defs.authored_content_case.properties.ref.oneOf",
     "$defs.content_case_item.properties.ref.oneOf",
     "$defs.content_source_ref.oneOf",
-    "$defs.given.properties.domain_facts.items.oneOf",
+    "$defs.given.properties.preconditions.items.oneOf",
     "$defs.json_value.oneOf",
     "$defs.schema.properties.additionalProperties.oneOf",
     "$defs.schema.properties.oneOf",
     "$defs.schema.properties.type.oneOf",
     "$defs.state_machine_signals.properties.accepts.propertyNames.oneOf",
     "$defs.state_machine_signal_trigger.oneOf",
-    "$defs.then.properties.expected_facts.items.oneOf",
+    "$defs.then.properties.postconditions.items.oneOf",
 }
 JSON_SCHEMA_KEYWORD_PROPERTY_NAMES = {
     "$defs",
@@ -149,8 +149,8 @@ JSON_SCHEMA_KEYWORD_PROPERTY_NAMES = {
     "uniqueItems",
 }
 ALLOWED_JSON_SCHEMA_KEYWORD_PROPERTIES = {
-    ("authored_test_case", "then"),
-    ("authored_test_case", "title"),
+    ("authored_behavior_scenario", "then"),
+    ("authored_behavior_scenario", "title"),
     ("entry_point_response_value", "type"),
     ("schema", "$ref"),
     ("schema", "additionalProperties"),
@@ -164,8 +164,8 @@ ALLOWED_JSON_SCHEMA_KEYWORD_PROPERTIES = {
     ("schema", "properties"),
     ("schema", "required"),
     ("schema", "type"),
-    ("test_case_item", "then"),
-    ("test_case_item", "title"),
+    ("behavior_scenario_item", "then"),
+    ("behavior_scenario_item", "title"),
 }
 
 
@@ -443,9 +443,15 @@ def test_layout_contract_uses_must_render_flag() -> None:
 
 def test_spec_ontology_rejects_deprecated_reference_terminology() -> None:
     text = DOC_PATH.read_text(encoding="utf-8")
+    deprecated_doc_terms = DEPRECATED_REFERENCE_DEFINITION_NAMES | (DEPRECATED_TOP_LEVEL_PROPERTIES - {"scenarios"}) | {
+        "capability",
+        "capabilities",
+        "fsm",
+        "fsms",
+    }
     deprecated_terms = sorted(
         term
-        for term in DEPRECATED_REFERENCE_DEFINITION_NAMES | DEPRECATED_TOP_LEVEL_PROPERTIES | {"capability", "capabilities", "fsm", "fsms", "scenario", "scenarios"}
-        if term in text
+        for term in deprecated_doc_terms
+        if re.search(rf"(?<![A-Za-z0-9_]){re.escape(term)}(?![A-Za-z0-9_])", text)
     )
     assert deprecated_terms == []

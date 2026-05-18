@@ -10,7 +10,7 @@ from pyspec_contract.io import read_json, read_yaml
 from pyspec_contract.paths import COMPILED_SPEC_PATH
 from pyspec_contract.projection_validators import (
     validate_asyncapi,
-    validate_fixtures_and_test_cases,
+    validate_fixtures_and_behavior_scenarios,
     validate_openapi,
     validate_authorization_policies_json,
     validate_state_machines_json,
@@ -84,14 +84,14 @@ def test_textual_validator_rejects_broken_generated_python(tmp_path: Path) -> No
         validate_textual_contract(project, _contract())
 
 
-def test_test_case_validator_rejects_freeform_generated_gherkin(tmp_path: Path) -> None:
+def test_behavior_scenario_validator_rejects_freeform_generated_gherkin(tmp_path: Path) -> None:
     project = tmp_path / "project"
     copy_project_tree(ROOT, project)
     feature_file = next((project / "spec" / "generated" / "test_adapters" / "pytest_bdd_features").glob("*.feature"))
     text = feature_file.read_text(encoding="utf-8")
     feature_file.write_text(text.replace("    Then ", "    And freeform agent prose\n    Then ", 1), encoding="utf-8")
     with pytest.raises(ContractError, match="non-canonical BDD conjunction|canonical When/Then"):
-        validate_fixtures_and_test_cases(project, _contract())
+        validate_fixtures_and_behavior_scenarios(project, _contract())
 
 
 def test_state_machines_json_validator_rejects_missing_composition() -> None:
