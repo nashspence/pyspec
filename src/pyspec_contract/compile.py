@@ -1905,12 +1905,12 @@ def _validate_query_conditional_local_effects(
 ) -> None:
     result_conditions: list[str] = []
     for index, branch in enumerate(invocation["local_effects"][outcome_id]["conditional_local_effects"]):
-        condition = _query_result_condition_key(branch["when"])
+        condition = branch["result_condition"]
         branch_label = f"{effect_label}.conditional_local_effects[{index}].{condition}"
         if condition in result_conditions:
             raise ContractError(f"{effect_label} conditional_local_effects duplicate condition: {condition}")
         result_conditions.append(condition)
-        if condition in {"result_empty", "result_non_empty"} and not _type_supports_emptiness(outcome["result"]):
+        if condition in {"empty", "non_empty"} and not _type_supports_emptiness(outcome["result"]):
             raise ContractError(f"{branch_label} is valid only for array/list query results")
         _validate_query_local_outcome_effect(
             contract,
@@ -1924,8 +1924,8 @@ def _validate_query_conditional_local_effects(
             scope=scope,
             state=state,
         )
-    if set(result_conditions) != {"result_empty", "result_non_empty"}:
-        raise ContractError(f"{effect_label} conditional_local_effects for empty/non-empty result handling must declare both result_empty and result_non_empty branches")
+    if set(result_conditions) != {"empty", "non_empty"}:
+        raise ContractError(f"{effect_label} conditional_local_effects for empty/non-empty result handling must declare both empty and non_empty branches")
 
 
 def _validate_query_local_outcome_effect(
@@ -2012,10 +2012,6 @@ def _validate_query_local_outcome_effect(
                 payload=payload,
                 scopes=scopes,
             )
-
-
-def _query_result_condition_key(condition: dict[str, Any]) -> str:
-    return next(iter(condition))
 
 
 def _query_local_outcome_is_only_no_local_effect(effect: dict[str, Any]) -> bool:
@@ -2351,7 +2347,7 @@ def _validate_state_composition(contract: dict[str, Any], state_machine_id: str,
         if selected and selected["state"] not in child_state_machine["states"]:
             raise ContractError(f"composed state machine state {label}.{mount['id']} selected state is unknown: {selected['state']}")
         if selected:
-            _validate_condition_context(contract, label, _state_machine_context(parent_state_machine), selected["when"])
+            _validate_condition_context(contract, label, _state_machine_context(parent_state_machine), selected["condition"])
         mount_context = mount.get("context_bindings", {})
         child_context = _state_machine_context(child_state_machine)
         expected_context = _schema_required_fields(child_state_machine.get("context_schema"))
@@ -2730,11 +2726,11 @@ def _validate_sync_rules(
         if rule["id"] in seen:
             raise ContractError(f"composed state machine state {label} has duplicate sync rule: {rule['id']}")
         seen.add(rule["id"])
-        source_id = rule["when"]["instance"]
+        source_id = rule["trigger"]["instance"]
         if source_id not in mounts:
             raise ContractError(f"composed state machine state {label} sync source instance is unknown: {source_id}")
         source_fsm = contract["state_machines"][mounts[source_id]["state_machine"]]
-        signal_id = rule["when"]["local_signal"]
+        signal_id = rule["trigger"]["local_signal"]
         if ("local_signal", signal_id) not in _state_machine_emits(source_fsm):
             raise ContractError(f"composed state machine state {label} sync listens for signal the source does not emit: {signal_id}")
         source_payload = _state_machine_signal_payload(source_fsm, "emits", {"local_signal": signal_id}, f"composed state machine state {label} sync trigger")

@@ -202,9 +202,9 @@ behavior_scenarios:
             id: detail
             initial_state: none
             selected:
-              state: loading
-              when:
+              condition:
                 context_present: selected_project_id
+              state: loading
             state_machine: state_machine.project.detail
             textual_container: main
           - context_bindings:
@@ -214,9 +214,9 @@ behavior_scenarios:
             id: activity
             initial_state: empty
             selected:
-              state: ready
-              when:
+              condition:
                 context_present: selected_project_id
+              state: ready
             state_machine: state_machine.project.activity
             textual_container: aside
           renderers:
@@ -317,7 +317,7 @@ behavior_scenarios:
                 payload_bindings:
                   project_id:
                     from: $signal.payload.project_id
-            when:
+            trigger:
               instance: list
               local_signal: project_selected
         instances:
@@ -422,9 +422,9 @@ behavior_scenarios:
             id: detail
             initial_state: none
             selected:
-              state: loading
-              when:
+              condition:
                 context_present: selected_project_id
+              state: loading
             state_machine: state_machine.project.detail
             textual_container: main
           - context_bindings:
@@ -434,9 +434,9 @@ behavior_scenarios:
             id: activity
             initial_state: empty
             selected:
-              state: ready
-              when:
+              condition:
                 context_present: selected_project_id
+              state: ready
             state_machine: state_machine.project.activity
             textual_container: aside
           renderers:
@@ -537,7 +537,7 @@ behavior_scenarios:
                 payload_bindings:
                   project_id:
                     from: $signal.payload.project_id
-            when:
+            trigger:
               instance: list
               local_signal: project_selected
         instances:

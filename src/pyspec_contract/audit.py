@@ -1780,7 +1780,7 @@ def state_machine_dot(state_machine_id: str, state_machine: dict[str, Any], cont
 def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contract: dict[str, Any]) -> str:
     sync_state_machine_order: list[str] = []
     for rule in state_machine.get("signal_sync_rules", []):
-        sync_state_machine_order.append(rule["when"]["instance"])
+        sync_state_machine_order.append(rule["trigger"]["instance"])
         sync_state_machine_order.extend(effect["send"]["instance"] for effect in rule.get("local_effects", []) if "send" in effect)
     sync_state_machine_index = {state_machine_id: index for index, state_machine_id in enumerate(dict.fromkeys(sync_state_machine_order))}
     mounts = sorted(
@@ -1799,8 +1799,8 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
     if not has_sync:
         lines.append(_dot_html_node("local_signal_sync_none", _dot_card("No local signal sync", "local signal sync", [], style=_DOT_STYLE_NEUTRAL)))
     for rule in state_machine.get("signal_sync_rules", []):
-        signal_id = rule["when"]["local_signal"]
-        emit_id = _dot_node_id("local_signal_emit", f"{rule['id']}_{rule['when']['instance']}_{signal_id}")
+        signal_id = rule["trigger"]["local_signal"]
+        emit_id = _dot_node_id("local_signal_emit", f"{rule['id']}_{rule['trigger']['instance']}_{signal_id}")
         sync_id = _dot_node_id("local_signal_sync", rule["id"])
         send_local_effects = [(index, effect) for index, effect in enumerate(rule.get("local_effects", [])) if "send" in effect]
         effect_ids = [_dot_node_id("local_signal_effect", f"{rule['id']}_{index}") for index, _ in send_local_effects]
@@ -1811,8 +1811,8 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
                     _local_signal_label(signal_id),
                     "emitted local signal",
                     [
-                        ("source", _emitting_transition_refs(rule["when"]["instance"], signal_id, mount_by_id, contract)),
-                        ("payload", _emitted_local_signal_data_lines(rule["when"]["instance"], signal_id, mount_by_id, contract)),
+                        ("source", _emitting_transition_refs(rule["trigger"]["instance"], signal_id, mount_by_id, contract)),
+                        ("payload", _emitted_local_signal_data_lines(rule["trigger"]["instance"], signal_id, mount_by_id, contract)),
                     ],
                     style=_DOT_STYLE_EVENT,
                 ),
@@ -1836,9 +1836,9 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
             lines.append("  { rank=same; " + " ".join(_dot_quote(effect_id) for effect_id in effect_ids) + " }")
             lines.extend(_dot_invisible_order(effect_ids, indent="  "))
     for rule in state_machine.get("signal_sync_rules", []):
-        emit_id = _dot_node_id("local_signal_emit", f"{rule['id']}_{rule['when']['instance']}_{rule['when']['local_signal']}")
+        emit_id = _dot_node_id("local_signal_emit", f"{rule['id']}_{rule['trigger']['instance']}_{rule['trigger']['local_signal']}")
         sync_id = _dot_node_id("local_signal_sync", rule["id"])
-        source = mount_node_by_id.get(rule["when"]["instance"])
+        source = mount_node_by_id.get(rule["trigger"]["instance"])
         if source:
             lines.append(_dot_edge(source, emit_id, {"color": _DOT_COLOR_EVENT_BORDER, "penwidth": "1.4"}))
         lines.append(_dot_edge(emit_id, sync_id, {"color": _DOT_COLOR_EVENT_BORDER, "penwidth": "1.2"}))

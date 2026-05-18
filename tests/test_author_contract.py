@@ -92,10 +92,10 @@ def test_author_query_conditional_local_effects_and_result_scope_validate() -> N
     invocation = author["state_machines"]["state_machine.project.list"]["query_bindings"]["list_projects"]
     assert invocation["result_scope"] == "local"
     effect = invocation["local_effects"]["listed"]
-    assert {next(iter(branch["when"])) for branch in effect["conditional_local_effects"]} == {"result_empty", "result_non_empty"}
+    assert {branch["result_condition"] for branch in effect["conditional_local_effects"]} == {"empty", "non_empty"}
     validate_against_schema(author, "author.schema.json")
 
-    effect["conditional_local_effects"][0]["when"] = {"result_empty": False}
+    effect["conditional_local_effects"][0]["result_condition"] = "unknown"
     with pytest.raises(ContractError, match="Schema validation failed"):
         validate_against_schema(author, "author.schema.json")
 

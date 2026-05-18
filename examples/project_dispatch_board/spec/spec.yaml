@@ -671,7 +671,7 @@ state_machines:
               from: $state_machine.selected_project_id
           id: detail
           selected:
-            when:
+            condition:
               context_present: selected_project_id
             state: loading
           state_machine: state_machine.project.detail
@@ -683,7 +683,7 @@ state_machines:
               from: $state_machine.selected_project_id
           id: activity
           selected:
-            when:
+            condition:
               context_present: selected_project_id
             state: ready
           state_machine: state_machine.project.activity
@@ -708,7 +708,7 @@ state_machines:
                 project_id:
                   from: $signal.payload.project_id
           id: select_project_updates_state_machines
-          when:
+          trigger:
             instance: list
             local_signal: project_selected
         renderers:
@@ -1093,8 +1093,7 @@ state_machines:
         local_effects:
           listed:
             conditional_local_effects:
-            - when:
-                result_empty: true
+            - result_condition: empty
               result_binding:
                 data_key: projects
                 from:
@@ -1104,8 +1103,7 @@ state_machines:
                   from: $query_binding.input.workspace_id
               raise:
                 data_refresh_signal: project_collection_empty
-            - when:
-                result_non_empty: true
+            - result_condition: non_empty
               result_binding:
                 data_key: projects
                 from:

@@ -67,7 +67,7 @@ def test_state_machine_composition_rejects_context_binding_drift() -> None:
 def test_state_machine_composition_rejects_sync_local_signal_not_emitted_by_source_instance() -> None:
     author = _author()
     state_machine = _item(author, "state_machines", "state_machine.project.board")["states"]["ready"]
-    state_machine["signal_sync_rules"][0]["when"]["local_signal"] = "unannounced"
+    state_machine["signal_sync_rules"][0]["trigger"]["local_signal"] = "unannounced"
     with pytest.raises(ContractError, match="sync listens for signal the source does not emit"):
         compile_source(author)
 

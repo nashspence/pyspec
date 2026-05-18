@@ -769,16 +769,16 @@ visual_audit:
       /state_machines/state_machine.project.board/states/ready/child_state_machines/1/html_region: V0025
       /state_machines/state_machine.project.board/states/ready/child_state_machines/1/id: V0025
       /state_machines/state_machine.project.board/states/ready/child_state_machines/1/initial_state: V0025
+      /state_machines/state_machine.project.board/states/ready/child_state_machines/1/selected/condition/context_present: V0025
       /state_machines/state_machine.project.board/states/ready/child_state_machines/1/selected/state: V0025
-      /state_machines/state_machine.project.board/states/ready/child_state_machines/1/selected/when/context_present: V0025
       /state_machines/state_machine.project.board/states/ready/child_state_machines/1/state_machine: V0025
       /state_machines/state_machine.project.board/states/ready/child_state_machines/1/textual_container: V0025
       /state_machines/state_machine.project.board/states/ready/child_state_machines/2/context_bindings/project_id/from: V0025
       /state_machines/state_machine.project.board/states/ready/child_state_machines/2/html_region: V0025
       /state_machines/state_machine.project.board/states/ready/child_state_machines/2/id: V0025
       /state_machines/state_machine.project.board/states/ready/child_state_machines/2/initial_state: V0025
+      /state_machines/state_machine.project.board/states/ready/child_state_machines/2/selected/condition/context_present: V0025
       /state_machines/state_machine.project.board/states/ready/child_state_machines/2/selected/state: V0025
-      /state_machines/state_machine.project.board/states/ready/child_state_machines/2/selected/when/context_present: V0025
       /state_machines/state_machine.project.board/states/ready/child_state_machines/2/state_machine: V0025
       /state_machines/state_machine.project.board/states/ready/child_state_machines/2/textual_container: V0025
       /state_machines/state_machine.project.board/states/ready/command_bindings: V0025
@@ -858,8 +858,8 @@ visual_audit:
       /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/2/send/local_signal: V0025
       ? /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/2/send/payload_bindings/project_id/from
       : V0025
-      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/when/instance: V0025
-      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/when/local_signal: V0025
+      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/trigger/instance: V0025
+      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/trigger/local_signal: V0025
       /state_machines/state_machine.project.board/states/ready/surface: V0025
       /state_machines/state_machine.project.board/states/ready/text: V0025
       /state_machines/state_machine.project.board/transitions: V0025
@@ -1122,7 +1122,7 @@ visual_audit:
       : V0027
       ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/listed/conditional_local_effects/0/result_binding/from/from
       : V0027
-      ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/listed/conditional_local_effects/0/when/result_empty
+      ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/listed/conditional_local_effects/0/result_condition
       : V0027
       ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/listed/conditional_local_effects/1/context_updates/workspace_id/from
       : V0027
@@ -1132,7 +1132,7 @@ visual_audit:
       : V0027
       ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/listed/conditional_local_effects/1/result_binding/from/from
       : V0027
-      ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/listed/conditional_local_effects/1/when/result_non_empty
+      ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/listed/conditional_local_effects/1/result_condition
       : V0027
       ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/unavailable/raise/data_refresh_signal
       : V0027
@@ -2650,9 +2650,9 @@ visual_audit:
       /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/child_state_machines/1/id: V0005
       ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/child_state_machines/1/initial_state
       : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/child_state_machines/1/selected/state
+      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/child_state_machines/1/selected/condition/context_present
       : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/child_state_machines/1/selected/when/context_present
+      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/child_state_machines/1/selected/state
       : V0005
       ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/child_state_machines/1/state_machine
       : V0005
@@ -2665,9 +2665,9 @@ visual_audit:
       /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/child_state_machines/2/id: V0005
       ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/child_state_machines/2/initial_state
       : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/child_state_machines/2/selected/state
+      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/child_state_machines/2/selected/condition/context_present
       : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/child_state_machines/2/selected/when/context_present
+      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/child_state_machines/2/selected/state
       : V0005
       ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/child_state_machines/2/state_machine
       : V0005
@@ -2788,8 +2788,9 @@ visual_audit:
       : V0005
       ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/signal_sync_rules/0/local_effects/2/send/payload_bindings/project_id/from
       : V0005
-      /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/signal_sync_rules/0/when/instance: V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/signal_sync_rules/0/when/local_signal
+      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/signal_sync_rules/0/trigger/instance
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/signal_sync_rules/0/trigger/local_signal
       : V0005
       /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/instances/activity/source: V0005
       /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/instances/activity/state: V0005
@@ -2859,9 +2860,9 @@ visual_audit:
       /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/child_state_machines/1/id: V0005
       ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/child_state_machines/1/initial_state
       : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/child_state_machines/1/selected/state
+      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/child_state_machines/1/selected/condition/context_present
       : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/child_state_machines/1/selected/when/context_present
+      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/child_state_machines/1/selected/state
       : V0005
       ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/child_state_machines/1/state_machine
       : V0005
@@ -2874,9 +2875,9 @@ visual_audit:
       /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/child_state_machines/2/id: V0005
       ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/child_state_machines/2/initial_state
       : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/child_state_machines/2/selected/state
+      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/child_state_machines/2/selected/condition/context_present
       : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/child_state_machines/2/selected/when/context_present
+      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/child_state_machines/2/selected/state
       : V0005
       ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/child_state_machines/2/state_machine
       : V0005
@@ -2997,8 +2998,9 @@ visual_audit:
       : V0005
       ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/signal_sync_rules/0/local_effects/2/send/payload_bindings/project_id/from
       : V0005
-      /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/signal_sync_rules/0/when/instance: V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/signal_sync_rules/0/when/local_signal
+      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/signal_sync_rules/0/trigger/instance
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/signal_sync_rules/0/trigger/local_signal
       : V0005
       /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/instances/activity/source: V0005
       /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/instances/activity/state: V0005

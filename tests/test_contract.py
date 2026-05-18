@@ -1499,13 +1499,13 @@ def test_query_binding_query_refresh_requires_explicit_result_or_context_refresh
 def test_query_binding_collection_empty_and_non_empty_routes_are_explicit() -> None:
     contract = compile_source(_author())
     effect = contract["state_machines"]["state_machine.project.list"]["query_bindings"]["list_projects"]["local_effects"]["listed"]
-    branches = {next(iter(branch["when"])): branch["raise"]["data_refresh_signal"] for branch in effect["conditional_local_effects"]}
-    assert branches == {"result_empty": "project_collection_empty", "result_non_empty": "projects_loaded"}
+    branches = {branch["result_condition"]: branch["raise"]["data_refresh_signal"] for branch in effect["conditional_local_effects"]}
+    assert branches == {"empty": "project_collection_empty", "non_empty": "projects_loaded"}
 
     author = _author()
     effect = _item(author, "state_machines", "state_machine.project.list")["query_bindings"]["list_projects"]["local_effects"]["listed"]
     effect["conditional_local_effects"] = [effect["conditional_local_effects"][0]]
-    with pytest.raises(ContractError, match=r"must declare both result_empty and result_non_empty branches"):
+    with pytest.raises(ContractError, match=r"must declare both empty and non_empty branches"):
         compile_source(author)
 
     author = _author()
@@ -1521,12 +1521,12 @@ def test_query_empty_non_empty_conditions_require_array_results() -> None:
     effect.clear()
     effect["conditional_local_effects"] = [
         {
-            "when": {"result_empty": True},
+            "result_condition": "empty",
             "result_binding": {"data_key": "project", "from": {"from": "$query_outcome.result"}},
             "raise": {"data_refresh_signal": "project_loaded"},
         },
         {
-            "when": {"result_non_empty": True},
+            "result_condition": "non_empty",
             "result_binding": {"data_key": "project", "from": {"from": "$query_outcome.result"}},
             "raise": {"data_refresh_signal": "project_loaded"},
         },

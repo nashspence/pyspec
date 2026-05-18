@@ -1023,15 +1023,15 @@
     "child_state_machine_selected": {
       "additionalProperties": false,
       "properties": {
+        "condition": {
+          "$ref": "#/$defs/context_condition"
+        },
         "state": {
           "$ref": "#/$defs/state_id"
-        },
-        "when": {
-          "$ref": "#/$defs/context_condition"
         }
       },
       "required": [
-        "when",
+        "condition",
         "state"
       ],
       "type": "object"
@@ -2124,28 +2124,11 @@
       "type": "object"
     },
     "query_result_condition": {
-      "additionalProperties": false,
-      "oneOf": [
-        {
-          "required": [
-            "result_empty"
-          ]
-        },
-        {
-          "required": [
-            "result_non_empty"
-          ]
-        }
+      "enum": [
+        "empty",
+        "non_empty"
       ],
-      "properties": {
-        "result_empty": {
-          "const": true
-        },
-        "result_non_empty": {
-          "const": true
-        }
-      },
-      "type": "object"
+      "type": "string"
     },
     "rationale": {
       "maxLength": 280,
@@ -2416,13 +2399,13 @@
         "id": {
           "$ref": "#/$defs/rule_id"
         },
-        "when": {
+        "trigger": {
           "$ref": "#/$defs/signal_sync_trigger"
         }
       },
       "required": [
         "id",
-        "when",
+        "trigger",
         "local_effects"
       ],
       "type": "object"
@@ -2740,12 +2723,12 @@
         "result_binding": {
           "$ref": "#/$defs/query_result_binding"
         },
-        "when": {
+        "result_condition": {
           "$ref": "#/$defs/query_result_condition"
         }
       },
       "required": [
-        "when"
+        "result_condition"
       ],
       "type": "object"
     },

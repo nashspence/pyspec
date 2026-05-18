@@ -211,7 +211,7 @@ class ReferenceSpecDriver:
     def _choose_state_machine_state(self, state_machine: dict[str, Any], mount: dict[str, Any], records: list[dict[str, Any]], context: dict[str, Any]) -> str:
         selected = mount.get("selected")
         if selected:
-            if _condition_matches(selected["when"], context):
+            if _condition_matches(selected["condition"], context):
                 return selected["state"]
             return mount["initial_state"]
         if records and "ready" in state_machine["states"] and (state_machine.get("query_bindings") or state_machine["states"]["ready"].get("query_bindings")):

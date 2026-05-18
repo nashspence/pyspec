@@ -475,7 +475,7 @@ def test_composition_dot_syncs_local_signals_generically() -> None:
         "signal_sync_rules": [
             {
                     "id": "sync_alpha_beta",
-                "when": {"instance": "publisher", "local_signal": "ready"},
+                "trigger": {"instance": "publisher", "local_signal": "ready"},
                 "local_effects": [
                     {"send": {"instance": "receiver", "local_signal": "consume", "payload_bindings": {"item_id": {"from": "$signal.payload.id"}}}},
                     {"set": {"context": "selected_id", "from": "$signal.payload.id"}},

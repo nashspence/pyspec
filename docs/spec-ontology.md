@@ -68,7 +68,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 
 - `system_under_test_ref`: exactly one typed reference to the resource under test: `external_interface`, `domain_event`, `command`, `query`, `state_machine`, or `workflow`.
 - `given`: setup contract split into `seed_fixtures` and `preconditions`.
-- `when`: one executable stimulus: `open_external_interface`, `call_external_interface`, `invoke_command`, `invoke_query`, or `emit_domain_event`.
+- `when`: BDD behavior-scenario stimulus only: `open_external_interface`, `call_external_interface`, `invoke_command`, `invoke_query`, or `emit_domain_event`.
 - `then`: assertions for `outcome`, entity existence, emitted/not-emitted domain events, workflow execution, authorization decisions, responses, invoked/enabled/access_denied commands or queries, state-machine state, and `postconditions`. Compiled state-machine assertions may add `surface`, `composition`, and top-level `requires`.
 - `then.requires`: compiled-only derived projection dependencies for a state-machine assertion, split into `surfaces`, `text`, `assets`, `query_bindings`, and `command_bindings`.
 - `external_interface_adapter`: exactly one adapter object: `http_api`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`.
@@ -89,6 +89,8 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `workflow_sequence_flow`: exclusive workflow control-flow step via `next_step`, `complete_as`, `fail_as`, `retry_policy`, or `dead_letter_as`.
 - `state-machine context schema`: local machine context declared as JSON Schema object `properties` and `required`. Nullability uses JSON Schema type arrays such as `type: [string, null]`; local_effects may set a context field to null only when that field schema allows null.
 - `context_present`: state-machine condition meaning the declared context field is present and non-null. Nullable context fields with a current `null` value are not present for this condition.
+- `selected.condition`: child state-machine selected-state guard. It uses state-machine condition vocabulary and does not reuse BDD `when`.
+- `signal_sync_rule.trigger`: child state-machine local-signal source that starts a signal synchronization rule. It does not reuse BDD `when`.
 - `viewport_profile`: global audit/golden-image viewport map. Renderable state machines require at least one viewport profile, and profiles must include viewport sets for each declared renderer surface (`html_viewports` for HTML, `textual_viewports` for Textual).
 - `render example`: state-local visual evidence input. It supplies seed fixtures, optional context, optional precondition references, and, for composed states, an exact child instance state vector; it never names viewport profiles directly.
 - `content source`: a final resolver declaration where `text_resource.source_ref` or `asset.source_ref` equals the resource id. Final content resolvers require at least one matching `content_example`, and example args must exactly match the resource args.
@@ -97,7 +99,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `Query binding`: local state-machine or state use of a query for data loading or refresh, including `input_mapping`, load policy, context updates, result binding, and local_effects. State-machine-level queries load with `on_start`/`on_mount`; state-level queries load with `on_enter`.
 - `Query binding local_effect`: each query `local_outcome_effect` must update context, bind/cache a result, raise a local signal, or explicitly declare a scoped `no_local_effect`. `result_binding.data_key` names the state-machine/state result data populated from a binding value.
 - `Query refresh signal`: local data-refresh signal raised by a mutation, query outcome, or other invalidation `local_effect`, such as `project_changed`, and consumed by `query_binding.load.refresh_on`. Loaded/missing/error data-refresh signals should come from query outcomes after data has actually been bound or classified.
-- `Empty/non-empty query handling`: array-valued query outcomes split the local_outcome_effect with `conditional_local_effects` using `when.result_empty` and `when.result_non_empty`. Both branches must be declared so empty collection states are reachable through authored handling rather than compiler length guesses.
+- `Empty/non-empty query handling`: array-valued query outcomes split the local_outcome_effect with `conditional_local_effects` using `result_condition: empty` and `result_condition: non_empty`. Both branches must be declared so empty collection states are reachable through authored handling rather than compiler length guesses.
 - `Machine-scoped query ownership`: state-machine-level query bindings declare `result_scope: local`, `shared`, or `prefetch`. Machine-scoped result bindings that do not raise a signal must use shared/prefetch ownership with rationale, especially when a child machine also owns visible loading.
 - `Field-slot source resolution`: every field slot resolves to exactly one context field or query result binding. A bound entity_type or array item can feed field slots when the slot name exists on the result type; ambiguous or missing sources fail semantic validation.
 - `local_outcome_effect`: mapping from a command/query-binding outcome to context updates, result binding, a local signal raise, or explicit `no_local_effect` handling.
@@ -203,16 +205,14 @@ query_bindings:
     local_effects:
       listed:
         conditional_local_effects:
-        - when:
-            result_empty: true
+        - result_condition: empty
           result_binding:
             data_key: projects
             from:
               from: $query_outcome.result
           raise:
             data_refresh_signal: project_collection_empty
-        - when:
-            result_non_empty: true
+        - result_condition: non_empty
           result_binding:
             data_key: projects
             from:
@@ -244,7 +244,7 @@ Layers are compile/validate guardrails and are not written into `spec/generated/
 | Query binding `input_mapping` | `$state_context`, `$principal` |
 | Query binding local_effects | `$query_outcome`, `$query_binding`, `$state_context` |
 | State-machine transition local_effects | `$signal.payload`, `$state_context` |
-| Child state-machine `context_bindings` and selected-state guards | `$state_machine` for parent state-machine context |
+| Child state-machine `context_bindings` and `selected.condition` guards | `$state_machine` for parent state-machine context |
 | Command domain-event-emission payload mappings | `$command_input`, `$command_outcome` |
 | External-interface command/query/state-machine/workflow invocation mappings | `$adapter_input` |
 | External-interface delegation mappings | `$adapter_input` |

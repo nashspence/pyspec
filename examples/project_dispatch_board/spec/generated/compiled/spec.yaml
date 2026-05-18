@@ -237,9 +237,9 @@ behavior_scenarios:
             id: detail
             initial_state: none
             selected:
-              state: loading
-              when:
+              condition:
                 context_present: selected_project_id
+              state: loading
             state_machine: state_machine.project.detail
             textual_container: main
           - context_bindings:
@@ -249,9 +249,9 @@ behavior_scenarios:
             id: activity
             initial_state: empty
             selected:
-              state: ready
-              when:
+              condition:
                 context_present: selected_project_id
+              state: ready
             state_machine: state_machine.project.activity
             textual_container: aside
           renderers:
@@ -352,7 +352,7 @@ behavior_scenarios:
                 payload_bindings:
                   project_id:
                     from: $signal.payload.project_id
-            when:
+            trigger:
               instance: list
               local_signal: project_selected
         instances:
@@ -457,9 +457,9 @@ behavior_scenarios:
             id: detail
             initial_state: none
             selected:
-              state: loading
-              when:
+              condition:
                 context_present: selected_project_id
+              state: loading
             state_machine: state_machine.project.detail
             textual_container: main
           - context_bindings:
@@ -469,9 +469,9 @@ behavior_scenarios:
             id: activity
             initial_state: empty
             selected:
-              state: ready
-              when:
+              condition:
                 context_present: selected_project_id
+              state: ready
             state_machine: state_machine.project.activity
             textual_container: aside
           renderers:
@@ -572,7 +572,7 @@ behavior_scenarios:
                 payload_bindings:
                   project_id:
                     from: $signal.payload.project_id
-            when:
+            trigger:
               instance: list
               local_signal: project_selected
         instances:
@@ -1818,9 +1818,9 @@ state_machines:
           id: detail
           initial_state: none
           selected:
-            state: loading
-            when:
+            condition:
               context_present: selected_project_id
+            state: loading
           state_machine: state_machine.project.detail
           textual_container: main
         - context_bindings:
@@ -1830,9 +1830,9 @@ state_machines:
           id: activity
           initial_state: empty
           selected:
-            state: ready
-            when:
+            condition:
               context_present: selected_project_id
+            state: ready
           state_machine: state_machine.project.activity
           textual_container: aside
         command_bindings: {}
@@ -1965,7 +1965,7 @@ state_machines:
               payload_bindings:
                 project_id:
                   from: $signal.payload.project_id
-          when:
+          trigger:
             instance: list
             local_signal: project_selected
         surface: state_machine.project.board.ready
@@ -2329,8 +2329,7 @@ state_machines:
                 data_key: projects
                 from:
                   from: $query_outcome.result
-              when:
-                result_empty: true
+              result_condition: empty
             - context_updates:
                 workspace_id:
                   from: $query_binding.input.workspace_id
@@ -2340,8 +2339,7 @@ state_machines:
                 data_key: projects
                 from:
                   from: $query_outcome.result
-              when:
-                result_non_empty: true
+              result_condition: non_empty
           unavailable:
             raise:
               data_refresh_signal: project_list_failed
