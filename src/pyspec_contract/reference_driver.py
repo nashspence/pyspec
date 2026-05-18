@@ -60,7 +60,7 @@ class ReferenceSpecDriver:
             self.last_state_machine = self._open_entry_point(body["ref"], self._resolve_map(body.get("input", {})))
         elif kind == "call_entry_point":
             self.response = self._call_entry_point(body["ref"], self._resolve_map(body.get("input", {})), test_case["then"].get("outcome"))
-        elif kind == "invoke_operation":
+        elif kind == "invoke_application_action":
             self.last_result = self._invoke(body["ref"], self._resolve_map(body.get("input", {})), test_case["then"].get("outcome"))
         elif kind == "emit_event":
             self._emit(body["ref"], self._resolve_map(body.get("payload", {})))
@@ -90,7 +90,7 @@ class ReferenceSpecDriver:
             rendered_state_machines = self._rendered_state_machine_ids()
             rendered_text = self._rendered_values("text")
             rendered_assets = self._rendered_values("assets")
-            rendered_actions = self._rendered_values("operation_invocations")
+            rendered_actions = self._rendered_values("action_bindings")
             for state_machine in requires.get("surfaces", []):
                 assert state_machine in self.surfaces
                 assert state_machine in rendered_state_machines
@@ -98,15 +98,15 @@ class ReferenceSpecDriver:
                 assert key in rendered_text
             for key in requires.get("assets", []):
                 assert key in rendered_assets
-            for cap in requires.get("operation_invocations", []):
+            for cap in requires.get("action_bindings", []):
                 assert cap in rendered_actions
-            rendered_queries = self._rendered_values("query_invocations")
-            for query in requires.get("query_invocations", []):
+            rendered_queries = self._rendered_values("data_loaders")
+            for query in requires.get("data_loaders", []):
                 assert query in rendered_queries
         for cap in assertions.get("enables", []):
-            assert cap in self._rendered_operation_refs()
+            assert cap in self._rendered_application_action_refs()
         for cap in assertions.get("forbids", []):
-            assert cap not in self._rendered_operation_refs()
+            assert cap not in self._rendered_application_action_refs()
         exists = (assertions.get("model") or {}).get("exists")
         if exists:
             where = self._resolve_map(exists["where"])
@@ -156,7 +156,7 @@ class ReferenceSpecDriver:
         context = self._entry_target_input(entry, input_values)
         records = self._filter(state_machine["model"], context) if state_machine.get("model") else []
         parent_state_name = "ready" if "ready" in state_machine.get("view_states", {}) else next(iter(state_machine.get("view_states", {"ready": {}})))
-        state = state_machine["view_states"].get(parent_state_name, {"surface": None, "text": [], "assets": [], "operation_invocations": {}, "query_invocations": {}})
+        state = state_machine["view_states"].get(parent_state_name, {"surface": None, "text": [], "assets": [], "action_bindings": {}, "data_loaders": {}})
         if state.get("child_state_machines"):
             parent_state_machine = state_machine
             state_machines: dict[str, Any] = {}
@@ -169,25 +169,25 @@ class ReferenceSpecDriver:
                     "source": source_id,
                     "view_state": child_state_name,
                     "surface": child_state["surface"],
-                    "query_invocations": {
-                        **child_state_machine.get("query_invocations", {}),
-                        **child_state.get("query_invocations", {}),
+                    "data_loaders": {
+                        **child_state_machine.get("data_loaders", {}),
+                        **child_state.get("data_loaders", {}),
                     },
                     "text": child_state["text"],
                     "assets": child_state["assets"],
-                    "operation_invocations": child_state["operation_invocations"],
+                    "action_bindings": child_state["action_bindings"],
                 }
             return {
                 "ref": state_machine_id,
                 "view_state": parent_state_name,
                 "surface": state.get("surface"),
-                "query_invocations": {
-                    **parent_state_machine.get("query_invocations", {}),
-                    **state.get("query_invocations", {}),
+                "data_loaders": {
+                    **parent_state_machine.get("data_loaders", {}),
+                    **state.get("data_loaders", {}),
                 },
                 "text": state.get("text", []),
                 "assets": state.get("assets", []),
-                "operation_invocations": state.get("operation_invocations", {}),
+                "action_bindings": state.get("action_bindings", {}),
                 "context": context,
                 "instances": state_machines,
                 "signal_sync_rules": [rule["id"] for rule in state.get("signal_sync_rules", [])],
@@ -200,11 +200,11 @@ class ReferenceSpecDriver:
             "surface": state["surface"],
             "text": state["text"],
             "assets": state["assets"],
-            "query_invocations": {
-                **state_machine.get("query_invocations", {}),
-                **state.get("query_invocations", {}),
+            "data_loaders": {
+                **state_machine.get("data_loaders", {}),
+                **state.get("data_loaders", {}),
             },
-            "operation_invocations": state["operation_invocations"],
+            "action_bindings": state["action_bindings"],
         }
 
     def _choose_state_machine_view_state(self, state_machine: dict[str, Any], mount: dict[str, Any], records: list[dict[str, Any]], context: dict[str, Any]) -> str:
@@ -213,7 +213,7 @@ class ReferenceSpecDriver:
             if _condition_matches(selected["when"], context):
                 return selected["view_state"]
             return mount["initial_view_state"]
-        if records and "ready" in state_machine["view_states"] and (state_machine.get("query_invocations") or state_machine["view_states"]["ready"].get("query_invocations")):
+        if records and "ready" in state_machine["view_states"] and (state_machine.get("data_loaders") or state_machine["view_states"]["ready"].get("data_loaders")):
             return "ready"
         if not records and "empty" in state_machine["view_states"]:
             return "empty"
@@ -240,20 +240,20 @@ class ReferenceSpecDriver:
             return values
         return set(self.last_state_machine.get(key, []))
 
-    def _rendered_operation_refs(self) -> set[str]:
+    def _rendered_application_action_refs(self) -> set[str]:
         if not self.last_state_machine:
             return set()
 
-        def operations(item: dict[str, Any]) -> set[str]:
-            invocations = item.get("operation_invocations") or {}
-            return {invocation["operation"] for invocation in invocations.values()}
+        def application_actions(item: dict[str, Any]) -> set[str]:
+            invocations = item.get("action_bindings") or {}
+            return {invocation["application_action"] for invocation in invocations.values()}
 
         if "instances" in self.last_state_machine:
-            refs = operations(self.last_state_machine)
+            refs = application_actions(self.last_state_machine)
             for state_machine in self.last_state_machine["instances"].values():
-                refs.update(operations(state_machine))
+                refs.update(application_actions(state_machine))
             return refs
-        return operations(self.last_state_machine)
+        return application_actions(self.last_state_machine)
 
     def _call_entry_point(self, entry_id: str, input_values: dict[str, Any], outcome_id: str | None = None) -> dict[str, Any]:
         entry = self.contract["entry_points"][entry_id]
@@ -268,7 +268,7 @@ class ReferenceSpecDriver:
             if "stdout" in handler:
                 return {"exit_code": handler["exit_code"], "stdout": self._cli_output(handler["stdout"], delegated_response, input_values)}
             return {"exit_code": handler["exit_code"], "stderr": self._cli_output(handler["stderr"], delegated_response, input_values)}
-        assert target_kind == "operation"
+        assert target_kind == "application_action"
         target_input = self._entry_target_input(entry, input_values)
         result = self._invoke(cap_id, target_input, outcome_id)
         response = _entry_point_response(entry, self.last_outcome)
@@ -316,12 +316,12 @@ class ReferenceSpecDriver:
         }
 
     def _invoke(self, cap_id: str, input_values: dict[str, Any], outcome_id: str | None = None) -> Any:
-        cap = self.contract["operations"][cap_id]
+        cap = self.contract["application_actions"][cap_id]
         authorization = cap.get("authorization")
         if authorization:
             policy_id = authorization["policy"]
-            allowed = self._evaluate_policy(policy_id, "operation", cap_id, input_values)
-            self.authorization_decisions[("operation", cap_id, policy_id)] = allowed
+            allowed = self._evaluate_policy(policy_id, "application_action", cap_id, input_values)
+            self.authorization_decisions[("application_action", cap_id, policy_id)] = allowed
             if not allowed:
                 policy = self.contract["authorization_policies"][policy_id]
                 outcome_id = (
@@ -339,8 +339,8 @@ class ReferenceSpecDriver:
         if outcome["kind"] == "failure":
             self.last_result = {"code": outcome_id, "message": outcome_id.replace("_", " ")}
             return self.last_result
-        operation_kind = cap["operation_kind"]
-        if operation_kind == "command" and cap.get("creates"):
+        action_kind = cap["action_kind"]
+        if action_kind == "command" and cap.get("creates"):
             model_id = _single_model(cap, "creates")
             record = self._complete_record(model_id, input_values)
             lifecycle = self.contract["models"][model_id].get("lifecycle")
@@ -352,16 +352,16 @@ class ReferenceSpecDriver:
                 self._record_event(event_id, payload)
             self.last_result = record
             return record
-        if operation_kind == "query" and cap.get("reads") and model_name(outcome["result"]):
+        if action_kind == "query" and cap.get("reads") and model_name(outcome["result"]):
             model_id = _single_model(cap, "reads")
             model_key = f"{model_id.lower()}_id"
             self.last_result = self._find(model_id, {"id": input_values.get(model_key) or input_values.get("id")})
             return self.last_result
-        if operation_kind == "query" and cap.get("reads") and is_array_of_model(outcome["result"], _single_model(cap, "reads")):
+        if action_kind == "query" and cap.get("reads") and is_array_of_model(outcome["result"], _single_model(cap, "reads")):
             model_id = _single_model(cap, "reads")
             self.last_result = self._filter(model_id, input_values)
             return self.last_result
-        if operation_kind == "transition":
+        if action_kind == "transition":
             transition = cap["transition"]
             model_id = transition["model"]
             model_key = f"{model_id.lower()}_id"
@@ -374,8 +374,8 @@ class ReferenceSpecDriver:
                 self._record_event(event_id, payload)
             self.last_result = record
             return record
-        # Command/query operations are recorded as effects in the spec world.
-        result = {"ok": True, "operation": cap_id, **input_values}
+        # Command/query application_actions are recorded as effects in the spec world.
+        result = {"ok": True, "application_action": cap_id, **input_values}
         self.last_result = result
         return result
 
@@ -393,7 +393,7 @@ class ReferenceSpecDriver:
         while True:
             step = step_by_id[current]
             input_values = {name: _resolve_binding(source, namespace) for name, source in step["input_bindings"].items()}
-            result = self._invoke(step["operation"], input_values)
+            result = self._invoke(step["application_action"], input_values)
             outcome_id = self.last_outcome
             assert outcome_id is not None
             namespace["steps"].setdefault(step["id"], {"outcomes": {}})["outcomes"][outcome_id] = {"result": result}
@@ -411,7 +411,7 @@ class ReferenceSpecDriver:
     def _event_payload_from_emit(
         self,
         emit: Any,
-        operation: Mapping[str, Any],
+        application_action: Mapping[str, Any],
         outcome: Mapping[str, Any],
         input_values: Mapping[str, Any],
         result: Mapping[str, Any],
@@ -449,13 +449,13 @@ class ReferenceSpecDriver:
         return resolve_map(values, self.fixtures)
 
     def _authorization_assertion_allowed(self, assertion: Mapping[str, Any]) -> bool:
-        kind = "operation" if "operation" in assertion else "entry_point"
+        kind = "application_action" if "application_action" in assertion else "entry_point"
         target_ref = assertion[kind]
         authorization_policy = assertion.get("authorization_policy")
         if authorization_policy:
             policy_id = authorization_policy
-        elif kind == "operation":
-            authorization = self.contract["operations"][target_ref].get("authorization")
+        elif kind == "application_action":
+            authorization = self.contract["application_actions"][target_ref].get("authorization")
             if not authorization:
                 return False
             policy_id = authorization["policy"]
@@ -533,14 +533,14 @@ def _matches(record: Mapping[str, Any], where: Mapping[str, Any]) -> bool:
     return all(record.get(key) == value for key, value in where.items())
 
 
-def _single_model(operation: Mapping[str, Any], field: str) -> str:
-    models = operation[field]
+def _single_model(application_action: Mapping[str, Any], field: str) -> str:
+    models = application_action[field]
     assert len(models) == 1, f"Expected exactly one {field} model"
     return models[0]
 
 
-def _success_outcome_id(operation: Mapping[str, Any]) -> str:
-    successes = [outcome_id for outcome_id, outcome in operation["outcomes"].items() if outcome["kind"] == "success"]
+def _success_outcome_id(application_action: Mapping[str, Any]) -> str:
+    successes = [outcome_id for outcome_id, outcome in application_action["outcomes"].items() if outcome["kind"] == "success"]
     assert len(successes) == 1, "Expected exactly one success outcome"
     return successes[0]
 

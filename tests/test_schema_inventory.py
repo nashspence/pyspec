@@ -13,7 +13,7 @@ DOC_PATH = ROOT.parents[1] / "docs" / "spec-ontology.md"
 SCHEMA_ROOT = ROOT / "schemas"
 DEPRECATED_DEFINITION_NAMES = {
     "capability",
-    "operation",
+    "application_action",
     "entry",
     "event",
     "fixture",
@@ -70,8 +70,8 @@ STALE_SCHEMA_DEFINITION_NAMES = {
     _former_name("layout_", "region"),
     _former_name("layout_", "root"),
     "model_refs",
-    "operation_emit_bindings",
-    "operation_emit_source",
+    "action_emit_bindings",
+    "action_emit_source",
     "state_name",
     _former_name("state_machine_", "audit_case"),
     "target",
@@ -88,13 +88,13 @@ ALLOWED_ANY_OF_PATHS_BY_SCHEMA = {
         "$defs.authored_child_state_machine.anyOf",
         "$defs.authored_render_profile.anyOf",
         "$defs.state_machine_query_conditional_route.anyOf",
-        "$defs.state_machine_query_outcome_route.anyOf",
+        "$defs.state_machine_data_loader_outcome_route.anyOf",
     },
     "spec.schema.json": {
         "$defs.child_state_machine_item.anyOf",
         "$defs.render_profile_item.anyOf",
         "$defs.state_machine_query_conditional_route.anyOf",
-        "$defs.state_machine_query_outcome_route.anyOf",
+        "$defs.state_machine_data_loader_outcome_route.anyOf",
     },
 }
 ALLOWED_ONE_OF_WITHOUT_OBJECT_DISCRIMINATORS = {

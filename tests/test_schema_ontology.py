@@ -12,7 +12,7 @@ from pyspec_contract.layers import COMMON_LAYER_SETS, author_schema_for_layers
 COLLECTION_SECTIONS = {
     "assets": "asset",
     "render_profiles": "render_profile",
-    "operations": "operation",
+    "application_actions": "application_action",
     "content_cases": "content_case",
     "text_resources": "text_resource",
     "entry_points": "entry_point",

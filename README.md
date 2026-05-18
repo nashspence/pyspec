@@ -130,7 +130,7 @@ spec/generated/
       flow.svg
     workflows/<workflow>/
       flow.svg
-    operations/<operation>/
+    application_actions/<application_action>/
       flow.svg
     state_machines/<state_machine>/
       state_machine.svg

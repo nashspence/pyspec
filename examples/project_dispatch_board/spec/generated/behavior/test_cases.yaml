@@ -15,7 +15,7 @@ test_cases:
         emitted:
         - event.project.approved
       invoked:
-      - operation.project.send_approval_notice
+      - application_action.project.send_approval_notice
       workflow:
         executed: true
         outcome: completed
@@ -61,27 +61,27 @@ test_cases:
       - fixture.workspace.member
     rationale: A workspace member who is not a reviewer receives the mapped forbidden outcome before approval executes.
     subject_ref:
-      operation: operation.project.approve
+      application_action: application_action.project.approve
     then:
       authorization:
         denied:
-        - authorization_policy: authorization_policy.project.reviewer
-          operation: operation.project.approve
+        - application_action: application_action.project.approve
+          authorization_policy: authorization_policy.project.reviewer
       events:
         not_emitted:
         - event.project.approved
       outcome: forbidden
     title: Approval authorization maps forbidden outcome
     when:
-      invoke_operation:
+      invoke_application_action:
         input:
           approved_by:
             from: $fixture.actor.id
           project_id:
             value: project_submitted_1
-        ref: operation.project.approve
+        ref: application_action.project.approve
   test_case.project.approve.success:
-    archetype: operation_outcome
+    archetype: action_outcome
     feature_tag: project.approve
     given:
       domain_facts:
@@ -112,17 +112,17 @@ test_cases:
       - fixture.workspace.reviewer
     rationale: Approval transitions a submitted project to approved and emits the event.
     subject_ref:
-      operation: operation.project.approve
+      application_action: application_action.project.approve
     then:
       authorization:
         allowed:
-        - authorization_policy: authorization_policy.project.reviewer
-          operation: operation.project.approve
+        - application_action: application_action.project.approve
+          authorization_policy: authorization_policy.project.reviewer
       events:
         emitted:
         - event.project.approved
       invoked:
-      - operation.project.approve
+      - application_action.project.approve
       model:
         exists:
           model: Project
@@ -134,13 +134,13 @@ test_cases:
       outcome: approved
     title: Approve submitted dispatch project
     when:
-      invoke_operation:
+      invoke_application_action:
         input:
           approved_by:
             from: $fixture.actor.id
           project_id:
             value: project_submitted_1
-        ref: operation.project.approve
+        ref: application_action.project.approve
   test_case.project.board.empty:
     archetype: state_machine_composition
     feature_tag: project.board
@@ -159,16 +159,16 @@ test_cases:
     then:
       authorization:
         denied:
-        - authorization_policy: authorization_policy.project.reviewer
-          operation: operation.project.approve
+        - application_action: application_action.project.approve
+          authorization_policy: authorization_policy.project.reviewer
       enables:
-      - operation.project.create
+      - application_action.project.create
       requires:
+        action_bindings:
+        - create
         assets:
         - asset.project.list.empty.illustration
-        operation_invocations:
-        - create
-        query_invocations:
+        data_loaders:
         - list_board
         - list_projects
         surfaces:
@@ -382,14 +382,14 @@ test_cases:
       state_machine: state_machine.project.board
     then:
       enables:
-      - operation.project.create
-      - operation.project.submit
+      - application_action.project.create
+      - application_action.project.submit
       requires:
-        assets: []
-        operation_invocations:
+        action_bindings:
         - create
         - submit
-        query_invocations:
+        assets: []
+        data_loaders:
         - list_board
         - list_projects
         surfaces:
@@ -579,19 +579,19 @@ test_cases:
               from: $fixture.workspace.id
       seed_fixtures:
       - fixture.workspace.member
-    rationale: The API create endpoint delegates to the create operation and emits project.created.
+    rationale: The API create endpoint delegates to the create application action and emits project.created.
     subject_ref:
       entry_point: entry_point.api.project.create
     then:
       authorization:
         allowed:
-        - authorization_policy: authorization_policy.project.member
-          operation: operation.project.create
+        - application_action: application_action.project.create
+          authorization_policy: authorization_policy.project.member
       events:
         emitted:
         - event.project.created
       invoked:
-      - operation.project.create
+      - application_action.project.create
       model:
         exists:
           model: Project

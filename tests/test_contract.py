@@ -150,7 +150,7 @@ def test_author_contract_is_sparse_source() -> None:
         }
     }
     assert "refs" not in author
-    assert "transition" not in author["operations"]["operation.project.submit"]
+    assert "transition" not in author["application_actions"]["application_action.project.submit"]
     assert author["test_cases"]["test_case.project.approve.success"]["given"]["domain_facts"] == [{"ref": "fact.project.submitted"}]
     assert compile_author(author) == read_yaml(ROOT / COMPILED_SPEC_PATH)
 
@@ -238,10 +238,10 @@ def test_fact_template_fields_must_belong_to_model() -> None:
         compile_author(author)
 
 
-def test_test_case_subject_ref_must_match_operation_under_test() -> None:
+def test_test_case_subject_ref_must_match_application_action_under_test() -> None:
     author = _author()
-    author["test_cases"]["test_case.project.approve.success"]["subject_ref"] = {"operation": "operation.project.create"}
-    with pytest.raises(ContractError, match="subject_ref.operation must match the operation under test"):
+    author["test_cases"]["test_case.project.approve.success"]["subject_ref"] = {"application_action": "application_action.project.create"}
+    with pytest.raises(ContractError, match="subject_ref.application_action must match the application action under test"):
         compile_author(author)
 
 
@@ -264,14 +264,14 @@ def test_authorization_denial_outcome_must_be_mapped_authorization_failure() -> 
     author = _author()
     case = author["test_cases"]["test_case.project.approve.forbidden"]
     case["then"]["outcome"] = "invalid_state"
-    with pytest.raises(ContractError, match=r"authorization_denial outcome must be one of operation authorization failure outcomes"):
+    with pytest.raises(ContractError, match=r"authorization_denial outcome must be one of application action authorization failure outcomes"):
         compile_author(author)
 
 
 def test_invocation_assertion_must_follow_when() -> None:
     author = _author()
-    author["test_cases"]["test_case.project.approve.success"]["then"]["invoked"].append("operation.project.create")
-    with pytest.raises(ContractError, match="asserts operation invocations unrelated to when"):
+    author["test_cases"]["test_case.project.approve.success"]["then"]["invoked"].append("application_action.project.create")
+    with pytest.raises(ContractError, match="asserts action bindings unrelated to when"):
         compile_author(author)
 
 
@@ -287,17 +287,17 @@ def test_named_assertion_fact_expands_into_compiled_test_case() -> None:
 
 def test_authorization_policies_require_explicit_conditions_and_support_value_equals() -> None:
     author = _derived_transition_author()
-    author["operations"]["operation.ticket.submit"]["authorization"] = {
+    author["application_actions"]["application_action.ticket.submit"]["authorization"] = {
         "policy": "authorization_policy.ticket.submit",
         "unauthenticated_as": "unauthenticated",
         "forbidden_as": "forbidden",
     }
-    author["operations"]["operation.ticket.submit"]["outcomes"]["unauthenticated"] = {"kind": "failure", "result": M("Problem")}
-    author["operations"]["operation.ticket.submit"]["outcomes"]["forbidden"] = {"kind": "failure", "result": M("Problem")}
+    author["application_actions"]["application_action.ticket.submit"]["outcomes"]["unauthenticated"] = {"kind": "failure", "result": M("Problem")}
+    author["application_actions"]["application_action.ticket.submit"]["outcomes"]["forbidden"] = {"kind": "failure", "result": M("Problem")}
     author["authorization_policies"] = {
         "authorization_policy.ticket.submit": {
             "subjects": [{"kind": "actor"}],
-            "targets": [{"operation": "operation.ticket.submit"}],
+            "targets": [{"application_action": "application_action.ticket.submit"}],
             "effect": "allow",
             "rationale": "Explicit policy missing conditions is invalid.",
         }
@@ -334,7 +334,7 @@ def test_authorization_policies_reject_duplicated_rule_sets() -> None:
 
 def _authorized_transition_author() -> dict:
     author = _derived_transition_author()
-    operation = author["operations"]["operation.ticket.submit"]
+    operation = author["application_actions"]["application_action.ticket.submit"]
     operation["authorization"] = {
         "policy": "authorization_policy.ticket.submit",
         "unauthenticated_as": "unauthenticated",
@@ -345,7 +345,7 @@ def _authorized_transition_author() -> dict:
     author["authorization_policies"] = {
         "authorization_policy.ticket.submit": {
             "subjects": [{"kind": "actor"}],
-            "targets": [{"operation": "operation.ticket.submit"}],
+            "targets": [{"application_action": "application_action.ticket.submit"}],
             "effect": "allow",
             "conditions": [{"subject_has_role": "member"}],
             "rationale": "Members may submit tickets.",
@@ -354,46 +354,46 @@ def _authorized_transition_author() -> dict:
     return author
 
 
-def test_authored_operation_replaces_legacy_authorization_policy_with_explicit_mapping() -> None:
+def test_authored_application_action_replaces_legacy_authorization_policy_with_explicit_mapping() -> None:
     author = _authorized_transition_author()
-    author["operations"]["operation.ticket.submit"]["authorization_policy"] = "authorization_policy.ticket.submit"
+    author["application_actions"]["application_action.ticket.submit"]["authorization_policy"] = "authorization_policy.ticket.submit"
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_author(author)
 
     author = _authorized_transition_author()
     contract = compile_author(author)
-    assert contract["operations"]["operation.ticket.submit"]["authorization"] == {
+    assert contract["application_actions"]["application_action.ticket.submit"]["authorization"] == {
         "policy": "authorization_policy.ticket.submit",
         "unauthenticated_as": "unauthenticated",
         "forbidden_as": "forbidden",
     }
 
 
-def test_operation_authorization_mapping_rejects_bad_outcome_names() -> None:
+def test_action_authorization_mapping_rejects_bad_outcome_names() -> None:
     author = _authorized_transition_author()
-    author["operations"]["operation.ticket.submit"]["authorization"]["forbidden_as"] = "Forbidden"
+    author["application_actions"]["application_action.ticket.submit"]["authorization"]["forbidden_as"] = "Forbidden"
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_author(author)
 
 
-def test_operation_authorization_policy_and_outcomes_are_semantically_validated() -> None:
+def test_action_authorization_policy_and_outcomes_are_semantically_validated() -> None:
     author = _authorized_transition_author()
-    author["operations"]["operation.ticket.submit"]["authorization"]["policy"] = "authorization_policy.ticket.missing"
+    author["application_actions"]["application_action.ticket.submit"]["authorization"]["policy"] = "authorization_policy.ticket.missing"
     with pytest.raises(ContractError, match=r"authorization\.policy references unknown authorization policy"):
         compile_author(author)
 
     author = _authorized_transition_author()
-    del author["operations"]["operation.ticket.submit"]["outcomes"]["unauthenticated"]
+    del author["application_actions"]["application_action.ticket.submit"]["outcomes"]["unauthenticated"]
     with pytest.raises(ContractError, match=r"authorization\.unauthenticated_as references unknown outcome unauthenticated"):
         compile_author(author)
 
     author = _authorized_transition_author()
-    author["operations"]["operation.ticket.submit"]["authorization"]["forbidden_as"] = "submitted"
+    author["application_actions"]["application_action.ticket.submit"]["authorization"]["forbidden_as"] = "submitted"
     with pytest.raises(ContractError, match=r"authorization\.forbidden_as must map to a failure outcome"):
         compile_author(author)
 
     author = _authorized_transition_author()
-    author["operations"]["operation.ticket.submit"]["authorization"]["forbidden_as"] = "unauthenticated"
+    author["application_actions"]["application_action.ticket.submit"]["authorization"]["forbidden_as"] = "unauthenticated"
     with pytest.raises(ContractError, match=r"unauthenticated_as and forbidden_as must be distinct"):
         compile_author(author)
 
@@ -406,7 +406,7 @@ def test_authorization_failure_outcomes_must_not_emit_events() -> None:
             "rationale": "Authorization failure outcomes are not event emitters.",
         }
     }
-    author["operations"]["operation.ticket.submit"]["outcomes"]["forbidden"]["emits"] = [
+    author["application_actions"]["application_action.ticket.submit"]["outcomes"]["forbidden"]["emits"] = [
         {"event": "event.ticket.denied", "payload_source": "$outcome.result"}
     ]
     with pytest.raises(ContractError, match=r"failure outcome forbidden must not emit events"):
@@ -423,7 +423,7 @@ def _derived_transition_author() -> dict:
                     "field": "status",
                     "initial": "draft",
                     "states": ["draft", "submitted"],
-                    "transitions": [{"triggered_by": "operation.ticket.submit", "from": "draft", "to": "submitted"}],
+                    "transitions": [{"triggered_by": "application_action.ticket.submit", "from": "draft", "to": "submitted"}],
                 },
                 "rationale": "Ticket lifecycle owns state transitions.",
             },
@@ -432,9 +432,9 @@ def _derived_transition_author() -> dict:
                 "rationale": "Problem describes failed transitions.",
             },
         },
-        "operations": {
-            "operation.ticket.submit": {
-                "operation_kind": "transition",
+        "application_actions": {
+            "application_action.ticket.submit": {
+                "action_kind": "transition",
                 "input": {"ticket_id": P("ID")},
                 "outcomes": {
                     "submitted": {"kind": "success", "result": M("Ticket")},
@@ -446,22 +446,22 @@ def _derived_transition_author() -> dict:
     }
 
 
-def test_transition_operation_derives_state_change_from_model_lifecycle() -> None:
+def test_transition_application_action_derives_state_change_from_model_lifecycle() -> None:
     author = _derived_transition_author()
     contract = compile_author(author)
-    assert contract["operations"]["operation.ticket.submit"]["transition"] == {
+    assert contract["application_actions"]["application_action.ticket.submit"]["transition"] == {
         "model": "Ticket",
         "field": "status",
         "from": "draft",
         "to": "submitted",
     }
     assert contract["authorization_policies"] == {}
-    assert "authorization" not in contract["operations"]["operation.ticket.submit"]
+    assert "authorization" not in contract["application_actions"]["application_action.ticket.submit"]
 
 
-def test_authored_operations_do_not_duplicate_lifecycle_transition_metadata() -> None:
+def test_authored_application_actions_do_not_duplicate_lifecycle_transition_metadata() -> None:
     author = _derived_transition_author()
-    author["operations"]["operation.ticket.submit"]["transition"] = {
+    author["application_actions"]["application_action.ticket.submit"]["transition"] = {
         "model": "Ticket",
         "field": "status",
         "from": "draft",
@@ -471,10 +471,10 @@ def test_authored_operations_do_not_duplicate_lifecycle_transition_metadata() ->
         compile_author(author)
 
 
-def test_transition_operations_must_be_referenced_by_model_lifecycle() -> None:
+def test_transition_application_actions_must_be_referenced_by_model_lifecycle() -> None:
     author = _derived_transition_author()
-    author["operations"]["operation.ticket.close"] = {
-        "operation_kind": "transition",
+    author["application_actions"]["application_action.ticket.close"] = {
+        "action_kind": "transition",
         "input": {"ticket_id": P("ID")},
         "outcomes": {
             "closed": {"kind": "success", "result": M("Ticket")},
@@ -482,14 +482,14 @@ def test_transition_operations_must_be_referenced_by_model_lifecycle() -> None:
         },
         "rationale": "Closing is intentionally not declared in the lifecycle graph.",
     }
-    with pytest.raises(ContractError, match=r"Transition operation operation\.ticket\.close must be referenced by model lifecycle declarations"):
+    with pytest.raises(ContractError, match=r"Transition application action application_action\.ticket\.close must be referenced by model lifecycle declarations"):
         compile_author(author)
 
 
-def test_lifecycle_transition_operations_must_declare_invalid_state_failure() -> None:
+def test_lifecycle_transition_application_actions_must_declare_invalid_state_failure() -> None:
     author = _derived_transition_author()
-    author["operations"]["operation.ticket.submit"]["outcomes"]["other_failure"] = {"kind": "failure", "result": M("Problem")}
-    del author["operations"]["operation.ticket.submit"]["outcomes"]["invalid_state"]
+    author["application_actions"]["application_action.ticket.submit"]["outcomes"]["other_failure"] = {"kind": "failure", "result": M("Problem")}
+    del author["application_actions"]["application_action.ticket.submit"]["outcomes"]["invalid_state"]
     with pytest.raises(ContractError, match=r"must declare invalid_state failure outcome"):
         compile_author(author)
 
@@ -517,27 +517,27 @@ def test_lifecycle_transition_states_must_be_declared() -> None:
 
 def test_lifecycle_transition_must_reference_transition_operation() -> None:
     author = _derived_transition_author()
-    author["operations"]["operation.ticket.submit"]["operation_kind"] = "command"
+    author["application_actions"]["application_action.ticket.submit"]["action_kind"] = "command"
     with pytest.raises(
         ContractError,
-        match=r"Model Ticket lifecycle transition operation\.ticket\.submit must reference a transition operation",
+        match=r"Model Ticket lifecycle transition application_action\.ticket\.submit must reference a transition application action",
     ):
         compile_author(author)
 
 
 def test_lifecycle_transition_must_reference_known_operation() -> None:
     author = _derived_transition_author()
-    author["models"]["Ticket"]["lifecycle"]["transitions"][0]["triggered_by"] = "operation.ticket.missing"
+    author["models"]["Ticket"]["lifecycle"]["transitions"][0]["triggered_by"] = "application_action.ticket.missing"
     with pytest.raises(
         ContractError,
-        match=r"Model Ticket lifecycle transition references unknown operation operation\.ticket\.missing",
+        match=r"Model Ticket lifecycle transition references unknown application action application_action\.ticket\.missing",
     ):
         compile_author(author)
 
 
-def test_operation_rejects_primary_model_field() -> None:
+def test_application_action_rejects_primary_model_field() -> None:
     author = _author()
-    author["operations"]["operation.project.create"]["model"] = "Project"
+    author["application_actions"]["application_action.project.create"]["model"] = "Project"
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
@@ -554,48 +554,48 @@ def test_field_type_rejects_nullable_and_presence_wrappers() -> None:
         compile_source(author)
 
 
-def test_command_operation_allows_empty_crud_effects() -> None:
+def test_command_application_action_allows_empty_crud_effects() -> None:
     author = _author()
-    del author["operations"]["operation.project.create"]["creates"]
+    del author["application_actions"]["application_action.project.create"]["creates"]
     author["entry_points"]["entry_point.api.project.create"]["adapter"]["http_api"]["responses"]["created"]["status"] = 200
     author["test_cases"]["test_case.project.create.api.success"]["then"]["response"]["status"] = 200
     contract = compile_source(author)
-    assert contract["operations"]["operation.project.create"]["creates"] == []
+    assert contract["application_actions"]["application_action.project.create"]["creates"] == []
 
 
-def test_state_machine_data_operation_must_read_state_machine_model() -> None:
+def test_state_machine_data_application_action_must_read_state_machine_model() -> None:
     author = _author()
     author["models"]["Workspace"] = {
         "fields": {"id": F(P("ID")), "name": F(P("Text"))},
         "rationale": "Workspace is a separate model used to prove data bindings are model-aware.",
     }
-    author["operations"]["operation.project.read"]["operation_kind"] = "query"
-    author["operations"]["operation.project.read"]["reads"] = ["Workspace"]
-    author["operations"]["operation.project.read"]["outcomes"]["found"]["result"] = M("Workspace")
-    with pytest.raises(ContractError, match=r"state machine state_machine\.project\.activity\.ready query_invocation read_activity operation must read model Project"):
+    author["application_actions"]["application_action.project.read"]["action_kind"] = "query"
+    author["application_actions"]["application_action.project.read"]["reads"] = ["Workspace"]
+    author["application_actions"]["application_action.project.read"]["outcomes"]["found"]["result"] = M("Workspace")
+    with pytest.raises(ContractError, match=r"state machine state_machine\.project\.activity\.ready data_loader read_activity application action must read model Project"):
         compile_source(author)
 
 
-def test_query_operations_are_side_effect_free_and_do_not_emit_events() -> None:
+def test_query_application_actions_are_side_effect_free_and_do_not_emit_events() -> None:
     author = _author()
-    author["operations"]["operation.project.list"]["creates"] = ["Project"]
-    with pytest.raises(ContractError, match=r"Operation operation\.project\.list operation_kind query does not support effects: .*creates"):
+    author["application_actions"]["application_action.project.list"]["creates"] = ["Project"]
+    with pytest.raises(ContractError, match=r"Application action application_action\.project\.list action_kind query does not support effects: .*creates"):
         compile_source(author)
 
     author = _author()
-    author["operations"]["operation.project.list"]["outcomes"]["listed"]["emits"] = [
+    author["application_actions"]["application_action.project.list"]["outcomes"]["listed"]["emits"] = [
         {"event": "event.project.listed", "payload_source": "$outcome.result"}
     ]
-    with pytest.raises(ContractError, match=r"Query operation operation\.project\.list must not emit events"):
+    with pytest.raises(ContractError, match=r"Query application action application_action\.project\.list must not emit events"):
         compile_source(author)
 
 
-def test_command_operation_does_not_need_model_relationship() -> None:
+def test_command_application_action_does_not_need_model_relationship() -> None:
     contract = compile_source(_author())
-    assert contract["operations"]["operation.project.send_approval_notice"]["creates"] == []
-    assert contract["operations"]["operation.project.send_approval_notice"]["reads"] == []
-    assert contract["operations"]["operation.project.send_approval_notice"]["updates"] == []
-    assert contract["operations"]["operation.project.send_approval_notice"]["deletes"] == []
+    assert contract["application_actions"]["application_action.project.send_approval_notice"]["creates"] == []
+    assert contract["application_actions"]["application_action.project.send_approval_notice"]["reads"] == []
+    assert contract["application_actions"]["application_action.project.send_approval_notice"]["updates"] == []
+    assert contract["application_actions"]["application_action.project.send_approval_notice"]["deletes"] == []
 
 
 def test_author_contract_can_omit_absent_sections() -> None:
@@ -609,9 +609,9 @@ def test_author_contract_can_omit_absent_sections() -> None:
                 "fields": {"code": F(P("Text")), "message": F(P("Text"))},
             },
         },
-        "operations": {
-            "operation.ticket.create": {
-                "operation_kind": "command",
+        "application_actions": {
+            "application_action.ticket.create": {
+                "action_kind": "command",
                 "creates": ["Ticket"],
                 "input": {"title": P("Text")},
                 "outcomes": {
@@ -627,10 +627,10 @@ def test_author_contract_can_omit_absent_sections() -> None:
     assert contract["entry_points"] == {}
     assert contract["state_machines"] == {}
     assert contract["authorization_policies"] == {}
-    assert "authorization" not in contract["operations"]["operation.ticket.create"]
+    assert "authorization" not in contract["application_actions"]["application_action.ticket.create"]
     assert "authorization_policy" not in contract["refs"]
     assert contract["models"]["Ticket"]["rationale"] == "Declared model Ticket."
-    assert contract["operations"]["operation.ticket.create"]["rationale"] == "Members can create tickets."
+    assert contract["application_actions"]["application_action.ticket.create"]["rationale"] == "Members can create tickets."
 
 
 def test_author_state_machine_defaults_empty_collections() -> None:
@@ -662,7 +662,7 @@ def test_author_state_machine_defaults_empty_collections() -> None:
     contract = compile_author(author, layers=parse_layers("core,ui,html"))
     state_machine = contract["state_machines"]["state_machine.ticket.empty"]
     assert state_machine["context"] == {}
-    assert state_machine["query_invocations"] == {}
+    assert state_machine["data_loaders"] == {}
     assert state_machine["signals"] == {"accepts": {"messages": {}, "data_signals": {}}, "emits": {"messages": {}}}
     assert state_machine["transitions"] == []
     assert "kind" not in state_machine
@@ -781,9 +781,9 @@ def test_workflow_input_bindings_support_runtime_sources_and_literal_values() ->
                 "rationale": "Problem result.",
             }
         },
-        "operations": {
-            "operation.ticket.notify": {
-                "operation_kind": "command",
+        "application_actions": {
+            "application_action.ticket.notify": {
+                "action_kind": "command",
                 "input": {"source_id": P("ID"), "title": P("Text")},
                 "outcomes": {
                     "sent": {"kind": "success", "result": D("data_contract.ticket.notice")},
@@ -808,7 +808,7 @@ def test_workflow_input_bindings_support_runtime_sources_and_literal_values() ->
                 "steps": [
                     {
                         "id": "notify",
-                        "operation": "operation.ticket.notify",
+                        "application_action": "application_action.ticket.notify",
                         "input_bindings": {
                             "source_id": {"from": "$trigger.payload.source_id"},
                             "title": {"value": "Literal title"},
@@ -896,8 +896,8 @@ def test_state_machine_transition_messages_must_be_declared_as_accepted() -> Non
 def test_state_machine_data_events_require_data_binding() -> None:
     author = _author()
     detail = _item(author, "state_machines", "state_machine.project.detail")
-    del detail["view_states"]["loading"]["query_invocations"]
-    del detail["view_states"]["ready"]["query_invocations"]
+    del detail["view_states"]["loading"]["data_loaders"]
+    del detail["view_states"]["ready"]["data_loaders"]
     detail["view_states"]["ready"].pop("field_slots")
     with pytest.raises(ContractError, match=r"state machine state_machine\.project\.detail transition uses data signal without state machine or source-state data: data_signal\.project_loaded"):
         compile_source(author)
@@ -940,7 +940,7 @@ def test_state_machine_data_inputs_must_come_from_context() -> None:
             mount["context_bindings"].pop("workspace_id", None)
     with pytest.raises(
         ContractError,
-        match=r"state machine state_machine\.project\.list query_invocation list_projects input_bindings\.workspace_id references unknown \$context field: workspace_id",
+        match=r"state machine state_machine\.project\.list data_loader list_projects input_bindings\.workspace_id references unknown \$context field: workspace_id",
     ):
         compile_source(author)
 
@@ -948,7 +948,7 @@ def test_state_machine_data_inputs_must_come_from_context() -> None:
 def test_state_machine_field_slots_require_data_source() -> None:
     author = _author()
     activity = _item(author, "state_machines", "state_machine.project.activity")
-    del activity["view_states"]["ready"]["query_invocations"]
+    del activity["view_states"]["ready"]["data_loaders"]
     with pytest.raises(
         ContractError,
         match=r"state machine state_machine\.project\.activity\.ready field slot assignee has no data source",
@@ -959,10 +959,10 @@ def test_state_machine_field_slots_require_data_source() -> None:
 def test_state_machine_data_source_must_be_query_like_operation() -> None:
     author = _author()
     activity = _item(author, "state_machines", "state_machine.project.activity")
-    activity["view_states"]["ready"]["query_invocations"]["read_activity"]["operation"] = "operation.project.submit"
+    activity["view_states"]["ready"]["data_loaders"]["read_activity"]["application_action"] = "application_action.project.submit"
     with pytest.raises(
         ContractError,
-        match=r"state machine state_machine\.project\.activity\.ready query_invocation read_activity operation must have operation_kind: query",
+        match=r"state machine state_machine\.project\.activity\.ready data_loader read_activity application action must have action_kind: query",
     ):
         compile_source(author)
 
@@ -1070,35 +1070,35 @@ def test_html_slots_and_textual_widgets_must_reference_declared_layout_targets()
         compile_source(author)
 
 
-def test_presentation_rejects_undeclared_textual_operation_invocation() -> None:
+def test_presentation_rejects_undeclared_textual_action_binding() -> None:
     author = _author()
     state = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]
     state["renderers"] = {
         "textual": {
             "presentation": {
-                "widgets": [{"id": "delete", "widget_class": "Button", "binding": {"operation_invocation": "delete"}, "container": "main"}],
+                "widgets": [{"id": "delete", "widget_class": "Button", "binding": {"action_binding": "delete"}, "container": "main"}],
             },
             "layout": {
                 "containers": {"main": {"id": "main", "container_class": "Container", "must_render": True}},
             }
         }
     }
-    with pytest.raises(ContractError, match="operation_invocation binding is not declared"):
+    with pytest.raises(ContractError, match="action_binding binding is not declared"):
         compile_source(author)
 
 
-def test_view_state_rejects_legacy_operation_array() -> None:
+def test_view_state_rejects_legacy_application_action_array() -> None:
     author = _author()
     state = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]
-    state["available_" + "operations"] = ["operation.project.create"]
+    state["available_" + "application_actions"] = ["application_action.project.create"]
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
 
-def test_operation_invocation_keys_are_local_names() -> None:
+def test_action_binding_keys_are_local_names() -> None:
     author = _author()
     state = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]
-    state["operation_invocations"]["operation.create"] = state["operation_invocations"].pop("create")
+    state["action_bindings"]["application_action.create"] = state["action_bindings"].pop("create")
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
@@ -1106,32 +1106,32 @@ def test_operation_invocation_keys_are_local_names() -> None:
 def test_legacy_state_machine_action_and_query_fields_are_rejected() -> None:
     author = _author()
     state = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]
-    state["available_" + "operations"] = ["operation.project.create"]
+    state["available_" + "application_actions"] = ["application_action.project.create"]
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
     author = _author()
     state_machine = _item(author, "state_machines", "state_machine.project.list")
-    state_machine["query_" + "dependencies"] = ["operation.project.list"]
+    state_machine["query_" + "dependencies"] = ["application_action.project.list"]
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
     author = _author()
     state = _item(author, "state_machines", "state_machine.project.activity")["view_states"]["ready"]
-    state["query_" + "dependencies"] = ["operation.project.read"]
+    state["query_" + "dependencies"] = ["application_action.project.read"]
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
 
-def test_renderer_slot_binding_accepts_operation_invocation_and_rejects_operation_ref() -> None:
+def test_renderer_slot_binding_accepts_action_binding_and_rejects_application_action_ref() -> None:
     author = _author()
     board = _item(author, "state_machines", "state_machine.project.board")
-    board["signals"] = {"accepts": {"data_signals": {"operation_completed": {}}}}
-    board["transitions"] = [{"from": "ready", "to": "ready", "on": {"data_signal": "operation_completed"}}]
+    board["signals"] = {"accepts": {"data_signals": {"application_action_completed": {}}}}
+    board["transitions"] = [{"from": "ready", "to": "ready", "on": {"data_signal": "application_action_completed"}}]
     state = board["view_states"]["ready"]
-    state["operation_invocations"] = {
+    state["action_bindings"] = {
         "create": {
-            "operation": "operation.project.create",
+            "application_action": "application_action.project.create",
             "input_bindings": {
                 "customer": {"value": "Atlas Foods"},
                 "priority": {"value": "High"},
@@ -1139,26 +1139,26 @@ def test_renderer_slot_binding_accepts_operation_invocation_and_rejects_operatio
                 "workspace_id": {"from": "$context.workspace_id"},
             },
             "outcome_routes": {
-                "created": {"raise": {"data_signal": "operation_completed"}},
-                "forbidden": {"raise": {"data_signal": "operation_completed"}},
-                "unauthenticated": {"raise": {"data_signal": "operation_completed"}},
-                "validation_failed": {"raise": {"data_signal": "operation_completed"}},
+                "created": {"raise": {"data_signal": "application_action_completed"}},
+                "forbidden": {"raise": {"data_signal": "application_action_completed"}},
+                "unauthenticated": {"raise": {"data_signal": "application_action_completed"}},
+                "validation_failed": {"raise": {"data_signal": "application_action_completed"}},
             },
         }
     }
     state["renderers"]["textual"]["presentation"] = {
-        "widgets": [{"id": "create", "widget_class": "Button", "binding": {"operation_invocation": "create"}, "container": "nav"}],
+        "widgets": [{"id": "create", "widget_class": "Button", "binding": {"action_binding": "create"}, "container": "nav"}],
     }
     compile_source(author)
 
     bad = _author()
     board = _item(bad, "state_machines", "state_machine.project.board")
-    board["signals"] = {"accepts": {"data_signals": {"operation_completed": {}}}}
-    board["transitions"] = [{"from": "ready", "to": "ready", "on": {"data_signal": "operation_completed"}}]
+    board["signals"] = {"accepts": {"data_signals": {"application_action_completed": {}}}}
+    board["transitions"] = [{"from": "ready", "to": "ready", "on": {"data_signal": "application_action_completed"}}]
     state = board["view_states"]["ready"]
-    state["operation_invocations"] = {
+    state["action_bindings"] = {
         "create": {
-            "operation": "operation.project.create",
+            "application_action": "application_action.project.create",
             "input_bindings": {
                 "customer": {"value": "Atlas Foods"},
                 "priority": {"value": "High"},
@@ -1166,107 +1166,107 @@ def test_renderer_slot_binding_accepts_operation_invocation_and_rejects_operatio
                 "workspace_id": {"from": "$context.workspace_id"},
             },
             "outcome_routes": {
-                "created": {"raise": {"data_signal": "operation_completed"}},
-                "forbidden": {"raise": {"data_signal": "operation_completed"}},
-                "unauthenticated": {"raise": {"data_signal": "operation_completed"}},
-                "validation_failed": {"raise": {"data_signal": "operation_completed"}},
+                "created": {"raise": {"data_signal": "application_action_completed"}},
+                "forbidden": {"raise": {"data_signal": "application_action_completed"}},
+                "unauthenticated": {"raise": {"data_signal": "application_action_completed"}},
+                "validation_failed": {"raise": {"data_signal": "application_action_completed"}},
             },
         }
     }
     state["renderers"]["textual"]["presentation"] = {
-        "widgets": [{"id": "create", "widget_class": "Button", "binding": {"operation": "operation.project.create"}, "container": "nav"}],
+        "widgets": [{"id": "create", "widget_class": "Button", "binding": {"application_action": "application_action.project.create"}, "container": "nav"}],
     }
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(bad)
 
 
-def test_operation_invocation_operation_must_resolve() -> None:
+def test_action_binding_application_action_must_resolve() -> None:
     author = _author()
-    invocation = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["submit"]
-    invocation["operation"] = "operation.project.missing"
-    with pytest.raises(ContractError, match=r"operation_invocation submit references unknown operation operation\.project\.missing"):
+    invocation = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]
+    invocation["application_action"] = "application_action.project.missing"
+    with pytest.raises(ContractError, match=r"action_binding submit references unknown application action application_action\.project\.missing"):
         compile_source(author)
 
 
-def test_operation_invocation_routes_must_cover_exact_operation_outcomes() -> None:
+def test_action_binding_routes_must_cover_exact_action_outcomes() -> None:
     author = _author()
-    routes = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["submit"]["outcome_routes"]
+    routes = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_routes"]
     del routes["not_found"]
-    with pytest.raises(ContractError, match=r"outcome_routes must exactly map operation outcomes: missing: not_found"):
+    with pytest.raises(ContractError, match=r"outcome_routes must exactly map application action outcomes: missing: not_found"):
         compile_source(author)
 
     author = _author()
-    routes = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["submit"]["outcome_routes"]
+    routes = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_routes"]
     routes["ghost"] = {"no_signal": {"reason": "state_unchanged"}}
-    with pytest.raises(ContractError, match=r"outcome_routes must exactly map operation outcomes: extra: ghost"):
+    with pytest.raises(ContractError, match=r"outcome_routes must exactly map application action outcomes: extra: ghost"):
         compile_source(author)
 
 
-def test_operation_invocation_rejects_legacy_non_routing_route() -> None:
+def test_action_binding_rejects_legacy_non_routing_route() -> None:
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["submit"]["outcome_routes"]["forbidden"]
+    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_routes"]["forbidden"]
     route.clear()
     route["ig" + "nore"] = True
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
 
-def test_operation_invocation_failure_no_signal_requires_reason_and_rationale() -> None:
+def test_action_binding_failure_no_signal_requires_reason_and_rationale() -> None:
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["submit"]["outcome_routes"]["invalid_state"]
+    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_routes"]["invalid_state"]
     route.clear()
     route["no_signal"] = {"reason": "intentionally_unobservable"}
     with pytest.raises(ContractError, match=r"failure outcome no_signal must declare rationale"):
         compile_source(author)
 
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["submit"]["outcome_routes"]["invalid_state"]
+    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_routes"]["invalid_state"]
     route.clear()
     route["no_signal"] = {"reason": "handled_by_response_surface", "rationale": "test route"}
     with pytest.raises(ContractError, match=r"handled_by_response_surface requires an adapter or renderer response surface"):
         compile_source(author)
 
 
-def test_operation_invocation_failure_no_signal_rejects_state_unchanged() -> None:
+def test_action_binding_failure_no_signal_rejects_state_unchanged() -> None:
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["submit"]["outcome_routes"]["invalid_state"]
+    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_routes"]["invalid_state"]
     route.clear()
     route["no_signal"] = {"reason": "state_unchanged", "rationale": "Invalid submit leaves the list unchanged."}
     with pytest.raises(ContractError, match=r"failure outcome no_signal must use reason handled_by_response_surface with a proven response surface or intentionally_unobservable with rationale"):
         compile_source(author)
 
 
-def test_operation_invocation_raised_signals_must_be_declared_locally() -> None:
+def test_action_binding_raised_signals_must_be_declared_locally() -> None:
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["submit"]["outcome_routes"]["submitted"]
+    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_routes"]["submitted"]
     route["raise"]["data_signal"] = "ghost"
     with pytest.raises(ContractError, match=r"raise references undeclared state-machine signal: data_signal\.ghost"):
         compile_source(author)
 
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["submit"]["outcome_routes"]["invalid_state"]
+    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_routes"]["invalid_state"]
     route["raise"]["message"] = "ghost"
     with pytest.raises(ContractError, match=r"raise references undeclared state-machine signal: message\.ghost"):
         compile_source(author)
 
 
-def test_operation_invocation_payload_and_input_bindings_are_type_checked() -> None:
+def test_action_binding_payload_and_input_bindings_are_type_checked() -> None:
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["submit"]["outcome_routes"]["invalid_state"]
+    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_routes"]["invalid_state"]
     del route["raise"]["payload_bindings"]["message"]
     with pytest.raises(ContractError, match=r"payload_bindings must exactly match payload fields: missing: message"):
         compile_source(author)
 
     author = _author()
-    invocation = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["submit"]
+    invocation = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]
     del invocation["input_bindings"]["project_id"]
     with pytest.raises(ContractError, match=r"input_bindings must exactly bind target input: missing: project_id"):
         compile_source(author)
 
 
-def test_operation_invocation_literal_actor_ids_emit_lint_warning() -> None:
+def test_action_binding_literal_actor_ids_emit_lint_warning() -> None:
     author = _author()
-    invocation = _item(author, "state_machines", "state_machine.project.detail")["view_states"]["ready"]["operation_invocations"]["approve"]
+    invocation = _item(author, "state_machines", "state_machine.project.detail")["view_states"]["ready"]["action_bindings"]["approve"]
     invocation["input_bindings"]["approved_by"] = {"value": "reviewer_1"}
     with pytest.warns(ContractLintWarning, match=r"approved_by uses a literal actor/user id"):
         compile_source(author)
@@ -1274,25 +1274,25 @@ def test_operation_invocation_literal_actor_ids_emit_lint_warning() -> None:
 
 def test_mutation_routes_raising_loaded_signal_emit_lint_warning() -> None:
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["create"]["outcome_routes"]["created"]
+    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["create"]["outcome_routes"]["created"]
     route["raise"]["data_signal"] = "projects_loaded"
     with pytest.warns(ContractLintWarning, match=r"raises data signal 'projects_loaded' from a mutation"):
         compile_source(author)
 
 
-def test_operation_outcome_emits_is_not_local_state_machine_routing() -> None:
+def test_action_outcome_emits_is_not_local_state_machine_routing() -> None:
     author = _author()
-    routes = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["operation_invocations"]["create"]["outcome_routes"]
+    routes = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["create"]["outcome_routes"]
     del routes["created"]
-    with pytest.raises(ContractError, match=r"outcome_routes must exactly map operation outcomes: missing: created"):
+    with pytest.raises(ContractError, match=r"outcome_routes must exactly map application action outcomes: missing: created"):
         compile_source(author)
 
 
-def test_operation_invocation_routes_are_local_per_view_state() -> None:
+def test_action_binding_routes_are_local_per_view_state() -> None:
     contract = compile_source(_author())
-    empty_create = contract["state_machines"]["state_machine.project.list"]["view_states"]["empty"]["operation_invocations"]["create"]
-    ready_create = contract["state_machines"]["state_machine.project.list"]["view_states"]["ready"]["operation_invocations"]["create"]
-    assert empty_create["operation"] == ready_create["operation"] == "operation.project.create"
+    empty_create = contract["state_machines"]["state_machine.project.list"]["view_states"]["empty"]["action_bindings"]["create"]
+    ready_create = contract["state_machines"]["state_machine.project.list"]["view_states"]["ready"]["action_bindings"]["create"]
+    assert empty_create["application_action"] == ready_create["application_action"] == "application_action.project.create"
     assert "raise" in empty_create["outcome_routes"]["validation_failed"]
     assert ready_create["outcome_routes"]["validation_failed"] == {
         "no_signal": {
@@ -1302,108 +1302,108 @@ def test_operation_invocation_routes_are_local_per_view_state() -> None:
     }
 
 
-def test_query_invocation_operation_and_routes_are_validated() -> None:
+def test_data_loader_application_action_and_routes_are_validated() -> None:
     author = _author()
-    invocation = _item(author, "state_machines", "state_machine.project.list")["query_invocations"]["list_projects"]
-    invocation["operation"] = "operation.project.missing"
-    with pytest.raises(ContractError, match=r"query_invocation list_projects references unknown operation operation\.project\.missing"):
+    invocation = _item(author, "state_machines", "state_machine.project.list")["data_loaders"]["list_projects"]
+    invocation["application_action"] = "application_action.project.missing"
+    with pytest.raises(ContractError, match=r"data_loader list_projects references unknown application action application_action\.project\.missing"):
         compile_source(author)
 
     author = _author()
-    routes = _item(author, "state_machines", "state_machine.project.list")["query_invocations"]["list_projects"]["outcome_routes"]
+    routes = _item(author, "state_machines", "state_machine.project.list")["data_loaders"]["list_projects"]["outcome_routes"]
     del routes["unavailable"]
-    with pytest.raises(ContractError, match=r"query_invocation list_projects outcome_routes must exactly map query operation outcomes: missing: unavailable"):
+    with pytest.raises(ContractError, match=r"data_loader list_projects outcome_routes must exactly map query application action outcomes: missing: unavailable"):
         compile_source(author)
 
     author = _author()
-    routes = _item(author, "state_machines", "state_machine.project.list")["query_invocations"]["list_projects"]["outcome_routes"]
+    routes = _item(author, "state_machines", "state_machine.project.list")["data_loaders"]["list_projects"]["outcome_routes"]
     routes["ghost"] = {"no_signal": {"reason": "state_unchanged"}}
-    with pytest.raises(ContractError, match=r"query_invocation list_projects outcome_routes must exactly map query operation outcomes: extra: ghost"):
+    with pytest.raises(ContractError, match=r"data_loader list_projects outcome_routes must exactly map query application action outcomes: extra: ghost"):
         compile_source(author)
 
 
-def test_query_invocation_bindings_context_updates_and_signals_are_validated() -> None:
+def test_data_loader_bindings_context_updates_and_signals_are_validated() -> None:
     author = _author()
-    invocation = _item(author, "state_machines", "state_machine.project.list")["query_invocations"]["list_projects"]
+    invocation = _item(author, "state_machines", "state_machine.project.list")["data_loaders"]["list_projects"]
     del invocation["input_bindings"]["workspace_id"]
-    with pytest.raises(ContractError, match=r"query_invocation list_projects input_bindings must exactly bind target input: missing: workspace_id"):
+    with pytest.raises(ContractError, match=r"data_loader list_projects input_bindings must exactly bind target input: missing: workspace_id"):
         compile_source(author)
 
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["query_invocations"]["list_projects"]["outcome_routes"]["listed"]
+    route = _item(author, "state_machines", "state_machine.project.list")["data_loaders"]["list_projects"]["outcome_routes"]["listed"]
     route["conditional_routes"][0]["context_updates"]["ghost"] = {"value": "nope"}
     with pytest.raises(ContractError, match=r"context_updates references undeclared context field: ghost"):
         compile_source(author)
 
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["query_invocations"]["list_projects"]["outcome_routes"]["listed"]
+    route = _item(author, "state_machines", "state_machine.project.list")["data_loaders"]["list_projects"]["outcome_routes"]["listed"]
     route["conditional_routes"][1]["raise"]["data_signal"] = "ghost"
     with pytest.raises(ContractError, match=r"raise references undeclared state-machine signal: data_signal\.ghost"):
         compile_source(author)
 
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.detail")["view_states"]["ready"]["query_invocations"]["read_project"]["outcome_routes"]["not_found"]
+    route = _item(author, "state_machines", "state_machine.project.detail")["view_states"]["ready"]["data_loaders"]["read_project"]["outcome_routes"]["not_found"]
     route["raise"]["message"] = "ghost"
     with pytest.raises(ContractError, match=r"raise references undeclared state-machine signal: message\.ghost"):
         compile_source(author)
 
 
-def test_query_invocation_load_policy_and_operation_purity_are_validated() -> None:
+def test_data_loader_load_policy_and_application_action_purity_are_validated() -> None:
     author = _author()
-    invocation = _item(author, "state_machines", "state_machine.project.list")["query_invocations"]["list_projects"]
+    invocation = _item(author, "state_machines", "state_machine.project.list")["data_loaders"]["list_projects"]
     invocation["load"] = {"refresh_on": [{"data_signal": "ghost"}]}
     with pytest.raises(ContractError, match=r"load\.refresh_on references undeclared state-machine signal: data_signal\.ghost"):
         compile_source(author)
 
     author = _author()
-    author["operations"]["operation.project.list"]["outcomes"]["listed"]["emits"] = [
+    author["application_actions"]["application_action.project.list"]["outcomes"]["listed"]["emits"] = [
         {"event": "event.project.listed", "payload_source": "$outcome.result"}
     ]
     author["events"]["event.project.listed"] = {
         "payload_schema": {"array": {"model": "Project"}},
-        "rationale": "List events are deliberately invalid for query invocations.",
+        "rationale": "List events are deliberately invalid for data loaders.",
     }
-    with pytest.raises(ContractError, match=r"Query operation operation\.project\.list must not emit events: .*listed"):
+    with pytest.raises(ContractError, match=r"Query application action application_action\.project\.list must not emit events: .*listed"):
         compile_source(author)
 
     author = _author()
-    author["operations"]["operation.project.list"]["updates"] = ["Project"]
-    with pytest.raises(ContractError, match=r"Operation operation\.project\.list operation_kind query does not support effects: .*updates"):
+    author["application_actions"]["application_action.project.list"]["updates"] = ["Project"]
+    with pytest.raises(ContractError, match=r"Application action application_action\.project\.list action_kind query does not support effects: .*updates"):
         compile_source(author)
 
 
-def test_query_invocation_success_cannot_be_semantically_inert() -> None:
+def test_data_loader_success_cannot_be_semantically_inert() -> None:
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["query_invocations"]["list_projects"]["outcome_routes"]["listed"]
+    route = _item(author, "state_machines", "state_machine.project.list")["data_loaders"]["list_projects"]["outcome_routes"]["listed"]
     route.clear()
     route["no_signal"] = {"reason": "state_unchanged"}
     with pytest.raises(ContractError, match=r"successful query no_signal must bind/cache data"):
         compile_source(author)
 
 
-def test_query_invocation_query_refresh_requires_explicit_result_or_context_refresh() -> None:
+def test_data_loader_query_refresh_requires_explicit_result_or_context_refresh() -> None:
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["query_invocations"]["list_projects"]["outcome_routes"]["listed"]
+    route = _item(author, "state_machines", "state_machine.project.list")["data_loaders"]["list_projects"]["outcome_routes"]["listed"]
     route.clear()
     route["no_signal"] = {"reason": "handled_by_query_refresh"}
     with pytest.raises(ContractError, match=r"handled_by_query_refresh requires an explicit query result binding or context refresh"):
         compile_source(author)
 
 
-def test_query_invocation_collection_empty_and_non_empty_routes_are_explicit() -> None:
+def test_data_loader_collection_empty_and_non_empty_routes_are_explicit() -> None:
     contract = compile_source(_author())
-    route = contract["state_machines"]["state_machine.project.list"]["query_invocations"]["list_projects"]["outcome_routes"]["listed"]
+    route = contract["state_machines"]["state_machine.project.list"]["data_loaders"]["list_projects"]["outcome_routes"]["listed"]
     branches = {next(iter(branch["when"])): branch["raise"]["data_signal"] for branch in route["conditional_routes"]}
     assert branches == {"result_empty": "project_collection_empty", "result_non_empty": "projects_loaded"}
 
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["query_invocations"]["list_projects"]["outcome_routes"]["listed"]
+    route = _item(author, "state_machines", "state_machine.project.list")["data_loaders"]["list_projects"]["outcome_routes"]["listed"]
     route["conditional_routes"] = [route["conditional_routes"][0]]
     with pytest.raises(ContractError, match=r"must declare both result_empty and result_non_empty branches"):
         compile_source(author)
 
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["query_invocations"]["list_projects"]["outcome_routes"]["listed"]
+    route = _item(author, "state_machines", "state_machine.project.list")["data_loaders"]["list_projects"]["outcome_routes"]["listed"]
     route["conditional_routes"][0]["raise"]["data_signal"] = "projects_loaded"
     with pytest.raises(ContractError, match=r"empty-collection signal data_signal\.project_collection_empty without an explicit query route raising it"):
         compile_source(author)
@@ -1411,7 +1411,7 @@ def test_query_invocation_collection_empty_and_non_empty_routes_are_explicit() -
 
 def test_query_empty_non_empty_conditions_require_array_results() -> None:
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.detail")["view_states"]["loading"]["query_invocations"]["read_project"]["outcome_routes"]["found"]
+    route = _item(author, "state_machines", "state_machine.project.detail")["view_states"]["loading"]["data_loaders"]["read_project"]["outcome_routes"]["found"]
     route.clear()
     route["conditional_routes"] = [
         {
@@ -1431,18 +1431,18 @@ def test_query_empty_non_empty_conditions_require_array_results() -> None:
 
 def test_state_machine_level_query_scope_is_explicit() -> None:
     author = _author()
-    del _item(author, "state_machines", "state_machine.project.board")["query_invocations"]["list_board"]["result_scope"]
-    with pytest.raises(ContractError, match=r"state-machine-level query_invocation must declare result_scope"):
+    del _item(author, "state_machines", "state_machine.project.board")["data_loaders"]["list_board"]["result_scope"]
+    with pytest.raises(ContractError, match=r"state-machine-level data_loader must declare result_scope"):
         compile_source(author)
 
     author = _author()
-    invocation = _item(author, "state_machines", "state_machine.project.board")["query_invocations"]["list_board"]
+    invocation = _item(author, "state_machines", "state_machine.project.board")["data_loaders"]["list_board"]
     invocation["result_scope"] = "local"
     with pytest.raises(ContractError, match=r"result_binding with no_signal must declare result_scope shared or prefetch"):
         compile_source(author)
 
     author = _author()
-    invocation = _item(author, "state_machines", "state_machine.project.board")["query_invocations"]["list_board"]
+    invocation = _item(author, "state_machines", "state_machine.project.board")["data_loaders"]["list_board"]
     del invocation["rationale"]
     with pytest.raises(ContractError, match=r"result_scope shared must declare rationale"):
         compile_source(author)
@@ -1459,34 +1459,34 @@ def test_result_bound_without_signal_requires_consumed_result_data() -> None:
 def test_field_slot_sources_must_be_unambiguous() -> None:
     author = _author()
     detail = _item(author, "state_machines", "state_machine.project.detail")
-    owner_query = copy.deepcopy(detail["view_states"]["loading"]["query_invocations"]["read_project"])
+    owner_query = copy.deepcopy(detail["view_states"]["loading"]["data_loaders"]["read_project"])
     owner_query["load"] = {"on_start": True}
     owner_query["result_scope"] = "local"
-    detail.setdefault("query_invocations", {})["read_project_owner"] = owner_query
+    detail.setdefault("data_loaders", {})["read_project_owner"] = owner_query
     with pytest.raises(ContractError, match=r"field slot assignee has ambiguous data sources"):
         compile_source(author)
 
 
-def test_query_invocation_load_policy_is_scope_sensitive() -> None:
+def test_data_loader_load_policy_is_scope_sensitive() -> None:
     author = _author()
-    invocation = _item(author, "state_machines", "state_machine.project.list")["query_invocations"]["list_projects"]
+    invocation = _item(author, "state_machines", "state_machine.project.list")["data_loaders"]["list_projects"]
     invocation["load"] = {"on_enter": True}
     with pytest.raises(ContractError, match=r"state-machine-level load policy must use on_start or on_mount, not on_enter"):
         compile_source(author)
 
     author = _author()
-    invocation = _item(author, "state_machines", "state_machine.project.detail")["view_states"]["loading"]["query_invocations"]["read_project"]
+    invocation = _item(author, "state_machines", "state_machine.project.detail")["view_states"]["loading"]["data_loaders"]["read_project"]
     invocation["load"] = {"on_start": True}
     with pytest.raises(ContractError, match=r"view-state-level load policy must use on_enter, not on_start or on_mount"):
         compile_source(author)
 
 
-def test_query_invocation_ids_cannot_shadow_state_machine_scope() -> None:
+def test_data_loader_ids_cannot_shadow_state_machine_scope() -> None:
     author = _author()
     list_fsm = _item(author, "state_machines", "state_machine.project.list")
-    list_fsm["view_states"]["ready"]["query_invocations"] = {
+    list_fsm["view_states"]["ready"]["data_loaders"] = {
         "list_projects": {
-            "operation": "operation.project.list",
+            "application_action": "application_action.project.list",
             "input_bindings": {"workspace_id": {"from": "$context.workspace_id"}},
             "outcome_routes": {
                 "listed": {
@@ -1499,15 +1499,15 @@ def test_query_invocation_ids_cannot_shadow_state_machine_scope() -> None:
             },
         }
     }
-    with pytest.raises(ContractError, match=r"query_invocations duplicate state-machine-scope ids: .*list_projects"):
+    with pytest.raises(ContractError, match=r"data_loaders duplicate state-machine-scope ids: .*list_projects"):
         compile_source(author)
 
 
-def test_query_invocation_routes_are_local_per_state() -> None:
+def test_data_loader_routes_are_local_per_state() -> None:
     contract = compile_source(_author())
-    loading_read = contract["state_machines"]["state_machine.project.detail"]["view_states"]["loading"]["query_invocations"]["read_project"]
-    ready_read = contract["state_machines"]["state_machine.project.detail"]["view_states"]["ready"]["query_invocations"]["read_project"]
-    assert loading_read["operation"] == ready_read["operation"] == "operation.project.read"
+    loading_read = contract["state_machines"]["state_machine.project.detail"]["view_states"]["loading"]["data_loaders"]["read_project"]
+    ready_read = contract["state_machines"]["state_machine.project.detail"]["view_states"]["ready"]["data_loaders"]["read_project"]
+    assert loading_read["application_action"] == ready_read["application_action"] == "application_action.project.read"
     assert loading_read["outcome_routes"]["found"] == {
         "result_binding": {"data_key": "project", "from": {"from": "$outcome.result"}},
         "raise": {"data_signal": "project_loaded"},
@@ -1518,10 +1518,10 @@ def test_query_invocation_routes_are_local_per_state() -> None:
     }
 
 
-def test_missing_referenced_operation_is_rejected() -> None:
+def test_missing_referenced_application_action_is_rejected() -> None:
     author = _author()
-    del author["operations"]["operation.project.create"]
-    with pytest.raises(ContractError, match="unknown operation|operation references"):
+    del author["application_actions"]["application_action.project.create"]
+    with pytest.raises(ContractError, match="unknown application action|application action references"):
         compile_source(author)
 
 
@@ -1638,9 +1638,9 @@ def _api_only_author() -> dict:
                 "rationale": _rationale("problem model"),
             },
         },
-        "operations": {
-            "operation.ticket.create": {
-                "operation_kind": "command",
+        "application_actions": {
+            "application_action.ticket.create": {
+                "action_kind": "command",
                 "creates": ["Ticket"],
                 "input": {"title": P("Text")},
                 "outcomes": {
@@ -1664,7 +1664,7 @@ def _api_only_author() -> dict:
                     }
                 },
                 "target": {
-                    "operation": {"ref": "operation.ticket.create", "input_bindings": {"title": {"from": "$input.body.title"}}},
+                    "application_action": {"ref": "application_action.ticket.create", "input_bindings": {"title": {"from": "$input.body.title"}}},
                 },
                 "rationale": _rationale("HTTP create ticket entry"),
             }
@@ -1753,7 +1753,7 @@ def test_cli_delegation_bindings_use_outer_input_shape() -> None:
 
 def test_entry_target_bindings_must_exactly_match_target_input() -> None:
     author = _author()
-    del author["entry_points"]["entry_point.api.project.create"]["target"]["operation"]["input_bindings"]["title"]
+    del author["entry_points"]["entry_point.api.project.create"]["target"]["application_action"]["input_bindings"]["title"]
     with pytest.raises(ContractError, match=r"Entry entry_point.api\.project\.create target\.input_bindings must exactly bind target input: missing: title"):
         compile_source(author)
 
@@ -1765,28 +1765,28 @@ def test_entry_point_response_must_match_renderer_contract() -> None:
         compile_source(author)
 
 
-def test_operation_outcomes_must_have_one_success_and_real_failure_result() -> None:
+def test_action_outcomes_must_have_one_success_and_real_failure_result() -> None:
     author = _author()
-    author["operations"]["operation.project.create"]["outcomes"]["validation_failed"]["kind"] = "success"
-    with pytest.raises(ContractError, match=r"Operation operation.project\.create must declare exactly one success outcome"):
+    author["application_actions"]["application_action.project.create"]["outcomes"]["validation_failed"]["kind"] = "success"
+    with pytest.raises(ContractError, match=r"Application action application_action.project\.create must declare exactly one success outcome"):
         compile_source(author)
 
     author = _author()
-    author["operations"]["operation.project.create"]["outcomes"]["validation_failed"]["result"] = M("Project")
+    author["application_actions"]["application_action.project.create"]["outcomes"]["validation_failed"]["result"] = M("Project")
     with pytest.raises(ContractError, match=r"failure outcome validation_failed result must be Problem"):
         compile_source(author)
 
 
 def test_event_emits_must_map_declared_payload() -> None:
     author = _author()
-    author["operations"]["operation.project.approve"]["outcomes"]["approved"]["emits"][0]["payload_bindings"]["approved_by"] = {"from": "$outcome.result"}
+    author["application_actions"]["application_action.project.approve"]["outcomes"]["approved"]["emits"][0]["payload_bindings"]["approved_by"] = {"from": "$outcome.result"}
     with pytest.raises(ContractError, match=r"emit event.project\.approved mapping approved_by source .*\$outcome\.result.* type must be ID"):
         compile_source(author)
 
 
 def test_runtime_references_are_context_scoped() -> None:
     author = _author()
-    author["entry_points"]["entry_point.api.project.create"]["target"]["operation"]["input_bindings"]["title"] = {"from": "$trigger.payload.title"}
+    author["entry_points"]["entry_point.api.project.create"]["target"]["application_action"]["input_bindings"]["title"] = {"from": "$trigger.payload.title"}
     with pytest.raises(ContractError, match=r"target\.input_bindings\.title references unavailable runtime root: \$trigger"):
         compile_source(author)
 
@@ -1798,17 +1798,17 @@ def test_runtime_references_validate_declared_fields() -> None:
         compile_source(author)
 
 
-def test_entry_point_responses_must_map_all_operation_outcomes() -> None:
+def test_entry_point_responses_must_map_all_action_outcomes() -> None:
     author = _author()
     del author["entry_points"]["entry_point.api.project.create"]["adapter"]["http_api"]["responses"]["validation_failed"]
-    with pytest.raises(ContractError, match=r"Entry entry_point.api\.project\.create responses must exactly map operation outcomes: missing: validation_failed"):
+    with pytest.raises(ContractError, match=r"Entry entry_point.api\.project\.create responses must exactly map application action outcomes: missing: validation_failed"):
         compile_source(author)
 
 
 def test_entry_point_responses_must_map_authorization_failure_outcomes() -> None:
     author = _author()
     del author["entry_points"]["entry_point.api.project.create"]["adapter"]["http_api"]["responses"]["forbidden"]
-    with pytest.raises(ContractError, match=r"Entry entry_point.api\.project\.create responses must exactly map operation outcomes: missing: forbidden"):
+    with pytest.raises(ContractError, match=r"Entry entry_point.api\.project\.create responses must exactly map application action outcomes: missing: forbidden"):
         compile_source(author)
 
     contract = compile_source(_author())
@@ -1937,7 +1937,7 @@ def test_response_root_is_only_available_inside_delegated_cli_response_handlers(
     }
 
     author = _author()
-    author["entry_points"]["entry_point.api.project.create"]["target"]["operation"]["input_bindings"]["title"] = {"from": "$response.body.title"}
+    author["entry_points"]["entry_point.api.project.create"]["target"]["application_action"]["input_bindings"]["title"] = {"from": "$response.body.title"}
     with pytest.raises(ContractError, match=r"target\.input_bindings\.title references unavailable runtime root: \$response"):
         compile_source(author)
 
@@ -1951,7 +1951,7 @@ def test_cli_retry_policy_requires_retry_safe_delegated_entry_point() -> None:
 
 def test_cli_retry_policy_requires_retry_safe_final_operation() -> None:
     author = _author()
-    del author["operations"]["operation.project.approve"]["retry_safe"]
+    del author["application_actions"]["application_action.project.approve"]["retry_safe"]
     with pytest.raises(ContractError, match=r"retry_policy requires delegated entry point entry_point\.api\.project\.approve and its final target to be retry_safe or query"):
         compile_source(author)
 
@@ -1981,12 +1981,12 @@ def test_delegated_and_outer_authorization_policies_are_both_evaluated(tmp_path:
         "then": {
             "outcome": "approved",
             "response": {"exit_code": 0},
-            "invoked": ["operation.project.approve"],
+            "invoked": ["application_action.project.approve"],
             "authorization": {
                 "allowed": [
                     {"entry_point": "entry_point.cli.project.approve", "authorization_policy": outer_policy},
                     {"entry_point": "entry_point.api.project.approve", "authorization_policy": "authorization_policy.project.reviewer"},
-                    {"operation": "operation.project.approve", "authorization_policy": "authorization_policy.project.reviewer"},
+                    {"application_action": "application_action.project.approve", "authorization_policy": "authorization_policy.project.reviewer"},
                 ]
             },
         },
@@ -2026,17 +2026,17 @@ def test_worker_entry_must_declare_realistic_dispositions() -> None:
         compile_source(author)
 
 
-def test_workflow_steps_must_route_all_operation_outcomes() -> None:
+def test_workflow_steps_must_route_all_action_outcomes() -> None:
     author = _author()
     del author["workflows"]["workflow.project.approval_notice"]["steps"][0]["outcome_routes"]["delivery_failed"]
-    with pytest.raises(ContractError, match=r"Workflow workflow.project\.approval_notice step send_notice outcome_routes must exactly map operation outcomes: missing: delivery_failed"):
+    with pytest.raises(ContractError, match=r"Workflow workflow.project\.approval_notice step send_notice outcome_routes must exactly map application action outcomes: missing: delivery_failed"):
         compile_source(author)
 
 
 def test_workflow_steps_must_route_authorization_failure_outcomes() -> None:
     author = _author()
     del author["workflows"]["workflow.project.approval_notice"]["steps"][0]["outcome_routes"]["forbidden"]
-    with pytest.raises(ContractError, match=r"Workflow workflow.project\.approval_notice step send_notice outcome_routes must exactly map operation outcomes: missing: forbidden"):
+    with pytest.raises(ContractError, match=r"Workflow workflow.project\.approval_notice step send_notice outcome_routes must exactly map application action outcomes: missing: forbidden"):
         compile_source(author)
 
 
@@ -2120,13 +2120,13 @@ def test_workflow_entry_trigger_bindings_must_match_workflow_trigger_payload() -
         compile_source(author)
 
 
-def test_get_api_entry_must_provide_all_operation_input_as_path_or_query_params() -> None:
+def test_get_api_entry_must_provide_all_application_action_input_as_path_or_query_params() -> None:
     author = _author()
     entry = author["entry_points"]["entry_point.api.project.list"]
     entry["adapter"]["http_api"]["path"] = "/projects"
     entry["adapter"]["http_api"]["input"].pop("path_params")
-    entry["target"]["operation"]["input_bindings"].pop("workspace_id")
-    with pytest.raises(ContractError, match=r"API entry entry_point.api\.project\.list GET must declare all operation inputs as path_params or query_params: \['workspace_id'\]"):
+    entry["target"]["application_action"]["input_bindings"].pop("workspace_id")
+    with pytest.raises(ContractError, match=r"API entry entry_point.api\.project\.list GET must declare all application action inputs as path_params or query_params: \['workspace_id'\]"):
         compile_source(author)
 
 

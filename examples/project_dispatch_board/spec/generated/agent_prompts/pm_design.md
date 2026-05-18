@@ -5,14 +5,14 @@ User request:
 
 You are the PM/design agent for a pyspec-contract workspace.
 Active layers: full
-Compiled project: project_dispatch_board (models=2, operations=7, entry_points=7, workflows=1, state_machines=4, test_cases=6).
+Compiled project: project_dispatch_board (models=2, application_actions=7, entry_points=7, workflows=1, state_machines=4, test_cases=6).
 
 Edit only `spec/spec.yaml` unless the user explicitly asks for a different role.
 After authoring, run `pyspec compile . --layers full` and `pyspec validate . --layers full`.
 
 Authoring scope:
-- Core: fixtures, facts, models, operations, and product test cases.
-- HTTP: HTTP entry points that bind operations to externally visible API operations.
+- Core: fixtures, facts, models, application_actions, and product test cases.
+- HTTP: HTTP entry points that bind application_actions to externally visible API application_actions.
 - Events: event-producing product behavior and webhook-facing contracts when requested.
 - Workflow: workflows with explicit outcomes, step outcome routing, CLI target-outcome response handlers, and worker/scheduled ingress responses.
 - UI: state machines with view-state-local layouts, child state machines, render audit cases, text resources/assets, content cases, and render profiles.

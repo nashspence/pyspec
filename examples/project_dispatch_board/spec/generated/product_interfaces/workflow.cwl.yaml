@@ -30,18 +30,18 @@ $graph:
       - forbidden
       - sent
       - unauthenticated
-      run: '#operation_project_send_approval_notice'
+      run: '#application_action_project_send_approval_notice'
 - baseCommand:
   - contract-operation
-  - operation.project.approve
+  - application_action.project.approve
   class: CommandLineTool
-  id: '#operation_project_approve'
+  id: '#application_action_project_approve'
   inputs:
     approved_by:
       type: string
     project_id:
       type: string
-  label: operation.project.approve
+  label: application_action.project.approve
   outputs:
     approved:
       type: Any
@@ -57,15 +57,15 @@ $graph:
       type: Any
 - baseCommand:
   - contract-operation
-  - operation.project.send_approval_notice
+  - application_action.project.send_approval_notice
   class: CommandLineTool
-  id: '#operation_project_send_approval_notice'
+  id: '#application_action_project_send_approval_notice'
   inputs:
     approved_by:
       type: string
     project_id:
       type: string
-  label: operation.project.send_approval_notice
+  label: application_action.project.send_approval_notice
   outputs:
     delivery_failed:
       type: Any

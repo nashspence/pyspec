@@ -5,7 +5,7 @@ from typing import Any
 
 STATE_MACHINE_RENDERERS = ("html", "textual")
 ENTRY_POINT_ADAPTER_KINDS = ("http_api", "cli", "webhook", "scheduled", "worker", "html_route")
-ENTRY_POINT_TARGET_KINDS = ("operation", "state_machine", "workflow", "entry_point")
+ENTRY_POINT_TARGET_KINDS = ("application_action", "state_machine", "workflow", "entry_point")
 
 
 def entry_point_adapter_pair(entry_or_adapter: dict[str, Any]) -> tuple[str, dict[str, Any]]:
@@ -98,7 +98,7 @@ def entry_target_pair(target: dict[str, Any]) -> tuple[str, str]:
         kind, body = entry_point_target_pair(target)
         if kind == "state_machine":
             return "state_machine", state_machine_target_name(body)
-        return kind, operation_target_name(body) if kind == "operation" else workflow_target_name(body)
+        return kind, application_action_target_name(body) if kind == "application_action" else workflow_target_name(body)
     for kind in ENTRY_POINT_TARGET_KINDS:
         if kind not in target:
             continue
@@ -109,7 +109,7 @@ def entry_target_pair(target: dict[str, Any]) -> tuple[str, str]:
             return kind, workflow_target_name(value)
         if kind == "entry_point":
             return kind, entry_point_delegate_target_name(value)
-        return kind, operation_target_name(value)
+        return kind, application_action_target_name(value)
     raise KeyError("entry target must declare operation, state_machine, workflow, or entry_point")
 
 
@@ -141,7 +141,7 @@ def state_machine_target_name(value: Any) -> str:
     return value
 
 
-def operation_target_name(value: Any) -> str:
+def application_action_target_name(value: Any) -> str:
     if isinstance(value, dict):
         return value.get("ref") or value["name"]
     return value

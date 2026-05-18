@@ -7,7 +7,7 @@ def dotted(prefix: str, value: str) -> str:
 
 def resource_tail(value: str) -> str:
     for prefix in (
-        "operation",
+        "application_action",
         "entry_point",
         "event",
         "workflow",
@@ -34,8 +34,8 @@ def route_ref(state_machine_id: str) -> str:
     return dotted("route", resource_tail(state_machine_id))
 
 
-def endpoint_ref(operation_id: str) -> str:
-    return dotted("endpoint", resource_tail(operation_id))
+def endpoint_ref(application_action_id: str) -> str:
+    return dotted("endpoint", resource_tail(application_action_id))
 
 
 def cli_command_ref(ref: str) -> str:
@@ -48,13 +48,13 @@ def workflow_ref(workflow_id: str) -> str:
     return dotted("workflow", resource_tail(workflow_id))
 
 
-def authorization_policy_ref(operation_id: str) -> str:
-    return dotted("authorization_policy", resource_tail(operation_id))
+def authorization_policy_ref(application_action_id: str) -> str:
+    return dotted("authorization_policy", resource_tail(application_action_id))
 
 
-def query_ref(state_machine_subject: str, operation_id: str, many: bool = False) -> str:
-    operation_subject = resource_tail(operation_id)
-    suffix = operation_subject.replace(".", "_") if many else operation_subject.split(".")[-1]
+def query_ref(state_machine_subject: str, application_action_id: str, many: bool = False) -> str:
+    application_action_subject = resource_tail(application_action_id)
+    suffix = application_action_subject.replace(".", "_") if many else application_action_subject.split(".")[-1]
     return f"query.{resource_tail(state_machine_subject)}.{suffix}"
 
 

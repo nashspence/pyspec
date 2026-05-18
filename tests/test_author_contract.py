@@ -25,14 +25,14 @@ def test_author_contract_schema_validates() -> None:
     validate_against_schema(read_yaml(ROOT / SOURCE_SPEC_PATH), "author.schema.json")
 
 
-def test_author_query_invocations_must_be_non_empty_when_present() -> None:
+def test_author_data_loaders_must_be_non_empty_when_present() -> None:
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
-    author["state_machines"]["state_machine.project.activity"]["query_invocations"] = {}
+    author["state_machines"]["state_machine.project.activity"]["data_loaders"] = {}
     with pytest.raises(ContractError, match="Schema validation failed"):
         validate_against_schema(author, "author.schema.json")
 
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
-    author["state_machines"]["state_machine.project.detail"]["view_states"]["loading"]["query_invocations"] = {}
+    author["state_machines"]["state_machine.project.detail"]["view_states"]["loading"]["data_loaders"] = {}
     with pytest.raises(ContractError, match="Schema validation failed"):
         validate_against_schema(author, "author.schema.json")
 
@@ -49,20 +49,20 @@ def test_author_state_machine_context_uses_explicit_field_schema() -> None:
 
 def test_author_query_result_binding_uses_data_key() -> None:
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
-    route = author["state_machines"]["state_machine.project.board"]["query_invocations"]["list_board"]["outcome_routes"]["listed"]
+    route = author["state_machines"]["state_machine.project.board"]["data_loaders"]["list_board"]["outcome_routes"]["listed"]
     route["result_binding"]["field"] = route["result_binding"].pop("data_key")
     with pytest.raises(ContractError, match="Schema validation failed"):
         validate_against_schema(author, "author.schema.json")
 
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
-    route = author["state_machines"]["state_machine.project.board"]["query_invocations"]["list_board"]["outcome_routes"]["listed"]
+    route = author["state_machines"]["state_machine.project.board"]["data_loaders"]["list_board"]["outcome_routes"]["listed"]
     route["result_binding"] = {"data_key": "projects", "from": {"from": "$outcome.result"}}
     validate_against_schema(author, "author.schema.json")
 
 
 def test_author_query_conditional_routes_and_result_scope_validate() -> None:
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
-    invocation = author["state_machines"]["state_machine.project.list"]["query_invocations"]["list_projects"]
+    invocation = author["state_machines"]["state_machine.project.list"]["data_loaders"]["list_projects"]
     assert invocation["result_scope"] == "local"
     route = invocation["outcome_routes"]["listed"]
     assert {next(iter(branch["when"])) for branch in route["conditional_routes"]} == {"result_empty", "result_non_empty"}
@@ -87,7 +87,7 @@ def test_author_value_maps_require_tagged_literals_or_runtime_sources() -> None:
 
 def test_author_no_signal_reasons_are_closed_vocabulary() -> None:
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
-    route = author["state_machines"]["state_machine.project.list"]["view_states"]["ready"]["operation_invocations"]["create"]["outcome_routes"]["validation_failed"]
+    route = author["state_machines"]["state_machine.project.list"]["view_states"]["ready"]["action_bindings"]["create"]["outcome_routes"]["validation_failed"]
     route["no_signal"]["reason"] = "ignored"
     with pytest.raises(ContractError, match="Schema validation failed"):
         validate_against_schema(author, "author.schema.json")

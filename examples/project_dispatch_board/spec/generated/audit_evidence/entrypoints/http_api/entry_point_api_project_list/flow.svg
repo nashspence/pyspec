@@ -1,6 +1,6 @@
 <svg width="822pt" height="485pt"
  viewBox="0.00 0.00 822.00 485.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: c2237d3cd80f32000afff69a2e4539129d63dd4d73670b1c2db32ca205a7f083 -->
+<!-- pyspec-contract-input-sha256: 34bd7a0f494c72bdd8f20bd30560314c80bc04290e324d1463f65e1ef4c48fac -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 467)">
 <title>entrypoint_entry_point_api_project_list</title>
 <!-- entrypoint_entry_point_api_project_list -->
@@ -21,14 +21,14 @@
 <text text-anchor="start" x="66.5" y="-171" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
 <polygon fill="none" stroke="#0891b2" points="0,-162.5 0,-285.5 281,-285.5 281,-162.5 0,-162.5"/>
 </g>
-<!-- entrypoint_target_operation_project_list -->
+<!-- entrypoint_target_application_action_project_list -->
 <g id="node2" class="node">
-<title>entrypoint_target_operation_project_list</title>
+<title>entrypoint_target_application_action_project_list</title>
 <polygon fill="#ffffff" stroke="transparent" points="342,-152 342,-296 565,-296 565,-152 342,-152"/>
 <polygon fill="#2563eb" stroke="transparent" points="343.5,-287 343.5,-295 564.5,-295 564.5,-287 343.5,-287"/>
 <polygon fill="#eff6ff" stroke="transparent" points="343.5,-256 343.5,-287 564.5,-287 564.5,-256 343.5,-256"/>
-<text text-anchor="start" x="347.5" y="-273.6" font-family="Arial" font-weight="bold" font-size="13.00">operation.project.list</text>
-<text text-anchor="start" x="347.5" y="-262.6" font-family="Arial" font-size="8.00" fill="#64748b">target operation</text>
+<text text-anchor="start" x="347.5" y="-273.6" font-family="Arial" font-weight="bold" font-size="13.00">application_action.project.list</text>
+<text text-anchor="start" x="347.5" y="-262.6" font-family="Arial" font-size="8.00" fill="#64748b">target application action</text>
 <text text-anchor="start" x="347.5" y="-245" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">The board requires a project list query scoped by</text>
 <text text-anchor="start" x="347.5" y="-234" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">workspace.</text>
 <text text-anchor="start" x="348.5" y="-214" font-family="Arial" font-weight="bold" font-size="10.00">kind:</text>
@@ -39,9 +39,9 @@
 <text text-anchor="start" x="347.5" y="-160" font-family="Arial" font-size="10.00">forbidden_as: forbidden</text>
 <polygon fill="none" stroke="#2563eb" points="342,-152 342,-296 565,-296 565,-152 342,-152"/>
 </g>
-<!-- entrypoint_entry_point_api_project_list&#45;&gt;entrypoint_target_operation_project_list -->
+<!-- entrypoint_entry_point_api_project_list&#45;&gt;entrypoint_target_application_action_project_list -->
 <g id="edge1" class="edge">
-<title>entrypoint_entry_point_api_project_list&#45;&gt;entrypoint_target_operation_project_list</title>
+<title>entrypoint_entry_point_api_project_list&#45;&gt;entrypoint_target_application_action_project_list</title>
 <path fill="none" stroke="#3f3f46" d="M281.08,-224C298.57,-224 316.32,-224 333.45,-224"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="333.81,-226.8 341.81,-224 333.81,-221.2 333.81,-226.8"/>
 </g>
@@ -61,9 +61,9 @@
 <text text-anchor="start" x="700" y="-366" font-family="Arial" font-size="8.00"> ← $outcome.result</text>
 <polygon fill="none" stroke="#dc2626" points="637.5,-357 637.5,-449 774.5,-449 774.5,-357 637.5,-357"/>
 </g>
-<!-- entrypoint_target_operation_project_list&#45;&gt;entrypoint_response_entry_point_api_project_list_forbidden -->
+<!-- entrypoint_target_application_action_project_list&#45;&gt;entrypoint_response_entry_point_api_project_list_forbidden -->
 <g id="edge2" class="edge">
-<title>entrypoint_target_operation_project_list&#45;&gt;entrypoint_response_entry_point_api_project_list_forbidden</title>
+<title>entrypoint_target_application_action_project_list&#45;&gt;entrypoint_response_entry_point_api_project_list_forbidden</title>
 <path fill="none" stroke="#3f3f46" d="M555.31,-296.03C581.53,-314.77 609.23,-334.57 633.59,-351.97"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="632.23,-354.44 640.36,-356.81 635.48,-349.88 632.23,-354.44"/>
 </g>
@@ -83,9 +83,9 @@
 <text text-anchor="start" x="711" y="-247" font-family="Arial" font-size="8.00"> ← $outcome.result</text>
 <polygon fill="none" stroke="#16a34a" points="626,-238 626,-330 786,-330 786,-238 626,-238"/>
 </g>
-<!-- entrypoint_target_operation_project_list&#45;&gt;entrypoint_response_entry_point_api_project_list_listed -->
+<!-- entrypoint_target_application_action_project_list&#45;&gt;entrypoint_response_entry_point_api_project_list_listed -->
 <g id="edge3" class="edge">
-<title>entrypoint_target_operation_project_list&#45;&gt;entrypoint_response_entry_point_api_project_list_listed</title>
+<title>entrypoint_target_application_action_project_list&#45;&gt;entrypoint_response_entry_point_api_project_list_listed</title>
 <path fill="none" stroke="#3f3f46" d="M565.1,-250.49C582.67,-254.7 600.63,-259 617.58,-263.06"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="617.37,-265.89 625.8,-265.03 618.68,-260.44 617.37,-265.89"/>
 </g>
@@ -105,9 +105,9 @@
 <text text-anchor="start" x="700" y="-128" font-family="Arial" font-size="8.00"> ← $outcome.result</text>
 <polygon fill="none" stroke="#dc2626" points="637.5,-119 637.5,-211 774.5,-211 774.5,-119 637.5,-119"/>
 </g>
-<!-- entrypoint_target_operation_project_list&#45;&gt;entrypoint_response_entry_point_api_project_list_unauthenticated -->
+<!-- entrypoint_target_application_action_project_list&#45;&gt;entrypoint_response_entry_point_api_project_list_unauthenticated -->
 <g id="edge4" class="edge">
-<title>entrypoint_target_operation_project_list&#45;&gt;entrypoint_response_entry_point_api_project_list_unauthenticated</title>
+<title>entrypoint_target_application_action_project_list&#45;&gt;entrypoint_response_entry_point_api_project_list_unauthenticated</title>
 <path fill="none" stroke="#3f3f46" d="M565.1,-197.95C586.85,-192.83 609.21,-187.56 629.48,-182.79"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="630.29,-185.47 637.44,-180.91 629.01,-180.02 630.29,-185.47"/>
 </g>
@@ -127,9 +127,9 @@
 <text text-anchor="start" x="700" y="-9" font-family="Arial" font-size="8.00"> ← $outcome.result</text>
 <polygon fill="none" stroke="#dc2626" points="637.5,0 637.5,-92 774.5,-92 774.5,0 637.5,0"/>
 </g>
-<!-- entrypoint_target_operation_project_list&#45;&gt;entrypoint_response_entry_point_api_project_list_unavailable -->
+<!-- entrypoint_target_application_action_project_list&#45;&gt;entrypoint_response_entry_point_api_project_list_unavailable -->
 <g id="edge5" class="edge">
-<title>entrypoint_target_operation_project_list&#45;&gt;entrypoint_response_entry_point_api_project_list_unavailable</title>
+<title>entrypoint_target_application_action_project_list&#45;&gt;entrypoint_response_entry_point_api_project_list_unavailable</title>
 <path fill="none" stroke="#3f3f46" d="M556.03,-151.86C581.94,-133.45 609.25,-114.04 633.31,-96.94"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="635.11,-99.1 640.01,-92.18 631.87,-94.53 635.11,-99.1"/>
 </g>

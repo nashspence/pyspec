@@ -180,22 +180,22 @@ models:
       transitions:
       - from: draft
         to: submitted
-        triggered_by: operation.project.submit
+        triggered_by: application_action.project.submit
       - from: submitted
         to: approved
-        triggered_by: operation.project.approve
+        triggered_by: application_action.project.approve
       - from: approved
         to: archived
-        triggered_by: operation.project.archive
+        triggered_by: application_action.project.archive
 authorization_policies:
   authorization_policy.project.member:
     subjects:
     - kind: actor
     targets:
-    - operation: operation.project.create
-    - operation: operation.project.list
-    - operation: operation.project.read
-    - operation: operation.project.submit
+    - application_action: application_action.project.create
+    - application_action: application_action.project.list
+    - application_action: application_action.project.read
+    - application_action: application_action.project.submit
     - model: Project
     effect: allow
     conditions:
@@ -205,16 +205,16 @@ authorization_policies:
     subjects:
     - kind: actor
     targets:
-    - operation: operation.project.approve
-    - operation: operation.project.archive
-    - operation: operation.project.send_approval_notice
+    - application_action: application_action.project.approve
+    - application_action: application_action.project.archive
+    - application_action: application_action.project.send_approval_notice
     - model: Project
     effect: allow
     conditions:
     - subject_has_role: reviewer
     rationale: Reviewers may approve, archive, and send approval notices for dispatch projects.
-operations:
-  operation.project.approve:
+application_actions:
+  application_action.project.approve:
     retry_safe: true
     rationale: Reviewers can approve submitted dispatch projects.
     authorization:
@@ -226,7 +226,7 @@ operations:
         primitive: ID
       project_id:
         primitive: ID
-    operation_kind: transition
+    action_kind: transition
     outcomes:
       approved:
         emits:
@@ -259,7 +259,7 @@ operations:
         kind: failure
         result:
           model: Problem
-  operation.project.archive:
+  application_action.project.archive:
     rationale: Approved dispatch projects can be archived.
     authorization:
       policy: authorization_policy.project.reviewer
@@ -268,7 +268,7 @@ operations:
     input:
       project_id:
         primitive: ID
-    operation_kind: transition
+    action_kind: transition
     outcomes:
       archived:
         emits:
@@ -293,7 +293,7 @@ operations:
         kind: failure
         result:
           model: Problem
-  operation.project.create:
+  application_action.project.create:
     rationale: Members can create a new dispatch project.
     authorization:
       policy: authorization_policy.project.member
@@ -310,7 +310,7 @@ operations:
         primitive: Text
       workspace_id:
         primitive: ID
-    operation_kind: command
+    action_kind: command
     outcomes:
       created:
         emits:
@@ -331,7 +331,7 @@ operations:
         kind: failure
         result:
           model: Problem
-  operation.project.list:
+  application_action.project.list:
     rationale: The board requires a project list query scoped by workspace.
     authorization:
       policy: authorization_policy.project.member
@@ -340,7 +340,7 @@ operations:
     input:
       workspace_id:
         primitive: ID
-    operation_kind: query
+    action_kind: query
     outcomes:
       listed:
         kind: success
@@ -361,7 +361,7 @@ operations:
           model: Problem
     reads:
     - Project
-  operation.project.read:
+  application_action.project.read:
     rationale: The detail state machine loads the selected project by id.
     authorization:
       policy: authorization_policy.project.member
@@ -370,7 +370,7 @@ operations:
     input:
       project_id:
         primitive: ID
-    operation_kind: query
+    action_kind: query
     outcomes:
       found:
         kind: success
@@ -390,7 +390,7 @@ operations:
           model: Problem
     reads:
     - Project
-  operation.project.send_approval_notice:
+  application_action.project.send_approval_notice:
     retry_safe: true
     rationale: Approval triggers a notification command for downstream coordination.
     authorization:
@@ -402,7 +402,7 @@ operations:
         primitive: ID
       project_id:
         primitive: ID
-    operation_kind: command
+    action_kind: command
     outcomes:
       delivery_failed:
         kind: failure
@@ -420,7 +420,7 @@ operations:
         kind: failure
         result:
           model: Problem
-  operation.project.submit:
+  application_action.project.submit:
     rationale: Draft dispatch projects can be submitted for review.
     authorization:
       policy: authorization_policy.project.member
@@ -429,7 +429,7 @@ operations:
     input:
       project_id:
         primitive: ID
-    operation_kind: transition
+    action_kind: transition
     outcomes:
       invalid_state:
         kind: failure
@@ -499,11 +499,11 @@ state_machines:
       ready:
         text_slots:
         - heading
-        query_invocations:
+        data_loaders:
           read_activity:
             load:
               on_enter: true
-            operation: operation.project.read
+            application_action: application_action.project.read
             input_bindings:
               project_id:
                 from: $context.project_id
@@ -545,14 +545,14 @@ state_machines:
           primitive: ID
         required: true
         nullable: false
-    query_invocations:
+    data_loaders:
       list_board:
         result_scope: shared
         rationale: Board-level project list is shared shell data for composed child state machines; the child list machine
           owns visible loading and empty/non-empty transitions.
         load:
           on_start: true
-        operation: operation.project.list
+        application_action: application_action.project.list
         input_bindings:
           workspace_id:
             from: $context.workspace_id
@@ -800,7 +800,7 @@ state_machines:
     - from: ready
       on:
         message: show_invalid_state
-      rationale: Invalid detail operations move the detail panel into its displayable error state.
+      rationale: Invalid detail application_actions move the detail panel into its displayable error state.
       to: error
     view_states:
       error:
@@ -810,11 +810,11 @@ state_machines:
       loading:
         text_slots:
         - message
-        query_invocations:
+        data_loaders:
           read_project:
             load:
               on_enter: true
-            operation: operation.project.read
+            application_action: application_action.project.read
             input_bindings:
               project_id:
                 from: $context.project_id
@@ -842,13 +842,13 @@ state_machines:
       ready:
         asset_slots:
         - priority_badge
-        query_invocations:
+        data_loaders:
           read_project:
             load:
               on_enter: true
               refresh_on:
               - data_signal: project_changed
-            operation: operation.project.read
+            application_action: application_action.project.read
             input_bindings:
               project_id:
                 from: $context.project_id
@@ -886,9 +886,9 @@ state_machines:
         - status
         - assignee
         - summary
-        operation_invocations:
+        action_bindings:
           approve:
-            operation: operation.project.approve
+            application_action: application_action.project.approve
             input_bindings:
               approved_by:
                 from: $actor.id
@@ -921,7 +921,7 @@ state_machines:
                   reason: handled_by_response_surface
                   rationale: The response surface reports authentication failure without a local transition.
           archive:
-            operation: operation.project.archive
+            application_action: application_action.project.archive
             input_bindings:
               project_id:
                 from: $context.project_id
@@ -966,14 +966,14 @@ state_machines:
           primitive: ID
         required: true
         nullable: false
-    query_invocations:
+    data_loaders:
       list_projects:
         result_scope: local
         load:
           on_start: true
           refresh_on:
           - data_signal: projects_changed
-        operation: operation.project.list
+        application_action: application_action.project.list
         input_bindings:
           workspace_id:
             from: $context.workspace_id
@@ -1085,7 +1085,7 @@ state_machines:
     - from: ready
       on:
         message: show_invalid_state
-      rationale: Invalid list operations move the list into its displayable error state.
+      rationale: Invalid list application_actions move the list into its displayable error state.
       to: error
     view_states:
       empty:
@@ -1094,9 +1094,9 @@ state_machines:
         text_slots:
         - heading
         - body
-        operation_invocations:
+        action_bindings:
           create:
-            operation: operation.project.create
+            application_action: application_action.project.create
             input_bindings:
               customer:
                 value: Atlas Foods
@@ -1139,9 +1139,9 @@ state_machines:
         - customer
         - priority
         - status
-        operation_invocations:
+        action_bindings:
           create:
-            operation: operation.project.create
+            application_action: application_action.project.create
             input_bindings:
               customer:
                 value: Atlas Foods
@@ -1168,7 +1168,7 @@ state_machines:
                   reason: handled_by_response_surface
                   rationale: The ready list keeps focus while the response surface shows validation errors.
           submit:
-            operation: operation.project.submit
+            application_action: application_action.project.submit
             input_bindings:
               project_id:
                 from: $context.selected_project_id
@@ -1244,8 +1244,8 @@ entry_points:
             status: 422
     rationale: HTTP endpoint for creating a dispatch project.
     target:
-      operation:
-        ref: operation.project.create
+      application_action:
+        ref: application_action.project.create
         input_bindings:
           customer:
             from: $input.body.customer
@@ -1292,8 +1292,8 @@ entry_points:
             status: 503
     rationale: HTTP endpoint for listing dispatch projects.
     target:
-      operation:
-        ref: operation.project.list
+      application_action:
+        ref: application_action.project.list
         input_bindings:
           workspace_id:
             from: $input.path_params.workspace_id
@@ -1349,8 +1349,8 @@ entry_points:
             status: 401
     rationale: HTTP endpoint for approving submitted dispatch projects.
     target:
-      operation:
-        ref: operation.project.approve
+      application_action:
+        ref: application_action.project.approve
         input_bindings:
           approved_by:
             from: $input.body.approved_by
@@ -1501,7 +1501,7 @@ workflows:
           from: $trigger.payload.approved_by
         project_id:
           from: $trigger.payload.project_id
-      operation: operation.project.send_approval_notice
+      application_action: application_action.project.send_approval_notice
       outcome_routes:
         delivery_failed:
           retry_policy:
@@ -1532,7 +1532,7 @@ test_cases:
         emitted:
         - event.project.approved
       invoked:
-      - operation.project.send_approval_notice
+      - application_action.project.send_approval_notice
       workflow:
         outcome: completed
         executed: true
@@ -1547,11 +1547,11 @@ test_cases:
             value: project_submitted_1
         ref: event.project.approved
   test_case.project.approve.success:
-    archetype: operation_outcome
+    archetype: action_outcome
     rationale: Approval transitions a submitted project to approved and emits the event.
     feature_tag: project.approve
     subject_ref:
-      operation: operation.project.approve
+      application_action: application_action.project.approve
     given:
       domain_facts:
       - ref: fact.project.submitted
@@ -1562,7 +1562,7 @@ test_cases:
         emitted:
         - event.project.approved
       invoked:
-      - operation.project.approve
+      - application_action.project.approve
       model:
         exists:
           model: Project
@@ -1574,19 +1574,19 @@ test_cases:
       outcome: approved
     title: Approve submitted dispatch project
     when:
-      invoke_operation:
+      invoke_application_action:
         input:
           approved_by:
             from: $fixture.actor.id
           project_id:
             value: project_submitted_1
-        ref: operation.project.approve
+        ref: application_action.project.approve
   test_case.project.approve.forbidden:
     archetype: authorization_denial
     rationale: A workspace member who is not a reviewer receives the mapped forbidden outcome before approval executes.
     feature_tag: project.approve
     subject_ref:
-      operation: operation.project.approve
+      application_action: application_action.project.approve
     given:
       domain_facts:
       - ref: fact.project.submitted
@@ -1595,20 +1595,20 @@ test_cases:
     then:
       authorization:
         denied:
-        - operation: operation.project.approve
+        - application_action: application_action.project.approve
       events:
         not_emitted:
         - event.project.approved
       outcome: forbidden
     title: Approval authorization maps forbidden outcome
     when:
-      invoke_operation:
+      invoke_application_action:
         input:
           approved_by:
             from: $fixture.actor.id
           project_id:
             value: project_submitted_1
-        ref: operation.project.approve
+        ref: application_action.project.approve
   test_case.project.board.empty:
     archetype: state_machine_composition
     rationale: An empty workspace shows empty list, no detail, and no activity.
@@ -1626,10 +1626,10 @@ test_cases:
       - fixture.workspace.member
     then:
       enables:
-      - operation.project.create
+      - application_action.project.create
       authorization:
         denied:
-        - operation: operation.project.approve
+        - application_action: application_action.project.approve
       state_machine:
         instances:
           activity:
@@ -1663,8 +1663,8 @@ test_cases:
       - fixture.workspace.member
     then:
       enables:
-      - operation.project.create
-      - operation.project.submit
+      - application_action.project.create
+      - application_action.project.submit
       state_machine:
         instances:
           activity:
@@ -1687,7 +1687,7 @@ test_cases:
         ref: entry_point.html.project.board
   test_case.project.create.api.success:
     archetype: entry_point_response
-    rationale: The API create endpoint delegates to the create operation and emits project.created.
+    rationale: The API create endpoint delegates to the create application action and emits project.created.
     feature_tag: project.create
     subject_ref:
       entry_point: entry_point.api.project.create
@@ -1705,7 +1705,7 @@ test_cases:
         emitted:
         - event.project.created
       invoked:
-      - operation.project.create
+      - application_action.project.create
       model:
         exists:
           model: Project

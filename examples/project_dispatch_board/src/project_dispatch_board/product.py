@@ -27,7 +27,7 @@ class ProductApp:
         self.fixtures: dict[str, Any] = {}
         self.projects: list[dict[str, Any]] = []
         self.emitted_events: list[str] = []
-        self.invoked_operations: list[str] = []
+        self.invoked_application_actions: list[str] = []
         self.executed_workflows: list[str] = []
         self.workflow_outcomes: dict[str, str] = {}
         self.authorization_decisions: dict[tuple[str, str, str], bool] = {}
@@ -57,7 +57,7 @@ class ProductApp:
         workspace_id = context.get("workspace_id")
         matching = [p for p in self.projects if p.get("workspace_id") == workspace_id]
         parent_state_name = "ready" if "ready" in state_machine.get("view_states", {}) else next(iter(state_machine.get("view_states", {"ready": {}})))
-        parent_state = state_machine["view_states"].get(parent_state_name, {"surface": None, "text": [], "assets": [], "operation_invocations": {}, "query_invocations": {}})
+        parent_state = state_machine["view_states"].get(parent_state_name, {"surface": None, "text": [], "assets": [], "action_bindings": {}, "data_loaders": {}})
         if parent_state.get("child_state_machines"):
             parent_state_machine = state_machine
             state_machines: dict[str, Any] = {}
@@ -70,25 +70,25 @@ class ProductApp:
                     "source": source_id,
                     "view_state": state_name,
                     "surface": state["surface"],
-                    "query_invocations": {
-                        **child_state_machine.get("query_invocations", {}),
-                        **state.get("query_invocations", {}),
+                    "data_loaders": {
+                        **child_state_machine.get("data_loaders", {}),
+                        **state.get("data_loaders", {}),
                     },
                     "text": list(state["text"]),
                     "assets": list(state["assets"]),
-                    "operation_invocations": dict(state["operation_invocations"]),
+                    "action_bindings": dict(state["action_bindings"]),
                 }
             self.rendered_state_machine = {
                 "ref": state_machine_id,
                 "view_state": parent_state_name,
                 "surface": parent_state.get("surface"),
-                "query_invocations": {
-                    **parent_state_machine.get("query_invocations", {}),
-                    **parent_state.get("query_invocations", {}),
+                "data_loaders": {
+                    **parent_state_machine.get("data_loaders", {}),
+                    **parent_state.get("data_loaders", {}),
                 },
                 "text": list(parent_state.get("text", [])),
                 "assets": list(parent_state.get("assets", [])),
-                "operation_invocations": dict(parent_state.get("operation_invocations", {})),
+                "action_bindings": dict(parent_state.get("action_bindings", {})),
                 "context": context,
                 "instances": state_machines,
                 "signal_sync_rules": [rule["id"] for rule in parent_state.get("signal_sync_rules", [])],
@@ -102,11 +102,11 @@ class ProductApp:
             "surface": state["surface"],
             "text": list(state["text"]),
             "assets": list(state["assets"]),
-            "query_invocations": {
-                **state_machine.get("query_invocations", {}),
-                **state.get("query_invocations", {}),
+            "data_loaders": {
+                **state_machine.get("data_loaders", {}),
+                **state.get("data_loaders", {}),
             },
-            "operation_invocations": dict(state["operation_invocations"]),
+            "action_bindings": dict(state["action_bindings"]),
         }
         return self.rendered_state_machine
 
@@ -116,7 +116,7 @@ class ProductApp:
             if _condition_matches(selected["when"], context):
                 return selected["view_state"]
             return mount["initial_view_state"]
-        if records and "ready" in state_machine["view_states"] and (state_machine.get("query_invocations") or state_machine["view_states"]["ready"].get("query_invocations")):
+        if records and "ready" in state_machine["view_states"] and (state_machine.get("data_loaders") or state_machine["view_states"]["ready"].get("data_loaders")):
             return "ready"
         if not records and "empty" in state_machine["view_states"]:
             return "empty"
@@ -143,32 +143,32 @@ class ProductApp:
             return values
         return set(self.rendered_state_machine.get(key, []))
 
-    def _rendered_operation_refs(self) -> set[str]:
+    def _rendered_application_action_refs(self) -> set[str]:
         if not self.rendered_state_machine:
             return set()
 
-        def operations(item: dict[str, Any]) -> set[str]:
-            invocations = item.get("operation_invocations") or {}
-            return {invocation["operation"] for invocation in invocations.values()}
+        def application_actions(item: dict[str, Any]) -> set[str]:
+            invocations = item.get("action_bindings") or {}
+            return {invocation["application_action"] for invocation in invocations.values()}
 
         if "instances" in self.rendered_state_machine:
-            refs = operations(self.rendered_state_machine)
+            refs = application_actions(self.rendered_state_machine)
             for state_machine in self.rendered_state_machine["instances"].values():
-                refs.update(operations(state_machine))
+                refs.update(application_actions(state_machine))
             return refs
-        return operations(self.rendered_state_machine)
+        return application_actions(self.rendered_state_machine)
 
     def call_entry_point(self, entry_id: str, input_values: Mapping[str, Any]) -> dict[str, Any]:
         entry = self.contract["entry_points"][entry_id]
         assert entry_point_adapter_pair(entry)[0] in {"http_api", "cli"}
         target_input = self._entry_target_input(entry, input_values)
-        target_kind, operation_id = entry_target_pair(entry)
-        assert target_kind == "operation"
+        target_kind, application_action_id = entry_target_pair(entry)
+        assert target_kind == "application_action"
         authorization_policy = entry.get("authorization_policy")
         if authorization_policy:
             policy_id = authorization_policy
             self.authorization_decisions[("entry_point", entry_id, policy_id)] = self._evaluate_policy(policy_id, "entry_point", entry_id, target_input)
-        result = self.invoke_operation(operation_id, target_input)
+        result = self.invoke_application_action(application_action_id, target_input)
         response = entry_point_responses(entry)[self.last_outcome]
         if "status" in response:
             self.http_response = {"status": response["status"], "body": result}
@@ -187,13 +187,13 @@ class ProductApp:
         bindings = entry_point_input_bindings(dict(entry))
         return {name: resolve_binding(source, namespace) for name, source in bindings.items()}
 
-    def invoke_operation(self, operation_id: str, input_values: Mapping[str, Any]) -> Any:
-        operation = self.contract["operations"][operation_id]
-        authorization = operation.get("authorization")
+    def invoke_application_action(self, application_action_id: str, input_values: Mapping[str, Any]) -> Any:
+        application_action = self.contract["application_actions"][application_action_id]
+        authorization = application_action.get("authorization")
         if authorization:
             authorization_policy = authorization["policy"]
-            allowed = self._evaluate_policy(authorization_policy, "operation", operation_id, input_values)
-            self.authorization_decisions[("operation", operation_id, authorization_policy)] = allowed
+            allowed = self._evaluate_policy(authorization_policy, "application_action", application_action_id, input_values)
+            self.authorization_decisions[("application_action", application_action_id, authorization_policy)] = allowed
             if not allowed:
                 policy = self.contract["authorization_policies"][authorization_policy]
                 self.last_outcome = (
@@ -202,38 +202,38 @@ class ProductApp:
                     else authorization["unauthenticated_as"]
                 )
                 return {"code": self.last_outcome, "message": self.last_outcome.replace("_", " ")}
-        self.invoked_operations.append(operation_id)
-        self.last_outcome = _success_outcome_id(operation)
+        self.invoked_application_actions.append(application_action_id)
+        self.last_outcome = _success_outcome_id(application_action)
         values = dict(input_values)
-        if operation_id == "operation.project.create":
+        if application_action_id == "application_action.project.create":
             project = self._project(values)
             self.projects.append(project)
             self._record_event("event.project.created")
             return project
-        if operation_id == "operation.project.list":
+        if application_action_id == "application_action.project.list":
             return [p for p in self.projects if p["workspace_id"] == values.get("workspace_id")]
-        if operation_id == "operation.project.submit":
+        if application_action_id == "application_action.project.submit":
             project = self._find_project(values["project_id"])
             assert project["status"] == "draft"
             project["status"] = "submitted"
             self._record_event("event.project.submitted")
             return project
-        if operation_id == "operation.project.approve":
+        if application_action_id == "application_action.project.approve":
             project = self._find_project(values["project_id"])
             assert project["status"] == "submitted"
             project["status"] = "approved"
             project["approved_by"] = values["approved_by"]
             self._record_event("event.project.approved")
             return project
-        if operation_id == "operation.project.archive":
+        if application_action_id == "application_action.project.archive":
             project = self._find_project(values["project_id"])
             assert project["status"] == "approved"
             project["status"] = "archived"
             self._record_event("event.project.archived")
             return project
-        if operation_id == "operation.project.send_approval_notice":
+        if application_action_id == "application_action.project.send_approval_notice":
             return {"ok": True, "sent": True, **values}
-        raise AssertionError(f"Unsupported operation: {operation_id}")
+        raise AssertionError(f"Unsupported application_action: {application_action_id}")
 
     def emit_event(self, event_id: str, payload: Mapping[str, Any]) -> None:
         self._record_event(event_id)
@@ -249,7 +249,7 @@ class ProductApp:
         while True:
             step = step_by_id[current]
             input_values = {name: resolve_binding(source, namespace) for name, source in step["input_bindings"].items()}
-            result = self.invoke_operation(step["operation"], input_values)
+            result = self.invoke_application_action(step["application_action"], input_values)
             assert self.last_outcome is not None
             namespace["steps"].setdefault(step["id"], {"outcomes": {}})["outcomes"][self.last_outcome] = {"result": result}
             route = step["outcome_routes"][self.last_outcome]
@@ -285,7 +285,7 @@ class ProductApp:
             rendered_state_machines = self._rendered_state_machine_ids()
             rendered_text = self._rendered_values("text")
             rendered_assets = self._rendered_values("assets")
-            rendered_actions = self._rendered_values("operation_invocations")
+            rendered_actions = self._rendered_values("action_bindings")
             for state_machine in requires.get("surfaces", []):
                 assert state_machine in self.surfaces
                 assert state_machine in rendered_state_machines
@@ -293,12 +293,12 @@ class ProductApp:
                 assert key in rendered_text
             for key in requires.get("assets", []):
                 assert key in rendered_assets
-            for cap in requires.get("operation_invocations", []):
+            for cap in requires.get("action_bindings", []):
                 assert cap in rendered_actions
         for cap in assertions.get("enables", []):
-            assert cap in self._rendered_operation_refs()
+            assert cap in self._rendered_application_action_refs()
         for cap in assertions.get("forbids", []):
-            assert cap not in self._rendered_operation_refs()
+            assert cap not in self._rendered_application_action_refs()
         exists = (assertions.get("model") or {}).get("exists")
         if exists:
             where = self._resolve_map(exists["where"])
@@ -314,7 +314,7 @@ class ProductApp:
             if "outcome" in workflow:
                 assert self.workflow_outcomes.get(workflow["ref"]) == workflow["outcome"]
         for cap in assertions.get("invoked", []):
-            assert cap in self.invoked_operations
+            assert cap in self.invoked_application_actions
         response = assertions.get("response")
         if response:
             assert self.http_response is not None
@@ -362,13 +362,13 @@ class ProductApp:
         return resolve_map(values, self.fixtures)
 
     def _authorization_assertion_allowed(self, assertion: Mapping[str, Any]) -> bool:
-        kind = "operation" if "operation" in assertion else "entry_point"
+        kind = "application_action" if "application_action" in assertion else "entry_point"
         target = assertion[kind]
         authorization_policy = assertion.get("authorization_policy")
         if authorization_policy:
             policy_id = authorization_policy
-        elif kind == "operation":
-            authorization = self.contract["operations"][target].get("authorization")
+        elif kind == "application_action":
+            authorization = self.contract["application_actions"][target].get("authorization")
             if not authorization:
                 return False
             policy_id = authorization["policy"]
@@ -442,8 +442,8 @@ def _matches(record: Mapping[str, Any], where: Mapping[str, Any]) -> bool:
     return all(record.get(key) == value for key, value in where.items())
 
 
-def _success_outcome_id(operation: Mapping[str, Any]) -> str:
-    successes = [outcome_id for outcome_id, outcome in operation["outcomes"].items() if outcome["kind"] == "success"]
+def _success_outcome_id(application_action: Mapping[str, Any]) -> str:
+    successes = [outcome_id for outcome_id, outcome in application_action["outcomes"].items() if outcome["kind"] == "success"]
     assert len(successes) == 1, "Expected exactly one success outcome"
     return successes[0]
 

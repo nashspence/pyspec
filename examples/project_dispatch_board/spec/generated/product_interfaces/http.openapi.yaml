@@ -83,7 +83,7 @@ openapi: 3.1.0
 paths:
   /projects/{project_id}/approve:
     post:
-      operationId: operation.project.approve
+      operationId: application_action.project.approve
       parameters:
       - in: path
         name: project_id
@@ -139,12 +139,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: Unavailable
+      x-application-action: application_action.project.approve
       x-authorization-policy: authorization_policy.project.reviewer
       x-entry: entry_point.api.project.approve
-      x-operation: operation.project.approve
   /workspaces/{workspace_id}/projects:
     get:
-      operationId: operation.project.list
+      operationId: application_action.project.list
       parameters:
       - in: path
         name: workspace_id
@@ -178,11 +178,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: Unavailable
+      x-application-action: application_action.project.list
       x-authorization-policy: authorization_policy.project.member
       x-entry: entry_point.api.project.list
-      x-operation: operation.project.list
     post:
-      operationId: operation.project.create
+      operationId: application_action.project.create
       parameters:
       - in: path
         name: workspace_id
@@ -232,6 +232,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: Validation Failed
+      x-application-action: application_action.project.create
       x-authorization-policy: authorization_policy.project.member
       x-entry: entry_point.api.project.create
-      x-operation: operation.project.create

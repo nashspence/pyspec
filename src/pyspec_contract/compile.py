@@ -122,7 +122,7 @@ TARGET_ORDER = (
     "data_contract",
     "model",
     "authorization_policy",
-    "operation",
+    "application_action",
     "event",
     "state_machine",
     "entry_point",
@@ -142,7 +142,7 @@ ENTITY_SECTIONS: dict[str, str] = {
     "data_contract": "data_contracts",
     "model": "models",
     "authorization_policy": "authorization_policies",
-    "operation": "operations",
+    "application_action": "application_actions",
     "event": "events",
     "state_machine": "state_machines",
     "entry_point": "entry_points",
@@ -160,10 +160,10 @@ REF_KINDS = [
     "entry_point_delegate",
     "entry_point_target",
     "local_signal_raise",
-    "operation_invocation",
-    "operation_outcome_route",
-    "query_invocation",
-    "query_outcome_route",
+    "action_binding",
+    "action_outcome_route",
+    "data_loader",
+    "data_loader_outcome_route",
     "route",
     "runtime_response",
     "screen",
@@ -186,7 +186,7 @@ def empty_compiled_contract(project: str) -> dict[str, Any]:
         "data_contracts": {},
         "models": {},
         "authorization_policies": {},
-        "operations": {},
+        "application_actions": {},
         "events": {},
         "state_machines": {},
         "entry_points": {},
@@ -202,7 +202,7 @@ AUTHOR_SECTION_ORDER = (
     "data_contracts",
     "models",
     "authorization_policies",
-    "operations",
+    "application_actions",
     "events",
     "state_machines",
     "entry_points",
@@ -305,7 +305,7 @@ def compile_author(author: dict[str, Any], layers: set[str] | None = None) -> di
             _apply_author_defaults(entity, spec)
             section[entity_id] = _compile_entity(entity, spec, contract)
 
-    _derive_operation_transitions(contract)
+    _derive_application_action_transitions(contract)
     contract["events"] = _derive_events(contract)
     contract["refs"] = _derive_refs(contract)
     used_facts = _expand_test_case_fact_uses(contract)
@@ -319,10 +319,10 @@ def _apply_author_defaults(entity: str, spec: dict[str, Any]) -> None:
     spec.setdefault("rationale", _default_rationale(entity, spec["id"]))
     if entity == "state_machine":
         spec.setdefault("context", {})
-        spec.setdefault("query_invocations", {})
+        spec.setdefault("data_loaders", {})
         spec["signals"] = _normalize_signals(spec.get("signals"))
         spec.setdefault("transitions", [])
-    elif entity == "operation":
+    elif entity == "application_action":
         for outcome in spec.get("outcomes", {}).values():
             outcome.setdefault("emits", [])
 
@@ -379,15 +379,15 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             "rationale": spec["rationale"],
         }
 
-    if entity == "operation":
+    if entity == "application_action":
         outcomes = {}
         for outcome_id, outcome in spec["outcomes"].items():
             normalized_outcome = copy.deepcopy(outcome)
             normalized_outcome["result"] = normalize_type_expr(normalized_outcome["result"])
             normalized_outcome.setdefault("emits", [])
             outcomes[outcome_id] = normalized_outcome
-        operation: dict[str, Any] = {
-            "operation_kind": spec["operation_kind"],
+        application_action: dict[str, Any] = {
+            "action_kind": spec["action_kind"],
             "input": normalize_type_map(spec.get("input", {})),
             "outcomes": outcomes,
             "reads": list(spec.get("reads", [])),
@@ -397,10 +397,10 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             "rationale": spec["rationale"],
         }
         if spec.get("retry_safe"):
-            operation["retry_safe"] = True
+            application_action["retry_safe"] = True
         if "authorization" in spec:
-            operation["authorization"] = copy.deepcopy(spec["authorization"])
-        return operation
+            application_action["authorization"] = copy.deepcopy(spec["authorization"])
+        return application_action
 
     if entity == "authorization_policy":
         return {
@@ -422,7 +422,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
         state_machine_id = spec["id"]
         state_machine: dict[str, Any] = {
             "context": normalize_field_map(spec["context"]),
-            "query_invocations": _compile_query_invocations(spec.get("query_invocations", {}), scope="state_machine"),
+            "data_loaders": _compile_data_loaders(spec.get("data_loaders", {}), scope="state_machine"),
             "signals": _normalize_signals(spec.get("signals")),
             "initial_view_state": spec["initial_view_state"],
             "view_states": _compile_view_states(state_machine_id, spec.get("view_states", {})),
@@ -449,20 +449,20 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
         target_kind, target = entry_point_target_pair(entry)
         if adapter_kind == "html_route" and target_kind == "state_machine":
             entry["route"] = rules.route_ref(target["ref"])
-        elif adapter_kind == "http_api" and target_kind == "operation":
+        elif adapter_kind == "http_api" and target_kind == "application_action":
             entry["endpoint"] = rules.endpoint_ref(target["ref"])
-            if target["ref"] in contract["operations"]:
-                operation_authorization = contract["operations"][target["ref"]].get("authorization")
-                if operation_authorization:
-                    entry.setdefault("authorization_policy", copy.deepcopy(operation_authorization["policy"]))
+            if target["ref"] in contract["application_actions"]:
+                action_authorization = contract["application_actions"][target["ref"]].get("authorization")
+                if action_authorization:
+                    entry.setdefault("authorization_policy", copy.deepcopy(action_authorization["policy"]))
         elif adapter_kind == "cli":
             entry_id = spec["id"]
             command_ref_source = entry_id[len("entry_point.cli."):] if target_kind == "entry_point" and entry_id.startswith("entry_point.cli.") else target["ref"]
             entry["cli_command_ref"] = rules.cli_command_ref(command_ref_source)
-            if target_kind == "operation" and target["ref"] in contract["operations"]:
-                operation_authorization = contract["operations"][target["ref"]].get("authorization")
-                if operation_authorization:
-                    entry.setdefault("authorization_policy", copy.deepcopy(operation_authorization["policy"]))
+            if target_kind == "application_action" and target["ref"] in contract["application_actions"]:
+                action_authorization = contract["application_actions"][target["ref"]].get("authorization")
+                if action_authorization:
+                    entry.setdefault("authorization_policy", copy.deepcopy(action_authorization["policy"]))
         elif adapter_kind in {"worker", "scheduled"} and target_kind == "workflow":
             entry["workflow_ref"] = rules.workflow_ref(target["ref"])
         return entry
@@ -501,7 +501,7 @@ def _state_surface_ref(owner_id: str, state_name: str) -> str:
     return rules.state_machine_surface_ref(owner_id, state_name)
 
 
-def _compile_query_invocations(invocations: dict[str, Any], *, scope: str) -> dict[str, Any]:
+def _compile_data_loaders(invocations: dict[str, Any], *, scope: str) -> dict[str, Any]:
     compiled = copy.deepcopy(invocations or {})
     for invocation in compiled.values():
         default_load = {"on_start": True} if scope == "state_machine" else {"on_enter": True}
@@ -515,11 +515,11 @@ def _compile_view_states(owner_id: str, states: dict[str, Any]) -> dict[str, Any
     for state_name, state in states.items():
         item = {
             "surface": _state_surface_ref(owner_id, state_name),
-            "query_invocations": _compile_query_invocations(state.get("query_invocations", {}), scope="view_state"),
+            "data_loaders": _compile_data_loaders(state.get("data_loaders", {}), scope="view_state"),
             "text": [rules.text_ref(subject, state_name, slot) for slot in state.get("text_slots", [])],
             "assets": [rules.asset_ref(subject, state_name, slot) for slot in state.get("asset_slots", [])],
             "fields": state.get("field_slots", []),
-            "operation_invocations": copy.deepcopy(state.get("operation_invocations", {})),
+            "action_bindings": copy.deepcopy(state.get("action_bindings", {})),
         }
         if "renderers" in state:
             item["renderers"] = state["renderers"]
@@ -556,55 +556,55 @@ def audit_cases(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return cases
 
 
-def _derive_operation_transitions(contract: dict[str, Any]) -> None:
-    """Derive transition operation details from model lifecycle declarations.
+def _derive_application_action_transitions(contract: dict[str, Any]) -> None:
+    """Derive transition application action details from model lifecycle declarations.
 
     Authored sources should not have to repeat the same state transition in both
-    the model lifecycle and the operation. The compiled contract remains
+    the model lifecycle and the application_action. The compiled contract remains
     explicit for downstream projections and validators.
     """
-    by_operation: dict[str, dict[str, Any]] = {}
+    by_application_action: dict[str, dict[str, Any]] = {}
     for model_id, model in contract.get("models", {}).items():
         lifecycle = model.get("lifecycle")
         if not lifecycle:
             continue
         field = lifecycle["field"]
         for transition in lifecycle.get("transitions", []):
-            operation_id = transition["triggered_by"]
-            if operation_id in by_operation:
-                raise ContractError(f"Operation {operation_id} is used by multiple lifecycle transitions")
-            by_operation[operation_id] = {
+            application_action_id = transition["triggered_by"]
+            if application_action_id in by_application_action:
+                raise ContractError(f"Application action {application_action_id} is used by multiple lifecycle transitions")
+            by_application_action[application_action_id] = {
                 "model": model_id,
                 "field": field,
                 "from": transition["from"],
                 "to": transition["to"],
             }
 
-    for operation_id, operation in contract.get("operations", {}).items():
-        if operation.get("operation_kind") != "transition" or "transition" in operation:
+    for application_action_id, application_action in contract.get("application_actions", {}).items():
+        if application_action.get("action_kind") != "transition" or "transition" in application_action:
             continue
-        derived = by_operation.get(operation_id)
+        derived = by_application_action.get(application_action_id)
         if not derived:
             continue
-        operation["transition"] = derived
+        application_action["transition"] = derived
 
 
 def _derive_events(contract: dict[str, Any]) -> dict[str, Any]:
     events: dict[str, Any] = copy.deepcopy(contract.get("events", {}))
-    for operation_id, operation in sorted(contract["operations"].items()):
+    for application_action_id, operation in sorted(contract["application_actions"].items()):
         for outcome_id, outcome in sorted(operation["outcomes"].items()):
             for emit in outcome.get("emits", []):
                 event_id = _emit_event_id(emit)
                 if outcome["kind"] != "success":
-                    raise ContractError(f"Operation {operation_id} failure outcome {outcome_id} must not emit events")
+                    raise ContractError(f"Application action {application_action_id} failure outcome {outcome_id} must not emit events")
                 payload_type = events.get(event_id, {}).get("payload_schema", outcome["result"])
                 event = events.setdefault(event_id, {
                     "emitted_by": [],
                     "payload_schema": payload_type,
                     "rationale": operation["rationale"],
                 })
-                _validate_emit_payload_mapping(contract, operation_id, operation, outcome_id, outcome, event_id, event["payload_schema"], emit)
-                event["emitted_by"].append(operation_id)
+                _validate_emit_payload_mapping(contract, application_action_id, operation, outcome_id, outcome, event_id, event["payload_schema"], emit)
+                event["emitted_by"].append(application_action_id)
     return events
 
 
@@ -622,10 +622,10 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
     for state_machine_id in contract["state_machines"]:
         refs["state_machine"].add(state_machine_id)
     for state_machine_id, owner in contract["state_machines"].items():
-        for invocation_id, invocation in sorted((owner.get("query_invocations") or {}).items()):
-            refs["query_invocation"].add(_generated_query_invocation_ref(state_machine_id, None, invocation_id))
+        for invocation_id, invocation in sorted((owner.get("data_loaders") or {}).items()):
+            refs["data_loader"].add(_generated_data_loader_ref(state_machine_id, None, invocation_id))
             for outcome_id, route in sorted(invocation.get("outcome_routes", {}).items()):
-                refs["query_outcome_route"].add(_generated_query_outcome_route_ref(state_machine_id, None, invocation_id, outcome_id))
+                refs["data_loader_outcome_route"].add(_generated_data_loader_outcome_route_ref(state_machine_id, None, invocation_id, outcome_id))
                 for branch in _query_route_effect_branches(route):
                     signal = branch.get("raise")
                     if signal:
@@ -637,10 +637,10 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
             refs["surface"].add(state["surface"])
             refs["text"].update(state["text"])
             refs["asset"].update(state["assets"])
-            for invocation_id, invocation in sorted((state.get("query_invocations") or {}).items()):
-                refs["query_invocation"].add(_generated_query_invocation_ref(state_machine_id, state_name, invocation_id))
+            for invocation_id, invocation in sorted((state.get("data_loaders") or {}).items()):
+                refs["data_loader"].add(_generated_data_loader_ref(state_machine_id, state_name, invocation_id))
                 for outcome_id, route in sorted(invocation.get("outcome_routes", {}).items()):
-                    refs["query_outcome_route"].add(_generated_query_outcome_route_ref(state_machine_id, state_name, invocation_id, outcome_id))
+                    refs["data_loader_outcome_route"].add(_generated_data_loader_outcome_route_ref(state_machine_id, state_name, invocation_id, outcome_id))
                     for branch in _query_route_effect_branches(route):
                         signal = branch.get("raise")
                         if signal:
@@ -648,15 +648,15 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
                             refs["local_signal_raise"].add(
                                 _generated_query_local_signal_raise_ref(state_machine_id, state_name, invocation_id, outcome_id, kind, signal_id)
                             )
-            for invocation_id, invocation in sorted((state.get("operation_invocations") or {}).items()):
-                refs["operation_invocation"].add(_generated_operation_invocation_ref(state_machine_id, state_name, invocation_id))
+            for invocation_id, invocation in sorted((state.get("action_bindings") or {}).items()):
+                refs["action_binding"].add(_generated_action_binding_ref(state_machine_id, state_name, invocation_id))
                 for outcome_id, route in sorted(invocation.get("outcome_routes", {}).items()):
-                    refs["operation_outcome_route"].add(_generated_operation_outcome_route_ref(state_machine_id, state_name, invocation_id, outcome_id))
+                    refs["action_outcome_route"].add(_generated_action_outcome_route_ref(state_machine_id, state_name, invocation_id, outcome_id))
                     signal = route.get("raise")
                     if signal:
                         kind, signal_id = _signal_raise_selector_key(signal)
                         refs["local_signal_raise"].add(
-                            _generated_operation_local_signal_raise_ref(state_machine_id, state_name, invocation_id, outcome_id, kind, signal_id)
+                            _generated_application_action_local_signal_raise_ref(state_machine_id, state_name, invocation_id, outcome_id, kind, signal_id)
                         )
     for entry_id, entry in contract["entry_points"].items():
         target_kind, target_ref = entry_target_pair(entry)
@@ -704,25 +704,25 @@ def _generated_runtime_response_ref(entry_id: str, outcome_id: str, stream_name:
     return f"runtime_response.{rules.resource_tail(entry_id)}.{outcome_id}.{stream_name}.{binding_name}"
 
 
-def _generated_operation_invocation_ref(state_machine_id: str, state_name: str, invocation_id: str) -> str:
-    return f"operation_invocation.{rules.resource_tail(state_machine_id)}.{state_name}.{invocation_id}"
+def _generated_action_binding_ref(state_machine_id: str, state_name: str, invocation_id: str) -> str:
+    return f"action_binding.{rules.resource_tail(state_machine_id)}.{state_name}.{invocation_id}"
 
 
-def _generated_operation_outcome_route_ref(state_machine_id: str, state_name: str, invocation_id: str, outcome_id: str) -> str:
-    return f"operation_outcome_route.{rules.resource_tail(state_machine_id)}.{state_name}.{invocation_id}.{outcome_id}"
+def _generated_action_outcome_route_ref(state_machine_id: str, state_name: str, invocation_id: str, outcome_id: str) -> str:
+    return f"action_outcome_route.{rules.resource_tail(state_machine_id)}.{state_name}.{invocation_id}.{outcome_id}"
 
 
-def _generated_query_invocation_ref(state_machine_id: str, state_name: str | None, invocation_id: str) -> str:
+def _generated_data_loader_ref(state_machine_id: str, state_name: str | None, invocation_id: str) -> str:
     state_part = f".{state_name}" if state_name else ""
-    return f"query_invocation.{rules.resource_tail(state_machine_id)}{state_part}.{invocation_id}"
+    return f"data_loader.{rules.resource_tail(state_machine_id)}{state_part}.{invocation_id}"
 
 
-def _generated_query_outcome_route_ref(state_machine_id: str, state_name: str | None, invocation_id: str, outcome_id: str) -> str:
+def _generated_data_loader_outcome_route_ref(state_machine_id: str, state_name: str | None, invocation_id: str, outcome_id: str) -> str:
     state_part = f".{state_name}" if state_name else ""
-    return f"query_outcome_route.{rules.resource_tail(state_machine_id)}{state_part}.{invocation_id}.{outcome_id}"
+    return f"data_loader_outcome_route.{rules.resource_tail(state_machine_id)}{state_part}.{invocation_id}.{outcome_id}"
 
 
-def _generated_operation_local_signal_raise_ref(
+def _generated_application_action_local_signal_raise_ref(
     state_machine_id: str,
     state_name: str,
     invocation_id: str,
@@ -730,7 +730,7 @@ def _generated_operation_local_signal_raise_ref(
     signal_kind: str,
     signal_id: str,
 ) -> str:
-    return f"local_signal_raise.{rules.resource_tail(state_machine_id)}.{state_name}.operation_invocation.{invocation_id}.{outcome_id}.{signal_kind}.{signal_id}"
+    return f"local_signal_raise.{rules.resource_tail(state_machine_id)}.{state_name}.action_binding.{invocation_id}.{outcome_id}.{signal_kind}.{signal_id}"
 
 
 def _generated_query_local_signal_raise_ref(
@@ -742,7 +742,7 @@ def _generated_query_local_signal_raise_ref(
     signal_id: str,
 ) -> str:
     state_part = f".{state_name}" if state_name else ""
-    return f"local_signal_raise.{rules.resource_tail(state_machine_id)}{state_part}.query_invocation.{invocation_id}.{outcome_id}.{signal_kind}.{signal_id}"
+    return f"local_signal_raise.{rules.resource_tail(state_machine_id)}{state_part}.data_loader.{invocation_id}.{outcome_id}.{signal_kind}.{signal_id}"
 
 
 def _binding_references_root(binding: Any, root: str) -> bool:
@@ -769,7 +769,7 @@ def _semantic_validate(contract: dict[str, Any], used_facts: set[str]) -> None:
     _validate_data_contracts(contract)
     _validate_models(contract)
     _validate_type_references(contract)
-    _validate_operations(contract)
+    _validate_application_actions(contract)
     _validate_entry_point_delegation_graph(contract)
     _validate_entry_point_response_maps(contract)
     _validate_state_machines(contract)
@@ -991,9 +991,9 @@ def _validate_models(contract: dict[str, Any]) -> None:
         for transition in lifecycle.get("transitions", []):
             if transition["from"] not in states or transition["to"] not in states:
                 raise ContractError(f"Model {rid} lifecycle transition uses unknown state: {transition}")
-            if transition["triggered_by"] not in contract["operations"]:
+            if transition["triggered_by"] not in contract["application_actions"]:
                 raise ContractError(
-                    f"Model {rid} lifecycle transition references unknown operation {transition['triggered_by']}"
+                    f"Model {rid} lifecycle transition references unknown application action {transition['triggered_by']}"
                 )
 
 
@@ -1012,11 +1012,11 @@ def _validate_type_references(contract: dict[str, Any]) -> None:
     for data_contract_id, data_contract in contract.get("data_contracts", {}).items():
         for field_name, field in data_contract.get("fields", {}).items():
             _validate_type_reference(contract, f"Data contract {data_contract_id}.{field_name}", field["type"])
-    for operation_id, operation in contract.get("operations", {}).items():
-        for field_name, type_expr in operation.get("input", {}).items():
-            _validate_type_reference(contract, f"Operation {operation_id} input {field_name}", type_expr)
-        for outcome_id, outcome in operation.get("outcomes", {}).items():
-            _validate_type_reference(contract, f"Operation {operation_id} outcome {outcome_id}", outcome["result"])
+    for application_action_id, application_action in contract.get("application_actions", {}).items():
+        for field_name, type_expr in application_action.get("input", {}).items():
+            _validate_type_reference(contract, f"Application action {application_action_id} input {field_name}", type_expr)
+        for outcome_id, outcome in application_action.get("outcomes", {}).items():
+            _validate_type_reference(contract, f"Application action {application_action_id} outcome {outcome_id}", outcome["result"])
     for state_machine_id, state_machine in contract.get("state_machines", {}).items():
         for field_name, field in state_machine.get("context", {}).items():
             _validate_type_reference(contract, f"State machine {state_machine_id} context {field_name}", field["type"])
@@ -1043,108 +1043,108 @@ def _validate_type_reference(contract: dict[str, Any], label: str, expr: Any) ->
             _validate_type_reference(contract, f"{label}.{field_name}", field["type"])
 
 
-def _validate_operations(contract: dict[str, Any]) -> None:
+def _validate_application_actions(contract: dict[str, Any]) -> None:
     models = contract["models"]
-    operations = contract["operations"]
-    for cid, cap in operations.items():
-        _validate_operation_relationships(cid, cap, models)
-        _validate_operation_authorization_outcomes(cid, cap)
+    application_actions = contract["application_actions"]
+    for cid, cap in application_actions.items():
+        _validate_application_action_relationships(cid, cap, models)
+        _validate_action_authorization_outcomes(cid, cap)
         transition = cap.get("transition")
         if transition:
             model_id = transition["model"]
             lifecycle = models[model_id].get("lifecycle")
             if not lifecycle:
-                raise ContractError(f"Operation {cid} declares transition but {model_id} has no lifecycle")
+                raise ContractError(f"Application action {cid} declares transition but {model_id} has no lifecycle")
             if transition["field"] != lifecycle["field"]:
-                raise ContractError(f"Operation {cid} transition field does not match model lifecycle")
+                raise ContractError(f"Application action {cid} transition field does not match model lifecycle")
             if transition["from"] not in lifecycle["states"] or transition["to"] not in lifecycle["states"]:
-                raise ContractError(f"Operation {cid} transition references unknown lifecycle state")
+                raise ContractError(f"Application action {cid} transition references unknown lifecycle state")
     for rid, model in models.items():
         lifecycle = model.get("lifecycle")
         if not lifecycle:
             continue
         for transition in lifecycle.get("transitions", []):
             triggered_by = transition["triggered_by"]
-            operation = operations[triggered_by]
-            if operation["operation_kind"] != "transition":
+            operation = application_actions[triggered_by]
+            if operation["action_kind"] != "transition":
                 raise ContractError(
-                    f"Model {rid} lifecycle transition {triggered_by} must reference a transition operation"
+                    f"Model {rid} lifecycle transition {triggered_by} must reference a transition application action"
                 )
             invalid_state = operation["outcomes"].get("invalid_state")
             if not invalid_state or invalid_state["kind"] != "failure":
                 raise ContractError(
-                    f"Transition operation {triggered_by} referenced by model lifecycle must declare invalid_state failure outcome"
+                    f"Transition application action {triggered_by} referenced by model lifecycle must declare invalid_state failure outcome"
                 )
             cap_transition = operation.get("transition")
             if not cap_transition:
-                raise ContractError(f"Transition operation {triggered_by} must be referenced by model lifecycle declarations")
+                raise ContractError(f"Transition application action {triggered_by} must be referenced by model lifecycle declarations")
             if (
                 cap_transition["model"] != rid
                 or cap_transition["from"] != transition["from"]
                 or cap_transition["to"] != transition["to"]
             ):
-                raise ContractError(f"Model {rid} lifecycle and operation {triggered_by} disagree")
+                raise ContractError(f"Model {rid} lifecycle and application action {triggered_by} disagree")
     for event_id, event in contract["events"].items():
         for cap_id in event["emitted_by"]:
-            if cap_id not in operations:
-                raise ContractError(f"Event {event_id} emitted by unknown operation {cap_id}")
+            if cap_id not in application_actions:
+                raise ContractError(f"Event {event_id} emitted by unknown application action {cap_id}")
 
 
-def _validate_operation_relationships(cid: str, cap: dict[str, Any], models: dict[str, Any]) -> None:
-    _validate_operation_outcomes(cid, cap)
+def _validate_application_action_relationships(cid: str, cap: dict[str, Any], models: dict[str, Any]) -> None:
+    _validate_action_outcomes(cid, cap)
     for field in ["creates", "reads", "updates", "deletes"]:
         for model_id in cap.get(field, []):
             if model_id not in models:
-                raise ContractError(f"Operation {cid} {field} unknown model {model_id}")
+                raise ContractError(f"Application action {cid} {field} unknown model {model_id}")
 
     if "transition" in cap:
         model_id = cap["transition"]["model"]
         if model_id not in models:
-            raise ContractError(f"Operation {cid} transition references unknown model {model_id}")
+            raise ContractError(f"Application action {cid} transition references unknown model {model_id}")
 
-    operation_kind = cap["operation_kind"]
-    if operation_kind == "query":
+    action_kind = cap["action_kind"]
+    if action_kind == "query":
         _require_relationship(cid, cap, "reads")
         _reject_non_empty_relationships(cid, cap, {"creates", "updates", "deletes"})
         if "transition" in cap:
-            raise ContractError(f"Query operation {cid} must not declare transition")
+            raise ContractError(f"Query application action {cid} must not declare transition")
         emitting_outcomes = sorted(outcome_id for outcome_id, outcome in cap["outcomes"].items() if outcome.get("emits"))
         if emitting_outcomes:
-            raise ContractError(f"Query operation {cid} must not emit events: {emitting_outcomes}")
+            raise ContractError(f"Query application action {cid} must not emit events: {emitting_outcomes}")
         _validate_query_success_result(cid, cap)
-    elif operation_kind == "command":
+    elif action_kind == "command":
         if "transition" in cap:
-            raise ContractError(f"Only transition operations may declare transition: {cid}")
-    elif operation_kind == "transition":
+            raise ContractError(f"Only transition application_actions may declare transition: {cid}")
+    elif action_kind == "transition":
         if "transition" not in cap:
-            raise ContractError(f"Transition operation {cid} must be referenced by model lifecycle declarations")
+            raise ContractError(f"Transition application action {cid} must be referenced by model lifecycle declarations")
         _reject_non_empty_relationships(cid, cap, {"creates", "reads", "updates", "deletes"})
         _require_output_model(cid, cap, cap["transition"]["model"])
     else:  # pragma: no cover - schema prevents this.
-        raise ContractError(f"Unsupported operation_kind {operation_kind}: {cid}")
+        raise ContractError(f"Unsupported action_kind {action_kind}: {cid}")
 
 
 def _require_relationship(cid: str, cap: dict[str, Any], field: str) -> None:
     if not cap.get(field):
-        raise ContractError(f"Operation {cid} operation_kind {cap['operation_kind']} must declare {field}")
+        raise ContractError(f"Application action {cid} action_kind {cap['action_kind']} must declare {field}")
 
 
 def _require_exact_relationship(cid: str, cap: dict[str, Any], field: str, count: int) -> None:
     _require_relationship(cid, cap, field)
     actual = len(cap[field])
     if actual != count:
-        raise ContractError(f"Operation {cid} operation_kind {cap['operation_kind']} must declare exactly {count} {field}")
+        raise ContractError(f"Application action {cid} action_kind {cap['action_kind']} must declare exactly {count} {field}")
 
 
 def _reject_non_empty_relationships(cid: str, cap: dict[str, Any], fields: set[str]) -> None:
     extras = sorted(field for field in fields if cap.get(field))
     if extras:
-        raise ContractError(f"Operation {cid} operation_kind {cap['operation_kind']} does not support effects: {extras}")
+        raise ContractError(f"Application action {cid} action_kind {cap['action_kind']} does not support effects: {extras}")
 
 
 def _require_output_model(cid: str, cap: dict[str, Any], model_id: str) -> None:
     if model_name(_success_result_type(cap)) != model_id:
-        raise ContractError(f"Operation {cid} success outcome result must be {model_id}")
+        raise ContractError(f"Application action {cid} success outcome result must be {model_id}")
 
 
 def _validate_query_success_result(cid: str, cap: dict[str, Any]) -> None:
@@ -1156,77 +1156,77 @@ def _validate_query_success_result(cid: str, cap: dict[str, Any]) -> None:
     if model_name(result_type) == expected_model or is_array_of_model(result_type, expected_model):
         return
     raise ContractError(
-        f"Operation {cid} query success outcome result must be {expected_model} "
+        f"Application action {cid} query success outcome result must be {expected_model} "
         f"or {type_display(array_of({'model': expected_model}))}"
     )
 
 
-def _validate_operation_outcomes(cid: str, cap: dict[str, Any]) -> None:
+def _validate_action_outcomes(cid: str, cap: dict[str, Any]) -> None:
     outcomes = cap["outcomes"]
     successes = _success_outcomes(cap)
     failures = _failure_outcomes(cap)
     if len(successes) != 1:
-        raise ContractError(f"Operation {cid} must declare exactly one success outcome")
+        raise ContractError(f"Application action {cid} must declare exactly one success outcome")
     if not failures:
-        raise ContractError(f"Operation {cid} must declare at least one failure outcome")
+        raise ContractError(f"Application action {cid} must declare at least one failure outcome")
     unknown_kinds = sorted(
         f"{name}:{outcome['kind']}" for name, outcome in outcomes.items() if outcome["kind"] not in {"success", "failure"}
     )
     if unknown_kinds:
-        raise ContractError(f"Operation {cid} has unsupported outcome kinds: {unknown_kinds}")
+        raise ContractError(f"Application action {cid} has unsupported outcome kinds: {unknown_kinds}")
     for outcome_id, outcome in outcomes.items():
         emits = outcome.get("emits", [])
         emit_ids = [_emit_event_id(emit) for emit in emits]
         if len(emit_ids) != len(set(emit_ids)):
-            raise ContractError(f"Operation {cid} outcome {outcome_id} emits duplicate events")
+            raise ContractError(f"Application action {cid} outcome {outcome_id} emits duplicate events")
         if outcome["kind"] == "failure":
             if emits:
-                raise ContractError(f"Operation {cid} failure outcome {outcome_id} must not emit events")
+                raise ContractError(f"Application action {cid} failure outcome {outcome_id} must not emit events")
             if not is_problem_type(outcome["result"]):
-                raise ContractError(f"Operation {cid} failure outcome {outcome_id} result must be Problem or a *Problem type")
+                raise ContractError(f"Application action {cid} failure outcome {outcome_id} result must be Problem or a *Problem type")
 
 
-def _validate_operation_authorization_outcomes(operation_id: str, operation: dict[str, Any]) -> None:
-    authorization = operation.get("authorization")
+def _validate_action_authorization_outcomes(application_action_id: str, application_action: dict[str, Any]) -> None:
+    authorization = application_action.get("authorization")
     if not authorization:
         return
     unauthenticated_as = authorization["unauthenticated_as"]
     forbidden_as = authorization["forbidden_as"]
     if unauthenticated_as == forbidden_as:
         raise ContractError(
-            f"Operation {operation_id} authorization unauthenticated_as and forbidden_as must be distinct outcomes"
+            f"Application action {application_action_id} authorization unauthenticated_as and forbidden_as must be distinct outcomes"
         )
     for field in ("unauthenticated_as", "forbidden_as"):
         outcome_id = authorization[field]
-        outcome = operation["outcomes"].get(outcome_id)
+        outcome = application_action["outcomes"].get(outcome_id)
         if not outcome:
             raise ContractError(
-                f"Operation {operation_id} authorization.{field} references unknown outcome {outcome_id}"
+                f"Application action {application_action_id} authorization.{field} references unknown outcome {outcome_id}"
             )
         if outcome["kind"] != "failure":
             raise ContractError(
-                f"Operation {operation_id} authorization.{field} must map to a failure outcome: {outcome_id}"
+                f"Application action {application_action_id} authorization.{field} must map to a failure outcome: {outcome_id}"
             )
         if outcome.get("emits"):
             raise ContractError(
-                f"Operation {operation_id} authorization.{field} outcome {outcome_id} must not emit events"
+                f"Application action {application_action_id} authorization.{field} outcome {outcome_id} must not emit events"
             )
 
 
 def _validate_authorization_policies(contract: dict[str, Any]) -> None:
     authorization_policies = contract["authorization_policies"]
-    operations = contract["operations"]
+    application_actions = contract["application_actions"]
     entry_points = contract["entry_points"]
     _validate_authorization_policy_reuse(authorization_policies)
-    for operation_id, operation in operations.items():
-        authorization = operation.get("authorization")
+    for application_action_id, application_action in application_actions.items():
+        authorization = application_action.get("authorization")
         if not authorization:
             continue
         policy_id = authorization["policy"]
         if policy_id not in authorization_policies:
-            raise ContractError(f"Operation {operation_id} authorization.policy references unknown authorization policy {policy_id}")
-        if not _authorization_policy_covers_target(authorization_policies[policy_id], "operation", operation_id):
-            raise ContractError(f"Operation {operation_id} authorization.policy {policy_id} must cover operation target")
+            raise ContractError(f"Application action {application_action_id} authorization.policy references unknown authorization policy {policy_id}")
+        if not _authorization_policy_covers_target(authorization_policies[policy_id], "application_action", application_action_id):
+            raise ContractError(f"Application action {application_action_id} authorization.policy {policy_id} must cover application action target")
     for entry_id, entry in entry_points.items():
         policy_id = entry.get("authorization_policy")
         if not policy_id:
@@ -1241,8 +1241,8 @@ def _validate_authorization_policies(contract: dict[str, Any]) -> None:
             kind, ref = _one(target, f"Authorization policy {policy_id} target")
             if kind == "model" and ref not in contract["models"]:
                 raise ContractError(f"Authorization policy {policy_id} target references unknown model {ref}")
-            if kind == "operation" and ref not in operations:
-                raise ContractError(f"Authorization policy {policy_id} target references unknown operation {ref}")
+            if kind == "application_action" and ref not in application_actions:
+                raise ContractError(f"Authorization policy {policy_id} target references unknown application action {ref}")
             if kind == "entry_point" and ref not in entry_points:
                 raise ContractError(f"Authorization policy {policy_id} target references unknown entry point {ref}")
         for condition in policy.get("conditions", []):
@@ -1293,7 +1293,7 @@ def _authorization_policy_covers_target(policy: dict[str, Any], kind: str, ref: 
 
 
 def _authorization_assertion_target(assertion: dict[str, Any], label: str) -> tuple[str, str]:
-    items = [(key, assertion[key]) for key in ("operation", "entry_point") if key in assertion]
+    items = [(key, assertion[key]) for key in ("application_action", "entry_point") if key in assertion]
     if len(items) != 1:
         raise ContractError(f"{label} must contain exactly one authorization target")
     return items[0]
@@ -1301,17 +1301,17 @@ def _authorization_assertion_target(assertion: dict[str, Any], label: str) -> tu
 
 def _validate_emit_payload_mapping(
     contract: dict[str, Any],
-    operation_id: str,
-    operation: dict[str, Any],
+    application_action_id: str,
+    application_action: dict[str, Any],
     outcome_id: str,
     outcome: dict[str, Any],
     event_id: str,
     event_payload: Any,
     emit: Any,
 ) -> None:
-    label = f"Operation {operation_id} outcome {outcome_id} emit {event_id}"
+    label = f"Application action {application_action_id} outcome {outcome_id} emit {event_id}"
     source_scopes: TypeScopes = {
-        "input": _type_scope(operation["input"]),
+        "input": _type_scope(application_action["input"]),
         "outcome": _typed_source_paths(contract, ("result",), outcome["result"]),
     }
 
@@ -1344,11 +1344,11 @@ def _validate_state_machines(contract: dict[str, Any]) -> None:
         model = state_machine.get("model")
         if model and model not in contract["models"]:
             raise ContractError(f"state machine {state_machine_id} references unknown model {model}")
-        _validate_query_invocations(
+        _validate_data_loaders(
             contract,
             f"state machine {state_machine_id}",
             state_machine,
-            state_machine.get("query_invocations", {}),
+            state_machine.get("data_loaders", {}),
             scope="state_machine",
             model=model,
         )
@@ -1369,13 +1369,13 @@ def _validate_state_machines(contract: dict[str, Any]) -> None:
             )
             if state.get("child_state_machines") or state.get("renderers") or state.get("signal_sync_rules"):
                 _validate_state_composition(contract, state_machine_id, state_machine, state_name, state)
-        _validate_query_invocation_id_scope(state_machine_id, state_machine)
+        _validate_data_loader_id_scope(state_machine_id, state_machine)
         _validate_field_state_data_sources(
             contract,
             f"state machine {state_machine_id}",
             state_machine,
             state_machine["view_states"],
-            state_machine.get("query_invocations", {}),
+            state_machine.get("data_loaders", {}),
             set(state_machine.get("context", {})),
         )
         _validate_collection_empty_signal_routes(state_machine_id, state_machine)
@@ -1394,11 +1394,11 @@ def _validate_state_machine_view_state(
     data_context: dict[str, Any] | None = None,
     model: str | None = None,
 ) -> None:
-    _validate_query_invocations(
+    _validate_data_loaders(
         contract,
         f"{owner_label}.{state_name}",
         state_machine,
-        state.get("query_invocations", {}),
+        state.get("data_loaders", {}),
         scope="view_state",
         model=model,
         view_state=state,
@@ -1406,11 +1406,11 @@ def _validate_state_machine_view_state(
     for field in state.get("fields", []):
         if field not in field_names:
             raise ContractError(f"{owner_label}.{state_name} field slot is not declared on the model/context: {field}")
-    _validate_operation_invocations(contract, owner_label, state_machine, state_name, state)
+    _validate_action_bindings(contract, owner_label, state_machine, state_name, state)
     _validate_presentation(contract, owner_label, field_names, state_name, state)
 
 
-def _validate_operation_invocations(
+def _validate_action_bindings(
     contract: dict[str, Any],
     owner_label: str,
     state_machine: dict[str, Any],
@@ -1418,13 +1418,13 @@ def _validate_operation_invocations(
     state: dict[str, Any],
 ) -> None:
     context = state_machine.get("context", {})
-    for invocation_id, invocation in sorted((state.get("operation_invocations") or {}).items()):
-        label = f"{owner_label}.{state_name} operation_invocation {invocation_id}"
-        operation_id = invocation["operation"]
-        if operation_id not in contract["operations"]:
-            raise ContractError(f"{label} references unknown operation {operation_id}")
-        operation = contract["operations"][operation_id]
-        expected_input = operation.get("input") or {}
+    for invocation_id, invocation in sorted((state.get("action_bindings") or {}).items()):
+        label = f"{owner_label}.{state_name} action_binding {invocation_id}"
+        application_action_id = invocation["application_action"]
+        if application_action_id not in contract["application_actions"]:
+            raise ContractError(f"{label} references unknown application action {application_action_id}")
+        application_action = contract["application_actions"][application_action_id]
+        expected_input = application_action.get("input") or {}
         bindings = invocation.get("input_bindings") or {}
         _validate_runtime_binding_map(
             contract,
@@ -1434,7 +1434,7 @@ def _validate_operation_invocations(
             {"context": _type_scope(context), "actor": ACTOR_SOURCE_SCOPE},
         )
         _lint_literal_actor_bindings(label, bindings)
-        _validate_operation_invocation_routes(contract, label, state_machine, invocation, operation_id, operation)
+        _validate_action_binding_routes(contract, label, state_machine, invocation, application_action_id, application_action)
 
 
 def _lint_literal_actor_bindings(label: str, bindings: dict[str, Any]) -> None:
@@ -1449,16 +1449,16 @@ def _lint_literal_actor_bindings(label: str, bindings: dict[str, Any]) -> None:
             )
 
 
-def _validate_operation_invocation_routes(
+def _validate_action_binding_routes(
     contract: dict[str, Any],
     label: str,
     state_machine: dict[str, Any],
     invocation: dict[str, Any],
-    operation_id: str,
-    operation: dict[str, Any],
+    application_action_id: str,
+    application_action: dict[str, Any],
 ) -> None:
     routes = invocation["outcome_routes"]
-    expected_outcomes = set(operation["outcomes"])
+    expected_outcomes = set(application_action["outcomes"])
     actual_outcomes = set(routes)
     if actual_outcomes != expected_outcomes:
         missing = sorted(expected_outcomes - actual_outcomes)
@@ -1468,24 +1468,24 @@ def _validate_operation_invocation_routes(
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"{label} outcome_routes must exactly map operation outcomes" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"{label} outcome_routes must exactly map application action outcomes" + (": " + "; ".join(parts) if parts else ""))
 
     for outcome_id, route in sorted(routes.items()):
         route_label = f"{label} outcome_routes.{outcome_id}"
-        outcome = operation["outcomes"][outcome_id]
+        outcome = application_action["outcomes"][outcome_id]
         if _validate_no_signal_route(
             route_label,
             outcome,
             route,
-            route_scope="operation_invocation",
-            has_response_surface=_operation_has_response_surface(contract, operation_id, outcome_id),
-            authorization_outcome=outcome_id in _operation_authorization_outcomes(operation),
+            route_scope="action_binding",
+            has_response_surface=_application_action_has_response_surface(contract, application_action_id, outcome_id),
+            authorization_outcome=outcome_id in _action_authorization_outcomes(application_action),
         ):
             continue
         signal = route.get("raise")
         if not signal:
             raise ContractError(f"{route_label} must raise a local signal or declare no_signal")
-        _lint_mutation_loaded_signal(route_label, operation, signal, route)
+        _lint_mutation_loaded_signal(route_label, application_action, signal, route)
         payload = _state_machine_signal_payload(
             state_machine,
             "accepts",
@@ -1497,13 +1497,13 @@ def _validate_operation_invocation_routes(
             label=f"{route_label} raise payload_bindings",
             bindings=signal.get("payload_bindings"),
             payload=payload,
-            scopes=_operation_outcome_route_scopes(state_machine, operation, outcome),
+            scopes=_action_outcome_route_scopes(state_machine, application_action, outcome),
         )
 
 
-def _lint_mutation_loaded_signal(label: str, operation: dict[str, Any], signal: dict[str, Any], route: dict[str, Any]) -> None:
+def _lint_mutation_loaded_signal(label: str, application_action: dict[str, Any], signal: dict[str, Any], route: dict[str, Any]) -> None:
     data_signal = signal.get("data_signal")
-    if operation.get("operation_kind") not in {"command", "transition"} or not data_signal:
+    if application_action.get("action_kind") not in {"command", "transition"} or not data_signal:
         return
     if data_signal == "loaded" or data_signal.endswith("_loaded"):
         has_loaded_payload = bool(signal.get("payload_bindings")) or "result_binding" in route or "context_updates" in route
@@ -1532,14 +1532,14 @@ def _validate_no_signal_route(
         return False
     reason = no_signal.get("reason")
     if outcome.get("emits"):
-        raise ContractError(f"{label} no_signal must not suppress durable operation_outcome.emits")
+        raise ContractError(f"{label} no_signal must not suppress durable action_outcome.emits")
     if reason == "handled_by_response_surface" and not has_response_surface:
         raise ContractError(f"{label} no_signal.reason handled_by_response_surface requires an adapter or renderer response surface for this outcome")
     if reason == "handled_by_query_refresh" and not has_query_refresh:
         raise ContractError(f"{label} no_signal.reason handled_by_query_refresh requires an explicit query result binding or context refresh")
     if reason == "result_bound_without_signal" and not (has_result_binding or has_data_effect):
         raise ContractError(f"{label} no_signal.reason result_bound_without_signal requires result_binding or context/cache update")
-    if authorization_outcome and route_scope == "operation_invocation" and reason != "handled_by_response_surface":
+    if authorization_outcome and route_scope == "action_binding" and reason != "handled_by_response_surface":
         raise ContractError(f"{label} authorization failure no_signal requires handled_by_response_surface")
     if outcome.get("kind") == "failure":
         if reason == "handled_by_response_surface":
@@ -1555,30 +1555,30 @@ def _validate_no_signal_route(
     return True
 
 
-def _operation_authorization_outcomes(operation: dict[str, Any]) -> set[str]:
-    authorization = operation.get("authorization") or {}
+def _action_authorization_outcomes(application_action: dict[str, Any]) -> set[str]:
+    authorization = application_action.get("authorization") or {}
     return {value for key, value in authorization.items() if key in {"unauthenticated_as", "forbidden_as"}}
 
 
-def _operation_has_response_surface(contract: dict[str, Any], operation_id: str, outcome_id: str) -> bool:
+def _application_action_has_response_surface(contract: dict[str, Any], application_action_id: str, outcome_id: str) -> bool:
     for entry_id in contract.get("entry_points", {}):
-        if _entry_point_effective_operation_ref(contract, entry_id) != operation_id:
+        if _entry_point_effective_application_action_ref(contract, entry_id) != application_action_id:
             continue
         if outcome_id in _entry_point_named_response_outcomes(contract, entry_id):
             return True
     return False
 
 
-def _operation_retry_safe(operation: dict[str, Any]) -> bool:
-    return operation.get("operation_kind") == "query" or bool(operation.get("retry_safe"))
+def _application_action_retry_safe(application_action: dict[str, Any]) -> bool:
+    return application_action.get("action_kind") == "query" or bool(application_action.get("retry_safe"))
 
 
 def _entry_point_retry_safe(contract: dict[str, Any], entry_id: str) -> bool:
     entry = contract["entry_points"][entry_id]
     target_kind, target_ref = entry_target_pair(entry)
-    if target_kind == "operation":
-        return _operation_retry_safe(contract["operations"][target_ref]) and (
-            contract["operations"][target_ref]["operation_kind"] == "query" or bool(entry.get("retry_safe"))
+    if target_kind == "application_action":
+        return _application_action_retry_safe(contract["application_actions"][target_ref]) and (
+            contract["application_actions"][target_ref]["action_kind"] == "query" or bool(entry.get("retry_safe"))
         )
     if target_kind == "entry_point":
         return bool(entry.get("retry_safe")) and _entry_point_retry_safe(contract, target_ref)
@@ -1587,14 +1587,14 @@ def _entry_point_retry_safe(contract: dict[str, Any], entry_id: str) -> bool:
     return bool(entry.get("retry_safe"))
 
 
-def _operation_outcome_route_scopes(
+def _action_outcome_route_scopes(
     state_machine: dict[str, Any],
-    operation: dict[str, Any],
+    application_action: dict[str, Any],
     outcome: dict[str, Any],
 ) -> TypeScopes:
-    operation_input = operation.get("input") or {}
-    invocation_scope = {("input",): {"object": operation_input}}
-    invocation_scope.update(_prefixed_type_scope(("input",), operation_input))
+    application_action_input = application_action.get("input") or {}
+    invocation_scope = {("input",): {"object": application_action_input}}
+    invocation_scope.update(_prefixed_type_scope(("input",), application_action_input))
     return {
         "outcome": {
             ("kind",): {"primitive": "Text"},
@@ -1605,17 +1605,17 @@ def _operation_outcome_route_scopes(
     }
 
 
-def _validate_query_invocation_id_scope(state_machine_id: str, state_machine: dict[str, Any]) -> None:
-    owner_ids = set(state_machine.get("query_invocations", {}))
+def _validate_data_loader_id_scope(state_machine_id: str, state_machine: dict[str, Any]) -> None:
+    owner_ids = set(state_machine.get("data_loaders", {}))
     for state_name, state in state_machine.get("view_states", {}).items():
-        overlap = sorted(owner_ids & set(state.get("query_invocations", {})))
+        overlap = sorted(owner_ids & set(state.get("data_loaders", {})))
         if overlap:
             raise ContractError(
-                f"state machine {state_machine_id}.{state_name} query_invocations duplicate state-machine-scope ids: {overlap}"
+                f"state machine {state_machine_id}.{state_name} data_loaders duplicate state-machine-scope ids: {overlap}"
             )
 
 
-def _validate_query_invocations(
+def _validate_data_loaders(
     contract: dict[str, Any],
     owner_label: str,
     state_machine: dict[str, Any],
@@ -1627,41 +1627,41 @@ def _validate_query_invocations(
 ) -> None:
     context = state_machine.get("context", {})
     for invocation_id, invocation in sorted((invocations or {}).items()):
-        label = f"{owner_label} query_invocation {invocation_id}"
+        label = f"{owner_label} data_loader {invocation_id}"
         if scope == "state_machine" and "result_scope" not in invocation:
-            raise ContractError(f"{label} state-machine-level query_invocation must declare result_scope")
+            raise ContractError(f"{label} state-machine-level data_loader must declare result_scope")
         if invocation.get("result_scope") in {"shared", "prefetch"} and not invocation.get("rationale"):
             raise ContractError(f"{label} result_scope {invocation['result_scope']} must declare rationale")
-        if scope == "state_machine" and _query_invocation_has_result_bound_no_signal(invocation) and invocation.get("result_scope") not in {"shared", "prefetch"}:
+        if scope == "state_machine" and _data_loader_has_result_bound_no_signal(invocation) and invocation.get("result_scope") not in {"shared", "prefetch"}:
             raise ContractError(f"{label} result_binding with no_signal must declare result_scope shared or prefetch")
-        operation_id = invocation["operation"]
-        if operation_id not in contract["operations"]:
-            raise ContractError(f"{label} references unknown operation {operation_id}")
-        operation = contract["operations"][operation_id]
-        if operation["operation_kind"] != "query":
-            raise ContractError(f"{label} operation must have operation_kind: query")
-        if operation.get("creates") or operation.get("updates") or operation.get("deletes"):
-            raise ContractError(f"{label} query operation must not create, update, or delete models")
-        if operation.get("transition"):
-            raise ContractError(f"{label} query operation must not be a lifecycle transition")
+        application_action_id = invocation["application_action"]
+        if application_action_id not in contract["application_actions"]:
+            raise ContractError(f"{label} references unknown application action {application_action_id}")
+        application_action = contract["application_actions"][application_action_id]
+        if application_action["action_kind"] != "query":
+            raise ContractError(f"{label} application action must have action_kind: query")
+        if application_action.get("creates") or application_action.get("updates") or application_action.get("deletes"):
+            raise ContractError(f"{label} query application action must not create, update, or delete models")
+        if application_action.get("transition"):
+            raise ContractError(f"{label} query application action must not be a lifecycle transition")
         emitting_outcomes = sorted(
             outcome_id
-            for outcome_id, outcome in operation.get("outcomes", {}).items()
+            for outcome_id, outcome in application_action.get("outcomes", {}).items()
             if outcome.get("emits")
         )
         if emitting_outcomes:
-            raise ContractError(f"{label} query operation outcomes must not emit durable events: {emitting_outcomes}")
-        if model and model not in operation.get("reads", []):
-            raise ContractError(f"{label} operation must read model {model}")
+            raise ContractError(f"{label} query application action outcomes must not emit durable events: {emitting_outcomes}")
+        if model and model not in application_action.get("reads", []):
+            raise ContractError(f"{label} application action must read model {model}")
         _validate_runtime_binding_map(
             contract,
             f"{label} input_bindings",
             invocation.get("input_bindings") or {},
-            operation.get("input") or {},
+            application_action.get("input") or {},
             {"context": _type_scope(context), "actor": ACTOR_SOURCE_SCOPE},
         )
         _validate_query_load_policy(contract, label, state_machine, invocation.get("load") or {}, scope=scope)
-        _validate_query_invocation_routes(contract, label, state_machine, invocation, operation, scope=scope, view_state=view_state)
+        _validate_data_loader_routes(contract, label, state_machine, invocation, application_action, scope=scope, view_state=view_state)
 
 
 def _validate_query_load_policy(
@@ -1680,18 +1680,18 @@ def _validate_query_load_policy(
         _state_machine_signal_payload(state_machine, "accepts", trigger, f"{label} load.refresh_on")
 
 
-def _validate_query_invocation_routes(
+def _validate_data_loader_routes(
     contract: dict[str, Any],
     label: str,
     state_machine: dict[str, Any],
     invocation: dict[str, Any],
-    operation: dict[str, Any],
+    application_action: dict[str, Any],
     *,
     scope: str,
     view_state: dict[str, Any] | None,
 ) -> None:
     routes = invocation["outcome_routes"]
-    expected_outcomes = set(operation["outcomes"])
+    expected_outcomes = set(application_action["outcomes"])
     actual_outcomes = set(routes)
     if actual_outcomes != expected_outcomes:
         missing = sorted(expected_outcomes - actual_outcomes)
@@ -1701,10 +1701,10 @@ def _validate_query_invocation_routes(
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"{label} outcome_routes must exactly map query operation outcomes" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"{label} outcome_routes must exactly map query application action outcomes" + (": " + "; ".join(parts) if parts else ""))
 
     for outcome_id, route in sorted(routes.items()):
-        outcome = operation["outcomes"][outcome_id]
+        outcome = application_action["outcomes"][outcome_id]
         route_label = f"{label} outcome_routes.{outcome_id}"
         if "conditional_routes" in route:
             if any(key in route for key in ("context_updates", "result_binding", "raise", "no_signal")):
@@ -1714,7 +1714,7 @@ def _validate_query_invocation_routes(
                 route_label,
                 state_machine,
                 invocation,
-                operation,
+                application_action,
                 outcome_id,
                 outcome,
                 scope=scope,
@@ -1726,7 +1726,7 @@ def _validate_query_invocation_routes(
             route_label,
             state_machine,
             invocation,
-            operation,
+            application_action,
             outcome_id,
             outcome,
             route,
@@ -1734,7 +1734,7 @@ def _validate_query_invocation_routes(
             view_state=view_state,
         )
     if all(_query_route_is_only_no_signal(route) for route in routes.values()):
-        raise ContractError(f"{label} query_invocation has only no_signal routes and no explicit result binding, context update, or signal")
+        raise ContractError(f"{label} data_loader has only no_signal routes and no explicit result binding, context update, or signal")
 
 
 def _validate_query_conditional_routes(
@@ -1742,7 +1742,7 @@ def _validate_query_conditional_routes(
     route_label: str,
     state_machine: dict[str, Any],
     invocation: dict[str, Any],
-    operation: dict[str, Any],
+    application_action: dict[str, Any],
     outcome_id: str,
     outcome: dict[str, Any],
     *,
@@ -1763,7 +1763,7 @@ def _validate_query_conditional_routes(
             branch_label,
             state_machine,
             invocation,
-            operation,
+            application_action,
             outcome_id,
             outcome,
             branch,
@@ -1779,7 +1779,7 @@ def _validate_query_route_effect(
     route_label: str,
     state_machine: dict[str, Any],
     invocation: dict[str, Any],
-    operation: dict[str, Any],
+    application_action: dict[str, Any],
     outcome_id: str,
     outcome: dict[str, Any],
     route: dict[str, Any],
@@ -1787,7 +1787,7 @@ def _validate_query_route_effect(
     scope: str,
     view_state: dict[str, Any] | None,
 ) -> None:
-        scopes = _operation_outcome_route_scopes(state_machine, operation, outcome)
+        scopes = _action_outcome_route_scopes(state_machine, application_action, outcome)
         has_context_updates = bool(route.get("context_updates"))
         has_result_binding = "result_binding" in route
         has_raise = "raise" in route
@@ -1830,12 +1830,12 @@ def _validate_query_route_effect(
             route_label,
             outcome,
             route,
-            route_scope="query_invocation",
-            has_response_surface=_operation_has_response_surface(contract, invocation["operation"], outcome_id),
+            route_scope="data_loader",
+            has_response_surface=_application_action_has_response_surface(contract, invocation["application_action"], outcome_id),
             has_query_refresh=has_query_refresh,
             has_result_binding=has_result_binding,
             has_data_effect=has_context_updates,
-            authorization_outcome=outcome_id in _operation_authorization_outcomes(operation),
+            authorization_outcome=outcome_id in _action_authorization_outcomes(application_action),
         )
         no_signal = route.get("no_signal")
         if no_signal and no_signal.get("reason") == "result_bound_without_signal" and has_result_binding and not has_result_consumption:
@@ -1907,7 +1907,7 @@ def _validate_field_state_data_sources(
 ) -> None:
     owner_sources_by_field = _query_result_field_sources(contract, owner_data)
     for state_name, state in states.items():
-        view_sources_by_field = _query_result_field_sources(contract, state.get("query_invocations", {}))
+        view_sources_by_field = _query_result_field_sources(contract, state.get("data_loaders", {}))
         for field in sorted(state.get("fields", [])):
             sources: set[str] = set()
             if field in context_fields:
@@ -1922,13 +1922,13 @@ def _validate_field_state_data_sources(
 
 def _query_result_field_sources(contract: dict[str, Any], invocations: dict[str, Any]) -> dict[str, set[str]]:
     sources: dict[str, set[str]] = {}
-    operations = contract.get("operations", {})
+    application_actions = contract.get("application_actions", {})
     for invocation_id, invocation in sorted((invocations or {}).items()):
-        operation = operations.get(invocation.get("operation"))
-        if not operation:
+        application_action = application_actions.get(invocation.get("application_action"))
+        if not application_action:
             continue
         for outcome_id, route in sorted((invocation.get("outcome_routes") or {}).items()):
-            outcome = operation.get("outcomes", {}).get(outcome_id)
+            outcome = application_action.get("outcomes", {}).get(outcome_id)
             if not outcome:
                 continue
             fields = object_fields_for_type(contract, _query_result_item_type(outcome["result"]))
@@ -1936,7 +1936,7 @@ def _query_result_field_sources(contract: dict[str, Any], invocations: dict[str,
                 result_binding = branch.get("result_binding")
                 if not result_binding:
                     continue
-                source_label = f"query_invocation {invocation_id} result_binding {result_binding['data_key']}"
+                source_label = f"data_loader {invocation_id} result_binding {result_binding['data_key']}"
                 for field in fields:
                     sources.setdefault(field, set()).add(source_label)
     return sources
@@ -1972,17 +1972,17 @@ def _is_empty_collection_signal(signal_name: str) -> bool:
 
 
 def _query_routes_raise_data_signal(state_machine: dict[str, Any], signal_name: str) -> bool:
-    for invocation in (state_machine.get("query_invocations") or {}).values():
-        if _query_invocation_raises_data_signal(invocation, signal_name):
+    for invocation in (state_machine.get("data_loaders") or {}).values():
+        if _data_loader_raises_data_signal(invocation, signal_name):
             return True
     for state in state_machine.get("view_states", {}).values():
-        for invocation in (state.get("query_invocations") or {}).values():
-            if _query_invocation_raises_data_signal(invocation, signal_name):
+        for invocation in (state.get("data_loaders") or {}).values():
+            if _data_loader_raises_data_signal(invocation, signal_name):
                 return True
     return False
 
 
-def _query_invocation_raises_data_signal(invocation: dict[str, Any], signal_name: str) -> bool:
+def _data_loader_raises_data_signal(invocation: dict[str, Any], signal_name: str) -> bool:
     for route in (invocation.get("outcome_routes") or {}).values():
         for branch in _query_route_effect_branches(route):
             signal = branch.get("raise") or {}
@@ -1992,35 +1992,35 @@ def _query_invocation_raises_data_signal(invocation: dict[str, Any], signal_name
 
 
 def _validate_machine_query_ownership(contract: dict[str, Any], state_machine_id: str, state_machine: dict[str, Any]) -> None:
-    owner_queries = state_machine.get("query_invocations") or {}
+    owner_queries = state_machine.get("data_loaders") or {}
     if not owner_queries:
         return
-    child_query_operations = _child_query_operations(contract, state_machine)
+    child_query_application_actions = _child_query_application_actions(contract, state_machine)
     for invocation_id, invocation in sorted(owner_queries.items()):
-        label = f"state machine {state_machine_id} query_invocation {invocation_id}"
+        label = f"state machine {state_machine_id} data_loader {invocation_id}"
         result_scope = invocation.get("result_scope")
-        if _query_invocation_has_result_bound_no_signal(invocation) and result_scope not in {"shared", "prefetch"}:
+        if _data_loader_has_result_bound_no_signal(invocation) and result_scope not in {"shared", "prefetch"}:
             raise ContractError(f"{label} result_binding with no_signal must declare result_scope shared or prefetch")
-        if invocation["operation"] in child_query_operations and result_scope not in {"shared", "prefetch"}:
+        if invocation["application_action"] in child_query_application_actions and result_scope not in {"shared", "prefetch"}:
             raise ContractError(f"{label} duplicates child-owned query loading and must declare result_scope shared or prefetch")
 
 
-def _child_query_operations(contract: dict[str, Any], state_machine: dict[str, Any]) -> set[str]:
-    operations: set[str] = set()
+def _child_query_application_actions(contract: dict[str, Any], state_machine: dict[str, Any]) -> set[str]:
+    application_actions: set[str] = set()
     for state in state_machine.get("view_states", {}).values():
         for mount in state.get("child_state_machines", []):
             child = contract["state_machines"].get(mount["state_machine"])
             if not child:
                 continue
-            for invocation in (child.get("query_invocations") or {}).values():
-                operations.add(invocation["operation"])
+            for invocation in (child.get("data_loaders") or {}).values():
+                application_actions.add(invocation["application_action"])
             for child_state in child.get("view_states", {}).values():
-                for invocation in (child_state.get("query_invocations") or {}).values():
-                    operations.add(invocation["operation"])
-    return operations
+                for invocation in (child_state.get("data_loaders") or {}).values():
+                    application_actions.add(invocation["application_action"])
+    return application_actions
 
 
-def _query_invocation_has_result_bound_no_signal(invocation: dict[str, Any]) -> bool:
+def _data_loader_has_result_bound_no_signal(invocation: dict[str, Any]) -> bool:
     for route in (invocation.get("outcome_routes") or {}).values():
         for branch in _query_route_effect_branches(route):
             no_signal = branch.get("no_signal") or {}
@@ -2103,14 +2103,14 @@ def _lint_signal_names(state_machine_id: str, state_machine: dict[str, Any], sig
     data_signals = set(data_signal_specs)
     for name in sorted((messages | data_signals) & view_states):
         warnings.warn(
-            f"state machine {state_machine_id} signal {name!r} also names a view state; prefer event-like names such as project_loaded, project_load_failed, collection_empty, or operation_failed",
+            f"state machine {state_machine_id} signal {name!r} also names a view state; prefer event-like names such as project_loaded, project_load_failed, collection_empty, or application_action_failed",
             ContractLintWarning,
             stacklevel=3,
         )
     for name, signal in sorted(data_signal_specs.items()):
         if name in {"ready", "error", "empty", "loaded"} and not signal.get("rationale"):
             warnings.warn(
-                f"state machine {state_machine_id} data signal {name!r} is state-like; prefer event-like names such as project_loaded, project_load_failed, collection_empty, or operation_failed",
+                f"state machine {state_machine_id} data signal {name!r} is state-like; prefer event-like names such as project_loaded, project_load_failed, collection_empty, or application_action_failed",
                 ContractLintWarning,
                 stacklevel=3,
             )
@@ -2303,11 +2303,11 @@ def _state_machine_emits(state_machine: dict[str, Any]) -> set[tuple[str, str]]:
 
 def _state_machine_accepts(state_machine: dict[str, Any]) -> set[tuple[str, str]]:
     accepts = {_signal_selector_key(transition["on"]) for transition in state_machine.get("transitions", [])}
-    for invocation in (state_machine.get("query_invocations") or {}).values():
+    for invocation in (state_machine.get("data_loaders") or {}).values():
         for trigger in (invocation.get("load") or {}).get("refresh_on", []):
             accepts.add(_signal_selector_key(trigger))
     for state in state_machine.get("view_states", {}).values():
-        for invocation in (state.get("query_invocations") or {}).values():
+        for invocation in (state.get("data_loaders") or {}).values():
             for trigger in (invocation.get("load") or {}).get("refresh_on", []):
                 accepts.add(_signal_selector_key(trigger))
     return accepts
@@ -2542,12 +2542,12 @@ def _is_data_signal(signal: dict[str, str]) -> bool:
 
 def _transition_data_bindings(state_machine: dict[str, Any], transition: dict[str, Any]) -> dict[str, Any]:
     source_state = state_machine.get("view_states", {}).get(transition["from"], {})
-    return source_state.get("query_invocations", {}) or state_machine.get("query_invocations", {})
+    return source_state.get("data_loaders", {}) or state_machine.get("data_loaders", {})
 
 
 def _transition_target_data_bindings(state_machine: dict[str, Any], transition: dict[str, Any]) -> dict[str, Any]:
     target_state = state_machine.get("view_states", {}).get(transition["to"], {})
-    return target_state.get("query_invocations", {})
+    return target_state.get("data_loaders", {})
 
 
 def _transition_has_audit_content(state_machine: dict[str, Any], transition: dict[str, Any]) -> bool:
@@ -2621,7 +2621,7 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
     text_slots = {ref.rsplit(".", 1)[-1] for ref in state["text"]}
     asset_slots = {ref.rsplit(".", 1)[-1] for ref in state["assets"]}
     field_slots = set(state.get("fields", []))
-    operation_invocations = set(state["operation_invocations"])
+    action_bindings = set(state["action_bindings"])
     html_regions = set(renderer_html_regions(state))
     textual_containers = set(renderer_textual_containers(state))
     mounts = {mount["id"] for mount in state.get("child_state_machines", [])}
@@ -2631,7 +2631,7 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
         if slot["region"] not in html_regions:
             raise ContractError(f"{owner_label}.{state_name} HTML slot references undeclared layout region: {slot['region']}")
         bind_kind, bind_value = _one(slot["binding"], f"{owner_label}.{state_name} html slot binding")
-        _validate_slot_binding(owner_label, state_name, "HTML slot", bind_kind, bind_value, text_slots, asset_slots, field_slots, operation_invocations)
+        _validate_slot_binding(owner_label, state_name, "HTML slot", bind_kind, bind_value, text_slots, asset_slots, field_slots, action_bindings)
 
     for rule in renderer_html_style(state).get("rules", []):
         _validate_renderer_style_selector(
@@ -2641,7 +2641,7 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
             text_slots,
             asset_slots,
             field_slots,
-            operation_invocations,
+            action_bindings,
             html_regions,
             mounts,
             "html style",
@@ -2652,12 +2652,12 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
     widget_ids = [widget["id"] for widget in widgets]
     if len(widget_ids) != len(set(widget_ids)):
         raise ContractError(f"{owner_label}.{state_name} Textual widgets contain duplicate ids")
-    widget_targets = {"text_slot": set(), "asset_slot": set(), "field_slot": set(), "operation_invocation": set()}
+    widget_targets = {"text_slot": set(), "asset_slot": set(), "field_slot": set(), "action_binding": set()}
     for widget in widgets:
         if widget["container"] not in textual_containers:
             raise ContractError(f"{owner_label}.{state_name} Textual widget references undeclared layout container: {widget['container']}")
         bind_kind, bind_value = _one(widget["binding"], f"{owner_label}.{state_name} textual widget binding")
-        _validate_slot_binding(owner_label, state_name, "Textual widget", bind_kind, bind_value, text_slots, asset_slots, field_slots, operation_invocations)
+        _validate_slot_binding(owner_label, state_name, "Textual widget", bind_kind, bind_value, text_slots, asset_slots, field_slots, action_bindings)
         if bind_kind in widget_targets:
             widget_targets[bind_kind].add(bind_value)
     for rule in renderer_textual_style(state).get("rules", []):
@@ -2669,7 +2669,7 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
             text_slots,
             asset_slots,
             field_slots,
-            operation_invocations,
+            action_bindings,
             textual_containers,
             mounts,
             "textual style",
@@ -2678,9 +2678,9 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
             name = selector[len("slot."):]
             if name not in widget_targets["text_slot"] and name not in widget_targets["asset_slot"] and name not in widget_targets["field_slot"]:
                 raise ContractError(f"{owner_label}.{state_name} textual style selector has no matching Textual widget: {selector}")
-        if widgets and selector.startswith("operation_invocation."):
-            operation = selector[len("operation_invocation."):]
-            if operation not in widget_targets["operation_invocation"]:
+        if widgets and selector.startswith("action_binding."):
+            action_binding = selector[len("action_binding."):]
+            if action_binding not in widget_targets["action_binding"]:
                 raise ContractError(f"{owner_label}.{state_name} textual style selector has no matching Textual widget: {selector}")
 
 
@@ -2693,14 +2693,14 @@ def _validate_slot_binding(
     text_slots: set[str],
     asset_slots: set[str],
     field_slots: set[str],
-    operation_invocations: set[str],
+    action_bindings: set[str],
 ) -> None:
     if bind_kind == "text_slot" and bind_value not in text_slots:
         raise ContractError(f"{owner_label}.{state_name} {label} text_slot binding is not declared: {bind_value}")
     if bind_kind == "asset_slot" and bind_value not in asset_slots:
         raise ContractError(f"{owner_label}.{state_name} {label} asset_slot binding is not declared: {bind_value}")
-    if bind_kind == "operation_invocation" and bind_value not in operation_invocations:
-        raise ContractError(f"{owner_label}.{state_name} {label} operation_invocation binding is not declared: {bind_value}")
+    if bind_kind == "action_binding" and bind_value not in action_bindings:
+        raise ContractError(f"{owner_label}.{state_name} {label} action_binding binding is not declared: {bind_value}")
     if bind_kind == "field_slot" and bind_value not in field_slots:
         raise ContractError(f"{owner_label}.{state_name} {label} field_slot binding is not declared: {bind_value}")
 
@@ -2712,7 +2712,7 @@ def _validate_renderer_style_selector(
     text_slots: set[str],
     asset_slots: set[str],
     field_slots: set[str],
-    operation_invocations: set[str],
+    action_bindings: set[str],
     regions: set[str],
     mounts: set[str],
     label: str,
@@ -2720,7 +2720,7 @@ def _validate_renderer_style_selector(
     if selector.startswith("region.") or selector.startswith("container.") or selector.startswith("child_state_machine."):
         _validate_composition_selector(f"{owner_label}.{state_name}", selector, regions, mounts, label)
         return
-    _validate_style_selector(owner_label, state_name, selector, text_slots, asset_slots, field_slots, operation_invocations, label)
+    _validate_style_selector(owner_label, state_name, selector, text_slots, asset_slots, field_slots, action_bindings, label)
 
 
 def _validate_style_selector(
@@ -2730,7 +2730,7 @@ def _validate_style_selector(
     text_slots: set[str],
     asset_slots: set[str],
     field_slots: set[str],
-    operation_invocations: set[str],
+    action_bindings: set[str],
     label: str,
 ) -> None:
     if selector == "root" and label.startswith("html"):
@@ -2742,10 +2742,10 @@ def _validate_style_selector(
         if name not in text_slots and name not in asset_slots and name not in field_slots:
             raise ContractError(f"{owner_label}.{state_name} {label} selector references undeclared slot: {selector}")
         return
-    if selector.startswith("operation_invocation."):
-        ref = selector[len("operation_invocation."):]
-        if ref not in operation_invocations:
-            raise ContractError(f"{owner_label}.{state_name} {label} selector references undeclared operation_invocation: {ref}")
+    if selector.startswith("action_binding."):
+        ref = selector[len("action_binding."):]
+        if ref not in action_bindings:
+            raise ContractError(f"{owner_label}.{state_name} {label} selector references undeclared action_binding: {ref}")
         return
     raise ContractError(f"{owner_label}.{state_name} {label} selector is not supported: {selector}")
 
@@ -2805,12 +2805,12 @@ def _validate_entries(contract: dict[str, Any]) -> None:
             _validate_state_machine_entry_inputs(contract, eid, value, declared=declared, input_label="input")
             _validate_target_bindings(contract, eid, entry, declared)
         elif adapter_kind == "http_api":
-            if kind != "operation" or value not in contract["operations"]:
-                raise ContractError(f"HTTP API entry point {eid} must target a known operation")
+            if kind != "application_action" or value not in contract["application_actions"]:
+                raise ContractError(f"HTTP API entry point {eid} must target a known application action")
             _require_adapter(adapter, eid, "method")
             _require_adapter(adapter, eid, "path")
             _validate_path_params(entry, eid)
-            operation = contract["operations"][value]
+            operation = contract["application_actions"][value]
             path_params = _entry_input_map(entry, "path_params")
             query_params = _entry_input_map(entry, "query_params")
             body = _entry_input_map(entry, "body")
@@ -2820,13 +2820,13 @@ def _validate_entries(contract: dict[str, Any]) -> None:
         elif adapter_kind == "cli":
             _require_adapter(adapter, eid, "cli_command")
             args = _entry_input_map(entry, "args")
-            if kind == "operation":
-                if value not in contract["operations"]:
-                    raise ContractError(f"CLI entry point {eid} must target a known operation")
-                operation = contract["operations"][value]
+            if kind == "application_action":
+                if value not in contract["application_actions"]:
+                    raise ContractError(f"CLI entry point {eid} must target a known application action")
+                operation = contract["application_actions"][value]
                 _validate_exact_entry_inputs(eid, "input.args", args, operation["input"])
                 _validate_target_bindings(contract, eid, entry, args)
-                _validate_cli_operation_response_handlers(contract, eid, entry, operation)
+                _validate_cli_application_action_response_handlers(contract, eid, entry, operation)
             elif kind == "state_machine":
                 if value not in contract["state_machines"]:
                     raise ContractError(f"CLI entry point {eid} must target a known state machine")
@@ -2904,10 +2904,10 @@ def _validate_entry_point_response_maps(contract: dict[str, Any]) -> None:
         adapter_kind, _adapter = entry_point_adapter_pair(entry)
         target_kind, target = entry_point_target_pair(entry)
         target_ref = target["ref"]
-        if adapter_kind == "http_api" and target_kind == "operation" and target_ref in contract["operations"]:
-            _operation_entry_point_responses(entry_id, entry, contract["operations"][target_ref])
-        elif adapter_kind == "cli" and target_kind == "operation" and target_ref in contract["operations"]:
-            _operation_entry_point_response_handlers(entry_id, entry, contract["operations"][target_ref])
+        if adapter_kind == "http_api" and target_kind == "application_action" and target_ref in contract["application_actions"]:
+            _application_action_entry_point_responses(entry_id, entry, contract["application_actions"][target_ref])
+        elif adapter_kind == "cli" and target_kind == "application_action" and target_ref in contract["application_actions"]:
+            _application_action_entry_point_response_handlers(entry_id, entry, contract["application_actions"][target_ref])
 
 
 def _validate_delegating_entry_adapter_surface(
@@ -3111,20 +3111,20 @@ def _validate_workflow_entry_target_source(contract: dict[str, Any], entry_id: s
 def _validate_api_entry_input(
     entry_id: str,
     entry: dict[str, Any],
-    operation: dict[str, Any],
+    application_action: dict[str, Any],
     path_params: dict[str, Any],
     query_params: dict[str, Any],
     body: dict[str, Any],
 ) -> None:
-    cap_input = operation["input"]
+    cap_input = application_action["input"]
     all_params = {**path_params, **query_params}
     all_input = {**all_params, **body}
     if set(path_params) - set(cap_input):
-        raise ContractError(f"API entry {entry_id} input.path_params must be operation input fields")
+        raise ContractError(f"API entry {entry_id} input.path_params must be application action input fields")
     if set(query_params) - set(cap_input):
-        raise ContractError(f"API entry {entry_id} input.query_params must be operation input fields")
+        raise ContractError(f"API entry {entry_id} input.query_params must be application action input fields")
     if set(body) - set(cap_input):
-        raise ContractError(f"API entry {entry_id} input.body must be operation input fields")
+        raise ContractError(f"API entry {entry_id} input.body must be application action input fields")
     if set(path_params) & set(query_params) or set(all_params) & set(body):
         raise ContractError(f"API entry {entry_id} input fields cannot appear in multiple input sections")
     _validate_entry_input_types(entry_id, "input.path_params", path_params, cap_input)
@@ -3136,10 +3136,10 @@ def _validate_api_entry_input(
             raise ContractError(f"API entry {entry_id} {entry_point_method(entry)} must not declare input.body")
         if set(all_params) != set(cap_input):
             missing_params = sorted(set(cap_input) - set(all_params))
-            raise ContractError(f"API entry {entry_id} {entry_point_method(entry)} must declare all operation inputs as path_params or query_params: {missing_params}")
+            raise ContractError(f"API entry {entry_id} {entry_point_method(entry)} must declare all application action inputs as path_params or query_params: {missing_params}")
     missing = sorted(set(cap_input) - set(all_input))
     if missing:
-        raise ContractError(f"API entry {entry_id} input must include every operation input: {missing}")
+        raise ContractError(f"API entry {entry_id} input must include every application action input: {missing}")
 
 
 def _validate_event_payload_entry_input(contract: dict[str, Any], entry_id: str, entry: dict[str, Any], workflow_id: str) -> None:
@@ -3163,8 +3163,8 @@ def _validate_target_bindings(
 ) -> None:
     kind, value = entry_target_pair(entry)
     bindings = entry_point_input_bindings(entry)
-    if kind == "operation":
-        expected = contract["operations"][value]["input"]
+    if kind == "application_action":
+        expected = contract["application_actions"][value]["input"]
     elif kind == "state_machine":
         expected = {name: contract["state_machines"][value].get("context", {})[name] for name in target_input_types}
     else:
@@ -3196,11 +3196,11 @@ def _validate_target_bindings(
             )
 
 
-def _validate_api_entry_point_responses(entry_id: str, entry: dict[str, Any], operation: dict[str, Any]) -> None:
-    responses = _operation_entry_point_responses(entry_id, entry, operation)
+def _validate_api_entry_point_responses(entry_id: str, entry: dict[str, Any], application_action: dict[str, Any]) -> None:
+    responses = _application_action_entry_point_responses(entry_id, entry, application_action)
     statuses: dict[int, str] = {}
     for outcome_id, response in responses.items():
-        outcome = operation["outcomes"][outcome_id]
+        outcome = application_action["outcomes"][outcome_id]
         if set(response) != {"status", "body"}:
             raise ContractError(f"API entry {entry_id} response {outcome_id} must declare exactly status and body")
         status = response["status"]
@@ -3210,7 +3210,7 @@ def _validate_api_entry_point_responses(entry_id: str, entry: dict[str, Any], op
             )
         statuses[status] = outcome_id
         if outcome["kind"] == "success":
-            expected = 201 if operation.get("creates") else 200
+            expected = 201 if application_action.get("creates") else 200
             if status != expected:
                 raise ContractError(f"API entry {entry_id} success response {outcome_id} status must be {expected}")
         elif status < 400:
@@ -3223,16 +3223,16 @@ def _validate_api_entry_point_responses(entry_id: str, entry: dict[str, Any], op
         )
 
 
-def _validate_cli_operation_response_handlers(
+def _validate_cli_application_action_response_handlers(
     contract: dict[str, Any],
     entry_id: str,
     entry: dict[str, Any],
-    operation: dict[str, Any],
+    application_action: dict[str, Any],
 ) -> None:
-    responses = _operation_entry_point_response_handlers(entry_id, entry, operation)
+    responses = _application_action_entry_point_response_handlers(entry_id, entry, application_action)
     exit_codes: dict[int, str] = {}
     for outcome_id, response in responses.items():
-        outcome = operation["outcomes"][outcome_id]
+        outcome = application_action["outcomes"][outcome_id]
         _validate_cli_response_handler(
             contract,
             entry_id,
@@ -3244,7 +3244,7 @@ def _validate_cli_operation_response_handlers(
                 "outcome": _typed_source_paths(contract, ("result",), outcome["result"]),
             },
             delegated_entry_id=None,
-            retry_allowed=_operation_retry_safe(operation),
+            retry_allowed=_application_action_retry_safe(application_action),
             retry_error=f"CLI entry {entry_id} response handler {outcome_id} retry_policy requires a query or retry_safe target operation",
             exit_codes=exit_codes,
         )
@@ -3362,31 +3362,31 @@ def _validate_cli_response_handler(
             )
 
 
-def _operation_entry_point_responses(entry_id: str, entry: dict[str, Any], operation: dict[str, Any]) -> dict[str, Any]:
+def _application_action_entry_point_responses(entry_id: str, entry: dict[str, Any], application_action: dict[str, Any]) -> dict[str, Any]:
     responses = entry_point_responses(entry)
-    if set(responses) != set(operation["outcomes"]):
-        missing = sorted(set(operation["outcomes"]) - set(responses))
-        extra = sorted(set(responses) - set(operation["outcomes"]))
+    if set(responses) != set(application_action["outcomes"]):
+        missing = sorted(set(application_action["outcomes"]) - set(responses))
+        extra = sorted(set(responses) - set(application_action["outcomes"]))
         parts = []
         if missing:
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"Entry {entry_id} responses must exactly map operation outcomes" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"Entry {entry_id} responses must exactly map application action outcomes" + (": " + "; ".join(parts) if parts else ""))
     return responses
 
 
-def _operation_entry_point_response_handlers(entry_id: str, entry: dict[str, Any], operation: dict[str, Any]) -> dict[str, Any]:
+def _application_action_entry_point_response_handlers(entry_id: str, entry: dict[str, Any], application_action: dict[str, Any]) -> dict[str, Any]:
     handlers = entry_point_response_handlers(entry)
-    if set(handlers) != set(operation["outcomes"]):
-        missing = sorted(set(operation["outcomes"]) - set(handlers))
-        extra = sorted(set(handlers) - set(operation["outcomes"]))
+    if set(handlers) != set(application_action["outcomes"]):
+        missing = sorted(set(application_action["outcomes"]) - set(handlers))
+        extra = sorted(set(handlers) - set(application_action["outcomes"]))
         parts = []
         if missing:
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"Entry {entry_id} response_handlers must exactly map operation outcomes" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"Entry {entry_id} response_handlers must exactly map application action outcomes" + (": " + "; ".join(parts) if parts else ""))
     return handlers
 
 
@@ -3399,8 +3399,8 @@ def _entry_point_named_response_outcomes(contract: dict[str, Any], entry_id: str
     if responses:
         return set(responses)
     target_kind, target_ref = entry_target_pair(entry)
-    if target_kind == "operation":
-        return set(contract["operations"][target_ref]["outcomes"])
+    if target_kind == "application_action":
+        return set(contract["application_actions"][target_ref]["outcomes"])
     if target_kind == "workflow":
         return set(contract["workflows"][target_ref]["outcomes"])
     if target_kind == "entry_point":
@@ -3410,8 +3410,8 @@ def _entry_point_named_response_outcomes(contract: dict[str, Any], entry_id: str
 
 def _entry_point_outcome_kinds(contract: dict[str, Any], entry_id: str) -> dict[str, str]:
     target_kind, target_ref = entry_target_pair(contract["entry_points"][entry_id])
-    if target_kind == "operation":
-        return {name: outcome["kind"] for name, outcome in contract["operations"][target_ref]["outcomes"].items()}
+    if target_kind == "application_action":
+        return {name: outcome["kind"] for name, outcome in contract["application_actions"][target_ref]["outcomes"].items()}
     if target_kind == "workflow":
         return {name: outcome["kind"] for name, outcome in contract["workflows"][target_ref]["outcomes"].items()}
     if target_kind == "entry_point":
@@ -3430,8 +3430,8 @@ def _entry_point_response_body_types(contract: dict[str, Any], entry_id: str) ->
     if result:
         return result
     target_kind, target_ref = entry_target_pair(entry)
-    if target_kind == "operation":
-        return {name: outcome["result"] for name, outcome in contract["operations"][target_ref]["outcomes"].items()}
+    if target_kind == "application_action":
+        return {name: outcome["result"] for name, outcome in contract["application_actions"][target_ref]["outcomes"].items()}
     if target_kind == "workflow":
         return {name: outcome["result"] for name, outcome in contract["workflows"][target_ref]["outcomes"].items()}
     if target_kind == "entry_point":
@@ -3497,7 +3497,7 @@ def _required_entry_state_machine_context(contract: dict[str, Any], state_machin
     _add_query_context_requirements(
         contract,
         f"state machine {state_machine_id}",
-        state_machine.get("query_invocations", {}),
+        state_machine.get("data_loaders", {}),
         state_machine.get("context", {}),
         required,
     )
@@ -3505,7 +3505,7 @@ def _required_entry_state_machine_context(contract: dict[str, Any], state_machin
         _add_query_context_requirements(
             contract,
             f"state machine {state_machine_id}.{state_name}",
-            state.get("query_invocations", {}),
+            state.get("data_loaders", {}),
             state_machine.get("context", {}),
             required,
         )
@@ -3517,7 +3517,7 @@ def _required_entry_state_machine_context(contract: dict[str, Any], state_machin
                 state_machine_id,
                 mount,
                 child_state_machine,
-                child_state_machine.get("query_invocations", {}),
+                child_state_machine.get("data_loaders", {}),
                 required,
             )
             _add_mount_context_requirements(
@@ -3525,7 +3525,7 @@ def _required_entry_state_machine_context(contract: dict[str, Any], state_machin
                 state_machine_id,
                 mount,
                 child_state_machine,
-                initial_state.get("query_invocations", {}),
+                initial_state.get("data_loaders", {}),
                 required,
             )
     return required
@@ -3539,9 +3539,9 @@ def _add_query_context_requirements(
     required: dict[str, Any],
 ) -> None:
     for invocation_id, invocation in sorted((invocations or {}).items()):
-        for key in _context_roots_from_input_bindings(f"{label} query_invocation {invocation_id}", invocation.get("input_bindings") or {}):
+        for key in _context_roots_from_input_bindings(f"{label} data_loader {invocation_id}", invocation.get("input_bindings") or {}):
             if key not in context:
-                raise ContractError(f"{label} query_invocation {invocation_id} references undeclared context field: {key}")
+                raise ContractError(f"{label} data_loader {invocation_id} references undeclared context field: {key}")
             _add_required_entry_context(required, key, context[key], label)
 
 
@@ -3557,7 +3557,7 @@ def _add_mount_context_requirements(
     child_state_machine_context = state_machine.get("context", {})
     parent_state_machine_context = contract["state_machines"][state_machine_id].get("context", {})
     for invocation_id, invocation in sorted((invocations or {}).items()):
-        label = f"composed state machine {state_machine_id}.{mount['id']} query_invocation {invocation_id}"
+        label = f"composed state machine {state_machine_id}.{mount['id']} data_loader {invocation_id}"
         for child_key in _context_roots_from_input_bindings(label, invocation.get("input_bindings") or {}):
             if child_key not in child_state_machine_context:
                 raise ContractError(f"{label} references undeclared child context field: {child_key}")
@@ -3720,7 +3720,7 @@ def _failure_outcomes(cap: dict[str, Any]) -> dict[str, dict[str, Any]]:
 def _primary_success_outcome(cap: dict[str, Any]) -> tuple[str, dict[str, Any]]:
     successes = _success_outcomes(cap)
     if len(successes) != 1:
-        raise ContractError("Operation must declare exactly one success outcome")
+        raise ContractError("Application action must declare exactly one success outcome")
     return next(iter(successes.items()))
 
 
@@ -3733,8 +3733,8 @@ def _validate_workflows(contract: dict[str, Any]) -> None:
         kind, value = _one(workflow["trigger"], f"workflow {wid} trigger")
         if kind == "event" and value not in contract["events"]:
             raise ContractError(f"Workflow {wid} trigger references unknown event {value}")
-        if kind == "operation" and value not in contract["operations"]:
-            raise ContractError(f"Workflow {wid} trigger references unknown operation {value}")
+        if kind == "application_action" and value not in contract["application_actions"]:
+            raise ContractError(f"Workflow {wid} trigger references unknown application action {value}")
         _validate_workflow_outcomes(wid, workflow)
         step_ids = [step["id"] for step in workflow["steps"]]
         if len(step_ids) != len(set(step_ids)):
@@ -3743,9 +3743,9 @@ def _validate_workflows(contract: dict[str, Any]) -> None:
         source_types = _workflow_trigger_source_types(contract, wid, workflow)
         routed_outcomes: set[str] = set()
         for step in workflow["steps"]:
-            if step["operation"] not in contract["operations"]:
-                raise ContractError(f"Workflow {wid} step references unknown operation {step['operation']}")
-            operation = contract["operations"][step["operation"]]
+            if step["application_action"] not in contract["application_actions"]:
+                raise ContractError(f"Workflow {wid} step references unknown application action {step['application_action']}")
+            operation = contract["application_actions"][step["application_action"]]
             _validate_workflow_step_bindings(contract, wid, step, operation, source_types)
             routed_outcomes.update(_validate_workflow_step_routes(wid, workflow, step, operation, step_id_set))
             _merge_type_scopes(source_types, _workflow_step_source_types(contract, step, operation))
@@ -3781,7 +3781,7 @@ def _workflow_trigger_payload_type(contract: dict[str, Any], workflow_id: str, w
     kind, value = _one(workflow["trigger"], f"workflow {workflow_id} trigger")
     if kind == "event":
         return contract["events"][value]["payload_schema"]
-    return _success_result_type(contract["operations"][value])
+    return _success_result_type(contract["application_actions"][value])
 
 
 def _workflow_trigger_payload_fields(contract: dict[str, Any], workflow_id: str, workflow: dict[str, Any]) -> dict[str, Any]:
@@ -3792,9 +3792,9 @@ def _workflow_trigger_payload_fields(contract: dict[str, Any], workflow_id: str,
     return {"payload": payload_type}
 
 
-def _workflow_step_source_types(contract: dict[str, Any], step: dict[str, Any], operation: dict[str, Any]) -> TypeScopes:
+def _workflow_step_source_types(contract: dict[str, Any], step: dict[str, Any], application_action: dict[str, Any]) -> TypeScopes:
     sources: TypeScope = {}
-    for outcome_id, outcome in operation["outcomes"].items():
+    for outcome_id, outcome in application_action["outcomes"].items():
         sources.update(_typed_source_paths(contract, (step["id"], "outcomes", outcome_id, "result"), outcome["result"]))
     return {"steps": sources}
 
@@ -3825,11 +3825,11 @@ def _validate_workflow_step_bindings(
     contract: dict[str, Any],
     workflow_id: str,
     step: dict[str, Any],
-    operation: dict[str, Any],
+    application_action: dict[str, Any],
     source_types: TypeScopes,
 ) -> None:
     bindings = step["input_bindings"]
-    expected = operation["input"]
+    expected = application_action["input"]
     if set(bindings) != set(expected):
         missing = sorted(set(expected) - set(bindings))
         extra = sorted(set(bindings) - set(expected))
@@ -3838,7 +3838,7 @@ def _validate_workflow_step_bindings(
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"Workflow {workflow_id} step {step['id']} input_bindings must exactly map operation input" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"Workflow {workflow_id} step {step['id']} input_bindings must exactly map application action input" + (": " + "; ".join(parts) if parts else ""))
     for name, source in bindings.items():
         actual_type = _expression_type(
             contract,
@@ -3858,19 +3858,19 @@ def _validate_workflow_step_routes(
     workflow_id: str,
     workflow: dict[str, Any],
     step: dict[str, Any],
-    operation: dict[str, Any],
+    application_action: dict[str, Any],
     step_ids: set[str],
 ) -> set[str]:
     routes = step["outcome_routes"]
-    if set(routes) != set(operation["outcomes"]):
-        missing = sorted(set(operation["outcomes"]) - set(routes))
-        extra = sorted(set(routes) - set(operation["outcomes"]))
+    if set(routes) != set(application_action["outcomes"]):
+        missing = sorted(set(application_action["outcomes"]) - set(routes))
+        extra = sorted(set(routes) - set(application_action["outcomes"]))
         parts = []
         if missing:
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"Workflow {workflow_id} step {step['id']} outcome_routes must exactly map operation outcomes" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"Workflow {workflow_id} step {step['id']} outcome_routes must exactly map application action outcomes" + (": " + "; ".join(parts) if parts else ""))
 
     routed_outcomes: set[str] = set()
     for outcome_id, route in routes.items():
@@ -3878,7 +3878,7 @@ def _validate_workflow_step_routes(
             action, value = _workflow_route_action(route)
         except ContractError as exc:
             raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} {exc}") from exc
-        outcome = operation["outcomes"][outcome_id]
+        outcome = application_action["outcomes"][outcome_id]
         if action == "next_step":
             next_step = value
             if next_step not in step_ids:
@@ -3899,7 +3899,7 @@ def _validate_workflow_step_routes(
                     f"Workflow {workflow_id} outcome {routed_outcome_id} result must be "
                     f"{type_display(outcome['result'])} to receive step outcome {outcome_id}"
                 )
-            if outcome_id in _operation_authorization_outcomes(operation) and not _is_explicit_authorization_workflow_outcome(routed_outcome_id) and not route.get("rationale"):
+            if outcome_id in _action_authorization_outcomes(application_action) and not _is_explicit_authorization_workflow_outcome(routed_outcome_id) and not route.get("rationale"):
                 raise ContractError(
                     f"Workflow {workflow_id} step {step['id']} route {outcome_id} collapses authorization failure into {routed_outcome_id}; declare an explicit authorization outcome or add rationale"
                 )
@@ -3907,7 +3907,7 @@ def _validate_workflow_step_routes(
         if action == "retry_policy":
             if outcome["kind"] != "failure":
                 raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} retry_policy is only valid for failure outcomes")
-            if not _operation_retry_safe(operation):
+            if not _application_action_retry_safe(application_action):
                 raise ContractError(
                     f"Workflow {workflow_id} step {step['id']} route {outcome_id} retry_policy requires "
                     "a query or retry_safe target operation"
@@ -4044,12 +4044,12 @@ def _validate_test_case_when(contract: dict[str, Any], test_case_id: str, test_c
         entry_target_kind, _ = entry_target_pair(entry)
         if kind == "open_entry_point" and not (adapter_kind in {"html_route", "cli"} and entry_target_kind == "state_machine"):
             raise ContractError(f"Test case {test_case_id} open_entry_point must reference an HTML route or CLI state machine entry point")
-        if kind == "call_entry_point" and not (adapter_kind in {"http_api", "cli"} and _entry_point_effective_operation_ref(contract, ref)):
-            raise ContractError(f"Test case {test_case_id} call_entry_point must reference an HTTP API or CLI operation entry point")
+        if kind == "call_entry_point" and not (adapter_kind in {"http_api", "cli"} and _entry_point_effective_application_action_ref(contract, ref)):
+            raise ContractError(f"Test case {test_case_id} call_entry_point must reference an HTTP API or CLI application action entry point")
         _validate_test_case_entry_input(test_case_id, kind, body, entry)
-    elif kind == "invoke_operation":
-        if ref not in contract["operations"]:
-            raise ContractError(f"Test case {test_case_id} references unknown operation {ref}")
+    elif kind == "invoke_application_action":
+        if ref not in contract["application_actions"]:
+            raise ContractError(f"Test case {test_case_id} references unknown application action {ref}")
     elif kind == "emit_event":
         if ref not in contract["events"]:
             raise ContractError(f"Test case {test_case_id} references unknown event {ref}")
@@ -4108,7 +4108,7 @@ def _validate_test_case_subject(contract: dict[str, Any], test_case_id: str, tes
     collections = {
         "entry_point": "entry_points",
         "event": "events",
-        "operation": "operations",
+        "application_action": "application_actions",
         "state_machine": "state_machines",
         "workflow": "workflows",
     }
@@ -4117,15 +4117,15 @@ def _validate_test_case_subject(contract: dict[str, Any], test_case_id: str, tes
 
     when_kind, when_body = _one(test_case["when"], f"test case {test_case_id} when")
     then = test_case["then"]
-    operation_ref = _test_case_operation_ref(contract, when_kind, when_body)
+    application_action_ref = _test_case_application_action_ref(contract, when_kind, when_body)
     entry_ref = when_body["ref"] if when_kind in {"open_entry_point", "call_entry_point"} else None
     event_ref = when_body["ref"] if when_kind == "emit_event" else None
     state_machine_ref = _test_case_state_machine_ref(contract, when_kind, when_body)
 
     if subject_kind == "entry_point" and entry_ref != subject_value:
         raise ContractError(f"Test case {test_case_id} subject_ref.entry_point must match the entry point under test")
-    if subject_kind == "operation" and operation_ref != subject_value:
-        raise ContractError(f"Test case {test_case_id} subject_ref.operation must match the operation under test")
+    if subject_kind == "application_action" and application_action_ref != subject_value:
+        raise ContractError(f"Test case {test_case_id} subject_ref.application_action must match the application action under test")
     if subject_kind == "event" and event_ref != subject_value and subject_value not in (then.get("events") or {}).get("emitted", []):
         raise ContractError(f"Test case {test_case_id} subject_ref.event must match the emitted event under test")
     if subject_kind == "state_machine":
@@ -4138,20 +4138,20 @@ def _validate_test_case_subject(contract: dict[str, Any], test_case_id: str, tes
             raise ContractError(f"Test case {test_case_id} subject_ref.workflow must match then.workflow.ref")
 
 
-def _test_case_operation_ref(contract: dict[str, Any], when_kind: str, when_body: dict[str, Any]) -> str | None:
-    if when_kind == "invoke_operation":
+def _test_case_application_action_ref(contract: dict[str, Any], when_kind: str, when_body: dict[str, Any]) -> str | None:
+    if when_kind == "invoke_application_action":
         return when_body["ref"]
     if when_kind == "call_entry_point":
-        return _entry_point_effective_operation_ref(contract, when_body["ref"])
+        return _entry_point_effective_application_action_ref(contract, when_body["ref"])
     return None
 
 
-def _entry_point_effective_operation_ref(contract: dict[str, Any], entry_id: str) -> str | None:
+def _entry_point_effective_application_action_ref(contract: dict[str, Any], entry_id: str) -> str | None:
     target_kind, target_ref = entry_target_pair(contract["entry_points"][entry_id])
-    if target_kind == "operation":
+    if target_kind == "application_action":
         return target_ref
     if target_kind == "entry_point":
-        return _entry_point_effective_operation_ref(contract, target_ref)
+        return _entry_point_effective_application_action_ref(contract, target_ref)
     return None
 
 
@@ -4198,14 +4198,14 @@ def _validate_test_case_then(contract: dict[str, Any], test_case_id: str, test_c
                 raise ContractError(f"Test case {test_case_id} asserts undeclared state machine context {state_machine_id}.{key}")
     for field in ["enables", "forbids", "invoked"]:
         for cap_id in then.get(field, []):
-            if cap_id not in contract["operations"]:
-                raise ContractError(f"Test case {test_case_id} {field} unknown operation {cap_id}")
+            if cap_id not in contract["application_actions"]:
+                raise ContractError(f"Test case {test_case_id} {field} unknown application action {cap_id}")
     authorization_assertion = then.get("authorization") or {}
     for effect in ("allowed", "denied"):
         for assertion in authorization_assertion.get(effect, []):
             kind, ref = _authorization_assertion_target(assertion, f"Test case {test_case_id} authorization_policy.{effect}")
-            if kind == "operation" and ref not in contract["operations"]:
-                raise ContractError(f"Test case {test_case_id} authorization_policy.{effect} unknown operation {ref}")
+            if kind == "application_action" and ref not in contract["application_actions"]:
+                raise ContractError(f"Test case {test_case_id} authorization_policy.{effect} unknown application action {ref}")
             if kind == "entry_point" and ref not in contract["entry_points"]:
                 raise ContractError(f"Test case {test_case_id} authorization_policy.{effect} unknown entry point {ref}")
             authorization_policy = assertion.get("authorization_policy")
@@ -4253,16 +4253,16 @@ def _validate_authorization_denial_outcome(contract: dict[str, Any], test_case_i
     if not outcome_id:
         return
     when_kind, when_body = _one(test_case["when"], f"test case {test_case_id} when")
-    operation_id = _test_case_operation_ref(contract, when_kind, when_body)
-    if not operation_id:
-        raise ContractError(f"Test case {test_case_id} authorization_denial outcome requires an operation invocation")
-    authorization = contract["operations"][operation_id].get("authorization")
+    application_action_id = _test_case_application_action_ref(contract, when_kind, when_body)
+    if not application_action_id:
+        raise ContractError(f"Test case {test_case_id} authorization_denial outcome requires an action binding")
+    authorization = contract["application_actions"][application_action_id].get("authorization")
     if not authorization:
-        raise ContractError(f"Test case {test_case_id} authorization_denial outcome requires operation authorization")
+        raise ContractError(f"Test case {test_case_id} authorization_denial outcome requires application action authorization")
     mapped = {authorization["unauthenticated_as"], authorization["forbidden_as"]}
     if outcome_id not in mapped:
         raise ContractError(
-            f"Test case {test_case_id} authorization_denial outcome must be one of operation authorization failure outcomes: "
+            f"Test case {test_case_id} authorization_denial outcome must be one of application action authorization failure outcomes: "
             + ", ".join(sorted(mapped))
         )
 
@@ -4280,20 +4280,20 @@ def _validate_test_case_event_emissions(
         if when_body["ref"] in emitted:
             return
         return
-    operation_id = _test_case_operation_ref(contract, when_kind, when_body)
+    application_action_id = _test_case_application_action_ref(contract, when_kind, when_body)
     outcome_id = then.get("outcome")
-    if not operation_id or not outcome_id or outcome_id not in contract["operations"][operation_id]["outcomes"]:
+    if not application_action_id or not outcome_id or outcome_id not in contract["application_actions"][application_action_id]["outcomes"]:
         return
     possible = {
         _emit_event_id(emit)
-        for emit in contract["operations"][operation_id]["outcomes"][outcome_id].get("emits", [])
+        for emit in contract["application_actions"][application_action_id]["outcomes"][outcome_id].get("emits", [])
     }
     unexpected = sorted(emitted - possible)
     if unexpected:
-        raise ContractError(f"Test case {test_case_id} asserts events not emitted by {operation_id}.{outcome_id}: {unexpected}")
+        raise ContractError(f"Test case {test_case_id} asserts events not emitted by {application_action_id}.{outcome_id}: {unexpected}")
     contradicted = sorted(not_emitted & possible)
     if contradicted:
-        raise ContractError(f"Test case {test_case_id} asserts not_emitted events emitted by {operation_id}.{outcome_id}: {contradicted}")
+        raise ContractError(f"Test case {test_case_id} asserts not_emitted events emitted by {application_action_id}.{outcome_id}: {contradicted}")
 
 
 def _validate_test_case_invocations(contract: dict[str, Any], test_case_id: str, test_case: dict[str, Any]) -> None:
@@ -4301,16 +4301,16 @@ def _validate_test_case_invocations(contract: dict[str, Any], test_case_id: str,
     if not invoked:
         return
     when_kind, when_body = _one(test_case["when"], f"test case {test_case_id} when")
-    direct = _test_case_operation_ref(contract, when_kind, when_body)
+    direct = _test_case_application_action_ref(contract, when_kind, when_body)
     expected = {direct} if direct else set()
     if when_kind == "emit_event":
         event_id = when_body["ref"]
         for workflow in contract["workflows"].values():
             if workflow["trigger"] == {"event": event_id}:
-                expected.update(step["operation"] for step in workflow["steps"])
+                expected.update(step["application_action"] for step in workflow["steps"])
     unexpected = sorted(invoked - expected)
     if unexpected:
-        raise ContractError(f"Test case {test_case_id} asserts operation invocations unrelated to when: {unexpected}")
+        raise ContractError(f"Test case {test_case_id} asserts action bindings unrelated to when: {unexpected}")
 
 
 def _workflow_can_run_from_test_case(contract: dict[str, Any], test_case: dict[str, Any]) -> bool:
@@ -4323,8 +4323,8 @@ def _workflow_can_run_from_test_case(contract: dict[str, Any], test_case: dict[s
     trigger_kind, trigger_ref = _one(workflow["trigger"], f"workflow {workflow_id} trigger")
     if when_kind == "emit_event" and trigger_kind == "event":
         return when_body["ref"] == trigger_ref
-    operation_id = _test_case_operation_ref(contract, when_kind, when_body)
-    return trigger_kind == "operation" and operation_id == trigger_ref
+    application_action_id = _test_case_application_action_ref(contract, when_kind, when_body)
+    return trigger_kind == "application_action" and application_action_id == trigger_ref
 
 
 def _validate_test_case_outcome(contract: dict[str, Any], test_case_id: str, test_case: dict[str, Any]) -> None:
@@ -4333,19 +4333,19 @@ def _validate_test_case_outcome(contract: dict[str, Any], test_case_id: str, tes
     outcome_id = then.get("outcome")
     cap: dict[str, Any] | None = None
     entry: dict[str, Any] | None = None
-    if when_kind == "invoke_operation":
-        cap = contract["operations"][when_body["ref"]]
+    if when_kind == "invoke_application_action":
+        cap = contract["application_actions"][when_body["ref"]]
     elif when_kind == "call_entry_point":
         entry = contract["entry_points"][when_body["ref"]]
-        target_ref = _entry_point_effective_operation_ref(contract, when_body["ref"])
+        target_ref = _entry_point_effective_application_action_ref(contract, when_body["ref"])
         if target_ref:
-            cap = contract["operations"][target_ref]
+            cap = contract["application_actions"][target_ref]
     if cap is None:
         if outcome_id:
-            raise ContractError(f"Test case {test_case_id} asserts outcome but does not execute an operation")
+            raise ContractError(f"Test case {test_case_id} asserts outcome but does not execute an application action")
         return
     if not outcome_id:
-        raise ContractError(f"Test case {test_case_id} must assert an operation outcome")
+        raise ContractError(f"Test case {test_case_id} must assert an application action outcome")
     if outcome_id not in cap["outcomes"]:
         raise ContractError(f"Test case {test_case_id} asserts unknown outcome {outcome_id}")
     if entry is None:
@@ -4388,9 +4388,9 @@ def _validate_test_case_archetype(test_case_id: str, test_case: dict[str, Any]) 
         state_machine_assert = then.get("state_machine", {})
         if when_kind != "open_entry_point" or not state_machine_assert.get("instances"):
             raise ContractError(f"Test case {test_case_id} state_machine_composition requires open_entry_point and state_machine.instances")
-    elif archetype == "operation_outcome":
-        if when_kind != "invoke_operation" or "outcome" not in then:
-            raise ContractError(f"Test case {test_case_id} operation_outcome requires invoke_operation and outcome")
+    elif archetype == "action_outcome":
+        if when_kind != "invoke_application_action" or "outcome" not in then:
+            raise ContractError(f"Test case {test_case_id} action_outcome requires invoke_application_action and outcome")
     elif archetype == "entry_point_response":
         if when_kind != "call_entry_point" or "outcome" not in then or "response" not in then:
             raise ContractError(f"Test case {test_case_id} entry_point_response requires call_entry_point, outcome, and response")
@@ -4475,30 +4475,30 @@ def _expand_test_cases(contract: dict[str, Any]) -> None:
                 parent_state = parent_state_machine["view_states"][state_name]
                 mounts = {mount["id"]: mount for mount in parent_state.get("child_state_machines", [])}
                 required = {
-                    "query_invocations": list(parent_state_machine.get("query_invocations", {})),
+                    "data_loaders": list(parent_state_machine.get("data_loaders", {})),
                     "surfaces": [],
                     "text": [],
                     "assets": [],
-                    "operation_invocations": [],
+                    "action_bindings": [],
                 }
                 state_machine_assertion["surface"] = parent_state["surface"]
                 required["surfaces"].append(parent_state["surface"])
-                required["query_invocations"].extend(parent_state.get("query_invocations", {}))
+                required["data_loaders"].extend(parent_state.get("data_loaders", {}))
                 required["text"].extend(parent_state["text"])
                 required["assets"].extend(parent_state["assets"])
-                required["operation_invocations"].extend(parent_state["operation_invocations"])
+                required["action_bindings"].extend(parent_state["action_bindings"])
                 for instance_id, expected in state_machine_assertion["instances"].items():
                     mount = mounts[instance_id]
                     mounted_state_machine = contract["state_machines"][mount["state_machine"]]
                     mounted_state = mounted_state_machine["view_states"][expected["view_state"]]
                     expected["surface"] = mounted_state["surface"]
                     expected["source"] = mount["state_machine"]
-                    required["query_invocations"].extend(mounted_state_machine.get("query_invocations", {}))
-                    required["query_invocations"].extend(mounted_state.get("query_invocations", {}))
+                    required["data_loaders"].extend(mounted_state_machine.get("data_loaders", {}))
+                    required["data_loaders"].extend(mounted_state.get("data_loaders", {}))
                     required["surfaces"].append(mounted_state["surface"])
                     required["text"].extend(mounted_state["text"])
                     required["assets"].extend(mounted_state["assets"])
-                    required["operation_invocations"].extend(mounted_state["operation_invocations"])
+                    required["action_bindings"].extend(mounted_state["action_bindings"])
                 state_machine_assertion["composition"] = {
                     "renderers": parent_state.get("renderers", {}),
                     "child_state_machines": parent_state.get("child_state_machines", []),
@@ -4510,20 +4510,20 @@ def _expand_test_cases(contract: dict[str, Any]) -> None:
                 state = state_machine["view_states"][state_name]
                 state_machine_assertion["surface"] = state["surface"]
                 assertions["requires"] = {
-                    "query_invocations": list(state_machine.get("query_invocations", {})) + list(state.get("query_invocations", {})),
+                    "data_loaders": list(state_machine.get("data_loaders", {})) + list(state.get("data_loaders", {})),
                     "surfaces": [state["surface"]],
                     "text": list(state["text"]),
                     "assets": list(state["assets"]),
-                    "operation_invocations": list(state["operation_invocations"]),
+                    "action_bindings": list(state["action_bindings"]),
                 }
         when_kind, when_body = _one(test_case["when"], "test case when")
         cap_id = None
-        if when_kind == "invoke_operation":
+        if when_kind == "invoke_application_action":
             cap_id = when_body["ref"]
         elif when_kind == "call_entry_point":
-            cap_id = _entry_point_effective_operation_ref(contract, when_body["ref"])
+            cap_id = _entry_point_effective_application_action_ref(contract, when_body["ref"])
         if cap_id:
-            assertions.setdefault("authorization", {"allowed": [{"operation": cap_id}]})
+            assertions.setdefault("authorization", {"allowed": [{"application_action": cap_id}]})
         _expand_authorization_assertions(contract, assertions)
 
 
@@ -4536,8 +4536,8 @@ def _expand_authorization_assertions(contract: dict[str, Any], assertions: dict[
             if "authorization_policy" in assertion:
                 continue
             kind, ref = _authorization_assertion_target(assertion, f"authorization_policy.{effect}")
-            if kind == "operation":
-                authorization = contract["operations"][ref].get("authorization")
+            if kind == "application_action":
+                authorization = contract["application_actions"][ref].get("authorization")
                 if authorization:
                     assertion["authorization_policy"] = authorization["policy"]
             elif kind == "entry_point":

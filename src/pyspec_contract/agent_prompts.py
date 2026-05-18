@@ -153,7 +153,7 @@ class _PromptContext:
             return "No compiled spec was supplied. Use the active layers as the complete starting context."
         sections = [
             ("models", self.contract.get("models") or {}),
-            ("operations", self.contract.get("operations") or {}),
+            ("application_actions", self.contract.get("application_actions") or {}),
             ("entry_points", self.contract.get("entry_points") or {}),
             ("workflows", self.contract.get("workflows") or {}),
             ("state_machines", self.contract.get("state_machines") or {}),
@@ -178,10 +178,10 @@ def _pm_design_prompt(context: _PromptContext) -> str:
         f"After authoring, run `pyspec compile . --layers {context.layer_arg}` and `pyspec validate . --layers {context.layer_arg}`.",
         "",
         "Authoring scope:",
-        "- Core: fixtures, facts, models, operations, and product test cases.",
+        "- Core: fixtures, facts, models, application_actions, and product test cases.",
     ]
     if "http" in context.layers:
-        lines.append("- HTTP: HTTP entry points that bind operations to externally visible API operations.")
+        lines.append("- HTTP: HTTP entry points that bind application_actions to externally visible API application_actions.")
     else:
         lines.append("- Do not author HTTP/API entry points or OpenAPI details; the HTTP layer is inactive.")
     if "events" in context.layers:
@@ -286,7 +286,7 @@ def _review_prompt(context: _PromptContext) -> str:
         "",
         "Dev audit:",
         "- Check whether implementation consumes generated projections/constants and implements the declared contract without inventing contract surface.",
-        "- Reject invented routes, text resources, selectors, events, workflows, authorization_policies, operations, fixtures, test-case IDs, persistence contracts, or content source signatures outside the spec.",
+        "- Reject invented routes, text resources, selectors, events, workflows, authorization_policies, application_actions, fixtures, test-case IDs, persistence contracts, or content source signatures outside the spec.",
         "- For every dev issue, provide a recommended prompt for `dev.md` that asks for the smallest implementation fix.",
         "",
         "Evidence checks:",
@@ -319,7 +319,7 @@ def _dev_prompt(context: _PromptContext) -> str:
         context.compiled_summary(),
         "",
         "Do not change `spec/spec.yaml` to fix implementation failures unless the user explicitly switches you into PM/design work.",
-        "Use generated constants and projections; do not invent routes, strings, state machine surfaces, CSS selectors, Textual widgets, Textual style rules, events, workflows, authorization_policies, operations, fixtures, test-case IDs, storage tables, or migrations outside the spec and implementation layer.",
+        "Use generated constants and projections; do not invent routes, strings, state machine surfaces, CSS selectors, Textual widgets, Textual style rules, events, workflows, authorization_policies, application_actions, fixtures, test-case IDs, storage tables, or migrations outside the spec and implementation layer.",
         "",
         "Generated interfaces to consume:",
         "- `spec/generated/behavior/test_cases.yaml` and `spec/generated/behavior/fixtures.yaml`",

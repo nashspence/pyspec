@@ -1,3 +1,312 @@
+application_actions:
+  application_action.project.approve:
+    action_kind: transition
+    authorization:
+      forbidden_as: forbidden
+      policy: authorization_policy.project.reviewer
+      unauthenticated_as: unauthenticated
+    creates: []
+    deletes: []
+    input:
+      approved_by:
+        primitive: ID
+      project_id:
+        primitive: ID
+    outcomes:
+      approved:
+        emits:
+        - event: event.project.approved
+          payload_bindings:
+            approved_by:
+              from: $input.approved_by
+            project_id:
+              from: $input.project_id
+        kind: success
+        result:
+          model: Project
+      forbidden:
+        emits: []
+        kind: failure
+        result:
+          model: Problem
+      invalid_state:
+        emits: []
+        kind: failure
+        result:
+          model: Problem
+      not_found:
+        emits: []
+        kind: failure
+        result:
+          model: Problem
+      unauthenticated:
+        emits: []
+        kind: failure
+        result:
+          model: Problem
+      unavailable:
+        emits: []
+        kind: failure
+        result:
+          model: Problem
+    rationale: Reviewers can approve submitted dispatch projects.
+    reads: []
+    retry_safe: true
+    transition:
+      field: status
+      from: submitted
+      model: Project
+      to: approved
+    updates: []
+  application_action.project.archive:
+    action_kind: transition
+    authorization:
+      forbidden_as: forbidden
+      policy: authorization_policy.project.reviewer
+      unauthenticated_as: unauthenticated
+    creates: []
+    deletes: []
+    input:
+      project_id:
+        primitive: ID
+    outcomes:
+      archived:
+        emits:
+        - event: event.project.archived
+          payload_source: $outcome.result
+        kind: success
+        result:
+          model: Project
+      forbidden:
+        emits: []
+        kind: failure
+        result:
+          model: Problem
+      invalid_state:
+        emits: []
+        kind: failure
+        result:
+          model: Problem
+      not_found:
+        emits: []
+        kind: failure
+        result:
+          model: Problem
+      unauthenticated:
+        emits: []
+        kind: failure
+        result:
+          model: Problem
+    rationale: Approved dispatch projects can be archived.
+    reads: []
+    transition:
+      field: status
+      from: approved
+      model: Project
+      to: archived
+    updates: []
+  application_action.project.create:
+    action_kind: command
+    authorization:
+      forbidden_as: forbidden
+      policy: authorization_policy.project.member
+      unauthenticated_as: unauthenticated
+    creates:
+    - Project
+    deletes: []
+    input:
+      customer:
+        primitive: Text
+      priority:
+        primitive: Text
+      title:
+        primitive: Text
+      workspace_id:
+        primitive: ID
+    outcomes:
+      created:
+        emits:
+        - event: event.project.created
+          payload_source: $outcome.result
+        kind: success
+        result:
+          model: Project
+      forbidden:
+        emits: []
+        kind: failure
+        result:
+          model: Problem
+      unauthenticated:
+        emits: []
+        kind: failure
+        result:
+          model: Problem
+      validation_failed:
+        emits: []
+        kind: failure
+        result:
+          model: Problem
+    rationale: Members can create a new dispatch project.
+    reads: []
+    updates: []
+  application_action.project.list:
+    action_kind: query
+    authorization:
+      forbidden_as: forbidden
+      policy: authorization_policy.project.member
+      unauthenticated_as: unauthenticated
+    creates: []
+    deletes: []
+    input:
+      workspace_id:
+        primitive: ID
+    outcomes:
+      forbidden:
+        emits: []
+        kind: failure
+        result:
+          model: Problem
+      listed:
+        emits: []
+        kind: success
+        result:
+          array:
+            model: Project
+      unauthenticated:
+        emits: []
+        kind: failure
+        result:
+          model: Problem
+      unavailable:
+        emits: []
+        kind: failure
+        result:
+          model: Problem
+    rationale: The board requires a project list query scoped by workspace.
+    reads:
+    - Project
+    updates: []
+  application_action.project.read:
+    action_kind: query
+    authorization:
+      forbidden_as: forbidden
+      policy: authorization_policy.project.member
+      unauthenticated_as: unauthenticated
+    creates: []
+    deletes: []
+    input:
+      project_id:
+        primitive: ID
+    outcomes:
+      forbidden:
+        emits: []
+        kind: failure
+        result:
+          model: Problem
+      found:
+        emits: []
+        kind: success
+        result:
+          model: Project
+      not_found:
+        emits: []
+        kind: failure
+        result:
+          model: Problem
+      unauthenticated:
+        emits: []
+        kind: failure
+        result:
+          model: Problem
+    rationale: The detail state machine loads the selected project by id.
+    reads:
+    - Project
+    updates: []
+  application_action.project.send_approval_notice:
+    action_kind: command
+    authorization:
+      forbidden_as: forbidden
+      policy: authorization_policy.project.reviewer
+      unauthenticated_as: unauthenticated
+    creates: []
+    deletes: []
+    input:
+      approved_by:
+        primitive: ID
+      project_id:
+        primitive: ID
+    outcomes:
+      delivery_failed:
+        emits: []
+        kind: failure
+        result:
+          model: Problem
+      forbidden:
+        emits: []
+        kind: failure
+        result:
+          model: Problem
+      sent:
+        emits: []
+        kind: success
+        result:
+          data_contract: data_contract.project.notice_result
+      unauthenticated:
+        emits: []
+        kind: failure
+        result:
+          model: Problem
+    rationale: Approval triggers a notification command for downstream coordination.
+    reads: []
+    retry_safe: true
+    updates: []
+  application_action.project.submit:
+    action_kind: transition
+    authorization:
+      forbidden_as: forbidden
+      policy: authorization_policy.project.member
+      unauthenticated_as: unauthenticated
+    creates: []
+    deletes: []
+    input:
+      project_id:
+        primitive: ID
+    outcomes:
+      forbidden:
+        emits: []
+        kind: failure
+        result:
+          model: Problem
+      invalid_state:
+        emits: []
+        kind: failure
+        result:
+          model: Problem
+      not_found:
+        emits: []
+        kind: failure
+        result:
+          model: Problem
+      submitted:
+        emits:
+        - event: event.project.submitted
+          payload_source: $outcome.result
+        kind: success
+        result:
+          model: Project
+      unauthenticated:
+        emits: []
+        kind: failure
+        result:
+          model: Problem
+    rationale: Draft dispatch projects can be submitted for review.
+    reads: []
+    transition:
+      field: status
+      from: draft
+      model: Project
+      to: submitted
+    updates: []
 assets:
   asset.project.detail.ready.priority_badge:
     args:
@@ -29,10 +338,10 @@ authorization_policies:
     subjects:
     - kind: actor
     targets:
-    - operation: operation.project.create
-    - operation: operation.project.list
-    - operation: operation.project.read
-    - operation: operation.project.submit
+    - application_action: application_action.project.create
+    - application_action: application_action.project.list
+    - application_action: application_action.project.read
+    - application_action: application_action.project.submit
     - model: Project
   authorization_policy.project.reviewer:
     conditions:
@@ -42,9 +351,9 @@ authorization_policies:
     subjects:
     - kind: actor
     targets:
-    - operation: operation.project.approve
-    - operation: operation.project.archive
-    - operation: operation.project.send_approval_notice
+    - application_action: application_action.project.approve
+    - application_action: application_action.project.archive
+    - application_action: application_action.project.send_approval_notice
     - model: Project
 content_cases:
   content_case.project.detail.heading.high_priority:
@@ -143,13 +452,13 @@ entry_points:
     rationale: HTTP endpoint for approving submitted dispatch projects.
     retry_safe: true
     target:
-      operation:
+      application_action:
         input_bindings:
           approved_by:
             from: $input.body.approved_by
           project_id:
             from: $input.path_params.project_id
-        ref: operation.project.approve
+        ref: application_action.project.approve
   entry_point.api.project.create:
     adapter:
       http_api:
@@ -195,7 +504,7 @@ entry_points:
     endpoint: endpoint.project.create
     rationale: HTTP endpoint for creating a dispatch project.
     target:
-      operation:
+      application_action:
         input_bindings:
           customer:
             from: $input.body.customer
@@ -205,7 +514,7 @@ entry_points:
             from: $input.body.title
           workspace_id:
             from: $input.path_params.workspace_id
-        ref: operation.project.create
+        ref: application_action.project.create
   entry_point.api.project.list:
     adapter:
       http_api:
@@ -245,11 +554,11 @@ entry_points:
     endpoint: endpoint.project.list
     rationale: HTTP endpoint for listing dispatch projects.
     target:
-      operation:
+      application_action:
         input_bindings:
           workspace_id:
             from: $input.path_params.workspace_id
-        ref: operation.project.list
+        ref: application_action.project.list
   entry_point.cli.project.approve:
     adapter:
       cli:
@@ -375,25 +684,25 @@ entry_points:
 events:
   event.project.approved:
     emitted_by:
-    - operation.project.approve
+    - application_action.project.approve
     payload_schema:
       data_contract: data_contract.project.approved
     rationale: Approval events carry the reviewer and project identity needed by notification workflows.
   event.project.archived:
     emitted_by:
-    - operation.project.archive
+    - application_action.project.archive
     payload_schema:
       model: Project
     rationale: Approved dispatch projects can be archived.
   event.project.created:
     emitted_by:
-    - operation.project.create
+    - application_action.project.create
     payload_schema:
       model: Project
     rationale: Members can create a new dispatch project.
   event.project.submitted:
     emitted_by:
-    - operation.project.submit
+    - application_action.project.submit
     payload_schema:
       model: Project
     rationale: Draft dispatch projects can be submitted for review.
@@ -551,325 +860,47 @@ models:
       transitions:
       - from: draft
         to: submitted
-        triggered_by: operation.project.submit
+        triggered_by: application_action.project.submit
       - from: submitted
         to: approved
-        triggered_by: operation.project.approve
+        triggered_by: application_action.project.approve
       - from: approved
         to: archived
-        triggered_by: operation.project.archive
+        triggered_by: application_action.project.archive
     rationale: A dispatch project is the durable work item displayed and acted on by the board.
-operations:
-  operation.project.approve:
-    authorization:
-      forbidden_as: forbidden
-      policy: authorization_policy.project.reviewer
-      unauthenticated_as: unauthenticated
-    creates: []
-    deletes: []
-    input:
-      approved_by:
-        primitive: ID
-      project_id:
-        primitive: ID
-    operation_kind: transition
-    outcomes:
-      approved:
-        emits:
-        - event: event.project.approved
-          payload_bindings:
-            approved_by:
-              from: $input.approved_by
-            project_id:
-              from: $input.project_id
-        kind: success
-        result:
-          model: Project
-      forbidden:
-        emits: []
-        kind: failure
-        result:
-          model: Problem
-      invalid_state:
-        emits: []
-        kind: failure
-        result:
-          model: Problem
-      not_found:
-        emits: []
-        kind: failure
-        result:
-          model: Problem
-      unauthenticated:
-        emits: []
-        kind: failure
-        result:
-          model: Problem
-      unavailable:
-        emits: []
-        kind: failure
-        result:
-          model: Problem
-    rationale: Reviewers can approve submitted dispatch projects.
-    reads: []
-    retry_safe: true
-    transition:
-      field: status
-      from: submitted
-      model: Project
-      to: approved
-    updates: []
-  operation.project.archive:
-    authorization:
-      forbidden_as: forbidden
-      policy: authorization_policy.project.reviewer
-      unauthenticated_as: unauthenticated
-    creates: []
-    deletes: []
-    input:
-      project_id:
-        primitive: ID
-    operation_kind: transition
-    outcomes:
-      archived:
-        emits:
-        - event: event.project.archived
-          payload_source: $outcome.result
-        kind: success
-        result:
-          model: Project
-      forbidden:
-        emits: []
-        kind: failure
-        result:
-          model: Problem
-      invalid_state:
-        emits: []
-        kind: failure
-        result:
-          model: Problem
-      not_found:
-        emits: []
-        kind: failure
-        result:
-          model: Problem
-      unauthenticated:
-        emits: []
-        kind: failure
-        result:
-          model: Problem
-    rationale: Approved dispatch projects can be archived.
-    reads: []
-    transition:
-      field: status
-      from: approved
-      model: Project
-      to: archived
-    updates: []
-  operation.project.create:
-    authorization:
-      forbidden_as: forbidden
-      policy: authorization_policy.project.member
-      unauthenticated_as: unauthenticated
-    creates:
-    - Project
-    deletes: []
-    input:
-      customer:
-        primitive: Text
-      priority:
-        primitive: Text
-      title:
-        primitive: Text
-      workspace_id:
-        primitive: ID
-    operation_kind: command
-    outcomes:
-      created:
-        emits:
-        - event: event.project.created
-          payload_source: $outcome.result
-        kind: success
-        result:
-          model: Project
-      forbidden:
-        emits: []
-        kind: failure
-        result:
-          model: Problem
-      unauthenticated:
-        emits: []
-        kind: failure
-        result:
-          model: Problem
-      validation_failed:
-        emits: []
-        kind: failure
-        result:
-          model: Problem
-    rationale: Members can create a new dispatch project.
-    reads: []
-    updates: []
-  operation.project.list:
-    authorization:
-      forbidden_as: forbidden
-      policy: authorization_policy.project.member
-      unauthenticated_as: unauthenticated
-    creates: []
-    deletes: []
-    input:
-      workspace_id:
-        primitive: ID
-    operation_kind: query
-    outcomes:
-      forbidden:
-        emits: []
-        kind: failure
-        result:
-          model: Problem
-      listed:
-        emits: []
-        kind: success
-        result:
-          array:
-            model: Project
-      unauthenticated:
-        emits: []
-        kind: failure
-        result:
-          model: Problem
-      unavailable:
-        emits: []
-        kind: failure
-        result:
-          model: Problem
-    rationale: The board requires a project list query scoped by workspace.
-    reads:
-    - Project
-    updates: []
-  operation.project.read:
-    authorization:
-      forbidden_as: forbidden
-      policy: authorization_policy.project.member
-      unauthenticated_as: unauthenticated
-    creates: []
-    deletes: []
-    input:
-      project_id:
-        primitive: ID
-    operation_kind: query
-    outcomes:
-      forbidden:
-        emits: []
-        kind: failure
-        result:
-          model: Problem
-      found:
-        emits: []
-        kind: success
-        result:
-          model: Project
-      not_found:
-        emits: []
-        kind: failure
-        result:
-          model: Problem
-      unauthenticated:
-        emits: []
-        kind: failure
-        result:
-          model: Problem
-    rationale: The detail state machine loads the selected project by id.
-    reads:
-    - Project
-    updates: []
-  operation.project.send_approval_notice:
-    authorization:
-      forbidden_as: forbidden
-      policy: authorization_policy.project.reviewer
-      unauthenticated_as: unauthenticated
-    creates: []
-    deletes: []
-    input:
-      approved_by:
-        primitive: ID
-      project_id:
-        primitive: ID
-    operation_kind: command
-    outcomes:
-      delivery_failed:
-        emits: []
-        kind: failure
-        result:
-          model: Problem
-      forbidden:
-        emits: []
-        kind: failure
-        result:
-          model: Problem
-      sent:
-        emits: []
-        kind: success
-        result:
-          data_contract: data_contract.project.notice_result
-      unauthenticated:
-        emits: []
-        kind: failure
-        result:
-          model: Problem
-    rationale: Approval triggers a notification command for downstream coordination.
-    reads: []
-    retry_safe: true
-    updates: []
-  operation.project.submit:
-    authorization:
-      forbidden_as: forbidden
-      policy: authorization_policy.project.member
-      unauthenticated_as: unauthenticated
-    creates: []
-    deletes: []
-    input:
-      project_id:
-        primitive: ID
-    operation_kind: transition
-    outcomes:
-      forbidden:
-        emits: []
-        kind: failure
-        result:
-          model: Problem
-      invalid_state:
-        emits: []
-        kind: failure
-        result:
-          model: Problem
-      not_found:
-        emits: []
-        kind: failure
-        result:
-          model: Problem
-      submitted:
-        emits:
-        - event: event.project.submitted
-          payload_source: $outcome.result
-        kind: success
-        result:
-          model: Project
-      unauthenticated:
-        emits: []
-        kind: failure
-        result:
-          model: Problem
-    rationale: Draft dispatch projects can be submitted for review.
-    reads: []
-    transition:
-      field: status
-      from: draft
-      model: Project
-      to: submitted
-    updates: []
 project: project_dispatch_board
 refs:
+  action_binding:
+  - action_binding.project.detail.ready.approve
+  - action_binding.project.detail.ready.archive
+  - action_binding.project.list.empty.create
+  - action_binding.project.list.ready.create
+  - action_binding.project.list.ready.submit
+  action_outcome_route:
+  - action_outcome_route.project.detail.ready.approve.approved
+  - action_outcome_route.project.detail.ready.approve.forbidden
+  - action_outcome_route.project.detail.ready.approve.invalid_state
+  - action_outcome_route.project.detail.ready.approve.not_found
+  - action_outcome_route.project.detail.ready.approve.unauthenticated
+  - action_outcome_route.project.detail.ready.approve.unavailable
+  - action_outcome_route.project.detail.ready.archive.archived
+  - action_outcome_route.project.detail.ready.archive.forbidden
+  - action_outcome_route.project.detail.ready.archive.invalid_state
+  - action_outcome_route.project.detail.ready.archive.not_found
+  - action_outcome_route.project.detail.ready.archive.unauthenticated
+  - action_outcome_route.project.list.empty.create.created
+  - action_outcome_route.project.list.empty.create.forbidden
+  - action_outcome_route.project.list.empty.create.unauthenticated
+  - action_outcome_route.project.list.empty.create.validation_failed
+  - action_outcome_route.project.list.ready.create.created
+  - action_outcome_route.project.list.ready.create.forbidden
+  - action_outcome_route.project.list.ready.create.unauthenticated
+  - action_outcome_route.project.list.ready.create.validation_failed
+  - action_outcome_route.project.list.ready.submit.forbidden
+  - action_outcome_route.project.list.ready.submit.invalid_state
+  - action_outcome_route.project.list.ready.submit.not_found
+  - action_outcome_route.project.list.ready.submit.submitted
+  - action_outcome_route.project.list.ready.submit.unauthenticated
   asset:
   - asset.project.detail.ready.priority_badge
   - asset.project.list.empty.illustration
@@ -886,6 +917,33 @@ refs:
   - cli_response_handler.cli.project.approve.not_found
   - cli_response_handler.cli.project.approve.unauthenticated
   - cli_response_handler.cli.project.approve.unavailable
+  data_loader:
+  - data_loader.project.activity.ready.read_activity
+  - data_loader.project.board.list_board
+  - data_loader.project.detail.loading.read_project
+  - data_loader.project.detail.ready.read_project
+  - data_loader.project.list.list_projects
+  data_loader_outcome_route:
+  - data_loader_outcome_route.project.activity.ready.read_activity.forbidden
+  - data_loader_outcome_route.project.activity.ready.read_activity.found
+  - data_loader_outcome_route.project.activity.ready.read_activity.not_found
+  - data_loader_outcome_route.project.activity.ready.read_activity.unauthenticated
+  - data_loader_outcome_route.project.board.list_board.forbidden
+  - data_loader_outcome_route.project.board.list_board.listed
+  - data_loader_outcome_route.project.board.list_board.unauthenticated
+  - data_loader_outcome_route.project.board.list_board.unavailable
+  - data_loader_outcome_route.project.detail.loading.read_project.forbidden
+  - data_loader_outcome_route.project.detail.loading.read_project.found
+  - data_loader_outcome_route.project.detail.loading.read_project.not_found
+  - data_loader_outcome_route.project.detail.loading.read_project.unauthenticated
+  - data_loader_outcome_route.project.detail.ready.read_project.forbidden
+  - data_loader_outcome_route.project.detail.ready.read_project.found
+  - data_loader_outcome_route.project.detail.ready.read_project.not_found
+  - data_loader_outcome_route.project.detail.ready.read_project.unauthenticated
+  - data_loader_outcome_route.project.list.list_projects.forbidden
+  - data_loader_outcome_route.project.list.list_projects.listed
+  - data_loader_outcome_route.project.list.list_projects.unauthenticated
+  - data_loader_outcome_route.project.list.list_projects.unavailable
   endpoint:
   - endpoint.project.approve
   - endpoint.project.create
@@ -893,99 +951,41 @@ refs:
   entry_point_delegate:
   - entry_point_delegate.cli.project.approve.to.api.project.approve
   entry_point_target:
-  - entry_point_target.api.project.approve.operation.project.approve
-  - entry_point_target.api.project.create.operation.project.create
-  - entry_point_target.api.project.list.operation.project.list
+  - entry_point_target.api.project.approve.application_action.project.approve
+  - entry_point_target.api.project.create.application_action.project.create
+  - entry_point_target.api.project.list.application_action.project.list
   - entry_point_target.cli.project.approve.entry_point.api.project.approve
   - entry_point_target.cli.project.board.state_machine.project.board
   - entry_point_target.html.project.board.state_machine.project.board
   - entry_point_target.worker.project.approval_notice.workflow.project.approval_notice
   local_signal_raise:
-  - local_signal_raise.project.detail.loading.query_invocation.read_project.forbidden.data_signal.project_load_failed
-  - local_signal_raise.project.detail.loading.query_invocation.read_project.found.data_signal.project_loaded
-  - local_signal_raise.project.detail.loading.query_invocation.read_project.not_found.data_signal.project_load_failed
-  - local_signal_raise.project.detail.loading.query_invocation.read_project.unauthenticated.data_signal.project_load_failed
-  - local_signal_raise.project.detail.ready.operation_invocation.approve.approved.data_signal.project_changed
-  - local_signal_raise.project.detail.ready.operation_invocation.approve.invalid_state.message.show_invalid_state
-  - local_signal_raise.project.detail.ready.operation_invocation.archive.archived.data_signal.project_changed
-  - local_signal_raise.project.detail.ready.operation_invocation.archive.forbidden.message.show_invalid_state
-  - local_signal_raise.project.detail.ready.operation_invocation.archive.invalid_state.message.show_invalid_state
-  - local_signal_raise.project.detail.ready.operation_invocation.archive.not_found.message.show_invalid_state
-  - local_signal_raise.project.detail.ready.operation_invocation.archive.unauthenticated.message.show_invalid_state
-  - local_signal_raise.project.detail.ready.query_invocation.read_project.forbidden.message.show_invalid_state
-  - local_signal_raise.project.detail.ready.query_invocation.read_project.not_found.message.show_invalid_state
-  - local_signal_raise.project.detail.ready.query_invocation.read_project.unauthenticated.message.show_invalid_state
-  - local_signal_raise.project.list.empty.operation_invocation.create.created.data_signal.projects_changed
-  - local_signal_raise.project.list.empty.operation_invocation.create.validation_failed.message.show_invalid_state
-  - local_signal_raise.project.list.query_invocation.list_projects.forbidden.data_signal.project_list_failed
-  - local_signal_raise.project.list.query_invocation.list_projects.listed.data_signal.project_collection_empty
-  - local_signal_raise.project.list.query_invocation.list_projects.listed.data_signal.projects_loaded
-  - local_signal_raise.project.list.query_invocation.list_projects.unauthenticated.data_signal.project_list_failed
-  - local_signal_raise.project.list.query_invocation.list_projects.unavailable.data_signal.project_list_failed
-  - local_signal_raise.project.list.ready.operation_invocation.create.created.data_signal.projects_changed
-  - local_signal_raise.project.list.ready.operation_invocation.submit.forbidden.message.show_invalid_state
-  - local_signal_raise.project.list.ready.operation_invocation.submit.invalid_state.message.show_invalid_state
-  - local_signal_raise.project.list.ready.operation_invocation.submit.not_found.message.show_invalid_state
-  - local_signal_raise.project.list.ready.operation_invocation.submit.submitted.data_signal.projects_changed
-  - local_signal_raise.project.list.ready.operation_invocation.submit.unauthenticated.message.show_invalid_state
-  operation_invocation:
-  - operation_invocation.project.detail.ready.approve
-  - operation_invocation.project.detail.ready.archive
-  - operation_invocation.project.list.empty.create
-  - operation_invocation.project.list.ready.create
-  - operation_invocation.project.list.ready.submit
-  operation_outcome_route:
-  - operation_outcome_route.project.detail.ready.approve.approved
-  - operation_outcome_route.project.detail.ready.approve.forbidden
-  - operation_outcome_route.project.detail.ready.approve.invalid_state
-  - operation_outcome_route.project.detail.ready.approve.not_found
-  - operation_outcome_route.project.detail.ready.approve.unauthenticated
-  - operation_outcome_route.project.detail.ready.approve.unavailable
-  - operation_outcome_route.project.detail.ready.archive.archived
-  - operation_outcome_route.project.detail.ready.archive.forbidden
-  - operation_outcome_route.project.detail.ready.archive.invalid_state
-  - operation_outcome_route.project.detail.ready.archive.not_found
-  - operation_outcome_route.project.detail.ready.archive.unauthenticated
-  - operation_outcome_route.project.list.empty.create.created
-  - operation_outcome_route.project.list.empty.create.forbidden
-  - operation_outcome_route.project.list.empty.create.unauthenticated
-  - operation_outcome_route.project.list.empty.create.validation_failed
-  - operation_outcome_route.project.list.ready.create.created
-  - operation_outcome_route.project.list.ready.create.forbidden
-  - operation_outcome_route.project.list.ready.create.unauthenticated
-  - operation_outcome_route.project.list.ready.create.validation_failed
-  - operation_outcome_route.project.list.ready.submit.forbidden
-  - operation_outcome_route.project.list.ready.submit.invalid_state
-  - operation_outcome_route.project.list.ready.submit.not_found
-  - operation_outcome_route.project.list.ready.submit.submitted
-  - operation_outcome_route.project.list.ready.submit.unauthenticated
-  query_invocation:
-  - query_invocation.project.activity.ready.read_activity
-  - query_invocation.project.board.list_board
-  - query_invocation.project.detail.loading.read_project
-  - query_invocation.project.detail.ready.read_project
-  - query_invocation.project.list.list_projects
-  query_outcome_route:
-  - query_outcome_route.project.activity.ready.read_activity.forbidden
-  - query_outcome_route.project.activity.ready.read_activity.found
-  - query_outcome_route.project.activity.ready.read_activity.not_found
-  - query_outcome_route.project.activity.ready.read_activity.unauthenticated
-  - query_outcome_route.project.board.list_board.forbidden
-  - query_outcome_route.project.board.list_board.listed
-  - query_outcome_route.project.board.list_board.unauthenticated
-  - query_outcome_route.project.board.list_board.unavailable
-  - query_outcome_route.project.detail.loading.read_project.forbidden
-  - query_outcome_route.project.detail.loading.read_project.found
-  - query_outcome_route.project.detail.loading.read_project.not_found
-  - query_outcome_route.project.detail.loading.read_project.unauthenticated
-  - query_outcome_route.project.detail.ready.read_project.forbidden
-  - query_outcome_route.project.detail.ready.read_project.found
-  - query_outcome_route.project.detail.ready.read_project.not_found
-  - query_outcome_route.project.detail.ready.read_project.unauthenticated
-  - query_outcome_route.project.list.list_projects.forbidden
-  - query_outcome_route.project.list.list_projects.listed
-  - query_outcome_route.project.list.list_projects.unauthenticated
-  - query_outcome_route.project.list.list_projects.unavailable
+  - local_signal_raise.project.detail.loading.data_loader.read_project.forbidden.data_signal.project_load_failed
+  - local_signal_raise.project.detail.loading.data_loader.read_project.found.data_signal.project_loaded
+  - local_signal_raise.project.detail.loading.data_loader.read_project.not_found.data_signal.project_load_failed
+  - local_signal_raise.project.detail.loading.data_loader.read_project.unauthenticated.data_signal.project_load_failed
+  - local_signal_raise.project.detail.ready.action_binding.approve.approved.data_signal.project_changed
+  - local_signal_raise.project.detail.ready.action_binding.approve.invalid_state.message.show_invalid_state
+  - local_signal_raise.project.detail.ready.action_binding.archive.archived.data_signal.project_changed
+  - local_signal_raise.project.detail.ready.action_binding.archive.forbidden.message.show_invalid_state
+  - local_signal_raise.project.detail.ready.action_binding.archive.invalid_state.message.show_invalid_state
+  - local_signal_raise.project.detail.ready.action_binding.archive.not_found.message.show_invalid_state
+  - local_signal_raise.project.detail.ready.action_binding.archive.unauthenticated.message.show_invalid_state
+  - local_signal_raise.project.detail.ready.data_loader.read_project.forbidden.message.show_invalid_state
+  - local_signal_raise.project.detail.ready.data_loader.read_project.not_found.message.show_invalid_state
+  - local_signal_raise.project.detail.ready.data_loader.read_project.unauthenticated.message.show_invalid_state
+  - local_signal_raise.project.list.data_loader.list_projects.forbidden.data_signal.project_list_failed
+  - local_signal_raise.project.list.data_loader.list_projects.listed.data_signal.project_collection_empty
+  - local_signal_raise.project.list.data_loader.list_projects.listed.data_signal.projects_loaded
+  - local_signal_raise.project.list.data_loader.list_projects.unauthenticated.data_signal.project_list_failed
+  - local_signal_raise.project.list.data_loader.list_projects.unavailable.data_signal.project_list_failed
+  - local_signal_raise.project.list.empty.action_binding.create.created.data_signal.projects_changed
+  - local_signal_raise.project.list.empty.action_binding.create.validation_failed.message.show_invalid_state
+  - local_signal_raise.project.list.ready.action_binding.create.created.data_signal.projects_changed
+  - local_signal_raise.project.list.ready.action_binding.submit.forbidden.message.show_invalid_state
+  - local_signal_raise.project.list.ready.action_binding.submit.invalid_state.message.show_invalid_state
+  - local_signal_raise.project.list.ready.action_binding.submit.not_found.message.show_invalid_state
+  - local_signal_raise.project.list.ready.action_binding.submit.submitted.data_signal.projects_changed
+  - local_signal_raise.project.list.ready.action_binding.submit.unauthenticated.message.show_invalid_state
   route:
   - route.project.board
   runtime_response:
@@ -1062,9 +1062,9 @@ state_machines:
         required: false
         type:
           primitive: ID
+    data_loaders: {}
     initial_view_state: empty
     model: Project
-    query_invocations: {}
     rationale: The activity state machine summarizes latest status around the selected project.
     signals:
       accepts:
@@ -1093,29 +1093,25 @@ state_machines:
       to: empty
     view_states:
       empty:
+        action_bindings: {}
         assets: []
+        data_loaders: {}
         fields: []
-        operation_invocations: {}
-        query_invocations: {}
         surface: state_machine.project.activity.empty
         text:
         - text.project.activity.empty.heading
         - text.project.activity.empty.body
       ready:
+        action_bindings: {}
         assets: []
-        fields:
-        - updated_at
-        - status
-        - assignee
-        operation_invocations: {}
-        query_invocations:
+        data_loaders:
           read_activity:
+            application_action: application_action.project.read
             input_bindings:
               project_id:
                 from: $context.project_id
             load:
               on_enter: true
-            operation: operation.project.read
             outcome_routes:
               forbidden:
                 no_signal:
@@ -1136,6 +1132,10 @@ state_machines:
                 no_signal:
                   rationale: The entry response surface owns unauthenticated display.
                   reason: intentionally_unobservable
+        fields:
+        - updated_at
+        - status
+        - assignee
         surface: state_machine.project.activity.ready
         text:
         - text.project.activity.ready.heading
@@ -1152,16 +1152,14 @@ state_machines:
         required: true
         type:
           primitive: ID
-    initial_view_state: ready
-    model: Project
-    query_invocations:
+    data_loaders:
       list_board:
+        application_action: application_action.project.list
         input_bindings:
           workspace_id:
             from: $context.workspace_id
         load:
           on_start: true
-        operation: operation.project.list
         outcome_routes:
           forbidden:
             no_signal:
@@ -1185,6 +1183,8 @@ state_machines:
         rationale: Board-level project list is shared shell data for composed child state machines; the child list machine
           owns visible loading and empty/non-empty transitions.
         result_scope: shared
+    initial_view_state: ready
+    model: Project
     rationale: The dispatch board composes list, detail, and activity state machines through shared selected-project context.
     signals:
       accepts:
@@ -1195,6 +1195,7 @@ state_machines:
     transitions: []
     view_states:
       ready:
+        action_bindings: {}
         assets: []
         child_state_machines:
         - context_bindings:
@@ -1231,9 +1232,8 @@ state_machines:
               context_present: selected_project_id
           state_machine: state_machine.project.activity
           textual_container: aside
+        data_loaders: {}
         fields: []
-        operation_invocations: {}
-        query_invocations: {}
         render_audit_cases:
           empty:
             instances:
@@ -1373,9 +1373,9 @@ state_machines:
         required: false
         type:
           primitive: ID
+    data_loaders: {}
     initial_view_state: none
     model: Project
-    query_invocations: {}
     rationale: The detail state machine is independent from the list and reacts to selected project context.
     signals:
       accepts:
@@ -1428,30 +1428,29 @@ state_machines:
     - from: ready
       on:
         message: show_invalid_state
-      rationale: Invalid detail operations move the detail panel into its displayable error state.
+      rationale: Invalid detail application_actions move the detail panel into its displayable error state.
       to: error
     view_states:
       error:
+        action_bindings: {}
         assets: []
+        data_loaders: {}
         fields: []
-        operation_invocations: {}
-        query_invocations: {}
         surface: state_machine.project.detail.error
         text:
         - text.project.detail.error.heading
         - text.project.detail.error.body
       loading:
+        action_bindings: {}
         assets: []
-        fields: []
-        operation_invocations: {}
-        query_invocations:
+        data_loaders:
           read_project:
+            application_action: application_action.project.read
             input_bindings:
               project_id:
                 from: $context.project_id
             load:
               on_enter: true
-            operation: operation.project.read
             outcome_routes:
               forbidden:
                 raise:
@@ -1469,35 +1468,28 @@ state_machines:
               unauthenticated:
                 raise:
                   data_signal: project_load_failed
+        fields: []
         surface: state_machine.project.detail.loading
         text:
         - text.project.detail.loading.message
       none:
+        action_bindings: {}
         assets: []
+        data_loaders: {}
         fields: []
-        operation_invocations: {}
-        query_invocations: {}
         surface: state_machine.project.detail.none
         text:
         - text.project.detail.none.heading
         - text.project.detail.none.body
       ready:
-        assets:
-        - asset.project.detail.ready.priority_badge
-        fields:
-        - title
-        - customer
-        - status
-        - assignee
-        - summary
-        operation_invocations:
+        action_bindings:
           approve:
+            application_action: application_action.project.approve
             input_bindings:
               approved_by:
                 from: $actor.id
               project_id:
                 from: $context.project_id
-            operation: operation.project.approve
             outcome_routes:
               approved:
                 raise:
@@ -1525,10 +1517,10 @@ state_machines:
                   rationale: The response surface reports temporary unavailability without a local transition.
                   reason: handled_by_response_surface
           archive:
+            application_action: application_action.project.archive
             input_bindings:
               project_id:
                 from: $context.project_id
-            operation: operation.project.archive
             outcome_routes:
               archived:
                 raise:
@@ -1557,8 +1549,11 @@ state_machines:
                   payload_bindings:
                     message:
                       from: $outcome.result.message
-        query_invocations:
+        assets:
+        - asset.project.detail.ready.priority_badge
+        data_loaders:
           read_project:
+            application_action: application_action.project.read
             input_bindings:
               project_id:
                 from: $context.project_id
@@ -1566,7 +1561,6 @@ state_machines:
               on_enter: true
               refresh_on:
               - data_signal: project_changed
-            operation: operation.project.read
             outcome_routes:
               forbidden:
                 raise:
@@ -1593,6 +1587,12 @@ state_machines:
                   payload_bindings:
                     message:
                       from: $outcome.result.message
+        fields:
+        - title
+        - customer
+        - status
+        - assignee
+        - summary
         surface: state_machine.project.detail.ready
         text:
         - text.project.detail.ready.heading
@@ -1608,10 +1608,9 @@ state_machines:
         required: true
         type:
           primitive: ID
-    initial_view_state: loading
-    model: Project
-    query_invocations:
+    data_loaders:
       list_projects:
+        application_action: application_action.project.list
         input_bindings:
           workspace_id:
             from: $context.workspace_id
@@ -1619,7 +1618,6 @@ state_machines:
           on_start: true
           refresh_on:
           - data_signal: projects_changed
-        operation: operation.project.list
         outcome_routes:
           forbidden:
             raise:
@@ -1655,6 +1653,8 @@ state_machines:
             raise:
               data_signal: project_list_failed
         result_scope: local
+    initial_view_state: loading
+    model: Project
     rationale: The list state machine owns collection loading, empty, ready, error, and selection behavior.
     signals:
       accepts:
@@ -1732,15 +1732,13 @@ state_machines:
     - from: ready
       on:
         message: show_invalid_state
-      rationale: Invalid list operations move the list into its displayable error state.
+      rationale: Invalid list application_actions move the list into its displayable error state.
       to: error
     view_states:
       empty:
-        assets:
-        - asset.project.list.empty.illustration
-        fields: []
-        operation_invocations:
+        action_bindings:
           create:
+            application_action: application_action.project.create
             input_bindings:
               customer:
                 value: Atlas Foods
@@ -1750,7 +1748,6 @@ state_machines:
                 value: Replace rooftop condenser fan
               workspace_id:
                 from: $context.workspace_id
-            operation: operation.project.create
             outcome_routes:
               created:
                 raise:
@@ -1769,37 +1766,35 @@ state_machines:
                   payload_bindings:
                     message:
                       from: $outcome.result.message
-        query_invocations: {}
+        assets:
+        - asset.project.list.empty.illustration
+        data_loaders: {}
+        fields: []
         surface: state_machine.project.list.empty
         text:
         - text.project.list.empty.heading
         - text.project.list.empty.body
       error:
+        action_bindings: {}
         assets: []
+        data_loaders: {}
         fields: []
-        operation_invocations: {}
-        query_invocations: {}
         surface: state_machine.project.list.error
         text:
         - text.project.list.error.heading
         - text.project.list.error.body
       loading:
+        action_bindings: {}
         assets: []
+        data_loaders: {}
         fields: []
-        operation_invocations: {}
-        query_invocations: {}
         surface: state_machine.project.list.loading
         text:
         - text.project.list.loading.message
       ready:
-        assets: []
-        fields:
-        - title
-        - customer
-        - priority
-        - status
-        operation_invocations:
+        action_bindings:
           create:
+            application_action: application_action.project.create
             input_bindings:
               customer:
                 value: Atlas Foods
@@ -1809,7 +1804,6 @@ state_machines:
                 value: Replace rooftop condenser fan
               workspace_id:
                 from: $context.workspace_id
-            operation: operation.project.create
             outcome_routes:
               created:
                 raise:
@@ -1827,10 +1821,10 @@ state_machines:
                   rationale: The ready list keeps focus while the response surface shows validation errors.
                   reason: handled_by_response_surface
           submit:
+            application_action: application_action.project.submit
             input_bindings:
               project_id:
                 from: $context.selected_project_id
-            operation: operation.project.submit
             outcome_routes:
               forbidden:
                 raise:
@@ -1859,7 +1853,13 @@ state_machines:
                   payload_bindings:
                     message:
                       from: $outcome.result.message
-        query_invocations: {}
+        assets: []
+        data_loaders: {}
+        fields:
+        - title
+        - customer
+        - priority
+        - status
         surface: state_machine.project.list.ready
         text:
         - text.project.list.ready.heading
@@ -1879,7 +1879,7 @@ test_cases:
         emitted:
         - event.project.approved
       invoked:
-      - operation.project.send_approval_notice
+      - application_action.project.send_approval_notice
       workflow:
         executed: true
         outcome: completed
@@ -1925,27 +1925,27 @@ test_cases:
       - fixture.workspace.member
     rationale: A workspace member who is not a reviewer receives the mapped forbidden outcome before approval executes.
     subject_ref:
-      operation: operation.project.approve
+      application_action: application_action.project.approve
     then:
       authorization:
         denied:
-        - authorization_policy: authorization_policy.project.reviewer
-          operation: operation.project.approve
+        - application_action: application_action.project.approve
+          authorization_policy: authorization_policy.project.reviewer
       events:
         not_emitted:
         - event.project.approved
       outcome: forbidden
     title: Approval authorization maps forbidden outcome
     when:
-      invoke_operation:
+      invoke_application_action:
         input:
           approved_by:
             from: $fixture.actor.id
           project_id:
             value: project_submitted_1
-        ref: operation.project.approve
+        ref: application_action.project.approve
   test_case.project.approve.success:
-    archetype: operation_outcome
+    archetype: action_outcome
     feature_tag: project.approve
     given:
       domain_facts:
@@ -1976,17 +1976,17 @@ test_cases:
       - fixture.workspace.reviewer
     rationale: Approval transitions a submitted project to approved and emits the event.
     subject_ref:
-      operation: operation.project.approve
+      application_action: application_action.project.approve
     then:
       authorization:
         allowed:
-        - authorization_policy: authorization_policy.project.reviewer
-          operation: operation.project.approve
+        - application_action: application_action.project.approve
+          authorization_policy: authorization_policy.project.reviewer
       events:
         emitted:
         - event.project.approved
       invoked:
-      - operation.project.approve
+      - application_action.project.approve
       model:
         exists:
           model: Project
@@ -1998,13 +1998,13 @@ test_cases:
       outcome: approved
     title: Approve submitted dispatch project
     when:
-      invoke_operation:
+      invoke_application_action:
         input:
           approved_by:
             from: $fixture.actor.id
           project_id:
             value: project_submitted_1
-        ref: operation.project.approve
+        ref: application_action.project.approve
   test_case.project.board.empty:
     archetype: state_machine_composition
     feature_tag: project.board
@@ -2023,16 +2023,16 @@ test_cases:
     then:
       authorization:
         denied:
-        - authorization_policy: authorization_policy.project.reviewer
-          operation: operation.project.approve
+        - application_action: application_action.project.approve
+          authorization_policy: authorization_policy.project.reviewer
       enables:
-      - operation.project.create
+      - application_action.project.create
       requires:
+        action_bindings:
+        - create
         assets:
         - asset.project.list.empty.illustration
-        operation_invocations:
-        - create
-        query_invocations:
+        data_loaders:
         - list_board
         - list_projects
         surfaces:
@@ -2246,14 +2246,14 @@ test_cases:
       state_machine: state_machine.project.board
     then:
       enables:
-      - operation.project.create
-      - operation.project.submit
+      - application_action.project.create
+      - application_action.project.submit
       requires:
-        assets: []
-        operation_invocations:
+        action_bindings:
         - create
         - submit
-        query_invocations:
+        assets: []
+        data_loaders:
         - list_board
         - list_projects
         surfaces:
@@ -2443,19 +2443,19 @@ test_cases:
               from: $fixture.workspace.id
       seed_fixtures:
       - fixture.workspace.member
-    rationale: The API create endpoint delegates to the create operation and emits project.created.
+    rationale: The API create endpoint delegates to the create application action and emits project.created.
     subject_ref:
       entry_point: entry_point.api.project.create
     then:
       authorization:
         allowed:
-        - authorization_policy: authorization_policy.project.member
-          operation: operation.project.create
+        - application_action: application_action.project.create
+          authorization_policy: authorization_policy.project.member
       events:
         emitted:
         - event.project.created
       invoked:
-      - operation.project.create
+      - application_action.project.create
       model:
         exists:
           model: Project
@@ -2629,13 +2629,13 @@ workflows:
     rationale: Approval event sends a downstream notice.
     ref: workflow.project.approval_notice
     steps:
-    - id: send_notice
+    - application_action: application_action.project.send_approval_notice
+      id: send_notice
       input_bindings:
         approved_by:
           from: $trigger.payload.approved_by
         project_id:
           from: $trigger.payload.project_id
-      operation: operation.project.send_approval_notice
       outcome_routes:
         delivery_failed:
           retry_policy:

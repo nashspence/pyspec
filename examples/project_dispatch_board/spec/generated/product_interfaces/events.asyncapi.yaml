@@ -32,28 +32,28 @@ components:
         $ref: '#/components/schemas/data_contract.project.approved'
       title: Event Project Approved
       x-emitted-by:
-      - operation.project.approve
+      - application_action.project.approve
     message_event_project_archived:
       name: event.project.archived
       payload:
         $ref: '#/components/schemas/Project'
       title: Event Project Archived
       x-emitted-by:
-      - operation.project.archive
+      - application_action.project.archive
     message_event_project_created:
       name: event.project.created
       payload:
         $ref: '#/components/schemas/Project'
       title: Event Project Created
       x-emitted-by:
-      - operation.project.create
+      - application_action.project.create
     message_event_project_submitted:
       name: event.project.submitted
       payload:
         $ref: '#/components/schemas/Project'
       title: Event Project Submitted
       x-emitted-by:
-      - operation.project.submit
+      - application_action.project.submit
   schemas:
     Problem:
       additionalProperties: false
@@ -158,7 +158,7 @@ operations:
     messages:
     - $ref: '#/components/messages/message_event_project_approved'
     x-emitted-by:
-    - operation.project.approve
+    - application_action.project.approve
   send_event_project_archived:
     action: send
     channel:
@@ -166,7 +166,7 @@ operations:
     messages:
     - $ref: '#/components/messages/message_event_project_archived'
     x-emitted-by:
-    - operation.project.archive
+    - application_action.project.archive
   send_event_project_created:
     action: send
     channel:
@@ -174,7 +174,7 @@ operations:
     messages:
     - $ref: '#/components/messages/message_event_project_created'
     x-emitted-by:
-    - operation.project.create
+    - application_action.project.create
   send_event_project_submitted:
     action: send
     channel:
@@ -182,4 +182,4 @@ operations:
     messages:
     - $ref: '#/components/messages/message_event_project_submitted'
     x-emitted-by:
-    - operation.project.submit
+    - application_action.project.submit

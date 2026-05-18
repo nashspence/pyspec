@@ -55,8 +55,8 @@ test_case_archetypes:
   state_machine_composition_sync:
     when: open_entry_point
     then: [state_machine.instances, state_machine.context, state_machine.signal_sync_rules.observed_rules]
-  operation_outcome:
-    when: invoke_operation
+  action_outcome:
+    when: invoke_application_action
     then: [outcome, model.exists, events.emitted, invoked]
   entry_point_response:
     when: call_entry_point
@@ -112,7 +112,7 @@ renderer_contracts:
     layer: html
     location: 'target: state_machine -> spec.view_states.<view_state>.renderers.html.style'
     purpose: HTML renderer style tokens and selector-scoped declarations.
-    selectors_allowed: [root, slot.<declared_slot>, operation_invocation.<declared_operation_invocation>, region.<declared_region>, child_state_machine.<declared_child_state_machine>]
+    selectors_allowed: [root, slot.<declared_slot>, action_binding.<declared_action_binding>, region.<declared_region>, child_state_machine.<declared_child_state_machine>]
   textual_layout:
     layer: textual
     location: 'target: state_machine -> spec.view_states.<view_state>.renderers.textual.layout'
@@ -125,7 +125,7 @@ renderer_contracts:
     layer: textual
     location: 'target: state_machine -> spec.view_states.<view_state>.renderers.textual.style'
     purpose: Textual renderer style tokens and selector-scoped declarations.
-    selectors_allowed: [screen, slot.<declared_slot>, operation_invocation.<declared_operation_invocation>, container.<declared_container>, child_state_machine.<declared_child_state_machine>]
+    selectors_allowed: [screen, slot.<declared_slot>, action_binding.<declared_action_binding>, container.<declared_container>, child_state_machine.<declared_child_state_machine>]
 
 gherkin_corpus:
   source_of_truth: spec/generated/behavior/test_cases.yaml

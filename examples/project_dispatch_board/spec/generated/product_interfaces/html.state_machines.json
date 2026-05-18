@@ -241,14 +241,14 @@
   "project": "project_dispatch_board",
   "state_machines": [
     {
+      "data_loaders": {},
       "id": "state_machine.project.activity.empty",
       "owner": "state_machine.project.activity",
       "owner_kind": "state_machine",
-      "query_invocations": {},
       "slots": {
+        "action_bindings": {},
         "assets": [],
         "fields": [],
-        "operation_invocations": {},
         "text": [
           "text.project.activity.empty.heading",
           "text.project.activity.empty.body"
@@ -293,11 +293,9 @@
       "view_state": "empty"
     },
     {
-      "id": "state_machine.project.activity.ready",
-      "owner": "state_machine.project.activity",
-      "owner_kind": "state_machine",
-      "query_invocations": {
+      "data_loaders": {
         "read_activity": {
+          "application_action": "application_action.project.read",
           "input_bindings": {
             "project_id": {
               "from": "$context.project_id"
@@ -306,7 +304,6 @@
           "load": {
             "on_enter": true
           },
-          "operation": "operation.project.read",
           "outcome_routes": {
             "forbidden": {
               "no_signal": {
@@ -340,14 +337,17 @@
           }
         }
       },
+      "id": "state_machine.project.activity.ready",
+      "owner": "state_machine.project.activity",
+      "owner_kind": "state_machine",
       "slots": {
+        "action_bindings": {},
         "assets": [],
         "fields": [
           "updated_at",
           "status",
           "assignee"
         ],
-        "operation_invocations": {},
         "text": [
           "text.project.activity.ready.heading"
         ]
@@ -391,10 +391,10 @@
       "view_state": "ready"
     },
     {
+      "data_loaders": {},
       "id": "state_machine.project.board.ready",
       "owner": "state_machine.project.board",
       "owner_kind": "state_machine",
-      "query_invocations": {},
       "renderers": {
         "html": {
           "layout": {
@@ -463,9 +463,9 @@
         }
       },
       "slots": {
+        "action_bindings": {},
         "assets": [],
         "fields": [],
-        "operation_invocations": {},
         "text": []
       },
       "state_machine": {
@@ -491,14 +491,14 @@
       "view_state": "ready"
     },
     {
+      "data_loaders": {},
       "id": "state_machine.project.detail.error",
       "owner": "state_machine.project.detail",
       "owner_kind": "state_machine",
-      "query_invocations": {},
       "slots": {
+        "action_bindings": {},
         "assets": [],
         "fields": [],
-        "operation_invocations": {},
         "text": [
           "text.project.detail.error.heading",
           "text.project.detail.error.body"
@@ -565,7 +565,7 @@
             "on": {
               "message": "show_invalid_state"
             },
-            "rationale": "Invalid detail operations move the detail panel into its displayable error state.",
+            "rationale": "Invalid detail application_actions move the detail panel into its displayable error state.",
             "to": "error"
           }
         ]
@@ -573,11 +573,9 @@
       "view_state": "error"
     },
     {
-      "id": "state_machine.project.detail.loading",
-      "owner": "state_machine.project.detail",
-      "owner_kind": "state_machine",
-      "query_invocations": {
+      "data_loaders": {
         "read_project": {
+          "application_action": "application_action.project.read",
           "input_bindings": {
             "project_id": {
               "from": "$context.project_id"
@@ -586,7 +584,6 @@
           "load": {
             "on_enter": true
           },
-          "operation": "operation.project.read",
           "outcome_routes": {
             "forbidden": {
               "raise": {
@@ -617,10 +614,13 @@
           }
         }
       },
+      "id": "state_machine.project.detail.loading",
+      "owner": "state_machine.project.detail",
+      "owner_kind": "state_machine",
       "slots": {
+        "action_bindings": {},
         "assets": [],
         "fields": [],
-        "operation_invocations": {},
         "text": [
           "text.project.detail.loading.message"
         ]
@@ -686,7 +686,7 @@
             "on": {
               "message": "show_invalid_state"
             },
-            "rationale": "Invalid detail operations move the detail panel into its displayable error state.",
+            "rationale": "Invalid detail application_actions move the detail panel into its displayable error state.",
             "to": "error"
           }
         ]
@@ -694,14 +694,14 @@
       "view_state": "loading"
     },
     {
+      "data_loaders": {},
       "id": "state_machine.project.detail.none",
       "owner": "state_machine.project.detail",
       "owner_kind": "state_machine",
-      "query_invocations": {},
       "slots": {
+        "action_bindings": {},
         "assets": [],
         "fields": [],
-        "operation_invocations": {},
         "text": [
           "text.project.detail.none.heading",
           "text.project.detail.none.body"
@@ -768,7 +768,7 @@
             "on": {
               "message": "show_invalid_state"
             },
-            "rationale": "Invalid detail operations move the detail panel into its displayable error state.",
+            "rationale": "Invalid detail application_actions move the detail panel into its displayable error state.",
             "to": "error"
           }
         ]
@@ -776,11 +776,9 @@
       "view_state": "none"
     },
     {
-      "id": "state_machine.project.detail.ready",
-      "owner": "state_machine.project.detail",
-      "owner_kind": "state_machine",
-      "query_invocations": {
+      "data_loaders": {
         "read_project": {
+          "application_action": "application_action.project.read",
           "input_bindings": {
             "project_id": {
               "from": "$context.project_id"
@@ -794,7 +792,6 @@
               }
             ]
           },
-          "operation": "operation.project.read",
           "outcome_routes": {
             "forbidden": {
               "raise": {
@@ -840,19 +837,13 @@
           }
         }
       },
+      "id": "state_machine.project.detail.ready",
+      "owner": "state_machine.project.detail",
+      "owner_kind": "state_machine",
       "slots": {
-        "assets": [
-          "asset.project.detail.ready.priority_badge"
-        ],
-        "fields": [
-          "title",
-          "customer",
-          "status",
-          "assignee",
-          "summary"
-        ],
-        "operation_invocations": {
+        "action_bindings": {
           "approve": {
+            "application_action": "application_action.project.approve",
             "input_bindings": {
               "approved_by": {
                 "from": "$actor.id"
@@ -861,7 +852,6 @@
                 "from": "$context.project_id"
               }
             },
-            "operation": "operation.project.approve",
             "outcome_routes": {
               "approved": {
                 "raise": {
@@ -905,12 +895,12 @@
             }
           },
           "archive": {
+            "application_action": "application_action.project.archive",
             "input_bindings": {
               "project_id": {
                 "from": "$context.project_id"
               }
             },
-            "operation": "operation.project.archive",
             "outcome_routes": {
               "archived": {
                 "raise": {
@@ -960,6 +950,16 @@
             }
           }
         },
+        "assets": [
+          "asset.project.detail.ready.priority_badge"
+        ],
+        "fields": [
+          "title",
+          "customer",
+          "status",
+          "assignee",
+          "summary"
+        ],
         "text": [
           "text.project.detail.ready.heading"
         ]
@@ -1025,7 +1025,7 @@
             "on": {
               "message": "show_invalid_state"
             },
-            "rationale": "Invalid detail operations move the detail panel into its displayable error state.",
+            "rationale": "Invalid detail application_actions move the detail panel into its displayable error state.",
             "to": "error"
           }
         ]
@@ -1033,17 +1033,14 @@
       "view_state": "ready"
     },
     {
+      "data_loaders": {},
       "id": "state_machine.project.list.empty",
       "owner": "state_machine.project.list",
       "owner_kind": "state_machine",
-      "query_invocations": {},
       "slots": {
-        "assets": [
-          "asset.project.list.empty.illustration"
-        ],
-        "fields": [],
-        "operation_invocations": {
+        "action_bindings": {
           "create": {
+            "application_action": "application_action.project.create",
             "input_bindings": {
               "customer": {
                 "value": "Atlas Foods"
@@ -1058,7 +1055,6 @@
                 "from": "$context.workspace_id"
               }
             },
-            "operation": "operation.project.create",
             "outcome_routes": {
               "created": {
                 "raise": {
@@ -1090,6 +1086,10 @@
             }
           }
         },
+        "assets": [
+          "asset.project.list.empty.illustration"
+        ],
+        "fields": [],
         "text": [
           "text.project.list.empty.heading",
           "text.project.list.empty.body"
@@ -1198,7 +1198,7 @@
             "on": {
               "message": "show_invalid_state"
             },
-            "rationale": "Invalid list operations move the list into its displayable error state.",
+            "rationale": "Invalid list application_actions move the list into its displayable error state.",
             "to": "error"
           }
         ]
@@ -1206,14 +1206,14 @@
       "view_state": "empty"
     },
     {
+      "data_loaders": {},
       "id": "state_machine.project.list.error",
       "owner": "state_machine.project.list",
       "owner_kind": "state_machine",
-      "query_invocations": {},
       "slots": {
+        "action_bindings": {},
         "assets": [],
         "fields": [],
-        "operation_invocations": {},
         "text": [
           "text.project.list.error.heading",
           "text.project.list.error.body"
@@ -1322,7 +1322,7 @@
             "on": {
               "message": "show_invalid_state"
             },
-            "rationale": "Invalid list operations move the list into its displayable error state.",
+            "rationale": "Invalid list application_actions move the list into its displayable error state.",
             "to": "error"
           }
         ]
@@ -1330,14 +1330,14 @@
       "view_state": "error"
     },
     {
+      "data_loaders": {},
       "id": "state_machine.project.list.loading",
       "owner": "state_machine.project.list",
       "owner_kind": "state_machine",
-      "query_invocations": {},
       "slots": {
+        "action_bindings": {},
         "assets": [],
         "fields": [],
-        "operation_invocations": {},
         "text": [
           "text.project.list.loading.message"
         ]
@@ -1445,7 +1445,7 @@
             "on": {
               "message": "show_invalid_state"
             },
-            "rationale": "Invalid list operations move the list into its displayable error state.",
+            "rationale": "Invalid list application_actions move the list into its displayable error state.",
             "to": "error"
           }
         ]
@@ -1453,20 +1453,14 @@
       "view_state": "loading"
     },
     {
+      "data_loaders": {},
       "id": "state_machine.project.list.ready",
       "owner": "state_machine.project.list",
       "owner_kind": "state_machine",
-      "query_invocations": {},
       "slots": {
-        "assets": [],
-        "fields": [
-          "title",
-          "customer",
-          "priority",
-          "status"
-        ],
-        "operation_invocations": {
+        "action_bindings": {
           "create": {
+            "application_action": "application_action.project.create",
             "input_bindings": {
               "customer": {
                 "value": "Atlas Foods"
@@ -1481,7 +1475,6 @@
                 "from": "$context.workspace_id"
               }
             },
-            "operation": "operation.project.create",
             "outcome_routes": {
               "created": {
                 "raise": {
@@ -1509,12 +1502,12 @@
             }
           },
           "submit": {
+            "application_action": "application_action.project.submit",
             "input_bindings": {
               "project_id": {
                 "from": "$context.selected_project_id"
               }
             },
-            "operation": "operation.project.submit",
             "outcome_routes": {
               "forbidden": {
                 "raise": {
@@ -1564,6 +1557,13 @@
             }
           }
         },
+        "assets": [],
+        "fields": [
+          "title",
+          "customer",
+          "priority",
+          "status"
+        ],
         "text": [
           "text.project.list.ready.heading"
         ]
@@ -1671,7 +1671,7 @@
             "on": {
               "message": "show_invalid_state"
             },
-            "rationale": "Invalid list operations move the list into its displayable error state.",
+            "rationale": "Invalid list application_actions move the list into its displayable error state.",
             "to": "error"
           }
         ]

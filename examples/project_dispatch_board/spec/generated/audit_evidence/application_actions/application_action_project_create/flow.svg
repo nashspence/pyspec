@@ -1,16 +1,16 @@
 <svg width="1255pt" height="492pt"
  viewBox="0.00 0.00 1255.00 491.50" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 494e5967f6c859df096c81f660032901a30f1400feee2a8642cdbc326ad451bb -->
+<!-- pyspec-contract-input-sha256: 7997fe81308b5585918240464d2eb43516381f790de1066df22558141b3606e4 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 473.5)">
-<title>operation_operation_project_create</title>
-<!-- operation_input_operation_project_create -->
+<title>application_action_application_action_project_create</title>
+<!-- application_action_input_application_action_project_create -->
 <g id="node1" class="node">
-<title>operation_input_operation_project_create</title>
+<title>application_action_input_application_action_project_create</title>
 <polygon fill="#ffffff" stroke="transparent" points="0,-162.5 0,-266.5 84,-266.5 84,-162.5 0,-162.5"/>
 <polygon fill="#64748b" stroke="transparent" points="1,-257.5 1,-265.5 83,-265.5 83,-257.5 1,-257.5"/>
 <polygon fill="#f8fafc" stroke="transparent" points="1,-226.5 1,-257.5 83,-257.5 83,-226.5 1,-226.5"/>
 <text text-anchor="start" x="5" y="-244.1" font-family="Arial" font-weight="bold" font-size="13.00">input</text>
-<text text-anchor="start" x="5" y="-233.1" font-family="Arial" font-size="8.00" fill="#64748b">operation input</text>
+<text text-anchor="start" x="5" y="-233.1" font-family="Arial" font-size="8.00" fill="#64748b">action input</text>
 <text text-anchor="start" x="5" y="-215.5" font-family="Arial" font-weight="bold" font-size="10.00">fields</text>
 <text text-anchor="start" x="5" y="-204.5" font-family="Arial" font-size="10.00">customer</text>
 <text text-anchor="start" x="46" y="-204.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Text</text>
@@ -22,9 +22,9 @@
 <text text-anchor="start" x="66" y="-171.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
 <polygon fill="none" stroke="#64748b" points="0,-162.5 0,-266.5 84,-266.5 84,-162.5 0,-162.5"/>
 </g>
-<!-- operation_policy_authorization_policy_project_member -->
+<!-- application_action_policy_authorization_policy_project_member -->
 <g id="node2" class="node">
-<title>operation_policy_authorization_policy_project_member</title>
+<title>application_action_policy_authorization_policy_project_member</title>
 <polygon fill="#ffffff" stroke="transparent" points="186,-156.5 186,-272.5 430,-272.5 430,-156.5 186,-156.5"/>
 <polygon fill="#c2410c" stroke="transparent" points="187,-263.5 187,-271.5 429,-271.5 429,-263.5 187,-263.5"/>
 <polygon fill="#fff7ed" stroke="transparent" points="187,-232.5 187,-263.5 429,-263.5 429,-232.5 187,-232.5"/>
@@ -40,16 +40,16 @@
 <text text-anchor="start" x="245" y="-166.5" font-family="Arial" font-size="10.00">  subject_has_role member</text>
 <polygon fill="none" stroke="#c2410c" points="186,-156.5 186,-272.5 430,-272.5 430,-156.5 186,-156.5"/>
 </g>
-<!-- operation_input_operation_project_create&#45;&gt;operation_policy_authorization_policy_project_member -->
+<!-- application_action_input_application_action_project_create&#45;&gt;application_action_policy_authorization_policy_project_member -->
 <g id="edge1" class="edge">
-<title>operation_input_operation_project_create&#45;&gt;operation_policy_authorization_policy_project_member</title>
+<title>application_action_input_application_action_project_create&#45;&gt;application_action_policy_authorization_policy_project_member</title>
 <path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M84.25,-214.5C109.69,-214.5 143.85,-214.5 177.77,-214.5"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="177.91,-217.3 185.91,-214.5 177.91,-211.7 177.91,-217.3"/>
 <text text-anchor="middle" x="135" y="-217.5" font-family="Arial" font-size="10.00">authorize</text>
 </g>
-<!-- operation_resource_operation_project_create_creates_Project -->
+<!-- application_action_resource_application_action_project_create_creates_Project -->
 <g id="node3" class="node">
-<title>operation_resource_operation_project_create_creates_Project</title>
+<title>application_action_resource_application_action_project_create_creates_Project</title>
 <polygon fill="#ffffff" stroke="transparent" points="525,-129.5 525,-299.5 719,-299.5 719,-129.5 525,-129.5"/>
 <polygon fill="#15803d" stroke="transparent" points="526,-290.5 526,-298.5 718,-298.5 718,-290.5 526,-290.5"/>
 <polygon fill="#f0fdfa" stroke="transparent" points="526,-259.5 526,-290.5 718,-290.5 718,-259.5 526,-259.5"/>
@@ -78,16 +78,16 @@
 <text text-anchor="start" x="591" y="-138.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
 <polygon fill="none" stroke="#15803d" points="525,-129.5 525,-299.5 719,-299.5 719,-129.5 525,-129.5"/>
 </g>
-<!-- operation_policy_authorization_policy_project_member&#45;&gt;operation_resource_operation_project_create_creates_Project -->
+<!-- application_action_policy_authorization_policy_project_member&#45;&gt;application_action_resource_application_action_project_create_creates_Project -->
 <g id="edge2" class="edge">
-<title>operation_policy_authorization_policy_project_member&#45;&gt;operation_resource_operation_project_create_creates_Project</title>
+<title>application_action_policy_authorization_policy_project_member&#45;&gt;application_action_resource_application_action_project_create_creates_Project</title>
 <path fill="none" stroke="#3f3f46" d="M430.07,-214.5C458.6,-214.5 488.78,-214.5 516.5,-214.5"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="516.64,-217.3 524.64,-214.5 516.64,-211.7 516.64,-217.3"/>
 <text text-anchor="middle" x="477.5" y="-217.5" font-family="Arial" font-size="10.00">creates</text>
 </g>
-<!-- operation_outcome_operation_project_create_forbidden -->
+<!-- action_outcome_application_action_project_create_forbidden -->
 <g id="node5" class="node">
-<title>operation_outcome_operation_project_create_forbidden</title>
+<title>action_outcome_application_action_project_create_forbidden</title>
 <polygon fill="#ffffff" stroke="transparent" points="839.5,-250 839.5,-321 912.5,-321 912.5,-250 839.5,-250"/>
 <polygon fill="#dc2626" stroke="transparent" points="841,-311.5 841,-319.5 912,-319.5 912,-311.5 841,-311.5"/>
 <polygon fill="#fef2f2" stroke="transparent" points="841,-280.5 841,-311.5 912,-311.5 912,-280.5 841,-280.5"/>
@@ -98,16 +98,16 @@
 <text text-anchor="start" x="870" y="-258.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
 <polygon fill="none" stroke="#dc2626" points="839.5,-250 839.5,-321 912.5,-321 912.5,-250 839.5,-250"/>
 </g>
-<!-- operation_policy_authorization_policy_project_member&#45;&gt;operation_outcome_operation_project_create_forbidden -->
+<!-- application_action_policy_authorization_policy_project_member&#45;&gt;action_outcome_application_action_project_create_forbidden -->
 <g id="edge5" class="edge">
-<title>operation_policy_authorization_policy_project_member&#45;&gt;operation_outcome_operation_project_create_forbidden</title>
+<title>application_action_policy_authorization_policy_project_member&#45;&gt;action_outcome_application_action_project_create_forbidden</title>
 <path fill="none" stroke="#3f3f46" d="M417.08,-272.55C450.78,-288.3 488.66,-303.69 525,-313.5 637.82,-343.95 674.02,-365.35 787,-335.5 802.62,-331.37 818.38,-323.76 832.16,-315.69"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="833.77,-317.99 839.17,-311.45 830.87,-313.2 833.77,-317.99"/>
 <text text-anchor="middle" x="622" y="-352.5" font-family="Arial" font-size="10.00">forbidden_as</text>
 </g>
-<!-- operation_outcome_operation_project_create_unauthenticated -->
+<!-- action_outcome_application_action_project_create_unauthenticated -->
 <g id="node6" class="node">
-<title>operation_outcome_operation_project_create_unauthenticated</title>
+<title>action_outcome_application_action_project_create_unauthenticated</title>
 <polygon fill="#ffffff" stroke="transparent" points="818.5,-125 818.5,-196 933.5,-196 933.5,-125 818.5,-125"/>
 <polygon fill="#dc2626" stroke="transparent" points="820,-186.5 820,-194.5 933,-194.5 933,-186.5 820,-186.5"/>
 <polygon fill="#fef2f2" stroke="transparent" points="820,-155.5 820,-186.5 933,-186.5 933,-155.5 820,-155.5"/>
@@ -118,16 +118,16 @@
 <text text-anchor="start" x="849" y="-133.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
 <polygon fill="none" stroke="#dc2626" points="818.5,-125 818.5,-196 933.5,-196 933.5,-125 818.5,-125"/>
 </g>
-<!-- operation_policy_authorization_policy_project_member&#45;&gt;operation_outcome_operation_project_create_unauthenticated -->
+<!-- application_action_policy_authorization_policy_project_member&#45;&gt;action_outcome_application_action_project_create_unauthenticated -->
 <g id="edge6" class="edge">
-<title>operation_policy_authorization_policy_project_member&#45;&gt;operation_outcome_operation_project_create_unauthenticated</title>
+<title>application_action_policy_authorization_policy_project_member&#45;&gt;action_outcome_application_action_project_create_unauthenticated</title>
 <path fill="none" stroke="#3f3f46" d="M400.48,-156.42C437.63,-136.08 481.89,-115.76 525,-105.5 638.29,-78.53 675.47,-75.98 787,-109.5 796.47,-112.35 806.02,-116.39 815.14,-120.97"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="813.98,-123.52 822.36,-124.75 816.57,-118.56 813.98,-123.52"/>
 <text text-anchor="middle" x="622" y="-108.5" font-family="Arial" font-size="10.00">unauthenticated_as</text>
 </g>
-<!-- operation_outcome_operation_project_create_created -->
+<!-- action_outcome_application_action_project_create_created -->
 <g id="node4" class="node">
-<title>operation_outcome_operation_project_create_created</title>
+<title>action_outcome_application_action_project_create_created</title>
 <polygon fill="#ffffff" stroke="transparent" points="840.5,-375 840.5,-446 911.5,-446 911.5,-375 840.5,-375"/>
 <polygon fill="#16a34a" stroke="transparent" points="842,-436.5 842,-444.5 911,-444.5 911,-436.5 842,-436.5"/>
 <polygon fill="#f0fdf4" stroke="transparent" points="842,-405.5 842,-436.5 911,-436.5 911,-405.5 842,-405.5"/>
@@ -138,16 +138,16 @@
 <text text-anchor="start" x="871" y="-383.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
 <polygon fill="none" stroke="#16a34a" points="840.5,-375 840.5,-446 911.5,-446 911.5,-375 840.5,-375"/>
 </g>
-<!-- operation_resource_operation_project_create_creates_Project&#45;&gt;operation_outcome_operation_project_create_created -->
+<!-- application_action_resource_application_action_project_create_creates_Project&#45;&gt;action_outcome_application_action_project_create_created -->
 <g id="edge3" class="edge">
-<title>operation_resource_operation_project_create_creates_Project&#45;&gt;operation_outcome_operation_project_create_created</title>
+<title>application_action_resource_application_action_project_create_creates_Project&#45;&gt;action_outcome_application_action_project_create_created</title>
 <path fill="none" stroke="#3f3f46" d="M719.35,-289.44C759.04,-320.31 802.9,-354.42 833.92,-378.55"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="832.3,-380.84 840.33,-383.54 835.74,-376.42 832.3,-380.84"/>
 <text text-anchor="middle" x="768.5" y="-344.5" font-family="Arial" font-size="10.00">success</text>
 </g>
-<!-- operation_outcome_operation_project_create_validation_failed -->
+<!-- action_outcome_application_action_project_create_validation_failed -->
 <g id="node7" class="node">
-<title>operation_outcome_operation_project_create_validation_failed</title>
+<title>action_outcome_application_action_project_create_validation_failed</title>
 <polygon fill="#ffffff" stroke="transparent" points="818,0 818,-71 934,-71 934,0 818,0"/>
 <polygon fill="#dc2626" stroke="transparent" points="819,-61.5 819,-69.5 933,-69.5 933,-61.5 819,-61.5"/>
 <polygon fill="#fef2f2" stroke="transparent" points="819,-30.5 819,-61.5 933,-61.5 933,-30.5 819,-30.5"/>
@@ -158,17 +158,17 @@
 <text text-anchor="start" x="848" y="-8.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
 <polygon fill="none" stroke="#dc2626" points="818,0 818,-71 934,-71 934,0 818,0"/>
 </g>
-<!-- operation_resource_operation_project_create_creates_Project&#45;&gt;operation_outcome_operation_project_create_validation_failed -->
+<!-- application_action_resource_application_action_project_create_creates_Project&#45;&gt;action_outcome_application_action_project_create_validation_failed -->
 <g id="edge7" class="edge">
-<title>operation_resource_operation_project_create_creates_Project&#45;&gt;operation_outcome_operation_project_create_validation_failed</title>
+<title>application_action_resource_application_action_project_create_creates_Project&#45;&gt;action_outcome_application_action_project_create_validation_failed</title>
 <path fill="none" stroke="#3f3f46" d="M719.35,-146.06C752.67,-122.4 788.91,-96.65 818.04,-75.96"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="820,-78 824.9,-71.08 816.76,-73.43 820,-78"/>
 <text text-anchor="middle" x="768.5" y="-122.5" font-family="Arial" font-size="10.00">failure</text>
 </g>
-<!-- operation_outcome_operation_project_create_created&#45;&gt;operation_outcome_operation_project_create_forbidden -->
-<!-- operation_event_operation_project_create_event_project_created -->
+<!-- action_outcome_application_action_project_create_created&#45;&gt;action_outcome_application_action_project_create_forbidden -->
+<!-- application_action_event_application_action_project_create_event_project_created -->
 <g id="node8" class="node">
-<title>operation_event_operation_project_create_event_project_created</title>
+<title>application_action_event_application_action_project_create_event_project_created</title>
 <polygon fill="#ffffff" stroke="transparent" points="1015,-365.5 1015,-455.5 1219,-455.5 1219,-365.5 1015,-365.5"/>
 <polygon fill="#4f46e5" stroke="transparent" points="1016,-446.5 1016,-454.5 1218,-454.5 1218,-446.5 1016,-446.5"/>
 <polygon fill="#eef2ff" stroke="transparent" points="1016,-415.5 1016,-446.5 1218,-446.5 1218,-415.5 1016,-415.5"/>
@@ -180,14 +180,14 @@
 <text text-anchor="start" x="1054" y="-374.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
 <polygon fill="none" stroke="#4f46e5" points="1015,-365.5 1015,-455.5 1219,-455.5 1219,-365.5 1015,-365.5"/>
 </g>
-<!-- operation_outcome_operation_project_create_created&#45;&gt;operation_event_operation_project_create_event_project_created -->
+<!-- action_outcome_application_action_project_create_created&#45;&gt;application_action_event_application_action_project_create_event_project_created -->
 <g id="edge4" class="edge">
-<title>operation_outcome_operation_project_create_created&#45;&gt;operation_event_operation_project_create_event_project_created</title>
+<title>action_outcome_application_action_project_create_created&#45;&gt;application_action_event_application_action_project_create_event_project_created</title>
 <path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M911.75,-410.5C936.86,-410.5 972.26,-410.5 1006.54,-410.5"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="1006.76,-413.3 1014.76,-410.5 1006.76,-407.7 1006.76,-413.3"/>
 <text text-anchor="middle" x="974.5" y="-413.5" font-family="Arial" font-size="10.00">emit</text>
 </g>
-<!-- operation_outcome_operation_project_create_forbidden&#45;&gt;operation_outcome_operation_project_create_unauthenticated -->
-<!-- operation_outcome_operation_project_create_unauthenticated&#45;&gt;operation_outcome_operation_project_create_validation_failed -->
+<!-- action_outcome_application_action_project_create_forbidden&#45;&gt;action_outcome_application_action_project_create_unauthenticated -->
+<!-- action_outcome_application_action_project_create_unauthenticated&#45;&gt;action_outcome_application_action_project_create_validation_failed -->
 </g>
 </svg>

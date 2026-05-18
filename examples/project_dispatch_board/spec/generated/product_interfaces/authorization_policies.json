@@ -1,4 +1,41 @@
 {
+  "action_authorizations": {
+    "application_action.project.approve": {
+      "forbidden_as": "forbidden",
+      "policy": "authorization_policy.project.reviewer",
+      "unauthenticated_as": "unauthenticated"
+    },
+    "application_action.project.archive": {
+      "forbidden_as": "forbidden",
+      "policy": "authorization_policy.project.reviewer",
+      "unauthenticated_as": "unauthenticated"
+    },
+    "application_action.project.create": {
+      "forbidden_as": "forbidden",
+      "policy": "authorization_policy.project.member",
+      "unauthenticated_as": "unauthenticated"
+    },
+    "application_action.project.list": {
+      "forbidden_as": "forbidden",
+      "policy": "authorization_policy.project.member",
+      "unauthenticated_as": "unauthenticated"
+    },
+    "application_action.project.read": {
+      "forbidden_as": "forbidden",
+      "policy": "authorization_policy.project.member",
+      "unauthenticated_as": "unauthenticated"
+    },
+    "application_action.project.send_approval_notice": {
+      "forbidden_as": "forbidden",
+      "policy": "authorization_policy.project.reviewer",
+      "unauthenticated_as": "unauthenticated"
+    },
+    "application_action.project.submit": {
+      "forbidden_as": "forbidden",
+      "policy": "authorization_policy.project.member",
+      "unauthenticated_as": "unauthenticated"
+    }
+  },
   "authorization_policies": {
     "authorization_policy.project.member": {
       "conditions": [
@@ -15,16 +52,16 @@
       ],
       "targets": [
         {
-          "operation": "operation.project.create"
+          "application_action": "application_action.project.create"
         },
         {
-          "operation": "operation.project.list"
+          "application_action": "application_action.project.list"
         },
         {
-          "operation": "operation.project.read"
+          "application_action": "application_action.project.read"
         },
         {
-          "operation": "operation.project.submit"
+          "application_action": "application_action.project.submit"
         },
         {
           "model": "Project"
@@ -46,13 +83,13 @@
       ],
       "targets": [
         {
-          "operation": "operation.project.approve"
+          "application_action": "application_action.project.approve"
         },
         {
-          "operation": "operation.project.archive"
+          "application_action": "application_action.project.archive"
         },
         {
-          "operation": "operation.project.send_approval_notice"
+          "application_action": "application_action.project.send_approval_notice"
         },
         {
           "model": "Project"
@@ -64,43 +101,6 @@
     "entry_point.api.project.approve": "authorization_policy.project.reviewer",
     "entry_point.api.project.create": "authorization_policy.project.member",
     "entry_point.api.project.list": "authorization_policy.project.member"
-  },
-  "operation_authorizations": {
-    "operation.project.approve": {
-      "forbidden_as": "forbidden",
-      "policy": "authorization_policy.project.reviewer",
-      "unauthenticated_as": "unauthenticated"
-    },
-    "operation.project.archive": {
-      "forbidden_as": "forbidden",
-      "policy": "authorization_policy.project.reviewer",
-      "unauthenticated_as": "unauthenticated"
-    },
-    "operation.project.create": {
-      "forbidden_as": "forbidden",
-      "policy": "authorization_policy.project.member",
-      "unauthenticated_as": "unauthenticated"
-    },
-    "operation.project.list": {
-      "forbidden_as": "forbidden",
-      "policy": "authorization_policy.project.member",
-      "unauthenticated_as": "unauthenticated"
-    },
-    "operation.project.read": {
-      "forbidden_as": "forbidden",
-      "policy": "authorization_policy.project.member",
-      "unauthenticated_as": "unauthenticated"
-    },
-    "operation.project.send_approval_notice": {
-      "forbidden_as": "forbidden",
-      "policy": "authorization_policy.project.reviewer",
-      "unauthenticated_as": "unauthenticated"
-    },
-    "operation.project.submit": {
-      "forbidden_as": "forbidden",
-      "policy": "authorization_policy.project.member",
-      "unauthenticated_as": "unauthenticated"
-    }
   },
   "project": "project_dispatch_board"
 }

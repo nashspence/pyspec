@@ -39,13 +39,13 @@ from .audit import (
     audit_expected_files,
     composition_file,
     entrypoint_flow_file,
-    operation_flow_file,
+    application_action_flow_file,
     state_machine_graph_file,
     workflow_flow_file,
 )
 from .paths import GENERATED_SPEC_DIR, SPEC_ROOT, generated_relative as g
 from .project import (
-    _cwl_operation_ids,
+    _cwl_application_action_ids,
     components_projection,
     validated_projection_paths,
     composition_tcss_selector,
@@ -66,7 +66,7 @@ _HTTP_METHODS = {"get", "put", "post", "delete", "patch", "head", "options", "tr
 _OPENAPI_OPERATION_KEYS = {
     "operationId",
     "x-entry",
-    "x-operation",
+    "x-application-action",
     "x-authorization-policy",
     "parameters",
     "responses",
@@ -130,20 +130,20 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
     if doc["components"] != components_projection(contract):
         raise ContractError("OpenAPI components do not exactly match contract schemas")
 
-    expected_operations: dict[tuple[str, str], tuple[str, dict[str, Any], dict[str, Any]]] = {}
+    expected_application_actions: dict[tuple[str, str], tuple[str, dict[str, Any], dict[str, Any]]] = {}
     for entry_id, entry in sorted(contract["entry_points"].items()):
         if entry_point_adapter_pair(entry)[0] != "http_api":
             continue
         target_kind, cap_id = entry_target_pair(entry)
-        if target_kind != "operation":
+        if target_kind != "application_action":
             continue
         method = (entry_point_method(entry) or "").lower()
         key = (entry_point_path(entry), method)
-        if key in expected_operations:
+        if key in expected_application_actions:
             raise ContractError(f"OpenAPI duplicate path/method binding in contract: {entry_point_path(entry)} {method}")
-        expected_operations[key] = (entry_id, entry, contract["operations"][cap_id])
+        expected_application_actions[key] = (entry_id, entry, contract["application_actions"][cap_id])
 
-    actual_operations: dict[tuple[str, str], dict[str, Any]] = {}
+    actual_application_actions: dict[tuple[str, str], dict[str, Any]] = {}
     for path, methods in doc["paths"].items():
         if not isinstance(path, str) or not path.startswith("/"):
             raise ContractError(f"OpenAPI path must start with /: {path!r}")
@@ -152,16 +152,16 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
         for method, operation in methods.items():
             if method not in _HTTP_METHODS:
                 raise ContractError(f"OpenAPI unsupported HTTP method at {path}: {method}")
-            if (path, method) in actual_operations:
+            if (path, method) in actual_application_actions:
                 raise ContractError(f"OpenAPI duplicate operation: {method.upper()} {path}")
-            actual_operations[(path, method)] = operation
+            actual_application_actions[(path, method)] = operation
 
-    if set(actual_operations) != set(expected_operations):
-        raise ContractError(_diff_message("OpenAPI operations", set(expected_operations), set(actual_operations)))
+    if set(actual_application_actions) != set(expected_application_actions):
+        raise ContractError(_diff_message("OpenAPI operations", set(expected_application_actions), set(actual_application_actions)))
 
     seen_operation_ids: set[str] = set()
-    for (path, method), (entry_id, entry, cap) in expected_operations.items():
-        operation = actual_operations[(path, method)]
+    for (path, method), (entry_id, entry, cap) in expected_application_actions.items():
+        operation = actual_application_actions[(path, method)]
         unknown_keys = set(operation) - _OPENAPI_OPERATION_KEYS
         if unknown_keys:
             raise ContractError(f"OpenAPI {method.upper()} {path} has unsupported operation keys: {sorted(unknown_keys)}")
@@ -171,7 +171,7 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
         seen_operation_ids.add(operation.get("operationId"))
         if operation.get("operationId") != cap_id:
             raise ContractError(f"OpenAPI operationId must equal operation id for {entry_id}")
-        if operation.get("x-entry") != entry_id or operation.get("x-operation") != cap_id:
+        if operation.get("x-entry") != entry_id or operation.get("x-application-action") != cap_id:
             raise ContractError(f"OpenAPI extensions do not point back to {entry_id}/{cap_id}")
         expected_policy = (cap.get("authorization") or {}).get("policy")
         if expected_policy:
@@ -530,7 +530,7 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
     if len(by_id) != len(graph):
         raise ContractError("CWL $graph contains duplicate or missing ids")
     expected_ids = {f"#{safe_id(workflow_id)}" for workflow_id in contract["workflows"]}
-    expected_ids.update(f"#{safe_id(cap_id)}" for cap_id in _cwl_operation_ids(contract))
+    expected_ids.update(f"#{safe_id(cap_id)}" for cap_id in _cwl_application_action_ids(contract))
     if set(by_id) != expected_ids:
         raise ContractError(_diff_message("CWL graph ids", expected_ids, set(by_id)))
 
@@ -554,18 +554,18 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             raise ContractError(f"CWL workflow {workflow_id} steps mismatch")
         for step in workflow["steps"]:
             actual = steps[step["id"]]
-            run_id = f"#{safe_id(step['operation'])}"
+            run_id = f"#{safe_id(step['application_action'])}"
             if actual.get("run") != run_id or run_id not in by_id:
                 raise ContractError(f"CWL workflow {workflow_id} step {step['id']} references unknown run")
-            cap = contract["operations"][step["operation"]]
+            cap = contract["application_actions"][step["application_action"]]
             expected_in = {name: _workflow_cwl_source(source) for name, source in sorted(step["input_bindings"].items())}
             expected_out = sorted(cap["outcomes"])
             expected_doc = f"input_bindings={step['input_bindings']}; outcome_routes={step['outcome_routes']}"
             if set(actual) != {"doc", "run", "in", "out"} or actual.get("doc") != expected_doc or actual.get("in") != expected_in or actual.get("out") != expected_out:
                 raise ContractError(f"CWL workflow {workflow_id} step {step['id']} malformed")
 
-    for cap_id in _cwl_operation_ids(contract):
-        cap = contract["operations"][cap_id]
+    for cap_id in _cwl_application_action_ids(contract):
+        cap = contract["application_actions"][cap_id]
         item = by_id[f"#{safe_id(cap_id)}"]
         if set(item) != {"id", "class", "label", "baseCommand", "inputs", "outputs"}:
             raise ContractError(f"CWL operation node {cap_id} has unsupported keys")
@@ -592,7 +592,7 @@ def _workflow_trigger_payload_type(contract: dict[str, Any], workflow: dict[str,
     trigger = workflow["trigger"]
     if "event" in trigger:
         return contract["events"][trigger["event"]]["payload_schema"]
-    operation = contract["operations"][trigger["operation"]]
+    operation = contract["application_actions"][trigger["application_action"]]
     successes = [outcome["result"] for outcome in operation["outcomes"].values() if outcome["kind"] == "success"]
     return successes[0]
 
@@ -639,9 +639,9 @@ def validate_fixtures_and_test_cases(root: Path, contract: dict[str, Any]) -> No
 def validate_authorization_policies_json(contract: dict[str, Any], doc: dict[str, Any]) -> None:
     if doc != authorization_policies_projection(contract):
         raise ContractError("authorization_policies.json does not match contract authorization policies")
-    for operation_id, authorization in doc["operation_authorizations"].items():
-        if operation_id not in contract["operations"]:
-            raise ContractError(f"authorization_policies.json has unknown operation authorization {operation_id}")
+    for application_action_id, authorization in doc["action_authorizations"].items():
+        if application_action_id not in contract["application_actions"]:
+            raise ContractError(f"authorization_policies.json has unknown operation authorization {application_action_id}")
         authorization_policy = authorization["policy"]
         if authorization_policy not in doc["authorization_policies"]:
             raise ContractError(f"authorization_policies.json operation authorization references unknown authorization policy {authorization_policy}")
@@ -679,8 +679,8 @@ def validate_audit_outputs(root: Path, contract: dict[str, Any]) -> None:
         _assert_svg(root / entrypoint_flow_file(entry_id, adapter_kind), f"entrypoint {entry_id}")
     for workflow_id in contract.get("workflows", {}):
         _assert_svg(root / workflow_flow_file(workflow_id), f"workflow {workflow_id}")
-    for operation_id in contract.get("operations", {}):
-        _assert_svg(root / operation_flow_file(operation_id), f"operation {operation_id}")
+    for application_action_id in contract.get("application_actions", {}):
+        _assert_svg(root / application_action_flow_file(application_action_id), f"operation {application_action_id}")
 
     projection = state_machines_projection(contract)
     for state_machine in _audit_projection_surfaces(contract, projection):
@@ -881,7 +881,7 @@ def validate_refs_py(root: Path, contract: dict[str, Any]) -> None:
         "Event": sorted(contract["events"]),
         "Fact": sorted(contract.get("facts", {})),
         "Fixture": sorted(contract["fixtures"]),
-        "Operation": sorted(contract["operations"]),
+        "Operation": sorted(contract["application_actions"]),
         "StateMachine": sorted(contract.get("state_machines", {})),
         "Text": sorted(contract.get("text_resources", {})),
         "RenderAuditCase": sorted(audit_cases(contract)),
@@ -1021,13 +1021,13 @@ def _expected_textual_compose(state_machine: dict[str, Any]) -> list[tuple[str, 
     result.extend(("Static", key) for key in slots["text"])
     result.extend(("Static", key) for key in slots["assets"])
     result.extend(("Static", key) for key in slots.get("fields", []))
-    result.extend(("Button", invocation_id) for invocation_id in slots["operation_invocations"])
+    result.extend(("Button", invocation_id) for invocation_id in slots["action_bindings"])
     return result
 
 
 def _widget_label(widget: dict[str, Any]) -> str:
     binding = widget["binding"]
-    for key in ["text_slot", "asset_slot", "operation_invocation", "field_slot", "literal"]:
+    for key in ["text_slot", "asset_slot", "action_binding", "field_slot", "literal"]:
         if key in binding:
             return binding[key]
     return widget["id"]
@@ -1044,10 +1044,10 @@ def _textual_selector(state_machine: dict[str, Any], selector: str) -> str:
             if binding.get("text_slot") == slot or binding.get("asset_slot") == slot or binding.get("field_slot") == slot:
                 return "#" + safe_id(widget["id"])
         return "#" + slot
-    if selector.startswith("operation_invocation."):
-        operation = selector[len("operation_invocation."):]
+    if selector.startswith("action_binding."):
+        operation = selector[len("action_binding."):]
         for widget in widgets:
-            if widget["binding"].get("operation_invocation") == operation:
+            if widget["binding"].get("action_binding") == application_action:
                 return "#" + safe_id(widget["id"])
         return "#" + safe_id(operation)
     return selector

@@ -23,15 +23,15 @@ def _item(author: dict, section: str, item_id: str) -> dict:
 def test_composed_state_machine_contract_is_closed_and_projected() -> None:
     contract = compile_source(_author())
     list_fsm = contract["state_machines"]["state_machine.project.list"]
-    assert set(list_fsm) == {"model", "context", "query_invocations", "signals", "initial_view_state", "view_states", "transitions", "rationale"}
+    assert set(list_fsm) == {"model", "context", "data_loaders", "signals", "initial_view_state", "view_states", "transitions", "rationale"}
     assert list_fsm["initial_view_state"] == "loading"
-    assert set(list_fsm["query_invocations"]) == {"list_projects"}
-    assert list_fsm["query_invocations"]["list_projects"]["operation"] == "operation.project.list"
+    assert set(list_fsm["data_loaders"]) == {"list_projects"}
+    assert list_fsm["data_loaders"]["list_projects"]["application_action"] == "application_action.project.list"
     assert list_fsm["view_states"]["ready"]["fields"] == ["title", "customer", "priority", "status"]
     detail_fsm = contract["state_machines"]["state_machine.project.detail"]
-    assert detail_fsm["query_invocations"] == {}
-    assert detail_fsm["view_states"]["loading"]["query_invocations"]["read_project"]["operation"] == "operation.project.read"
-    assert contract["state_machines"]["state_machine.project.activity"]["view_states"]["ready"]["query_invocations"]["read_activity"]["operation"] == "operation.project.read"
+    assert detail_fsm["data_loaders"] == {}
+    assert detail_fsm["view_states"]["loading"]["data_loaders"]["read_project"]["application_action"] == "application_action.project.read"
+    assert contract["state_machines"]["state_machine.project.activity"]["view_states"]["ready"]["data_loaders"]["read_activity"]["application_action"] == "application_action.project.read"
 
     state_machine = contract["state_machines"]["state_machine.project.board"]["view_states"]["ready"]
     assert set(state_machine["renderers"]["html"]["layout"]["regions"]) == {"nav", "main", "aside"}

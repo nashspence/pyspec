@@ -1,6 +1,6 @@
 <svg width="579pt" height="226pt"
  viewBox="0.00 0.00 579.00 226.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: d032541f20123be308d65cf470c92d1e0200be2a398f97c1369bbedcdaf3a8a9 -->
+<!-- pyspec-contract-input-sha256: f4fddf6082687ce25713dabb4316855b74ea9449ebe41df0bee7c2b977b593aa -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 208)">
 <title>entrypoint_entry_point_cli_project_board</title>
 <!-- entrypoint_entry_point_cli_project_board -->
@@ -33,13 +33,13 @@
 <text text-anchor="start" x="268.5" y="-97" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
 <text text-anchor="start" x="296.5" y="-97" font-family="Arial" font-size="10.00">  list_board.workspace_id</text>
 <text text-anchor="start" x="408.5" y="-97" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
-<text text-anchor="start" x="268.5" y="-85" font-family="Arial" font-weight="bold" font-size="10.00">query_invocations:</text>
-<text text-anchor="start" x="357.5" y="-85" font-family="Arial" font-size="10.00">  list_board</text>
+<text text-anchor="start" x="268.5" y="-85" font-family="Arial" font-weight="bold" font-size="10.00">data_loaders:</text>
+<text text-anchor="start" x="331.5" y="-85" font-family="Arial" font-size="10.00">  list_board</text>
 <text text-anchor="start" x="268.5" y="-73" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
-<text text-anchor="start" x="292.5" y="-73" font-family="Arial" font-size="10.00">  operation.project.list</text>
-<text text-anchor="start" x="386.5" y="-73" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
+<text text-anchor="start" x="292.5" y="-73" font-family="Arial" font-size="10.00">  application_action.project.list</text>
+<text text-anchor="start" x="425.5" y="-73" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
 <text text-anchor="start" x="267.5" y="-53" font-family="Arial" font-weight="bold" font-size="10.00">authorization_policies:</text>
-<text text-anchor="start" x="374.5" y="-53" font-family="Arial" font-size="10.00">  operation.project.list:</text>
+<text text-anchor="start" x="374.5" y="-53" font-family="Arial" font-size="10.00">  application_action.project.list:</text>
 <text text-anchor="start" x="267.5" y="-41" font-family="Arial" font-size="10.00">  authorization_policy.project.member</text>
 <text text-anchor="start" x="268.5" y="-22" font-family="Arial" font-weight="bold" font-size="10.00">model:</text>
 <text text-anchor="start" x="301.5" y="-22" font-family="Arial" font-size="10.00">  Project</text>
