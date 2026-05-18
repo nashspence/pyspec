@@ -73,7 +73,7 @@ def test_audit_outputs_cover_full_contract() -> None:
     assert "spec/generated/audit_evidence/external_interfaces/cli/external_interface_cli_project_board/flow.svg" in expected
     assert "spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg" in expected
     assert command_query_flow_file("command.project.approve") in expected
-    assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/states/" in path and path.endswith("/text.yaml") for path in expected)
+    assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/states/" in path and path.endswith("/text_resources.yaml") for path in expected)
     assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/states/" in path and "/renders/" in path and path.endswith(".png") for path in expected)
     assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/render_examples/" in path and "/renders/" in path and path.endswith(".html") for path in expected)
     assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/render_examples/" in path and "/renders/" in path and path.endswith(".svg") for path in expected)
@@ -125,8 +125,8 @@ def test_audit_coverage_index_maps_compiled_paths_to_evidence() -> None:
     assert "/entity_types/entity_type.project/entity_lifecycle/lifecycle_transitions/1/triggered_by" not in text_witnesses
     renderer_set = index["visual_audit"]["required"]["covered"]["/state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/aside/classes/0"]
     assert any(path.endswith(".screenshot.png") for path in visual_evidence_sets[renderer_set])
-    assert index["render_presence"]["assets"]["not_rendered"] == []
-    assert "text.project.approve.success" in index["render_presence"]["text_resources"]["not_rendered"]
+    assert index["render_presence"]["media_assets"]["not_rendered"] == []
+    assert "text_resource.project.approve.success" in index["render_presence"]["text_resources"]["not_rendered"]
     assert index["render_presence"]["fixtures"]["not_rendered"] == ["fixture.workspace.reviewer"]
     assert "/fixtures/fixture.workspace.reviewer/values/actor/id" in index["visual_audit"]["optional"]["not_shown"]
 
@@ -196,11 +196,11 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "initial_state" not in state_machine
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">state</FONT>' in state_machine
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">transition signal</FONT>' in state_machine
-    assert "text.project.list.ready.heading" in state_machine
-    assert "asset.project.list.empty.illustration" in state_machine
+    assert "text_resource.project.list.ready.heading" in state_machine
+    assert "media_asset.project.list.empty.illustration" in state_machine
     assert state_machine.index("<B>text</B>") < state_machine.index("<B>assets:</B>")
     assert state_machine.index("<B>assets:</B>") < state_machine.index("<B>command_bindings:</B>")
-    assert state_machine.index("<B>text:</B>&#160;&#160;text.project.list.ready.heading") < state_machine.index("<B>query.project.list fields</B>")
+    assert state_machine.index("<B>text:</B>&#160;&#160;text_resource.project.list.ready.heading") < state_machine.index("<B>query.project.list fields</B>")
     assert state_machine.index("<B>query.project.list fields</B>") < state_machine.index("<B>command_bindings</B>")
     assert "<B>emit:</B>&#160;&#160;local_signal.project_selected" in state_machine
     payload_project = '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;string</FONT>'
@@ -594,8 +594,8 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     approve_behavior = (ROOT / command_query_flow_file("command.project.approve")).read_text(encoding="utf-8")
     assert "data_refresh_signal.projects_loaded" in list_fsm
     assert "on data_refresh_signal.projects_loaded" not in list_fsm
-    assert "text.project.list.ready.heading" in list_fsm
-    assert "asset.project.list.empty.illustration" in list_fsm
+    assert "text_resource.project.list.ready.heading" in list_fsm
+    assert "media_asset.project.list.empty.illustration" in list_fsm
     assert "emit:" in list_fsm
     assert "local_signal.project_selected" in list_fsm
     assert "payload:" in list_fsm
@@ -617,7 +617,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "entity_type:" not in list_fsm
     assert "context:" not in list_fsm
     assert "&#45; data_refresh_signal.projects_loaded" not in list_fsm
-    assert "&#45; text.project" not in list_fsm
+    assert "&#45; text_resource.project" not in list_fsm
     assert "&#45; none" not in list_fsm
     assert ">rationale<" not in list_fsm
     assert "loading &#45;&gt; empty" not in list_fsm
@@ -629,7 +629,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "emitted domain_events" not in list_fsm
     assert "$signal.payload." not in list_fsm
     assert "$domain_event." not in list_fsm
-    assert "text.project.detail.ready.heading" in detail_fsm
+    assert "text_resource.project.detail.ready.heading" in detail_fsm
     assert "query.project.read fields" in detail_fsm
     assert "array&lt;Project&gt;" in list_fsm
     assert "query.project.read" in detail_fsm
@@ -735,15 +735,15 @@ def test_audit_html_sources_render_copy_assets_and_fixture_fields() -> None:
     empty = ROOT / render_example_render_file("state_machine.project.board", "state_machine.project.board.ready.empty.audit", "viewport_profile.default", "compact", "html")
     empty_text = empty.read_text(encoding="utf-8")
     assert "No dispatch projects yet" in empty_text
-    assert "asset.project.list.empty.illustration" in empty_text
+    assert "media_asset.project.list.empty.illustration" in empty_text
     assert "data:image/svg+xml;base64" in empty_text
 
 
 def test_audit_asset_placeholder_is_generic_and_not_named() -> None:
-    asset = ROOT / "spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_empty_audit/assets/asset_project_list_empty_illustration.svg"
+    asset = ROOT / "spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_empty_audit/media_assets/media_asset_project_list_empty_illustration.svg"
     text = asset.read_text(encoding="utf-8")
     assert text.lstrip().startswith("<svg")
-    assert "asset.project.list.empty.illustration" not in text
+    assert "media_asset.project.list.empty.illustration" not in text
     assert "<text" not in text
     assert "Empty dispatch queue illustration" in text
 

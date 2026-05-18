@@ -2,18 +2,18 @@ from __future__ import annotations
 
 import html
 
-from pyspec_contract.content import AssetResult, ContentContext, asset, text
-from generated.content_resolvers.signatures import AssetProjectDetailReadyPriorityBadgeArgs, TextProjectDetailReadyHeadingArgs
+from pyspec_contract.content import ContentContext, MediaAssetResult, media_asset, text_resource
+from generated.content_resolvers.signatures import MediaAssetProjectDetailReadyPriorityBadgeArgs, TextResourceProjectDetailReadyHeadingArgs
 from generated.test_adapters.python_refs import MediaAsset, TextResource
 
 
-@text.implements(TextResource.TEXT_PROJECT_DETAIL_READY_HEADING)
-def project_detail_ready_heading(args: TextProjectDetailReadyHeadingArgs, ctx: ContentContext) -> str:
+@text_resource.implements(TextResource.TEXT_RESOURCE_PROJECT_DETAIL_READY_HEADING)
+def project_detail_ready_heading(args: TextResourceProjectDetailReadyHeadingArgs, ctx: ContentContext) -> str:
     return f"{args.title} · {args.customer}"
 
 
-@asset.implements(MediaAsset.ASSET_PROJECT_DETAIL_READY_PRIORITY_BADGE)
-def project_detail_ready_priority_badge(args: AssetProjectDetailReadyPriorityBadgeArgs, ctx: ContentContext) -> AssetResult:
+@media_asset.implements(MediaAsset.MEDIA_ASSET_PROJECT_DETAIL_READY_PRIORITY_BADGE)
+def project_detail_ready_priority_badge(args: MediaAssetProjectDetailReadyPriorityBadgeArgs, ctx: ContentContext) -> MediaAssetResult:
     priority = str(args.priority).strip() or "Priority"
     priority_text = html.escape(priority, quote=False)
     priority_attr = html.escape(priority, quote=True)
@@ -25,4 +25,4 @@ def project_detail_ready_priority_badge(args: AssetProjectDetailReadyPriorityBad
   <text x="160" y="69" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="28" font-weight="700" fill="#18181b">{priority_text}</text>
 </svg>
 '''
-    return AssetResult(mime_type="image/svg+xml", body=svg, alt=f"{priority_attr} priority")
+    return MediaAssetResult(mime_type="image/svg+xml", body=svg, alt=f"{priority_attr} priority")

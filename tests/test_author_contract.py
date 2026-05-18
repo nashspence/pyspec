@@ -155,7 +155,7 @@ def test_author_contract_reuses_layer_guardrails() -> None:
     author = {
         "project": "blocked_author",
         "text_resources": {
-            "text.project.empty.heading": {
+            "text_resource.project.empty.heading": {
                 "rationale": "UI text is not part of a core-only source.",
                 "placeholder": "No projects",
             }

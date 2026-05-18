@@ -29,7 +29,7 @@ TARGET_LAYERS: dict[str, set[str]] = {
     "workflow": {"workflow"},
     "state_machine": {"ui"},
     "text_resource": {"ui"},
-    "asset": {"ui"},
+    "media_asset": {"ui"},
     "content_example": {"ui"},
     "viewport_profile": {"ui"},
     "schema": {"core"},
@@ -48,7 +48,7 @@ ENTRY_ADAPTER_LAYER = {
 
 AUTHOR_SECTIONS: dict[str, str] = {
     "text_resources": "text_resource",
-    "media_assets": "asset",
+    "media_assets": "media_asset",
     "content_examples": "content_example",
     "viewport_profiles": "viewport_profile",
     "fixtures": "fixture",

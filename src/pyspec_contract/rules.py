@@ -17,8 +17,8 @@ def resource_tail(value: str) -> str:
         "fixture",
         "precondition",
         "assertion",
-        "asset",
-        "text",
+        "media_asset",
+        "text_resource",
         "content_example",
         "schema",
         "viewport_profile",
@@ -64,12 +64,12 @@ def state_machine_surface_ref(state_machine_id: str, state: str) -> str:
     return f"{state_machine_id}.{state}"
 
 
-def text_ref(state_machine_id: str, state: str, slot: str) -> str:
-    return f"text.{resource_tail(state_machine_id)}.{state}.{slot}"
+def text_resource_ref(state_machine_id: str, state: str, slot: str) -> str:
+    return f"text_resource.{resource_tail(state_machine_id)}.{state}.{slot}"
 
 
-def asset_ref(state_machine_id: str, state: str, slot: str) -> str:
-    return f"asset.{resource_tail(state_machine_id)}.{state}.{slot}"
+def media_asset_ref(state_machine_id: str, state: str, slot: str) -> str:
+    return f"media_asset.{resource_tail(state_machine_id)}.{state}.{slot}"
 
 
 def renderer_screen_ref(state_machine_id: str) -> str:

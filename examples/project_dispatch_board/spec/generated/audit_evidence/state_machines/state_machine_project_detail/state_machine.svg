@@ -1,20 +1,20 @@
-<svg width="1743pt" height="463pt"
- viewBox="0.00 0.00 1743.00 463.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: b56e11090e1a42aefcca5a5b7c8b61924ff8acd65693a94a3b1e9a2b184e88b6 -->
+<svg width="1786pt" height="463pt"
+ viewBox="0.00 0.00 1786.00 463.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: 4ba177b408aff7a26d2f554410693b20f4056b274ff84ed9598d3a7f589d923b -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 445)">
 <title>state_machine_state_machine_project_detail</title>
 <!-- state_error -->
 <g id="node1" class="node">
 <title>state_error</title>
-<polygon fill="#ffffff" stroke="transparent" points="1287.5,-79 1287.5,-161 1432.5,-161 1432.5,-79 1287.5,-79"/>
-<polygon fill="#71717a" stroke="transparent" points="1289,-152 1289,-160 1432,-160 1432,-152 1289,-152"/>
-<polygon fill="#f8fafc" stroke="transparent" points="1289,-121 1289,-152 1432,-152 1432,-121 1289,-121"/>
-<text text-anchor="start" x="1293" y="-138.6" font-family="Arial" font-weight="bold" font-size="13.00">error</text>
-<text text-anchor="start" x="1293" y="-127.6" font-family="Arial" font-size="8.00" fill="#64748b">state</text>
-<text text-anchor="start" x="1293" y="-110" font-family="Arial" font-weight="bold" font-size="10.00">text</text>
-<text text-anchor="start" x="1293" y="-98" font-family="Arial" font-size="10.00">text.project.detail.error.heading</text>
-<text text-anchor="start" x="1293" y="-87" font-family="Arial" font-size="10.00">text.project.detail.error.body</text>
-<polygon fill="none" stroke="#71717a" points="1287.5,-79 1287.5,-161 1432.5,-161 1432.5,-79 1287.5,-79"/>
+<polygon fill="#ffffff" stroke="transparent" points="1287.5,-79 1287.5,-161 1475.5,-161 1475.5,-79 1287.5,-79"/>
+<polygon fill="#71717a" stroke="transparent" points="1288.5,-152 1288.5,-160 1474.5,-160 1474.5,-152 1288.5,-152"/>
+<polygon fill="#f8fafc" stroke="transparent" points="1288.5,-121 1288.5,-152 1474.5,-152 1474.5,-121 1288.5,-121"/>
+<text text-anchor="start" x="1292.5" y="-138.6" font-family="Arial" font-weight="bold" font-size="13.00">error</text>
+<text text-anchor="start" x="1292.5" y="-127.6" font-family="Arial" font-size="8.00" fill="#64748b">state</text>
+<text text-anchor="start" x="1292.5" y="-110" font-family="Arial" font-weight="bold" font-size="10.00">text</text>
+<text text-anchor="start" x="1292.5" y="-98" font-family="Arial" font-size="10.00">text_resource.project.detail.error.heading</text>
+<text text-anchor="start" x="1292.5" y="-87" font-family="Arial" font-size="10.00">text_resource.project.detail.error.body</text>
+<polygon fill="none" stroke="#71717a" points="1287.5,-79 1287.5,-161 1475.5,-161 1475.5,-79 1287.5,-79"/>
 </g>
 <!-- state_loading -->
 <g id="node2" class="node">
@@ -25,7 +25,7 @@
 <text text-anchor="start" x="5.5" y="-98.6" font-family="Arial" font-weight="bold" font-size="13.00">loading</text>
 <text text-anchor="start" x="5.5" y="-87.6" font-family="Arial" font-size="8.00" fill="#64748b">state</text>
 <text text-anchor="start" x="6.5" y="-69" font-family="Arial" font-weight="bold" font-size="10.00">text:</text>
-<text text-anchor="start" x="26.5" y="-69" font-family="Arial" font-size="10.00">  text.project.detail.loading.message</text>
+<text text-anchor="start" x="26.5" y="-69" font-family="Arial" font-size="10.00">  text_resource.project.detail.loading.message</text>
 <text text-anchor="start" x="6.5" y="-57" font-family="Arial" font-weight="bold" font-size="10.00">query_bindings:</text>
 <text text-anchor="start" x="82.5" y="-57" font-family="Arial" font-size="10.00">  read_project: query.project.read</text>
 <text text-anchor="start" x="225.5" y="-57" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
@@ -82,39 +82,39 @@
 <!-- state_none -->
 <g id="node3" class="node">
 <title>state_none</title>
-<polygon fill="#ffffff" stroke="transparent" points="1287,-271 1287,-353 1433,-353 1433,-271 1287,-271"/>
-<polygon fill="#0891b2" stroke="transparent" points="1288,-344 1288,-352 1432,-352 1432,-344 1288,-344"/>
-<polygon fill="#ecfeff" stroke="transparent" points="1288,-313 1288,-344 1432,-344 1432,-313 1288,-313"/>
-<text text-anchor="start" x="1292" y="-330.6" font-family="Arial" font-weight="bold" font-size="13.00">none</text>
-<text text-anchor="start" x="1292" y="-319.6" font-family="Arial" font-size="8.00" fill="#64748b">initial state</text>
-<text text-anchor="start" x="1292" y="-302" font-family="Arial" font-weight="bold" font-size="10.00">text</text>
-<text text-anchor="start" x="1292" y="-290" font-family="Arial" font-size="10.00">text.project.detail.none.heading</text>
-<text text-anchor="start" x="1292" y="-279" font-family="Arial" font-size="10.00">text.project.detail.none.body</text>
-<polygon fill="none" stroke="#0891b2" points="1287,-271 1287,-353 1433,-353 1433,-271 1287,-271"/>
+<polygon fill="#ffffff" stroke="transparent" points="1287,-271 1287,-353 1476,-353 1476,-271 1287,-271"/>
+<polygon fill="#0891b2" stroke="transparent" points="1288.5,-344 1288.5,-352 1475.5,-352 1475.5,-344 1288.5,-344"/>
+<polygon fill="#ecfeff" stroke="transparent" points="1288.5,-313 1288.5,-344 1475.5,-344 1475.5,-313 1288.5,-313"/>
+<text text-anchor="start" x="1292.5" y="-330.6" font-family="Arial" font-weight="bold" font-size="13.00">none</text>
+<text text-anchor="start" x="1292.5" y="-319.6" font-family="Arial" font-size="8.00" fill="#64748b">initial state</text>
+<text text-anchor="start" x="1292.5" y="-302" font-family="Arial" font-weight="bold" font-size="10.00">text</text>
+<text text-anchor="start" x="1292.5" y="-290" font-family="Arial" font-size="10.00">text_resource.project.detail.none.heading</text>
+<text text-anchor="start" x="1292.5" y="-279" font-family="Arial" font-size="10.00">text_resource.project.detail.none.body</text>
+<polygon fill="none" stroke="#0891b2" points="1287,-271 1287,-353 1476,-353 1476,-271 1287,-271"/>
 </g>
 <!-- transition_0_none_loading_local_signal_selection_changed -->
 <g id="node5" class="node">
 <title>transition_0_none_loading_local_signal_selection_changed</title>
-<polygon fill="#ffffff" stroke="transparent" points="1494,-52 1494,-138 1707,-138 1707,-52 1494,-52"/>
-<polygon fill="#2563eb" stroke="transparent" points="1495.5,-129 1495.5,-137 1706.5,-137 1706.5,-129 1495.5,-129"/>
-<polygon fill="#eff6ff" stroke="transparent" points="1495.5,-98 1495.5,-129 1706.5,-129 1706.5,-98 1495.5,-98"/>
-<text text-anchor="start" x="1499.5" y="-115.6" font-family="Arial" font-weight="bold" font-size="13.00">local_signal.selection_changed</text>
-<text text-anchor="start" x="1499.5" y="-104.6" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
-<text text-anchor="start" x="1500.5" y="-86" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
-<text text-anchor="start" x="1528.5" y="-86" font-family="Arial" font-size="10.00">  read_project.project_id</text>
-<text text-anchor="start" x="1633.5" y="-86" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
-<text text-anchor="start" x="1500.5" y="-74" font-family="Arial" font-weight="bold" font-size="10.00">query_bindings:</text>
-<text text-anchor="start" x="1576.5" y="-74" font-family="Arial" font-size="10.00">  read_project</text>
-<text text-anchor="start" x="1500.5" y="-62" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
-<text text-anchor="start" x="1524.5" y="-62" font-family="Arial" font-size="10.00">  query.project.read</text>
-<text text-anchor="start" x="1608.5" y="-62" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
-<polygon fill="none" stroke="#2563eb" points="1494,-52 1494,-138 1707,-138 1707,-52 1494,-52"/>
+<polygon fill="#ffffff" stroke="transparent" points="1537,-52 1537,-138 1750,-138 1750,-52 1537,-52"/>
+<polygon fill="#2563eb" stroke="transparent" points="1538.5,-129 1538.5,-137 1749.5,-137 1749.5,-129 1538.5,-129"/>
+<polygon fill="#eff6ff" stroke="transparent" points="1538.5,-98 1538.5,-129 1749.5,-129 1749.5,-98 1538.5,-98"/>
+<text text-anchor="start" x="1542.5" y="-115.6" font-family="Arial" font-weight="bold" font-size="13.00">local_signal.selection_changed</text>
+<text text-anchor="start" x="1542.5" y="-104.6" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
+<text text-anchor="start" x="1543.5" y="-86" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
+<text text-anchor="start" x="1571.5" y="-86" font-family="Arial" font-size="10.00">  read_project.project_id</text>
+<text text-anchor="start" x="1676.5" y="-86" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
+<text text-anchor="start" x="1543.5" y="-74" font-family="Arial" font-weight="bold" font-size="10.00">query_bindings:</text>
+<text text-anchor="start" x="1619.5" y="-74" font-family="Arial" font-size="10.00">  read_project</text>
+<text text-anchor="start" x="1543.5" y="-62" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
+<text text-anchor="start" x="1567.5" y="-62" font-family="Arial" font-size="10.00">  query.project.read</text>
+<text text-anchor="start" x="1651.5" y="-62" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
+<polygon fill="none" stroke="#2563eb" points="1537,-52 1537,-138 1750,-138 1750,-52 1537,-52"/>
 </g>
 <!-- state_none&#45;&gt;transition_0_none_loading_local_signal_selection_changed -->
 <g id="edge1" class="edge">
 <title>state_none&#45;&gt;transition_0_none_loading_local_signal_selection_changed</title>
-<path fill="none" stroke="#3f3f46" d="M1406.14,-270.93C1445.91,-234.74 1503.91,-181.97 1546,-143.67"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1548.06,-145.59 1552.09,-138.13 1544.29,-141.45 1548.06,-145.59"/>
+<path fill="none" stroke="#3f3f46" d="M1431.71,-270.93C1475.16,-234.67 1538.55,-181.76 1584.46,-143.44"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1586.47,-145.41 1590.82,-138.13 1582.88,-141.11 1586.47,-145.41"/>
 </g>
 <!-- state_ready -->
 <g id="node4" class="node">
@@ -125,9 +125,9 @@
 <text text-anchor="start" x="627.5" y="-382.6" font-family="Arial" font-weight="bold" font-size="13.00">ready</text>
 <text text-anchor="start" x="627.5" y="-371.6" font-family="Arial" font-size="8.00" fill="#64748b">state</text>
 <text text-anchor="start" x="628.5" y="-353" font-family="Arial" font-weight="bold" font-size="10.00">text:</text>
-<text text-anchor="start" x="648.5" y="-353" font-family="Arial" font-size="10.00">  text.project.detail.ready.heading</text>
+<text text-anchor="start" x="648.5" y="-353" font-family="Arial" font-size="10.00">  text_resource.project.detail.ready.heading</text>
 <text text-anchor="start" x="628.5" y="-341" font-family="Arial" font-weight="bold" font-size="10.00">assets:</text>
-<text text-anchor="start" x="661.5" y="-341" font-family="Arial" font-size="10.00">  asset.project.detail.ready.priority_badge</text>
+<text text-anchor="start" x="661.5" y="-341" font-family="Arial" font-size="10.00">  media_asset.project.detail.ready.priority_badge</text>
 <text text-anchor="start" x="627.5" y="-321" font-family="Arial" font-weight="bold" font-size="10.00">query.project.read fields</text>
 <text text-anchor="start" x="627.5" y="-310" font-family="Arial" font-size="10.00">title</text>
 <text text-anchor="start" x="643.5" y="-310" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
@@ -219,7 +219,7 @@
 <!-- transition_0_none_loading_local_signal_selection_changed&#45;&gt;state_loading -->
 <g id="edge2" class="edge">
 <title>transition_0_none_loading_local_signal_selection_changed&#45;&gt;state_loading</title>
-<path fill="none" stroke="#3f3f46" d="M1493.67,-63.63C1390.87,-35.96 1229.89,0 1087.5,0 752.5,0 752.5,0 752.5,0 585.1,0 394.58,-30.35 269.22,-54.56"/>
+<path fill="none" stroke="#3f3f46" d="M1536.76,-65.92C1425.77,-37.98 1245.74,0 1087.5,0 752.5,0 752.5,0 752.5,0 585.1,0 394.58,-30.35 269.22,-54.56"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="268.37,-51.87 261.05,-56.15 269.44,-57.37 268.37,-51.87"/>
 </g>
 <!-- transition_1_loading_ready_data_refresh_signal_project_loaded&#45;&gt;state_ready -->
@@ -231,14 +231,14 @@
 <!-- transition_2_loading_error_data_refresh_signal_project_load_failed&#45;&gt;state_error -->
 <g id="edge6" class="edge">
 <title>transition_2_loading_error_data_refresh_signal_project_load_failed&#45;&gt;state_error</title>
-<path fill="none" stroke="#3f3f46" d="M886.14,-90.55C980.73,-95.44 1111.26,-102.52 1226,-110 1243.23,-111.12 1261.71,-112.44 1279.25,-113.74"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1279.05,-116.54 1287.23,-114.34 1279.46,-110.95 1279.05,-116.54"/>
+<path fill="none" stroke="#3f3f46" d="M886.12,-90.92C980.69,-95.98 1111.23,-103.12 1226,-110 1243.22,-111.03 1261.51,-112.17 1279.26,-113.31"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1279.21,-116.11 1287.37,-113.83 1279.57,-110.52 1279.21,-116.11"/>
 </g>
 <!-- transition_3_ready_none_local_signal_selection_cleared&#45;&gt;state_none -->
 <g id="edge8" class="edge">
 <title>transition_3_ready_none_local_signal_selection_cleared&#45;&gt;state_none</title>
-<path fill="none" stroke="#3f3f46" d="M1187.83,-364.96C1217.79,-355.69 1250.22,-345.65 1278.72,-336.84"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1279.84,-339.42 1286.65,-334.38 1278.18,-334.07 1279.84,-339.42"/>
+<path fill="none" stroke="#3f3f46" d="M1189.15,-366.86C1218.29,-358.5 1250.04,-349.4 1279.15,-341.06"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1279.97,-343.73 1286.89,-338.84 1278.42,-338.35 1279.97,-343.73"/>
 </g>
 <!-- transition_4_ready_ready_data_refresh_signal_project_changed&#45;&gt;state_ready -->
 <g id="edge10" class="edge">
@@ -249,8 +249,8 @@
 <!-- transition_5_ready_error_local_signal_show_transition_not_allowed&#45;&gt;state_error -->
 <g id="edge12" class="edge">
 <title>transition_5_ready_error_local_signal_show_transition_not_allowed&#45;&gt;state_error</title>
-<path fill="none" stroke="#3f3f46" d="M1226.03,-139.1C1244.23,-136.49 1262.37,-133.88 1279.12,-131.47"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1279.71,-134.22 1287.24,-130.31 1278.92,-128.67 1279.71,-134.22"/>
+<path fill="none" stroke="#3f3f46" d="M1226.28,-140.53C1244.07,-138.16 1262.02,-135.77 1279.07,-133.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1279.8,-136.23 1287.36,-132.4 1279.06,-130.68 1279.8,-136.23"/>
 </g>
 </g>
 </svg>

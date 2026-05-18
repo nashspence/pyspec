@@ -252,8 +252,8 @@
         "command_bindings": {},
         "fields": [],
         "text": [
-          "text.project.activity.empty.heading",
-          "text.project.activity.empty.body"
+          "text_resource.project.activity.empty.heading",
+          "text_resource.project.activity.empty.body"
         ]
       },
       "state": "empty",
@@ -355,7 +355,7 @@
           "assignee"
         ],
         "text": [
-          "text.project.activity.ready.heading"
+          "text_resource.project.activity.ready.heading"
         ]
       },
       "state": "ready",
@@ -512,8 +512,8 @@
         "command_bindings": {},
         "fields": [],
         "text": [
-          "text.project.detail.error.heading",
-          "text.project.detail.error.body"
+          "text_resource.project.detail.error.heading",
+          "text_resource.project.detail.error.body"
         ]
       },
       "state": "error",
@@ -638,7 +638,7 @@
         "command_bindings": {},
         "fields": [],
         "text": [
-          "text.project.detail.loading.message"
+          "text_resource.project.detail.loading.message"
         ]
       },
       "state": "loading",
@@ -723,8 +723,8 @@
         "command_bindings": {},
         "fields": [],
         "text": [
-          "text.project.detail.none.heading",
-          "text.project.detail.none.body"
+          "text_resource.project.detail.none.heading",
+          "text_resource.project.detail.none.body"
         ]
       },
       "state": "none",
@@ -866,7 +866,7 @@
       },
       "slots": {
         "assets": [
-          "asset.project.detail.ready.priority_badge"
+          "media_asset.project.detail.ready.priority_badge"
         ],
         "command_bindings": {
           "approve": {
@@ -985,7 +985,7 @@
           "summary"
         ],
         "text": [
-          "text.project.detail.ready.heading"
+          "text_resource.project.detail.ready.heading"
         ]
       },
       "state": "ready",
@@ -1067,7 +1067,7 @@
       "query_bindings": {},
       "slots": {
         "assets": [
-          "asset.project.list.empty.illustration"
+          "media_asset.project.list.empty.illustration"
         ],
         "command_bindings": {
           "create": {
@@ -1119,8 +1119,8 @@
         },
         "fields": [],
         "text": [
-          "text.project.list.empty.heading",
-          "text.project.list.empty.body"
+          "text_resource.project.list.empty.heading",
+          "text_resource.project.list.empty.body"
         ]
       },
       "state": "empty",
@@ -1245,8 +1245,8 @@
         "command_bindings": {},
         "fields": [],
         "text": [
-          "text.project.list.error.heading",
-          "text.project.list.error.body"
+          "text_resource.project.list.error.heading",
+          "text_resource.project.list.error.body"
         ]
       },
       "state": "error",
@@ -1371,7 +1371,7 @@
         "command_bindings": {},
         "fields": [],
         "text": [
-          "text.project.list.loading.message"
+          "text_resource.project.list.loading.message"
         ]
       },
       "state": "loading",
@@ -1599,7 +1599,7 @@
           "status"
         ],
         "text": [
-          "text.project.list.ready.heading"
+          "text_resource.project.list.ready.heading"
         ]
       },
       "state": "ready",

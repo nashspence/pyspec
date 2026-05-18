@@ -68,8 +68,8 @@ def test_canonical_textual_contract_imports_and_composes() -> None:
     assert module.SCREENS[0]["screen_class"] == "ProjectBoardScreen"
     assert module.COMPOSITIONS[0]["id"] == "state_machine.project.board.ready"
     state_machine_items = module.compose_contract_state_machine("state_machine.project.list.empty")
-    assert ("Static", "text.project.list.empty.heading") in state_machine_items
-    assert ("Static", "asset.project.list.empty.illustration") in state_machine_items
+    assert ("Static", "text_resource.project.list.empty.heading") in state_machine_items
+    assert ("Static", "media_asset.project.list.empty.illustration") in state_machine_items
     assert ("Button", "create") in state_machine_items
 
 

@@ -13,7 +13,17 @@ from jsonschema import Draft202012Validator
 
 from .agent_prompts import USER_PROMPT_PLACEHOLDER, agent_prompt_paths
 from .compile import ContractError, render_examples
-from .content import ContentContext, ContentError, asset as asset_registry, call_asset, call_text, text as text_registry, instantiate_args, load_resolvers, validate_resolver_function
+from .content import (
+    ContentContext,
+    ContentError,
+    call_media_asset,
+    call_text_resource,
+    instantiate_args,
+    load_resolvers,
+    media_asset as media_asset_registry,
+    text_resource as text_resource_registry,
+    validate_resolver_function,
+)
 from .runtime import fixture_namespace, resolve, resolve_binding
 from .binding_refs import BindingExpressionError, parse_binding_expression
 from .io import read_json, read_yaml
@@ -31,7 +41,7 @@ from .audit import (
     _surface_scope_inputs,
     _projection_surface_file,
     _projection_surface_root,
-    _scope_asset_file,
+    _scope_media_asset_file,
     _scope_text_file,
     _text_doc,
     _scope_fixtures_file,
@@ -448,12 +458,12 @@ def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
         return
     declared_text = set(contract.get("text_resources", {}))
     declared_assets = set(contract.get("media_assets", {}))
-    unknown_text = text_registry.refs - declared_text
-    unknown_assets = asset_registry.refs - declared_assets
+    unknown_text = text_resource_registry.refs - declared_text
+    unknown_assets = media_asset_registry.refs - declared_assets
     if unknown_text:
         raise ContractError("Unknown text sources: " + ", ".join(sorted(unknown_text)))
     if unknown_assets:
-        raise ContractError("Unknown asset sources: " + ", ".join(sorted(unknown_assets)))
+        raise ContractError("Unknown media asset sources: " + ", ".join(sorted(unknown_assets)))
 
     import importlib, sys
     sys.path.insert(0, str(root / SPEC_ROOT))
@@ -467,24 +477,24 @@ def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
             pass
     for ref, item in contract.get("text_resources", {}).items():
         source_ref = item.get("source_ref")
-        arg_cls = module.TEXT_ARG_CLASSES[ref]
-        instantiate_args(root, "text", ref, {name: _sample_value_for_type(type_name) for name, type_name in item.get("args", {}).items()})
+        arg_cls = module.TEXT_RESOURCE_ARG_CLASSES[ref]
+        instantiate_args(root, "text_resource", ref, {name: _sample_value_for_type(type_name) for name, type_name in item.get("args", {}).items()})
         if source_ref:
-            if ref not in text_registry.refs:
+            if ref not in text_resource_registry.refs:
                 raise ContractError(f"Missing final text source: {ref}")
             try:
-                validate_resolver_function(text_registry.function(ref), arg_cls)
+                validate_resolver_function(text_resource_registry.function(ref), arg_cls)
             except ContentError as exc:
                 raise ContractError(str(exc)) from exc
     for ref, item in contract.get("media_assets", {}).items():
         source_ref = item.get("source_ref")
-        arg_cls = module.ASSET_ARG_CLASSES[ref]
-        instantiate_args(root, "asset", ref, {name: _sample_value_for_type(type_name) for name, type_name in item.get("args", {}).items()})
+        arg_cls = module.MEDIA_ASSET_ARG_CLASSES[ref]
+        instantiate_args(root, "media_asset", ref, {name: _sample_value_for_type(type_name) for name, type_name in item.get("args", {}).items()})
         if source_ref:
-            if ref not in asset_registry.refs:
-                raise ContractError(f"Missing final asset source: {ref}")
+            if ref not in media_asset_registry.refs:
+                raise ContractError(f"Missing final media asset source: {ref}")
             try:
-                validate_resolver_function(asset_registry.function(ref), arg_cls)
+                validate_resolver_function(media_asset_registry.function(ref), arg_cls)
             except ContentError as exc:
                 raise ContractError(str(exc)) from exc
 
@@ -493,13 +503,13 @@ def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
         namespace = fixture_namespace(contract, case.get("seed_fixtures", []))
         args = {key: resolve_binding(value, {"fixture": namespace}) for key, value in case.get("args", {}).items()}
         ref = case["ref"]
-        if ref.startswith("text."):
+        if ref.startswith("text_resource."):
             item = contract["text_resources"][ref]
             if not item.get("source_ref"):
                 result = item["placeholder"]
             else:
                 try:
-                    result = call_text(root, ref, args, ContentContext(surface="content_example"))
+                    result = call_text_resource(root, ref, args, ContentContext(surface="content_example"))
                 except ContentError as exc:
                     raise ContractError(str(exc)) from exc
             if not isinstance(result, str) or not result.strip():
@@ -510,11 +520,11 @@ def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
             item = contract["media_assets"][ref]
             if item.get("source_ref"):
                 try:
-                    result = call_asset(root, ref, args, ContentContext(surface="content_example"))
+                    result = call_media_asset(root, ref, args, ContentContext(surface="content_example"))
                 except ContentError as exc:
                     raise ContractError(str(exc)) from exc
                 if result.mime_type != "image/svg+xml" or not result.body.lstrip().startswith("<svg") or "</svg>" not in result.body:
-                    raise ContractError(f"Content example {case_id} asset result must be SVG")
+                    raise ContractError(f"Content example {case_id} media asset result must be SVG")
         exercised.add(ref)
     missing = _final_content_refs(contract) - exercised
     if missing:
@@ -523,7 +533,7 @@ def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
 
 def _final_content_refs(contract: dict[str, Any]) -> set[str]:
     refs: set[str] = set()
-    for section in ["text_resources", "assets"]:
+    for section in ["text_resources", "media_assets"]:
         for ref, item in contract.get(section, {}).items():
             if item.get("source_ref"):
                 refs.add(ref)
@@ -807,26 +817,26 @@ def _validate_audit_scope_inputs(
     contract: dict[str, Any],
     scope_root: str,
     copy_refs: set[str],
-    asset_refs: set[str],
+    media_asset_refs: set[str],
     fixture_ids: set[str],
     precondition_ids: set[str],
     context: dict[str, Any],
 ) -> None:
     text_doc = read_yaml(root / _scope_text_file(scope_root))
     if text_doc != _text_doc(contract, copy_refs):
-        raise ContractError(f"audit text.yaml does not match scoped text resources: {scope_root}")
+        raise ContractError(f"audit text_resources.yaml does not match scoped text resources: {scope_root}")
     fixtures_doc = read_yaml(root / _scope_fixtures_file(scope_root))
     if fixtures_doc != _fixtures_doc(contract, fixture_ids, precondition_ids, context):
         raise ContractError(f"audit fixtures.yaml does not match scoped fixtures: {scope_root}")
-    for asset_id in asset_refs:
-        path = root / _scope_asset_file(scope_root, asset_id)
+    for media_asset_id in media_asset_refs:
+        path = root / _scope_media_asset_file(scope_root, media_asset_id)
         text = path.read_text(encoding="utf-8")
         if not text.lstrip().startswith("<svg") or "</svg>" not in text:
-            raise ContractError(f"audit asset placeholder is not SVG: {asset_id}")
-        if asset_id in text:
-            raise ContractError(f"audit asset placeholder must not render or embed the asset id: {asset_id}")
-        if contract["media_assets"][asset_id]["placeholder"]["label"] not in text:
-            raise ContractError(f"audit asset placeholder must preserve the accessible label: {asset_id}")
+            raise ContractError(f"audit media asset placeholder is not SVG: {media_asset_id}")
+        if media_asset_id in text:
+            raise ContractError(f"audit media asset placeholder must not render or embed the media asset id: {media_asset_id}")
+        if contract["media_assets"][media_asset_id]["placeholder"]["label"] not in text:
+            raise ContractError(f"audit media asset placeholder must preserve the accessible label: {media_asset_id}")
 
 
 def _assert_html_source(path: Path, label: str) -> None:

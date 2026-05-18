@@ -122,7 +122,7 @@ def validate_against_schema(data: dict[str, Any], schema_name: str) -> None:
 
 TARGET_ORDER = (
     "text_resource",
-    "asset",
+    "media_asset",
     "content_example",
     "viewport_profile",
     "fixture",
@@ -144,7 +144,7 @@ TARGET_ORDER = (
 
 ENTITY_SECTIONS: dict[str, str] = {
     "text_resource": "text_resources",
-    "asset": "media_assets",
+    "media_asset": "media_assets",
     "content_example": "content_examples",
     "viewport_profile": "viewport_profiles",
     "fixture": "fixtures",
@@ -375,7 +375,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
                 item[field] = spec[field]
         return item
 
-    if entity == "asset":
+    if entity == "media_asset":
         item = {"media_kind": spec["media_kind"], "placeholder": spec["placeholder"], "rationale": spec["rationale"]}
         for field in ["asset_role", "alt_text", "args", "source_ref"]:
             if field in spec:
@@ -569,8 +569,8 @@ def _compile_states(owner_id: str, states: dict[str, Any]) -> dict[str, Any]:
         item = {
             "surface": _state_surface_ref(owner_id, state_name),
             "query_bindings": _compile_query_bindings(state.get("query_bindings", {}), scope="state"),
-            "text": [rules.text_ref(subject, state_name, slot) for slot in state.get("text_slots", [])],
-            "assets": [rules.asset_ref(subject, state_name, slot) for slot in state.get("asset_slots", [])],
+            "text": [rules.text_resource_ref(subject, state_name, slot) for slot in state.get("text_slots", [])],
+            "assets": [rules.media_asset_ref(subject, state_name, slot) for slot in state.get("asset_slots", [])],
             "fields": state.get("field_slots", []),
             "command_bindings": copy.deepcopy(state.get("command_bindings", {})),
         }
@@ -914,15 +914,15 @@ def _validate_text_assets(contract: dict[str, Any]) -> None:
     if declared_text != used_text:
         raise ContractError(_diff_message("text resources", used_text, declared_text))
     if declared_assets != used_assets:
-        raise ContractError(_diff_message("asset placeholders", used_assets, declared_assets))
+        raise ContractError(_diff_message("media asset placeholders", used_assets, declared_assets))
     for text_id, item in contract.get("text_resources", {}).items():
         max_chars = item.get("max_chars")
         if max_chars is not None and len(item["placeholder"]) > max_chars:
             raise ContractError(f"Text resource {text_id} placeholder exceeds max_chars")
-    for asset_id, item in contract.get("media_assets", {}).items():
+    for media_asset_id, item in contract.get("media_assets", {}).items():
         alt_text = item.get("alt_text")
         if alt_text and alt_text not in declared_text:
-            raise ContractError(f"Asset {asset_id} alt_text references unknown text resource {alt_text}")
+            raise ContractError(f"Media asset {media_asset_id} alt_text references unknown text resource {alt_text}")
 
 
 
@@ -945,9 +945,9 @@ def _validate_content_examples(contract: dict[str, Any]) -> None:
                 pass
     for case_id, case in contract.get("content_examples", {}).items():
         ref = case["ref"]
-        section = "text_resources" if ref.startswith("text.") else "media_assets"
+        section = "text_resources" if ref.startswith("text_resource.") else "media_assets"
         if ref not in contract.get(section, {}):
-            label = "text resource" if section == "text_resources" else "asset"
+            label = "text resource" if section == "text_resources" else "media asset"
             raise ContractError(f"Content example {case_id} references unknown {label} {ref}")
         for fixture_id in case.get("seed_fixtures", []):
             if fixture_id not in contract["fixtures"]:
@@ -3491,11 +3491,11 @@ def _validate_cli_response_handler(
         )
     exit_codes[exit_code] = outcome_id
     output = handler[streams[0]]
-    text_ref = output["text"]
-    if text_ref not in contract.get("text_resources", {}):
-        raise ContractError(f"CLI external interface {entry_id} response handler {outcome_id} references unknown text resource {text_ref}")
+    text_resource_ref = output["text"]
+    if text_resource_ref not in contract.get("text_resources", {}):
+        raise ContractError(f"CLI external interface {entry_id} response handler {outcome_id} references unknown text resource {text_resource_ref}")
     bindings = output.get("bindings") or {}
-    expected_text_args = contract["text_resources"][text_ref].get("args", {})
+    expected_text_args = contract["text_resources"][text_resource_ref].get("args", {})
     if set(bindings) != set(expected_text_args):
         missing = sorted(set(expected_text_args) - set(bindings))
         extra = sorted(set(bindings) - set(expected_text_args))

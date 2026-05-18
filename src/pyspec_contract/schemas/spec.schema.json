@@ -112,11 +112,11 @@
       ],
       "type": "object"
     },
-    "asset_item": {
+    "media_asset_item": {
       "additionalProperties": false,
       "properties": {
         "alt_text": {
-          "$ref": "#/$defs/text_ref"
+          "$ref": "#/$defs/text_resource_ref"
         },
         "args": {
           "$ref": "#/$defs/content_args"
@@ -188,8 +188,8 @@
       ],
       "type": "object"
     },
-    "asset_ref": {
-      "pattern": "^asset\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+    "media_asset_ref": {
+      "pattern": "^media_asset\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
     "authored_value": {
@@ -529,7 +529,7 @@
           "$ref": "#/$defs/binding_map"
         },
         "text": {
-          "$ref": "#/$defs/text_ref"
+          "$ref": "#/$defs/text_resource_ref"
         }
       },
       "required": [
@@ -775,10 +775,10 @@
         "ref": {
           "oneOf": [
             {
-              "$ref": "#/$defs/text_ref"
+              "$ref": "#/$defs/text_resource_ref"
             },
             {
-              "$ref": "#/$defs/asset_ref"
+              "$ref": "#/$defs/media_asset_ref"
             }
           ]
         },
@@ -803,13 +803,13 @@
       "type": "string"
     },
     "content_source_ref": {
-      "description": "Content source reference. Text resources use text.* identifiers; assets use asset.* identifiers.",
+      "description": "Content source reference. Text resources use text_resource.* identifiers; media assets use media_asset.* identifiers.",
       "oneOf": [
         {
-          "$ref": "#/$defs/text_ref"
+          "$ref": "#/$defs/text_resource_ref"
         },
         {
-          "$ref": "#/$defs/asset_ref"
+          "$ref": "#/$defs/media_asset_ref"
         }
       ]
     },
@@ -2820,8 +2820,8 @@
       },
       "type": "object"
     },
-    "text_ref": {
-      "pattern": "^text\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+    "text_resource_ref": {
+      "pattern": "^text_resource\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
     "text_resource_item": {
@@ -3160,7 +3160,7 @@
             },
             "assets": {
               "items": {
-                "$ref": "#/$defs/asset_ref"
+                "$ref": "#/$defs/media_asset_ref"
               },
               "type": "array",
               "uniqueItems": true
@@ -3181,7 +3181,7 @@
             },
             "text": {
               "items": {
-                "$ref": "#/$defs/text_ref"
+                "$ref": "#/$defs/text_resource_ref"
               },
               "type": "array",
               "uniqueItems": true
@@ -3284,7 +3284,7 @@
         },
         "assets": {
           "items": {
-            "pattern": "^asset\\.",
+            "pattern": "^media_asset\\.",
             "type": "string"
           },
           "type": "array"
@@ -3334,7 +3334,7 @@
         },
         "text": {
           "items": {
-            "pattern": "^text\\.",
+            "pattern": "^text_resource\\.",
             "type": "string"
           },
           "type": "array"
@@ -4050,10 +4050,10 @@
     },
     "media_assets": {
       "additionalProperties": {
-        "$ref": "#/$defs/asset_item"
+        "$ref": "#/$defs/media_asset_item"
       },
       "propertyNames": {
-        "$ref": "#/$defs/asset_ref"
+        "$ref": "#/$defs/media_asset_ref"
       },
       "type": "object"
     },
@@ -4121,7 +4121,7 @@
         "$ref": "#/$defs/text_resource_item"
       },
       "propertyNames": {
-        "$ref": "#/$defs/text_ref"
+        "$ref": "#/$defs/text_resource_ref"
       },
       "type": "object"
     },

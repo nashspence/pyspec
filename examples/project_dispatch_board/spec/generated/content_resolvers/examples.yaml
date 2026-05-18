@@ -6,11 +6,11 @@ content_examples:
       title:
         value: Replace rooftop condenser fan
     rationale: Exercise final detail heading text with representative fixture-backed content.
-    ref: text.project.detail.ready.heading
+    ref: text_resource.project.detail.ready.heading
   content_example.project.detail.priority_badge.high_priority:
     args:
       priority:
         value: High
-    rationale: Exercise final dynamic priority badge asset.
-    ref: asset.project.detail.ready.priority_badge
+    rationale: Exercise final dynamic priority badge media_asset.
+    ref: media_asset.project.detail.ready.priority_badge
 project: project_dispatch_board

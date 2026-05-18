@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any, Iterable, Literal
 
 from .compile import ContractError, render_examples
-from .content import AssetResult, ContentContext, ContentError, call_asset, call_text
+from .content import MediaAssetResult, ContentContext, ContentError, call_media_asset, call_text_resource
 from .io import write_yaml
 from .layout import renderer_textual_presentation, renderer_html_layout, renderer_html_presentation, renderer_html_regions
 from .behaviors import invocation_command_or_query_ref, command_or_query_collection, command_or_query_resource_kind, command_query_map
@@ -223,19 +223,19 @@ def _profile_viewports(contract: dict[str, Any], surface: str) -> list[tuple[str
 
 
 def _scope_text_file(scope_root: str) -> str:
-    return _under(scope_root, "text.yaml")
+    return _under(scope_root, "text_resources.yaml")
 
 
 def _scope_fixtures_file(scope_root: str) -> str:
     return _under(scope_root, "fixtures.yaml")
 
 
-def _scope_asset_file(scope_root: str, asset_id: str) -> str:
-    return _under(scope_root, "assets", f"{safe_id(asset_id)}.svg")
+def _scope_media_asset_file(scope_root: str, media_asset_id: str) -> str:
+    return _under(scope_root, "media_assets", f"{safe_id(media_asset_id)}.svg")
 
 
-def _text_doc(contract: dict[str, Any], text_refs: Iterable[str]) -> dict[str, Any]:
-    return {"project": contract["project"], "text_resources": {ref: contract["text_resources"][ref] for ref in sorted(text_refs)}}
+def _text_doc(contract: dict[str, Any], text_resource_refs: Iterable[str]) -> dict[str, Any]:
+    return {"project": contract["project"], "text_resources": {ref: contract["text_resources"][ref] for ref in sorted(text_resource_refs)}}
 
 
 def _fixtures_doc(
@@ -255,9 +255,9 @@ def _fixtures_doc(
 def _state_needs_data(contract: dict[str, Any], state_machine: dict[str, Any]) -> bool:
     if state_machine.get("query_bindings") or state_machine["slots"].get("fields"):
         return True
-    text_refs = state_machine["slots"].get("text", [])
-    asset_refs = state_machine["slots"].get("assets", [])
-    return any(contract["text_resources"][ref].get("args") for ref in text_refs) or any(contract["media_assets"][ref].get("args") for ref in asset_refs)
+    text_resource_refs = state_machine["slots"].get("text", [])
+    media_asset_refs = state_machine["slots"].get("assets", [])
+    return any(contract["text_resources"][ref].get("args") for ref in text_resource_refs) or any(contract["media_assets"][ref].get("args") for ref in media_asset_refs)
 
 
 def _fixture_ids_for_model(contract: dict[str, Any], entity_type_id: str) -> set[str]:
@@ -298,8 +298,8 @@ def _fixture_ids_for_preconditions(contract: dict[str, Any], precondition_ids: I
 
 
 def _surface_scope_inputs(contract: dict[str, Any], state_machine: dict[str, Any]) -> tuple[set[str], set[str], set[str], set[str], dict[str, Any]]:
-    text_refs = set(state_machine["slots"].get("text", []))
-    asset_refs = set(state_machine["slots"].get("assets", []))
+    text_resource_refs = set(state_machine["slots"].get("text", []))
+    media_asset_refs = set(state_machine["slots"].get("assets", []))
     fixture_ids: set[str] = set()
     precondition_ids: set[str] = set()
     if _state_needs_data(contract, state_machine):
@@ -307,21 +307,21 @@ def _surface_scope_inputs(contract: dict[str, Any], state_machine: dict[str, Any
         fixture_ids = _fixture_ids_for_model(contract, entity_type_id)
         precondition_ids = _precondition_ids_for_model(contract, entity_type_id)
         fixture_ids.update(_fixture_ids_for_preconditions(contract, precondition_ids, entity_type_id))
-    return text_refs, asset_refs, fixture_ids, precondition_ids, {}
+    return text_resource_refs, media_asset_refs, fixture_ids, precondition_ids, {}
 
 
 def _render_example_scope_inputs(contract: dict[str, Any], case: dict[str, Any]) -> tuple[set[str], set[str], set[str], set[str], dict[str, Any]]:
     state_machines = render_example_state_machines(contract, case)
-    text_refs = {text_ref for state_machine in state_machines for text_ref in state_machine["slots"].get("text", [])}
-    asset_refs = {asset_ref for state_machine in state_machines for asset_ref in state_machine["slots"].get("assets", [])}
+    text_resource_refs = {text_resource_ref for state_machine in state_machines for text_resource_ref in state_machine["slots"].get("text", [])}
+    media_asset_refs = {media_asset_ref for state_machine in state_machines for media_asset_ref in state_machine["slots"].get("assets", [])}
     fixture_ids = set(case.get("seed_fixtures", []))
     precondition_ids = {precondition_use["ref"] for precondition_use in case.get("precondition_refs", [])}
-    return text_refs, asset_refs, fixture_ids, precondition_ids, case.get("context") or {}
+    return text_resource_refs, media_asset_refs, fixture_ids, precondition_ids, case.get("context") or {}
 
 
-def _audit_scope_expected_files(scope_root: str, asset_refs: Iterable[str]) -> set[str]:
+def _audit_scope_expected_files(scope_root: str, media_asset_refs: Iterable[str]) -> set[str]:
     files = {_scope_text_file(scope_root), _scope_fixtures_file(scope_root)}
-    files.update(_scope_asset_file(scope_root, asset_id) for asset_id in asset_refs)
+    files.update(_scope_media_asset_file(scope_root, media_asset_id) for media_asset_id in media_asset_refs)
     return files
 
 
@@ -329,22 +329,22 @@ def _write_audit_scope_inputs(
     root: Path,
     contract: dict[str, Any],
     scope_root: str,
-    text_refs: Iterable[str],
-    asset_refs: Iterable[str],
+    text_resource_refs: Iterable[str],
+    media_asset_refs: Iterable[str],
     fixture_ids: Iterable[str],
     precondition_ids: Iterable[str],
     context: dict[str, Any] | None = None,
 ) -> None:
     text_path = root / _scope_text_file(scope_root)
     text_path.parent.mkdir(parents=True, exist_ok=True)
-    write_yaml(text_path, _text_doc(contract, text_refs))
+    write_yaml(text_path, _text_doc(contract, text_resource_refs))
     fixtures_path = root / _scope_fixtures_file(scope_root)
     fixtures_path.parent.mkdir(parents=True, exist_ok=True)
     write_yaml(fixtures_path, _fixtures_doc(contract, fixture_ids, precondition_ids, context))
-    for asset_id in sorted(asset_refs):
-        asset_path = root / _scope_asset_file(scope_root, asset_id)
+    for media_asset_id in sorted(media_asset_refs):
+        asset_path = root / _scope_media_asset_file(scope_root, media_asset_id)
         asset_path.parent.mkdir(parents=True, exist_ok=True)
-        asset_path.write_text(asset_placeholder_svg(contract["media_assets"][asset_id]), encoding="utf-8")
+        asset_path.write_text(asset_placeholder_svg(contract["media_assets"][media_asset_id]), encoding="utf-8")
 
 
 def _write_audit_inputs(root: Path, contract: dict[str, Any], projection: dict[str, Any]) -> None:
@@ -386,8 +386,8 @@ def _audit_visual_expected_files(contract: dict[str, Any]) -> set[str]:
         if not render_surfaces:
             continue
         scope_root = _projection_surface_root(state_machine)
-        _, asset_refs, _, _, _ = _surface_scope_inputs(contract, state_machine)
-        files.update(_audit_scope_expected_files(scope_root, asset_refs))
+        _, media_asset_refs, _, _, _ = _surface_scope_inputs(contract, state_machine)
+        files.update(_audit_scope_expected_files(scope_root, media_asset_refs))
         if "html" in render_surfaces:
             for profile_id, breakpoint, _ in _profile_viewports(contract, "html"):
                 files.add(_projection_surface_file(state_machine, profile_id, breakpoint, "html"))
@@ -399,8 +399,8 @@ def _audit_visual_expected_files(contract: dict[str, Any]) -> set[str]:
 
     for case_id, case in render_examples(contract).items():
         scope_root = _render_example_root(contract, case_id, case)
-        _, asset_refs, _, _, _ = _render_example_scope_inputs(contract, case)
-        files.update(_audit_scope_expected_files(scope_root, asset_refs))
+        _, media_asset_refs, _, _, _ = _render_example_scope_inputs(contract, case)
+        files.update(_audit_scope_expected_files(scope_root, media_asset_refs))
         render_surfaces = _render_example_surfaces(contract, case)
         if "html" in render_surfaces:
             for profile_id, breakpoint, _ in _profile_viewports(contract, "html"):
@@ -633,8 +633,8 @@ def _filter_evidence_files(contract: dict[str, Any], files: Iterable[str]) -> li
 
 def _render_resource_coverage(contract: dict[str, Any], evidence_set_id: Any) -> dict[str, Any]:
     return {
-        "assets": _render_resource_collection_coverage(contract, "assets", "asset", evidence_set_id),
-        "text_resources": _render_resource_collection_coverage(contract, "text_resources", "text", evidence_set_id),
+        "media_assets": _render_resource_collection_coverage(contract, "media_assets", "media_asset", evidence_set_id),
+        "text_resources": _render_resource_collection_coverage(contract, "text_resources", "text_resource", evidence_set_id),
         "fixtures": _render_resource_collection_coverage(contract, "fixtures", "fixture", evidence_set_id),
         "preconditions": _render_resource_collection_coverage(contract, "preconditions", "precondition", evidence_set_id),
         "content_examples": _render_content_example_coverage(contract, evidence_set_id),
@@ -660,9 +660,9 @@ def _render_content_example_coverage(contract: dict[str, Any], evidence_set_id: 
         ref = content_example.get("ref")
         evidence: list[str] = []
         if ref in contract.get("text_resources", {}):
-            evidence = _filter_evidence_files(contract, _scope_input_evidence_files(contract, ref, "text"))
+            evidence = _filter_evidence_files(contract, _scope_input_evidence_files(contract, ref, "text_resource"))
         elif ref in contract.get("media_assets", {}):
-            evidence = _filter_evidence_files(contract, _scope_input_evidence_files(contract, ref, "asset"))
+            evidence = _filter_evidence_files(contract, _scope_input_evidence_files(contract, ref, "media_asset"))
         if evidence:
             rendered[content_example_id] = evidence_set_id(evidence)
         else:
@@ -671,7 +671,7 @@ def _render_content_example_coverage(contract: dict[str, Any], evidence_set_id: 
 
 
 _VISUAL_TEXT_REF_PREFIXES = (
-    "asset.",
+    "media_asset.",
     "access_policy.",
     "cli_command.",
     "schema.",
@@ -682,7 +682,7 @@ _VISUAL_TEXT_REF_PREFIXES = (
     "command.",
     "query.",
     "state_machine.",
-    "text.",
+    "text_resource.",
     "workflow.",
 )
 
@@ -1133,7 +1133,7 @@ def _model_evidence_files(contract: dict[str, Any], entity_type_id: str) -> list
 def _text_resource_evidence_files(contract: dict[str, Any], text_id: str) -> list[str]:
     if text_id not in contract.get("text_resources", {}):
         return []
-    files = _scope_input_evidence_files(contract, text_id, "text")
+    files = _scope_input_evidence_files(contract, text_id, "text_resource")
     for entry_id, entry in sorted(contract.get("external_interfaces", {}).items()):
         if _value_contains_string(entry, text_id):
             files.extend(_external_interface_evidence_files(contract, entry_id))
@@ -1143,12 +1143,12 @@ def _text_resource_evidence_files(contract: dict[str, Any], text_id: str) -> lis
     return files
 
 
-def _asset_evidence_files(contract: dict[str, Any], asset_id: str) -> list[str]:
-    if asset_id not in contract.get("media_assets", {}):
+def _asset_evidence_files(contract: dict[str, Any], media_asset_id: str) -> list[str]:
+    if media_asset_id not in contract.get("media_assets", {}):
         return []
-    files = _scope_input_evidence_files(contract, asset_id, "asset")
+    files = _scope_input_evidence_files(contract, media_asset_id, "media_asset")
     for state_machine_id, state_machine in sorted(contract.get("state_machines", {}).items()):
-        if _value_contains_string(state_machine, asset_id):
+        if _value_contains_string(state_machine, media_asset_id):
             files.extend(_state_machine_evidence_files(contract, state_machine_id))
     return files
 
@@ -1203,20 +1203,20 @@ def _scope_input_evidence_files(contract: dict[str, Any], ref: str, kind: str) -
     files: list[str] = []
     projection = state_machines_projection(contract)
     for surface in _audit_projection_surfaces(contract, projection):
-        text_refs, asset_refs, fixture_ids, precondition_ids, _ = _surface_scope_inputs(contract, surface)
-        if kind == "text" and ref in text_refs:
+        text_resource_refs, media_asset_refs, fixture_ids, precondition_ids, _ = _surface_scope_inputs(contract, surface)
+        if kind == "text_resource" and ref in text_resource_refs:
             files.extend(_projection_surface_render_capture_files(contract, surface))
-        elif kind == "asset" and ref in asset_refs:
+        elif kind == "media_asset" and ref in media_asset_refs:
             files.extend(_projection_surface_render_capture_files(contract, surface))
         elif kind == "fixture" and ref in fixture_ids:
             files.extend(_projection_surface_render_capture_files(contract, surface))
         elif kind == "precondition" and ref in precondition_ids:
             files.extend(_projection_surface_render_capture_files(contract, surface))
     for case_id, case in sorted(render_examples(contract).items()):
-        text_refs, asset_refs, fixture_ids, precondition_ids, _ = _render_example_scope_inputs(contract, case)
-        if kind == "text" and ref in text_refs:
+        text_resource_refs, media_asset_refs, fixture_ids, precondition_ids, _ = _render_example_scope_inputs(contract, case)
+        if kind == "text_resource" and ref in text_resource_refs:
             files.extend(_render_example_capture_files(contract, case_id, case))
-        elif kind == "asset" and ref in asset_refs:
+        elif kind == "media_asset" and ref in media_asset_refs:
             files.extend(_render_example_capture_files(contract, case_id, case))
         elif kind == "fixture" and ref in fixture_ids:
             files.extend(_render_example_capture_files(contract, case_id, case))
@@ -3481,17 +3481,17 @@ def render_html_slot_runtime(root: Path, contract: dict[str, Any], state_machine
     if slot.get("role") and slot["role"] != "none":
         attrs["role"] = slot["role"]
     if kind == "text_slot":
-        text_ref = slot_ref(state_machine, "text", bind_value)
-        attrs["data-text"] = text_ref
+        text_resource_ref = slot_ref(state_machine, "text", bind_value)
+        attrs["data-text"] = text_resource_ref
         if slot.get("level"):
             attrs["aria-level"] = str(slot["level"])
-        text = resolve_text_resource(root, contract, text_ref, record, context, namespace)
+        text = resolve_text_resource(root, contract, text_resource_ref, record, context, namespace)
         return [f"<{tag}{format_attrs(attrs)}>{html.escape(text)}</{tag}>"]
     if kind == "asset_slot":
-        asset_ref = slot_ref(state_machine, "asset", bind_value)
-        attrs["data-asset"] = asset_ref
-        asset_result = resolve_asset_result(root, contract, asset_ref, record, context, namespace)
-        label = asset_result.alt or contract["media_assets"][asset_ref]["placeholder"]["label"]
+        media_asset_ref = slot_ref(state_machine, "asset", bind_value)
+        attrs["data-asset"] = media_asset_ref
+        asset_result = resolve_asset_result(root, contract, media_asset_ref, record, context, namespace)
+        label = asset_result.alt or contract["media_assets"][media_asset_ref]["placeholder"]["label"]
         if tag == "img":
             attrs.setdefault("alt", label)
             svg = asset_result.body
@@ -3580,10 +3580,10 @@ def state_machine_textual_lines(root: Path, contract: dict[str, Any], state_mach
     record = records[0] if records else {}
     context = render_context(contract, case)
     namespace = render_namespace(contract, case)
-    for text_ref in state_machine["slots"]["text"]:
-        lines.append(("static", resolve_text_resource(root, contract, text_ref, record, context, namespace)))
-    for asset_ref in state_machine["slots"]["assets"]:
-        lines.append(("static", resolve_asset_result(root, contract, asset_ref, record, context, namespace).alt or contract["media_assets"][asset_ref]["placeholder"]["label"]))
+    for text_resource_ref in state_machine["slots"]["text"]:
+        lines.append(("static", resolve_text_resource(root, contract, text_resource_ref, record, context, namespace)))
+    for media_asset_ref in state_machine["slots"]["assets"]:
+        lines.append(("static", resolve_asset_result(root, contract, media_asset_ref, record, context, namespace).alt or contract["media_assets"][media_asset_ref]["placeholder"]["label"]))
     fields = state_machine["slots"].get("fields", [])
     if fields:
         for record in (records_for_state_machine(contract, state_machine, case)[:4] or [{}]):
@@ -3744,7 +3744,7 @@ def resolve_text_resource(root: Path, contract: dict[str, Any], ref: str, record
         text = item["placeholder"]
     else:
         try:
-            text = call_text(root, ref, content_args(contract, ref, item, record, context, namespace), ContentContext(surface="audit"))
+            text = call_text_resource(root, ref, content_args(contract, ref, item, record, context, namespace), ContentContext(surface="audit"))
         except ContentError as exc:
             raise ContractError(str(exc)) from exc
     max_chars = item.get("max_chars")
@@ -3755,13 +3755,13 @@ def resolve_text_resource(root: Path, contract: dict[str, Any], ref: str, record
     return text
 
 
-def resolve_asset_result(root: Path, contract: dict[str, Any], ref: str, record: dict[str, Any], context: dict[str, Any], namespace: dict[str, Any]) -> AssetResult:
+def resolve_asset_result(root: Path, contract: dict[str, Any], ref: str, record: dict[str, Any], context: dict[str, Any], namespace: dict[str, Any]) -> MediaAssetResult:
     item = contract["media_assets"][ref]
     source_ref = item.get("source_ref")
     if not source_ref:
-        return AssetResult(mime_type="image/svg+xml", body=asset_placeholder_svg(item), alt=item["placeholder"]["label"])
+        return MediaAssetResult(mime_type="image/svg+xml", body=asset_placeholder_svg(item), alt=item["placeholder"]["label"])
     try:
-        result = call_asset(root, ref, content_args(contract, ref, item, record, context, namespace), ContentContext(surface="audit"))
+        result = call_media_asset(root, ref, content_args(contract, ref, item, record, context, namespace), ContentContext(surface="audit"))
     except ContentError as exc:
         raise ContractError(str(exc)) from exc
     if result.mime_type != "image/svg+xml":

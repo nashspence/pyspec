@@ -17,7 +17,7 @@ authoring_layers:
       requires: [core]
       projections_when_declared: [spec/generated/product_interfaces/workflow.cwl.yaml, spec/generated/product_interfaces/integration_messages.asyncapi.yaml, spec/generated/audit_evidence/workflows, spec/generated/audit_evidence/external_interfaces]
     ui:
-      opens: [state_machine, text_resource, asset, content_example, viewport_profile, render_example]
+      opens: [state_machine, text_resource, media_asset, content_example, viewport_profile, render_example]
       requires: [core]
       projections_when_declared: [spec/generated/product_interfaces/html.state_machines.json, spec/generated/audit_evidence]
     textual:
@@ -139,10 +139,10 @@ composition_contracts:
 
 audit_contracts:
   text_resource: 'text_resource declares placeholder text for every rendered text ref.'
-  asset: 'media_asset declares media kind, asset role, placeholder visual intent, and source_ref when source-backed; the compiler emits generic SVG placeholder assets.'
+  media_asset: 'media_asset declares media kind, asset role, placeholder visual intent, and source_ref when source-backed; the compiler emits generic SVG placeholder assets.'
   viewport_profile: 'viewport_profile declares fixed HTML and/or Textual viewport profiles.'
   render_example: 'state-local render examples bind a state-machine state or composed state-machine instance vector to fixtures and contexts; render surfaces and artifacts are derived from the referenced states.'
-  content_example: 'content_example exercises every source_ref-backed text resource or asset with deterministic args.'
+  content_example: 'content_example exercises every source_ref-backed text resource or media asset with deterministic args.'
   final_content: 'text_resource or media_asset may declare args and source_ref; generated content stubs constrain spec/spec.py.'
   formats:
     external_interface: svg

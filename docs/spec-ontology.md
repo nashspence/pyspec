@@ -24,9 +24,9 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - <!-- top-level:access_policies --> `access_policies`: canonical access-control policies with `subject`, `resource`, `action`, `environment`, rules with per-rule `effect`, and `decision`.
 - <!-- top-level:fixtures --> `fixtures`: named concrete seed data namespaces used by behavior scenarios, preconditions, assertions, content examples, and render examples.
 - <!-- top-level:behavior_scenarios --> `behavior_scenarios`: formal BDD behavior scenarios with system_under_test_ref, given, when, and then contracts.
-- <!-- top-level:media_assets --> `media_assets`: canonical content assets with media kind, asset role, placeholders, and source-backed resolution when present.
+- <!-- top-level:media_assets --> `media_assets`: canonical media assets with media kind, asset role, placeholders, and source-backed resolution when present.
 - <!-- top-level:text_resources --> `text_resources`: text resources used by state-machine slots and content-source projections.
-- <!-- top-level:content_examples --> `content_examples`: named content-source examples for dynamic text and asset content.
+- <!-- top-level:content_examples --> `content_examples`: named content-source examples for dynamic text and media asset content.
 - <!-- top-level:viewport_profiles --> `viewport_profiles`: canonical global HTML and Textual viewport profiles for audit/golden-image rendering.
 - <!-- top-level:reference_index --> `reference_index`: canonical compiled-only index of generated references used by projections and tests.
 - <!-- top-level:project --> `project`: the project slug for the specification workspace.
@@ -35,7 +35,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 
 ## ID Namespaces
 
-- `asset_ref`: `asset.<domain>...`; asset declarations, generated asset slots, content examples, and audit evidence.
+- `media_asset_ref`: `media_asset.<domain>...`; media asset declarations, generated media asset slots, content examples, and audit evidence.
 - `content_example_ref`: `content_example.<domain>...`; content source examples.
 - `schema_ref`: `schema.<domain>...`; reusable typed payload schemas referenced through JSON Schema `$ref`.
 - `data_refresh_signal_name`: local state-machine data-refresh signal name; authored sources do not use global-looking `data_refresh_signal.*` references for local refresh signals.
@@ -58,7 +58,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `rule_id`: local state-machine signal-sync rule id within one composed state.
 - `state_machine_ref`: `state_machine.<domain>...`; state-machine declarations, `child_state_machines`, state-machine external-interface invocations, and behavior-scenario state-machine assertions.
 - `behavior_scenario_ref`: `behavior_scenario.<domain>...`; formal behavior-scenario declarations and generated feature tags.
-- `text_ref`: `text.<domain>...`; text resource declarations, generated text slots, content examples, and content source signatures.
+- `text_resource_ref`: `text_resource.<domain>...`; text resource declarations, generated text slots, content examples, and content source signatures.
 - `container_id`: local Textual layout container id within one state.
 - `viewport_id`: local viewport id within `html_viewports` or `textual_viewports`.
 - `workflow_ref`: `workflow.<domain>...`; workflow declarations, workflow external-interface invocations, and generated workflow references.
@@ -93,7 +93,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `signal_sync_rule.trigger`: child state-machine local-signal source that starts a signal synchronization rule. It does not reuse BDD `when`.
 - `viewport_profile`: global audit/golden-image viewport map. Renderable state machines require at least one viewport profile, and profiles must include viewport sets for each declared renderer surface (`html_viewports` for HTML, `textual_viewports` for Textual).
 - `render example`: state-local visual evidence input. It supplies seed fixtures, optional context, optional precondition references, and, for composed states, an exact child instance state vector; it never names viewport profiles directly.
-- `content source`: a final resolver declaration where `text_resource.source_ref` or `asset.source_ref` equals the resource id. Final content resolvers require at least one matching `content_example`, and example args must exactly match the resource args.
+- `content source`: a final resolver declaration where `text_resource.source_ref` or `media_asset.source_ref` equals the resource id. Final content resolvers require at least one matching `content_example`, and example args must exactly match the resource args.
 - `rationale`: bounded plain text used on authored resources and on intentionally unobservable local effects. Missing top-level resource rationale is filled by a deterministic compiler default.
 - `Command binding`: local state use of a global command, normally user-triggered, including `input_mapping` and local_effects. A renderer control binds to this local invocation, not directly to `command_ref`.
 - `Query binding`: local state-machine or state use of a query for data loading or refresh, including `input_mapping`, load policy, context updates, result binding, and local_effects. State-machine-level queries load with `on_start`/`on_mount`; state-level queries load with `on_enter`.
@@ -321,7 +321,7 @@ Binding expressions appear inside binding objects. Authored value maps use `{fro
 - `spec/generated/audit_evidence/queries/{query}/flow.svg`: chronological query flows showing input, authorization, results, and outcomes.
 - `spec/generated/audit_evidence/state_machines/{state_machine}/state_machine.svg`: state-machine diagrams.
 - `spec/generated/audit_evidence/state_machines/{state_machine}/states/{state}/composition.svg`: composed state-machine state diagrams.
-- `spec/generated/audit_evidence/state_machines/{state_machine}/states/{state}/{text.yaml,fixtures.yaml,assets/*}`: state-scoped audit inputs.
+- `spec/generated/audit_evidence/state_machines/{state_machine}/states/{state}/{text_resources.yaml,fixtures.yaml,media_assets/*}`: state-scoped audit inputs.
 - `spec/generated/audit_evidence/state_machines/{state_machine}/states/{state}/renders/*`: HTML/Textual state render source and captures.
 - `spec/generated/audit_evidence/state_machines/{state_machine}/states/{state}/render_examples/{render_example}/**`: render-example scoped inputs and render captures.
 
@@ -331,9 +331,9 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 
 - <!-- schema-def:aria_role --> `$defs/aria_role`: renderer contract component scoped to HTML and/or Textual invocations.
 - <!-- schema-def:asset_placeholder --> `$defs/asset_placeholder`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:asset_ref --> `$defs/asset_ref`: typed reference definition for its namespace.
+- <!-- schema-def:media_asset_ref --> `$defs/media_asset_ref`: typed reference definition for its namespace.
 - <!-- schema-def:viewport_profile_ref --> `$defs/viewport_profile_ref`: typed reference definition for its namespace.
-- <!-- schema-def:authored_asset --> `$defs/authored_asset`: human-authored source object for this resource or nested contract.
+- <!-- schema-def:authored_media_asset --> `$defs/authored_media_asset`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_viewport_profile --> `$defs/authored_viewport_profile`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_child_state_machine --> `$defs/authored_child_state_machine`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_content_example --> `$defs/authored_content_example`: human-authored source object for this resource or nested contract.
@@ -453,7 +453,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:state_query_binding --> `$defs/state_query_binding`: state query binding contract component.
 - <!-- schema-def:state_machine_ref --> `$defs/state_machine_ref`: typed reference definition for its namespace.
 - <!-- schema-def:state_machine_transition --> `$defs/state_machine_transition`: state-machine contract component.
-- <!-- schema-def:text_ref --> `$defs/text_ref`: typed reference definition for its namespace.
+- <!-- schema-def:text_resource_ref --> `$defs/text_resource_ref`: typed reference definition for its namespace.
 - <!-- schema-def:textual_renderer_contract --> `$defs/textual_renderer_contract`: Textual renderer contract component.
 - <!-- schema-def:textual_renderer_layout --> `$defs/textual_renderer_layout`: Textual renderer contract component.
 - <!-- schema-def:textual_renderer_presentation --> `$defs/textual_renderer_presentation`: Textual renderer contract component.
@@ -508,7 +508,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:textual_tcss_selector --> `$defs/textual_tcss_selector`: Textual renderer contract component.
 - <!-- schema-def:textual_tcss_rule --> `$defs/textual_tcss_rule`: Textual renderer contract component.
 - <!-- schema-def:textual_style_contract --> `$defs/textual_style_contract`: Textual renderer contract component.
-- <!-- schema-def:asset_item --> `$defs/asset_item`: compiled-output object for this resource or nested contract.
+- <!-- schema-def:media_asset_item --> `$defs/media_asset_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:viewport_profile_item --> `$defs/viewport_profile_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:child_state_machine_item --> `$defs/child_state_machine_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:content_example_item --> `$defs/content_example_item`: compiled-output object for this resource or nested contract.

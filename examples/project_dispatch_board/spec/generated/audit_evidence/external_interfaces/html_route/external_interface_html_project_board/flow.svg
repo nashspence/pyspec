@@ -1,6 +1,6 @@
 <svg width="725pt" height="187pt"
  viewBox="0.00 0.00 725.00 187.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 58e986c76ab74e64b90d3b707da108d31a86d06c4ace106249fe2b8641134a57 -->
+<!-- pyspec-contract-input-sha256: ee1b2afe9d2838b6652a78a035538ef42810df91de84733031e12d822447c34e -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 169)">
 <title>external_interface_external_interface_html_project_board</title>
 <!-- external_interface_external_interface_html_project_board -->
@@ -31,7 +31,7 @@
 <text text-anchor="start" x="413.5" y="-117.1" font-family="Arial" font-size="8.00" fill="#64748b">invoked state machine (html)</text>
 <text text-anchor="start" x="413.5" y="-99.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">The dispatch board composes list, detail, and</text>
 <text text-anchor="start" x="413.5" y="-88.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">activity state machines through shared</text>
-<text text-anchor="start" x="413.5" y="-77.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">selected&#45;project context.</text>
+<text text-anchor="start" x="413.5" y="-77.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">selected&#45;project context_resource.</text>
 <text text-anchor="start" x="414.5" y="-57.5" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
 <text text-anchor="start" x="442.5" y="-57.5" font-family="Arial" font-size="10.00">  list_board.workspace_id</text>
 <text text-anchor="start" x="554.5" y="-57.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>

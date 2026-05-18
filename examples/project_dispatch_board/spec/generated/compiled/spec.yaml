@@ -199,7 +199,7 @@ behavior_scenarios:
       - command.project.create
       requires:
         assets:
-        - asset.project.list.empty.illustration
+        - media_asset.project.list.empty.illustration
         command_bindings:
         - create
         query_bindings:
@@ -211,12 +211,12 @@ behavior_scenarios:
         - state_machine.project.detail.none
         - state_machine.project.list.empty
         text:
-        - text.project.activity.empty.heading
-        - text.project.activity.empty.body
-        - text.project.detail.none.heading
-        - text.project.detail.none.body
-        - text.project.list.empty.heading
-        - text.project.list.empty.body
+        - text_resource.project.activity.empty.heading
+        - text_resource.project.activity.empty.body
+        - text_resource.project.detail.none.heading
+        - text_resource.project.detail.none.body
+        - text_resource.project.list.empty.heading
+        - text_resource.project.list.empty.body
       state_machine:
         composition:
           child_state_machines:
@@ -432,11 +432,11 @@ behavior_scenarios:
         - state_machine.project.detail.none
         - state_machine.project.list.ready
         text:
-        - text.project.activity.empty.heading
-        - text.project.activity.empty.body
-        - text.project.detail.none.heading
-        - text.project.detail.none.body
-        - text.project.list.ready.heading
+        - text_resource.project.activity.empty.heading
+        - text_resource.project.activity.empty.body
+        - text_resource.project.detail.none.heading
+        - text_resource.project.detail.none.body
+        - text_resource.project.list.ready.heading
       state_machine:
         composition:
           child_state_machines:
@@ -890,13 +890,13 @@ content_examples:
       title:
         value: Replace rooftop condenser fan
     rationale: Exercise final detail heading text with representative fixture-backed content.
-    ref: text.project.detail.ready.heading
+    ref: text_resource.project.detail.ready.heading
   content_example.project.detail.priority_badge.high_priority:
     args:
       priority:
         value: High
-    rationale: Exercise final dynamic priority badge asset.
-    ref: asset.project.detail.ready.priority_badge
+    rationale: Exercise final dynamic priority badge media_asset.
+    ref: media_asset.project.detail.ready.priority_badge
 domain_events:
   domain_event.project.approved:
     emitted_by:
@@ -1195,42 +1195,42 @@ external_interfaces:
             bindings:
               message:
                 from: $adapter_response.body.message
-            text: text.project.approve.access_denied
+            text: text_resource.project.approve.access_denied
         approved:
           exit_code: 0
           stdout:
             bindings:
               project_id:
                 from: $adapter_response.body.id
-            text: text.project.approve.success
+            text: text_resource.project.approve.success
         authentication_required:
           exit_code: 4
           stderr:
             bindings:
               message:
                 from: $adapter_response.body.message
-            text: text.project.approve.authentication_required
+            text: text_resource.project.approve.authentication_required
         not_found:
           exit_code: 3
           stderr:
             bindings:
               message:
                 from: $adapter_response.body.message
-            text: text.project.approve.not_found
+            text: text_resource.project.approve.not_found
         transition_not_allowed:
           exit_code: 2
           stderr:
             bindings:
               message:
                 from: $adapter_response.body.message
-            text: text.project.approve.transition_not_allowed
+            text: text_resource.project.approve.transition_not_allowed
         unavailable:
           exit_code: 75
           retry_policy:
             attempts: 3
             backoff: exponential
           stderr:
-            text: text.project.approve.unavailable
+            text: text_resource.project.approve.unavailable
     rationale: CLI entry for approval automation.
   external_interface.cli.project.board:
     adapter:
@@ -1314,7 +1314,7 @@ fixtures:
         id: workspace_1
         name: North Region Dispatch
 media_assets:
-  asset.project.detail.ready.priority_badge:
+  media_asset.project.detail.ready.priority_badge:
     args:
       priority:
         type: string
@@ -1325,9 +1325,9 @@ media_assets:
       label: Project priority badge
       placeholder_symbol: square
     rationale: Selected project detail shows a dynamic priority badge resolved from project fixture data.
-    source_ref: asset.project.detail.ready.priority_badge
-  asset.project.list.empty.illustration:
-    alt_text: text.project.list.empty.heading
+    source_ref: media_asset.project.detail.ready.priority_badge
+  media_asset.project.list.empty.illustration:
+    alt_text: text_resource.project.list.empty.heading
     asset_role: empty_state
     media_kind: illustration
     placeholder:
@@ -1546,8 +1546,8 @@ reference_index:
   - local_signal_raise.project.list.ready.command_binding.submit.submitted.data_refresh_signal.projects_changed
   - local_signal_raise.project.list.ready.command_binding.submit.transition_not_allowed.local_signal.show_transition_not_allowed
   media_asset:
-  - asset.project.detail.ready.priority_badge
-  - asset.project.list.empty.illustration
+  - media_asset.project.detail.ready.priority_badge
+  - media_asset.project.list.empty.illustration
   query_binding:
   - query_binding.project.activity.ready.read_activity
   - query_binding.project.board.list_board
@@ -1595,27 +1595,27 @@ reference_index:
   - state_machine.project.detail
   - state_machine.project.list
   text_resource:
-  - text.project.activity.empty.body
-  - text.project.activity.empty.heading
-  - text.project.activity.ready.heading
-  - text.project.approve.access_denied
-  - text.project.approve.authentication_required
-  - text.project.approve.not_found
-  - text.project.approve.success
-  - text.project.approve.transition_not_allowed
-  - text.project.approve.unavailable
-  - text.project.detail.error.body
-  - text.project.detail.error.heading
-  - text.project.detail.loading.message
-  - text.project.detail.none.body
-  - text.project.detail.none.heading
-  - text.project.detail.ready.heading
-  - text.project.list.empty.body
-  - text.project.list.empty.heading
-  - text.project.list.error.body
-  - text.project.list.error.heading
-  - text.project.list.loading.message
-  - text.project.list.ready.heading
+  - text_resource.project.activity.empty.body
+  - text_resource.project.activity.empty.heading
+  - text_resource.project.activity.ready.heading
+  - text_resource.project.approve.access_denied
+  - text_resource.project.approve.authentication_required
+  - text_resource.project.approve.not_found
+  - text_resource.project.approve.success
+  - text_resource.project.approve.transition_not_allowed
+  - text_resource.project.approve.unavailable
+  - text_resource.project.detail.error.body
+  - text_resource.project.detail.error.heading
+  - text_resource.project.detail.loading.message
+  - text_resource.project.detail.none.body
+  - text_resource.project.detail.none.heading
+  - text_resource.project.detail.ready.heading
+  - text_resource.project.list.empty.body
+  - text_resource.project.list.empty.heading
+  - text_resource.project.list.error.body
+  - text_resource.project.list.error.heading
+  - text_resource.project.list.loading.message
+  - text_resource.project.list.ready.heading
   workflow:
   - workflow.project.approval_notice
 schemas:
@@ -1690,8 +1690,8 @@ state_machines:
         query_bindings: {}
         surface: state_machine.project.activity.empty
         text:
-        - text.project.activity.empty.heading
-        - text.project.activity.empty.body
+        - text_resource.project.activity.empty.heading
+        - text_resource.project.activity.empty.body
       ready:
         assets: []
         command_bindings: {}
@@ -1729,7 +1729,7 @@ state_machines:
             query: query.project.read
         surface: state_machine.project.activity.ready
         text:
-        - text.project.activity.ready.heading
+        - text_resource.project.activity.ready.heading
     transitions:
     - from: empty
       to: ready
@@ -1796,7 +1796,7 @@ state_machines:
         rationale: Board-level project list is shared shell data for composed child state machines; the child list machine
           owns visible loading and empty/non-empty transitions.
         result_scope: shared
-    rationale: The dispatch board composes list, detail, and activity state machines through shared selected-project context.
+    rationale: The dispatch board composes list, detail, and activity state machines through shared selected-project context_resource.
     states:
       ready:
         assets: []
@@ -2032,7 +2032,7 @@ state_machines:
       emits:
         local_signals: {}
     query_bindings: {}
-    rationale: The detail state machine is independent from the list and reacts to selected project context.
+    rationale: The detail state machine is independent from the list and reacts to selected project context_resource.
     states:
       error:
         assets: []
@@ -2041,8 +2041,8 @@ state_machines:
         query_bindings: {}
         surface: state_machine.project.detail.error
         text:
-        - text.project.detail.error.heading
-        - text.project.detail.error.body
+        - text_resource.project.detail.error.heading
+        - text_resource.project.detail.error.body
       loading:
         assets: []
         command_bindings: {}
@@ -2074,7 +2074,7 @@ state_machines:
             query: query.project.read
         surface: state_machine.project.detail.loading
         text:
-        - text.project.detail.loading.message
+        - text_resource.project.detail.loading.message
       none:
         assets: []
         command_bindings: {}
@@ -2082,11 +2082,11 @@ state_machines:
         query_bindings: {}
         surface: state_machine.project.detail.none
         text:
-        - text.project.detail.none.heading
-        - text.project.detail.none.body
+        - text_resource.project.detail.none.heading
+        - text_resource.project.detail.none.body
       ready:
         assets:
-        - asset.project.detail.ready.priority_badge
+        - media_asset.project.detail.ready.priority_badge
         command_bindings:
           approve:
             command: command.project.approve
@@ -2198,7 +2198,7 @@ state_machines:
             query: query.project.read
         surface: state_machine.project.detail.ready
         text:
-        - text.project.detail.ready.heading
+        - text_resource.project.detail.ready.heading
     transitions:
     - from: none
       to: loading
@@ -2349,7 +2349,7 @@ state_machines:
     states:
       empty:
         assets:
-        - asset.project.list.empty.illustration
+        - media_asset.project.list.empty.illustration
         command_bindings:
           create:
             command: command.project.create
@@ -2384,8 +2384,8 @@ state_machines:
         query_bindings: {}
         surface: state_machine.project.list.empty
         text:
-        - text.project.list.empty.heading
-        - text.project.list.empty.body
+        - text_resource.project.list.empty.heading
+        - text_resource.project.list.empty.body
       error:
         assets: []
         command_bindings: {}
@@ -2393,8 +2393,8 @@ state_machines:
         query_bindings: {}
         surface: state_machine.project.list.error
         text:
-        - text.project.list.error.heading
-        - text.project.list.error.body
+        - text_resource.project.list.error.heading
+        - text_resource.project.list.error.body
       loading:
         assets: []
         command_bindings: {}
@@ -2402,7 +2402,7 @@ state_machines:
         query_bindings: {}
         surface: state_machine.project.list.loading
         text:
-        - text.project.list.loading.message
+        - text_resource.project.list.loading.message
       ready:
         assets: []
         command_bindings:
@@ -2474,7 +2474,7 @@ state_machines:
         query_bindings: {}
         surface: state_machine.project.list.ready
         text:
-        - text.project.list.ready.heading
+        - text_resource.project.list.ready.heading
     transitions:
     - from: loading
       to: empty
@@ -2528,22 +2528,22 @@ state_machines:
       trigger:
         local_signal: show_transition_not_allowed
 text_resources:
-  text.project.activity.empty.body:
+  text_resource.project.activity.empty.body:
     intent: instructional
     max_chars: 120
     placeholder: Activity appears after a project is selected.
     rationale: Empty activity body.
-  text.project.activity.empty.heading:
+  text_resource.project.activity.empty.heading:
     intent: neutral
     max_chars: 80
     placeholder: No project selected
     rationale: Empty activity heading.
-  text.project.activity.ready.heading:
+  text_resource.project.activity.ready.heading:
     intent: neutral
     max_chars: 80
     placeholder: Latest activity
     rationale: Ready activity heading.
-  text.project.approve.access_denied:
+  text_resource.project.approve.access_denied:
     args:
       message:
         type: string
@@ -2551,7 +2551,7 @@ text_resources:
     max_chars: 120
     placeholder: 'Approval is access_denied: {message}'
     rationale: CLI approval access_denied message.
-  text.project.approve.authentication_required:
+  text_resource.project.approve.authentication_required:
     args:
       message:
         type: string
@@ -2559,7 +2559,7 @@ text_resources:
     max_chars: 120
     placeholder: 'Sign in before approving: {message}'
     rationale: CLI approval authentication_required message.
-  text.project.approve.not_found:
+  text_resource.project.approve.not_found:
     args:
       message:
         type: string
@@ -2567,7 +2567,7 @@ text_resources:
     max_chars: 120
     placeholder: 'Cannot approve project: {message}'
     rationale: CLI approval not-found message.
-  text.project.approve.success:
+  text_resource.project.approve.success:
     args:
       project_id:
         type: string
@@ -2575,7 +2575,7 @@ text_resources:
     max_chars: 120
     placeholder: Approved project {project_id}
     rationale: CLI approval success message.
-  text.project.approve.transition_not_allowed:
+  text_resource.project.approve.transition_not_allowed:
     args:
       message:
         type: string
@@ -2583,37 +2583,37 @@ text_resources:
     max_chars: 120
     placeholder: 'Cannot approve project: {message}'
     rationale: CLI approval invalid-state message.
-  text.project.approve.unavailable:
+  text_resource.project.approve.unavailable:
     intent: error
     max_chars: 120
     placeholder: Approval service is unavailable. Retry later.
     rationale: CLI approval unavailable message.
-  text.project.detail.error.body:
+  text_resource.project.detail.error.body:
     intent: error
     max_chars: 120
     placeholder: Refresh the selection or return to the queue.
     rationale: Error body for the detail state machine.
-  text.project.detail.error.heading:
+  text_resource.project.detail.error.heading:
     intent: error
     max_chars: 80
     placeholder: Project detail is unavailable
     rationale: Error heading for the detail state machine.
-  text.project.detail.loading.message:
+  text_resource.project.detail.loading.message:
     intent: neutral
     max_chars: 80
     placeholder: Loading project detail…
     rationale: Loading message for the detail state machine.
-  text.project.detail.none.body:
+  text_resource.project.detail.none.body:
     intent: instructional
     max_chars: 160
     placeholder: Choose a project from the queue to review customer, assignment, and approval details.
     rationale: No-selection body for the detail state machine.
-  text.project.detail.none.heading:
+  text_resource.project.detail.none.heading:
     intent: instructional
     max_chars: 80
     placeholder: Select a project
     rationale: No-selection heading for the detail state machine.
-  text.project.detail.ready.heading:
+  text_resource.project.detail.ready.heading:
     args:
       customer:
         type: string
@@ -2623,33 +2623,33 @@ text_resources:
     max_chars: 80
     placeholder: Project detail
     rationale: Ready heading for the detail state machine.
-    source_ref: text.project.detail.ready.heading
-  text.project.list.empty.body:
+    source_ref: text_resource.project.detail.ready.heading
+  text_resource.project.list.empty.body:
     intent: instructional
     max_chars: 160
     placeholder: Create the first project to start coordinating work for this workspace.
     rationale: Empty body for the project list state machine.
-  text.project.list.empty.heading:
+  text_resource.project.list.empty.heading:
     intent: neutral
     max_chars: 80
     placeholder: No dispatch projects yet
     rationale: Empty heading for the project list state machine.
-  text.project.list.error.body:
+  text_resource.project.list.error.body:
     intent: error
     max_chars: 120
     placeholder: Check the workspace connection and try again.
     rationale: Error body for the project list state machine.
-  text.project.list.error.heading:
+  text_resource.project.list.error.heading:
     intent: error
     max_chars: 80
     placeholder: Projects could not be loaded
     rationale: Error heading for the project list state machine.
-  text.project.list.loading.message:
+  text_resource.project.list.loading.message:
     intent: neutral
     max_chars: 80
     placeholder: Loading dispatch projects…
     rationale: Loading message for the project list state machine.
-  text.project.list.ready.heading:
+  text_resource.project.list.ready.heading:
     intent: neutral
     max_chars: 80
     placeholder: Dispatch queue

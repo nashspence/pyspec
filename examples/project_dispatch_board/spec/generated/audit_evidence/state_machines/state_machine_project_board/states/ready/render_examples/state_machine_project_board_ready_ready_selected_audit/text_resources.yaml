@@ -1,11 +1,11 @@
 project: project_dispatch_board
 text_resources:
-  text.project.activity.ready.heading:
+  text_resource.project.activity.ready.heading:
     intent: neutral
     max_chars: 80
     placeholder: Latest activity
     rationale: Ready activity heading.
-  text.project.detail.ready.heading:
+  text_resource.project.detail.ready.heading:
     args:
       customer:
         type: string
@@ -15,8 +15,8 @@ text_resources:
     max_chars: 80
     placeholder: Project detail
     rationale: Ready heading for the detail state machine.
-    source_ref: text.project.detail.ready.heading
-  text.project.list.ready.heading:
+    source_ref: text_resource.project.detail.ready.heading
+  text_resource.project.list.ready.heading:
     intent: neutral
     max_chars: 80
     placeholder: Dispatch queue

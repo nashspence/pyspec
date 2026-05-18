@@ -554,15 +554,15 @@ def _textual_screen_class(
 
 def default_html_slots(state_machine: dict[str, Any]) -> list[dict[str, Any]]:
     slots: list[dict[str, Any]] = []
-    for text_ref in state_machine["slots"]["text"]:
-        slot = text_ref.rsplit(".", 1)[-1]
+    for text_resource_ref in state_machine["slots"]["text"]:
+        slot = text_resource_ref.rsplit(".", 1)[-1]
         element = "h2" if slot == "title" else "p"
         item: dict[str, Any] = {"binding": {"text_slot": slot}, "component": "text", "element": element}
         if slot == "title":
             item.update({"role": "heading", "level": 2})
         slots.append(item)
-    for asset_ref in state_machine["slots"]["assets"]:
-        slots.append({"binding": {"asset_slot": asset_ref.rsplit(".", 1)[-1]}, "component": "image", "element": "img"})
+    for media_asset_ref in state_machine["slots"]["assets"]:
+        slots.append({"binding": {"asset_slot": media_asset_ref.rsplit(".", 1)[-1]}, "component": "image", "element": "img"})
     for field in state_machine["slots"].get("fields", []):
         slots.append({"binding": {"field_slot": field}, "component": "field", "element": "p"})
     for invocation_id in state_machine["slots"]["command_bindings"]:
@@ -814,12 +814,12 @@ def content_contract_projection(contract: dict[str, Any]) -> str:
         "from dataclasses import dataclass",
         "from typing import Any",
         "",
-        "from pyspec_contract.content import AssetResult, ContentContext",
+        "from pyspec_contract.content import ContentContext, MediaAssetResult",
         "",
     ]
     text_classes: dict[str, str] = {}
     asset_classes: dict[str, str] = {}
-    for section, mapping_name, store in [("text_resources", "TEXT_SIGNATURES", text_classes), ("media_assets", "ASSET_SIGNATURES", asset_classes)]:
+    for section, store in [("text_resources", text_classes), ("media_assets", asset_classes)]:
         for ref, spec, class_name in _content_signature_items(contract, section):
             store[ref] = class_name
             args = spec.get("args", {})
@@ -831,10 +831,10 @@ def content_contract_projection(contract: dict[str, Any]) -> str:
             else:
                 lines.append("    pass")
             lines.append("")
-    lines.append(f"TEXT_SIGNATURES = { {ref: {'args': spec.get('args', {}), 'source_ref': spec.get('source_ref'), 'arg_class': text_classes[ref]} for ref, spec, _ in _content_signature_items(contract, 'text_resources')}!r}")
-    lines.append(f"ASSET_SIGNATURES = { {ref: {'args': spec.get('args', {}), 'source_ref': spec.get('source_ref'), 'arg_class': asset_classes[ref]} for ref, spec, _ in _content_signature_items(contract, 'media_assets')}!r}")
-    lines.append(f"TEXT_ARG_CLASSES = {{{', '.join(f'{ref!r}: {cls}' for ref, cls in text_classes.items())}}}")
-    lines.append(f"ASSET_ARG_CLASSES = {{{', '.join(f'{ref!r}: {cls}' for ref, cls in asset_classes.items())}}}")
+    lines.append(f"TEXT_RESOURCE_SIGNATURES = { {ref: {'args': spec.get('args', {}), 'source_ref': spec.get('source_ref'), 'arg_class': text_classes[ref]} for ref, spec, _ in _content_signature_items(contract, 'text_resources')}!r}")
+    lines.append(f"MEDIA_ASSET_SIGNATURES = { {ref: {'args': spec.get('args', {}), 'source_ref': spec.get('source_ref'), 'arg_class': asset_classes[ref]} for ref, spec, _ in _content_signature_items(contract, 'media_assets')}!r}")
+    lines.append(f"TEXT_RESOURCE_ARG_CLASSES = {{{', '.join(f'{ref!r}: {cls}' for ref, cls in text_classes.items())}}}")
+    lines.append(f"MEDIA_ASSET_ARG_CLASSES = {{{', '.join(f'{ref!r}: {cls}' for ref, cls in asset_classes.items())}}}")
     lines.append("")
     return "\n".join(lines)
 
@@ -844,7 +844,7 @@ def content_stubs_projection(contract: dict[str, Any]) -> str:
         '"""Generated content source stubs. Do not edit; move needed functions into spec.py."""',
         "from __future__ import annotations",
         "",
-        "from pyspec_contract.content import AssetResult, ContentContext, asset, text",
+        "from pyspec_contract.content import ContentContext, MediaAssetResult, media_asset, text_resource",
         "from generated.content_resolvers.signatures import *  # generated arg classes",
         "from generated.test_adapters.python_refs import MediaAsset, TextResource",
         "",
@@ -854,7 +854,7 @@ def content_stubs_projection(contract: dict[str, Any]) -> str:
         if not source_ref:
             continue
         lines.extend([
-            f"@text.implements(TextResource.{constant_name(ref)})",
+            f"@text_resource.implements(TextResource.{constant_name(ref)})",
             f"def {safe_id(ref)}(args: {class_name}, ctx: ContentContext) -> str:",
             f"    raise NotImplementedError({ref!r})",
             "",
@@ -864,8 +864,8 @@ def content_stubs_projection(contract: dict[str, Any]) -> str:
         if not source_ref:
             continue
         lines.extend([
-            f"@asset.implements(MediaAsset.{constant_name(ref)})",
-            f"def {safe_id(ref)}(args: {class_name}, ctx: ContentContext) -> AssetResult:",
+            f"@media_asset.implements(MediaAsset.{constant_name(ref)})",
+            f"def {safe_id(ref)}(args: {class_name}, ctx: ContentContext) -> MediaAssetResult:",
             f"    raise NotImplementedError({ref!r})",
             "",
         ])

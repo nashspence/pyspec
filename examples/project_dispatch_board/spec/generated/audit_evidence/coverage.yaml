@@ -211,33 +211,35 @@ visual_evidence_sets:
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.viewport_profile_default.compact.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.viewport_profile_default.wide.capture.svg
 render_presence:
-  assets:
-    rendered: {}
+  media_assets:
+    rendered:
+      media_asset.project.detail.ready.priority_badge: V0020
+      media_asset.project.list.empty.illustration: V0034
     not_rendered: []
   text_resources:
     rendered:
-      text.project.activity.empty.body: V0034
-      text.project.activity.empty.heading: V0034
-      text.project.activity.ready.heading: V0020
-      text.project.detail.none.body: V0034
-      text.project.detail.none.heading: V0034
-      text.project.detail.ready.heading: V0020
-      text.project.list.empty.body: V0034
-      text.project.list.empty.heading: V0034
-      text.project.list.ready.heading: V0020
+      text_resource.project.activity.empty.body: V0034
+      text_resource.project.activity.empty.heading: V0034
+      text_resource.project.activity.ready.heading: V0020
+      text_resource.project.detail.none.body: V0034
+      text_resource.project.detail.none.heading: V0034
+      text_resource.project.detail.ready.heading: V0020
+      text_resource.project.list.empty.body: V0034
+      text_resource.project.list.empty.heading: V0034
+      text_resource.project.list.ready.heading: V0020
     not_rendered:
-    - text.project.approve.access_denied
-    - text.project.approve.authentication_required
-    - text.project.approve.not_found
-    - text.project.approve.success
-    - text.project.approve.transition_not_allowed
-    - text.project.approve.unavailable
-    - text.project.detail.error.body
-    - text.project.detail.error.heading
-    - text.project.detail.loading.message
-    - text.project.list.error.body
-    - text.project.list.error.heading
-    - text.project.list.loading.message
+    - text_resource.project.approve.access_denied
+    - text_resource.project.approve.authentication_required
+    - text_resource.project.approve.not_found
+    - text_resource.project.approve.success
+    - text_resource.project.approve.transition_not_allowed
+    - text_resource.project.approve.unavailable
+    - text_resource.project.detail.error.body
+    - text_resource.project.detail.error.heading
+    - text_resource.project.detail.loading.message
+    - text_resource.project.list.error.body
+    - text_resource.project.list.error.heading
+    - text_resource.project.list.loading.message
   fixtures:
     rendered:
       fixture.workspace.member: V0019
@@ -2090,7 +2092,7 @@ visual_audit:
       /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/access_denied/stderr/text:
         visual_evidence_set: V0016
         tokens:
-        - text.project.approve.access_denied
+        - text_resource.project.approve.access_denied
       /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/approved/exit_code:
         visual_evidence_set: V0016
         tokens:
@@ -2103,7 +2105,7 @@ visual_audit:
       /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/approved/stdout/text:
         visual_evidence_set: V0016
         tokens:
-        - text.project.approve.success
+        - text_resource.project.approve.success
       ? /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/authentication_required/exit_code
       : visual_evidence_set: V0016
         tokens:
@@ -2116,7 +2118,7 @@ visual_audit:
       ? /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/authentication_required/stderr/text
       : visual_evidence_set: V0016
         tokens:
-        - text.project.approve.authentication_required
+        - text_resource.project.approve.authentication_required
       /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/not_found/exit_code:
         visual_evidence_set: V0016
         tokens:
@@ -2129,7 +2131,7 @@ visual_audit:
       /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/not_found/stderr/text:
         visual_evidence_set: V0016
         tokens:
-        - text.project.approve.not_found
+        - text_resource.project.approve.not_found
       ? /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/transition_not_allowed/exit_code
       : visual_evidence_set: V0016
         tokens:
@@ -2142,7 +2144,7 @@ visual_audit:
       ? /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/transition_not_allowed/stderr/text
       : visual_evidence_set: V0016
         tokens:
-        - text.project.approve.transition_not_allowed
+        - text_resource.project.approve.transition_not_allowed
       /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/unavailable/exit_code:
         visual_evidence_set: V0016
         tokens:
@@ -2161,7 +2163,7 @@ visual_audit:
       /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/unavailable/stderr/text:
         visual_evidence_set: V0016
         tokens:
-        - text.project.approve.unavailable
+        - text_resource.project.approve.unavailable
       /external_interfaces/external_interface.cli.project.board/adapter/cli/cli_command:
         visual_evidence_set: V0017
         tokens:
@@ -2333,15 +2335,15 @@ visual_audit:
       /state_machines/state_machine.project.activity/states/empty/text/0:
         visual_evidence_set: V0024
         tokens:
-        - text.project.activity.empty.heading
+        - text_resource.project.activity.empty.heading
       /state_machines/state_machine.project.activity/states/empty/text/1:
         visual_evidence_set: V0024
         tokens:
-        - text.project.activity.empty.body
+        - text_resource.project.activity.empty.body
       /state_machines/state_machine.project.activity/states/ready/text/0:
         visual_evidence_set: V0024
         tokens:
-        - text.project.activity.ready.heading
+        - text_resource.project.activity.ready.heading
       /state_machines/state_machine.project.board/states/ready/child_state_machines/0/html_region:
         visual_evidence_set: V0025
         tokens:
@@ -2403,27 +2405,27 @@ visual_audit:
       /state_machines/state_machine.project.detail/states/error/text/0:
         visual_evidence_set: V0026
         tokens:
-        - text.project.detail.error.heading
+        - text_resource.project.detail.error.heading
       /state_machines/state_machine.project.detail/states/error/text/1:
         visual_evidence_set: V0026
         tokens:
-        - text.project.detail.error.body
+        - text_resource.project.detail.error.body
       /state_machines/state_machine.project.detail/states/loading/text/0:
         visual_evidence_set: V0026
         tokens:
-        - text.project.detail.loading.message
+        - text_resource.project.detail.loading.message
       /state_machines/state_machine.project.detail/states/none/text/0:
         visual_evidence_set: V0026
         tokens:
-        - text.project.detail.none.heading
+        - text_resource.project.detail.none.heading
       /state_machines/state_machine.project.detail/states/none/text/1:
         visual_evidence_set: V0026
         tokens:
-        - text.project.detail.none.body
+        - text_resource.project.detail.none.body
       /state_machines/state_machine.project.detail/states/ready/assets/0:
         visual_evidence_set: V0026
         tokens:
-        - asset.project.detail.ready.priority_badge
+        - media_asset.project.detail.ready.priority_badge
       /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/command:
         visual_evidence_set: V0026
         tokens:
@@ -2435,7 +2437,7 @@ visual_audit:
       /state_machines/state_machine.project.detail/states/ready/text/0:
         visual_evidence_set: V0026
         tokens:
-        - text.project.detail.ready.heading
+        - text_resource.project.detail.ready.heading
       ? /state_machines/state_machine.project.list/local_signals/accepts/local_signals/project_select/payload_schema/properties/project_id/type
       : visual_evidence_set: V0027
         tokens:
@@ -2454,7 +2456,7 @@ visual_audit:
       /state_machines/state_machine.project.list/states/empty/assets/0:
         visual_evidence_set: V0027
         tokens:
-        - asset.project.list.empty.illustration
+        - media_asset.project.list.empty.illustration
       /state_machines/state_machine.project.list/states/empty/command_bindings/create/command:
         visual_evidence_set: V0027
         tokens:
@@ -2462,23 +2464,23 @@ visual_audit:
       /state_machines/state_machine.project.list/states/empty/text/0:
         visual_evidence_set: V0027
         tokens:
-        - text.project.list.empty.heading
+        - text_resource.project.list.empty.heading
       /state_machines/state_machine.project.list/states/empty/text/1:
         visual_evidence_set: V0027
         tokens:
-        - text.project.list.empty.body
+        - text_resource.project.list.empty.body
       /state_machines/state_machine.project.list/states/error/text/0:
         visual_evidence_set: V0027
         tokens:
-        - text.project.list.error.heading
+        - text_resource.project.list.error.heading
       /state_machines/state_machine.project.list/states/error/text/1:
         visual_evidence_set: V0027
         tokens:
-        - text.project.list.error.body
+        - text_resource.project.list.error.body
       /state_machines/state_machine.project.list/states/loading/text/0:
         visual_evidence_set: V0027
         tokens:
-        - text.project.list.loading.message
+        - text_resource.project.list.loading.message
       /state_machines/state_machine.project.list/states/ready/command_bindings/create/command:
         visual_evidence_set: V0027
         tokens:
@@ -2490,7 +2492,7 @@ visual_audit:
       /state_machines/state_machine.project.list/states/ready/text/0:
         visual_evidence_set: V0027
         tokens:
-        - text.project.list.ready.heading
+        - text_resource.project.list.ready.heading
       /workflows/workflow.project.approval_notice/inputs/domain_event:
         visual_evidence_set: V0033
         tokens:
@@ -3076,98 +3078,98 @@ visual_audit:
       /preconditions/precondition.project.submitted/present/values/updated_at/value: V0020
       /preconditions/precondition.project.submitted/present/values/workspace_id/from: V0020
       /preconditions/precondition.project.submitted/rationale: V0020
-      /text_resources/text.project.activity.empty.body/intent: V0028
-      /text_resources/text.project.activity.empty.body/max_chars: V0028
-      /text_resources/text.project.activity.empty.body/placeholder: V0028
-      /text_resources/text.project.activity.empty.body/rationale: V0028
-      /text_resources/text.project.activity.empty.heading/intent: V0028
-      /text_resources/text.project.activity.empty.heading/max_chars: V0028
-      /text_resources/text.project.activity.empty.heading/placeholder: V0028
-      /text_resources/text.project.activity.empty.heading/rationale: V0028
-      /text_resources/text.project.activity.ready.heading/intent: V0029
-      /text_resources/text.project.activity.ready.heading/max_chars: V0029
-      /text_resources/text.project.activity.ready.heading/placeholder: V0029
-      /text_resources/text.project.activity.ready.heading/rationale: V0029
-      /text_resources/text.project.approve.access_denied/args/message/type: V0016
-      /text_resources/text.project.approve.access_denied/intent: V0016
-      /text_resources/text.project.approve.access_denied/max_chars: V0016
-      /text_resources/text.project.approve.access_denied/placeholder: V0016
-      /text_resources/text.project.approve.access_denied/rationale: V0016
-      /text_resources/text.project.approve.authentication_required/args/message/type: V0016
-      /text_resources/text.project.approve.authentication_required/intent: V0016
-      /text_resources/text.project.approve.authentication_required/max_chars: V0016
-      /text_resources/text.project.approve.authentication_required/placeholder: V0016
-      /text_resources/text.project.approve.authentication_required/rationale: V0016
-      /text_resources/text.project.approve.not_found/args/message/type: V0016
-      /text_resources/text.project.approve.not_found/intent: V0016
-      /text_resources/text.project.approve.not_found/max_chars: V0016
-      /text_resources/text.project.approve.not_found/placeholder: V0016
-      /text_resources/text.project.approve.not_found/rationale: V0016
-      /text_resources/text.project.approve.success/args/project_id/type: V0016
-      /text_resources/text.project.approve.success/intent: V0016
-      /text_resources/text.project.approve.success/max_chars: V0016
-      /text_resources/text.project.approve.success/placeholder: V0016
-      /text_resources/text.project.approve.success/rationale: V0016
-      /text_resources/text.project.approve.transition_not_allowed/args/message/type: V0016
-      /text_resources/text.project.approve.transition_not_allowed/intent: V0016
-      /text_resources/text.project.approve.transition_not_allowed/max_chars: V0016
-      /text_resources/text.project.approve.transition_not_allowed/placeholder: V0016
-      /text_resources/text.project.approve.transition_not_allowed/rationale: V0016
-      /text_resources/text.project.approve.unavailable/intent: V0016
-      /text_resources/text.project.approve.unavailable/max_chars: V0016
-      /text_resources/text.project.approve.unavailable/placeholder: V0016
-      /text_resources/text.project.approve.unavailable/rationale: V0016
-      /text_resources/text.project.detail.error.body/intent: V0026
-      /text_resources/text.project.detail.error.body/max_chars: V0026
-      /text_resources/text.project.detail.error.body/placeholder: V0026
-      /text_resources/text.project.detail.error.body/rationale: V0026
-      /text_resources/text.project.detail.error.heading/intent: V0026
-      /text_resources/text.project.detail.error.heading/max_chars: V0026
-      /text_resources/text.project.detail.error.heading/placeholder: V0026
-      /text_resources/text.project.detail.error.heading/rationale: V0026
-      /text_resources/text.project.detail.loading.message/intent: V0026
-      /text_resources/text.project.detail.loading.message/max_chars: V0026
-      /text_resources/text.project.detail.loading.message/placeholder: V0026
-      /text_resources/text.project.detail.loading.message/rationale: V0026
-      /text_resources/text.project.detail.none.body/intent: V0030
-      /text_resources/text.project.detail.none.body/max_chars: V0030
-      /text_resources/text.project.detail.none.body/placeholder: V0030
-      /text_resources/text.project.detail.none.body/rationale: V0030
-      /text_resources/text.project.detail.none.heading/intent: V0030
-      /text_resources/text.project.detail.none.heading/max_chars: V0030
-      /text_resources/text.project.detail.none.heading/placeholder: V0030
-      /text_resources/text.project.detail.none.heading/rationale: V0030
-      /text_resources/text.project.detail.ready.heading/args/customer/type: V0011
-      /text_resources/text.project.detail.ready.heading/args/title/type: V0011
-      /text_resources/text.project.detail.ready.heading/intent: V0011
-      /text_resources/text.project.detail.ready.heading/max_chars: V0011
-      /text_resources/text.project.detail.ready.heading/placeholder: V0011
-      /text_resources/text.project.detail.ready.heading/rationale: V0011
-      /text_resources/text.project.detail.ready.heading/source_ref: V0011
-      /text_resources/text.project.list.empty.body/intent: V0031
-      /text_resources/text.project.list.empty.body/max_chars: V0031
-      /text_resources/text.project.list.empty.body/placeholder: V0031
-      /text_resources/text.project.list.empty.body/rationale: V0031
-      /text_resources/text.project.list.empty.heading/intent: V0031
-      /text_resources/text.project.list.empty.heading/max_chars: V0031
-      /text_resources/text.project.list.empty.heading/placeholder: V0031
-      /text_resources/text.project.list.empty.heading/rationale: V0031
-      /text_resources/text.project.list.error.body/intent: V0027
-      /text_resources/text.project.list.error.body/max_chars: V0027
-      /text_resources/text.project.list.error.body/placeholder: V0027
-      /text_resources/text.project.list.error.body/rationale: V0027
-      /text_resources/text.project.list.error.heading/intent: V0027
-      /text_resources/text.project.list.error.heading/max_chars: V0027
-      /text_resources/text.project.list.error.heading/placeholder: V0027
-      /text_resources/text.project.list.error.heading/rationale: V0027
-      /text_resources/text.project.list.loading.message/intent: V0027
-      /text_resources/text.project.list.loading.message/max_chars: V0027
-      /text_resources/text.project.list.loading.message/placeholder: V0027
-      /text_resources/text.project.list.loading.message/rationale: V0027
-      /text_resources/text.project.list.ready.heading/intent: V0032
-      /text_resources/text.project.list.ready.heading/max_chars: V0032
-      /text_resources/text.project.list.ready.heading/placeholder: V0032
-      /text_resources/text.project.list.ready.heading/rationale: V0032
+      /text_resources/text_resource.project.activity.empty.body/intent: V0028
+      /text_resources/text_resource.project.activity.empty.body/max_chars: V0028
+      /text_resources/text_resource.project.activity.empty.body/placeholder: V0028
+      /text_resources/text_resource.project.activity.empty.body/rationale: V0028
+      /text_resources/text_resource.project.activity.empty.heading/intent: V0028
+      /text_resources/text_resource.project.activity.empty.heading/max_chars: V0028
+      /text_resources/text_resource.project.activity.empty.heading/placeholder: V0028
+      /text_resources/text_resource.project.activity.empty.heading/rationale: V0028
+      /text_resources/text_resource.project.activity.ready.heading/intent: V0029
+      /text_resources/text_resource.project.activity.ready.heading/max_chars: V0029
+      /text_resources/text_resource.project.activity.ready.heading/placeholder: V0029
+      /text_resources/text_resource.project.activity.ready.heading/rationale: V0029
+      /text_resources/text_resource.project.approve.access_denied/args/message/type: V0016
+      /text_resources/text_resource.project.approve.access_denied/intent: V0016
+      /text_resources/text_resource.project.approve.access_denied/max_chars: V0016
+      /text_resources/text_resource.project.approve.access_denied/placeholder: V0016
+      /text_resources/text_resource.project.approve.access_denied/rationale: V0016
+      /text_resources/text_resource.project.approve.authentication_required/args/message/type: V0016
+      /text_resources/text_resource.project.approve.authentication_required/intent: V0016
+      /text_resources/text_resource.project.approve.authentication_required/max_chars: V0016
+      /text_resources/text_resource.project.approve.authentication_required/placeholder: V0016
+      /text_resources/text_resource.project.approve.authentication_required/rationale: V0016
+      /text_resources/text_resource.project.approve.not_found/args/message/type: V0016
+      /text_resources/text_resource.project.approve.not_found/intent: V0016
+      /text_resources/text_resource.project.approve.not_found/max_chars: V0016
+      /text_resources/text_resource.project.approve.not_found/placeholder: V0016
+      /text_resources/text_resource.project.approve.not_found/rationale: V0016
+      /text_resources/text_resource.project.approve.success/args/project_id/type: V0016
+      /text_resources/text_resource.project.approve.success/intent: V0016
+      /text_resources/text_resource.project.approve.success/max_chars: V0016
+      /text_resources/text_resource.project.approve.success/placeholder: V0016
+      /text_resources/text_resource.project.approve.success/rationale: V0016
+      /text_resources/text_resource.project.approve.transition_not_allowed/args/message/type: V0016
+      /text_resources/text_resource.project.approve.transition_not_allowed/intent: V0016
+      /text_resources/text_resource.project.approve.transition_not_allowed/max_chars: V0016
+      /text_resources/text_resource.project.approve.transition_not_allowed/placeholder: V0016
+      /text_resources/text_resource.project.approve.transition_not_allowed/rationale: V0016
+      /text_resources/text_resource.project.approve.unavailable/intent: V0016
+      /text_resources/text_resource.project.approve.unavailable/max_chars: V0016
+      /text_resources/text_resource.project.approve.unavailable/placeholder: V0016
+      /text_resources/text_resource.project.approve.unavailable/rationale: V0016
+      /text_resources/text_resource.project.detail.error.body/intent: V0026
+      /text_resources/text_resource.project.detail.error.body/max_chars: V0026
+      /text_resources/text_resource.project.detail.error.body/placeholder: V0026
+      /text_resources/text_resource.project.detail.error.body/rationale: V0026
+      /text_resources/text_resource.project.detail.error.heading/intent: V0026
+      /text_resources/text_resource.project.detail.error.heading/max_chars: V0026
+      /text_resources/text_resource.project.detail.error.heading/placeholder: V0026
+      /text_resources/text_resource.project.detail.error.heading/rationale: V0026
+      /text_resources/text_resource.project.detail.loading.message/intent: V0026
+      /text_resources/text_resource.project.detail.loading.message/max_chars: V0026
+      /text_resources/text_resource.project.detail.loading.message/placeholder: V0026
+      /text_resources/text_resource.project.detail.loading.message/rationale: V0026
+      /text_resources/text_resource.project.detail.none.body/intent: V0030
+      /text_resources/text_resource.project.detail.none.body/max_chars: V0030
+      /text_resources/text_resource.project.detail.none.body/placeholder: V0030
+      /text_resources/text_resource.project.detail.none.body/rationale: V0030
+      /text_resources/text_resource.project.detail.none.heading/intent: V0030
+      /text_resources/text_resource.project.detail.none.heading/max_chars: V0030
+      /text_resources/text_resource.project.detail.none.heading/placeholder: V0030
+      /text_resources/text_resource.project.detail.none.heading/rationale: V0030
+      /text_resources/text_resource.project.detail.ready.heading/args/customer/type: V0011
+      /text_resources/text_resource.project.detail.ready.heading/args/title/type: V0011
+      /text_resources/text_resource.project.detail.ready.heading/intent: V0011
+      /text_resources/text_resource.project.detail.ready.heading/max_chars: V0011
+      /text_resources/text_resource.project.detail.ready.heading/placeholder: V0011
+      /text_resources/text_resource.project.detail.ready.heading/rationale: V0011
+      /text_resources/text_resource.project.detail.ready.heading/source_ref: V0011
+      /text_resources/text_resource.project.list.empty.body/intent: V0031
+      /text_resources/text_resource.project.list.empty.body/max_chars: V0031
+      /text_resources/text_resource.project.list.empty.body/placeholder: V0031
+      /text_resources/text_resource.project.list.empty.body/rationale: V0031
+      /text_resources/text_resource.project.list.empty.heading/intent: V0031
+      /text_resources/text_resource.project.list.empty.heading/max_chars: V0031
+      /text_resources/text_resource.project.list.empty.heading/placeholder: V0031
+      /text_resources/text_resource.project.list.empty.heading/rationale: V0031
+      /text_resources/text_resource.project.list.error.body/intent: V0027
+      /text_resources/text_resource.project.list.error.body/max_chars: V0027
+      /text_resources/text_resource.project.list.error.body/placeholder: V0027
+      /text_resources/text_resource.project.list.error.body/rationale: V0027
+      /text_resources/text_resource.project.list.error.heading/intent: V0027
+      /text_resources/text_resource.project.list.error.heading/max_chars: V0027
+      /text_resources/text_resource.project.list.error.heading/placeholder: V0027
+      /text_resources/text_resource.project.list.error.heading/rationale: V0027
+      /text_resources/text_resource.project.list.loading.message/intent: V0027
+      /text_resources/text_resource.project.list.loading.message/max_chars: V0027
+      /text_resources/text_resource.project.list.loading.message/placeholder: V0027
+      /text_resources/text_resource.project.list.loading.message/rationale: V0027
+      /text_resources/text_resource.project.list.ready.heading/intent: V0032
+      /text_resources/text_resource.project.list.ready.heading/max_chars: V0032
+      /text_resources/text_resource.project.list.ready.heading/placeholder: V0032
+      /text_resources/text_resource.project.list.ready.heading/rationale: V0032
       /viewport_profiles/viewport_profile.default/html_viewports/compact/height: V0019
       /viewport_profiles/viewport_profile.default/html_viewports/compact/width: V0019
       /viewport_profiles/viewport_profile.default/html_viewports/wide/height: V0019
@@ -3190,35 +3192,35 @@ visual_audit:
         reason: fixtures may support behavior or content tests without appearing in render examples
       /fixtures/fixture.workspace.reviewer/values/workspace/name:
         reason: fixtures may support behavior or content tests without appearing in render examples
-      /media_assets/asset.project.detail.ready.priority_badge/args/priority/type:
+      /media_assets/media_asset.project.detail.ready.priority_badge/args/priority/type:
         reason: declared media assets may be unused by rendered states
-      /media_assets/asset.project.detail.ready.priority_badge/asset_role:
+      /media_assets/media_asset.project.detail.ready.priority_badge/asset_role:
         reason: declared media assets may be unused by rendered states
-      /media_assets/asset.project.detail.ready.priority_badge/media_kind:
+      /media_assets/media_asset.project.detail.ready.priority_badge/media_kind:
         reason: declared media assets may be unused by rendered states
-      /media_assets/asset.project.detail.ready.priority_badge/placeholder/aspect_ratio:
+      /media_assets/media_asset.project.detail.ready.priority_badge/placeholder/aspect_ratio:
         reason: declared media assets may be unused by rendered states
-      /media_assets/asset.project.detail.ready.priority_badge/placeholder/label:
+      /media_assets/media_asset.project.detail.ready.priority_badge/placeholder/label:
         reason: declared media assets may be unused by rendered states
-      /media_assets/asset.project.detail.ready.priority_badge/placeholder/placeholder_symbol:
+      /media_assets/media_asset.project.detail.ready.priority_badge/placeholder/placeholder_symbol:
         reason: declared media assets may be unused by rendered states
-      /media_assets/asset.project.detail.ready.priority_badge/rationale:
+      /media_assets/media_asset.project.detail.ready.priority_badge/rationale:
         reason: declared media assets may be unused by rendered states
-      /media_assets/asset.project.detail.ready.priority_badge/source_ref:
+      /media_assets/media_asset.project.detail.ready.priority_badge/source_ref:
         reason: declared media assets may be unused by rendered states
-      /media_assets/asset.project.list.empty.illustration/alt_text:
+      /media_assets/media_asset.project.list.empty.illustration/alt_text:
         reason: declared media assets may be unused by rendered states
-      /media_assets/asset.project.list.empty.illustration/asset_role:
+      /media_assets/media_asset.project.list.empty.illustration/asset_role:
         reason: declared media assets may be unused by rendered states
-      /media_assets/asset.project.list.empty.illustration/media_kind:
+      /media_assets/media_asset.project.list.empty.illustration/media_kind:
         reason: declared media assets may be unused by rendered states
-      /media_assets/asset.project.list.empty.illustration/placeholder/aspect_ratio:
+      /media_assets/media_asset.project.list.empty.illustration/placeholder/aspect_ratio:
         reason: declared media assets may be unused by rendered states
-      /media_assets/asset.project.list.empty.illustration/placeholder/label:
+      /media_assets/media_asset.project.list.empty.illustration/placeholder/label:
         reason: declared media assets may be unused by rendered states
-      /media_assets/asset.project.list.empty.illustration/placeholder/placeholder_symbol:
+      /media_assets/media_asset.project.list.empty.illustration/placeholder/placeholder_symbol:
         reason: declared media assets may be unused by rendered states
-      /media_assets/asset.project.list.empty.illustration/rationale:
+      /media_assets/media_asset.project.list.empty.illustration/rationale:
         reason: declared media assets may be unused by rendered states
   non_visual:
     /project:

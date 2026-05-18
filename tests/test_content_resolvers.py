@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from pyspec_contract.compile import ContractError, compile_source
-from pyspec_contract.content import ContentContext, call_asset, call_text
+from pyspec_contract.content import ContentContext, call_media_asset, call_text_resource
 from pyspec_contract.io import read_yaml
 from pyspec_contract.paths import COMPILED_SPEC_PATH, SOURCE_SPEC_PATH
 from pyspec_contract.projection_validators import validate_content_contract
@@ -15,9 +15,9 @@ ROOT = EXAMPLE_ROOT
 
 
 def test_final_text_source_is_contract_declared_and_executable() -> None:
-    result = call_text(
+    result = call_text_resource(
         ROOT,
-        "text.project.detail.ready.heading",
+        "text_resource.project.detail.ready.heading",
         {"title": "Replace rooftop condenser fan", "customer": "Atlas Foods"},
         ContentContext(surface="test"),
     )
@@ -25,9 +25,9 @@ def test_final_text_source_is_contract_declared_and_executable() -> None:
 
 
 def test_final_asset_resolver_is_contract_declared_and_svg() -> None:
-    result = call_asset(
+    result = call_media_asset(
         ROOT,
-        "asset.project.detail.ready.priority_badge",
+        "media_asset.project.detail.ready.priority_badge",
         {"priority": "High"},
         ContentContext(surface="test"),
     )
@@ -39,9 +39,9 @@ def test_final_asset_resolver_is_contract_declared_and_svg() -> None:
 
 def test_priority_badge_escapes_dynamic_svg_values() -> None:
     priority = "High & <urgent> \"quoted\" 'single'"
-    result = call_asset(
+    result = call_media_asset(
         ROOT,
-        "asset.project.detail.ready.priority_badge",
+        "media_asset.project.detail.ready.priority_badge",
         {"priority": priority},
         ContentContext(surface="test"),
     )

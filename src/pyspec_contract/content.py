@@ -22,7 +22,7 @@ class ContentContext:
 
 
 @dataclass(frozen=True)
-class AssetResult:
+class MediaAssetResult:
     mime_type: str
     body: str
     alt: str = ""
@@ -55,8 +55,8 @@ class ContentSourceRegistry:
             raise ContentError(f"Missing {self.kind} content source: {ref}") from exc
 
 
-text = ContentSourceRegistry("text")
-asset = ContentSourceRegistry("asset")
+text_resource = ContentSourceRegistry("text_resource")
+media_asset = ContentSourceRegistry("media_asset")
 _LOADED_ROOT: Path | None = None
 _RESOLVER_MODULE_NAME = "_pyspec_contract_project_spec"
 
@@ -67,8 +67,8 @@ def load_resolvers(root: Path) -> None:
     if _LOADED_ROOT == root:
         return
     _LOADED_ROOT = None
-    text.clear()
-    asset.clear()
+    text_resource.clear()
+    media_asset.clear()
     resolver_path = root / RESOLVER_SPEC_PATH
     if not resolver_path.is_file():
         raise ContentError("Missing spec/spec.py for final content resolvers")
@@ -103,11 +103,11 @@ def _content_contract(root: Path):
 
 def instantiate_args(root: Path, kind: str, ref: str, values: Mapping[str, Any]) -> Any:
     module = _content_contract(root)
-    if kind == "text":
-        classes = module.TEXT_ARG_CLASSES
-        kind_label = "text"
+    if kind == "text_resource":
+        classes = module.TEXT_RESOURCE_ARG_CLASSES
+        kind_label = "text_resource"
     else:
-        classes = module.ASSET_ARG_CLASSES
+        classes = module.MEDIA_ASSET_ARG_CLASSES
         kind_label = kind
     try:
         arg_cls = classes[ref]
@@ -128,19 +128,19 @@ def validate_resolver_function(func: Callable[..., Any], arg_class: type) -> Non
         raise ContentError(f"Resolver {func.__name__} args annotation must be {arg_class.__name__}")
 
 
-def call_text(root: Path, ref: str, values: Mapping[str, Any], ctx: ContentContext | None = None) -> str:
+def call_text_resource(root: Path, ref: str, values: Mapping[str, Any], ctx: ContentContext | None = None) -> str:
     load_resolvers(root)
-    args = instantiate_args(root, "text", ref, values)
-    result = text.function(ref)(args, ctx or ContentContext())
+    args = instantiate_args(root, "text_resource", ref, values)
+    result = text_resource.function(ref)(args, ctx or ContentContext())
     if not isinstance(result, str):
-        raise ContentError(f"Text source {ref} must return str")
+        raise ContentError(f"Text resource source {ref} must return str")
     return result
 
 
-def call_asset(root: Path, ref: str, values: Mapping[str, Any], ctx: ContentContext | None = None) -> AssetResult:
+def call_media_asset(root: Path, ref: str, values: Mapping[str, Any], ctx: ContentContext | None = None) -> MediaAssetResult:
     load_resolvers(root)
-    args = instantiate_args(root, "asset", ref, values)
-    result = asset.function(ref)(args, ctx or ContentContext())
-    if not isinstance(result, AssetResult):
-        raise ContentError(f"Asset source {ref} must return AssetResult")
+    args = instantiate_args(root, "media_asset", ref, values)
+    result = media_asset.function(ref)(args, ctx or ContentContext())
+    if not isinstance(result, MediaAssetResult):
+        raise ContentError(f"Media asset source {ref} must return MediaAssetResult")
     return result

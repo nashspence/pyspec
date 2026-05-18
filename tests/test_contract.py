@@ -125,8 +125,8 @@ def test_legacy_top_level_sections_are_rejected() -> None:
     }
     author = {
         "project": "alias_conflict",
-        "media_assets": {"asset.alias_conflict.logo": asset},
-        "assets": {"asset.alias_conflict.icon": asset},
+        "media_assets": {"media_asset.alias_conflict.logo": asset},
+        "assets": {"media_asset.alias_conflict.icon": asset},
     }
 
     with pytest.raises(ContractError, match="must not contain .*assets"):
@@ -799,7 +799,7 @@ def test_nested_json_values_binding_values_and_model_less_state_machines_compile
                         ],
                     }
                 ],
-                "rationale": "Entity type-less settings panel keeps local JSON context.",
+                "rationale": "Entity type-less settings panel keeps local JSON context_resource.",
             }
         },
     }
@@ -2043,7 +2043,7 @@ def test_delegation_input_mapping_uses_outer_input_roots() -> None:
 def test_cli_response_handler_names_match_delegated_response_names() -> None:
     author = _author()
     del author["external_interfaces"]["external_interface.cli.project.approve"]["output_mapping"]["response_handlers"]["access_denied"]
-    del author["text_resources"]["text.project.approve.access_denied"]
+    del author["text_resources"]["text_resource.project.approve.access_denied"]
     with pytest.raises(ContractError, match=r"response_handlers must exactly map delegated external-interface outcomes: missing: access_denied"):
         compile_source(author)
 

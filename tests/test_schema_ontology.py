@@ -11,7 +11,7 @@ from pyspec_contract.layers import COMMON_LAYER_SETS, author_schema_for_layers
 
 COLLECTION_SECTIONS = {
     "access_policies": "access_policy",
-    "media_assets": "asset",
+    "media_assets": "media_asset",
     "viewport_profiles": "viewport_profile",
     "commands": "command",
     "queries": "query",

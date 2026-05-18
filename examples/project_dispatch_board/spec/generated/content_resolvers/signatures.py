@@ -4,102 +4,102 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from pyspec_contract.content import AssetResult, ContentContext
+from pyspec_contract.content import ContentContext, MediaAssetResult
 
 @dataclass(frozen=True)
-class TextProjectActivityEmptyBodyArgs:
+class TextResourceProjectActivityEmptyBodyArgs:
     pass
 
 @dataclass(frozen=True)
-class TextProjectActivityEmptyHeadingArgs:
+class TextResourceProjectActivityEmptyHeadingArgs:
     pass
 
 @dataclass(frozen=True)
-class TextProjectActivityReadyHeadingArgs:
+class TextResourceProjectActivityReadyHeadingArgs:
     pass
 
 @dataclass(frozen=True)
-class TextProjectApproveAccessDeniedArgs:
+class TextResourceProjectApproveAccessDeniedArgs:
     message: str
 
 @dataclass(frozen=True)
-class TextProjectApproveAuthenticationRequiredArgs:
+class TextResourceProjectApproveAuthenticationRequiredArgs:
     message: str
 
 @dataclass(frozen=True)
-class TextProjectApproveNotFoundArgs:
+class TextResourceProjectApproveNotFoundArgs:
     message: str
 
 @dataclass(frozen=True)
-class TextProjectApproveSuccessArgs:
+class TextResourceProjectApproveSuccessArgs:
     project_id: str
 
 @dataclass(frozen=True)
-class TextProjectApproveTransitionNotAllowedArgs:
+class TextResourceProjectApproveTransitionNotAllowedArgs:
     message: str
 
 @dataclass(frozen=True)
-class TextProjectApproveUnavailableArgs:
+class TextResourceProjectApproveUnavailableArgs:
     pass
 
 @dataclass(frozen=True)
-class TextProjectDetailErrorBodyArgs:
+class TextResourceProjectDetailErrorBodyArgs:
     pass
 
 @dataclass(frozen=True)
-class TextProjectDetailErrorHeadingArgs:
+class TextResourceProjectDetailErrorHeadingArgs:
     pass
 
 @dataclass(frozen=True)
-class TextProjectDetailLoadingMessageArgs:
+class TextResourceProjectDetailLoadingMessageArgs:
     pass
 
 @dataclass(frozen=True)
-class TextProjectDetailNoneBodyArgs:
+class TextResourceProjectDetailNoneBodyArgs:
     pass
 
 @dataclass(frozen=True)
-class TextProjectDetailNoneHeadingArgs:
+class TextResourceProjectDetailNoneHeadingArgs:
     pass
 
 @dataclass(frozen=True)
-class TextProjectDetailReadyHeadingArgs:
+class TextResourceProjectDetailReadyHeadingArgs:
     customer: str
     title: str
 
 @dataclass(frozen=True)
-class TextProjectListEmptyBodyArgs:
+class TextResourceProjectListEmptyBodyArgs:
     pass
 
 @dataclass(frozen=True)
-class TextProjectListEmptyHeadingArgs:
+class TextResourceProjectListEmptyHeadingArgs:
     pass
 
 @dataclass(frozen=True)
-class TextProjectListErrorBodyArgs:
+class TextResourceProjectListErrorBodyArgs:
     pass
 
 @dataclass(frozen=True)
-class TextProjectListErrorHeadingArgs:
+class TextResourceProjectListErrorHeadingArgs:
     pass
 
 @dataclass(frozen=True)
-class TextProjectListLoadingMessageArgs:
+class TextResourceProjectListLoadingMessageArgs:
     pass
 
 @dataclass(frozen=True)
-class TextProjectListReadyHeadingArgs:
+class TextResourceProjectListReadyHeadingArgs:
     pass
 
 @dataclass(frozen=True)
-class AssetProjectDetailReadyPriorityBadgeArgs:
+class MediaAssetProjectDetailReadyPriorityBadgeArgs:
     priority: str
 
 @dataclass(frozen=True)
-class AssetProjectListEmptyIllustrationArgs:
+class MediaAssetProjectListEmptyIllustrationArgs:
     pass
 
-TEXT_SIGNATURES = {'text.project.activity.empty.body': {'args': {}, 'source_ref': None, 'arg_class': 'TextProjectActivityEmptyBodyArgs'}, 'text.project.activity.empty.heading': {'args': {}, 'source_ref': None, 'arg_class': 'TextProjectActivityEmptyHeadingArgs'}, 'text.project.activity.ready.heading': {'args': {}, 'source_ref': None, 'arg_class': 'TextProjectActivityReadyHeadingArgs'}, 'text.project.approve.access_denied': {'args': {'message': {'type': 'string'}}, 'source_ref': None, 'arg_class': 'TextProjectApproveAccessDeniedArgs'}, 'text.project.approve.authentication_required': {'args': {'message': {'type': 'string'}}, 'source_ref': None, 'arg_class': 'TextProjectApproveAuthenticationRequiredArgs'}, 'text.project.approve.not_found': {'args': {'message': {'type': 'string'}}, 'source_ref': None, 'arg_class': 'TextProjectApproveNotFoundArgs'}, 'text.project.approve.success': {'args': {'project_id': {'type': 'string'}}, 'source_ref': None, 'arg_class': 'TextProjectApproveSuccessArgs'}, 'text.project.approve.transition_not_allowed': {'args': {'message': {'type': 'string'}}, 'source_ref': None, 'arg_class': 'TextProjectApproveTransitionNotAllowedArgs'}, 'text.project.approve.unavailable': {'args': {}, 'source_ref': None, 'arg_class': 'TextProjectApproveUnavailableArgs'}, 'text.project.detail.error.body': {'args': {}, 'source_ref': None, 'arg_class': 'TextProjectDetailErrorBodyArgs'}, 'text.project.detail.error.heading': {'args': {}, 'source_ref': None, 'arg_class': 'TextProjectDetailErrorHeadingArgs'}, 'text.project.detail.loading.message': {'args': {}, 'source_ref': None, 'arg_class': 'TextProjectDetailLoadingMessageArgs'}, 'text.project.detail.none.body': {'args': {}, 'source_ref': None, 'arg_class': 'TextProjectDetailNoneBodyArgs'}, 'text.project.detail.none.heading': {'args': {}, 'source_ref': None, 'arg_class': 'TextProjectDetailNoneHeadingArgs'}, 'text.project.detail.ready.heading': {'args': {'customer': {'type': 'string'}, 'title': {'type': 'string'}}, 'source_ref': 'text.project.detail.ready.heading', 'arg_class': 'TextProjectDetailReadyHeadingArgs'}, 'text.project.list.empty.body': {'args': {}, 'source_ref': None, 'arg_class': 'TextProjectListEmptyBodyArgs'}, 'text.project.list.empty.heading': {'args': {}, 'source_ref': None, 'arg_class': 'TextProjectListEmptyHeadingArgs'}, 'text.project.list.error.body': {'args': {}, 'source_ref': None, 'arg_class': 'TextProjectListErrorBodyArgs'}, 'text.project.list.error.heading': {'args': {}, 'source_ref': None, 'arg_class': 'TextProjectListErrorHeadingArgs'}, 'text.project.list.loading.message': {'args': {}, 'source_ref': None, 'arg_class': 'TextProjectListLoadingMessageArgs'}, 'text.project.list.ready.heading': {'args': {}, 'source_ref': None, 'arg_class': 'TextProjectListReadyHeadingArgs'}}
-ASSET_SIGNATURES = {'asset.project.detail.ready.priority_badge': {'args': {'priority': {'type': 'string'}}, 'source_ref': 'asset.project.detail.ready.priority_badge', 'arg_class': 'AssetProjectDetailReadyPriorityBadgeArgs'}, 'asset.project.list.empty.illustration': {'args': {}, 'source_ref': None, 'arg_class': 'AssetProjectListEmptyIllustrationArgs'}}
-TEXT_ARG_CLASSES = {'text.project.activity.empty.body': TextProjectActivityEmptyBodyArgs, 'text.project.activity.empty.heading': TextProjectActivityEmptyHeadingArgs, 'text.project.activity.ready.heading': TextProjectActivityReadyHeadingArgs, 'text.project.approve.access_denied': TextProjectApproveAccessDeniedArgs, 'text.project.approve.authentication_required': TextProjectApproveAuthenticationRequiredArgs, 'text.project.approve.not_found': TextProjectApproveNotFoundArgs, 'text.project.approve.success': TextProjectApproveSuccessArgs, 'text.project.approve.transition_not_allowed': TextProjectApproveTransitionNotAllowedArgs, 'text.project.approve.unavailable': TextProjectApproveUnavailableArgs, 'text.project.detail.error.body': TextProjectDetailErrorBodyArgs, 'text.project.detail.error.heading': TextProjectDetailErrorHeadingArgs, 'text.project.detail.loading.message': TextProjectDetailLoadingMessageArgs, 'text.project.detail.none.body': TextProjectDetailNoneBodyArgs, 'text.project.detail.none.heading': TextProjectDetailNoneHeadingArgs, 'text.project.detail.ready.heading': TextProjectDetailReadyHeadingArgs, 'text.project.list.empty.body': TextProjectListEmptyBodyArgs, 'text.project.list.empty.heading': TextProjectListEmptyHeadingArgs, 'text.project.list.error.body': TextProjectListErrorBodyArgs, 'text.project.list.error.heading': TextProjectListErrorHeadingArgs, 'text.project.list.loading.message': TextProjectListLoadingMessageArgs, 'text.project.list.ready.heading': TextProjectListReadyHeadingArgs}
-ASSET_ARG_CLASSES = {'asset.project.detail.ready.priority_badge': AssetProjectDetailReadyPriorityBadgeArgs, 'asset.project.list.empty.illustration': AssetProjectListEmptyIllustrationArgs}
+TEXT_RESOURCE_SIGNATURES = {'text_resource.project.activity.empty.body': {'args': {}, 'source_ref': None, 'arg_class': 'TextResourceProjectActivityEmptyBodyArgs'}, 'text_resource.project.activity.empty.heading': {'args': {}, 'source_ref': None, 'arg_class': 'TextResourceProjectActivityEmptyHeadingArgs'}, 'text_resource.project.activity.ready.heading': {'args': {}, 'source_ref': None, 'arg_class': 'TextResourceProjectActivityReadyHeadingArgs'}, 'text_resource.project.approve.access_denied': {'args': {'message': {'type': 'string'}}, 'source_ref': None, 'arg_class': 'TextResourceProjectApproveAccessDeniedArgs'}, 'text_resource.project.approve.authentication_required': {'args': {'message': {'type': 'string'}}, 'source_ref': None, 'arg_class': 'TextResourceProjectApproveAuthenticationRequiredArgs'}, 'text_resource.project.approve.not_found': {'args': {'message': {'type': 'string'}}, 'source_ref': None, 'arg_class': 'TextResourceProjectApproveNotFoundArgs'}, 'text_resource.project.approve.success': {'args': {'project_id': {'type': 'string'}}, 'source_ref': None, 'arg_class': 'TextResourceProjectApproveSuccessArgs'}, 'text_resource.project.approve.transition_not_allowed': {'args': {'message': {'type': 'string'}}, 'source_ref': None, 'arg_class': 'TextResourceProjectApproveTransitionNotAllowedArgs'}, 'text_resource.project.approve.unavailable': {'args': {}, 'source_ref': None, 'arg_class': 'TextResourceProjectApproveUnavailableArgs'}, 'text_resource.project.detail.error.body': {'args': {}, 'source_ref': None, 'arg_class': 'TextResourceProjectDetailErrorBodyArgs'}, 'text_resource.project.detail.error.heading': {'args': {}, 'source_ref': None, 'arg_class': 'TextResourceProjectDetailErrorHeadingArgs'}, 'text_resource.project.detail.loading.message': {'args': {}, 'source_ref': None, 'arg_class': 'TextResourceProjectDetailLoadingMessageArgs'}, 'text_resource.project.detail.none.body': {'args': {}, 'source_ref': None, 'arg_class': 'TextResourceProjectDetailNoneBodyArgs'}, 'text_resource.project.detail.none.heading': {'args': {}, 'source_ref': None, 'arg_class': 'TextResourceProjectDetailNoneHeadingArgs'}, 'text_resource.project.detail.ready.heading': {'args': {'customer': {'type': 'string'}, 'title': {'type': 'string'}}, 'source_ref': 'text_resource.project.detail.ready.heading', 'arg_class': 'TextResourceProjectDetailReadyHeadingArgs'}, 'text_resource.project.list.empty.body': {'args': {}, 'source_ref': None, 'arg_class': 'TextResourceProjectListEmptyBodyArgs'}, 'text_resource.project.list.empty.heading': {'args': {}, 'source_ref': None, 'arg_class': 'TextResourceProjectListEmptyHeadingArgs'}, 'text_resource.project.list.error.body': {'args': {}, 'source_ref': None, 'arg_class': 'TextResourceProjectListErrorBodyArgs'}, 'text_resource.project.list.error.heading': {'args': {}, 'source_ref': None, 'arg_class': 'TextResourceProjectListErrorHeadingArgs'}, 'text_resource.project.list.loading.message': {'args': {}, 'source_ref': None, 'arg_class': 'TextResourceProjectListLoadingMessageArgs'}, 'text_resource.project.list.ready.heading': {'args': {}, 'source_ref': None, 'arg_class': 'TextResourceProjectListReadyHeadingArgs'}}
+MEDIA_ASSET_SIGNATURES = {'media_asset.project.detail.ready.priority_badge': {'args': {'priority': {'type': 'string'}}, 'source_ref': 'media_asset.project.detail.ready.priority_badge', 'arg_class': 'MediaAssetProjectDetailReadyPriorityBadgeArgs'}, 'media_asset.project.list.empty.illustration': {'args': {}, 'source_ref': None, 'arg_class': 'MediaAssetProjectListEmptyIllustrationArgs'}}
+TEXT_RESOURCE_ARG_CLASSES = {'text_resource.project.activity.empty.body': TextResourceProjectActivityEmptyBodyArgs, 'text_resource.project.activity.empty.heading': TextResourceProjectActivityEmptyHeadingArgs, 'text_resource.project.activity.ready.heading': TextResourceProjectActivityReadyHeadingArgs, 'text_resource.project.approve.access_denied': TextResourceProjectApproveAccessDeniedArgs, 'text_resource.project.approve.authentication_required': TextResourceProjectApproveAuthenticationRequiredArgs, 'text_resource.project.approve.not_found': TextResourceProjectApproveNotFoundArgs, 'text_resource.project.approve.success': TextResourceProjectApproveSuccessArgs, 'text_resource.project.approve.transition_not_allowed': TextResourceProjectApproveTransitionNotAllowedArgs, 'text_resource.project.approve.unavailable': TextResourceProjectApproveUnavailableArgs, 'text_resource.project.detail.error.body': TextResourceProjectDetailErrorBodyArgs, 'text_resource.project.detail.error.heading': TextResourceProjectDetailErrorHeadingArgs, 'text_resource.project.detail.loading.message': TextResourceProjectDetailLoadingMessageArgs, 'text_resource.project.detail.none.body': TextResourceProjectDetailNoneBodyArgs, 'text_resource.project.detail.none.heading': TextResourceProjectDetailNoneHeadingArgs, 'text_resource.project.detail.ready.heading': TextResourceProjectDetailReadyHeadingArgs, 'text_resource.project.list.empty.body': TextResourceProjectListEmptyBodyArgs, 'text_resource.project.list.empty.heading': TextResourceProjectListEmptyHeadingArgs, 'text_resource.project.list.error.body': TextResourceProjectListErrorBodyArgs, 'text_resource.project.list.error.heading': TextResourceProjectListErrorHeadingArgs, 'text_resource.project.list.loading.message': TextResourceProjectListLoadingMessageArgs, 'text_resource.project.list.ready.heading': TextResourceProjectListReadyHeadingArgs}
+MEDIA_ASSET_ARG_CLASSES = {'media_asset.project.detail.ready.priority_badge': MediaAssetProjectDetailReadyPriorityBadgeArgs, 'media_asset.project.list.empty.illustration': MediaAssetProjectListEmptyIllustrationArgs}

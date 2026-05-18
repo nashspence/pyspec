@@ -578,7 +578,7 @@ state_machines:
                   rationale: The entry response surface owns authentication_required display.
   state_machine.project.board:
     archetype: dashboard
-    rationale: The dispatch board composes list, detail, and activity state machines through shared selected-project context.
+    rationale: The dispatch board composes list, detail, and activity state machines through shared selected-project context_resource.
     entity_type: entity_type.project
     context_schema:
       type: object
@@ -792,7 +792,7 @@ state_machines:
                 gap: 1rem
                 nav_width: 20rem
   state_machine.project.detail:
-    rationale: The detail state machine is independent from the list and reacts to selected project context.
+    rationale: The detail state machine is independent from the list and reacts to selected project context_resource.
     entity_type: entity_type.project
     transitions:
     - from: none
@@ -1459,28 +1459,28 @@ external_interfaces:
         approved:
           exit_code: 0
           stdout:
-            text: text.project.approve.success
+            text: text_resource.project.approve.success
             bindings:
               project_id:
                 from: $adapter_response.body.id
         access_denied:
           exit_code: 5
           stderr:
-            text: text.project.approve.access_denied
+            text: text_resource.project.approve.access_denied
             bindings:
               message:
                 from: $adapter_response.body.message
         transition_not_allowed:
           exit_code: 2
           stderr:
-            text: text.project.approve.transition_not_allowed
+            text: text_resource.project.approve.transition_not_allowed
             bindings:
               message:
                 from: $adapter_response.body.message
         not_found:
           exit_code: 3
           stderr:
-            text: text.project.approve.not_found
+            text: text_resource.project.approve.not_found
             bindings:
               message:
                 from: $adapter_response.body.message
@@ -1490,11 +1490,11 @@ external_interfaces:
             attempts: 3
             backoff: exponential
           stderr:
-            text: text.project.approve.unavailable
+            text: text_resource.project.approve.unavailable
         authentication_required:
           exit_code: 4
           stderr:
-            text: text.project.approve.authentication_required
+            text: text_resource.project.approve.authentication_required
             bindings:
               message:
                 from: $adapter_response.body.message
@@ -1814,7 +1814,7 @@ behavior_scenarios:
             from: $fixture.workspace.id
         ref: external_interface.api.project.create
 text_resources:
-  text.project.approve.access_denied:
+  text_resource.project.approve.access_denied:
     rationale: CLI approval access_denied message.
     max_chars: 120
     placeholder: 'Approval is access_denied: {message}'
@@ -1822,7 +1822,7 @@ text_resources:
     args:
       message:
         type: string
-  text.project.approve.transition_not_allowed:
+  text_resource.project.approve.transition_not_allowed:
     rationale: CLI approval invalid-state message.
     max_chars: 120
     placeholder: 'Cannot approve project: {message}'
@@ -1830,7 +1830,7 @@ text_resources:
     args:
       message:
         type: string
-  text.project.approve.not_found:
+  text_resource.project.approve.not_found:
     rationale: CLI approval not-found message.
     max_chars: 120
     placeholder: 'Cannot approve project: {message}'
@@ -1838,7 +1838,7 @@ text_resources:
     args:
       message:
         type: string
-  text.project.approve.success:
+  text_resource.project.approve.success:
     rationale: CLI approval success message.
     max_chars: 120
     placeholder: Approved project {project_id}
@@ -1846,7 +1846,7 @@ text_resources:
     args:
       project_id:
         type: string
-  text.project.approve.authentication_required:
+  text_resource.project.approve.authentication_required:
     rationale: CLI approval authentication_required message.
     max_chars: 120
     placeholder: 'Sign in before approving: {message}'
@@ -1854,52 +1854,52 @@ text_resources:
     args:
       message:
         type: string
-  text.project.approve.unavailable:
+  text_resource.project.approve.unavailable:
     rationale: CLI approval unavailable message.
     max_chars: 120
     placeholder: Approval service is unavailable. Retry later.
     intent: error
-  text.project.activity.empty.body:
+  text_resource.project.activity.empty.body:
     rationale: Empty activity body.
     max_chars: 120
     placeholder: Activity appears after a project is selected.
     intent: instructional
-  text.project.activity.empty.heading:
+  text_resource.project.activity.empty.heading:
     rationale: Empty activity heading.
     max_chars: 80
     placeholder: No project selected
     intent: neutral
-  text.project.activity.ready.heading:
+  text_resource.project.activity.ready.heading:
     rationale: Ready activity heading.
     max_chars: 80
     placeholder: Latest activity
     intent: neutral
-  text.project.detail.error.body:
+  text_resource.project.detail.error.body:
     rationale: Error body for the detail state machine.
     max_chars: 120
     placeholder: Refresh the selection or return to the queue.
     intent: error
-  text.project.detail.error.heading:
+  text_resource.project.detail.error.heading:
     rationale: Error heading for the detail state machine.
     max_chars: 80
     placeholder: Project detail is unavailable
     intent: error
-  text.project.detail.loading.message:
+  text_resource.project.detail.loading.message:
     rationale: Loading message for the detail state machine.
     max_chars: 80
     placeholder: Loading project detail…
     intent: neutral
-  text.project.detail.none.body:
+  text_resource.project.detail.none.body:
     rationale: No-selection body for the detail state machine.
     max_chars: 160
     placeholder: Choose a project from the queue to review customer, assignment, and approval details.
     intent: instructional
-  text.project.detail.none.heading:
+  text_resource.project.detail.none.heading:
     rationale: No-selection heading for the detail state machine.
     max_chars: 80
     placeholder: Select a project
     intent: instructional
-  text.project.detail.ready.heading:
+  text_resource.project.detail.ready.heading:
     args:
       customer:
         type: string
@@ -1908,40 +1908,40 @@ text_resources:
     rationale: Ready heading for the detail state machine.
     max_chars: 80
     placeholder: Project detail
-    source_ref: text.project.detail.ready.heading
+    source_ref: text_resource.project.detail.ready.heading
     intent: neutral
-  text.project.list.empty.body:
+  text_resource.project.list.empty.body:
     rationale: Empty body for the project list state machine.
     max_chars: 160
     placeholder: Create the first project to start coordinating work for this workspace.
     intent: instructional
-  text.project.list.empty.heading:
+  text_resource.project.list.empty.heading:
     rationale: Empty heading for the project list state machine.
     max_chars: 80
     placeholder: No dispatch projects yet
     intent: neutral
-  text.project.list.error.body:
+  text_resource.project.list.error.body:
     rationale: Error body for the project list state machine.
     max_chars: 120
     placeholder: Check the workspace connection and try again.
     intent: error
-  text.project.list.error.heading:
+  text_resource.project.list.error.heading:
     rationale: Error heading for the project list state machine.
     max_chars: 80
     placeholder: Projects could not be loaded
     intent: error
-  text.project.list.loading.message:
+  text_resource.project.list.loading.message:
     rationale: Loading message for the project list state machine.
     max_chars: 80
     placeholder: Loading dispatch projects…
     intent: neutral
-  text.project.list.ready.heading:
+  text_resource.project.list.ready.heading:
     rationale: Ready heading for the project list state machine.
     max_chars: 80
     placeholder: Dispatch queue
     intent: neutral
 media_assets:
-  asset.project.detail.ready.priority_badge:
+  media_asset.project.detail.ready.priority_badge:
     args:
       priority:
         type: string
@@ -1952,9 +1952,9 @@ media_assets:
       aspect_ratio: '1:1'
       label: Project priority badge
       placeholder_symbol: square
-    source_ref: asset.project.detail.ready.priority_badge
-  asset.project.list.empty.illustration:
-    alt_text: text.project.list.empty.heading
+    source_ref: media_asset.project.detail.ready.priority_badge
+  media_asset.project.list.empty.illustration:
+    alt_text: text_resource.project.list.empty.heading
     rationale: Generic placeholder illustration used by the empty queue state machine state.
     asset_role: empty_state
     media_kind: illustration
@@ -1970,13 +1970,13 @@ content_examples:
       title:
         value: Replace rooftop condenser fan
     rationale: Exercise final detail heading text with representative fixture-backed content.
-    ref: text.project.detail.ready.heading
+    ref: text_resource.project.detail.ready.heading
   content_example.project.detail.priority_badge.high_priority:
     args:
       priority:
         value: High
-    rationale: Exercise final dynamic priority badge asset.
-    ref: asset.project.detail.ready.priority_badge
+    rationale: Exercise final dynamic priority badge media_asset.
+    ref: media_asset.project.detail.ready.priority_badge
 viewport_profiles:
   viewport_profile.default:
     rationale: Two viewport breakpoints are enough to demonstrate visual audit coverage in the canonical example.

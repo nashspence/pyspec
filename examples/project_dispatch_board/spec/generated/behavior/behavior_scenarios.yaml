@@ -164,7 +164,7 @@ behavior_scenarios:
       - command.project.create
       requires:
         assets:
-        - asset.project.list.empty.illustration
+        - media_asset.project.list.empty.illustration
         command_bindings:
         - create
         query_bindings:
@@ -176,12 +176,12 @@ behavior_scenarios:
         - state_machine.project.detail.none
         - state_machine.project.list.empty
         text:
-        - text.project.activity.empty.heading
-        - text.project.activity.empty.body
-        - text.project.detail.none.heading
-        - text.project.detail.none.body
-        - text.project.list.empty.heading
-        - text.project.list.empty.body
+        - text_resource.project.activity.empty.heading
+        - text_resource.project.activity.empty.body
+        - text_resource.project.detail.none.heading
+        - text_resource.project.detail.none.body
+        - text_resource.project.list.empty.heading
+        - text_resource.project.list.empty.body
       state_machine:
         composition:
           child_state_machines:
@@ -397,11 +397,11 @@ behavior_scenarios:
         - state_machine.project.detail.none
         - state_machine.project.list.ready
         text:
-        - text.project.activity.empty.heading
-        - text.project.activity.empty.body
-        - text.project.detail.none.heading
-        - text.project.detail.none.body
-        - text.project.list.ready.heading
+        - text_resource.project.activity.empty.heading
+        - text_resource.project.activity.empty.body
+        - text_resource.project.detail.none.heading
+        - text_resource.project.detail.none.body
+        - text_resource.project.list.ready.heading
       state_machine:
         composition:
           child_state_machines:
