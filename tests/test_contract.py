@@ -191,61 +191,61 @@ def test_author_contract_is_sparse_source() -> None:
     }
     assert "refs" not in author
     assert "lifecycle_transition" not in author["application_actions"]["application_action.project.submit"]
-    assert author["behavior_scenarios"]["behavior_scenario.project.approve.success"]["given"]["preconditions"] == [{"ref": "fact.project.submitted"}]
+    assert author["behavior_scenarios"]["behavior_scenario.project.approve.success"]["given"]["preconditions"] == [{"ref": "precondition.project.submitted"}]
     assert compile_author(author) == read_yaml(ROOT / COMPILED_SPEC_PATH)
 
 
-def test_named_fact_expands_into_compiled_behavior_scenario() -> None:
+def test_named_precondition_expands_into_compiled_behavior_scenario() -> None:
     author = _author()
     contract = compile_author(author)
-    fact = contract["facts"]["fact.project.submitted"]
+    precondition = contract["preconditions"]["precondition.project.submitted"]
     behavior_scenario_fact = contract["behavior_scenarios"]["behavior_scenario.project.approve.success"]["given"]["preconditions"][0]
     assert "ref" not in behavior_scenario_fact
-    assert behavior_scenario_fact == {"present": fact["present"]}
-    assert audit_cases(contract)["state_machine.project.board.ready.ready_selected.audit"]["fact_refs"] == [
-        {"ref": "fact.project.submitted"},
-        {"ref": "fact.project.draft"},
+    assert behavior_scenario_fact == {"present": precondition["present"]}
+    assert audit_cases(contract)["state_machine.project.board.ready.ready_selected.audit"]["precondition_refs"] == [
+        {"ref": "precondition.project.submitted"},
+        {"ref": "precondition.project.draft"},
     ]
     assert "render_profiles" not in audit_cases(contract)["state_machine.project.board.ready.ready_selected.audit"]
 
 
-def test_unknown_fact_use_is_rejected() -> None:
+def test_unknown_precondition_use_is_rejected() -> None:
     author = _author()
-    author["behavior_scenarios"]["behavior_scenario.project.approve.success"]["given"]["preconditions"] = [{"ref": "fact.project.missing"}]
-    with pytest.raises(ContractError, match=r"Behavior scenario behavior_scenario.project\.approve\.success references unknown fact fact\.project\.missing"):
+    author["behavior_scenarios"]["behavior_scenario.project.approve.success"]["given"]["preconditions"] = [{"ref": "precondition.project.missing"}]
+    with pytest.raises(ContractError, match=r"Behavior scenario behavior_scenario.project\.approve\.success references unknown precondition precondition\.project\.missing"):
         compile_author(author)
 
 
-def test_duplicate_fact_use_in_one_behavior_scenario_is_rejected() -> None:
+def test_duplicate_precondition_use_in_one_behavior_scenario_is_rejected() -> None:
     author = _author()
     author["behavior_scenarios"]["behavior_scenario.project.approve.success"]["given"]["preconditions"] = [
-        {"ref": "fact.project.submitted"},
-        {"ref": "fact.project.submitted"},
+        {"ref": "precondition.project.submitted"},
+        {"ref": "precondition.project.submitted"},
     ]
-    with pytest.raises(ContractError, match=r"Behavior scenario behavior_scenario.project\.approve\.success uses fact fact\.project\.submitted more than once"):
+    with pytest.raises(ContractError, match=r"Behavior scenario behavior_scenario.project\.approve\.success uses precondition precondition\.project\.submitted more than once"):
         compile_author(author)
 
 
-def test_unknown_render_audit_case_fact_use_is_rejected() -> None:
+def test_unknown_render_audit_case_precondition_use_is_rejected() -> None:
     author = _author()
-    author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["render_audit_cases"]["ready_selected"]["fact_refs"] = [{"ref": "fact.project.missing"}]
-    with pytest.raises(ContractError, match=r"Render audit case state_machine\.project\.board\.ready\.ready_selected\.audit references unknown fact fact\.project\.missing"):
+    author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["render_audit_cases"]["ready_selected"]["precondition_refs"] = [{"ref": "precondition.project.missing"}]
+    with pytest.raises(ContractError, match=r"Render audit case state_machine\.project\.board\.ready\.ready_selected\.audit references unknown precondition precondition\.project\.missing"):
         compile_author(author)
 
 
-def test_duplicate_render_audit_case_fact_use_is_rejected() -> None:
+def test_duplicate_render_audit_case_precondition_use_is_rejected() -> None:
     author = _author()
-    author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["render_audit_cases"]["ready_selected"]["fact_refs"] = [
-        {"ref": "fact.project.submitted"},
-        {"ref": "fact.project.submitted"},
+    author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["render_audit_cases"]["ready_selected"]["precondition_refs"] = [
+        {"ref": "precondition.project.submitted"},
+        {"ref": "precondition.project.submitted"},
     ]
-    with pytest.raises(ContractError, match=r"Render audit case state_machine\.project\.board\.ready\.ready_selected\.audit uses fact fact\.project\.submitted more than once"):
+    with pytest.raises(ContractError, match=r"Render audit case state_machine\.project\.board\.ready\.ready_selected\.audit uses precondition precondition\.project\.submitted more than once"):
         compile_author(author)
 
 
-def test_unused_fact_is_rejected() -> None:
+def test_unused_precondition_is_rejected() -> None:
     author = _author()
-    author["facts"]["fact.project.unused"] = {
+    author["preconditions"]["precondition.project.unused"] = {
         "present": {
             "entity_type": ET("Project"),
             "values": {
@@ -255,13 +255,13 @@ def test_unused_fact_is_rejected() -> None:
                 "workspace_id": {"from": "$fixture.workspace.id"},
             },
         },
-        "rationale": "Unused facts are dead setup, so they should be removed.",
+        "rationale": "Unused preconditions are dead setup, so they should be removed.",
     }
-    with pytest.raises(ContractError, match=r"Unused facts: fact\.project\.unused"):
+    with pytest.raises(ContractError, match=r"Unused preconditions: precondition\.project\.unused"):
         compile_author(author)
 
 
-def test_fact_use_requires_declared_fixture_namespace() -> None:
+def test_precondition_use_requires_declared_fixture_namespace() -> None:
     author = _author()
     author["behavior_scenarios"]["behavior_scenario.project.approve.success"]["given"]["seed_fixtures"] = []
     with pytest.raises(
@@ -271,10 +271,10 @@ def test_fact_use_requires_declared_fixture_namespace() -> None:
         compile_author(author)
 
 
-def test_fact_template_fields_must_belong_to_model() -> None:
+def test_precondition_template_fields_must_belong_to_model() -> None:
     author = _author()
-    author["facts"]["fact.project.submitted"]["present"]["values"]["unknown_field"] = {"value": "nope"}
-    with pytest.raises(ContractError, match=r"Fact fact\.project\.submitted seeds unknown Project fields: \['unknown_field'\]"):
+    author["preconditions"]["precondition.project.submitted"]["present"]["values"]["unknown_field"] = {"value": "nope"}
+    with pytest.raises(ContractError, match=r"Precondition precondition\.project\.submitted uses unknown Project fields: \['unknown_field'\]"):
         compile_author(author)
 
 
@@ -315,13 +315,19 @@ def test_invocation_assertion_must_follow_when() -> None:
         compile_author(author)
 
 
-def test_named_assertion_fact_expands_into_compiled_behavior_scenario() -> None:
+def test_named_assertion_expands_into_compiled_behavior_scenario() -> None:
     author = _author()
-    author["behavior_scenarios"]["behavior_scenario.project.approve.success"]["then"]["postconditions"] = [{"ref": "fact.project.submitted"}]
+    author["assertions"] = {
+        "assertion.project.submitted": {
+            "present": copy.deepcopy(author["preconditions"]["precondition.project.submitted"]["present"]),
+            "rationale": "The submitted project should remain present.",
+        }
+    }
+    author["behavior_scenarios"]["behavior_scenario.project.approve.success"]["then"]["postconditions"] = [{"ref": "assertion.project.submitted"}]
     contract = compile_author(author)
-    fact = contract["facts"]["fact.project.submitted"]
+    assertion = contract["assertions"]["assertion.project.submitted"]
     assert contract["behavior_scenarios"]["behavior_scenario.project.approve.success"]["then"]["postconditions"] == [
-        {"present": fact["present"]}
+        {"present": assertion["present"]}
     ]
 
 
@@ -2025,7 +2031,7 @@ def test_delegated_and_outer_authorization_policies_are_both_evaluated(tmp_path:
         "archetype": "entry_point_response",
         "feature_tag": "project.approve.cli",
         "system_under_test_ref": {"entry_point": "entry_point.cli.project.approve"},
-        "given": {"preconditions": [{"ref": "fact.project.submitted"}], "seed_fixtures": ["fixture.workspace.reviewer"]},
+        "given": {"preconditions": [{"ref": "precondition.project.submitted"}], "seed_fixtures": ["fixture.workspace.reviewer"]},
             "when": {
                 "call_entry_point": {
                     "ref": "entry_point.cli.project.approve",

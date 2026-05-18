@@ -803,14 +803,14 @@ def _validate_audit_scope_inputs(
     copy_refs: set[str],
     asset_refs: set[str],
     fixture_ids: set[str],
-    fact_ids: set[str],
+    precondition_ids: set[str],
     context: dict[str, Any],
 ) -> None:
     text_doc = read_yaml(root / _scope_text_file(scope_root))
     if text_doc != _text_doc(contract, copy_refs):
         raise ContractError(f"audit text.yaml does not match scoped text resources: {scope_root}")
     fixtures_doc = read_yaml(root / _scope_fixtures_file(scope_root))
-    if fixtures_doc != _fixtures_doc(contract, fixture_ids, fact_ids, context):
+    if fixtures_doc != _fixtures_doc(contract, fixture_ids, precondition_ids, context):
         raise ContractError(f"audit fixtures.yaml does not match scoped fixtures: {scope_root}")
     for asset_id in asset_refs:
         path = root / _scope_asset_file(scope_root, asset_id)
@@ -887,7 +887,8 @@ def validate_refs_py(root: Path, contract: dict[str, Any]) -> None:
         "ContentCase": sorted(contract.get("content_cases", {})),
         "EntryPoint": sorted(contract["entry_points"]),
         "DomainEvent": sorted(contract["domain_events"]),
-        "Fact": sorted(contract.get("facts", {})),
+        "Precondition": sorted(contract.get("preconditions", {})),
+        "Assertion": sorted(contract.get("assertions", {})),
         "Fixture": sorted(contract["fixtures"]),
         "Operation": sorted(contract["application_actions"]),
         "StateMachine": sorted(contract.get("state_machines", {})),

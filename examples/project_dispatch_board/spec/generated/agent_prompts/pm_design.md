@@ -11,9 +11,9 @@ Edit only `spec/spec.yaml` unless the user explicitly asks for a different role.
 After authoring, run `pyspec compile . --layers full` and `pyspec validate . --layers full`.
 
 Authoring scope:
-- Core: fixtures, facts, entity_types, application_actions, and product behavior scenarios.
+- Core: fixtures, preconditions, assertions, entity_types, application_actions, and product behavior scenarios.
 - HTTP: HTTP entry points that bind application_actions to externally visible API application_actions.
-- Domain events: durable domain facts and webhook-facing integration contracts when requested.
+- Domain events: durable domain events and webhook-facing integration contracts when requested.
 - Workflow: workflows with explicit outcomes, step outcome transitions, CLI target-outcome response handlers, and worker/scheduled ingress responses.
 - UI: state machines with view-state-local layouts, child state machines, render audit cases, text resources/assets, content cases, and render profiles.
 - HTML UI: html renderer layout, presentation, style, UI entry points, HTML routes, and HTML audit surfaces.

@@ -878,7 +878,8 @@ def refs_py_projection(contract: dict[str, Any]) -> str:
         "Text": sorted(contract.get("text_resources", {})),
         "ContentCase": sorted(contract.get("content_cases", {})),
         "DomainEvent": sorted(contract["domain_events"]),
-        "Fact": sorted(contract.get("facts", {})),
+        "Precondition": sorted(contract.get("preconditions", {})),
+        "Assertion": sorted(contract.get("assertions", {})),
         "Fixture": sorted(contract["fixtures"]),
         "StateMachine": sorted(contract.get("state_machines", {})),
         "RenderAuditCase": sorted(

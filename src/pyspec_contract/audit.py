@@ -239,13 +239,13 @@ def _text_doc(contract: dict[str, Any], text_refs: Iterable[str]) -> dict[str, A
 def _fixtures_doc(
     contract: dict[str, Any],
     fixture_ids: Iterable[str],
-    fact_ids: Iterable[str],
+    precondition_ids: Iterable[str],
     context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     return {
         "project": contract["project"],
         "fixtures": {fixture_id: contract["fixtures"][fixture_id] for fixture_id in sorted(fixture_ids)},
-        "facts": {fact_id: contract["facts"][fact_id] for fact_id in sorted(fact_ids)},
+        "preconditions": {precondition_id: contract["preconditions"][precondition_id] for precondition_id in sorted(precondition_ids)},
         "context": context or {},
     }
 
@@ -266,28 +266,28 @@ def _fixture_ids_for_model(contract: dict[str, Any], entity_type_id: str) -> set
     }
 
 
-def _fact_ids_for_model(contract: dict[str, Any], entity_type_id: str) -> set[str]:
-    fact_ids = set()
-    for fact_id, fact in contract.get("facts", {}).items():
-        _, body = _fact_selector(fact, fact_id)
+def _precondition_ids_for_model(contract: dict[str, Any], entity_type_id: str) -> set[str]:
+    precondition_ids = set()
+    for precondition_id, precondition in contract.get("preconditions", {}).items():
+        _, body = _precondition_selector(precondition, precondition_id)
         if body["entity_type"] == entity_type_id:
-            fact_ids.add(fact_id)
-    return fact_ids
+            precondition_ids.add(precondition_id)
+    return precondition_ids
 
 
-def _fixture_ids_for_facts(contract: dict[str, Any], fact_ids: Iterable[str], entity_type_id: str) -> set[str]:
+def _fixture_ids_for_preconditions(contract: dict[str, Any], precondition_ids: Iterable[str], entity_type_id: str) -> set[str]:
     fixture_ids: set[str] = set()
-    for fact_id in sorted(fact_ids):
-        fact_uses = [{"ref": fact_id}]
+    for precondition_id in sorted(precondition_ids):
+        precondition_uses = [{"ref": precondition_id}]
         try:
-            _apply_fact_uses(contract, fact_uses, {}, entity_type_id, [])
+            _apply_precondition_uses(contract, precondition_uses, {}, entity_type_id, [])
             continue
         except (AssertionError, KeyError, TypeError):
             pass
         for fixture_id in contract.get("fixtures", {}):
             try:
                 namespace = fixture_namespace(contract, [fixture_id])
-                _apply_fact_uses(contract, fact_uses, namespace, entity_type_id, [])
+                _apply_precondition_uses(contract, precondition_uses, namespace, entity_type_id, [])
             except (AssertionError, KeyError, TypeError):
                 continue
             fixture_ids.add(fixture_id)
@@ -299,13 +299,13 @@ def _surface_scope_inputs(contract: dict[str, Any], state_machine: dict[str, Any
     text_refs = set(state_machine["slots"].get("text", []))
     asset_refs = set(state_machine["slots"].get("assets", []))
     fixture_ids: set[str] = set()
-    fact_ids: set[str] = set()
+    precondition_ids: set[str] = set()
     if _state_needs_data(contract, state_machine):
         entity_type_id = state_machine_model(contract, state_machine)
         fixture_ids = _fixture_ids_for_model(contract, entity_type_id)
-        fact_ids = _fact_ids_for_model(contract, entity_type_id)
-        fixture_ids.update(_fixture_ids_for_facts(contract, fact_ids, entity_type_id))
-    return text_refs, asset_refs, fixture_ids, fact_ids, {}
+        precondition_ids = _precondition_ids_for_model(contract, entity_type_id)
+        fixture_ids.update(_fixture_ids_for_preconditions(contract, precondition_ids, entity_type_id))
+    return text_refs, asset_refs, fixture_ids, precondition_ids, {}
 
 
 def _case_scope_inputs(contract: dict[str, Any], case: dict[str, Any]) -> tuple[set[str], set[str], set[str], set[str], dict[str, Any]]:
@@ -313,8 +313,8 @@ def _case_scope_inputs(contract: dict[str, Any], case: dict[str, Any]) -> tuple[
     text_refs = {text_ref for state_machine in state_machines for text_ref in state_machine["slots"].get("text", [])}
     asset_refs = {asset_ref for state_machine in state_machines for asset_ref in state_machine["slots"].get("assets", [])}
     fixture_ids = set(case.get("seed_fixtures", []))
-    fact_ids = {fact_use["ref"] for fact_use in case.get("fact_refs", [])}
-    return text_refs, asset_refs, fixture_ids, fact_ids, case.get("context") or {}
+    precondition_ids = {precondition_use["ref"] for precondition_use in case.get("precondition_refs", [])}
+    return text_refs, asset_refs, fixture_ids, precondition_ids, case.get("context") or {}
 
 
 def _audit_scope_expected_files(scope_root: str, asset_refs: Iterable[str]) -> set[str]:
@@ -330,7 +330,7 @@ def _write_audit_scope_inputs(
     text_refs: Iterable[str],
     asset_refs: Iterable[str],
     fixture_ids: Iterable[str],
-    fact_ids: Iterable[str],
+    precondition_ids: Iterable[str],
     context: dict[str, Any] | None = None,
 ) -> None:
     text_path = root / _scope_text_file(scope_root)
@@ -338,7 +338,7 @@ def _write_audit_scope_inputs(
     write_yaml(text_path, _text_doc(contract, text_refs))
     fixtures_path = root / _scope_fixtures_file(scope_root)
     fixtures_path.parent.mkdir(parents=True, exist_ok=True)
-    write_yaml(fixtures_path, _fixtures_doc(contract, fixture_ids, fact_ids, context))
+    write_yaml(fixtures_path, _fixtures_doc(contract, fixture_ids, precondition_ids, context))
     for asset_id in sorted(asset_refs):
         asset_path = root / _scope_asset_file(scope_root, asset_id)
         asset_path.parent.mkdir(parents=True, exist_ok=True)
@@ -563,7 +563,7 @@ def _non_visual_path_classification(contract: dict[str, Any], pointer: str) -> d
 
 def _visual_path_obligation(contract: dict[str, Any], pointer: str) -> dict[str, str]:
     parts = _json_pointer_parts(pointer)
-    if parts and parts[0] in {"assets", "content_cases", "facts", "fixtures", "behavior_scenarios", "text_resources"}:
+    if parts and parts[0] in {"assets", "assertions", "content_cases", "preconditions", "fixtures", "behavior_scenarios", "text_resources"}:
         return {"level": "optional", "reason": _optional_visual_path_reason(parts[0])}
     _ = contract
     return {"level": "required", "reason": "required product contract path has no diagram or render-capture evidence"}
@@ -572,8 +572,9 @@ def _visual_path_obligation(contract: dict[str, Any], pointer: str) -> dict[str,
 def _optional_visual_path_reason(collection: str) -> str:
     return {
         "assets": "declared assets may be unused by rendered states",
+        "assertions": "assertions are expected predicates and need not appear in render audit cases",
         "content_cases": "content examples are visual only when their referenced resource is rendered",
-        "facts": "facts may support behavior assertions without dedicated visual evidence",
+        "preconditions": "preconditions may support behavior setup without dedicated visual evidence",
         "fixtures": "fixtures may support behavior or content tests without appearing in render audit cases",
         "behavior_scenarios": "behavior cases may be represented by diagrams or renders, but are not required visual evidence",
         "text_resources": "text resources may be adapter or branch-specific and need not appear in rendered states",
@@ -601,8 +602,8 @@ def _audit_evidence_for_pointer(contract: dict[str, Any], pointer: str) -> list[
         return _entry_point_evidence_files(contract, owner)
     if parts[0] == "domain_events":
         return _event_evidence_files(contract, owner)
-    if parts[0] == "facts":
-        return _fact_evidence_files(contract, owner)
+    if parts[0] == "preconditions":
+        return _precondition_evidence_files(contract, owner)
     if parts[0] == "fixtures":
         return _fixture_evidence_files(contract, owner)
     if parts[0] == "entity_types":
@@ -633,7 +634,7 @@ def _render_resource_coverage(contract: dict[str, Any], evidence_set_id: Any) ->
         "assets": _render_resource_collection_coverage(contract, "assets", "asset", evidence_set_id),
         "text_resources": _render_resource_collection_coverage(contract, "text_resources", "text", evidence_set_id),
         "fixtures": _render_resource_collection_coverage(contract, "fixtures", "fixture", evidence_set_id),
-        "facts": _render_resource_collection_coverage(contract, "facts", "fact", evidence_set_id),
+        "preconditions": _render_resource_collection_coverage(contract, "preconditions", "precondition", evidence_set_id),
         "content_cases": _render_content_case_coverage(contract, evidence_set_id),
     }
 
@@ -1142,10 +1143,10 @@ def _fixture_evidence_files(contract: dict[str, Any], fixture_id: str) -> list[s
     return _scope_input_evidence_files(contract, fixture_id, "fixture")
 
 
-def _fact_evidence_files(contract: dict[str, Any], fact_id: str) -> list[str]:
-    if fact_id not in contract.get("facts", {}):
+def _precondition_evidence_files(contract: dict[str, Any], precondition_id: str) -> list[str]:
+    if precondition_id not in contract.get("preconditions", {}):
         return []
-    return _scope_input_evidence_files(contract, fact_id, "fact")
+    return _scope_input_evidence_files(contract, precondition_id, "precondition")
 
 
 def _behavior_scenario_evidence_files(contract: dict[str, Any], behavior_scenario_id: str) -> list[str]:
@@ -1186,24 +1187,24 @@ def _scope_input_evidence_files(contract: dict[str, Any], ref: str, kind: str) -
     files: list[str] = []
     projection = state_machines_projection(contract)
     for surface in _audit_projection_surfaces(contract, projection):
-        text_refs, asset_refs, fixture_ids, fact_ids, _ = _surface_scope_inputs(contract, surface)
+        text_refs, asset_refs, fixture_ids, precondition_ids, _ = _surface_scope_inputs(contract, surface)
         if kind == "text" and ref in text_refs:
             files.extend(_projection_surface_render_capture_files(contract, surface))
         elif kind == "asset" and ref in asset_refs:
             files.extend(_projection_surface_render_capture_files(contract, surface))
         elif kind == "fixture" and ref in fixture_ids:
             files.extend(_projection_surface_render_capture_files(contract, surface))
-        elif kind == "fact" and ref in fact_ids:
+        elif kind == "precondition" and ref in precondition_ids:
             files.extend(_projection_surface_render_capture_files(contract, surface))
     for case_id, case in sorted(audit_cases(contract).items()):
-        text_refs, asset_refs, fixture_ids, fact_ids, _ = _case_scope_inputs(contract, case)
+        text_refs, asset_refs, fixture_ids, precondition_ids, _ = _case_scope_inputs(contract, case)
         if kind == "text" and ref in text_refs:
             files.extend(_case_render_capture_files(contract, case_id, case))
         elif kind == "asset" and ref in asset_refs:
             files.extend(_case_render_capture_files(contract, case_id, case))
         elif kind == "fixture" and ref in fixture_ids:
             files.extend(_case_render_capture_files(contract, case_id, case))
-        elif kind == "fact" and ref in fact_ids:
+        elif kind == "precondition" and ref in precondition_ids:
             files.extend(_case_render_capture_files(contract, case_id, case))
     return files
 
@@ -3568,7 +3569,7 @@ def records_for_state_machine(contract: dict[str, Any], state_machine: dict[str,
     if case:
         namespace = fixture_namespace(contract, fixtures)
         records.extend(_find_model_records(namespace, entity_type_id))
-        records = _apply_fact_uses(contract, case.get("fact_refs", []), namespace, entity_type_id, records)
+        records = _apply_precondition_uses(contract, case.get("precondition_refs", []), namespace, entity_type_id, records)
         context = _resolved_case_context(contract, case, namespace)
     else:
         context = {}
@@ -3625,11 +3626,11 @@ def _apply_facts_with_available_fixtures(contract: dict[str, Any], entity_type_i
             namespaces.append(fixture_namespace(contract, [fixture_id]))
         except (AssertionError, KeyError, TypeError):
             continue
-    for fact_id in sorted(contract.get("facts", {})):
-        fact_uses = [{"ref": fact_id}]
+    for precondition_id in sorted(contract.get("preconditions", {})):
+        precondition_uses = [{"ref": precondition_id}]
         for namespace in namespaces:
             try:
-                next_records = _apply_fact_uses(contract, fact_uses, namespace, entity_type_id, current)
+                next_records = _apply_precondition_uses(contract, precondition_uses, namespace, entity_type_id, current)
             except (AssertionError, KeyError, TypeError):
                 continue
             current = _dedupe_records(next_records)
@@ -3637,11 +3638,11 @@ def _apply_facts_with_available_fixtures(contract: dict[str, Any], entity_type_i
     return current
 
 
-def _apply_fact_uses(contract: dict[str, Any], fact_uses: list[dict[str, str]], namespace: dict[str, Any], entity_type_id: str, records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _apply_precondition_uses(contract: dict[str, Any], precondition_uses: list[dict[str, str]], namespace: dict[str, Any], entity_type_id: str, records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     current = list(records)
-    for fact_use in fact_uses:
-        fact_id = fact_use["ref"]
-        kind, body = _fact_selector(contract["facts"][fact_id], fact_id)
+    for precondition_use in precondition_uses:
+        precondition_id = precondition_use["ref"]
+        kind, body = _precondition_selector(contract["preconditions"][precondition_id], precondition_id)
         if body["entity_type"] != entity_type_id:
             continue
         if kind == "present":
@@ -3652,10 +3653,10 @@ def _apply_fact_uses(contract: dict[str, Any], fact_uses: list[dict[str, str]], 
     return _dedupe_records(current)
 
 
-def _fact_selector(fact: dict[str, Any], fact_id: str) -> tuple[str, dict[str, Any]]:
-    items = [(key, fact[key]) for key in ("absent", "present") if key in fact]
+def _precondition_selector(precondition: dict[str, Any], precondition_id: str) -> tuple[str, dict[str, Any]]:
+    items = [(key, precondition[key]) for key in ("absent", "present") if key in precondition]
     if len(items) != 1:
-        raise ContractError(f"Fact {fact_id} must contain exactly one fact selector")
+        raise ContractError(f"Precondition {precondition_id} must contain exactly one precondition selector")
     return items[0]
 
 

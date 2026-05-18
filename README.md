@@ -58,7 +58,7 @@ spec/spec.yaml
 
 The spec is progressive. If a concern is absent, it has no declaration and no generated projection. The spec does not contain storage implementation details, test-harness dispatch, dev-environment metadata, review state, release state, or schema-version chatter.
 
-Reusable top-level `facts` name preconditions, such as an entity that must already exist. Behavior scenarios can reference them with `given.preconditions: [{ref: fact.project.submitted}]`, and state-local audit cases can reference them with `facts: [{ref: fact.project.submitted}]`; the compiled spec expands behavior-scenario references back into concrete `present` or `absent` facts for the generated BDD harnesses.
+Reusable top-level `preconditions` name setup predicates, such as an entity that must already exist. Behavior scenarios reference them with `given.preconditions: [{ref: precondition.project.submitted}]`, and state-local audit cases use `precondition_refs: [precondition.project.submitted]`. Reusable expected predicates belong in top-level `assertions` and are referenced from `then.postconditions`.
 
 ## Layers
 

@@ -178,14 +178,14 @@ def _pm_design_prompt(context: _PromptContext) -> str:
         f"After authoring, run `pyspec compile . --layers {context.layer_arg}` and `pyspec validate . --layers {context.layer_arg}`.",
         "",
         "Authoring scope:",
-        "- Core: fixtures, facts, entity_types, application_actions, and product behavior scenarios.",
+        "- Core: fixtures, preconditions, assertions, entity_types, application_actions, and product behavior scenarios.",
     ]
     if "http" in context.layers:
         lines.append("- HTTP: HTTP entry points that bind application_actions to externally visible API application_actions.")
     else:
         lines.append("- Do not author HTTP/API entry points or OpenAPI details; the HTTP layer is inactive.")
     if "domain_events" in context.layers:
-        lines.append("- Domain events: durable domain facts and webhook-facing integration contracts when requested.")
+        lines.append("- Domain events: durable domain events and webhook-facing integration contracts when requested.")
     else:
         lines.append("- Do not add domain-event, webhook, or integration-message vocabulary unless the active layers change.")
     if "workflow" in context.layers:

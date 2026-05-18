@@ -294,7 +294,7 @@
       "description": "Local render audit case identifier within a view state."
     },
     "authored_value": {
-      "description": "Explicit authored literal-or-runtime-reference value used by tests, facts, and render audit inputs.",
+      "description": "Explicit authored literal-or-runtime-reference value used by tests, preconditions, and render audit inputs.",
       "oneOf": [
         {
           "additionalProperties": false,
@@ -1334,7 +1334,7 @@
       ],
       "type": "object"
     },
-    "fact_body": {
+    "precondition_body": {
       "oneOf": [
         {
           "additionalProperties": false,
@@ -1388,7 +1388,7 @@
         }
       ]
     },
-    "fact_item": {
+    "precondition_item": {
       "oneOf": [
         {
           "additionalProperties": false,
@@ -1450,15 +1450,37 @@
         }
       ]
     },
-    "fact_ref": {
-      "pattern": "^fact\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+    "precondition_ref": {
+      "pattern": "^precondition\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
-    "fact_use": {
+    "precondition_use": {
       "additionalProperties": false,
       "properties": {
         "ref": {
-          "$ref": "#/$defs/fact_ref"
+          "$ref": "#/$defs/precondition_ref"
+        }
+      },
+      "required": [
+        "ref"
+      ],
+      "type": "object"
+    },
+    "assertion_body": {
+      "$ref": "#/$defs/precondition_body"
+    },
+    "assertion_item": {
+      "$ref": "#/$defs/precondition_item"
+    },
+    "assertion_ref": {
+      "pattern": "^assertion\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "type": "string"
+    },
+    "assertion_use": {
+      "additionalProperties": false,
+      "properties": {
+        "ref": {
+          "$ref": "#/$defs/assertion_ref"
         }
       },
       "required": [
@@ -1507,10 +1529,10 @@
           "items": {
             "oneOf": [
               {
-                "$ref": "#/$defs/fact_body"
+                "$ref": "#/$defs/precondition_body"
               },
               {
-                "$ref": "#/$defs/fact_use"
+                "$ref": "#/$defs/precondition_use"
               }
             ]
           },
@@ -2665,10 +2687,10 @@
         "context": {
           "$ref": "#/$defs/value_map"
         },
-        "fact_refs": {
-          "description": "Fact references used to seed rendered entity_type state for this render audit case.",
+        "precondition_refs": {
+          "description": "Precondition references used to seed rendered entity_type state for this render audit case.",
           "items": {
-            "$ref": "#/$defs/fact_use"
+            "$ref": "#/$defs/precondition_use"
           },
           "type": "array"
         },
@@ -3277,10 +3299,10 @@
           "items": {
             "oneOf": [
               {
-                "$ref": "#/$defs/fact_body"
+                "$ref": "#/$defs/assertion_body"
               },
               {
-                "$ref": "#/$defs/fact_use"
+                "$ref": "#/$defs/assertion_use"
               }
             ]
           },
@@ -3946,12 +3968,21 @@
       },
       "type": "object"
     },
-    "facts": {
+    "preconditions": {
       "additionalProperties": {
-        "$ref": "#/$defs/fact_item"
+        "$ref": "#/$defs/precondition_item"
       },
       "propertyNames": {
-        "$ref": "#/$defs/fact_ref"
+        "$ref": "#/$defs/precondition_ref"
+      },
+      "type": "object"
+    },
+    "assertions": {
+      "additionalProperties": {
+        "$ref": "#/$defs/assertion_item"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/assertion_ref"
       },
       "type": "object"
     },
@@ -4039,7 +4070,8 @@
     "assets",
     "render_profiles",
     "fixtures",
-    "facts",
+    "preconditions",
+    "assertions",
     "entity_types",
     "schemas",
     "application_actions",

@@ -18,7 +18,8 @@ LAYER_ALIASES = {"full": "full", "all": "full", "api": "http", "cli": "workflow"
 # Coarse target gates. Field-level surface gates below remain stricter.
 TARGET_LAYERS: dict[str, set[str]] = {
     "fixture": {"core"},
-    "fact": {"core"},
+    "precondition": {"core"},
+    "assertion": {"core"},
     "entity_type": {"core"},
     "authorization_policy": {"core"},
     "application_action": {"core"},
@@ -50,7 +51,8 @@ AUTHOR_SECTIONS: dict[str, str] = {
     "content_cases": "content_case",
     "render_profiles": "render_profile",
     "fixtures": "fixture",
-    "facts": "fact",
+    "preconditions": "precondition",
+    "assertions": "assertion",
     "entity_types": "entity_type",
     "authorization_policies": "authorization_policy",
     "application_actions": "application_action",

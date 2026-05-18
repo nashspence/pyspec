@@ -11,7 +11,7 @@ import sys
 import tempfile
 import warnings
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import fastjsonschema
 
@@ -125,7 +125,8 @@ TARGET_ORDER = (
     "content_case",
     "render_profile",
     "fixture",
-    "fact",
+    "precondition",
+    "assertion",
     "schema",
     "entity_type",
     "authorization_policy",
@@ -145,7 +146,8 @@ ENTITY_SECTIONS: dict[str, str] = {
     "content_case": "content_cases",
     "render_profile": "render_profiles",
     "fixture": "fixtures",
-    "fact": "facts",
+    "precondition": "preconditions",
+    "assertion": "assertions",
     "schema": "schemas",
     "entity_type": "entity_types",
     "authorization_policy": "authorization_policies",
@@ -189,7 +191,8 @@ def empty_compiled_contract(project: str) -> dict[str, Any]:
         "content_cases": {},
         "render_profiles": {},
         "fixtures": {},
-        "facts": {},
+        "preconditions": {},
+        "assertions": {},
         "schemas": {},
         "entity_types": {},
         "authorization_policies": {},
@@ -205,7 +208,8 @@ def empty_compiled_contract(project: str) -> dict[str, Any]:
 
 AUTHOR_SECTION_ORDER = (
     "fixtures",
-    "facts",
+    "preconditions",
+    "assertions",
     "schemas",
     "entity_types",
     "authorization_policies",
@@ -335,8 +339,8 @@ def compile_author(author: dict[str, Any], layers: set[str] | None = None) -> di
     _derive_application_action_lifecycle_transitions(contract)
     contract["domain_events"] = _derive_domain_events(contract)
     contract["refs"] = _derive_refs(contract)
-    used_facts = _expand_behavior_scenario_fact_uses(contract)
-    _semantic_validate(contract, used_facts)
+    used_preconditions, used_assertions = _expand_behavior_scenario_predicate_refs(contract)
+    _semantic_validate(contract, used_preconditions, used_assertions)
     _expand_behavior_scenarios(contract)
     validate_against_schema(contract, "spec.schema.json")
     return contract
@@ -389,8 +393,8 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
     if entity == "fixture":
         return {"values": spec["values"], "rationale": spec["rationale"]}
 
-    if entity == "fact":
-        kind, body = _one_fact(spec, f"Fact {spec['id']}")
+    if entity in {"precondition", "assertion"}:
+        kind, body = _one_predicate(spec, f"{entity.replace('_', ' ').title()} {spec['id']}")
         return {kind: body, "rationale": spec["rationale"]}
 
     if entity == "entity_type":
@@ -569,7 +573,7 @@ def _compile_audit_case(state_machine_id: str, state_name: str, case_name: str, 
         "seed_fixtures": case["seed_fixtures"],
         "rationale": case.get("rationale", _default_rationale("render_audit_case", f"{state_machine_id}.{state_name}.{case_name}")),
     }
-    for field in ["context", "fact_refs", "instances"]:
+    for field in ["context", "precondition_refs", "instances"]:
         if field in case:
             item[field] = case[field]
     return item
@@ -791,7 +795,7 @@ def _state_machine_has_textual_screen(state_machine: dict[str, Any]) -> bool:
     )
 
 
-def _semantic_validate(contract: dict[str, Any], used_facts: set[str]) -> None:
+def _semantic_validate(contract: dict[str, Any], used_preconditions: set[str], used_assertions: set[str]) -> None:
     _validate_text_assets(contract)
     _validate_content_cases(contract)
     _validate_render_profiles(contract)
@@ -807,10 +811,12 @@ def _semantic_validate(contract: dict[str, Any], used_facts: set[str]) -> None:
     _validate_authorization_policies(contract)
     _validate_workflows(contract)
     _validate_fixtures(contract)
-    _validate_facts(contract)
+    _validate_preconditions(contract)
+    _validate_assertions(contract)
     _validate_behavior_scenarios(contract)
     _validate_audit_cases(contract)
-    _validate_facts_are_used(contract, used_facts)
+    _validate_preconditions_are_used(contract, used_preconditions)
+    _validate_assertions_are_used(contract, used_assertions)
 
 
 
@@ -924,11 +930,11 @@ def _validate_audit_cases(contract: dict[str, Any]) -> None:
                 raise ContractError(f"Render audit case {case_id} references unknown fixture {fixture_id}")
         fixture_values = _fixture_namespace(contract, case.get("seed_fixtures", []), f"render audit case {case_id}")
         _validate_fixture_templates(case, fixture_values, f"render audit case {case_id}")
-        for fact_use in case.get("fact_refs", []):
-            fact_id = fact_use["ref"]
-            _validate_fixture_templates(contract["facts"][fact_id], fixture_values, f"render audit case {case_id} fact {fact_id}")
-        if entity_type and state.get("fields") and not set(state.get("fields", [])) <= set(_state_machine_context(state_machine)) and not _setup_has_entity_type(contract, case.get("seed_fixtures", []), case.get("fact_refs", []), entity_type):
-            raise ContractError(f"Render audit case {case_id} renders fields for {state_machine_id}.{state_name} but does not include a {entity_type} fixture or fact")
+        for precondition_use in case.get("precondition_refs", []):
+            precondition_id = precondition_use["ref"]
+            _validate_fixture_templates(contract["preconditions"][precondition_id], fixture_values, f"render audit case {case_id} precondition {precondition_id}")
+        if entity_type and state.get("fields") and not set(state.get("fields", [])) <= set(_state_machine_context(state_machine)) and not _setup_has_entity_type(contract, case.get("seed_fixtures", []), case.get("precondition_refs", []), entity_type):
+            raise ContractError(f"Render audit case {case_id} renders fields for {state_machine_id}.{state_name} but does not include a {entity_type} fixture or precondition")
         if state.get("child_state_machines"):
             mounted_instances = {mount["id"]: mount for mount in state["child_state_machines"]}
             expected_instances = case.get("instances")
@@ -943,8 +949,8 @@ def _validate_audit_cases(contract: dict[str, Any]) -> None:
                 selected_state = contract["state_machines"][child_state_machine_id]["view_states"][expected["view_state"]]
                 child_model = contract["state_machines"][child_state_machine_id].get("entity_type")
                 child_context = set(_state_machine_context(contract["state_machines"][child_state_machine_id]))
-                if child_model and selected_state.get("fields") and not set(selected_state.get("fields", [])) <= child_context and not _setup_has_entity_type(contract, case.get("seed_fixtures", []), case.get("fact_refs", []), child_model):
-                    raise ContractError(f"Render audit case {case_id} renders fields for {child_state_machine_id}.{expected['view_state']} but does not include a {child_model} fixture or fact")
+                if child_model and selected_state.get("fields") and not set(selected_state.get("fields", [])) <= child_context and not _setup_has_entity_type(contract, case.get("seed_fixtures", []), case.get("precondition_refs", []), child_model):
+                    raise ContractError(f"Render audit case {case_id} renders fields for {child_state_machine_id}.{expected['view_state']} but does not include a {child_model} fixture or precondition")
             covered_composable_states.add((state_machine_id, state_name))
     missing_composed = sorted(f"{state_machine_id}.{state_name}" for state_machine_id, state_name in composable_states - covered_composable_states)
     if missing_composed:
@@ -966,12 +972,12 @@ def _validate_state_machine_view_state_fixture_coverage(contract: dict[str, Any]
     for state_machine_id, state_machine in contract.get("state_machines", {}).items():
         entity_type = state_machine.get("entity_type")
         for state_name, state in state_machine.get("view_states", {}).items():
-            if entity_type and state.get("fields") and not set(state.get("fields", [])) <= set(_state_machine_context(state_machine)) and not _setup_has_entity_type(contract, list(contract.get("fixtures", {})), _all_fact_uses(contract), entity_type):
-                raise ContractError(f"Rendered fields for {state_machine_id}.{state_name} require at least one {entity_type} fixture or fact")
+            if entity_type and state.get("fields") and not set(state.get("fields", [])) <= set(_state_machine_context(state_machine)) and not _setup_has_entity_type(contract, list(contract.get("fixtures", {})), _all_precondition_uses(contract), entity_type):
+                raise ContractError(f"Rendered fields for {state_machine_id}.{state_name} require at least one {entity_type} fixture or precondition")
 
 
-def _setup_has_entity_type(contract: dict[str, Any], fixture_ids: list[str], fact_uses: list[dict[str, str]], entity_type_id: str) -> bool:
-    return _fixtures_include_entity_type(contract, fixture_ids, entity_type_id) or _fact_uses_include_entity_type(contract, fact_uses, entity_type_id)
+def _setup_has_entity_type(contract: dict[str, Any], fixture_ids: list[str], precondition_uses: list[dict[str, str]], entity_type_id: str) -> bool:
+    return _fixtures_include_entity_type(contract, fixture_ids, entity_type_id) or _precondition_uses_include_entity_type(contract, precondition_uses, entity_type_id)
 
 
 def _fixtures_include_entity_type(contract: dict[str, Any], fixture_ids: list[str], entity_type_id: str) -> bool:
@@ -981,20 +987,20 @@ def _fixtures_include_entity_type(contract: dict[str, Any], fixture_ids: list[st
     return False
 
 
-def _fact_uses_include_entity_type(contract: dict[str, Any], fact_uses: list[dict[str, str]], entity_type_id: str) -> bool:
-    for fact_use in fact_uses:
-        fact_id = fact_use["ref"]
-        fact = contract["facts"].get(fact_id)
-        if not fact:
+def _precondition_uses_include_entity_type(contract: dict[str, Any], precondition_uses: list[dict[str, str]], entity_type_id: str) -> bool:
+    for precondition_use in precondition_uses:
+        precondition_id = precondition_use["ref"]
+        precondition = contract["preconditions"].get(precondition_id)
+        if not precondition:
             continue
-        kind, body = _one_fact(fact, f"Fact {fact_id}")
+        kind, body = _one_predicate(precondition, f"Precondition {precondition_id}")
         if kind == "present" and body["entity_type"] == entity_type_id:
             return True
     return False
 
 
-def _all_fact_uses(contract: dict[str, Any]) -> list[dict[str, str]]:
-    return [{"ref": fact_id} for fact_id in contract.get("facts", {})]
+def _all_precondition_uses(contract: dict[str, Any]) -> list[dict[str, str]]:
+    return [{"ref": precondition_id} for precondition_id in contract.get("preconditions", {})]
 
 
 def _value_contains_entity_type(value: Any, entity_type_id: str) -> bool:
@@ -3970,11 +3976,18 @@ def _validate_fixtures(contract: dict[str, Any]) -> None:
             raise ContractError(f"Fixture {fixture_id} must declare non-empty values")
 
 
-def _validate_facts(contract: dict[str, Any]) -> None:
-    for fact_id, fact in contract["facts"].items():
-        if not fact_id.startswith("fact."):
-            raise ContractError(f"Fact id must start with fact.: {fact_id}")
-        _validate_fact_body(contract, fact, f"Fact {fact_id}")
+def _validate_preconditions(contract: dict[str, Any]) -> None:
+    for precondition_id, precondition in contract["preconditions"].items():
+        if not precondition_id.startswith("precondition."):
+            raise ContractError(f"Precondition id must start with precondition.: {precondition_id}")
+        _validate_entity_predicate(contract, precondition, f"Precondition {precondition_id}")
+
+
+def _validate_assertions(contract: dict[str, Any]) -> None:
+    for assertion_id, assertion in contract["assertions"].items():
+        if not assertion_id.startswith("assertion."):
+            raise ContractError(f"Assertion id must start with assertion.: {assertion_id}")
+        _validate_entity_predicate(contract, assertion, f"Assertion {assertion_id}")
 
 
 def _validate_behavior_scenarios(contract: dict[str, Any]) -> None:
@@ -3985,18 +3998,18 @@ def _validate_behavior_scenarios(contract: dict[str, Any]) -> None:
                 raise ContractError(f"Behavior scenario {behavior_scenario_id} references unknown seed fixture {fixture_id}")
         fixture_values = _fixture_namespace(contract, fixture_ids, behavior_scenario_id)
         _validate_fixture_templates(behavior_scenario, fixture_values, behavior_scenario_id)
-        for fact in behavior_scenario["given"].get("preconditions", []):
-            _validate_fact_body(contract, fact, f"Behavior scenario {behavior_scenario_id} given.preconditions")
-        for fact in behavior_scenario["then"].get("postconditions", []):
-            _validate_fact_body(contract, fact, f"Behavior scenario {behavior_scenario_id} then.postconditions")
+        for precondition in behavior_scenario["given"].get("preconditions", []):
+            _validate_entity_predicate(contract, precondition, f"Behavior scenario {behavior_scenario_id} given.preconditions")
+        for assertion in behavior_scenario["then"].get("postconditions", []):
+            _validate_entity_predicate(contract, assertion, f"Behavior scenario {behavior_scenario_id} then.postconditions")
         _validate_behavior_scenario_when(contract, behavior_scenario_id, behavior_scenario)
         _validate_behavior_scenario_system_under_test(contract, behavior_scenario_id, behavior_scenario)
         _validate_behavior_scenario_then(contract, behavior_scenario_id, behavior_scenario)
         _validate_behavior_scenario_archetype(behavior_scenario_id, behavior_scenario)
 
 
-def _validate_fact_body(contract: dict[str, Any], fact: dict[str, Any], label: str) -> None:
-    kind, body = _one_fact(fact, label)
+def _validate_entity_predicate(contract: dict[str, Any], predicate: dict[str, Any], label: str) -> None:
+    kind, body = _one_predicate(predicate, label)
     entity_type_id = body["entity_type"]
     if entity_type_id not in contract["entity_types"]:
         raise ContractError(f"{label} references unknown entity_type {entity_type_id}")
@@ -4005,13 +4018,13 @@ def _validate_fact_body(contract: dict[str, Any], fact: dict[str, Any], label: s
     if kind == "present":
         unknown = set(body["values"]) - fields
         if unknown:
-            raise ContractError(f"{label} seeds unknown {entity_type_name} fields: {sorted(unknown)}")
+            raise ContractError(f"{label} uses unknown {entity_type_name} fields: {sorted(unknown)}")
     elif kind == "absent":
         unknown = set(body["where"]) - fields
         if unknown:
             raise ContractError(f"{label} filters unknown {entity_type_name} fields: {sorted(unknown)}")
     else:  # pragma: no cover - schema prevents this.
-        raise ContractError(f"{label} uses unsupported fact kind {kind}")
+        raise ContractError(f"{label} uses unsupported predicate kind {kind}")
 
 
 def _fixture_namespace(contract: dict[str, Any], fixture_ids: list[str], behavior_scenario_id: str) -> dict[str, Any]:
@@ -4443,16 +4456,17 @@ def _validate_behavior_scenario_archetype(behavior_scenario_id: str, behavior_sc
             raise ContractError(f"Behavior scenario {behavior_scenario_id} authorization_denial requires authorization.denied")
 
 
-def _expand_behavior_scenario_fact_uses(contract: dict[str, Any]) -> set[str]:
-    used: set[str] = set()
+def _expand_behavior_scenario_predicate_refs(contract: dict[str, Any]) -> tuple[set[str], set[str]]:
+    used_preconditions: set[str] = set()
+    used_assertions: set[str] = set()
     for behavior_scenario_id, behavior_scenario in contract["behavior_scenarios"].items():
-        used.update(_expand_fact_uses(
+        used_preconditions.update(_expand_precondition_refs(
             contract,
             behavior_scenario["given"],
             "preconditions",
             f"Behavior scenario {behavior_scenario_id}",
         ))
-        used.update(_expand_fact_uses(
+        used_assertions.update(_expand_assertion_refs(
             contract,
             behavior_scenario["then"],
             "postconditions",
@@ -4460,46 +4474,73 @@ def _expand_behavior_scenario_fact_uses(contract: dict[str, Any]) -> set[str]:
         ))
     for case_id, case in audit_cases(contract).items():
         case_uses: set[str] = set()
-        for fact_use in case.get("fact_refs", []):
-            fact_id = fact_use["ref"]
-            if fact_id not in contract["facts"]:
-                raise ContractError(f"Render audit case {case_id} references unknown fact {fact_id}")
-            if fact_id in case_uses:
-                raise ContractError(f"Render audit case {case_id} uses fact {fact_id} more than once")
-            case_uses.add(fact_id)
-            used.add(fact_id)
-    return used
+        for precondition_use in case.get("precondition_refs", []):
+            precondition_id = precondition_use["ref"]
+            if precondition_id not in contract["preconditions"]:
+                raise ContractError(f"Render audit case {case_id} references unknown precondition {precondition_id}")
+            if precondition_id in case_uses:
+                raise ContractError(f"Render audit case {case_id} uses precondition {precondition_id} more than once")
+            case_uses.add(precondition_id)
+            used_preconditions.add(precondition_id)
+    return used_preconditions, used_assertions
 
 
-def _expand_fact_uses(contract: dict[str, Any], owner: dict[str, Any], field: str, label: str) -> set[str]:
+def _expand_precondition_refs(contract: dict[str, Any], owner: dict[str, Any], field: str, label: str) -> set[str]:
+    return _expand_predicate_refs(contract, owner, field, label, "preconditions", "precondition", _precondition_body)
+
+
+def _expand_assertion_refs(contract: dict[str, Any], owner: dict[str, Any], field: str, label: str) -> set[str]:
+    return _expand_predicate_refs(contract, owner, field, label, "assertions", "assertion", _assertion_body)
+
+
+def _expand_predicate_refs(
+    contract: dict[str, Any],
+    owner: dict[str, Any],
+    field: str,
+    label: str,
+    collection: str,
+    kind_label: str,
+    body_factory: Callable[[dict[str, Any], str], dict[str, Any]],
+) -> set[str]:
     if field not in owner:
         return set()
     expanded: list[dict[str, Any]] = []
     used: set[str] = set()
-    for fact in owner[field]:
-        if "ref" not in fact:
-            expanded.append(fact)
+    for predicate in owner[field]:
+        if "ref" not in predicate:
+            expanded.append(predicate)
             continue
-        fact_id = fact["ref"]
-        if fact_id not in contract["facts"]:
-            raise ContractError(f"{label} references unknown fact {fact_id}")
-        if fact_id in used:
-            raise ContractError(f"{label} uses fact {fact_id} more than once")
-        used.add(fact_id)
-        expanded.append(_fact_body(contract["facts"][fact_id], fact_id))
+        predicate_id = predicate["ref"]
+        if predicate_id not in contract[collection]:
+            raise ContractError(f"{label} references unknown {kind_label} {predicate_id}")
+        if predicate_id in used:
+            raise ContractError(f"{label} uses {kind_label} {predicate_id} more than once")
+        used.add(predicate_id)
+        expanded.append(body_factory(contract[collection][predicate_id], predicate_id))
     owner[field] = expanded
     return used
 
 
-def _fact_body(fact: dict[str, Any], label: str) -> dict[str, Any]:
-    kind, body = _one_fact(fact, f"Fact {label}")
+def _precondition_body(precondition: dict[str, Any], label: str) -> dict[str, Any]:
+    kind, body = _one_predicate(precondition, f"Precondition {label}")
     return {kind: copy.deepcopy(body)}
 
 
-def _validate_facts_are_used(contract: dict[str, Any], used: set[str]) -> None:
-    unused = sorted(set(contract["facts"]) - used)
+def _assertion_body(assertion: dict[str, Any], label: str) -> dict[str, Any]:
+    kind, body = _one_predicate(assertion, f"Assertion {label}")
+    return {kind: copy.deepcopy(body)}
+
+
+def _validate_preconditions_are_used(contract: dict[str, Any], used: set[str]) -> None:
+    unused = sorted(set(contract["preconditions"]) - used)
     if unused:
-        raise ContractError("Unused facts: " + ", ".join(unused))
+        raise ContractError("Unused preconditions: " + ", ".join(unused))
+
+
+def _validate_assertions_are_used(contract: dict[str, Any], used: set[str]) -> None:
+    unused = sorted(set(contract["assertions"]) - used)
+    if unused:
+        raise ContractError("Unused assertions: " + ", ".join(unused))
 
 
 def _expand_behavior_scenarios(contract: dict[str, Any]) -> None:
@@ -4670,10 +4711,10 @@ def _one(mapping: dict[str, Any], label: str) -> tuple[str, Any]:
     return next(iter(mapping.items()))
 
 
-def _one_fact(mapping: dict[str, Any], label: str) -> tuple[str, Any]:
+def _one_predicate(mapping: dict[str, Any], label: str) -> tuple[str, Any]:
     items = [(key, mapping[key]) for key in ("absent", "present") if key in mapping]
     if len(items) != 1:
-        raise ContractError(f"{label} must contain exactly one fact selector")
+        raise ContractError(f"{label} must contain exactly one predicate selector")
     return items[0]
 
 

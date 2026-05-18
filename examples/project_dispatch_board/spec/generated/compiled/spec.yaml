@@ -348,6 +348,7 @@ application_actions:
     rationale: Draft dispatch projects can be submitted for review.
     reads: []
     updates: []
+assertions: {}
 assets:
   asset.project.detail.ready.priority_badge:
     args:
@@ -1417,8 +1418,29 @@ entry_points:
           project_id:
             from: $input.payload.project_id
     workflow_ref: workflow.project.approval_notice
-facts:
-  fact.project.draft:
+fixtures:
+  fixture.workspace.member:
+    rationale: Workspace member fixture for HTML/API/Textual behavior scenarios.
+    values:
+      actor:
+        id: user_member_1
+        roles:
+        - member
+      workspace:
+        id: workspace_1
+        name: North Region Dispatch
+  fixture.workspace.reviewer:
+    rationale: Reviewer fixture for approval behavior scenarios.
+    values:
+      actor:
+        id: user_reviewer_1
+        roles:
+        - reviewer
+      workspace:
+        id: workspace_1
+        name: North Region Dispatch
+preconditions:
+  precondition.project.draft:
     present:
       entity_type: entity_type.project
       values:
@@ -1443,7 +1465,7 @@ facts:
         workspace_id:
           from: $fixture.workspace.id
     rationale: Draft dispatch project used as a secondary row in ready-board audit renders.
-  fact.project.submitted:
+  precondition.project.submitted:
     present:
       entity_type: entity_type.project
       values:
@@ -1468,27 +1490,6 @@ facts:
         workspace_id:
           from: $fixture.workspace.id
     rationale: Submitted dispatch project shared by approval, ready-board, and visual audit behavior scenarios.
-fixtures:
-  fixture.workspace.member:
-    rationale: Workspace member fixture for HTML/API/Textual behavior scenarios.
-    values:
-      actor:
-        id: user_member_1
-        roles:
-        - member
-      workspace:
-        id: workspace_1
-        name: North Region Dispatch
-  fixture.workspace.reviewer:
-    rationale: Reviewer fixture for approval behavior scenarios.
-    values:
-      actor:
-        id: user_reviewer_1
-        roles:
-        - reviewer
-      workspace:
-        id: workspace_1
-        name: North Region Dispatch
 project: project_dispatch_board
 refs:
   action_binding:
@@ -1912,9 +1913,6 @@ state_machines:
             context:
               selected_project_id:
                 value: project_submitted_1
-            fact_refs:
-            - ref: fact.project.submitted
-            - ref: fact.project.draft
             instances:
               activity:
                 view_state: ready
@@ -1922,7 +1920,10 @@ state_machines:
                 view_state: ready
               list:
                 view_state: ready
-            rationale: Audit render for selected-project board state vector using named project facts.
+            precondition_refs:
+            - ref: precondition.project.submitted
+            - ref: precondition.project.draft
+            rationale: Audit render for selected-project board state vector using named project preconditions.
             seed_fixtures:
             - fixture.workspace.member
         renderers:

@@ -43,8 +43,8 @@ class ReferenceSpecDriver:
     def given(self, behavior_scenario_id: str, behavior_scenario: Mapping[str, Any]) -> None:
         self.reset()
         self.fixtures = fixture_namespace(self.contract, list(behavior_scenario.get("given", {}).get("seed_fixtures", [])))
-        for fact in behavior_scenario.get("given", {}).get("preconditions", []):
-            kind, body = next(iter(fact.items()))
+        for precondition in behavior_scenario.get("given", {}).get("preconditions", []):
+            kind, body = next(iter(precondition.items()))
             if kind == "absent":
                 where = self._resolve_map(body["where"])
                 self.store[body["entity_type"]] = [r for r in self.store[body["entity_type"]] if not _matches(r, where)]
@@ -52,7 +52,7 @@ class ReferenceSpecDriver:
                 values = self._complete_record(body["entity_type"], self._resolve_map(body["values"]))
                 self.store[body["entity_type"]].append(values)
             else:  # pragma: no cover - schema prevents this.
-                raise AssertionError(f"Unsupported fact kind: {kind}")
+                raise AssertionError(f"Unsupported precondition kind: {kind}")
 
     def when(self, behavior_scenario_id: str, behavior_scenario: Mapping[str, Any]) -> None:
         kind, body = next(iter(behavior_scenario["when"].items()))
@@ -140,14 +140,14 @@ class ReferenceSpecDriver:
             assert self._authorization_assertion_allowed(assertion), f"Expected authorization policy to permit {assertion}"
         for assertion in policy.get("denied", []):
             assert not self._authorization_assertion_allowed(assertion), f"Expected authorization policy to deny {assertion}"
-        for fact in assertions.get("postconditions", []):
-            kind, body = next(iter(fact.items()))
+        for assertion in assertions.get("postconditions", []):
+            kind, body = next(iter(assertion.items()))
             if kind == "present":
                 values = self._resolve_map(body["values"])
-                assert any(_matches(record, values) for record in self.store[body["entity_type"]]), f"Missing assertion fact {body}"
+                assert any(_matches(record, values) for record in self.store[body["entity_type"]]), f"Missing assertion {body}"
             elif kind == "absent":
                 where = self._resolve_map(body["where"])
-                assert not any(_matches(record, where) for record in self.store[body["entity_type"]]), f"Unexpected assertion fact {body}"
+                assert not any(_matches(record, where) for record in self.store[body["entity_type"]]), f"Unexpected assertion {body}"
 
     def _open_entry_point(self, entry_id: str, input_values: dict[str, Any]) -> dict[str, Any]:
         entry = self.contract["entry_points"][entry_id]

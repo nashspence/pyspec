@@ -20,8 +20,8 @@ fixtures:
       workspace:
         id: workspace_1
         name: North Region Dispatch
-facts:
-  fact.project.draft:
+preconditions:
+  precondition.project.draft:
     rationale: Draft dispatch project used as a secondary row in ready-board audit renders.
     present:
       entity_type: entity_type.project
@@ -46,7 +46,7 @@ facts:
           value: '2026-05-11T07:15:00Z'
         workspace_id:
           from: $fixture.workspace.id
-  fact.project.submitted:
+  precondition.project.submitted:
     rationale: Submitted dispatch project shared by approval, ready-board, and visual audit behavior scenarios.
     present:
       entity_type: entity_type.project
@@ -633,13 +633,13 @@ state_machines:
               list:
                 view_state: empty
           ready_selected:
-            rationale: Audit render for selected-project board state vector using named project facts.
+            rationale: Audit render for selected-project board state vector using named project preconditions.
             context:
               selected_project_id:
                 value: project_submitted_1
-            fact_refs:
-            - ref: fact.project.submitted
-            - ref: fact.project.draft
+            precondition_refs:
+            - ref: precondition.project.submitted
+            - ref: precondition.project.draft
             seed_fixtures:
             - fixture.workspace.member
             instances:
@@ -1624,7 +1624,7 @@ behavior_scenarios:
       application_action: application_action.project.approve
     given:
       preconditions:
-      - ref: fact.project.submitted
+      - ref: precondition.project.submitted
       seed_fixtures:
       - fixture.workspace.reviewer
     then:
@@ -1659,7 +1659,7 @@ behavior_scenarios:
       application_action: application_action.project.approve
     given:
       preconditions:
-      - ref: fact.project.submitted
+      - ref: precondition.project.submitted
       seed_fixtures:
       - fixture.workspace.member
     then:
@@ -1728,7 +1728,7 @@ behavior_scenarios:
       state_machine: state_machine.project.board
     given:
       preconditions:
-      - ref: fact.project.submitted
+      - ref: precondition.project.submitted
       seed_fixtures:
       - fixture.workspace.member
     then:

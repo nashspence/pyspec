@@ -2,7 +2,7 @@ authoring_layers:
   rule: Layers constrain authored spec vocabulary only. They are never written into spec/generated/compiled/spec.yaml and never imply absent adapters are planned.
   layers:
     core:
-      targets: [fixture, entity_type, schema, operation, behavior_scenario]
+      targets: [fixture, precondition, assertion, entity_type, schema, operation, behavior_scenario]
       projections: [spec/generated/agent_prompts, spec/generated/behavior/fixtures.yaml, spec/generated/behavior/behavior_scenarios.yaml, spec/generated/test_adapters/pytest_bdd_features, spec/generated/test_adapters/python_refs.py]
     http:
       opens: [entry_point.adapter.http_api]

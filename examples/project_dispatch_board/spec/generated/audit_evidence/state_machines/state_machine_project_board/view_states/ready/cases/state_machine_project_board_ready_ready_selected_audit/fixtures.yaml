@@ -1,8 +1,19 @@
 context:
   selected_project_id:
     value: project_submitted_1
-facts:
-  fact.project.draft:
+fixtures:
+  fixture.workspace.member:
+    rationale: Workspace member fixture for HTML/API/Textual behavior scenarios.
+    values:
+      actor:
+        id: user_member_1
+        roles:
+        - member
+      workspace:
+        id: workspace_1
+        name: North Region Dispatch
+preconditions:
+  precondition.project.draft:
     present:
       entity_type: entity_type.project
       values:
@@ -27,7 +38,7 @@ facts:
         workspace_id:
           from: $fixture.workspace.id
     rationale: Draft dispatch project used as a secondary row in ready-board audit renders.
-  fact.project.submitted:
+  precondition.project.submitted:
     present:
       entity_type: entity_type.project
       values:
@@ -52,15 +63,4 @@ facts:
         workspace_id:
           from: $fixture.workspace.id
     rationale: Submitted dispatch project shared by approval, ready-board, and visual audit behavior scenarios.
-fixtures:
-  fixture.workspace.member:
-    rationale: Workspace member fixture for HTML/API/Textual behavior scenarios.
-    values:
-      actor:
-        id: user_member_1
-        roles:
-        - member
-      workspace:
-        id: workspace_1
-        name: North Region Dispatch
 project: project_dispatch_board

@@ -41,8 +41,8 @@ class ProductApp:
     def given(self, given: Mapping[str, Any]) -> None:
         self.reset()
         self.fixtures = fixture_namespace(self.contract, list(given.get("seed_fixtures", [])))
-        for fact in given.get("preconditions", []):
-            kind, body = next(iter(fact.items()))
+        for precondition in given.get("preconditions", []):
+            kind, body = next(iter(precondition.items()))
             if body["entity_type"] != PROJECT_ENTITY_TYPE:
                 raise AssertionError("Example app only implements Project")
             if kind == "absent":
@@ -333,8 +333,8 @@ class ProductApp:
                 assert self._authorization_assertion_allowed(assertion)
             for assertion in policy.get("denied", []):
                 assert not self._authorization_assertion_allowed(assertion)
-        for fact in assertions.get("postconditions", []):
-            kind, body = next(iter(fact.items()))
+        for assertion in assertions.get("postconditions", []):
+            kind, body = next(iter(assertion.items()))
             if body["entity_type"] != PROJECT_ENTITY_TYPE:
                 raise AssertionError("Example app only implements Project")
             if kind == "present":

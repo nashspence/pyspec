@@ -16,6 +16,7 @@ DEPRECATED_DEFINITION_NAMES = {
     "application_action",
     "entry",
     "event",
+    "fact",
     "fixture",
     "fsm",
     "entity_type",
@@ -36,6 +37,10 @@ DEPRECATED_REFERENCE_DEFINITION_NAMES = {
     "copy_id",
     "dotted_id",
     "fact_id",
+    "fact_ref",
+    "fact_use",
+    "precondition_id",
+    "assertion_id",
     "fixture_id",
     "fsm_id",
     "entity_type_id",
@@ -47,6 +52,7 @@ DEPRECATED_REFERENCE_DEFINITION_NAMES = {
 DEPRECATED_TOP_LEVEL_PROPERTIES = {
     "audit_profiles",
     "copies",
+    "facts",
     "scenarios",
 }
 DEPRECATED_PROPERTY_NAMES = {

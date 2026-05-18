@@ -33,6 +33,9 @@ class ActionOutcomeEffect:
     ACTION_OUTCOME_EFFECT_PROJECT_LIST_READY_SUBMIT_SUBMITTED = 'action_outcome_effect.project.list.ready.submit.submitted'
     ACTION_OUTCOME_EFFECT_PROJECT_LIST_READY_SUBMIT_TRANSITION_NOT_ALLOWED = 'action_outcome_effect.project.list.ready.submit.transition_not_allowed'
 
+class Assertion:
+    pass
+
 class Asset:
     ASSET_PROJECT_DETAIL_READY_PRIORITY_BADGE = 'asset.project.detail.ready.priority_badge'
     ASSET_PROJECT_LIST_EMPTY_ILLUSTRATION = 'asset.project.list.empty.illustration'
@@ -126,10 +129,6 @@ class EntryPointTarget:
     ENTRY_POINT_TARGET_HTML_PROJECT_BOARD_STATE_MACHINE_PROJECT_BOARD = 'entry_point_target.html.project.board.state_machine.project.board'
     ENTRY_POINT_TARGET_WORKER_PROJECT_APPROVAL_NOTICE_WORKFLOW_PROJECT_APPROVAL_NOTICE = 'entry_point_target.worker.project.approval_notice.workflow.project.approval_notice'
 
-class Fact:
-    FACT_PROJECT_DRAFT = 'fact.project.draft'
-    FACT_PROJECT_SUBMITTED = 'fact.project.submitted'
-
 class Fixture:
     FIXTURE_WORKSPACE_MEMBER = 'fixture.workspace.member'
     FIXTURE_WORKSPACE_REVIEWER = 'fixture.workspace.reviewer'
@@ -171,6 +170,10 @@ class Operation:
     APPLICATION_ACTION_PROJECT_READ = 'application_action.project.read'
     APPLICATION_ACTION_PROJECT_SEND_APPROVAL_NOTICE = 'application_action.project.send_approval_notice'
     APPLICATION_ACTION_PROJECT_SUBMIT = 'application_action.project.submit'
+
+class Precondition:
+    PRECONDITION_PROJECT_DRAFT = 'precondition.project.draft'
+    PRECONDITION_PROJECT_SUBMITTED = 'precondition.project.submitted'
 
 class RenderAuditCase:
     STATE_MACHINE_PROJECT_BOARD_READY_EMPTY_AUDIT = 'state_machine.project.board.ready.empty.audit'

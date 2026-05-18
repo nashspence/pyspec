@@ -1,5 +1,4 @@
 context: {}
-facts: {}
 fixtures:
   fixture.workspace.member:
     rationale: Workspace member fixture for HTML/API/Textual behavior scenarios.
@@ -11,4 +10,5 @@ fixtures:
       workspace:
         id: workspace_1
         name: North Region Dispatch
+preconditions: {}
 project: project_dispatch_board

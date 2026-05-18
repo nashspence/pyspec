@@ -4,8 +4,8 @@ summary:
   required_visual_paths: 939
   missing_required_visual_paths: 0
   required_visual_text_witnesses: 290
-  optional_visual_paths: 493
-  optional_visual_paths_not_shown: 5
+  optional_visual_paths: 494
+  optional_visual_paths_not_shown: 6
   non_visual_paths: 149
   visual_evidence_sets: 34
 visual_evidence_sets:
@@ -157,15 +157,15 @@ visual_evidence_sets:
   V0021:
   - spec/generated/audit_evidence/entrypoints/worker/entry_point_worker_project_approval_notice/flow.svg
   V0022:
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.compact.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.wide.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.compact.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.wide.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.compact.screenshot.png
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.wide.screenshot.png
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.compact.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.wide.capture.svg
   V0023:
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.compact.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.wide.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.compact.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.wide.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.compact.screenshot.png
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.wide.screenshot.png
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.compact.capture.svg
@@ -228,20 +228,20 @@ visual_evidence_sets:
 render_presence:
   assets:
     rendered:
-      asset.project.detail.ready.priority_badge: V0022
+      asset.project.detail.ready.priority_badge: V0023
       asset.project.list.empty.illustration: V0034
     not_rendered: []
   text_resources:
     rendered:
       text.project.activity.empty.body: V0034
       text.project.activity.empty.heading: V0034
-      text.project.activity.ready.heading: V0022
+      text.project.activity.ready.heading: V0023
       text.project.detail.none.body: V0034
       text.project.detail.none.heading: V0034
-      text.project.detail.ready.heading: V0022
+      text.project.detail.ready.heading: V0023
       text.project.list.empty.body: V0034
       text.project.list.empty.heading: V0034
-      text.project.list.ready.heading: V0022
+      text.project.list.ready.heading: V0023
     not_rendered:
     - text.project.approve.access_denied
     - text.project.approve.authentication_required
@@ -257,18 +257,18 @@ render_presence:
     - text.project.list.loading.message
   fixtures:
     rendered:
-      fixture.workspace.member: V0023
+      fixture.workspace.member: V0022
     not_rendered:
     - fixture.workspace.reviewer
-  facts:
+  preconditions:
     rendered:
-      fact.project.draft: V0022
-      fact.project.submitted: V0022
+      precondition.project.draft: V0023
+      precondition.project.submitted: V0023
     not_rendered: []
   content_cases:
     rendered:
-      content_case.project.detail.heading.high_priority: V0022
-      content_case.project.detail.priority_badge.high_priority: V0022
+      content_case.project.detail.heading.high_priority: V0023
+      content_case.project.detail.priority_badge.high_priority: V0023
     not_rendered: []
 visual_audit:
   required:
@@ -701,15 +701,15 @@ visual_audit:
       /entry_points/entry_point.worker.project.approval_notice/target/workflow/trigger_bindings/approved_by/from: V0021
       /entry_points/entry_point.worker.project.approval_notice/target/workflow/trigger_bindings/project_id/from: V0021
       /entry_points/entry_point.worker.project.approval_notice/workflow_ref: V0021
-      /render_profiles/render_profile.default/html_viewports/compact/height: V0023
-      /render_profiles/render_profile.default/html_viewports/compact/width: V0023
-      /render_profiles/render_profile.default/html_viewports/wide/height: V0023
-      /render_profiles/render_profile.default/html_viewports/wide/width: V0023
-      /render_profiles/render_profile.default/rationale: V0023
-      /render_profiles/render_profile.default/textual_viewports/compact/columns: V0023
-      /render_profiles/render_profile.default/textual_viewports/compact/rows: V0023
-      /render_profiles/render_profile.default/textual_viewports/wide/columns: V0023
-      /render_profiles/render_profile.default/textual_viewports/wide/rows: V0023
+      /render_profiles/render_profile.default/html_viewports/compact/height: V0022
+      /render_profiles/render_profile.default/html_viewports/compact/width: V0022
+      /render_profiles/render_profile.default/html_viewports/wide/height: V0022
+      /render_profiles/render_profile.default/html_viewports/wide/width: V0022
+      /render_profiles/render_profile.default/rationale: V0022
+      /render_profiles/render_profile.default/textual_viewports/compact/columns: V0022
+      /render_profiles/render_profile.default/textual_viewports/compact/rows: V0022
+      /render_profiles/render_profile.default/textual_viewports/wide/columns: V0022
+      /render_profiles/render_profile.default/textual_viewports/wide/rows: V0022
       /schemas/schema.project.approved/rationale: V0024
       /schemas/schema.project.approved/schema/additionalProperties: V0024
       /schemas/schema.project.approved/schema/properties/approved_by/type: V0024
@@ -856,13 +856,13 @@ visual_audit:
       /state_machines/state_machine.project.board/view_states/ready/render_audit_cases/empty/seed_fixtures/0: V0026
       ? /state_machines/state_machine.project.board/view_states/ready/render_audit_cases/ready_selected/context/selected_project_id/value
       : V0026
-      /state_machines/state_machine.project.board/view_states/ready/render_audit_cases/ready_selected/fact_refs/0/ref: V0026
-      /state_machines/state_machine.project.board/view_states/ready/render_audit_cases/ready_selected/fact_refs/1/ref: V0026
       ? /state_machines/state_machine.project.board/view_states/ready/render_audit_cases/ready_selected/instances/activity/view_state
       : V0026
       ? /state_machines/state_machine.project.board/view_states/ready/render_audit_cases/ready_selected/instances/detail/view_state
       : V0026
       /state_machines/state_machine.project.board/view_states/ready/render_audit_cases/ready_selected/instances/list/view_state: V0026
+      /state_machines/state_machine.project.board/view_states/ready/render_audit_cases/ready_selected/precondition_refs/0/ref: V0026
+      /state_machines/state_machine.project.board/view_states/ready/render_audit_cases/ready_selected/precondition_refs/1/ref: V0026
       /state_machines/state_machine.project.board/view_states/ready/render_audit_cases/ready_selected/rationale: V0026
       /state_machines/state_machine.project.board/view_states/ready/render_audit_cases/ready_selected/seed_fixtures/0: V0026
       /state_machines/state_machine.project.board/view_states/ready/renderers/html/layout/regions/aside/classes/0: V0026
@@ -3194,35 +3194,35 @@ visual_audit:
       /content_cases/content_case.project.detail.priority_badge.high_priority/args/priority/value: V0008
       /content_cases/content_case.project.detail.priority_badge.high_priority/rationale: V0008
       /content_cases/content_case.project.detail.priority_badge.high_priority/ref: V0008
-      /facts/fact.project.draft/present/entity_type: V0022
-      /facts/fact.project.draft/present/values/assignee/value: V0022
-      /facts/fact.project.draft/present/values/created_at/value: V0022
-      /facts/fact.project.draft/present/values/customer/value: V0022
-      /facts/fact.project.draft/present/values/id/value: V0022
-      /facts/fact.project.draft/present/values/priority/value: V0022
-      /facts/fact.project.draft/present/values/status/value: V0022
-      /facts/fact.project.draft/present/values/summary/value: V0022
-      /facts/fact.project.draft/present/values/title/value: V0022
-      /facts/fact.project.draft/present/values/updated_at/value: V0022
-      /facts/fact.project.draft/present/values/workspace_id/from: V0022
-      /facts/fact.project.draft/rationale: V0022
-      /facts/fact.project.submitted/present/entity_type: V0022
-      /facts/fact.project.submitted/present/values/assignee/value: V0022
-      /facts/fact.project.submitted/present/values/created_at/value: V0022
-      /facts/fact.project.submitted/present/values/customer/value: V0022
-      /facts/fact.project.submitted/present/values/id/value: V0022
-      /facts/fact.project.submitted/present/values/priority/value: V0022
-      /facts/fact.project.submitted/present/values/status/value: V0022
-      /facts/fact.project.submitted/present/values/summary/value: V0022
-      /facts/fact.project.submitted/present/values/title/value: V0022
-      /facts/fact.project.submitted/present/values/updated_at/value: V0022
-      /facts/fact.project.submitted/present/values/workspace_id/from: V0022
-      /facts/fact.project.submitted/rationale: V0022
-      /fixtures/fixture.workspace.member/rationale: V0023
-      /fixtures/fixture.workspace.member/values/actor/id: V0023
-      /fixtures/fixture.workspace.member/values/actor/roles/0: V0023
-      /fixtures/fixture.workspace.member/values/workspace/id: V0023
-      /fixtures/fixture.workspace.member/values/workspace/name: V0023
+      /fixtures/fixture.workspace.member/rationale: V0022
+      /fixtures/fixture.workspace.member/values/actor/id: V0022
+      /fixtures/fixture.workspace.member/values/actor/roles/0: V0022
+      /fixtures/fixture.workspace.member/values/workspace/id: V0022
+      /fixtures/fixture.workspace.member/values/workspace/name: V0022
+      /preconditions/precondition.project.draft/present/entity_type: V0023
+      /preconditions/precondition.project.draft/present/values/assignee/value: V0023
+      /preconditions/precondition.project.draft/present/values/created_at/value: V0023
+      /preconditions/precondition.project.draft/present/values/customer/value: V0023
+      /preconditions/precondition.project.draft/present/values/id/value: V0023
+      /preconditions/precondition.project.draft/present/values/priority/value: V0023
+      /preconditions/precondition.project.draft/present/values/status/value: V0023
+      /preconditions/precondition.project.draft/present/values/summary/value: V0023
+      /preconditions/precondition.project.draft/present/values/title/value: V0023
+      /preconditions/precondition.project.draft/present/values/updated_at/value: V0023
+      /preconditions/precondition.project.draft/present/values/workspace_id/from: V0023
+      /preconditions/precondition.project.draft/rationale: V0023
+      /preconditions/precondition.project.submitted/present/entity_type: V0023
+      /preconditions/precondition.project.submitted/present/values/assignee/value: V0023
+      /preconditions/precondition.project.submitted/present/values/created_at/value: V0023
+      /preconditions/precondition.project.submitted/present/values/customer/value: V0023
+      /preconditions/precondition.project.submitted/present/values/id/value: V0023
+      /preconditions/precondition.project.submitted/present/values/priority/value: V0023
+      /preconditions/precondition.project.submitted/present/values/status/value: V0023
+      /preconditions/precondition.project.submitted/present/values/summary/value: V0023
+      /preconditions/precondition.project.submitted/present/values/title/value: V0023
+      /preconditions/precondition.project.submitted/present/values/updated_at/value: V0023
+      /preconditions/precondition.project.submitted/present/values/workspace_id/from: V0023
+      /preconditions/precondition.project.submitted/rationale: V0023
       /text_resources/text.project.activity.empty.body/intent: V0029
       /text_resources/text.project.activity.empty.body/max_chars: V0029
       /text_resources/text.project.activity.empty.body/placeholder: V0029
@@ -3316,6 +3316,8 @@ visual_audit:
       /text_resources/text.project.list.ready.heading/placeholder: V0032
       /text_resources/text.project.list.ready.heading/rationale: V0032
     not_shown:
+      /assertions:
+        reason: assertions are expected predicates and need not appear in render audit cases
       /fixtures/fixture.workspace.reviewer/rationale:
         reason: fixtures may support behavior or content tests without appearing in render audit cases
       /fixtures/fixture.workspace.reviewer/values/actor/id:
