@@ -813,7 +813,7 @@ def test_workflow_input_bindings_support_runtime_sources_and_literal_values() ->
                             "source_id": {"from": "$trigger.payload.source_id"},
                             "title": {"value": "Literal title"},
                         },
-                        "outcome_routes": {
+                        "outcome_transitions": {
                             "sent": {"complete_as": "completed"},
                             "failed": {"fail_as": "failed"},
                         },
@@ -1138,7 +1138,7 @@ def test_renderer_slot_binding_accepts_action_binding_and_rejects_application_ac
                 "title": {"value": "Replace rooftop condenser fan"},
                 "workspace_id": {"from": "$context.workspace_id"},
             },
-            "outcome_routes": {
+            "outcome_effects": {
                 "created": {"raise": {"data_refresh_signal": "application_action_completed"}},
                 "forbidden": {"raise": {"data_refresh_signal": "application_action_completed"}},
                 "unauthenticated": {"raise": {"data_refresh_signal": "application_action_completed"}},
@@ -1165,7 +1165,7 @@ def test_renderer_slot_binding_accepts_action_binding_and_rejects_application_ac
                 "title": {"value": "Replace rooftop condenser fan"},
                 "workspace_id": {"from": "$context.workspace_id"},
             },
-            "outcome_routes": {
+            "outcome_effects": {
                 "created": {"raise": {"data_refresh_signal": "application_action_completed"}},
                 "forbidden": {"raise": {"data_refresh_signal": "application_action_completed"}},
                 "unauthenticated": {"raise": {"data_refresh_signal": "application_action_completed"}},
@@ -1190,70 +1190,70 @@ def test_action_binding_application_action_must_resolve() -> None:
 
 def test_action_binding_routes_must_cover_exact_action_outcomes() -> None:
     author = _author()
-    routes = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_routes"]
-    del routes["not_found"]
-    with pytest.raises(ContractError, match=r"outcome_routes must exactly map application action outcomes: missing: not_found"):
+    effects = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_effects"]
+    del effects["not_found"]
+    with pytest.raises(ContractError, match=r"outcome_effects must exactly map application action outcomes: missing: not_found"):
         compile_source(author)
 
     author = _author()
-    routes = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_routes"]
-    routes["ghost"] = {"no_signal": {"reason": "state_unchanged"}}
-    with pytest.raises(ContractError, match=r"outcome_routes must exactly map application action outcomes: extra: ghost"):
+    effects = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_effects"]
+    effects["ghost"] = {"no_local_effect": {"reason": "state_unchanged"}}
+    with pytest.raises(ContractError, match=r"outcome_effects must exactly map application action outcomes: extra: ghost"):
         compile_source(author)
 
 
 def test_action_binding_rejects_legacy_non_routing_route() -> None:
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_routes"]["forbidden"]
-    route.clear()
-    route["ig" + "nore"] = True
+    effect = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_effects"]["forbidden"]
+    effect.clear()
+    effect["ig" + "nore"] = True
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
 
-def test_action_binding_failure_no_signal_requires_reason_and_rationale() -> None:
+def test_action_binding_failure_no_local_effect_requires_reason_and_rationale() -> None:
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_routes"]["invalid_state"]
-    route.clear()
-    route["no_signal"] = {"reason": "intentionally_unobservable"}
-    with pytest.raises(ContractError, match=r"failure outcome no_signal must declare rationale"):
+    effect = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_effects"]["invalid_state"]
+    effect.clear()
+    effect["no_local_effect"] = {"reason": "intentionally_unobservable"}
+    with pytest.raises(ContractError, match=r"failure outcome no_local_effect must declare rationale"):
         compile_source(author)
 
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_routes"]["invalid_state"]
-    route.clear()
-    route["no_signal"] = {"reason": "handled_by_response_surface", "rationale": "test route"}
+    effect = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_effects"]["invalid_state"]
+    effect.clear()
+    effect["no_local_effect"] = {"reason": "handled_by_response_surface", "rationale": "test effect"}
     with pytest.raises(ContractError, match=r"handled_by_response_surface requires an adapter or renderer response surface"):
         compile_source(author)
 
 
-def test_action_binding_failure_no_signal_rejects_state_unchanged() -> None:
+def test_action_binding_failure_no_local_effect_rejects_state_unchanged() -> None:
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_routes"]["invalid_state"]
-    route.clear()
-    route["no_signal"] = {"reason": "state_unchanged", "rationale": "Invalid submit leaves the list unchanged."}
-    with pytest.raises(ContractError, match=r"failure outcome no_signal must use reason handled_by_response_surface with a proven response surface or intentionally_unobservable with rationale"):
+    effect = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_effects"]["invalid_state"]
+    effect.clear()
+    effect["no_local_effect"] = {"reason": "state_unchanged", "rationale": "Invalid submit leaves the list unchanged."}
+    with pytest.raises(ContractError, match=r"failure outcome no_local_effect must use reason handled_by_response_surface with a proven response surface or intentionally_unobservable with rationale"):
         compile_source(author)
 
 
 def test_action_binding_raised_signals_must_be_declared_locally() -> None:
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_routes"]["submitted"]
-    route["raise"]["data_refresh_signal"] = "ghost"
+    effect = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_effects"]["submitted"]
+    effect["raise"]["data_refresh_signal"] = "ghost"
     with pytest.raises(ContractError, match=r"raise references undeclared state-machine signal: data_refresh_signal\.ghost"):
         compile_source(author)
 
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_routes"]["invalid_state"]
-    route["raise"]["local_signal"] = "ghost"
+    effect = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_effects"]["invalid_state"]
+    effect["raise"]["local_signal"] = "ghost"
     with pytest.raises(ContractError, match=r"raise references undeclared state-machine signal: local_signal\.ghost"):
         compile_source(author)
 
 
 def test_action_binding_payload_and_input_bindings_are_type_checked() -> None:
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_routes"]["invalid_state"]
-    del route["raise"]["payload_bindings"]["message"]
+    effect = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_effects"]["invalid_state"]
+    del effect["raise"]["payload_bindings"]["message"]
     with pytest.raises(ContractError, match=r"payload_bindings must exactly match payload fields: missing: message"):
         compile_source(author)
 
@@ -1274,17 +1274,17 @@ def test_action_binding_literal_actor_ids_emit_lint_warning() -> None:
 
 def test_mutation_routes_raising_loaded_signal_emit_lint_warning() -> None:
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["create"]["outcome_routes"]["created"]
-    route["raise"]["data_refresh_signal"] = "projects_loaded"
+    effect = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["create"]["outcome_effects"]["created"]
+    effect["raise"]["data_refresh_signal"] = "projects_loaded"
     with pytest.warns(ContractLintWarning, match=r"raises data-refresh signal 'projects_loaded' from a mutation"):
         compile_source(author)
 
 
 def test_action_outcome_emits_is_not_local_state_machine_routing() -> None:
     author = _author()
-    routes = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["create"]["outcome_routes"]
-    del routes["created"]
-    with pytest.raises(ContractError, match=r"outcome_routes must exactly map application action outcomes: missing: created"):
+    effects = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["create"]["outcome_effects"]
+    del effects["created"]
+    with pytest.raises(ContractError, match=r"outcome_effects must exactly map application action outcomes: missing: created"):
         compile_source(author)
 
 
@@ -1293,9 +1293,9 @@ def test_action_binding_routes_are_local_per_view_state() -> None:
     empty_create = contract["state_machines"]["state_machine.project.list"]["view_states"]["empty"]["action_bindings"]["create"]
     ready_create = contract["state_machines"]["state_machine.project.list"]["view_states"]["ready"]["action_bindings"]["create"]
     assert empty_create["application_action"] == ready_create["application_action"] == "application_action.project.create"
-    assert "raise" in empty_create["outcome_routes"]["validation_failed"]
-    assert ready_create["outcome_routes"]["validation_failed"] == {
-        "no_signal": {
+    assert "raise" in empty_create["outcome_effects"]["validation_failed"]
+    assert ready_create["outcome_effects"]["validation_failed"] == {
+        "no_local_effect": {
             "reason": "handled_by_response_surface",
             "rationale": "The ready list keeps focus while the response surface shows validation errors.",
         }
@@ -1310,15 +1310,15 @@ def test_data_loader_application_action_and_routes_are_validated() -> None:
         compile_source(author)
 
     author = _author()
-    routes = _item(author, "state_machines", "state_machine.project.list")["data_loaders"]["list_projects"]["outcome_routes"]
-    del routes["unavailable"]
-    with pytest.raises(ContractError, match=r"data_loader list_projects outcome_routes must exactly map query application action outcomes: missing: unavailable"):
+    effects = _item(author, "state_machines", "state_machine.project.list")["data_loaders"]["list_projects"]["outcome_effects"]
+    del effects["unavailable"]
+    with pytest.raises(ContractError, match=r"data_loader list_projects outcome_effects must exactly map query application action outcomes: missing: unavailable"):
         compile_source(author)
 
     author = _author()
-    routes = _item(author, "state_machines", "state_machine.project.list")["data_loaders"]["list_projects"]["outcome_routes"]
-    routes["ghost"] = {"no_signal": {"reason": "state_unchanged"}}
-    with pytest.raises(ContractError, match=r"data_loader list_projects outcome_routes must exactly map query application action outcomes: extra: ghost"):
+    effects = _item(author, "state_machines", "state_machine.project.list")["data_loaders"]["list_projects"]["outcome_effects"]
+    effects["ghost"] = {"no_local_effect": {"reason": "state_unchanged"}}
+    with pytest.raises(ContractError, match=r"data_loader list_projects outcome_effects must exactly map query application action outcomes: extra: ghost"):
         compile_source(author)
 
 
@@ -1330,20 +1330,20 @@ def test_data_loader_bindings_context_updates_and_signals_are_validated() -> Non
         compile_source(author)
 
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["data_loaders"]["list_projects"]["outcome_routes"]["listed"]
-    route["conditional_routes"][0]["context_updates"]["ghost"] = {"value": "nope"}
+    effect = _item(author, "state_machines", "state_machine.project.list")["data_loaders"]["list_projects"]["outcome_effects"]["listed"]
+    effect["conditional_effects"][0]["context_updates"]["ghost"] = {"value": "nope"}
     with pytest.raises(ContractError, match=r"context_updates references undeclared context field: ghost"):
         compile_source(author)
 
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["data_loaders"]["list_projects"]["outcome_routes"]["listed"]
-    route["conditional_routes"][1]["raise"]["data_refresh_signal"] = "ghost"
+    effect = _item(author, "state_machines", "state_machine.project.list")["data_loaders"]["list_projects"]["outcome_effects"]["listed"]
+    effect["conditional_effects"][1]["raise"]["data_refresh_signal"] = "ghost"
     with pytest.raises(ContractError, match=r"raise references undeclared state-machine signal: data_refresh_signal\.ghost"):
         compile_source(author)
 
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.detail")["view_states"]["ready"]["data_loaders"]["read_project"]["outcome_routes"]["not_found"]
-    route["raise"]["local_signal"] = "ghost"
+    effect = _item(author, "state_machines", "state_machine.project.detail")["view_states"]["ready"]["data_loaders"]["read_project"]["outcome_effects"]["not_found"]
+    effect["raise"]["local_signal"] = "ghost"
     with pytest.raises(ContractError, match=r"raise references undeclared state-machine signal: local_signal\.ghost"):
         compile_source(author)
 
@@ -1374,46 +1374,46 @@ def test_data_loader_load_policy_and_application_action_purity_are_validated() -
 
 def test_data_loader_success_cannot_be_semantically_inert() -> None:
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["data_loaders"]["list_projects"]["outcome_routes"]["listed"]
-    route.clear()
-    route["no_signal"] = {"reason": "state_unchanged"}
-    with pytest.raises(ContractError, match=r"successful query no_signal must bind/cache data"):
+    effect = _item(author, "state_machines", "state_machine.project.list")["data_loaders"]["list_projects"]["outcome_effects"]["listed"]
+    effect.clear()
+    effect["no_local_effect"] = {"reason": "state_unchanged"}
+    with pytest.raises(ContractError, match=r"successful query no_local_effect must bind/cache data"):
         compile_source(author)
 
 
 def test_data_loader_query_refresh_requires_explicit_result_or_context_refresh() -> None:
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["data_loaders"]["list_projects"]["outcome_routes"]["listed"]
-    route.clear()
-    route["no_signal"] = {"reason": "handled_by_query_refresh"}
+    effect = _item(author, "state_machines", "state_machine.project.list")["data_loaders"]["list_projects"]["outcome_effects"]["listed"]
+    effect.clear()
+    effect["no_local_effect"] = {"reason": "handled_by_query_refresh"}
     with pytest.raises(ContractError, match=r"handled_by_query_refresh requires an explicit query result binding or context refresh"):
         compile_source(author)
 
 
 def test_data_loader_collection_empty_and_non_empty_routes_are_explicit() -> None:
     contract = compile_source(_author())
-    route = contract["state_machines"]["state_machine.project.list"]["data_loaders"]["list_projects"]["outcome_routes"]["listed"]
-    branches = {next(iter(branch["when"])): branch["raise"]["data_refresh_signal"] for branch in route["conditional_routes"]}
+    effect = contract["state_machines"]["state_machine.project.list"]["data_loaders"]["list_projects"]["outcome_effects"]["listed"]
+    branches = {next(iter(branch["when"])): branch["raise"]["data_refresh_signal"] for branch in effect["conditional_effects"]}
     assert branches == {"result_empty": "project_collection_empty", "result_non_empty": "projects_loaded"}
 
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["data_loaders"]["list_projects"]["outcome_routes"]["listed"]
-    route["conditional_routes"] = [route["conditional_routes"][0]]
+    effect = _item(author, "state_machines", "state_machine.project.list")["data_loaders"]["list_projects"]["outcome_effects"]["listed"]
+    effect["conditional_effects"] = [effect["conditional_effects"][0]]
     with pytest.raises(ContractError, match=r"must declare both result_empty and result_non_empty branches"):
         compile_source(author)
 
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.list")["data_loaders"]["list_projects"]["outcome_routes"]["listed"]
-    route["conditional_routes"][0]["raise"]["data_refresh_signal"] = "projects_loaded"
-    with pytest.raises(ContractError, match=r"empty-collection signal data_refresh_signal\.project_collection_empty without an explicit query route raising it"):
+    effect = _item(author, "state_machines", "state_machine.project.list")["data_loaders"]["list_projects"]["outcome_effects"]["listed"]
+    effect["conditional_effects"][0]["raise"]["data_refresh_signal"] = "projects_loaded"
+    with pytest.raises(ContractError, match=r"empty-collection signal data_refresh_signal\.project_collection_empty without an explicit query outcome effect raising it"):
         compile_source(author)
 
 
 def test_query_empty_non_empty_conditions_require_array_results() -> None:
     author = _author()
-    route = _item(author, "state_machines", "state_machine.project.detail")["view_states"]["loading"]["data_loaders"]["read_project"]["outcome_routes"]["found"]
-    route.clear()
-    route["conditional_routes"] = [
+    effect = _item(author, "state_machines", "state_machine.project.detail")["view_states"]["loading"]["data_loaders"]["read_project"]["outcome_effects"]["found"]
+    effect.clear()
+    effect["conditional_effects"] = [
         {
             "when": {"result_empty": True},
             "result_binding": {"data_key": "project", "from": {"from": "$outcome.result"}},
@@ -1438,7 +1438,7 @@ def test_state_machine_level_query_scope_is_explicit() -> None:
     author = _author()
     invocation = _item(author, "state_machines", "state_machine.project.board")["data_loaders"]["list_board"]
     invocation["result_scope"] = "local"
-    with pytest.raises(ContractError, match=r"result_binding with no_signal must declare result_scope shared or prefetch"):
+    with pytest.raises(ContractError, match=r"result_binding with no_local_effect must declare result_scope shared or prefetch"):
         compile_source(author)
 
     author = _author()
@@ -1488,14 +1488,14 @@ def test_data_loader_ids_cannot_shadow_state_machine_scope() -> None:
         "list_projects": {
             "application_action": "application_action.project.list",
             "input_bindings": {"workspace_id": {"from": "$context.workspace_id"}},
-            "outcome_routes": {
+            "outcome_effects": {
                 "listed": {
                     "result_binding": {"data_key": "projects", "from": {"from": "$outcome.result"}},
-                    "no_signal": {"reason": "result_bound_without_signal"},
+                    "no_local_effect": {"reason": "result_bound_without_signal"},
                 },
-                "forbidden": {"no_signal": {"reason": "handled_by_response_surface", "rationale": "Shadow test."}},
-                "unauthenticated": {"no_signal": {"reason": "handled_by_response_surface", "rationale": "Shadow test."}},
-                "unavailable": {"no_signal": {"reason": "handled_by_response_surface", "rationale": "Shadow test."}},
+                "forbidden": {"no_local_effect": {"reason": "handled_by_response_surface", "rationale": "Shadow test."}},
+                "unauthenticated": {"no_local_effect": {"reason": "handled_by_response_surface", "rationale": "Shadow test."}},
+                "unavailable": {"no_local_effect": {"reason": "handled_by_response_surface", "rationale": "Shadow test."}},
             },
         }
     }
@@ -1508,13 +1508,13 @@ def test_data_loader_routes_are_local_per_state() -> None:
     loading_read = contract["state_machines"]["state_machine.project.detail"]["view_states"]["loading"]["data_loaders"]["read_project"]
     ready_read = contract["state_machines"]["state_machine.project.detail"]["view_states"]["ready"]["data_loaders"]["read_project"]
     assert loading_read["application_action"] == ready_read["application_action"] == "application_action.project.read"
-    assert loading_read["outcome_routes"]["found"] == {
+    assert loading_read["outcome_effects"]["found"] == {
         "result_binding": {"data_key": "project", "from": {"from": "$outcome.result"}},
         "raise": {"data_refresh_signal": "project_loaded"},
     }
-    assert ready_read["outcome_routes"]["found"] == {
+    assert ready_read["outcome_effects"]["found"] == {
         "result_binding": {"data_key": "project", "from": {"from": "$outcome.result"}},
-        "no_signal": {"reason": "result_bound_without_signal"},
+        "no_local_effect": {"reason": "result_bound_without_signal"},
     }
 
 
@@ -2026,17 +2026,17 @@ def test_worker_entry_must_declare_realistic_dispositions() -> None:
         compile_source(author)
 
 
-def test_workflow_steps_must_route_all_action_outcomes() -> None:
+def test_workflow_steps_must_transition_all_action_outcomes() -> None:
     author = _author()
-    del author["workflows"]["workflow.project.approval_notice"]["steps"][0]["outcome_routes"]["delivery_failed"]
-    with pytest.raises(ContractError, match=r"Workflow workflow.project\.approval_notice step send_notice outcome_routes must exactly map application action outcomes: missing: delivery_failed"):
+    del author["workflows"]["workflow.project.approval_notice"]["steps"][0]["outcome_transitions"]["delivery_failed"]
+    with pytest.raises(ContractError, match=r"Workflow workflow.project\.approval_notice step send_notice outcome_transitions must exactly map application action outcomes: missing: delivery_failed"):
         compile_source(author)
 
 
-def test_workflow_steps_must_route_authorization_failure_outcomes() -> None:
+def test_workflow_steps_must_transition_authorization_failure_outcomes() -> None:
     author = _author()
-    del author["workflows"]["workflow.project.approval_notice"]["steps"][0]["outcome_routes"]["forbidden"]
-    with pytest.raises(ContractError, match=r"Workflow workflow.project\.approval_notice step send_notice outcome_routes must exactly map application action outcomes: missing: forbidden"):
+    del author["workflows"]["workflow.project.approval_notice"]["steps"][0]["outcome_transitions"]["forbidden"]
+    with pytest.raises(ContractError, match=r"Workflow workflow.project\.approval_notice step send_notice outcome_transitions must exactly map application action outcomes: missing: forbidden"):
         compile_source(author)
 
 
@@ -2044,27 +2044,27 @@ def test_workflow_authorization_failure_collapse_requires_rationale() -> None:
     author = _author()
     workflow = author["workflows"]["workflow.project.approval_notice"]
     del workflow["outcomes"]["notice_forbidden"]
-    workflow["steps"][0]["outcome_routes"]["forbidden"] = {"fail_as": "delivery_failed"}
+    workflow["steps"][0]["outcome_transitions"]["forbidden"] = {"fail_as": "delivery_failed"}
     with pytest.raises(ContractError, match=r"collapses authorization failure into delivery_failed"):
         compile_source(author)
 
-    workflow["steps"][0]["outcome_routes"]["forbidden"]["rationale"] = "The worker deliberately treats policy denial as a delivery failure for this integration."
+    workflow["steps"][0]["outcome_transitions"]["forbidden"]["rationale"] = "The worker deliberately treats policy denial as a delivery failure for this integration."
     compile_source(author)
 
 
-def test_workflow_route_actions_must_be_exclusive() -> None:
+def test_workflow_transition_actions_must_be_exclusive() -> None:
     author = _author()
-    route = author["workflows"]["workflow.project.approval_notice"]["steps"][0]["outcome_routes"]["delivery_failed"]
-    route["fail_as"] = "delivery_failed"
+    transition = author["workflows"]["workflow.project.approval_notice"]["steps"][0]["outcome_transitions"]["delivery_failed"]
+    transition["fail_as"] = "delivery_failed"
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
 
-def test_workflow_routes_must_reference_known_targets() -> None:
+def test_workflow_transitions_must_reference_known_targets() -> None:
     author = _author()
-    route = author["workflows"]["workflow.project.approval_notice"]["steps"][0]["outcome_routes"]["delivery_failed"]
-    route["retry_policy"]["fail_as"] = "missing"
-    with pytest.raises(ContractError, match=r"route delivery_failed references unknown workflow outcome missing"):
+    transition = author["workflows"]["workflow.project.approval_notice"]["steps"][0]["outcome_transitions"]["delivery_failed"]
+    transition["retry_policy"]["fail_as"] = "missing"
+    with pytest.raises(ContractError, match=r"transition delivery_failed references unknown workflow outcome missing"):
         compile_source(author)
 
 

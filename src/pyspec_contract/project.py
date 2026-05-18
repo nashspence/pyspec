@@ -662,7 +662,7 @@ def workflows_projection(contract: dict[str, Any]) -> dict[str, Any]:
         for step in workflow["steps"]:
             cap = contract["application_actions"][step["application_action"]]
             steps[step["id"]] = {
-                "doc": f"input_bindings={step['input_bindings']}; outcome_routes={step['outcome_routes']}",
+                "doc": f"input_bindings={step['input_bindings']}; outcome_transitions={step['outcome_transitions']}",
                 "run": f"#{safe_id(step['application_action'])}",
                 "in": {name: _workflow_cwl_source(source) for name, source in sorted(step["input_bindings"].items())},
                 "out": sorted(cap["outcomes"]),

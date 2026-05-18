@@ -14,9 +14,9 @@ Authoring scope:
 - Core: fixtures, facts, models, application_actions, and product test cases.
 - HTTP: HTTP entry points that bind application_actions to externally visible API application_actions.
 - Domain events: durable domain facts and webhook-facing integration contracts when requested.
-- Workflow: workflows with explicit outcomes, step outcome routing, CLI target-outcome response handlers, and worker/scheduled ingress responses.
+- Workflow: workflows with explicit outcomes, step outcome transitions, CLI target-outcome response handlers, and worker/scheduled ingress responses.
 - UI: state machines with view-state-local layouts, child state machines, render audit cases, text resources/assets, content cases, and render profiles.
-- HTML UI: html renderer layout, presentation, style, UI entry points, routes, and HTML audit surfaces.
+- HTML UI: html renderer layout, presentation, style, UI entry points, HTML routes, and HTML audit surfaces.
 - Textual UI: Textual presentation, screen projection, and Textual audit surfaces.
 
 Rules:

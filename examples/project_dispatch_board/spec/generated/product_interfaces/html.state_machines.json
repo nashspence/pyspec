@@ -304,15 +304,15 @@
           "load": {
             "on_enter": true
           },
-          "outcome_routes": {
+          "outcome_effects": {
             "forbidden": {
-              "no_signal": {
+              "no_local_effect": {
                 "rationale": "The activity panel remains in its current state when authorization blocks the refresh.",
                 "reason": "intentionally_unobservable"
               }
             },
             "found": {
-              "no_signal": {
+              "no_local_effect": {
                 "reason": "result_bound_without_signal"
               },
               "result_binding": {
@@ -323,13 +323,13 @@
               }
             },
             "not_found": {
-              "no_signal": {
+              "no_local_effect": {
                 "rationale": "The parent detail panel owns not-found display for the selected project.",
                 "reason": "intentionally_unobservable"
               }
             },
             "unauthenticated": {
-              "no_signal": {
+              "no_local_effect": {
                 "rationale": "The entry response surface owns unauthenticated display.",
                 "reason": "intentionally_unobservable"
               }
@@ -584,7 +584,7 @@
           "load": {
             "on_enter": true
           },
-          "outcome_routes": {
+          "outcome_effects": {
             "forbidden": {
               "raise": {
                 "data_refresh_signal": "project_load_failed"
@@ -792,7 +792,7 @@
               }
             ]
           },
-          "outcome_routes": {
+          "outcome_effects": {
             "forbidden": {
               "raise": {
                 "local_signal": "show_invalid_state",
@@ -804,7 +804,7 @@
               }
             },
             "found": {
-              "no_signal": {
+              "no_local_effect": {
                 "reason": "result_bound_without_signal"
               },
               "result_binding": {
@@ -852,14 +852,14 @@
                 "from": "$context.project_id"
               }
             },
-            "outcome_routes": {
+            "outcome_effects": {
               "approved": {
                 "raise": {
                   "data_refresh_signal": "project_changed"
                 }
               },
               "forbidden": {
-                "no_signal": {
+                "no_local_effect": {
                   "rationale": "The response surface keeps the detail panel unchanged for forbidden approval.",
                   "reason": "handled_by_response_surface"
                 }
@@ -875,19 +875,19 @@
                 }
               },
               "not_found": {
-                "no_signal": {
+                "no_local_effect": {
                   "rationale": "The response surface reports a missing project without a local transition.",
                   "reason": "handled_by_response_surface"
                 }
               },
               "unauthenticated": {
-                "no_signal": {
+                "no_local_effect": {
                   "rationale": "The response surface reports authentication failure without a local transition.",
                   "reason": "handled_by_response_surface"
                 }
               },
               "unavailable": {
-                "no_signal": {
+                "no_local_effect": {
                   "rationale": "The response surface reports temporary unavailability without a local transition.",
                   "reason": "handled_by_response_surface"
                 }
@@ -901,7 +901,7 @@
                 "from": "$context.project_id"
               }
             },
-            "outcome_routes": {
+            "outcome_effects": {
               "archived": {
                 "raise": {
                   "data_refresh_signal": "project_changed"
@@ -1055,20 +1055,20 @@
                 "from": "$context.workspace_id"
               }
             },
-            "outcome_routes": {
+            "outcome_effects": {
               "created": {
                 "raise": {
                   "data_refresh_signal": "projects_changed"
                 }
               },
               "forbidden": {
-                "no_signal": {
+                "no_local_effect": {
                   "rationale": "The response surface keeps the empty list visible for forbidden create.",
                   "reason": "handled_by_response_surface"
                 }
               },
               "unauthenticated": {
-                "no_signal": {
+                "no_local_effect": {
                   "rationale": "The response surface reports authentication failure without a local transition.",
                   "reason": "handled_by_response_surface"
                 }
@@ -1475,26 +1475,26 @@
                 "from": "$context.workspace_id"
               }
             },
-            "outcome_routes": {
+            "outcome_effects": {
               "created": {
                 "raise": {
                   "data_refresh_signal": "projects_changed"
                 }
               },
               "forbidden": {
-                "no_signal": {
+                "no_local_effect": {
                   "rationale": "The response surface keeps the ready list visible for forbidden create.",
                   "reason": "handled_by_response_surface"
                 }
               },
               "unauthenticated": {
-                "no_signal": {
+                "no_local_effect": {
                   "rationale": "The response surface reports authentication failure without a local transition.",
                   "reason": "handled_by_response_surface"
                 }
               },
               "validation_failed": {
-                "no_signal": {
+                "no_local_effect": {
                   "rationale": "The ready list keeps focus while the response surface shows validation errors.",
                   "reason": "handled_by_response_surface"
                 }
@@ -1508,7 +1508,7 @@
                 "from": "$context.selected_project_id"
               }
             },
-            "outcome_routes": {
+            "outcome_effects": {
               "forbidden": {
                 "raise": {
                   "local_signal": "show_invalid_state",

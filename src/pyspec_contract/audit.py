@@ -1759,14 +1759,14 @@ def state_machine_dot(state_machine_id: str, state_machine: dict[str, Any], cont
 
 
 def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contract: dict[str, Any]) -> str:
-    route_state_machine_order: list[str] = []
+    sync_state_machine_order: list[str] = []
     for rule in state_machine.get("signal_sync_rules", []):
-        route_state_machine_order.append(rule["when"]["instance"])
-        route_state_machine_order.extend(effect["send"]["instance"] for effect in rule.get("effects", []) if "send" in effect)
-    route_state_machine_index = {state_machine_id: index for index, state_machine_id in enumerate(dict.fromkeys(route_state_machine_order))}
+        sync_state_machine_order.append(rule["when"]["instance"])
+        sync_state_machine_order.extend(effect["send"]["instance"] for effect in rule.get("effects", []) if "send" in effect)
+    sync_state_machine_index = {state_machine_id: index for index, state_machine_id in enumerate(dict.fromkeys(sync_state_machine_order))}
     mounts = sorted(
         state_machine.get("child_state_machines", []),
-        key=lambda mount: (route_state_machine_index.get(mount["id"], len(route_state_machine_index)), mount["id"]),
+        key=lambda mount: (sync_state_machine_index.get(mount["id"], len(sync_state_machine_index)), mount["id"]),
     )
     mount_by_id = {mount["id"]: mount for mount in mounts}
     mount_node_by_id = {mount["id"]: _dot_node_id("child_state_machine", mount["id"]) for mount in mounts}
@@ -1778,11 +1778,11 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
     if mount_node_ids and not has_sync:
         lines.extend(_dot_invisible_order(mount_node_ids, indent="  "))
     if not has_sync:
-        lines.append(_dot_html_node("local_signal_route_none", _dot_card("No local signal routes", "local signal routing", [], style=_DOT_STYLE_NEUTRAL)))
+        lines.append(_dot_html_node("local_signal_sync_none", _dot_card("No local signal sync", "local signal sync", [], style=_DOT_STYLE_NEUTRAL)))
     for rule in state_machine.get("signal_sync_rules", []):
         signal_id = rule["when"]["local_signal"]
         emit_id = _dot_node_id("local_signal_emit", f"{rule['id']}_{rule['when']['instance']}_{signal_id}")
-        sync_id = _dot_node_id("local_signal_route", rule["id"])
+        sync_id = _dot_node_id("local_signal_sync", rule["id"])
         send_effects = [(index, effect) for index, effect in enumerate(rule.get("effects", [])) if "send" in effect]
         effect_ids = [_dot_node_id("local_signal_effect", f"{rule['id']}_{index}") for index, _ in send_effects]
         lines.append(
@@ -1804,8 +1804,8 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
                 sync_id,
                 _dot_card(
                     rule["id"],
-                    "local signal route",
-                    [("set", _route_set_lines(rule, state_machine))],
+                    "local signal sync",
+                    [("set", _sync_set_lines(rule, state_machine))],
                     style=_DOT_STYLE_WORKFLOW,
                 ),
             )
@@ -1818,7 +1818,7 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
             lines.extend(_dot_invisible_order(effect_ids, indent="  "))
     for rule in state_machine.get("signal_sync_rules", []):
         emit_id = _dot_node_id("local_signal_emit", f"{rule['id']}_{rule['when']['instance']}_{rule['when']['local_signal']}")
-        sync_id = _dot_node_id("local_signal_route", rule["id"])
+        sync_id = _dot_node_id("local_signal_sync", rule["id"])
         source = mount_node_by_id.get(rule["when"]["instance"])
         if source:
             lines.append(_dot_edge(source, emit_id, {"color": _DOT_COLOR_EVENT_BORDER, "penwidth": "1.4"}))
@@ -1939,13 +1939,13 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
     if step_nodes:
         lines.append(_dot_edge(workflow_node, step_nodes[0][0]))
     for node_id, step in step_nodes:
-        for outcome_id, route in sorted(step["outcome_routes"].items()):
+        for outcome_id, transition in sorted(step["outcome_transitions"].items()):
             attrs = {"label": outcome_id}
-            route_key, value = _workflow_route_action(route)
-            if route_key == "next_step":
+            transition_key, value = _workflow_transition_action(transition)
+            if transition_key == "next_step":
                 lines.append(_dot_edge(node_id, step_node_by_id[value], attrs))
             else:
-                outcome = _workflow_route_outcome(route_key, value)
+                outcome = _workflow_transition_outcome(transition_key, value)
                 assert outcome is not None
                 lines.append(_dot_edge(node_id, outcome_node_by_id[outcome], attrs))
     if outcome_nodes:
@@ -2408,7 +2408,7 @@ def _workflow_step_card(step: dict[str, Any], contract: dict[str, Any]) -> str:
     sections: list[tuple[str, list[object]]] = [
         ("application_action", [step["application_action"]]),
         ("input bindings", _format_binding_lines(step["input_bindings"])),
-        ("routes", _workflow_route_lines(step)),
+        ("transitions", _workflow_transition_lines(step)),
     ]
     sections.extend(_application_action_reference_sections(step["application_action"], application_action))
     return _dot_card(
@@ -2420,31 +2420,31 @@ def _workflow_step_card(step: dict[str, Any], contract: dict[str, Any]) -> str:
     )
 
 
-def _workflow_route_lines(step: dict[str, Any]) -> list[str]:
+def _workflow_transition_lines(step: dict[str, Any]) -> list[str]:
     lines: list[str] = []
-    for outcome_id, route in sorted(step["outcome_routes"].items()):
-        route_key, value = _workflow_route_action(route)
-        if route_key == "retry_policy":
+    for outcome_id, transition in sorted(step["outcome_transitions"].items()):
+        transition_key, value = _workflow_transition_action(transition)
+        if transition_key == "retry_policy":
             target = f"retry_policy {_DOT_ARROW_FORWARD} {value['fail_as']}"
             suffix = f" ({value['attempts']} {value['backoff']})"
         else:
-            target = f"{route_key} {_DOT_ARROW_FORWARD} {value}"
+            target = f"{transition_key} {_DOT_ARROW_FORWARD} {value}"
             suffix = ""
         lines.append(f"{outcome_id}: {target}{suffix}")
     return lines
 
 
-def _workflow_route_action(route: dict[str, Any]) -> tuple[str, Any]:
-    for route_key in ("next_step", "complete_as", "fail_as", "retry_policy", "dead_letter_as"):
-        if route_key in route:
-            return route_key, route[route_key]
-    raise KeyError("workflow route has no target")
+def _workflow_transition_action(transition: dict[str, Any]) -> tuple[str, Any]:
+    for transition_key in ("next_step", "complete_as", "fail_as", "retry_policy", "dead_letter_as"):
+        if transition_key in transition:
+            return transition_key, transition[transition_key]
+    raise KeyError("workflow transition has no target")
 
 
-def _workflow_route_outcome(route_key: str, value: Any) -> str | None:
-    if route_key in {"complete_as", "fail_as", "dead_letter_as"}:
+def _workflow_transition_outcome(transition_key: str, value: Any) -> str | None:
+    if transition_key in {"complete_as", "fail_as", "dead_letter_as"}:
         return value
-    if route_key == "retry_policy":
+    if transition_key == "retry_policy":
         return value["fail_as"]
     return None
 
@@ -2613,7 +2613,7 @@ def _emitted_local_signal_data_lines(
     return lines
 
 
-def _route_set_lines(rule: dict[str, Any], state_machine: dict[str, Any]) -> list[_DotTypedField]:
+def _sync_set_lines(rule: dict[str, Any], state_machine: dict[str, Any]) -> list[_DotTypedField]:
     lines = []
     context = state_machine["context"]
     for effect in rule.get("effects", []):

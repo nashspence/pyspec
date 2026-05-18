@@ -37,7 +37,7 @@ authoring_layers:
     full: full
 
 purity_rules:
-  test_cases: Do not include harness, test, dev, or environment routing. The same generated feature corpus is consumed by both spec and prod harnesses.
+  test_cases: Do not include harness, test, dev, or environment dispatch. The same generated feature corpus is consumed by both spec and prod harnesses.
   models: Do not include persistence dialects, SQL tables, ORM details, datastore engines, indexes, or migrations. Models are product/design data contracts only.
   generated: Do not edit generated projections or audit renders by hand.
   agent_prompts: Use spec/generated/agent_prompts/{pm_design,test,dev,review}.md as role-specific standalone prompts; each contains a {{USER_PROMPT}} substitution point.
@@ -97,7 +97,7 @@ entry_point_adapters:
 entry_target_contracts:
   boundary: 'Entry points declare adapter-specific input plus either target outcome responses or async ingress responses. target.*.input_bindings maps adapter input onto the target operation or state-machine context.'
   state_machine: 'State-machine entry targets use target.state_machine.ref plus target.state_machine.renderer to distinguish invocation from html/textual rendering.'
-  workflow: 'Workflow entry targets use target.workflow.ref plus target.workflow.trigger_bindings so the entry point binds input into the workflow trigger payload. Workers declare ingress dispositions; workflows declare named execution outcomes and route each step outcome explicitly.'
+  workflow: 'Workflow entry targets use target.workflow.ref plus target.workflow.trigger_bindings so the entry point binds input into the workflow trigger payload. Workers declare ingress dispositions; workflows declare named execution outcomes and transition each step outcome explicitly.'
 
 renderer_contracts:
   html_layout:

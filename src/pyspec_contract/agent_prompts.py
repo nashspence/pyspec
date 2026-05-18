@@ -189,7 +189,7 @@ def _pm_design_prompt(context: _PromptContext) -> str:
     else:
         lines.append("- Do not add domain-event, webhook, or integration-message vocabulary unless the active layers change.")
     if "workflow" in context.layers:
-        lines.append("- Workflow: workflows with explicit outcomes, step outcome routing, CLI target-outcome response handlers, and worker/scheduled ingress responses.")
+        lines.append("- Workflow: workflows with explicit outcomes, step outcome transitions, CLI target-outcome response handlers, and worker/scheduled ingress responses.")
     else:
         lines.append("- Do not add workflow, CLI, worker, or schedule vocabulary.")
     if "ui" in context.layers:
@@ -197,9 +197,9 @@ def _pm_design_prompt(context: _PromptContext) -> str:
     else:
         lines.append("- Do not author UI state machines, text resources/assets, render audit cases, or surface presentation.")
     if "html" in context.layers:
-        lines.append("- HTML UI: html renderer layout, presentation, style, UI entry points, routes, and HTML audit surfaces.")
+        lines.append("- HTML UI: html renderer layout, presentation, style, UI entry points, HTML routes, and HTML audit surfaces.")
     elif "ui" in context.layers:
-        lines.append("- Do not author html renderer details or html routes; the html layer is inactive.")
+        lines.append("- Do not author html renderer details or HTML routes; the html layer is inactive.")
     if "textual" in context.layers:
         lines.append("- Textual UI: Textual presentation, screen projection, and Textual audit surfaces.")
     elif "ui" in context.layers:
@@ -286,7 +286,7 @@ def _review_prompt(context: _PromptContext) -> str:
         "",
         "Dev audit:",
         "- Check whether implementation consumes generated projections/constants and implements the declared contract without inventing contract surface.",
-        "- Reject invented routes, text resources, selectors, domain_events, workflows, authorization_policies, application_actions, fixtures, test-case IDs, persistence contracts, or content source signatures outside the spec.",
+        "- Reject invented HTML routes, text resources, selectors, domain_events, workflows, authorization_policies, application_actions, fixtures, test-case IDs, persistence contracts, or content source signatures outside the spec.",
         "- For every dev issue, provide a recommended prompt for `dev.md` that asks for the smallest implementation fix.",
         "",
         "Evidence checks:",
@@ -319,7 +319,7 @@ def _dev_prompt(context: _PromptContext) -> str:
         context.compiled_summary(),
         "",
         "Do not change `spec/spec.yaml` to fix implementation failures unless the user explicitly switches you into PM/design work.",
-        "Use generated constants and projections; do not invent routes, strings, state machine surfaces, CSS selectors, Textual widgets, Textual style rules, domain_events, workflows, authorization_policies, application_actions, fixtures, test-case IDs, storage tables, or migrations outside the spec and implementation layer.",
+        "Use generated constants and projections; do not invent HTML routes, strings, state machine surfaces, CSS selectors, Textual widgets, Textual style rules, domain_events, workflows, authorization_policies, application_actions, fixtures, test-case IDs, storage tables, or migrations outside the spec and implementation layer.",
         "",
         "Generated interfaces to consume:",
         "- `spec/generated/behavior/test_cases.yaml` and `spec/generated/behavior/fixtures.yaml`",

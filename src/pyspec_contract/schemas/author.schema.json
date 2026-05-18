@@ -2333,7 +2333,7 @@
       "pattern": "^\\$[a-z][a-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+$",
       "type": "string"
     },
-    "local_no_signal_route": {
+    "local_no_effect": {
       "additionalProperties": false,
       "properties": {
         "rationale": {
@@ -2597,8 +2597,8 @@
         "application_action": {
           "$ref": "#/$defs/application_action_ref"
         },
-        "outcome_routes": {
-          "$ref": "#/$defs/state_machine_action_outcome_routes"
+        "outcome_effects": {
+          "$ref": "#/$defs/state_machine_action_outcome_effects"
         },
         "rationale": {
           "$ref": "#/$defs/rationale"
@@ -2606,11 +2606,11 @@
       },
       "required": [
         "application_action",
-        "outcome_routes"
+        "outcome_effects"
       ],
       "type": "object"
     },
-    "state_machine_action_outcome_route": {
+    "state_machine_action_outcome_effect": {
       "oneOf": [
         {
           "additionalProperties": false,
@@ -2627,20 +2627,20 @@
         {
           "additionalProperties": false,
           "properties": {
-            "no_signal": {
-              "$ref": "#/$defs/local_no_signal_route"
+            "no_local_effect": {
+              "$ref": "#/$defs/local_no_effect"
             }
           },
           "required": [
-            "no_signal"
+            "no_local_effect"
           ],
           "type": "object"
         }
       ]
     },
-    "state_machine_action_outcome_routes": {
+    "state_machine_action_outcome_effects": {
       "additionalProperties": {
-        "$ref": "#/$defs/state_machine_action_outcome_route"
+        "$ref": "#/$defs/state_machine_action_outcome_effect"
       },
       "minProperties": 1,
       "propertyNames": {
@@ -2682,8 +2682,8 @@
         "application_action": {
           "$ref": "#/$defs/application_action_ref"
         },
-        "outcome_routes": {
-          "$ref": "#/$defs/state_machine_data_loader_outcome_routes"
+        "outcome_effects": {
+          "$ref": "#/$defs/state_machine_data_loader_outcome_effects"
         },
         "rationale": {
           "$ref": "#/$defs/rationale"
@@ -2699,14 +2699,14 @@
       },
       "required": [
         "application_action",
-        "outcome_routes"
+        "outcome_effects"
       ],
       "type": "object"
     },
     "view_state_data_loader": {
       "$ref": "#/$defs/state_machine_data_loader"
     },
-    "state_machine_data_loader_outcome_route": {
+    "state_machine_data_loader_outcome_effect": {
       "additionalProperties": false,
       "anyOf": [
         {
@@ -2726,19 +2726,19 @@
         },
         {
           "required": [
-            "no_signal"
+            "no_local_effect"
           ]
         },
         {
           "required": [
-            "conditional_routes"
+            "conditional_effects"
           ]
         }
       ],
       "properties": {
-        "conditional_routes": {
+        "conditional_effects": {
           "items": {
-            "$ref": "#/$defs/state_machine_query_conditional_route"
+            "$ref": "#/$defs/state_machine_query_conditional_effect"
           },
           "minItems": 1,
           "type": "array"
@@ -2752,8 +2752,8 @@
           },
           "type": "object"
         },
-        "no_signal": {
-          "$ref": "#/$defs/local_no_signal_route"
+        "no_local_effect": {
+          "$ref": "#/$defs/local_no_effect"
         },
         "raise": {
           "$ref": "#/$defs/state_machine_signal_raise"
@@ -2764,7 +2764,7 @@
       },
       "type": "object"
     },
-    "state_machine_query_conditional_route": {
+    "state_machine_query_conditional_effect": {
       "additionalProperties": false,
       "anyOf": [
         {
@@ -2784,7 +2784,7 @@
         },
         {
           "required": [
-            "no_signal"
+            "no_local_effect"
           ]
         }
       ],
@@ -2798,8 +2798,8 @@
           },
           "type": "object"
         },
-        "no_signal": {
-          "$ref": "#/$defs/local_no_signal_route"
+        "no_local_effect": {
+          "$ref": "#/$defs/local_no_effect"
         },
         "raise": {
           "$ref": "#/$defs/state_machine_signal_raise"
@@ -2857,9 +2857,9 @@
       ],
       "type": "object"
     },
-    "state_machine_data_loader_outcome_routes": {
+    "state_machine_data_loader_outcome_effects": {
       "additionalProperties": {
-        "$ref": "#/$defs/state_machine_data_loader_outcome_route"
+        "$ref": "#/$defs/state_machine_data_loader_outcome_effect"
       },
       "minProperties": 1,
       "propertyNames": {
@@ -3761,9 +3761,9 @@
       ],
       "type": "object"
     },
-    "workflow_outcome_routes": {
+    "workflow_outcome_transitions": {
       "additionalProperties": {
-        "$ref": "#/$defs/workflow_route"
+        "$ref": "#/$defs/workflow_transition"
       },
       "minProperties": 1,
       "propertyNames": {
@@ -3811,7 +3811,7 @@
       ],
       "type": "object"
     },
-    "workflow_route": {
+    "workflow_transition": {
       "additionalProperties": false,
       "oneOf": [
         {
@@ -3876,15 +3876,15 @@
         "application_action": {
           "$ref": "#/$defs/application_action_ref"
         },
-        "outcome_routes": {
-          "$ref": "#/$defs/workflow_outcome_routes"
+        "outcome_transitions": {
+          "$ref": "#/$defs/workflow_outcome_transitions"
         }
       },
       "required": [
         "id",
         "application_action",
         "input_bindings",
-        "outcome_routes"
+        "outcome_transitions"
       ],
       "type": "object"
     },
@@ -3906,7 +3906,7 @@
   "$id": "https://example.invalid/authored-source-product-spec.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Sparse, human-authored source product specification. The compiler produces the compiled specification at spec/generated/compiled/spec.yaml, including normalized identifiers, derived domain_events, derived routes, generated references, expanded endpoints, and expanded empty-collection states.",
+  "description": "Sparse, human-authored source product specification. The compiler produces the compiled specification at spec/generated/compiled/spec.yaml, including normalized identifiers, derived domain_events, derived HTML routes, generated references, expanded endpoints, and expanded empty-collection states.",
   "properties": {
     "assets": {
       "additionalProperties": {

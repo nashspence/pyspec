@@ -1,12 +1,12 @@
 # Spec Ontology
 
-This glossary is the vocabulary contract for the authored-source, layer-pruned authored-source, and compiled-output schemas. The authored schema describes sparse human-authored input. Layer-pruned authored schemas are generated from the same source schema and hide sections outside the active authoring layers. The compiled schema describes normalized output in `spec/generated/compiled/spec.yaml`, including generated references, derived domain events, derived routes, endpoint expansions, and expanded empty-collection states.
+This glossary is the vocabulary contract for the authored-source, layer-pruned authored-source, and compiled-output schemas. The authored schema describes sparse human-authored input. Layer-pruned authored schemas are generated from the same source schema and hide sections outside the active authoring layers. The compiled schema describes normalized output in `spec/generated/compiled/spec.yaml`, including generated references, derived domain events, derived HTML routes, endpoint expansions, and expanded empty-collection states.
 
 ## Terminology Boundaries
 
 - `domain_event`: a durable product/domain fact that happened. Domain events are emitted by successful command or transition outcomes and may trigger workflows.
 - `integration_message`: a wire-level AsyncAPI message in `integration_messages.asyncapi.yaml`. It carries a domain-event payload over a channel, but it is not state-machine vocabulary.
-- `local_signal`: a state-machine-local trigger/effect. Local signals may be accepted by transitions, emitted by transitions, and routed between mounted child state-machine instances.
+- `local_signal`: a state-machine-local trigger/effect. Local signals may be accepted by transitions, emitted by transitions, and synced between mounted child state-machine instances.
 - `data_refresh_signal`: a state-machine-local data refresh or invalidation signal, commonly consumed by `data_loader.load.refresh_on`.
 
 Bare `event` is avoided for durable facts because CloudEvents and UML/state-machine terminology also use that word. Bare `message` is avoided in state machines because AsyncAPI uses message for transport exchange.
@@ -29,7 +29,7 @@ Bare `event` is avoided for durable facts because CloudEvents and UML/state-mach
 - <!-- top-level:state_machines --> `state_machines`: UI/component state-machine contracts with context, data loaders, view states, action bindings, transitions, signals, child state machines, and sync rules.
 - <!-- top-level:test_cases --> `test_cases`: formal behavior test cases with subject_ref, given, when, and then contracts.
 - <!-- top-level:text_resources --> `text_resources`: text resources used by state-machine slots and content-source projections.
-- <!-- top-level:workflows --> `workflows`: asynchronous or long-running flows with workflow triggers, steps, input bindings, exclusive outcome routes, and outcomes.
+- <!-- top-level:workflows --> `workflows`: asynchronous or long-running flows with workflow triggers, steps, input bindings, exclusive outcome transitions, and outcomes.
 
 ## ID Namespaces
 
@@ -58,7 +58,7 @@ Bare `event` is avoided for durable facts because CloudEvents and UML/state-mach
 - `container_id`: local Textual layout container id within one view state.
 - `viewport_id`: local render-profile viewport id within `html_viewports` or `textual_viewports`.
 - `workflow_ref`: `workflow.<domain>...`; workflow declarations, workflow entry-point targets, and generated workflow references.
-- Generated refs use `asset`, `authorization_policy`, `cli_command`, `cli_response_handler`, `endpoint`, `entry_point_delegate`, `entry_point_target`, `local_signal_raise`, `action_binding`, `action_outcome_route`, `data_loader`, `data_loader_outcome_route`, `route`, `runtime_response`, `screen`, `state_machine`, `surface`, `text`, and `workflow` buckets in compiled `refs`.
+- Generated refs use `asset`, `authorization_policy`, `cli_command`, `cli_response_handler`, `endpoint`, `entry_point_delegate`, `entry_point_target`, `local_signal_raise`, `action_binding`, `action_outcome_effect`, `data_loader`, `data_loader_outcome_effect`, `route`, `runtime_response`, `screen`, `state_machine`, `surface`, `text`, and `workflow` buckets in compiled `refs`.
 
 ## Reference Types
 
@@ -82,34 +82,34 @@ Bare `event` is avoided for durable facts because CloudEvents and UML/state-mach
 - `CLI response handler`: maps a named response outcome to stdout, stderr, an exit code, and optionally a retry policy. It does not restate HTTP status classification when the delegated entry point is an HTTP API.
 - `retry_safe`: explicit application-action or entry-point marker permitting automatic retry of delegated, command, transition, or workflow execution. The default is false. Queries are retry-safe by action kind.
 - `retry safety`: validation that a retry policy applies only to a retry-safe delegated entry point and final target, a query, an explicitly retry-safe application action or entry point, or an ingress/disposition outcome where no target application action has executed. Transport retry, ingress retry, workflow retry, and application-action retry are separate scopes.
-- `workflow_route`: exclusive route target via `next_step`, `complete_as`, `fail_as`, `retry_policy`, or `dead_letter_as`.
+- `workflow_transition`: exclusive workflow control-flow target via `next_step`, `complete_as`, `fail_as`, `retry_policy`, or `dead_letter_as`.
 - `state-machine context schema`: explicit `field_schema_map` for local machine context. Each context field declares `type`, `required`, and `nullable`; effects may set a context field to null only when that field is nullable.
 - `context_present`: state-machine condition meaning the declared context field is present and non-null. Nullable context fields with a current `null` value are not present for this condition.
 - `render profile`: global audit/golden-image viewport map. Renderable state machines require at least one render profile, and profiles must include viewport sets for each declared renderer surface (`html_viewports` for HTML, `textual_viewports` for Textual).
 - `render audit case`: view-state-local visual evidence input. It supplies seed fixtures, optional context, optional fact references, and, for composed states, an exact child instance view-state vector; it never names render profiles directly.
 - `content source`: a final resolver declaration where `text_resource.source_ref` or `asset.source_ref` equals the resource id. Final content resolvers require at least one matching `content_case`, and case args must exactly match the resource args.
-- `rationale`: bounded plain text used on authored resources and on intentionally unobservable routes. Missing top-level resource rationale is filled by a deterministic compiler default.
-- `Action binding`: local view-state use of a global application action, normally user/action-triggered, including input bindings and outcome routing. A renderer action binds to this local invocation, not directly to `application_action_ref`.
-- `Data loader`: local state-machine or view-state use of a query action for data loading or refresh, including input bindings, load policy, context updates, result binding, and outcome routing. State-machine-level queries load with `on_start`/`on_mount`; view-state-level queries load with `on_enter`.
-- `Data loader effect`: each query outcome route must update context, bind/cache a result, raise a local signal, or explicitly declare a scoped no-signal route. `result_binding.data_key` names the state-machine/view-state result data populated from a binding value.
-- `Query refresh signal`: local data-refresh signal raised by a mutation, query outcome, or other invalidation route, such as `project_changed`, and consumed by `data_loader.load.refresh_on`. Loaded/missing/error data-refresh signals should come from query outcomes after data has actually been bound or classified.
-- `Empty/non-empty query routing`: array-valued query outcomes split the outcome route with `conditional_routes` using `when.result_empty` and `when.result_non_empty`. Both branches must be declared so empty collection states are reachable through authored routing rather than compiler length guesses.
+- `rationale`: bounded plain text used on authored resources and on intentionally unobservable local effects. Missing top-level resource rationale is filled by a deterministic compiler default.
+- `Action binding`: local view-state use of a global application action, normally user/action-triggered, including input bindings and outcome effects. A renderer action binds to this local invocation, not directly to `application_action_ref`.
+- `Data loader`: local state-machine or view-state use of a query action for data loading or refresh, including input bindings, load policy, context updates, result binding, and outcome effects. State-machine-level queries load with `on_start`/`on_mount`; view-state-level queries load with `on_enter`.
+- `Data loader effect`: each query outcome effect must update context, bind/cache a result, raise a local signal, or explicitly declare a scoped `no_local_effect`. `result_binding.data_key` names the state-machine/view-state result data populated from a binding value.
+- `Query refresh signal`: local data-refresh signal raised by a mutation, query outcome, or other invalidation effect, such as `project_changed`, and consumed by `data_loader.load.refresh_on`. Loaded/missing/error data-refresh signals should come from query outcomes after data has actually been bound or classified.
+- `Empty/non-empty query handling`: array-valued query outcomes split the outcome effect with `conditional_effects` using `when.result_empty` and `when.result_non_empty`. Both branches must be declared so empty collection states are reachable through authored handling rather than compiler length guesses.
 - `Machine-scoped query ownership`: state-machine-level data loaders declare `result_scope: local`, `shared`, or `prefetch`. Machine-scoped result bindings that do not raise a signal must use shared/prefetch ownership with rationale, especially when a child machine also owns visible loading.
 - `Field-slot source resolution`: every field slot resolves to exactly one context field or query result binding. A bound model or array item can feed field slots when the slot name exists on the result type; ambiguous or missing sources fail semantic validation.
-- `Outcome route`: mapping from an action/data-loader outcome to context updates, result binding, a local signal raise, or explicit no-signal handling.
-- `No-signal route`: explicit declaration that an outcome is covered but intentionally raises no local signal. It is not omission and does not suppress durable domain events. Reasons are scope-sensitive: response-surface handling needs a real adapter/renderer surface, query refresh needs explicit result/context refresh, result-bound-without-signal needs result binding or context/cache update, and failure outcomes must use proven response-surface handling or `intentionally_unobservable` with rationale.
+- `Outcome effect`: mapping from an action/data-loader outcome to context updates, result binding, a local signal raise, or explicit `no_local_effect` handling.
+- `No local effect`: explicit declaration that an outcome is covered but intentionally has no local state-machine effect. It is not omission and does not suppress durable domain events. Reasons are scope-sensitive: response-surface handling needs a real adapter/renderer surface, query refresh needs explicit result/context refresh, result-bound-without-signal needs result binding or context/cache update, and failure outcomes must use proven response-surface handling or `intentionally_unobservable` with rationale.
 - `Authored value`: explicit literal-or-fixture-reference value used in authored test, fact, content-case, and render-audit value maps. Use `{value: ...}` for JSON literals, including literal strings beginning with `$`, and `{from: $fixture...}` for fixture references. Raw `$...` strings are not interpreted as references.
-- `Runtime root`: the first segment of a runtime expression. Action binding and data loader input bindings may use `$context` and `$actor`; action/data-loader outcome routes may use `$outcome`, `$invocation`, and `$context`; application-action domain-event-emission mappings use `$input` and `$outcome`; workflow step bindings use `$trigger` and `$steps`; child context bindings use `$state_machine` for the parent machine context; entry response/delegation handlers use the adapter/delegation-specific `$input`, `$response`, or `$outcome` roots documented by that target. Authored test, fact, content-case, and render-audit value maps use `$fixture` for fixture data.
+- `Runtime root`: the first segment of a runtime expression. Action binding and data loader input bindings may use `$context` and `$actor`; action/data-loader outcome effects may use `$outcome`, `$invocation`, and `$context`; application-action domain-event-emission mappings use `$input` and `$outcome`; workflow step bindings use `$trigger` and `$steps`; child context bindings use `$state_machine` for the parent machine context; entry response/delegation handlers use the adapter/delegation-specific `$input`, `$response`, or `$outcome` roots documented by that target. Authored test, fact, content-case, and render-audit value maps use `$fixture` for fixture data.
 - `Actor/user binding source`: local action bindings should bind actor-like input fields such as `actor_id`, `approved_by`, or `reviewer_id` from `$actor.id` or an explicit context source. Literal actor/user ids are linted because they usually hide fixture-only assumptions in authored UI behavior.
 - `Local signal raise`: creation of a state-machine-local `local_signal` or `data_refresh_signal`.
 - `Data refresh signal`: local state-machine signal commonly used for data refresh, invalidation, loaded/missing states, or render updates. Data-refresh signals are not sent between child state-machine instances.
 - `Local signal`: local state-machine signal that may also be sent between child state-machine instances where sync rules support local-signal sends.
 - `Domain event`: durable fact emitted by an application-action outcome, distinct from local state-machine signals and AsyncAPI integration messages.
 - `Integration message`: AsyncAPI transport-level message projected from a domain event into a channel.
-- `action_outcome.emits`: durable domain-event emission from an application-action outcome. It is not used for local state-machine transition routing.
-- `action_binding.outcome_routes.raise`: local state-machine `local_signal` or `data_refresh_signal` raise after a user/action action binding.
-- `data_loader.outcome_routes.raise`: local state-machine `local_signal` or `data_refresh_signal` raise after a query load or refresh outcome.
-- `no_signal`: explicit local non-routing for an action/data-loader outcome.
+- `action_outcome.emits`: durable domain-event emission from an application-action outcome. It is not used for local state-machine transition effects.
+- `action_binding.outcome_effects.raise`: local state-machine `local_signal` or `data_refresh_signal` raise after a user/action action binding.
+- `data_loader.outcome_effects.raise`: local state-machine `local_signal` or `data_refresh_signal` raise after a query load or refresh outcome.
+- `no_local_effect`: explicit declaration that an action/data-loader outcome has no local state-machine effect.
 - `signals`: local UI/component/state-machine signal contracts split into accepted `local_signals`/`data_refresh_signals` maps and emitted `local_signals` maps with `payload_schema` maps.
 - `renderer_contracts`: view-state renderer declarations keyed by concrete target. `renderers.html` and `renderers.textual` each own target-local `layout`, `presentation`, and `style`.
 - `renderer placement validation`: HTML slots and child machines must reference declared HTML `region_id`s; Textual widgets and child machines must reference declared Textual `container_id`s. Placement ids are layout ids, not field names.
@@ -137,7 +137,7 @@ view_states:
         input_bindings:
           project_id:
             from: $context.project_id
-        outcome_routes:
+        outcome_effects:
           approved:
             raise:
               data_refresh_signal: project_changed
@@ -148,7 +148,7 @@ view_states:
                 message:
                   from: $outcome.result.message
           forbidden:
-            no_signal:
+            no_local_effect:
               reason: handled_by_response_surface
               rationale: The response surface reports authorization failure.
 ```
@@ -166,7 +166,7 @@ data_loaders:
       on_enter: true
       refresh_on:
       - data_refresh_signal: project_changed
-    outcome_routes:
+    outcome_effects:
       found:
         result_binding:
           data_key: project
@@ -181,12 +181,12 @@ data_loaders:
         raise:
           local_signal: show_project_not_found
       unavailable:
-        no_signal:
+        no_local_effect:
           reason: intentionally_unobservable
           rationale: The query result is not shown while the current view keeps its existing data.
 ```
 
-## Collection Query Routing
+## Collection Query Handling
 
 ```yaml
 data_loaders:
@@ -196,9 +196,9 @@ data_loaders:
     input_bindings:
       workspace_id:
         from: $context.workspace_id
-    outcome_routes:
+    outcome_effects:
       listed:
-        conditional_routes:
+        conditional_effects:
         - when:
             result_empty: true
           result_binding:
@@ -236,9 +236,9 @@ Layers are compile/validate guardrails and are not written into `spec/generated/
 | Context | Valid roots |
 | --- | --- |
 | Action binding `input_bindings` | `$context`, `$actor` |
-| Action binding outcome routes | `$outcome`, `$invocation`, `$context` |
+| Action binding outcome effects | `$outcome`, `$invocation`, `$context` |
 | Data loader `input_bindings` | `$context`, `$actor` |
-| Data loader outcome routes | `$outcome`, `$invocation`, `$context` |
+| Data loader outcome effects | `$outcome`, `$invocation`, `$context` |
 | State-machine transition effects | `$local_signal`, `$context` |
 | Child state-machine `context_bindings` and selected-state conditions | `$state_machine` for parent state-machine context |
 | Application-action domain-event-emission payload mappings | `$input`, `$outcome` |
@@ -270,16 +270,16 @@ The visual audit includes state-machine and composition diagrams, entry-point an
 - `$fixture.<path>` reads merged seed fixture data in test cases, facts, content cases, and render audit cases.
 - `$state_machine.<field>` reads parent state-machine context in child state-machine context bindings and composition conditions.
 - `$local_signal.<field>` reads the current state-machine local-signal payload in transition effects and sync sends.
-- `$context.<field>` reads current state-machine context in transition effects, action/data-loader input bindings, and local outcome-route signal payload binding.
+- `$context.<field>` reads current state-machine context in transition effects, action/data-loader input bindings, and local outcome-effect signal payload binding.
 - `$input.path_params.<field>` reads HTTP API or HTML route path parameters in entry target or delegation bindings.
 - `$input.query_params.<field>` reads HTTP API or HTML route query parameters in entry target or delegation bindings.
 - `$input.body.<field>` reads HTTP request body fields in entry target or delegation bindings.
 - `$input.args.<field>` reads CLI argument fields in entry target or delegation bindings.
 - `$input.payload[.<field>]` reads worker or webhook payload data in entry target or workflow trigger bindings.
 - `$input.<field>` reads application-action input during application-action domain-event emission mapping.
-- `$outcome.result[.<field>]` reads application-action outcome result during response, domain-event emission, and local outcome-route mapping.
-- `$outcome.kind` reads the application-action outcome kind during local outcome-route signal payload binding.
-- `$invocation.input.<field>` reads the bound action binding input during local outcome-route signal payload binding.
+- `$outcome.result[.<field>]` reads application-action outcome result during response, domain-event emission, and local outcome-effect mapping.
+- `$outcome.kind` reads the application-action outcome kind during local outcome-effect signal payload binding.
+- `$invocation.input.<field>` reads the bound action binding input during local outcome-effect signal payload binding.
 - `$response.body[.<field>]` reads the delegated entry-point response body inside delegating CLI `response_handlers`.
 - `$trigger.payload[.<field>]` reads workflow trigger payload.
 - `$steps.<step>.outcomes.<outcome>.result[.<field>]` reads previous workflow step result.
@@ -404,7 +404,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:python_identifier --> `$defs/python_identifier`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:data_loader_id --> `$defs/data_loader_id`: local state-machine or view-state data loader identifier.
 - <!-- schema-def:data_loader_load_policy --> `$defs/data_loader_load_policy`: data loader load and refresh trigger policy.
-- <!-- schema-def:query_result_condition --> `$defs/query_result_condition`: explicit query-result shape condition for empty/non-empty array routing.
+- <!-- schema-def:query_result_condition --> `$defs/query_result_condition`: explicit query-result shape condition for empty/non-empty array handling.
 - <!-- schema-def:query_result_binding --> `$defs/query_result_binding`: explicit query result binding to a named local `data_key`.
 - <!-- schema-def:renderer_contracts --> `$defs/renderer_contracts`: renderer contract component scoped to HTML and/or Textual targets.
 - <!-- schema-def:runtime_expression --> `$defs/runtime_expression`: shared schema component used by authored source or compiled output.
@@ -417,14 +417,14 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:test_case_ref --> `$defs/test_case_ref`: typed reference definition for its namespace.
 - <!-- schema-def:scheduled_adapter --> `$defs/scheduled_adapter`: entry-point adapter, target, input, or response contract component.
 - <!-- schema-def:slot_binding --> `$defs/slot_binding`: renderer contract component scoped to HTML and/or Textual targets.
-- <!-- schema-def:local_no_signal_route --> `$defs/local_no_signal_route`: explicit local non-routing outcome coverage contract component.
+- <!-- schema-def:local_no_effect --> `$defs/local_no_effect`: explicit local no-effect outcome coverage contract component.
 - <!-- schema-def:state_machine_action_binding --> `$defs/state_machine_action_binding`: state-machine action binding contract component.
-- <!-- schema-def:state_machine_action_outcome_route --> `$defs/state_machine_action_outcome_route`: state-machine action binding outcome-route contract component.
-- <!-- schema-def:state_machine_action_outcome_routes --> `$defs/state_machine_action_outcome_routes`: state-machine action binding outcome-route map.
+- <!-- schema-def:state_machine_action_outcome_effect --> `$defs/state_machine_action_outcome_effect`: state-machine action binding outcome-effect contract component.
+- <!-- schema-def:state_machine_action_outcome_effects --> `$defs/state_machine_action_outcome_effects`: state-machine action binding outcome-effect map.
 - <!-- schema-def:state_machine_data_loader --> `$defs/state_machine_data_loader`: state-machine data loader contract component.
-- <!-- schema-def:state_machine_query_conditional_route --> `$defs/state_machine_query_conditional_route`: conditional query route branch with result-shape guard and normal query route effects.
-- <!-- schema-def:state_machine_data_loader_outcome_route --> `$defs/state_machine_data_loader_outcome_route`: state-machine data loader outcome-route contract component.
-- <!-- schema-def:state_machine_data_loader_outcome_routes --> `$defs/state_machine_data_loader_outcome_routes`: state-machine data loader outcome-route map.
+- <!-- schema-def:state_machine_query_conditional_effect --> `$defs/state_machine_query_conditional_effect`: conditional query effect branch with result-shape guard and normal query outcome effects.
+- <!-- schema-def:state_machine_data_loader_outcome_effect --> `$defs/state_machine_data_loader_outcome_effect`: state-machine data loader outcome-effect contract component.
+- <!-- schema-def:state_machine_data_loader_outcome_effects --> `$defs/state_machine_data_loader_outcome_effects`: state-machine data loader outcome-effect map.
 - <!-- schema-def:state_machine_render_audit_case --> `$defs/state_machine_render_audit_case`: state-machine contract component.
 - <!-- schema-def:state_machine_signal_raise --> `$defs/state_machine_signal_raise`: state-machine local signal raise contract component.
 - <!-- schema-def:state_machine_signal_trigger --> `$defs/state_machine_signal_trigger`: tagged local signal/data-refresh-signal trigger contract component.
@@ -456,14 +456,14 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:when --> `$defs/when`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:worker_adapter --> `$defs/worker_adapter`: entry-point adapter, target, input, or response contract component.
 - <!-- schema-def:worker_adapter_input --> `$defs/worker_adapter_input`: entry-point adapter, target, input, or response contract component.
-- <!-- schema-def:workflow_outcome --> `$defs/workflow_outcome`: workflow trigger, step, route, retry, outcome, or binding contract component.
-- <!-- schema-def:workflow_outcome_routes --> `$defs/workflow_outcome_routes`: workflow trigger, step, route, retry, outcome, or binding contract component.
-- <!-- schema-def:workflow_outcomes --> `$defs/workflow_outcomes`: workflow trigger, step, route, retry, outcome, or binding contract component.
+- <!-- schema-def:workflow_outcome --> `$defs/workflow_outcome`: workflow trigger, step, transition, retry, outcome, or binding contract component.
+- <!-- schema-def:workflow_outcome_transitions --> `$defs/workflow_outcome_transitions`: workflow trigger, step, transition, retry, outcome, or binding contract component.
+- <!-- schema-def:workflow_outcomes --> `$defs/workflow_outcomes`: workflow trigger, step, transition, retry, outcome, or binding contract component.
 - <!-- schema-def:workflow_ref --> `$defs/workflow_ref`: typed reference definition for its namespace.
-- <!-- schema-def:workflow_retry_policy --> `$defs/workflow_retry_policy`: workflow trigger, step, route, retry, outcome, or binding contract component.
-- <!-- schema-def:workflow_route --> `$defs/workflow_route`: workflow trigger, step, route, retry, outcome, or binding contract component.
-- <!-- schema-def:workflow_step --> `$defs/workflow_step`: workflow trigger, step, route, retry, outcome, or binding contract component.
-- <!-- schema-def:workflow_trigger_source --> `$defs/workflow_trigger_source`: workflow trigger, step, route, retry, outcome, or binding contract component.
+- <!-- schema-def:workflow_retry_policy --> `$defs/workflow_retry_policy`: workflow trigger, step, transition, retry, outcome, or binding contract component.
+- <!-- schema-def:workflow_transition --> `$defs/workflow_transition`: workflow trigger, step, transition, retry, outcome, or binding contract component.
+- <!-- schema-def:workflow_step --> `$defs/workflow_step`: workflow trigger, step, transition, retry, outcome, or binding contract component.
+- <!-- schema-def:workflow_trigger_source --> `$defs/workflow_trigger_source`: workflow trigger, step, transition, retry, outcome, or binding contract component.
 - <!-- schema-def:data_contract_ref --> `$defs/data_contract_ref`: typed reference definition for its namespace.
 - <!-- schema-def:authored_data_contract --> `$defs/authored_data_contract`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:feature_tag --> `$defs/feature_tag`: unprefixed test-case feature grouping tag, not a typed reference.

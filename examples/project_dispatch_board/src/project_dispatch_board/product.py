@@ -252,16 +252,16 @@ class ProductApp:
             result = self.invoke_application_action(step["application_action"], input_values)
             assert self.last_outcome is not None
             namespace["steps"].setdefault(step["id"], {"outcomes": {}})["outcomes"][self.last_outcome] = {"result": result}
-            route = step["outcome_routes"][self.last_outcome]
-            if "complete_as" in route:
-                return route["complete_as"]
-            if "fail_as" in route:
-                return route["fail_as"]
-            if "retry_policy" in route:
-                return route["retry_policy"]["fail_as"]
-            if "dead_letter_as" in route:
-                return route["dead_letter_as"]
-            current = route["next_step"]
+            transition = step["outcome_transitions"][self.last_outcome]
+            if "complete_as" in transition:
+                return transition["complete_as"]
+            if "fail_as" in transition:
+                return transition["fail_as"]
+            if "retry_policy" in transition:
+                return transition["retry_policy"]["fail_as"]
+            if "dead_letter_as" in transition:
+                return transition["dead_letter_as"]
+            current = transition["next_step"]
 
     def assert_contract(self, assertions: Mapping[str, Any]) -> None:
         if "state_machine" in assertions:

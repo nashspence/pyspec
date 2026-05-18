@@ -220,7 +220,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "$domain_event." not in state_machine
     assert "emitted local signal" in composition
     assert "sent local signal" in composition
-    assert "local signal route" in composition
+    assert "local signal sync" in composition
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">nav mount</FONT>' in composition
     board_fsm = state_machine_dot("state_machine.project.board", contract["state_machines"]["state_machine.project.board"], contract)
     assert "<B>child_state_machines</B>" in board_fsm
@@ -436,7 +436,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
         assert "</svg>" in svg
 
 
-def test_composition_dot_routes_messages_generically() -> None:
+def test_composition_dot_syncs_local_signals_generically() -> None:
     state_machine = {
         "archetype": "workspace",
         "model": "generic.model",
@@ -459,7 +459,7 @@ def test_composition_dot_routes_messages_generically() -> None:
         ],
         "signal_sync_rules": [
             {
-                "id": "route_alpha_beta",
+                    "id": "sync_alpha_beta",
                 "when": {"instance": "publisher", "local_signal": "ready"},
                 "effects": [
                     {"send": {"instance": "receiver", "local_signal": "consume", "payload_bindings": {"item_id": {"from": "$local_signal.id"}}}},
@@ -512,7 +512,7 @@ def test_composition_dot_routes_messages_generically() -> None:
 
     assert "emitted local signal" in composition
     assert "sent local signal" in composition
-    assert "local signal route" in composition
+    assert "local signal sync" in composition
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">source mount</FONT>' in composition
     assert "<B>source:</B>&#160;&#160;local_signal.submit" in composition
     assert "idle to ready" not in composition
@@ -530,8 +530,8 @@ def test_composition_dot_routes_messages_generically() -> None:
     assert "<B>target:</B>" not in composition
     assert "<B>from:</B>" not in composition
     assert "<B>effects:</B>" not in composition
-    assert '"local_signal_effect_route_alpha_beta_0" -> "child_state_machine_receiver"' in composition
-    assert "local_signal_effect_route_alpha_beta_1" not in composition
+    assert '"local_signal_effect_sync_alpha_beta_0" -> "child_state_machine_receiver"' in composition
+    assert "local_signal_effect_sync_alpha_beta_1" not in composition
     assert '#ecfdf5' in composition
     assert '#047857' in composition
     assert '#fdf2f8' in composition

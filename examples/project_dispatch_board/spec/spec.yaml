@@ -507,24 +507,24 @@ state_machines:
             input_bindings:
               project_id:
                 from: $context.project_id
-            outcome_routes:
+            outcome_effects:
               found:
                 result_binding:
                   data_key: activity
                   from:
                     from: $outcome.result
-                no_signal:
+                no_local_effect:
                   reason: result_bound_without_signal
               forbidden:
-                no_signal:
+                no_local_effect:
                   reason: intentionally_unobservable
                   rationale: The activity panel remains in its current state when authorization blocks the refresh.
               not_found:
-                no_signal:
+                no_local_effect:
                   reason: intentionally_unobservable
                   rationale: The parent detail panel owns not-found display for the selected project.
               unauthenticated:
-                no_signal:
+                no_local_effect:
                   reason: intentionally_unobservable
                   rationale: The entry response surface owns unauthenticated display.
         field_slots:
@@ -556,24 +556,24 @@ state_machines:
         input_bindings:
           workspace_id:
             from: $context.workspace_id
-        outcome_routes:
+        outcome_effects:
           listed:
             result_binding:
               data_key: projects
               from:
                 from: $outcome.result
-            no_signal:
+            no_local_effect:
               reason: result_bound_without_signal
           forbidden:
-            no_signal:
+            no_local_effect:
               reason: handled_by_response_surface
               rationale: The board shell leaves child surfaces unchanged when list access is forbidden.
           unauthenticated:
-            no_signal:
+            no_local_effect:
               reason: handled_by_response_surface
               rationale: The entry response surface owns unauthenticated display.
           unavailable:
-            no_signal:
+            no_local_effect:
               reason: handled_by_response_surface
               rationale: The board shell leaves child surfaces unchanged while the list service is unavailable.
     initial_view_state: ready
@@ -818,7 +818,7 @@ state_machines:
             input_bindings:
               project_id:
                 from: $context.project_id
-            outcome_routes:
+            outcome_effects:
               found:
                 result_binding:
                   data_key: project
@@ -852,13 +852,13 @@ state_machines:
             input_bindings:
               project_id:
                 from: $context.project_id
-            outcome_routes:
+            outcome_effects:
               found:
                 result_binding:
                   data_key: project
                   from:
                     from: $outcome.result
-                no_signal:
+                no_local_effect:
                   reason: result_bound_without_signal
               forbidden:
                 raise:
@@ -894,12 +894,12 @@ state_machines:
                 from: $actor.id
               project_id:
                 from: $context.project_id
-            outcome_routes:
+            outcome_effects:
               approved:
                 raise:
                   data_refresh_signal: project_changed
               forbidden:
-                no_signal:
+                no_local_effect:
                   reason: handled_by_response_surface
                   rationale: The response surface keeps the detail panel unchanged for forbidden approval.
               invalid_state:
@@ -909,15 +909,15 @@ state_machines:
                     message:
                       from: $outcome.result.message
               not_found:
-                no_signal:
+                no_local_effect:
                   reason: handled_by_response_surface
                   rationale: The response surface reports a missing project without a local transition.
               unavailable:
-                no_signal:
+                no_local_effect:
                   reason: handled_by_response_surface
                   rationale: The response surface reports temporary unavailability without a local transition.
               unauthenticated:
-                no_signal:
+                no_local_effect:
                   reason: handled_by_response_surface
                   rationale: The response surface reports authentication failure without a local transition.
           archive:
@@ -925,7 +925,7 @@ state_machines:
             input_bindings:
               project_id:
                 from: $context.project_id
-            outcome_routes:
+            outcome_effects:
               archived:
                 raise:
                   data_refresh_signal: project_changed
@@ -977,9 +977,9 @@ state_machines:
         input_bindings:
           workspace_id:
             from: $context.workspace_id
-        outcome_routes:
+        outcome_effects:
           listed:
-            conditional_routes:
+            conditional_effects:
             - when:
                 result_empty: true
               result_binding:
@@ -1106,16 +1106,16 @@ state_machines:
                 value: Replace rooftop condenser fan
               workspace_id:
                 from: $context.workspace_id
-            outcome_routes:
+            outcome_effects:
               created:
                 raise:
                   data_refresh_signal: projects_changed
               forbidden:
-                no_signal:
+                no_local_effect:
                   reason: handled_by_response_surface
                   rationale: The response surface keeps the empty list visible for forbidden create.
               unauthenticated:
-                no_signal:
+                no_local_effect:
                   reason: handled_by_response_surface
                   rationale: The response surface reports authentication failure without a local transition.
               validation_failed:
@@ -1151,20 +1151,20 @@ state_machines:
                 value: Replace rooftop condenser fan
               workspace_id:
                 from: $context.workspace_id
-            outcome_routes:
+            outcome_effects:
               created:
                 raise:
                   data_refresh_signal: projects_changed
               forbidden:
-                no_signal:
+                no_local_effect:
                   reason: handled_by_response_surface
                   rationale: The response surface keeps the ready list visible for forbidden create.
               unauthenticated:
-                no_signal:
+                no_local_effect:
                   reason: handled_by_response_surface
                   rationale: The response surface reports authentication failure without a local transition.
               validation_failed:
-                no_signal:
+                no_local_effect:
                   reason: handled_by_response_surface
                   rationale: The ready list keeps focus while the response surface shows validation errors.
           submit:
@@ -1172,7 +1172,7 @@ state_machines:
             input_bindings:
               project_id:
                 from: $context.selected_project_id
-            outcome_routes:
+            outcome_effects:
               forbidden:
                 raise:
                   local_signal: show_invalid_state
@@ -1502,7 +1502,7 @@ workflows:
         project_id:
           from: $trigger.payload.project_id
       application_action: application_action.project.send_approval_notice
-      outcome_routes:
+      outcome_transitions:
         delivery_failed:
           retry_policy:
             attempts: 3

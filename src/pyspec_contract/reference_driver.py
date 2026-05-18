@@ -397,16 +397,16 @@ class ReferenceSpecDriver:
             outcome_id = self.last_outcome
             assert outcome_id is not None
             namespace["steps"].setdefault(step["id"], {"outcomes": {}})["outcomes"][outcome_id] = {"result": result}
-            route = step["outcome_routes"][outcome_id]
-            if "complete_as" in route:
-                return route["complete_as"]
-            if "fail_as" in route:
-                return route["fail_as"]
-            if "retry_policy" in route:
-                return route["retry_policy"]["fail_as"]
-            if "dead_letter_as" in route:
-                return route["dead_letter_as"]
-            current = route["next_step"]
+            transition = step["outcome_transitions"][outcome_id]
+            if "complete_as" in transition:
+                return transition["complete_as"]
+            if "fail_as" in transition:
+                return transition["fail_as"]
+            if "retry_policy" in transition:
+                return transition["retry_policy"]["fail_as"]
+            if "dead_letter_as" in transition:
+                return transition["dead_letter_as"]
+            current = transition["next_step"]
 
     def _event_payload_from_emit(
         self,

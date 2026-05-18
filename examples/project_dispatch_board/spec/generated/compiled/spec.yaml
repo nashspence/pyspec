@@ -876,31 +876,31 @@ refs:
   - action_binding.project.list.empty.create
   - action_binding.project.list.ready.create
   - action_binding.project.list.ready.submit
-  action_outcome_route:
-  - action_outcome_route.project.detail.ready.approve.approved
-  - action_outcome_route.project.detail.ready.approve.forbidden
-  - action_outcome_route.project.detail.ready.approve.invalid_state
-  - action_outcome_route.project.detail.ready.approve.not_found
-  - action_outcome_route.project.detail.ready.approve.unauthenticated
-  - action_outcome_route.project.detail.ready.approve.unavailable
-  - action_outcome_route.project.detail.ready.archive.archived
-  - action_outcome_route.project.detail.ready.archive.forbidden
-  - action_outcome_route.project.detail.ready.archive.invalid_state
-  - action_outcome_route.project.detail.ready.archive.not_found
-  - action_outcome_route.project.detail.ready.archive.unauthenticated
-  - action_outcome_route.project.list.empty.create.created
-  - action_outcome_route.project.list.empty.create.forbidden
-  - action_outcome_route.project.list.empty.create.unauthenticated
-  - action_outcome_route.project.list.empty.create.validation_failed
-  - action_outcome_route.project.list.ready.create.created
-  - action_outcome_route.project.list.ready.create.forbidden
-  - action_outcome_route.project.list.ready.create.unauthenticated
-  - action_outcome_route.project.list.ready.create.validation_failed
-  - action_outcome_route.project.list.ready.submit.forbidden
-  - action_outcome_route.project.list.ready.submit.invalid_state
-  - action_outcome_route.project.list.ready.submit.not_found
-  - action_outcome_route.project.list.ready.submit.submitted
-  - action_outcome_route.project.list.ready.submit.unauthenticated
+  action_outcome_effect:
+  - action_outcome_effect.project.detail.ready.approve.approved
+  - action_outcome_effect.project.detail.ready.approve.forbidden
+  - action_outcome_effect.project.detail.ready.approve.invalid_state
+  - action_outcome_effect.project.detail.ready.approve.not_found
+  - action_outcome_effect.project.detail.ready.approve.unauthenticated
+  - action_outcome_effect.project.detail.ready.approve.unavailable
+  - action_outcome_effect.project.detail.ready.archive.archived
+  - action_outcome_effect.project.detail.ready.archive.forbidden
+  - action_outcome_effect.project.detail.ready.archive.invalid_state
+  - action_outcome_effect.project.detail.ready.archive.not_found
+  - action_outcome_effect.project.detail.ready.archive.unauthenticated
+  - action_outcome_effect.project.list.empty.create.created
+  - action_outcome_effect.project.list.empty.create.forbidden
+  - action_outcome_effect.project.list.empty.create.unauthenticated
+  - action_outcome_effect.project.list.empty.create.validation_failed
+  - action_outcome_effect.project.list.ready.create.created
+  - action_outcome_effect.project.list.ready.create.forbidden
+  - action_outcome_effect.project.list.ready.create.unauthenticated
+  - action_outcome_effect.project.list.ready.create.validation_failed
+  - action_outcome_effect.project.list.ready.submit.forbidden
+  - action_outcome_effect.project.list.ready.submit.invalid_state
+  - action_outcome_effect.project.list.ready.submit.not_found
+  - action_outcome_effect.project.list.ready.submit.submitted
+  - action_outcome_effect.project.list.ready.submit.unauthenticated
   asset:
   - asset.project.detail.ready.priority_badge
   - asset.project.list.empty.illustration
@@ -923,27 +923,27 @@ refs:
   - data_loader.project.detail.loading.read_project
   - data_loader.project.detail.ready.read_project
   - data_loader.project.list.list_projects
-  data_loader_outcome_route:
-  - data_loader_outcome_route.project.activity.ready.read_activity.forbidden
-  - data_loader_outcome_route.project.activity.ready.read_activity.found
-  - data_loader_outcome_route.project.activity.ready.read_activity.not_found
-  - data_loader_outcome_route.project.activity.ready.read_activity.unauthenticated
-  - data_loader_outcome_route.project.board.list_board.forbidden
-  - data_loader_outcome_route.project.board.list_board.listed
-  - data_loader_outcome_route.project.board.list_board.unauthenticated
-  - data_loader_outcome_route.project.board.list_board.unavailable
-  - data_loader_outcome_route.project.detail.loading.read_project.forbidden
-  - data_loader_outcome_route.project.detail.loading.read_project.found
-  - data_loader_outcome_route.project.detail.loading.read_project.not_found
-  - data_loader_outcome_route.project.detail.loading.read_project.unauthenticated
-  - data_loader_outcome_route.project.detail.ready.read_project.forbidden
-  - data_loader_outcome_route.project.detail.ready.read_project.found
-  - data_loader_outcome_route.project.detail.ready.read_project.not_found
-  - data_loader_outcome_route.project.detail.ready.read_project.unauthenticated
-  - data_loader_outcome_route.project.list.list_projects.forbidden
-  - data_loader_outcome_route.project.list.list_projects.listed
-  - data_loader_outcome_route.project.list.list_projects.unauthenticated
-  - data_loader_outcome_route.project.list.list_projects.unavailable
+  data_loader_outcome_effect:
+  - data_loader_outcome_effect.project.activity.ready.read_activity.forbidden
+  - data_loader_outcome_effect.project.activity.ready.read_activity.found
+  - data_loader_outcome_effect.project.activity.ready.read_activity.not_found
+  - data_loader_outcome_effect.project.activity.ready.read_activity.unauthenticated
+  - data_loader_outcome_effect.project.board.list_board.forbidden
+  - data_loader_outcome_effect.project.board.list_board.listed
+  - data_loader_outcome_effect.project.board.list_board.unauthenticated
+  - data_loader_outcome_effect.project.board.list_board.unavailable
+  - data_loader_outcome_effect.project.detail.loading.read_project.forbidden
+  - data_loader_outcome_effect.project.detail.loading.read_project.found
+  - data_loader_outcome_effect.project.detail.loading.read_project.not_found
+  - data_loader_outcome_effect.project.detail.loading.read_project.unauthenticated
+  - data_loader_outcome_effect.project.detail.ready.read_project.forbidden
+  - data_loader_outcome_effect.project.detail.ready.read_project.found
+  - data_loader_outcome_effect.project.detail.ready.read_project.not_found
+  - data_loader_outcome_effect.project.detail.ready.read_project.unauthenticated
+  - data_loader_outcome_effect.project.list.list_projects.forbidden
+  - data_loader_outcome_effect.project.list.list_projects.listed
+  - data_loader_outcome_effect.project.list.list_projects.unauthenticated
+  - data_loader_outcome_effect.project.list.list_projects.unavailable
   endpoint:
   - endpoint.project.approve
   - endpoint.project.create
@@ -1112,24 +1112,24 @@ state_machines:
                 from: $context.project_id
             load:
               on_enter: true
-            outcome_routes:
+            outcome_effects:
               forbidden:
-                no_signal:
+                no_local_effect:
                   rationale: The activity panel remains in its current state when authorization blocks the refresh.
                   reason: intentionally_unobservable
               found:
-                no_signal:
+                no_local_effect:
                   reason: result_bound_without_signal
                 result_binding:
                   data_key: activity
                   from:
                     from: $outcome.result
               not_found:
-                no_signal:
+                no_local_effect:
                   rationale: The parent detail panel owns not-found display for the selected project.
                   reason: intentionally_unobservable
               unauthenticated:
-                no_signal:
+                no_local_effect:
                   rationale: The entry response surface owns unauthenticated display.
                   reason: intentionally_unobservable
         fields:
@@ -1160,24 +1160,24 @@ state_machines:
             from: $context.workspace_id
         load:
           on_start: true
-        outcome_routes:
+        outcome_effects:
           forbidden:
-            no_signal:
+            no_local_effect:
               rationale: The board shell leaves child surfaces unchanged when list access is forbidden.
               reason: handled_by_response_surface
           listed:
-            no_signal:
+            no_local_effect:
               reason: result_bound_without_signal
             result_binding:
               data_key: projects
               from:
                 from: $outcome.result
           unauthenticated:
-            no_signal:
+            no_local_effect:
               rationale: The entry response surface owns unauthenticated display.
               reason: handled_by_response_surface
           unavailable:
-            no_signal:
+            no_local_effect:
               rationale: The board shell leaves child surfaces unchanged while the list service is unavailable.
               reason: handled_by_response_surface
         rationale: Board-level project list is shared shell data for composed child state machines; the child list machine
@@ -1451,7 +1451,7 @@ state_machines:
                 from: $context.project_id
             load:
               on_enter: true
-            outcome_routes:
+            outcome_effects:
               forbidden:
                 raise:
                   data_refresh_signal: project_load_failed
@@ -1490,12 +1490,12 @@ state_machines:
                 from: $actor.id
               project_id:
                 from: $context.project_id
-            outcome_routes:
+            outcome_effects:
               approved:
                 raise:
                   data_refresh_signal: project_changed
               forbidden:
-                no_signal:
+                no_local_effect:
                   rationale: The response surface keeps the detail panel unchanged for forbidden approval.
                   reason: handled_by_response_surface
               invalid_state:
@@ -1505,15 +1505,15 @@ state_machines:
                     message:
                       from: $outcome.result.message
               not_found:
-                no_signal:
+                no_local_effect:
                   rationale: The response surface reports a missing project without a local transition.
                   reason: handled_by_response_surface
               unauthenticated:
-                no_signal:
+                no_local_effect:
                   rationale: The response surface reports authentication failure without a local transition.
                   reason: handled_by_response_surface
               unavailable:
-                no_signal:
+                no_local_effect:
                   rationale: The response surface reports temporary unavailability without a local transition.
                   reason: handled_by_response_surface
           archive:
@@ -1521,7 +1521,7 @@ state_machines:
             input_bindings:
               project_id:
                 from: $context.project_id
-            outcome_routes:
+            outcome_effects:
               archived:
                 raise:
                   data_refresh_signal: project_changed
@@ -1561,7 +1561,7 @@ state_machines:
               on_enter: true
               refresh_on:
               - data_refresh_signal: project_changed
-            outcome_routes:
+            outcome_effects:
               forbidden:
                 raise:
                   local_signal: show_invalid_state
@@ -1569,7 +1569,7 @@ state_machines:
                     message:
                       from: $outcome.result.message
               found:
-                no_signal:
+                no_local_effect:
                   reason: result_bound_without_signal
                 result_binding:
                   data_key: project
@@ -1618,12 +1618,12 @@ state_machines:
           on_start: true
           refresh_on:
           - data_refresh_signal: projects_changed
-        outcome_routes:
+        outcome_effects:
           forbidden:
             raise:
               data_refresh_signal: project_list_failed
           listed:
-            conditional_routes:
+            conditional_effects:
             - context_updates:
                 workspace_id:
                   from: $invocation.input.workspace_id
@@ -1748,16 +1748,16 @@ state_machines:
                 value: Replace rooftop condenser fan
               workspace_id:
                 from: $context.workspace_id
-            outcome_routes:
+            outcome_effects:
               created:
                 raise:
                   data_refresh_signal: projects_changed
               forbidden:
-                no_signal:
+                no_local_effect:
                   rationale: The response surface keeps the empty list visible for forbidden create.
                   reason: handled_by_response_surface
               unauthenticated:
-                no_signal:
+                no_local_effect:
                   rationale: The response surface reports authentication failure without a local transition.
                   reason: handled_by_response_surface
               validation_failed:
@@ -1804,20 +1804,20 @@ state_machines:
                 value: Replace rooftop condenser fan
               workspace_id:
                 from: $context.workspace_id
-            outcome_routes:
+            outcome_effects:
               created:
                 raise:
                   data_refresh_signal: projects_changed
               forbidden:
-                no_signal:
+                no_local_effect:
                   rationale: The response surface keeps the ready list visible for forbidden create.
                   reason: handled_by_response_surface
               unauthenticated:
-                no_signal:
+                no_local_effect:
                   rationale: The response surface reports authentication failure without a local transition.
                   reason: handled_by_response_surface
               validation_failed:
-                no_signal:
+                no_local_effect:
                   rationale: The ready list keeps focus while the response surface shows validation errors.
                   reason: handled_by_response_surface
           submit:
@@ -1825,7 +1825,7 @@ state_machines:
             input_bindings:
               project_id:
                 from: $context.selected_project_id
-            outcome_routes:
+            outcome_effects:
               forbidden:
                 raise:
                   local_signal: show_invalid_state
@@ -2636,7 +2636,7 @@ workflows:
           from: $trigger.payload.approved_by
         project_id:
           from: $trigger.payload.project_id
-      outcome_routes:
+      outcome_transitions:
         delivery_failed:
           retry_policy:
             attempts: 3

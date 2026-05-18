@@ -1,6 +1,6 @@
 <svg width="1230pt" height="482pt"
  viewBox="0.00 0.00 1230.00 482.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: a4602812c9056ffe6e30ccbbeb63212ef7c4541d03cea18b9d6dfb27177f8d86 -->
+<!-- pyspec-contract-input-sha256: 8844a8e1a594a7a61c52cd146895b2d055b0b7096c4d4499dd682ae21512cc1a -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 464)">
 <title>workflow_workflow_project_approval_notice</title>
 <!-- workflow_trigger_domain_event_domain_event_project_approved -->
@@ -70,7 +70,7 @@
 <text text-anchor="start" x="590.5" y="-239.5" font-family="Arial" font-weight="bold" font-size="10.00">input bindings</text>
 <text text-anchor="start" x="590.5" y="-227.5" font-family="Arial" font-size="10.00">approved_by ← trigger.payload.approved_by</text>
 <text text-anchor="start" x="590.5" y="-216.5" font-family="Arial" font-size="10.00">project_id ← trigger.payload.project_id</text>
-<text text-anchor="start" x="590.5" y="-198.5" font-family="Arial" font-weight="bold" font-size="10.00">routes</text>
+<text text-anchor="start" x="590.5" y="-198.5" font-family="Arial" font-weight="bold" font-size="10.00">transitions</text>
 <text text-anchor="start" x="590.5" y="-186.5" font-family="Arial" font-size="10.00">delivery_failed: retry_policy → delivery_failed (3</text>
 <text text-anchor="start" x="590.5" y="-175.5" font-family="Arial" font-size="10.00">exponential)</text>
 <text text-anchor="start" x="590.5" y="-164.5" font-family="Arial" font-size="10.00">forbidden: fail_as → notice_forbidden</text>

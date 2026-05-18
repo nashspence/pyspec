@@ -161,9 +161,9 @@ REF_KINDS = [
     "entry_point_target",
     "local_signal_raise",
     "action_binding",
-    "action_outcome_route",
+    "action_outcome_effect",
     "data_loader",
-    "data_loader_outcome_route",
+    "data_loader_outcome_effect",
     "route",
     "runtime_response",
     "screen",
@@ -624,9 +624,9 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
     for state_machine_id, owner in contract["state_machines"].items():
         for invocation_id, invocation in sorted((owner.get("data_loaders") or {}).items()):
             refs["data_loader"].add(_generated_data_loader_ref(state_machine_id, None, invocation_id))
-            for outcome_id, route in sorted(invocation.get("outcome_routes", {}).items()):
-                refs["data_loader_outcome_route"].add(_generated_data_loader_outcome_route_ref(state_machine_id, None, invocation_id, outcome_id))
-                for branch in _query_route_effect_branches(route):
+            for outcome_id, effect in sorted(invocation.get("outcome_effects", {}).items()):
+                refs["data_loader_outcome_effect"].add(_generated_data_loader_outcome_effect_ref(state_machine_id, None, invocation_id, outcome_id))
+                for branch in _query_outcome_effect_branches(effect):
                     signal = branch.get("raise")
                     if signal:
                         kind, signal_id = _signal_raise_selector_key(signal)
@@ -639,9 +639,9 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
             refs["asset"].update(state["assets"])
             for invocation_id, invocation in sorted((state.get("data_loaders") or {}).items()):
                 refs["data_loader"].add(_generated_data_loader_ref(state_machine_id, state_name, invocation_id))
-                for outcome_id, route in sorted(invocation.get("outcome_routes", {}).items()):
-                    refs["data_loader_outcome_route"].add(_generated_data_loader_outcome_route_ref(state_machine_id, state_name, invocation_id, outcome_id))
-                    for branch in _query_route_effect_branches(route):
+                for outcome_id, effect in sorted(invocation.get("outcome_effects", {}).items()):
+                    refs["data_loader_outcome_effect"].add(_generated_data_loader_outcome_effect_ref(state_machine_id, state_name, invocation_id, outcome_id))
+                    for branch in _query_outcome_effect_branches(effect):
                         signal = branch.get("raise")
                         if signal:
                             kind, signal_id = _signal_raise_selector_key(signal)
@@ -650,9 +650,9 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
                             )
             for invocation_id, invocation in sorted((state.get("action_bindings") or {}).items()):
                 refs["action_binding"].add(_generated_action_binding_ref(state_machine_id, state_name, invocation_id))
-                for outcome_id, route in sorted(invocation.get("outcome_routes", {}).items()):
-                    refs["action_outcome_route"].add(_generated_action_outcome_route_ref(state_machine_id, state_name, invocation_id, outcome_id))
-                    signal = route.get("raise")
+                for outcome_id, effect in sorted(invocation.get("outcome_effects", {}).items()):
+                    refs["action_outcome_effect"].add(_generated_action_outcome_effect_ref(state_machine_id, state_name, invocation_id, outcome_id))
+                    signal = effect.get("raise")
                     if signal:
                         kind, signal_id = _signal_raise_selector_key(signal)
                         refs["local_signal_raise"].add(
@@ -708,8 +708,8 @@ def _generated_action_binding_ref(state_machine_id: str, state_name: str, invoca
     return f"action_binding.{rules.resource_tail(state_machine_id)}.{state_name}.{invocation_id}"
 
 
-def _generated_action_outcome_route_ref(state_machine_id: str, state_name: str, invocation_id: str, outcome_id: str) -> str:
-    return f"action_outcome_route.{rules.resource_tail(state_machine_id)}.{state_name}.{invocation_id}.{outcome_id}"
+def _generated_action_outcome_effect_ref(state_machine_id: str, state_name: str, invocation_id: str, outcome_id: str) -> str:
+    return f"action_outcome_effect.{rules.resource_tail(state_machine_id)}.{state_name}.{invocation_id}.{outcome_id}"
 
 
 def _generated_data_loader_ref(state_machine_id: str, state_name: str | None, invocation_id: str) -> str:
@@ -717,9 +717,9 @@ def _generated_data_loader_ref(state_machine_id: str, state_name: str | None, in
     return f"data_loader.{rules.resource_tail(state_machine_id)}{state_part}.{invocation_id}"
 
 
-def _generated_data_loader_outcome_route_ref(state_machine_id: str, state_name: str | None, invocation_id: str, outcome_id: str) -> str:
+def _generated_data_loader_outcome_effect_ref(state_machine_id: str, state_name: str | None, invocation_id: str, outcome_id: str) -> str:
     state_part = f".{state_name}" if state_name else ""
-    return f"data_loader_outcome_route.{rules.resource_tail(state_machine_id)}{state_part}.{invocation_id}.{outcome_id}"
+    return f"data_loader_outcome_effect.{rules.resource_tail(state_machine_id)}{state_part}.{invocation_id}.{outcome_id}"
 
 
 def _generated_application_action_local_signal_raise_ref(
@@ -1378,7 +1378,7 @@ def _validate_state_machines(contract: dict[str, Any]) -> None:
             state_machine.get("data_loaders", {}),
             set(state_machine.get("context", {})),
         )
-        _validate_collection_empty_signal_routes(state_machine_id, state_machine)
+        _validate_collection_empty_signal_effects(state_machine_id, state_machine)
         _validate_machine_query_ownership(contract, state_machine_id, state_machine)
         _validate_state_machine_transitions(contract, state_machine_id, state_machine)
         _validate_signals(state_machine_id, state_machine)
@@ -1434,7 +1434,7 @@ def _validate_action_bindings(
             {"context": _type_scope(context), "actor": ACTOR_SOURCE_SCOPE},
         )
         _lint_literal_actor_bindings(label, bindings)
-        _validate_action_binding_routes(contract, label, state_machine, invocation, application_action_id, application_action)
+        _validate_action_binding_outcome_effects(contract, label, state_machine, invocation, application_action_id, application_action)
 
 
 def _lint_literal_actor_bindings(label: str, bindings: dict[str, Any]) -> None:
@@ -1449,7 +1449,7 @@ def _lint_literal_actor_bindings(label: str, bindings: dict[str, Any]) -> None:
             )
 
 
-def _validate_action_binding_routes(
+def _validate_action_binding_outcome_effects(
     contract: dict[str, Any],
     label: str,
     state_machine: dict[str, Any],
@@ -1457,9 +1457,9 @@ def _validate_action_binding_routes(
     application_action_id: str,
     application_action: dict[str, Any],
 ) -> None:
-    routes = invocation["outcome_routes"]
+    effects = invocation["outcome_effects"]
     expected_outcomes = set(application_action["outcomes"])
-    actual_outcomes = set(routes)
+    actual_outcomes = set(effects)
     if actual_outcomes != expected_outcomes:
         missing = sorted(expected_outcomes - actual_outcomes)
         extra = sorted(actual_outcomes - expected_outcomes)
@@ -1468,45 +1468,45 @@ def _validate_action_binding_routes(
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"{label} outcome_routes must exactly map application action outcomes" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"{label} outcome_effects must exactly map application action outcomes" + (": " + "; ".join(parts) if parts else ""))
 
-    for outcome_id, route in sorted(routes.items()):
-        route_label = f"{label} outcome_routes.{outcome_id}"
+    for outcome_id, effect in sorted(effects.items()):
+        effect_label = f"{label} outcome_effects.{outcome_id}"
         outcome = application_action["outcomes"][outcome_id]
-        if _validate_no_signal_route(
-            route_label,
+        if _validate_no_local_effect(
+            effect_label,
             outcome,
-            route,
-            route_scope="action_binding",
+            effect,
+            effect_scope="action_binding",
             has_response_surface=_application_action_has_response_surface(contract, application_action_id, outcome_id),
             authorization_outcome=outcome_id in _action_authorization_outcomes(application_action),
         ):
             continue
-        signal = route.get("raise")
+        signal = effect.get("raise")
         if not signal:
-            raise ContractError(f"{route_label} must raise a local signal or declare no_signal")
-        _lint_mutation_loaded_signal(route_label, application_action, signal, route)
+            raise ContractError(f"{effect_label} must raise a local signal or declare no_local_effect")
+        _lint_mutation_loaded_signal(effect_label, application_action, signal, effect)
         payload = _state_machine_signal_payload(
             state_machine,
             "accepts",
             _signal_raise_selector(signal),
-            f"{route_label} raise",
+            f"{effect_label} raise",
         )
         _validate_optional_payload_bindings(
             contract=contract,
-            label=f"{route_label} raise payload_bindings",
+            label=f"{effect_label} raise payload_bindings",
             bindings=signal.get("payload_bindings"),
             payload=payload,
-            scopes=_action_outcome_route_scopes(state_machine, application_action, outcome),
+            scopes=_action_outcome_effect_scopes(state_machine, application_action, outcome),
         )
 
 
-def _lint_mutation_loaded_signal(label: str, application_action: dict[str, Any], signal: dict[str, Any], route: dict[str, Any]) -> None:
+def _lint_mutation_loaded_signal(label: str, application_action: dict[str, Any], signal: dict[str, Any], effect: dict[str, Any]) -> None:
     data_refresh_signal = signal.get("data_refresh_signal")
     if application_action.get("action_kind") not in {"command", "transition"} or not data_refresh_signal:
         return
     if data_refresh_signal == "loaded" or data_refresh_signal.endswith("_loaded"):
-        has_loaded_payload = bool(signal.get("payload_bindings")) or "result_binding" in route or "context_updates" in route
+        has_loaded_payload = bool(signal.get("payload_bindings")) or "result_binding" in effect or "context_updates" in effect
         if not has_loaded_payload:
             warnings.warn(
                 f"{label} raises data-refresh signal {data_refresh_signal!r} from a mutation without binding loaded data; prefer changed/invalidated/completed signals and query refresh",
@@ -1515,43 +1515,43 @@ def _lint_mutation_loaded_signal(label: str, application_action: dict[str, Any],
             )
 
 
-def _validate_no_signal_route(
+def _validate_no_local_effect(
     label: str,
     outcome: dict[str, Any],
-    route: dict[str, Any],
+    effect: dict[str, Any],
     *,
-    route_scope: str,
+    effect_scope: str,
     has_response_surface: bool = False,
     has_query_refresh: bool = False,
     has_result_binding: bool = False,
     has_data_effect: bool = False,
     authorization_outcome: bool = False,
 ) -> bool:
-    no_signal = route.get("no_signal")
-    if not no_signal:
+    no_local_effect = effect.get("no_local_effect")
+    if not no_local_effect:
         return False
-    reason = no_signal.get("reason")
+    reason = no_local_effect.get("reason")
     if outcome.get("emits"):
-        raise ContractError(f"{label} no_signal must not suppress durable action_outcome.emits")
+        raise ContractError(f"{label} no_local_effect must not suppress durable action_outcome.emits")
     if reason == "handled_by_response_surface" and not has_response_surface:
-        raise ContractError(f"{label} no_signal.reason handled_by_response_surface requires an adapter or renderer response surface for this outcome")
+        raise ContractError(f"{label} no_local_effect.reason handled_by_response_surface requires an adapter or renderer response surface for this outcome")
     if reason == "handled_by_query_refresh" and not has_query_refresh:
-        raise ContractError(f"{label} no_signal.reason handled_by_query_refresh requires an explicit query result binding or context refresh")
+        raise ContractError(f"{label} no_local_effect.reason handled_by_query_refresh requires an explicit query result binding or context refresh")
     if reason == "result_bound_without_signal" and not (has_result_binding or has_data_effect):
-        raise ContractError(f"{label} no_signal.reason result_bound_without_signal requires result_binding or context/cache update")
-    if authorization_outcome and route_scope == "action_binding" and reason != "handled_by_response_surface":
-        raise ContractError(f"{label} authorization failure no_signal requires handled_by_response_surface")
+        raise ContractError(f"{label} no_local_effect.reason result_bound_without_signal requires result_binding or context/cache update")
+    if authorization_outcome and effect_scope == "action_binding" and reason != "handled_by_response_surface":
+        raise ContractError(f"{label} authorization failure no_local_effect requires handled_by_response_surface")
     if outcome.get("kind") == "failure":
         if reason == "handled_by_response_surface":
             if not has_response_surface:
-                raise ContractError(f"{label} failure outcome no_signal handled_by_response_surface requires a proven response surface")
+                raise ContractError(f"{label} failure outcome no_local_effect handled_by_response_surface requires a proven response surface")
             return True
         if reason != "intentionally_unobservable":
             raise ContractError(
-                f"{label} failure outcome no_signal must use reason handled_by_response_surface with a proven response surface or intentionally_unobservable with rationale"
+                f"{label} failure outcome no_local_effect must use reason handled_by_response_surface with a proven response surface or intentionally_unobservable with rationale"
             )
-        if not no_signal.get("rationale"):
-            raise ContractError(f"{label} failure outcome no_signal must declare rationale")
+        if not no_local_effect.get("rationale"):
+            raise ContractError(f"{label} failure outcome no_local_effect must declare rationale")
     return True
 
 
@@ -1587,7 +1587,7 @@ def _entry_point_retry_safe(contract: dict[str, Any], entry_id: str) -> bool:
     return bool(entry.get("retry_safe"))
 
 
-def _action_outcome_route_scopes(
+def _action_outcome_effect_scopes(
     state_machine: dict[str, Any],
     application_action: dict[str, Any],
     outcome: dict[str, Any],
@@ -1632,8 +1632,8 @@ def _validate_data_loaders(
             raise ContractError(f"{label} state-machine-level data_loader must declare result_scope")
         if invocation.get("result_scope") in {"shared", "prefetch"} and not invocation.get("rationale"):
             raise ContractError(f"{label} result_scope {invocation['result_scope']} must declare rationale")
-        if scope == "state_machine" and _data_loader_has_result_bound_no_signal(invocation) and invocation.get("result_scope") not in {"shared", "prefetch"}:
-            raise ContractError(f"{label} result_binding with no_signal must declare result_scope shared or prefetch")
+        if scope == "state_machine" and _data_loader_has_result_bound_no_local_effect(invocation) and invocation.get("result_scope") not in {"shared", "prefetch"}:
+            raise ContractError(f"{label} result_binding with no_local_effect must declare result_scope shared or prefetch")
         application_action_id = invocation["application_action"]
         if application_action_id not in contract["application_actions"]:
             raise ContractError(f"{label} references unknown application action {application_action_id}")
@@ -1661,7 +1661,7 @@ def _validate_data_loaders(
             {"context": _type_scope(context), "actor": ACTOR_SOURCE_SCOPE},
         )
         _validate_query_load_policy(contract, label, state_machine, invocation.get("load") or {}, scope=scope)
-        _validate_data_loader_routes(contract, label, state_machine, invocation, application_action, scope=scope, view_state=view_state)
+        _validate_data_loader_outcome_effects(contract, label, state_machine, invocation, application_action, scope=scope, view_state=view_state)
 
 
 def _validate_query_load_policy(
@@ -1680,7 +1680,7 @@ def _validate_query_load_policy(
         _state_machine_signal_payload(state_machine, "accepts", trigger, f"{label} load.refresh_on")
 
 
-def _validate_data_loader_routes(
+def _validate_data_loader_outcome_effects(
     contract: dict[str, Any],
     label: str,
     state_machine: dict[str, Any],
@@ -1690,9 +1690,9 @@ def _validate_data_loader_routes(
     scope: str,
     view_state: dict[str, Any] | None,
 ) -> None:
-    routes = invocation["outcome_routes"]
+    effects = invocation["outcome_effects"]
     expected_outcomes = set(application_action["outcomes"])
-    actual_outcomes = set(routes)
+    actual_outcomes = set(effects)
     if actual_outcomes != expected_outcomes:
         missing = sorted(expected_outcomes - actual_outcomes)
         extra = sorted(actual_outcomes - expected_outcomes)
@@ -1701,17 +1701,17 @@ def _validate_data_loader_routes(
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"{label} outcome_routes must exactly map query application action outcomes" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"{label} outcome_effects must exactly map query application action outcomes" + (": " + "; ".join(parts) if parts else ""))
 
-    for outcome_id, route in sorted(routes.items()):
+    for outcome_id, effect in sorted(effects.items()):
         outcome = application_action["outcomes"][outcome_id]
-        route_label = f"{label} outcome_routes.{outcome_id}"
-        if "conditional_routes" in route:
-            if any(key in route for key in ("context_updates", "result_binding", "raise", "no_signal")):
-                raise ContractError(f"{route_label} conditional_routes must not be mixed with top-level route effects")
-            _validate_query_conditional_routes(
+        effect_label = f"{label} outcome_effects.{outcome_id}"
+        if "conditional_effects" in effect:
+            if any(key in effect for key in ("context_updates", "result_binding", "raise", "no_local_effect")):
+                raise ContractError(f"{effect_label} conditional_effects must not be mixed with top-level outcome effects")
+            _validate_query_conditional_effects(
                 contract,
-                route_label,
+                effect_label,
                 state_machine,
                 invocation,
                 application_action,
@@ -1721,25 +1721,25 @@ def _validate_data_loader_routes(
                 view_state=view_state,
             )
             continue
-        _validate_query_route_effect(
+        _validate_query_outcome_effect(
             contract,
-            route_label,
+            effect_label,
             state_machine,
             invocation,
             application_action,
             outcome_id,
             outcome,
-            route,
+            effect,
             scope=scope,
             view_state=view_state,
         )
-    if all(_query_route_is_only_no_signal(route) for route in routes.values()):
-        raise ContractError(f"{label} data_loader has only no_signal routes and no explicit result binding, context update, or signal")
+    if all(_query_outcome_is_only_no_local_effect(effect) for effect in effects.values()):
+        raise ContractError(f"{label} data_loader has only no_local_effect outcome effects and no explicit result binding, context update, or signal")
 
 
-def _validate_query_conditional_routes(
+def _validate_query_conditional_effects(
     contract: dict[str, Any],
-    route_label: str,
+    effect_label: str,
     state_machine: dict[str, Any],
     invocation: dict[str, Any],
     application_action: dict[str, Any],
@@ -1750,15 +1750,15 @@ def _validate_query_conditional_routes(
     view_state: dict[str, Any] | None,
 ) -> None:
     conditions: list[str] = []
-    for index, branch in enumerate(invocation["outcome_routes"][outcome_id]["conditional_routes"]):
+    for index, branch in enumerate(invocation["outcome_effects"][outcome_id]["conditional_effects"]):
         condition = _query_result_condition_key(branch["when"])
-        branch_label = f"{route_label}.conditional_routes[{index}].{condition}"
+        branch_label = f"{effect_label}.conditional_effects[{index}].{condition}"
         if condition in conditions:
-            raise ContractError(f"{route_label} conditional_routes duplicate condition: {condition}")
+            raise ContractError(f"{effect_label} conditional_effects duplicate condition: {condition}")
         conditions.append(condition)
         if condition in {"result_empty", "result_non_empty"} and not _type_supports_emptiness(outcome["result"]):
             raise ContractError(f"{branch_label} is valid only for array/list query results")
-        _validate_query_route_effect(
+        _validate_query_outcome_effect(
             contract,
             branch_label,
             state_machine,
@@ -1771,50 +1771,50 @@ def _validate_query_conditional_routes(
             view_state=view_state,
         )
     if set(conditions) != {"result_empty", "result_non_empty"}:
-        raise ContractError(f"{route_label} conditional_routes for empty/non-empty result routing must declare both result_empty and result_non_empty branches")
+        raise ContractError(f"{effect_label} conditional_effects for empty/non-empty result handling must declare both result_empty and result_non_empty branches")
 
 
-def _validate_query_route_effect(
+def _validate_query_outcome_effect(
     contract: dict[str, Any],
-    route_label: str,
+    effect_label: str,
     state_machine: dict[str, Any],
     invocation: dict[str, Any],
     application_action: dict[str, Any],
     outcome_id: str,
     outcome: dict[str, Any],
-    route: dict[str, Any],
+    effect: dict[str, Any],
     *,
     scope: str,
     view_state: dict[str, Any] | None,
 ) -> None:
-        scopes = _action_outcome_route_scopes(state_machine, application_action, outcome)
-        has_context_updates = bool(route.get("context_updates"))
-        has_result_binding = "result_binding" in route
-        has_raise = "raise" in route
-        if not any((has_context_updates, has_result_binding, has_raise, "no_signal" in route)):
-            raise ContractError(f"{route_label} must declare context_updates, result_binding, raise, or no_signal")
-        for field, binding in (route.get("context_updates") or {}).items():
+        scopes = _action_outcome_effect_scopes(state_machine, application_action, outcome)
+        has_context_updates = bool(effect.get("context_updates"))
+        has_result_binding = "result_binding" in effect
+        has_raise = "raise" in effect
+        if not any((has_context_updates, has_result_binding, has_raise, "no_local_effect" in effect)):
+            raise ContractError(f"{effect_label} must declare context_updates, result_binding, raise, or no_local_effect")
+        for field, binding in (effect.get("context_updates") or {}).items():
             context = state_machine.get("context", {})
             if field not in context:
-                raise ContractError(f"{route_label} context_updates references undeclared context field: {field}")
+                raise ContractError(f"{effect_label} context_updates references undeclared context field: {field}")
             _validate_expression_type(
                 contract,
-                f"{route_label} context_updates.{field}",
+                f"{effect_label} context_updates.{field}",
                 binding,
                 context[field],
                 scopes,
                 allow_nullable_source=False,
             )
-        result_binding = route.get("result_binding")
+        result_binding = effect.get("result_binding")
         if result_binding:
             data_key = result_binding["data_key"]
             if data_key in state_machine.get("context", {}):
-                raise ContractError(f"{route_label} result_binding.data_key {data_key!r} conflicts with state-machine context field")
+                raise ContractError(f"{effect_label} result_binding.data_key {data_key!r} conflicts with state-machine context field")
             _expression_type(
                 contract,
                 result_binding["from"],
                 scopes,
-                f"{route_label} result_binding.{data_key}",
+                f"{effect_label} result_binding.{data_key}",
             )
         has_result_consumption = bool(result_binding) and _query_result_binding_consumed(
             contract,
@@ -1826,34 +1826,34 @@ def _validate_query_route_effect(
             view_state=view_state,
         )
         has_query_refresh = has_result_binding or has_context_updates
-        _validate_no_signal_route(
-            route_label,
+        _validate_no_local_effect(
+            effect_label,
             outcome,
-            route,
-            route_scope="data_loader",
+            effect,
+            effect_scope="data_loader",
             has_response_surface=_application_action_has_response_surface(contract, invocation["application_action"], outcome_id),
             has_query_refresh=has_query_refresh,
             has_result_binding=has_result_binding,
             has_data_effect=has_context_updates,
             authorization_outcome=outcome_id in _action_authorization_outcomes(application_action),
         )
-        no_signal = route.get("no_signal")
-        if no_signal and no_signal.get("reason") == "result_bound_without_signal" and has_result_binding and not has_result_consumption:
-            raise ContractError(f"{route_label} no_signal.reason result_bound_without_signal requires consumed result data or declared shared/prefetch ownership")
-        if outcome["kind"] == "success" and "no_signal" in route and not any((has_context_updates, has_result_binding, has_raise)):
-            if no_signal.get("reason") != "intentionally_unobservable" or not no_signal.get("rationale"):
-                raise ContractError(f"{route_label} successful query no_signal must bind/cache data, update context, raise a signal, or declare intentionally_unobservable with rationale")
-        signal = route.get("raise")
+        no_local_effect = effect.get("no_local_effect")
+        if no_local_effect and no_local_effect.get("reason") == "result_bound_without_signal" and has_result_binding and not has_result_consumption:
+            raise ContractError(f"{effect_label} no_local_effect.reason result_bound_without_signal requires consumed result data or declared shared/prefetch ownership")
+        if outcome["kind"] == "success" and "no_local_effect" in effect and not any((has_context_updates, has_result_binding, has_raise)):
+            if no_local_effect.get("reason") != "intentionally_unobservable" or not no_local_effect.get("rationale"):
+                raise ContractError(f"{effect_label} successful query no_local_effect must bind/cache data, update context, raise a signal, or declare intentionally_unobservable with rationale")
+        signal = effect.get("raise")
         if signal:
             payload = _state_machine_signal_payload(
                 state_machine,
                 "accepts",
                 _signal_raise_selector(signal),
-                f"{route_label} raise",
+                f"{effect_label} raise",
             )
             _validate_optional_payload_bindings(
                 contract=contract,
-                label=f"{route_label} raise payload_bindings",
+                label=f"{effect_label} raise payload_bindings",
                 bindings=signal.get("payload_bindings"),
                 payload=payload,
                 scopes=scopes,
@@ -1864,9 +1864,9 @@ def _query_result_condition_key(condition: dict[str, Any]) -> str:
     return next(iter(condition))
 
 
-def _query_route_is_only_no_signal(route: dict[str, Any]) -> bool:
-    branches = route.get("conditional_routes") or [route]
-    return all("no_signal" in branch and not any(key in branch for key in ("context_updates", "result_binding", "raise")) for branch in branches)
+def _query_outcome_is_only_no_local_effect(effect: dict[str, Any]) -> bool:
+    branches = effect.get("conditional_effects") or [effect]
+    return all("no_local_effect" in branch and not any(key in branch for key in ("context_updates", "result_binding", "raise")) for branch in branches)
 
 
 def _type_supports_emptiness(type_expr: Any) -> bool:
@@ -1927,12 +1927,12 @@ def _query_result_field_sources(contract: dict[str, Any], invocations: dict[str,
         application_action = application_actions.get(invocation.get("application_action"))
         if not application_action:
             continue
-        for outcome_id, route in sorted((invocation.get("outcome_routes") or {}).items()):
+        for outcome_id, effect in sorted((invocation.get("outcome_effects") or {}).items()):
             outcome = application_action.get("outcomes", {}).get(outcome_id)
             if not outcome:
                 continue
             fields = object_fields_for_type(contract, _query_result_item_type(outcome["result"]))
-            for branch in _query_route_effect_branches(route):
+            for branch in _query_outcome_effect_branches(effect):
                 result_binding = branch.get("result_binding")
                 if not result_binding:
                     continue
@@ -1942,8 +1942,8 @@ def _query_result_field_sources(contract: dict[str, Any], invocations: dict[str,
     return sources
 
 
-def _query_route_effect_branches(route: dict[str, Any]) -> list[dict[str, Any]]:
-    return list(route.get("conditional_routes") or [route])
+def _query_outcome_effect_branches(effect: dict[str, Any]) -> list[dict[str, Any]]:
+    return list(effect.get("conditional_effects") or [effect])
 
 
 def _query_result_item_type(result_type: Any) -> Any:
@@ -1953,17 +1953,17 @@ def _query_result_item_type(result_type: Any) -> Any:
     return effective
 
 
-def _validate_collection_empty_signal_routes(state_machine_id: str, state_machine: dict[str, Any]) -> None:
+def _validate_collection_empty_signal_effects(state_machine_id: str, state_machine: dict[str, Any]) -> None:
     for transition in state_machine.get("transitions", []):
         if not _is_data_refresh_signal(transition["on"]):
             continue
         signal_name = transition["on"]["data_refresh_signal"]
         if not _is_empty_collection_signal(signal_name):
             continue
-        if not _query_routes_raise_data_refresh_signal(state_machine, signal_name):
+        if not _query_effects_raise_data_refresh_signal(state_machine, signal_name):
             raise ContractError(
                 f"state machine {state_machine_id} transition uses empty-collection signal data_refresh_signal.{signal_name} "
-                "without an explicit query route raising it"
+                "without an explicit query outcome effect raising it"
             )
 
 
@@ -1971,7 +1971,7 @@ def _is_empty_collection_signal(signal_name: str) -> bool:
     return signal_name.endswith("_empty") or "collection_empty" in signal_name
 
 
-def _query_routes_raise_data_refresh_signal(state_machine: dict[str, Any], signal_name: str) -> bool:
+def _query_effects_raise_data_refresh_signal(state_machine: dict[str, Any], signal_name: str) -> bool:
     for invocation in (state_machine.get("data_loaders") or {}).values():
         if _data_loader_raises_data_refresh_signal(invocation, signal_name):
             return True
@@ -1983,8 +1983,8 @@ def _query_routes_raise_data_refresh_signal(state_machine: dict[str, Any], signa
 
 
 def _data_loader_raises_data_refresh_signal(invocation: dict[str, Any], signal_name: str) -> bool:
-    for route in (invocation.get("outcome_routes") or {}).values():
-        for branch in _query_route_effect_branches(route):
+    for effect in (invocation.get("outcome_effects") or {}).values():
+        for branch in _query_outcome_effect_branches(effect):
             signal = branch.get("raise") or {}
             if signal.get("data_refresh_signal") == signal_name:
                 return True
@@ -1999,8 +1999,8 @@ def _validate_machine_query_ownership(contract: dict[str, Any], state_machine_id
     for invocation_id, invocation in sorted(owner_queries.items()):
         label = f"state machine {state_machine_id} data_loader {invocation_id}"
         result_scope = invocation.get("result_scope")
-        if _data_loader_has_result_bound_no_signal(invocation) and result_scope not in {"shared", "prefetch"}:
-            raise ContractError(f"{label} result_binding with no_signal must declare result_scope shared or prefetch")
+        if _data_loader_has_result_bound_no_local_effect(invocation) and result_scope not in {"shared", "prefetch"}:
+            raise ContractError(f"{label} result_binding with no_local_effect must declare result_scope shared or prefetch")
         if invocation["application_action"] in child_query_application_actions and result_scope not in {"shared", "prefetch"}:
             raise ContractError(f"{label} duplicates child-owned query loading and must declare result_scope shared or prefetch")
 
@@ -2020,11 +2020,11 @@ def _child_query_application_actions(contract: dict[str, Any], state_machine: di
     return application_actions
 
 
-def _data_loader_has_result_bound_no_signal(invocation: dict[str, Any]) -> bool:
-    for route in (invocation.get("outcome_routes") or {}).values():
-        for branch in _query_route_effect_branches(route):
-            no_signal = branch.get("no_signal") or {}
-            if branch.get("result_binding") and no_signal.get("reason") == "result_bound_without_signal":
+def _data_loader_has_result_bound_no_local_effect(invocation: dict[str, Any]) -> bool:
+    for effect in (invocation.get("outcome_effects") or {}).values():
+        for branch in _query_outcome_effect_branches(effect):
+            no_local_effect = branch.get("no_local_effect") or {}
+            if branch.get("result_binding") and no_local_effect.get("reason") == "result_bound_without_signal":
                 return True
     return False
 
@@ -2899,7 +2899,7 @@ def _validate_entry_point_delegation_graph(contract: dict[str, Any]) -> None:
 
 
 def _validate_entry_point_response_maps(contract: dict[str, Any]) -> None:
-    """Validate synchronous target response keys before local routes depend on them."""
+    """Validate synchronous target response keys before local outcome effects depend on them."""
     for entry_id, entry in contract.get("entry_points", {}).items():
         adapter_kind, _adapter = entry_point_adapter_pair(entry)
         target_kind, target = entry_point_target_pair(entry)
@@ -3741,23 +3741,23 @@ def _validate_workflows(contract: dict[str, Any]) -> None:
             raise ContractError(f"Workflow {wid} step ids must be unique")
         step_id_set = set(step_ids)
         source_types = _workflow_trigger_source_types(contract, wid, workflow)
-        routed_outcomes: set[str] = set()
+        terminal_outcomes: set[str] = set()
         for step in workflow["steps"]:
             if step["application_action"] not in contract["application_actions"]:
                 raise ContractError(f"Workflow {wid} step references unknown application action {step['application_action']}")
             operation = contract["application_actions"][step["application_action"]]
             _validate_workflow_step_bindings(contract, wid, step, operation, source_types)
-            routed_outcomes.update(_validate_workflow_step_routes(wid, workflow, step, operation, step_id_set))
+            terminal_outcomes.update(_validate_workflow_step_transitions(wid, workflow, step, operation, step_id_set))
             _merge_type_scopes(source_types, _workflow_step_source_types(contract, step, operation))
-        if routed_outcomes != set(workflow["outcomes"]):
-            missing = sorted(set(workflow["outcomes"]) - routed_outcomes)
-            extra = sorted(routed_outcomes - set(workflow["outcomes"]))
+        if terminal_outcomes != set(workflow["outcomes"]):
+            missing = sorted(set(workflow["outcomes"]) - terminal_outcomes)
+            extra = sorted(terminal_outcomes - set(workflow["outcomes"]))
             parts = []
             if missing:
-                parts.append("missing outcome routes: " + ", ".join(missing))
+                parts.append("missing outcome transitions: " + ", ".join(missing))
             if extra:
-                parts.append("unknown outcome routes: " + ", ".join(extra))
-            raise ContractError(f"Workflow {wid} outcomes must be reachable from step routes" + (": " + "; ".join(parts) if parts else ""))
+                parts.append("unknown outcome transitions: " + ", ".join(extra))
+            raise ContractError(f"Workflow {wid} outcomes must be reachable from step transitions" + (": " + "; ".join(parts) if parts else ""))
 
 
 def _validate_workflow_outcomes(workflow_id: str, workflow: dict[str, Any]) -> None:
@@ -3799,21 +3799,21 @@ def _workflow_step_source_types(contract: dict[str, Any], step: dict[str, Any], 
     return {"steps": sources}
 
 
-WORKFLOW_ROUTE_ACTIONS = ("next_step", "complete_as", "fail_as", "retry_policy", "dead_letter_as")
+WORKFLOW_TRANSITION_ACTIONS = ("next_step", "complete_as", "fail_as", "retry_policy", "dead_letter_as")
 
 
-def _workflow_route_action(route: dict[str, Any]) -> tuple[str, Any]:
-    actions = [action for action in WORKFLOW_ROUTE_ACTIONS if action in route]
+def _workflow_transition_action(transition: dict[str, Any]) -> tuple[str, Any]:
+    actions = [action for action in WORKFLOW_TRANSITION_ACTIONS if action in transition]
     if len(actions) != 1:
         raise ContractError(
-            "workflow route must declare exactly one of "
-            + ", ".join(WORKFLOW_ROUTE_ACTIONS)
+            "workflow transition must declare exactly one of "
+            + ", ".join(WORKFLOW_TRANSITION_ACTIONS)
         )
     action = actions[0]
-    return action, route[action]
+    return action, transition[action]
 
 
-def _workflow_route_outcome(action: str, value: Any) -> str | None:
+def _workflow_transition_outcome(action: str, value: Any) -> str | None:
     if action in {"complete_as", "fail_as", "dead_letter_as"}:
         return value
     if action == "retry_policy":
@@ -3854,70 +3854,70 @@ def _validate_workflow_step_bindings(
             )
 
 
-def _validate_workflow_step_routes(
+def _validate_workflow_step_transitions(
     workflow_id: str,
     workflow: dict[str, Any],
     step: dict[str, Any],
     application_action: dict[str, Any],
     step_ids: set[str],
 ) -> set[str]:
-    routes = step["outcome_routes"]
-    if set(routes) != set(application_action["outcomes"]):
-        missing = sorted(set(application_action["outcomes"]) - set(routes))
-        extra = sorted(set(routes) - set(application_action["outcomes"]))
+    transitions = step["outcome_transitions"]
+    if set(transitions) != set(application_action["outcomes"]):
+        missing = sorted(set(application_action["outcomes"]) - set(transitions))
+        extra = sorted(set(transitions) - set(application_action["outcomes"]))
         parts = []
         if missing:
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"Workflow {workflow_id} step {step['id']} outcome_routes must exactly map application action outcomes" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"Workflow {workflow_id} step {step['id']} outcome_transitions must exactly map application action outcomes" + (": " + "; ".join(parts) if parts else ""))
 
-    routed_outcomes: set[str] = set()
-    for outcome_id, route in routes.items():
+    terminal_outcomes: set[str] = set()
+    for outcome_id, transition in transitions.items():
         try:
-            action, value = _workflow_route_action(route)
+            action, value = _workflow_transition_action(transition)
         except ContractError as exc:
-            raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} {exc}") from exc
+            raise ContractError(f"Workflow {workflow_id} step {step['id']} transition {outcome_id} {exc}") from exc
         outcome = application_action["outcomes"][outcome_id]
         if action == "next_step":
             next_step = value
             if next_step not in step_ids:
-                raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} references unknown next step {next_step}")
+                raise ContractError(f"Workflow {workflow_id} step {step['id']} transition {outcome_id} references unknown next step {next_step}")
             if next_step == step["id"]:
-                raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} cannot loop to itself")
+                raise ContractError(f"Workflow {workflow_id} step {step['id']} transition {outcome_id} cannot loop to itself")
         else:
-            routed_outcome_id = _workflow_route_outcome(action, value)
+            routed_outcome_id = _workflow_transition_outcome(action, value)
             assert routed_outcome_id is not None
             routed_outcome = workflow["outcomes"].get(routed_outcome_id)
             if not routed_outcome:
-                raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} references unknown workflow outcome {routed_outcome_id}")
+                raise ContractError(f"Workflow {workflow_id} step {step['id']} transition {outcome_id} references unknown workflow outcome {routed_outcome_id}")
             expected_kind = "success" if action == "complete_as" else "failure"
             if outcome["kind"] != expected_kind or routed_outcome["kind"] != expected_kind:
-                raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} must preserve {outcome['kind']} outcome semantics")
+                raise ContractError(f"Workflow {workflow_id} step {step['id']} transition {outcome_id} must preserve {outcome['kind']} outcome semantics")
             if not type_equals(routed_outcome["result"], outcome["result"]):
                 raise ContractError(
                     f"Workflow {workflow_id} outcome {routed_outcome_id} result must be "
                     f"{type_display(outcome['result'])} to receive step outcome {outcome_id}"
                 )
-            if outcome_id in _action_authorization_outcomes(application_action) and not _is_explicit_authorization_workflow_outcome(routed_outcome_id) and not route.get("rationale"):
+            if outcome_id in _action_authorization_outcomes(application_action) and not _is_explicit_authorization_workflow_outcome(routed_outcome_id) and not transition.get("rationale"):
                 raise ContractError(
-                    f"Workflow {workflow_id} step {step['id']} route {outcome_id} collapses authorization failure into {routed_outcome_id}; declare an explicit authorization outcome or add rationale"
+                    f"Workflow {workflow_id} step {step['id']} transition {outcome_id} collapses authorization failure into {routed_outcome_id}; declare an explicit authorization outcome or add rationale"
                 )
-            routed_outcomes.add(routed_outcome_id)
+            terminal_outcomes.add(routed_outcome_id)
         if action == "retry_policy":
             if outcome["kind"] != "failure":
-                raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} retry_policy is only valid for failure outcomes")
+                raise ContractError(f"Workflow {workflow_id} step {step['id']} transition {outcome_id} retry_policy is only valid for failure outcomes")
             if not _application_action_retry_safe(application_action):
                 raise ContractError(
-                    f"Workflow {workflow_id} step {step['id']} route {outcome_id} retry_policy requires "
+                    f"Workflow {workflow_id} step {step['id']} transition {outcome_id} retry_policy requires "
                     "a query or retry_safe target operation"
                 )
             retry = value
             if retry["attempts"] < 1 or retry["attempts"] > 10:
-                raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} retry_policy attempts must be between 1 and 10")
+                raise ContractError(f"Workflow {workflow_id} step {step['id']} transition {outcome_id} retry_policy attempts must be between 1 and 10")
         if action == "dead_letter_as" and outcome["kind"] != "failure":
-            raise ContractError(f"Workflow {workflow_id} step {step['id']} route {outcome_id} dead_letter_as is only valid for failure outcomes")
-    return routed_outcomes
+            raise ContractError(f"Workflow {workflow_id} step {step['id']} transition {outcome_id} dead_letter_as is only valid for failure outcomes")
+    return terminal_outcomes
 
 
 def _is_explicit_authorization_workflow_outcome(outcome_id: str) -> bool:

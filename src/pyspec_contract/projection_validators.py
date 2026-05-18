@@ -560,7 +560,7 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             cap = contract["application_actions"][step["application_action"]]
             expected_in = {name: _workflow_cwl_source(source) for name, source in sorted(step["input_bindings"].items())}
             expected_out = sorted(cap["outcomes"])
-            expected_doc = f"input_bindings={step['input_bindings']}; outcome_routes={step['outcome_routes']}"
+            expected_doc = f"input_bindings={step['input_bindings']}; outcome_transitions={step['outcome_transitions']}"
             if set(actual) != {"doc", "run", "in", "out"} or actual.get("doc") != expected_doc or actual.get("in") != expected_in or actual.get("out") != expected_out:
                 raise ContractError(f"CWL workflow {workflow_id} step {step['id']} malformed")
 
