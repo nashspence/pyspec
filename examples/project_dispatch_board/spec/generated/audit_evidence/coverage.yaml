@@ -3,7 +3,7 @@ project: project_dispatch_board
 summary:
   required_visual_paths: 879
   missing_required_visual_paths: 0
-  required_visual_text_witnesses: 276
+  required_visual_text_witnesses: 274
   optional_visual_paths: 503
   optional_visual_paths_not_shown: 21
   non_visual_paths: 149
@@ -261,33 +261,33 @@ visual_audit:
       /access_policies/access_policy.project.member/action/2: V0001
       /access_policies/access_policy.project.member/action/3: V0001
       /access_policies/access_policy.project.member/decision: V0001
-      /access_policies/access_policy.project.member/effect: V0001
       /access_policies/access_policy.project.member/environment: V0001
       /access_policies/access_policy.project.member/rationale: V0001
       /access_policies/access_policy.project.member/resource/0/entity_type: V0001
-      /access_policies/access_policy.project.member/rules/0/subject_has_role: V0001
+      /access_policies/access_policy.project.member/rules/0/condition/subject_has_role: V0001
+      /access_policies/access_policy.project.member/rules/0/effect: V0001
       /access_policies/access_policy.project.member/subject/0/kind: V0001
       /access_policies/access_policy.project.reviewer/action/0: V0002
       /access_policies/access_policy.project.reviewer/action/1: V0002
       /access_policies/access_policy.project.reviewer/action/2: V0002
       /access_policies/access_policy.project.reviewer/decision: V0002
-      /access_policies/access_policy.project.reviewer/effect: V0002
       /access_policies/access_policy.project.reviewer/environment: V0002
       /access_policies/access_policy.project.reviewer/rationale: V0002
       /access_policies/access_policy.project.reviewer/resource/0/entity_type: V0002
-      /access_policies/access_policy.project.reviewer/rules/0/subject_has_role: V0002
+      /access_policies/access_policy.project.reviewer/rules/0/condition/subject_has_role: V0002
+      /access_policies/access_policy.project.reviewer/rules/0/effect: V0002
       /access_policies/access_policy.project.reviewer/subject/0/kind: V0002
       /commands/command.project.approve/authorization/access_denied_as: V0004
       /commands/command.project.approve/authorization/authentication_required_as: V0004
       /commands/command.project.approve/authorization/policy: V0004
-      /commands/command.project.approve/effects/lifecycle_transition/entity_type: V0004
-      /commands/command.project.approve/effects/lifecycle_transition/field: V0004
-      /commands/command.project.approve/effects/lifecycle_transition/from: V0004
-      /commands/command.project.approve/effects/lifecycle_transition/to: V0004
       /commands/command.project.approve/emits_domain_events/0/domain_event: V0004
       /commands/command.project.approve/emits_domain_events/0/outcome: V0004
       /commands/command.project.approve/emits_domain_events/0/payload_bindings/approved_by/from: V0004
       /commands/command.project.approve/emits_domain_events/0/payload_bindings/project_id/from: V0004
+      /commands/command.project.approve/entity_changes/lifecycle_transition/entity_type: V0004
+      /commands/command.project.approve/entity_changes/lifecycle_transition/field: V0004
+      /commands/command.project.approve/entity_changes/lifecycle_transition/from: V0004
+      /commands/command.project.approve/entity_changes/lifecycle_transition/to: V0004
       /commands/command.project.approve/input_schema/additionalProperties: V0004
       /commands/command.project.approve/input_schema/properties/approved_by/type: V0004
       /commands/command.project.approve/input_schema/properties/project_id/type: V0004
@@ -311,13 +311,13 @@ visual_audit:
       /commands/command.project.archive/authorization/access_denied_as: V0007
       /commands/command.project.archive/authorization/authentication_required_as: V0007
       /commands/command.project.archive/authorization/policy: V0007
-      /commands/command.project.archive/effects/lifecycle_transition/entity_type: V0007
-      /commands/command.project.archive/effects/lifecycle_transition/field: V0007
-      /commands/command.project.archive/effects/lifecycle_transition/from: V0007
-      /commands/command.project.archive/effects/lifecycle_transition/to: V0007
       /commands/command.project.archive/emits_domain_events/0/domain_event: V0007
       /commands/command.project.archive/emits_domain_events/0/outcome: V0007
       /commands/command.project.archive/emits_domain_events/0/payload_source: V0007
+      /commands/command.project.archive/entity_changes/lifecycle_transition/entity_type: V0007
+      /commands/command.project.archive/entity_changes/lifecycle_transition/field: V0007
+      /commands/command.project.archive/entity_changes/lifecycle_transition/from: V0007
+      /commands/command.project.archive/entity_changes/lifecycle_transition/to: V0007
       /commands/command.project.archive/input_schema/additionalProperties: V0007
       /commands/command.project.archive/input_schema/properties/project_id/type: V0007
       /commands/command.project.archive/input_schema/required/0: V0007
@@ -336,10 +336,10 @@ visual_audit:
       /commands/command.project.create/authorization/access_denied_as: V0008
       /commands/command.project.create/authorization/authentication_required_as: V0008
       /commands/command.project.create/authorization/policy: V0008
-      /commands/command.project.create/effects/creates/0: V0008
       /commands/command.project.create/emits_domain_events/0/domain_event: V0008
       /commands/command.project.create/emits_domain_events/0/outcome: V0008
       /commands/command.project.create/emits_domain_events/0/payload_source: V0008
+      /commands/command.project.create/entity_changes/creates/0: V0008
       /commands/command.project.create/input_schema/additionalProperties: V0008
       /commands/command.project.create/input_schema/properties/customer/type: V0008
       /commands/command.project.create/input_schema/properties/priority/type: V0008
@@ -362,8 +362,8 @@ visual_audit:
       /commands/command.project.send_approval_notice/authorization/access_denied_as: V0009
       /commands/command.project.send_approval_notice/authorization/authentication_required_as: V0009
       /commands/command.project.send_approval_notice/authorization/policy: V0009
-      /commands/command.project.send_approval_notice/effects: V0009
       /commands/command.project.send_approval_notice/emits_domain_events: V0009
+      /commands/command.project.send_approval_notice/entity_changes: V0009
       /commands/command.project.send_approval_notice/input_schema/additionalProperties: V0009
       /commands/command.project.send_approval_notice/input_schema/properties/approved_by/type: V0009
       /commands/command.project.send_approval_notice/input_schema/properties/project_id/type: V0009
@@ -383,13 +383,13 @@ visual_audit:
       /commands/command.project.submit/authorization/access_denied_as: V0010
       /commands/command.project.submit/authorization/authentication_required_as: V0010
       /commands/command.project.submit/authorization/policy: V0010
-      /commands/command.project.submit/effects/lifecycle_transition/entity_type: V0010
-      /commands/command.project.submit/effects/lifecycle_transition/field: V0010
-      /commands/command.project.submit/effects/lifecycle_transition/from: V0010
-      /commands/command.project.submit/effects/lifecycle_transition/to: V0010
       /commands/command.project.submit/emits_domain_events/0/domain_event: V0010
       /commands/command.project.submit/emits_domain_events/0/outcome: V0010
       /commands/command.project.submit/emits_domain_events/0/payload_source: V0010
+      /commands/command.project.submit/entity_changes/lifecycle_transition/entity_type: V0010
+      /commands/command.project.submit/entity_changes/lifecycle_transition/field: V0010
+      /commands/command.project.submit/entity_changes/lifecycle_transition/from: V0010
+      /commands/command.project.submit/entity_changes/lifecycle_transition/to: V0010
       /commands/command.project.submit/input_schema/additionalProperties: V0010
       /commands/command.project.submit/input_schema/properties/project_id/type: V0010
       /commands/command.project.submit/input_schema/required/0: V0010
@@ -696,35 +696,35 @@ visual_audit:
       /state_machines/state_machine.project.activity/states/ready/fields/0: V0024
       /state_machines/state_machine.project.activity/states/ready/fields/1: V0024
       /state_machines/state_machine.project.activity/states/ready/fields/2: V0024
-      ? /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/effects/access_denied/no_local_effect/rationale
-      : V0024
-      ? /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/effects/access_denied/no_local_effect/reason
-      : V0024
-      ? /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/effects/authentication_required/no_local_effect/rationale
-      : V0024
-      ? /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/effects/authentication_required/no_local_effect/reason
-      : V0024
-      ? /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/effects/found/no_local_effect/reason
-      : V0024
-      ? /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/effects/found/result_binding/data_key
-      : V0024
-      ? /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/effects/found/result_binding/from/from
-      : V0024
-      ? /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/effects/not_found/no_local_effect/rationale
-      : V0024
-      ? /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/effects/not_found/no_local_effect/reason
-      : V0024
       /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/input_mapping/project_id/from: V0024
       /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/load/on_enter: V0024
+      ? /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/local_effects/access_denied/no_local_effect/rationale
+      : V0024
+      ? /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/local_effects/access_denied/no_local_effect/reason
+      : V0024
+      ? /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/local_effects/authentication_required/no_local_effect/rationale
+      : V0024
+      ? /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/local_effects/authentication_required/no_local_effect/reason
+      : V0024
+      ? /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/local_effects/found/no_local_effect/reason
+      : V0024
+      ? /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/local_effects/found/result_binding/data_key
+      : V0024
+      ? /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/local_effects/found/result_binding/from/from
+      : V0024
+      ? /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/local_effects/not_found/no_local_effect/rationale
+      : V0024
+      ? /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/local_effects/not_found/no_local_effect/reason
+      : V0024
       /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/query: V0024
       /state_machines/state_machine.project.activity/states/ready/surface: V0024
       /state_machines/state_machine.project.activity/states/ready/text/0: V0024
       /state_machines/state_machine.project.activity/transitions/0/from: V0024
       /state_machines/state_machine.project.activity/transitions/0/to: V0024
       /state_machines/state_machine.project.activity/transitions/0/trigger/local_signal: V0024
-      /state_machines/state_machine.project.activity/transitions/1/effects/0/set/context: V0024
-      /state_machines/state_machine.project.activity/transitions/1/effects/0/set/value: V0024
       /state_machines/state_machine.project.activity/transitions/1/from: V0024
+      /state_machines/state_machine.project.activity/transitions/1/local_effects/0/set/context: V0024
+      /state_machines/state_machine.project.activity/transitions/1/local_effects/0/set/value: V0024
       /state_machines/state_machine.project.activity/transitions/1/to: V0024
       /state_machines/state_machine.project.activity/transitions/1/trigger/local_signal: V0024
       /state_machines/state_machine.project.board/archetype: V0025
@@ -739,19 +739,20 @@ visual_audit:
       /state_machines/state_machine.project.board/local_signals/accepts/data_refresh_signals: V0025
       /state_machines/state_machine.project.board/local_signals/accepts/local_signals: V0025
       /state_machines/state_machine.project.board/local_signals/emits/local_signals: V0025
-      /state_machines/state_machine.project.board/query_bindings/list_board/effects/access_denied/no_local_effect/rationale: V0025
-      /state_machines/state_machine.project.board/query_bindings/list_board/effects/access_denied/no_local_effect/reason: V0025
-      ? /state_machines/state_machine.project.board/query_bindings/list_board/effects/authentication_required/no_local_effect/rationale
-      : V0025
-      ? /state_machines/state_machine.project.board/query_bindings/list_board/effects/authentication_required/no_local_effect/reason
-      : V0025
-      /state_machines/state_machine.project.board/query_bindings/list_board/effects/listed/no_local_effect/reason: V0025
-      /state_machines/state_machine.project.board/query_bindings/list_board/effects/listed/result_binding/data_key: V0025
-      /state_machines/state_machine.project.board/query_bindings/list_board/effects/listed/result_binding/from/from: V0025
-      /state_machines/state_machine.project.board/query_bindings/list_board/effects/unavailable/no_local_effect/rationale: V0025
-      /state_machines/state_machine.project.board/query_bindings/list_board/effects/unavailable/no_local_effect/reason: V0025
       /state_machines/state_machine.project.board/query_bindings/list_board/input_mapping/workspace_id/from: V0025
       /state_machines/state_machine.project.board/query_bindings/list_board/load/on_start: V0025
+      ? /state_machines/state_machine.project.board/query_bindings/list_board/local_effects/access_denied/no_local_effect/rationale
+      : V0025
+      /state_machines/state_machine.project.board/query_bindings/list_board/local_effects/access_denied/no_local_effect/reason: V0025
+      ? /state_machines/state_machine.project.board/query_bindings/list_board/local_effects/authentication_required/no_local_effect/rationale
+      : V0025
+      ? /state_machines/state_machine.project.board/query_bindings/list_board/local_effects/authentication_required/no_local_effect/reason
+      : V0025
+      /state_machines/state_machine.project.board/query_bindings/list_board/local_effects/listed/no_local_effect/reason: V0025
+      /state_machines/state_machine.project.board/query_bindings/list_board/local_effects/listed/result_binding/data_key: V0025
+      /state_machines/state_machine.project.board/query_bindings/list_board/local_effects/listed/result_binding/from/from: V0025
+      /state_machines/state_machine.project.board/query_bindings/list_board/local_effects/unavailable/no_local_effect/rationale: V0025
+      /state_machines/state_machine.project.board/query_bindings/list_board/local_effects/unavailable/no_local_effect/reason: V0025
       /state_machines/state_machine.project.board/query_bindings/list_board/query: V0025
       /state_machines/state_machine.project.board/query_bindings/list_board/rationale: V0025
       /state_machines/state_machine.project.board/query_bindings/list_board/result_scope: V0025
@@ -846,17 +847,17 @@ visual_audit:
       /state_machines/state_machine.project.board/states/ready/renderers/textual/style/rules/1/selector: V0025
       /state_machines/state_machine.project.board/states/ready/renderers/textual/style/rules/2/declarations/width: V0025
       /state_machines/state_machine.project.board/states/ready/renderers/textual/style/rules/2/selector: V0025
-      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/effects/0/set/context: V0025
-      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/effects/0/set/from: V0025
-      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/effects/1/send/instance: V0025
-      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/effects/1/send/local_signal: V0025
-      ? /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/effects/1/send/payload_bindings/project_id/from
-      : V0025
-      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/effects/2/send/instance: V0025
-      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/effects/2/send/local_signal: V0025
-      ? /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/effects/2/send/payload_bindings/project_id/from
-      : V0025
       /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/id: V0025
+      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/0/set/context: V0025
+      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/0/set/from: V0025
+      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/1/send/instance: V0025
+      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/1/send/local_signal: V0025
+      ? /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/1/send/payload_bindings/project_id/from
+      : V0025
+      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/2/send/instance: V0025
+      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/2/send/local_signal: V0025
+      ? /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/2/send/payload_bindings/project_id/from
+      : V0025
       /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/when/instance: V0025
       /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/when/local_signal: V0025
       /state_machines/state_machine.project.board/states/ready/surface: V0025
@@ -926,20 +927,20 @@ visual_audit:
       /state_machines/state_machine.project.detail/states/loading/assets: V0026
       /state_machines/state_machine.project.detail/states/loading/command_bindings: V0026
       /state_machines/state_machine.project.detail/states/loading/fields: V0026
-      ? /state_machines/state_machine.project.detail/states/loading/query_bindings/read_project/effects/access_denied/raise/data_refresh_signal
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/loading/query_bindings/read_project/effects/authentication_required/raise/data_refresh_signal
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/loading/query_bindings/read_project/effects/found/raise/data_refresh_signal
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/loading/query_bindings/read_project/effects/found/result_binding/data_key
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/loading/query_bindings/read_project/effects/found/result_binding/from/from
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/loading/query_bindings/read_project/effects/not_found/raise/data_refresh_signal
-      : V0026
       /state_machines/state_machine.project.detail/states/loading/query_bindings/read_project/input_mapping/project_id/from: V0026
       /state_machines/state_machine.project.detail/states/loading/query_bindings/read_project/load/on_enter: V0026
+      ? /state_machines/state_machine.project.detail/states/loading/query_bindings/read_project/local_effects/access_denied/raise/data_refresh_signal
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/loading/query_bindings/read_project/local_effects/authentication_required/raise/data_refresh_signal
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/loading/query_bindings/read_project/local_effects/found/raise/data_refresh_signal
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/loading/query_bindings/read_project/local_effects/found/result_binding/data_key
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/loading/query_bindings/read_project/local_effects/found/result_binding/from/from
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/loading/query_bindings/read_project/local_effects/not_found/raise/data_refresh_signal
+      : V0026
       /state_machines/state_machine.project.detail/states/loading/query_bindings/read_project/query: V0026
       /state_machines/state_machine.project.detail/states/loading/surface: V0026
       /state_machines/state_machine.project.detail/states/loading/text/0: V0026
@@ -952,73 +953,76 @@ visual_audit:
       /state_machines/state_machine.project.detail/states/none/text/1: V0026
       /state_machines/state_machine.project.detail/states/ready/assets/0: V0026
       /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/command: V0026
-      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/effects/access_denied/no_local_effect/rationale
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/effects/access_denied/no_local_effect/reason
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/effects/approved/raise/data_refresh_signal
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/effects/authentication_required/no_local_effect/rationale
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/effects/authentication_required/no_local_effect/reason
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/effects/not_found/no_local_effect/rationale
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/effects/not_found/no_local_effect/reason
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/effects/transition_not_allowed/raise/local_signal
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/effects/transition_not_allowed/raise/payload_bindings/message/from
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/effects/unavailable/no_local_effect/rationale
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/effects/unavailable/no_local_effect/reason
-      : V0026
       /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/input_mapping/approved_by/from: V0026
       /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/input_mapping/project_id/from: V0026
+      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/access_denied/no_local_effect/rationale
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/access_denied/no_local_effect/reason
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/approved/raise/data_refresh_signal
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/authentication_required/no_local_effect/rationale
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/authentication_required/no_local_effect/reason
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/not_found/no_local_effect/rationale
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/not_found/no_local_effect/reason
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/transition_not_allowed/raise/local_signal
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/transition_not_allowed/raise/payload_bindings/message/from
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/unavailable/no_local_effect/rationale
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/unavailable/no_local_effect/reason
+      : V0026
       /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/command: V0026
-      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/effects/access_denied/raise/local_signal
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/effects/access_denied/raise/payload_bindings/message/from
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/effects/archived/raise/data_refresh_signal
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/effects/authentication_required/raise/local_signal
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/effects/authentication_required/raise/payload_bindings/message/from
-      : V0026
-      /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/effects/not_found/raise/local_signal: V0026
-      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/effects/not_found/raise/payload_bindings/message/from
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/effects/transition_not_allowed/raise/local_signal
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/effects/transition_not_allowed/raise/payload_bindings/message/from
-      : V0026
       /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/input_mapping/project_id/from: V0026
+      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/local_effects/access_denied/raise/local_signal
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/local_effects/access_denied/raise/payload_bindings/message/from
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/local_effects/archived/raise/data_refresh_signal
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/local_effects/authentication_required/raise/local_signal
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/local_effects/authentication_required/raise/payload_bindings/message/from
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/local_effects/not_found/raise/local_signal
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/local_effects/not_found/raise/payload_bindings/message/from
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/local_effects/transition_not_allowed/raise/local_signal
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/local_effects/transition_not_allowed/raise/payload_bindings/message/from
+      : V0026
       /state_machines/state_machine.project.detail/states/ready/fields/0: V0026
       /state_machines/state_machine.project.detail/states/ready/fields/1: V0026
       /state_machines/state_machine.project.detail/states/ready/fields/2: V0026
       /state_machines/state_machine.project.detail/states/ready/fields/3: V0026
       /state_machines/state_machine.project.detail/states/ready/fields/4: V0026
-      ? /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/effects/access_denied/raise/local_signal
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/effects/access_denied/raise/payload_bindings/message/from
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/effects/authentication_required/raise/local_signal
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/effects/authentication_required/raise/payload_bindings/message/from
-      : V0026
-      /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/effects/found/no_local_effect/reason: V0026
-      ? /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/effects/found/result_binding/data_key
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/effects/found/result_binding/from/from
-      : V0026
-      /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/effects/not_found/raise/local_signal: V0026
-      ? /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/effects/not_found/raise/payload_bindings/message/from
-      : V0026
       /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/input_mapping/project_id/from: V0026
       /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/load/on_enter: V0026
       ? /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/load/refresh_on/0/data_refresh_signal
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/local_effects/access_denied/raise/local_signal
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/local_effects/access_denied/raise/payload_bindings/message/from
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/local_effects/authentication_required/raise/local_signal
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/local_effects/authentication_required/raise/payload_bindings/message/from
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/local_effects/found/no_local_effect/reason
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/local_effects/found/result_binding/data_key
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/local_effects/found/result_binding/from/from
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/local_effects/not_found/raise/local_signal
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/local_effects/not_found/raise/payload_bindings/message/from
       : V0026
       /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/query: V0026
       /state_machines/state_machine.project.detail/states/ready/surface: V0026
@@ -1032,9 +1036,9 @@ visual_audit:
       /state_machines/state_machine.project.detail/transitions/2/from: V0026
       /state_machines/state_machine.project.detail/transitions/2/to: V0026
       /state_machines/state_machine.project.detail/transitions/2/trigger/data_refresh_signal: V0026
-      /state_machines/state_machine.project.detail/transitions/3/effects/0/set/context: V0026
-      /state_machines/state_machine.project.detail/transitions/3/effects/0/set/value: V0026
       /state_machines/state_machine.project.detail/transitions/3/from: V0026
+      /state_machines/state_machine.project.detail/transitions/3/local_effects/0/set/context: V0026
+      /state_machines/state_machine.project.detail/transitions/3/local_effects/0/set/value: V0026
       /state_machines/state_machine.project.detail/transitions/3/to: V0026
       /state_machines/state_machine.project.detail/transitions/3/trigger/local_signal: V0026
       /state_machines/state_machine.project.detail/transitions/4/from: V0026
@@ -1103,55 +1107,58 @@ visual_audit:
       : V0027
       /state_machines/state_machine.project.list/local_signals/emits/local_signals/project_selected/payload_schema/required/0: V0027
       /state_machines/state_machine.project.list/local_signals/emits/local_signals/project_selected/payload_schema/type: V0027
-      /state_machines/state_machine.project.list/query_bindings/list_projects/effects/access_denied/raise/data_refresh_signal: V0027
-      ? /state_machines/state_machine.project.list/query_bindings/list_projects/effects/authentication_required/raise/data_refresh_signal
-      : V0027
-      ? /state_machines/state_machine.project.list/query_bindings/list_projects/effects/listed/conditional_effects/0/context_updates/workspace_id/from
-      : V0027
-      ? /state_machines/state_machine.project.list/query_bindings/list_projects/effects/listed/conditional_effects/0/raise/data_refresh_signal
-      : V0027
-      ? /state_machines/state_machine.project.list/query_bindings/list_projects/effects/listed/conditional_effects/0/result_binding/data_key
-      : V0027
-      ? /state_machines/state_machine.project.list/query_bindings/list_projects/effects/listed/conditional_effects/0/result_binding/from/from
-      : V0027
-      ? /state_machines/state_machine.project.list/query_bindings/list_projects/effects/listed/conditional_effects/0/when/result_empty
-      : V0027
-      ? /state_machines/state_machine.project.list/query_bindings/list_projects/effects/listed/conditional_effects/1/context_updates/workspace_id/from
-      : V0027
-      ? /state_machines/state_machine.project.list/query_bindings/list_projects/effects/listed/conditional_effects/1/raise/data_refresh_signal
-      : V0027
-      ? /state_machines/state_machine.project.list/query_bindings/list_projects/effects/listed/conditional_effects/1/result_binding/data_key
-      : V0027
-      ? /state_machines/state_machine.project.list/query_bindings/list_projects/effects/listed/conditional_effects/1/result_binding/from/from
-      : V0027
-      ? /state_machines/state_machine.project.list/query_bindings/list_projects/effects/listed/conditional_effects/1/when/result_non_empty
-      : V0027
-      /state_machines/state_machine.project.list/query_bindings/list_projects/effects/unavailable/raise/data_refresh_signal: V0027
       /state_machines/state_machine.project.list/query_bindings/list_projects/input_mapping/workspace_id/from: V0027
       /state_machines/state_machine.project.list/query_bindings/list_projects/load/on_start: V0027
       /state_machines/state_machine.project.list/query_bindings/list_projects/load/refresh_on/0/data_refresh_signal: V0027
+      ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/access_denied/raise/data_refresh_signal
+      : V0027
+      ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/authentication_required/raise/data_refresh_signal
+      : V0027
+      ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/listed/conditional_local_effects/0/context_updates/workspace_id/from
+      : V0027
+      ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/listed/conditional_local_effects/0/raise/data_refresh_signal
+      : V0027
+      ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/listed/conditional_local_effects/0/result_binding/data_key
+      : V0027
+      ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/listed/conditional_local_effects/0/result_binding/from/from
+      : V0027
+      ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/listed/conditional_local_effects/0/when/result_empty
+      : V0027
+      ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/listed/conditional_local_effects/1/context_updates/workspace_id/from
+      : V0027
+      ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/listed/conditional_local_effects/1/raise/data_refresh_signal
+      : V0027
+      ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/listed/conditional_local_effects/1/result_binding/data_key
+      : V0027
+      ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/listed/conditional_local_effects/1/result_binding/from/from
+      : V0027
+      ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/listed/conditional_local_effects/1/when/result_non_empty
+      : V0027
+      ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/unavailable/raise/data_refresh_signal
+      : V0027
       /state_machines/state_machine.project.list/query_bindings/list_projects/query: V0027
       /state_machines/state_machine.project.list/query_bindings/list_projects/result_scope: V0027
       /state_machines/state_machine.project.list/rationale: V0027
       /state_machines/state_machine.project.list/states/empty/assets/0: V0027
       /state_machines/state_machine.project.list/states/empty/command_bindings/create/command: V0027
-      ? /state_machines/state_machine.project.list/states/empty/command_bindings/create/effects/access_denied/no_local_effect/rationale
-      : V0027
-      ? /state_machines/state_machine.project.list/states/empty/command_bindings/create/effects/access_denied/no_local_effect/reason
-      : V0027
-      ? /state_machines/state_machine.project.list/states/empty/command_bindings/create/effects/authentication_required/no_local_effect/rationale
-      : V0027
-      ? /state_machines/state_machine.project.list/states/empty/command_bindings/create/effects/authentication_required/no_local_effect/reason
-      : V0027
-      /state_machines/state_machine.project.list/states/empty/command_bindings/create/effects/created/raise/data_refresh_signal: V0027
-      ? /state_machines/state_machine.project.list/states/empty/command_bindings/create/effects/validation_failed/raise/local_signal
-      : V0027
-      ? /state_machines/state_machine.project.list/states/empty/command_bindings/create/effects/validation_failed/raise/payload_bindings/message/from
-      : V0027
       /state_machines/state_machine.project.list/states/empty/command_bindings/create/input_mapping/customer/value: V0027
       /state_machines/state_machine.project.list/states/empty/command_bindings/create/input_mapping/priority/value: V0027
       /state_machines/state_machine.project.list/states/empty/command_bindings/create/input_mapping/title/value: V0027
       /state_machines/state_machine.project.list/states/empty/command_bindings/create/input_mapping/workspace_id/from: V0027
+      ? /state_machines/state_machine.project.list/states/empty/command_bindings/create/local_effects/access_denied/no_local_effect/rationale
+      : V0027
+      ? /state_machines/state_machine.project.list/states/empty/command_bindings/create/local_effects/access_denied/no_local_effect/reason
+      : V0027
+      ? /state_machines/state_machine.project.list/states/empty/command_bindings/create/local_effects/authentication_required/no_local_effect/rationale
+      : V0027
+      ? /state_machines/state_machine.project.list/states/empty/command_bindings/create/local_effects/authentication_required/no_local_effect/reason
+      : V0027
+      ? /state_machines/state_machine.project.list/states/empty/command_bindings/create/local_effects/created/raise/data_refresh_signal
+      : V0027
+      ? /state_machines/state_machine.project.list/states/empty/command_bindings/create/local_effects/validation_failed/raise/local_signal
+      : V0027
+      ? /state_machines/state_machine.project.list/states/empty/command_bindings/create/local_effects/validation_failed/raise/payload_bindings/message/from
+      : V0027
       /state_machines/state_machine.project.list/states/empty/fields: V0027
       /state_machines/state_machine.project.list/states/empty/query_bindings: V0027
       /state_machines/state_machine.project.list/states/empty/surface: V0027
@@ -1172,41 +1179,43 @@ visual_audit:
       /state_machines/state_machine.project.list/states/loading/text/0: V0027
       /state_machines/state_machine.project.list/states/ready/assets: V0027
       /state_machines/state_machine.project.list/states/ready/command_bindings/create/command: V0027
-      ? /state_machines/state_machine.project.list/states/ready/command_bindings/create/effects/access_denied/no_local_effect/rationale
-      : V0027
-      ? /state_machines/state_machine.project.list/states/ready/command_bindings/create/effects/access_denied/no_local_effect/reason
-      : V0027
-      ? /state_machines/state_machine.project.list/states/ready/command_bindings/create/effects/authentication_required/no_local_effect/rationale
-      : V0027
-      ? /state_machines/state_machine.project.list/states/ready/command_bindings/create/effects/authentication_required/no_local_effect/reason
-      : V0027
-      /state_machines/state_machine.project.list/states/ready/command_bindings/create/effects/created/raise/data_refresh_signal: V0027
-      ? /state_machines/state_machine.project.list/states/ready/command_bindings/create/effects/validation_failed/no_local_effect/rationale
-      : V0027
-      ? /state_machines/state_machine.project.list/states/ready/command_bindings/create/effects/validation_failed/no_local_effect/reason
-      : V0027
       /state_machines/state_machine.project.list/states/ready/command_bindings/create/input_mapping/customer/value: V0027
       /state_machines/state_machine.project.list/states/ready/command_bindings/create/input_mapping/priority/value: V0027
       /state_machines/state_machine.project.list/states/ready/command_bindings/create/input_mapping/title/value: V0027
       /state_machines/state_machine.project.list/states/ready/command_bindings/create/input_mapping/workspace_id/from: V0027
+      ? /state_machines/state_machine.project.list/states/ready/command_bindings/create/local_effects/access_denied/no_local_effect/rationale
+      : V0027
+      ? /state_machines/state_machine.project.list/states/ready/command_bindings/create/local_effects/access_denied/no_local_effect/reason
+      : V0027
+      ? /state_machines/state_machine.project.list/states/ready/command_bindings/create/local_effects/authentication_required/no_local_effect/rationale
+      : V0027
+      ? /state_machines/state_machine.project.list/states/ready/command_bindings/create/local_effects/authentication_required/no_local_effect/reason
+      : V0027
+      ? /state_machines/state_machine.project.list/states/ready/command_bindings/create/local_effects/created/raise/data_refresh_signal
+      : V0027
+      ? /state_machines/state_machine.project.list/states/ready/command_bindings/create/local_effects/validation_failed/no_local_effect/rationale
+      : V0027
+      ? /state_machines/state_machine.project.list/states/ready/command_bindings/create/local_effects/validation_failed/no_local_effect/reason
+      : V0027
       /state_machines/state_machine.project.list/states/ready/command_bindings/submit/command: V0027
-      /state_machines/state_machine.project.list/states/ready/command_bindings/submit/effects/access_denied/raise/local_signal: V0027
-      ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/effects/access_denied/raise/payload_bindings/message/from
-      : V0027
-      ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/effects/authentication_required/raise/local_signal
-      : V0027
-      ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/effects/authentication_required/raise/payload_bindings/message/from
-      : V0027
-      /state_machines/state_machine.project.list/states/ready/command_bindings/submit/effects/not_found/raise/local_signal: V0027
-      ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/effects/not_found/raise/payload_bindings/message/from
-      : V0027
-      ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/effects/submitted/raise/data_refresh_signal
-      : V0027
-      ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/effects/transition_not_allowed/raise/local_signal
-      : V0027
-      ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/effects/transition_not_allowed/raise/payload_bindings/message/from
-      : V0027
       /state_machines/state_machine.project.list/states/ready/command_bindings/submit/input_mapping/project_id/from: V0027
+      ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/local_effects/access_denied/raise/local_signal
+      : V0027
+      ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/local_effects/access_denied/raise/payload_bindings/message/from
+      : V0027
+      ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/local_effects/authentication_required/raise/local_signal
+      : V0027
+      ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/local_effects/authentication_required/raise/payload_bindings/message/from
+      : V0027
+      /state_machines/state_machine.project.list/states/ready/command_bindings/submit/local_effects/not_found/raise/local_signal: V0027
+      ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/local_effects/not_found/raise/payload_bindings/message/from
+      : V0027
+      ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/local_effects/submitted/raise/data_refresh_signal
+      : V0027
+      ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/local_effects/transition_not_allowed/raise/local_signal
+      : V0027
+      ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/local_effects/transition_not_allowed/raise/payload_bindings/message/from
+      : V0027
       /state_machines/state_machine.project.list/states/ready/fields/0: V0027
       /state_machines/state_machine.project.list/states/ready/fields/1: V0027
       /state_machines/state_machine.project.list/states/ready/fields/2: V0027
@@ -1234,9 +1243,9 @@ visual_audit:
       /state_machines/state_machine.project.list/transitions/5/rationale: V0027
       /state_machines/state_machine.project.list/transitions/5/to: V0027
       /state_machines/state_machine.project.list/transitions/5/trigger/local_signal: V0027
-      /state_machines/state_machine.project.list/transitions/6/effects/0/emit/local_signal: V0027
-      /state_machines/state_machine.project.list/transitions/6/effects/0/emit/payload_bindings/project_id/from: V0027
       /state_machines/state_machine.project.list/transitions/6/from: V0027
+      /state_machines/state_machine.project.list/transitions/6/local_effects/0/emit/local_signal: V0027
+      /state_machines/state_machine.project.list/transitions/6/local_effects/0/emit/payload_bindings/project_id/from: V0027
       /state_machines/state_machine.project.list/transitions/6/to: V0027
       /state_machines/state_machine.project.list/transitions/6/trigger/local_signal: V0027
       /state_machines/state_machine.project.list/transitions/7/from: V0027
@@ -1301,16 +1310,10 @@ visual_audit:
         tokens:
         - decision
         - permit
-      /access_policies/access_policy.project.member/effect:
+      /access_policies/access_policy.project.member/rules/0/effect:
         visual_evidence_set: V0001
         tokens:
-        - effect
         - permit
-      /access_policies/access_policy.project.member/rules/0/subject_has_role:
-        visual_evidence_set: V0001
-        tokens:
-        - subject_has_role
-        - member
       /access_policies/access_policy.project.member/subject/0/kind:
         visual_evidence_set: V0001
         tokens:
@@ -1336,16 +1339,10 @@ visual_audit:
         tokens:
         - decision
         - permit
-      /access_policies/access_policy.project.reviewer/effect:
+      /access_policies/access_policy.project.reviewer/rules/0/effect:
         visual_evidence_set: V0002
         tokens:
-        - effect
         - permit
-      /access_policies/access_policy.project.reviewer/rules/0/subject_has_role:
-        visual_evidence_set: V0002
-        tokens:
-        - subject_has_role
-        - reviewer
       /access_policies/access_policy.project.reviewer/subject/0/kind:
         visual_evidence_set: V0002
         tokens:
@@ -2774,23 +2771,23 @@ visual_audit:
       : V0005
       ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/renderers/textual/style/rules/2/selector
       : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/signal_sync_rules/0/effects/0/set/context
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/signal_sync_rules/0/effects/0/set/from
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/signal_sync_rules/0/effects/1/send/instance
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/signal_sync_rules/0/effects/1/send/local_signal
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/signal_sync_rules/0/effects/1/send/payload_bindings/project_id/from
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/signal_sync_rules/0/effects/2/send/instance
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/signal_sync_rules/0/effects/2/send/local_signal
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/signal_sync_rules/0/effects/2/send/payload_bindings/project_id/from
-      : V0005
       /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/signal_sync_rules/0/id: V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/signal_sync_rules/0/local_effects/0/set/context
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/signal_sync_rules/0/local_effects/0/set/from
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/signal_sync_rules/0/local_effects/1/send/instance
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/signal_sync_rules/0/local_effects/1/send/local_signal
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/signal_sync_rules/0/local_effects/1/send/payload_bindings/project_id/from
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/signal_sync_rules/0/local_effects/2/send/instance
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/signal_sync_rules/0/local_effects/2/send/local_signal
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/signal_sync_rules/0/local_effects/2/send/payload_bindings/project_id/from
+      : V0005
       /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/signal_sync_rules/0/when/instance: V0005
       ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/signal_sync_rules/0/when/local_signal
       : V0005
@@ -2983,23 +2980,23 @@ visual_audit:
       : V0005
       ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/renderers/textual/style/rules/2/selector
       : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/signal_sync_rules/0/effects/0/set/context
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/signal_sync_rules/0/effects/0/set/from
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/signal_sync_rules/0/effects/1/send/instance
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/signal_sync_rules/0/effects/1/send/local_signal
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/signal_sync_rules/0/effects/1/send/payload_bindings/project_id/from
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/signal_sync_rules/0/effects/2/send/instance
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/signal_sync_rules/0/effects/2/send/local_signal
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/signal_sync_rules/0/effects/2/send/payload_bindings/project_id/from
-      : V0005
       /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/signal_sync_rules/0/id: V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/signal_sync_rules/0/local_effects/0/set/context
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/signal_sync_rules/0/local_effects/0/set/from
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/signal_sync_rules/0/local_effects/1/send/instance
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/signal_sync_rules/0/local_effects/1/send/local_signal
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/signal_sync_rules/0/local_effects/1/send/payload_bindings/project_id/from
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/signal_sync_rules/0/local_effects/2/send/instance
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/signal_sync_rules/0/local_effects/2/send/local_signal
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/signal_sync_rules/0/local_effects/2/send/payload_bindings/project_id/from
+      : V0005
       /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/signal_sync_rules/0/when/instance: V0005
       ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/signal_sync_rules/0/when/local_signal
       : V0005
@@ -3268,53 +3265,53 @@ visual_audit:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
     /reference_index/command_binding/4:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/command_outcome_local_effect/0:
+    /reference_index/command_binding_local_outcome_effect/0:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/command_outcome_local_effect/1:
+    /reference_index/command_binding_local_outcome_effect/1:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/command_outcome_local_effect/10:
+    /reference_index/command_binding_local_outcome_effect/10:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/command_outcome_local_effect/11:
+    /reference_index/command_binding_local_outcome_effect/11:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/command_outcome_local_effect/12:
+    /reference_index/command_binding_local_outcome_effect/12:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/command_outcome_local_effect/13:
+    /reference_index/command_binding_local_outcome_effect/13:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/command_outcome_local_effect/14:
+    /reference_index/command_binding_local_outcome_effect/14:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/command_outcome_local_effect/15:
+    /reference_index/command_binding_local_outcome_effect/15:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/command_outcome_local_effect/16:
+    /reference_index/command_binding_local_outcome_effect/16:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/command_outcome_local_effect/17:
+    /reference_index/command_binding_local_outcome_effect/17:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/command_outcome_local_effect/18:
+    /reference_index/command_binding_local_outcome_effect/18:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/command_outcome_local_effect/19:
+    /reference_index/command_binding_local_outcome_effect/19:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/command_outcome_local_effect/2:
+    /reference_index/command_binding_local_outcome_effect/2:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/command_outcome_local_effect/20:
+    /reference_index/command_binding_local_outcome_effect/20:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/command_outcome_local_effect/21:
+    /reference_index/command_binding_local_outcome_effect/21:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/command_outcome_local_effect/22:
+    /reference_index/command_binding_local_outcome_effect/22:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/command_outcome_local_effect/23:
+    /reference_index/command_binding_local_outcome_effect/23:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/command_outcome_local_effect/3:
+    /reference_index/command_binding_local_outcome_effect/3:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/command_outcome_local_effect/4:
+    /reference_index/command_binding_local_outcome_effect/4:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/command_outcome_local_effect/5:
+    /reference_index/command_binding_local_outcome_effect/5:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/command_outcome_local_effect/6:
+    /reference_index/command_binding_local_outcome_effect/6:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/command_outcome_local_effect/7:
+    /reference_index/command_binding_local_outcome_effect/7:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/command_outcome_local_effect/8:
+    /reference_index/command_binding_local_outcome_effect/8:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/command_outcome_local_effect/9:
+    /reference_index/command_binding_local_outcome_effect/9:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
     /reference_index/endpoint/0:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
@@ -3402,45 +3399,45 @@ visual_audit:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
     /reference_index/query_binding/4:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/query_binding_outcome_effect/0:
+    /reference_index/query_binding_local_outcome_effect/0:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/query_binding_outcome_effect/1:
+    /reference_index/query_binding_local_outcome_effect/1:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/query_binding_outcome_effect/10:
+    /reference_index/query_binding_local_outcome_effect/10:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/query_binding_outcome_effect/11:
+    /reference_index/query_binding_local_outcome_effect/11:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/query_binding_outcome_effect/12:
+    /reference_index/query_binding_local_outcome_effect/12:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/query_binding_outcome_effect/13:
+    /reference_index/query_binding_local_outcome_effect/13:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/query_binding_outcome_effect/14:
+    /reference_index/query_binding_local_outcome_effect/14:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/query_binding_outcome_effect/15:
+    /reference_index/query_binding_local_outcome_effect/15:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/query_binding_outcome_effect/16:
+    /reference_index/query_binding_local_outcome_effect/16:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/query_binding_outcome_effect/17:
+    /reference_index/query_binding_local_outcome_effect/17:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/query_binding_outcome_effect/18:
+    /reference_index/query_binding_local_outcome_effect/18:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/query_binding_outcome_effect/19:
+    /reference_index/query_binding_local_outcome_effect/19:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/query_binding_outcome_effect/2:
+    /reference_index/query_binding_local_outcome_effect/2:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/query_binding_outcome_effect/3:
+    /reference_index/query_binding_local_outcome_effect/3:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/query_binding_outcome_effect/4:
+    /reference_index/query_binding_local_outcome_effect/4:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/query_binding_outcome_effect/5:
+    /reference_index/query_binding_local_outcome_effect/5:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/query_binding_outcome_effect/6:
+    /reference_index/query_binding_local_outcome_effect/6:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/query_binding_outcome_effect/7:
+    /reference_index/query_binding_local_outcome_effect/7:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/query_binding_outcome_effect/8:
+    /reference_index/query_binding_local_outcome_effect/8:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/query_binding_outcome_effect/9:
+    /reference_index/query_binding_local_outcome_effect/9:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
     /reference_index/route/0:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths

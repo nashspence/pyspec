@@ -199,7 +199,8 @@
       },
       "signal_sync_rules": [
         {
-          "effects": [
+          "id": "select_project_updates_state_machines",
+          "local_effects": [
             {
               "set": {
                 "context": "selected_project_id",
@@ -229,7 +230,6 @@
               }
             }
           ],
-          "id": "select_project_updates_state_machines",
           "when": {
             "instance": "list",
             "local_signal": "project_selected"
@@ -281,7 +281,8 @@
             }
           },
           {
-            "effects": [
+            "from": "ready",
+            "local_effects": [
               {
                 "set": {
                   "context": "project_id",
@@ -289,7 +290,6 @@
                 }
               }
             ],
-            "from": "ready",
             "to": "empty",
             "trigger": {
               "local_signal": "selection_cleared"
@@ -304,7 +304,15 @@
       "owner_kind": "state_machine",
       "query_bindings": {
         "read_activity": {
-          "effects": {
+          "input_mapping": {
+            "project_id": {
+              "from": "$state_context.project_id"
+            }
+          },
+          "load": {
+            "on_enter": true
+          },
+          "local_effects": {
             "access_denied": {
               "no_local_effect": {
                 "rationale": "The activity panel remains in its current state when authorization blocks the refresh.",
@@ -334,14 +342,6 @@
                 "reason": "intentionally_unobservable"
               }
             }
-          },
-          "input_mapping": {
-            "project_id": {
-              "from": "$state_context.project_id"
-            }
-          },
-          "load": {
-            "on_enter": true
           },
           "query": "query.project.read"
         }
@@ -383,7 +383,8 @@
             }
           },
           {
-            "effects": [
+            "from": "ready",
+            "local_effects": [
               {
                 "set": {
                   "context": "project_id",
@@ -391,7 +392,6 @@
                 }
               }
             ],
-            "from": "ready",
             "to": "empty",
             "trigger": {
               "local_signal": "selection_cleared"
@@ -555,7 +555,8 @@
             }
           },
           {
-            "effects": [
+            "from": "ready",
+            "local_effects": [
               {
                 "set": {
                   "context": "project_id",
@@ -563,7 +564,6 @@
                 }
               }
             ],
-            "from": "ready",
             "to": "none",
             "trigger": {
               "local_signal": "selection_cleared"
@@ -594,7 +594,15 @@
       "owner_kind": "state_machine",
       "query_bindings": {
         "read_project": {
-          "effects": {
+          "input_mapping": {
+            "project_id": {
+              "from": "$state_context.project_id"
+            }
+          },
+          "load": {
+            "on_enter": true
+          },
+          "local_effects": {
             "access_denied": {
               "raise": {
                 "data_refresh_signal": "project_load_failed"
@@ -621,14 +629,6 @@
                 "data_refresh_signal": "project_load_failed"
               }
             }
-          },
-          "input_mapping": {
-            "project_id": {
-              "from": "$state_context.project_id"
-            }
-          },
-          "load": {
-            "on_enter": true
           },
           "query": "query.project.read"
         }
@@ -680,7 +680,8 @@
             }
           },
           {
-            "effects": [
+            "from": "ready",
+            "local_effects": [
               {
                 "set": {
                   "context": "project_id",
@@ -688,7 +689,6 @@
                 }
               }
             ],
-            "from": "ready",
             "to": "none",
             "trigger": {
               "local_signal": "selection_cleared"
@@ -766,7 +766,8 @@
             }
           },
           {
-            "effects": [
+            "from": "ready",
+            "local_effects": [
               {
                 "set": {
                   "context": "project_id",
@@ -774,7 +775,6 @@
                 }
               }
             ],
-            "from": "ready",
             "to": "none",
             "trigger": {
               "local_signal": "selection_cleared"
@@ -805,7 +805,20 @@
       "owner_kind": "state_machine",
       "query_bindings": {
         "read_project": {
-          "effects": {
+          "input_mapping": {
+            "project_id": {
+              "from": "$state_context.project_id"
+            }
+          },
+          "load": {
+            "on_enter": true,
+            "refresh_on": [
+              {
+                "data_refresh_signal": "project_changed"
+              }
+            ]
+          },
+          "local_effects": {
             "access_denied": {
               "raise": {
                 "local_signal": "show_transition_not_allowed",
@@ -848,19 +861,6 @@
               }
             }
           },
-          "input_mapping": {
-            "project_id": {
-              "from": "$state_context.project_id"
-            }
-          },
-          "load": {
-            "on_enter": true,
-            "refresh_on": [
-              {
-                "data_refresh_signal": "project_changed"
-              }
-            ]
-          },
           "query": "query.project.read"
         }
       },
@@ -871,7 +871,15 @@
         "command_bindings": {
           "approve": {
             "command": "command.project.approve",
-            "effects": {
+            "input_mapping": {
+              "approved_by": {
+                "from": "$principal.id"
+              },
+              "project_id": {
+                "from": "$state_context.project_id"
+              }
+            },
+            "local_effects": {
               "access_denied": {
                 "no_local_effect": {
                   "rationale": "The response surface keeps the detail panel unchanged for access_denied approval.",
@@ -911,19 +919,16 @@
                   "reason": "handled_by_response_surface"
                 }
               }
-            },
-            "input_mapping": {
-              "approved_by": {
-                "from": "$principal.id"
-              },
-              "project_id": {
-                "from": "$state_context.project_id"
-              }
             }
           },
           "archive": {
             "command": "command.project.archive",
-            "effects": {
+            "input_mapping": {
+              "project_id": {
+                "from": "$state_context.project_id"
+              }
+            },
+            "local_effects": {
               "access_denied": {
                 "raise": {
                   "local_signal": "show_transition_not_allowed",
@@ -968,11 +973,6 @@
                     }
                   }
                 }
-              }
-            },
-            "input_mapping": {
-              "project_id": {
-                "from": "$state_context.project_id"
               }
             }
           }
@@ -1027,7 +1027,8 @@
             }
           },
           {
-            "effects": [
+            "from": "ready",
+            "local_effects": [
               {
                 "set": {
                   "context": "project_id",
@@ -1035,7 +1036,6 @@
                 }
               }
             ],
-            "from": "ready",
             "to": "none",
             "trigger": {
               "local_signal": "selection_cleared"
@@ -1072,7 +1072,21 @@
         "command_bindings": {
           "create": {
             "command": "command.project.create",
-            "effects": {
+            "input_mapping": {
+              "customer": {
+                "value": "Atlas Foods"
+              },
+              "priority": {
+                "value": "High"
+              },
+              "title": {
+                "value": "Replace rooftop condenser fan"
+              },
+              "workspace_id": {
+                "from": "$state_context.workspace_id"
+              }
+            },
+            "local_effects": {
               "access_denied": {
                 "no_local_effect": {
                   "rationale": "The response surface keeps the empty list visible for access_denied create.",
@@ -1099,20 +1113,6 @@
                     }
                   }
                 }
-              }
-            },
-            "input_mapping": {
-              "customer": {
-                "value": "Atlas Foods"
-              },
-              "priority": {
-                "value": "High"
-              },
-              "title": {
-                "value": "Replace rooftop condenser fan"
-              },
-              "workspace_id": {
-                "from": "$state_context.workspace_id"
               }
             }
           }
@@ -1190,7 +1190,8 @@
             }
           },
           {
-            "effects": [
+            "from": "ready",
+            "local_effects": [
               {
                 "emit": {
                   "local_signal": "project_selected",
@@ -1202,7 +1203,6 @@
                 }
               }
             ],
-            "from": "ready",
             "to": "ready",
             "trigger": {
               "local_signal": "project_select"
@@ -1316,7 +1316,8 @@
             }
           },
           {
-            "effects": [
+            "from": "ready",
+            "local_effects": [
               {
                 "emit": {
                   "local_signal": "project_selected",
@@ -1328,7 +1329,6 @@
                 }
               }
             ],
-            "from": "ready",
             "to": "ready",
             "trigger": {
               "local_signal": "project_select"
@@ -1441,7 +1441,8 @@
             }
           },
           {
-            "effects": [
+            "from": "ready",
+            "local_effects": [
               {
                 "emit": {
                   "local_signal": "project_selected",
@@ -1453,7 +1454,6 @@
                 }
               }
             ],
-            "from": "ready",
             "to": "ready",
             "trigger": {
               "local_signal": "project_select"
@@ -1496,7 +1496,21 @@
         "command_bindings": {
           "create": {
             "command": "command.project.create",
-            "effects": {
+            "input_mapping": {
+              "customer": {
+                "value": "Atlas Foods"
+              },
+              "priority": {
+                "value": "High"
+              },
+              "title": {
+                "value": "Replace rooftop condenser fan"
+              },
+              "workspace_id": {
+                "from": "$state_context.workspace_id"
+              }
+            },
+            "local_effects": {
               "access_denied": {
                 "no_local_effect": {
                   "rationale": "The response surface keeps the ready list visible for access_denied create.",
@@ -1520,25 +1534,16 @@
                   "reason": "handled_by_response_surface"
                 }
               }
-            },
-            "input_mapping": {
-              "customer": {
-                "value": "Atlas Foods"
-              },
-              "priority": {
-                "value": "High"
-              },
-              "title": {
-                "value": "Replace rooftop condenser fan"
-              },
-              "workspace_id": {
-                "from": "$state_context.workspace_id"
-              }
             }
           },
           "submit": {
             "command": "command.project.submit",
-            "effects": {
+            "input_mapping": {
+              "project_id": {
+                "from": "$state_context.selected_project_id"
+              }
+            },
+            "local_effects": {
               "access_denied": {
                 "raise": {
                   "local_signal": "show_transition_not_allowed",
@@ -1583,11 +1588,6 @@
                     }
                   }
                 }
-              }
-            },
-            "input_mapping": {
-              "project_id": {
-                "from": "$state_context.selected_project_id"
               }
             }
           }
@@ -1669,7 +1669,8 @@
             }
           },
           {
-            "effects": [
+            "from": "ready",
+            "local_effects": [
               {
                 "emit": {
                   "local_signal": "project_selected",
@@ -1681,7 +1682,6 @@
                 }
               }
             ],
-            "from": "ready",
             "to": "ready",
             "trigger": {
               "local_signal": "project_select"

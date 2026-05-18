@@ -223,7 +223,7 @@ def test_author_contract_is_sparse_source() -> None:
         }
     }
     assert "refs" not in author
-    assert "lifecycle_transition" not in author["commands"]["command.project.submit"]["effects"]
+    assert "lifecycle_transition" not in author["commands"]["command.project.submit"]["entity_changes"]
     assert author["behavior_scenarios"]["behavior_scenario.project.approve.success"]["given"]["preconditions"] == [{"ref": "precondition.project.submitted"}]
     assert compile_author(author) == read_yaml(ROOT / COMPILED_SPEC_PATH)
 
@@ -379,7 +379,6 @@ def test_access_policies_require_explicit_conditions_and_support_value_equals() 
             "resource": [{"entity_type": ET("Ticket")}],
             "action": ["command.ticket.submit"],
             "environment": [],
-            "effect": "permit",
             "decision": "permit",
             "rationale": "Explicit policy missing rules is invalid.",
         }
@@ -389,14 +388,17 @@ def test_access_policies_require_explicit_conditions_and_support_value_equals() 
 
     author["access_policies"]["access_policy.ticket.submit"]["rules"] = [
         {
-            "value_equals": {
-                "left": {"from": "$command_input.ticket_id"},
-                "right": {"value": "ticket_1"},
-            }
+            "condition": {
+                "value_equals": {
+                    "left": {"from": "$command_input.ticket_id"},
+                    "right": {"value": "ticket_1"},
+                }
+            },
+            "effect": "permit",
         }
     ]
     contract = compile_author(author)
-    assert contract["access_policies"]["access_policy.ticket.submit"]["rules"][0]["value_equals"]["right"] == {
+    assert contract["access_policies"]["access_policy.ticket.submit"]["rules"][0]["condition"]["value_equals"]["right"] == {
         "value": "ticket_1"
     }
 
@@ -408,8 +410,7 @@ def test_access_policies_reject_duplicated_rule_sets() -> None:
         "resource": [{"entity_type": ET("Ticket")}],
         "action": ["command.ticket.submit"],
         "environment": [],
-        "effect": "permit",
-        "rules": [{"subject_has_role": "member"}],
+        "rules": [{"condition": {"subject_has_role": "member"}, "effect": "permit"}],
         "decision": "permit",
         "rationale": "This should reuse the member submit policy instead.",
     }
@@ -433,8 +434,7 @@ def _authorized_transition_author() -> dict:
             "resource": [{"entity_type": ET("Ticket")}],
             "action": ["command.ticket.submit"],
             "environment": [],
-            "effect": "permit",
-            "rules": [{"subject_has_role": "member"}],
+            "rules": [{"condition": {"subject_has_role": "member"}, "effect": "permit"}],
             "decision": "permit",
             "rationale": "Members may submit tickets.",
         }
@@ -529,7 +529,7 @@ def _derived_transition_author() -> dict:
         "commands": {
             "command.ticket.submit": {
                 "input_schema": O({"ticket_id": P("ID")}),
-                "effects": {},
+                "entity_changes": {},
                 "emits_domain_events": [],
                 "outcomes": {
                     "submitted": {"kind": "success", "result": M("Ticket")},
@@ -544,7 +544,7 @@ def _derived_transition_author() -> dict:
 def test_lifecycle_transition_command_derives_state_change_from_entity_lifecycle() -> None:
     author = _derived_transition_author()
     contract = compile_author(author)
-    assert contract["commands"]["command.ticket.submit"]["effects"]["lifecycle_transition"] == {
+    assert contract["commands"]["command.ticket.submit"]["entity_changes"]["lifecycle_transition"] == {
         "entity_type": "entity_type.ticket",
         "field": "status",
         "from": "draft",
@@ -556,7 +556,7 @@ def test_lifecycle_transition_command_derives_state_change_from_entity_lifecycle
 
 def test_authored_lifecycle_transition_metadata_must_match_entity_lifecycle() -> None:
     author = _derived_transition_author()
-    author["commands"]["command.ticket.submit"]["effects"]["lifecycle_transition"] = {
+    author["commands"]["command.ticket.submit"]["entity_changes"]["lifecycle_transition"] = {
         "entity_type": "entity_type.ticket",
         "field": "status",
         "from": "draft",
@@ -570,7 +570,7 @@ def test_lifecycle_transition_commands_must_be_referenced_by_entity_lifecycle() 
     author = _derived_transition_author()
     author["commands"]["command.ticket.close"] = {
         "input_schema": O({"ticket_id": P("ID")}),
-        "effects": {
+        "entity_changes": {
             "lifecycle_transition": {
                 "entity_type": "entity_type.ticket",
                 "field": "status",
@@ -655,13 +655,13 @@ def test_schema_properties_reject_legacy_nullability_and_presence_wrappers() -> 
         compile_source(author)
 
 
-def test_command_allows_empty_effects() -> None:
+def test_command_allows_empty_entity_changes() -> None:
     author = _author()
-    author["commands"]["command.project.create"]["effects"] = {}
+    author["commands"]["command.project.create"]["entity_changes"] = {}
     author["external_interfaces"]["external_interface.api.project.create"]["output_mapping"]["responses"]["created"]["status"] = 200
     author["behavior_scenarios"]["behavior_scenario.project.create.api.success"]["then"]["response"]["status"] = 200
     contract = compile_source(author)
-    assert contract["commands"]["command.project.create"]["effects"] == {}
+    assert contract["commands"]["command.project.create"]["entity_changes"] == {}
 
 
 def test_state_machine_data_query_result_must_match_state_machine_entity_type() -> None:
@@ -677,7 +677,7 @@ def test_state_machine_data_query_result_must_match_state_machine_entity_type() 
         compile_source(author)
 
 
-def test_queries_reject_command_effect_and_emit_fields() -> None:
+def test_queries_reject_command_entity_change_and_emit_fields() -> None:
     author = _author()
     author["queries"]["query.project.list"]["creates"] = [ET("Project")]
     with pytest.raises(ContractError, match="Schema validation failed"):
@@ -691,9 +691,9 @@ def test_queries_reject_command_effect_and_emit_fields() -> None:
         compile_source(author)
 
 
-def test_command_without_entity_effects_is_valid() -> None:
+def test_command_without_entity_changes_is_valid() -> None:
     contract = compile_source(_author())
-    assert contract["commands"]["command.project.send_approval_notice"]["effects"] == {}
+    assert contract["commands"]["command.project.send_approval_notice"]["entity_changes"] == {}
 
 
 def test_author_contract_can_omit_absent_sections() -> None:
@@ -712,7 +712,7 @@ def test_author_contract_can_omit_absent_sections() -> None:
         "commands": {
             "command.ticket.create": {
                 "input_schema": O({"title": P("Text")}),
-                "effects": {"creates": [ET("Ticket")]},
+                "entity_changes": {"creates": [ET("Ticket")]},
                 "emits_domain_events": [],
                 "outcomes": {
                     "created": {"kind": "success", "result": M("Ticket")},
@@ -789,7 +789,7 @@ def test_nested_json_values_binding_values_and_model_less_state_machines_compile
                         "from": "ready",
                         "to": "ready",
                         "trigger": {"local_signal": "configure"},
-                        "effects": [
+                        "local_effects": [
                             {
                                 "set": {
                                     "context": "settings",
@@ -806,10 +806,10 @@ def test_nested_json_values_binding_values_and_model_less_state_machines_compile
     contract = compile_author(author)
     state_machine = contract["state_machines"]["state_machine.settings.panel"]
     assert "entity_type" not in state_machine
-    assert state_machine["transitions"][0]["effects"][0]["set"]["value"]["theme"]["density"]["compact"] is True
+    assert state_machine["transitions"][0]["local_effects"][0]["set"]["value"]["theme"]["density"]["compact"] is True
 
 
-def test_context_set_effect_respects_context_null_type() -> None:
+def test_context_set_local_effect_respects_context_null_type() -> None:
     author = {
         "project": "context_null_type",
         "state_machines": {
@@ -823,7 +823,7 @@ def test_context_set_effect_respects_context_null_type() -> None:
                         "from": "ready",
                         "to": "ready",
                         "trigger": {"local_signal": "clear"},
-                        "effects": [{"set": {"context": "project_id", "value": None}}],
+                        "local_effects": [{"set": {"context": "project_id", "value": None}}],
                     }
                 ],
                 "rationale": "Local context that allows null may be cleared explicitly.",
@@ -855,7 +855,7 @@ def test_context_set_effect_respects_context_null_type() -> None:
                         "from": "ready",
                         "to": "ready",
                         "trigger": {"local_signal": "copy"},
-                        "effects": [{"set": {"context": "target_project_id", "from": "$state_context.source_project_id"}}],
+                        "local_effects": [{"set": {"context": "target_project_id", "from": "$state_context.source_project_id"}}],
                     }
                 ],
                 "rationale": "Sources that allow null cannot feed context fields that do not allow null.",
@@ -889,7 +889,7 @@ def test_workflow_input_mapping_supports_binding_sources_and_literal_values() ->
         "commands": {
             "command.ticket.notify": {
                 "input_schema": O({"source_id": P("ID"), "title": P("Text")}),
-                "effects": {},
+                "entity_changes": {},
                 "emits_domain_events": [],
                 "outcomes": {
                     "sent": {"kind": "success", "result": D("schema.ticket.notice")},
@@ -1015,10 +1015,10 @@ def test_state_machine_transition_requires_rationale_when_audit_card_would_be_em
     author = _author()
     activity = _item(author, "state_machines", "state_machine.project.activity")
     cleared = next(transition for transition in activity["transitions"] if transition["trigger"] == {"local_signal": "selection_cleared"})
-    cleared.pop("effects")
+    cleared.pop("local_effects")
     with pytest.raises(
         ContractError,
-            match=r"state machine state_machine\.project\.activity transition local_signal\.selection_cleared from ready to empty must declare rationale, data, or effects",
+            match=r"state machine state_machine\.project\.activity transition local_signal\.selection_cleared from ready to empty must declare rationale, data, or local_effects",
     ):
         compile_source(author)
 
@@ -1027,7 +1027,7 @@ def test_state_machine_transition_rationale_can_explain_otherwise_empty_audit_ca
     author = _author()
     activity = _item(author, "state_machines", "state_machine.project.activity")
     cleared = next(transition for transition in activity["transitions"] if transition["trigger"] == {"local_signal": "selection_cleared"})
-    cleared.pop("effects")
+    cleared.pop("local_effects")
     cleared["rationale"] = "Clearing the selection returns the activity state machine to its empty state."
     contract = compile_source(author)
     compiled = next(
@@ -1244,7 +1244,7 @@ def test_renderer_slot_binding_accepts_command_binding_and_rejects_command_ref()
                 "title": {"value": "Replace rooftop condenser fan"},
                 "workspace_id": {"from": "$state_context.workspace_id"},
             },
-            "effects": {
+            "local_effects": {
                 "created": {"raise": {"data_refresh_signal": "command_completed"}},
                 "access_denied": {"raise": {"data_refresh_signal": "command_completed"}},
                 "authentication_required": {"raise": {"data_refresh_signal": "command_completed"}},
@@ -1271,7 +1271,7 @@ def test_renderer_slot_binding_accepts_command_binding_and_rejects_command_ref()
                 "title": {"value": "Replace rooftop condenser fan"},
                 "workspace_id": {"from": "$state_context.workspace_id"},
             },
-            "effects": {
+            "local_effects": {
                 "created": {"raise": {"data_refresh_signal": "command_completed"}},
                 "access_denied": {"raise": {"data_refresh_signal": "command_completed"}},
                 "authentication_required": {"raise": {"data_refresh_signal": "command_completed"}},
@@ -1296,21 +1296,21 @@ def test_command_binding_command_must_resolve() -> None:
 
 def test_command_binding_routes_must_cover_exact_command_outcomes() -> None:
     author = _author()
-    effects = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["effects"]
-    del effects["not_found"]
-    with pytest.raises(ContractError, match=r"effects must exactly map command outcomes: missing: not_found"):
+    local_effects = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["local_effects"]
+    del local_effects["not_found"]
+    with pytest.raises(ContractError, match=r"local_effects must exactly map command outcomes: missing: not_found"):
         compile_source(author)
 
     author = _author()
-    effects = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["effects"]
-    effects["ghost"] = {"no_local_effect": {"reason": "state_unchanged"}}
-    with pytest.raises(ContractError, match=r"effects must exactly map command outcomes: extra: ghost"):
+    local_effects = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["local_effects"]
+    local_effects["ghost"] = {"no_local_effect": {"reason": "state_unchanged"}}
+    with pytest.raises(ContractError, match=r"local_effects must exactly map command outcomes: extra: ghost"):
         compile_source(author)
 
 
 def test_command_binding_rejects_legacy_non_routing_route() -> None:
     author = _author()
-    effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["effects"]["access_denied"]
+    effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["local_effects"]["access_denied"]
     effect.clear()
     effect["ig" + "nore"] = True
     with pytest.raises(ContractError, match="Schema validation failed"):
@@ -1319,14 +1319,14 @@ def test_command_binding_rejects_legacy_non_routing_route() -> None:
 
 def test_command_binding_failure_no_local_effect_requires_reason_and_rationale() -> None:
     author = _author()
-    effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["effects"]["transition_not_allowed"]
+    effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["local_effects"]["transition_not_allowed"]
     effect.clear()
     effect["no_local_effect"] = {"reason": "intentionally_unobservable"}
     with pytest.raises(ContractError, match=r"failure outcome no_local_effect must declare rationale"):
         compile_source(author)
 
     author = _author()
-    effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["effects"]["transition_not_allowed"]
+    effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["local_effects"]["transition_not_allowed"]
     effect.clear()
     effect["no_local_effect"] = {"reason": "handled_by_response_surface", "rationale": "test effect"}
     with pytest.raises(ContractError, match=r"handled_by_response_surface requires an adapter or renderer response surface"):
@@ -1335,7 +1335,7 @@ def test_command_binding_failure_no_local_effect_requires_reason_and_rationale()
 
 def test_command_binding_failure_no_local_effect_rejects_state_unchanged() -> None:
     author = _author()
-    effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["effects"]["transition_not_allowed"]
+    effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["local_effects"]["transition_not_allowed"]
     effect.clear()
     effect["no_local_effect"] = {"reason": "state_unchanged", "rationale": "Invalid submit leaves the list unchanged."}
     with pytest.raises(ContractError, match=r"failure outcome no_local_effect must use reason handled_by_response_surface with a proven response surface or intentionally_unobservable with rationale"):
@@ -1344,13 +1344,13 @@ def test_command_binding_failure_no_local_effect_rejects_state_unchanged() -> No
 
 def test_command_binding_raised_signals_must_be_declared_locally() -> None:
     author = _author()
-    effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["effects"]["submitted"]
+    effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["local_effects"]["submitted"]
     effect["raise"]["data_refresh_signal"] = "ghost"
     with pytest.raises(ContractError, match=r"raise references undeclared state-machine signal: data_refresh_signal\.ghost"):
         compile_source(author)
 
     author = _author()
-    effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["effects"]["transition_not_allowed"]
+    effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["local_effects"]["transition_not_allowed"]
     effect["raise"]["local_signal"] = "ghost"
     with pytest.raises(ContractError, match=r"raise references undeclared state-machine signal: local_signal\.ghost"):
         compile_source(author)
@@ -1358,7 +1358,7 @@ def test_command_binding_raised_signals_must_be_declared_locally() -> None:
 
 def test_command_binding_payload_and_input_mapping_are_type_checked() -> None:
     author = _author()
-    effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["effects"]["transition_not_allowed"]
+    effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["local_effects"]["transition_not_allowed"]
     del effect["raise"]["payload_bindings"]["message"]
     with pytest.raises(ContractError, match=r"payload_bindings must exactly match payload fields: missing: message"):
         compile_source(author)
@@ -1380,7 +1380,7 @@ def test_command_binding_literal_actor_ids_emit_lint_warning() -> None:
 
 def test_mutation_routes_raising_loaded_signal_emit_lint_warning() -> None:
     author = _author()
-    effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["create"]["effects"]["created"]
+    effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["create"]["local_effects"]["created"]
     effect["raise"]["data_refresh_signal"] = "projects_loaded"
     with pytest.warns(ContractLintWarning, match=r"raises data-refresh signal 'projects_loaded' from a mutation"):
         compile_source(author)
@@ -1388,9 +1388,9 @@ def test_mutation_routes_raising_loaded_signal_emit_lint_warning() -> None:
 
 def test_command_outcome_emits_is_not_local_state_machine_routing() -> None:
     author = _author()
-    effects = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["create"]["effects"]
-    del effects["created"]
-    with pytest.raises(ContractError, match=r"effects must exactly map command outcomes: missing: created"):
+    local_effects = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["create"]["local_effects"]
+    del local_effects["created"]
+    with pytest.raises(ContractError, match=r"local_effects must exactly map command outcomes: missing: created"):
         compile_source(author)
 
 
@@ -1399,8 +1399,8 @@ def test_command_binding_routes_are_local_per_state() -> None:
     empty_create = contract["state_machines"]["state_machine.project.list"]["states"]["empty"]["command_bindings"]["create"]
     ready_create = contract["state_machines"]["state_machine.project.list"]["states"]["ready"]["command_bindings"]["create"]
     assert empty_create["command"] == ready_create["command"] == "command.project.create"
-    assert "raise" in empty_create["effects"]["validation_failed"]
-    assert ready_create["effects"]["validation_failed"] == {
+    assert "raise" in empty_create["local_effects"]["validation_failed"]
+    assert ready_create["local_effects"]["validation_failed"] == {
         "no_local_effect": {
             "reason": "handled_by_response_surface",
             "rationale": "The ready list keeps focus while the response surface shows validation errors.",
@@ -1416,15 +1416,15 @@ def test_query_binding_query_and_effects_are_validated() -> None:
         compile_source(author)
 
     author = _author()
-    effects = _item(author, "state_machines", "state_machine.project.list")["query_bindings"]["list_projects"]["effects"]
-    del effects["unavailable"]
-    with pytest.raises(ContractError, match=r"query_binding list_projects effects must exactly map query outcomes: missing: unavailable"):
+    local_effects = _item(author, "state_machines", "state_machine.project.list")["query_bindings"]["list_projects"]["local_effects"]
+    del local_effects["unavailable"]
+    with pytest.raises(ContractError, match=r"query_binding list_projects local_effects must exactly map query outcomes: missing: unavailable"):
         compile_source(author)
 
     author = _author()
-    effects = _item(author, "state_machines", "state_machine.project.list")["query_bindings"]["list_projects"]["effects"]
-    effects["ghost"] = {"no_local_effect": {"reason": "state_unchanged"}}
-    with pytest.raises(ContractError, match=r"query_binding list_projects effects must exactly map query outcomes: extra: ghost"):
+    local_effects = _item(author, "state_machines", "state_machine.project.list")["query_bindings"]["list_projects"]["local_effects"]
+    local_effects["ghost"] = {"no_local_effect": {"reason": "state_unchanged"}}
+    with pytest.raises(ContractError, match=r"query_binding list_projects local_effects must exactly map query outcomes: extra: ghost"):
         compile_source(author)
 
 
@@ -1436,19 +1436,19 @@ def test_query_binding_bindings_context_updates_and_signals_are_validated() -> N
         compile_source(author)
 
     author = _author()
-    effect = _item(author, "state_machines", "state_machine.project.list")["query_bindings"]["list_projects"]["effects"]["listed"]
-    effect["conditional_effects"][0]["context_updates"]["ghost"] = {"value": "nope"}
+    effect = _item(author, "state_machines", "state_machine.project.list")["query_bindings"]["list_projects"]["local_effects"]["listed"]
+    effect["conditional_local_effects"][0]["context_updates"]["ghost"] = {"value": "nope"}
     with pytest.raises(ContractError, match=r"context_updates references undeclared context field: ghost"):
         compile_source(author)
 
     author = _author()
-    effect = _item(author, "state_machines", "state_machine.project.list")["query_bindings"]["list_projects"]["effects"]["listed"]
-    effect["conditional_effects"][1]["raise"]["data_refresh_signal"] = "ghost"
+    effect = _item(author, "state_machines", "state_machine.project.list")["query_bindings"]["list_projects"]["local_effects"]["listed"]
+    effect["conditional_local_effects"][1]["raise"]["data_refresh_signal"] = "ghost"
     with pytest.raises(ContractError, match=r"raise references undeclared state-machine signal: data_refresh_signal\.ghost"):
         compile_source(author)
 
     author = _author()
-    effect = _item(author, "state_machines", "state_machine.project.detail")["states"]["ready"]["query_bindings"]["read_project"]["effects"]["not_found"]
+    effect = _item(author, "state_machines", "state_machine.project.detail")["states"]["ready"]["query_bindings"]["read_project"]["local_effects"]["not_found"]
     effect["raise"]["local_signal"] = "ghost"
     with pytest.raises(ContractError, match=r"raise references undeclared state-machine signal: local_signal\.ghost"):
         compile_source(author)
@@ -1480,7 +1480,7 @@ def test_query_binding_load_policy_and_query_purity_are_validated() -> None:
 
 def test_query_binding_success_cannot_be_semantically_inert() -> None:
     author = _author()
-    effect = _item(author, "state_machines", "state_machine.project.list")["query_bindings"]["list_projects"]["effects"]["listed"]
+    effect = _item(author, "state_machines", "state_machine.project.list")["query_bindings"]["list_projects"]["local_effects"]["listed"]
     effect.clear()
     effect["no_local_effect"] = {"reason": "state_unchanged"}
     with pytest.raises(ContractError, match=r"successful query no_local_effect must bind/cache data"):
@@ -1489,7 +1489,7 @@ def test_query_binding_success_cannot_be_semantically_inert() -> None:
 
 def test_query_binding_query_refresh_requires_explicit_result_or_context_refresh() -> None:
     author = _author()
-    effect = _item(author, "state_machines", "state_machine.project.list")["query_bindings"]["list_projects"]["effects"]["listed"]
+    effect = _item(author, "state_machines", "state_machine.project.list")["query_bindings"]["list_projects"]["local_effects"]["listed"]
     effect.clear()
     effect["no_local_effect"] = {"reason": "handled_by_query_refresh"}
     with pytest.raises(ContractError, match=r"handled_by_query_refresh requires an explicit query result binding or context refresh"):
@@ -1498,28 +1498,28 @@ def test_query_binding_query_refresh_requires_explicit_result_or_context_refresh
 
 def test_query_binding_collection_empty_and_non_empty_routes_are_explicit() -> None:
     contract = compile_source(_author())
-    effect = contract["state_machines"]["state_machine.project.list"]["query_bindings"]["list_projects"]["effects"]["listed"]
-    branches = {next(iter(branch["when"])): branch["raise"]["data_refresh_signal"] for branch in effect["conditional_effects"]}
+    effect = contract["state_machines"]["state_machine.project.list"]["query_bindings"]["list_projects"]["local_effects"]["listed"]
+    branches = {next(iter(branch["when"])): branch["raise"]["data_refresh_signal"] for branch in effect["conditional_local_effects"]}
     assert branches == {"result_empty": "project_collection_empty", "result_non_empty": "projects_loaded"}
 
     author = _author()
-    effect = _item(author, "state_machines", "state_machine.project.list")["query_bindings"]["list_projects"]["effects"]["listed"]
-    effect["conditional_effects"] = [effect["conditional_effects"][0]]
+    effect = _item(author, "state_machines", "state_machine.project.list")["query_bindings"]["list_projects"]["local_effects"]["listed"]
+    effect["conditional_local_effects"] = [effect["conditional_local_effects"][0]]
     with pytest.raises(ContractError, match=r"must declare both result_empty and result_non_empty branches"):
         compile_source(author)
 
     author = _author()
-    effect = _item(author, "state_machines", "state_machine.project.list")["query_bindings"]["list_projects"]["effects"]["listed"]
-    effect["conditional_effects"][0]["raise"]["data_refresh_signal"] = "projects_loaded"
-    with pytest.raises(ContractError, match=r"empty-collection signal data_refresh_signal\.project_collection_empty without an explicit query outcome effect raising it"):
+    effect = _item(author, "state_machines", "state_machine.project.list")["query_bindings"]["list_projects"]["local_effects"]["listed"]
+    effect["conditional_local_effects"][0]["raise"]["data_refresh_signal"] = "projects_loaded"
+    with pytest.raises(ContractError, match=r"empty-collection signal data_refresh_signal\.project_collection_empty without an explicit query local outcome effect raising it"):
         compile_source(author)
 
 
 def test_query_empty_non_empty_conditions_require_array_results() -> None:
     author = _author()
-    effect = _item(author, "state_machines", "state_machine.project.detail")["states"]["loading"]["query_bindings"]["read_project"]["effects"]["found"]
+    effect = _item(author, "state_machines", "state_machine.project.detail")["states"]["loading"]["query_bindings"]["read_project"]["local_effects"]["found"]
     effect.clear()
-    effect["conditional_effects"] = [
+    effect["conditional_local_effects"] = [
         {
             "when": {"result_empty": True},
             "result_binding": {"data_key": "project", "from": {"from": "$query_outcome.result"}},
@@ -1594,7 +1594,7 @@ def test_query_binding_ids_cannot_shadow_state_machine_scope() -> None:
         "list_projects": {
             "query": "query.project.list",
             "input_mapping": {"workspace_id": {"from": "$state_context.workspace_id"}},
-            "effects": {
+            "local_effects": {
                 "listed": {
                     "result_binding": {"data_key": "projects", "from": {"from": "$query_outcome.result"}},
                     "no_local_effect": {"reason": "result_bound_without_signal"},
@@ -1614,11 +1614,11 @@ def test_query_binding_effects_are_local_per_state() -> None:
     loading_read = contract["state_machines"]["state_machine.project.detail"]["states"]["loading"]["query_bindings"]["read_project"]
     ready_read = contract["state_machines"]["state_machine.project.detail"]["states"]["ready"]["query_bindings"]["read_project"]
     assert loading_read["query"] == ready_read["query"] == "query.project.read"
-    assert loading_read["effects"]["found"] == {
+    assert loading_read["local_effects"]["found"] == {
         "result_binding": {"data_key": "project", "from": {"from": "$query_outcome.result"}},
         "raise": {"data_refresh_signal": "project_loaded"},
     }
-    assert ready_read["effects"]["found"] == {
+    assert ready_read["local_effects"]["found"] == {
         "result_binding": {"data_key": "project", "from": {"from": "$query_outcome.result"}},
         "no_local_effect": {"reason": "result_bound_without_signal"},
     }
@@ -1642,7 +1642,7 @@ def test_state_machine_composition_rejects_unknown_mounted_state_machine() -> No
 def test_state_machine_composition_rejects_unknown_sync_target_local_signal() -> None:
     author = _author()
     state_machine = _item(author, "state_machines", "state_machine.project.board")["states"]["ready"]
-    for effect in state_machine["signal_sync_rules"][0]["effects"]:
+    for effect in state_machine["signal_sync_rules"][0]["local_effects"]:
         if "send" in effect:
             effect["send"]["local_signal"] = "ghost_message"
             break
@@ -1655,9 +1655,9 @@ def test_state_machine_emit_data_must_exactly_match_emitted_local_signal_payload
     transition = next(
         transition
         for transition in _item(author, "state_machines", "state_machine.project.list")["transitions"]
-        if transition.get("effects") and "emit" in transition["effects"][0]
+        if transition.get("local_effects") and "emit" in transition["local_effects"][0]
     )
-    transition["effects"][0]["emit"]["payload_bindings"] = {}
+    transition["local_effects"][0]["emit"]["payload_bindings"] = {}
     with pytest.raises(ContractError, match=r"transition emit project_selected payload_bindings must exactly match payload fields: missing: project_id"):
         compile_source(author)
 
@@ -1665,7 +1665,7 @@ def test_state_machine_emit_data_must_exactly_match_emitted_local_signal_payload
 def test_sync_send_data_must_exactly_match_target_local_signal_payload() -> None:
     author = _author()
     state_machine = _item(author, "state_machines", "state_machine.project.board")["states"]["ready"]
-    send = next(effect["send"] for effect in state_machine["signal_sync_rules"][0]["effects"] if "send" in effect)
+    send = next(effect["send"] for effect in state_machine["signal_sync_rules"][0]["local_effects"] if "send" in effect)
     send["payload_bindings"] = {}
     with pytest.raises(ContractError, match=r"sync send selection_changed to detail payload_bindings must exactly match payload fields: missing: project_id"):
         compile_source(author)
@@ -1674,7 +1674,7 @@ def test_sync_send_data_must_exactly_match_target_local_signal_payload() -> None
 def test_sync_send_data_must_match_target_local_signal_payload_type() -> None:
     author = _author()
     state_machine = _item(author, "state_machines", "state_machine.project.board")["states"]["ready"]
-    send = next(effect["send"] for effect in state_machine["signal_sync_rules"][0]["effects"] if "send" in effect)
+    send = next(effect["send"] for effect in state_machine["signal_sync_rules"][0]["local_effects"] if "send" in effect)
     send["payload_bindings"]["project_id"] = {"value": 1}
     with pytest.raises(ContractError, match=r"payload_bindings\.project_id literal value is not compatible with string"):
         compile_source(author)
@@ -1749,7 +1749,7 @@ def _api_only_author() -> dict:
         "commands": {
             "command.ticket.create": {
                 "input_schema": O({"title": P("Text")}),
-                "effects": {"creates": [ET("Ticket")]},
+                "entity_changes": {"creates": [ET("Ticket")]},
                 "emits_domain_events": [],
                 "outcomes": {
                     "created": {"kind": "success", "result": M("Ticket")},
@@ -2089,8 +2089,10 @@ def test_delegated_and_outer_access_policies_are_both_evaluated(tmp_path: Path) 
         "resource": [{"external_interface": "external_interface.cli.project.approve"}],
         "action": [],
         "environment": [],
-        "effect": "permit",
-        "rules": [{"subject_has_role": "reviewer"}, {"input_present": "approved_by"}],
+        "rules": [
+            {"condition": {"subject_has_role": "reviewer"}, "effect": "permit"},
+            {"condition": {"input_present": "approved_by"}, "effect": "permit"},
+        ],
         "decision": "permit",
         "rationale": "CLI approval requires reviewer role and an explicit approver argument.",
     }

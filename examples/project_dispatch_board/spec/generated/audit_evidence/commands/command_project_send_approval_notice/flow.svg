@@ -1,6 +1,6 @@
 <svg width="811pt" height="482pt"
  viewBox="0.00 0.00 811.00 482.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: bbde08b06ede8137e5fca7e01824542616a30ba1c169056f7d61fbf7f8920bad -->
+<!-- pyspec-contract-input-sha256: 51c209a6a252a29d334480072a261bb32d83278005118ee37c785e8367a52eeb -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 464)">
 <title>command_command_project_send_approval_notice</title>
 <!-- command_input_command_project_send_approval_notice -->
@@ -21,26 +21,24 @@
 <!-- command_query_policy_access_policy_project_reviewer -->
 <g id="node2" class="node">
 <title>command_query_policy_access_policy_project_reviewer</title>
-<polygon fill="#ffffff" stroke="transparent" points="193,-107 193,-296 432,-296 432,-107 193,-107"/>
-<polygon fill="#c2410c" stroke="transparent" points="194.5,-286.5 194.5,-294.5 431.5,-294.5 431.5,-286.5 194.5,-286.5"/>
-<polygon fill="#fff7ed" stroke="transparent" points="194.5,-255.5 194.5,-286.5 431.5,-286.5 431.5,-255.5 194.5,-255.5"/>
-<text text-anchor="start" x="198.5" y="-273.1" font-family="Arial" font-weight="bold" font-size="13.00">access_policy.project.reviewer</text>
-<text text-anchor="start" x="198.5" y="-262.1" font-family="Arial" font-size="8.00" fill="#64748b">authorization gate</text>
-<text text-anchor="start" x="198.5" y="-244.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Reviewers may approve, archive, and send approval</text>
-<text text-anchor="start" x="198.5" y="-233.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">notices for dispatch projects.</text>
-<text text-anchor="start" x="199.5" y="-213.5" font-family="Arial" font-weight="bold" font-size="10.00">effect:</text>
-<text text-anchor="start" x="227.5" y="-213.5" font-family="Arial" font-size="10.00">  permit</text>
-<text text-anchor="start" x="199.5" y="-201.5" font-family="Arial" font-weight="bold" font-size="10.00">decision:</text>
-<text text-anchor="start" x="242.5" y="-201.5" font-family="Arial" font-size="10.00">  permit</text>
-<text text-anchor="start" x="199.5" y="-189.5" font-family="Arial" font-weight="bold" font-size="10.00">subject:</text>
-<text text-anchor="start" x="236.5" y="-189.5" font-family="Arial" font-size="10.00">  actor</text>
-<text text-anchor="start" x="198.5" y="-169.5" font-family="Arial" font-weight="bold" font-size="10.00">action</text>
-<text text-anchor="start" x="198.5" y="-157.5" font-family="Arial" font-size="10.00">command.project.approve</text>
-<text text-anchor="start" x="198.5" y="-146.5" font-family="Arial" font-size="10.00">command.project.archive</text>
-<text text-anchor="start" x="198.5" y="-135.5" font-family="Arial" font-size="10.00">command.project.send_approval_notice</text>
-<text text-anchor="start" x="199.5" y="-116.5" font-family="Arial" font-weight="bold" font-size="10.00">rules:</text>
-<text text-anchor="start" x="226.5" y="-116.5" font-family="Arial" font-size="10.00">  subject_has_role reviewer</text>
-<polygon fill="none" stroke="#c2410c" points="193,-107 193,-296 432,-296 432,-107 193,-107"/>
+<polygon fill="#ffffff" stroke="transparent" points="193,-113 193,-290 432,-290 432,-113 193,-113"/>
+<polygon fill="#c2410c" stroke="transparent" points="194.5,-280.5 194.5,-288.5 431.5,-288.5 431.5,-280.5 194.5,-280.5"/>
+<polygon fill="#fff7ed" stroke="transparent" points="194.5,-249.5 194.5,-280.5 431.5,-280.5 431.5,-249.5 194.5,-249.5"/>
+<text text-anchor="start" x="198.5" y="-267.1" font-family="Arial" font-weight="bold" font-size="13.00">access_policy.project.reviewer</text>
+<text text-anchor="start" x="198.5" y="-256.1" font-family="Arial" font-size="8.00" fill="#64748b">authorization gate</text>
+<text text-anchor="start" x="198.5" y="-238.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Reviewers may approve, archive, and send approval</text>
+<text text-anchor="start" x="198.5" y="-227.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">notices for dispatch projects.</text>
+<text text-anchor="start" x="199.5" y="-207.5" font-family="Arial" font-weight="bold" font-size="10.00">decision:</text>
+<text text-anchor="start" x="242.5" y="-207.5" font-family="Arial" font-size="10.00">  permit</text>
+<text text-anchor="start" x="199.5" y="-195.5" font-family="Arial" font-weight="bold" font-size="10.00">subject:</text>
+<text text-anchor="start" x="236.5" y="-195.5" font-family="Arial" font-size="10.00">  actor</text>
+<text text-anchor="start" x="198.5" y="-175.5" font-family="Arial" font-weight="bold" font-size="10.00">action</text>
+<text text-anchor="start" x="198.5" y="-163.5" font-family="Arial" font-size="10.00">command.project.approve</text>
+<text text-anchor="start" x="198.5" y="-152.5" font-family="Arial" font-size="10.00">command.project.archive</text>
+<text text-anchor="start" x="198.5" y="-141.5" font-family="Arial" font-size="10.00">command.project.send_approval_notice</text>
+<text text-anchor="start" x="199.5" y="-122.5" font-family="Arial" font-weight="bold" font-size="10.00">rules:</text>
+<text text-anchor="start" x="226.5" y="-122.5" font-family="Arial" font-size="10.00">  permit: subject_has_role reviewer</text>
+<polygon fill="none" stroke="#c2410c" points="193,-113 193,-290 432,-290 432,-113 193,-113"/>
 </g>
 <!-- command_input_command_project_send_approval_notice&#45;&gt;command_query_policy_access_policy_project_reviewer -->
 <g id="edge1" class="edge">

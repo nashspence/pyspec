@@ -6,7 +6,7 @@ This glossary is the vocabulary contract for the authored-source, layer-pruned a
 
 - `domain_event`: a durable product/domain occurrence that happened. Domain events are emitted by successful command or lifecycle-transition outcomes and may serve as workflow inputs.
 - `integration_message`: a wire-level AsyncAPI message in `integration_messages.asyncapi.yaml`. It carries a domain-event payload over a channel, but it is not state-machine vocabulary.
-- `local_signal`: a state-machine-local trigger/effect. Local signals may be accepted by transitions, emitted by transitions, and synced between mounted child state-machine instances.
+- `local_signal`: a state-machine-local trigger or emitted signal. Local signals may be accepted by transitions, emitted by transitions, and synced between mounted child state-machine instances.
 - `data_refresh_signal`: a state-machine-local data refresh or invalidation signal, commonly consumed by `query_binding.load.refresh_on`.
 
 Bare `event` is avoided for durable domain occurrences because CloudEvents and UML/state-machine terminology also use that word. Bare `message` is avoided in state machines because AsyncAPI uses message for transport exchange.
@@ -15,13 +15,13 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 
 - <!-- top-level:entity_types --> `entity_types`: collection-prefixed stable product/domain entity type ids such as `entity_type.project`, each with a PascalCase display/type `name` such as `Project`, fields, and optional `entity_lifecycle` declarations. Entity types are not ORM types, API contracts, generated implementation classes, or storage schemas.
 - <!-- top-level:schemas --> `schemas`: first-class reusable JSON Schema payload or object schemas referenced with `schema.*` ids.
-- <!-- top-level:commands --> `commands`: effectful product behavior with `input_schema`, optional authorization, explicit effects, outcomes, and `emits_domain_events`.
+- <!-- top-level:commands --> `commands`: state-changing product behavior with `input_schema`, optional authorization, explicit `entity_changes`, outcomes, and `emits_domain_events`.
 - <!-- top-level:queries --> `queries`: read-only product behavior with `input_schema`, `result_schema`, and outcomes.
 - <!-- top-level:domain_events --> `domain_events`: durable domain/application occurrences with payload_schema contracts and compiled emitters.
 - <!-- top-level:workflows --> `workflows`: asynchronous or long-running flows with `inputs`, `steps`, `sequence_flows`, `outputs`, `retry_policies`, and `failure_handlers`.
-- <!-- top-level:state_machines --> `state_machines`: UI/component state-machine contracts with `context_schema`, states, transitions, triggers, guards, effects, local signals, command bindings, and query bindings.
+- <!-- top-level:state_machines --> `state_machines`: UI/component state-machine contracts with `context_schema`, states, transitions, triggers, guards, local_effects, local signals, command bindings, and query bindings.
 - <!-- top-level:external_interfaces --> `external_interfaces`: canonical external invocation declarations split into explicit adapter and invocation objects.
-- <!-- top-level:access_policies --> `access_policies`: canonical access-control policies with `subject`, `resource`, `action`, `environment`, `rules`, `effect`, and `decision`.
+- <!-- top-level:access_policies --> `access_policies`: canonical access-control policies with `subject`, `resource`, `action`, `environment`, rules with per-rule `effect`, and `decision`.
 - <!-- top-level:fixtures --> `fixtures`: named concrete seed data namespaces used by behavior scenarios, preconditions, assertions, content examples, and render examples.
 - <!-- top-level:behavior_scenarios --> `behavior_scenarios`: formal BDD behavior scenarios with system_under_test_ref, given, when, and then contracts.
 - <!-- top-level:media_assets --> `media_assets`: canonical content assets with media kind, asset role, placeholders, and source-backed resolution when present.
@@ -48,7 +48,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `instance_id`: local child state-machine instance id within a composed state.
 - `local_signal_name`: local state-machine signal name; authored sources do not use global-looking `local_signal.*` references for local signals.
 - `entity_type_ref`: `entity_type.<domain>...`; stable product/domain entity type id. The entity type object carries a separate PascalCase `name` for display/type naming.
-- `command_ref`: `command.<domain>...`; effectful command declarations, state-machine command bindings, workflow steps, external-interface command invocations, and behavior-scenario command assertions.
+- `command_ref`: `command.<domain>...`; state-changing command declarations, state-machine command bindings, workflow steps, external-interface command invocations, and behavior-scenario command assertions.
 - `query_ref`: `query.<domain>...`; read-only query declarations, state-machine query bindings, external-interface query invocations, and behavior-scenario query assertions.
 - `command_binding_id`: local state command binding name; authored sources do not use global-looking `command_binding.*` references for local invocation keys.
 - `query_binding_id`: local state-machine or state query binding name; authored sources do not use global-looking `query_binding.*` references for local invocation keys.
@@ -62,7 +62,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `container_id`: local Textual layout container id within one state.
 - `viewport_id`: local viewport id within `html_viewports` or `textual_viewports`.
 - `workflow_ref`: `workflow.<domain>...`; workflow declarations, workflow external-interface invocations, and generated workflow references.
-- Generated references use `asset`, `access_policy`, `cli_command`, `cli_response_handler`, `endpoint`, `external_interface_delegate`, `external_interface_invocation`, `local_signal_raise`, `command_binding`, `command_outcome_local_effect`, `query_binding`, `query_binding_outcome_effect`, `route`, `adapter_response_binding`, `screen`, `state_machine`, `surface`, `text`, and `workflow` buckets in compiled `reference_index`.
+- Generated references use `asset`, `access_policy`, `cli_command`, `cli_response_handler`, `endpoint`, `external_interface_delegate`, `external_interface_invocation`, `local_signal_raise`, `command_binding`, `command_binding_local_outcome_effect`, `query_binding`, `query_binding_local_outcome_effect`, `route`, `adapter_response_binding`, `screen`, `state_machine`, `surface`, `text`, and `workflow` buckets in compiled `reference_index`.
 
 ## Reference Types
 
@@ -87,20 +87,20 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `retry_safe`: explicit command or external-interface marker permitting automatic retry of delegated, command, transition, or workflow execution. The default is false. Queries are retry-safe by definition.
 - `retry safety`: validation that a retry policy applies only to a retry-safe delegated external interface and final invocation, a query, an explicitly retry-safe command or external interface, or an ingress/disposition outcome where no invoked command has executed. Transport retry, ingress retry, workflow retry, and command retry are separate scopes.
 - `workflow_sequence_flow`: exclusive workflow control-flow step via `next_step`, `complete_as`, `fail_as`, `retry_policy`, or `dead_letter_as`.
-- `state-machine context schema`: local machine context declared as JSON Schema object `properties` and `required`. Nullability uses JSON Schema type arrays such as `type: [string, null]`; effects may set a context field to null only when that field schema allows null.
+- `state-machine context schema`: local machine context declared as JSON Schema object `properties` and `required`. Nullability uses JSON Schema type arrays such as `type: [string, null]`; local_effects may set a context field to null only when that field schema allows null.
 - `context_present`: state-machine condition meaning the declared context field is present and non-null. Nullable context fields with a current `null` value are not present for this condition.
 - `viewport_profile`: global audit/golden-image viewport map. Renderable state machines require at least one viewport profile, and profiles must include viewport sets for each declared renderer surface (`html_viewports` for HTML, `textual_viewports` for Textual).
 - `render example`: state-local visual evidence input. It supplies seed fixtures, optional context, optional precondition references, and, for composed states, an exact child instance state vector; it never names viewport profiles directly.
 - `content source`: a final resolver declaration where `text_resource.source_ref` or `asset.source_ref` equals the resource id. Final content resolvers require at least one matching `content_example`, and example args must exactly match the resource args.
 - `rationale`: bounded plain text used on authored resources and on intentionally unobservable local effects. Missing top-level resource rationale is filled by a deterministic compiler default.
-- `Command binding`: local state use of a global command, normally user-triggered, including `input_mapping` and outcome effects. A renderer control binds to this local invocation, not directly to `command_ref`.
-- `Query binding`: local state-machine or state use of a query for data loading or refresh, including `input_mapping`, load policy, context updates, result binding, and outcome effects. State-machine-level queries load with `on_start`/`on_mount`; state-level queries load with `on_enter`.
-- `Query binding effect`: each query outcome effect must update context, bind/cache a result, raise a local signal, or explicitly declare a scoped `no_local_effect`. `result_binding.data_key` names the state-machine/state result data populated from a binding value.
-- `Query refresh signal`: local data-refresh signal raised by a mutation, query outcome, or other invalidation effect, such as `project_changed`, and consumed by `query_binding.load.refresh_on`. Loaded/missing/error data-refresh signals should come from query outcomes after data has actually been bound or classified.
-- `Empty/non-empty query handling`: array-valued query outcomes split the outcome effect with `conditional_effects` using `when.result_empty` and `when.result_non_empty`. Both branches must be declared so empty collection states are reachable through authored handling rather than compiler length guesses.
+- `Command binding`: local state use of a global command, normally user-triggered, including `input_mapping` and local_effects. A renderer control binds to this local invocation, not directly to `command_ref`.
+- `Query binding`: local state-machine or state use of a query for data loading or refresh, including `input_mapping`, load policy, context updates, result binding, and local_effects. State-machine-level queries load with `on_start`/`on_mount`; state-level queries load with `on_enter`.
+- `Query binding local_effect`: each query `local_outcome_effect` must update context, bind/cache a result, raise a local signal, or explicitly declare a scoped `no_local_effect`. `result_binding.data_key` names the state-machine/state result data populated from a binding value.
+- `Query refresh signal`: local data-refresh signal raised by a mutation, query outcome, or other invalidation `local_effect`, such as `project_changed`, and consumed by `query_binding.load.refresh_on`. Loaded/missing/error data-refresh signals should come from query outcomes after data has actually been bound or classified.
+- `Empty/non-empty query handling`: array-valued query outcomes split the local_outcome_effect with `conditional_local_effects` using `when.result_empty` and `when.result_non_empty`. Both branches must be declared so empty collection states are reachable through authored handling rather than compiler length guesses.
 - `Machine-scoped query ownership`: state-machine-level query bindings declare `result_scope: local`, `shared`, or `prefetch`. Machine-scoped result bindings that do not raise a signal must use shared/prefetch ownership with rationale, especially when a child machine also owns visible loading.
 - `Field-slot source resolution`: every field slot resolves to exactly one context field or query result binding. A bound entity_type or array item can feed field slots when the slot name exists on the result type; ambiguous or missing sources fail semantic validation.
-- `Outcome effect`: mapping from a command/query-binding outcome to context updates, result binding, a local signal raise, or explicit `no_local_effect` handling.
+- `local_outcome_effect`: mapping from a command/query-binding outcome to context updates, result binding, a local signal raise, or explicit `no_local_effect` handling.
 - `No local effect`: explicit declaration that an outcome is covered but intentionally has no local state-machine effect. It is not omission and does not suppress durable domain events. Reasons are scope-sensitive: response-surface handling needs a real adapter/renderer surface, query refresh needs explicit result/context refresh, result-bound-without-signal needs result binding or context/cache update, and failure outcomes must use proven response-surface handling or `intentionally_unobservable` with rationale.
 - `Authored value`: explicit literal-or-fixture-reference value used in authored test, precondition, content-example, and render-example value maps. Use `{value: ...}` for JSON literals, including literal strings beginning with `$`, and `{from: $fixture...}` for fixture references. Raw `$...` strings are not interpreted as references.
 - `Binding root`: the first segment of a binding expression. Local state-machine bindings use `$state_context`, `$principal`, `$signal.payload`, and `$state_machine`; command domain-event payload mappings use `$command_input` and `$command_outcome`; external-interface response mappings use `$invocation_outcome`; adapter/delegation bindings use `$adapter_input` and `$adapter_response`; workflow step bindings use `$workflow_input` and `$step_outcome`. `$message` is reserved for AsyncAPI/wire-level messages, not local state-machine signaling.
@@ -110,9 +110,9 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `Local signal`: local state-machine signal that may also be sent between child state-machine instances where sync rules support local-signal sends.
 - `Domain event`: durable domain occurrence emitted by a command outcome, distinct from local state-machine signals and AsyncAPI integration messages.
 - `Integration message`: AsyncAPI transport-level message projected from a domain event into a channel.
-- `emits_domain_events`: command-level durable domain-event emission mapping keyed by successful command outcome. It is not used for local state-machine transition effects.
-- `command_binding.effects.raise`: local state-machine `local_signal` or `data_refresh_signal` raise after a user command binding.
-- `query_binding.effects.raise`: local state-machine `local_signal` or `data_refresh_signal` raise after a query load or refresh outcome.
+- `emits_domain_events`: command-level durable domain-event emission mapping keyed by successful command outcome. It is not used for local state-machine transition local_effects.
+- `command_binding.local_effects.raise`: local state-machine `local_signal` or `data_refresh_signal` raise after a user command binding.
+- `query_binding.local_effects.raise`: local state-machine `local_signal` or `data_refresh_signal` raise after a query load or refresh outcome.
 - `no_local_effect`: explicit declaration that a command-binding or query-binding outcome has no local state-machine effect.
 - `local_signals`: local UI/component/state-machine signal contracts split into accepted `local_signals`/`data_refresh_signals` maps and emitted `local_signals` maps with JSON Schema `payload_schema` declarations.
 - `renderer_contracts`: state renderer declarations keyed by concrete renderer surface. `renderers.html` and `renderers.textual` each own renderer-local `layout`, `presentation`, and `style`.
@@ -121,7 +121,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `schema`: JSON Schema subset used for payloads, entity types, command inputs/results, query inputs/results, state-machine context, content args, and adapter input sections. It uses `type`, `$ref`, `properties`, `required`, `enum`, `const`, `items`, `additionalProperties`, and `format`; null is represented through JSON Schema type arrays such as `type: ["string", "null"]`.
 - `access_policy`: direct `access_policy_ref` fields identify the access policy applied to an external interface or authorization assertion. Commands use `authorization.policy` plus explicit `authentication_required_as` and `access_denied_as` outcome mappings.
 - `command_authorization`: command-local access-policy mapping with `policy`, `authentication_required_as`, and `access_denied_as`. The mapped names must be normal command outcomes with `kind: failure`.
-- `access policy`: reusable rule set that determines whether `subject` may attempt `action` on `resource` under `environment`. Policies with identical `subject`, `action`, `effect`, `environment`, and `rules` should be one `access_policy`, not duplicated per command or external interface.
+- `access policy`: reusable rule set that determines whether `subject` may attempt `action` on `resource` under `environment`. Policies with identical `subject`, `action`, rule `effect` values, `environment`, and `rules` should be one `access_policy`, not duplicated per command or external interface.
 - `authorization failure outcome`: named failure outcome produced before command execution when authorization fails. These outcomes live in `command.outcomes`; they are not a separate `errors` or `authorization_outcomes` collection.
 - `authentication_required`: authorization failure where no acceptable subject identity is available. HTTP examples conventionally map this outcome to `401`; CLI examples map it to stderr plus a nonzero exit code.
 - `access_denied`: authorization failure where a subject identity exists but does not satisfy the access policy. HTTP examples conventionally map this outcome to `403`; CLI examples map it to stderr plus a nonzero exit code.
@@ -141,7 +141,7 @@ states:
         input_mapping:
           project_id:
             from: $state_context.project_id
-        effects:
+        local_effects:
           approved:
             raise:
               data_refresh_signal: project_changed
@@ -170,7 +170,7 @@ query_bindings:
       on_enter: true
       refresh_on:
       - data_refresh_signal: project_changed
-    effects:
+    local_effects:
       found:
         result_binding:
           data_key: project
@@ -200,9 +200,9 @@ query_bindings:
     input_mapping:
       workspace_id:
         from: $state_context.workspace_id
-    effects:
+    local_effects:
       listed:
-        conditional_effects:
+        conditional_local_effects:
         - when:
             result_empty: true
           result_binding:
@@ -240,10 +240,10 @@ Layers are compile/validate guardrails and are not written into `spec/generated/
 | Context | Valid roots |
 | --- | --- |
 | Command binding `input_mapping` | `$state_context`, `$principal` |
-| Command binding outcome effects | `$command_outcome`, `$command_binding`, `$state_context` |
+| Command binding local_effects | `$command_outcome`, `$command_binding`, `$state_context` |
 | Query binding `input_mapping` | `$state_context`, `$principal` |
-| Query binding outcome effects | `$query_outcome`, `$query_binding`, `$state_context` |
-| State-machine transition effects | `$signal.payload`, `$state_context` |
+| Query binding local_effects | `$query_outcome`, `$query_binding`, `$state_context` |
+| State-machine transition local_effects | `$signal.payload`, `$state_context` |
 | Child state-machine `context_bindings` and selected-state guards | `$state_machine` for parent state-machine context |
 | Command domain-event-emission payload mappings | `$command_input`, `$command_outcome` |
 | External-interface command/query/state-machine/workflow invocation mappings | `$adapter_input` |
@@ -273,21 +273,21 @@ The visual audit includes state-machine and composition diagrams, external-inter
 
 - `$fixture.<path>` reads merged seed fixture data in behavior scenarios, preconditions, assertions, content examples, and render examples.
 - `$state_machine.<field>` reads parent state-machine context in child state-machine context bindings and composition guards.
-- `$signal.payload.<field>` reads the current state-machine local-signal payload in transition effects and sync sends.
-- `$state_context.<field>` reads current state-machine context in transition effects, command/query binding input mappings, and local outcome-effect signal payload mappings.
+- `$signal.payload.<field>` reads the current state-machine local-signal payload in transition local_effects and sync sends.
+- `$state_context.<field>` reads current state-machine context in transition local_effects, command/query binding input mappings, and local_outcome_effect signal payload mappings.
 - `$adapter_input.path_params.<field>` reads HTTP API or HTML route path parameters in external-interface invocation or delegation bindings.
 - `$adapter_input.query_params.<field>` reads HTTP API or HTML route query parameters in external-interface invocation or delegation bindings.
 - `$adapter_input.body.<field>` reads HTTP request body fields in external-interface invocation or delegation bindings.
 - `$adapter_input.args.<field>` reads CLI argument fields in external-interface invocation or delegation bindings.
 - `$adapter_input.payload[.<field>]` reads worker or webhook payload data in external-interface invocation mappings.
 - `$command_input.<field>` reads command input during command domain-event emission mapping and command-scoped access-policy rules.
-- `$command_outcome.result[.<field>]` reads command outcome result during domain-event emission and command-binding local effect mapping.
-- `$command_outcome.kind` reads the command outcome kind during command-binding local effect payload mappings.
-- `$query_outcome.result[.<field>]` reads query outcome result during query-binding local effect mapping.
-- `$query_outcome.kind` reads the query outcome kind during query-binding local effect payload mappings.
+- `$command_outcome.result[.<field>]` reads command outcome result during domain-event emission and command-binding `local_effects` mapping.
+- `$command_outcome.kind` reads the command outcome kind during command-binding `local_effects` payload mappings.
+- `$query_outcome.result[.<field>]` reads query outcome result during query-binding `local_effects` mapping.
+- `$query_outcome.kind` reads the query outcome kind during query-binding `local_effects` payload mappings.
 - `$invocation_outcome.result[.<field>]` reads command or query outcome result during external-interface response mapping.
-- `$command_binding.input.<field>` reads the bound command input during command-binding outcome effects.
-- `$query_binding.input.<field>` reads the bound query input during query-binding outcome effects.
+- `$command_binding.input.<field>` reads the bound command input during command-binding local_effects.
+- `$query_binding.input.<field>` reads the bound query input during query-binding local_effects.
 - `$adapter_response.body[.<field>]` reads the delegated external-interface response body inside delegating CLI `response_handlers`.
 - `$workflow_input.payload[.<field>]` reads workflow input payload.
 - `$step_outcome.<step>.<outcome>.result[.<field>]` reads previous workflow step result.
@@ -344,7 +344,8 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:authored_fixture --> `$defs/authored_fixture`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_entity_type --> `$defs/authored_entity_type`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_access_policy --> `$defs/authored_access_policy`: human-authored source object for this resource or nested contract.
-- <!-- schema-def:authored_command --> `$defs/authored_command`: human-authored command with input_schema, authorization, effects, outcomes, and emitted domain-event mappings.
+- <!-- schema-def:access_policy_rule --> `$defs/access_policy_rule`: access-control rule containing a `condition` and formal access-policy `effect`.
+- <!-- schema-def:authored_command --> `$defs/authored_command`: human-authored command with input_schema, authorization, entity_changes, outcomes, and emitted domain-event mappings.
 - <!-- schema-def:authored_query --> `$defs/authored_query`: human-authored query with input_schema, result_schema, and outcomes.
 - <!-- schema-def:authored_state_machine --> `$defs/authored_state_machine`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_state --> `$defs/authored_state`: human-authored source object for this resource or nested contract.
@@ -360,7 +361,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:content_example_ref --> `$defs/content_example_ref`: typed reference definition for its namespace.
 - <!-- schema-def:content_source_ref --> `$defs/content_source_ref`: typed reference definition for its namespace.
 - <!-- schema-def:context_bindings --> `$defs/context_bindings`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:context_set_effect --> `$defs/context_set_effect`: state-machine contract component.
+- <!-- schema-def:context_set_local_effect --> `$defs/context_set_local_effect`: state-machine contract component.
 - <!-- schema-def:external_interface_command_invocation --> `$defs/external_interface_command_invocation`: external-interface adapter, invocation, input, or response contract component.
 - <!-- schema-def:external_interface_query_invocation --> `$defs/external_interface_query_invocation`: external-interface adapter, invocation, input, or response contract component.
 - <!-- schema-def:external_interface_adapter --> `$defs/external_interface_adapter`: external-interface adapter, invocation, input, or response contract component.
@@ -400,10 +401,10 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:html_layout_region --> `$defs/html_layout_region`: HTML renderer contract component.
 - <!-- schema-def:html_layout_root --> `$defs/html_layout_root`: HTML renderer contract component.
 - <!-- schema-def:local_signal_name --> `$defs/local_signal_name`: state-machine-local signal identifier.
-- <!-- schema-def:signal_sync_effect --> `$defs/signal_sync_effect`: state-machine signal synchronization contract component.
+- <!-- schema-def:signal_sync_local_effect --> `$defs/signal_sync_local_effect`: state-machine signal synchronization contract component.
 - <!-- schema-def:signal_sync_assertion --> `$defs/signal_sync_assertion`: state-machine signal synchronization contract component.
 - <!-- schema-def:signal_sync_rule --> `$defs/signal_sync_rule`: state-machine signal synchronization contract component.
-- <!-- schema-def:signal_sync_send_effect --> `$defs/signal_sync_send_effect`: state-machine signal synchronization contract component.
+- <!-- schema-def:signal_sync_send_local_effect --> `$defs/signal_sync_send_local_effect`: state-machine signal synchronization contract component.
 - <!-- schema-def:signal_sync_trigger --> `$defs/signal_sync_trigger`: state-machine signal synchronization contract component.
 - <!-- schema-def:entity_type_ref --> `$defs/entity_type_ref`: typed reference definition for its namespace.
 - <!-- schema-def:entity_type_display_name --> `$defs/entity_type_display_name`: PascalCase entity type display/type name separated from the stable `entity_type.*` id.
@@ -411,7 +412,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:command_authorization --> `$defs/command_authorization`: explicit command access policy and mapped authorization failure outcomes.
 - <!-- schema-def:command_binding_id --> `$defs/command_binding_id`: local state command binding identifier.
 - <!-- schema-def:command_domain_event_emit --> `$defs/command_domain_event_emit`: command-level domain-event emission mapping keyed by outcome.
-- <!-- schema-def:command_effects --> `$defs/command_effects`: command effect summary containing creates, updates, deletes, or lifecycle_transition effects.
+- <!-- schema-def:command_entity_changes --> `$defs/command_entity_changes`: command entity-change summary containing creates, updates, deletes, or lifecycle_transition entries.
 - <!-- schema-def:command_ref --> `$defs/command_ref`: typed reference definition for its namespace.
 - <!-- schema-def:query_ref --> `$defs/query_ref`: typed reference definition for its namespace.
 - <!-- schema-def:command_outcome --> `$defs/command_outcome`: command outcome without embedded domain-event emission metadata.
@@ -438,12 +439,12 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:slot_binding --> `$defs/slot_binding`: renderer contract component scoped to HTML and/or Textual invocations.
 - <!-- schema-def:local_no_effect --> `$defs/local_no_effect`: explicit local no-effect outcome coverage contract component.
 - <!-- schema-def:state_machine_command_binding --> `$defs/state_machine_command_binding`: state-machine command binding contract component.
-- <!-- schema-def:state_machine_command_outcome_local_effect --> `$defs/state_machine_command_outcome_local_effect`: state-machine command binding outcome-effect contract component.
-- <!-- schema-def:state_machine_command_binding_effects --> `$defs/state_machine_command_binding_effects`: state-machine command binding outcome-effect map.
+- <!-- schema-def:state_machine_command_binding_local_outcome_effect --> `$defs/state_machine_command_binding_local_outcome_effect`: state-machine command binding local_outcome_effect contract component.
+- <!-- schema-def:state_machine_command_binding_local_effects --> `$defs/state_machine_command_binding_local_effects`: state-machine command binding local_outcome_effect map.
 - <!-- schema-def:state_machine_query_binding --> `$defs/state_machine_query_binding`: state-machine query binding contract component.
-- <!-- schema-def:state_machine_query_conditional_effect --> `$defs/state_machine_query_conditional_effect`: conditional query effect branch with result-shape guard and normal query outcome effects.
-- <!-- schema-def:state_machine_query_binding_outcome_effect --> `$defs/state_machine_query_binding_outcome_effect`: state-machine query binding outcome-effect contract component.
-- <!-- schema-def:state_machine_query_binding_effects --> `$defs/state_machine_query_binding_effects`: state-machine query binding outcome-effect map.
+- <!-- schema-def:state_machine_query_conditional_local_effect --> `$defs/state_machine_query_conditional_local_effect`: conditional query local_effect branch with result-shape guard and normal query local_effects.
+- <!-- schema-def:state_machine_query_binding_local_outcome_effect --> `$defs/state_machine_query_binding_local_outcome_effect`: state-machine query binding local_outcome_effect contract component.
+- <!-- schema-def:state_machine_query_binding_local_effects --> `$defs/state_machine_query_binding_local_effects`: state-machine query binding local_outcome_effect map.
 - <!-- schema-def:render_example --> `$defs/render_example`: state-machine contract component.
 - <!-- schema-def:state_machine_signal_raise --> `$defs/state_machine_signal_raise`: state-machine local signal raise contract component.
 - <!-- schema-def:state_machine_signal_trigger --> `$defs/state_machine_signal_trigger`: tagged local signal/data-refresh-signal trigger contract component.
@@ -520,7 +521,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:fixture_item --> `$defs/fixture_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:entity_type_item --> `$defs/entity_type_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:access_policy_item --> `$defs/access_policy_item`: compiled-output object for this resource or nested contract.
-- <!-- schema-def:command_item --> `$defs/command_item`: compiled command with input_schema, effects, outcomes, and emitted domain-event mappings.
+- <!-- schema-def:command_item --> `$defs/command_item`: compiled command with input_schema, entity_changes, outcomes, and emitted domain-event mappings.
 - <!-- schema-def:query_item --> `$defs/query_item`: compiled query with input_schema, result_schema, and outcomes.
 - <!-- schema-def:behavior_scenario_item --> `$defs/behavior_scenario_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:state_machine_item --> `$defs/state_machine_item`: compiled-output object for this resource or nested contract.

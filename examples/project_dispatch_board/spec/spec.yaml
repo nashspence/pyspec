@@ -179,7 +179,6 @@ entity_types:
       additionalProperties: false
 access_policies:
   access_policy.project.member:
-    effect: permit
     rationale: Workspace members may create, read, list, and submit dispatch projects.
     subject:
     - kind: actor
@@ -192,10 +191,11 @@ access_policies:
     - command.project.submit
     environment: []
     rules:
-    - subject_has_role: member
+    - condition:
+        subject_has_role: member
+      effect: permit
     decision: permit
   access_policy.project.reviewer:
-    effect: permit
     rationale: Reviewers may approve, archive, and send approval notices for dispatch projects.
     subject:
     - kind: actor
@@ -207,7 +207,9 @@ access_policies:
     - command.project.send_approval_notice
     environment: []
     rules:
-    - subject_has_role: reviewer
+    - condition:
+        subject_has_role: reviewer
+      effect: permit
     decision: permit
 commands:
   command.project.approve:
@@ -223,7 +225,7 @@ commands:
       - approved_by
       - project_id
       additionalProperties: false
-    effects: {}
+    entity_changes: {}
     outcomes:
       approved:
         kind: success
@@ -272,7 +274,7 @@ commands:
       required:
       - project_id
       additionalProperties: false
-    effects: {}
+    entity_changes: {}
     outcomes:
       archived:
         kind: success
@@ -321,7 +323,7 @@ commands:
       - title
       - workspace_id
       additionalProperties: false
-    effects:
+    entity_changes:
       creates:
       - entity_type.project
     outcomes:
@@ -362,7 +364,7 @@ commands:
       - approved_by
       - project_id
       additionalProperties: false
-    effects: {}
+    entity_changes: {}
     outcomes:
       delivery_failed:
         kind: failure
@@ -396,7 +398,7 @@ commands:
       required:
       - project_id
       additionalProperties: false
-    effects: {}
+    entity_changes: {}
     outcomes:
       transition_not_allowed:
         kind: failure
@@ -503,7 +505,7 @@ state_machines:
       to: ready
       trigger:
         local_signal: selection_changed
-    - effects:
+    - local_effects:
       - set:
           context: project_id
           value: null
@@ -554,7 +556,7 @@ state_machines:
             input_mapping:
               project_id:
                 from: $state_context.project_id
-            effects:
+            local_effects:
               found:
                 result_binding:
                   data_key: activity
@@ -601,7 +603,7 @@ state_machines:
         input_mapping:
           workspace_id:
             from: $state_context.workspace_id
-        effects:
+        local_effects:
           listed:
             result_binding:
               data_key: projects
@@ -689,7 +691,7 @@ state_machines:
           textual_container: aside
           initial_state: empty
         signal_sync_rules:
-        - effects:
+        - local_effects:
           - set:
               context: selected_project_id
               from: $signal.payload.project_id
@@ -805,7 +807,7 @@ state_machines:
       to: error
       trigger:
         data_refresh_signal: project_load_failed
-    - effects:
+    - local_effects:
       - set:
           context: project_id
           value: null
@@ -875,7 +877,7 @@ state_machines:
             input_mapping:
               project_id:
                 from: $state_context.project_id
-            effects:
+            local_effects:
               found:
                 result_binding:
                   data_key: project
@@ -917,7 +919,7 @@ state_machines:
             input_mapping:
               project_id:
                 from: $state_context.project_id
-            effects:
+            local_effects:
               found:
                 result_binding:
                   data_key: project
@@ -951,7 +953,7 @@ state_machines:
                 from: $principal.id
               project_id:
                 from: $state_context.project_id
-            effects:
+            local_effects:
               approved:
                 raise:
                   data_refresh_signal: project_changed
@@ -982,7 +984,7 @@ state_machines:
             input_mapping:
               project_id:
                 from: $state_context.project_id
-            effects:
+            local_effects:
               archived:
                 raise:
                   data_refresh_signal: project_changed
@@ -1040,7 +1042,7 @@ state_machines:
       to: error
       trigger:
         local_signal: show_transition_not_allowed
-    - effects:
+    - local_effects:
       - emit:
           local_signal: project_selected
           payload_bindings:
@@ -1088,9 +1090,9 @@ state_machines:
         input_mapping:
           workspace_id:
             from: $state_context.workspace_id
-        effects:
+        local_effects:
           listed:
-            conditional_effects:
+            conditional_local_effects:
             - when:
                 result_empty: true
               result_binding:
@@ -1179,7 +1181,7 @@ state_machines:
                 value: Replace rooftop condenser fan
               workspace_id:
                 from: $state_context.workspace_id
-            effects:
+            local_effects:
               created:
                 raise:
                   data_refresh_signal: projects_changed
@@ -1224,7 +1226,7 @@ state_machines:
                 value: Replace rooftop condenser fan
               workspace_id:
                 from: $state_context.workspace_id
-            effects:
+            local_effects:
               created:
                 raise:
                   data_refresh_signal: projects_changed
@@ -1245,7 +1247,7 @@ state_machines:
             input_mapping:
               project_id:
                 from: $state_context.selected_project_id
-            effects:
+            local_effects:
               access_denied:
                 raise:
                   local_signal: show_transition_not_allowed

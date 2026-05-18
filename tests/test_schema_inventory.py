@@ -102,16 +102,16 @@ ALLOWED_ANY_OF_PATHS_BY_SCHEMA = {
         "$defs.authored_viewport_profile.anyOf",
         "$defs.authored_access_policy.properties.action.items.anyOf",
         "$defs.schema.properties.anyOf",
-        "$defs.state_machine_query_conditional_effect.anyOf",
-        "$defs.state_machine_query_binding_outcome_effect.anyOf",
+        "$defs.state_machine_query_conditional_local_effect.anyOf",
+        "$defs.state_machine_query_binding_local_outcome_effect.anyOf",
     },
     "spec.schema.json": {
         "$defs.child_state_machine_item.anyOf",
         "$defs.viewport_profile_item.anyOf",
         "$defs.access_policy_item.properties.action.items.anyOf",
         "$defs.schema.properties.anyOf",
-        "$defs.state_machine_query_conditional_effect.anyOf",
-        "$defs.state_machine_query_binding_outcome_effect.anyOf",
+        "$defs.state_machine_query_conditional_local_effect.anyOf",
+        "$defs.state_machine_query_binding_local_outcome_effect.anyOf",
     },
 }
 ALLOWED_ONE_OF_WITHOUT_OBJECT_DISCRIMINATORS = {

@@ -6,13 +6,14 @@ access_policies:
     - query.project.read
     - command.project.submit
     decision: permit
-    effect: permit
     environment: []
     rationale: Workspace members may create, read, list, and submit dispatch projects.
     resource:
     - entity_type: entity_type.project
     rules:
-    - subject_has_role: member
+    - condition:
+        subject_has_role: member
+      effect: permit
     subject:
     - kind: actor
   access_policy.project.reviewer:
@@ -21,13 +22,14 @@ access_policies:
     - command.project.archive
     - command.project.send_approval_notice
     decision: permit
-    effect: permit
     environment: []
     rationale: Reviewers may approve, archive, and send approval notices for dispatch projects.
     resource:
     - entity_type: entity_type.project
     rules:
-    - subject_has_role: reviewer
+    - condition:
+        subject_has_role: reviewer
+      effect: permit
     subject:
     - kind: actor
 assertions: {}
@@ -333,7 +335,8 @@ behavior_scenarios:
                     width: '28'
                   selector: container.aside
           signal_sync_rules:
-          - effects:
+          - id: select_project_updates_state_machines
+            local_effects:
             - set:
                 context: selected_project_id
                 from: $signal.payload.project_id
@@ -349,7 +352,6 @@ behavior_scenarios:
                 payload_bindings:
                   project_id:
                     from: $signal.payload.project_id
-            id: select_project_updates_state_machines
             when:
               instance: list
               local_signal: project_selected
@@ -553,7 +555,8 @@ behavior_scenarios:
                     width: '28'
                   selector: container.aside
           signal_sync_rules:
-          - effects:
+          - id: select_project_updates_state_machines
+            local_effects:
             - set:
                 context: selected_project_id
                 from: $signal.payload.project_id
@@ -569,7 +572,6 @@ behavior_scenarios:
                 payload_bindings:
                   project_id:
                     from: $signal.payload.project_id
-            id: select_project_updates_state_machines
             when:
               instance: list
               local_signal: project_selected
@@ -654,12 +656,6 @@ commands:
       access_denied_as: access_denied
       authentication_required_as: authentication_required
       policy: access_policy.project.reviewer
-    effects:
-      lifecycle_transition:
-        entity_type: entity_type.project
-        field: status
-        from: submitted
-        to: approved
     emits_domain_events:
     - domain_event: domain_event.project.approved
       outcome: approved
@@ -668,6 +664,12 @@ commands:
           from: $command_input.approved_by
         project_id:
           from: $command_input.project_id
+    entity_changes:
+      lifecycle_transition:
+        entity_type: entity_type.project
+        field: status
+        from: submitted
+        to: approved
     input_schema:
       additionalProperties: false
       properties:
@@ -711,16 +713,16 @@ commands:
       access_denied_as: access_denied
       authentication_required_as: authentication_required
       policy: access_policy.project.reviewer
-    effects:
+    emits_domain_events:
+    - domain_event: domain_event.project.archived
+      outcome: archived
+      payload_source: $command_outcome.result
+    entity_changes:
       lifecycle_transition:
         entity_type: entity_type.project
         field: status
         from: approved
         to: archived
-    emits_domain_events:
-    - domain_event: domain_event.project.archived
-      outcome: archived
-      payload_source: $command_outcome.result
     input_schema:
       additionalProperties: false
       properties:
@@ -756,13 +758,13 @@ commands:
       access_denied_as: access_denied
       authentication_required_as: authentication_required
       policy: access_policy.project.member
-    effects:
-      creates:
-      - entity_type.project
     emits_domain_events:
     - domain_event: domain_event.project.created
       outcome: created
       payload_source: $command_outcome.result
+    entity_changes:
+      creates:
+      - entity_type.project
     input_schema:
       additionalProperties: false
       properties:
@@ -803,8 +805,8 @@ commands:
       access_denied_as: access_denied
       authentication_required_as: authentication_required
       policy: access_policy.project.reviewer
-    effects: {}
     emits_domain_events: []
+    entity_changes: {}
     input_schema:
       additionalProperties: false
       properties:
@@ -840,16 +842,16 @@ commands:
       access_denied_as: access_denied
       authentication_required_as: authentication_required
       policy: access_policy.project.member
-    effects:
+    emits_domain_events:
+    - domain_event: domain_event.project.submitted
+      outcome: submitted
+      payload_source: $command_outcome.result
+    entity_changes:
       lifecycle_transition:
         entity_type: entity_type.project
         field: status
         from: draft
         to: submitted
-    emits_domain_events:
-    - domain_event: domain_event.project.submitted
-      outcome: submitted
-      payload_source: $command_outcome.result
     input_schema:
       additionalProperties: false
       properties:
@@ -1477,31 +1479,31 @@ reference_index:
   - command_binding.project.list.empty.create
   - command_binding.project.list.ready.create
   - command_binding.project.list.ready.submit
-  command_outcome_local_effect:
-  - command_outcome_local_effect.project.detail.ready.approve.access_denied
-  - command_outcome_local_effect.project.detail.ready.approve.approved
-  - command_outcome_local_effect.project.detail.ready.approve.authentication_required
-  - command_outcome_local_effect.project.detail.ready.approve.not_found
-  - command_outcome_local_effect.project.detail.ready.approve.transition_not_allowed
-  - command_outcome_local_effect.project.detail.ready.approve.unavailable
-  - command_outcome_local_effect.project.detail.ready.archive.access_denied
-  - command_outcome_local_effect.project.detail.ready.archive.archived
-  - command_outcome_local_effect.project.detail.ready.archive.authentication_required
-  - command_outcome_local_effect.project.detail.ready.archive.not_found
-  - command_outcome_local_effect.project.detail.ready.archive.transition_not_allowed
-  - command_outcome_local_effect.project.list.empty.create.access_denied
-  - command_outcome_local_effect.project.list.empty.create.authentication_required
-  - command_outcome_local_effect.project.list.empty.create.created
-  - command_outcome_local_effect.project.list.empty.create.validation_failed
-  - command_outcome_local_effect.project.list.ready.create.access_denied
-  - command_outcome_local_effect.project.list.ready.create.authentication_required
-  - command_outcome_local_effect.project.list.ready.create.created
-  - command_outcome_local_effect.project.list.ready.create.validation_failed
-  - command_outcome_local_effect.project.list.ready.submit.access_denied
-  - command_outcome_local_effect.project.list.ready.submit.authentication_required
-  - command_outcome_local_effect.project.list.ready.submit.not_found
-  - command_outcome_local_effect.project.list.ready.submit.submitted
-  - command_outcome_local_effect.project.list.ready.submit.transition_not_allowed
+  command_binding_local_outcome_effect:
+  - command_binding_local_outcome_effect.project.detail.ready.approve.access_denied
+  - command_binding_local_outcome_effect.project.detail.ready.approve.approved
+  - command_binding_local_outcome_effect.project.detail.ready.approve.authentication_required
+  - command_binding_local_outcome_effect.project.detail.ready.approve.not_found
+  - command_binding_local_outcome_effect.project.detail.ready.approve.transition_not_allowed
+  - command_binding_local_outcome_effect.project.detail.ready.approve.unavailable
+  - command_binding_local_outcome_effect.project.detail.ready.archive.access_denied
+  - command_binding_local_outcome_effect.project.detail.ready.archive.archived
+  - command_binding_local_outcome_effect.project.detail.ready.archive.authentication_required
+  - command_binding_local_outcome_effect.project.detail.ready.archive.not_found
+  - command_binding_local_outcome_effect.project.detail.ready.archive.transition_not_allowed
+  - command_binding_local_outcome_effect.project.list.empty.create.access_denied
+  - command_binding_local_outcome_effect.project.list.empty.create.authentication_required
+  - command_binding_local_outcome_effect.project.list.empty.create.created
+  - command_binding_local_outcome_effect.project.list.empty.create.validation_failed
+  - command_binding_local_outcome_effect.project.list.ready.create.access_denied
+  - command_binding_local_outcome_effect.project.list.ready.create.authentication_required
+  - command_binding_local_outcome_effect.project.list.ready.create.created
+  - command_binding_local_outcome_effect.project.list.ready.create.validation_failed
+  - command_binding_local_outcome_effect.project.list.ready.submit.access_denied
+  - command_binding_local_outcome_effect.project.list.ready.submit.authentication_required
+  - command_binding_local_outcome_effect.project.list.ready.submit.not_found
+  - command_binding_local_outcome_effect.project.list.ready.submit.submitted
+  - command_binding_local_outcome_effect.project.list.ready.submit.transition_not_allowed
   endpoint:
   - endpoint.project.approve
   - endpoint.project.create
@@ -1550,27 +1552,27 @@ reference_index:
   - query_binding.project.detail.loading.read_project
   - query_binding.project.detail.ready.read_project
   - query_binding.project.list.list_projects
-  query_binding_outcome_effect:
-  - query_binding_outcome_effect.project.activity.ready.read_activity.access_denied
-  - query_binding_outcome_effect.project.activity.ready.read_activity.authentication_required
-  - query_binding_outcome_effect.project.activity.ready.read_activity.found
-  - query_binding_outcome_effect.project.activity.ready.read_activity.not_found
-  - query_binding_outcome_effect.project.board.list_board.access_denied
-  - query_binding_outcome_effect.project.board.list_board.authentication_required
-  - query_binding_outcome_effect.project.board.list_board.listed
-  - query_binding_outcome_effect.project.board.list_board.unavailable
-  - query_binding_outcome_effect.project.detail.loading.read_project.access_denied
-  - query_binding_outcome_effect.project.detail.loading.read_project.authentication_required
-  - query_binding_outcome_effect.project.detail.loading.read_project.found
-  - query_binding_outcome_effect.project.detail.loading.read_project.not_found
-  - query_binding_outcome_effect.project.detail.ready.read_project.access_denied
-  - query_binding_outcome_effect.project.detail.ready.read_project.authentication_required
-  - query_binding_outcome_effect.project.detail.ready.read_project.found
-  - query_binding_outcome_effect.project.detail.ready.read_project.not_found
-  - query_binding_outcome_effect.project.list.list_projects.access_denied
-  - query_binding_outcome_effect.project.list.list_projects.authentication_required
-  - query_binding_outcome_effect.project.list.list_projects.listed
-  - query_binding_outcome_effect.project.list.list_projects.unavailable
+  query_binding_local_outcome_effect:
+  - query_binding_local_outcome_effect.project.activity.ready.read_activity.access_denied
+  - query_binding_local_outcome_effect.project.activity.ready.read_activity.authentication_required
+  - query_binding_local_outcome_effect.project.activity.ready.read_activity.found
+  - query_binding_local_outcome_effect.project.activity.ready.read_activity.not_found
+  - query_binding_local_outcome_effect.project.board.list_board.access_denied
+  - query_binding_local_outcome_effect.project.board.list_board.authentication_required
+  - query_binding_local_outcome_effect.project.board.list_board.listed
+  - query_binding_local_outcome_effect.project.board.list_board.unavailable
+  - query_binding_local_outcome_effect.project.detail.loading.read_project.access_denied
+  - query_binding_local_outcome_effect.project.detail.loading.read_project.authentication_required
+  - query_binding_local_outcome_effect.project.detail.loading.read_project.found
+  - query_binding_local_outcome_effect.project.detail.loading.read_project.not_found
+  - query_binding_local_outcome_effect.project.detail.ready.read_project.access_denied
+  - query_binding_local_outcome_effect.project.detail.ready.read_project.authentication_required
+  - query_binding_local_outcome_effect.project.detail.ready.read_project.found
+  - query_binding_local_outcome_effect.project.detail.ready.read_project.not_found
+  - query_binding_local_outcome_effect.project.list.list_projects.access_denied
+  - query_binding_local_outcome_effect.project.list.list_projects.authentication_required
+  - query_binding_local_outcome_effect.project.list.list_projects.listed
+  - query_binding_local_outcome_effect.project.list.list_projects.unavailable
   route:
   - route.project.board
   screen:
@@ -1699,7 +1701,12 @@ state_machines:
         - assignee
         query_bindings:
           read_activity:
-            effects:
+            input_mapping:
+              project_id:
+                from: $state_context.project_id
+            load:
+              on_enter: true
+            local_effects:
               access_denied:
                 no_local_effect:
                   rationale: The activity panel remains in its current state when authorization blocks the refresh.
@@ -1719,11 +1726,6 @@ state_machines:
                 no_local_effect:
                   rationale: The parent detail panel owns not-found display for the selected project.
                   reason: intentionally_unobservable
-            input_mapping:
-              project_id:
-                from: $state_context.project_id
-            load:
-              on_enter: true
             query: query.project.read
         surface: state_machine.project.activity.ready
         text:
@@ -1733,11 +1735,11 @@ state_machines:
       to: ready
       trigger:
         local_signal: selection_changed
-    - effects:
+    - from: ready
+      local_effects:
       - set:
           context: project_id
           value: null
-      from: ready
       to: empty
       trigger:
         local_signal: selection_cleared
@@ -1765,7 +1767,12 @@ state_machines:
         local_signals: {}
     query_bindings:
       list_board:
-        effects:
+        input_mapping:
+          workspace_id:
+            from: $state_context.workspace_id
+        load:
+          on_start: true
+        local_effects:
           access_denied:
             no_local_effect:
               rationale: The board shell leaves child surfaces unchanged when list access is access_denied.
@@ -1785,11 +1792,6 @@ state_machines:
             no_local_effect:
               rationale: The board shell leaves child surfaces unchanged while the list service is unavailable.
               reason: handled_by_response_surface
-        input_mapping:
-          workspace_id:
-            from: $state_context.workspace_id
-        load:
-          on_start: true
         query: query.project.list
         rationale: Board-level project list is shared shell data for composed child state machines; the child list machine
           owns visible loading and empty/non-empty transitions.
@@ -1946,7 +1948,8 @@ state_machines:
                   width: '28'
                 selector: container.aside
         signal_sync_rules:
-        - effects:
+        - id: select_project_updates_state_machines
+          local_effects:
           - set:
               context: selected_project_id
               from: $signal.payload.project_id
@@ -1962,7 +1965,6 @@ state_machines:
               payload_bindings:
                 project_id:
                   from: $signal.payload.project_id
-          id: select_project_updates_state_machines
           when:
             instance: list
             local_signal: project_selected
@@ -2047,7 +2049,12 @@ state_machines:
         fields: []
         query_bindings:
           read_project:
-            effects:
+            input_mapping:
+              project_id:
+                from: $state_context.project_id
+            load:
+              on_enter: true
+            local_effects:
               access_denied:
                 raise:
                   data_refresh_signal: project_load_failed
@@ -2064,11 +2071,6 @@ state_machines:
               not_found:
                 raise:
                   data_refresh_signal: project_load_failed
-            input_mapping:
-              project_id:
-                from: $state_context.project_id
-            load:
-              on_enter: true
             query: query.project.read
         surface: state_machine.project.detail.loading
         text:
@@ -2088,7 +2090,12 @@ state_machines:
         command_bindings:
           approve:
             command: command.project.approve
-            effects:
+            input_mapping:
+              approved_by:
+                from: $principal.id
+              project_id:
+                from: $state_context.project_id
+            local_effects:
               access_denied:
                 no_local_effect:
                   rationale: The response surface keeps the detail panel unchanged for access_denied approval.
@@ -2114,14 +2121,12 @@ state_machines:
                 no_local_effect:
                   rationale: The response surface reports temporary unavailability without a local transition.
                   reason: handled_by_response_surface
-            input_mapping:
-              approved_by:
-                from: $principal.id
-              project_id:
-                from: $state_context.project_id
           archive:
             command: command.project.archive
-            effects:
+            input_mapping:
+              project_id:
+                from: $state_context.project_id
+            local_effects:
               access_denied:
                 raise:
                   local_signal: show_transition_not_allowed
@@ -2149,9 +2154,6 @@ state_machines:
                   payload_bindings:
                     message:
                       from: $command_outcome.result.message
-            input_mapping:
-              project_id:
-                from: $state_context.project_id
         fields:
         - title
         - customer
@@ -2160,7 +2162,14 @@ state_machines:
         - summary
         query_bindings:
           read_project:
-            effects:
+            input_mapping:
+              project_id:
+                from: $state_context.project_id
+            load:
+              on_enter: true
+              refresh_on:
+              - data_refresh_signal: project_changed
+            local_effects:
               access_denied:
                 raise:
                   local_signal: show_transition_not_allowed
@@ -2186,13 +2195,6 @@ state_machines:
                   payload_bindings:
                     message:
                       from: $query_outcome.result.message
-            input_mapping:
-              project_id:
-                from: $state_context.project_id
-            load:
-              on_enter: true
-              refresh_on:
-              - data_refresh_signal: project_changed
             query: query.project.read
         surface: state_machine.project.detail.ready
         text:
@@ -2210,11 +2212,11 @@ state_machines:
       to: error
       trigger:
         data_refresh_signal: project_load_failed
-    - effects:
+    - from: ready
+      local_effects:
       - set:
           context: project_id
           value: null
-      from: ready
       to: none
       trigger:
         local_signal: selection_cleared
@@ -2302,7 +2304,14 @@ state_machines:
               type: object
     query_bindings:
       list_projects:
-        effects:
+        input_mapping:
+          workspace_id:
+            from: $state_context.workspace_id
+        load:
+          on_start: true
+          refresh_on:
+          - data_refresh_signal: projects_changed
+        local_effects:
           access_denied:
             raise:
               data_refresh_signal: project_list_failed
@@ -2310,7 +2319,7 @@ state_machines:
             raise:
               data_refresh_signal: project_list_failed
           listed:
-            conditional_effects:
+            conditional_local_effects:
             - context_updates:
                 workspace_id:
                   from: $query_binding.input.workspace_id
@@ -2336,13 +2345,6 @@ state_machines:
           unavailable:
             raise:
               data_refresh_signal: project_list_failed
-        input_mapping:
-          workspace_id:
-            from: $state_context.workspace_id
-        load:
-          on_start: true
-          refresh_on:
-          - data_refresh_signal: projects_changed
         query: query.project.list
         result_scope: local
     rationale: The list state machine owns collection loading, empty, ready, error, and selection behavior.
@@ -2353,7 +2355,16 @@ state_machines:
         command_bindings:
           create:
             command: command.project.create
-            effects:
+            input_mapping:
+              customer:
+                value: Atlas Foods
+              priority:
+                value: High
+              title:
+                value: Replace rooftop condenser fan
+              workspace_id:
+                from: $state_context.workspace_id
+            local_effects:
               access_denied:
                 no_local_effect:
                   rationale: The response surface keeps the empty list visible for access_denied create.
@@ -2371,15 +2382,6 @@ state_machines:
                   payload_bindings:
                     message:
                       from: $command_outcome.result.message
-            input_mapping:
-              customer:
-                value: Atlas Foods
-              priority:
-                value: High
-              title:
-                value: Replace rooftop condenser fan
-              workspace_id:
-                from: $state_context.workspace_id
         fields: []
         query_bindings: {}
         surface: state_machine.project.list.empty
@@ -2408,7 +2410,16 @@ state_machines:
         command_bindings:
           create:
             command: command.project.create
-            effects:
+            input_mapping:
+              customer:
+                value: Atlas Foods
+              priority:
+                value: High
+              title:
+                value: Replace rooftop condenser fan
+              workspace_id:
+                from: $state_context.workspace_id
+            local_effects:
               access_denied:
                 no_local_effect:
                   rationale: The response surface keeps the ready list visible for access_denied create.
@@ -2424,18 +2435,12 @@ state_machines:
                 no_local_effect:
                   rationale: The ready list keeps focus while the response surface shows validation errors.
                   reason: handled_by_response_surface
-            input_mapping:
-              customer:
-                value: Atlas Foods
-              priority:
-                value: High
-              title:
-                value: Replace rooftop condenser fan
-              workspace_id:
-                from: $state_context.workspace_id
           submit:
             command: command.project.submit
-            effects:
+            input_mapping:
+              project_id:
+                from: $state_context.selected_project_id
+            local_effects:
               access_denied:
                 raise:
                   local_signal: show_transition_not_allowed
@@ -2463,9 +2468,6 @@ state_machines:
                   payload_bindings:
                     message:
                       from: $command_outcome.result.message
-            input_mapping:
-              project_id:
-                from: $state_context.selected_project_id
         fields:
         - title
         - customer
@@ -2502,13 +2504,13 @@ state_machines:
       to: error
       trigger:
         local_signal: show_transition_not_allowed
-    - effects:
+    - from: ready
+      local_effects:
       - emit:
           local_signal: project_selected
           payload_bindings:
             project_id:
               from: $signal.payload.project_id
-      from: ready
       to: ready
       trigger:
         local_signal: project_select

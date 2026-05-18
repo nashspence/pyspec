@@ -817,8 +817,10 @@ def _access_policy_text_witness_tokens(contract: dict[str, Any], parts: list[str
         return []
     policy_id = parts[1]
     policy = contract.get("access_policies", {}).get(policy_id, {})
-    if parts[2] in {"effect", "decision"} and isinstance(value, str):
+    if parts[2] == "decision" and isinstance(value, str):
         return [parts[2], value]
+    if parts[2] == "rules" and parts[-1] == "effect" and isinstance(value, str):
+        return [value]
     if parts[2] == "action" and isinstance(value, str):
         return ["action", value]
     if parts[2] == "subject" and len(parts) >= 5:
@@ -1779,7 +1781,7 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
     sync_state_machine_order: list[str] = []
     for rule in state_machine.get("signal_sync_rules", []):
         sync_state_machine_order.append(rule["when"]["instance"])
-        sync_state_machine_order.extend(effect["send"]["instance"] for effect in rule.get("effects", []) if "send" in effect)
+        sync_state_machine_order.extend(effect["send"]["instance"] for effect in rule.get("local_effects", []) if "send" in effect)
     sync_state_machine_index = {state_machine_id: index for index, state_machine_id in enumerate(dict.fromkeys(sync_state_machine_order))}
     mounts = sorted(
         state_machine.get("child_state_machines", []),
@@ -1800,8 +1802,8 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
         signal_id = rule["when"]["local_signal"]
         emit_id = _dot_node_id("local_signal_emit", f"{rule['id']}_{rule['when']['instance']}_{signal_id}")
         sync_id = _dot_node_id("local_signal_sync", rule["id"])
-        send_effects = [(index, effect) for index, effect in enumerate(rule.get("effects", [])) if "send" in effect]
-        effect_ids = [_dot_node_id("local_signal_effect", f"{rule['id']}_{index}") for index, _ in send_effects]
+        send_local_effects = [(index, effect) for index, effect in enumerate(rule.get("local_effects", [])) if "send" in effect]
+        effect_ids = [_dot_node_id("local_signal_effect", f"{rule['id']}_{index}") for index, _ in send_local_effects]
         lines.append(
             _dot_html_node(
                 emit_id,
@@ -1827,7 +1829,7 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
                 ),
             )
         )
-        for index, effect in send_effects:
+        for index, effect in send_local_effects:
             effect_id = _dot_node_id("local_signal_effect", f"{rule['id']}_{index}")
             lines.append(_dot_html_node(effect_id, _dot_sync_effect_card(effect, mount_by_id, contract)))
         if effect_ids:
@@ -1840,7 +1842,7 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
         if source:
             lines.append(_dot_edge(source, emit_id, {"color": _DOT_COLOR_EVENT_BORDER, "penwidth": "1.4"}))
         lines.append(_dot_edge(emit_id, sync_id, {"color": _DOT_COLOR_EVENT_BORDER, "penwidth": "1.2"}))
-        for index, effect in enumerate(rule.get("effects", [])):
+        for index, effect in enumerate(rule.get("local_effects", [])):
             if "send" not in effect:
                 continue
             effect_id = _dot_node_id("local_signal_effect", f"{rule['id']}_{index}")
@@ -2113,7 +2115,7 @@ def _policy_reference_card(
     include_resources: bool = True,
 ) -> str:
     policy = contract.get("access_policies", {}).get(policy_id, {})
-    sections = [("effect", [policy.get("effect", "")])]
+    sections = []
     if policy.get("decision"):
         sections.append(("decision", [policy["decision"]]))
     if policy.get("subject"):
@@ -2527,7 +2529,6 @@ def _access_policy_sections(
     policy = contract.get("access_policies", {}).get(policy_id)
     if not policy:
         return sections
-    sections.append(("effect", [policy["effect"]]))
     sections.append(("decision", [policy["decision"]]))
     sections.append(("subject", _format_access_policy_subject(policy.get("subject", []))))
     sections.append(("action", policy.get("action", [])))
@@ -2553,19 +2554,22 @@ def _format_access_policy_resource(resource: Iterable[dict[str, str]]) -> list[s
 def _format_access_policy_rules(rules: Iterable[dict[str, Any]]) -> list[str]:
     lines: list[str] = []
     for rule in rules:
-        kind, body = _target_pair(rule)
+        effect = rule.get("effect")
+        condition = rule.get("condition", rule)
+        kind, body = _target_pair(condition)
         if kind == "unconditional":
-            lines.append(f"unconditional {_format_scalar(body)}")
+            line = f"unconditional {_format_scalar(body)}"
         elif kind == "input_present":
-            lines.append(f"input_present {body}")
+            line = f"input_present {body}"
         elif kind == "entity_exists":
-            lines.append(f"{body['entity_type']} exists")
+            line = f"{body['entity_type']} exists"
         elif kind == "entity_state_condition":
-            lines.append(f"{body['entity_type']}.{body['field']} = {_format_scalar(body['equals'])}")
+            line = f"{body['entity_type']}.{body['field']} = {_format_scalar(body['equals'])}"
         elif kind == "subject_has_role":
-            lines.append(f"subject_has_role {body}")
+            line = f"subject_has_role {body}"
         else:
-            lines.append(f"{kind}: {_format_scalar(body)}")
+            line = f"{kind}: {_format_scalar(body)}"
+        lines.append(f"{effect}: {line}" if effect else line)
     return lines
 
 
@@ -2650,7 +2654,7 @@ def _emitted_local_signal_data_lines(
 def _sync_set_lines(rule: dict[str, Any], state_machine: dict[str, Any]) -> list[_DotTypedField]:
     lines = []
     context = schema_properties(state_machine["context_schema"])
-    for effect in rule.get("effects", []):
+    for effect in rule.get("local_effects", []):
         assignment = effect.get("set")
         if not assignment:
             continue
@@ -2694,7 +2698,7 @@ def _emitting_transition_emits(
     state_machine = contract["state_machines"][mount["state_machine"]]
     emits = []
     for transition in state_machine.get("transitions", []):
-        for effect in transition.get("effects", []):
+        for effect in transition.get("local_effects", []):
             emit = effect.get("emit")
             if emit and emit["local_signal"] == emitted:
                 emits.append(emit)
@@ -2717,7 +2721,7 @@ def _emitting_transition_refs(
     if not state_machine:
         return refs
     for transition in state_machine.get("transitions", []):
-        if any(effect.get("emit", {}).get("local_signal") == emitted for effect in transition.get("effects", [])):
+        if any(effect.get("emit", {}).get("local_signal") == emitted for effect in transition.get("local_effects", [])):
             refs.append(_signal_label(transition["trigger"]))
     return refs
 
@@ -3287,7 +3291,7 @@ def _unique_data_bindings(bindings: Iterable[dict[str, Any]]) -> list[dict[str, 
 
 def _format_transition_effect_sections(state_machine: dict[str, Any], transition: dict[str, Any]) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
-    for effect in transition.get("effects", []):
+    for effect in transition.get("local_effects", []):
         if "emit" in effect:
             emit = effect["emit"]
             sections.append(("emit", [_local_signal_label(emit["local_signal"])]))

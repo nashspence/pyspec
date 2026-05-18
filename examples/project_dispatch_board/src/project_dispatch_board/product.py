@@ -394,8 +394,10 @@ class ProductApp:
             invoked_kind, invoked_ref = external_interface_invoked_ref_pair(self.contract["external_interfaces"][resource_ref])
             if not _access_policy_covers_resource(policy, invoked_kind, invoked_ref):
                 return False
-        matched = all(self._condition_matches(rule, input_values) for rule in [*policy.get("environment", []), *policy.get("rules", [])])
-        return matched if policy["effect"] == "permit" else not matched
+        matched_environment = all(self._condition_matches(rule, input_values) for rule in policy.get("environment", []))
+        matched_rules = all(self._condition_matches(rule["condition"], input_values) for rule in policy.get("rules", []))
+        decision = policy["decision"] if matched_environment and matched_rules else "deny"
+        return decision == "permit"
 
     def _subject_available(self, policy: Mapping[str, Any], input_values: Mapping[str, Any]) -> bool:
         for subject in policy.get("subject", []):

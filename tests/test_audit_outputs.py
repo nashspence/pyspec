@@ -205,7 +205,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>emit:</B>&#160;&#160;local_signal.project_selected" in state_machine
     payload_project = '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;string</FONT>'
     assert payload_project in state_machine
-    assert "<B>effects:</B>" not in state_machine
+    assert "<B>local_effects:</B>" not in state_machine
     assert "emit local_signal.project_selected" not in state_machine
     assert "<B>projection:</B>" not in state_machine
     assert '<FONT POINT-SIZE="10"><B>load:</B>&#160;&#160;query.project.list</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;array&lt;Project&gt;</FONT>' in state_machine
@@ -255,7 +255,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "payload:" not in behavior
     assert "payload_schema:" not in behavior
     assert "emitted by" not in behavior
-    assert "<B>rules:</B>&#160;&#160;subject_has_role member" in create_behavior
+    assert "<B>rules:</B>&#160;&#160;permit: subject_has_role member" in create_behavior
     assert ('"application_' + "act" + 'ion_application_' + "act" + 'ion_project_approve" [shape=') not in behavior
     assert "transition command" not in behavior
     assert behavior.index('"command_input_command_project_approve"') < behavior.index('"command_query_policy_access_policy_project_reviewer"')
@@ -298,7 +298,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "$domain_event." not in composition
     assert "$state_machine." not in composition
     assert "<B>from:</B>" not in composition
-    assert "<B>effects:</B>" not in composition
+    assert "<B>local_effects:</B>" not in composition
     assert "Layout / mounted state machines" not in composition
     assert "Local signal routing" not in composition
     assert "Sync rules" not in composition
@@ -476,7 +476,7 @@ def test_composition_dot_syncs_local_signals_generically() -> None:
             {
                     "id": "sync_alpha_beta",
                 "when": {"instance": "publisher", "local_signal": "ready"},
-                "effects": [
+                "local_effects": [
                     {"send": {"instance": "receiver", "local_signal": "consume", "payload_bindings": {"item_id": {"from": "$signal.payload.id"}}}},
                     {"set": {"context": "selected_id", "from": "$signal.payload.id"}},
                 ],
@@ -500,7 +500,7 @@ def test_composition_dot_syncs_local_signals_generically() -> None:
                         "trigger": {"local_signal": "submit"},
                         "from": "idle",
                         "to": "ready",
-                        "effects": [{"emit": {"local_signal": "ready", "payload_bindings": {"id": {"from": "$signal.payload.id"}}}}],
+                        "local_effects": [{"emit": {"local_signal": "ready", "payload_bindings": {"id": {"from": "$signal.payload.id"}}}}],
                     }
                 ]
             },
@@ -544,7 +544,7 @@ def test_composition_dot_syncs_local_signals_generically() -> None:
     assert "$state_machine." not in composition
     assert "<B>target:</B>" not in composition
     assert "<B>from:</B>" not in composition
-    assert "<B>effects:</B>" not in composition
+    assert "<B>local_effects:</B>" not in composition
     assert '"local_signal_effect_sync_alpha_beta_0" -> "child_state_machine_receiver"' in composition
     assert "local_signal_effect_sync_alpha_beta_1" not in composition
     assert '#ecfdf5' in composition
@@ -573,7 +573,7 @@ def test_audit_transition_rationale_renders_for_otherwise_sparse_card() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
     activity = author["state_machines"]["state_machine.project.activity"]
     cleared = next(transition for transition in activity["transitions"] if transition["trigger"] == {"local_signal": "selection_cleared"})
-    cleared.pop("effects")
+    cleared.pop("local_effects")
     cleared["rationale"] = "Clearing the selection returns the activity state to its empty state."
     contract = compile_source(author)
 
@@ -600,7 +600,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "local_signal.project_selected" in list_fsm
     assert "payload:" in list_fsm
     assert "emit local_signal.project_selected" not in list_fsm
-    assert "effects:" not in list_fsm
+    assert "local_effects:" not in list_fsm
     assert "application_" + "act" + "ion: query.project.list" not in list_fsm
     assert "query_bindings:" in list_fsm
     assert "list_projects" in list_fsm
@@ -698,7 +698,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "instance:" not in composition
     assert "target:" not in composition
     assert "from:" not in composition
-    assert "effects:" not in composition
+    assert "local_effects:" not in composition
     assert "Layout / mounted state machines" not in composition
     assert "Local signal routing" not in composition
     assert "Sync rules" not in composition

@@ -173,9 +173,9 @@ REF_KINDS = [
     "external_interface_invocation",
     "local_signal_raise",
     "command_binding",
-    "command_outcome_local_effect",
+    "command_binding_local_outcome_effect",
     "query_binding",
-    "query_binding_outcome_effect",
+    "query_binding_local_outcome_effect",
     "route",
     "adapter_response_binding",
     "screen",
@@ -425,7 +425,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             outcomes[outcome_id] = normalized_outcome
         command: dict[str, Any] = {
             "input_schema": normalize_object_json_schema(spec.get("input_schema", EMPTY_OBJECT_SCHEMA)),
-            "effects": copy.deepcopy(spec.get("effects", {})),
+            "entity_changes": copy.deepcopy(spec.get("entity_changes", {})),
             "outcomes": outcomes,
             "emits_domain_events": copy.deepcopy(spec.get("emits_domain_events", [])),
             "rationale": spec["rationale"],
@@ -455,7 +455,6 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             "resource": copy.deepcopy(spec["resource"]),
             "action": copy.deepcopy(spec["action"]),
             "environment": copy.deepcopy(spec["environment"]),
-            "effect": spec["effect"],
             "decision": spec["decision"],
             "rules": copy.deepcopy(spec["rules"]),
             "rationale": spec["rationale"],
@@ -614,15 +613,15 @@ def _command_query_map(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
     command_queries: dict[str, dict[str, Any]] = {}
     for command_ref, command in contract.get("commands", {}).items():
         item = copy.deepcopy(command)
-        effects = item.get("effects", {})
-        item["behavior_kind"] = "lifecycle_transition" if effects.get("lifecycle_transition") else "command"
+        entity_changes = item.get("entity_changes", {})
+        item["behavior_kind"] = "lifecycle_transition" if entity_changes.get("lifecycle_transition") else "command"
         item["input"] = item.get("input_schema", EMPTY_OBJECT_SCHEMA)
-        item["creates"] = list(effects.get("creates", []))
-        item["updates"] = list(effects.get("updates", []))
-        item["deletes"] = list(effects.get("deletes", []))
+        item["creates"] = list(entity_changes.get("creates", []))
+        item["updates"] = list(entity_changes.get("updates", []))
+        item["deletes"] = list(entity_changes.get("deletes", []))
         item["reads"] = []
-        if effects.get("lifecycle_transition"):
-            item["lifecycle_transition"] = copy.deepcopy(effects["lifecycle_transition"])
+        if entity_changes.get("lifecycle_transition"):
+            item["lifecycle_transition"] = copy.deepcopy(entity_changes["lifecycle_transition"])
         emits_by_outcome = _command_emits_by_outcome(command)
         for outcome_id, outcome in item.get("outcomes", {}).items():
             outcome["emits"] = copy.deepcopy(emits_by_outcome.get(outcome_id, []))
@@ -662,10 +661,6 @@ def _command_emits_by_outcome(command: dict[str, Any]) -> dict[str, list[dict[st
     return result
 
 
-def _command_or_query_effects(behavior: dict[str, Any]) -> dict[str, Any]:
-    return behavior.get("effects", {})
-
-
 def _derive_command_lifecycle_transitions(contract: dict[str, Any]) -> None:
     """Derive lifecycle-transition action details from entity_lifecycle declarations.
 
@@ -691,13 +686,13 @@ def _derive_command_lifecycle_transitions(contract: dict[str, Any]) -> None:
             }
 
     for command_id, command in contract.get("commands", {}).items():
-        effects = command.setdefault("effects", {})
-        if "lifecycle_transition" in effects:
+        entity_changes = command.setdefault("entity_changes", {})
+        if "lifecycle_transition" in entity_changes:
             continue
         derived = by_command.get(command_id)
         if not derived:
             continue
-        effects["lifecycle_transition"] = derived
+        entity_changes["lifecycle_transition"] = derived
 
 
 def _derive_domain_events(contract: dict[str, Any]) -> dict[str, Any]:
@@ -738,9 +733,9 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
     for state_machine_id, owner in contract["state_machines"].items():
         for invocation_id, invocation in sorted((owner.get("query_bindings") or {}).items()):
             refs["query_binding"].add(_generated_query_binding_ref(state_machine_id, None, invocation_id))
-            for outcome_id, effect in sorted(invocation.get("effects", {}).items()):
-                refs["query_binding_outcome_effect"].add(_generated_query_binding_outcome_effect_ref(state_machine_id, None, invocation_id, outcome_id))
-                for branch in _query_outcome_effect_branches(effect):
+            for outcome_id, effect in sorted(invocation.get("local_effects", {}).items()):
+                refs["query_binding_local_outcome_effect"].add(_generated_query_binding_local_outcome_effect_ref(state_machine_id, None, invocation_id, outcome_id))
+                for branch in _query_local_outcome_effect_branches(effect):
                     signal = branch.get("raise")
                     if signal:
                         kind, signal_id = _signal_raise_selector_key(signal)
@@ -753,9 +748,9 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
             refs["asset"].update(state["assets"])
             for invocation_id, invocation in sorted((state.get("query_bindings") or {}).items()):
                 refs["query_binding"].add(_generated_query_binding_ref(state_machine_id, state_name, invocation_id))
-                for outcome_id, effect in sorted(invocation.get("effects", {}).items()):
-                    refs["query_binding_outcome_effect"].add(_generated_query_binding_outcome_effect_ref(state_machine_id, state_name, invocation_id, outcome_id))
-                    for branch in _query_outcome_effect_branches(effect):
+                for outcome_id, effect in sorted(invocation.get("local_effects", {}).items()):
+                    refs["query_binding_local_outcome_effect"].add(_generated_query_binding_local_outcome_effect_ref(state_machine_id, state_name, invocation_id, outcome_id))
+                    for branch in _query_local_outcome_effect_branches(effect):
                         signal = branch.get("raise")
                         if signal:
                             kind, signal_id = _signal_raise_selector_key(signal)
@@ -764,8 +759,8 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
                             )
             for invocation_id, invocation in sorted((state.get("command_bindings") or {}).items()):
                 refs["command_binding"].add(_generated_command_binding_ref(state_machine_id, state_name, invocation_id))
-                for outcome_id, effect in sorted(invocation.get("effects", {}).items()):
-                    refs["command_outcome_local_effect"].add(_generated_command_outcome_local_effect_ref(state_machine_id, state_name, invocation_id, outcome_id))
+                for outcome_id, effect in sorted(invocation.get("local_effects", {}).items()):
+                    refs["command_binding_local_outcome_effect"].add(_generated_command_binding_local_outcome_effect_ref(state_machine_id, state_name, invocation_id, outcome_id))
                     signal = effect.get("raise")
                     if signal:
                         kind, signal_id = _signal_raise_selector_key(signal)
@@ -822,8 +817,8 @@ def _generated_command_binding_ref(state_machine_id: str, state_name: str, invoc
     return f"command_binding.{rules.resource_tail(state_machine_id)}.{state_name}.{invocation_id}"
 
 
-def _generated_command_outcome_local_effect_ref(state_machine_id: str, state_name: str, invocation_id: str, outcome_id: str) -> str:
-    return f"command_outcome_local_effect.{rules.resource_tail(state_machine_id)}.{state_name}.{invocation_id}.{outcome_id}"
+def _generated_command_binding_local_outcome_effect_ref(state_machine_id: str, state_name: str, invocation_id: str, outcome_id: str) -> str:
+    return f"command_binding_local_outcome_effect.{rules.resource_tail(state_machine_id)}.{state_name}.{invocation_id}.{outcome_id}"
 
 
 def _generated_query_binding_ref(state_machine_id: str, state_name: str | None, invocation_id: str) -> str:
@@ -831,9 +826,9 @@ def _generated_query_binding_ref(state_machine_id: str, state_name: str | None, 
     return f"query_binding.{rules.resource_tail(state_machine_id)}{state_part}.{invocation_id}"
 
 
-def _generated_query_binding_outcome_effect_ref(state_machine_id: str, state_name: str | None, invocation_id: str, outcome_id: str) -> str:
+def _generated_query_binding_local_outcome_effect_ref(state_machine_id: str, state_name: str | None, invocation_id: str, outcome_id: str) -> str:
     state_part = f".{state_name}" if state_name else ""
-    return f"query_binding_outcome_effect.{rules.resource_tail(state_machine_id)}{state_part}.{invocation_id}.{outcome_id}"
+    return f"query_binding_local_outcome_effect.{rules.resource_tail(state_machine_id)}{state_part}.{invocation_id}.{outcome_id}"
 
 
 def _generated_command_local_signal_raise_ref(
@@ -1259,7 +1254,7 @@ def _require_exact_relationship(cid: str, cap: dict[str, Any], field: str, count
 def _reject_non_empty_relationships(cid: str, cap: dict[str, Any], fields: set[str]) -> None:
     extras = sorted(field for field in fields if cap.get(field))
     if extras:
-        raise ContractError(f"Command {cid} behavior_kind {cap['behavior_kind']} does not support effects: {extras}")
+        raise ContractError(f"Command {cid} behavior_kind {cap['behavior_kind']} does not support entity_changes: {extras}")
 
 
 def _require_output_entity_type(cid: str, cap: dict[str, Any], expected_entity_type: str) -> None:
@@ -1357,8 +1352,9 @@ def _validate_access_policies(contract: dict[str, Any]) -> None:
         if not _access_policy_covers_resource(access_policies[policy_id], "external_interface", entry_id) and not _access_policy_covers_resource(access_policies[policy_id], invoked_kind, invoked_ref):
             raise ContractError(f"External interface {entry_id} access_policy {policy_id} must cover external interface or invoked resource")
     for policy_id, policy in access_policies.items():
-        if policy["decision"] != policy["effect"]:
-            raise ContractError(f"Access policy {policy_id} decision must match effect for authored permit/deny policies")
+        rule_effects = {rule["effect"] for rule in policy.get("rules", [])}
+        if rule_effects != {policy["decision"]}:
+            raise ContractError(f"Access policy {policy_id} decision must match rule effect for authored permit/deny policies")
         if not policy["resource"] and not policy["action"]:
             raise ContractError(f"Access policy {policy_id} must cover at least one resource or action")
         for action in policy["action"]:
@@ -1370,18 +1366,30 @@ def _validate_access_policies(contract: dict[str, Any]) -> None:
                 raise ContractError(f"Access policy {policy_id} resource references unknown entity_type {ref}")
             if kind == "external_interface" and ref not in external_interfaces:
                 raise ContractError(f"Access policy {policy_id} resource references unknown external interface {ref}")
-        for rule in [*policy.get("environment", []), *policy.get("rules", [])]:
-            kind, body = _one(rule, f"Access policy {policy_id} rule")
-            if kind in {"unconditional", "input_present", "subject_has_role", "value_equals"}:
-                continue
-            if kind in {"entity_exists", "entity_state_condition"}:
-                entity_type_id = body["entity_type"]
-                if entity_type_id not in contract["entity_types"]:
-                    raise ContractError(f"Access policy {policy_id} rule references unknown entity_type {entity_type_id}")
-                if kind == "entity_state_condition" and body["field"] not in _schema_fields(contract["entity_types"][entity_type_id]["schema"]):
-                    raise ContractError(f"Access policy {policy_id} rule references unknown {entity_type_id} field {body['field']}")
-                continue
-            raise ContractError(f"Access policy {policy_id} rule is unsupported: {kind}")
+        for rule in policy.get("environment", []):
+            _validate_access_policy_condition(contract, external_interfaces, policy_id, rule, f"Access policy {policy_id} environment")
+        for rule in policy.get("rules", []):
+            _validate_access_policy_condition(contract, external_interfaces, policy_id, rule["condition"], f"Access policy {policy_id} rule")
+
+
+def _validate_access_policy_condition(
+    contract: dict[str, Any],
+    external_interfaces: dict[str, Any],
+    policy_id: str,
+    rule: dict[str, Any],
+    label: str,
+) -> None:
+    kind, body = _one(rule, label)
+    if kind in {"unconditional", "input_present", "subject_has_role", "value_equals"}:
+        return
+    if kind in {"entity_exists", "entity_state_condition"}:
+        entity_type_id = body["entity_type"]
+        if entity_type_id not in contract["entity_types"]:
+            raise ContractError(f"Access policy {policy_id} rule references unknown entity_type {entity_type_id}")
+        if kind == "entity_state_condition" and body["field"] not in _schema_fields(contract["entity_types"][entity_type_id]["schema"]):
+            raise ContractError(f"Access policy {policy_id} rule references unknown {entity_type_id} field {body['field']}")
+        return
+    raise ContractError(f"Access policy {policy_id} rule is unsupported: {kind}")
 
 
 def _validate_access_policy_reuse(access_policies: dict[str, Any]) -> None:
@@ -1391,7 +1399,7 @@ def _validate_access_policy_reuse(access_policies: dict[str, Any]) -> None:
         existing = fingerprints.get(fingerprint)
         if existing:
             raise ContractError(
-                f"Access policies {existing} and {policy_id} have identical subject, action, effect, environment, and rules; "
+                f"Access policies {existing} and {policy_id} have identical subject, action, rule effects, environment, and rules; "
                 "reuse one access_policy with combined resource/action coverage instead of duplicating rule sets"
             )
         fingerprints[fingerprint] = policy_id
@@ -1406,7 +1414,6 @@ def _access_policy_rule_fingerprint(policy: dict[str, Any]) -> str:
         {
             "subject": subject,
             "action": action,
-            "effect": policy.get("effect"),
             "environment": environment,
             "rules": rules,
         }
@@ -1514,7 +1521,7 @@ def _validate_state_machines(contract: dict[str, Any]) -> None:
             state_machine.get("query_bindings", {}),
             set(_state_machine_context(state_machine)),
         )
-        _validate_collection_empty_signal_effects(state_machine_id, state_machine)
+        _validate_collection_empty_signal_local_effects(state_machine_id, state_machine)
         _validate_machine_query_ownership(contract, state_machine_id, state_machine)
         _validate_state_machine_transitions(contract, state_machine_id, state_machine)
         _validate_signals(state_machine_id, state_machine)
@@ -1570,7 +1577,7 @@ def _validate_command_bindings(
             {"state_context": _type_scope(context), "principal": ACTOR_SOURCE_SCOPE},
         )
         _lint_literal_actor_bindings(label, bindings)
-        _validate_command_binding_effects(contract, label, state_machine, invocation, command_id, command)
+        _validate_command_binding_local_effects(contract, label, state_machine, invocation, command_id, command)
 
 
 def _lint_literal_actor_bindings(label: str, bindings: dict[str, Any]) -> None:
@@ -1585,7 +1592,7 @@ def _lint_literal_actor_bindings(label: str, bindings: dict[str, Any]) -> None:
             )
 
 
-def _validate_command_binding_effects(
+def _validate_command_binding_local_effects(
     contract: dict[str, Any],
     label: str,
     state_machine: dict[str, Any],
@@ -1593,9 +1600,9 @@ def _validate_command_binding_effects(
     command_id: str,
     command: dict[str, Any],
 ) -> None:
-    effects = invocation["effects"]
+    local_effects = invocation["local_effects"]
     expected_outcomes = set(command["outcomes"])
-    actual_outcomes = set(effects)
+    actual_outcomes = set(local_effects)
     if actual_outcomes != expected_outcomes:
         missing = sorted(expected_outcomes - actual_outcomes)
         extra = sorted(actual_outcomes - expected_outcomes)
@@ -1604,10 +1611,10 @@ def _validate_command_binding_effects(
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"{label} effects must exactly map command outcomes" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"{label} local_effects must exactly map command outcomes" + (": " + "; ".join(parts) if parts else ""))
 
-    for outcome_id, effect in sorted(effects.items()):
-        effect_label = f"{label} effects.{outcome_id}"
+    for outcome_id, effect in sorted(local_effects.items()):
+        effect_label = f"{label} local_effects.{outcome_id}"
         outcome = command["outcomes"][outcome_id]
         if _validate_no_local_effect(
             effect_label,
@@ -1808,7 +1815,7 @@ def _validate_query_bindings(
             {"state_context": _type_scope(context), "principal": ACTOR_SOURCE_SCOPE},
         )
         _validate_query_load_policy(contract, label, state_machine, invocation.get("load") or {}, scope=scope)
-        _validate_query_binding_effects(contract, label, state_machine, invocation, command, scope=scope, state=state)
+        _validate_query_binding_local_effects(contract, label, state_machine, invocation, command, scope=scope, state=state)
 
 
 def _validate_query_load_policy(
@@ -1827,7 +1834,7 @@ def _validate_query_load_policy(
         _state_machine_signal_payload(state_machine, "accepts", trigger, f"{label} load.refresh_on")
 
 
-def _validate_query_binding_effects(
+def _validate_query_binding_local_effects(
     contract: dict[str, Any],
     label: str,
     state_machine: dict[str, Any],
@@ -1837,9 +1844,9 @@ def _validate_query_binding_effects(
     scope: str,
     state: dict[str, Any] | None,
 ) -> None:
-    effects = invocation["effects"]
+    local_effects = invocation["local_effects"]
     expected_outcomes = set(command["outcomes"])
-    actual_outcomes = set(effects)
+    actual_outcomes = set(local_effects)
     if actual_outcomes != expected_outcomes:
         missing = sorted(expected_outcomes - actual_outcomes)
         extra = sorted(actual_outcomes - expected_outcomes)
@@ -1848,15 +1855,15 @@ def _validate_query_binding_effects(
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"{label} effects must exactly map query outcomes" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"{label} local_effects must exactly map query outcomes" + (": " + "; ".join(parts) if parts else ""))
 
-    for outcome_id, effect in sorted(effects.items()):
+    for outcome_id, effect in sorted(local_effects.items()):
         outcome = command["outcomes"][outcome_id]
-        effect_label = f"{label} effects.{outcome_id}"
-        if "conditional_effects" in effect:
+        effect_label = f"{label} local_effects.{outcome_id}"
+        if "conditional_local_effects" in effect:
             if any(key in effect for key in ("context_updates", "result_binding", "raise", "no_local_effect")):
-                raise ContractError(f"{effect_label} conditional_effects must not be mixed with top-level outcome effects")
-            _validate_query_conditional_effects(
+                raise ContractError(f"{effect_label} conditional_local_effects must not be mixed with top-level local outcome effects")
+            _validate_query_conditional_local_effects(
                 contract,
                 effect_label,
                 state_machine,
@@ -1868,7 +1875,7 @@ def _validate_query_binding_effects(
                 state=state,
             )
             continue
-        _validate_query_outcome_effect(
+        _validate_query_local_outcome_effect(
             contract,
             effect_label,
             state_machine,
@@ -1880,11 +1887,11 @@ def _validate_query_binding_effects(
             scope=scope,
             state=state,
         )
-    if all(_query_outcome_is_only_no_local_effect(effect) for effect in effects.values()):
-        raise ContractError(f"{label} query_binding has only no_local_effect outcome effects and no explicit result binding, context update, or signal")
+    if all(_query_local_outcome_is_only_no_local_effect(effect) for effect in local_effects.values()):
+        raise ContractError(f"{label} query_binding has only no_local_effect local outcome effects and no explicit result binding, context update, or signal")
 
 
-def _validate_query_conditional_effects(
+def _validate_query_conditional_local_effects(
     contract: dict[str, Any],
     effect_label: str,
     state_machine: dict[str, Any],
@@ -1897,15 +1904,15 @@ def _validate_query_conditional_effects(
     state: dict[str, Any] | None,
 ) -> None:
     result_conditions: list[str] = []
-    for index, branch in enumerate(invocation["effects"][outcome_id]["conditional_effects"]):
+    for index, branch in enumerate(invocation["local_effects"][outcome_id]["conditional_local_effects"]):
         condition = _query_result_condition_key(branch["when"])
-        branch_label = f"{effect_label}.conditional_effects[{index}].{condition}"
+        branch_label = f"{effect_label}.conditional_local_effects[{index}].{condition}"
         if condition in result_conditions:
-            raise ContractError(f"{effect_label} conditional_effects duplicate condition: {condition}")
+            raise ContractError(f"{effect_label} conditional_local_effects duplicate condition: {condition}")
         result_conditions.append(condition)
         if condition in {"result_empty", "result_non_empty"} and not _type_supports_emptiness(outcome["result"]):
             raise ContractError(f"{branch_label} is valid only for array/list query results")
-        _validate_query_outcome_effect(
+        _validate_query_local_outcome_effect(
             contract,
             branch_label,
             state_machine,
@@ -1918,10 +1925,10 @@ def _validate_query_conditional_effects(
             state=state,
         )
     if set(result_conditions) != {"result_empty", "result_non_empty"}:
-        raise ContractError(f"{effect_label} conditional_effects for empty/non-empty result handling must declare both result_empty and result_non_empty branches")
+        raise ContractError(f"{effect_label} conditional_local_effects for empty/non-empty result handling must declare both result_empty and result_non_empty branches")
 
 
-def _validate_query_outcome_effect(
+def _validate_query_local_outcome_effect(
     contract: dict[str, Any],
     effect_label: str,
     state_machine: dict[str, Any],
@@ -2011,8 +2018,8 @@ def _query_result_condition_key(condition: dict[str, Any]) -> str:
     return next(iter(condition))
 
 
-def _query_outcome_is_only_no_local_effect(effect: dict[str, Any]) -> bool:
-    branches = effect.get("conditional_effects") or [effect]
+def _query_local_outcome_is_only_no_local_effect(effect: dict[str, Any]) -> bool:
+    branches = effect.get("conditional_local_effects") or [effect]
     return all("no_local_effect" in branch and not any(key in branch for key in ("context_updates", "result_binding", "raise")) for branch in branches)
 
 
@@ -2074,12 +2081,12 @@ def _query_result_field_sources(contract: dict[str, Any], invocations: dict[str,
         command = commands.get(_invocation_command_or_query_ref(invocation))
         if not command:
             continue
-        for outcome_id, effect in sorted((invocation.get("effects") or {}).items()):
+        for outcome_id, effect in sorted((invocation.get("local_effects") or {}).items()):
             outcome = command.get("outcomes", {}).get(outcome_id)
             if not outcome:
                 continue
             fields = object_fields_for_type(contract, _query_result_item_type(outcome["result"]))
-            for branch in _query_outcome_effect_branches(effect):
+            for branch in _query_local_outcome_effect_branches(effect):
                 result_binding = branch.get("result_binding")
                 if not result_binding:
                     continue
@@ -2089,8 +2096,8 @@ def _query_result_field_sources(contract: dict[str, Any], invocations: dict[str,
     return sources
 
 
-def _query_outcome_effect_branches(effect: dict[str, Any]) -> list[dict[str, Any]]:
-    return list(effect.get("conditional_effects") or [effect])
+def _query_local_outcome_effect_branches(effect: dict[str, Any]) -> list[dict[str, Any]]:
+    return list(effect.get("conditional_local_effects") or [effect])
 
 
 def _query_result_item_type(result_type: Any) -> Any:
@@ -2100,17 +2107,17 @@ def _query_result_item_type(result_type: Any) -> Any:
     return effective
 
 
-def _validate_collection_empty_signal_effects(state_machine_id: str, state_machine: dict[str, Any]) -> None:
+def _validate_collection_empty_signal_local_effects(state_machine_id: str, state_machine: dict[str, Any]) -> None:
     for transition in state_machine.get("transitions", []):
         if not _is_data_refresh_signal(transition["trigger"]):
             continue
         signal_name = transition["trigger"]["data_refresh_signal"]
         if not _is_empty_collection_signal(signal_name):
             continue
-        if not _query_effects_raise_data_refresh_signal(state_machine, signal_name):
+        if not _query_local_effects_raise_data_refresh_signal(state_machine, signal_name):
             raise ContractError(
                 f"state machine {state_machine_id} transition uses empty-collection signal data_refresh_signal.{signal_name} "
-                "without an explicit query outcome effect raising it"
+                "without an explicit query local outcome effect raising it"
             )
 
 
@@ -2118,7 +2125,7 @@ def _is_empty_collection_signal(signal_name: str) -> bool:
     return signal_name.endswith("_empty") or "collection_empty" in signal_name
 
 
-def _query_effects_raise_data_refresh_signal(state_machine: dict[str, Any], signal_name: str) -> bool:
+def _query_local_effects_raise_data_refresh_signal(state_machine: dict[str, Any], signal_name: str) -> bool:
     for invocation in (state_machine.get("query_bindings") or {}).values():
         if _query_binding_raises_data_refresh_signal(invocation, signal_name):
             return True
@@ -2130,8 +2137,8 @@ def _query_effects_raise_data_refresh_signal(state_machine: dict[str, Any], sign
 
 
 def _query_binding_raises_data_refresh_signal(invocation: dict[str, Any], signal_name: str) -> bool:
-    for effect in (invocation.get("effects") or {}).values():
-        for branch in _query_outcome_effect_branches(effect):
+    for effect in (invocation.get("local_effects") or {}).values():
+        for branch in _query_local_outcome_effect_branches(effect):
             signal = branch.get("raise") or {}
             if signal.get("data_refresh_signal") == signal_name:
                 return True
@@ -2168,8 +2175,8 @@ def _child_query_commands(contract: dict[str, Any], state_machine: dict[str, Any
 
 
 def _query_binding_has_result_bound_no_local_effect(invocation: dict[str, Any]) -> bool:
-    for effect in (invocation.get("effects") or {}).values():
-        for branch in _query_outcome_effect_branches(effect):
+    for effect in (invocation.get("local_effects") or {}).values():
+        for branch in _query_local_outcome_effect_branches(effect):
             no_local_effect = branch.get("no_local_effect") or {}
             if branch.get("result_binding") and no_local_effect.get("reason") == "result_bound_without_signal":
                 return True
@@ -2186,8 +2193,8 @@ def _validate_state_machine_transitions(contract: dict[str, Any], state_machine_
                 f"state machine {state_machine_id} transition uses data-refresh signal without state machine or source-state data: {_signal_label(transition['trigger'])}"
             )
         local_signal_payload = _state_machine_signal_payload(state_machine, "accepts", transition["trigger"], f"state machine {state_machine_id} transition signal")
-        for effect in transition.get("effects", []):
-            kind, body = _one(effect, f"state machine {state_machine_id} transition effect")
+        for effect in transition.get("local_effects", []):
+            kind, body = _one(effect, f"state machine {state_machine_id} transition local_effect")
             if kind == "set":
                 context = _state_machine_context(state_machine)
                 if body["context"] not in context:
@@ -2211,12 +2218,12 @@ def _validate_state_machine_transitions(contract: dict[str, Any], state_machine_
                     scopes={"signal": _prefixed_type_scope(("payload",), local_signal_payload), "state_context": _type_scope(_state_machine_context(state_machine))},
                 )
             else:  # pragma: no cover - schema prevents this.
-                raise ContractError(f"state machine {state_machine_id} unsupported transition effect: {kind}")
+                raise ContractError(f"state machine {state_machine_id} unsupported transition local_effect: {kind}")
     for transition in state_machine.get("transitions", []):
         if not _transition_has_audit_content(state_machine, transition):
             raise ContractError(
                 f"state machine {state_machine_id} transition {_signal_label(transition['trigger'])} from {transition['from']} "
-                f"to {transition['to']} must declare rationale, data, or effects"
+                f"to {transition['to']} must declare rationale, data, or local_effects"
             )
 
 
@@ -2235,7 +2242,7 @@ def _validate_signals(state_machine_id: str, state_machine: dict[str, Any]) -> N
         raise ContractError(f"state machine {state_machine_id} declares accepted state-machine signal without transition: {[_signal_label(item) for item in orphan_accepts]}")
     orphan_emits = sorted(declared_emits - emitted)
     if orphan_emits:
-        raise ContractError(f"state machine {state_machine_id} declares emitted state-machine signal without emit effect: {[_signal_label(item) for item in orphan_emits]}")
+        raise ContractError(f"state machine {state_machine_id} declares emitted state-machine signal without emit local_effect: {[_signal_label(item) for item in orphan_emits]}")
     undeclared_accepts = sorted(accepted - declared_accepts)
     if undeclared_accepts:
         raise ContractError(f"state machine {state_machine_id} accepts state-machine signal without declaring it: {[_signal_label(item) for item in undeclared_accepts]}")
@@ -2443,8 +2450,8 @@ def _validate_state_machine_context_refs(
 def _state_machine_emits(state_machine: dict[str, Any]) -> set[tuple[str, str]]:
     emits: set[tuple[str, str]] = set()
     for transition in state_machine.get("transitions", []):
-        for effect in transition.get("effects", []):
-            kind, body = _one(effect, "state_machine transition effect")
+        for effect in transition.get("local_effects", []):
+            kind, body = _one(effect, "state_machine transition local_effect")
             if kind == "emit":
                 emits.add(("local_signal", body["local_signal"]))
     return emits
@@ -2701,7 +2708,7 @@ def _transition_target_data_bindings(state_machine: dict[str, Any], transition: 
 
 
 def _transition_has_audit_content(state_machine: dict[str, Any], transition: dict[str, Any]) -> bool:
-    if transition.get("rationale") or transition.get("effects"):
+    if transition.get("rationale") or transition.get("local_effects"):
         return True
     if _is_data_refresh_signal(transition["trigger"]):
         return bool(_transition_data_bindings(state_machine, transition))
@@ -2731,8 +2738,8 @@ def _validate_sync_rules(
         if ("local_signal", signal_id) not in _state_machine_emits(source_fsm):
             raise ContractError(f"composed state machine state {label} sync listens for signal the source does not emit: {signal_id}")
         source_payload = _state_machine_signal_payload(source_fsm, "emits", {"local_signal": signal_id}, f"composed state machine state {label} sync trigger")
-        for effect in rule["effects"]:
-            kind, body = _one(effect, f"composed state machine state {label} sync effect")
+        for effect in rule["local_effects"]:
+            kind, body = _one(effect, f"composed state machine state {label} sync local_effect")
             if kind == "set":
                 if body["context"] not in context:
                     raise ContractError(f"composed state machine state {label} sync sets undeclared context: {body['context']}")
@@ -2761,7 +2768,7 @@ def _validate_sync_rules(
                     scopes={"signal": _prefixed_type_scope(("payload",), source_payload), "state_machine": _type_scope(context)},
                 )
             else:  # pragma: no cover - schema prevents this.
-                raise ContractError(f"composed state machine state {label} unsupported sync effect: {kind}")
+                raise ContractError(f"composed state machine state {label} unsupported sync local_effect: {kind}")
 
 
 def _validate_presentation(contract: dict[str, Any], owner_label: str, field_names: set[str], state_name: str, state: dict[str, Any]) -> None:

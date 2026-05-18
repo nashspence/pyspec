@@ -8,7 +8,6 @@
         "command.project.submit"
       ],
       "decision": "permit",
-      "effect": "permit",
       "environment": [],
       "rationale": "Workspace members may create, read, list, and submit dispatch projects.",
       "resource": [
@@ -18,7 +17,10 @@
       ],
       "rules": [
         {
-          "subject_has_role": "member"
+          "condition": {
+            "subject_has_role": "member"
+          },
+          "effect": "permit"
         }
       ],
       "subject": [
@@ -34,7 +36,6 @@
         "command.project.send_approval_notice"
       ],
       "decision": "permit",
-      "effect": "permit",
       "environment": [],
       "rationale": "Reviewers may approve, archive, and send approval notices for dispatch projects.",
       "resource": [
@@ -44,7 +45,10 @@
       ],
       "rules": [
         {
-          "subject_has_role": "reviewer"
+          "condition": {
+            "subject_has_role": "reviewer"
+          },
+          "effect": "permit"
         }
       ],
       "subject": [

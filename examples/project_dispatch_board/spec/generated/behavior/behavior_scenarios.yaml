@@ -300,7 +300,8 @@ behavior_scenarios:
                     width: '28'
                   selector: container.aside
           signal_sync_rules:
-          - effects:
+          - id: select_project_updates_state_machines
+            local_effects:
             - set:
                 context: selected_project_id
                 from: $signal.payload.project_id
@@ -316,7 +317,6 @@ behavior_scenarios:
                 payload_bindings:
                   project_id:
                     from: $signal.payload.project_id
-            id: select_project_updates_state_machines
             when:
               instance: list
               local_signal: project_selected
@@ -520,7 +520,8 @@ behavior_scenarios:
                     width: '28'
                   selector: container.aside
           signal_sync_rules:
-          - effects:
+          - id: select_project_updates_state_machines
+            local_effects:
             - set:
                 context: selected_project_id
                 from: $signal.payload.project_id
@@ -536,7 +537,6 @@ behavior_scenarios:
                 payload_bindings:
                   project_id:
                     from: $signal.payload.project_id
-            id: select_project_updates_state_machines
             when:
               instance: list
               local_signal: project_selected

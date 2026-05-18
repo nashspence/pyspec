@@ -378,7 +378,7 @@ class ReferenceSpecDriver:
                 self._record_event(event_id, payload)
             self.last_result = record
             return record
-        # Commands and queries without a richer reference behavior are recorded as behavior effects.
+        # Commands and queries without a richer reference behavior are recorded as behavior outcomes.
         result = {"ok": True, "behavior": cap_id, **input_values}
         self.last_result = result
         return result
@@ -482,8 +482,10 @@ class ReferenceSpecDriver:
                     return False
             else:
                 return False
-        matched = all(self._condition_matches(rule, input_values) for rule in [*policy.get("environment", []), *policy.get("rules", [])])
-        return matched if policy["effect"] == "permit" else not matched
+        matched_environment = all(self._condition_matches(rule, input_values) for rule in policy.get("environment", []))
+        matched_rules = all(self._condition_matches(rule["condition"], input_values) for rule in policy.get("rules", []))
+        decision = policy["decision"] if matched_environment and matched_rules else "deny"
+        return decision == "permit"
 
     def _subject_available(self, policy: Mapping[str, Any], input_values: Mapping[str, Any]) -> bool:
         for subject in policy.get("subject", []):

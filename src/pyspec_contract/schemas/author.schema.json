@@ -113,8 +113,8 @@
         "authorization": {
           "$ref": "#/$defs/command_authorization"
         },
-        "effects": {
-          "$ref": "#/$defs/command_effects"
+        "entity_changes": {
+          "$ref": "#/$defs/command_entity_changes"
         },
         "emits_domain_events": {
           "items": {
@@ -139,7 +139,7 @@
       },
       "required": [
         "input_schema",
-        "effects",
+        "entity_changes",
         "outcomes",
         "emits_domain_events"
       ],
@@ -190,15 +190,28 @@
       ],
       "type": "object"
     },
-    "authored_access_policy": {
+    "access_policy_rule": {
       "additionalProperties": false,
       "properties": {
+        "condition": {
+          "$ref": "#/$defs/condition"
+        },
         "effect": {
           "enum": [
             "permit",
             "deny"
           ]
-        },
+        }
+      },
+      "required": [
+        "condition",
+        "effect"
+      ],
+      "type": "object"
+    },
+    "authored_access_policy": {
+      "additionalProperties": false,
+      "properties": {
         "rationale": {
           "$ref": "#/$defs/rationale"
         },
@@ -240,7 +253,7 @@
         },
         "rules": {
           "items": {
-            "$ref": "#/$defs/condition"
+            "$ref": "#/$defs/access_policy_rule"
           },
           "minItems": 1,
           "type": "array",
@@ -261,7 +274,6 @@
         "action",
         "environment",
         "rules",
-        "effect",
         "decision"
       ],
       "type": "object"
@@ -1116,7 +1128,7 @@
       ],
       "type": "object"
     },
-    "command_effects": {
+    "command_entity_changes": {
       "additionalProperties": false,
       "properties": {
         "creates": {
@@ -1343,7 +1355,7 @@
         }
       ]
     },
-    "context_set_effect": {
+    "context_set_local_effect": {
       "additionalProperties": false,
       "properties": {
         "set": {
@@ -2368,13 +2380,13 @@
       "pattern": "^schema\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
-    "signal_sync_effect": {
+    "signal_sync_local_effect": {
       "oneOf": [
         {
-          "$ref": "#/$defs/context_set_effect"
+          "$ref": "#/$defs/context_set_local_effect"
         },
         {
-          "$ref": "#/$defs/signal_sync_send_effect"
+          "$ref": "#/$defs/signal_sync_send_local_effect"
         }
       ]
     },
@@ -2394,9 +2406,9 @@
     "signal_sync_rule": {
       "additionalProperties": false,
       "properties": {
-        "effects": {
+        "local_effects": {
           "items": {
-            "$ref": "#/$defs/signal_sync_effect"
+            "$ref": "#/$defs/signal_sync_local_effect"
           },
           "minItems": 1,
           "type": "array"
@@ -2411,11 +2423,11 @@
       "required": [
         "id",
         "when",
-        "effects"
+        "local_effects"
       ],
       "type": "object"
     },
-    "signal_sync_send_effect": {
+    "signal_sync_send_local_effect": {
       "additionalProperties": false,
       "properties": {
         "send": {
@@ -2540,8 +2552,8 @@
         "command": {
           "$ref": "#/$defs/command_ref"
         },
-        "effects": {
-          "$ref": "#/$defs/state_machine_command_binding_effects"
+        "local_effects": {
+          "$ref": "#/$defs/state_machine_command_binding_local_effects"
         },
         "rationale": {
           "$ref": "#/$defs/rationale"
@@ -2552,11 +2564,11 @@
       },
       "required": [
         "command",
-        "effects"
+        "local_effects"
       ],
       "type": "object"
     },
-    "state_machine_command_outcome_local_effect": {
+    "state_machine_command_binding_local_outcome_effect": {
       "oneOf": [
         {
           "additionalProperties": false,
@@ -2590,8 +2602,8 @@
         "load": {
           "$ref": "#/$defs/query_binding_load_policy"
         },
-        "effects": {
-          "$ref": "#/$defs/state_machine_query_binding_effects"
+        "local_effects": {
+          "$ref": "#/$defs/state_machine_query_binding_local_effects"
         },
         "rationale": {
           "$ref": "#/$defs/rationale"
@@ -2613,11 +2625,11 @@
       },
       "required": [
         "query",
-        "effects"
+        "local_effects"
       ],
       "type": "object"
     },
-    "state_machine_query_binding_outcome_effect": {
+    "state_machine_query_binding_local_outcome_effect": {
       "additionalProperties": false,
       "anyOf": [
         {
@@ -2642,14 +2654,14 @@
         },
         {
           "required": [
-            "conditional_effects"
+            "conditional_local_effects"
           ]
         }
       ],
       "properties": {
-        "conditional_effects": {
+        "conditional_local_effects": {
           "items": {
-            "$ref": "#/$defs/state_machine_query_conditional_effect"
+            "$ref": "#/$defs/state_machine_query_conditional_local_effect"
           },
           "minItems": 1,
           "type": "array"
@@ -2675,9 +2687,9 @@
       },
       "type": "object"
     },
-    "state_machine_query_binding_effects": {
+    "state_machine_query_binding_local_effects": {
       "additionalProperties": {
-        "$ref": "#/$defs/state_machine_query_binding_outcome_effect"
+        "$ref": "#/$defs/state_machine_query_binding_local_outcome_effect"
       },
       "minProperties": 1,
       "propertyNames": {
@@ -2685,7 +2697,7 @@
       },
       "type": "object"
     },
-    "state_machine_query_conditional_effect": {
+    "state_machine_query_conditional_local_effect": {
       "additionalProperties": false,
       "anyOf": [
         {
@@ -2818,11 +2830,11 @@
     "state_machine_transition": {
       "additionalProperties": false,
       "properties": {
-        "effects": {
+        "local_effects": {
           "items": {
             "oneOf": [
               {
-                "$ref": "#/$defs/context_set_effect"
+                "$ref": "#/$defs/context_set_local_effect"
               },
               {
                 "additionalProperties": false,
@@ -3788,9 +3800,9 @@
       },
       "type": "object"
     },
-    "state_machine_command_binding_effects": {
+    "state_machine_command_binding_local_effects": {
       "additionalProperties": {
-        "$ref": "#/$defs/state_machine_command_outcome_local_effect"
+        "$ref": "#/$defs/state_machine_command_binding_local_outcome_effect"
       },
       "minProperties": 1,
       "propertyNames": {

@@ -76,26 +76,26 @@ def test_author_state_machine_context_uses_json_schema_properties() -> None:
 
 def test_author_query_result_binding_uses_data_key() -> None:
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
-    effect = author["state_machines"]["state_machine.project.board"]["query_bindings"]["list_board"]["effects"]["listed"]
+    effect = author["state_machines"]["state_machine.project.board"]["query_bindings"]["list_board"]["local_effects"]["listed"]
     effect["result_binding"]["field"] = effect["result_binding"].pop("data_key")
     with pytest.raises(ContractError, match="Schema validation failed"):
         validate_against_schema(author, "author.schema.json")
 
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
-    effect = author["state_machines"]["state_machine.project.board"]["query_bindings"]["list_board"]["effects"]["listed"]
+    effect = author["state_machines"]["state_machine.project.board"]["query_bindings"]["list_board"]["local_effects"]["listed"]
     effect["result_binding"] = {"data_key": "projects", "from": {"from": "$query_outcome.result"}}
     validate_against_schema(author, "author.schema.json")
 
 
-def test_author_query_conditional_effects_and_result_scope_validate() -> None:
+def test_author_query_conditional_local_effects_and_result_scope_validate() -> None:
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
     invocation = author["state_machines"]["state_machine.project.list"]["query_bindings"]["list_projects"]
     assert invocation["result_scope"] == "local"
-    effect = invocation["effects"]["listed"]
-    assert {next(iter(branch["when"])) for branch in effect["conditional_effects"]} == {"result_empty", "result_non_empty"}
+    effect = invocation["local_effects"]["listed"]
+    assert {next(iter(branch["when"])) for branch in effect["conditional_local_effects"]} == {"result_empty", "result_non_empty"}
     validate_against_schema(author, "author.schema.json")
 
-    effect["conditional_effects"][0]["when"] = {"result_empty": False}
+    effect["conditional_local_effects"][0]["when"] = {"result_empty": False}
     with pytest.raises(ContractError, match="Schema validation failed"):
         validate_against_schema(author, "author.schema.json")
 
@@ -114,7 +114,7 @@ def test_author_value_maps_require_tagged_literals_or_binding_sources() -> None:
 
 def test_author_no_local_effect_reasons_are_closed_vocabulary() -> None:
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
-    effect = author["state_machines"]["state_machine.project.list"]["states"]["ready"]["command_bindings"]["create"]["effects"]["validation_failed"]
+    effect = author["state_machines"]["state_machine.project.list"]["states"]["ready"]["command_bindings"]["create"]["local_effects"]["validation_failed"]
     effect["no_local_effect"]["reason"] = "ignored"
     with pytest.raises(ContractError, match="Schema validation failed"):
         validate_against_schema(author, "author.schema.json")
