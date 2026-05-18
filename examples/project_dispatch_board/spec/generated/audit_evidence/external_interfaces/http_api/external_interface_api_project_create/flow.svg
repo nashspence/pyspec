@@ -1,41 +1,46 @@
 <svg width="845pt" height="485pt"
  viewBox="0.00 0.00 845.00 485.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 652d802a06112d3fb2dd176b14c98bb7dc9f45b0a9509d619fe6326b6a40ee7d -->
+<!-- pyspec-contract-input-sha256: d08ff61b9d96f18ad69ae002066a246d5a1ed9482defc90f1a0a6b9a2710703c -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 467)">
 <title>external_interface_external_interface_api_project_create</title>
 <!-- external_interface_external_interface_api_project_create -->
 <g id="node1" class="node">
 <title>external_interface_external_interface_api_project_create</title>
-<polygon fill="#ffffff" stroke="transparent" points="0,-136.5 0,-311.5 290,-311.5 290,-136.5 0,-136.5"/>
-<polygon fill="#0891b2" stroke="transparent" points="1,-302 1,-310 289,-310 289,-302 1,-302"/>
-<polygon fill="#ecfeff" stroke="transparent" points="1,-271 1,-302 289,-302 289,-271 1,-271"/>
-<text text-anchor="start" x="5" y="-288.6" font-family="Arial" font-weight="bold" font-size="13.00">POST /workspaces/{workspace_id}/projects</text>
-<text text-anchor="start" x="5" y="-277.6" font-family="Arial" font-size="8.00" fill="#64748b">http_api external interface</text>
-<text text-anchor="start" x="5" y="-260" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">HTTP endpoint for creating a dispatch project.</text>
-<text text-anchor="start" x="6" y="-240" font-family="Arial" font-weight="bold" font-size="10.00">endpoint:</text>
-<text text-anchor="start" x="51" y="-240" font-family="Arial" font-size="10.00">  endpoint.project.create</text>
-<text text-anchor="start" x="6" y="-228" font-family="Arial" font-weight="bold" font-size="10.00">access_policy:</text>
-<text text-anchor="start" x="75" y="-228" font-family="Arial" font-size="10.00">  access_policy.project.member</text>
-<text text-anchor="start" x="5" y="-208" font-family="Arial" font-weight="bold" font-size="10.00">path params</text>
-<text text-anchor="start" x="5" y="-197" font-family="Arial" font-size="10.00">workspace_id</text>
-<text text-anchor="start" x="66" y="-197" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
-<text text-anchor="start" x="5" y="-178" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
-<text text-anchor="start" x="5" y="-167" font-family="Arial" font-size="10.00">customer</text>
-<text text-anchor="start" x="46" y="-167" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
-<text text-anchor="start" x="5" y="-156" font-family="Arial" font-size="10.00">priority</text>
-<text text-anchor="start" x="35" y="-156" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
-<text text-anchor="start" x="5" y="-145" font-family="Arial" font-size="10.00">title</text>
-<text text-anchor="start" x="21" y="-145" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
-<polygon fill="none" stroke="#0891b2" points="0,-136.5 0,-311.5 290,-311.5 290,-136.5 0,-136.5"/>
+<polygon fill="#ffffff" stroke="transparent" points="0,-105 0,-343 290,-343 290,-105 0,-105"/>
+<polygon fill="#0891b2" stroke="transparent" points="1,-334 1,-342 289,-342 289,-334 1,-334"/>
+<polygon fill="#ecfeff" stroke="transparent" points="1,-303 1,-334 289,-334 289,-303 1,-303"/>
+<text text-anchor="start" x="5" y="-320.6" font-family="Arial" font-weight="bold" font-size="13.00">POST /workspaces/{workspace_id}/projects</text>
+<text text-anchor="start" x="5" y="-309.6" font-family="Arial" font-size="8.00" fill="#64748b">http_api external interface</text>
+<text text-anchor="start" x="5" y="-292" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">HTTP endpoint for creating a dispatch project.</text>
+<text text-anchor="start" x="6" y="-272" font-family="Arial" font-weight="bold" font-size="10.00">endpoint:</text>
+<text text-anchor="start" x="51" y="-272" font-family="Arial" font-size="10.00">  endpoint.project.create</text>
+<text text-anchor="start" x="6" y="-260" font-family="Arial" font-weight="bold" font-size="10.00">access_policy:</text>
+<text text-anchor="start" x="75" y="-260" font-family="Arial" font-size="10.00">  access_policy.project.member</text>
+<text text-anchor="start" x="5" y="-240" font-family="Arial" font-weight="bold" font-size="10.00">path params</text>
+<text text-anchor="start" x="5" y="-229" font-family="Arial" font-size="10.00">workspace_id</text>
+<text text-anchor="start" x="66" y="-229" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
+<text text-anchor="start" x="5" y="-210" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
+<text text-anchor="start" x="5" y="-199" font-family="Arial" font-size="10.00">customer</text>
+<text text-anchor="start" x="46" y="-199" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
+<text text-anchor="start" x="5" y="-188" font-family="Arial" font-size="10.00">priority</text>
+<text text-anchor="start" x="35" y="-188" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
+<text text-anchor="start" x="5" y="-177" font-family="Arial" font-size="10.00">title</text>
+<text text-anchor="start" x="21" y="-177" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
+<text text-anchor="start" x="5" y="-158" font-family="Arial" font-weight="bold" font-size="10.00">input mapping</text>
+<text text-anchor="start" x="5" y="-146" font-family="Arial" font-size="10.00">customer ← adapter_input.body.customer</text>
+<text text-anchor="start" x="5" y="-135" font-family="Arial" font-size="10.00">priority ← adapter_input.body.priority</text>
+<text text-anchor="start" x="5" y="-124" font-family="Arial" font-size="10.00">title ← adapter_input.body.title</text>
+<text text-anchor="start" x="5" y="-113" font-family="Arial" font-size="10.00">workspace_id ← adapter_input.path_params.workspace_id</text>
+<polygon fill="none" stroke="#0891b2" points="0,-105 0,-343 290,-343 290,-105 0,-105"/>
 </g>
-<!-- external_interface_target_command_project_create -->
+<!-- external_interface_invocation_command_project_create -->
 <g id="node2" class="node">
-<title>external_interface_target_command_project_create</title>
+<title>external_interface_invocation_command_project_create</title>
 <polygon fill="#ffffff" stroke="transparent" points="351,-157.5 351,-290.5 584,-290.5 584,-157.5 351,-157.5"/>
 <polygon fill="#2563eb" stroke="transparent" points="352.5,-281 352.5,-289 583.5,-289 583.5,-281 352.5,-281"/>
 <polygon fill="#eff6ff" stroke="transparent" points="352.5,-250 352.5,-281 583.5,-281 583.5,-250 352.5,-250"/>
 <text text-anchor="start" x="356.5" y="-267.6" font-family="Arial" font-weight="bold" font-size="13.00">command.project.create</text>
-<text text-anchor="start" x="356.5" y="-256.6" font-family="Arial" font-size="8.00" fill="#64748b">target command</text>
+<text text-anchor="start" x="356.5" y="-256.6" font-family="Arial" font-size="8.00" fill="#64748b">invoked command</text>
 <text text-anchor="start" x="356.5" y="-239" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Members can create a new dispatch project.</text>
 <text text-anchor="start" x="357.5" y="-219" font-family="Arial" font-weight="bold" font-size="10.00">kind:</text>
 <text text-anchor="start" x="381.5" y="-219" font-family="Arial" font-size="10.00">  command</text>
@@ -45,9 +50,9 @@
 <text text-anchor="start" x="356.5" y="-165" font-family="Arial" font-size="10.00">access_denied_as: access_denied</text>
 <polygon fill="none" stroke="#2563eb" points="351,-157.5 351,-290.5 584,-290.5 584,-157.5 351,-157.5"/>
 </g>
-<!-- external_interface_external_interface_api_project_create&#45;&gt;external_interface_target_command_project_create -->
+<!-- external_interface_external_interface_api_project_create&#45;&gt;external_interface_invocation_command_project_create -->
 <g id="edge1" class="edge">
-<title>external_interface_external_interface_api_project_create&#45;&gt;external_interface_target_command_project_create</title>
+<title>external_interface_external_interface_api_project_create&#45;&gt;external_interface_invocation_command_project_create</title>
 <path fill="none" stroke="#3f3f46" d="M290.31,-224C307.73,-224 325.4,-224 342.5,-224"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="342.84,-226.8 350.84,-224 342.84,-221.2 342.84,-226.8"/>
 </g>
@@ -67,9 +72,9 @@
 <text text-anchor="start" x="708" y="-366" font-family="Arial" font-size="8.00"> ← $action_outcome.result</text>
 <polygon fill="none" stroke="#dc2626" points="645.5,-357 645.5,-449 808.5,-449 808.5,-357 645.5,-357"/>
 </g>
-<!-- external_interface_target_command_project_create&#45;&gt;external_interface_response_external_interface_api_project_create_access_denied -->
+<!-- external_interface_invocation_command_project_create&#45;&gt;external_interface_response_external_interface_api_project_create_access_denied -->
 <g id="edge2" class="edge">
-<title>external_interface_target_command_project_create&#45;&gt;external_interface_response_external_interface_api_project_create_access_denied</title>
+<title>external_interface_invocation_command_project_create&#45;&gt;external_interface_response_external_interface_api_project_create_access_denied</title>
 <path fill="none" stroke="#3f3f46" d="M564.38,-290.65C593.65,-311 625.34,-333.03 652.84,-352.14"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="651.57,-354.67 659.74,-356.94 654.77,-350.07 651.57,-354.67"/>
 </g>
@@ -89,9 +94,9 @@
 <text text-anchor="start" x="707" y="-247" font-family="Arial" font-size="8.00"> ← $action_outcome.result</text>
 <polygon fill="none" stroke="#dc2626" points="645,-238 645,-330 809,-330 809,-238 645,-238"/>
 </g>
-<!-- external_interface_target_command_project_create&#45;&gt;external_interface_response_external_interface_api_project_create_authentication_required -->
+<!-- external_interface_invocation_command_project_create&#45;&gt;external_interface_response_external_interface_api_project_create_authentication_required -->
 <g id="edge3" class="edge">
-<title>external_interface_target_command_project_create&#45;&gt;external_interface_response_external_interface_api_project_create_authentication_required</title>
+<title>external_interface_invocation_command_project_create&#45;&gt;external_interface_response_external_interface_api_project_create_authentication_required</title>
 <path fill="none" stroke="#3f3f46" d="M584.07,-250.93C601.65,-255.02 619.56,-259.2 636.47,-263.14"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="636.26,-265.96 644.69,-265.05 637.53,-260.51 636.26,-265.96"/>
 </g>
@@ -111,9 +116,9 @@
 <text text-anchor="start" x="705" y="-128" font-family="Arial" font-size="8.00"> ← $action_outcome.result</text>
 <polygon fill="none" stroke="#16a34a" points="648,-119 648,-211 806,-211 806,-119 648,-119"/>
 </g>
-<!-- external_interface_target_command_project_create&#45;&gt;external_interface_response_external_interface_api_project_create_created -->
+<!-- external_interface_invocation_command_project_create&#45;&gt;external_interface_response_external_interface_api_project_create_created -->
 <g id="edge4" class="edge">
-<title>external_interface_target_command_project_create&#45;&gt;external_interface_response_external_interface_api_project_create_created</title>
+<title>external_interface_invocation_command_project_create&#45;&gt;external_interface_response_external_interface_api_project_create_created</title>
 <path fill="none" stroke="#3f3f46" d="M584.07,-197.52C602.74,-193.24 621.78,-188.88 639.6,-184.8"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="640.52,-187.46 647.69,-182.94 639.27,-182 640.52,-187.46"/>
 </g>
@@ -133,9 +138,9 @@
 <text text-anchor="start" x="708" y="-9" font-family="Arial" font-size="8.00"> ← $action_outcome.result</text>
 <polygon fill="none" stroke="#dc2626" points="645.5,0 645.5,-92 808.5,-92 808.5,0 645.5,0"/>
 </g>
-<!-- external_interface_target_command_project_create&#45;&gt;external_interface_response_external_interface_api_project_create_validation_failed -->
+<!-- external_interface_invocation_command_project_create&#45;&gt;external_interface_response_external_interface_api_project_create_validation_failed -->
 <g id="edge5" class="edge">
-<title>external_interface_target_command_project_create&#45;&gt;external_interface_response_external_interface_api_project_create_validation_failed</title>
+<title>external_interface_invocation_command_project_create&#45;&gt;external_interface_response_external_interface_api_project_create_validation_failed</title>
 <path fill="none" stroke="#3f3f46" d="M564.75,-157.47C593.72,-137.44 625.04,-115.79 652.31,-96.94"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="654.16,-99.07 659.15,-92.21 650.97,-94.46 654.16,-99.07"/>
 </g>

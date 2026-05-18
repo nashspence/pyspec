@@ -1,10 +1,10 @@
 $graph:
 - class: Workflow
-  doc: 'contract workflow workflow.project.approval_notice; trigger={''domain_event'': ''domain_event.project.approved''};
-    outcomes=[''completed'', ''delivery_failed'', ''notice_access_denied'', ''notice_authentication_required'']; ref=workflow.project.approval_notice'
+  doc: 'contract workflow workflow.project.approval_notice; inputs={''domain_event'': ''domain_event.project.approved''};
+    outputs=[''completed'', ''delivery_failed'', ''notice_access_denied'', ''notice_authentication_required'']; ref=workflow.project.approval_notice'
   id: '#workflow_project_approval_notice'
   inputs:
-    trigger_payload:
+    workflow_input_payload:
       type: Any
   label: workflow.project.approval_notice
   outputs:
@@ -18,13 +18,13 @@ $graph:
       type: Any
   steps:
     send_notice:
-      doc: 'input_bindings={''approved_by'': {''from'': ''$workflow_input.payload.approved_by''}, ''project_id'': {''from'':
-        ''$workflow_input.payload.project_id''}}; outcome_transitions={''delivery_failed'': {''retry_policy'': {''attempts'':
-        3, ''backoff'': ''exponential'', ''fail_as'': ''delivery_failed''}}, ''access_denied'': {''fail_as'': ''notice_access_denied''},
+      doc: 'input_mapping={''approved_by'': {''from'': ''$workflow_input.payload.approved_by''}, ''project_id'': {''from'':
+        ''$workflow_input.payload.project_id''}}; sequence_flows={''delivery_failed'': {''retry_policy'': {''attempts'': 3,
+        ''backoff'': ''exponential'', ''fail_as'': ''delivery_failed''}}, ''access_denied'': {''fail_as'': ''notice_access_denied''},
         ''sent'': {''complete_as'': ''completed''}, ''authentication_required'': {''fail_as'': ''notice_authentication_required''}}'
       in:
-        approved_by: trigger_payload
-        project_id: trigger_payload
+        approved_by: workflow_input_payload
+        project_id: workflow_input_payload
       out:
       - access_denied
       - authentication_required

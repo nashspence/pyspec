@@ -10,11 +10,11 @@ from .runtime import fixture_namespace, resolve_map
 from .binding_refs import resolve_binding_expression
 from .targets import (
     external_interface_state_machine_name,
-    external_interface_input,
-    external_interface_response_handlers,
-    external_interface_responses,
-    external_interface_target_ref_pair,
-    external_interface_input_bindings,
+    external_interface_input_mapping,
+    external_interface_output_response_handlers,
+    external_interface_output_responses,
+    external_interface_invoked_ref_pair,
+    external_interface_invocation_input_mapping,
 )
 from .json_schema import entity_type_id, schema_properties
 
@@ -34,7 +34,7 @@ class ReferenceSpecDriver:
         self.emitted: list[str] = []
         self.invoked: list[str] = []
         self.workflows_executed: list[str] = []
-        self.workflow_outcomes: dict[str, str] = {}
+        self.workflow_outputs: dict[str, str] = {}
         self.authorization_decisions: dict[tuple[str, str, str], bool] = {}
         self.last_state_machine: dict[str, Any] | None = None
         self.response: dict[str, Any] | None = None
@@ -74,14 +74,14 @@ class ReferenceSpecDriver:
             assert self.last_state_machine is not None, "Expected a rendered state machine"
             expected = assertions["state_machine"]
             assert self.last_state_machine["ref"] == expected["ref"]
-            if "view_state" in expected:
-                assert self.last_state_machine["view_state"] == expected["view_state"]
+            if "state" in expected:
+                assert self.last_state_machine["state"] == expected["state"]
                 assert self.last_state_machine["surface"] == expected["surface"]
             if "instances" in expected:
                 assert set(self.last_state_machine["instances"]) == set(expected["instances"])
                 for instance_id, state_machine_expected in expected["instances"].items():
                     actual = self.last_state_machine["instances"][instance_id]
-                    assert actual["view_state"] == state_machine_expected["view_state"]
+                    assert actual["state"] == state_machine_expected["state"]
                     assert actual["surface"] == state_machine_expected["surface"]
                 for sync_id in (expected.get("signal_sync_rules") or {}).get("observed_rules", []):
                     assert sync_id in self.last_state_machine.get("signal_sync_rules", [])
@@ -91,7 +91,7 @@ class ReferenceSpecDriver:
             rendered_state_machines = self._rendered_state_machine_ids()
             rendered_text = self._rendered_values("text")
             rendered_assets = self._rendered_values("assets")
-            rendered_actions = self._rendered_values("action_bindings")
+            rendered_actions = self._rendered_values("command_bindings")
             for state_machine in requires.get("surfaces", []):
                 assert state_machine in self.surfaces
                 assert state_machine in rendered_state_machines
@@ -99,10 +99,10 @@ class ReferenceSpecDriver:
                 assert key in rendered_text
             for key in requires.get("assets", []):
                 assert key in rendered_assets
-            for cap in requires.get("action_bindings", []):
+            for cap in requires.get("command_bindings", []):
                 assert cap in rendered_actions
-            rendered_queries = self._rendered_values("data_loaders")
-            for query in requires.get("data_loaders", []):
+            rendered_queries = self._rendered_values("query_bindings")
+            for query in requires.get("query_bindings", []):
                 assert query in rendered_queries
         for cap in assertions.get("enables", []):
             assert cap in self._rendered_operation_refs()
@@ -124,7 +124,7 @@ class ReferenceSpecDriver:
             else:
                 assert workflow["ref"] not in self.workflows_executed
             if "outcome" in workflow:
-                assert self.workflow_outcomes.get(workflow["ref"]) == workflow["outcome"]
+                assert self.workflow_outputs.get(workflow["ref"]) == workflow["outcome"]
         for cap in assertions.get("invoked", []):
             assert cap in self.invoked
         response = assertions.get("response")
@@ -156,69 +156,69 @@ class ReferenceSpecDriver:
         state_machine = self.contract["state_machines"][state_machine_id]
         context = self._entry_target_input(entry, input_values)
         records = self._filter(state_machine["entity_type"], context) if state_machine.get("entity_type") else []
-        parent_state_name = "ready" if "ready" in state_machine.get("view_states", {}) else next(iter(state_machine.get("view_states", {"ready": {}})))
-        state = state_machine["view_states"].get(parent_state_name, {"surface": None, "text": [], "assets": [], "action_bindings": {}, "data_loaders": {}})
+        parent_state_name = "ready" if "ready" in state_machine.get("states", {}) else next(iter(state_machine.get("states", {"ready": {}})))
+        state = state_machine["states"].get(parent_state_name, {"surface": None, "text": [], "assets": [], "command_bindings": {}, "query_bindings": {}})
         if state.get("child_state_machines"):
             parent_state_machine = state_machine
             state_machines: dict[str, Any] = {}
             for mount in state["child_state_machines"]:
                 source_id = mount["state_machine"]
                 child_state_machine = self.contract["state_machines"][source_id]
-                child_state_name = self._choose_state_machine_view_state(child_state_machine, mount, records, context)
-                child_state = child_state_machine["view_states"][child_state_name]
+                child_state_name = self._choose_state_machine_state(child_state_machine, mount, records, context)
+                child_state = child_state_machine["states"][child_state_name]
                 state_machines[mount["id"]] = {
                     "source": source_id,
-                    "view_state": child_state_name,
+                    "state": child_state_name,
                     "surface": child_state["surface"],
-                    "data_loaders": {
-                        **child_state_machine.get("data_loaders", {}),
-                        **child_state.get("data_loaders", {}),
+                    "query_bindings": {
+                        **child_state_machine.get("query_bindings", {}),
+                        **child_state.get("query_bindings", {}),
                     },
                     "text": child_state["text"],
                     "assets": child_state["assets"],
-                    "action_bindings": child_state["action_bindings"],
+                    "command_bindings": child_state["command_bindings"],
                 }
             return {
                 "ref": state_machine_id,
-                "view_state": parent_state_name,
+                "state": parent_state_name,
                 "surface": state.get("surface"),
-                "data_loaders": {
-                    **parent_state_machine.get("data_loaders", {}),
-                    **state.get("data_loaders", {}),
+                "query_bindings": {
+                    **parent_state_machine.get("query_bindings", {}),
+                    **state.get("query_bindings", {}),
                 },
                 "text": state.get("text", []),
                 "assets": state.get("assets", []),
-                "action_bindings": state.get("action_bindings", {}),
+                "command_bindings": state.get("command_bindings", {}),
                 "context": context,
                 "instances": state_machines,
                 "signal_sync_rules": [rule["id"] for rule in state.get("signal_sync_rules", [])],
             }
-        state_name = "empty" if not records and "empty" in state_machine["view_states"] else "ready"
-        state = state_machine["view_states"][state_name]
+        state_name = "empty" if not records and "empty" in state_machine["states"] else "ready"
+        state = state_machine["states"][state_name]
         return {
             "ref": state_machine_id,
-            "view_state": state_name,
+            "state": state_name,
             "surface": state["surface"],
             "text": state["text"],
             "assets": state["assets"],
-            "data_loaders": {
-                **state_machine.get("data_loaders", {}),
-                **state.get("data_loaders", {}),
+            "query_bindings": {
+                **state_machine.get("query_bindings", {}),
+                **state.get("query_bindings", {}),
             },
-            "action_bindings": state["action_bindings"],
+            "command_bindings": state["command_bindings"],
         }
 
-    def _choose_state_machine_view_state(self, state_machine: dict[str, Any], mount: dict[str, Any], records: list[dict[str, Any]], context: dict[str, Any]) -> str:
+    def _choose_state_machine_state(self, state_machine: dict[str, Any], mount: dict[str, Any], records: list[dict[str, Any]], context: dict[str, Any]) -> str:
         selected = mount.get("selected")
         if selected:
             if _condition_matches(selected["when"], context):
-                return selected["view_state"]
-            return mount["initial_view_state"]
-        if records and "ready" in state_machine["view_states"] and (state_machine.get("data_loaders") or state_machine["view_states"]["ready"].get("data_loaders")):
+                return selected["state"]
+            return mount["initial_state"]
+        if records and "ready" in state_machine["states"] and (state_machine.get("query_bindings") or state_machine["states"]["ready"].get("query_bindings")):
             return "ready"
-        if not records and "empty" in state_machine["view_states"]:
+        if not records and "empty" in state_machine["states"]:
             return "empty"
-        return mount["initial_view_state"]
+        return mount["initial_state"]
 
     def _rendered_state_machine_ids(self) -> set[str]:
         if not self.last_state_machine:
@@ -246,7 +246,7 @@ class ReferenceSpecDriver:
             return set()
 
         def operation_refs(item: dict[str, Any]) -> set[str]:
-            invocations = item.get("action_bindings") or {}
+            invocations = item.get("command_bindings") or {}
             return {invocation.get("command") or invocation.get("query") for invocation in invocations.values()}
 
         if "instances" in self.last_state_machine:
@@ -258,14 +258,14 @@ class ReferenceSpecDriver:
 
     def _call_external_interface(self, entry_id: str, input_values: dict[str, Any], outcome_id: str | None = None) -> dict[str, Any]:
         entry = self.contract["external_interfaces"][entry_id]
-        target_kind, cap_id = external_interface_target_ref_pair(entry)
+        target_kind, cap_id = external_interface_invoked_ref_pair(entry)
         policy_id = entry.get("access_policy")
         if policy_id:
             self.authorization_decisions[("external_interface", entry_id, policy_id)] = self._evaluate_policy(policy_id, "external_interface", entry_id, input_values)
         if target_kind == "external_interface":
             target_input = self._entry_delegate_input(entry, input_values)
             delegated_response = self._call_external_interface(cap_id, target_input, outcome_id)
-            handler = external_interface_response_handlers(entry)[self.last_outcome]
+            handler = external_interface_output_response_handlers(entry)[self.last_outcome]
             if "stdout" in handler:
                 return {"exit_code": handler["exit_code"], "stdout": self._cli_output(handler["stdout"], delegated_response, input_values)}
             return {"exit_code": handler["exit_code"], "stderr": self._cli_output(handler["stderr"], delegated_response, input_values)}
@@ -282,22 +282,22 @@ class ReferenceSpecDriver:
     def _entry_target_input(self, entry: dict[str, Any], input_values: dict[str, Any]) -> dict[str, Any]:
         namespace = {"adapter_input": {}}
         for section in ("path_params", "query_params", "body", "args"):
-            fields = external_interface_input(entry).get(section, {})
+            fields = external_interface_input_mapping(entry).get(section, {})
             if fields:
                 namespace["adapter_input"][section] = {name: input_values[name] for name in fields}
-        bindings = external_interface_input_bindings(entry)
+        bindings = external_interface_invocation_input_mapping(entry)
         return {name: _resolve_binding(source, namespace) for name, source in bindings.items()}
 
     def _entry_delegate_input(self, entry: dict[str, Any], input_values: dict[str, Any]) -> dict[str, Any]:
         namespace = {"adapter_input": {}}
         for section in ("path_params", "query_params", "body", "args"):
-            fields = external_interface_input(entry).get(section, {})
+            fields = external_interface_input_mapping(entry).get(section, {})
             if fields:
                 namespace["adapter_input"][section] = {name: input_values[name] for name in fields}
-        if "payload" in external_interface_input(entry):
+        if "payload" in external_interface_input_mapping(entry):
             namespace["adapter_input"]["payload"] = input_values.get("payload", input_values)
         delegated_input: dict[str, Any] = {}
-        for section, section_bindings in external_interface_input_bindings(entry).items():
+        for section, section_bindings in external_interface_invocation_input_mapping(entry).items():
             if section == "payload" and isinstance(section_bindings, Mapping) and "from" in section_bindings:
                 delegated_input["payload"] = _resolve_binding(section_bindings, namespace)
                 continue
@@ -386,9 +386,9 @@ class ReferenceSpecDriver:
     def _emit(self, event_id: str, payload: dict[str, Any]) -> None:
         self._record_event(event_id, payload)
         for workflow_id, workflow in self.contract["workflows"].items():
-            if workflow["trigger"] == {"domain_event": event_id}:
+            if workflow["inputs"] == {"domain_event": event_id}:
                 self.workflows_executed.append(workflow_id)
-                self.workflow_outcomes[workflow_id] = self._run_workflow(workflow, payload)
+                self.workflow_outputs[workflow_id] = self._run_workflow(workflow, payload)
 
     def _run_workflow(self, workflow: dict[str, Any], payload: dict[str, Any]) -> str:
         step_by_id = {step["id"]: step for step in workflow["steps"]}
@@ -396,12 +396,12 @@ class ReferenceSpecDriver:
         namespace: dict[str, Any] = {"workflow_input": {"payload": payload}, "step_outcome": {}}
         while True:
             step = step_by_id[current]
-            input_values = {name: _resolve_binding(source, namespace) for name, source in step["input_bindings"].items()}
+            input_values = {name: _resolve_binding(source, namespace) for name, source in step["input_mapping"].items()}
             result = self._invoke(step["command"], input_values)
             outcome_id = self.last_outcome
             assert outcome_id is not None
             namespace["step_outcome"].setdefault(step["id"], {})[outcome_id] = {"result": result}
-            transition = step["outcome_transitions"][outcome_id]
+            transition = step["sequence_flows"][outcome_id]
             if "complete_as" in transition:
                 return transition["complete_as"]
             if "fail_as" in transition:
@@ -477,16 +477,16 @@ class ReferenceSpecDriver:
         policy = self.contract["access_policies"][policy_id]
         if not _access_policy_covers_resource(policy, kind, resource_ref):
             if kind == "external_interface":
-                invoked_kind, invoked_ref = external_interface_target_ref_pair(self.contract["external_interfaces"][resource_ref])
+                invoked_kind, invoked_ref = external_interface_invoked_ref_pair(self.contract["external_interfaces"][resource_ref])
                 if not _access_policy_covers_resource(policy, invoked_kind, invoked_ref):
                     return False
             else:
                 return False
-        matched = all(self._condition_matches(condition, input_values) for condition in policy.get("conditions", []))
+        matched = all(self._condition_matches(rule, input_values) for rule in [*policy.get("environment", []), *policy.get("rules", [])])
         return matched if policy["effect"] == "permit" else not matched
 
     def _subject_available(self, policy: Mapping[str, Any], input_values: Mapping[str, Any]) -> bool:
-        for subject in policy.get("subjects", []):
+        for subject in policy.get("subject", []):
             if subject.get("kind") != "actor":
                 continue
             source = subject.get("source")
@@ -568,10 +568,10 @@ def _success_outcome_id(operation: Mapping[str, Any]) -> str:
 
 def _external_interface_response(entry: Mapping[str, Any], outcome_id: str | None) -> Mapping[str, Any]:
     assert outcome_id is not None
-    responses = external_interface_responses(dict(entry))
+    responses = external_interface_output_responses(dict(entry))
     if outcome_id in responses:
         return responses[outcome_id]
-    return external_interface_response_handlers(dict(entry))[outcome_id]
+    return external_interface_output_response_handlers(dict(entry))[outcome_id]
 
 
 def _resolve_binding(binding: Any, namespace: Mapping[str, Any]) -> Any:
@@ -598,4 +598,7 @@ def _authorization_resource_kind(kind: str) -> str:
 
 
 def _access_policy_covers_resource(policy: Mapping[str, Any], kind: str, resource_ref: str) -> bool:
-    return any(resource == {_authorization_resource_kind(kind): resource_ref} for resource in policy.get("resources", []))
+    resource_kind = _authorization_resource_kind(kind)
+    if resource_kind == "action":
+        return resource_ref in policy.get("action", [])
+    return any(resource == {resource_kind: resource_ref} for resource in policy.get("resource", []))

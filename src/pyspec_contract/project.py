@@ -19,11 +19,11 @@ from .binding_refs import BindingExpressionError, parse_binding_expression
 from .targets import (
     external_interface_state_machine_name,
     external_interface_adapter_pair,
-    external_interface_input,
+    external_interface_input_mapping,
     external_interface_method,
     external_interface_path,
-    external_interface_responses,
-    external_interface_target_ref_pair,
+    external_interface_output_responses,
+    external_interface_invoked_ref_pair,
 )
 from .json_schema import (
     SCHEMA_ALIASES,
@@ -135,7 +135,7 @@ def _has_api(contract: dict[str, Any]) -> bool:
 
 
 def _has_asyncapi(contract: dict[str, Any]) -> bool:
-    return bool(contract.get("domain_events")) and (bool(_external_interfaces_with_adapter(contract, "webhook", "worker")) or any("domain_event" in wf.get("trigger", {}) for wf in contract.get("workflows", {}).values()))
+    return bool(contract.get("domain_events")) and (bool(_external_interfaces_with_adapter(contract, "webhook", "worker")) or any("domain_event" in wf.get("inputs", {}) for wf in contract.get("workflows", {}).values()))
 
 
 def _has_html_routes(contract: dict[str, Any]) -> bool:
@@ -156,9 +156,9 @@ def _state_has_textual_presentation(state: dict[str, Any]) -> bool:
 
 def _has_textual_ui(contract: dict[str, Any]) -> bool:
     for owner in contract.get("state_machines", {}).values():
-        if any(_state_has_textual_presentation(state) for state in owner.get("view_states", {}).values()):
+        if any(_state_has_textual_presentation(state) for state in owner.get("states", {}).values()):
             return True
-        if any(renderer_textual_layout(state) for state in owner.get("view_states", {}).values()):
+        if any(renderer_textual_layout(state) for state in owner.get("states", {}).values()):
             return True
     return False
 
@@ -178,16 +178,16 @@ def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
     for entry_id, entry in sorted(contract["external_interfaces"].items()):
         if external_interface_adapter_pair(entry)[0] != "http_api":
             continue
-        target_kind, cap_id = external_interface_target_ref_pair(entry)
+        target_kind, cap_id = external_interface_invoked_ref_pair(entry)
         if target_kind not in {"command", "query"}:
             continue
         cap = _operations(contract)[cap_id]
-        entry_input = external_interface_input(entry)
+        entry_input = external_interface_input_mapping(entry)
         path_params = entry_input.get("path_params", {})
         query_params = entry_input.get("query_params", {})
         body_fields = entry_input.get("body", {})
         responses = {}
-        for outcome_id, response in sorted(external_interface_responses(entry).items()):
+        for outcome_id, response in sorted(external_interface_output_responses(entry).items()):
             response_status = str(response["status"])
             body_type = response["body"]["type"]
             responses[response_status] = {
@@ -254,7 +254,7 @@ def asyncapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
         }
 
     for workflow_id, workflow in sorted(contract["workflows"].items()):
-        trigger = workflow["trigger"]
+        trigger = workflow["inputs"]
         if "domain_event" not in trigger:
             continue
         event_id = trigger["domain_event"]
@@ -287,11 +287,11 @@ def _workflow_entry_dispositions(contract: dict[str, Any], workflow_id: str) -> 
     for entry_id, entry in sorted(contract.get("external_interfaces", {}).items()):
         if external_interface_adapter_pair(entry)[0] not in {"worker", "scheduled"}:
             continue
-        target_kind, target_ref = external_interface_target_ref_pair(entry)
+        target_kind, target_ref = external_interface_invoked_ref_pair(entry)
         if target_kind != "workflow" or target_ref != workflow_id:
             continue
         entry_dispositions = {}
-        for response_id, response in sorted(external_interface_responses(entry).items()):
+        for response_id, response in sorted(external_interface_output_responses(entry).items()):
             projected = dict(response)
             if "problem" in projected:
                 projected["problem"] = type_schema(projected["problem"])
@@ -308,8 +308,8 @@ def routes_projection(contract: dict[str, Any]) -> dict[str, Any]:
                 "id": entry["route"],
                 "external_interface": entry_id,
                 "path": external_interface_path(entry),
-                "path_params": external_interface_input(entry).get("path_params", {}),
-                "query_params": external_interface_input(entry).get("query_params", {}),
+                "path_params": external_interface_input_mapping(entry).get("path_params", {}),
+                "query_params": external_interface_input_mapping(entry).get("query_params", {}),
                 "state_machine": external_interface_state_machine_name(entry),
             }
             for entry_id, entry in sorted(contract["external_interfaces"].items())
@@ -321,23 +321,23 @@ def routes_projection(contract: dict[str, Any]) -> dict[str, Any]:
 def state_machines_projection(contract: dict[str, Any]) -> dict[str, Any]:
     state_machines: list[dict[str, Any]] = []
     for state_machine_id, state_machine in sorted(contract.get("state_machines", {}).items()):
-        for state_name, state in sorted(state_machine.get("view_states", {}).items()):
+        for state_name, state in sorted(state_machine.get("states", {}).items()):
             item = state_machine_projection_item("state_machine", state_machine_id, state_name, state)
             item["state_machine"] = {
-                "initial_view_state": state_machine["initial_view_state"],
+                "initial_state": state_machine["initial_state"],
                 "transitions": state_machine.get("transitions", []),
-                "context": state_machine.get("context", {}),
+                "context_schema": state_machine.get("context_schema", {}),
             }
             state_machines.append(item)
     compositions = []
     for state_machine_id, state_machine in sorted(contract["state_machines"].items()):
-        for state_name, state in sorted(state_machine.get("view_states", {}).items()):
+        for state_name, state in sorted(state_machine.get("states", {}).items()):
             if state.get("child_state_machines"):
                 compositions.append({
                     "id": f"{state_machine_id}.{state_name}",
                     "state_machine": state_machine_id,
-                    "view_state": state_name,
-                    "context": state_machine.get("context", {}),
+                    "state": state_name,
+                    "context_schema": state_machine.get("context_schema", {}),
                     "renderers": state.get("renderers", {}),
                     "child_state_machines": state.get("child_state_machines", []),
                     "signal_sync_rules": state.get("signal_sync_rules", []),
@@ -350,13 +350,13 @@ def state_machine_projection_item(owner_kind: str, owner_id: str, state_name: st
         "id": state["surface"],
         "owner_kind": owner_kind,
         "owner": owner_id,
-        "view_state": state_name,
-        "data_loaders": state.get("data_loaders", {}),
+        "state": state_name,
+        "query_bindings": state.get("query_bindings", {}),
         "slots": {
             "text": state["text"],
             "assets": state["assets"],
             "fields": state.get("fields", []),
-            "action_bindings": state["action_bindings"],
+            "command_bindings": state["command_bindings"],
         },
     }
     if state.get("renderers"):
@@ -442,8 +442,8 @@ def textual_contract_projection(contract: dict[str, Any]) -> str:
     return f'''from __future__ import annotations
 
 # Generated Textual projection. Do not edit by hand.
-# The PM contract owns state machines/view states/operation bindings/widgets/Textual styles; a real Textual app imports this file
-# and renders state machine view-state surfaces by id instead of inventing screens, widgets, or operation keys.
+# The PM contract owns state machines/states/operation bindings/widgets/Textual styles; a real Textual app imports this file
+# and renders state machine state surfaces by id instead of inventing screens, widgets, or operation keys.
 
 PROJECT = {contract["project"]!r}
 SCREENS = {screen_entries!r}
@@ -481,7 +481,7 @@ def compose_contract_state_machine(surface_id: str) -> list[tuple[str, str]]:
     result.extend(("Static", key) for key in slots["text"])
     result.extend(("Static", key) for key in slots["assets"])
     result.extend(("Static", key) for key in slots.get("fields", []))
-    result.extend(("Button", invocation_id) for invocation_id in slots["action_bindings"])
+    result.extend(("Button", invocation_id) for invocation_id in slots["command_bindings"])
     return result
 
 
@@ -496,8 +496,8 @@ def widget_label(widget: dict) -> str:
         return binding["text_slot"]
     if "asset_slot" in binding:
         return binding["asset_slot"]
-    if "action_binding" in binding:
-        return binding["action_binding"]
+    if "command_binding" in binding:
+        return binding["command_binding"]
     if "field_slot" in binding:
         return binding["field_slot"]
     return binding.get("literal", widget["id"])
@@ -535,7 +535,7 @@ def _textual_screen_class(
     state_machines_by_owner: dict[str, list[dict[str, Any]]],
     compositions_by_state_machine: dict[str, dict[str, Any]],
 ) -> str | None:
-    for state_name, state in sorted(state_machine.get("view_states", {}).items()):
+    for state_name, state in sorted(state_machine.get("states", {}).items()):
         textual = renderer_textual_layout(state)
         if textual:
             return textual.get("screen_class") or "ComposedContractScreen"
@@ -545,7 +545,7 @@ def _textual_screen_class(
             return "Screen"
     if any(
         not state.get("child_state_machines") and bool(renderer_textual_presentation(state))
-        for state in state_machine.get("view_states", {}).values()
+        for state in state_machine.get("states", {}).values()
     ):
         return "Screen"
     return None
@@ -564,8 +564,8 @@ def default_html_slots(state_machine: dict[str, Any]) -> list[dict[str, Any]]:
         slots.append({"binding": {"asset_slot": asset_ref.rsplit(".", 1)[-1]}, "component": "image", "element": "img"})
     for field in state_machine["slots"].get("fields", []):
         slots.append({"binding": {"field_slot": field}, "component": "field", "element": "p"})
-    for invocation_id in state_machine["slots"]["action_bindings"]:
-        slots.append({"binding": {"action_binding": invocation_id}, "component": "button", "element": "button"})
+    for invocation_id in state_machine["slots"]["command_bindings"]:
+        slots.append({"binding": {"command_binding": invocation_id}, "component": "button", "element": "button"})
     return slots
 
 
@@ -576,8 +576,8 @@ def css_selector(state_machine: dict[str, Any], selector: str) -> str:
     if selector.startswith("slot."):
         slot = selector[len("slot."):]
         return f'{root} [data-contract-slot="{slot}"]'
-    if selector.startswith("action_binding."):
-        invocation_id = selector[len("action_binding."):]
+    if selector.startswith("command_binding."):
+        invocation_id = selector[len("command_binding."):]
         return f'{root} [data-operation-invocation="{invocation_id}"]'
     return root
 
@@ -632,10 +632,10 @@ def tcss_selector(state_machine: dict[str, Any], selector: str) -> str:
             if binding.get("text_slot") == slot or binding.get("asset_slot") == slot or binding.get("field_slot") == slot:
                 return "#" + safe_id(widget["id"])
         return "#" + slot
-    if selector.startswith("action_binding."):
-        operation = selector[len("action_binding."):]
+    if selector.startswith("command_binding."):
+        operation = selector[len("command_binding."):]
         for widget in widgets:
-            if widget["binding"].get("action_binding") == operation:
+            if widget["binding"].get("command_binding") == operation:
                 return "#" + safe_id(widget["id"])
         return "#" + safe_id(operation)
     return selector
@@ -673,21 +673,21 @@ def workflows_projection(contract: dict[str, Any]) -> dict[str, Any]:
         for step in workflow["steps"]:
             cap = _operations(contract)[step["command"]]
             steps[step["id"]] = {
-                "doc": f"input_bindings={step['input_bindings']}; outcome_transitions={step['outcome_transitions']}",
+                "doc": f"input_mapping={step['input_mapping']}; sequence_flows={step['sequence_flows']}",
                 "run": f"#{safe_id(step['command'])}",
-                "in": {name: _workflow_cwl_source(source) for name, source in sorted(step["input_bindings"].items())},
+                "in": {name: _workflow_cwl_source(source) for name, source in sorted(step["input_mapping"].items())},
                 "out": sorted(cap["outcomes"]),
             }
-        trigger_payload_type = _workflow_trigger_payload_type(contract, workflow)
+        workflow_input_payload_type = _workflow_input_payload_type(contract, workflow)
         graph.append({
             "id": f"#{safe_id(workflow_id)}",
             "class": "Workflow",
             "label": workflow_id,
-            "doc": f"contract workflow {workflow_id}; trigger={workflow['trigger']}; outcomes={list(workflow['outcomes'])}; ref={workflow['ref']}",
-            "inputs": {"trigger_payload": {"type": cwl_type(trigger_payload_type)}},
+            "doc": f"contract workflow {workflow_id}; inputs={workflow['inputs']}; outputs={list(workflow['outputs'])}; ref={workflow['ref']}",
+            "inputs": {"workflow_input_payload": {"type": cwl_type(workflow_input_payload_type)}},
             "outputs": {
                 outcome_id: {"type": cwl_type(outcome["result"])}
-                for outcome_id, outcome in sorted(workflow["outcomes"].items())
+                for outcome_id, outcome in sorted(workflow["outputs"].items())
             },
             "steps": steps,
         })
@@ -715,7 +715,7 @@ def _cwl_operation_ids(contract: dict[str, Any]) -> list[str]:
     }
     for entry in contract.get("external_interfaces", {}).values():
         adapter_kind, _ = external_interface_adapter_pair(entry)
-        target_kind, target_ref = external_interface_target_ref_pair(entry)
+        target_kind, target_ref = external_interface_invoked_ref_pair(entry)
         if adapter_kind == "cli" and target_kind in {"command", "query"}:
             operation_refs.add(target_ref)
         elif adapter_kind == "cli" and target_kind == "external_interface":
@@ -726,7 +726,7 @@ def _cwl_operation_ids(contract: dict[str, Any]) -> list[str]:
 
 
 def _external_interface_effective_operation_ref(contract: dict[str, Any], entry_id: str) -> str | None:
-    target_kind, target_ref = external_interface_target_ref_pair(contract["external_interfaces"][entry_id])
+    target_kind, target_ref = external_interface_invoked_ref_pair(contract["external_interfaces"][entry_id])
     if target_kind in {"command", "query"}:
         return target_ref
     if target_kind == "external_interface":
@@ -734,8 +734,8 @@ def _external_interface_effective_operation_ref(contract: dict[str, Any], entry_
     return None
 
 
-def _workflow_trigger_payload_type(contract: dict[str, Any], workflow: dict[str, Any]) -> str:
-    trigger = workflow["trigger"]
+def _workflow_input_payload_type(contract: dict[str, Any], workflow: dict[str, Any]) -> str:
+    trigger = workflow["inputs"]
     if "domain_event" in trigger:
         return contract["domain_events"][trigger["domain_event"]]["payload_schema"]
     operation = _operations(contract)[trigger["command"]]
@@ -754,7 +754,7 @@ def _workflow_cwl_source(source: Any) -> str:
     except BindingExpressionError:
         return source
     if ref.root == "workflow_input" and ref.path[:1] == ("payload",):
-        return "trigger_payload"
+        return "workflow_input_payload"
     if ref.root == "step_outcome" and len(ref.path) >= 3 and ref.path[2] == "result":
         return f"{ref.path[0]}/{ref.path[1]}"
     return source
@@ -889,7 +889,7 @@ def refs_py_projection(contract: dict[str, Any]) -> str:
         "RenderExample": sorted(
             f"{state_machine_id}.{state_name}.{case_name}.audit"
             for state_machine_id, state_machine in contract.get("state_machines", {}).items()
-            for state_name, state in state_machine.get("view_states", {}).items()
+            for state_name, state in state_machine.get("states", {}).items()
             for case_name in (state.get("render_examples") or {})
         ),
         "BehaviorScenario": sorted(contract["behavior_scenarios"]),

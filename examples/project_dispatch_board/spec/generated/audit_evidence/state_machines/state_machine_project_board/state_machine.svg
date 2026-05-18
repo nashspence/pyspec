@@ -1,16 +1,16 @@
 <svg width="317pt" height="150pt"
  viewBox="0.00 0.00 317.00 150.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: f4bf4d38e007335d010df0ed291f5ac7b9eafac63cb2fd4f40a8058d09e6d97d -->
+<!-- pyspec-contract-input-sha256: 7ebc783c40b3d26874f7c90bd847abbf62c1afab66bb012e8ae036572144c84b -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 132)">
 <title>state_machine_state_machine_project_board</title>
-<!-- view_state_ready -->
+<!-- state_ready -->
 <g id="node1" class="node">
-<title>view_state_ready</title>
+<title>state_ready</title>
 <polygon fill="#ffffff" stroke="transparent" points="0,0 0,-114 281,-114 281,0 0,0"/>
 <polygon fill="#0891b2" stroke="transparent" points="1.5,-105 1.5,-113 280.5,-113 280.5,-105 1.5,-105"/>
 <polygon fill="#ecfeff" stroke="transparent" points="1.5,-74 1.5,-105 280.5,-105 280.5,-74 1.5,-74"/>
 <text text-anchor="start" x="5.5" y="-91.6" font-family="Arial" font-weight="bold" font-size="13.00">ready</text>
-<text text-anchor="start" x="5.5" y="-80.6" font-family="Arial" font-size="8.00" fill="#64748b">initial view state</text>
+<text text-anchor="start" x="5.5" y="-80.6" font-family="Arial" font-size="8.00" fill="#64748b">initial state</text>
 <text text-anchor="start" x="5.5" y="-63" font-family="Arial" font-weight="bold" font-size="10.00">child_state_machines</text>
 <text text-anchor="start" x="5.5" y="-52" font-family="Arial" font-size="10.00">aside</text>
 <text text-anchor="start" x="29.5" y="-52" font-family="Arial" font-size="8.00" fill="#94a3b8">  state_machine.project.activity</text>

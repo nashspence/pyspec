@@ -2,7 +2,7 @@ authoring_layers:
   rule: Layers constrain authored spec vocabulary only. They are never written into spec/generated/compiled/spec.yaml and never imply absent adapters are planned.
   layers:
     core:
-      targets: [fixture, precondition, assertion, entity_type, schema, command, query, behavior_scenario]
+      invocations: [fixture, precondition, assertion, entity_type, schema, command, query, behavior_scenario]
       projections: [spec/generated/agent_prompts, spec/generated/behavior/fixtures.yaml, spec/generated/behavior/behavior_scenarios.yaml, spec/generated/test_adapters/pytest_bdd_features, spec/generated/test_adapters/python_refs.py]
     http:
       opens: [external_interface.adapter.http_api]
@@ -45,10 +45,10 @@ purity_rules:
 behavior_scenario_archetypes:
   empty_collection_state_machine:
     when: open_external_interface
-    then: [state_machine.view_state.empty, enables, authorization.denied]
+    then: [state_machine.state.empty, enables, authorization.denied]
   ready_collection_state_machine:
     when: open_external_interface
-    then: [state_machine.view_state.ready, enables]
+    then: [state_machine.state.ready, enables]
   state_machine_composition:
     when: open_external_interface
     then: [state_machine.instances, enables, authorization.denied]
@@ -61,7 +61,7 @@ behavior_scenario_archetypes:
   external_interface_response:
     when: call_external_interface
     then: [outcome, response.status, entity.exists, domain_events.emitted, invoked]
-  workflow_trigger_success:
+  workflow_execution_success:
     when: emit_domain_event
     then: [workflow.executed, workflow.outcome, invoked]
   authorization_denial:
@@ -70,60 +70,60 @@ behavior_scenario_archetypes:
 
 external_interface_adapters:
   http_api:
-    target: [command, query]
+    invokes: [command, query]
     requires: [method, path]
     layer: http
   cli:
-    target: [command, query, state_machine, workflow]
+    invokes: [command, query, state_machine, workflow]
     requires: [cli_command]
     layer: workflow
   worker:
-    target: workflow
+    invokes: workflow
     requires: []
     layer: workflow
   scheduled:
-    target: workflow
+    invokes: workflow
     requires: [schedule_expression]
     layer: workflow
   webhook:
-    target: workflow
+    invokes: workflow
     requires: [path]
     layer: domain_events
   html_route:
-    target: state_machine
+    invokes: state_machine
     requires: [path]
     layer: html
 
-external_interface_target_contracts:
-  boundary: 'External interfaces declare adapter-specific input plus either target outcome responses or async ingress responses. target.*.input_bindings maps adapter input onto the target command, query, or state-machine context.'
-  state_machine: 'State-machine external interface targets use target.state_machine.ref plus target.state_machine.renderer to distinguish invocation from html/textual rendering.'
-  workflow: 'Workflow external interface targets use target.workflow.ref plus target.workflow.trigger_bindings so adapter input binds into the workflow trigger payload. Workers declare ingress dispositions; workflows declare named execution outcomes and transition each step outcome explicitly.'
+external_interface_invocation_contracts:
+  boundary: 'External interfaces declare adapter-specific input plus either invoked outcome responses or async ingress responses. input_mapping maps adapter input onto the invoked command, query, state-machine context, workflow input, or delegated external-interface input.'
+  state_machine: 'State-machine external interface invocations use invokes.state_machine.ref plus invokes.state_machine.renderer to distinguish invocation from html/textual rendering.'
+  workflow: 'Workflow external-interface invocations use invokes.workflow.ref plus input_mapping.bindings so adapter input binds into workflow input fields. Workers declare ingress dispositions; workflows declare named execution outcomes and transition each step outcome explicitly.'
 
 renderer_contracts:
   html_layout:
     layer: html
-    location: 'target: state_machine -> spec.view_states.<view_state>.renderers.html.layout'
+    location: 'invokes: state_machine -> spec.state_machines.<state_machine>.states.<state>.renderers.html.layout'
     purpose: HTML renderer root container and composition regions.
   html_presentation:
     layer: html
-    location: 'target: state_machine -> spec.view_states.<view_state>.renderers.html.presentation'
+    location: 'invokes: state_machine -> spec.state_machines.<state_machine>.states.<state>.renderers.html.presentation'
     purpose: HTML renderer slots/components and slot bindings.
   html_style:
     layer: html
-    location: 'target: state_machine -> spec.view_states.<view_state>.renderers.html.style'
+    location: 'invokes: state_machine -> spec.state_machines.<state_machine>.states.<state>.renderers.html.style'
     purpose: HTML renderer style tokens and selector-scoped declarations.
     selectors_allowed: [root, slot.<declared_slot>, action_binding.<declared_action_binding>, region.<declared_region>, child_state_machine.<declared_child_state_machine>]
   textual_layout:
     layer: textual
-    location: 'target: state_machine -> spec.view_states.<view_state>.renderers.textual.layout'
+    location: 'invokes: state_machine -> spec.state_machines.<state_machine>.states.<state>.renderers.textual.layout'
     purpose: Textual renderer screen class and composition containers.
   textual_presentation:
     layer: textual
-    location: 'target: state_machine -> spec.view_states.<view_state>.renderers.textual.presentation'
+    location: 'invokes: state_machine -> spec.state_machines.<state_machine>.states.<state>.renderers.textual.presentation'
     purpose: Textual widgets and slot bindings.
   textual_style:
     layer: textual
-    location: 'target: state_machine -> spec.view_states.<view_state>.renderers.textual.style'
+    location: 'invokes: state_machine -> spec.state_machines.<state_machine>.states.<state>.renderers.textual.style'
     purpose: Textual renderer style tokens and selector-scoped declarations.
     selectors_allowed: [screen, slot.<declared_slot>, action_binding.<declared_action_binding>, container.<declared_container>, child_state_machine.<declared_child_state_machine>]
 
@@ -134,16 +134,16 @@ gherkin_corpus:
   rule: PM agents never author raw .feature files; spec and prod pytest-bdd harnesses consume the same generated corpus.
 
 composition_contracts:
-  state_machine: 'target: state_machine defines context, initial view state, view states, state-local query dependencies, transitions, emitted signals, and state-local composition when present.'
-  behavior_scenario: 'target: behavior_scenario asserts a state-machine view state or composed state-machine instance vector.'
+  state_machine: 'state_machine defines context_schema, initial state, states, state-local query dependencies, transitions, emitted signals, and state-local composition when present.'
+  behavior_scenario: 'behavior_scenario asserts a state-machine state or composed state-machine instance vector.'
 
 audit_contracts:
-  text_resource: 'target: text_resource declares placeholder text for every rendered text ref.'
-  asset: 'target: asset declares media kind, asset role, placeholder visual intent, and source_ref when source-backed; the compiler emits generic SVG placeholder assets.'
-  viewport_profile: 'target: viewport_profile declares fixed HTML and/or Textual viewport profiles.'
-  render_example: 'state-local render examples bind a state-machine view state or composed state-machine instance vector to fixtures and contexts; render surfaces and artifacts are derived from the referenced view states.'
-  content_example: 'target: content_example exercises every source_ref-backed text resource or asset with deterministic args.'
-  final_content: 'target: text_resource or asset may declare args and source_ref; generated content stubs constrain spec/spec.py.'
+  text_resource: 'text_resource declares placeholder text for every rendered text ref.'
+  asset: 'media_asset declares media kind, asset role, placeholder visual intent, and source_ref when source-backed; the compiler emits generic SVG placeholder assets.'
+  viewport_profile: 'viewport_profile declares fixed HTML and/or Textual viewport profiles.'
+  render_example: 'state-local render examples bind a state-machine state or composed state-machine instance vector to fixtures and contexts; render surfaces and artifacts are derived from the referenced states.'
+  content_example: 'content_example exercises every source_ref-backed text resource or asset with deterministic args.'
+  final_content: 'text_resource or media_asset may declare args and source_ref; generated content stubs constrain spec/spec.py.'
   formats:
     external_interface: svg
     state_machine: svg

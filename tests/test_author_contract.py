@@ -51,47 +51,47 @@ def test_author_contract_schema_validates() -> None:
     validate_against_schema(read_yaml(ROOT / SOURCE_SPEC_PATH), "author.schema.json")
 
 
-def test_author_data_loaders_must_be_non_empty_when_present() -> None:
+def test_author_query_bindings_must_be_non_empty_when_present() -> None:
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
-    author["state_machines"]["state_machine.project.activity"]["data_loaders"] = {}
+    author["state_machines"]["state_machine.project.activity"]["query_bindings"] = {}
     with pytest.raises(ContractError, match="Schema validation failed"):
         validate_against_schema(author, "author.schema.json")
 
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
-    author["state_machines"]["state_machine.project.detail"]["view_states"]["loading"]["data_loaders"] = {}
+    author["state_machines"]["state_machine.project.detail"]["states"]["loading"]["query_bindings"] = {}
     with pytest.raises(ContractError, match="Schema validation failed"):
         validate_against_schema(author, "author.schema.json")
 
 
 def test_author_state_machine_context_uses_json_schema_properties() -> None:
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
-    author["state_machines"]["state_machine.project.list"]["context"]["workspace_id"] = P("ID")
+    author["state_machines"]["state_machine.project.list"]["context_schema"]["workspace_id"] = P("ID")
     with pytest.raises(ContractError, match="Schema validation failed"):
         validate_against_schema(author, "author.schema.json")
 
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
-    author["state_machines"]["state_machine.project.list"]["context"]["properties"]["workspace_id"] = P("ID")
+    author["state_machines"]["state_machine.project.list"]["context_schema"]["properties"]["workspace_id"] = P("ID")
     validate_against_schema(author, "author.schema.json")
 
 
 def test_author_query_result_binding_uses_data_key() -> None:
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
-    effect = author["state_machines"]["state_machine.project.board"]["data_loaders"]["list_board"]["outcome_effects"]["listed"]
+    effect = author["state_machines"]["state_machine.project.board"]["query_bindings"]["list_board"]["effects"]["listed"]
     effect["result_binding"]["field"] = effect["result_binding"].pop("data_key")
     with pytest.raises(ContractError, match="Schema validation failed"):
         validate_against_schema(author, "author.schema.json")
 
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
-    effect = author["state_machines"]["state_machine.project.board"]["data_loaders"]["list_board"]["outcome_effects"]["listed"]
+    effect = author["state_machines"]["state_machine.project.board"]["query_bindings"]["list_board"]["effects"]["listed"]
     effect["result_binding"] = {"data_key": "projects", "from": {"from": "$action_outcome.result"}}
     validate_against_schema(author, "author.schema.json")
 
 
 def test_author_query_conditional_effects_and_result_scope_validate() -> None:
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
-    invocation = author["state_machines"]["state_machine.project.list"]["data_loaders"]["list_projects"]
+    invocation = author["state_machines"]["state_machine.project.list"]["query_bindings"]["list_projects"]
     assert invocation["result_scope"] == "local"
-    effect = invocation["outcome_effects"]["listed"]
+    effect = invocation["effects"]["listed"]
     assert {next(iter(branch["when"])) for branch in effect["conditional_effects"]} == {"result_empty", "result_non_empty"}
     validate_against_schema(author, "author.schema.json")
 
@@ -114,7 +114,7 @@ def test_author_value_maps_require_tagged_literals_or_binding_sources() -> None:
 
 def test_author_no_local_effect_reasons_are_closed_vocabulary() -> None:
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
-    effect = author["state_machines"]["state_machine.project.list"]["view_states"]["ready"]["action_bindings"]["create"]["outcome_effects"]["validation_failed"]
+    effect = author["state_machines"]["state_machine.project.list"]["states"]["ready"]["command_bindings"]["create"]["effects"]["validation_failed"]
     effect["no_local_effect"]["reason"] = "ignored"
     with pytest.raises(ContractError, match="Schema validation failed"):
         validate_against_schema(author, "author.schema.json")
@@ -122,10 +122,10 @@ def test_author_no_local_effect_reasons_are_closed_vocabulary() -> None:
 
 def test_author_async_adapters_use_ingress_responses() -> None:
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
-    worker = author["external_interfaces"]["external_interface.worker.project.approval_notice"]["adapter"]["worker"]
-    worker["responses"] = worker.pop("ingress_responses")
-    with pytest.raises(ContractError, match="Schema validation failed"):
-        validate_against_schema(author, "author.schema.json")
+    worker_output = author["external_interfaces"]["external_interface.worker.project.approval_notice"]["output_mapping"]
+    worker_output["responses"] = worker_output.pop("ingress_responses")
+    with pytest.raises(ContractError, match="must use output_mapping.ingress_responses"):
+        compile_source(author)
 
 
 def test_author_contract_compiles_to_checked_in_machine_contract() -> None:

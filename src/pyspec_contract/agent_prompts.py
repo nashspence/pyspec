@@ -93,7 +93,7 @@ def _contract_has_html(contract: dict[str, Any]) -> bool:
     if any("html_viewports" in profile for profile in (contract.get("viewport_profiles") or {}).values()):
         return True
     for owner in (contract.get("state_machines") or {}).values():
-        for state in (owner.get("view_states") or {}).values():
+        for state in (owner.get("states") or {}).values():
             if "html" in (state.get("renderers") or {}):
                 return True
     return False
@@ -103,7 +103,7 @@ def _contract_has_textual(contract: dict[str, Any]) -> bool:
     if any("textual_viewports" in profile for profile in (contract.get("viewport_profiles") or {}).values()):
         return True
     for owner in (contract.get("state_machines") or {}).values():
-        for state in (owner.get("view_states") or {}).values():
+        for state in (owner.get("states") or {}).values():
             if "textual" in (state.get("renderers") or {}):
                 return True
     return False
@@ -112,7 +112,7 @@ def _contract_has_textual(contract: dict[str, Any]) -> bool:
 def _contract_render_examples(contract: dict[str, Any]) -> list[dict[str, Any]]:
     cases = []
     for state_machine in (contract.get("state_machines") or {}).values():
-        for state in (state_machine.get("view_states") or {}).values():
+        for state in (state_machine.get("states") or {}).values():
             cases.extend((state.get("render_examples") or {}).values())
     return cases
 
@@ -190,11 +190,11 @@ def _pm_design_prompt(context: _PromptContext) -> str:
     else:
         lines.append("- Do not add domain-event, webhook, or integration-message vocabulary unless the active layers change.")
     if "workflow" in context.layers:
-        lines.append("- Workflow: workflows with explicit outcomes, step outcome transitions, CLI target-outcome response handlers, and worker/scheduled ingress responses.")
+        lines.append("- Workflow: workflows with explicit outcomes, step sequence flows, CLI invoked-outcome response handlers, and worker/scheduled ingress responses.")
     else:
         lines.append("- Do not add workflow, CLI, worker, or schedule vocabulary.")
     if "ui" in context.layers:
-        lines.append("- UI: state machines with view-state-local layouts, child state machines, render examples, text resources/assets, content examples, and viewport profiles.")
+        lines.append("- UI: state machines with state-local layouts, child state machines, render examples, text resources/assets, content examples, and viewport profiles.")
     else:
         lines.append("- Do not author UI state machines, text resources/assets, render examples, or surface presentation.")
     if "html" in context.layers:
@@ -215,9 +215,9 @@ def _pm_design_prompt(context: _PromptContext) -> str:
             "- Use behavior-scenario archetypes from `src/pyspec_contract/patterns.yaml`; define every seed fixture explicitly.",
             "- Entity types are product data entity_types: fields, entity_lifecycle, and invariants only.",
             "- Use `rationale` only when it preserves non-obvious product intent.",
-            "- For external interfaces, declare one explicit `adapter` (`http_api`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`) and one explicit `target` (`command`, `query`, `state_machine`, `workflow`, or `external_interface`).",
-            "- For state-machine external interfaces, keep invocation and rendering separate with adapter input and target `renderer` (`html` or `textual`).",
-            "- For workflow external interfaces, bind adapter input into the workflow trigger payload with `target.workflow.ref` and `target.workflow.trigger_bindings`.",
+            "- For external interfaces, declare one explicit `adapter` (`http_api`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`) and one explicit `invokes` object (`command`, `query`, `state_machine`, `workflow`, or `external_interface`).",
+            "- For state-machine external interfaces, keep invocation and rendering separate with adapter input and invocation `renderer` (`html` or `textual`).",
+            "- For workflow external interfaces, set `invokes.workflow.ref` and bind adapter input through `input_mapping.bindings`.",
             "- For rendered screens, put framework-owned `layout`, `presentation`, and `style` under `renderers.html` or `renderers.textual`.",
             "- Every rendered text or asset ref must be backed by a declared text resource or asset item.",
         ]

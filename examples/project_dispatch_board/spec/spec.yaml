@@ -179,30 +179,36 @@ entity_types:
       additionalProperties: false
 access_policies:
   access_policy.project.member:
-    subjects:
-    - kind: actor
-    resources:
-    - action: command.project.create
-    - action: query.project.list
-    - action: query.project.read
-    - action: command.project.submit
-    - entity_type: entity_type.project
     effect: permit
-    conditions:
-    - subject_has_role: member
     rationale: Workspace members may create, read, list, and submit dispatch projects.
-  access_policy.project.reviewer:
-    subjects:
+    subject:
     - kind: actor
-    resources:
-    - action: command.project.approve
-    - action: command.project.archive
-    - action: command.project.send_approval_notice
+    resource:
     - entity_type: entity_type.project
+    action:
+    - command.project.create
+    - query.project.list
+    - query.project.read
+    - command.project.submit
+    environment: []
+    rules:
+    - subject_has_role: member
+    decision: permit
+  access_policy.project.reviewer:
     effect: permit
-    conditions:
-    - subject_has_role: reviewer
     rationale: Reviewers may approve, archive, and send approval notices for dispatch projects.
+    subject:
+    - kind: actor
+    resource:
+    - entity_type: entity_type.project
+    action:
+    - command.project.approve
+    - command.project.archive
+    - command.project.send_approval_notice
+    environment: []
+    rules:
+    - subject_has_role: reviewer
+    decision: permit
 commands:
   command.project.approve:
     rationale: Reviewers can approve submitted dispatch projects.
@@ -491,7 +497,21 @@ domain_events:
 state_machines:
   state_machine.project.activity:
     rationale: The activity state machine summarizes latest status around the selected project.
-    context:
+    entity_type: entity_type.project
+    transitions:
+    - from: empty
+      to: ready
+      trigger:
+        local_signal: selection_changed
+    - effects:
+      - set:
+          context: project_id
+          value: null
+      from: ready
+      to: empty
+      trigger:
+        local_signal: selection_cleared
+    context_schema:
       type: object
       properties:
         project_id:
@@ -500,9 +520,7 @@ state_machines:
           - string
       required: []
       additionalProperties: false
-    initial_view_state: empty
-    entity_type: entity_type.project
-    signals:
+    local_signals:
       accepts:
         local_signals:
           selection_changed:
@@ -515,20 +533,8 @@ state_machines:
               - project_id
               additionalProperties: false
           selection_cleared: {}
-    transitions:
-    - from: empty
-      on:
-        local_signal: selection_changed
-      to: ready
-    - effects:
-      - set:
-          context: project_id
-          value: null
-      from: ready
-      on:
-        local_signal: selection_cleared
-      to: empty
-    view_states:
+    initial_state: empty
+    states:
       empty:
         text_slots:
         - heading
@@ -536,14 +542,19 @@ state_machines:
       ready:
         text_slots:
         - heading
-        data_loaders:
+        field_slots:
+        - updated_at
+        - status
+        - assignee
+        query_bindings:
           read_activity:
             load:
               on_enter: true
-            input_bindings:
+            query: query.project.read
+            input_mapping:
               project_id:
                 from: $state_context.project_id
-            outcome_effects:
+            effects:
               found:
                 result_binding:
                   data_key: activity
@@ -563,15 +574,11 @@ state_machines:
                 no_local_effect:
                   reason: intentionally_unobservable
                   rationale: The entry response surface owns authentication_required display.
-            query: query.project.read
-        field_slots:
-        - updated_at
-        - status
-        - assignee
   state_machine.project.board:
     archetype: dashboard
     rationale: The dispatch board composes list, detail, and activity state machines through shared selected-project context.
-    context:
+    entity_type: entity_type.project
+    context_schema:
       type: object
       properties:
         selected_project_id:
@@ -583,17 +590,18 @@ state_machines:
       required:
       - workspace_id
       additionalProperties: false
-    data_loaders:
+    query_bindings:
       list_board:
         result_scope: shared
         rationale: Board-level project list is shared shell data for composed child state machines; the child list machine
           owns visible loading and empty/non-empty transitions.
         load:
           on_start: true
-        input_bindings:
+        query: query.project.list
+        input_mapping:
           workspace_id:
             from: $state_context.workspace_id
-        outcome_effects:
+        effects:
           listed:
             result_binding:
               data_key: projects
@@ -613,10 +621,8 @@ state_machines:
             no_local_effect:
               reason: handled_by_response_surface
               rationale: The board shell leaves child surfaces unchanged while the list service is unavailable.
-        query: query.project.list
-    initial_view_state: ready
-    entity_type: entity_type.project
-    view_states:
+    initial_state: ready
+    states:
       ready:
         render_examples:
           empty:
@@ -625,11 +631,11 @@ state_machines:
             - fixture.workspace.member
             instances:
               activity:
-                view_state: empty
+                state: empty
               detail:
-                view_state: none
+                state: none
               list:
-                view_state: empty
+                state: empty
           ready_selected:
             rationale: Audit render for selected-project board state vector using named project preconditions.
             context:
@@ -642,11 +648,11 @@ state_machines:
             - fixture.workspace.member
             instances:
               activity:
-                view_state: ready
+                state: ready
               detail:
-                view_state: ready
+                state: ready
               list:
-                view_state: ready
+                state: ready
         child_state_machines:
         - context_bindings:
             selected_project_id:
@@ -654,34 +660,34 @@ state_machines:
             workspace_id:
               from: $state_machine.workspace_id
           id: list
-          initial_view_state: loading
           state_machine: state_machine.project.list
           html_region: nav
           textual_container: nav
+          initial_state: loading
         - context_bindings:
             project_id:
               from: $state_machine.selected_project_id
           id: detail
-          initial_view_state: none
           selected:
-            view_state: loading
             when:
               context_present: selected_project_id
+            state: loading
           state_machine: state_machine.project.detail
           html_region: main
           textual_container: main
+          initial_state: none
         - context_bindings:
             project_id:
               from: $state_machine.selected_project_id
           id: activity
-          initial_view_state: empty
           selected:
-            view_state: ready
             when:
               context_present: selected_project_id
+            state: ready
           state_machine: state_machine.project.activity
           html_region: aside
           textual_container: aside
+          initial_state: empty
         signal_sync_rules:
         - effects:
           - set:
@@ -785,7 +791,39 @@ state_machines:
                 nav_width: 20rem
   state_machine.project.detail:
     rationale: The detail state machine is independent from the list and reacts to selected project context.
-    context:
+    entity_type: entity_type.project
+    transitions:
+    - from: none
+      to: loading
+      trigger:
+        local_signal: selection_changed
+    - from: loading
+      to: ready
+      trigger:
+        data_refresh_signal: project_loaded
+    - from: loading
+      to: error
+      trigger:
+        data_refresh_signal: project_load_failed
+    - effects:
+      - set:
+          context: project_id
+          value: null
+      from: ready
+      to: none
+      trigger:
+        local_signal: selection_cleared
+    - from: ready
+      rationale: Detail mutations mark ready-state project data stale and trigger query refresh.
+      to: ready
+      trigger:
+        data_refresh_signal: project_changed
+    - from: ready
+      rationale: Invalid detail commands move the detail panel into its displayable error state.
+      to: error
+      trigger:
+        local_signal: show_transition_not_allowed
+    context_schema:
       type: object
       properties:
         project_id:
@@ -794,9 +832,7 @@ state_machines:
           - string
       required: []
       additionalProperties: false
-    initial_view_state: none
-    entity_type: entity_type.project
-    signals:
+    local_signals:
       accepts:
         local_signals:
           selection_changed:
@@ -822,38 +858,8 @@ state_machines:
           project_changed: {}
           project_load_failed: {}
           project_loaded: {}
-    transitions:
-    - from: none
-      on:
-        local_signal: selection_changed
-      to: loading
-    - from: loading
-      on:
-        data_refresh_signal: project_loaded
-      to: ready
-    - from: loading
-      on:
-        data_refresh_signal: project_load_failed
-      to: error
-    - effects:
-      - set:
-          context: project_id
-          value: null
-      from: ready
-      on:
-        local_signal: selection_cleared
-      to: none
-    - from: ready
-      on:
-        data_refresh_signal: project_changed
-      rationale: Detail mutations mark ready-state project data stale and trigger query refresh.
-      to: ready
-    - from: ready
-      on:
-        local_signal: show_transition_not_allowed
-      rationale: Invalid detail commands move the detail panel into its displayable error state.
-      to: error
-    view_states:
+    initial_state: none
+    states:
       error:
         text_slots:
         - heading
@@ -861,14 +867,15 @@ state_machines:
       loading:
         text_slots:
         - message
-        data_loaders:
+        query_bindings:
           read_project:
             load:
               on_enter: true
-            input_bindings:
+            query: query.project.read
+            input_mapping:
               project_id:
                 from: $state_context.project_id
-            outcome_effects:
+            effects:
               found:
                 result_binding:
                   data_key: project
@@ -885,7 +892,6 @@ state_machines:
               authentication_required:
                 raise:
                   data_refresh_signal: project_load_failed
-            query: query.project.read
       none:
         text_slots:
         - heading
@@ -893,16 +899,25 @@ state_machines:
       ready:
         asset_slots:
         - priority_badge
-        data_loaders:
+        text_slots:
+        - heading
+        field_slots:
+        - title
+        - customer
+        - status
+        - assignee
+        - summary
+        query_bindings:
           read_project:
             load:
               on_enter: true
               refresh_on:
               - data_refresh_signal: project_changed
-            input_bindings:
+            query: query.project.read
+            input_mapping:
               project_id:
                 from: $state_context.project_id
-            outcome_effects:
+            effects:
               found:
                 result_binding:
                   data_key: project
@@ -928,23 +943,15 @@ state_machines:
                   payload_bindings:
                     message:
                       from: $action_outcome.result.message
-            query: query.project.read
-        text_slots:
-        - heading
-        field_slots:
-        - title
-        - customer
-        - status
-        - assignee
-        - summary
-        action_bindings:
+        command_bindings:
           approve:
-            input_bindings:
+            command: command.project.approve
+            input_mapping:
               approved_by:
                 from: $principal.id
               project_id:
                 from: $state_context.project_id
-            outcome_effects:
+            effects:
               approved:
                 raise:
                   data_refresh_signal: project_changed
@@ -970,12 +977,12 @@ state_machines:
                 no_local_effect:
                   reason: handled_by_response_surface
                   rationale: The response surface reports authentication failure without a local transition.
-            command: command.project.approve
           archive:
-            input_bindings:
+            command: command.project.archive
+            input_mapping:
               project_id:
                 from: $state_context.project_id
-            outcome_effects:
+            effects:
               archived:
                 raise:
                   data_refresh_signal: project_changed
@@ -1003,10 +1010,62 @@ state_machines:
                   payload_bindings:
                     message:
                       from: $action_outcome.result.message
-            command: command.project.archive
   state_machine.project.list:
     rationale: The list state machine owns collection loading, empty, ready, error, and selection behavior.
-    context:
+    entity_type: entity_type.project
+    transitions:
+    - from: loading
+      to: empty
+      trigger:
+        data_refresh_signal: project_collection_empty
+    - from: loading
+      to: ready
+      trigger:
+        data_refresh_signal: projects_loaded
+    - from: loading
+      to: error
+      trigger:
+        data_refresh_signal: project_list_failed
+    - from: empty
+      to: ready
+      trigger:
+        data_refresh_signal: projects_loaded
+    - from: empty
+      rationale: List mutations invalidate the empty collection and let the list query refresh it.
+      to: empty
+      trigger:
+        data_refresh_signal: projects_changed
+    - from: empty
+      rationale: Invalid create attempts move the list into its displayable error state.
+      to: error
+      trigger:
+        local_signal: show_transition_not_allowed
+    - effects:
+      - emit:
+          local_signal: project_selected
+          payload_bindings:
+            project_id:
+              from: $signal.payload.project_id
+      from: ready
+      to: ready
+      trigger:
+        local_signal: project_select
+    - from: ready
+      rationale: List mutations mark ready-state collection data stale and trigger query refresh.
+      to: ready
+      trigger:
+        data_refresh_signal: projects_changed
+    - from: ready
+      rationale: Successful list queries refresh ready-state collection data.
+      to: ready
+      trigger:
+        data_refresh_signal: projects_loaded
+    - from: ready
+      rationale: Invalid list queries move the list into its displayable error state.
+      to: error
+      trigger:
+        local_signal: show_transition_not_allowed
+    context_schema:
       type: object
       properties:
         selected_project_id:
@@ -1018,17 +1077,18 @@ state_machines:
       required:
       - workspace_id
       additionalProperties: false
-    data_loaders:
+    query_bindings:
       list_projects:
         result_scope: local
         load:
           on_start: true
           refresh_on:
           - data_refresh_signal: projects_changed
-        input_bindings:
+        query: query.project.list
+        input_mapping:
           workspace_id:
             from: $state_context.workspace_id
-        outcome_effects:
+        effects:
           listed:
             conditional_effects:
             - when:
@@ -1062,10 +1122,7 @@ state_machines:
           unavailable:
             raise:
               data_refresh_signal: project_list_failed
-        query: query.project.list
-    initial_view_state: loading
-    entity_type: entity_type.project
-    signals:
+    local_signals:
       accepts:
         local_signals:
           project_select:
@@ -1102,68 +1159,18 @@ state_machines:
               required:
               - project_id
               additionalProperties: false
-    transitions:
-    - from: loading
-      on:
-        data_refresh_signal: project_collection_empty
-      to: empty
-    - from: loading
-      on:
-        data_refresh_signal: projects_loaded
-      to: ready
-    - from: loading
-      on:
-        data_refresh_signal: project_list_failed
-      to: error
-    - from: empty
-      on:
-        data_refresh_signal: projects_loaded
-      to: ready
-    - from: empty
-      on:
-        data_refresh_signal: projects_changed
-      rationale: List mutations invalidate the empty collection and let the list query refresh it.
-      to: empty
-    - from: empty
-      on:
-        local_signal: show_transition_not_allowed
-      rationale: Invalid create attempts move the list into its displayable error state.
-      to: error
-    - effects:
-      - emit:
-          local_signal: project_selected
-          payload_bindings:
-            project_id:
-              from: $signal.payload.project_id
-      from: ready
-      on:
-        local_signal: project_select
-      to: ready
-    - from: ready
-      on:
-        data_refresh_signal: projects_changed
-      rationale: List mutations mark ready-state collection data stale and trigger query refresh.
-      to: ready
-    - from: ready
-      on:
-        data_refresh_signal: projects_loaded
-      rationale: Successful list queries refresh ready-state collection data.
-      to: ready
-    - from: ready
-      on:
-        local_signal: show_transition_not_allowed
-      rationale: Invalid list queries move the list into its displayable error state.
-      to: error
-    view_states:
+    initial_state: loading
+    states:
       empty:
         asset_slots:
         - illustration
         text_slots:
         - heading
         - body
-        action_bindings:
+        command_bindings:
           create:
-            input_bindings:
+            command: command.project.create
+            input_mapping:
               customer:
                 value: Atlas Foods
               priority:
@@ -1172,7 +1179,7 @@ state_machines:
                 value: Replace rooftop condenser fan
               workspace_id:
                 from: $state_context.workspace_id
-            outcome_effects:
+            effects:
               created:
                 raise:
                   data_refresh_signal: projects_changed
@@ -1190,7 +1197,6 @@ state_machines:
                   payload_bindings:
                     message:
                       from: $action_outcome.result.message
-            command: command.project.create
       error:
         text_slots:
         - heading
@@ -1206,9 +1212,10 @@ state_machines:
         - customer
         - priority
         - status
-        action_bindings:
+        command_bindings:
           create:
-            input_bindings:
+            command: command.project.create
+            input_mapping:
               customer:
                 value: Atlas Foods
               priority:
@@ -1217,7 +1224,7 @@ state_machines:
                 value: Replace rooftop condenser fan
               workspace_id:
                 from: $state_context.workspace_id
-            outcome_effects:
+            effects:
               created:
                 raise:
                   data_refresh_signal: projects_changed
@@ -1233,12 +1240,12 @@ state_machines:
                 no_local_effect:
                   reason: handled_by_response_surface
                   rationale: The ready list keeps focus while the response surface shows validation errors.
-            command: command.project.create
           submit:
-            input_bindings:
+            command: command.project.submit
+            input_mapping:
               project_id:
                 from: $state_context.selected_project_id
-            outcome_effects:
+            effects:
               access_denied:
                 raise:
                   local_signal: show_transition_not_allowed
@@ -1266,286 +1273,314 @@ state_machines:
                   payload_bindings:
                     message:
                       from: $action_outcome.result.message
-            command: command.project.submit
 external_interfaces:
   external_interface.api.project.create:
     adapter:
       http_api:
-        input:
-          body:
-            customer:
-              type: string
-            priority:
-              type: string
-            title:
-              type: string
-          path_params:
-            workspace_id:
-              type: string
         method: POST
         path: /workspaces/{workspace_id}/projects
-        responses:
-          created:
-            body:
-              from: $action_outcome.result
-              type:
-                $ref: entity_type.project
-            status: 201
-          access_denied:
-            body:
-              from: $action_outcome.result
-              type:
-                $ref: entity_type.problem
-            status: 403
-          authentication_required:
-            body:
-              from: $action_outcome.result
-              type:
-                $ref: entity_type.problem
-            status: 401
-          validation_failed:
-            body:
-              from: $action_outcome.result
-              type:
-                $ref: entity_type.problem
-            status: 422
     rationale: HTTP endpoint for creating a dispatch project.
-    target:
+    invokes:
       command:
         ref: command.project.create
-        input_bindings:
-          customer:
-            from: $adapter_input.body.customer
-          priority:
-            from: $adapter_input.body.priority
-          title:
-            from: $adapter_input.body.title
-          workspace_id:
-            from: $adapter_input.path_params.workspace_id
+    input_mapping:
+      body:
+        customer:
+          type: string
+        priority:
+          type: string
+        title:
+          type: string
+      path_params:
+        workspace_id:
+          type: string
+      bindings:
+        customer:
+          from: $adapter_input.body.customer
+        priority:
+          from: $adapter_input.body.priority
+        title:
+          from: $adapter_input.body.title
+        workspace_id:
+          from: $adapter_input.path_params.workspace_id
+    output_mapping:
+      responses:
+        created:
+          body:
+            from: $action_outcome.result
+            type:
+              $ref: entity_type.project
+          status: 201
+        access_denied:
+          body:
+            from: $action_outcome.result
+            type:
+              $ref: entity_type.problem
+          status: 403
+        authentication_required:
+          body:
+            from: $action_outcome.result
+            type:
+              $ref: entity_type.problem
+          status: 401
+        validation_failed:
+          body:
+            from: $action_outcome.result
+            type:
+              $ref: entity_type.problem
+          status: 422
   external_interface.api.project.list:
     adapter:
       http_api:
-        input:
-          path_params:
-            workspace_id:
-              type: string
         method: GET
         path: /workspaces/{workspace_id}/projects
-        responses:
-          listed:
-            body:
-              from: $action_outcome.result
-              type:
-                type: array
-                items:
-                  $ref: entity_type.project
-            status: 200
-          access_denied:
-            body:
-              from: $action_outcome.result
-              type:
-                $ref: entity_type.problem
-            status: 403
-          authentication_required:
-            body:
-              from: $action_outcome.result
-              type:
-                $ref: entity_type.problem
-            status: 401
-          unavailable:
-            body:
-              from: $action_outcome.result
-              type:
-                $ref: entity_type.problem
-            status: 503
     rationale: HTTP endpoint for listing dispatch projects.
-    target:
+    invokes:
       query:
         ref: query.project.list
-        input_bindings:
-          workspace_id:
-            from: $adapter_input.path_params.workspace_id
+    input_mapping:
+      path_params:
+        workspace_id:
+          type: string
+      bindings:
+        workspace_id:
+          from: $adapter_input.path_params.workspace_id
+    output_mapping:
+      responses:
+        listed:
+          body:
+            from: $action_outcome.result
+            type:
+              type: array
+              items:
+                $ref: entity_type.project
+          status: 200
+        access_denied:
+          body:
+            from: $action_outcome.result
+            type:
+              $ref: entity_type.problem
+          status: 403
+        authentication_required:
+          body:
+            from: $action_outcome.result
+            type:
+              $ref: entity_type.problem
+          status: 401
+        unavailable:
+          body:
+            from: $action_outcome.result
+            type:
+              $ref: entity_type.problem
+          status: 503
   external_interface.api.project.approve:
     retry_safe: true
     adapter:
       http_api:
-        input:
-          body:
-            approved_by:
-              type: string
-          path_params:
-            project_id:
-              type: string
         method: POST
         path: /projects/{project_id}/approve
-        responses:
-          approved:
-            body:
-              from: $action_outcome.result
-              type:
-                $ref: entity_type.project
-            status: 200
-          access_denied:
-            body:
-              from: $action_outcome.result
-              type:
-                $ref: entity_type.problem
-            status: 403
-          transition_not_allowed:
-            body:
-              from: $action_outcome.result
-              type:
-                $ref: entity_type.problem
-            status: 409
-          not_found:
-            body:
-              from: $action_outcome.result
-              type:
-                $ref: entity_type.problem
-            status: 404
-          unavailable:
-            body:
-              from: $action_outcome.result
-              type:
-                $ref: entity_type.problem
-            status: 503
-          authentication_required:
-            body:
-              from: $action_outcome.result
-              type:
-                $ref: entity_type.problem
-            status: 401
     rationale: HTTP endpoint for approving submitted dispatch projects.
-    target:
+    invokes:
       command:
         ref: command.project.approve
-        input_bindings:
-          approved_by:
-            from: $adapter_input.body.approved_by
-          project_id:
-            from: $adapter_input.path_params.project_id
+    input_mapping:
+      body:
+        approved_by:
+          type: string
+      path_params:
+        project_id:
+          type: string
+      bindings:
+        approved_by:
+          from: $adapter_input.body.approved_by
+        project_id:
+          from: $adapter_input.path_params.project_id
+    output_mapping:
+      responses:
+        approved:
+          body:
+            from: $action_outcome.result
+            type:
+              $ref: entity_type.project
+          status: 200
+        access_denied:
+          body:
+            from: $action_outcome.result
+            type:
+              $ref: entity_type.problem
+          status: 403
+        transition_not_allowed:
+          body:
+            from: $action_outcome.result
+            type:
+              $ref: entity_type.problem
+          status: 409
+        not_found:
+          body:
+            from: $action_outcome.result
+            type:
+              $ref: entity_type.problem
+          status: 404
+        unavailable:
+          body:
+            from: $action_outcome.result
+            type:
+              $ref: entity_type.problem
+          status: 503
+        authentication_required:
+          body:
+            from: $action_outcome.result
+            type:
+              $ref: entity_type.problem
+          status: 401
   external_interface.cli.project.approve:
     adapter:
       cli:
         cli_command: project approve
-        input:
-          args:
-            approved_by:
-              type: string
-            project_id:
-              type: string
-        response_handlers:
-          approved:
-            exit_code: 0
-            stdout:
-              text: text.project.approve.success
-              bindings:
-                project_id:
-                  from: $adapter_response.body.id
-          access_denied:
-            exit_code: 5
-            stderr:
-              text: text.project.approve.access_denied
-              bindings:
-                message:
-                  from: $adapter_response.body.message
-          transition_not_allowed:
-            exit_code: 2
-            stderr:
-              text: text.project.approve.transition_not_allowed
-              bindings:
-                message:
-                  from: $adapter_response.body.message
-          not_found:
-            exit_code: 3
-            stderr:
-              text: text.project.approve.not_found
-              bindings:
-                message:
-                  from: $adapter_response.body.message
-          unavailable:
-            exit_code: 75
-            retry_policy:
-              attempts: 3
-              backoff: exponential
-            stderr:
-              text: text.project.approve.unavailable
-          authentication_required:
-            exit_code: 4
-            stderr:
-              text: text.project.approve.authentication_required
-              bindings:
-                message:
-                  from: $adapter_response.body.message
     rationale: CLI entry for approval automation.
-    target:
+    invokes:
       external_interface:
         ref: external_interface.api.project.approve
-        input_bindings:
-          body:
-            approved_by:
-              from: $adapter_input.args.approved_by
-          path_params:
-            project_id:
-              from: $adapter_input.args.project_id
+    input_mapping:
+      args:
+        approved_by:
+          type: string
+        project_id:
+          type: string
+      delegated_input:
+        body:
+          approved_by:
+            from: $adapter_input.args.approved_by
+        path_params:
+          project_id:
+            from: $adapter_input.args.project_id
+    output_mapping:
+      response_handlers:
+        approved:
+          exit_code: 0
+          stdout:
+            text: text.project.approve.success
+            bindings:
+              project_id:
+                from: $adapter_response.body.id
+        access_denied:
+          exit_code: 5
+          stderr:
+            text: text.project.approve.access_denied
+            bindings:
+              message:
+                from: $adapter_response.body.message
+        transition_not_allowed:
+          exit_code: 2
+          stderr:
+            text: text.project.approve.transition_not_allowed
+            bindings:
+              message:
+                from: $adapter_response.body.message
+        not_found:
+          exit_code: 3
+          stderr:
+            text: text.project.approve.not_found
+            bindings:
+              message:
+                from: $adapter_response.body.message
+        unavailable:
+          exit_code: 75
+          retry_policy:
+            attempts: 3
+            backoff: exponential
+          stderr:
+            text: text.project.approve.unavailable
+        authentication_required:
+          exit_code: 4
+          stderr:
+            text: text.project.approve.authentication_required
+            bindings:
+              message:
+                from: $adapter_response.body.message
   external_interface.cli.project.board:
     adapter:
       cli:
         cli_command: project board
-        input:
-          args:
-            workspace_id:
-              type: string
     rationale: CLI launcher for the Textual dispatch board.
-    target:
+    invokes:
       state_machine:
         ref: state_machine.project.board
         renderer: textual
-        input_bindings:
-          workspace_id:
-            from: $adapter_input.args.workspace_id
+    input_mapping:
+      args:
+        workspace_id:
+          type: string
+      bindings:
+        workspace_id:
+          from: $adapter_input.args.workspace_id
+    output_mapping: {}
   external_interface.html.project.board:
     adapter:
       html_route:
-        input:
-          path_params:
-            workspace_id:
-              type: string
         path: /workspaces/{workspace_id}/dispatch
     rationale: HTML entry for the dispatch board.
-    target:
+    invokes:
       state_machine:
         ref: state_machine.project.board
         renderer: html
-        input_bindings:
-          workspace_id:
-            from: $adapter_input.path_params.workspace_id
+    input_mapping:
+      path_params:
+        workspace_id:
+          type: string
+      bindings:
+        workspace_id:
+          from: $adapter_input.path_params.workspace_id
+    output_mapping: {}
   external_interface.worker.project.approval_notice:
     adapter:
-      worker:
-        input:
-          payload:
-            $ref: schema.project.approved
-        ingress_responses:
-          accepted:
-            disposition: acknowledge
-          malformed:
-            disposition: dead_letter
-            problem:
-              $ref: entity_type.problem
+      worker: {}
     rationale: Worker entry exposing the approval notice workflow.
-    target:
+    invokes:
       workflow:
         ref: workflow.project.approval_notice
-        trigger_bindings:
-          approved_by:
-            from: $adapter_input.payload.approved_by
-          project_id:
-            from: $adapter_input.payload.project_id
+    input_mapping:
+      payload:
+        $ref: schema.project.approved
+      bindings:
+        approved_by:
+          from: $adapter_input.payload.approved_by
+        project_id:
+          from: $adapter_input.payload.project_id
+    output_mapping:
+      ingress_responses:
+        accepted:
+          disposition: acknowledge
+        malformed:
+          disposition: dead_letter
+          problem:
+            $ref: entity_type.problem
 workflows:
   workflow.project.approval_notice:
     rationale: Approval domain event sends a downstream notice.
-    outcomes:
+    steps:
+    - id: send_notice
+      command: command.project.send_approval_notice
+      input_mapping:
+        approved_by:
+          from: $workflow_input.payload.approved_by
+        project_id:
+          from: $workflow_input.payload.project_id
+      sequence_flows:
+        delivery_failed:
+          retry_policy:
+            attempts: 3
+            backoff: exponential
+            fail_as: delivery_failed
+        access_denied:
+          fail_as: notice_access_denied
+        sent:
+          complete_as: completed
+        authentication_required:
+          fail_as: notice_authentication_required
+    inputs:
+      domain_event: domain_event.project.approved
+    outputs:
       completed:
         kind: success
         result:
@@ -1562,31 +1597,11 @@ workflows:
         kind: failure
         result:
           $ref: entity_type.problem
-    steps:
-    - id: send_notice
-      input_bindings:
-        approved_by:
-          from: $workflow_input.payload.approved_by
-        project_id:
-          from: $workflow_input.payload.project_id
-      outcome_transitions:
-        delivery_failed:
-          retry_policy:
-            attempts: 3
-            backoff: exponential
-            fail_as: delivery_failed
-        access_denied:
-          fail_as: notice_access_denied
-        sent:
-          complete_as: completed
-        authentication_required:
-          fail_as: notice_authentication_required
-      command: command.project.send_approval_notice
-    trigger:
-      domain_event: domain_event.project.approved
+    retry_policies: {}
+    failure_handlers: {}
 behavior_scenarios:
   behavior_scenario.project.approval_notice.workflow:
-    archetype: workflow_trigger_success
+    archetype: workflow_execution_success
     rationale: Approval domain event dispatches the notification workflow.
     feature_tag: project.approval_notice
     system_under_test_ref:
@@ -1701,16 +1716,16 @@ behavior_scenarios:
       state_machine:
         instances:
           activity:
-            view_state: empty
+            state: empty
           detail:
-            view_state: none
+            state: none
           list:
-            view_state: empty
+            state: empty
         signal_sync_rules:
           observed_rules:
           - select_project_updates_state_machines
         ref: state_machine.project.board
-        view_state: ready
+        state: ready
     title: Empty dispatch board
     when:
       open_external_interface:
@@ -1736,16 +1751,16 @@ behavior_scenarios:
       state_machine:
         instances:
           activity:
-            view_state: empty
+            state: empty
           detail:
-            view_state: none
+            state: none
           list:
-            view_state: ready
+            state: ready
         signal_sync_rules:
           observed_rules:
           - select_project_updates_state_machines
         ref: state_machine.project.board
-        view_state: ready
+        state: ready
     title: Ready dispatch board
     when:
       open_external_interface:

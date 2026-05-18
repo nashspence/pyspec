@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .io import read_json
-from .targets import external_interface_state_machine_renderer, external_interface_adapter_pair, external_interface_target_pair
+from .targets import external_interface_state_machine_renderer, external_interface_adapter_pair, external_interface_invokes_pair
 
 ROOT = Path(__file__).resolve().parent
 
@@ -151,15 +151,15 @@ def _validate_author_spec_layers(label: str, target: str, spec: dict[str, Any], 
             raise LayerError(f"{label} uses unsupported external interface adapter {adapter_kind!r}")
         _require_layers(label, f"external interface adapter {adapter_kind}", {required_layer}, layers)
         try:
-            target_kind, _ = external_interface_target_pair(spec)
+            invoked_kind, _ = external_interface_invokes_pair(spec)
         except KeyError as exc:
-            raise LayerError(f"{label} uses unsupported external interface target") from exc
-        if target_kind == "state_machine":
+            raise LayerError(f"{label} uses unsupported external interface invocation") from exc
+        if invoked_kind == "state_machine":
             renderer = external_interface_state_machine_renderer(spec)
             required_render_layer = RENDER_SURFACE_LAYER.get(renderer or "")
             if not required_render_layer:
-                raise LayerError(f"{label} uses unsupported state_machine target renderer {renderer!r}")
-            _require_layers(label, f"state machine target renderer {renderer}", {"ui", required_render_layer}, layers)
+                raise LayerError(f"{label} uses unsupported state_machine invocation renderer {renderer!r}")
+            _require_layers(label, f"state machine invocation renderer {renderer}", {"ui", required_render_layer}, layers)
         return
 
     if target == "viewport_profile":
@@ -171,12 +171,12 @@ def _validate_author_spec_layers(label: str, target: str, spec: dict[str, Any], 
         return
 
     if target == "state_machine":
-        for state_name, state in spec.get("view_states", {}).items():
+        for state_name, state in spec.get("states", {}).items():
             renderers = state.get("renderers") or {}
             if "html" in renderers:
-                _require_layers(label, "state machine view_state renderer html", {"html"}, layers)
+                _require_layers(label, "state machine state renderer html", {"html"}, layers)
             if "textual" in renderers:
-                _require_layers(label, "state machine view_state renderer textual", {"textual"}, layers)
+                _require_layers(label, "state machine state renderer textual", {"textual"}, layers)
         return
 
 

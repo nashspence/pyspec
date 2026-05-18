@@ -1,54 +1,56 @@
-<svg width="631pt" height="187pt"
- viewBox="0.00 0.00 631.00 187.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 5613a6ed280d467e007a19490d3be2cf12a1c3e9352901a573bc1b592e58eff2 -->
+<svg width="725pt" height="187pt"
+ viewBox="0.00 0.00 725.00 187.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: 9efd8da290ca68559908cdb0a3a664f5530f325047fe7e0c91c959b32e0f0994 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 169)">
 <title>external_interface_external_interface_html_project_board</title>
 <!-- external_interface_external_interface_html_project_board -->
 <g id="node1" class="node">
 <title>external_interface_external_interface_html_project_board</title>
-<polygon fill="#ffffff" stroke="transparent" points="0,-20 0,-131 253,-131 253,-20 0,-20"/>
-<polygon fill="#0891b2" stroke="transparent" points="1.5,-121.5 1.5,-129.5 252.5,-129.5 252.5,-121.5 1.5,-121.5"/>
-<polygon fill="#ecfeff" stroke="transparent" points="1.5,-90.5 1.5,-121.5 252.5,-121.5 252.5,-90.5 1.5,-90.5"/>
-<text text-anchor="start" x="5.5" y="-108.1" font-family="Arial" font-weight="bold" font-size="13.00">/workspaces/{workspace_id}/dispatch</text>
-<text text-anchor="start" x="5.5" y="-97.1" font-family="Arial" font-size="8.00" fill="#64748b">html_route external interface</text>
-<text text-anchor="start" x="5.5" y="-79.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">HTML entry for the dispatch board.</text>
-<text text-anchor="start" x="6.5" y="-59.5" font-family="Arial" font-weight="bold" font-size="10.00">route:</text>
-<text text-anchor="start" x="34.5" y="-59.5" font-family="Arial" font-size="10.00">  route.project.board</text>
-<text text-anchor="start" x="5.5" y="-39.5" font-family="Arial" font-weight="bold" font-size="10.00">path params</text>
-<text text-anchor="start" x="5.5" y="-28.5" font-family="Arial" font-size="10.00">workspace_id</text>
-<text text-anchor="start" x="66.5" y="-28.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
-<polygon fill="none" stroke="#0891b2" points="0,-20 0,-131 253,-131 253,-20 0,-20"/>
+<polygon fill="#ffffff" stroke="transparent" points="0,-9.5 0,-141.5 347,-141.5 347,-9.5 0,-9.5"/>
+<polygon fill="#0891b2" stroke="transparent" points="1.5,-132.5 1.5,-140.5 346.5,-140.5 346.5,-132.5 1.5,-132.5"/>
+<polygon fill="#ecfeff" stroke="transparent" points="1.5,-101.5 1.5,-132.5 346.5,-132.5 346.5,-101.5 1.5,-101.5"/>
+<text text-anchor="start" x="5.5" y="-119.1" font-family="Arial" font-weight="bold" font-size="13.00">/workspaces/{workspace_id}/dispatch</text>
+<text text-anchor="start" x="5.5" y="-108.1" font-family="Arial" font-size="8.00" fill="#64748b">html_route external interface</text>
+<text text-anchor="start" x="5.5" y="-90.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">HTML entry for the dispatch board.</text>
+<text text-anchor="start" x="6.5" y="-70.5" font-family="Arial" font-weight="bold" font-size="10.00">route:</text>
+<text text-anchor="start" x="34.5" y="-70.5" font-family="Arial" font-size="10.00">  route.project.board</text>
+<text text-anchor="start" x="5.5" y="-50.5" font-family="Arial" font-weight="bold" font-size="10.00">path params</text>
+<text text-anchor="start" x="5.5" y="-39.5" font-family="Arial" font-size="10.00">workspace_id</text>
+<text text-anchor="start" x="66.5" y="-39.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
+<text text-anchor="start" x="6.5" y="-19.5" font-family="Arial" font-weight="bold" font-size="10.00">input mapping:</text>
+<text text-anchor="start" x="78.5" y="-19.5" font-family="Arial" font-size="10.00">  workspace_id ← adapter_input.path_params.workspace_id</text>
+<polygon fill="none" stroke="#0891b2" points="0,-9.5 0,-141.5 347,-141.5 347,-9.5 0,-9.5"/>
 </g>
-<!-- external_interface_target_state_machine_project_board -->
+<!-- external_interface_invocation_state_machine_project_board -->
 <g id="node2" class="node">
-<title>external_interface_target_state_machine_project_board</title>
-<polygon fill="#ffffff" stroke="transparent" points="314,0 314,-151 595,-151 595,0 314,0"/>
-<polygon fill="#9333ea" stroke="transparent" points="315.5,-141.5 315.5,-149.5 594.5,-149.5 594.5,-141.5 315.5,-141.5"/>
-<polygon fill="#faf5ff" stroke="transparent" points="315.5,-110.5 315.5,-141.5 594.5,-141.5 594.5,-110.5 315.5,-110.5"/>
-<text text-anchor="start" x="319.5" y="-128.1" font-family="Arial" font-weight="bold" font-size="13.00">state_machine.project.board</text>
-<text text-anchor="start" x="319.5" y="-117.1" font-family="Arial" font-size="8.00" fill="#64748b">target state machine (html)</text>
-<text text-anchor="start" x="319.5" y="-99.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">The dispatch board composes list, detail, and</text>
-<text text-anchor="start" x="319.5" y="-88.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">activity state machines through shared</text>
-<text text-anchor="start" x="319.5" y="-77.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">selected&#45;project context.</text>
-<text text-anchor="start" x="320.5" y="-57.5" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
-<text text-anchor="start" x="348.5" y="-57.5" font-family="Arial" font-size="10.00">  list_board.workspace_id</text>
-<text text-anchor="start" x="460.5" y="-57.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
-<text text-anchor="start" x="320.5" y="-45.5" font-family="Arial" font-weight="bold" font-size="10.00">data_loaders:</text>
-<text text-anchor="start" x="383.5" y="-45.5" font-family="Arial" font-size="10.00">  list_board</text>
-<text text-anchor="start" x="320.5" y="-33.5" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
-<text text-anchor="start" x="344.5" y="-33.5" font-family="Arial" font-size="10.00">  query.project.list</text>
-<text text-anchor="start" x="422.5" y="-33.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
-<text text-anchor="start" x="320.5" y="-21.5" font-family="Arial" font-weight="bold" font-size="10.00">entity_type:</text>
-<text text-anchor="start" x="374.5" y="-21.5" font-family="Arial" font-size="10.00">  entity_type.project</text>
-<text text-anchor="start" x="320.5" y="-9.5" font-family="Arial" font-weight="bold" font-size="10.00">signal_sync_rules:</text>
-<text text-anchor="start" x="408.5" y="-9.5" font-family="Arial" font-size="10.00">  select_project_updates_state_machines</text>
-<polygon fill="none" stroke="#9333ea" points="314,0 314,-151 595,-151 595,0 314,0"/>
+<title>external_interface_invocation_state_machine_project_board</title>
+<polygon fill="#ffffff" stroke="transparent" points="408,0 408,-151 689,-151 689,0 408,0"/>
+<polygon fill="#9333ea" stroke="transparent" points="409.5,-141.5 409.5,-149.5 688.5,-149.5 688.5,-141.5 409.5,-141.5"/>
+<polygon fill="#faf5ff" stroke="transparent" points="409.5,-110.5 409.5,-141.5 688.5,-141.5 688.5,-110.5 409.5,-110.5"/>
+<text text-anchor="start" x="413.5" y="-128.1" font-family="Arial" font-weight="bold" font-size="13.00">state_machine.project.board</text>
+<text text-anchor="start" x="413.5" y="-117.1" font-family="Arial" font-size="8.00" fill="#64748b">invoked state machine (html)</text>
+<text text-anchor="start" x="413.5" y="-99.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">The dispatch board composes list, detail, and</text>
+<text text-anchor="start" x="413.5" y="-88.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">activity state machines through shared</text>
+<text text-anchor="start" x="413.5" y="-77.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">selected&#45;project context.</text>
+<text text-anchor="start" x="414.5" y="-57.5" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
+<text text-anchor="start" x="442.5" y="-57.5" font-family="Arial" font-size="10.00">  list_board.workspace_id</text>
+<text text-anchor="start" x="554.5" y="-57.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
+<text text-anchor="start" x="414.5" y="-45.5" font-family="Arial" font-weight="bold" font-size="10.00">query_bindings:</text>
+<text text-anchor="start" x="490.5" y="-45.5" font-family="Arial" font-size="10.00">  list_board</text>
+<text text-anchor="start" x="414.5" y="-33.5" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
+<text text-anchor="start" x="438.5" y="-33.5" font-family="Arial" font-size="10.00">  query.project.list</text>
+<text text-anchor="start" x="516.5" y="-33.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
+<text text-anchor="start" x="414.5" y="-21.5" font-family="Arial" font-weight="bold" font-size="10.00">entity_type:</text>
+<text text-anchor="start" x="468.5" y="-21.5" font-family="Arial" font-size="10.00">  entity_type.project</text>
+<text text-anchor="start" x="414.5" y="-9.5" font-family="Arial" font-weight="bold" font-size="10.00">signal_sync_rules:</text>
+<text text-anchor="start" x="502.5" y="-9.5" font-family="Arial" font-size="10.00">  select_project_updates_state_machines</text>
+<polygon fill="none" stroke="#9333ea" points="408,0 408,-151 689,-151 689,0 408,0"/>
 </g>
-<!-- external_interface_external_interface_html_project_board&#45;&gt;external_interface_target_state_machine_project_board -->
+<!-- external_interface_external_interface_html_project_board&#45;&gt;external_interface_invocation_state_machine_project_board -->
 <g id="edge1" class="edge">
-<title>external_interface_external_interface_html_project_board&#45;&gt;external_interface_target_state_machine_project_board</title>
-<path fill="none" stroke="#3f3f46" d="M253.07,-75.5C270.34,-75.5 288.2,-75.5 305.81,-75.5"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="305.89,-78.3 313.89,-75.5 305.89,-72.7 305.89,-78.3"/>
+<title>external_interface_external_interface_html_project_board&#45;&gt;external_interface_invocation_state_machine_project_board</title>
+<path fill="none" stroke="#3f3f46" d="M347.08,-75.5C364.62,-75.5 382.32,-75.5 399.56,-75.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="399.99,-78.3 407.99,-75.5 399.99,-72.7 399.99,-78.3"/>
 </g>
 </g>
 </svg>

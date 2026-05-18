@@ -1,6 +1,6 @@
 behavior_scenarios:
   behavior_scenario.project.approval_notice.workflow:
-    archetype: workflow_trigger_success
+    archetype: workflow_execution_success
     feature_tag: project.approval_notice
     given:
       preconditions: []
@@ -163,11 +163,11 @@ behavior_scenarios:
       enables:
       - command.project.create
       requires:
-        action_bindings:
-        - create
         assets:
         - asset.project.list.empty.illustration
-        data_loaders:
+        command_bindings:
+        - create
+        query_bindings:
         - list_board
         - list_projects
         surfaces:
@@ -192,7 +192,7 @@ behavior_scenarios:
                 from: $state_machine.workspace_id
             html_region: nav
             id: list
-            initial_view_state: loading
+            initial_state: loading
             state_machine: state_machine.project.list
             textual_container: nav
           - context_bindings:
@@ -200,9 +200,9 @@ behavior_scenarios:
                 from: $state_machine.selected_project_id
             html_region: main
             id: detail
-            initial_view_state: none
+            initial_state: none
             selected:
-              view_state: loading
+              state: loading
               when:
                 context_present: selected_project_id
             state_machine: state_machine.project.detail
@@ -212,9 +212,9 @@ behavior_scenarios:
                 from: $state_machine.selected_project_id
             html_region: aside
             id: activity
-            initial_view_state: empty
+            initial_state: empty
             selected:
-              view_state: ready
+              state: ready
               when:
                 context_present: selected_project_id
             state_machine: state_machine.project.activity
@@ -323,22 +323,22 @@ behavior_scenarios:
         instances:
           activity:
             source: state_machine.project.activity
+            state: empty
             surface: state_machine.project.activity.empty
-            view_state: empty
           detail:
             source: state_machine.project.detail
+            state: none
             surface: state_machine.project.detail.none
-            view_state: none
           list:
             source: state_machine.project.list
+            state: empty
             surface: state_machine.project.list.empty
-            view_state: empty
         ref: state_machine.project.board
         signal_sync_rules:
           observed_rules:
           - select_project_updates_state_machines
+        state: ready
         surface: state_machine.project.board.ready
-        view_state: ready
     title: Empty dispatch board
     when:
       open_external_interface:
@@ -384,11 +384,11 @@ behavior_scenarios:
       - command.project.create
       - command.project.submit
       requires:
-        action_bindings:
+        assets: []
+        command_bindings:
         - create
         - submit
-        assets: []
-        data_loaders:
+        query_bindings:
         - list_board
         - list_projects
         surfaces:
@@ -412,7 +412,7 @@ behavior_scenarios:
                 from: $state_machine.workspace_id
             html_region: nav
             id: list
-            initial_view_state: loading
+            initial_state: loading
             state_machine: state_machine.project.list
             textual_container: nav
           - context_bindings:
@@ -420,9 +420,9 @@ behavior_scenarios:
                 from: $state_machine.selected_project_id
             html_region: main
             id: detail
-            initial_view_state: none
+            initial_state: none
             selected:
-              view_state: loading
+              state: loading
               when:
                 context_present: selected_project_id
             state_machine: state_machine.project.detail
@@ -432,9 +432,9 @@ behavior_scenarios:
                 from: $state_machine.selected_project_id
             html_region: aside
             id: activity
-            initial_view_state: empty
+            initial_state: empty
             selected:
-              view_state: ready
+              state: ready
               when:
                 context_present: selected_project_id
             state_machine: state_machine.project.activity
@@ -543,22 +543,22 @@ behavior_scenarios:
         instances:
           activity:
             source: state_machine.project.activity
+            state: empty
             surface: state_machine.project.activity.empty
-            view_state: empty
           detail:
             source: state_machine.project.detail
+            state: none
             surface: state_machine.project.detail.none
-            view_state: none
           list:
             source: state_machine.project.list
+            state: ready
             surface: state_machine.project.list.ready
-            view_state: ready
         ref: state_machine.project.board
         signal_sync_rules:
           observed_rules:
           - select_project_updates_state_machines
+        state: ready
         surface: state_machine.project.board.ready
-        view_state: ready
     title: Ready dispatch board
     when:
       open_external_interface:

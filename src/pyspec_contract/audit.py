@@ -28,13 +28,13 @@ from .targets import (
     external_interface_state_machine_renderer,
     external_interface_adapter_pair,
     external_interface_cli_command,
-    external_interface_input,
+    external_interface_input_mapping,
     external_interface_method,
     external_interface_path,
-    external_interface_response_handlers,
-    external_interface_responses,
+    external_interface_output_response_handlers,
+    external_interface_output_responses,
     external_interface_schedule_expression,
-    external_interface_target_ref_pair,
+    external_interface_invoked_ref_pair,
 )
 from .json_schema import effective_property_schema, schema_properties, type_display
 
@@ -127,12 +127,12 @@ def state_machine_graph_file(state_machine_id: str) -> str:
     return g("audit_evidence", "state_machines", safe_id(state_machine_id), "state_machine.svg")
 
 
-def view_state_root(state_machine_id: str, state_name: str) -> str:
-    return g("audit_evidence", "state_machines", safe_id(state_machine_id), "view_states", safe_id(state_name))
+def state_root(state_machine_id: str, state_name: str) -> str:
+    return g("audit_evidence", "state_machines", safe_id(state_machine_id), "states", safe_id(state_name))
 
 
 def composition_file(state_machine_id: str, state_name: str = "ready") -> str:
-    return g("audit_evidence", "state_machines", safe_id(state_machine_id), "view_states", safe_id(state_name), "composition.svg")
+    return g("audit_evidence", "state_machines", safe_id(state_machine_id), "states", safe_id(state_name), "composition.svg")
 
 
 def external_interface_flow_file(entry_id: str, adapter_kind: str) -> str:
@@ -152,7 +152,7 @@ def audit_coverage_file() -> str:
 
 
 def render_example_root(state_machine_id: str, case_id: str, state_name: str = "ready") -> str:
-    return g("audit_evidence", "state_machines", safe_id(state_machine_id), "view_states", safe_id(state_name), "render_examples", safe_id(case_id))
+    return g("audit_evidence", "state_machines", safe_id(state_machine_id), "states", safe_id(state_name), "render_examples", safe_id(case_id))
 
 
 def _render_filename(profile_id: str, viewport_id: str, extension: str) -> str:
@@ -168,8 +168,8 @@ def _render_filename(profile_id: str, viewport_id: str, extension: str) -> str:
     raise ContractError(f"Unknown audit render extension: {extension}")
 
 
-def view_state_render_file(state_machine_id: str, state_name: str, profile_id: str, viewport_id: str, extension: str) -> str:
-    return _under(view_state_root(state_machine_id, state_name), "renders", _render_filename(profile_id, viewport_id, extension))
+def state_render_file(state_machine_id: str, state_name: str, profile_id: str, viewport_id: str, extension: str) -> str:
+    return _under(state_root(state_machine_id, state_name), "renders", _render_filename(profile_id, viewport_id, extension))
 
 
 def render_example_render_file(state_machine_id: str, case_id: str, profile_id: str, viewport_id: str, extension: str, state_name: str = "ready") -> str:
@@ -177,19 +177,19 @@ def render_example_render_file(state_machine_id: str, case_id: str, profile_id: 
 
 
 def _projection_surface_root(state_machine: dict[str, Any]) -> str:
-    return view_state_root(state_machine["owner"], state_machine["view_state"])
+    return state_root(state_machine["owner"], state_machine["state"])
 
 
 def _projection_surface_file(state_machine: dict[str, Any], profile_id: str, viewport_id: str, extension: str) -> str:
-    return view_state_render_file(state_machine["owner"], state_machine["view_state"], profile_id, viewport_id, extension)
+    return state_render_file(state_machine["owner"], state_machine["state"], profile_id, viewport_id, extension)
 
 
 def _render_example_root(contract: dict[str, Any], case_id: str, case: dict[str, Any]) -> str:
-    return render_example_root(case["state_machine"], case_id, case["view_state"])
+    return render_example_root(case["state_machine"], case_id, case["state"])
 
 
 def _render_example_file(contract: dict[str, Any], case_id: str, case: dict[str, Any], profile_id: str, viewport_id: str, extension: str) -> str:
-    return render_example_render_file(case["state_machine"], case_id, profile_id, viewport_id, extension, case["view_state"])
+    return render_example_render_file(case["state_machine"], case_id, profile_id, viewport_id, extension, case["state"])
 
 
 def _projection_render_surfaces(state_machine: dict[str, Any]) -> set[str]:
@@ -203,7 +203,7 @@ def _projection_render_surfaces(state_machine: dict[str, Any]) -> set[str]:
 
 
 def _render_example_surfaces(contract: dict[str, Any], case: dict[str, Any]) -> set[str]:
-    state = contract["state_machines"][case["state_machine"]]["view_states"][case["view_state"]]
+    state = contract["state_machines"][case["state_machine"]]["states"][case["state"]]
     renderers = state.get("renderers") or {}
     surfaces: set[str] = set()
     if renderers.get("html"):
@@ -253,7 +253,7 @@ def _fixtures_doc(
 
 
 def _state_needs_data(contract: dict[str, Any], state_machine: dict[str, Any]) -> bool:
-    if state_machine.get("data_loaders") or state_machine["slots"].get("fields"):
+    if state_machine.get("query_bindings") or state_machine["slots"].get("fields"):
         return True
     text_refs = state_machine["slots"].get("text", [])
     asset_refs = state_machine["slots"].get("assets", [])
@@ -360,7 +360,7 @@ def _audit_projection_surfaces(contract: dict[str, Any], projection: dict[str, A
     return [
         state_machine
         for state_machine in projection["state_machines"]
-        if not contract["state_machines"][state_machine["owner"]]["view_states"][state_machine["view_state"]].get("child_state_machines")
+        if not contract["state_machines"][state_machine["owner"]]["states"][state_machine["state"]].get("child_state_machines")
     ]
 
 
@@ -369,7 +369,7 @@ def _audit_visual_expected_files(contract: dict[str, Any]) -> set[str]:
     for state_machine_id in contract.get("state_machines", {}):
         files.add(state_machine_graph_file(state_machine_id))
     for state_machine_id, state_machine in contract.get("state_machines", {}).items():
-        for state_name, state in state_machine.get("view_states", {}).items():
+        for state_name, state in state_machine.get("states", {}).items():
             if state.get("child_state_machines"):
                 files.add(composition_file(state_machine_id, state_name))
     for entry_id, entry in contract.get("external_interfaces", {}).items():
@@ -422,7 +422,7 @@ def _audit_visual_evidence_files(contract: dict[str, Any]) -> set[str]:
     for state_machine_id in contract.get("state_machines", {}):
         files.add(state_machine_graph_file(state_machine_id))
     for state_machine_id, state_machine in contract.get("state_machines", {}).items():
-        for state_name, state in state_machine.get("view_states", {}).items():
+        for state_name, state in state_machine.get("states", {}).items():
             if state.get("child_state_machines"):
                 files.add(composition_file(state_machine_id, state_name))
     for entry_id, entry in contract.get("external_interfaces", {}).items():
@@ -615,7 +615,7 @@ def _audit_evidence_for_pointer(contract: dict[str, Any], pointer: str) -> list[
     if parts[0] == "viewport_profiles":
         return _all_render_evidence_files(contract)
     if parts[0] == "state_machines":
-        state_name = parts[3] if len(parts) >= 4 and parts[2] == "view_states" else None
+        state_name = parts[3] if len(parts) >= 4 and parts[2] == "states" else None
         return _state_machine_evidence_files(contract, owner, state_name)
     if parts[0] == "behavior_scenarios":
         return _behavior_scenario_evidence_files(contract, owner)
@@ -776,18 +776,18 @@ def _generic_reference_witness_allowed(parts: list[str], detail_evidence: bool) 
     if parts[0] == "domain_events":
         return detail_evidence
     if parts[0] == "access_policies":
-        if len(parts) >= 3 and parts[2] == "resources":
+        if len(parts) >= 3 and parts[2] == "resource":
             return False
         return detail_evidence
     return False
 
 
 def _state_machine_reference_witness_allowed(parts: list[str]) -> bool:
-    if "view_states" in parts:
-        return any(marker in parts for marker in {"text", "assets", "action_bindings", "child_state_machines", "signal_sync_rules"})
+    if "states" in parts:
+        return any(marker in parts for marker in {"text", "assets", "command_bindings", "child_state_machines", "signal_sync_rules"})
     if "transitions" in parts:
         return parts[-1] in {"data_refresh_signal", "local_signal", "command", "query", "state_machine", "workflow", "domain_event"}
-    if "signals" in parts:
+    if "local_signals" in parts:
         return "local_signals" in parts
     return False
 
@@ -817,18 +817,20 @@ def _access_policy_text_witness_tokens(contract: dict[str, Any], parts: list[str
         return []
     policy_id = parts[1]
     policy = contract.get("access_policies", {}).get(policy_id, {})
-    if parts[2] == "effect" and isinstance(value, str):
-        return ["effect", value]
-    if parts[2] == "subjects" and len(parts) >= 5:
+    if parts[2] in {"effect", "decision"} and isinstance(value, str):
+        return [parts[2], value]
+    if parts[2] == "action" and isinstance(value, str):
+        return ["action", value]
+    if parts[2] == "subject" and len(parts) >= 5:
         if parts[-1] == "kind" and isinstance(value, str):
-            return ["subjects", value]
+            return ["subject", value]
         if parts[-1] == "source" and isinstance(value, str):
-            return ["subjects", _format_flow_source(value)]
-    if parts[2] == "resources" and isinstance(value, str):
+            return ["subject", _format_flow_source(value)]
+    if parts[2] == "resource" and isinstance(value, str):
         return []
-    if parts[2] == "conditions" and len(parts) >= 5:
+    if parts[2] == "rules" and len(parts) >= 5:
         try:
-            condition = policy.get("conditions", [])[int(parts[3])]
+            condition = policy.get("rules", [])[int(parts[3])]
         except (IndexError, TypeError, ValueError):
             return []
         if "entity_state_condition" in condition:
@@ -931,7 +933,7 @@ def _workflow_text_witness_tokens(contract: dict[str, Any], parts: list[str], va
 def _state_machine_text_witness_tokens(contract: dict[str, Any], parts: list[str], value: Any) -> list[str]:
     _ = contract
     tokens: list[str] = []
-    if isinstance(value, str) and "child_state_machines" in parts and parts[-1] in {"html_region", "textual_container", "initial_view_state"}:
+    if isinstance(value, str) and "child_state_machines" in parts and parts[-1] in {"html_region", "textual_container", "initial_state"}:
         tokens.append(value)
     tokens.extend(_type_leaf_text_witness_tokens(contract, parts))
     return tokens
@@ -1024,14 +1026,14 @@ def _state_machine_evidence_files(contract: dict[str, Any], state_machine_id: st
     if not state_machine:
         return []
     files = [state_machine_graph_file(state_machine_id)]
-    states = {state_name: state_machine["view_states"][state_name]} if state_name else state_machine.get("view_states", {})
+    states = {state_name: state_machine["states"][state_name]} if state_name else state_machine.get("states", {})
     projection = state_machines_projection(contract)
     for current_state_name, state in states.items():
         if state.get("child_state_machines"):
             files.append(composition_file(state_machine_id, current_state_name))
-        files.extend(_view_state_render_evidence_files(contract, state_machine_id, current_state_name))
+        files.extend(_state_render_evidence_files(contract, state_machine_id, current_state_name))
         for surface in _audit_projection_surfaces(contract, projection):
-            if surface["owner"] == state_machine_id and surface["view_state"] == current_state_name:
+            if surface["owner"] == state_machine_id and surface["state"] == current_state_name:
                 files.extend(_projection_surface_render_capture_files(contract, surface))
     return files
 
@@ -1041,13 +1043,13 @@ def _operation_evidence_files(contract: dict[str, Any], operation_ref: str) -> l
         return []
     files: list[str] = [operation_flow_file(operation_ref)]
     for entry_id, entry in sorted(contract.get("external_interfaces", {}).items()):
-        target_kind, target_value = external_interface_target_ref_pair(entry)
+        target_kind, target_value = external_interface_invoked_ref_pair(entry)
         if target_kind in {"command", "query"} and target_value == operation_ref:
             files.extend(_external_interface_evidence_files(contract, entry_id))
         elif target_kind == "external_interface":
             delegated = contract.get("external_interfaces", {}).get(target_value)
             if delegated:
-                delegated_target_kind, delegated_target_value = external_interface_target_ref_pair(delegated)
+                delegated_target_kind, delegated_target_value = external_interface_invoked_ref_pair(delegated)
                 if delegated_target_kind in {"command", "query"} and delegated_target_value == operation_ref:
                     files.extend(_external_interface_evidence_files(contract, entry_id))
     for workflow_id, workflow in sorted(contract.get("workflows", {}).items()):
@@ -1080,7 +1082,7 @@ def _event_evidence_files(contract: dict[str, Any], event_id: str) -> list[str]:
     for operation_ref in event.get("emitted_by", []):
         files.extend(_operation_evidence_files(contract, operation_ref))
     for workflow_id, workflow in sorted(contract.get("workflows", {}).items()):
-        if _value_contains_string(workflow.get("trigger", {}), event_id):
+        if _value_contains_string(workflow.get("inputs", {}), event_id):
             files.extend(_workflow_evidence_files(contract, workflow_id))
     for entry_id, entry in sorted(contract.get("external_interfaces", {}).items()):
         if _value_contains_string(entry, event_id):
@@ -1121,7 +1123,7 @@ def _model_evidence_files(contract: dict[str, Any], entity_type_id: str) -> list
         if _value_contains_string(entry, entity_type_id):
             files.extend(_external_interface_evidence_files(contract, entry_id))
     for state_machine_id, state_machine in sorted(contract.get("state_machines", {}).items()):
-        if state_machine.get("entity_type") == entity_type_id or _value_contains_string(state_machine.get("view_states", {}), entity_type_id):
+        if state_machine.get("entity_type") == entity_type_id or _value_contains_string(state_machine.get("states", {}), entity_type_id):
             files.extend(_state_machine_evidence_files(contract, state_machine_id))
     return files
 
@@ -1243,21 +1245,21 @@ def _all_render_evidence_files(contract: dict[str, Any]) -> list[str]:
     files: list[str] = []
     projection = state_machines_projection(contract)
     for surface in _audit_projection_surfaces(contract, projection):
-        files.extend(_view_state_render_evidence_files(contract, surface["owner"], surface["view_state"]))
+        files.extend(_state_render_evidence_files(contract, surface["owner"], surface["state"]))
     for case_id, case in sorted(render_examples(contract).items()):
         files.extend(_render_example_capture_files(contract, case_id, case))
     return _filter_evidence_files(contract, files)
 
 
-def _view_state_render_evidence_files(contract: dict[str, Any], state_machine_id: str, state_name: str) -> list[str]:
+def _state_render_evidence_files(contract: dict[str, Any], state_machine_id: str, state_name: str) -> list[str]:
     files: list[str] = []
     projection = state_machines_projection(contract)
     for surface in _audit_projection_surfaces(contract, projection):
-        if surface["owner"] != state_machine_id or surface["view_state"] != state_name:
+        if surface["owner"] != state_machine_id or surface["state"] != state_name:
             continue
         files.extend(_projection_surface_render_capture_files(contract, surface))
     for case_id, case in sorted(render_examples(contract).items()):
-        if case.get("state_machine") != state_machine_id or case.get("view_state") != state_name:
+        if case.get("state_machine") != state_machine_id or case.get("state") != state_name:
             continue
         files.extend(_render_example_capture_files(contract, case_id, case))
     return _filter_evidence_files(contract, files)
@@ -1345,13 +1347,13 @@ def _render_visual_audit(
         path = root / state_machine_graph_file(state_machine_id)
         _write_graphviz_svg(path, state_machine_dot(state_machine_id, state_machine, contract), _previous_audit_path(root, previous_audit_root, path))
     for state_machine_id, state_machine in sorted(contract.get("state_machines", {}).items()):
-        for state_name, state in sorted(state_machine.get("view_states", {}).items()):
+        for state_name, state in sorted(state_machine.get("states", {}).items()):
             if not state.get("child_state_machines"):
                 continue
             path = root / composition_file(state_machine_id, state_name)
             _write_graphviz_svg(
                 path,
-                composition_dot(f"{state_machine_id}.{state_name}", {"context": state_machine.get("context", {}), **state}, contract),
+                composition_dot(f"{state_machine_id}.{state_name}", {"context_schema": state_machine.get("context_schema", {}), **state}, contract),
                 _previous_audit_path(root, previous_audit_root, path),
             )
     for entry_id, entry in sorted(contract.get("external_interfaces", {}).items()):
@@ -1736,24 +1738,24 @@ async def _render_textual_svg(
 
 def state_machine_dot(state_machine_id: str, state_machine: dict[str, Any], contract: dict[str, Any]) -> str:
     lines = _dot_graph_preamble("state_machine_" + safe_id(state_machine_id))
-    for state_name in sorted(state_machine["view_states"]):
-        state = state_machine["view_states"][state_name]
-        sections = _state_machine_view_state_sections(state_machine, state_name, state, contract)
+    for state_name in sorted(state_machine["states"]):
+        state = state_machine["states"][state_name]
+        sections = _state_machine_state_sections(state_machine, state_name, state, contract)
         lines.append(
             _dot_html_node(
-                _dot_node_id("view_state", state_name),
+                _dot_node_id("state", state_name),
                 _dot_card(
                     state_name,
-                    "initial view state" if state_name == state_machine["initial_view_state"] else "view state",
+                    "initial state" if state_name == state_machine["initial_state"] else "state",
                     sections,
-                    style=_DOT_STYLE_ENTRY if state_name == state_machine["initial_view_state"] else _DOT_STYLE_NEUTRAL,
+                    style=_DOT_STYLE_ENTRY if state_name == state_machine["initial_state"] else _DOT_STYLE_NEUTRAL,
                 ),
             )
         )
     for index, transition in enumerate(state_machine.get("transitions", [])):
-        source = _dot_node_id("view_state", transition["from"])
-        target = _dot_node_id("view_state", transition["to"])
-        transition_label = _signal_label(transition["on"])
+        source = _dot_node_id("state", transition["from"])
+        target = _dot_node_id("state", transition["to"])
+        transition_label = _signal_label(transition["trigger"])
         transition_id = _dot_node_id("transition", f"{index}_{transition['from']}_{transition['to']}_{transition_label}")
         lines.append(
             _dot_html_node(
@@ -1853,10 +1855,10 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
 
 def external_interface_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str, Any]) -> str:
     adapter_kind, _ = external_interface_adapter_pair(entry)
-    target_kind, target_value = external_interface_target_ref_pair(entry)
+    target_kind, target_value = external_interface_invoked_ref_pair(entry)
     target_renderer = external_interface_state_machine_renderer(entry) if target_kind == "state_machine" else None
     entry_node = _dot_node_id("external_interface", entry_id)
-    target_node = _dot_node_id("external_interface_target", target_value)
+    target_node = _dot_node_id("external_interface_invocation", target_value)
     response_nodes = _external_interface_response_nodes(entry_id, entry, contract)
     target_tail = [] if target_kind == "state_machine" else _entry_target_tail_nodes(target_kind, target_value, contract)
     entry_sections = _entry_binding_sections(entry, contract)
@@ -1916,20 +1918,20 @@ def _entry_io_card_titles(adapter_kind: str) -> tuple[str, str]:
 
 
 def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict[str, Any]) -> str:
-    trigger_kind, trigger_value = _target_pair(workflow["trigger"])
-    trigger_node = _dot_node_id("workflow_trigger", f"{trigger_kind}_{trigger_value}")
+    trigger_kind, trigger_value = _target_pair(workflow["inputs"])
+    trigger_node = _dot_node_id("workflow_input", f"{trigger_kind}_{trigger_value}")
     workflow_node = _dot_node_id("workflow", workflow_id)
     step_nodes = [(_dot_node_id("workflow_step", f"{workflow_id}_{step['id']}"), step) for step in workflow["steps"]]
     outcome_nodes = [
         (_dot_node_id("workflow_outcome", f"{workflow_id}_{outcome_id}"), outcome_id, outcome)
-        for outcome_id, outcome in sorted(workflow["outcomes"].items())
+        for outcome_id, outcome in sorted(workflow["outputs"].items())
     ]
     step_node_by_id = {step["id"]: node_id for node_id, step in step_nodes}
     outcome_node_by_id = {outcome_id: node_id for node_id, outcome_id, _ in outcome_nodes}
     lines = _dot_graph_preamble("workflow_" + safe_id(workflow_id))
     lines.extend(
         [
-            _dot_html_node(trigger_node, _workflow_trigger_card(trigger_kind, trigger_value, contract)),
+            _dot_html_node(trigger_node, _workflow_input_card(trigger_kind, trigger_value, contract)),
             _dot_html_node(
                 workflow_node,
                 _dot_card(
@@ -1938,7 +1940,7 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
                     [
                         ("ref", [workflow.get("ref", "")]),
                         ("steps", [f"{step['id']} {_DOT_ARROW_FORWARD} {step['command']}" for step in workflow["steps"]]),
-                        ("outcomes", [_DotTypedField(outcome_id, outcome["result"], outcome["kind"]) for outcome_id, outcome in sorted(workflow["outcomes"].items())]),
+                        ("outcomes", [_DotTypedField(outcome_id, outcome["result"], outcome["kind"]) for outcome_id, outcome in sorted(workflow["outputs"].items())]),
                     ],
                     rationale=workflow.get("rationale", ""),
                     style=_DOT_STYLE_WORKFLOW,
@@ -1954,13 +1956,13 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
     if step_nodes:
         lines.append(_dot_edge(workflow_node, step_nodes[0][0]))
     for node_id, step in step_nodes:
-        for outcome_id, transition in sorted(step["outcome_transitions"].items()):
+        for outcome_id, transition in sorted(step["sequence_flows"].items()):
             attrs = {"label": outcome_id}
-            transition_key, value = _workflow_transition_action(transition)
+            transition_key, value = _workflow_sequence_flow_action(transition)
             if transition_key == "next_step":
                 lines.append(_dot_edge(node_id, step_node_by_id[value], attrs))
             else:
-                outcome = _workflow_transition_outcome(transition_key, value)
+                outcome = _workflow_sequence_flow_outcome(transition_key, value)
                 assert outcome is not None
                 lines.append(_dot_edge(node_id, outcome_node_by_id[outcome], attrs))
     if outcome_nodes:
@@ -1986,10 +1988,13 @@ def operation_flow_dot(operation_ref: str, operation: dict[str, Any], contract: 
         for outcome_id, outcome in sorted(operation.get("outcomes", {}).items())
     ]
     event_nodes: dict[str, str] = {}
-    for _, outcome in sorted(operation.get("outcomes", {}).items()):
-        for emit in outcome.get("emits", []):
-            event_id = emit["domain_event"] if isinstance(emit, dict) else emit
-            event_nodes.setdefault(event_id, _dot_node_id("operation_event", f"{operation_ref}_{event_id}"))
+    emits_by_outcome: dict[str, list[str]] = {}
+    for emit in operation.get("emits_domain_events", []):
+        event_id = emit["domain_event"] if isinstance(emit, dict) else emit
+        outcome_id = emit.get("outcome") if isinstance(emit, dict) else None
+        if outcome_id:
+            emits_by_outcome.setdefault(outcome_id, []).append(event_id)
+        event_nodes.setdefault(event_id, _dot_node_id("operation_event", f"{operation_ref}_{event_id}"))
 
     lines = _dot_graph_preamble("operation_" + safe_id(operation_ref))
     if operation.get("input"):
@@ -2024,8 +2029,7 @@ def operation_flow_dot(operation_ref: str, operation: dict[str, Any], contract: 
             lines.append(_dot_edge(policy_node, node_id, {"label": authorization_failure_label, "color": _DOT_COLOR_POLICY_BORDER}))
         elif flow_tail:
             lines.append(_dot_edge(flow_tail, node_id, {"label": outcome["kind"], "color": _outcome_edge_color(outcome["kind"])}))
-        for emit in outcome.get("emits", []):
-            event_id = emit["domain_event"] if isinstance(emit, dict) else emit
+        for event_id in emits_by_outcome.get(outcome_id, []):
             lines.append(_dot_edge(node_id, event_nodes[event_id], {"label": "emit", "color": _DOT_COLOR_EVENT_BORDER, "penwidth": "1.2"}))
     if outcome_nodes:
         lines.append("  { rank=same; " + " ".join(_dot_quote(node_id) for node_id, _, _ in outcome_nodes) + " }")
@@ -2109,12 +2113,16 @@ def _policy_reference_card(
 ) -> str:
     policy = contract.get("access_policies", {}).get(policy_id, {})
     sections = [("effect", [policy.get("effect", "")])]
-    if policy.get("subjects"):
-        sections.append(("subjects", _format_subjects(policy["subjects"])))
-    if include_resources and policy.get("resources"):
-        sections.append(("resources", _format_authorization_resources(policy["resources"])))
-    if policy.get("conditions"):
-        sections.append(("conditions", _format_conditions(policy["conditions"])))
+    if policy.get("decision"):
+        sections.append(("decision", [policy["decision"]]))
+    if policy.get("subject"):
+        sections.append(("subject", _format_access_policy_subject(policy["subject"])))
+    if policy.get("action"):
+        sections.append(("action", policy["action"]))
+    if include_resources and policy.get("resource"):
+        sections.append(("resource", _format_access_policy_resource(policy["resource"])))
+    if policy.get("rules"):
+        sections.append(("rules", _format_access_policy_rules(policy["rules"])))
     return _dot_card(policy_id, subtitle, sections, rationale=policy.get("rationale", ""), style=_DOT_STYLE_POLICY)
 
 
@@ -2155,7 +2163,7 @@ def _entry_binding_sections(entry: dict[str, Any], contract: dict[str, Any]) -> 
 
 def _entry_input_sections(entry: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
-    entry_input = external_interface_input(entry)
+    entry_input = external_interface_input_mapping(entry)
     if entry_input.get("path_params"):
         sections.append(("path params", _typed_fields(entry_input["path_params"])))
     if entry_input.get("query_params"):
@@ -2166,15 +2174,21 @@ def _entry_input_sections(entry: dict[str, Any], contract: dict[str, Any]) -> li
         sections.append(("args", _typed_fields(entry_input["args"])))
     if entry_input.get("payload"):
         sections.append(("payload", [_DotTypedField("payload", entry_input["payload"])]))
+    invocation_kind, _ = external_interface_invoked_ref_pair(entry)
+    if invocation_kind == "external_interface":
+        for section_name, bindings in sorted((entry_input.get("delegated_input") or {}).items()):
+            sections.append((f"delegated input {section_name}", _format_binding_lines(bindings)))
+    elif entry_input.get("bindings"):
+        sections.append(("input mapping", _format_binding_lines(entry_input["bindings"])))
     return sections
 
 
 def _external_interface_response_nodes(entry_id: str, entry: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, str, str | None, str | None, list[tuple[str, list[object]]]]]:
-    responses = external_interface_responses(entry)
-    handlers = external_interface_response_handlers(entry)
+    responses = external_interface_output_responses(entry)
+    handlers = external_interface_output_response_handlers(entry)
     if not responses and not handlers:
         return []
-    target_kind, target_value = external_interface_target_ref_pair(entry)
+    target_kind, target_value = external_interface_invoked_ref_pair(entry)
     outcomes = _external_interface_response_outcomes(contract, target_kind, target_value)
     nodes = []
     for outcome_id, response in sorted(responses.items()):
@@ -2221,7 +2235,7 @@ def _external_interface_response_outcomes(contract: dict[str, Any], target_kind:
     if target_kind in {"command", "query"}:
         return _operations(contract)[target_value]["outcomes"]
     if target_kind == "external_interface":
-        delegated_kind, delegated_value = external_interface_target_ref_pair(contract["external_interfaces"][target_value])
+        delegated_kind, delegated_value = external_interface_invoked_ref_pair(contract["external_interfaces"][target_value])
         return _external_interface_response_outcomes(contract, delegated_kind, delegated_value)
     return {}
 
@@ -2284,7 +2298,7 @@ def _entry_target_card(
         state_machine = contract["state_machines"][target_value]
         return _dot_card(
             target_value,
-            f"target state machine ({renderer})" if renderer else "target state machine",
+            f"invoked state machine ({renderer})" if renderer else "invoked state machine",
             _state_machine_summary_sections(state_machine, contract),
             rationale=state_machine.get("rationale", ""),
             style=_DOT_STYLE_TARGET,
@@ -2293,7 +2307,7 @@ def _entry_target_card(
         operation = _operations(contract)[target_value]
         return _dot_card(
             target_value,
-            f"target {target_kind}",
+            f"invoked {target_kind}",
             _operation_reference_sections(target_value, operation),
             rationale=operation.get("rationale", ""),
             style=_DOT_STYLE_CAPABILITY,
@@ -2302,11 +2316,11 @@ def _entry_target_card(
         workflow = contract["workflows"][target_value]
         return _dot_card(
             target_value,
-            "target workflow",
+            "invoked workflow",
             [
-                ("trigger", [_target_label(*_target_pair(workflow["trigger"]))]),
+                ("trigger", [_target_label(*_target_pair(workflow["inputs"]))]),
                 ("steps", [f"{step['id']} {_DOT_ARROW_FORWARD} {step['command']}" for step in workflow["steps"]]),
-                ("outcomes", [_DotTypedField(outcome_id, outcome["result"], outcome["kind"]) for outcome_id, outcome in sorted(workflow["outcomes"].items())]),
+                ("outcomes", [_DotTypedField(outcome_id, outcome["result"], outcome["kind"]) for outcome_id, outcome in sorted(workflow["outputs"].items())]),
             ],
             rationale=workflow.get("rationale", ""),
             style=_DOT_STYLE_WORKFLOW,
@@ -2314,10 +2328,10 @@ def _entry_target_card(
     if target_kind == "external_interface":
         delegated = contract["external_interfaces"][target_value]
         adapter_kind, _ = external_interface_adapter_pair(delegated)
-        delegated_target_kind, delegated_target_value = external_interface_target_ref_pair(delegated)
+        delegated_target_kind, delegated_target_value = external_interface_invoked_ref_pair(delegated)
         sections: list[tuple[str, list[object]]] = [
             ("adapter", [adapter_kind]),
-            ("target", [_target_label(delegated_target_kind, delegated_target_value)]),
+            ("invokes", [_target_label(delegated_target_kind, delegated_target_value)]),
         ]
         if delegated_target_kind in {"command", "query"}:
             sections.extend(_operation_reference_sections(delegated_target_value, _operations(contract)[delegated_target_value]))
@@ -2332,7 +2346,7 @@ def _entry_target_card(
         )
     if target_kind == "domain_event":
         return _event_card(target_value, contract)
-    return _dot_card(target_value, f"target {target_kind}", [], style=_DOT_STYLE_NEUTRAL)
+    return _dot_card(target_value, f"invoked {target_kind}", [], style=_DOT_STYLE_NEUTRAL)
 
 
 def _entry_target_tail_nodes(target_kind: str, target_value: str, contract: dict[str, Any]) -> list[tuple[str, str]]:
@@ -2340,92 +2354,92 @@ def _entry_target_tail_nodes(target_kind: str, target_value: str, contract: dict
         return []
     state_machine = contract["state_machines"][target_value]
     nodes: list[tuple[str, str]] = []
-    for state_name, state in sorted(state_machine.get("view_states", {}).items()):
+    for state_name, state in sorted(state_machine.get("states", {}).items()):
         if state.get("child_state_machines"):
             nodes.extend(
                 (_dot_node_id("external_interface_mount", f"{target_value}_{state_name}_{mount['id']}"), _dot_mount_card(mount))
                 for mount in state["child_state_machines"]
             )
         else:
-            nodes.append((_dot_node_id("external_interface_state_machine_view_state", f"{target_value}_{state_name}"), _state_machine_view_state_card(state_machine, state_name, state, contract)))
+            nodes.append((_dot_node_id("external_interface_state_machine_state", f"{target_value}_{state_name}"), _state_machine_state_card(state_machine, state_name, state, contract)))
     return nodes
 
 
 def _state_machine_summary_sections(state_machine: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
-    bindings = _data_loader_bindings(state_machine.get("data_loaders", {}))
+    bindings = _query_binding_bindings(state_machine.get("query_bindings", {}))
     operation_refs = [binding["operation"] for binding in bindings]
     inputs = _format_data_inputs(state_machine, bindings, contract)
-    queries = [binding["data_loader"] for binding in bindings]
+    queries = [binding["query_binding"] for binding in bindings]
     loads = _format_operation_outputs(operation_refs, contract)
     guards = _format_action_access_policies(operation_refs, contract)
     if inputs:
         sections.append(("input", inputs))
     if queries:
-        sections.append(("data_loaders", queries))
+        sections.append(("query_bindings", queries))
     if loads:
         sections.append(("load", loads))
     if guards:
         sections.append(("access_policies", guards))
     sections.append(("entity_type", [state_machine["entity_type"]]))
-    sync_ids = [rule["id"] for state in state_machine.get("view_states", {}).values() for rule in state.get("signal_sync_rules", [])]
+    sync_ids = [rule["id"] for state in state_machine.get("states", {}).values() for rule in state.get("signal_sync_rules", [])]
     if sync_ids:
         sections.append(("signal_sync_rules", sync_ids))
     return sections
 
 
-def _state_machine_view_state_card(state_machine: dict[str, Any], state_name: str, state: dict[str, Any], contract: dict[str, Any]) -> str:
+def _state_machine_state_card(state_machine: dict[str, Any], state_name: str, state: dict[str, Any], contract: dict[str, Any]) -> str:
     return _dot_card(
         state_name,
-        "view state",
-        _state_machine_view_state_sections(state_machine, state_name, state, contract),
+        "state",
+        _state_machine_state_sections(state_machine, state_name, state, contract),
         style=_DOT_STYLE_NEUTRAL,
     )
 
 
-def _state_machine_view_state_sections(
+def _state_machine_state_sections(
     state_machine: dict[str, Any],
     state_name: str,
     state: dict[str, Any],
     contract: dict[str, Any],
 ) -> list[tuple[str, Iterable[object]]]:
-    data_loaders = state.get("data_loaders", {})
-    action_bindings = state.get("action_bindings", {})
-    query_operation_refs = [_invocation_operation_ref(invocation) for invocation in data_loaders.values()]
-    command_refs = [_invocation_operation_ref(invocation) for invocation in action_bindings.values()]
+    query_bindings = state.get("query_bindings", {})
+    command_bindings = state.get("command_bindings", {})
+    query_operation_refs = [_invocation_operation_ref(invocation) for invocation in query_bindings.values()]
+    command_refs = [_invocation_operation_ref(invocation) for invocation in command_bindings.values()]
     return [
         ("text", state.get("text", [])),
         ("assets", state.get("assets", [])),
         (_state_field_section_title(state_machine, state_name, state), _format_state_fields(state_machine, state, contract)),
-        ("data_loaders", _format_action_binding_outputs(data_loaders, contract)),
-        ("action_bindings", _format_action_binding_outputs(action_bindings, contract)),
+        ("query_bindings", _format_command_binding_outputs(query_bindings, contract)),
+        ("command_bindings", _format_command_binding_outputs(command_bindings, contract)),
         ("access_policies", _format_action_access_policies([*query_operation_refs, *command_refs], contract)),
         ("child_state_machines", _format_mounts(state.get("child_state_machines", []))),
         ("signal_sync_rules", [rule["id"] for rule in state.get("signal_sync_rules", [])]),
     ]
 
 
-def _workflow_trigger_card(trigger_kind: str, trigger_value: str, contract: dict[str, Any]) -> str:
+def _workflow_input_card(trigger_kind: str, trigger_value: str, contract: dict[str, Any]) -> str:
     if trigger_kind == "domain_event":
-        return _event_card(trigger_value, contract, subtitle="domain event trigger")
+        return _event_card(trigger_value, contract, subtitle="domain event input")
     if trigger_kind in {"command", "query"}:
         operation = _operations(contract)[trigger_value]
         return _dot_card(
             trigger_value,
-            f"{trigger_kind} trigger",
+            f"{trigger_kind} input",
             _operation_reference_sections(trigger_value, operation),
             rationale=operation.get("rationale", ""),
             style=_DOT_STYLE_EVENT,
         )
-    return _dot_card(trigger_value, f"{trigger_kind} trigger", [], style=_DOT_STYLE_EVENT)
+    return _dot_card(trigger_value, f"{trigger_kind} input", [], style=_DOT_STYLE_EVENT)
 
 
 def _workflow_step_card(step: dict[str, Any], contract: dict[str, Any]) -> str:
     operation = _operations(contract)[step["command"]]
     sections: list[tuple[str, list[object]]] = [
         ("command", [step["command"]]),
-        ("input bindings", _format_binding_lines(step["input_bindings"])),
-        ("transitions", _workflow_transition_lines(step)),
+        ("input mapping", _format_binding_lines(step["input_mapping"])),
+        ("sequence flows", _workflow_sequence_flow_lines(step)),
     ]
     sections.extend(_operation_reference_sections(step["command"], operation))
     return _dot_card(
@@ -2437,31 +2451,31 @@ def _workflow_step_card(step: dict[str, Any], contract: dict[str, Any]) -> str:
     )
 
 
-def _workflow_transition_lines(step: dict[str, Any]) -> list[str]:
+def _workflow_sequence_flow_lines(step: dict[str, Any]) -> list[str]:
     lines: list[str] = []
-    for outcome_id, transition in sorted(step["outcome_transitions"].items()):
-        transition_key, value = _workflow_transition_action(transition)
-        if transition_key == "retry_policy":
-            target = f"retry_policy {_DOT_ARROW_FORWARD} {value['fail_as']}"
+    for outcome_id, sequence_flow in sorted(step["sequence_flows"].items()):
+        sequence_flow_key, value = _workflow_sequence_flow_action(sequence_flow)
+        if sequence_flow_key == "retry_policy":
+            destination = f"retry_policy {_DOT_ARROW_FORWARD} {value['fail_as']}"
             suffix = f" ({value['attempts']} {value['backoff']})"
         else:
-            target = f"{transition_key} {_DOT_ARROW_FORWARD} {value}"
+            destination = f"{sequence_flow_key} {_DOT_ARROW_FORWARD} {value}"
             suffix = ""
-        lines.append(f"{outcome_id}: {target}{suffix}")
+        lines.append(f"{outcome_id}: {destination}{suffix}")
     return lines
 
 
-def _workflow_transition_action(transition: dict[str, Any]) -> tuple[str, Any]:
-    for transition_key in ("next_step", "complete_as", "fail_as", "retry_policy", "dead_letter_as"):
-        if transition_key in transition:
-            return transition_key, transition[transition_key]
-    raise KeyError("workflow transition has no target")
+def _workflow_sequence_flow_action(sequence_flow: dict[str, Any]) -> tuple[str, Any]:
+    for sequence_flow_key in ("next_step", "complete_as", "fail_as", "retry_policy", "dead_letter_as"):
+        if sequence_flow_key in sequence_flow:
+            return sequence_flow_key, sequence_flow[sequence_flow_key]
+    raise KeyError("workflow sequence_flow has no action")
 
 
-def _workflow_transition_outcome(transition_key: str, value: Any) -> str | None:
-    if transition_key in {"complete_as", "fail_as", "dead_letter_as"}:
+def _workflow_sequence_flow_outcome(sequence_flow_key: str, value: Any) -> str | None:
+    if sequence_flow_key in {"complete_as", "fail_as", "dead_letter_as"}:
         return value
-    if transition_key == "retry_policy":
+    if sequence_flow_key == "retry_policy":
         return value["fail_as"]
     return None
 
@@ -2479,7 +2493,7 @@ def _event_card(
     event_id: str,
     contract: dict[str, Any],
     *,
-    subtitle: str = "target domain event",
+    subtitle: str = "referenced domain event",
     mode: _EventCardMode = "reference",
 ) -> str:
     event = contract.get("domain_events", {}).get(event_id, {})
@@ -2513,30 +2527,32 @@ def _access_policy_sections(
     if not policy:
         return sections
     sections.append(("effect", [policy["effect"]]))
-    sections.append(("subjects", _format_subjects(policy.get("subjects", []))))
-    sections.append(("resources", _format_authorization_resources(policy.get("resources", []))))
-    sections.append(("conditions", _format_conditions(policy.get("conditions", []))))
+    sections.append(("decision", [policy["decision"]]))
+    sections.append(("subject", _format_access_policy_subject(policy.get("subject", []))))
+    sections.append(("action", policy.get("action", [])))
+    sections.append(("resource", _format_access_policy_resource(policy.get("resource", []))))
+    sections.append(("rules", _format_access_policy_rules(policy.get("rules", []))))
     return sections
 
 
-def _format_subjects(subjects: Iterable[dict[str, Any]]) -> list[str]:
+def _format_access_policy_subject(subject: Iterable[dict[str, Any]]) -> list[str]:
     lines: list[str] = []
-    for subject in subjects:
-        line = subject["kind"]
-        if subject.get("source"):
-            line = f"{line} {_DOT_ARROW_ASSIGN} {_format_flow_source(subject['source'])}"
+    for subject_item in subject:
+        line = subject_item["kind"]
+        if subject_item.get("source"):
+            line = f"{line} {_DOT_ARROW_ASSIGN} {_format_flow_source(subject_item['source'])}"
         lines.append(line)
     return lines
 
 
-def _format_authorization_resources(resources: Iterable[dict[str, str]]) -> list[str]:
-    return [f"{kind}: {value}" for kind, value in (_target_pair(resource) for resource in resources)]
+def _format_access_policy_resource(resource: Iterable[dict[str, str]]) -> list[str]:
+    return [f"{kind}: {value}" for kind, value in (_target_pair(resource_item) for resource_item in resource)]
 
 
-def _format_conditions(conditions: Iterable[dict[str, Any]]) -> list[str]:
+def _format_access_policy_rules(rules: Iterable[dict[str, Any]]) -> list[str]:
     lines: list[str] = []
-    for condition in conditions:
-        kind, body = _target_pair(condition)
+    for rule in rules:
+        kind, body = _target_pair(rule)
         if kind == "unconditional":
             lines.append(f"unconditional {_format_scalar(body)}")
         elif kind == "input_present":
@@ -2579,7 +2595,7 @@ def _dot_mount_card(mount: dict[str, Any]) -> str:
         f"{placement} mount",
         [
             ("state_machine", [mount["state_machine"]]),
-            ("initial_view_state", [mount["initial_view_state"]]),
+            ("initial_state", [mount["initial_state"]]),
         ],
         style=_DOT_STYLE_STATE_MACHINE,
     )
@@ -2632,7 +2648,7 @@ def _emitted_local_signal_data_lines(
 
 def _sync_set_lines(rule: dict[str, Any], state_machine: dict[str, Any]) -> list[_DotTypedField]:
     lines = []
-    context = schema_properties(state_machine["context"])
+    context = schema_properties(state_machine["context_schema"])
     for effect in rule.get("effects", []):
         assignment = effect.get("set")
         if not assignment:
@@ -2664,7 +2680,7 @@ def _local_signal_payload_for_instance(
 ) -> dict[str, str]:
     mount = mount_by_id[instance_id]
     state_machine = contract["state_machines"][mount["state_machine"]]
-    return schema_properties(state_machine["signals"][direction]["local_signals"][local_signal]["payload_schema"])
+    return schema_properties(state_machine["local_signals"][direction]["local_signals"][local_signal]["payload_schema"])
 
 
 def _emitting_transition_emits(
@@ -2701,7 +2717,7 @@ def _emitting_transition_refs(
         return refs
     for transition in state_machine.get("transitions", []):
         if any(effect.get("emit", {}).get("local_signal") == emitted for effect in transition.get("effects", [])):
-            refs.append(_signal_label(transition["on"]))
+            refs.append(_signal_label(transition["trigger"]))
     return refs
 
 
@@ -2721,7 +2737,7 @@ def _receiving_transition_refs(
         return []
     target_sources: dict[str, list[str]] = {}
     for transition in state_machine.get("transitions", []):
-        if transition["on"] == {"local_signal": local_signal}:
+        if transition["trigger"] == {"local_signal": local_signal}:
             target_sources.setdefault(transition["to"], []).append(transition["from"])
     if len(target_sources) == 1:
         target = next(iter(target_sources))
@@ -2935,7 +2951,7 @@ def _dot_section_inner_rows(title: str, values: Iterable[object]) -> tuple[bool,
 
 def _dot_typed_field_section_inner_rows(title: str, values: list[object]) -> tuple[bool, list[str]]:
     compactable = all(not isinstance(value, _DotExpandedTypedField) for value in values)
-    if compactable and (title in {"input", "output", "payload", "payload_schema", "data_loaders", "set", "load", "action_bindings"}) and len(values) == 1:
+    if compactable and (title in {"input", "output", "payload", "payload_schema", "query_bindings", "set", "load", "command_bindings"}) and len(values) == 1:
         rows = []
         for index, value in enumerate(values):
             if isinstance(value, _DotTypedField):
@@ -3100,17 +3116,17 @@ def _format_transition_sections(
     state_machine: dict[str, Any], transition: dict[str, Any], contract: dict[str, Any]
 ) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
-    if _is_data_refresh_signal(transition["on"]):
+    if _is_data_refresh_signal(transition["trigger"]):
         bindings = _transition_data_bindings(state_machine, transition)
         operation_refs = [binding["operation"] for binding in bindings]
         data_sources = _format_operation_outputs(operation_refs, contract)
         guards = _format_action_access_policies(operation_refs, contract)
-        queries = [binding["data_loader"] for binding in bindings]
+        queries = [binding["query_binding"] for binding in bindings]
         inputs = _format_data_inputs(state_machine, bindings, contract)
         if inputs:
             sections.append(("input", inputs))
         if queries:
-            sections.append(("data_loaders", queries))
+            sections.append(("query_bindings", queries))
         if data_sources:
             sections.append(("load", data_sources))
         if guards:
@@ -3120,12 +3136,12 @@ def _format_transition_sections(
         operation_refs = [binding["operation"] for binding in target_bindings]
         data_sources = _format_operation_outputs(operation_refs, contract)
         guards = _format_action_access_policies(operation_refs, contract)
-        queries = [binding["data_loader"] for binding in target_bindings]
+        queries = [binding["query_binding"] for binding in target_bindings]
         required_context = _format_data_inputs(state_machine, target_bindings, contract)
         if required_context:
             sections.append(("input", required_context))
         if queries:
-            sections.append(("data_loaders", queries))
+            sections.append(("query_bindings", queries))
         if data_sources:
             sections.append(("load", data_sources))
         if guards:
@@ -3135,8 +3151,8 @@ def _format_transition_sections(
 
 
 def _transition_target_data_bindings(state_machine: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
-    target_state = state_machine.get("view_states", {}).get(transition["to"], {})
-    return _data_loader_bindings(target_state.get("data_loaders", {}))
+    target_state = state_machine.get("states", {}).get(transition["to"], {})
+    return _query_binding_bindings(target_state.get("query_bindings", {}))
 
 
 def _state_field_section_title(state_machine: dict[str, Any], state_name: str, state: dict[str, Any]) -> str:
@@ -3152,21 +3168,21 @@ def _state_field_section_title(state_machine: dict[str, Any], state_name: str, s
 
 
 def _state_field_data_bindings(state_machine: dict[str, Any], state_name: str, state: dict[str, Any]) -> list[dict[str, Any]]:
-    bindings = _data_loader_bindings(state.get("data_loaders", {}))
+    bindings = _query_binding_bindings(state.get("query_bindings", {}))
     if bindings:
         return bindings
     incoming_data_bindings: list[dict[str, Any]] = []
     for transition in state_machine.get("transitions", []):
-        if transition["to"] == state_name and _is_data_refresh_signal(transition["on"]):
+        if transition["to"] == state_name and _is_data_refresh_signal(transition["trigger"]):
             incoming_data_bindings.extend(_transition_data_bindings(state_machine, transition))
     if incoming_data_bindings:
         return _unique_data_bindings(incoming_data_bindings)
-    return _data_loader_bindings(state_machine.get("data_loaders", {}))
+    return _query_binding_bindings(state_machine.get("query_bindings", {}))
 
 
 def _format_state_fields(state_machine: dict[str, Any], state: dict[str, Any], contract: dict[str, Any]) -> list[_DotTypedField]:
     entity_type_fields = schema_properties(contract["entity_types"][state_machine["entity_type"]]["schema"]) if state_machine.get("entity_type") else {}
-    context_fields = schema_properties(state_machine.get("context", {}))
+    context_fields = schema_properties(state_machine.get("context_schema", {}))
     fields: list[_DotTypedField] = []
     for field in state["fields"]:
         if field in entity_type_fields:
@@ -3186,7 +3202,7 @@ def _format_operation_outputs(operation_refs: Iterable[str], contract: dict[str,
     return fields
 
 
-def _format_action_binding_outputs(invocations: dict[str, Any], contract: dict[str, Any]) -> list[_DotTypedField]:
+def _format_command_binding_outputs(invocations: dict[str, Any], contract: dict[str, Any]) -> list[_DotTypedField]:
     operation_map = _operations(contract)
     fields: list[_DotTypedField] = []
     for invocation_id, invocation in sorted(invocations.items()):
@@ -3220,7 +3236,7 @@ def _format_data_inputs(
     for binding in bindings:
         operation = operation_map[binding["operation"]]
         for key, input_type in sorted(schema_properties(operation["input"]).items()):
-            input_label = f"{binding.get('data_loader', binding['operation'])}.{key}"
+            input_label = f"{binding.get('query_binding', binding['operation'])}.{key}"
             signature = f"{input_label} {input_type}"
             if signature not in seen:
                 inputs.append(_DotTypedField(input_label, input_type))
@@ -3245,14 +3261,14 @@ def _local_signal_label(local_signal: str) -> str:
 
 
 def _transition_data_bindings(state_machine: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
-    source_state = state_machine.get("view_states", {}).get(transition["from"], {})
-    bindings = source_state.get("data_loaders", {}) or state_machine.get("data_loaders", {})
-    return _data_loader_bindings(bindings)
+    source_state = state_machine.get("states", {}).get(transition["from"], {})
+    bindings = source_state.get("query_bindings", {}) or state_machine.get("query_bindings", {})
+    return _query_binding_bindings(bindings)
 
 
-def _data_loader_bindings(invocations: dict[str, Any]) -> list[dict[str, Any]]:
+def _query_binding_bindings(invocations: dict[str, Any]) -> list[dict[str, Any]]:
     return _unique_data_bindings(
-        {"data_loader": invocation_id, "operation": _invocation_operation_ref(invocation)}
+        {"query_binding": invocation_id, "operation": _invocation_operation_ref(invocation)}
         for invocation_id, invocation in sorted((invocations or {}).items())
     )
 
@@ -3261,7 +3277,7 @@ def _unique_data_bindings(bindings: Iterable[dict[str, Any]]) -> list[dict[str, 
     unique: list[dict[str, Any]] = []
     seen: set[tuple[Any, Any]] = set()
     for binding in bindings:
-        key = (binding["operation"], binding.get("data_loader"))
+        key = (binding["operation"], binding.get("query_binding"))
         if key not in seen:
             unique.append(binding)
             seen.add(key)
@@ -3274,14 +3290,14 @@ def _format_transition_effect_sections(state_machine: dict[str, Any], transition
         if "emit" in effect:
             emit = effect["emit"]
             sections.append(("emit", [_local_signal_label(emit["local_signal"])]))
-            payload_types = schema_properties(state_machine["signals"]["emits"]["local_signals"][emit["local_signal"]]["payload_schema"])
+            payload_types = schema_properties(state_machine["local_signals"]["emits"]["local_signals"][emit["local_signal"]]["payload_schema"])
             payload = _format_typed_data_flow(emit.get("payload_bindings", {}), payload_types)
             if payload:
                 sections.append(("payload", payload))
         elif "set" in effect:
             assignment = effect["set"]
             target = assignment["context"]
-            context = schema_properties(state_machine["context"])
+            context = schema_properties(state_machine["context_schema"])
             sections.append((
                 "set",
                 [_format_typed_flow_assignment(target, context[target], _assignment_value(assignment), identity_scope=None)],
@@ -3357,39 +3373,39 @@ def audit_html_document(
 
 def render_example_html(root: Path, contract: dict[str, Any], case_id: str, case: dict[str, Any]) -> str:
     state_machine = contract["state_machines"][case["state_machine"]]
-    state = state_machine["view_states"][case["view_state"]]
+    state = state_machine["states"][case["state"]]
     if state.get("child_state_machines"):
         return render_composed_example_html(root, contract, case)
     projection = state_machines_projection(contract)
-    state_machine = next(item for item in projection["state_machines"] if item["owner_kind"] == "state_machine" and item["owner"] == case["state_machine"] and item["view_state"] == case["view_state"])
+    state_machine = next(item for item in projection["state_machines"] if item["owner_kind"] == "state_machine" and item["owner"] == case["state_machine"] and item["state"] == case["state"])
     return render_state_machine_audit_html(root, contract, state_machine, case)
 
 
 def render_example_state_machines(contract: dict[str, Any], case: dict[str, Any]) -> list[dict[str, Any]]:
     projection = state_machines_projection(contract)
     state_machine = contract["state_machines"][case["state_machine"]]
-    state = state_machine["view_states"][case["view_state"]]
+    state = state_machine["states"][case["state"]]
     if state.get("child_state_machines"):
         state_machines = []
         for mount in state["child_state_machines"]:
-            state_name = case["instances"][mount["id"]]["view_state"]
-            state_machines.append(next(item for item in projection["state_machines"] if item["owner_kind"] == "state_machine" and item["owner"] == mount["state_machine"] and item["view_state"] == state_name))
+            state_name = case["instances"][mount["id"]]["state"]
+            state_machines.append(next(item for item in projection["state_machines"] if item["owner_kind"] == "state_machine" and item["owner"] == mount["state_machine"] and item["state"] == state_name))
         return state_machines
-    return [next(item for item in projection["state_machines"] if item["owner_kind"] == "state_machine" and item["owner"] == case["state_machine"] and item["view_state"] == case["view_state"])]
+    return [next(item for item in projection["state_machines"] if item["owner_kind"] == "state_machine" and item["owner"] == case["state_machine"] and item["state"] == case["state"])]
 
 
 def _render_example_composition_ids(contract: dict[str, Any], case: dict[str, Any]) -> set[str]:
-    state = contract["state_machines"][case["state_machine"]]["view_states"][case["view_state"]]
+    state = contract["state_machines"][case["state_machine"]]["states"][case["state"]]
     if state.get("child_state_machines"):
-        return {f"{case['state_machine']}.{case['view_state']}"}
+        return {f"{case['state_machine']}.{case['state']}"}
     return set()
 
 
 def render_composed_example_html(root: Path, contract: dict[str, Any], case: dict[str, Any]) -> str:
     state_machine = contract["state_machines"][case["state_machine"]]
-    state = state_machine["view_states"][case["view_state"]]
+    state = state_machine["states"][case["state"]]
     projection = state_machines_projection(contract)
-    composition = next(item for item in projection["compositions"] if item["state_machine"] == case["state_machine"] and item["view_state"] == case["view_state"])
+    composition = next(item for item in projection["compositions"] if item["state_machine"] == case["state_machine"] and item["state"] == case["state"])
     html_layout = renderer_html_layout(composition)
     root_spec = html_layout.get("root") or {"element": "section"}
     tag = root_spec.get("element", "section")
@@ -3406,8 +3422,8 @@ def render_composed_example_html(root: Path, contract: dict[str, Any], case: dic
             region_attrs["role"] = region["role"]
         parts.append(f"<{region_tag}{format_attrs(region_attrs)}>")
         for mount in [item for item in state["child_state_machines"] if item.get("html_region") == region_name]:
-            state_name = case["instances"][mount["id"]]["view_state"]
-            state_machine = next(item for item in projection["state_machines"] if item["owner_kind"] == "state_machine" and item["owner"] == mount["state_machine"] and item["view_state"] == state_name)
+            state_name = case["instances"][mount["id"]]["state"]
+            state_machine = next(item for item in projection["state_machines"] if item["owner_kind"] == "state_machine" and item["owner"] == mount["state_machine"] and item["state"] == state_name)
             parts.append(render_state_machine_audit_html(root, contract, state_machine, case))
         parts.append(f"</{region_tag}>")
     parts.append(f"</{tag}>")
@@ -3422,7 +3438,7 @@ def render_state_machine_audit_html(root: Path, contract: dict[str, Any], state_
     attrs = {
         "class": classes,
         "data-contract-state-machine-surface": state_machine["id"],
-        "data-contract-view-state": state_machine["view_state"],
+        "data-contract-view-state": state_machine["state"],
     }
     if root_spec.get("role") and root_spec["role"] != "none":
         attrs["role"] = root_spec["role"]
@@ -3480,13 +3496,13 @@ def render_html_slot_runtime(root: Path, contract: dict[str, Any], state_machine
         return [f"<{tag}{format_attrs(attrs)} aria-label={html.escape(label, quote=True)!r}></{tag}>"]
     if kind == "literal":
         return [f"<{tag}{format_attrs(attrs)}>{html.escape(str(bind_value))}</{tag}>"]
-    action_binding = bind_value
-    attrs["data-action-binding"] = action_binding
+    command_binding = bind_value
+    attrs["data-action-binding"] = command_binding
     if tag == "a":
         attrs.setdefault("href", "#")
     if tag == "button":
         attrs.setdefault("type", "button")
-    return [f"<{tag}{format_attrs(attrs)}>{html.escape(humanize(action_binding))}</{tag}>"]
+    return [f"<{tag}{format_attrs(attrs)}>{html.escape(humanize(command_binding))}</{tag}>"]
 
 
 def render_html_field_slot(record: dict[str, Any], slot: dict[str, Any]) -> list[str]:
@@ -3518,15 +3534,15 @@ def slot_ref(state_machine: dict[str, Any], kind: str, slot: str) -> str:
 def textual_audit_lines(root: Path, contract: dict[str, Any], case_id: str, case: dict[str, Any]) -> list[tuple[str, str]]:
     projection = state_machines_projection(contract)
     state_machine = contract["state_machines"][case["state_machine"]]
-    state = state_machine["view_states"][case["view_state"]]
+    state = state_machine["states"][case["state"]]
     lines: list[tuple[str, str]] = []
     if state.get("child_state_machines"):
         for mount in state["child_state_machines"]:
-            state_name = case["instances"][mount["id"]]["view_state"]
-            state_machine = next(item for item in projection["state_machines"] if item["owner_kind"] == "state_machine" and item["owner"] == mount["state_machine"] and item["view_state"] == state_name)
+            state_name = case["instances"][mount["id"]]["state"]
+            state_machine = next(item for item in projection["state_machines"] if item["owner_kind"] == "state_machine" and item["owner"] == mount["state_machine"] and item["state"] == state_name)
             lines.extend(state_machine_textual_lines(root, contract, state_machine, case))
     else:
-        state_machine = next(item for item in projection["state_machines"] if item["owner_kind"] == "state_machine" and item["owner"] == case["state_machine"] and item["view_state"] == case["view_state"])
+        state_machine = next(item for item in projection["state_machines"] if item["owner_kind"] == "state_machine" and item["owner"] == case["state_machine"] and item["state"] == case["state"])
         lines.extend(state_machine_textual_lines(root, contract, state_machine, case))
     return lines or [("static", " ")]
 
@@ -3550,7 +3566,7 @@ def state_machine_textual_lines(root: Path, contract: dict[str, Any], state_mach
                 lines.append(("static", resolve_asset_result(root, contract, ref, record, context, namespace).alt or contract["media_assets"][ref]["placeholder"]["label"]))
             elif bind_kind == "field_slot":
                 lines.append(("static", str(record.get(bind_value, "—"))))
-            elif bind_kind == "action_binding":
+            elif bind_kind == "command_binding":
                 lines.append(("button", humanize(bind_value)))
             elif bind_kind == "literal":
                 lines.append(("static", str(bind_value)))
@@ -3568,7 +3584,7 @@ def state_machine_textual_lines(root: Path, contract: dict[str, Any], state_mach
         for record in (records_for_state_machine(contract, state_machine, case)[:4] or [{}]):
             for field in fields:
                 lines.append(("static", f"{humanize(field)}: {record.get(field, '—')}"))
-    for invocation_id in state_machine["slots"]["action_bindings"]:
+    for invocation_id in state_machine["slots"]["command_bindings"]:
         lines.append(("button", humanize(invocation_id)))
     return lines or [("static", " ")]
 
@@ -3606,7 +3622,7 @@ def state_machine_model(contract: dict[str, Any], state_machine: dict[str, Any])
 
 
 def state_machine_owner_context(contract: dict[str, Any], state_machine: dict[str, Any]) -> dict[str, Any]:
-    return schema_properties(contract["state_machines"][state_machine["owner"]].get("context", {}))
+    return schema_properties(contract["state_machines"][state_machine["owner"]].get("context_schema", {}))
 
 
 def _resolved_render_example_context(contract: dict[str, Any], case: dict[str, Any], namespace: dict[str, Any]) -> dict[str, Any]:

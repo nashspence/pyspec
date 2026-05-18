@@ -60,7 +60,7 @@ from .project import (
     textual_screen_entries,
     type_schema,
 )
-from .targets import external_interface_state_machine_name, external_interface_adapter_pair, external_interface_input, external_interface_method, external_interface_path, external_interface_responses, external_interface_target_ref_pair
+from .targets import external_interface_state_machine_name, external_interface_adapter_pair, external_interface_input_mapping, external_interface_method, external_interface_path, external_interface_output_responses, external_interface_invoked_ref_pair
 from .json_schema import sample_value, schema_properties
 
 _HTTP_METHODS = {"get", "put", "post", "delete", "patch", "head", "options", "trace"}
@@ -140,7 +140,7 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
     for entry_id, entry in sorted(contract["external_interfaces"].items()):
         if external_interface_adapter_pair(entry)[0] != "http_api":
             continue
-        target_kind, cap_id = external_interface_target_ref_pair(entry)
+        target_kind, cap_id = external_interface_invoked_ref_pair(entry)
         if target_kind not in {"command", "query"}:
             continue
         method = (external_interface_method(entry) or "").lower()
@@ -171,7 +171,7 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
         unknown_keys = set(operation) - _OPENAPI_OPERATION_KEYS
         if unknown_keys:
             raise ContractError(f"OpenAPI {method.upper()} {path} has unsupported operation keys: {sorted(unknown_keys)}")
-        target_kind, cap_id = external_interface_target_ref_pair(entry)
+        target_kind, cap_id = external_interface_invoked_ref_pair(entry)
         if operation.get("operationId") in seen_operation_ids:
             raise ContractError(f"OpenAPI operationId is duplicated: {operation.get('operationId')}")
         seen_operation_ids.add(operation.get("operationId"))
@@ -189,8 +189,8 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             )
 
         placeholders = _path_params(path)
-        path_params = external_interface_input(entry).get("path_params", {})
-        query_params = external_interface_input(entry).get("query_params", {})
+        path_params = external_interface_input_mapping(entry).get("path_params", {})
+        query_params = external_interface_input_mapping(entry).get("query_params", {})
         if placeholders != set(path_params):
             raise ContractError(f"OpenAPI path params for {entry_id} do not match declared path_params")
         expected_params = [
@@ -203,7 +203,7 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
         if operation.get("parameters", []) != expected_params:
             raise ContractError(f"OpenAPI parameters do not match external-interface path/query params for {entry_id}")
 
-        body_fields = external_interface_input(entry).get("body", {})
+        body_fields = external_interface_input_mapping(entry).get("body", {})
         if body_fields and method not in {"get", "delete"}:
             expected_body = {
                 "required": True,
@@ -219,7 +219,7 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
                 "description": humanize(outcome_id),
                 "content": {"application/json": {"schema": type_schema(response["body"]["type"])}},
             }
-            for outcome_id, response in sorted(external_interface_responses(entry).items())
+            for outcome_id, response in sorted(external_interface_output_responses(entry).items())
         }
         if operation.get("responses") != expected_responses:
             raise ContractError(f"OpenAPI response schema does not match external-interface responses for {entry_id}")
@@ -262,7 +262,7 @@ def validate_asyncapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
 
     expected_operations = {f"send_{safe_id(event_id)}" for event_id in contract["domain_events"]}
     for workflow_id, workflow in contract["workflows"].items():
-        if "domain_event" in workflow["trigger"]:
+        if "domain_event" in workflow["inputs"]:
             expected_operations.add(f"receive_{safe_id(workflow_id)}")
     if set(operations) != expected_operations:
         raise ContractError(_diff_message("AsyncAPI operations", expected_operations, set(operations)))
@@ -299,9 +299,9 @@ def validate_asyncapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             raise ContractError(f"AsyncAPI send operation for {event_id} has wrong emitters")
 
     for workflow_id, workflow in sorted(contract["workflows"].items()):
-        if "domain_event" not in workflow["trigger"]:
+        if "domain_event" not in workflow["inputs"]:
             continue
-        event_id = workflow["trigger"]["domain_event"]
+        event_id = workflow["inputs"]["domain_event"]
         op_id = f"receive_{safe_id(workflow_id)}"
         op = operations[op_id]
         if op.get("action") != "receive":
@@ -324,11 +324,11 @@ def _workflow_entry_dispositions(contract: dict[str, Any], workflow_id: str) -> 
     for entry_id, entry in sorted(contract.get("external_interfaces", {}).items()):
         if external_interface_adapter_pair(entry)[0] not in {"worker", "scheduled"}:
             continue
-        target_kind, target_ref = external_interface_target_ref_pair(entry)
+        target_kind, target_ref = external_interface_invoked_ref_pair(entry)
         if target_kind != "workflow" or target_ref != workflow_id:
             continue
         entry_dispositions = {}
-        for response_id, response in sorted(external_interface_responses(entry).items()):
+        for response_id, response in sorted(external_interface_output_responses(entry).items()):
             projected = dict(response)
             if "problem" in projected:
                 projected["problem"] = type_schema(projected["problem"])
@@ -348,8 +348,8 @@ def validate_routes(contract: dict[str, Any], doc: dict[str, Any]) -> None:
                 "id": entry["route"],
                 "external_interface": entry_id,
                 "path": external_interface_path(entry),
-                "path_params": external_interface_input(entry).get("path_params", {}),
-                "query_params": external_interface_input(entry).get("query_params", {}),
+                "path_params": external_interface_input_mapping(entry).get("path_params", {}),
+                "query_params": external_interface_input_mapping(entry).get("query_params", {}),
                 "state_machine": external_interface_state_machine_name(entry),
             })
     if doc["routes"] != expected:
@@ -369,11 +369,11 @@ def validate_state_machines_json(contract: dict[str, Any], doc: dict[str, Any]) 
     state_machine_ids = [state_machine["id"] for state_machine in doc["state_machines"]]
     if len(state_machine_ids) != len(set(state_machine_ids)):
         raise ContractError("state_machines.json contains duplicate state machine surface ids")
-    expected_pairs = {("state_machine", state_machine_id, state_name) for state_machine_id, state_machine in contract["state_machines"].items() for state_name in state_machine.get("view_states", {})}
-    actual_pairs = {(state_machine["owner_kind"], state_machine["owner"], state_machine["view_state"]) for state_machine in doc["state_machines"]}
+    expected_pairs = {("state_machine", state_machine_id, state_name) for state_machine_id, state_machine in contract["state_machines"].items() for state_name in state_machine.get("states", {})}
+    actual_pairs = {(state_machine["owner_kind"], state_machine["owner"], state_machine["state"]) for state_machine in doc["state_machines"]}
     if actual_pairs != expected_pairs:
         raise ContractError(_diff_message("state machine owner/state pairs", expected_pairs, actual_pairs))
-    expected_compositions = {f"{state_machine_id}.{state_name}" for state_machine_id, state_machine in contract["state_machines"].items() for state_name, state in state_machine.get("view_states", {}).items() if state.get("child_state_machines")}
+    expected_compositions = {f"{state_machine_id}.{state_name}" for state_machine_id, state_machine in contract["state_machines"].items() for state_name, state in state_machine.get("states", {}).items() if state.get("child_state_machines")}
     actual_compositions = {composition["id"] for composition in doc["compositions"]}
     if actual_compositions != expected_compositions:
         raise ContractError(_diff_message("Composed state machine state ids", expected_compositions, actual_compositions))
@@ -554,12 +554,12 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             raise ContractError(f"CWL workflow {workflow_id} has unsupported keys")
         if item.get("class") != "Workflow" or item.get("label") != workflow_id:
             raise ContractError(f"CWL workflow {workflow_id} has wrong class/label")
-        if f"trigger={workflow['trigger']}" not in item.get("doc", "") or f"ref={workflow['ref']}" not in item.get("doc", ""):
-            raise ContractError(f"CWL workflow {workflow_id} doc does not preserve trigger/ref")
-        expected_inputs = {"trigger_payload": {"type": cwl_type(_workflow_trigger_payload_type(contract, workflow))}}
+        if f"inputs={workflow['inputs']}" not in item.get("doc", "") or f"ref={workflow['ref']}" not in item.get("doc", ""):
+            raise ContractError(f"CWL workflow {workflow_id} doc does not preserve inputs/ref")
+        expected_inputs = {"workflow_input_payload": {"type": cwl_type(_workflow_input_payload_type(contract, workflow))}}
         expected_outputs = {
             outcome_id: {"type": cwl_type(outcome["result"])}
-            for outcome_id, outcome in sorted(workflow["outcomes"].items())
+            for outcome_id, outcome in sorted(workflow["outputs"].items())
         }
         if item.get("inputs") != expected_inputs or item.get("outputs") != expected_outputs:
             raise ContractError(f"CWL workflow {workflow_id} inputs/outputs malformed")
@@ -572,9 +572,9 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             if actual.get("run") != run_id or run_id not in by_id:
                 raise ContractError(f"CWL workflow {workflow_id} step {step['id']} references unknown run")
             cap = _operations(contract)[step["command"]]
-            expected_in = {name: _workflow_cwl_source(source) for name, source in sorted(step["input_bindings"].items())}
+            expected_in = {name: _workflow_cwl_source(source) for name, source in sorted(step["input_mapping"].items())}
             expected_out = sorted(cap["outcomes"])
-            expected_doc = f"input_bindings={step['input_bindings']}; outcome_transitions={step['outcome_transitions']}"
+            expected_doc = f"input_mapping={step['input_mapping']}; sequence_flows={step['sequence_flows']}"
             if set(actual) != {"doc", "run", "in", "out"} or actual.get("doc") != expected_doc or actual.get("in") != expected_in or actual.get("out") != expected_out:
                 raise ContractError(f"CWL workflow {workflow_id} step {step['id']} malformed")
 
@@ -602,8 +602,8 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             _validate_cwl_type(parameter["type"], f"CWL operation {cap_id}")
 
 
-def _workflow_trigger_payload_type(contract: dict[str, Any], workflow: dict[str, Any]) -> str:
-    trigger = workflow["trigger"]
+def _workflow_input_payload_type(contract: dict[str, Any], workflow: dict[str, Any]) -> str:
+    trigger = workflow["inputs"]
     if "domain_event" in trigger:
         return contract["domain_events"][trigger["domain_event"]]["payload_schema"]
     operation = _operations(contract)[trigger["command"]]
@@ -622,7 +622,7 @@ def _workflow_cwl_source(source: Any) -> str:
     except BindingExpressionError:
         return source
     if ref.root == "workflow_input" and ref.path[:1] == ("payload",):
-        return "trigger_payload"
+        return "workflow_input_payload"
     if ref.root == "step_outcome" and len(ref.path) >= 3 and ref.path[2] == "result":
         return f"{ref.path[0]}/{ref.path[1]}"
     return source
@@ -685,7 +685,7 @@ def validate_audit_outputs(root: Path, contract: dict[str, Any]) -> None:
     for state_machine_id in contract.get("state_machines", {}):
         _assert_svg(root / state_machine_graph_file(state_machine_id), f"state machine {state_machine_id}")
     for state_machine_id, state_machine in contract.get("state_machines", {}).items():
-        for state_name, state in state_machine.get("view_states", {}).items():
+        for state_name, state in state_machine.get("states", {}).items():
             if state.get("child_state_machines"):
                 _assert_svg(root / composition_file(state_machine_id, state_name), f"composition {state_machine_id}.{state_name}")
     for entry_id, entry in contract.get("external_interfaces", {}).items():
@@ -1036,13 +1036,13 @@ def _expected_textual_compose(state_machine: dict[str, Any]) -> list[tuple[str, 
     result.extend(("Static", key) for key in slots["text"])
     result.extend(("Static", key) for key in slots["assets"])
     result.extend(("Static", key) for key in slots.get("fields", []))
-    result.extend(("Button", invocation_id) for invocation_id in slots["action_bindings"])
+    result.extend(("Button", invocation_id) for invocation_id in slots["command_bindings"])
     return result
 
 
 def _widget_label(widget: dict[str, Any]) -> str:
     binding = widget["binding"]
-    for key in ["text_slot", "asset_slot", "action_binding", "field_slot", "literal"]:
+    for key in ["text_slot", "asset_slot", "command_binding", "field_slot", "literal"]:
         if key in binding:
             return binding[key]
     return widget["id"]
@@ -1059,10 +1059,10 @@ def _textual_selector(state_machine: dict[str, Any], selector: str) -> str:
             if binding.get("text_slot") == slot or binding.get("asset_slot") == slot or binding.get("field_slot") == slot:
                 return "#" + safe_id(widget["id"])
         return "#" + slot
-    if selector.startswith("action_binding."):
-        operation = selector[len("action_binding."):]
+    if selector.startswith("command_binding."):
+        operation = selector[len("command_binding."):]
         for widget in widgets:
-            if widget["binding"].get("action_binding") == operation:
+            if widget["binding"].get("command_binding") == operation:
                 return "#" + safe_id(widget["id"])
         return "#" + safe_id(operation)
     return selector

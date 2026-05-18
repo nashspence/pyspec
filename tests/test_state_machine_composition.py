@@ -23,20 +23,20 @@ def _item(author: dict, section: str, item_id: str) -> dict:
 def test_composed_state_machine_contract_is_closed_and_projected() -> None:
     contract = compile_source(_author())
     list_fsm = contract["state_machines"]["state_machine.project.list"]
-    assert set(list_fsm) == {"entity_type", "context", "data_loaders", "signals", "initial_view_state", "view_states", "transitions", "rationale"}
-    assert list_fsm["initial_view_state"] == "loading"
-    assert set(list_fsm["data_loaders"]) == {"list_projects"}
-    assert list_fsm["data_loaders"]["list_projects"]["query"] == "query.project.list"
-    assert list_fsm["view_states"]["ready"]["fields"] == ["title", "customer", "priority", "status"]
+    assert set(list_fsm) == {"entity_type", "context_schema", "query_bindings", "local_signals", "initial_state", "states", "transitions", "rationale"}
+    assert list_fsm["initial_state"] == "loading"
+    assert set(list_fsm["query_bindings"]) == {"list_projects"}
+    assert list_fsm["query_bindings"]["list_projects"]["query"] == "query.project.list"
+    assert list_fsm["states"]["ready"]["fields"] == ["title", "customer", "priority", "status"]
     detail_fsm = contract["state_machines"]["state_machine.project.detail"]
-    assert detail_fsm["data_loaders"] == {}
-    assert detail_fsm["view_states"]["loading"]["data_loaders"]["read_project"]["query"] == "query.project.read"
-    assert contract["state_machines"]["state_machine.project.activity"]["view_states"]["ready"]["data_loaders"]["read_activity"]["query"] == "query.project.read"
+    assert detail_fsm["query_bindings"] == {}
+    assert detail_fsm["states"]["loading"]["query_bindings"]["read_project"]["query"] == "query.project.read"
+    assert contract["state_machines"]["state_machine.project.activity"]["states"]["ready"]["query_bindings"]["read_activity"]["query"] == "query.project.read"
 
-    state_machine = contract["state_machines"]["state_machine.project.board"]["view_states"]["ready"]
+    state_machine = contract["state_machines"]["state_machine.project.board"]["states"]["ready"]
     assert set(state_machine["renderers"]["html"]["layout"]["regions"]) == {"nav", "main", "aside"}
     assert set(state_machine["renderers"]["textual"]["layout"]["containers"]) == {"nav", "main", "aside"}
-    assert [(item["id"], item["state_machine"], item["html_region"], item["textual_container"], item["initial_view_state"]) for item in state_machine["child_state_machines"]] == [
+    assert [(item["id"], item["state_machine"], item["html_region"], item["textual_container"], item["initial_state"]) for item in state_machine["child_state_machines"]] == [
         ("list", "state_machine.project.list", "nav", "nav", "loading"),
         ("detail", "state_machine.project.detail", "main", "main", "none"),
         ("activity", "state_machine.project.activity", "aside", "aside", "empty"),
@@ -50,7 +50,7 @@ def test_composed_state_machine_contract_is_closed_and_projected() -> None:
 
 def test_state_machine_composition_rejects_unknown_html_region() -> None:
     author = _author()
-    state_machine = _item(author, "state_machines", "state_machine.project.board")["view_states"]["ready"]
+    state_machine = _item(author, "state_machines", "state_machine.project.board")["states"]["ready"]
     state_machine["child_state_machines"][0]["html_region"] = "ghost"
     with pytest.raises(ContractError, match="undeclared HTML region"):
         compile_source(author)
@@ -58,7 +58,7 @@ def test_state_machine_composition_rejects_unknown_html_region() -> None:
 
 def test_state_machine_composition_rejects_context_binding_drift() -> None:
     author = _author()
-    state_machine = _item(author, "state_machines", "state_machine.project.board")["view_states"]["ready"]
+    state_machine = _item(author, "state_machines", "state_machine.project.board")["states"]["ready"]
     del state_machine["child_state_machines"][0]["context_bindings"]["workspace_id"]
     with pytest.raises(ContractError, match="context bindings must satisfy state machine context"):
         compile_source(author)
@@ -66,7 +66,7 @@ def test_state_machine_composition_rejects_context_binding_drift() -> None:
 
 def test_state_machine_composition_rejects_sync_local_signal_not_emitted_by_source_instance() -> None:
     author = _author()
-    state_machine = _item(author, "state_machines", "state_machine.project.board")["view_states"]["ready"]
+    state_machine = _item(author, "state_machines", "state_machine.project.board")["states"]["ready"]
     state_machine["signal_sync_rules"][0]["when"]["local_signal"] = "unannounced"
     with pytest.raises(ContractError, match="sync listens for signal the source does not emit"):
         compile_source(author)
@@ -75,6 +75,6 @@ def test_state_machine_composition_rejects_sync_local_signal_not_emitted_by_sour
 def test_composed_behavior_scenario_rejects_unknown_state_machine_state() -> None:
     author = _author()
     behavior_scenario = _item(author, "behavior_scenarios", "behavior_scenario.project.board.ready")
-    behavior_scenario["then"]["state_machine"]["instances"]["detail"]["view_state"] = "ghost"
-    with pytest.raises(ContractError, match="unknown state machine view state"):
+    behavior_scenario["then"]["state_machine"]["instances"]["detail"]["state"] = "ghost"
+    with pytest.raises(ContractError, match="unknown state machine state"):
         compile_source(author)

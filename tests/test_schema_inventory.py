@@ -85,33 +85,33 @@ STALE_SCHEMA_DEFINITION_NAMES = {
     "entity_type_refs",
     "action_emit_bindings",
     "action_emit_source",
-    "state_name",
     _former_name("state_machine_audit_", "case"),
     "target",
-    "workflow_input_bindings",
+    "workflow_" + "input_" + "bindings",
     "workflow_source",
-    "workflow_trigger_target",
+    "workflow_" + "trigger_target",
 }
 ALLOWED_DUPLICATE_DEFINITION_GROUPS = {
-    frozenset({"instance_id", "view_state_name"}),
+    frozenset({"html_route_adapter", "webhook_adapter"}),
+    frozenset({"instance_id", "state_id"}),
     frozenset({"entity_type_ref", "python_class_name"}),
 }
 ALLOWED_ANY_OF_PATHS_BY_SCHEMA = {
     "author.schema.json": {
         "$defs.authored_child_state_machine.anyOf",
         "$defs.authored_viewport_profile.anyOf",
-        "$defs.resource.properties.action.anyOf",
+        "$defs.authored_access_policy.properties.action.items.anyOf",
         "$defs.schema.properties.anyOf",
         "$defs.state_machine_query_conditional_effect.anyOf",
-        "$defs.state_machine_data_loader_outcome_effect.anyOf",
+        "$defs.state_machine_query_binding_outcome_effect.anyOf",
     },
     "spec.schema.json": {
         "$defs.child_state_machine_item.anyOf",
         "$defs.viewport_profile_item.anyOf",
-        "$defs.resource.properties.action.anyOf",
+        "$defs.access_policy_item.properties.action.items.anyOf",
         "$defs.schema.properties.anyOf",
         "$defs.state_machine_query_conditional_effect.anyOf",
-        "$defs.state_machine_data_loader_outcome_effect.anyOf",
+        "$defs.state_machine_query_binding_outcome_effect.anyOf",
     },
 }
 ALLOWED_ONE_OF_WITHOUT_OBJECT_DISCRIMINATORS = {
@@ -123,7 +123,7 @@ ALLOWED_ONE_OF_WITHOUT_OBJECT_DISCRIMINATORS = {
     "$defs.schema.properties.additionalProperties.oneOf",
     "$defs.schema.properties.oneOf",
     "$defs.schema.properties.type.oneOf",
-    "$defs.state_machine_signals.properties.accepts.propertyNames.oneOf",
+    "$defs.state_machine_local_signals.properties.accepts.propertyNames.oneOf",
     "$defs.state_machine_signal_trigger.oneOf",
     "$defs.then.properties.postconditions.items.oneOf",
 }

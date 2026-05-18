@@ -14,8 +14,8 @@ Authoring scope:
 - Core: fixtures, preconditions, assertions, entity_types, commands, queries, and product behavior scenarios.
 - HTTP: HTTP external interfaces that bind commands or queries to externally visible API operations.
 - Domain events: durable domain events and webhook-facing integration contracts when requested.
-- Workflow: workflows with explicit outcomes, step outcome transitions, CLI target-outcome response handlers, and worker/scheduled ingress responses.
-- UI: state machines with view-state-local layouts, child state machines, render examples, text resources/assets, content examples, and viewport profiles.
+- Workflow: workflows with explicit outcomes, step sequence flows, CLI invoked-outcome response handlers, and worker/scheduled ingress responses.
+- UI: state machines with state-local layouts, child state machines, render examples, text resources/assets, content examples, and viewport profiles.
 - HTML UI: html renderer layout, presentation, style, UI external interfaces, HTML routes, and HTML audit surfaces.
 - Textual UI: Textual presentation, screen projection, and Textual audit surfaces.
 
@@ -26,8 +26,8 @@ Rules:
 - Use behavior-scenario archetypes from `src/pyspec_contract/patterns.yaml`; define every seed fixture explicitly.
 - Entity types are product data entity_types: fields, entity_lifecycle, and invariants only.
 - Use `rationale` only when it preserves non-obvious product intent.
-- For external interfaces, declare one explicit `adapter` (`http_api`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`) and one explicit `target` (`command`, `query`, `state_machine`, `workflow`, or `external_interface`).
-- For state-machine external interfaces, keep invocation and rendering separate with adapter input and target `renderer` (`html` or `textual`).
-- For workflow external interfaces, bind adapter input into the workflow trigger payload with `target.workflow.ref` and `target.workflow.trigger_bindings`.
+- For external interfaces, declare one explicit `adapter` (`http_api`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`) and one explicit `invokes` object (`command`, `query`, `state_machine`, `workflow`, or `external_interface`).
+- For state-machine external interfaces, keep invocation and rendering separate with adapter input and invocation `renderer` (`html` or `textual`).
+- For workflow external interfaces, set `invokes.workflow.ref` and bind adapter input through `input_mapping.bindings`.
 - For rendered screens, put framework-owned `layout`, `presentation`, and `style` under `renderers.html` or `renderers.textual`.
 - Every rendered text or asset ref must be backed by a declared text resource or asset item.

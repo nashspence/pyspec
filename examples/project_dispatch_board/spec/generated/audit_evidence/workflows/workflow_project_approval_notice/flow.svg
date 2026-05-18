@@ -1,16 +1,16 @@
 <svg width="1289pt" height="482pt"
  viewBox="0.00 0.00 1289.00 482.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 407b61760b32b4d3aa44a3a6570af688f4f702222268e7b3b36ef1e5dacf639c -->
+<!-- pyspec-contract-input-sha256: ca362639816bd7a2213592a465ece64505483019337da66016d217eec406a097 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 464)">
 <title>workflow_workflow_project_approval_notice</title>
-<!-- workflow_trigger_domain_event_domain_event_project_approved -->
+<!-- workflow_input_domain_event_domain_event_project_approved -->
 <g id="node1" class="node">
-<title>workflow_trigger_domain_event_domain_event_project_approved</title>
+<title>workflow_input_domain_event_domain_event_project_approved</title>
 <polygon fill="#ffffff" stroke="transparent" points="0,-149.5 0,-253.5 223,-253.5 223,-149.5 0,-149.5"/>
 <polygon fill="#4f46e5" stroke="transparent" points="1.5,-244.5 1.5,-252.5 222.5,-252.5 222.5,-244.5 1.5,-244.5"/>
 <polygon fill="#eef2ff" stroke="transparent" points="1.5,-213.5 1.5,-244.5 222.5,-244.5 222.5,-213.5 1.5,-213.5"/>
 <text text-anchor="start" x="5.5" y="-231.1" font-family="Arial" font-weight="bold" font-size="13.00">domain_event.project.approved</text>
-<text text-anchor="start" x="5.5" y="-220.1" font-family="Arial" font-size="8.00" fill="#64748b">domain event trigger</text>
+<text text-anchor="start" x="5.5" y="-220.1" font-family="Arial" font-size="8.00" fill="#64748b">domain event input</text>
 <text text-anchor="start" x="5.5" y="-202.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approval domain events carry the reviewer and</text>
 <text text-anchor="start" x="5.5" y="-191.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">project identity needed by notification workflows.</text>
 <text text-anchor="start" x="6.5" y="-171.5" font-family="Arial" font-weight="bold" font-size="10.00">payload:</text>
@@ -48,9 +48,9 @@
 <text text-anchor="start" x="459.5" y="-132.5" font-family="Arial" font-size="8.00"> ← failure</text>
 <polygon fill="none" stroke="#a16207" points="286,-123.5 286,-279.5 573,-279.5 573,-123.5 286,-123.5"/>
 </g>
-<!-- workflow_trigger_domain_event_domain_event_project_approved&#45;&gt;workflow_workflow_project_approval_notice -->
+<!-- workflow_input_domain_event_domain_event_project_approved&#45;&gt;workflow_workflow_project_approval_notice -->
 <g id="edge1" class="edge">
-<title>workflow_trigger_domain_event_domain_event_project_approved&#45;&gt;workflow_workflow_project_approval_notice</title>
+<title>workflow_input_domain_event_domain_event_project_approved&#45;&gt;workflow_workflow_project_approval_notice</title>
 <path fill="none" stroke="#3f3f46" d="M223.02,-201.5C240.62,-201.5 259.08,-201.5 277.41,-201.5"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="277.83,-204.3 285.83,-201.5 277.83,-198.7 277.83,-204.3"/>
 </g>
@@ -66,10 +66,10 @@
 <text text-anchor="start" x="641" y="-284.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">downstream coordination.</text>
 <text text-anchor="start" x="642" y="-264.5" font-family="Arial" font-weight="bold" font-size="10.00">command:</text>
 <text text-anchor="start" x="692" y="-264.5" font-family="Arial" font-size="10.00">  command.project.send_approval_notice</text>
-<text text-anchor="start" x="641" y="-244.5" font-family="Arial" font-weight="bold" font-size="10.00">input bindings</text>
+<text text-anchor="start" x="641" y="-244.5" font-family="Arial" font-weight="bold" font-size="10.00">input mapping</text>
 <text text-anchor="start" x="641" y="-232.5" font-family="Arial" font-size="10.00">approved_by ← workflow_input.payload.approved_by</text>
 <text text-anchor="start" x="641" y="-221.5" font-family="Arial" font-size="10.00">project_id ← workflow_input.payload.project_id</text>
-<text text-anchor="start" x="641" y="-203.5" font-family="Arial" font-weight="bold" font-size="10.00">transitions</text>
+<text text-anchor="start" x="641" y="-203.5" font-family="Arial" font-weight="bold" font-size="10.00">sequence flows</text>
 <text text-anchor="start" x="641" y="-191.5" font-family="Arial" font-size="10.00">access_denied: fail_as → notice_access_denied</text>
 <text text-anchor="start" x="641" y="-180.5" font-family="Arial" font-size="10.00">authentication_required: fail_as →</text>
 <text text-anchor="start" x="641" y="-169.5" font-family="Arial" font-size="10.00">notice_authentication_required</text>

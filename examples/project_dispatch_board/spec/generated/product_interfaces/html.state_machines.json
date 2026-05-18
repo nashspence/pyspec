@@ -13,7 +13,7 @@
           },
           "html_region": "nav",
           "id": "list",
-          "initial_view_state": "loading",
+          "initial_state": "loading",
           "state_machine": "state_machine.project.list",
           "textual_container": "nav"
         },
@@ -25,9 +25,9 @@
           },
           "html_region": "main",
           "id": "detail",
-          "initial_view_state": "none",
+          "initial_state": "none",
           "selected": {
-            "view_state": "loading",
+            "state": "loading",
             "when": {
               "context_present": "selected_project_id"
             }
@@ -43,9 +43,9 @@
           },
           "html_region": "aside",
           "id": "activity",
-          "initial_view_state": "empty",
+          "initial_state": "empty",
           "selected": {
-            "view_state": "ready",
+            "state": "ready",
             "when": {
               "context_present": "selected_project_id"
             }
@@ -54,7 +54,7 @@
           "textual_container": "aside"
         }
       ],
-      "context": {
+      "context_schema": {
         "additionalProperties": false,
         "properties": {
           "selected_project_id": {
@@ -236,28 +236,29 @@
           }
         }
       ],
-      "state_machine": "state_machine.project.board",
-      "view_state": "ready"
+      "state": "ready",
+      "state_machine": "state_machine.project.board"
     }
   ],
   "project": "project_dispatch_board",
   "state_machines": [
     {
-      "data_loaders": {},
       "id": "state_machine.project.activity.empty",
       "owner": "state_machine.project.activity",
       "owner_kind": "state_machine",
+      "query_bindings": {},
       "slots": {
-        "action_bindings": {},
         "assets": [],
+        "command_bindings": {},
         "fields": [],
         "text": [
           "text.project.activity.empty.heading",
           "text.project.activity.empty.body"
         ]
       },
+      "state": "empty",
       "state_machine": {
-        "context": {
+        "context_schema": {
           "additionalProperties": false,
           "properties": {
             "project_id": {
@@ -270,14 +271,14 @@
           "required": [],
           "type": "object"
         },
-        "initial_view_state": "empty",
+        "initial_state": "empty",
         "transitions": [
           {
             "from": "empty",
-            "on": {
+            "to": "ready",
+            "trigger": {
               "local_signal": "selection_changed"
-            },
-            "to": "ready"
+            }
           },
           {
             "effects": [
@@ -289,27 +290,21 @@
               }
             ],
             "from": "ready",
-            "on": {
+            "to": "empty",
+            "trigger": {
               "local_signal": "selection_cleared"
-            },
-            "to": "empty"
+            }
           }
         ]
-      },
-      "view_state": "empty"
+      }
     },
     {
-      "data_loaders": {
+      "id": "state_machine.project.activity.ready",
+      "owner": "state_machine.project.activity",
+      "owner_kind": "state_machine",
+      "query_bindings": {
         "read_activity": {
-          "input_bindings": {
-            "project_id": {
-              "from": "$state_context.project_id"
-            }
-          },
-          "load": {
-            "on_enter": true
-          },
-          "outcome_effects": {
+          "effects": {
             "access_denied": {
               "no_local_effect": {
                 "rationale": "The activity panel remains in its current state when authorization blocks the refresh.",
@@ -340,15 +335,20 @@
               }
             }
           },
+          "input_mapping": {
+            "project_id": {
+              "from": "$state_context.project_id"
+            }
+          },
+          "load": {
+            "on_enter": true
+          },
           "query": "query.project.read"
         }
       },
-      "id": "state_machine.project.activity.ready",
-      "owner": "state_machine.project.activity",
-      "owner_kind": "state_machine",
       "slots": {
-        "action_bindings": {},
         "assets": [],
+        "command_bindings": {},
         "fields": [
           "updated_at",
           "status",
@@ -358,8 +358,9 @@
           "text.project.activity.ready.heading"
         ]
       },
+      "state": "ready",
       "state_machine": {
-        "context": {
+        "context_schema": {
           "additionalProperties": false,
           "properties": {
             "project_id": {
@@ -372,14 +373,14 @@
           "required": [],
           "type": "object"
         },
-        "initial_view_state": "empty",
+        "initial_state": "empty",
         "transitions": [
           {
             "from": "empty",
-            "on": {
+            "to": "ready",
+            "trigger": {
               "local_signal": "selection_changed"
-            },
-            "to": "ready"
+            }
           },
           {
             "effects": [
@@ -391,20 +392,19 @@
               }
             ],
             "from": "ready",
-            "on": {
+            "to": "empty",
+            "trigger": {
               "local_signal": "selection_cleared"
-            },
-            "to": "empty"
+            }
           }
         ]
-      },
-      "view_state": "ready"
+      }
     },
     {
-      "data_loaders": {},
       "id": "state_machine.project.board.ready",
       "owner": "state_machine.project.board",
       "owner_kind": "state_machine",
+      "query_bindings": {},
       "renderers": {
         "html": {
           "layout": {
@@ -473,13 +473,14 @@
         }
       },
       "slots": {
-        "action_bindings": {},
         "assets": [],
+        "command_bindings": {},
         "fields": [],
         "text": []
       },
+      "state": "ready",
       "state_machine": {
-        "context": {
+        "context_schema": {
           "additionalProperties": false,
           "properties": {
             "selected_project_id": {
@@ -497,27 +498,27 @@
           ],
           "type": "object"
         },
-        "initial_view_state": "ready",
+        "initial_state": "ready",
         "transitions": []
-      },
-      "view_state": "ready"
+      }
     },
     {
-      "data_loaders": {},
       "id": "state_machine.project.detail.error",
       "owner": "state_machine.project.detail",
       "owner_kind": "state_machine",
+      "query_bindings": {},
       "slots": {
-        "action_bindings": {},
         "assets": [],
+        "command_bindings": {},
         "fields": [],
         "text": [
           "text.project.detail.error.heading",
           "text.project.detail.error.body"
         ]
       },
+      "state": "error",
       "state_machine": {
-        "context": {
+        "context_schema": {
           "additionalProperties": false,
           "properties": {
             "project_id": {
@@ -530,28 +531,28 @@
           "required": [],
           "type": "object"
         },
-        "initial_view_state": "none",
+        "initial_state": "none",
         "transitions": [
           {
             "from": "none",
-            "on": {
+            "to": "loading",
+            "trigger": {
               "local_signal": "selection_changed"
-            },
-            "to": "loading"
+            }
           },
           {
             "from": "loading",
-            "on": {
+            "to": "ready",
+            "trigger": {
               "data_refresh_signal": "project_loaded"
-            },
-            "to": "ready"
+            }
           },
           {
             "from": "loading",
-            "on": {
+            "to": "error",
+            "trigger": {
               "data_refresh_signal": "project_load_failed"
-            },
-            "to": "error"
+            }
           },
           {
             "effects": [
@@ -563,43 +564,37 @@
               }
             ],
             "from": "ready",
-            "on": {
+            "to": "none",
+            "trigger": {
               "local_signal": "selection_cleared"
-            },
-            "to": "none"
-          },
-          {
-            "from": "ready",
-            "on": {
-              "data_refresh_signal": "project_changed"
-            },
-            "rationale": "Detail mutations mark ready-state project data stale and trigger query refresh.",
-            "to": "ready"
-          },
-          {
-            "from": "ready",
-            "on": {
-              "local_signal": "show_transition_not_allowed"
-            },
-            "rationale": "Invalid detail commands move the detail panel into its displayable error state.",
-            "to": "error"
-          }
-        ]
-      },
-      "view_state": "error"
-    },
-    {
-      "data_loaders": {
-        "read_project": {
-          "input_bindings": {
-            "project_id": {
-              "from": "$state_context.project_id"
             }
           },
-          "load": {
-            "on_enter": true
+          {
+            "from": "ready",
+            "rationale": "Detail mutations mark ready-state project data stale and trigger query refresh.",
+            "to": "ready",
+            "trigger": {
+              "data_refresh_signal": "project_changed"
+            }
           },
-          "outcome_effects": {
+          {
+            "from": "ready",
+            "rationale": "Invalid detail commands move the detail panel into its displayable error state.",
+            "to": "error",
+            "trigger": {
+              "local_signal": "show_transition_not_allowed"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "state_machine.project.detail.loading",
+      "owner": "state_machine.project.detail",
+      "owner_kind": "state_machine",
+      "query_bindings": {
+        "read_project": {
+          "effects": {
             "access_denied": {
               "raise": {
                 "data_refresh_signal": "project_load_failed"
@@ -627,22 +622,28 @@
               }
             }
           },
+          "input_mapping": {
+            "project_id": {
+              "from": "$state_context.project_id"
+            }
+          },
+          "load": {
+            "on_enter": true
+          },
           "query": "query.project.read"
         }
       },
-      "id": "state_machine.project.detail.loading",
-      "owner": "state_machine.project.detail",
-      "owner_kind": "state_machine",
       "slots": {
-        "action_bindings": {},
         "assets": [],
+        "command_bindings": {},
         "fields": [],
         "text": [
           "text.project.detail.loading.message"
         ]
       },
+      "state": "loading",
       "state_machine": {
-        "context": {
+        "context_schema": {
           "additionalProperties": false,
           "properties": {
             "project_id": {
@@ -655,28 +656,28 @@
           "required": [],
           "type": "object"
         },
-        "initial_view_state": "none",
+        "initial_state": "none",
         "transitions": [
           {
             "from": "none",
-            "on": {
+            "to": "loading",
+            "trigger": {
               "local_signal": "selection_changed"
-            },
-            "to": "loading"
+            }
           },
           {
             "from": "loading",
-            "on": {
+            "to": "ready",
+            "trigger": {
               "data_refresh_signal": "project_loaded"
-            },
-            "to": "ready"
+            }
           },
           {
             "from": "loading",
-            "on": {
+            "to": "error",
+            "trigger": {
               "data_refresh_signal": "project_load_failed"
-            },
-            "to": "error"
+            }
           },
           {
             "effects": [
@@ -688,47 +689,47 @@
               }
             ],
             "from": "ready",
-            "on": {
+            "to": "none",
+            "trigger": {
               "local_signal": "selection_cleared"
-            },
-            "to": "none"
+            }
           },
           {
             "from": "ready",
-            "on": {
-              "data_refresh_signal": "project_changed"
-            },
             "rationale": "Detail mutations mark ready-state project data stale and trigger query refresh.",
-            "to": "ready"
+            "to": "ready",
+            "trigger": {
+              "data_refresh_signal": "project_changed"
+            }
           },
           {
             "from": "ready",
-            "on": {
-              "local_signal": "show_transition_not_allowed"
-            },
             "rationale": "Invalid detail commands move the detail panel into its displayable error state.",
-            "to": "error"
+            "to": "error",
+            "trigger": {
+              "local_signal": "show_transition_not_allowed"
+            }
           }
         ]
-      },
-      "view_state": "loading"
+      }
     },
     {
-      "data_loaders": {},
       "id": "state_machine.project.detail.none",
       "owner": "state_machine.project.detail",
       "owner_kind": "state_machine",
+      "query_bindings": {},
       "slots": {
-        "action_bindings": {},
         "assets": [],
+        "command_bindings": {},
         "fields": [],
         "text": [
           "text.project.detail.none.heading",
           "text.project.detail.none.body"
         ]
       },
+      "state": "none",
       "state_machine": {
-        "context": {
+        "context_schema": {
           "additionalProperties": false,
           "properties": {
             "project_id": {
@@ -741,28 +742,28 @@
           "required": [],
           "type": "object"
         },
-        "initial_view_state": "none",
+        "initial_state": "none",
         "transitions": [
           {
             "from": "none",
-            "on": {
+            "to": "loading",
+            "trigger": {
               "local_signal": "selection_changed"
-            },
-            "to": "loading"
+            }
           },
           {
             "from": "loading",
-            "on": {
+            "to": "ready",
+            "trigger": {
               "data_refresh_signal": "project_loaded"
-            },
-            "to": "ready"
+            }
           },
           {
             "from": "loading",
-            "on": {
+            "to": "error",
+            "trigger": {
               "data_refresh_signal": "project_load_failed"
-            },
-            "to": "error"
+            }
           },
           {
             "effects": [
@@ -774,48 +775,37 @@
               }
             ],
             "from": "ready",
-            "on": {
+            "to": "none",
+            "trigger": {
               "local_signal": "selection_cleared"
-            },
-            "to": "none"
-          },
-          {
-            "from": "ready",
-            "on": {
-              "data_refresh_signal": "project_changed"
-            },
-            "rationale": "Detail mutations mark ready-state project data stale and trigger query refresh.",
-            "to": "ready"
-          },
-          {
-            "from": "ready",
-            "on": {
-              "local_signal": "show_transition_not_allowed"
-            },
-            "rationale": "Invalid detail commands move the detail panel into its displayable error state.",
-            "to": "error"
-          }
-        ]
-      },
-      "view_state": "none"
-    },
-    {
-      "data_loaders": {
-        "read_project": {
-          "input_bindings": {
-            "project_id": {
-              "from": "$state_context.project_id"
             }
           },
-          "load": {
-            "on_enter": true,
-            "refresh_on": [
-              {
-                "data_refresh_signal": "project_changed"
-              }
-            ]
+          {
+            "from": "ready",
+            "rationale": "Detail mutations mark ready-state project data stale and trigger query refresh.",
+            "to": "ready",
+            "trigger": {
+              "data_refresh_signal": "project_changed"
+            }
           },
-          "outcome_effects": {
+          {
+            "from": "ready",
+            "rationale": "Invalid detail commands move the detail panel into its displayable error state.",
+            "to": "error",
+            "trigger": {
+              "local_signal": "show_transition_not_allowed"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "state_machine.project.detail.ready",
+      "owner": "state_machine.project.detail",
+      "owner_kind": "state_machine",
+      "query_bindings": {
+        "read_project": {
+          "effects": {
             "access_denied": {
               "raise": {
                 "local_signal": "show_transition_not_allowed",
@@ -858,25 +848,30 @@
               }
             }
           },
+          "input_mapping": {
+            "project_id": {
+              "from": "$state_context.project_id"
+            }
+          },
+          "load": {
+            "on_enter": true,
+            "refresh_on": [
+              {
+                "data_refresh_signal": "project_changed"
+              }
+            ]
+          },
           "query": "query.project.read"
         }
       },
-      "id": "state_machine.project.detail.ready",
-      "owner": "state_machine.project.detail",
-      "owner_kind": "state_machine",
       "slots": {
-        "action_bindings": {
+        "assets": [
+          "asset.project.detail.ready.priority_badge"
+        ],
+        "command_bindings": {
           "approve": {
             "command": "command.project.approve",
-            "input_bindings": {
-              "approved_by": {
-                "from": "$principal.id"
-              },
-              "project_id": {
-                "from": "$state_context.project_id"
-              }
-            },
-            "outcome_effects": {
+            "effects": {
               "access_denied": {
                 "no_local_effect": {
                   "rationale": "The response surface keeps the detail panel unchanged for access_denied approval.",
@@ -916,16 +911,19 @@
                   "reason": "handled_by_response_surface"
                 }
               }
+            },
+            "input_mapping": {
+              "approved_by": {
+                "from": "$principal.id"
+              },
+              "project_id": {
+                "from": "$state_context.project_id"
+              }
             }
           },
           "archive": {
             "command": "command.project.archive",
-            "input_bindings": {
-              "project_id": {
-                "from": "$state_context.project_id"
-              }
-            },
-            "outcome_effects": {
+            "effects": {
               "access_denied": {
                 "raise": {
                   "local_signal": "show_transition_not_allowed",
@@ -971,12 +969,14 @@
                   }
                 }
               }
+            },
+            "input_mapping": {
+              "project_id": {
+                "from": "$state_context.project_id"
+              }
             }
           }
         },
-        "assets": [
-          "asset.project.detail.ready.priority_badge"
-        ],
         "fields": [
           "title",
           "customer",
@@ -988,8 +988,9 @@
           "text.project.detail.ready.heading"
         ]
       },
+      "state": "ready",
       "state_machine": {
-        "context": {
+        "context_schema": {
           "additionalProperties": false,
           "properties": {
             "project_id": {
@@ -1002,28 +1003,28 @@
           "required": [],
           "type": "object"
         },
-        "initial_view_state": "none",
+        "initial_state": "none",
         "transitions": [
           {
             "from": "none",
-            "on": {
+            "to": "loading",
+            "trigger": {
               "local_signal": "selection_changed"
-            },
-            "to": "loading"
+            }
           },
           {
             "from": "loading",
-            "on": {
+            "to": "ready",
+            "trigger": {
               "data_refresh_signal": "project_loaded"
-            },
-            "to": "ready"
+            }
           },
           {
             "from": "loading",
-            "on": {
+            "to": "error",
+            "trigger": {
               "data_refresh_signal": "project_load_failed"
-            },
-            "to": "error"
+            }
           },
           {
             "effects": [
@@ -1035,55 +1036,43 @@
               }
             ],
             "from": "ready",
-            "on": {
+            "to": "none",
+            "trigger": {
               "local_signal": "selection_cleared"
-            },
-            "to": "none"
+            }
           },
           {
             "from": "ready",
-            "on": {
-              "data_refresh_signal": "project_changed"
-            },
             "rationale": "Detail mutations mark ready-state project data stale and trigger query refresh.",
-            "to": "ready"
+            "to": "ready",
+            "trigger": {
+              "data_refresh_signal": "project_changed"
+            }
           },
           {
             "from": "ready",
-            "on": {
-              "local_signal": "show_transition_not_allowed"
-            },
             "rationale": "Invalid detail commands move the detail panel into its displayable error state.",
-            "to": "error"
+            "to": "error",
+            "trigger": {
+              "local_signal": "show_transition_not_allowed"
+            }
           }
         ]
-      },
-      "view_state": "ready"
+      }
     },
     {
-      "data_loaders": {},
       "id": "state_machine.project.list.empty",
       "owner": "state_machine.project.list",
       "owner_kind": "state_machine",
+      "query_bindings": {},
       "slots": {
-        "action_bindings": {
+        "assets": [
+          "asset.project.list.empty.illustration"
+        ],
+        "command_bindings": {
           "create": {
             "command": "command.project.create",
-            "input_bindings": {
-              "customer": {
-                "value": "Atlas Foods"
-              },
-              "priority": {
-                "value": "High"
-              },
-              "title": {
-                "value": "Replace rooftop condenser fan"
-              },
-              "workspace_id": {
-                "from": "$state_context.workspace_id"
-              }
-            },
-            "outcome_effects": {
+            "effects": {
               "access_denied": {
                 "no_local_effect": {
                   "rationale": "The response surface keeps the empty list visible for access_denied create.",
@@ -1111,391 +1100,8 @@
                   }
                 }
               }
-            }
-          }
-        },
-        "assets": [
-          "asset.project.list.empty.illustration"
-        ],
-        "fields": [],
-        "text": [
-          "text.project.list.empty.heading",
-          "text.project.list.empty.body"
-        ]
-      },
-      "state_machine": {
-        "context": {
-          "additionalProperties": false,
-          "properties": {
-            "selected_project_id": {
-              "type": [
-                "null",
-                "string"
-              ]
             },
-            "workspace_id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "workspace_id"
-          ],
-          "type": "object"
-        },
-        "initial_view_state": "loading",
-        "transitions": [
-          {
-            "from": "loading",
-            "on": {
-              "data_refresh_signal": "project_collection_empty"
-            },
-            "to": "empty"
-          },
-          {
-            "from": "loading",
-            "on": {
-              "data_refresh_signal": "projects_loaded"
-            },
-            "to": "ready"
-          },
-          {
-            "from": "loading",
-            "on": {
-              "data_refresh_signal": "project_list_failed"
-            },
-            "to": "error"
-          },
-          {
-            "from": "empty",
-            "on": {
-              "data_refresh_signal": "projects_loaded"
-            },
-            "to": "ready"
-          },
-          {
-            "from": "empty",
-            "on": {
-              "data_refresh_signal": "projects_changed"
-            },
-            "rationale": "List mutations invalidate the empty collection and let the list query refresh it.",
-            "to": "empty"
-          },
-          {
-            "from": "empty",
-            "on": {
-              "local_signal": "show_transition_not_allowed"
-            },
-            "rationale": "Invalid create attempts move the list into its displayable error state.",
-            "to": "error"
-          },
-          {
-            "effects": [
-              {
-                "emit": {
-                  "local_signal": "project_selected",
-                  "payload_bindings": {
-                    "project_id": {
-                      "from": "$signal.payload.project_id"
-                    }
-                  }
-                }
-              }
-            ],
-            "from": "ready",
-            "on": {
-              "local_signal": "project_select"
-            },
-            "to": "ready"
-          },
-          {
-            "from": "ready",
-            "on": {
-              "data_refresh_signal": "projects_changed"
-            },
-            "rationale": "List mutations mark ready-state collection data stale and trigger query refresh.",
-            "to": "ready"
-          },
-          {
-            "from": "ready",
-            "on": {
-              "data_refresh_signal": "projects_loaded"
-            },
-            "rationale": "Successful list queries refresh ready-state collection data.",
-            "to": "ready"
-          },
-          {
-            "from": "ready",
-            "on": {
-              "local_signal": "show_transition_not_allowed"
-            },
-            "rationale": "Invalid list queries move the list into its displayable error state.",
-            "to": "error"
-          }
-        ]
-      },
-      "view_state": "empty"
-    },
-    {
-      "data_loaders": {},
-      "id": "state_machine.project.list.error",
-      "owner": "state_machine.project.list",
-      "owner_kind": "state_machine",
-      "slots": {
-        "action_bindings": {},
-        "assets": [],
-        "fields": [],
-        "text": [
-          "text.project.list.error.heading",
-          "text.project.list.error.body"
-        ]
-      },
-      "state_machine": {
-        "context": {
-          "additionalProperties": false,
-          "properties": {
-            "selected_project_id": {
-              "type": [
-                "null",
-                "string"
-              ]
-            },
-            "workspace_id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "workspace_id"
-          ],
-          "type": "object"
-        },
-        "initial_view_state": "loading",
-        "transitions": [
-          {
-            "from": "loading",
-            "on": {
-              "data_refresh_signal": "project_collection_empty"
-            },
-            "to": "empty"
-          },
-          {
-            "from": "loading",
-            "on": {
-              "data_refresh_signal": "projects_loaded"
-            },
-            "to": "ready"
-          },
-          {
-            "from": "loading",
-            "on": {
-              "data_refresh_signal": "project_list_failed"
-            },
-            "to": "error"
-          },
-          {
-            "from": "empty",
-            "on": {
-              "data_refresh_signal": "projects_loaded"
-            },
-            "to": "ready"
-          },
-          {
-            "from": "empty",
-            "on": {
-              "data_refresh_signal": "projects_changed"
-            },
-            "rationale": "List mutations invalidate the empty collection and let the list query refresh it.",
-            "to": "empty"
-          },
-          {
-            "from": "empty",
-            "on": {
-              "local_signal": "show_transition_not_allowed"
-            },
-            "rationale": "Invalid create attempts move the list into its displayable error state.",
-            "to": "error"
-          },
-          {
-            "effects": [
-              {
-                "emit": {
-                  "local_signal": "project_selected",
-                  "payload_bindings": {
-                    "project_id": {
-                      "from": "$signal.payload.project_id"
-                    }
-                  }
-                }
-              }
-            ],
-            "from": "ready",
-            "on": {
-              "local_signal": "project_select"
-            },
-            "to": "ready"
-          },
-          {
-            "from": "ready",
-            "on": {
-              "data_refresh_signal": "projects_changed"
-            },
-            "rationale": "List mutations mark ready-state collection data stale and trigger query refresh.",
-            "to": "ready"
-          },
-          {
-            "from": "ready",
-            "on": {
-              "data_refresh_signal": "projects_loaded"
-            },
-            "rationale": "Successful list queries refresh ready-state collection data.",
-            "to": "ready"
-          },
-          {
-            "from": "ready",
-            "on": {
-              "local_signal": "show_transition_not_allowed"
-            },
-            "rationale": "Invalid list queries move the list into its displayable error state.",
-            "to": "error"
-          }
-        ]
-      },
-      "view_state": "error"
-    },
-    {
-      "data_loaders": {},
-      "id": "state_machine.project.list.loading",
-      "owner": "state_machine.project.list",
-      "owner_kind": "state_machine",
-      "slots": {
-        "action_bindings": {},
-        "assets": [],
-        "fields": [],
-        "text": [
-          "text.project.list.loading.message"
-        ]
-      },
-      "state_machine": {
-        "context": {
-          "additionalProperties": false,
-          "properties": {
-            "selected_project_id": {
-              "type": [
-                "null",
-                "string"
-              ]
-            },
-            "workspace_id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "workspace_id"
-          ],
-          "type": "object"
-        },
-        "initial_view_state": "loading",
-        "transitions": [
-          {
-            "from": "loading",
-            "on": {
-              "data_refresh_signal": "project_collection_empty"
-            },
-            "to": "empty"
-          },
-          {
-            "from": "loading",
-            "on": {
-              "data_refresh_signal": "projects_loaded"
-            },
-            "to": "ready"
-          },
-          {
-            "from": "loading",
-            "on": {
-              "data_refresh_signal": "project_list_failed"
-            },
-            "to": "error"
-          },
-          {
-            "from": "empty",
-            "on": {
-              "data_refresh_signal": "projects_loaded"
-            },
-            "to": "ready"
-          },
-          {
-            "from": "empty",
-            "on": {
-              "data_refresh_signal": "projects_changed"
-            },
-            "rationale": "List mutations invalidate the empty collection and let the list query refresh it.",
-            "to": "empty"
-          },
-          {
-            "from": "empty",
-            "on": {
-              "local_signal": "show_transition_not_allowed"
-            },
-            "rationale": "Invalid create attempts move the list into its displayable error state.",
-            "to": "error"
-          },
-          {
-            "effects": [
-              {
-                "emit": {
-                  "local_signal": "project_selected",
-                  "payload_bindings": {
-                    "project_id": {
-                      "from": "$signal.payload.project_id"
-                    }
-                  }
-                }
-              }
-            ],
-            "from": "ready",
-            "on": {
-              "local_signal": "project_select"
-            },
-            "to": "ready"
-          },
-          {
-            "from": "ready",
-            "on": {
-              "data_refresh_signal": "projects_changed"
-            },
-            "rationale": "List mutations mark ready-state collection data stale and trigger query refresh.",
-            "to": "ready"
-          },
-          {
-            "from": "ready",
-            "on": {
-              "data_refresh_signal": "projects_loaded"
-            },
-            "rationale": "Successful list queries refresh ready-state collection data.",
-            "to": "ready"
-          },
-          {
-            "from": "ready",
-            "on": {
-              "local_signal": "show_transition_not_allowed"
-            },
-            "rationale": "Invalid list queries move the list into its displayable error state.",
-            "to": "error"
-          }
-        ]
-      },
-      "view_state": "loading"
-    },
-    {
-      "data_loaders": {},
-      "id": "state_machine.project.list.ready",
-      "owner": "state_machine.project.list",
-      "owner_kind": "state_machine",
-      "slots": {
-        "action_bindings": {
-          "create": {
-            "command": "command.project.create",
-            "input_bindings": {
+            "input_mapping": {
               "customer": {
                 "value": "Atlas Foods"
               },
@@ -1508,8 +1114,389 @@
               "workspace_id": {
                 "from": "$state_context.workspace_id"
               }
+            }
+          }
+        },
+        "fields": [],
+        "text": [
+          "text.project.list.empty.heading",
+          "text.project.list.empty.body"
+        ]
+      },
+      "state": "empty",
+      "state_machine": {
+        "context_schema": {
+          "additionalProperties": false,
+          "properties": {
+            "selected_project_id": {
+              "type": [
+                "null",
+                "string"
+              ]
             },
-            "outcome_effects": {
+            "workspace_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "workspace_id"
+          ],
+          "type": "object"
+        },
+        "initial_state": "loading",
+        "transitions": [
+          {
+            "from": "loading",
+            "to": "empty",
+            "trigger": {
+              "data_refresh_signal": "project_collection_empty"
+            }
+          },
+          {
+            "from": "loading",
+            "to": "ready",
+            "trigger": {
+              "data_refresh_signal": "projects_loaded"
+            }
+          },
+          {
+            "from": "loading",
+            "to": "error",
+            "trigger": {
+              "data_refresh_signal": "project_list_failed"
+            }
+          },
+          {
+            "from": "empty",
+            "to": "ready",
+            "trigger": {
+              "data_refresh_signal": "projects_loaded"
+            }
+          },
+          {
+            "from": "empty",
+            "rationale": "List mutations invalidate the empty collection and let the list query refresh it.",
+            "to": "empty",
+            "trigger": {
+              "data_refresh_signal": "projects_changed"
+            }
+          },
+          {
+            "from": "empty",
+            "rationale": "Invalid create attempts move the list into its displayable error state.",
+            "to": "error",
+            "trigger": {
+              "local_signal": "show_transition_not_allowed"
+            }
+          },
+          {
+            "effects": [
+              {
+                "emit": {
+                  "local_signal": "project_selected",
+                  "payload_bindings": {
+                    "project_id": {
+                      "from": "$signal.payload.project_id"
+                    }
+                  }
+                }
+              }
+            ],
+            "from": "ready",
+            "to": "ready",
+            "trigger": {
+              "local_signal": "project_select"
+            }
+          },
+          {
+            "from": "ready",
+            "rationale": "List mutations mark ready-state collection data stale and trigger query refresh.",
+            "to": "ready",
+            "trigger": {
+              "data_refresh_signal": "projects_changed"
+            }
+          },
+          {
+            "from": "ready",
+            "rationale": "Successful list queries refresh ready-state collection data.",
+            "to": "ready",
+            "trigger": {
+              "data_refresh_signal": "projects_loaded"
+            }
+          },
+          {
+            "from": "ready",
+            "rationale": "Invalid list queries move the list into its displayable error state.",
+            "to": "error",
+            "trigger": {
+              "local_signal": "show_transition_not_allowed"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "state_machine.project.list.error",
+      "owner": "state_machine.project.list",
+      "owner_kind": "state_machine",
+      "query_bindings": {},
+      "slots": {
+        "assets": [],
+        "command_bindings": {},
+        "fields": [],
+        "text": [
+          "text.project.list.error.heading",
+          "text.project.list.error.body"
+        ]
+      },
+      "state": "error",
+      "state_machine": {
+        "context_schema": {
+          "additionalProperties": false,
+          "properties": {
+            "selected_project_id": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "workspace_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "workspace_id"
+          ],
+          "type": "object"
+        },
+        "initial_state": "loading",
+        "transitions": [
+          {
+            "from": "loading",
+            "to": "empty",
+            "trigger": {
+              "data_refresh_signal": "project_collection_empty"
+            }
+          },
+          {
+            "from": "loading",
+            "to": "ready",
+            "trigger": {
+              "data_refresh_signal": "projects_loaded"
+            }
+          },
+          {
+            "from": "loading",
+            "to": "error",
+            "trigger": {
+              "data_refresh_signal": "project_list_failed"
+            }
+          },
+          {
+            "from": "empty",
+            "to": "ready",
+            "trigger": {
+              "data_refresh_signal": "projects_loaded"
+            }
+          },
+          {
+            "from": "empty",
+            "rationale": "List mutations invalidate the empty collection and let the list query refresh it.",
+            "to": "empty",
+            "trigger": {
+              "data_refresh_signal": "projects_changed"
+            }
+          },
+          {
+            "from": "empty",
+            "rationale": "Invalid create attempts move the list into its displayable error state.",
+            "to": "error",
+            "trigger": {
+              "local_signal": "show_transition_not_allowed"
+            }
+          },
+          {
+            "effects": [
+              {
+                "emit": {
+                  "local_signal": "project_selected",
+                  "payload_bindings": {
+                    "project_id": {
+                      "from": "$signal.payload.project_id"
+                    }
+                  }
+                }
+              }
+            ],
+            "from": "ready",
+            "to": "ready",
+            "trigger": {
+              "local_signal": "project_select"
+            }
+          },
+          {
+            "from": "ready",
+            "rationale": "List mutations mark ready-state collection data stale and trigger query refresh.",
+            "to": "ready",
+            "trigger": {
+              "data_refresh_signal": "projects_changed"
+            }
+          },
+          {
+            "from": "ready",
+            "rationale": "Successful list queries refresh ready-state collection data.",
+            "to": "ready",
+            "trigger": {
+              "data_refresh_signal": "projects_loaded"
+            }
+          },
+          {
+            "from": "ready",
+            "rationale": "Invalid list queries move the list into its displayable error state.",
+            "to": "error",
+            "trigger": {
+              "local_signal": "show_transition_not_allowed"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "state_machine.project.list.loading",
+      "owner": "state_machine.project.list",
+      "owner_kind": "state_machine",
+      "query_bindings": {},
+      "slots": {
+        "assets": [],
+        "command_bindings": {},
+        "fields": [],
+        "text": [
+          "text.project.list.loading.message"
+        ]
+      },
+      "state": "loading",
+      "state_machine": {
+        "context_schema": {
+          "additionalProperties": false,
+          "properties": {
+            "selected_project_id": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "workspace_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "workspace_id"
+          ],
+          "type": "object"
+        },
+        "initial_state": "loading",
+        "transitions": [
+          {
+            "from": "loading",
+            "to": "empty",
+            "trigger": {
+              "data_refresh_signal": "project_collection_empty"
+            }
+          },
+          {
+            "from": "loading",
+            "to": "ready",
+            "trigger": {
+              "data_refresh_signal": "projects_loaded"
+            }
+          },
+          {
+            "from": "loading",
+            "to": "error",
+            "trigger": {
+              "data_refresh_signal": "project_list_failed"
+            }
+          },
+          {
+            "from": "empty",
+            "to": "ready",
+            "trigger": {
+              "data_refresh_signal": "projects_loaded"
+            }
+          },
+          {
+            "from": "empty",
+            "rationale": "List mutations invalidate the empty collection and let the list query refresh it.",
+            "to": "empty",
+            "trigger": {
+              "data_refresh_signal": "projects_changed"
+            }
+          },
+          {
+            "from": "empty",
+            "rationale": "Invalid create attempts move the list into its displayable error state.",
+            "to": "error",
+            "trigger": {
+              "local_signal": "show_transition_not_allowed"
+            }
+          },
+          {
+            "effects": [
+              {
+                "emit": {
+                  "local_signal": "project_selected",
+                  "payload_bindings": {
+                    "project_id": {
+                      "from": "$signal.payload.project_id"
+                    }
+                  }
+                }
+              }
+            ],
+            "from": "ready",
+            "to": "ready",
+            "trigger": {
+              "local_signal": "project_select"
+            }
+          },
+          {
+            "from": "ready",
+            "rationale": "List mutations mark ready-state collection data stale and trigger query refresh.",
+            "to": "ready",
+            "trigger": {
+              "data_refresh_signal": "projects_changed"
+            }
+          },
+          {
+            "from": "ready",
+            "rationale": "Successful list queries refresh ready-state collection data.",
+            "to": "ready",
+            "trigger": {
+              "data_refresh_signal": "projects_loaded"
+            }
+          },
+          {
+            "from": "ready",
+            "rationale": "Invalid list queries move the list into its displayable error state.",
+            "to": "error",
+            "trigger": {
+              "local_signal": "show_transition_not_allowed"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "state_machine.project.list.ready",
+      "owner": "state_machine.project.list",
+      "owner_kind": "state_machine",
+      "query_bindings": {},
+      "slots": {
+        "assets": [],
+        "command_bindings": {
+          "create": {
+            "command": "command.project.create",
+            "effects": {
               "access_denied": {
                 "no_local_effect": {
                   "rationale": "The response surface keeps the ready list visible for access_denied create.",
@@ -1533,16 +1520,25 @@
                   "reason": "handled_by_response_surface"
                 }
               }
+            },
+            "input_mapping": {
+              "customer": {
+                "value": "Atlas Foods"
+              },
+              "priority": {
+                "value": "High"
+              },
+              "title": {
+                "value": "Replace rooftop condenser fan"
+              },
+              "workspace_id": {
+                "from": "$state_context.workspace_id"
+              }
             }
           },
           "submit": {
             "command": "command.project.submit",
-            "input_bindings": {
-              "project_id": {
-                "from": "$state_context.selected_project_id"
-              }
-            },
-            "outcome_effects": {
+            "effects": {
               "access_denied": {
                 "raise": {
                   "local_signal": "show_transition_not_allowed",
@@ -1588,10 +1584,14 @@
                   }
                 }
               }
+            },
+            "input_mapping": {
+              "project_id": {
+                "from": "$state_context.selected_project_id"
+              }
             }
           }
         },
-        "assets": [],
         "fields": [
           "title",
           "customer",
@@ -1602,8 +1602,9 @@
           "text.project.list.ready.heading"
         ]
       },
+      "state": "ready",
       "state_machine": {
-        "context": {
+        "context_schema": {
           "additionalProperties": false,
           "properties": {
             "selected_project_id": {
@@ -1621,51 +1622,51 @@
           ],
           "type": "object"
         },
-        "initial_view_state": "loading",
+        "initial_state": "loading",
         "transitions": [
           {
             "from": "loading",
-            "on": {
+            "to": "empty",
+            "trigger": {
               "data_refresh_signal": "project_collection_empty"
-            },
-            "to": "empty"
+            }
           },
           {
             "from": "loading",
-            "on": {
+            "to": "ready",
+            "trigger": {
               "data_refresh_signal": "projects_loaded"
-            },
-            "to": "ready"
+            }
           },
           {
             "from": "loading",
-            "on": {
+            "to": "error",
+            "trigger": {
               "data_refresh_signal": "project_list_failed"
-            },
-            "to": "error"
+            }
           },
           {
             "from": "empty",
-            "on": {
+            "to": "ready",
+            "trigger": {
               "data_refresh_signal": "projects_loaded"
-            },
-            "to": "ready"
+            }
           },
           {
             "from": "empty",
-            "on": {
-              "data_refresh_signal": "projects_changed"
-            },
             "rationale": "List mutations invalidate the empty collection and let the list query refresh it.",
-            "to": "empty"
+            "to": "empty",
+            "trigger": {
+              "data_refresh_signal": "projects_changed"
+            }
           },
           {
             "from": "empty",
-            "on": {
-              "local_signal": "show_transition_not_allowed"
-            },
             "rationale": "Invalid create attempts move the list into its displayable error state.",
-            "to": "error"
+            "to": "error",
+            "trigger": {
+              "local_signal": "show_transition_not_allowed"
+            }
           },
           {
             "effects": [
@@ -1681,38 +1682,37 @@
               }
             ],
             "from": "ready",
-            "on": {
+            "to": "ready",
+            "trigger": {
               "local_signal": "project_select"
-            },
-            "to": "ready"
+            }
           },
           {
             "from": "ready",
-            "on": {
-              "data_refresh_signal": "projects_changed"
-            },
             "rationale": "List mutations mark ready-state collection data stale and trigger query refresh.",
-            "to": "ready"
+            "to": "ready",
+            "trigger": {
+              "data_refresh_signal": "projects_changed"
+            }
           },
           {
             "from": "ready",
-            "on": {
-              "data_refresh_signal": "projects_loaded"
-            },
             "rationale": "Successful list queries refresh ready-state collection data.",
-            "to": "ready"
+            "to": "ready",
+            "trigger": {
+              "data_refresh_signal": "projects_loaded"
+            }
           },
           {
             "from": "ready",
-            "on": {
-              "local_signal": "show_transition_not_allowed"
-            },
             "rationale": "Invalid list queries move the list into its displayable error state.",
-            "to": "error"
+            "to": "error",
+            "trigger": {
+              "local_signal": "show_transition_not_allowed"
+            }
           }
         ]
-      },
-      "view_state": "ready"
+      }
     }
   ]
 }

@@ -1,59 +1,53 @@
 {
   "access_policies": {
     "access_policy.project.member": {
-      "conditions": [
-        {
-          "subject_has_role": "member"
-        }
+      "action": [
+        "command.project.create",
+        "query.project.list",
+        "query.project.read",
+        "command.project.submit"
       ],
+      "decision": "permit",
       "effect": "permit",
+      "environment": [],
       "rationale": "Workspace members may create, read, list, and submit dispatch projects.",
-      "resources": [
-        {
-          "action": "command.project.create"
-        },
-        {
-          "action": "query.project.list"
-        },
-        {
-          "action": "query.project.read"
-        },
-        {
-          "action": "command.project.submit"
-        },
+      "resource": [
         {
           "entity_type": "entity_type.project"
         }
       ],
-      "subjects": [
+      "rules": [
+        {
+          "subject_has_role": "member"
+        }
+      ],
+      "subject": [
         {
           "kind": "actor"
         }
       ]
     },
     "access_policy.project.reviewer": {
-      "conditions": [
-        {
-          "subject_has_role": "reviewer"
-        }
+      "action": [
+        "command.project.approve",
+        "command.project.archive",
+        "command.project.send_approval_notice"
       ],
+      "decision": "permit",
       "effect": "permit",
+      "environment": [],
       "rationale": "Reviewers may approve, archive, and send approval notices for dispatch projects.",
-      "resources": [
-        {
-          "action": "command.project.approve"
-        },
-        {
-          "action": "command.project.archive"
-        },
-        {
-          "action": "command.project.send_approval_notice"
-        },
+      "resource": [
         {
           "entity_type": "entity_type.project"
         }
       ],
-      "subjects": [
+      "rules": [
+        {
+          "subject_has_role": "reviewer"
+        }
+      ],
+      "subject": [
         {
           "kind": "actor"
         }

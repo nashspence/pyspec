@@ -75,8 +75,8 @@ def test_canonical_textual_contract_imports_and_composes() -> None:
 
 def test_textual_screens_are_driven_by_textual_state_machine_layout() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
-    del author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["renderers"]["textual"]
-    author["external_interfaces"]["external_interface.cli.project.board"]["target"]["state_machine"]["renderer"] = "html"
+    del author["state_machines"]["state_machine.project.board"]["states"]["ready"]["renderers"]["textual"]
+    author["external_interfaces"]["external_interface.cli.project.board"]["invokes"]["state_machine"]["renderer"] = "html"
     contract = compile_source(author)
     projection = state_machines_projection(contract)
     assert textual_screen_entries(contract, projection["state_machines"], projection["compositions"]) == []

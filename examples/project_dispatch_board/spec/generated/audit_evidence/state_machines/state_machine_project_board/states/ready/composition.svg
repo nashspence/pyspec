@@ -1,6 +1,6 @@
 <svg width="1379pt" height="211pt"
  viewBox="0.00 0.00 1379.00 211.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: cc9d90b750458641e840ec54929ef65cb590fb40d21cd551b5e5bebcb5c17ed6 -->
+<!-- pyspec-contract-input-sha256: 859d8a616dbf25a2f963874d7469c051be0dde7805cab1fc83b0239ff440e7d7 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 193)">
 <title>composition_state_machine_project_board_ready</title>
 <!-- child_state_machine_list -->
@@ -13,8 +13,8 @@
 <text text-anchor="start" x="5" y="-90.6" font-family="Arial" font-size="8.00" fill="#64748b">nav mount</text>
 <text text-anchor="start" x="6" y="-72" font-family="Arial" font-weight="bold" font-size="10.00">state_machine:</text>
 <text text-anchor="start" x="76" y="-72" font-family="Arial" font-size="10.00">  state_machine.project.list</text>
-<text text-anchor="start" x="6" y="-60" font-family="Arial" font-weight="bold" font-size="10.00">initial_view_state:</text>
-<text text-anchor="start" x="89" y="-60" font-family="Arial" font-size="10.00">  loading</text>
+<text text-anchor="start" x="6" y="-60" font-family="Arial" font-weight="bold" font-size="10.00">initial_state:</text>
+<text text-anchor="start" x="63" y="-60" font-family="Arial" font-size="10.00">  loading</text>
 <polygon fill="none" stroke="#047857" points="0,-50 0,-124 200,-124 200,-50 0,-50"/>
 </g>
 <!-- local_signal_emit_select_project_updates_state_machines_list_project_selected -->
@@ -48,8 +48,8 @@
 <text text-anchor="start" x="1133.5" y="-141.6" font-family="Arial" font-size="8.00" fill="#64748b">main mount</text>
 <text text-anchor="start" x="1134.5" y="-123" font-family="Arial" font-weight="bold" font-size="10.00">state_machine:</text>
 <text text-anchor="start" x="1204.5" y="-123" font-family="Arial" font-size="10.00">  state_machine.project.detail</text>
-<text text-anchor="start" x="1134.5" y="-111" font-family="Arial" font-weight="bold" font-size="10.00">initial_view_state:</text>
-<text text-anchor="start" x="1217.5" y="-111" font-family="Arial" font-size="10.00">  none</text>
+<text text-anchor="start" x="1134.5" y="-111" font-family="Arial" font-weight="bold" font-size="10.00">initial_state:</text>
+<text text-anchor="start" x="1191.5" y="-111" font-family="Arial" font-size="10.00">  none</text>
 <polygon fill="none" stroke="#047857" points="1128,-101 1128,-175 1339,-175 1339,-101 1128,-101"/>
 </g>
 <!-- child_state_machine_activity -->
@@ -62,8 +62,8 @@
 <text text-anchor="start" x="1129.5" y="-40.6" font-family="Arial" font-size="8.00" fill="#64748b">aside mount</text>
 <text text-anchor="start" x="1130.5" y="-22" font-family="Arial" font-weight="bold" font-size="10.00">state_machine:</text>
 <text text-anchor="start" x="1200.5" y="-22" font-family="Arial" font-size="10.00">  state_machine.project.activity</text>
-<text text-anchor="start" x="1130.5" y="-10" font-family="Arial" font-weight="bold" font-size="10.00">initial_view_state:</text>
-<text text-anchor="start" x="1213.5" y="-10" font-family="Arial" font-size="10.00">  empty</text>
+<text text-anchor="start" x="1130.5" y="-10" font-family="Arial" font-weight="bold" font-size="10.00">initial_state:</text>
+<text text-anchor="start" x="1187.5" y="-10" font-family="Arial" font-size="10.00">  empty</text>
 <polygon fill="none" stroke="#047857" points="1124,0 1124,-74 1343,-74 1343,0 1124,0"/>
 </g>
 <!-- local_signal_sync_select_project_updates_state_machines -->

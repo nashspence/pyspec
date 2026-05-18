@@ -1,38 +1,41 @@
 <svg width="803pt" height="723pt"
  viewBox="0.00 0.00 803.00 723.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 83c50abd5e2e0565bbe599d8ab4c9d009dd5b7ec80f3867c63dc700f85d18bd7 -->
+<!-- pyspec-contract-input-sha256: f757b1ec6ff680c79bb1cce7cc0a87487b6e24e40064e01997f1c095a7f3f665 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 705)">
 <title>external_interface_external_interface_api_project_approve</title>
 <!-- external_interface_external_interface_api_project_approve -->
 <g id="node1" class="node">
 <title>external_interface_external_interface_api_project_approve</title>
-<polygon fill="#ffffff" stroke="transparent" points="0,-261 0,-425 242,-425 242,-261 0,-261"/>
-<polygon fill="#0891b2" stroke="transparent" points="1,-416 1,-424 241,-424 241,-416 1,-416"/>
-<polygon fill="#ecfeff" stroke="transparent" points="1,-385 1,-416 241,-416 241,-385 1,-385"/>
-<text text-anchor="start" x="5" y="-402.6" font-family="Arial" font-weight="bold" font-size="13.00">POST /projects/{project_id}/approve</text>
-<text text-anchor="start" x="5" y="-391.6" font-family="Arial" font-size="8.00" fill="#64748b">http_api external interface</text>
-<text text-anchor="start" x="5" y="-374" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">HTTP endpoint for approving submitted dispatch</text>
-<text text-anchor="start" x="5" y="-363" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">projects.</text>
-<text text-anchor="start" x="6" y="-343" font-family="Arial" font-weight="bold" font-size="10.00">endpoint:</text>
-<text text-anchor="start" x="51" y="-343" font-family="Arial" font-size="10.00">  endpoint.project.approve</text>
-<text text-anchor="start" x="6" y="-331" font-family="Arial" font-weight="bold" font-size="10.00">access_policy:</text>
-<text text-anchor="start" x="75" y="-331" font-family="Arial" font-size="10.00">  access_policy.project.reviewer</text>
-<text text-anchor="start" x="5" y="-311" font-family="Arial" font-weight="bold" font-size="10.00">path params</text>
-<text text-anchor="start" x="5" y="-300" font-family="Arial" font-size="10.00">project_id</text>
-<text text-anchor="start" x="48" y="-300" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
-<text text-anchor="start" x="5" y="-281" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
-<text text-anchor="start" x="5" y="-270" font-family="Arial" font-size="10.00">approved_by</text>
-<text text-anchor="start" x="61" y="-270" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
-<polygon fill="none" stroke="#0891b2" points="0,-261 0,-425 242,-425 242,-261 0,-261"/>
+<polygon fill="#ffffff" stroke="transparent" points="0,-240.5 0,-445.5 242,-445.5 242,-240.5 0,-240.5"/>
+<polygon fill="#0891b2" stroke="transparent" points="1,-436 1,-444 241,-444 241,-436 1,-436"/>
+<polygon fill="#ecfeff" stroke="transparent" points="1,-405 1,-436 241,-436 241,-405 1,-405"/>
+<text text-anchor="start" x="5" y="-422.6" font-family="Arial" font-weight="bold" font-size="13.00">POST /projects/{project_id}/approve</text>
+<text text-anchor="start" x="5" y="-411.6" font-family="Arial" font-size="8.00" fill="#64748b">http_api external interface</text>
+<text text-anchor="start" x="5" y="-394" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">HTTP endpoint for approving submitted dispatch</text>
+<text text-anchor="start" x="5" y="-383" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">projects.</text>
+<text text-anchor="start" x="6" y="-363" font-family="Arial" font-weight="bold" font-size="10.00">endpoint:</text>
+<text text-anchor="start" x="51" y="-363" font-family="Arial" font-size="10.00">  endpoint.project.approve</text>
+<text text-anchor="start" x="6" y="-351" font-family="Arial" font-weight="bold" font-size="10.00">access_policy:</text>
+<text text-anchor="start" x="75" y="-351" font-family="Arial" font-size="10.00">  access_policy.project.reviewer</text>
+<text text-anchor="start" x="5" y="-331" font-family="Arial" font-weight="bold" font-size="10.00">path params</text>
+<text text-anchor="start" x="5" y="-320" font-family="Arial" font-size="10.00">project_id</text>
+<text text-anchor="start" x="48" y="-320" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
+<text text-anchor="start" x="5" y="-301" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
+<text text-anchor="start" x="5" y="-290" font-family="Arial" font-size="10.00">approved_by</text>
+<text text-anchor="start" x="61" y="-290" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
+<text text-anchor="start" x="5" y="-271" font-family="Arial" font-weight="bold" font-size="10.00">input mapping</text>
+<text text-anchor="start" x="5" y="-259" font-family="Arial" font-size="10.00">approved_by ← adapter_input.body.approved_by</text>
+<text text-anchor="start" x="5" y="-248" font-family="Arial" font-size="10.00">project_id ← adapter_input.path_params.project_id</text>
+<polygon fill="none" stroke="#0891b2" points="0,-240.5 0,-445.5 242,-445.5 242,-240.5 0,-240.5"/>
 </g>
-<!-- external_interface_target_command_project_approve -->
+<!-- external_interface_invocation_command_project_approve -->
 <g id="node2" class="node">
-<title>external_interface_target_command_project_approve</title>
+<title>external_interface_invocation_command_project_approve</title>
 <polygon fill="#ffffff" stroke="transparent" points="303,-276.5 303,-409.5 542,-409.5 542,-276.5 303,-276.5"/>
 <polygon fill="#2563eb" stroke="transparent" points="304.5,-400 304.5,-408 541.5,-408 541.5,-400 304.5,-400"/>
 <polygon fill="#eff6ff" stroke="transparent" points="304.5,-369 304.5,-400 541.5,-400 541.5,-369 304.5,-369"/>
 <text text-anchor="start" x="308.5" y="-386.6" font-family="Arial" font-weight="bold" font-size="13.00">command.project.approve</text>
-<text text-anchor="start" x="308.5" y="-375.6" font-family="Arial" font-size="8.00" fill="#64748b">target command</text>
+<text text-anchor="start" x="308.5" y="-375.6" font-family="Arial" font-size="8.00" fill="#64748b">invoked command</text>
 <text text-anchor="start" x="308.5" y="-358" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Reviewers can approve submitted dispatch projects.</text>
 <text text-anchor="start" x="309.5" y="-338" font-family="Arial" font-weight="bold" font-size="10.00">kind:</text>
 <text text-anchor="start" x="333.5" y="-338" font-family="Arial" font-size="10.00">  lifecycle_transition</text>
@@ -42,9 +45,9 @@
 <text text-anchor="start" x="308.5" y="-284" font-family="Arial" font-size="10.00">access_denied_as: access_denied</text>
 <polygon fill="none" stroke="#2563eb" points="303,-276.5 303,-409.5 542,-409.5 542,-276.5 303,-276.5"/>
 </g>
-<!-- external_interface_external_interface_api_project_approve&#45;&gt;external_interface_target_command_project_approve -->
+<!-- external_interface_external_interface_api_project_approve&#45;&gt;external_interface_invocation_command_project_approve -->
 <g id="edge1" class="edge">
-<title>external_interface_external_interface_api_project_approve&#45;&gt;external_interface_target_command_project_approve</title>
+<title>external_interface_external_interface_api_project_approve&#45;&gt;external_interface_invocation_command_project_approve</title>
 <path fill="none" stroke="#3f3f46" d="M242.09,-343C259.29,-343 277.04,-343 294.37,-343"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="294.84,-345.8 302.84,-343 294.84,-340.2 294.84,-345.8"/>
 </g>
@@ -64,9 +67,9 @@
 <text text-anchor="start" x="666" y="-604" font-family="Arial" font-size="8.00"> ← $action_outcome.result</text>
 <polygon fill="none" stroke="#dc2626" points="603.5,-595 603.5,-687 766.5,-687 766.5,-595 603.5,-595"/>
 </g>
-<!-- external_interface_target_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_access_denied -->
+<!-- external_interface_invocation_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_access_denied -->
 <g id="edge2" class="edge">
-<title>external_interface_target_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_access_denied</title>
+<title>external_interface_invocation_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_access_denied</title>
 <path fill="none" stroke="#3f3f46" d="M465.6,-409.57C499.29,-460.01 549.59,-529.37 603,-582 605.51,-584.47 608.13,-586.92 610.82,-589.34"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="609.36,-591.78 617.24,-594.91 613.04,-587.55 609.36,-591.78"/>
 </g>
@@ -86,9 +89,9 @@
 <text text-anchor="start" x="663" y="-485" font-family="Arial" font-size="8.00"> ← $action_outcome.result</text>
 <polygon fill="none" stroke="#16a34a" points="606,-476 606,-568 764,-568 764,-476 606,-476"/>
 </g>
-<!-- external_interface_target_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_approved -->
+<!-- external_interface_invocation_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_approved -->
 <g id="edge3" class="edge">
-<title>external_interface_target_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_approved</title>
+<title>external_interface_invocation_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_approved</title>
 <path fill="none" stroke="#3f3f46" d="M520.5,-409.65C550.23,-430.08 582.44,-452.21 610.34,-471.39"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="608.79,-473.72 616.97,-475.94 611.96,-469.1 608.79,-473.72"/>
 </g>
@@ -108,9 +111,9 @@
 <text text-anchor="start" x="665" y="-366" font-family="Arial" font-size="8.00"> ← $action_outcome.result</text>
 <polygon fill="none" stroke="#dc2626" points="603,-357 603,-449 767,-449 767,-357 603,-357"/>
 </g>
-<!-- external_interface_target_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_authentication_required -->
+<!-- external_interface_invocation_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_authentication_required -->
 <g id="edge4" class="edge">
-<title>external_interface_target_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_authentication_required</title>
+<title>external_interface_invocation_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_authentication_required</title>
 <path fill="none" stroke="#3f3f46" d="M542.32,-370.37C559.96,-374.43 577.88,-378.56 594.78,-382.45"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="594.57,-385.27 602.99,-384.34 595.82,-379.82 594.57,-385.27"/>
 </g>
@@ -130,9 +133,9 @@
 <text text-anchor="start" x="666" y="-247" font-family="Arial" font-size="8.00"> ← $action_outcome.result</text>
 <polygon fill="none" stroke="#dc2626" points="603.5,-238 603.5,-330 766.5,-330 766.5,-238 603.5,-238"/>
 </g>
-<!-- external_interface_target_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_not_found -->
+<!-- external_interface_invocation_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_not_found -->
 <g id="edge5" class="edge">
-<title>external_interface_target_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_not_found</title>
+<title>external_interface_invocation_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_not_found</title>
 <path fill="none" stroke="#3f3f46" d="M542.32,-316.09C560.07,-312.07 578.12,-307.98 595.12,-304.13"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="596.18,-306.76 603.37,-302.26 594.95,-301.3 596.18,-306.76"/>
 </g>
@@ -152,9 +155,9 @@
 <text text-anchor="start" x="666" y="-128" font-family="Arial" font-size="8.00"> ← $action_outcome.result</text>
 <polygon fill="none" stroke="#dc2626" points="603.5,-119 603.5,-211 766.5,-211 766.5,-119 603.5,-119"/>
 </g>
-<!-- external_interface_target_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_transition_not_allowed -->
+<!-- external_interface_invocation_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_transition_not_allowed -->
 <g id="edge6" class="edge">
-<title>external_interface_target_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_transition_not_allowed</title>
+<title>external_interface_invocation_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_transition_not_allowed</title>
 <path fill="none" stroke="#3f3f46" d="M520.87,-276.47C550.18,-256.44 581.87,-234.79 609.45,-215.94"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="611.34,-218.04 616.37,-211.21 608.18,-213.42 611.34,-218.04"/>
 </g>
@@ -174,9 +177,9 @@
 <text text-anchor="start" x="666" y="-9" font-family="Arial" font-size="8.00"> ← $action_outcome.result</text>
 <polygon fill="none" stroke="#dc2626" points="603.5,0 603.5,-92 766.5,-92 766.5,0 603.5,0"/>
 </g>
-<!-- external_interface_target_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_unavailable -->
+<!-- external_interface_invocation_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_unavailable -->
 <g id="edge7" class="edge">
-<title>external_interface_target_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_unavailable</title>
+<title>external_interface_invocation_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_unavailable</title>
 <path fill="none" stroke="#3f3f46" d="M466.35,-276.36C500.15,-226.49 550.26,-158.18 603,-106 605.81,-103.22 608.75,-100.47 611.78,-97.76"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="613.91,-99.61 618.11,-92.25 610.23,-95.39 613.91,-99.61"/>
 </g>
