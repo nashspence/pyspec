@@ -128,13 +128,13 @@ entity_types:
       lifecycle_transitions:
       - from: draft
         to: submitted
-        triggered_by: application_action.project.submit
+        triggered_by: command.project.submit
       - from: submitted
         to: approved
-        triggered_by: application_action.project.approve
+        triggered_by: command.project.approve
       - from: approved
         to: archived
-        triggered_by: application_action.project.archive
+        triggered_by: command.project.archive
     schema:
       type: object
       properties:
@@ -177,41 +177,36 @@ entity_types:
       - updated_at
       - workspace_id
       additionalProperties: false
-authorization_policies:
-  authorization_policy.project.member:
+access_policies:
+  access_policy.project.member:
     subjects:
     - kind: actor
     resources:
-    - action: application_action.project.create
-    - action: application_action.project.list
-    - action: application_action.project.read
-    - action: application_action.project.submit
+    - action: command.project.create
+    - action: query.project.list
+    - action: query.project.read
+    - action: command.project.submit
     - entity_type: entity_type.project
     effect: permit
     conditions:
     - subject_has_role: member
     rationale: Workspace members may create, read, list, and submit dispatch projects.
-  authorization_policy.project.reviewer:
+  access_policy.project.reviewer:
     subjects:
     - kind: actor
     resources:
-    - action: application_action.project.approve
-    - action: application_action.project.archive
-    - action: application_action.project.send_approval_notice
+    - action: command.project.approve
+    - action: command.project.archive
+    - action: command.project.send_approval_notice
     - entity_type: entity_type.project
     effect: permit
     conditions:
     - subject_has_role: reviewer
     rationale: Reviewers may approve, archive, and send approval notices for dispatch projects.
-application_actions:
-  application_action.project.approve:
-    retry_safe: true
+commands:
+  command.project.approve:
     rationale: Reviewers can approve submitted dispatch projects.
-    authorization:
-      policy: authorization_policy.project.reviewer
-      authentication_required_as: authentication_required
-      access_denied_as: access_denied
-    input:
+    input_schema:
       type: object
       properties:
         approved_by:
@@ -222,16 +217,9 @@ application_actions:
       - approved_by
       - project_id
       additionalProperties: false
-    action_kind: lifecycle_transition
+    effects: {}
     outcomes:
       approved:
-        emits:
-        - domain_event: domain_event.project.approved
-          payload_bindings:
-            approved_by:
-              from: $operation_input.approved_by
-            project_id:
-              from: $operation_input.project_id
         kind: success
         result:
           $ref: entity_type.project
@@ -255,13 +243,22 @@ application_actions:
         kind: failure
         result:
           $ref: entity_type.problem
-  application_action.project.archive:
-    rationale: Approved dispatch projects can be archived.
+    emits_domain_events:
+    - domain_event: domain_event.project.approved
+      payload_bindings:
+        approved_by:
+          from: $operation_input.approved_by
+        project_id:
+          from: $operation_input.project_id
+      outcome: approved
     authorization:
-      policy: authorization_policy.project.reviewer
+      policy: access_policy.project.reviewer
       authentication_required_as: authentication_required
       access_denied_as: access_denied
-    input:
+    retry_safe: true
+  command.project.archive:
+    rationale: Approved dispatch projects can be archived.
+    input_schema:
       type: object
       properties:
         project_id:
@@ -269,12 +266,9 @@ application_actions:
       required:
       - project_id
       additionalProperties: false
-    action_kind: lifecycle_transition
+    effects: {}
     outcomes:
       archived:
-        emits:
-        - domain_event: domain_event.project.archived
-          payload_source: $action_outcome.result
         kind: success
         result:
           $ref: entity_type.project
@@ -294,15 +288,17 @@ application_actions:
         kind: failure
         result:
           $ref: entity_type.problem
-  application_action.project.create:
-    rationale: Members can create a new dispatch project.
+    emits_domain_events:
+    - domain_event: domain_event.project.archived
+      payload_source: $action_outcome.result
+      outcome: archived
     authorization:
-      policy: authorization_policy.project.member
+      policy: access_policy.project.reviewer
       authentication_required_as: authentication_required
       access_denied_as: access_denied
-    creates:
-    - entity_type.project
-    input:
+  command.project.create:
+    rationale: Members can create a new dispatch project.
+    input_schema:
       type: object
       properties:
         customer:
@@ -319,12 +315,11 @@ application_actions:
       - title
       - workspace_id
       additionalProperties: false
-    action_kind: command
+    effects:
+      creates:
+      - entity_type.project
     outcomes:
       created:
-        emits:
-        - domain_event: domain_event.project.created
-          payload_source: $action_outcome.result
         kind: success
         result:
           $ref: entity_type.project
@@ -340,13 +335,95 @@ application_actions:
         kind: failure
         result:
           $ref: entity_type.problem
-  application_action.project.list:
-    rationale: The board requires a project list query scoped by workspace.
+    emits_domain_events:
+    - domain_event: domain_event.project.created
+      payload_source: $action_outcome.result
+      outcome: created
     authorization:
-      policy: authorization_policy.project.member
+      policy: access_policy.project.member
       authentication_required_as: authentication_required
       access_denied_as: access_denied
-    input:
+  command.project.send_approval_notice:
+    rationale: Approval triggers a notification command for downstream coordination.
+    input_schema:
+      type: object
+      properties:
+        approved_by:
+          type: string
+        project_id:
+          type: string
+      required:
+      - approved_by
+      - project_id
+      additionalProperties: false
+    effects: {}
+    outcomes:
+      delivery_failed:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+      access_denied:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+      sent:
+        kind: success
+        result:
+          $ref: schema.project.notice_result
+      authentication_required:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+    emits_domain_events: []
+    authorization:
+      policy: access_policy.project.reviewer
+      authentication_required_as: authentication_required
+      access_denied_as: access_denied
+    retry_safe: true
+  command.project.submit:
+    rationale: Draft dispatch projects can be submitted for review.
+    input_schema:
+      type: object
+      properties:
+        project_id:
+          type: string
+      required:
+      - project_id
+      additionalProperties: false
+    effects: {}
+    outcomes:
+      transition_not_allowed:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+      access_denied:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+      not_found:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+      submitted:
+        kind: success
+        result:
+          $ref: entity_type.project
+      authentication_required:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+    emits_domain_events:
+    - domain_event: domain_event.project.submitted
+      payload_source: $action_outcome.result
+      outcome: submitted
+    authorization:
+      policy: access_policy.project.member
+      authentication_required_as: authentication_required
+      access_denied_as: access_denied
+queries:
+  query.project.list:
+    rationale: The board requires a project list query scoped by workspace.
+    input_schema:
       type: object
       properties:
         workspace_id:
@@ -354,7 +431,10 @@ application_actions:
       required:
       - workspace_id
       additionalProperties: false
-    action_kind: query
+    result_schema:
+      type: array
+      items:
+        $ref: entity_type.project
     outcomes:
       listed:
         kind: success
@@ -374,15 +454,9 @@ application_actions:
         kind: failure
         result:
           $ref: entity_type.problem
-    reads:
-    - entity_type.project
-  application_action.project.read:
+  query.project.read:
     rationale: The detail state machine loads the selected project by id.
-    authorization:
-      policy: authorization_policy.project.member
-      authentication_required_as: authentication_required
-      access_denied_as: access_denied
-    input:
+    input_schema:
       type: object
       properties:
         project_id:
@@ -390,7 +464,8 @@ application_actions:
       required:
       - project_id
       additionalProperties: false
-    action_kind: query
+    result_schema:
+      $ref: entity_type.project
     outcomes:
       found:
         kind: success
@@ -404,83 +479,6 @@ application_actions:
         kind: failure
         result:
           $ref: entity_type.problem
-      authentication_required:
-        kind: failure
-        result:
-          $ref: entity_type.problem
-    reads:
-    - entity_type.project
-  application_action.project.send_approval_notice:
-    retry_safe: true
-    rationale: Approval triggers a notification command for downstream coordination.
-    authorization:
-      policy: authorization_policy.project.reviewer
-      authentication_required_as: authentication_required
-      access_denied_as: access_denied
-    input:
-      type: object
-      properties:
-        approved_by:
-          type: string
-        project_id:
-          type: string
-      required:
-      - approved_by
-      - project_id
-      additionalProperties: false
-    action_kind: command
-    outcomes:
-      delivery_failed:
-        kind: failure
-        result:
-          $ref: entity_type.problem
-      access_denied:
-        kind: failure
-        result:
-          $ref: entity_type.problem
-      sent:
-        kind: success
-        result:
-          $ref: schema.project.notice_result
-      authentication_required:
-        kind: failure
-        result:
-          $ref: entity_type.problem
-  application_action.project.submit:
-    rationale: Draft dispatch projects can be submitted for review.
-    authorization:
-      policy: authorization_policy.project.member
-      authentication_required_as: authentication_required
-      access_denied_as: access_denied
-    input:
-      type: object
-      properties:
-        project_id:
-          type: string
-      required:
-      - project_id
-      additionalProperties: false
-    action_kind: lifecycle_transition
-    outcomes:
-      transition_not_allowed:
-        kind: failure
-        result:
-          $ref: entity_type.problem
-      access_denied:
-        kind: failure
-        result:
-          $ref: entity_type.problem
-      not_found:
-        kind: failure
-        result:
-          $ref: entity_type.problem
-      submitted:
-        emits:
-        - domain_event: domain_event.project.submitted
-          payload_source: $action_outcome.result
-        kind: success
-        result:
-          $ref: entity_type.project
       authentication_required:
         kind: failure
         result:
@@ -542,7 +540,6 @@ state_machines:
           read_activity:
             load:
               on_enter: true
-            application_action: application_action.project.read
             input_bindings:
               project_id:
                 from: $state_context.project_id
@@ -566,6 +563,7 @@ state_machines:
                 no_local_effect:
                   reason: intentionally_unobservable
                   rationale: The entry response surface owns authentication_required display.
+            query: query.project.read
         field_slots:
         - updated_at
         - status
@@ -592,7 +590,6 @@ state_machines:
           owns visible loading and empty/non-empty transitions.
         load:
           on_start: true
-        application_action: application_action.project.list
         input_bindings:
           workspace_id:
             from: $state_context.workspace_id
@@ -616,6 +613,7 @@ state_machines:
             no_local_effect:
               reason: handled_by_response_surface
               rationale: The board shell leaves child surfaces unchanged while the list service is unavailable.
+        query: query.project.list
     initial_view_state: ready
     entity_type: entity_type.project
     view_states:
@@ -853,7 +851,7 @@ state_machines:
     - from: ready
       on:
         local_signal: show_transition_not_allowed
-      rationale: Invalid detail application_actions move the detail panel into its displayable error state.
+      rationale: Invalid detail commands move the detail panel into its displayable error state.
       to: error
     view_states:
       error:
@@ -867,7 +865,6 @@ state_machines:
           read_project:
             load:
               on_enter: true
-            application_action: application_action.project.read
             input_bindings:
               project_id:
                 from: $state_context.project_id
@@ -888,6 +885,7 @@ state_machines:
               authentication_required:
                 raise:
                   data_refresh_signal: project_load_failed
+            query: query.project.read
       none:
         text_slots:
         - heading
@@ -901,7 +899,6 @@ state_machines:
               on_enter: true
               refresh_on:
               - data_refresh_signal: project_changed
-            application_action: application_action.project.read
             input_bindings:
               project_id:
                 from: $state_context.project_id
@@ -931,6 +928,7 @@ state_machines:
                   payload_bindings:
                     message:
                       from: $action_outcome.result.message
+            query: query.project.read
         text_slots:
         - heading
         field_slots:
@@ -941,7 +939,6 @@ state_machines:
         - summary
         action_bindings:
           approve:
-            application_action: application_action.project.approve
             input_bindings:
               approved_by:
                 from: $principal.id
@@ -973,8 +970,8 @@ state_machines:
                 no_local_effect:
                   reason: handled_by_response_surface
                   rationale: The response surface reports authentication failure without a local transition.
+            command: command.project.approve
           archive:
-            application_action: application_action.project.archive
             input_bindings:
               project_id:
                 from: $state_context.project_id
@@ -1006,6 +1003,7 @@ state_machines:
                   payload_bindings:
                     message:
                       from: $action_outcome.result.message
+            command: command.project.archive
   state_machine.project.list:
     rationale: The list state machine owns collection loading, empty, ready, error, and selection behavior.
     context:
@@ -1027,7 +1025,6 @@ state_machines:
           on_start: true
           refresh_on:
           - data_refresh_signal: projects_changed
-        application_action: application_action.project.list
         input_bindings:
           workspace_id:
             from: $state_context.workspace_id
@@ -1065,6 +1062,7 @@ state_machines:
           unavailable:
             raise:
               data_refresh_signal: project_list_failed
+        query: query.project.list
     initial_view_state: loading
     entity_type: entity_type.project
     signals:
@@ -1154,7 +1152,7 @@ state_machines:
     - from: ready
       on:
         local_signal: show_transition_not_allowed
-      rationale: Invalid list application_actions move the list into its displayable error state.
+      rationale: Invalid list queries move the list into its displayable error state.
       to: error
     view_states:
       empty:
@@ -1165,7 +1163,6 @@ state_machines:
         - body
         action_bindings:
           create:
-            application_action: application_action.project.create
             input_bindings:
               customer:
                 value: Atlas Foods
@@ -1193,6 +1190,7 @@ state_machines:
                   payload_bindings:
                     message:
                       from: $action_outcome.result.message
+            command: command.project.create
       error:
         text_slots:
         - heading
@@ -1210,7 +1208,6 @@ state_machines:
         - status
         action_bindings:
           create:
-            application_action: application_action.project.create
             input_bindings:
               customer:
                 value: Atlas Foods
@@ -1236,8 +1233,8 @@ state_machines:
                 no_local_effect:
                   reason: handled_by_response_surface
                   rationale: The ready list keeps focus while the response surface shows validation errors.
+            command: command.project.create
           submit:
-            application_action: application_action.project.submit
             input_bindings:
               project_id:
                 from: $state_context.selected_project_id
@@ -1269,8 +1266,9 @@ state_machines:
                   payload_bindings:
                     message:
                       from: $action_outcome.result.message
-entry_points:
-  entry_point.api.project.create:
+            command: command.project.submit
+external_interfaces:
+  external_interface.api.project.create:
     adapter:
       http_api:
         input:
@@ -1313,8 +1311,8 @@ entry_points:
             status: 422
     rationale: HTTP endpoint for creating a dispatch project.
     target:
-      application_action:
-        ref: application_action.project.create
+      command:
+        ref: command.project.create
         input_bindings:
           customer:
             from: $adapter_input.body.customer
@@ -1324,7 +1322,7 @@ entry_points:
             from: $adapter_input.body.title
           workspace_id:
             from: $adapter_input.path_params.workspace_id
-  entry_point.api.project.list:
+  external_interface.api.project.list:
     adapter:
       http_api:
         input:
@@ -1362,12 +1360,12 @@ entry_points:
             status: 503
     rationale: HTTP endpoint for listing dispatch projects.
     target:
-      application_action:
-        ref: application_action.project.list
+      query:
+        ref: query.project.list
         input_bindings:
           workspace_id:
             from: $adapter_input.path_params.workspace_id
-  entry_point.api.project.approve:
+  external_interface.api.project.approve:
     retry_safe: true
     adapter:
       http_api:
@@ -1419,14 +1417,14 @@ entry_points:
             status: 401
     rationale: HTTP endpoint for approving submitted dispatch projects.
     target:
-      application_action:
-        ref: application_action.project.approve
+      command:
+        ref: command.project.approve
         input_bindings:
           approved_by:
             from: $adapter_input.body.approved_by
           project_id:
             from: $adapter_input.path_params.project_id
-  entry_point.cli.project.approve:
+  external_interface.cli.project.approve:
     adapter:
       cli:
         cli_command: project approve
@@ -1481,8 +1479,8 @@ entry_points:
                   from: $adapter_response.body.message
     rationale: CLI entry for approval automation.
     target:
-      entry_point:
-        ref: entry_point.api.project.approve
+      external_interface:
+        ref: external_interface.api.project.approve
         input_bindings:
           body:
             approved_by:
@@ -1490,7 +1488,7 @@ entry_points:
           path_params:
             project_id:
               from: $adapter_input.args.project_id
-  entry_point.cli.project.board:
+  external_interface.cli.project.board:
     adapter:
       cli:
         cli_command: project board
@@ -1506,7 +1504,7 @@ entry_points:
         input_bindings:
           workspace_id:
             from: $adapter_input.args.workspace_id
-  entry_point.html.project.board:
+  external_interface.html.project.board:
     adapter:
       html_route:
         input:
@@ -1522,7 +1520,7 @@ entry_points:
         input_bindings:
           workspace_id:
             from: $adapter_input.path_params.workspace_id
-  entry_point.worker.project.approval_notice:
+  external_interface.worker.project.approval_notice:
     adapter:
       worker:
         input:
@@ -1571,7 +1569,6 @@ workflows:
           from: $workflow_input.payload.approved_by
         project_id:
           from: $workflow_input.payload.project_id
-      application_action: application_action.project.send_approval_notice
       outcome_transitions:
         delivery_failed:
           retry_policy:
@@ -1584,6 +1581,7 @@ workflows:
           complete_as: completed
         authentication_required:
           fail_as: notice_authentication_required
+      command: command.project.send_approval_notice
     trigger:
       domain_event: domain_event.project.approved
 behavior_scenarios:
@@ -1602,7 +1600,7 @@ behavior_scenarios:
         emitted:
         - domain_event.project.approved
       invoked:
-      - application_action.project.send_approval_notice
+      - command.project.send_approval_notice
       workflow:
         outcome: completed
         executed: true
@@ -1621,7 +1619,7 @@ behavior_scenarios:
     rationale: Approval transitions a submitted project to approved and emits the domain event.
     feature_tag: project.approve
     system_under_test_ref:
-      application_action: application_action.project.approve
+      command: command.project.approve
     given:
       preconditions:
       - ref: precondition.project.submitted
@@ -1632,7 +1630,7 @@ behavior_scenarios:
         emitted:
         - domain_event.project.approved
       invoked:
-      - application_action.project.approve
+      - command.project.approve
       entity:
         exists:
           entity_type: entity_type.project
@@ -1644,19 +1642,19 @@ behavior_scenarios:
       outcome: approved
     title: Approve submitted dispatch project
     when:
-      invoke_application_action:
+      invoke_command:
         input:
           approved_by:
             from: $fixture.actor.id
           project_id:
             value: project_submitted_1
-        ref: application_action.project.approve
+        ref: command.project.approve
   behavior_scenario.project.approve.access_denied:
     archetype: authorization_denial
     rationale: A workspace member who is not a reviewer receives the mapped access_denied outcome before approval executes.
     feature_tag: project.approve
     system_under_test_ref:
-      application_action: application_action.project.approve
+      command: command.project.approve
     given:
       preconditions:
       - ref: precondition.project.submitted
@@ -1665,20 +1663,20 @@ behavior_scenarios:
     then:
       authorization:
         denied:
-        - application_action: application_action.project.approve
+        - command: command.project.approve
       domain_events:
         not_emitted:
         - domain_event.project.approved
       outcome: access_denied
     title: Approval authorization maps access_denied outcome
     when:
-      invoke_application_action:
+      invoke_command:
         input:
           approved_by:
             from: $fixture.actor.id
           project_id:
             value: project_submitted_1
-        ref: application_action.project.approve
+        ref: command.project.approve
   behavior_scenario.project.board.empty:
     archetype: state_machine_composition
     rationale: An empty workspace shows empty list, no detail, and no activity.
@@ -1696,10 +1694,10 @@ behavior_scenarios:
       - fixture.workspace.member
     then:
       enables:
-      - application_action.project.create
+      - command.project.create
       authorization:
         denied:
-        - application_action: application_action.project.approve
+        - command: command.project.approve
       state_machine:
         instances:
           activity:
@@ -1715,11 +1713,11 @@ behavior_scenarios:
         view_state: ready
     title: Empty dispatch board
     when:
-      open_entry_point:
+      open_external_interface:
         input:
           workspace_id:
             from: $fixture.workspace.id
-        ref: entry_point.html.project.board
+        ref: external_interface.html.project.board
   behavior_scenario.project.board.ready:
     archetype: state_machine_composition
     rationale: A populated workspace shows the ready list while detail awaits explicit selection.
@@ -1733,8 +1731,8 @@ behavior_scenarios:
       - fixture.workspace.member
     then:
       enables:
-      - application_action.project.create
-      - application_action.project.submit
+      - command.project.create
+      - command.project.submit
       state_machine:
         instances:
           activity:
@@ -1750,17 +1748,17 @@ behavior_scenarios:
         view_state: ready
     title: Ready dispatch board
     when:
-      open_entry_point:
+      open_external_interface:
         input:
           workspace_id:
             from: $fixture.workspace.id
-        ref: entry_point.html.project.board
+        ref: external_interface.html.project.board
   behavior_scenario.project.create.api.success:
-    archetype: entry_point_response
-    rationale: The API create endpoint delegates to the create application action and emits project.created.
+    archetype: external_interface_response
+    rationale: The API create endpoint delegates to the create command and emits project.created.
     feature_tag: project.create
     system_under_test_ref:
-      entry_point: entry_point.api.project.create
+      external_interface: external_interface.api.project.create
     given:
       preconditions:
       - absent:
@@ -1775,7 +1773,7 @@ behavior_scenarios:
         emitted:
         - domain_event.project.created
       invoked:
-      - application_action.project.create
+      - command.project.create
       entity:
         exists:
           entity_type: entity_type.project
@@ -1789,7 +1787,7 @@ behavior_scenarios:
         status: 201
     title: Create dispatch project through API
     when:
-      call_entry_point:
+      call_external_interface:
         input:
           customer:
             value: Atlas Foods
@@ -1799,7 +1797,7 @@ behavior_scenarios:
             value: Replace rooftop condenser fan
           workspace_id:
             from: $fixture.workspace.id
-        ref: entry_point.api.project.create
+        ref: external_interface.api.project.create
 text_resources:
   text.project.approve.access_denied:
     rationale: CLI approval access_denied message.
@@ -1927,7 +1925,7 @@ text_resources:
     max_chars: 80
     placeholder: Dispatch queue
     intent: neutral
-assets:
+media_assets:
   asset.project.detail.ready.priority_badge:
     args:
       priority:
@@ -1964,8 +1962,8 @@ content_examples:
         value: High
     rationale: Exercise final dynamic priority badge asset.
     ref: asset.project.detail.ready.priority_badge
-render_profiles:
-  render_profile.default:
+viewport_profiles:
+  viewport_profile.default:
     rationale: Two viewport breakpoints are enough to demonstrate visual audit coverage in the canonical example.
     html_viewports:
       compact:

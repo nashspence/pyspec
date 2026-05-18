@@ -18,12 +18,12 @@ class ProdDriver:
 
     def when(self, behavior_scenario_id: str, behavior_scenario: Mapping[str, Any]) -> None:
         kind, body = next(iter(behavior_scenario["when"].items()))
-        if kind == "open_entry_point":
+        if kind == "open_external_interface":
             self.app.open_web_entry(body["ref"], self._resolve_map(body.get("input", {})))
-        elif kind == "call_entry_point":
-            self.app.call_entry_point(body["ref"], self._resolve_map(body.get("input", {})))
-        elif kind == "invoke_application_action":
-            self.app.invoke_application_action(body["ref"], self._resolve_map(body.get("input", {})))
+        elif kind == "call_external_interface":
+            self.app.call_external_interface(body["ref"], self._resolve_map(body.get("input", {})))
+        elif kind in {"invoke_command", "invoke_query"}:
+            self.app.invoke_operation(body["ref"], self._resolve_map(body.get("input", {})))
         elif kind == "emit_domain_event":
             self.app.emit_domain_event(body["ref"], self._resolve_map(body.get("payload", {})))
         else:  # pragma: no cover - generated behavior scenarios prevent this.

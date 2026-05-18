@@ -26,12 +26,12 @@ def test_composed_state_machine_contract_is_closed_and_projected() -> None:
     assert set(list_fsm) == {"entity_type", "context", "data_loaders", "signals", "initial_view_state", "view_states", "transitions", "rationale"}
     assert list_fsm["initial_view_state"] == "loading"
     assert set(list_fsm["data_loaders"]) == {"list_projects"}
-    assert list_fsm["data_loaders"]["list_projects"]["application_action"] == "application_action.project.list"
+    assert list_fsm["data_loaders"]["list_projects"]["query"] == "query.project.list"
     assert list_fsm["view_states"]["ready"]["fields"] == ["title", "customer", "priority", "status"]
     detail_fsm = contract["state_machines"]["state_machine.project.detail"]
     assert detail_fsm["data_loaders"] == {}
-    assert detail_fsm["view_states"]["loading"]["data_loaders"]["read_project"]["application_action"] == "application_action.project.read"
-    assert contract["state_machines"]["state_machine.project.activity"]["view_states"]["ready"]["data_loaders"]["read_activity"]["application_action"] == "application_action.project.read"
+    assert detail_fsm["view_states"]["loading"]["data_loaders"]["read_project"]["query"] == "query.project.read"
+    assert contract["state_machines"]["state_machine.project.activity"]["view_states"]["ready"]["data_loaders"]["read_activity"]["query"] == "query.project.read"
 
     state_machine = contract["state_machines"]["state_machine.project.board"]["view_states"]["ready"]
     assert set(state_machine["renderers"]["html"]["layout"]["regions"]) == {"nav", "main", "aside"}

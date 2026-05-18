@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .io import read_json
-from .targets import entry_state_machine_renderer, entry_point_adapter_pair, entry_point_target_pair
+from .targets import external_interface_state_machine_renderer, external_interface_adapter_pair, external_interface_target_pair
 
 ROOT = Path(__file__).resolve().parent
 
@@ -21,10 +21,9 @@ TARGET_LAYERS: dict[str, set[str]] = {
     "precondition": {"core"},
     "assertion": {"core"},
     "entity_type": {"core"},
-    "authorization_policy": {"core"},
+    "access_policy": {"core"},
     "command": {"core"},
     "query": {"core"},
-    "application_action": {"core"},
     "domain_event": {"core"},
     "behavior_scenario": {"core"},
     "workflow": {"workflow"},
@@ -32,10 +31,10 @@ TARGET_LAYERS: dict[str, set[str]] = {
     "text_resource": {"ui"},
     "asset": {"ui"},
     "content_example": {"ui"},
-    "render_profile": {"ui"},
+    "viewport_profile": {"ui"},
     "schema": {"core"},
-    # entry_point is adapter-specific and handled separately.
-    "entry_point": set(),
+    # external_interface is adapter-specific and handled separately.
+    "external_interface": set(),
 }
 
 ENTRY_ADAPTER_LAYER = {
@@ -49,21 +48,20 @@ ENTRY_ADAPTER_LAYER = {
 
 AUTHOR_SECTIONS: dict[str, str] = {
     "text_resources": "text_resource",
-    "assets": "asset",
+    "media_assets": "asset",
     "content_examples": "content_example",
-    "render_profiles": "render_profile",
+    "viewport_profiles": "viewport_profile",
     "fixtures": "fixture",
     "preconditions": "precondition",
     "assertions": "assertion",
     "entity_types": "entity_type",
-    "authorization_policies": "authorization_policy",
+    "access_policies": "access_policy",
     "commands": "command",
     "queries": "query",
-    "application_actions": "application_action",
     "domain_events": "domain_event",
     "schemas": "schema",
     "state_machines": "state_machine",
-    "entry_points": "entry_point",
+    "external_interfaces": "external_interface",
     "workflows": "workflow",
     "behavior_scenarios": "behavior_scenario",
 }
@@ -130,7 +128,7 @@ def validate_author_layers(author: dict[str, Any], layers: set[str] | None) -> N
             label = f"authored {section_name}.{item_id}"
             if target not in TARGET_LAYERS:
                 raise LayerError(f"{label} uses unsupported target {target!r}")
-            if target != "entry_point":
+            if target != "external_interface":
                 required = TARGET_LAYERS[target]
                 if required and not required.issubset(layers):
                     raise LayerError(_blocked(label, target, required, layers))
@@ -143,33 +141,33 @@ def _validate_author_spec_layers(label: str, target: str, spec: dict[str, Any], 
     if target == "entity_type":
         return
 
-    if target == "entry_point":
+    if target == "external_interface":
         try:
-            adapter_kind, _ = entry_point_adapter_pair(spec)
+            adapter_kind, _ = external_interface_adapter_pair(spec)
         except KeyError as exc:
-            raise LayerError(f"{label} uses unsupported entry point adapter") from exc
+            raise LayerError(f"{label} uses unsupported external interface adapter") from exc
         required_layer = ENTRY_ADAPTER_LAYER.get(adapter_kind)
         if not required_layer:
-            raise LayerError(f"{label} uses unsupported entry point adapter {adapter_kind!r}")
-        _require_layers(label, f"entry point adapter {adapter_kind}", {required_layer}, layers)
+            raise LayerError(f"{label} uses unsupported external interface adapter {adapter_kind!r}")
+        _require_layers(label, f"external interface adapter {adapter_kind}", {required_layer}, layers)
         try:
-            target_kind, _ = entry_point_target_pair(spec)
+            target_kind, _ = external_interface_target_pair(spec)
         except KeyError as exc:
-            raise LayerError(f"{label} uses unsupported entry point target") from exc
+            raise LayerError(f"{label} uses unsupported external interface target") from exc
         if target_kind == "state_machine":
-            renderer = entry_state_machine_renderer(spec)
+            renderer = external_interface_state_machine_renderer(spec)
             required_render_layer = RENDER_SURFACE_LAYER.get(renderer or "")
             if not required_render_layer:
                 raise LayerError(f"{label} uses unsupported state_machine target renderer {renderer!r}")
             _require_layers(label, f"state machine target renderer {renderer}", {"ui", required_render_layer}, layers)
         return
 
-    if target == "render_profile":
+    if target == "viewport_profile":
         active_profiles = set(spec) & set(RENDER_PROFILE_LAYER)
         if not active_profiles:
-            raise LayerError(f"{label} render_profile must declare at least one viewport profile")
+            raise LayerError(f"{label} viewport_profile must declare at least one viewport profile")
         for field in active_profiles:
-            _require_layers(label, f"render_profile.{field}", {RENDER_PROFILE_LAYER[field]}, layers)
+            _require_layers(label, f"viewport_profile.{field}", {RENDER_PROFILE_LAYER[field]}, layers)
         return
 
     if target == "state_machine":
@@ -199,9 +197,9 @@ class LayerError(ValueError):
 
 
 def _allowed_targets(layers: set[str]) -> set[str]:
-    allowed = {target for target, required in TARGET_LAYERS.items() if target != "entry_point" and required.issubset(layers)}
+    allowed = {target for target, required in TARGET_LAYERS.items() if target != "external_interface" and required.issubset(layers)}
     if any(layer in layers for layer in ENTRY_ADAPTER_LAYER.values()):
-        allowed.add("entry_point")
+        allowed.add("external_interface")
     return allowed
 
 

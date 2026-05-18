@@ -18,6 +18,7 @@ from .runtime import fixture_namespace, resolve, resolve_binding
 from .binding_refs import BindingExpressionError, parse_binding_expression
 from .io import read_json, read_yaml
 from .layout import renderer_textual_presentation, renderer_textual_style
+from .operations import operations
 from .audit import (
     _render_example_file,
     _render_example_surfaces,
@@ -38,36 +39,37 @@ from .audit import (
     audit_coverage_index,
     audit_expected_files,
     composition_file,
-    entrypoint_flow_file,
-    application_action_flow_file,
+    external_interface_flow_file,
+    operation_flow_file,
     state_machine_graph_file,
     workflow_flow_file,
 )
 from .paths import GENERATED_SPEC_DIR, SPEC_ROOT, generated_relative as g
 from .project import (
-    _cwl_application_action_ids,
+    _cwl_operation_ids,
     components_projection,
     validated_projection_paths,
     composition_tcss_selector,
     constant_name,
     cwl_type,
     object_json_schema,
-    authorization_policies_projection,
+    access_policies_projection,
     state_machines_projection,
     humanize,
     safe_id,
     textual_screen_entries,
     type_schema,
 )
-from .targets import entry_state_machine_name, entry_point_adapter_pair, entry_point_input, entry_point_method, entry_point_path, entry_point_responses, entry_target_pair
+from .targets import external_interface_state_machine_name, external_interface_adapter_pair, external_interface_input, external_interface_method, external_interface_path, external_interface_responses, external_interface_target_ref_pair
 from .json_schema import sample_value, schema_properties
 
 _HTTP_METHODS = {"get", "put", "post", "delete", "patch", "head", "options", "trace"}
 _OPENAPI_OPERATION_KEYS = {
     "operationId",
-    "x-entry",
-    "x-application-action",
-    "x-authorization-policy",
+    "x-external-interface",
+    "x-command",
+    "x-query",
+    "x-access-policy",
     "parameters",
     "responses",
     "requestBody",
@@ -81,6 +83,10 @@ _PYTHON_PROJECTIONS = [
     g("content_resolvers", "signatures.py"),
     g("content_resolvers", "stubs.py"),
 ]
+
+
+def _operations(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    return operations(contract)
 
 
 def validate_generated_projections(root: Path, contract: dict[str, Any]) -> None:
@@ -110,8 +116,8 @@ def validate_generated_projections(root: Path, contract: dict[str, Any]) -> None
         validate_content_contract(root, contract)
     if g("product_interfaces", "workflow.cwl.yaml") in expected_paths:
         validate_workflows(contract, read_yaml(generated / "product_interfaces" / "workflow.cwl.yaml"))
-    if g("product_interfaces", "authorization_policies.json") in expected_paths:
-        validate_authorization_policies_json(contract, read_json(generated / "product_interfaces" / "authorization_policies.json"))
+    if g("product_interfaces", "access_policies.json") in expected_paths:
+        validate_access_policies_json(contract, read_json(generated / "product_interfaces" / "access_policies.json"))
     validate_agent_prompts(root)
     validate_fixtures_and_behavior_scenarios(root, contract)
     if (root / GENERATED_SPEC_DIR / "audit_evidence").exists() or any(path.startswith(g("audit_evidence") + "/") for path in audit_expected_files(contract)):
@@ -130,20 +136,20 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
     if doc["components"] != components_projection(contract):
         raise ContractError("OpenAPI components do not exactly match contract schemas")
 
-    expected_application_actions: dict[tuple[str, str], tuple[str, dict[str, Any], dict[str, Any]]] = {}
-    for entry_id, entry in sorted(contract["entry_points"].items()):
-        if entry_point_adapter_pair(entry)[0] != "http_api":
+    expected_operations: dict[tuple[str, str], tuple[str, dict[str, Any], dict[str, Any]]] = {}
+    for entry_id, entry in sorted(contract["external_interfaces"].items()):
+        if external_interface_adapter_pair(entry)[0] != "http_api":
             continue
-        target_kind, cap_id = entry_target_pair(entry)
-        if target_kind != "application_action":
+        target_kind, cap_id = external_interface_target_ref_pair(entry)
+        if target_kind not in {"command", "query"}:
             continue
-        method = (entry_point_method(entry) or "").lower()
-        key = (entry_point_path(entry), method)
-        if key in expected_application_actions:
-            raise ContractError(f"OpenAPI duplicate path/method binding in contract: {entry_point_path(entry)} {method}")
-        expected_application_actions[key] = (entry_id, entry, contract["application_actions"][cap_id])
+        method = (external_interface_method(entry) or "").lower()
+        key = (external_interface_path(entry), method)
+        if key in expected_operations:
+            raise ContractError(f"OpenAPI duplicate path/method binding in contract: {external_interface_path(entry)} {method}")
+        expected_operations[key] = (entry_id, entry, _operations(contract)[cap_id])
 
-    actual_application_actions: dict[tuple[str, str], dict[str, Any]] = {}
+    actual_operations: dict[tuple[str, str], dict[str, Any]] = {}
     for path, methods in doc["paths"].items():
         if not isinstance(path, str) or not path.startswith("/"):
             raise ContractError(f"OpenAPI path must start with /: {path!r}")
@@ -152,39 +158,39 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
         for method, operation in methods.items():
             if method not in _HTTP_METHODS:
                 raise ContractError(f"OpenAPI unsupported HTTP method at {path}: {method}")
-            if (path, method) in actual_application_actions:
+            if (path, method) in actual_operations:
                 raise ContractError(f"OpenAPI duplicate operation: {method.upper()} {path}")
-            actual_application_actions[(path, method)] = operation
+            actual_operations[(path, method)] = operation
 
-    if set(actual_application_actions) != set(expected_application_actions):
-        raise ContractError(_diff_message("OpenAPI operations", set(expected_application_actions), set(actual_application_actions)))
+    if set(actual_operations) != set(expected_operations):
+        raise ContractError(_diff_message("OpenAPI operations", set(expected_operations), set(actual_operations)))
 
     seen_operation_ids: set[str] = set()
-    for (path, method), (entry_id, entry, cap) in expected_application_actions.items():
-        operation = actual_application_actions[(path, method)]
+    for (path, method), (entry_id, entry, cap) in expected_operations.items():
+        operation = actual_operations[(path, method)]
         unknown_keys = set(operation) - _OPENAPI_OPERATION_KEYS
         if unknown_keys:
             raise ContractError(f"OpenAPI {method.upper()} {path} has unsupported operation keys: {sorted(unknown_keys)}")
-        _, cap_id = entry_target_pair(entry)
+        target_kind, cap_id = external_interface_target_ref_pair(entry)
         if operation.get("operationId") in seen_operation_ids:
             raise ContractError(f"OpenAPI operationId is duplicated: {operation.get('operationId')}")
         seen_operation_ids.add(operation.get("operationId"))
         if operation.get("operationId") != cap_id:
             raise ContractError(f"OpenAPI operationId must equal operation id for {entry_id}")
-        if operation.get("x-entry") != entry_id or operation.get("x-application-action") != cap_id:
+        if operation.get("x-external-interface") != entry_id or operation.get(f"x-{target_kind}") != cap_id:
             raise ContractError(f"OpenAPI extensions do not point back to {entry_id}/{cap_id}")
         expected_policy = (cap.get("authorization") or {}).get("policy")
         if expected_policy:
-            if operation.get("x-authorization-policy") != expected_policy:
-                raise ContractError(f"OpenAPI authorization policy extension does not match operation {cap_id}")
-        elif "x-authorization-policy" in operation:
+            if operation.get("x-access-policy") != expected_policy:
+                raise ContractError(f"OpenAPI access policy extension does not match operation {cap_id}")
+        elif "x-access-policy" in operation:
             raise ContractError(
-                f"OpenAPI authorization policy extension is not allowed for operation without authentication {cap_id}"
+                f"OpenAPI access policy extension is not allowed for operation without authentication {cap_id}"
             )
 
         placeholders = _path_params(path)
-        path_params = entry_point_input(entry).get("path_params", {})
-        query_params = entry_point_input(entry).get("query_params", {})
+        path_params = external_interface_input(entry).get("path_params", {})
+        query_params = external_interface_input(entry).get("query_params", {})
         if placeholders != set(path_params):
             raise ContractError(f"OpenAPI path params for {entry_id} do not match declared path_params")
         expected_params = [
@@ -195,9 +201,9 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             for name, type_name in sorted(query_params.items())
         ]
         if operation.get("parameters", []) != expected_params:
-            raise ContractError(f"OpenAPI parameters do not match entry path/query params for {entry_id}")
+            raise ContractError(f"OpenAPI parameters do not match external-interface path/query params for {entry_id}")
 
-        body_fields = entry_point_input(entry).get("body", {})
+        body_fields = external_interface_input(entry).get("body", {})
         if body_fields and method not in {"get", "delete"}:
             expected_body = {
                 "required": True,
@@ -213,10 +219,10 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
                 "description": humanize(outcome_id),
                 "content": {"application/json": {"schema": type_schema(response["body"]["type"])}},
             }
-            for outcome_id, response in sorted(entry_point_responses(entry).items())
+            for outcome_id, response in sorted(external_interface_responses(entry).items())
         }
         if operation.get("responses") != expected_responses:
-            raise ContractError(f"OpenAPI response schema does not match entry responses for {entry_id}")
+            raise ContractError(f"OpenAPI response schema does not match external-interface responses for {entry_id}")
         _validate_refs_resolve(operation, doc, f"OpenAPI operation {entry_id}")
 
     _validate_refs_resolve(doc["components"], doc, "OpenAPI components")
@@ -315,14 +321,14 @@ def validate_asyncapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
 
 def _workflow_entry_dispositions(contract: dict[str, Any], workflow_id: str) -> dict[str, Any]:
     dispositions: dict[str, Any] = {}
-    for entry_id, entry in sorted(contract.get("entry_points", {}).items()):
-        if entry_point_adapter_pair(entry)[0] not in {"worker", "scheduled"}:
+    for entry_id, entry in sorted(contract.get("external_interfaces", {}).items()):
+        if external_interface_adapter_pair(entry)[0] not in {"worker", "scheduled"}:
             continue
-        target_kind, target_ref = entry_target_pair(entry)
+        target_kind, target_ref = external_interface_target_ref_pair(entry)
         if target_kind != "workflow" or target_ref != workflow_id:
             continue
         entry_dispositions = {}
-        for response_id, response in sorted(entry_point_responses(entry).items()):
+        for response_id, response in sorted(external_interface_responses(entry).items()):
             projected = dict(response)
             if "problem" in projected:
                 projected["problem"] = type_schema(projected["problem"])
@@ -336,18 +342,18 @@ def validate_routes(contract: dict[str, Any], doc: dict[str, Any]) -> None:
     if doc["project"] != contract["project"]:
         raise ContractError("routes.json project does not match contract")
     expected = []
-    for entry_id, entry in sorted(contract["entry_points"].items()):
-        if entry_point_adapter_pair(entry)[0] == "html_route":
+    for entry_id, entry in sorted(contract["external_interfaces"].items()):
+        if external_interface_adapter_pair(entry)[0] == "html_route":
             expected.append({
                 "id": entry["route"],
-                "entry": entry_id,
-                "path": entry_point_path(entry),
-                "path_params": entry_point_input(entry).get("path_params", {}),
-                "query_params": entry_point_input(entry).get("query_params", {}),
-                "state_machine": entry_state_machine_name(entry),
+                "external_interface": entry_id,
+                "path": external_interface_path(entry),
+                "path_params": external_interface_input(entry).get("path_params", {}),
+                "query_params": external_interface_input(entry).get("query_params", {}),
+                "state_machine": external_interface_state_machine_name(entry),
             })
     if doc["routes"] != expected:
-        raise ContractError("routes.json does not exactly match UI entry points")
+        raise ContractError("routes.json does not exactly match HTML external interfaces")
     for route in doc["routes"]:
         if _path_params(route["path"]) != set(route["path_params"]):
             raise ContractError(f"Route {route['id']} path params do not match declared path_params")
@@ -441,7 +447,7 @@ def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
             raise ContractError(str(exc)) from exc
         return
     declared_text = set(contract.get("text_resources", {}))
-    declared_assets = set(contract.get("assets", {}))
+    declared_assets = set(contract.get("media_assets", {}))
     unknown_text = text_registry.refs - declared_text
     unknown_assets = asset_registry.refs - declared_assets
     if unknown_text:
@@ -470,7 +476,7 @@ def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
                 validate_resolver_function(text_registry.function(ref), arg_cls)
             except ContentError as exc:
                 raise ContractError(str(exc)) from exc
-    for ref, item in contract.get("assets", {}).items():
+    for ref, item in contract.get("media_assets", {}).items():
         source_ref = item.get("source_ref")
         arg_cls = module.ASSET_ARG_CLASSES[ref]
         instantiate_args(root, "asset", ref, {name: _sample_value_for_type(type_name) for name, type_name in item.get("args", {}).items()})
@@ -501,7 +507,7 @@ def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
             if item.get("max_chars") is not None and len(result) > item["max_chars"]:
                 raise ContractError(f"Content example {case_id} text result exceeds max_chars")
         else:
-            item = contract["assets"][ref]
+            item = contract["media_assets"][ref]
             if item.get("source_ref"):
                 try:
                     result = call_asset(root, ref, args, ContentContext(surface="content_example"))
@@ -538,7 +544,7 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
     if len(by_id) != len(graph):
         raise ContractError("CWL $graph contains duplicate or missing ids")
     expected_ids = {f"#{safe_id(workflow_id)}" for workflow_id in contract["workflows"]}
-    expected_ids.update(f"#{safe_id(cap_id)}" for cap_id in _cwl_application_action_ids(contract))
+    expected_ids.update(f"#{safe_id(cap_id)}" for cap_id in _cwl_operation_ids(contract))
     if set(by_id) != expected_ids:
         raise ContractError(_diff_message("CWL graph ids", expected_ids, set(by_id)))
 
@@ -562,18 +568,18 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             raise ContractError(f"CWL workflow {workflow_id} steps mismatch")
         for step in workflow["steps"]:
             actual = steps[step["id"]]
-            run_id = f"#{safe_id(step['application_action'])}"
+            run_id = f"#{safe_id(step['command'])}"
             if actual.get("run") != run_id or run_id not in by_id:
                 raise ContractError(f"CWL workflow {workflow_id} step {step['id']} references unknown run")
-            cap = contract["application_actions"][step["application_action"]]
+            cap = _operations(contract)[step["command"]]
             expected_in = {name: _workflow_cwl_source(source) for name, source in sorted(step["input_bindings"].items())}
             expected_out = sorted(cap["outcomes"])
             expected_doc = f"input_bindings={step['input_bindings']}; outcome_transitions={step['outcome_transitions']}"
             if set(actual) != {"doc", "run", "in", "out"} or actual.get("doc") != expected_doc or actual.get("in") != expected_in or actual.get("out") != expected_out:
                 raise ContractError(f"CWL workflow {workflow_id} step {step['id']} malformed")
 
-    for cap_id in _cwl_application_action_ids(contract):
-        cap = contract["application_actions"][cap_id]
+    for cap_id in _cwl_operation_ids(contract):
+        cap = _operations(contract)[cap_id]
         item = by_id[f"#{safe_id(cap_id)}"]
         if set(item) != {"id", "class", "label", "baseCommand", "inputs", "outputs"}:
             raise ContractError(f"CWL operation node {cap_id} has unsupported keys")
@@ -600,7 +606,7 @@ def _workflow_trigger_payload_type(contract: dict[str, Any], workflow: dict[str,
     trigger = workflow["trigger"]
     if "domain_event" in trigger:
         return contract["domain_events"][trigger["domain_event"]]["payload_schema"]
-    operation = contract["application_actions"][trigger["application_action"]]
+    operation = _operations(contract)[trigger["command"]]
     successes = [outcome["result"] for outcome in operation["outcomes"].values() if outcome["kind"] == "success"]
     return successes[0]
 
@@ -644,20 +650,20 @@ def validate_fixtures_and_behavior_scenarios(root: Path, contract: dict[str, Any
             raise ContractError(f"Generated features must be single-source; remove {path.relative_to(root)}")
 
 
-def validate_authorization_policies_json(contract: dict[str, Any], doc: dict[str, Any]) -> None:
-    if doc != authorization_policies_projection(contract):
-        raise ContractError("authorization_policies.json does not match contract authorization policies")
-    for application_action_id, authorization in doc["action_authorizations"].items():
-        if application_action_id not in contract["application_actions"]:
-            raise ContractError(f"authorization_policies.json has unknown operation authorization {application_action_id}")
-        authorization_policy = authorization["policy"]
-        if authorization_policy not in doc["authorization_policies"]:
-            raise ContractError(f"authorization_policies.json operation authorization references unknown authorization policy {authorization_policy}")
-    for entry_id, authorization_policy in doc["entry_point_authorization_policies"].items():
-        if entry_id not in contract["entry_points"]:
-            raise ContractError(f"authorization_policies.json has unknown entry point authorization policy {entry_id}")
-        if authorization_policy not in doc["authorization_policies"]:
-            raise ContractError(f"authorization_policies.json entry point authorization policy references unknown authorization policy {authorization_policy}")
+def validate_access_policies_json(contract: dict[str, Any], doc: dict[str, Any]) -> None:
+    if doc != access_policies_projection(contract):
+        raise ContractError("access_policies.json does not match contract access policies")
+    for operation_ref, authorization in doc["operation_authorizations"].items():
+        if operation_ref not in _operations(contract):
+            raise ContractError(f"access_policies.json has unknown operation authorization {operation_ref}")
+        access_policy = authorization["policy"]
+        if access_policy not in doc["access_policies"]:
+            raise ContractError(f"access_policies.json operation authorization references unknown access policy {access_policy}")
+    for entry_id, access_policy in doc["external_interface_access_policies"].items():
+        if entry_id not in contract["external_interfaces"]:
+            raise ContractError(f"access_policies.json has unknown external interface access policy {entry_id}")
+        if access_policy not in doc["access_policies"]:
+            raise ContractError(f"access_policies.json external interface access policy references unknown access policy {access_policy}")
 
 
 
@@ -682,13 +688,13 @@ def validate_audit_outputs(root: Path, contract: dict[str, Any]) -> None:
         for state_name, state in state_machine.get("view_states", {}).items():
             if state.get("child_state_machines"):
                 _assert_svg(root / composition_file(state_machine_id, state_name), f"composition {state_machine_id}.{state_name}")
-    for entry_id, entry in contract.get("entry_points", {}).items():
-        adapter_kind, _ = entry_point_adapter_pair(entry)
-        _assert_svg(root / entrypoint_flow_file(entry_id, adapter_kind), f"entrypoint {entry_id}")
+    for entry_id, entry in contract.get("external_interfaces", {}).items():
+        adapter_kind, _ = external_interface_adapter_pair(entry)
+        _assert_svg(root / external_interface_flow_file(entry_id, adapter_kind), f"external interface {entry_id}")
     for workflow_id in contract.get("workflows", {}):
         _assert_svg(root / workflow_flow_file(workflow_id), f"workflow {workflow_id}")
-    for application_action_id in contract.get("application_actions", {}):
-        _assert_svg(root / application_action_flow_file(application_action_id), f"operation {application_action_id}")
+    for operation_ref in _operations(contract):
+        _assert_svg(root / operation_flow_file(operation_ref), f"operation {operation_ref}")
 
     projection = state_machines_projection(contract)
     for state_machine in _audit_projection_surfaces(contract, projection):
@@ -819,7 +825,7 @@ def _validate_audit_scope_inputs(
             raise ContractError(f"audit asset placeholder is not SVG: {asset_id}")
         if asset_id in text:
             raise ContractError(f"audit asset placeholder must not render or embed the asset id: {asset_id}")
-        if contract["assets"][asset_id]["placeholder"]["label"] not in text:
+        if contract["media_assets"][asset_id]["placeholder"]["label"] not in text:
             raise ContractError(f"audit asset placeholder must preserve the accessible label: {asset_id}")
 
 
@@ -882,21 +888,21 @@ def _validate_python_projections(root: Path) -> None:
 def validate_refs_py(root: Path, contract: dict[str, Any]) -> None:
     module = _load_generated_module(root / GENERATED_SPEC_DIR / "test_adapters" / "python_refs.py", "generated_refs")
     expected_groups: dict[str, list[str]] = {
-        "Asset": sorted(contract.get("assets", {})),
-        "RenderProfile": sorted(contract.get("render_profiles", {})),
+        "Asset": sorted(contract.get("media_assets", {})),
+        "RenderProfile": sorted(contract.get("viewport_profiles", {})),
         "ContentExample": sorted(contract.get("content_examples", {})),
-        "EntryPoint": sorted(contract["entry_points"]),
+        "EntryPoint": sorted(contract["external_interfaces"]),
         "DomainEvent": sorted(contract["domain_events"]),
         "Precondition": sorted(contract.get("preconditions", {})),
         "Assertion": sorted(contract.get("assertions", {})),
         "Fixture": sorted(contract["fixtures"]),
-        "Operation": sorted(contract["application_actions"]),
+        "Operation": sorted(_operations(contract)),
         "StateMachine": sorted(contract.get("state_machines", {})),
         "Text": sorted(contract.get("text_resources", {})),
         "RenderExample": sorted(render_examples(contract)),
         "BehaviorScenario": sorted(contract["behavior_scenarios"]),
     }
-    for kind, values in sorted(contract["refs"].items()):
+    for kind, values in sorted(contract["reference_index"].items()):
         expected_groups[kind.title().replace("_", "")] = values
     for class_name, values in expected_groups.items():
         cls = getattr(module, class_name, None)
@@ -1056,7 +1062,7 @@ def _textual_selector(state_machine: dict[str, Any], selector: str) -> str:
     if selector.startswith("action_binding."):
         operation = selector[len("action_binding."):]
         for widget in widgets:
-            if widget["binding"].get("action_binding") == application_action:
+            if widget["binding"].get("action_binding") == operation:
                 return "#" + safe_id(widget["id"])
         return "#" + safe_id(operation)
     return selector

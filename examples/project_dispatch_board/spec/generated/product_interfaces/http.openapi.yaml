@@ -83,7 +83,7 @@ openapi: 3.1.0
 paths:
   /projects/{project_id}/approve:
     post:
-      operationId: application_action.project.approve
+      operationId: command.project.approve
       parameters:
       - in: path
         name: project_id
@@ -139,12 +139,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: Unavailable
-      x-application-action: application_action.project.approve
-      x-authorization-policy: authorization_policy.project.reviewer
-      x-entry: entry_point.api.project.approve
+      x-access-policy: access_policy.project.reviewer
+      x-command: command.project.approve
+      x-external-interface: external_interface.api.project.approve
   /workspaces/{workspace_id}/projects:
     get:
-      operationId: application_action.project.list
+      operationId: query.project.list
       parameters:
       - in: path
         name: workspace_id
@@ -178,11 +178,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: Unavailable
-      x-application-action: application_action.project.list
-      x-authorization-policy: authorization_policy.project.member
-      x-entry: entry_point.api.project.list
+      x-external-interface: external_interface.api.project.list
+      x-query: query.project.list
     post:
-      operationId: application_action.project.create
+      operationId: command.project.create
       parameters:
       - in: path
         name: workspace_id
@@ -232,6 +231,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: Validation Failed
-      x-application-action: application_action.project.create
-      x-authorization-policy: authorization_policy.project.member
-      x-entry: entry_point.api.project.create
+      x-access-policy: access_policy.project.member
+      x-command: command.project.create
+      x-external-interface: external_interface.api.project.create

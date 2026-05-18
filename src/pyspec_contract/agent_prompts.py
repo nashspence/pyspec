@@ -83,14 +83,14 @@ def _contract_has_ui(contract: dict[str, Any]) -> bool:
         or contract.get("text_resources")
         or contract.get("assets")
         or contract.get("content_examples")
-        or contract.get("render_profiles")
+        or contract.get("viewport_profiles")
     )
 
 
 def _contract_has_html(contract: dict[str, Any]) -> bool:
     if "html_route" in _entry_adapter_kinds(contract):
         return True
-    if any("html_viewports" in profile for profile in (contract.get("render_profiles") or {}).values()):
+    if any("html_viewports" in profile for profile in (contract.get("viewport_profiles") or {}).values()):
         return True
     for owner in (contract.get("state_machines") or {}).values():
         for state in (owner.get("view_states") or {}).values():
@@ -100,7 +100,7 @@ def _contract_has_html(contract: dict[str, Any]) -> bool:
 
 
 def _contract_has_textual(contract: dict[str, Any]) -> bool:
-    if any("textual_viewports" in profile for profile in (contract.get("render_profiles") or {}).values()):
+    if any("textual_viewports" in profile for profile in (contract.get("viewport_profiles") or {}).values()):
         return True
     for owner in (contract.get("state_machines") or {}).values():
         for state in (owner.get("view_states") or {}).values():
@@ -119,7 +119,7 @@ def _contract_render_examples(contract: dict[str, Any]) -> list[dict[str, Any]]:
 
 def _entry_adapter_kinds(contract: dict[str, Any]) -> set[str]:
     kinds: set[str] = set()
-    for entry in (contract.get("entry_points") or {}).values():
+    for entry in (contract.get("external_interfaces") or {}).values():
         adapter = entry.get("adapter") or {}
         kinds.update(adapter)
     return kinds
@@ -153,8 +153,9 @@ class _PromptContext:
             return "No compiled spec was supplied. Use the active layers as the complete starting context."
         sections = [
             ("entity_types", self.contract.get("entity_types") or {}),
-            ("application_actions", self.contract.get("application_actions") or {}),
-            ("entry_points", self.contract.get("entry_points") or {}),
+            ("commands", self.contract.get("commands") or {}),
+            ("queries", self.contract.get("queries") or {}),
+            ("external_interfaces", self.contract.get("external_interfaces") or {}),
             ("workflows", self.contract.get("workflows") or {}),
             ("state_machines", self.contract.get("state_machines") or {}),
             ("behavior_scenarios", self.contract.get("behavior_scenarios") or {}),
@@ -178,12 +179,12 @@ def _pm_design_prompt(context: _PromptContext) -> str:
         f"After authoring, run `pyspec compile . --layers {context.layer_arg}` and `pyspec validate . --layers {context.layer_arg}`.",
         "",
         "Authoring scope:",
-        "- Core: fixtures, preconditions, assertions, entity_types, application_actions, and product behavior scenarios.",
+        "- Core: fixtures, preconditions, assertions, entity_types, commands, queries, and product behavior scenarios.",
     ]
     if "http" in context.layers:
-        lines.append("- HTTP: HTTP entry points that bind application_actions to externally visible API application_actions.")
+        lines.append("- HTTP: HTTP external interfaces that bind commands or queries to externally visible API operations.")
     else:
-        lines.append("- Do not author HTTP/API entry points or OpenAPI details; the HTTP layer is inactive.")
+        lines.append("- Do not author HTTP/API external interfaces or OpenAPI details; the HTTP layer is inactive.")
     if "domain_events" in context.layers:
         lines.append("- Domain events: durable domain events and webhook-facing integration contracts when requested.")
     else:
@@ -193,11 +194,11 @@ def _pm_design_prompt(context: _PromptContext) -> str:
     else:
         lines.append("- Do not add workflow, CLI, worker, or schedule vocabulary.")
     if "ui" in context.layers:
-        lines.append("- UI: state machines with view-state-local layouts, child state machines, render examples, text resources/assets, content examples, and render profiles.")
+        lines.append("- UI: state machines with view-state-local layouts, child state machines, render examples, text resources/assets, content examples, and viewport profiles.")
     else:
         lines.append("- Do not author UI state machines, text resources/assets, render examples, or surface presentation.")
     if "html" in context.layers:
-        lines.append("- HTML UI: html renderer layout, presentation, style, UI entry points, HTML routes, and HTML audit surfaces.")
+        lines.append("- HTML UI: html renderer layout, presentation, style, UI external interfaces, HTML routes, and HTML audit surfaces.")
     elif "ui" in context.layers:
         lines.append("- Do not author html renderer details or HTML routes; the html layer is inactive.")
     if "textual" in context.layers:
@@ -214,9 +215,9 @@ def _pm_design_prompt(context: _PromptContext) -> str:
             "- Use behavior-scenario archetypes from `src/pyspec_contract/patterns.yaml`; define every seed fixture explicitly.",
             "- Entity types are product data entity_types: fields, entity_lifecycle, and invariants only.",
             "- Use `rationale` only when it preserves non-obvious product intent.",
-            "- For entry points, declare one explicit `adapter` (`http_api`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`) and one explicit `target` (`operation`, `state_machine`, `workflow`, or `entry_point`).",
-            "- For state-machine entry points, keep invocation and rendering separate with adapter input and target `renderer` (`html` or `textual`).",
-            "- For workflow entry points, bind entry-point input into the workflow trigger payload with `target.workflow.ref` and `target.workflow.trigger_bindings`.",
+            "- For external interfaces, declare one explicit `adapter` (`http_api`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`) and one explicit `target` (`command`, `query`, `state_machine`, `workflow`, or `external_interface`).",
+            "- For state-machine external interfaces, keep invocation and rendering separate with adapter input and target `renderer` (`html` or `textual`).",
+            "- For workflow external interfaces, bind adapter input into the workflow trigger payload with `target.workflow.ref` and `target.workflow.trigger_bindings`.",
             "- For rendered screens, put framework-owned `layout`, `presentation`, and `style` under `renderers.html` or `renderers.textual`.",
             "- Every rendered text or asset ref must be backed by a declared text resource or asset item.",
         ]
@@ -286,7 +287,7 @@ def _review_prompt(context: _PromptContext) -> str:
         "",
         "Dev audit:",
         "- Check whether implementation consumes generated projections/constants and implements the declared contract without inventing contract surface.",
-        "- Reject invented HTML routes, text resources, selectors, domain_events, workflows, authorization_policies, application_actions, fixtures, behavior-scenario IDs, persistence contracts, or content source signatures outside the spec.",
+        "- Reject invented HTML routes, text resources, selectors, domain_events, workflows, access_policies, commands, queries, fixtures, behavior-scenario IDs, persistence contracts, or content source signatures outside the spec.",
         "- For every dev issue, provide a recommended prompt for `dev.md` that asks for the smallest implementation fix.",
         "",
         "Evidence checks:",
@@ -319,7 +320,7 @@ def _dev_prompt(context: _PromptContext) -> str:
         context.compiled_summary(),
         "",
         "Do not change `spec/spec.yaml` to fix implementation failures unless the user explicitly switches you into PM/design work.",
-        "Use generated constants and projections; do not invent HTML routes, strings, state machine surfaces, CSS selectors, Textual widgets, Textual style rules, domain_events, workflows, authorization_policies, application_actions, fixtures, behavior-scenario IDs, storage tables, or migrations outside the spec and implementation layer.",
+        "Use generated constants and projections; do not invent HTML routes, strings, state machine surfaces, CSS selectors, Textual widgets, Textual style rules, domain_events, workflows, access_policies, commands, queries, fixtures, behavior-scenario IDs, storage tables, or migrations outside the spec and implementation layer.",
         "",
         "Generated interfaces to consume:",
         "- `spec/generated/behavior/behavior_scenarios.yaml` and `spec/generated/behavior/fixtures.yaml`",

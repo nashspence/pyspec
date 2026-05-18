@@ -13,16 +13,17 @@ from .layout import (
     renderer_html_style,
     renderer_textual_containers,
 )
+from .operations import operations
 from .paths import generated_relative as g
 from .binding_refs import BindingExpressionError, parse_binding_expression
 from .targets import (
-    entry_state_machine_name,
-    entry_point_adapter_pair,
-    entry_point_input,
-    entry_point_method,
-    entry_point_path,
-    entry_point_responses,
-    entry_target_pair,
+    external_interface_state_machine_name,
+    external_interface_adapter_pair,
+    external_interface_input,
+    external_interface_method,
+    external_interface_path,
+    external_interface_responses,
+    external_interface_target_ref_pair,
 )
 from .json_schema import (
     SCHEMA_ALIASES,
@@ -40,6 +41,9 @@ from .json_schema import (
 
 SCALAR_JSON_SCHEMA: dict[str, dict[str, Any]] = SCHEMA_ALIASES
 
+
+def _operations(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    return operations(contract)
 
 
 
@@ -66,8 +70,8 @@ def projection_paths(contract: dict[str, Any]) -> list[str]:
         paths.append(g("product_interfaces", "textual.projection.py"))
     if _has_workflow(contract):
         paths.append(g("product_interfaces", "workflow.cwl.yaml"))
-    if _has_authorization_policies(contract):
-        paths.append(g("product_interfaces", "authorization_policies.json"))
+    if _has_access_policies(contract):
+        paths.append(g("product_interfaces", "access_policies.json"))
     if _has_content(contract):
         paths.extend([g("content_resolvers", "__init__.py"), g("content_resolvers", "signatures.py"), g("content_resolvers", "stubs.py"), g("content_resolvers", "examples.yaml")])
     paths.extend(sorted(feature_projections(contract)))
@@ -100,8 +104,8 @@ def projection_files(contract: dict[str, Any], *, layers: str | set[str] | None 
         yield g("product_interfaces", "textual.projection.py"), textual_contract_projection(contract), "text"
     if _has_workflow(contract):
         yield g("product_interfaces", "workflow.cwl.yaml"), workflows_projection(contract), "yaml"
-    if _has_authorization_policies(contract):
-        yield g("product_interfaces", "authorization_policies.json"), authorization_policies_projection(contract), "json"
+    if _has_access_policies(contract):
+        yield g("product_interfaces", "access_policies.json"), access_policies_projection(contract), "json"
     yield g("behavior", "fixtures.yaml"), fixtures_projection(contract), "yaml"
     yield g("behavior", "behavior_scenarios.yaml"), behavior_scenarios_projection(contract), "yaml"
     yield g("test_adapters", "python_refs.py"), refs_py_projection(contract), "text"
@@ -117,29 +121,29 @@ def projection_files(contract: dict[str, Any], *, layers: str | set[str] | None 
     yield from agent_prompt_projection_files(contract, layers=layers)
 
 
-def _entry_points_with_adapter(contract: dict[str, Any], *adapters: str) -> list[dict[str, Any]]:
+def _external_interfaces_with_adapter(contract: dict[str, Any], *adapters: str) -> list[dict[str, Any]]:
     wanted = set(adapters)
     return [
         entry
-        for entry in contract.get("entry_points", {}).values()
-        if entry_point_adapter_pair(entry)[0] in wanted
+        for entry in contract.get("external_interfaces", {}).values()
+        if external_interface_adapter_pair(entry)[0] in wanted
     ]
 
 
 def _has_api(contract: dict[str, Any]) -> bool:
-    return bool(_entry_points_with_adapter(contract, "http_api"))
+    return bool(_external_interfaces_with_adapter(contract, "http_api"))
 
 
 def _has_asyncapi(contract: dict[str, Any]) -> bool:
-    return bool(contract.get("domain_events")) and (bool(_entry_points_with_adapter(contract, "webhook", "worker")) or any("domain_event" in wf.get("trigger", {}) for wf in contract.get("workflows", {}).values()))
+    return bool(contract.get("domain_events")) and (bool(_external_interfaces_with_adapter(contract, "webhook", "worker")) or any("domain_event" in wf.get("trigger", {}) for wf in contract.get("workflows", {}).values()))
 
 
 def _has_html_routes(contract: dict[str, Any]) -> bool:
-    return bool(_entry_points_with_adapter(contract, "html_route"))
+    return bool(_external_interfaces_with_adapter(contract, "html_route"))
 
 
 def _has_workflow(contract: dict[str, Any]) -> bool:
-    return bool(contract.get("workflows")) or bool(_entry_points_with_adapter(contract, "cli", "worker", "scheduled"))
+    return bool(contract.get("workflows")) or bool(_external_interfaces_with_adapter(contract, "cli", "worker", "scheduled"))
 
 
 def _has_ui(contract: dict[str, Any]) -> bool:
@@ -162,28 +166,28 @@ def _has_textual_ui(contract: dict[str, Any]) -> bool:
 
 
 def _has_content(contract: dict[str, Any]) -> bool:
-    return bool(contract.get("text_resources") or contract.get("assets") or contract.get("content_examples"))
+    return bool(contract.get("text_resources") or contract.get("media_assets") or contract.get("content_examples"))
 
 
-def _has_authorization_policies(contract: dict[str, Any]) -> bool:
-    return bool(contract.get("authorization_policies"))
+def _has_access_policies(contract: dict[str, Any]) -> bool:
+    return bool(contract.get("access_policies"))
 
 
 def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
     paths: dict[str, Any] = {}
-    for entry_id, entry in sorted(contract["entry_points"].items()):
-        if entry_point_adapter_pair(entry)[0] != "http_api":
+    for entry_id, entry in sorted(contract["external_interfaces"].items()):
+        if external_interface_adapter_pair(entry)[0] != "http_api":
             continue
-        target_kind, cap_id = entry_target_pair(entry)
-        if target_kind != "application_action":
+        target_kind, cap_id = external_interface_target_ref_pair(entry)
+        if target_kind not in {"command", "query"}:
             continue
-        cap = contract["application_actions"][cap_id]
-        entry_input = entry_point_input(entry)
+        cap = _operations(contract)[cap_id]
+        entry_input = external_interface_input(entry)
         path_params = entry_input.get("path_params", {})
         query_params = entry_input.get("query_params", {})
         body_fields = entry_input.get("body", {})
         responses = {}
-        for outcome_id, response in sorted(entry_point_responses(entry).items()):
+        for outcome_id, response in sorted(external_interface_responses(entry).items()):
             response_status = str(response["status"])
             body_type = response["body"]["type"]
             responses[response_status] = {
@@ -192,8 +196,8 @@ def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
             }
         op: dict[str, Any] = {
             "operationId": cap_id,
-            "x-entry": entry_id,
-            "x-application-action": cap_id,
+            "x-external-interface": entry_id,
+            f"x-{target_kind}": cap_id,
             "parameters": [
                 {"name": name, "in": "path", "required": True, "schema": type_schema(type_name)}
                 for name, type_name in sorted(path_params.items())
@@ -204,14 +208,14 @@ def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
             "responses": responses,
         }
         if cap.get("authorization"):
-            op["x-authorization-policy"] = cap["authorization"]["policy"]
-        method = (entry_point_method(entry) or "").lower()
+            op["x-access-policy"] = cap["authorization"]["policy"]
+        method = (external_interface_method(entry) or "").lower()
         if body_fields and method not in {"get", "delete"}:
             op["requestBody"] = {
                 "required": True,
                 "content": {"application/json": {"schema": object_json_schema(body_fields)}}
             }
-        paths.setdefault(entry_point_path(entry), {})[method] = op
+        paths.setdefault(external_interface_path(entry), {})[method] = op
 
     components = components_projection(contract)
     return {
@@ -280,14 +284,14 @@ def asyncapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
 
 def _workflow_entry_dispositions(contract: dict[str, Any], workflow_id: str) -> dict[str, Any]:
     dispositions: dict[str, Any] = {}
-    for entry_id, entry in sorted(contract.get("entry_points", {}).items()):
-        if entry_point_adapter_pair(entry)[0] not in {"worker", "scheduled"}:
+    for entry_id, entry in sorted(contract.get("external_interfaces", {}).items()):
+        if external_interface_adapter_pair(entry)[0] not in {"worker", "scheduled"}:
             continue
-        target_kind, target_ref = entry_target_pair(entry)
+        target_kind, target_ref = external_interface_target_ref_pair(entry)
         if target_kind != "workflow" or target_ref != workflow_id:
             continue
         entry_dispositions = {}
-        for response_id, response in sorted(entry_point_responses(entry).items()):
+        for response_id, response in sorted(external_interface_responses(entry).items()):
             projected = dict(response)
             if "problem" in projected:
                 projected["problem"] = type_schema(projected["problem"])
@@ -302,14 +306,14 @@ def routes_projection(contract: dict[str, Any]) -> dict[str, Any]:
         "routes": [
             {
                 "id": entry["route"],
-                "entry": entry_id,
-                "path": entry_point_path(entry),
-                "path_params": entry_point_input(entry).get("path_params", {}),
-                "query_params": entry_point_input(entry).get("query_params", {}),
-                "state_machine": entry_state_machine_name(entry),
+                "external_interface": entry_id,
+                "path": external_interface_path(entry),
+                "path_params": external_interface_input(entry).get("path_params", {}),
+                "query_params": external_interface_input(entry).get("query_params", {}),
+                "state_machine": external_interface_state_machine_name(entry),
             }
-            for entry_id, entry in sorted(contract["entry_points"].items())
-            if entry_point_adapter_pair(entry)[0] == "html_route"
+            for entry_id, entry in sorted(contract["external_interfaces"].items())
+            if external_interface_adapter_pair(entry)[0] == "html_route"
         ],
     }
 
@@ -438,7 +442,7 @@ def textual_contract_projection(contract: dict[str, Any]) -> str:
     return f'''from __future__ import annotations
 
 # Generated Textual projection. Do not edit by hand.
-# The PM contract owns state machines/view states/application_actions/widgets/Textual styles; a real Textual app imports this file
+# The PM contract owns state machines/view states/operation bindings/widgets/Textual styles; a real Textual app imports this file
 # and renders state machine view-state surfaces by id instead of inventing screens, widgets, or operation keys.
 
 PROJECT = {contract["project"]!r}
@@ -631,7 +635,7 @@ def tcss_selector(state_machine: dict[str, Any], selector: str) -> str:
     if selector.startswith("action_binding."):
         operation = selector[len("action_binding."):]
         for widget in widgets:
-            if widget["binding"].get("action_binding") == application_action:
+            if widget["binding"].get("action_binding") == operation:
                 return "#" + safe_id(widget["id"])
         return "#" + safe_id(operation)
     return selector
@@ -667,10 +671,10 @@ def workflows_projection(contract: dict[str, Any]) -> dict[str, Any]:
     for workflow_id, workflow in sorted(contract["workflows"].items()):
         steps = {}
         for step in workflow["steps"]:
-            cap = contract["application_actions"][step["application_action"]]
+            cap = _operations(contract)[step["command"]]
             steps[step["id"]] = {
                 "doc": f"input_bindings={step['input_bindings']}; outcome_transitions={step['outcome_transitions']}",
-                "run": f"#{safe_id(step['application_action'])}",
+                "run": f"#{safe_id(step['command'])}",
                 "in": {name: _workflow_cwl_source(source) for name, source in sorted(step["input_bindings"].items())},
                 "out": sorted(cap["outcomes"]),
             }
@@ -687,8 +691,8 @@ def workflows_projection(contract: dict[str, Any]) -> dict[str, Any]:
             },
             "steps": steps,
         })
-    for cap_id in _cwl_application_action_ids(contract):
-        cap = contract["application_actions"][cap_id]
+    for cap_id in _cwl_operation_ids(contract):
+        cap = _operations(contract)[cap_id]
         graph.append({
             "id": f"#{safe_id(cap_id)}",
             "class": "CommandLineTool",
@@ -703,30 +707,30 @@ def workflows_projection(contract: dict[str, Any]) -> dict[str, Any]:
     return {"cwlVersion": "v1.2", "$graph": graph}
 
 
-def _cwl_application_action_ids(contract: dict[str, Any]) -> list[str]:
-    application_action_ids = {
-        step["application_action"]
+def _cwl_operation_ids(contract: dict[str, Any]) -> list[str]:
+    operation_refs = {
+        step["command"]
         for workflow in contract.get("workflows", {}).values()
         for step in workflow.get("steps", [])
     }
-    for entry in contract.get("entry_points", {}).values():
-        adapter_kind, _ = entry_point_adapter_pair(entry)
-        target_kind, target_ref = entry_target_pair(entry)
-        if adapter_kind == "cli" and target_kind == "application_action":
-            application_action_ids.add(target_ref)
-        elif adapter_kind == "cli" and target_kind == "entry_point":
-            application_action_id = _entry_point_effective_application_action_ref(contract, target_ref)
-            if application_action_id:
-                application_action_ids.add(application_action_id)
-    return sorted(application_action_ids)
+    for entry in contract.get("external_interfaces", {}).values():
+        adapter_kind, _ = external_interface_adapter_pair(entry)
+        target_kind, target_ref = external_interface_target_ref_pair(entry)
+        if adapter_kind == "cli" and target_kind in {"command", "query"}:
+            operation_refs.add(target_ref)
+        elif adapter_kind == "cli" and target_kind == "external_interface":
+            operation_ref = _external_interface_effective_operation_ref(contract, target_ref)
+            if operation_ref:
+                operation_refs.add(operation_ref)
+    return sorted(operation_refs)
 
 
-def _entry_point_effective_application_action_ref(contract: dict[str, Any], entry_id: str) -> str | None:
-    target_kind, target_ref = entry_target_pair(contract["entry_points"][entry_id])
-    if target_kind == "application_action":
+def _external_interface_effective_operation_ref(contract: dict[str, Any], entry_id: str) -> str | None:
+    target_kind, target_ref = external_interface_target_ref_pair(contract["external_interfaces"][entry_id])
+    if target_kind in {"command", "query"}:
         return target_ref
-    if target_kind == "entry_point":
-        return _entry_point_effective_application_action_ref(contract, target_ref)
+    if target_kind == "external_interface":
+        return _external_interface_effective_operation_ref(contract, target_ref)
     return None
 
 
@@ -734,7 +738,7 @@ def _workflow_trigger_payload_type(contract: dict[str, Any], workflow: dict[str,
     trigger = workflow["trigger"]
     if "domain_event" in trigger:
         return contract["domain_events"][trigger["domain_event"]]["payload_schema"]
-    operation = contract["application_actions"][trigger["application_action"]]
+    operation = _operations(contract)[trigger["command"]]
     successes = [outcome["result"] for outcome in operation["outcomes"].values() if outcome["kind"] == "success"]
     return successes[0]
 
@@ -764,19 +768,19 @@ def behavior_scenarios_projection(contract: dict[str, Any]) -> dict[str, Any]:
     return {"project": contract["project"], "behavior_scenarios": contract["behavior_scenarios"]}
 
 
-def authorization_policies_projection(contract: dict[str, Any]) -> dict[str, Any]:
+def access_policies_projection(contract: dict[str, Any]) -> dict[str, Any]:
     return {
         "project": contract["project"],
-        "authorization_policies": contract.get("authorization_policies", {}),
-        "action_authorizations": {
-            application_action_id: operation["authorization"]
-            for application_action_id, operation in sorted(contract.get("application_actions", {}).items())
+        "access_policies": contract.get("access_policies", {}),
+        "operation_authorizations": {
+            operation_ref: operation["authorization"]
+            for operation_ref, operation in sorted(_operations(contract).items())
             if "authorization" in operation
         },
-        "entry_point_authorization_policies": {
-            entry_id: entry["authorization_policy"]
-            for entry_id, entry in sorted(contract.get("entry_points", {}).items())
-            if "authorization_policy" in entry
+        "external_interface_access_policies": {
+            entry_id: entry["access_policy"]
+            for entry_id, entry in sorted(contract.get("external_interfaces", {}).items())
+            if "access_policy" in entry
         },
     }
 
@@ -814,7 +818,7 @@ def content_contract_projection(contract: dict[str, Any]) -> str:
     ]
     text_classes: dict[str, str] = {}
     asset_classes: dict[str, str] = {}
-    for section, mapping_name, store in [("text_resources", "TEXT_SIGNATURES", text_classes), ("assets", "ASSET_SIGNATURES", asset_classes)]:
+    for section, mapping_name, store in [("text_resources", "TEXT_SIGNATURES", text_classes), ("media_assets", "ASSET_SIGNATURES", asset_classes)]:
         for ref, spec, class_name in _content_signature_items(contract, section):
             store[ref] = class_name
             args = spec.get("args", {})
@@ -827,7 +831,7 @@ def content_contract_projection(contract: dict[str, Any]) -> str:
                 lines.append("    pass")
             lines.append("")
     lines.append(f"TEXT_SIGNATURES = { {ref: {'args': spec.get('args', {}), 'source_ref': spec.get('source_ref'), 'arg_class': text_classes[ref]} for ref, spec, _ in _content_signature_items(contract, 'text_resources')}!r}")
-    lines.append(f"ASSET_SIGNATURES = { {ref: {'args': spec.get('args', {}), 'source_ref': spec.get('source_ref'), 'arg_class': asset_classes[ref]} for ref, spec, _ in _content_signature_items(contract, 'assets')}!r}")
+    lines.append(f"ASSET_SIGNATURES = { {ref: {'args': spec.get('args', {}), 'source_ref': spec.get('source_ref'), 'arg_class': asset_classes[ref]} for ref, spec, _ in _content_signature_items(contract, 'media_assets')}!r}")
     lines.append(f"TEXT_ARG_CLASSES = {{{', '.join(f'{ref!r}: {cls}' for ref, cls in text_classes.items())}}}")
     lines.append(f"ASSET_ARG_CLASSES = {{{', '.join(f'{ref!r}: {cls}' for ref, cls in asset_classes.items())}}}")
     lines.append("")
@@ -854,7 +858,7 @@ def content_stubs_projection(contract: dict[str, Any]) -> str:
             f"    raise NotImplementedError({ref!r})",
             "",
         ])
-    for ref, spec, class_name in _content_signature_items(contract, "assets"):
+    for ref, spec, class_name in _content_signature_items(contract, "media_assets"):
         source_ref = spec.get("source_ref")
         if not source_ref:
             continue
@@ -871,10 +875,10 @@ def content_stubs_projection(contract: dict[str, Any]) -> str:
 
 def refs_py_projection(contract: dict[str, Any]) -> str:
     groups: dict[str, list[str]] = {
-        "Asset": sorted(contract.get("assets", {})),
-        "RenderProfile": sorted(contract.get("render_profiles", {})),
-        "EntryPoint": sorted(contract["entry_points"]),
-        "Operation": sorted(contract["application_actions"]),
+        "Asset": sorted(contract.get("media_assets", {})),
+        "RenderProfile": sorted(contract.get("viewport_profiles", {})),
+        "EntryPoint": sorted(contract["external_interfaces"]),
+        "Operation": sorted(_operations(contract)),
         "Text": sorted(contract.get("text_resources", {})),
         "ContentExample": sorted(contract.get("content_examples", {})),
         "DomainEvent": sorted(contract["domain_events"]),
@@ -890,7 +894,7 @@ def refs_py_projection(contract: dict[str, Any]) -> str:
         ),
         "BehaviorScenario": sorted(contract["behavior_scenarios"]),
     }
-    for kind, values in sorted(contract["refs"].items()):
+    for kind, values in sorted(contract["reference_index"].items()):
         groups[kind.title().replace("_", "")] = values
     lines = ['"""Generated contract references. Do not edit by hand."""', ""]
     for class_name, values in sorted(groups.items()):
@@ -994,7 +998,7 @@ def components_projection(contract: dict[str, Any]) -> dict[str, Any]:
         for ref in referenced_named_types(entity_type["schema"]):
             if ref != rid and ref not in contract["entity_types"] and ref not in contract.get("schemas", {}):
                 opaque.add(ref)
-    for cap in contract["application_actions"].values():
+    for cap in _operations(contract).values():
         outcome_types = [outcome["result"] for outcome in cap["outcomes"].values()]
         for type_name in [cap["input"], *outcome_types]:
             for ref in referenced_named_types(type_name):

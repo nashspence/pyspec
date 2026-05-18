@@ -30,18 +30,18 @@ $graph:
       - authentication_required
       - delivery_failed
       - sent
-      run: '#application_action_project_send_approval_notice'
+      run: '#command_project_send_approval_notice'
 - baseCommand:
   - contract-operation
-  - application_action.project.approve
+  - command.project.approve
   class: CommandLineTool
-  id: '#application_action_project_approve'
+  id: '#command_project_approve'
   inputs:
     approved_by:
       type: string
     project_id:
       type: string
-  label: application_action.project.approve
+  label: command.project.approve
   outputs:
     access_denied:
       type: Any
@@ -57,15 +57,15 @@ $graph:
       type: Any
 - baseCommand:
   - contract-operation
-  - application_action.project.send_approval_notice
+  - command.project.send_approval_notice
   class: CommandLineTool
-  id: '#application_action_project_send_approval_notice'
+  id: '#command_project_send_approval_notice'
   inputs:
     approved_by:
       type: string
     project_id:
       type: string
-  label: application_action.project.send_approval_notice
+  label: command.project.send_approval_notice
   outputs:
     access_denied:
       type: Any

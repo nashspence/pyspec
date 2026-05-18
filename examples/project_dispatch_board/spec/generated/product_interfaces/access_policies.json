@@ -1,0 +1,95 @@
+{
+  "access_policies": {
+    "access_policy.project.member": {
+      "conditions": [
+        {
+          "subject_has_role": "member"
+        }
+      ],
+      "effect": "permit",
+      "rationale": "Workspace members may create, read, list, and submit dispatch projects.",
+      "resources": [
+        {
+          "action": "command.project.create"
+        },
+        {
+          "action": "query.project.list"
+        },
+        {
+          "action": "query.project.read"
+        },
+        {
+          "action": "command.project.submit"
+        },
+        {
+          "entity_type": "entity_type.project"
+        }
+      ],
+      "subjects": [
+        {
+          "kind": "actor"
+        }
+      ]
+    },
+    "access_policy.project.reviewer": {
+      "conditions": [
+        {
+          "subject_has_role": "reviewer"
+        }
+      ],
+      "effect": "permit",
+      "rationale": "Reviewers may approve, archive, and send approval notices for dispatch projects.",
+      "resources": [
+        {
+          "action": "command.project.approve"
+        },
+        {
+          "action": "command.project.archive"
+        },
+        {
+          "action": "command.project.send_approval_notice"
+        },
+        {
+          "entity_type": "entity_type.project"
+        }
+      ],
+      "subjects": [
+        {
+          "kind": "actor"
+        }
+      ]
+    }
+  },
+  "external_interface_access_policies": {
+    "external_interface.api.project.approve": "access_policy.project.reviewer",
+    "external_interface.api.project.create": "access_policy.project.member"
+  },
+  "operation_authorizations": {
+    "command.project.approve": {
+      "access_denied_as": "access_denied",
+      "authentication_required_as": "authentication_required",
+      "policy": "access_policy.project.reviewer"
+    },
+    "command.project.archive": {
+      "access_denied_as": "access_denied",
+      "authentication_required_as": "authentication_required",
+      "policy": "access_policy.project.reviewer"
+    },
+    "command.project.create": {
+      "access_denied_as": "access_denied",
+      "authentication_required_as": "authentication_required",
+      "policy": "access_policy.project.member"
+    },
+    "command.project.send_approval_notice": {
+      "access_denied_as": "access_denied",
+      "authentication_required_as": "authentication_required",
+      "policy": "access_policy.project.reviewer"
+    },
+    "command.project.submit": {
+      "access_denied_as": "access_denied",
+      "authentication_required_as": "authentication_required",
+      "policy": "access_policy.project.member"
+    }
+  },
+  "project": "project_dispatch_board"
+}

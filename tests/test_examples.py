@@ -48,7 +48,7 @@ def test_canonical_contract_is_fresh_and_complete() -> None:
 
 def test_canonical_openapi_asyncapi_and_cwl_are_visible() -> None:
     openapi = read_yaml(ROOT / "spec" / "generated" / "product_interfaces" / "http.openapi.yaml")
-    assert openapi["paths"]["/workspaces/{workspace_id}/projects"]["post"]["operationId"] == "application_action.project.create"
+    assert openapi["paths"]["/workspaces/{workspace_id}/projects"]["post"]["operationId"] == "command.project.create"
     asyncapi = read_yaml(ROOT / "spec" / "generated" / "product_interfaces" / "integration_messages.asyncapi.yaml")
     assert any(channel.get("address") == "domain_event.project.approved" for channel in asyncapi["channels"].values() if isinstance(channel, dict))
     cwl = read_yaml(ROOT / "spec" / "generated" / "product_interfaces" / "workflow.cwl.yaml")
@@ -76,16 +76,16 @@ def test_canonical_textual_contract_imports_and_composes() -> None:
 def test_textual_screens_are_driven_by_textual_state_machine_layout() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
     del author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["renderers"]["textual"]
-    author["entry_points"]["entry_point.cli.project.board"]["target"]["state_machine"]["renderer"] = "html"
+    author["external_interfaces"]["external_interface.cli.project.board"]["target"]["state_machine"]["renderer"] = "html"
     contract = compile_source(author)
     projection = state_machines_projection(contract)
     assert textual_screen_entries(contract, projection["state_machines"], projection["compositions"]) == []
 
 
 def test_canonical_audit_contains_real_visual_references() -> None:
-    html = (ROOT / render_example_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "html")).read_text(encoding="utf-8")
+    html = (ROOT / render_example_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "viewport_profile.default", "wide", "html")).read_text(encoding="utf-8")
     assert "Replace rooftop condenser fan" in html
     assert "Atlas Foods" in html
     assert "Dispatch queue" in html
-    assert (ROOT / render_example_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "png")).exists()
-    assert (ROOT / render_example_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "svg")).exists()
+    assert (ROOT / render_example_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "viewport_profile.default", "wide", "png")).exists()
+    assert (ROOT / render_example_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "viewport_profile.default", "wide", "svg")).exists()

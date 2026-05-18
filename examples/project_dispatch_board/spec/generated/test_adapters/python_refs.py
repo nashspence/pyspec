@@ -1,5 +1,9 @@
 """Generated contract references. Do not edit by hand."""
 
+class AccessPolicy:
+    ACCESS_POLICY_PROJECT_MEMBER = 'access_policy.project.member'
+    ACCESS_POLICY_PROJECT_REVIEWER = 'access_policy.project.reviewer'
+
 class ActionBinding:
     ACTION_BINDING_PROJECT_DETAIL_READY_APPROVE = 'action_binding.project.detail.ready.approve'
     ACTION_BINDING_PROJECT_DETAIL_READY_ARCHIVE = 'action_binding.project.detail.ready.archive'
@@ -46,10 +50,6 @@ class Assertion:
 class Asset:
     ASSET_PROJECT_DETAIL_READY_PRIORITY_BADGE = 'asset.project.detail.ready.priority_badge'
     ASSET_PROJECT_LIST_EMPTY_ILLUSTRATION = 'asset.project.list.empty.illustration'
-
-class AuthorizationPolicy:
-    AUTHORIZATION_POLICY_PROJECT_MEMBER = 'authorization_policy.project.member'
-    AUTHORIZATION_POLICY_PROJECT_REVIEWER = 'authorization_policy.project.reviewer'
 
 class BehaviorScenario:
     BEHAVIOR_SCENARIO_PROJECT_APPROVAL_NOTICE_WORKFLOW = 'behavior_scenario.project.approval_notice.workflow'
@@ -116,25 +116,25 @@ class Endpoint:
     ENDPOINT_PROJECT_LIST = 'endpoint.project.list'
 
 class EntryPoint:
-    ENTRY_POINT_API_PROJECT_APPROVE = 'entry_point.api.project.approve'
-    ENTRY_POINT_API_PROJECT_CREATE = 'entry_point.api.project.create'
-    ENTRY_POINT_API_PROJECT_LIST = 'entry_point.api.project.list'
-    ENTRY_POINT_CLI_PROJECT_APPROVE = 'entry_point.cli.project.approve'
-    ENTRY_POINT_CLI_PROJECT_BOARD = 'entry_point.cli.project.board'
-    ENTRY_POINT_HTML_PROJECT_BOARD = 'entry_point.html.project.board'
-    ENTRY_POINT_WORKER_PROJECT_APPROVAL_NOTICE = 'entry_point.worker.project.approval_notice'
+    EXTERNAL_INTERFACE_API_PROJECT_APPROVE = 'external_interface.api.project.approve'
+    EXTERNAL_INTERFACE_API_PROJECT_CREATE = 'external_interface.api.project.create'
+    EXTERNAL_INTERFACE_API_PROJECT_LIST = 'external_interface.api.project.list'
+    EXTERNAL_INTERFACE_CLI_PROJECT_APPROVE = 'external_interface.cli.project.approve'
+    EXTERNAL_INTERFACE_CLI_PROJECT_BOARD = 'external_interface.cli.project.board'
+    EXTERNAL_INTERFACE_HTML_PROJECT_BOARD = 'external_interface.html.project.board'
+    EXTERNAL_INTERFACE_WORKER_PROJECT_APPROVAL_NOTICE = 'external_interface.worker.project.approval_notice'
 
-class EntryPointDelegate:
-    ENTRY_POINT_DELEGATE_CLI_PROJECT_APPROVE_TO_API_PROJECT_APPROVE = 'entry_point_delegate.cli.project.approve.to.api.project.approve'
+class ExternalInterfaceDelegate:
+    EXTERNAL_INTERFACE_DELEGATE_CLI_PROJECT_APPROVE_TO_API_PROJECT_APPROVE = 'external_interface_delegate.cli.project.approve.to.api.project.approve'
 
-class EntryPointTarget:
-    ENTRY_POINT_TARGET_API_PROJECT_APPROVE_APPLICATION_ACTION_PROJECT_APPROVE = 'entry_point_target.api.project.approve.application_action.project.approve'
-    ENTRY_POINT_TARGET_API_PROJECT_CREATE_APPLICATION_ACTION_PROJECT_CREATE = 'entry_point_target.api.project.create.application_action.project.create'
-    ENTRY_POINT_TARGET_API_PROJECT_LIST_APPLICATION_ACTION_PROJECT_LIST = 'entry_point_target.api.project.list.application_action.project.list'
-    ENTRY_POINT_TARGET_CLI_PROJECT_APPROVE_ENTRY_POINT_API_PROJECT_APPROVE = 'entry_point_target.cli.project.approve.entry_point.api.project.approve'
-    ENTRY_POINT_TARGET_CLI_PROJECT_BOARD_STATE_MACHINE_PROJECT_BOARD = 'entry_point_target.cli.project.board.state_machine.project.board'
-    ENTRY_POINT_TARGET_HTML_PROJECT_BOARD_STATE_MACHINE_PROJECT_BOARD = 'entry_point_target.html.project.board.state_machine.project.board'
-    ENTRY_POINT_TARGET_WORKER_PROJECT_APPROVAL_NOTICE_WORKFLOW_PROJECT_APPROVAL_NOTICE = 'entry_point_target.worker.project.approval_notice.workflow.project.approval_notice'
+class ExternalInterfaceTarget:
+    EXTERNAL_INTERFACE_TARGET_API_PROJECT_APPROVE_COMMAND_PROJECT_APPROVE = 'external_interface_target.api.project.approve.command.project.approve'
+    EXTERNAL_INTERFACE_TARGET_API_PROJECT_CREATE_COMMAND_PROJECT_CREATE = 'external_interface_target.api.project.create.command.project.create'
+    EXTERNAL_INTERFACE_TARGET_API_PROJECT_LIST_QUERY_PROJECT_LIST = 'external_interface_target.api.project.list.query.project.list'
+    EXTERNAL_INTERFACE_TARGET_CLI_PROJECT_APPROVE_EXTERNAL_INTERFACE_API_PROJECT_APPROVE = 'external_interface_target.cli.project.approve.external_interface.api.project.approve'
+    EXTERNAL_INTERFACE_TARGET_CLI_PROJECT_BOARD_STATE_MACHINE_PROJECT_BOARD = 'external_interface_target.cli.project.board.state_machine.project.board'
+    EXTERNAL_INTERFACE_TARGET_HTML_PROJECT_BOARD_STATE_MACHINE_PROJECT_BOARD = 'external_interface_target.html.project.board.state_machine.project.board'
+    EXTERNAL_INTERFACE_TARGET_WORKER_PROJECT_APPROVAL_NOTICE_WORKFLOW_PROJECT_APPROVAL_NOTICE = 'external_interface_target.worker.project.approval_notice.workflow.project.approval_notice'
 
 class Fixture:
     FIXTURE_WORKSPACE_MEMBER = 'fixture.workspace.member'
@@ -170,13 +170,13 @@ class LocalSignalRaise:
     LOCAL_SIGNAL_RAISE_PROJECT_LIST_READY_ACTION_BINDING_SUBMIT_TRANSITION_NOT_ALLOWED_LOCAL_SIGNAL_SHOW_TRANSITION_NOT_ALLOWED = 'local_signal_raise.project.list.ready.action_binding.submit.transition_not_allowed.local_signal.show_transition_not_allowed'
 
 class Operation:
-    APPLICATION_ACTION_PROJECT_APPROVE = 'application_action.project.approve'
-    APPLICATION_ACTION_PROJECT_ARCHIVE = 'application_action.project.archive'
-    APPLICATION_ACTION_PROJECT_CREATE = 'application_action.project.create'
-    APPLICATION_ACTION_PROJECT_LIST = 'application_action.project.list'
-    APPLICATION_ACTION_PROJECT_READ = 'application_action.project.read'
-    APPLICATION_ACTION_PROJECT_SEND_APPROVAL_NOTICE = 'application_action.project.send_approval_notice'
-    APPLICATION_ACTION_PROJECT_SUBMIT = 'application_action.project.submit'
+    COMMAND_PROJECT_APPROVE = 'command.project.approve'
+    COMMAND_PROJECT_ARCHIVE = 'command.project.archive'
+    COMMAND_PROJECT_CREATE = 'command.project.create'
+    COMMAND_PROJECT_SEND_APPROVAL_NOTICE = 'command.project.send_approval_notice'
+    COMMAND_PROJECT_SUBMIT = 'command.project.submit'
+    QUERY_PROJECT_LIST = 'query.project.list'
+    QUERY_PROJECT_READ = 'query.project.read'
 
 class Precondition:
     PRECONDITION_PROJECT_DRAFT = 'precondition.project.draft'
@@ -187,7 +187,7 @@ class RenderExample:
     STATE_MACHINE_PROJECT_BOARD_READY_READY_SELECTED_AUDIT = 'state_machine.project.board.ready.ready_selected.audit'
 
 class RenderProfile:
-    RENDER_PROFILE_DEFAULT = 'render_profile.default'
+    VIEWPORT_PROFILE_DEFAULT = 'viewport_profile.default'
 
 class Route:
     ROUTE_PROJECT_BOARD = 'route.project.board'

@@ -7,8 +7,9 @@ def dotted(prefix: str, value: str) -> str:
 
 def resource_tail(value: str) -> str:
     for prefix in (
-        "application_action",
-        "entry_point",
+        "command",
+        "query",
+        "external_interface",
         "domain_event",
         "workflow",
         "state_machine",
@@ -20,10 +21,10 @@ def resource_tail(value: str) -> str:
         "text",
         "content_example",
         "schema",
-        "render_profile",
+        "viewport_profile",
         "local_signal",
         "data_refresh_signal",
-        "authorization_policy",
+        "access_policy",
     ):
         marker = f"{prefix}."
         if value.startswith(marker):
@@ -35,8 +36,8 @@ def route_ref(state_machine_id: str) -> str:
     return dotted("route", resource_tail(state_machine_id))
 
 
-def endpoint_ref(application_action_id: str) -> str:
-    return dotted("endpoint", resource_tail(application_action_id))
+def endpoint_ref(operation_ref: str) -> str:
+    return dotted("endpoint", resource_tail(operation_ref))
 
 
 def cli_command_ref(ref: str) -> str:
@@ -49,13 +50,13 @@ def workflow_ref(workflow_id: str) -> str:
     return dotted("workflow", resource_tail(workflow_id))
 
 
-def authorization_policy_ref(application_action_id: str) -> str:
-    return dotted("authorization_policy", resource_tail(application_action_id))
+def access_policy_ref(operation_ref: str) -> str:
+    return dotted("access_policy", resource_tail(operation_ref))
 
 
-def query_ref(state_machine_subject: str, application_action_id: str, many: bool = False) -> str:
-    application_action_subject = resource_tail(application_action_id)
-    suffix = application_action_subject.replace(".", "_") if many else application_action_subject.split(".")[-1]
+def query_ref(state_machine_subject: str, operation_ref: str, many: bool = False) -> str:
+    operation_subject = resource_tail(operation_ref)
+    suffix = operation_subject.replace(".", "_") if many else operation_subject.split(".")[-1]
     return f"query.{resource_tail(state_machine_subject)}.{suffix}"
 
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import copy
 import hashlib
 import html
 import json
@@ -19,20 +20,21 @@ from .compile import ContractError, render_examples
 from .content import AssetResult, ContentContext, ContentError, call_asset, call_text
 from .io import write_yaml
 from .layout import renderer_textual_presentation, renderer_html_layout, renderer_html_presentation, renderer_html_regions
+from .operations import invocation_operation_ref, operation_collection, operations
 from .paths import GENERATED_SPEC_DIR, generated_relative as g
 from .project import default_html_slots, format_attrs, humanize, state_machines_projection, state_machine_styles_projection, safe_id
 from .runtime import fixture_namespace, resolve
 from .targets import (
-    entry_state_machine_renderer,
-    entry_point_adapter_pair,
-    entry_point_cli_command,
-    entry_point_input,
-    entry_point_method,
-    entry_point_path,
-    entry_point_response_handlers,
-    entry_point_responses,
-    entry_point_schedule_expression,
-    entry_target_pair,
+    external_interface_state_machine_renderer,
+    external_interface_adapter_pair,
+    external_interface_cli_command,
+    external_interface_input,
+    external_interface_method,
+    external_interface_path,
+    external_interface_response_handlers,
+    external_interface_responses,
+    external_interface_schedule_expression,
+    external_interface_target_ref_pair,
 )
 from .json_schema import effective_property_schema, schema_properties, type_display
 
@@ -133,16 +135,16 @@ def composition_file(state_machine_id: str, state_name: str = "ready") -> str:
     return g("audit_evidence", "state_machines", safe_id(state_machine_id), "view_states", safe_id(state_name), "composition.svg")
 
 
-def entrypoint_flow_file(entry_id: str, adapter_kind: str) -> str:
-    return g("audit_evidence", "entrypoints", safe_id(adapter_kind), safe_id(entry_id), "flow.svg")
+def external_interface_flow_file(entry_id: str, adapter_kind: str) -> str:
+    return g("audit_evidence", "external_interfaces", safe_id(adapter_kind), safe_id(entry_id), "flow.svg")
 
 
 def workflow_flow_file(workflow_id: str) -> str:
     return g("audit_evidence", "workflows", safe_id(workflow_id), "flow.svg")
 
 
-def application_action_flow_file(application_action_id: str) -> str:
-    return g("audit_evidence", "application_actions", safe_id(application_action_id), "flow.svg")
+def operation_flow_file(operation_ref: str) -> str:
+    return g("audit_evidence", operation_collection(operation_ref), safe_id(operation_ref), "flow.svg")
 
 
 def audit_coverage_file() -> str:
@@ -215,7 +217,7 @@ def _profile_viewports(contract: dict[str, Any], surface: str) -> list[tuple[str
     field = "html_viewports" if surface == "html" else "textual_viewports"
     return [
         (profile_id, name, viewport)
-        for profile_id, profile in sorted(contract.get("render_profiles", {}).items())
+        for profile_id, profile in sorted(contract.get("viewport_profiles", {}).items())
         for name, viewport in sorted(profile.get(field, {}).items())
     ]
 
@@ -255,7 +257,7 @@ def _state_needs_data(contract: dict[str, Any], state_machine: dict[str, Any]) -
         return True
     text_refs = state_machine["slots"].get("text", [])
     asset_refs = state_machine["slots"].get("assets", [])
-    return any(contract["text_resources"][ref].get("args") for ref in text_refs) or any(contract["assets"][ref].get("args") for ref in asset_refs)
+    return any(contract["text_resources"][ref].get("args") for ref in text_refs) or any(contract["media_assets"][ref].get("args") for ref in asset_refs)
 
 
 def _fixture_ids_for_model(contract: dict[str, Any], entity_type_id: str) -> set[str]:
@@ -342,7 +344,7 @@ def _write_audit_scope_inputs(
     for asset_id in sorted(asset_refs):
         asset_path = root / _scope_asset_file(scope_root, asset_id)
         asset_path.parent.mkdir(parents=True, exist_ok=True)
-        asset_path.write_text(asset_placeholder_svg(contract["assets"][asset_id]), encoding="utf-8")
+        asset_path.write_text(asset_placeholder_svg(contract["media_assets"][asset_id]), encoding="utf-8")
 
 
 def _write_audit_inputs(root: Path, contract: dict[str, Any], projection: dict[str, Any]) -> None:
@@ -370,13 +372,13 @@ def _audit_visual_expected_files(contract: dict[str, Any]) -> set[str]:
         for state_name, state in state_machine.get("view_states", {}).items():
             if state.get("child_state_machines"):
                 files.add(composition_file(state_machine_id, state_name))
-    for entry_id, entry in contract.get("entry_points", {}).items():
-        adapter_kind, _ = entry_point_adapter_pair(entry)
-        files.add(entrypoint_flow_file(entry_id, adapter_kind))
+    for entry_id, entry in contract.get("external_interfaces", {}).items():
+        adapter_kind, _ = external_interface_adapter_pair(entry)
+        files.add(external_interface_flow_file(entry_id, adapter_kind))
     for workflow_id in contract.get("workflows", {}):
         files.add(workflow_flow_file(workflow_id))
-    for application_action_id in contract.get("application_actions", {}):
-        files.add(application_action_flow_file(application_action_id))
+    for operation_ref in _operations(contract):
+        files.add(operation_flow_file(operation_ref))
 
     projection = state_machines_projection(contract)
     for state_machine in _audit_projection_surfaces(contract, projection):
@@ -423,13 +425,13 @@ def _audit_visual_evidence_files(contract: dict[str, Any]) -> set[str]:
         for state_name, state in state_machine.get("view_states", {}).items():
             if state.get("child_state_machines"):
                 files.add(composition_file(state_machine_id, state_name))
-    for entry_id, entry in contract.get("entry_points", {}).items():
-        adapter_kind, _ = entry_point_adapter_pair(entry)
-        files.add(entrypoint_flow_file(entry_id, adapter_kind))
+    for entry_id, entry in contract.get("external_interfaces", {}).items():
+        adapter_kind, _ = external_interface_adapter_pair(entry)
+        files.add(external_interface_flow_file(entry_id, adapter_kind))
     for workflow_id in contract.get("workflows", {}):
         files.add(workflow_flow_file(workflow_id))
-    for application_action_id in contract.get("application_actions", {}):
-        files.add(application_action_flow_file(application_action_id))
+    for operation_ref in _operations(contract):
+        files.add(operation_flow_file(operation_ref))
 
     projection = state_machines_projection(contract)
     for surface in _audit_projection_surfaces(contract, projection):
@@ -554,30 +556,15 @@ def _non_visual_path_classification(contract: dict[str, Any], pointer: str) -> d
         return {
             "reason": "workspace metadata for generated artifacts; visual coverage tracks product contract paths",
         }
-    if parts[0] == "refs":
+    if parts[0] == "reference_index":
         return {
-            "reason": "compiled reference index metadata; owning resources are covered at their compiled spec paths",
-        }
-    if parts[0] in {"commands", "queries"}:
-        operation_ref = _application_action_ref_from_split(parts[0], parts[1] if len(parts) > 1 else "")
-        return {
-            "reason": "derived command/query split; visual coverage remains anchored to executable operation diagrams",
-            "evidence": _application_action_evidence_files(contract, operation_ref),
+            "reason": "canonical compiled reference index metadata; owning resources are covered at their compiled spec paths",
         }
     return None
 
-
-def _application_action_ref_from_split(collection: str, operation_ref: str) -> str:
-    if collection == "commands" and operation_ref.startswith("command."):
-        return "application_action." + operation_ref.removeprefix("command.")
-    if collection == "queries" and operation_ref.startswith("query."):
-        return "application_action." + operation_ref.removeprefix("query.")
-    return operation_ref
-
-
 def _visual_path_obligation(contract: dict[str, Any], pointer: str) -> dict[str, str]:
     parts = _json_pointer_parts(pointer)
-    if parts and parts[0] in {"assets", "assertions", "content_examples", "preconditions", "fixtures", "behavior_scenarios", "text_resources"}:
+    if parts and parts[0] in {"media_assets", "assertions", "content_examples", "preconditions", "fixtures", "behavior_scenarios", "text_resources", "viewport_profiles"}:
         return {"level": "optional", "reason": _optional_visual_path_reason(parts[0])}
     _ = contract
     return {"level": "required", "reason": "required product contract path has no diagram or render-capture evidence"}
@@ -585,13 +572,14 @@ def _visual_path_obligation(contract: dict[str, Any], pointer: str) -> dict[str,
 
 def _optional_visual_path_reason(collection: str) -> str:
     return {
-        "assets": "declared assets may be unused by rendered states",
+        "media_assets": "declared media assets may be unused by rendered states",
         "assertions": "assertions are expected predicates and need not appear in render examples",
         "content_examples": "content examples are visual only when their referenced resource is rendered",
         "preconditions": "preconditions may support behavior setup without dedicated visual evidence",
         "fixtures": "fixtures may support behavior or content tests without appearing in render examples",
         "behavior_scenarios": "behavior scenarios may be represented by diagrams or renders, but are not required visual evidence",
         "text_resources": "text resources may be adapter or branch-specific and need not appear in rendered states",
+        "viewport_profiles": "viewport profiles are covered through render captures when renderable states exist",
     }[collection]
 
 
@@ -606,14 +594,14 @@ def _audit_evidence_for_pointer(contract: dict[str, Any], pointer: str) -> list[
     owner = parts[1]
     if parts[0] == "assets":
         return _asset_evidence_files(contract, owner)
-    if parts[0] == "authorization_policies":
-        return _authorization_policy_evidence_files(contract, owner)
+    if parts[0] == "access_policies":
+        return _access_policy_evidence_files(contract, owner)
     if parts[0] == "content_examples":
         return _content_example_evidence_files(contract, owner)
     if parts[0] == "schemas":
         return _schema_evidence_files(contract, owner)
-    if parts[0] == "entry_points":
-        return _entry_point_evidence_files(contract, owner)
+    if parts[0] == "external_interfaces":
+        return _external_interface_evidence_files(contract, owner)
     if parts[0] == "domain_events":
         return _event_evidence_files(contract, owner)
     if parts[0] == "preconditions":
@@ -622,9 +610,9 @@ def _audit_evidence_for_pointer(contract: dict[str, Any], pointer: str) -> list[
         return _fixture_evidence_files(contract, owner)
     if parts[0] == "entity_types":
         return _model_evidence_files(contract, owner)
-    if parts[0] == "application_actions":
-        return _application_action_evidence_files(contract, owner)
-    if parts[0] == "render_profiles":
+    if parts[0] in {"commands", "queries"}:
+        return _operation_evidence_files(contract, owner)
+    if parts[0] == "viewport_profiles":
         return _all_render_evidence_files(contract)
     if parts[0] == "state_machines":
         state_name = parts[3] if len(parts) >= 4 and parts[2] == "view_states" else None
@@ -673,7 +661,7 @@ def _render_content_example_coverage(contract: dict[str, Any], evidence_set_id: 
         evidence: list[str] = []
         if ref in contract.get("text_resources", {}):
             evidence = _filter_evidence_files(contract, _scope_input_evidence_files(contract, ref, "text"))
-        elif ref in contract.get("assets", {}):
+        elif ref in contract.get("media_assets", {}):
             evidence = _filter_evidence_files(contract, _scope_input_evidence_files(contract, ref, "asset"))
         if evidence:
             rendered[content_example_id] = evidence_set_id(evidence)
@@ -684,19 +672,27 @@ def _render_content_example_coverage(contract: dict[str, Any], evidence_set_id: 
 
 _VISUAL_TEXT_REF_PREFIXES = (
     "asset.",
-    "authorization_policy.",
+    "access_policy.",
     "cli_command.",
     "schema.",
     "data_refresh_signal.",
-    "entry_point.",
+    "external_interface.",
     "domain_event.",
     "local_signal.",
-    "application_action.",
+    "command.",
     "query.",
     "state_machine.",
     "text.",
     "workflow.",
 )
+
+
+def _operations(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    return operations(contract)
+
+
+def _invocation_operation_ref(invocation: dict[str, Any]) -> str:
+    return invocation_operation_ref(invocation)
 
 
 def _visual_text_witnesses(
@@ -733,14 +729,14 @@ def _visual_text_witness_tokens(contract: dict[str, Any], pointer: str, evidence
         tokens.append(value)
 
     collection = parts[0]
-    if collection == "authorization_policies":
+    if collection == "access_policies":
         if not detail_evidence:
             return _unique_visual_text_tokens(tokens)
-        tokens.extend(_authorization_policy_text_witness_tokens(contract, parts, value))
-    elif collection == "entry_points":
-        tokens.extend(_entry_point_text_witness_tokens(contract, parts, value))
-    elif collection == "application_actions":
-        tokens.extend(_application_action_text_witness_tokens(contract, parts, value, detail_evidence))
+        tokens.extend(_access_policy_text_witness_tokens(contract, parts, value))
+    elif collection == "external_interfaces":
+        tokens.extend(_external_interface_text_witness_tokens(contract, parts, value))
+    elif collection in {"commands", "queries"}:
+        tokens.extend(_operation_text_witness_tokens(contract, parts, value, detail_evidence))
     elif collection == "domain_events":
         tokens.extend(_event_text_witness_tokens(contract, parts, value))
     elif collection == "workflows":
@@ -771,15 +767,17 @@ def _is_visual_text_reference(value: str) -> bool:
 def _generic_reference_witness_allowed(parts: list[str], detail_evidence: bool) -> bool:
     if not parts:
         return False
-    if parts[0] in {"entry_points", "state_machines", "workflows"}:
+    if parts[0] in {"external_interfaces", "state_machines", "workflows"}:
         if parts[0] == "state_machines":
             return _state_machine_reference_witness_allowed(parts)
         return True
-    if parts[0] == "application_actions":
+    if parts[0] in {"commands", "queries"}:
         return detail_evidence or parts[-2:] == ["authorization", "policy"]
     if parts[0] == "domain_events":
         return detail_evidence
-    if parts[0] == "authorization_policies":
+    if parts[0] == "access_policies":
+        if len(parts) >= 3 and parts[2] == "resources":
+            return False
         return detail_evidence
     return False
 
@@ -788,7 +786,7 @@ def _state_machine_reference_witness_allowed(parts: list[str]) -> bool:
     if "view_states" in parts:
         return any(marker in parts for marker in {"text", "assets", "action_bindings", "child_state_machines", "signal_sync_rules"})
     if "transitions" in parts:
-        return parts[-1] in {"data_refresh_signal", "local_signal", "application_action", "state_machine", "workflow", "domain_event"}
+        return parts[-1] in {"data_refresh_signal", "local_signal", "command", "query", "state_machine", "workflow", "domain_event"}
     if "signals" in parts:
         return "local_signals" in parts
     return False
@@ -798,7 +796,7 @@ def _has_detail_card_evidence(evidence_files: Iterable[str]) -> bool:
     return any(
         f"/{folder}/" in path
         for path in evidence_files
-        for folder in ("entrypoints", "workflows", "application_actions")
+        for folder in ("external_interfaces", "workflows", "commands", "queries")
     )
 
 
@@ -814,11 +812,11 @@ def _unique_visual_text_tokens(tokens: Iterable[object]) -> list[str]:
     return unique
 
 
-def _authorization_policy_text_witness_tokens(contract: dict[str, Any], parts: list[str], value: Any) -> list[str]:
+def _access_policy_text_witness_tokens(contract: dict[str, Any], parts: list[str], value: Any) -> list[str]:
     if len(parts) < 3:
         return []
     policy_id = parts[1]
-    policy = contract.get("authorization_policies", {}).get(policy_id, {})
+    policy = contract.get("access_policies", {}).get(policy_id, {})
     if parts[2] == "effect" and isinstance(value, str):
         return ["effect", value]
     if parts[2] == "subjects" and len(parts) >= 5:
@@ -827,7 +825,7 @@ def _authorization_policy_text_witness_tokens(contract: dict[str, Any], parts: l
         if parts[-1] == "source" and isinstance(value, str):
             return ["subjects", _format_flow_source(value)]
     if parts[2] == "resources" and isinstance(value, str):
-        return [value]
+        return []
     if parts[2] == "conditions" and len(parts) >= 5:
         try:
             condition = policy.get("conditions", [])[int(parts[3])]
@@ -848,7 +846,7 @@ def _authorization_policy_text_witness_tokens(contract: dict[str, Any], parts: l
     return []
 
 
-def _entry_point_text_witness_tokens(contract: dict[str, Any], parts: list[str], value: Any) -> list[str]:
+def _external_interface_text_witness_tokens(contract: dict[str, Any], parts: list[str], value: Any) -> list[str]:
     _ = contract
     tokens: list[str] = []
     if isinstance(value, str):
@@ -875,7 +873,7 @@ def _entry_point_text_witness_tokens(contract: dict[str, Any], parts: list[str],
     return tokens
 
 
-def _application_action_text_witness_tokens(contract: dict[str, Any], parts: list[str], value: Any, detail_evidence: bool) -> list[str]:
+def _operation_text_witness_tokens(contract: dict[str, Any], parts: list[str], value: Any, detail_evidence: bool) -> list[str]:
     if not detail_evidence:
         return []
     tokens: list[str] = []
@@ -885,7 +883,7 @@ def _application_action_text_witness_tokens(contract: dict[str, Any], parts: lis
         if parts[-1] in {"authentication_required_as", "access_denied_as"} and isinstance(value, str):
             return [parts[-1], value]
     if len(parts) >= 5 and parts[2] == "lifecycle_transition":
-        lifecycle_transition = contract["application_actions"][parts[1]]["lifecycle_transition"]
+        lifecycle_transition = _operations(contract)[parts[1]]["lifecycle_transition"]
         field_token = f"{type_display({'$ref': lifecycle_transition['entity_type']})}.{lifecycle_transition['field']}"
         tokens.append(field_token)
         if parts[-1] in {"from", "to"}:
@@ -893,7 +891,7 @@ def _application_action_text_witness_tokens(contract: dict[str, Any], parts: lis
         return tokens
     if len(parts) >= 5 and parts[2] == "outcomes":
         outcome_id = parts[3]
-        outcome = contract["application_actions"][parts[1]]["outcomes"][outcome_id]
+        outcome = _operations(contract)[parts[1]]["outcomes"][outcome_id]
         if parts[-1] == "kind" and isinstance(value, str):
             return [outcome_id, value]
         if parts[-2:] == ["result", "$ref"] and isinstance(value, str):
@@ -952,7 +950,7 @@ def _entity_type_text_witness_tokens(contract: dict[str, Any], parts: list[str],
 def _type_leaf_text_witness_tokens(contract: dict[str, Any], parts: list[str]) -> list[str]:
     if not parts or parts[-1] not in {"$ref", "type", "items", "enum", "const", "format"}:
         return []
-    if parts[0] not in {"entry_points", "entity_types", "schemas", "application_actions", "state_machines", "workflows"}:
+    if parts[0] not in {"external_interfaces", "schemas", "commands", "queries", "state_machines", "workflows"}:
         return []
     parent_parts = parts[:-1]
     try:
@@ -968,11 +966,11 @@ def _type_leaf_text_witness_tokens(contract: dict[str, Any], parts: list[str]) -
 def _type_field_name(parts: list[str]) -> str | None:
     if len(parts) >= 6 and parts[0] == "entity_types" and parts[2] == "schema" and "properties" in parts:
         return _part_after(parts, "properties")
-    if len(parts) >= 6 and parts[0] == "application_actions" and parts[2] == "input" and "properties" in parts:
+    if len(parts) >= 6 and parts[0] in {"commands", "queries"} and parts[2] == "input_schema" and "properties" in parts:
         return _part_after(parts, "properties")
     if len(parts) >= 6 and parts[0] == "schemas" and parts[2] == "schema" and "properties" in parts:
         return _part_after(parts, "properties")
-    if parts[0] == "entry_points":
+    if parts[0] == "external_interfaces":
         if "path_params" in parts:
             return _part_after(parts, "path_params")
         if "query_params" in parts:
@@ -1007,12 +1005,12 @@ def _part_after(parts: list[str], marker: str) -> str | None:
     return parts[index] if index < len(parts) else None
 
 
-def _entry_point_evidence_files(contract: dict[str, Any], entry_id: str) -> list[str]:
-    entry = contract.get("entry_points", {}).get(entry_id)
+def _external_interface_evidence_files(contract: dict[str, Any], entry_id: str) -> list[str]:
+    entry = contract.get("external_interfaces", {}).get(entry_id)
     if not entry:
         return []
-    adapter_kind, _ = entry_point_adapter_pair(entry)
-    return [entrypoint_flow_file(entry_id, adapter_kind)]
+    adapter_kind, _ = external_interface_adapter_pair(entry)
+    return [external_interface_flow_file(entry_id, adapter_kind)]
 
 
 def _workflow_evidence_files(contract: dict[str, Any], workflow_id: str) -> list[str]:
@@ -1038,39 +1036,39 @@ def _state_machine_evidence_files(contract: dict[str, Any], state_machine_id: st
     return files
 
 
-def _application_action_evidence_files(contract: dict[str, Any], application_action_id: str) -> list[str]:
-    if application_action_id not in contract.get("application_actions", {}):
+def _operation_evidence_files(contract: dict[str, Any], operation_ref: str) -> list[str]:
+    if operation_ref not in _operations(contract):
         return []
-    files: list[str] = [application_action_flow_file(application_action_id)]
-    for entry_id, entry in sorted(contract.get("entry_points", {}).items()):
-        target_kind, target_value = entry_target_pair(entry)
-        if target_kind == "application_action" and target_value == application_action_id:
-            files.extend(_entry_point_evidence_files(contract, entry_id))
-        elif target_kind == "entry_point":
-            delegated = contract.get("entry_points", {}).get(target_value)
+    files: list[str] = [operation_flow_file(operation_ref)]
+    for entry_id, entry in sorted(contract.get("external_interfaces", {}).items()):
+        target_kind, target_value = external_interface_target_ref_pair(entry)
+        if target_kind in {"command", "query"} and target_value == operation_ref:
+            files.extend(_external_interface_evidence_files(contract, entry_id))
+        elif target_kind == "external_interface":
+            delegated = contract.get("external_interfaces", {}).get(target_value)
             if delegated:
-                delegated_target_kind, delegated_target_value = entry_target_pair(delegated)
-                if delegated_target_kind == "application_action" and delegated_target_value == application_action_id:
-                    files.extend(_entry_point_evidence_files(contract, entry_id))
+                delegated_target_kind, delegated_target_value = external_interface_target_ref_pair(delegated)
+                if delegated_target_kind in {"command", "query"} and delegated_target_value == operation_ref:
+                    files.extend(_external_interface_evidence_files(contract, entry_id))
     for workflow_id, workflow in sorted(contract.get("workflows", {}).items()):
-        if any(step.get("application_action") == application_action_id for step in workflow.get("steps", [])):
+        if any(step.get("command") == operation_ref for step in workflow.get("steps", [])):
             files.extend(_workflow_evidence_files(contract, workflow_id))
     for state_machine_id, state_machine in sorted(contract.get("state_machines", {}).items()):
-        if _value_contains_string(state_machine, application_action_id):
+        if _value_contains_string(state_machine, operation_ref):
             files.extend(_state_machine_evidence_files(contract, state_machine_id))
     return files
 
 
-def _authorization_policy_evidence_files(contract: dict[str, Any], policy_id: str) -> list[str]:
-    if policy_id not in contract.get("authorization_policies", {}):
+def _access_policy_evidence_files(contract: dict[str, Any], policy_id: str) -> list[str]:
+    if policy_id not in contract.get("access_policies", {}):
         return []
     files: list[str] = []
-    for entry_id, entry in sorted(contract.get("entry_points", {}).items()):
-        if entry.get("authorization_policy") == policy_id:
-            files.extend(_entry_point_evidence_files(contract, entry_id))
-    for application_action_id, application_action in sorted(contract.get("application_actions", {}).items()):
-        if (application_action.get("authorization") or {}).get("policy") == policy_id:
-            files.extend(_application_action_evidence_files(contract, application_action_id))
+    for entry_id, entry in sorted(contract.get("external_interfaces", {}).items()):
+        if entry.get("access_policy") == policy_id:
+            files.extend(_external_interface_evidence_files(contract, entry_id))
+    for operation_ref, operation in sorted(_operations(contract).items()):
+        if (operation.get("authorization") or {}).get("policy") == policy_id:
+            files.extend(_operation_evidence_files(contract, operation_ref))
     return files
 
 
@@ -1079,14 +1077,14 @@ def _event_evidence_files(contract: dict[str, Any], event_id: str) -> list[str]:
         return []
     files: list[str] = []
     event = contract["domain_events"][event_id]
-    for application_action_id in event.get("emitted_by", []):
-        files.extend(_application_action_evidence_files(contract, application_action_id))
+    for operation_ref in event.get("emitted_by", []):
+        files.extend(_operation_evidence_files(contract, operation_ref))
     for workflow_id, workflow in sorted(contract.get("workflows", {}).items()):
         if _value_contains_string(workflow.get("trigger", {}), event_id):
             files.extend(_workflow_evidence_files(contract, workflow_id))
-    for entry_id, entry in sorted(contract.get("entry_points", {}).items()):
+    for entry_id, entry in sorted(contract.get("external_interfaces", {}).items()):
         if _value_contains_string(entry, event_id):
-            files.extend(_entry_point_evidence_files(contract, entry_id))
+            files.extend(_external_interface_evidence_files(contract, entry_id))
     return files
 
 
@@ -1097,15 +1095,15 @@ def _schema_evidence_files(contract: dict[str, Any], schema_id: str) -> list[str
     for event_id, event in sorted(contract.get("domain_events", {}).items()):
         if _value_contains_string(event.get("payload_schema", {}), schema_id):
             files.extend(_event_evidence_files(contract, event_id))
-    for application_action_id, operation in sorted(contract.get("application_actions", {}).items()):
+    for operation_ref, operation in sorted(_operations(contract).items()):
         if _value_contains_string(operation, schema_id):
-            files.extend(_application_action_evidence_files(contract, application_action_id))
+            files.extend(_operation_evidence_files(contract, operation_ref))
     for workflow_id, workflow in sorted(contract.get("workflows", {}).items()):
         if _value_contains_string(workflow, schema_id):
             files.extend(_workflow_evidence_files(contract, workflow_id))
-    for entry_id, entry in sorted(contract.get("entry_points", {}).items()):
+    for entry_id, entry in sorted(contract.get("external_interfaces", {}).items()):
         if _value_contains_string(entry, schema_id):
-            files.extend(_entry_point_evidence_files(contract, entry_id))
+            files.extend(_external_interface_evidence_files(contract, entry_id))
     return files
 
 
@@ -1113,15 +1111,15 @@ def _model_evidence_files(contract: dict[str, Any], entity_type_id: str) -> list
     if entity_type_id not in contract.get("entity_types", {}):
         return []
     files: list[str] = []
-    for application_action_id, operation in sorted(contract.get("application_actions", {}).items()):
+    for operation_ref, operation in sorted(_operations(contract).items()):
         if _value_contains_string(operation, entity_type_id):
-            files.extend(_application_action_evidence_files(contract, application_action_id))
+            files.extend(_operation_evidence_files(contract, operation_ref))
     for event_id, event in sorted(contract.get("domain_events", {}).items()):
         if _value_contains_string(event, entity_type_id):
             files.extend(_event_evidence_files(contract, event_id))
-    for entry_id, entry in sorted(contract.get("entry_points", {}).items()):
+    for entry_id, entry in sorted(contract.get("external_interfaces", {}).items()):
         if _value_contains_string(entry, entity_type_id):
-            files.extend(_entry_point_evidence_files(contract, entry_id))
+            files.extend(_external_interface_evidence_files(contract, entry_id))
     for state_machine_id, state_machine in sorted(contract.get("state_machines", {}).items()):
         if state_machine.get("entity_type") == entity_type_id or _value_contains_string(state_machine.get("view_states", {}), entity_type_id):
             files.extend(_state_machine_evidence_files(contract, state_machine_id))
@@ -1132,9 +1130,9 @@ def _text_resource_evidence_files(contract: dict[str, Any], text_id: str) -> lis
     if text_id not in contract.get("text_resources", {}):
         return []
     files = _scope_input_evidence_files(contract, text_id, "text")
-    for entry_id, entry in sorted(contract.get("entry_points", {}).items()):
+    for entry_id, entry in sorted(contract.get("external_interfaces", {}).items()):
         if _value_contains_string(entry, text_id):
-            files.extend(_entry_point_evidence_files(contract, entry_id))
+            files.extend(_external_interface_evidence_files(contract, entry_id))
     for state_machine_id, state_machine in sorted(contract.get("state_machines", {}).items()):
         if _value_contains_string(state_machine, text_id):
             files.extend(_state_machine_evidence_files(contract, state_machine_id))
@@ -1142,7 +1140,7 @@ def _text_resource_evidence_files(contract: dict[str, Any], text_id: str) -> lis
 
 
 def _asset_evidence_files(contract: dict[str, Any], asset_id: str) -> list[str]:
-    if asset_id not in contract.get("assets", {}):
+    if asset_id not in contract.get("media_assets", {}):
         return []
     files = _scope_input_evidence_files(contract, asset_id, "asset")
     for state_machine_id, state_machine in sorted(contract.get("state_machines", {}).items()):
@@ -1169,11 +1167,11 @@ def _behavior_scenario_evidence_files(contract: dict[str, Any], behavior_scenari
         return []
     files: list[str] = []
     when = behavior_scenario.get("when", {})
-    for action in ("open_entry_point", "call_entry_point"):
+    for action in ("open_external_interface", "call_external_interface"):
         if action in when:
-            files.extend(_entry_point_evidence_files(contract, when[action]["ref"]))
-    if "invoke_application_action" in when:
-        files.extend(_application_action_evidence_files(contract, when["invoke_application_action"]["ref"]))
+            files.extend(_external_interface_evidence_files(contract, when[action]["ref"]))
+    if "invoke_command" in when:
+        files.extend(_operation_evidence_files(contract, when["invoke_command"]["ref"]))
     if "emit_domain_event" in when:
         files.extend(_event_evidence_files(contract, when["emit_domain_event"]["ref"]))
     if "run_workflow" in when:
@@ -1192,7 +1190,7 @@ def _content_example_evidence_files(contract: dict[str, Any], content_example_id
     ref = content_example.get("ref")
     if ref in contract.get("text_resources", {}):
         files.extend(_text_resource_evidence_files(contract, ref))
-    if ref in contract.get("assets", {}):
+    if ref in contract.get("media_assets", {}):
         files.extend(_asset_evidence_files(contract, ref))
     return files
 
@@ -1356,16 +1354,16 @@ def _render_visual_audit(
                 composition_dot(f"{state_machine_id}.{state_name}", {"context": state_machine.get("context", {}), **state}, contract),
                 _previous_audit_path(root, previous_audit_root, path),
             )
-    for entry_id, entry in sorted(contract.get("entry_points", {}).items()):
-        adapter_kind, _ = entry_point_adapter_pair(entry)
-        path = root / entrypoint_flow_file(entry_id, adapter_kind)
-        _write_graphviz_svg(path, entrypoint_flow_dot(entry_id, entry, contract), _previous_audit_path(root, previous_audit_root, path))
+    for entry_id, entry in sorted(contract.get("external_interfaces", {}).items()):
+        adapter_kind, _ = external_interface_adapter_pair(entry)
+        path = root / external_interface_flow_file(entry_id, adapter_kind)
+        _write_graphviz_svg(path, external_interface_flow_dot(entry_id, entry, contract), _previous_audit_path(root, previous_audit_root, path))
     for workflow_id, workflow in sorted(contract.get("workflows", {}).items()):
         path = root / workflow_flow_file(workflow_id)
         _write_graphviz_svg(path, workflow_flow_dot(workflow_id, workflow, contract), _previous_audit_path(root, previous_audit_root, path))
-    for application_action_id, operation in sorted(contract.get("application_actions", {}).items()):
-        path = root / application_action_flow_file(application_action_id)
-        _write_graphviz_svg(path, application_action_flow_dot(application_action_id, operation, contract), _previous_audit_path(root, previous_audit_root, path))
+    for operation_ref, operation in sorted(_operations(contract).items()):
+        path = root / operation_flow_file(operation_ref)
+        _write_graphviz_svg(path, operation_flow_dot(operation_ref, operation, contract), _previous_audit_path(root, previous_audit_root, path))
 
     has_html_audit = bool(_profile_viewports(contract, "html")) and (
         any("html" in _projection_render_surfaces(state_machine) for state_machine in _audit_projection_surfaces(contract, projection))
@@ -1853,25 +1851,25 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
     return "\n".join(lines) + "\n"
 
 
-def entrypoint_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str, Any]) -> str:
-    adapter_kind, _ = entry_point_adapter_pair(entry)
-    target_kind, target_value = entry_target_pair(entry)
-    target_renderer = entry_state_machine_renderer(entry) if target_kind == "state_machine" else None
-    entry_node = _dot_node_id("entrypoint", entry_id)
-    target_node = _dot_node_id("entrypoint_target", target_value)
-    response_nodes = _entry_point_response_nodes(entry_id, entry, contract)
+def external_interface_flow_dot(entry_id: str, entry: dict[str, Any], contract: dict[str, Any]) -> str:
+    adapter_kind, _ = external_interface_adapter_pair(entry)
+    target_kind, target_value = external_interface_target_ref_pair(entry)
+    target_renderer = external_interface_state_machine_renderer(entry) if target_kind == "state_machine" else None
+    entry_node = _dot_node_id("external_interface", entry_id)
+    target_node = _dot_node_id("external_interface_target", target_value)
+    response_nodes = _external_interface_response_nodes(entry_id, entry, contract)
     target_tail = [] if target_kind == "state_machine" else _entry_target_tail_nodes(target_kind, target_value, contract)
     entry_sections = _entry_binding_sections(entry, contract)
     entry_sections.extend(_entry_input_sections(entry, contract))
     _, output_title = _entry_io_card_titles(adapter_kind)
-    lines = _dot_graph_preamble("entrypoint_" + safe_id(entry_id))
+    lines = _dot_graph_preamble("external_interface_" + safe_id(entry_id))
     lines.extend(
         [
             _dot_html_node(
                 entry_node,
                 _dot_card(
                     _entry_surface_title(entry),
-                    f"{adapter_kind} entry point",
+                    f"{adapter_kind} external interface",
                     entry_sections,
                     rationale=entry.get("rationale", ""),
                     style=_DOT_STYLE_ENTRY,
@@ -1939,7 +1937,7 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
                     "workflow",
                     [
                         ("ref", [workflow.get("ref", "")]),
-                        ("steps", [f"{step['id']} {_DOT_ARROW_FORWARD} {step['application_action']}" for step in workflow["steps"]]),
+                        ("steps", [f"{step['id']} {_DOT_ARROW_FORWARD} {step['command']}" for step in workflow["steps"]]),
                         ("outcomes", [_DotTypedField(outcome_id, outcome["result"], outcome["kind"]) for outcome_id, outcome in sorted(workflow["outcomes"].items())]),
                     ],
                     rationale=workflow.get("rationale", ""),
@@ -1972,29 +1970,30 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
     return "\n".join(lines) + "\n"
 
 
-def application_action_flow_dot(application_action_id: str, application_action: dict[str, Any], contract: dict[str, Any]) -> str:
-    input_node = _dot_node_id("application_action_input", application_action_id)
-    authorization = application_action.get("authorization") or {}
+def operation_flow_dot(operation_ref: str, operation: dict[str, Any], contract: dict[str, Any]) -> str:
+    operation = _operations(contract).get(operation_ref, operation)
+    input_node = _dot_node_id("operation_input", operation_ref)
+    authorization = operation.get("authorization") or {}
     policy_id = authorization.get("policy")
-    policy_node = _dot_node_id("application_action_policy", policy_id) if policy_id else None
+    policy_node = _dot_node_id("operation_policy", policy_id) if policy_id else None
     authorization_failure_labels = {
         authorization.get("authentication_required_as"): "authentication_required_as",
         authorization.get("access_denied_as"): "access_denied_as",
     }
-    resource_nodes = _application_action_resource_nodes(application_action_id, application_action, contract)
+    resource_nodes = _operation_resource_nodes(operation_ref, operation, contract)
     outcome_nodes = [
-        (_dot_node_id("action_outcome", f"{application_action_id}_{outcome_id}"), outcome_id, outcome)
-        for outcome_id, outcome in sorted(application_action.get("outcomes", {}).items())
+        (_dot_node_id("operation_outcome", f"{operation_ref}_{outcome_id}"), outcome_id, outcome)
+        for outcome_id, outcome in sorted(operation.get("outcomes", {}).items())
     ]
     event_nodes: dict[str, str] = {}
-    for _, outcome in sorted(application_action.get("outcomes", {}).items()):
+    for _, outcome in sorted(operation.get("outcomes", {}).items()):
         for emit in outcome.get("emits", []):
             event_id = emit["domain_event"] if isinstance(emit, dict) else emit
-            event_nodes.setdefault(event_id, _dot_node_id("application_action_event", f"{application_action_id}_{event_id}"))
+            event_nodes.setdefault(event_id, _dot_node_id("operation_event", f"{operation_ref}_{event_id}"))
 
-    lines = _dot_graph_preamble("application_action_" + safe_id(application_action_id))
-    if application_action.get("input"):
-        lines.append(_dot_html_node(input_node, _dot_card("input", "action input", [("fields", _typed_fields(application_action["input"]))], style=_DOT_STYLE_EXTERNAL)))
+    lines = _dot_graph_preamble("operation_" + safe_id(operation_ref))
+    if operation.get("input"):
+        lines.append(_dot_html_node(input_node, _dot_card("input", "operation input", [("fields", _typed_fields(operation["input"]))], style=_DOT_STYLE_EXTERNAL)))
     if policy_id:
         lines.append(_dot_html_node(policy_node or "", _policy_reference_card(policy_id, contract, subtitle="authorization gate", include_resources=False)))
     for node_id, _, target_id, target_kind, sections in resource_nodes:
@@ -2005,7 +2004,7 @@ def application_action_flow_dot(application_action_id: str, application_action: 
     for event_id, node_id in event_nodes.items():
         lines.append(_dot_html_node(node_id, _event_card(event_id, contract, subtitle="emitted event", mode="emitted")))
 
-    entry_node = input_node if application_action.get("input") else None
+    entry_node = input_node if operation.get("input") else None
     if entry_node and policy_node:
         lines.append(_dot_edge(entry_node, policy_node, {"label": "authorize", "color": _DOT_COLOR_POLICY_BORDER, "penwidth": "1.2"}))
         entry_node = policy_node
@@ -2035,11 +2034,11 @@ def application_action_flow_dot(application_action_id: str, application_action: 
     return "\n".join(lines) + "\n"
 
 
-def _application_action_reference_sections(application_action_id: str, application_action: dict[str, Any]) -> list[tuple[str, list[object]]]:
+def _operation_reference_sections(operation_ref: str, operation: dict[str, Any]) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
-    if application_action.get("action_kind"):
-        sections.append(("kind", [application_action["action_kind"]]))
-    authorization = application_action.get("authorization")
+    if operation.get("action_kind"):
+        sections.append(("kind", [operation["action_kind"]]))
+    authorization = operation.get("authorization")
     if authorization:
         sections.append((
             "authorization",
@@ -2052,15 +2051,15 @@ def _application_action_reference_sections(application_action_id: str, applicati
     return sections
 
 
-def _application_action_resource_nodes(
-    application_action_id: str,
-    application_action: dict[str, Any],
+def _operation_resource_nodes(
+    operation_ref: str,
+    operation: dict[str, Any],
     contract: dict[str, Any],
 ) -> list[tuple[str, str, str, str, list[tuple[str, list[object]]]]]:
     nodes: list[tuple[str, str, str, str, list[tuple[str, list[object]]]]] = []
     seen: set[tuple[str, str, str]] = set()
     for action in ["creates", "reads", "updates", "deletes"]:
-        for target_id in application_action.get(action, []):
+        for target_id in operation.get(action, []):
             target_kind = "entity_type" if target_id in contract.get("entity_types", {}) else "schema"
             key = (action, target_kind, target_id)
             if key in seen:
@@ -2069,17 +2068,17 @@ def _application_action_resource_nodes(
             resource = contract.get("entity_types", {}).get(target_id, contract.get("schemas", {}).get(target_id, {}))
             fields = schema_properties(resource.get("schema", {}))
             nodes.append((
-                _dot_node_id("application_action_resource", f"{application_action_id}_{action}_{target_id}"),
+                _dot_node_id("operation_resource", f"{operation_ref}_{action}_{target_id}"),
                 action,
                 target_id,
                 target_kind,
                 [("fields", _schema_fields(fields))],
             ))
-    if application_action.get("lifecycle_transition"):
-        lifecycle_transition = application_action["lifecycle_transition"]
+    if operation.get("lifecycle_transition"):
+        lifecycle_transition = operation["lifecycle_transition"]
         field = schema_properties(contract["entity_types"][lifecycle_transition["entity_type"]]["schema"])[lifecycle_transition["field"]]
         nodes.append((
-            _dot_node_id("application_action_resource", f"{application_action_id}_lifecycle_transition_{lifecycle_transition['entity_type']}_{lifecycle_transition['field']}"),
+            _dot_node_id("operation_resource", f"{operation_ref}_lifecycle_transition_{lifecycle_transition['entity_type']}_{lifecycle_transition['field']}"),
             "lifecycle_transition",
             lifecycle_transition["entity_type"],
             "entity_type",
@@ -2105,10 +2104,10 @@ def _policy_reference_card(
     policy_id: str,
     contract: dict[str, Any],
     *,
-    subtitle: str = "authorization policy",
+    subtitle: str = "access policy",
     include_resources: bool = True,
 ) -> str:
-    policy = contract.get("authorization_policies", {}).get(policy_id, {})
+    policy = contract.get("access_policies", {}).get(policy_id, {})
     sections = [("effect", [policy.get("effect", "")])]
     if policy.get("subjects"):
         sections.append(("subjects", _format_subjects(policy["subjects"])))
@@ -2124,15 +2123,15 @@ def _schema_fields(fields: dict[str, Any]) -> list[_DotTypedField]:
 
 
 def _entry_surface_title(entry: dict[str, Any]) -> str:
-    adapter_kind, _ = entry_point_adapter_pair(entry)
+    adapter_kind, _ = external_interface_adapter_pair(entry)
     if adapter_kind == "http_api":
-        return f"{(entry_point_method(entry) or '').upper()} {entry_point_path(entry) or ''}".strip()
+        return f"{(external_interface_method(entry) or '').upper()} {external_interface_path(entry) or ''}".strip()
     if adapter_kind in {"html_route", "webhook"}:
-        return entry_point_path(entry) or adapter_kind
+        return external_interface_path(entry) or adapter_kind
     if adapter_kind == "cli":
-        return entry_point_cli_command(entry) or adapter_kind
+        return external_interface_cli_command(entry) or adapter_kind
     if adapter_kind == "scheduled":
-        return entry_point_schedule_expression(entry) or adapter_kind
+        return external_interface_schedule_expression(entry) or adapter_kind
     if adapter_kind == "worker":
         return entry.get("workflow_ref", adapter_kind)
     return adapter_kind
@@ -2147,16 +2146,16 @@ def _entry_binding_sections(entry: dict[str, Any], contract: dict[str, Any]) -> 
         "workflow_ref": "workflow",
     }
     sections = [(label, [entry[key]]) for key, label in labels.items() if entry.get(key)]
-    schedule = entry_point_schedule_expression(entry)
+    schedule = external_interface_schedule_expression(entry)
     if schedule:
         sections.append(("schedule", [schedule]))
-    sections.extend(_authorization_policy_sections(entry.get("authorization_policy"), contract, include_details=False))
+    sections.extend(_access_policy_sections(entry.get("access_policy"), contract, include_details=False))
     return sections
 
 
 def _entry_input_sections(entry: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
-    entry_input = entry_point_input(entry)
+    entry_input = external_interface_input(entry)
     if entry_input.get("path_params"):
         sections.append(("path params", _typed_fields(entry_input["path_params"])))
     if entry_input.get("query_params"):
@@ -2170,26 +2169,26 @@ def _entry_input_sections(entry: dict[str, Any], contract: dict[str, Any]) -> li
     return sections
 
 
-def _entry_point_response_nodes(entry_id: str, entry: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, str, str | None, str | None, list[tuple[str, list[object]]]]]:
-    responses = entry_point_responses(entry)
-    handlers = entry_point_response_handlers(entry)
+def _external_interface_response_nodes(entry_id: str, entry: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, str, str | None, str | None, list[tuple[str, list[object]]]]]:
+    responses = external_interface_responses(entry)
+    handlers = external_interface_response_handlers(entry)
     if not responses and not handlers:
         return []
-    target_kind, target_value = entry_target_pair(entry)
-    outcomes = _entry_point_response_outcomes(contract, target_kind, target_value)
+    target_kind, target_value = external_interface_target_ref_pair(entry)
+    outcomes = _external_interface_response_outcomes(contract, target_kind, target_value)
     nodes = []
     for outcome_id, response in sorted(responses.items()):
         outcome = outcomes.get(outcome_id)
         outcome_kind = outcome["kind"] if outcome else _entry_response_style_kind(response)
         subtitle = f"{outcome['kind']} response" if outcome else _entry_disposition_subtitle(response, outcome_kind)
-        node_id = _dot_node_id("entrypoint_response", f"{entry_id}_{outcome_id}")
-        nodes.append((node_id, outcome_id, subtitle, outcome_kind, _entry_point_response_sections(response)))
+        node_id = _dot_node_id("external_interface_response", f"{entry_id}_{outcome_id}")
+        nodes.append((node_id, outcome_id, subtitle, outcome_kind, _external_interface_response_sections(response)))
     for outcome_id, handler in sorted(handlers.items()):
         outcome = outcomes.get(outcome_id)
         outcome_kind = outcome["kind"] if outcome else _entry_response_style_kind(handler)
         subtitle = f"{outcome['kind']} response handler" if outcome else _entry_disposition_subtitle(handler, outcome_kind) or "response handler"
-        node_id = _dot_node_id("entrypoint_response", f"{entry_id}_{outcome_id}")
-        nodes.append((node_id, outcome_id, subtitle, outcome_kind, _entry_point_response_sections(handler)))
+        node_id = _dot_node_id("external_interface_response", f"{entry_id}_{outcome_id}")
+        nodes.append((node_id, outcome_id, subtitle, outcome_kind, _external_interface_response_sections(handler)))
     return nodes
 
 
@@ -2218,16 +2217,16 @@ def _exit_card_style(outcome_kind: str | None) -> _DotCardStyle:
     return _DOT_STYLE_TARGET
 
 
-def _entry_point_response_outcomes(contract: dict[str, Any], target_kind: str, target_value: str) -> dict[str, Any]:
-    if target_kind == "application_action":
-        return contract["application_actions"][target_value]["outcomes"]
-    if target_kind == "entry_point":
-        delegated_kind, delegated_value = entry_target_pair(contract["entry_points"][target_value])
-        return _entry_point_response_outcomes(contract, delegated_kind, delegated_value)
+def _external_interface_response_outcomes(contract: dict[str, Any], target_kind: str, target_value: str) -> dict[str, Any]:
+    if target_kind in {"command", "query"}:
+        return _operations(contract)[target_value]["outcomes"]
+    if target_kind == "external_interface":
+        delegated_kind, delegated_value = external_interface_target_ref_pair(contract["external_interfaces"][target_value])
+        return _external_interface_response_outcomes(contract, delegated_kind, delegated_value)
     return {}
 
 
-def _entry_point_response_sections(response: dict[str, Any]) -> list[tuple[str, list[object]]]:
+def _external_interface_response_sections(response: dict[str, Any]) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
     if "status" in response:
         sections.append(("status", [str(response["status"])]))
@@ -2290,13 +2289,13 @@ def _entry_target_card(
             rationale=state_machine.get("rationale", ""),
             style=_DOT_STYLE_TARGET,
         )
-    if target_kind == "application_action":
-        application_action = contract["application_actions"][target_value]
+    if target_kind in {"command", "query"}:
+        operation = _operations(contract)[target_value]
         return _dot_card(
             target_value,
-            "target application action",
-            _application_action_reference_sections(target_value, application_action),
-            rationale=application_action.get("rationale", ""),
+            f"target {target_kind}",
+            _operation_reference_sections(target_value, operation),
+            rationale=operation.get("rationale", ""),
             style=_DOT_STYLE_CAPABILITY,
         )
     if target_kind == "workflow":
@@ -2306,27 +2305,27 @@ def _entry_target_card(
             "target workflow",
             [
                 ("trigger", [_target_label(*_target_pair(workflow["trigger"]))]),
-                ("steps", [f"{step['id']} {_DOT_ARROW_FORWARD} {step['application_action']}" for step in workflow["steps"]]),
+                ("steps", [f"{step['id']} {_DOT_ARROW_FORWARD} {step['command']}" for step in workflow["steps"]]),
                 ("outcomes", [_DotTypedField(outcome_id, outcome["result"], outcome["kind"]) for outcome_id, outcome in sorted(workflow["outcomes"].items())]),
             ],
             rationale=workflow.get("rationale", ""),
             style=_DOT_STYLE_WORKFLOW,
         )
-    if target_kind == "entry_point":
-        delegated = contract["entry_points"][target_value]
-        adapter_kind, _ = entry_point_adapter_pair(delegated)
-        delegated_target_kind, delegated_target_value = entry_target_pair(delegated)
+    if target_kind == "external_interface":
+        delegated = contract["external_interfaces"][target_value]
+        adapter_kind, _ = external_interface_adapter_pair(delegated)
+        delegated_target_kind, delegated_target_value = external_interface_target_ref_pair(delegated)
         sections: list[tuple[str, list[object]]] = [
             ("adapter", [adapter_kind]),
             ("target", [_target_label(delegated_target_kind, delegated_target_value)]),
         ]
-        if delegated_target_kind == "application_action":
-            sections.extend(_application_action_reference_sections(delegated_target_value, contract["application_actions"][delegated_target_value]))
+        if delegated_target_kind in {"command", "query"}:
+            sections.extend(_operation_reference_sections(delegated_target_value, _operations(contract)[delegated_target_value]))
         else:
-            sections.extend(_authorization_policy_sections(delegated.get("authorization_policy"), contract, include_details=False))
+            sections.extend(_access_policy_sections(delegated.get("access_policy"), contract, include_details=False))
         return _dot_card(
             target_value,
-            "delegated entry point",
+            "delegated external interface",
             sections,
             rationale=delegated.get("rationale", ""),
             style=_DOT_STYLE_ENTRY,
@@ -2344,22 +2343,22 @@ def _entry_target_tail_nodes(target_kind: str, target_value: str, contract: dict
     for state_name, state in sorted(state_machine.get("view_states", {}).items()):
         if state.get("child_state_machines"):
             nodes.extend(
-                (_dot_node_id("entrypoint_mount", f"{target_value}_{state_name}_{mount['id']}"), _dot_mount_card(mount))
+                (_dot_node_id("external_interface_mount", f"{target_value}_{state_name}_{mount['id']}"), _dot_mount_card(mount))
                 for mount in state["child_state_machines"]
             )
         else:
-            nodes.append((_dot_node_id("entrypoint_state_machine_view_state", f"{target_value}_{state_name}"), _state_machine_view_state_card(state_machine, state_name, state, contract)))
+            nodes.append((_dot_node_id("external_interface_state_machine_view_state", f"{target_value}_{state_name}"), _state_machine_view_state_card(state_machine, state_name, state, contract)))
     return nodes
 
 
 def _state_machine_summary_sections(state_machine: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
     bindings = _data_loader_bindings(state_machine.get("data_loaders", {}))
-    application_action_ids = [binding["application_action"] for binding in bindings]
+    operation_refs = [binding["operation"] for binding in bindings]
     inputs = _format_data_inputs(state_machine, bindings, contract)
     queries = [binding["data_loader"] for binding in bindings]
-    loads = _format_application_action_outputs(application_action_ids, contract)
-    guards = _format_action_authorization_policies(application_action_ids, contract)
+    loads = _format_operation_outputs(operation_refs, contract)
+    guards = _format_action_access_policies(operation_refs, contract)
     if inputs:
         sections.append(("input", inputs))
     if queries:
@@ -2367,7 +2366,7 @@ def _state_machine_summary_sections(state_machine: dict[str, Any], contract: dic
     if loads:
         sections.append(("load", loads))
     if guards:
-        sections.append(("authorization_policies", guards))
+        sections.append(("access_policies", guards))
     sections.append(("entity_type", [state_machine["entity_type"]]))
     sync_ids = [rule["id"] for state in state_machine.get("view_states", {}).values() for rule in state.get("signal_sync_rules", [])]
     if sync_ids:
@@ -2392,15 +2391,15 @@ def _state_machine_view_state_sections(
 ) -> list[tuple[str, Iterable[object]]]:
     data_loaders = state.get("data_loaders", {})
     action_bindings = state.get("action_bindings", {})
-    query_application_action_ids = [invocation["application_action"] for invocation in data_loaders.values()]
-    application_action_ids = [invocation["application_action"] for invocation in action_bindings.values()]
+    query_operation_refs = [_invocation_operation_ref(invocation) for invocation in data_loaders.values()]
+    command_refs = [_invocation_operation_ref(invocation) for invocation in action_bindings.values()]
     return [
         ("text", state.get("text", [])),
         ("assets", state.get("assets", [])),
         (_state_field_section_title(state_machine, state_name, state), _format_state_fields(state_machine, state, contract)),
         ("data_loaders", _format_action_binding_outputs(data_loaders, contract)),
         ("action_bindings", _format_action_binding_outputs(action_bindings, contract)),
-        ("authorization_policies", _format_action_authorization_policies([*query_application_action_ids, *application_action_ids], contract)),
+        ("access_policies", _format_action_access_policies([*query_operation_refs, *command_refs], contract)),
         ("child_state_machines", _format_mounts(state.get("child_state_machines", []))),
         ("signal_sync_rules", [rule["id"] for rule in state.get("signal_sync_rules", [])]),
     ]
@@ -2409,31 +2408,31 @@ def _state_machine_view_state_sections(
 def _workflow_trigger_card(trigger_kind: str, trigger_value: str, contract: dict[str, Any]) -> str:
     if trigger_kind == "domain_event":
         return _event_card(trigger_value, contract, subtitle="domain event trigger")
-    if trigger_kind == "application_action":
-        application_action = contract["application_actions"][trigger_value]
+    if trigger_kind in {"command", "query"}:
+        operation = _operations(contract)[trigger_value]
         return _dot_card(
             trigger_value,
-            "application action trigger",
-            _application_action_reference_sections(trigger_value, application_action),
-            rationale=application_action.get("rationale", ""),
+            f"{trigger_kind} trigger",
+            _operation_reference_sections(trigger_value, operation),
+            rationale=operation.get("rationale", ""),
             style=_DOT_STYLE_EVENT,
         )
     return _dot_card(trigger_value, f"{trigger_kind} trigger", [], style=_DOT_STYLE_EVENT)
 
 
 def _workflow_step_card(step: dict[str, Any], contract: dict[str, Any]) -> str:
-    application_action = contract["application_actions"][step["application_action"]]
+    operation = _operations(contract)[step["command"]]
     sections: list[tuple[str, list[object]]] = [
-        ("application_action", [step["application_action"]]),
+        ("command", [step["command"]]),
         ("input bindings", _format_binding_lines(step["input_bindings"])),
         ("transitions", _workflow_transition_lines(step)),
     ]
-    sections.extend(_application_action_reference_sections(step["application_action"], application_action))
+    sections.extend(_operation_reference_sections(step["command"], operation))
     return _dot_card(
         step["id"],
         "workflow step",
         sections,
-        rationale=application_action.get("rationale", ""),
+        rationale=operation.get("rationale", ""),
         style=_DOT_STYLE_NEUTRAL,
     )
 
@@ -2499,7 +2498,7 @@ def _event_card(
     )
 
 
-def _authorization_policy_sections(
+def _access_policy_sections(
     policy_id: str | None,
     contract: dict[str, Any],
     *,
@@ -2507,10 +2506,10 @@ def _authorization_policy_sections(
 ) -> list[tuple[str, list[object]]]:
     if not policy_id:
         return []
-    sections: list[tuple[str, list[object]]] = [("authorization_policy", [policy_id])]
+    sections: list[tuple[str, list[object]]] = [("access_policy", [policy_id])]
     if not include_details:
         return sections
-    policy = contract.get("authorization_policies", {}).get(policy_id)
+    policy = contract.get("access_policies", {}).get(policy_id)
     if not policy:
         return sections
     sections.append(("effect", [policy["effect"]]))
@@ -3103,9 +3102,9 @@ def _format_transition_sections(
     sections: list[tuple[str, list[object]]] = []
     if _is_data_refresh_signal(transition["on"]):
         bindings = _transition_data_bindings(state_machine, transition)
-        application_action_ids = [binding["application_action"] for binding in bindings]
-        data_sources = _format_application_action_outputs(application_action_ids, contract)
-        guards = _format_action_authorization_policies(application_action_ids, contract)
+        operation_refs = [binding["operation"] for binding in bindings]
+        data_sources = _format_operation_outputs(operation_refs, contract)
+        guards = _format_action_access_policies(operation_refs, contract)
         queries = [binding["data_loader"] for binding in bindings]
         inputs = _format_data_inputs(state_machine, bindings, contract)
         if inputs:
@@ -3115,12 +3114,12 @@ def _format_transition_sections(
         if data_sources:
             sections.append(("load", data_sources))
         if guards:
-            sections.append(("authorization_policies", guards))
+            sections.append(("access_policies", guards))
     else:
         target_bindings = _transition_target_data_bindings(state_machine, transition)
-        application_action_ids = [binding["application_action"] for binding in target_bindings]
-        data_sources = _format_application_action_outputs(application_action_ids, contract)
-        guards = _format_action_authorization_policies(application_action_ids, contract)
+        operation_refs = [binding["operation"] for binding in target_bindings]
+        data_sources = _format_operation_outputs(operation_refs, contract)
+        guards = _format_action_access_policies(operation_refs, contract)
         queries = [binding["data_loader"] for binding in target_bindings]
         required_context = _format_data_inputs(state_machine, target_bindings, contract)
         if required_context:
@@ -3130,7 +3129,7 @@ def _format_transition_sections(
         if data_sources:
             sections.append(("load", data_sources))
         if guards:
-            sections.append(("authorization_policies", guards))
+            sections.append(("access_policies", guards))
     sections.extend(_format_transition_effect_sections(state_machine, transition))
     return sections
 
@@ -3141,8 +3140,8 @@ def _transition_target_data_bindings(state_machine: dict[str, Any], transition: 
 
 
 def _state_field_section_title(state_machine: dict[str, Any], state_name: str, state: dict[str, Any]) -> str:
-    application_actions = [binding["application_action"] for binding in _state_field_data_bindings(state_machine, state_name, state) if binding.get("application_action")]
-    unique = sorted(dict.fromkeys(application_actions))
+    operation_refs = [binding["operation"] for binding in _state_field_data_bindings(state_machine, state_name, state) if binding.get("operation")]
+    unique = sorted(dict.fromkeys(operation_refs))
     if len(unique) == 1:
         return f"{unique[0]} fields"
     if unique:
@@ -3177,51 +3176,51 @@ def _format_state_fields(state_machine: dict[str, Any], state: dict[str, Any], c
     return fields
 
 
-def _format_application_action_outputs(application_action_ids: Iterable[str], contract: dict[str, Any]) -> list[_DotTypedField]:
-    application_actions = contract["application_actions"]
+def _format_operation_outputs(operation_refs: Iterable[str], contract: dict[str, Any]) -> list[_DotTypedField]:
+    operation_map = _operations(contract)
     fields: list[_DotTypedField] = []
-    for application_action_id in application_action_ids:
-        for _, outcome in sorted(application_actions[application_action_id]["outcomes"].items()):
+    for operation_ref in operation_refs:
+        for _, outcome in sorted(operation_map[operation_ref]["outcomes"].items()):
             if outcome["kind"] == "success":
-                fields.append(_DotTypedField(application_action_id, outcome["result"]))
+                fields.append(_DotTypedField(operation_ref, outcome["result"]))
     return fields
 
 
 def _format_action_binding_outputs(invocations: dict[str, Any], contract: dict[str, Any]) -> list[_DotTypedField]:
-    application_actions = contract["application_actions"]
+    operation_map = _operations(contract)
     fields: list[_DotTypedField] = []
     for invocation_id, invocation in sorted(invocations.items()):
-        application_action_id = invocation["application_action"]
-        for _, outcome in sorted(application_actions[application_action_id]["outcomes"].items()):
+        operation_ref = _invocation_operation_ref(invocation)
+        for _, outcome in sorted(operation_map[operation_ref]["outcomes"].items()):
             if outcome["kind"] == "success":
-                fields.append(_DotTypedField(f"{invocation_id}: {application_action_id}", outcome["result"]))
+                fields.append(_DotTypedField(f"{invocation_id}: {operation_ref}", outcome["result"]))
     return fields
 
 
-def _format_action_authorization_policies(application_action_ids: Iterable[str], contract: dict[str, Any]) -> list[str]:
+def _format_action_access_policies(operation_refs: Iterable[str], contract: dict[str, Any]) -> list[str]:
     lines: list[str] = []
     seen: set[str] = set()
-    for application_action_id in application_action_ids:
-        if application_action_id in seen:
+    for operation_ref in operation_refs:
+        if operation_ref in seen:
             continue
-        seen.add(application_action_id)
-        application_action = contract["application_actions"].get(application_action_id)
-        authorization_policy = (application_action.get("authorization") or {}).get("policy") if application_action else None
-        if authorization_policy:
-            lines.append(f"{application_action_id}: {authorization_policy}")
+        seen.add(operation_ref)
+        operation = _operations(contract).get(operation_ref)
+        access_policy = (operation.get("authorization") or {}).get("policy") if operation else None
+        if access_policy:
+            lines.append(f"{operation_ref}: {access_policy}")
     return lines
 
 
 def _format_data_inputs(
     state_machine: dict[str, Any], bindings: Iterable[dict[str, Any]], contract: dict[str, Any]
 ) -> list[_DotTypedField]:
-    application_actions = contract["application_actions"]
+    operation_map = _operations(contract)
     inputs: list[_DotTypedField] = []
     seen: set[str] = set()
     for binding in bindings:
-        operation = application_actions[binding["application_action"]]
+        operation = operation_map[binding["operation"]]
         for key, input_type in sorted(schema_properties(operation["input"]).items()):
-            input_label = f"{binding.get('data_loader', binding['application_action'])}.{key}"
+            input_label = f"{binding.get('data_loader', binding['operation'])}.{key}"
             signature = f"{input_label} {input_type}"
             if signature not in seen:
                 inputs.append(_DotTypedField(input_label, input_type))
@@ -3253,7 +3252,7 @@ def _transition_data_bindings(state_machine: dict[str, Any], transition: dict[st
 
 def _data_loader_bindings(invocations: dict[str, Any]) -> list[dict[str, Any]]:
     return _unique_data_bindings(
-        {"data_loader": invocation_id, "application_action": invocation["application_action"]}
+        {"data_loader": invocation_id, "operation": _invocation_operation_ref(invocation)}
         for invocation_id, invocation in sorted((invocations or {}).items())
     )
 
@@ -3262,7 +3261,7 @@ def _unique_data_bindings(bindings: Iterable[dict[str, Any]]) -> list[dict[str, 
     unique: list[dict[str, Any]] = []
     seen: set[tuple[Any, Any]] = set()
     for binding in bindings:
-        key = (binding.get("application_action"), binding.get("data_loader"))
+        key = (binding["operation"], binding.get("data_loader"))
         if key not in seen:
             unique.append(binding)
             seen.add(key)
@@ -3471,7 +3470,7 @@ def render_html_slot_runtime(root: Path, contract: dict[str, Any], state_machine
         asset_ref = slot_ref(state_machine, "asset", bind_value)
         attrs["data-asset"] = asset_ref
         asset_result = resolve_asset_result(root, contract, asset_ref, record, context, namespace)
-        label = asset_result.alt or contract["assets"][asset_ref]["placeholder"]["label"]
+        label = asset_result.alt or contract["media_assets"][asset_ref]["placeholder"]["label"]
         if tag == "img":
             attrs.setdefault("alt", label)
             svg = asset_result.body
@@ -3548,7 +3547,7 @@ def state_machine_textual_lines(root: Path, contract: dict[str, Any], state_mach
                 lines.append(("static", resolve_text_resource(root, contract, ref, record, context, namespace)))
             elif bind_kind == "asset_slot":
                 ref = slot_ref(state_machine, "asset", bind_value)
-                lines.append(("static", resolve_asset_result(root, contract, ref, record, context, namespace).alt or contract["assets"][ref]["placeholder"]["label"]))
+                lines.append(("static", resolve_asset_result(root, contract, ref, record, context, namespace).alt or contract["media_assets"][ref]["placeholder"]["label"]))
             elif bind_kind == "field_slot":
                 lines.append(("static", str(record.get(bind_value, "—"))))
             elif bind_kind == "action_binding":
@@ -3563,7 +3562,7 @@ def state_machine_textual_lines(root: Path, contract: dict[str, Any], state_mach
     for text_ref in state_machine["slots"]["text"]:
         lines.append(("static", resolve_text_resource(root, contract, text_ref, record, context, namespace)))
     for asset_ref in state_machine["slots"]["assets"]:
-        lines.append(("static", resolve_asset_result(root, contract, asset_ref, record, context, namespace).alt or contract["assets"][asset_ref]["placeholder"]["label"]))
+        lines.append(("static", resolve_asset_result(root, contract, asset_ref, record, context, namespace).alt or contract["media_assets"][asset_ref]["placeholder"]["label"]))
     fields = state_machine["slots"].get("fields", [])
     if fields:
         for record in (records_for_state_machine(contract, state_machine, case)[:4] or [{}]):
@@ -3736,7 +3735,7 @@ def resolve_text_resource(root: Path, contract: dict[str, Any], ref: str, record
 
 
 def resolve_asset_result(root: Path, contract: dict[str, Any], ref: str, record: dict[str, Any], context: dict[str, Any], namespace: dict[str, Any]) -> AssetResult:
-    item = contract["assets"][ref]
+    item = contract["media_assets"][ref]
     source_ref = item.get("source_ref")
     if not source_ref:
         return AssetResult(mime_type="image/svg+xml", body=asset_placeholder_svg(item), alt=item["placeholder"]["label"])

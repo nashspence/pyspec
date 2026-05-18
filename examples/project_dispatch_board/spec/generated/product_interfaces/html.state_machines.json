@@ -301,7 +301,6 @@
     {
       "data_loaders": {
         "read_activity": {
-          "application_action": "application_action.project.read",
           "input_bindings": {
             "project_id": {
               "from": "$state_context.project_id"
@@ -340,7 +339,8 @@
                 "reason": "intentionally_unobservable"
               }
             }
-          }
+          },
+          "query": "query.project.read"
         }
       },
       "id": "state_machine.project.activity.ready",
@@ -581,7 +581,7 @@
             "on": {
               "local_signal": "show_transition_not_allowed"
             },
-            "rationale": "Invalid detail application_actions move the detail panel into its displayable error state.",
+            "rationale": "Invalid detail commands move the detail panel into its displayable error state.",
             "to": "error"
           }
         ]
@@ -591,7 +591,6 @@
     {
       "data_loaders": {
         "read_project": {
-          "application_action": "application_action.project.read",
           "input_bindings": {
             "project_id": {
               "from": "$state_context.project_id"
@@ -627,7 +626,8 @@
                 "data_refresh_signal": "project_load_failed"
               }
             }
-          }
+          },
+          "query": "query.project.read"
         }
       },
       "id": "state_machine.project.detail.loading",
@@ -706,7 +706,7 @@
             "on": {
               "local_signal": "show_transition_not_allowed"
             },
-            "rationale": "Invalid detail application_actions move the detail panel into its displayable error state.",
+            "rationale": "Invalid detail commands move the detail panel into its displayable error state.",
             "to": "error"
           }
         ]
@@ -792,7 +792,7 @@
             "on": {
               "local_signal": "show_transition_not_allowed"
             },
-            "rationale": "Invalid detail application_actions move the detail panel into its displayable error state.",
+            "rationale": "Invalid detail commands move the detail panel into its displayable error state.",
             "to": "error"
           }
         ]
@@ -802,7 +802,6 @@
     {
       "data_loaders": {
         "read_project": {
-          "application_action": "application_action.project.read",
           "input_bindings": {
             "project_id": {
               "from": "$state_context.project_id"
@@ -858,7 +857,8 @@
                 }
               }
             }
-          }
+          },
+          "query": "query.project.read"
         }
       },
       "id": "state_machine.project.detail.ready",
@@ -867,7 +867,7 @@
       "slots": {
         "action_bindings": {
           "approve": {
-            "application_action": "application_action.project.approve",
+            "command": "command.project.approve",
             "input_bindings": {
               "approved_by": {
                 "from": "$principal.id"
@@ -919,7 +919,7 @@
             }
           },
           "archive": {
-            "application_action": "application_action.project.archive",
+            "command": "command.project.archive",
             "input_bindings": {
               "project_id": {
                 "from": "$state_context.project_id"
@@ -1053,7 +1053,7 @@
             "on": {
               "local_signal": "show_transition_not_allowed"
             },
-            "rationale": "Invalid detail application_actions move the detail panel into its displayable error state.",
+            "rationale": "Invalid detail commands move the detail panel into its displayable error state.",
             "to": "error"
           }
         ]
@@ -1068,7 +1068,7 @@
       "slots": {
         "action_bindings": {
           "create": {
-            "application_action": "application_action.project.create",
+            "command": "command.project.create",
             "input_bindings": {
               "customer": {
                 "value": "Atlas Foods"
@@ -1228,7 +1228,7 @@
             "on": {
               "local_signal": "show_transition_not_allowed"
             },
-            "rationale": "Invalid list application_actions move the list into its displayable error state.",
+            "rationale": "Invalid list queries move the list into its displayable error state.",
             "to": "error"
           }
         ]
@@ -1354,7 +1354,7 @@
             "on": {
               "local_signal": "show_transition_not_allowed"
             },
-            "rationale": "Invalid list application_actions move the list into its displayable error state.",
+            "rationale": "Invalid list queries move the list into its displayable error state.",
             "to": "error"
           }
         ]
@@ -1479,7 +1479,7 @@
             "on": {
               "local_signal": "show_transition_not_allowed"
             },
-            "rationale": "Invalid list application_actions move the list into its displayable error state.",
+            "rationale": "Invalid list queries move the list into its displayable error state.",
             "to": "error"
           }
         ]
@@ -1494,7 +1494,7 @@
       "slots": {
         "action_bindings": {
           "create": {
-            "application_action": "application_action.project.create",
+            "command": "command.project.create",
             "input_bindings": {
               "customer": {
                 "value": "Atlas Foods"
@@ -1536,7 +1536,7 @@
             }
           },
           "submit": {
-            "application_action": "application_action.project.submit",
+            "command": "command.project.submit",
             "input_bindings": {
               "project_id": {
                 "from": "$state_context.selected_project_id"
@@ -1707,7 +1707,7 @@
             "on": {
               "local_signal": "show_transition_not_allowed"
             },
-            "rationale": "Invalid list application_actions move the list into its displayable error state.",
+            "rationale": "Invalid list queries move the list into its displayable error state.",
             "to": "error"
           }
         ]

@@ -1,6 +1,6 @@
 {
   "$defs": {
-    "action_authorization": {
+    "command_authorization": {
       "additionalProperties": false,
       "properties": {
         "access_denied_as": {
@@ -10,7 +10,7 @@
           "$ref": "#/$defs/outcome_name"
         },
         "policy": {
-          "$ref": "#/$defs/authorization_policy_ref"
+          "$ref": "#/$defs/access_policy_ref"
         }
       },
       "required": [
@@ -24,74 +24,8 @@
       "$ref": "#/$defs/local_name",
       "description": "Local action binding identifier within a view state."
     },
-    "action_emit": {
-      "additionalProperties": false,
-      "oneOf": [
-        {
-          "required": [
-            "payload_source"
-          ]
-        },
-        {
-          "required": [
-            "payload_bindings"
-          ]
-        }
-      ],
-      "properties": {
-        "domain_event": {
-          "$ref": "#/$defs/domain_event_ref"
-        },
-        "payload_bindings": {
-          "$ref": "#/$defs/binding_map"
-        },
-        "payload_source": {
-          "$ref": "#/$defs/binding_expression"
-        }
-      },
-      "required": [
-        "domain_event"
-      ],
-      "type": "object"
-    },
-    "action_outcome": {
-      "additionalProperties": false,
-      "properties": {
-        "emits": {
-          "items": {
-            "$ref": "#/$defs/action_emit"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "kind": {
-          "enum": [
-            "success",
-            "failure"
-          ]
-        },
-        "result": {
-          "$ref": "#/$defs/schema"
-        }
-      },
-      "required": [
-        "kind",
-        "result"
-      ],
-      "type": "object"
-    },
-    "action_outcomes": {
-      "additionalProperties": {
-        "$ref": "#/$defs/action_outcome"
-      },
-      "minProperties": 2,
-      "propertyNames": {
-        "$ref": "#/$defs/outcome_name"
-      },
-      "type": "object"
-    },
-    "application_action_ref": {
-      "pattern": "^application_action\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+    "command_ref": {
+      "pattern": "^command\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
     "aria_role": {
@@ -173,69 +107,41 @@
       "pattern": "^asset\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
-    "authored_application_action": {
+    "authored_command": {
       "additionalProperties": false,
       "properties": {
-        "action_kind": {
-          "enum": [
-            "command",
-            "query",
-            "lifecycle_transition"
-          ]
-        },
         "authorization": {
-          "$ref": "#/$defs/action_authorization"
+          "$ref": "#/$defs/command_authorization"
         },
-        "creates": {
+        "effects": {
+          "$ref": "#/$defs/command_effects"
+        },
+        "emits_domain_events": {
           "items": {
-            "$ref": "#/$defs/entity_type_ref"
+            "$ref": "#/$defs/command_domain_event_emit"
           },
-          "minItems": 1,
           "type": "array",
           "uniqueItems": true
         },
-        "deletes": {
-          "items": {
-            "$ref": "#/$defs/entity_type_ref"
-          },
-          "minItems": 1,
-          "type": "array",
-          "uniqueItems": true
-        },
-        "input": {
+        "input_schema": {
           "$ref": "#/$defs/schema"
         },
         "outcomes": {
-          "$ref": "#/$defs/action_outcomes"
+          "$ref": "#/$defs/operation_outcomes"
         },
         "rationale": {
           "$ref": "#/$defs/rationale"
         },
-        "reads": {
-          "items": {
-            "$ref": "#/$defs/entity_type_ref"
-          },
-          "minItems": 1,
-          "type": "array",
-          "uniqueItems": true
-        },
         "retry_safe": {
-          "description": "Explicitly marks a command or lifecycle-transition action as safe for automatic action-level retries.",
+          "description": "Explicitly marks a command as safe for automatic command-level retries.",
           "type": "boolean"
-        },
-        "updates": {
-          "items": {
-            "$ref": "#/$defs/entity_type_ref"
-          },
-          "minItems": 1,
-          "type": "array",
-          "uniqueItems": true
         }
       },
       "required": [
-        "action_kind",
-        "input",
-        "outcomes"
+        "input_schema",
+        "effects",
+        "outcomes",
+        "emits_domain_events"
       ],
       "type": "object"
     },
@@ -284,7 +190,7 @@
       ],
       "type": "object"
     },
-    "authored_authorization_policy": {
+    "authored_access_policy": {
       "additionalProperties": false,
       "properties": {
         "conditions": {
@@ -334,7 +240,7 @@
       "properties": {
         "archetype": {
           "enum": [
-            "entry_point_response",
+            "external_interface_response",
             "action_outcome",
             "state_machine_composition",
             "state_machine_composition_sync",
@@ -423,44 +329,6 @@
       ],
       "type": "object"
     },
-    "authored_command": {
-      "additionalProperties": false,
-      "properties": {
-        "authorization": {
-          "$ref": "#/$defs/action_authorization"
-        },
-        "effects": {
-          "$ref": "#/$defs/command_effects"
-        },
-        "emits_domain_events": {
-          "items": {
-            "$ref": "#/$defs/command_domain_event_emit"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "input_schema": {
-          "$ref": "#/$defs/schema"
-        },
-        "outcomes": {
-          "$ref": "#/$defs/operation_outcomes"
-        },
-        "rationale": {
-          "$ref": "#/$defs/rationale"
-        },
-        "retry_safe": {
-          "description": "Explicitly marks a command as safe for automatic command-level retries.",
-          "type": "boolean"
-        }
-      },
-      "required": [
-        "input_schema",
-        "effects",
-        "outcomes",
-        "emits_domain_events"
-      ],
-      "type": "object"
-    },
     "authored_content_example": {
       "additionalProperties": false,
       "properties": {
@@ -545,7 +413,7 @@
                     "type": "string"
                   },
                   "triggered_by": {
-                    "$ref": "#/$defs/application_action_ref"
+                    "$ref": "#/$defs/command_ref"
                   }
                 },
                 "required": [
@@ -581,14 +449,14 @@
       ],
       "type": "object"
     },
-    "authored_entry_point": {
+    "authored_external_interface": {
       "additionalProperties": false,
       "properties": {
         "adapter": {
-          "$ref": "#/$defs/entry_point_adapter"
+          "$ref": "#/$defs/external_interface_adapter"
         },
-        "authorization_policy": {
-          "$ref": "#/$defs/authorization_policy_ref"
+        "access_policy": {
+          "$ref": "#/$defs/access_policy_ref"
         },
         "rationale": {
           "$ref": "#/$defs/rationale"
@@ -597,7 +465,7 @@
           "type": "boolean"
         },
         "target": {
-          "$ref": "#/$defs/entry_point_target"
+          "$ref": "#/$defs/external_interface_target"
         }
       },
       "required": [
@@ -708,7 +576,7 @@
       ],
       "type": "object"
     },
-    "authored_render_profile": {
+    "authored_viewport_profile": {
       "additionalProperties": false,
       "anyOf": [
         {
@@ -722,7 +590,7 @@
           ]
         }
       ],
-      "description": "Global audit/golden-image render profile. Audit tooling applies declared HTML and Textual viewport sizes globally to eligible state-machine render examples and renderer contracts.",
+      "description": "Global audit/golden-image viewport profile. Audit tooling applies declared HTML and Textual viewport sizes globally to eligible state-machine render examples and renderer contracts.",
       "properties": {
         "html_viewports": {
           "additionalProperties": {
@@ -1013,30 +881,30 @@
       "oneOf": [
         {
           "required": [
-            "application_action"
+            "command"
           ]
         },
         {
           "required": [
-            "entry_point"
+            "external_interface"
           ]
         }
       ],
       "properties": {
-        "application_action": {
-          "$ref": "#/$defs/application_action_ref"
+        "command": {
+          "$ref": "#/$defs/command_ref"
         },
-        "authorization_policy": {
-          "$ref": "#/$defs/authorization_policy_ref"
+        "access_policy": {
+          "$ref": "#/$defs/access_policy_ref"
         },
-        "entry_point": {
-          "$ref": "#/$defs/entry_point_ref"
+        "external_interface": {
+          "$ref": "#/$defs/external_interface_ref"
         }
       },
       "type": "object"
     },
-    "authorization_policy_ref": {
-      "pattern": "^authorization_policy\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+    "access_policy_ref": {
+      "pattern": "^access_policy\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
     "behavior_scenario_ref": {
@@ -1153,7 +1021,7 @@
           "type": "integer"
         },
         "retry_policy": {
-          "$ref": "#/$defs/entry_point_retry_policy"
+          "$ref": "#/$defs/external_interface_retry_policy"
         },
         "stderr": {
           "$ref": "#/$defs/cli_output"
@@ -1261,10 +1129,6 @@
         }
       },
       "type": "object"
-    },
-    "command_ref": {
-      "pattern": "^command\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
-      "type": "string"
     },
     "condition": {
       "additionalProperties": false,
@@ -1524,14 +1388,14 @@
       "pattern": "^entity_type\\.[a-z][a-z0-9_]*$",
       "type": "string"
     },
-    "entry_application_action_target": {
+    "external_interface_command_target": {
       "additionalProperties": false,
       "properties": {
         "input_bindings": {
           "$ref": "#/$defs/binding_map"
         },
         "ref": {
-          "$ref": "#/$defs/application_action_ref"
+          "$ref": "#/$defs/command_ref"
         }
       },
       "required": [
@@ -1539,7 +1403,7 @@
       ],
       "type": "object"
     },
-    "entry_point_adapter": {
+    "external_interface_adapter": {
       "additionalProperties": false,
       "oneOf": [
         {
@@ -1595,7 +1459,7 @@
       },
       "type": "object"
     },
-    "entry_point_delegate_input_bindings": {
+    "external_interface_delegate_input_bindings": {
       "additionalProperties": false,
       "properties": {
         "args": {
@@ -1616,14 +1480,14 @@
       },
       "type": "object"
     },
-    "entry_point_delegate_target": {
+    "external_interface_delegate_target": {
       "additionalProperties": false,
       "properties": {
         "input_bindings": {
-          "$ref": "#/$defs/entry_point_delegate_input_bindings"
+          "$ref": "#/$defs/external_interface_delegate_input_bindings"
         },
         "ref": {
-          "$ref": "#/$defs/entry_point_ref"
+          "$ref": "#/$defs/external_interface_ref"
         }
       },
       "required": [
@@ -1632,15 +1496,15 @@
       ],
       "type": "object"
     },
-    "entry_point_ref": {
-      "pattern": "^entry_point\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+    "external_interface_ref": {
+      "pattern": "^external_interface\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
-    "entry_point_response": {
+    "external_interface_response": {
       "additionalProperties": false,
       "properties": {
         "body": {
-          "$ref": "#/$defs/entry_point_response_value"
+          "$ref": "#/$defs/external_interface_response_value"
         },
         "disposition": {
           "enum": [
@@ -1662,15 +1526,15 @@
           "type": "integer"
         },
         "stderr": {
-          "$ref": "#/$defs/entry_point_response_value"
+          "$ref": "#/$defs/external_interface_response_value"
         },
         "stdout": {
-          "$ref": "#/$defs/entry_point_response_value"
+          "$ref": "#/$defs/external_interface_response_value"
         }
       },
       "type": "object"
     },
-    "entry_point_response_value": {
+    "external_interface_response_value": {
       "additionalProperties": false,
       "properties": {
         "from": {
@@ -1688,9 +1552,9 @@
       ],
       "type": "object"
     },
-    "entry_point_responses": {
+    "external_interface_responses": {
       "additionalProperties": {
-        "$ref": "#/$defs/entry_point_response"
+        "$ref": "#/$defs/external_interface_response"
       },
       "minProperties": 1,
       "propertyNames": {
@@ -1698,7 +1562,7 @@
       },
       "type": "object"
     },
-    "entry_point_retry_policy": {
+    "external_interface_retry_policy": {
       "additionalProperties": false,
       "properties": {
         "attempts": {
@@ -1720,12 +1584,17 @@
       ],
       "type": "object"
     },
-    "entry_point_target": {
+    "external_interface_target": {
       "additionalProperties": false,
       "oneOf": [
         {
           "required": [
-            "application_action"
+            "command"
+          ]
+        },
+        {
+          "required": [
+            "query"
           ]
         },
         {
@@ -1740,27 +1609,30 @@
         },
         {
           "required": [
-            "entry_point"
+            "external_interface"
           ]
         }
       ],
       "properties": {
-        "application_action": {
-          "$ref": "#/$defs/entry_application_action_target"
+        "command": {
+          "$ref": "#/$defs/external_interface_command_target"
         },
-        "entry_point": {
-          "$ref": "#/$defs/entry_point_delegate_target"
+        "external_interface": {
+          "$ref": "#/$defs/external_interface_delegate_target"
         },
         "state_machine": {
-          "$ref": "#/$defs/entry_state_machine_target"
+          "$ref": "#/$defs/external_interface_state_machine_target"
         },
         "workflow": {
-          "$ref": "#/$defs/entry_workflow_target"
+          "$ref": "#/$defs/external_interface_workflow_target"
+        },
+        "query": {
+          "$ref": "#/$defs/external_interface_query_target"
         }
       },
       "type": "object"
     },
-    "entry_state_machine_target": {
+    "external_interface_state_machine_target": {
       "additionalProperties": false,
       "properties": {
         "input_bindings": {
@@ -1782,7 +1654,7 @@
       ],
       "type": "object"
     },
-    "entry_workflow_target": {
+    "external_interface_workflow_target": {
       "additionalProperties": false,
       "properties": {
         "ref": {
@@ -2154,7 +2026,7 @@
           "type": "string"
         },
         "responses": {
-          "$ref": "#/$defs/entry_point_responses"
+          "$ref": "#/$defs/external_interface_responses"
         }
       },
       "required": [
@@ -2269,7 +2141,7 @@
     },
     "outcome_name": {
       "$ref": "#/$defs/local_name",
-      "description": "Local application-action or workflow outcome identifier."
+      "description": "Local command or workflow outcome identifier."
     },
     "precondition": {
       "oneOf": [
@@ -2405,7 +2277,7 @@
     },
     "render_example": {
       "additionalProperties": false,
-      "description": "Render example for a state-machine view state. Global render profiles are applied by tooling; render examples do not reference render profiles.",
+      "description": "Render example for a state-machine view state. Global viewport profiles are applied by tooling; render examples do not reference viewport profiles.",
       "properties": {
         "context": {
           "$ref": "#/$defs/value_map"
@@ -2446,8 +2318,8 @@
       "$ref": "#/$defs/local_name",
       "description": "Local render example identifier within a view state."
     },
-    "render_profile_ref": {
-      "pattern": "^render_profile\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+    "viewport_profile_ref": {
+      "pattern": "^viewport_profile\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
     "renderer_contracts": {
@@ -2478,19 +2350,26 @@
         },
         {
           "required": [
-            "entry_point"
+            "external_interface"
           ]
         }
       ],
       "properties": {
         "action": {
-          "$ref": "#/$defs/application_action_ref"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/command_ref"
+            },
+            {
+              "$ref": "#/$defs/query_ref"
+            }
+          ]
         },
         "entity_type": {
           "$ref": "#/$defs/entity_type_ref"
         },
-        "entry_point": {
-          "$ref": "#/$defs/entry_point_ref"
+        "external_interface": {
+          "$ref": "#/$defs/external_interface_ref"
         }
       },
       "type": "object"
@@ -2516,7 +2395,7 @@
       "additionalProperties": false,
       "properties": {
         "ingress_responses": {
-          "$ref": "#/$defs/entry_point_responses"
+          "$ref": "#/$defs/external_interface_responses"
         },
         "schedule_expression": {
           "minLength": 1,
@@ -2808,8 +2687,8 @@
     "state_machine_action_binding": {
       "additionalProperties": false,
       "properties": {
-        "application_action": {
-          "$ref": "#/$defs/application_action_ref"
+        "command": {
+          "$ref": "#/$defs/command_ref"
         },
         "input_bindings": {
           "$ref": "#/$defs/binding_map"
@@ -2822,7 +2701,7 @@
         }
       },
       "required": [
-        "application_action",
+        "command",
         "outcome_effects"
       ],
       "type": "object"
@@ -2868,9 +2747,6 @@
     "state_machine_data_loader": {
       "additionalProperties": false,
       "properties": {
-        "application_action": {
-          "$ref": "#/$defs/application_action_ref"
-        },
         "input_bindings": {
           "$ref": "#/$defs/binding_map"
         },
@@ -2890,10 +2766,13 @@
             "prefetch"
           ],
           "type": "string"
+        },
+        "query": {
+          "$ref": "#/$defs/query_ref"
         }
       },
       "required": [
-        "application_action",
+        "query",
         "outcome_effects"
       ],
       "type": "object"
@@ -3225,20 +3104,23 @@
       "maxProperties": 1,
       "minProperties": 1,
       "properties": {
-        "application_action": {
-          "$ref": "#/$defs/application_action_ref"
+        "command": {
+          "$ref": "#/$defs/command_ref"
         },
         "domain_event": {
           "$ref": "#/$defs/domain_event_ref"
         },
-        "entry_point": {
-          "$ref": "#/$defs/entry_point_ref"
+        "external_interface": {
+          "$ref": "#/$defs/external_interface_ref"
         },
         "state_machine": {
           "$ref": "#/$defs/state_machine_ref"
         },
         "workflow": {
           "$ref": "#/$defs/workflow_ref"
+        },
+        "query": {
+          "$ref": "#/$defs/query_ref"
         }
       },
       "type": "object"
@@ -3478,7 +3360,7 @@
         },
         "enables": {
           "items": {
-            "$ref": "#/$defs/application_action_ref"
+            "$ref": "#/$defs/command_ref"
           },
           "type": "array",
           "uniqueItems": true
@@ -3507,14 +3389,14 @@
         },
         "forbids": {
           "items": {
-            "$ref": "#/$defs/application_action_ref"
+            "$ref": "#/$defs/command_ref"
           },
           "type": "array",
           "uniqueItems": true
         },
         "invoked": {
           "items": {
-            "$ref": "#/$defs/application_action_ref"
+            "$ref": "#/$defs/command_ref"
           },
           "type": "array",
           "uniqueItems": true
@@ -3631,13 +3513,13 @@
     },
     "viewport_id": {
       "$ref": "#/$defs/local_name",
-      "description": "Local render-profile viewport identifier."
+      "description": "Local viewport-profile viewport identifier."
     },
     "webhook_adapter": {
       "additionalProperties": false,
       "properties": {
         "ingress_responses": {
-          "$ref": "#/$defs/entry_point_responses"
+          "$ref": "#/$defs/external_interface_responses"
         },
         "input": {
           "$ref": "#/$defs/webhook_adapter_input"
@@ -3672,14 +3554,14 @@
         {
           "additionalProperties": false,
           "properties": {
-            "open_entry_point": {
+            "open_external_interface": {
               "additionalProperties": false,
               "properties": {
                 "input": {
                   "$ref": "#/$defs/value_map"
                 },
                 "ref": {
-                  "$ref": "#/$defs/entry_point_ref"
+                  "$ref": "#/$defs/external_interface_ref"
                 }
               },
               "required": [
@@ -3689,21 +3571,21 @@
             }
           },
           "required": [
-            "open_entry_point"
+            "open_external_interface"
           ],
           "type": "object"
         },
         {
           "additionalProperties": false,
           "properties": {
-            "call_entry_point": {
+            "call_external_interface": {
               "additionalProperties": false,
               "properties": {
                 "input": {
                   "$ref": "#/$defs/value_map"
                 },
                 "ref": {
-                  "$ref": "#/$defs/entry_point_ref"
+                  "$ref": "#/$defs/external_interface_ref"
                 }
               },
               "required": [
@@ -3713,21 +3595,21 @@
             }
           },
           "required": [
-            "call_entry_point"
+            "call_external_interface"
           ],
           "type": "object"
         },
         {
           "additionalProperties": false,
           "properties": {
-            "invoke_application_action": {
+            "invoke_command": {
               "additionalProperties": false,
               "properties": {
                 "input": {
                   "$ref": "#/$defs/value_map"
                 },
                 "ref": {
-                  "$ref": "#/$defs/application_action_ref"
+                  "$ref": "#/$defs/command_ref"
                 }
               },
               "required": [
@@ -3737,7 +3619,7 @@
             }
           },
           "required": [
-            "invoke_application_action"
+            "invoke_command"
           ],
           "type": "object"
         },
@@ -3764,6 +3646,30 @@
             "emit_domain_event"
           ],
           "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "invoke_query": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {
+                  "$ref": "#/$defs/value_map"
+                },
+                "ref": {
+                  "$ref": "#/$defs/query_ref"
+                }
+              },
+              "required": [
+                "ref"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "invoke_query"
+          ],
+          "type": "object"
         }
       ]
     },
@@ -3771,7 +3677,7 @@
       "additionalProperties": false,
       "properties": {
         "ingress_responses": {
-          "$ref": "#/$defs/entry_point_responses"
+          "$ref": "#/$defs/external_interface_responses"
         },
         "input": {
           "$ref": "#/$defs/worker_adapter_input"
@@ -3860,8 +3766,8 @@
     "workflow_step": {
       "additionalProperties": false,
       "properties": {
-        "application_action": {
-          "$ref": "#/$defs/application_action_ref"
+        "command": {
+          "$ref": "#/$defs/command_ref"
         },
         "id": {
           "pattern": "^[a-z][a-z0-9_]*$",
@@ -3876,7 +3782,7 @@
       },
       "required": [
         "id",
-        "application_action",
+        "command",
         "input_bindings",
         "outcome_transitions"
       ],
@@ -3939,13 +3845,28 @@
       "maxProperties": 1,
       "minProperties": 1,
       "properties": {
-        "application_action": {
-          "$ref": "#/$defs/application_action_ref"
+        "command": {
+          "$ref": "#/$defs/command_ref"
         },
         "domain_event": {
           "$ref": "#/$defs/domain_event_ref"
         }
       },
+      "type": "object"
+    },
+    "external_interface_query_target": {
+      "additionalProperties": false,
+      "properties": {
+        "input_bindings": {
+          "$ref": "#/$defs/binding_map"
+        },
+        "ref": {
+          "$ref": "#/$defs/query_ref"
+        }
+      },
+      "required": [
+        "ref"
+      ],
       "type": "object"
     }
   },
@@ -3954,12 +3875,12 @@
   "additionalProperties": false,
   "description": "Sparse, human-authored source product specification. The compiler produces the compiled specification at spec/generated/compiled/spec.yaml, including normalized identifiers, derived domain_events, derived HTML routes, generated references, expanded endpoints, and expanded empty-collection states.",
   "properties": {
-    "application_actions": {
+    "access_policies": {
       "additionalProperties": {
-        "$ref": "#/$defs/authored_application_action"
+        "$ref": "#/$defs/authored_access_policy"
       },
       "propertyNames": {
-        "$ref": "#/$defs/application_action_ref"
+        "$ref": "#/$defs/access_policy_ref"
       },
       "type": "object"
     },
@@ -3969,24 +3890,6 @@
       },
       "propertyNames": {
         "$ref": "#/$defs/assertion_ref"
-      },
-      "type": "object"
-    },
-    "assets": {
-      "additionalProperties": {
-        "$ref": "#/$defs/authored_asset"
-      },
-      "propertyNames": {
-        "$ref": "#/$defs/asset_ref"
-      },
-      "type": "object"
-    },
-    "authorization_policies": {
-      "additionalProperties": {
-        "$ref": "#/$defs/authored_authorization_policy"
-      },
-      "propertyNames": {
-        "$ref": "#/$defs/authorization_policy_ref"
       },
       "type": "object"
     },
@@ -4035,12 +3938,12 @@
       },
       "type": "object"
     },
-    "entry_points": {
+    "external_interfaces": {
       "additionalProperties": {
-        "$ref": "#/$defs/authored_entry_point"
+        "$ref": "#/$defs/authored_external_interface"
       },
       "propertyNames": {
-        "$ref": "#/$defs/entry_point_ref"
+        "$ref": "#/$defs/external_interface_ref"
       },
       "type": "object"
     },
@@ -4050,6 +3953,15 @@
       },
       "propertyNames": {
         "$ref": "#/$defs/fixture_ref"
+      },
+      "type": "object"
+    },
+    "media_assets": {
+      "additionalProperties": {
+        "$ref": "#/$defs/authored_asset"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/asset_ref"
       },
       "type": "object"
     },
@@ -4075,13 +3987,13 @@
       },
       "type": "object"
     },
-    "render_profiles": {
+    "viewport_profiles": {
       "additionalProperties": {
-        "$ref": "#/$defs/authored_render_profile"
+        "$ref": "#/$defs/authored_viewport_profile"
       },
-      "description": "Global audit/golden-image render profiles. Audit tooling applies them to all eligible state-machine render examples and renderer contracts; render examples do not reference profiles directly.",
+      "description": "Canonical global HTML and Textual viewport profiles for audit/golden-image rendering.",
       "propertyNames": {
-        "$ref": "#/$defs/render_profile_ref"
+        "$ref": "#/$defs/viewport_profile_ref"
       },
       "type": "object"
     },

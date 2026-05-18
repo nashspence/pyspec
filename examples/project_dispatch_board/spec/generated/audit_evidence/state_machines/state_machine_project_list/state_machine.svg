@@ -1,396 +1,372 @@
-<svg width="2136pt" height="687pt"
- viewBox="0.00 0.00 2136.00 686.86" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: a90d963f6f0a06a0665652223d5507a638d6290c28c88dd93bb30d7cbaa03561 -->
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 668.86)">
+<svg width="2174pt" height="592pt"
+ viewBox="0.00 0.00 2174.00 592.08" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: b4b4766de84bcf67acecfe9d57d953b7df0ffac3e3157eff680e2d400887f52a -->
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 574.08)">
 <title>state_machine_state_machine_project_list</title>
 <!-- view_state_empty -->
 <g id="node1" class="node">
 <title>view_state_empty</title>
-<polygon fill="#ffffff" stroke="transparent" points="606,-391.36 606,-536.36 907,-536.36 907,-391.36 606,-391.36"/>
-<polygon fill="#71717a" stroke="transparent" points="607.5,-526.86 607.5,-534.86 906.5,-534.86 906.5,-526.86 607.5,-526.86"/>
-<polygon fill="#f8fafc" stroke="transparent" points="607.5,-495.86 607.5,-526.86 906.5,-526.86 906.5,-495.86 607.5,-495.86"/>
-<text text-anchor="start" x="611.5" y="-513.46" font-family="Arial" font-weight="bold" font-size="13.00">empty</text>
-<text text-anchor="start" x="611.5" y="-502.46" font-family="Arial" font-size="8.00" fill="#64748b">view state</text>
-<text text-anchor="start" x="611.5" y="-484.86" font-family="Arial" font-weight="bold" font-size="10.00">text</text>
-<text text-anchor="start" x="611.5" y="-472.86" font-family="Arial" font-size="10.00">text.project.list.empty.heading</text>
-<text text-anchor="start" x="611.5" y="-461.86" font-family="Arial" font-size="10.00">text.project.list.empty.body</text>
-<text text-anchor="start" x="612.5" y="-442.86" font-family="Arial" font-weight="bold" font-size="10.00">assets:</text>
-<text text-anchor="start" x="645.5" y="-442.86" font-family="Arial" font-size="10.00">  asset.project.list.empty.illustration</text>
-<text text-anchor="start" x="612.5" y="-430.86" font-family="Arial" font-weight="bold" font-size="10.00">action_bindings:</text>
-<text text-anchor="start" x="691.5" y="-430.86" font-family="Arial" font-size="10.00">  create: application_action.project.create</text>
-<text text-anchor="start" x="871.5" y="-430.86" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
-<text text-anchor="start" x="611.5" y="-410.86" font-family="Arial" font-weight="bold" font-size="10.00">authorization_policies:</text>
-<text text-anchor="start" x="718.5" y="-410.86" font-family="Arial" font-size="10.00">  application_action.project.create:</text>
-<text text-anchor="start" x="611.5" y="-398.86" font-family="Arial" font-size="10.00">  authorization_policy.project.member</text>
-<polygon fill="none" stroke="#71717a" points="606,-391.36 606,-536.36 907,-536.36 907,-391.36 606,-391.36"/>
+<polygon fill="#ffffff" stroke="transparent" points="606,-335.58 606,-462.58 945,-462.58 945,-335.58 606,-335.58"/>
+<polygon fill="#71717a" stroke="transparent" points="607.5,-453.08 607.5,-461.08 944.5,-461.08 944.5,-453.08 607.5,-453.08"/>
+<polygon fill="#f8fafc" stroke="transparent" points="607.5,-422.08 607.5,-453.08 944.5,-453.08 944.5,-422.08 607.5,-422.08"/>
+<text text-anchor="start" x="611.5" y="-439.68" font-family="Arial" font-weight="bold" font-size="13.00">empty</text>
+<text text-anchor="start" x="611.5" y="-428.68" font-family="Arial" font-size="8.00" fill="#64748b">view state</text>
+<text text-anchor="start" x="611.5" y="-411.08" font-family="Arial" font-weight="bold" font-size="10.00">text</text>
+<text text-anchor="start" x="611.5" y="-399.08" font-family="Arial" font-size="10.00">text.project.list.empty.heading</text>
+<text text-anchor="start" x="611.5" y="-388.08" font-family="Arial" font-size="10.00">text.project.list.empty.body</text>
+<text text-anchor="start" x="612.5" y="-369.08" font-family="Arial" font-weight="bold" font-size="10.00">assets:</text>
+<text text-anchor="start" x="645.5" y="-369.08" font-family="Arial" font-size="10.00">  asset.project.list.empty.illustration</text>
+<text text-anchor="start" x="612.5" y="-357.08" font-family="Arial" font-weight="bold" font-size="10.00">action_bindings:</text>
+<text text-anchor="start" x="691.5" y="-357.08" font-family="Arial" font-size="10.00">  create: command.project.create</text>
+<text text-anchor="start" x="836.5" y="-357.08" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
+<text text-anchor="start" x="612.5" y="-345.08" font-family="Arial" font-weight="bold" font-size="10.00">access_policies:</text>
+<text text-anchor="start" x="689.5" y="-345.08" font-family="Arial" font-size="10.00">  command.project.create: access_policy.project.member</text>
+<polygon fill="none" stroke="#71717a" points="606,-335.58 606,-462.58 945,-462.58 945,-335.58 606,-335.58"/>
 </g>
 <!-- transition_3_empty_ready_data_refresh_signal_projects_loaded -->
 <g id="node8" class="node">
 <title>transition_3_empty_ready_data_refresh_signal_projects_loaded</title>
-<polygon fill="#ffffff" stroke="transparent" points="970,-306.86 970,-422.86 1223,-422.86 1223,-306.86 970,-306.86"/>
-<polygon fill="#2563eb" stroke="transparent" points="971.5,-413.86 971.5,-421.86 1222.5,-421.86 1222.5,-413.86 971.5,-413.86"/>
-<polygon fill="#eff6ff" stroke="transparent" points="971.5,-382.86 971.5,-413.86 1222.5,-413.86 1222.5,-382.86 971.5,-382.86"/>
-<text text-anchor="start" x="975.5" y="-400.46" font-family="Arial" font-weight="bold" font-size="13.00">data_refresh_signal.projects_loaded</text>
-<text text-anchor="start" x="975.5" y="-389.46" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
-<text text-anchor="start" x="976.5" y="-370.86" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
-<text text-anchor="start" x="1004.5" y="-370.86" font-family="Arial" font-size="10.00">  list_projects.workspace_id</text>
-<text text-anchor="start" x="1126.5" y="-370.86" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
-<text text-anchor="start" x="976.5" y="-358.86" font-family="Arial" font-weight="bold" font-size="10.00">data_loaders:</text>
-<text text-anchor="start" x="1039.5" y="-358.86" font-family="Arial" font-size="10.00">  list_projects</text>
-<text text-anchor="start" x="976.5" y="-346.86" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
-<text text-anchor="start" x="1000.5" y="-346.86" font-family="Arial" font-size="10.00">  application_action.project.list</text>
-<text text-anchor="start" x="1133.5" y="-346.86" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
-<text text-anchor="start" x="975.5" y="-326.86" font-family="Arial" font-weight="bold" font-size="10.00">authorization_policies:</text>
-<text text-anchor="start" x="1082.5" y="-326.86" font-family="Arial" font-size="10.00">  application_action.project.list:</text>
-<text text-anchor="start" x="975.5" y="-314.86" font-family="Arial" font-size="10.00">  authorization_policy.project.member</text>
-<polygon fill="none" stroke="#2563eb" points="970,-306.86 970,-422.86 1223,-422.86 1223,-306.86 970,-306.86"/>
+<polygon fill="#ffffff" stroke="transparent" points="1012,-272.08 1012,-358.08 1257,-358.08 1257,-272.08 1012,-272.08"/>
+<polygon fill="#2563eb" stroke="transparent" points="1013.5,-349.08 1013.5,-357.08 1256.5,-357.08 1256.5,-349.08 1013.5,-349.08"/>
+<polygon fill="#eff6ff" stroke="transparent" points="1013.5,-318.08 1013.5,-349.08 1256.5,-349.08 1256.5,-318.08 1013.5,-318.08"/>
+<text text-anchor="start" x="1017.5" y="-335.68" font-family="Arial" font-weight="bold" font-size="13.00">data_refresh_signal.projects_loaded</text>
+<text text-anchor="start" x="1017.5" y="-324.68" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
+<text text-anchor="start" x="1018.5" y="-306.08" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
+<text text-anchor="start" x="1046.5" y="-306.08" font-family="Arial" font-size="10.00">  list_projects.workspace_id</text>
+<text text-anchor="start" x="1168.5" y="-306.08" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
+<text text-anchor="start" x="1018.5" y="-294.08" font-family="Arial" font-weight="bold" font-size="10.00">data_loaders:</text>
+<text text-anchor="start" x="1081.5" y="-294.08" font-family="Arial" font-size="10.00">  list_projects</text>
+<text text-anchor="start" x="1018.5" y="-282.08" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
+<text text-anchor="start" x="1042.5" y="-282.08" font-family="Arial" font-size="10.00">  query.project.list</text>
+<text text-anchor="start" x="1120.5" y="-282.08" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
+<polygon fill="none" stroke="#2563eb" points="1012,-272.08 1012,-358.08 1257,-358.08 1257,-272.08 1012,-272.08"/>
 </g>
 <!-- view_state_empty&#45;&gt;transition_3_empty_ready_data_refresh_signal_projects_loaded -->
 <g id="edge7" class="edge">
 <title>view_state_empty&#45;&gt;transition_3_empty_ready_data_refresh_signal_projects_loaded</title>
-<path fill="none" stroke="#3f3f46" d="M907.23,-420.01C925.54,-414.65 944.15,-409.19 962.2,-403.91"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="963,-406.59 969.89,-401.65 961.43,-401.22 963,-406.59"/>
+<path fill="none" stroke="#3f3f46" d="M945.07,-359.42C964.9,-354.75 984.9,-350.04 1004.08,-345.53"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1004.81,-348.24 1011.96,-343.68 1003.53,-342.79 1004.81,-348.24"/>
 </g>
 <!-- transition_4_empty_empty_data_refresh_signal_projects_changed -->
 <g id="node9" class="node">
 <title>transition_4_empty_empty_data_refresh_signal_projects_changed</title>
-<polygon fill="#ffffff" stroke="transparent" points="968,-504.86 968,-650.86 1225,-650.86 1225,-504.86 968,-504.86"/>
-<polygon fill="#2563eb" stroke="transparent" points="969.5,-641.86 969.5,-649.86 1224.5,-649.86 1224.5,-641.86 969.5,-641.86"/>
-<polygon fill="#eff6ff" stroke="transparent" points="969.5,-610.86 969.5,-641.86 1224.5,-641.86 1224.5,-610.86 969.5,-610.86"/>
-<text text-anchor="start" x="973.5" y="-628.46" font-family="Arial" font-weight="bold" font-size="13.00">data_refresh_signal.projects_changed</text>
-<text text-anchor="start" x="973.5" y="-617.46" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
-<text text-anchor="start" x="973.5" y="-599.86" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">List mutations invalidate the empty collection and</text>
-<text text-anchor="start" x="973.5" y="-588.86" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">let the list query refresh it.</text>
-<text text-anchor="start" x="974.5" y="-568.86" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
-<text text-anchor="start" x="1002.5" y="-568.86" font-family="Arial" font-size="10.00">  list_projects.workspace_id</text>
-<text text-anchor="start" x="1124.5" y="-568.86" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
-<text text-anchor="start" x="974.5" y="-556.86" font-family="Arial" font-weight="bold" font-size="10.00">data_loaders:</text>
-<text text-anchor="start" x="1037.5" y="-556.86" font-family="Arial" font-size="10.00">  list_projects</text>
-<text text-anchor="start" x="974.5" y="-544.86" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
-<text text-anchor="start" x="998.5" y="-544.86" font-family="Arial" font-size="10.00">  application_action.project.list</text>
-<text text-anchor="start" x="1131.5" y="-544.86" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
-<text text-anchor="start" x="973.5" y="-524.86" font-family="Arial" font-weight="bold" font-size="10.00">authorization_policies:</text>
-<text text-anchor="start" x="1080.5" y="-524.86" font-family="Arial" font-size="10.00">  application_action.project.list:</text>
-<text text-anchor="start" x="973.5" y="-512.86" font-family="Arial" font-size="10.00">  authorization_policy.project.member</text>
-<polygon fill="none" stroke="#2563eb" points="968,-504.86 968,-650.86 1225,-650.86 1225,-504.86 968,-504.86"/>
+<polygon fill="#ffffff" stroke="transparent" points="1006,-440.08 1006,-556.08 1263,-556.08 1263,-440.08 1006,-440.08"/>
+<polygon fill="#2563eb" stroke="transparent" points="1007.5,-547.08 1007.5,-555.08 1262.5,-555.08 1262.5,-547.08 1007.5,-547.08"/>
+<polygon fill="#eff6ff" stroke="transparent" points="1007.5,-516.08 1007.5,-547.08 1262.5,-547.08 1262.5,-516.08 1007.5,-516.08"/>
+<text text-anchor="start" x="1011.5" y="-533.68" font-family="Arial" font-weight="bold" font-size="13.00">data_refresh_signal.projects_changed</text>
+<text text-anchor="start" x="1011.5" y="-522.68" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
+<text text-anchor="start" x="1011.5" y="-505.08" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">List mutations invalidate the empty collection and</text>
+<text text-anchor="start" x="1011.5" y="-494.08" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">let the list query refresh it.</text>
+<text text-anchor="start" x="1012.5" y="-474.08" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
+<text text-anchor="start" x="1040.5" y="-474.08" font-family="Arial" font-size="10.00">  list_projects.workspace_id</text>
+<text text-anchor="start" x="1162.5" y="-474.08" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
+<text text-anchor="start" x="1012.5" y="-462.08" font-family="Arial" font-weight="bold" font-size="10.00">data_loaders:</text>
+<text text-anchor="start" x="1075.5" y="-462.08" font-family="Arial" font-size="10.00">  list_projects</text>
+<text text-anchor="start" x="1012.5" y="-450.08" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
+<text text-anchor="start" x="1036.5" y="-450.08" font-family="Arial" font-size="10.00">  query.project.list</text>
+<text text-anchor="start" x="1114.5" y="-450.08" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
+<polygon fill="none" stroke="#2563eb" points="1006,-440.08 1006,-556.08 1263,-556.08 1263,-440.08 1006,-440.08"/>
 </g>
 <!-- view_state_empty&#45;&gt;transition_4_empty_empty_data_refresh_signal_projects_changed -->
 <g id="edge9" class="edge">
 <title>view_state_empty&#45;&gt;transition_4_empty_empty_data_refresh_signal_projects_changed</title>
-<path fill="none" stroke="#3f3f46" d="M907.23,-504.67C924.76,-510.48 942.57,-516.53 959.9,-522.55"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="959.35,-525.32 967.82,-525.32 961.19,-520.04 959.35,-525.32"/>
+<path fill="none" stroke="#3f3f46" d="M945.07,-436.09C962.84,-440.97 980.74,-446.01 998.06,-451.03"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="997.52,-453.79 1005.98,-453.33 999.08,-448.41 997.52,-453.79"/>
 </g>
 <!-- transition_5_empty_error_local_signal_show_transition_not_allowed -->
 <g id="node10" class="node">
 <title>transition_5_empty_error_local_signal_show_transition_not_allowed</title>
-<polygon fill="#ffffff" stroke="transparent" points="1286,-525.36 1286,-596.36 1565,-596.36 1565,-525.36 1286,-525.36"/>
-<polygon fill="#2563eb" stroke="transparent" points="1287.5,-586.86 1287.5,-594.86 1564.5,-594.86 1564.5,-586.86 1287.5,-586.86"/>
-<polygon fill="#eff6ff" stroke="transparent" points="1287.5,-555.86 1287.5,-586.86 1564.5,-586.86 1564.5,-555.86 1287.5,-555.86"/>
-<text text-anchor="start" x="1291.5" y="-573.46" font-family="Arial" font-weight="bold" font-size="13.00">local_signal.show_transition_not_allowed</text>
-<text text-anchor="start" x="1291.5" y="-562.46" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
-<text text-anchor="start" x="1291.5" y="-544.86" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Invalid create attempts move the list into its</text>
-<text text-anchor="start" x="1291.5" y="-533.86" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">displayable error state.</text>
-<polygon fill="none" stroke="#2563eb" points="1286,-525.36 1286,-596.36 1565,-596.36 1565,-525.36 1286,-525.36"/>
+<polygon fill="#ffffff" stroke="transparent" points="1324,-469.58 1324,-540.58 1603,-540.58 1603,-469.58 1324,-469.58"/>
+<polygon fill="#2563eb" stroke="transparent" points="1325.5,-531.08 1325.5,-539.08 1602.5,-539.08 1602.5,-531.08 1325.5,-531.08"/>
+<polygon fill="#eff6ff" stroke="transparent" points="1325.5,-500.08 1325.5,-531.08 1602.5,-531.08 1602.5,-500.08 1325.5,-500.08"/>
+<text text-anchor="start" x="1329.5" y="-517.68" font-family="Arial" font-weight="bold" font-size="13.00">local_signal.show_transition_not_allowed</text>
+<text text-anchor="start" x="1329.5" y="-506.68" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
+<text text-anchor="start" x="1329.5" y="-489.08" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Invalid create attempts move the list into its</text>
+<text text-anchor="start" x="1329.5" y="-478.08" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">displayable error state.</text>
+<polygon fill="none" stroke="#2563eb" points="1324,-469.58 1324,-540.58 1603,-540.58 1603,-469.58 1324,-469.58"/>
 </g>
 <!-- view_state_empty&#45;&gt;transition_5_empty_error_local_signal_show_transition_not_allowed -->
 <g id="edge11" class="edge">
 <title>view_state_empty&#45;&gt;transition_5_empty_error_local_signal_show_transition_not_allowed</title>
-<path fill="none" stroke="#3f3f46" d="M907.02,-461.92C999.46,-463.32 1120.07,-469.86 1225,-490.86 1260.82,-498.03 1298.94,-510.21 1332.16,-522.41"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1331.57,-525.18 1340.05,-525.35 1333.53,-519.93 1331.57,-525.18"/>
+<path fill="none" stroke="#3f3f46" d="M945.17,-395.81C1039.61,-397.2 1158.96,-404.35 1263,-427.08 1302.85,-435.79 1345.19,-451.35 1380.55,-466.3"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1379.53,-468.91 1387.99,-469.48 1381.73,-463.76 1379.53,-468.91"/>
 </g>
 <!-- view_state_error -->
 <g id="node2" class="node">
 <title>view_state_error</title>
-<polygon fill="#ffffff" stroke="transparent" points="1966,-511.86 1966,-593.86 2100,-593.86 2100,-511.86 1966,-511.86"/>
-<polygon fill="#71717a" stroke="transparent" points="1967,-584.86 1967,-592.86 2099,-592.86 2099,-584.86 1967,-584.86"/>
-<polygon fill="#f8fafc" stroke="transparent" points="1967,-553.86 1967,-584.86 2099,-584.86 2099,-553.86 1967,-553.86"/>
-<text text-anchor="start" x="1971" y="-571.46" font-family="Arial" font-weight="bold" font-size="13.00">error</text>
-<text text-anchor="start" x="1971" y="-560.46" font-family="Arial" font-size="8.00" fill="#64748b">view state</text>
-<text text-anchor="start" x="1971" y="-542.86" font-family="Arial" font-weight="bold" font-size="10.00">text</text>
-<text text-anchor="start" x="1971" y="-530.86" font-family="Arial" font-size="10.00">text.project.list.error.heading</text>
-<text text-anchor="start" x="1971" y="-519.86" font-family="Arial" font-size="10.00">text.project.list.error.body</text>
-<polygon fill="none" stroke="#71717a" points="1966,-511.86 1966,-593.86 2100,-593.86 2100,-511.86 1966,-511.86"/>
+<polygon fill="#ffffff" stroke="transparent" points="2004,-454.08 2004,-536.08 2138,-536.08 2138,-454.08 2004,-454.08"/>
+<polygon fill="#71717a" stroke="transparent" points="2005,-527.08 2005,-535.08 2137,-535.08 2137,-527.08 2005,-527.08"/>
+<polygon fill="#f8fafc" stroke="transparent" points="2005,-496.08 2005,-527.08 2137,-527.08 2137,-496.08 2005,-496.08"/>
+<text text-anchor="start" x="2009" y="-513.68" font-family="Arial" font-weight="bold" font-size="13.00">error</text>
+<text text-anchor="start" x="2009" y="-502.68" font-family="Arial" font-size="8.00" fill="#64748b">view state</text>
+<text text-anchor="start" x="2009" y="-485.08" font-family="Arial" font-weight="bold" font-size="10.00">text</text>
+<text text-anchor="start" x="2009" y="-473.08" font-family="Arial" font-size="10.00">text.project.list.error.heading</text>
+<text text-anchor="start" x="2009" y="-462.08" font-family="Arial" font-size="10.00">text.project.list.error.body</text>
+<polygon fill="none" stroke="#71717a" points="2004,-454.08 2004,-536.08 2138,-536.08 2138,-454.08 2004,-454.08"/>
 </g>
 <!-- view_state_loading -->
 <g id="node3" class="node">
 <title>view_state_loading</title>
-<polygon fill="#ffffff" stroke="transparent" points="0,-234.86 0,-296.86 180,-296.86 180,-234.86 0,-234.86"/>
-<polygon fill="#0891b2" stroke="transparent" points="1,-287.86 1,-295.86 179,-295.86 179,-287.86 1,-287.86"/>
-<polygon fill="#ecfeff" stroke="transparent" points="1,-256.86 1,-287.86 179,-287.86 179,-256.86 1,-256.86"/>
-<text text-anchor="start" x="5" y="-274.46" font-family="Arial" font-weight="bold" font-size="13.00">loading</text>
-<text text-anchor="start" x="5" y="-263.46" font-family="Arial" font-size="8.00" fill="#64748b">initial view state</text>
-<text text-anchor="start" x="6" y="-244.86" font-family="Arial" font-weight="bold" font-size="10.00">text:</text>
-<text text-anchor="start" x="26" y="-244.86" font-family="Arial" font-size="10.00">  text.project.list.loading.message</text>
-<polygon fill="none" stroke="#0891b2" points="0,-234.86 0,-296.86 180,-296.86 180,-234.86 0,-234.86"/>
+<polygon fill="#ffffff" stroke="transparent" points="0,-200.08 0,-262.08 180,-262.08 180,-200.08 0,-200.08"/>
+<polygon fill="#0891b2" stroke="transparent" points="1,-253.08 1,-261.08 179,-261.08 179,-253.08 1,-253.08"/>
+<polygon fill="#ecfeff" stroke="transparent" points="1,-222.08 1,-253.08 179,-253.08 179,-222.08 1,-222.08"/>
+<text text-anchor="start" x="5" y="-239.68" font-family="Arial" font-weight="bold" font-size="13.00">loading</text>
+<text text-anchor="start" x="5" y="-228.68" font-family="Arial" font-size="8.00" fill="#64748b">initial view state</text>
+<text text-anchor="start" x="6" y="-210.08" font-family="Arial" font-weight="bold" font-size="10.00">text:</text>
+<text text-anchor="start" x="26" y="-210.08" font-family="Arial" font-size="10.00">  text.project.list.loading.message</text>
+<polygon fill="none" stroke="#0891b2" points="0,-200.08 0,-262.08 180,-262.08 180,-200.08 0,-200.08"/>
 </g>
 <!-- transition_0_loading_empty_data_refresh_signal_project_collection_empty -->
 <g id="node5" class="node">
 <title>transition_0_loading_empty_data_refresh_signal_project_collection_empty</title>
-<polygon fill="#ffffff" stroke="transparent" points="241,-378.86 241,-494.86 545,-494.86 545,-378.86 241,-378.86"/>
-<polygon fill="#2563eb" stroke="transparent" points="242,-485.86 242,-493.86 544,-493.86 544,-485.86 242,-485.86"/>
-<polygon fill="#eff6ff" stroke="transparent" points="242,-454.86 242,-485.86 544,-485.86 544,-454.86 242,-454.86"/>
-<text text-anchor="start" x="246" y="-472.46" font-family="Arial" font-weight="bold" font-size="13.00">data_refresh_signal.project_collection_empty</text>
-<text text-anchor="start" x="246" y="-461.46" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
-<text text-anchor="start" x="247" y="-442.86" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
-<text text-anchor="start" x="275" y="-442.86" font-family="Arial" font-size="10.00">  list_projects.workspace_id</text>
-<text text-anchor="start" x="397" y="-442.86" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
-<text text-anchor="start" x="247" y="-430.86" font-family="Arial" font-weight="bold" font-size="10.00">data_loaders:</text>
-<text text-anchor="start" x="310" y="-430.86" font-family="Arial" font-size="10.00">  list_projects</text>
-<text text-anchor="start" x="247" y="-418.86" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
-<text text-anchor="start" x="271" y="-418.86" font-family="Arial" font-size="10.00">  application_action.project.list</text>
-<text text-anchor="start" x="404" y="-418.86" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
-<text text-anchor="start" x="246" y="-398.86" font-family="Arial" font-weight="bold" font-size="10.00">authorization_policies:</text>
-<text text-anchor="start" x="353" y="-398.86" font-family="Arial" font-size="10.00">  application_action.project.list:</text>
-<text text-anchor="start" x="246" y="-386.86" font-family="Arial" font-size="10.00">  authorization_policy.project.member</text>
-<polygon fill="none" stroke="#2563eb" points="241,-378.86 241,-494.86 545,-494.86 545,-378.86 241,-378.86"/>
+<polygon fill="#ffffff" stroke="transparent" points="241,-329.08 241,-415.08 545,-415.08 545,-329.08 241,-329.08"/>
+<polygon fill="#2563eb" stroke="transparent" points="242,-406.08 242,-414.08 544,-414.08 544,-406.08 242,-406.08"/>
+<polygon fill="#eff6ff" stroke="transparent" points="242,-375.08 242,-406.08 544,-406.08 544,-375.08 242,-375.08"/>
+<text text-anchor="start" x="246" y="-392.68" font-family="Arial" font-weight="bold" font-size="13.00">data_refresh_signal.project_collection_empty</text>
+<text text-anchor="start" x="246" y="-381.68" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
+<text text-anchor="start" x="247" y="-363.08" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
+<text text-anchor="start" x="275" y="-363.08" font-family="Arial" font-size="10.00">  list_projects.workspace_id</text>
+<text text-anchor="start" x="397" y="-363.08" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
+<text text-anchor="start" x="247" y="-351.08" font-family="Arial" font-weight="bold" font-size="10.00">data_loaders:</text>
+<text text-anchor="start" x="310" y="-351.08" font-family="Arial" font-size="10.00">  list_projects</text>
+<text text-anchor="start" x="247" y="-339.08" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
+<text text-anchor="start" x="271" y="-339.08" font-family="Arial" font-size="10.00">  query.project.list</text>
+<text text-anchor="start" x="349" y="-339.08" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
+<polygon fill="none" stroke="#2563eb" points="241,-329.08 241,-415.08 545,-415.08 545,-329.08 241,-329.08"/>
 </g>
 <!-- view_state_loading&#45;&gt;transition_0_loading_empty_data_refresh_signal_project_collection_empty -->
 <g id="edge1" class="edge">
 <title>view_state_loading&#45;&gt;transition_0_loading_empty_data_refresh_signal_project_collection_empty</title>
-<path fill="none" stroke="#3f3f46" d="M145.86,-297.03C184,-318.7 236.14,-348.32 282.62,-374.72"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="281.39,-377.25 289.73,-378.76 284.16,-372.38 281.39,-377.25"/>
+<path fill="none" stroke="#3f3f46" d="M157.43,-262.2C197.12,-280.79 248.29,-304.76 292.7,-325.57"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="291.62,-328.15 300.06,-329.01 294,-323.08 291.62,-328.15"/>
 </g>
 <!-- transition_1_loading_ready_data_refresh_signal_projects_loaded -->
 <g id="node6" class="node">
 <title>transition_1_loading_ready_data_refresh_signal_projects_loaded</title>
-<polygon fill="#ffffff" stroke="transparent" points="266.5,-207.86 266.5,-323.86 519.5,-323.86 519.5,-207.86 266.5,-207.86"/>
-<polygon fill="#2563eb" stroke="transparent" points="268,-314.86 268,-322.86 519,-322.86 519,-314.86 268,-314.86"/>
-<polygon fill="#eff6ff" stroke="transparent" points="268,-283.86 268,-314.86 519,-314.86 519,-283.86 268,-283.86"/>
-<text text-anchor="start" x="272" y="-301.46" font-family="Arial" font-weight="bold" font-size="13.00">data_refresh_signal.projects_loaded</text>
-<text text-anchor="start" x="272" y="-290.46" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
-<text text-anchor="start" x="273" y="-271.86" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
-<text text-anchor="start" x="301" y="-271.86" font-family="Arial" font-size="10.00">  list_projects.workspace_id</text>
-<text text-anchor="start" x="423" y="-271.86" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
-<text text-anchor="start" x="273" y="-259.86" font-family="Arial" font-weight="bold" font-size="10.00">data_loaders:</text>
-<text text-anchor="start" x="336" y="-259.86" font-family="Arial" font-size="10.00">  list_projects</text>
-<text text-anchor="start" x="273" y="-247.86" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
-<text text-anchor="start" x="297" y="-247.86" font-family="Arial" font-size="10.00">  application_action.project.list</text>
-<text text-anchor="start" x="430" y="-247.86" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
-<text text-anchor="start" x="272" y="-227.86" font-family="Arial" font-weight="bold" font-size="10.00">authorization_policies:</text>
-<text text-anchor="start" x="379" y="-227.86" font-family="Arial" font-size="10.00">  application_action.project.list:</text>
-<text text-anchor="start" x="272" y="-215.86" font-family="Arial" font-size="10.00">  authorization_policy.project.member</text>
-<polygon fill="none" stroke="#2563eb" points="266.5,-207.86 266.5,-323.86 519.5,-323.86 519.5,-207.86 266.5,-207.86"/>
+<polygon fill="#ffffff" stroke="transparent" points="270.5,-188.08 270.5,-274.08 515.5,-274.08 515.5,-188.08 270.5,-188.08"/>
+<polygon fill="#2563eb" stroke="transparent" points="272,-265.08 272,-273.08 515,-273.08 515,-265.08 272,-265.08"/>
+<polygon fill="#eff6ff" stroke="transparent" points="272,-234.08 272,-265.08 515,-265.08 515,-234.08 272,-234.08"/>
+<text text-anchor="start" x="276" y="-251.68" font-family="Arial" font-weight="bold" font-size="13.00">data_refresh_signal.projects_loaded</text>
+<text text-anchor="start" x="276" y="-240.68" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
+<text text-anchor="start" x="277" y="-222.08" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
+<text text-anchor="start" x="305" y="-222.08" font-family="Arial" font-size="10.00">  list_projects.workspace_id</text>
+<text text-anchor="start" x="427" y="-222.08" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
+<text text-anchor="start" x="277" y="-210.08" font-family="Arial" font-weight="bold" font-size="10.00">data_loaders:</text>
+<text text-anchor="start" x="340" y="-210.08" font-family="Arial" font-size="10.00">  list_projects</text>
+<text text-anchor="start" x="277" y="-198.08" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
+<text text-anchor="start" x="301" y="-198.08" font-family="Arial" font-size="10.00">  query.project.list</text>
+<text text-anchor="start" x="379" y="-198.08" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
+<polygon fill="none" stroke="#2563eb" points="270.5,-188.08 270.5,-274.08 515.5,-274.08 515.5,-188.08 270.5,-188.08"/>
 </g>
 <!-- view_state_loading&#45;&gt;transition_1_loading_ready_data_refresh_signal_projects_loaded -->
 <g id="edge3" class="edge">
 <title>view_state_loading&#45;&gt;transition_1_loading_ready_data_refresh_signal_projects_loaded</title>
-<path fill="none" stroke="#3f3f46" d="M180.09,-265.86C204.6,-265.86 231.73,-265.86 258.16,-265.86"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="258.34,-268.66 266.34,-265.86 258.34,-263.06 258.34,-268.66"/>
+<path fill="none" stroke="#3f3f46" d="M180.09,-231.08C205.81,-231.08 234.41,-231.08 262.07,-231.08"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="262.23,-233.88 270.23,-231.08 262.23,-228.28 262.23,-233.88"/>
 </g>
 <!-- transition_2_loading_error_data_refresh_signal_project_list_failed -->
 <g id="node7" class="node">
 <title>transition_2_loading_error_data_refresh_signal_project_list_failed</title>
-<polygon fill="#ffffff" stroke="transparent" points="628,-64.86 628,-180.86 885,-180.86 885,-64.86 628,-64.86"/>
-<polygon fill="#2563eb" stroke="transparent" points="629.5,-171.86 629.5,-179.86 884.5,-179.86 884.5,-171.86 629.5,-171.86"/>
-<polygon fill="#eff6ff" stroke="transparent" points="629.5,-140.86 629.5,-171.86 884.5,-171.86 884.5,-140.86 629.5,-140.86"/>
-<text text-anchor="start" x="633.5" y="-158.46" font-family="Arial" font-weight="bold" font-size="13.00">data_refresh_signal.project_list_failed</text>
-<text text-anchor="start" x="633.5" y="-147.46" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
-<text text-anchor="start" x="634.5" y="-128.86" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
-<text text-anchor="start" x="662.5" y="-128.86" font-family="Arial" font-size="10.00">  list_projects.workspace_id</text>
-<text text-anchor="start" x="784.5" y="-128.86" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
-<text text-anchor="start" x="634.5" y="-116.86" font-family="Arial" font-weight="bold" font-size="10.00">data_loaders:</text>
-<text text-anchor="start" x="697.5" y="-116.86" font-family="Arial" font-size="10.00">  list_projects</text>
-<text text-anchor="start" x="634.5" y="-104.86" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
-<text text-anchor="start" x="658.5" y="-104.86" font-family="Arial" font-size="10.00">  application_action.project.list</text>
-<text text-anchor="start" x="791.5" y="-104.86" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
-<text text-anchor="start" x="633.5" y="-84.86" font-family="Arial" font-weight="bold" font-size="10.00">authorization_policies:</text>
-<text text-anchor="start" x="740.5" y="-84.86" font-family="Arial" font-size="10.00">  application_action.project.list:</text>
-<text text-anchor="start" x="633.5" y="-72.86" font-family="Arial" font-size="10.00">  authorization_policy.project.member</text>
-<polygon fill="none" stroke="#2563eb" points="628,-64.86 628,-180.86 885,-180.86 885,-64.86 628,-64.86"/>
+<polygon fill="#ffffff" stroke="transparent" points="647,-67.08 647,-153.08 904,-153.08 904,-67.08 647,-67.08"/>
+<polygon fill="#2563eb" stroke="transparent" points="648.5,-144.08 648.5,-152.08 903.5,-152.08 903.5,-144.08 648.5,-144.08"/>
+<polygon fill="#eff6ff" stroke="transparent" points="648.5,-113.08 648.5,-144.08 903.5,-144.08 903.5,-113.08 648.5,-113.08"/>
+<text text-anchor="start" x="652.5" y="-130.68" font-family="Arial" font-weight="bold" font-size="13.00">data_refresh_signal.project_list_failed</text>
+<text text-anchor="start" x="652.5" y="-119.68" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
+<text text-anchor="start" x="653.5" y="-101.08" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
+<text text-anchor="start" x="681.5" y="-101.08" font-family="Arial" font-size="10.00">  list_projects.workspace_id</text>
+<text text-anchor="start" x="803.5" y="-101.08" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
+<text text-anchor="start" x="653.5" y="-89.08" font-family="Arial" font-weight="bold" font-size="10.00">data_loaders:</text>
+<text text-anchor="start" x="716.5" y="-89.08" font-family="Arial" font-size="10.00">  list_projects</text>
+<text text-anchor="start" x="653.5" y="-77.08" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
+<text text-anchor="start" x="677.5" y="-77.08" font-family="Arial" font-size="10.00">  query.project.list</text>
+<text text-anchor="start" x="755.5" y="-77.08" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
+<polygon fill="none" stroke="#2563eb" points="647,-67.08 647,-153.08 904,-153.08 904,-67.08 647,-67.08"/>
 </g>
 <!-- view_state_loading&#45;&gt;transition_2_loading_error_data_refresh_signal_project_list_failed -->
 <g id="edge5" class="edge">
 <title>view_state_loading&#45;&gt;transition_2_loading_error_data_refresh_signal_project_list_failed</title>
-<path fill="none" stroke="#3f3f46" d="M145.27,-234.77C173.07,-220.16 207.95,-203.81 241,-193.86 366.18,-156.19 514.58,-138.42 619.75,-130.09"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="620.12,-132.87 627.88,-129.45 619.69,-127.28 620.12,-132.87"/>
+<path fill="none" stroke="#3f3f46" d="M161.97,-200.05C186.58,-190.38 214.62,-180.57 241,-174.08 374,-141.35 529.93,-125.11 638.74,-117.22"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="639.04,-120 646.82,-116.64 638.64,-114.42 639.04,-120"/>
 </g>
 <!-- view_state_ready -->
 <g id="node4" class="node">
 <title>view_state_ready</title>
-<polygon fill="#ffffff" stroke="transparent" points="1316.5,-201.36 1316.5,-430.36 1534.5,-430.36 1534.5,-201.36 1316.5,-201.36"/>
-<polygon fill="#71717a" stroke="transparent" points="1317.5,-420.86 1317.5,-428.86 1533.5,-428.86 1533.5,-420.86 1317.5,-420.86"/>
-<polygon fill="#f8fafc" stroke="transparent" points="1317.5,-389.86 1317.5,-420.86 1533.5,-420.86 1533.5,-389.86 1317.5,-389.86"/>
-<text text-anchor="start" x="1321.5" y="-407.46" font-family="Arial" font-weight="bold" font-size="13.00">ready</text>
-<text text-anchor="start" x="1321.5" y="-396.46" font-family="Arial" font-size="8.00" fill="#64748b">view state</text>
-<text text-anchor="start" x="1322.5" y="-377.86" font-family="Arial" font-weight="bold" font-size="10.00">text:</text>
-<text text-anchor="start" x="1342.5" y="-377.86" font-family="Arial" font-size="10.00">  text.project.list.ready.heading</text>
-<text text-anchor="start" x="1321.5" y="-357.86" font-family="Arial" font-weight="bold" font-size="10.00">application_action.project.list fields</text>
-<text text-anchor="start" x="1321.5" y="-346.86" font-family="Arial" font-size="10.00">title</text>
-<text text-anchor="start" x="1337.5" y="-346.86" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
-<text text-anchor="start" x="1321.5" y="-335.86" font-family="Arial" font-size="10.00">customer</text>
-<text text-anchor="start" x="1362.5" y="-335.86" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
-<text text-anchor="start" x="1321.5" y="-324.86" font-family="Arial" font-size="10.00">priority</text>
-<text text-anchor="start" x="1351.5" y="-324.86" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
-<text text-anchor="start" x="1321.5" y="-313.86" font-family="Arial" font-size="10.00">status</text>
-<text text-anchor="start" x="1349.5" y="-313.86" font-family="Arial" font-size="8.00" fill="#94a3b8">  enum&lt;draft|submitted|approved|archived&gt;</text>
-<text text-anchor="start" x="1321.5" y="-294.86" font-family="Arial" font-weight="bold" font-size="10.00">action_bindings</text>
-<text text-anchor="start" x="1321.5" y="-283.86" font-family="Arial" font-size="10.00">create: application_action.project.create</text>
-<text text-anchor="start" x="1495.5" y="-283.86" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
-<text text-anchor="start" x="1321.5" y="-272.86" font-family="Arial" font-size="10.00">submit: application_action.project.submit</text>
-<text text-anchor="start" x="1499.5" y="-272.86" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
-<text text-anchor="start" x="1321.5" y="-253.86" font-family="Arial" font-weight="bold" font-size="10.00">authorization_policies</text>
-<text text-anchor="start" x="1321.5" y="-241.86" font-family="Arial" font-size="10.00">application_action.project.create:</text>
-<text text-anchor="start" x="1321.5" y="-230.86" font-family="Arial" font-size="10.00">authorization_policy.project.member</text>
-<text text-anchor="start" x="1321.5" y="-219.86" font-family="Arial" font-size="10.00">application_action.project.submit:</text>
-<text text-anchor="start" x="1321.5" y="-208.86" font-family="Arial" font-size="10.00">authorization_policy.project.member</text>
-<polygon fill="none" stroke="#71717a" points="1316.5,-201.36 1316.5,-430.36 1534.5,-430.36 1534.5,-201.36 1316.5,-201.36"/>
+<polygon fill="#ffffff" stroke="transparent" points="1335.5,-169.58 1335.5,-376.58 1591.5,-376.58 1591.5,-169.58 1335.5,-169.58"/>
+<polygon fill="#71717a" stroke="transparent" points="1336.5,-367.08 1336.5,-375.08 1590.5,-375.08 1590.5,-367.08 1336.5,-367.08"/>
+<polygon fill="#f8fafc" stroke="transparent" points="1336.5,-336.08 1336.5,-367.08 1590.5,-367.08 1590.5,-336.08 1336.5,-336.08"/>
+<text text-anchor="start" x="1340.5" y="-353.68" font-family="Arial" font-weight="bold" font-size="13.00">ready</text>
+<text text-anchor="start" x="1340.5" y="-342.68" font-family="Arial" font-size="8.00" fill="#64748b">view state</text>
+<text text-anchor="start" x="1341.5" y="-324.08" font-family="Arial" font-weight="bold" font-size="10.00">text:</text>
+<text text-anchor="start" x="1361.5" y="-324.08" font-family="Arial" font-size="10.00">  text.project.list.ready.heading</text>
+<text text-anchor="start" x="1340.5" y="-304.08" font-family="Arial" font-weight="bold" font-size="10.00">query.project.list fields</text>
+<text text-anchor="start" x="1340.5" y="-293.08" font-family="Arial" font-size="10.00">title</text>
+<text text-anchor="start" x="1356.5" y="-293.08" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
+<text text-anchor="start" x="1340.5" y="-282.08" font-family="Arial" font-size="10.00">customer</text>
+<text text-anchor="start" x="1381.5" y="-282.08" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
+<text text-anchor="start" x="1340.5" y="-271.08" font-family="Arial" font-size="10.00">priority</text>
+<text text-anchor="start" x="1370.5" y="-271.08" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
+<text text-anchor="start" x="1340.5" y="-260.08" font-family="Arial" font-size="10.00">status</text>
+<text text-anchor="start" x="1368.5" y="-260.08" font-family="Arial" font-size="8.00" fill="#94a3b8">  enum&lt;draft|submitted|approved|archived&gt;</text>
+<text text-anchor="start" x="1340.5" y="-241.08" font-family="Arial" font-weight="bold" font-size="10.00">action_bindings</text>
+<text text-anchor="start" x="1340.5" y="-230.08" font-family="Arial" font-size="10.00">create: command.project.create</text>
+<text text-anchor="start" x="1479.5" y="-230.08" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
+<text text-anchor="start" x="1340.5" y="-219.08" font-family="Arial" font-size="10.00">submit: command.project.submit</text>
+<text text-anchor="start" x="1483.5" y="-219.08" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
+<text text-anchor="start" x="1340.5" y="-200.08" font-family="Arial" font-weight="bold" font-size="10.00">access_policies</text>
+<text text-anchor="start" x="1340.5" y="-188.08" font-family="Arial" font-size="10.00">command.project.create: access_policy.project.member</text>
+<text text-anchor="start" x="1340.5" y="-177.08" font-family="Arial" font-size="10.00">command.project.submit: access_policy.project.member</text>
+<polygon fill="none" stroke="#71717a" points="1335.5,-169.58 1335.5,-376.58 1591.5,-376.58 1591.5,-169.58 1335.5,-169.58"/>
 </g>
 <!-- transition_6_ready_ready_local_signal_project_select -->
 <g id="node11" class="node">
 <title>transition_6_ready_ready_local_signal_project_select</title>
-<polygon fill="#ffffff" stroke="transparent" points="1674.5,-415.86 1674.5,-489.86 1856.5,-489.86 1856.5,-415.86 1674.5,-415.86"/>
-<polygon fill="#2563eb" stroke="transparent" points="1675.5,-480.86 1675.5,-488.86 1855.5,-488.86 1855.5,-480.86 1675.5,-480.86"/>
-<polygon fill="#eff6ff" stroke="transparent" points="1675.5,-449.86 1675.5,-480.86 1855.5,-480.86 1855.5,-449.86 1675.5,-449.86"/>
-<text text-anchor="start" x="1679.5" y="-467.46" font-family="Arial" font-weight="bold" font-size="13.00">local_signal.project_select</text>
-<text text-anchor="start" x="1679.5" y="-456.46" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
-<text text-anchor="start" x="1680.5" y="-437.86" font-family="Arial" font-weight="bold" font-size="10.00">emit:</text>
-<text text-anchor="start" x="1704.5" y="-437.86" font-family="Arial" font-size="10.00">  local_signal.project_selected</text>
-<text text-anchor="start" x="1680.5" y="-425.86" font-family="Arial" font-weight="bold" font-size="10.00">payload:</text>
-<text text-anchor="start" x="1720.5" y="-425.86" font-family="Arial" font-size="10.00">  project_id</text>
-<text text-anchor="start" x="1769.5" y="-425.86" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
-<polygon fill="none" stroke="#2563eb" points="1674.5,-415.86 1674.5,-489.86 1856.5,-489.86 1856.5,-415.86 1674.5,-415.86"/>
+<polygon fill="#ffffff" stroke="transparent" points="1712.5,-358.08 1712.5,-432.08 1894.5,-432.08 1894.5,-358.08 1712.5,-358.08"/>
+<polygon fill="#2563eb" stroke="transparent" points="1713.5,-423.08 1713.5,-431.08 1893.5,-431.08 1893.5,-423.08 1713.5,-423.08"/>
+<polygon fill="#eff6ff" stroke="transparent" points="1713.5,-392.08 1713.5,-423.08 1893.5,-423.08 1893.5,-392.08 1713.5,-392.08"/>
+<text text-anchor="start" x="1717.5" y="-409.68" font-family="Arial" font-weight="bold" font-size="13.00">local_signal.project_select</text>
+<text text-anchor="start" x="1717.5" y="-398.68" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
+<text text-anchor="start" x="1718.5" y="-380.08" font-family="Arial" font-weight="bold" font-size="10.00">emit:</text>
+<text text-anchor="start" x="1742.5" y="-380.08" font-family="Arial" font-size="10.00">  local_signal.project_selected</text>
+<text text-anchor="start" x="1718.5" y="-368.08" font-family="Arial" font-weight="bold" font-size="10.00">payload:</text>
+<text text-anchor="start" x="1758.5" y="-368.08" font-family="Arial" font-size="10.00">  project_id</text>
+<text text-anchor="start" x="1807.5" y="-368.08" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
+<polygon fill="none" stroke="#2563eb" points="1712.5,-358.08 1712.5,-432.08 1894.5,-432.08 1894.5,-358.08 1712.5,-358.08"/>
 </g>
 <!-- view_state_ready&#45;&gt;transition_6_ready_ready_local_signal_project_select -->
 <g id="edge13" class="edge">
 <title>view_state_ready&#45;&gt;transition_6_ready_ready_local_signal_project_select</title>
-<path fill="none" stroke="#3f3f46" d="M1534.51,-351.17C1564.04,-363.42 1596.14,-376.94 1626,-388.86 1645.83,-396.78 1667.44,-404.95 1687.55,-412.82"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1686.71,-415.5 1695.18,-415.82 1688.76,-410.28 1686.71,-415.5"/>
+<path fill="none" stroke="#3f3f46" d="M1591.8,-309.55C1632.86,-323.83 1677.42,-340.18 1714.94,-354.81"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1714.36,-357.59 1722.83,-357.9 1716.41,-352.38 1714.36,-357.59"/>
 </g>
 <!-- transition_7_ready_ready_data_refresh_signal_projects_changed -->
 <g id="node12" class="node">
 <title>transition_7_ready_ready_data_refresh_signal_projects_changed</title>
-<polygon fill="#ffffff" stroke="transparent" points="1637,-242.86 1637,-388.86 1894,-388.86 1894,-242.86 1637,-242.86"/>
-<polygon fill="#2563eb" stroke="transparent" points="1638.5,-379.86 1638.5,-387.86 1893.5,-387.86 1893.5,-379.86 1638.5,-379.86"/>
-<polygon fill="#eff6ff" stroke="transparent" points="1638.5,-348.86 1638.5,-379.86 1893.5,-379.86 1893.5,-348.86 1638.5,-348.86"/>
-<text text-anchor="start" x="1642.5" y="-366.46" font-family="Arial" font-weight="bold" font-size="13.00">data_refresh_signal.projects_changed</text>
-<text text-anchor="start" x="1642.5" y="-355.46" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
-<text text-anchor="start" x="1642.5" y="-337.86" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">List mutations mark ready&#45;state collection data</text>
-<text text-anchor="start" x="1642.5" y="-326.86" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">stale and trigger query refresh.</text>
-<text text-anchor="start" x="1643.5" y="-306.86" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
-<text text-anchor="start" x="1671.5" y="-306.86" font-family="Arial" font-size="10.00">  list_projects.workspace_id</text>
-<text text-anchor="start" x="1793.5" y="-306.86" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
-<text text-anchor="start" x="1643.5" y="-294.86" font-family="Arial" font-weight="bold" font-size="10.00">data_loaders:</text>
-<text text-anchor="start" x="1706.5" y="-294.86" font-family="Arial" font-size="10.00">  list_projects</text>
-<text text-anchor="start" x="1643.5" y="-282.86" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
-<text text-anchor="start" x="1667.5" y="-282.86" font-family="Arial" font-size="10.00">  application_action.project.list</text>
-<text text-anchor="start" x="1800.5" y="-282.86" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
-<text text-anchor="start" x="1642.5" y="-262.86" font-family="Arial" font-weight="bold" font-size="10.00">authorization_policies:</text>
-<text text-anchor="start" x="1749.5" y="-262.86" font-family="Arial" font-size="10.00">  application_action.project.list:</text>
-<text text-anchor="start" x="1642.5" y="-250.86" font-family="Arial" font-size="10.00">  authorization_policy.project.member</text>
-<polygon fill="none" stroke="#2563eb" points="1637,-242.86 1637,-388.86 1894,-388.86 1894,-242.86 1637,-242.86"/>
+<polygon fill="#ffffff" stroke="transparent" points="1675,-215.08 1675,-331.08 1932,-331.08 1932,-215.08 1675,-215.08"/>
+<polygon fill="#2563eb" stroke="transparent" points="1676.5,-322.08 1676.5,-330.08 1931.5,-330.08 1931.5,-322.08 1676.5,-322.08"/>
+<polygon fill="#eff6ff" stroke="transparent" points="1676.5,-291.08 1676.5,-322.08 1931.5,-322.08 1931.5,-291.08 1676.5,-291.08"/>
+<text text-anchor="start" x="1680.5" y="-308.68" font-family="Arial" font-weight="bold" font-size="13.00">data_refresh_signal.projects_changed</text>
+<text text-anchor="start" x="1680.5" y="-297.68" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
+<text text-anchor="start" x="1680.5" y="-280.08" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">List mutations mark ready&#45;state collection data</text>
+<text text-anchor="start" x="1680.5" y="-269.08" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">stale and trigger query refresh.</text>
+<text text-anchor="start" x="1681.5" y="-249.08" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
+<text text-anchor="start" x="1709.5" y="-249.08" font-family="Arial" font-size="10.00">  list_projects.workspace_id</text>
+<text text-anchor="start" x="1831.5" y="-249.08" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
+<text text-anchor="start" x="1681.5" y="-237.08" font-family="Arial" font-weight="bold" font-size="10.00">data_loaders:</text>
+<text text-anchor="start" x="1744.5" y="-237.08" font-family="Arial" font-size="10.00">  list_projects</text>
+<text text-anchor="start" x="1681.5" y="-225.08" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
+<text text-anchor="start" x="1705.5" y="-225.08" font-family="Arial" font-size="10.00">  query.project.list</text>
+<text text-anchor="start" x="1783.5" y="-225.08" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
+<polygon fill="none" stroke="#2563eb" points="1675,-215.08 1675,-331.08 1932,-331.08 1932,-215.08 1675,-215.08"/>
 </g>
 <!-- view_state_ready&#45;&gt;transition_7_ready_ready_data_refresh_signal_projects_changed -->
 <g id="edge15" class="edge">
 <title>view_state_ready&#45;&gt;transition_7_ready_ready_data_refresh_signal_projects_changed</title>
-<path fill="none" stroke="#3f3f46" d="M1534.84,-306.69C1564.62,-306.1 1597.29,-305.96 1628.42,-306.28"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1628.69,-309.08 1636.72,-306.38 1628.76,-303.48 1628.69,-309.08"/>
+<path fill="none" stroke="#3f3f46" d="M1591.8,-263.6C1616.18,-263.28 1641.79,-263.24 1666.44,-263.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1666.72,-266.3 1674.75,-263.59 1666.78,-260.7 1666.72,-266.3"/>
 </g>
 <!-- transition_8_ready_ready_data_refresh_signal_projects_loaded -->
 <g id="node13" class="node">
 <title>transition_8_ready_ready_data_refresh_signal_projects_loaded</title>
-<polygon fill="#ffffff" stroke="transparent" points="1639,-69.86 1639,-215.86 1892,-215.86 1892,-69.86 1639,-69.86"/>
-<polygon fill="#2563eb" stroke="transparent" points="1640.5,-206.86 1640.5,-214.86 1891.5,-214.86 1891.5,-206.86 1640.5,-206.86"/>
-<polygon fill="#eff6ff" stroke="transparent" points="1640.5,-175.86 1640.5,-206.86 1891.5,-206.86 1891.5,-175.86 1640.5,-175.86"/>
-<text text-anchor="start" x="1644.5" y="-193.46" font-family="Arial" font-weight="bold" font-size="13.00">data_refresh_signal.projects_loaded</text>
-<text text-anchor="start" x="1644.5" y="-182.46" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
-<text text-anchor="start" x="1644.5" y="-164.86" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Successful list queries refresh ready&#45;state</text>
-<text text-anchor="start" x="1644.5" y="-153.86" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">collection data.</text>
-<text text-anchor="start" x="1645.5" y="-133.86" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
-<text text-anchor="start" x="1673.5" y="-133.86" font-family="Arial" font-size="10.00">  list_projects.workspace_id</text>
-<text text-anchor="start" x="1795.5" y="-133.86" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
-<text text-anchor="start" x="1645.5" y="-121.86" font-family="Arial" font-weight="bold" font-size="10.00">data_loaders:</text>
-<text text-anchor="start" x="1708.5" y="-121.86" font-family="Arial" font-size="10.00">  list_projects</text>
-<text text-anchor="start" x="1645.5" y="-109.86" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
-<text text-anchor="start" x="1669.5" y="-109.86" font-family="Arial" font-size="10.00">  application_action.project.list</text>
-<text text-anchor="start" x="1802.5" y="-109.86" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
-<text text-anchor="start" x="1644.5" y="-89.86" font-family="Arial" font-weight="bold" font-size="10.00">authorization_policies:</text>
-<text text-anchor="start" x="1751.5" y="-89.86" font-family="Arial" font-size="10.00">  application_action.project.list:</text>
-<text text-anchor="start" x="1644.5" y="-77.86" font-family="Arial" font-size="10.00">  authorization_policy.project.member</text>
-<polygon fill="none" stroke="#2563eb" points="1639,-69.86 1639,-215.86 1892,-215.86 1892,-69.86 1639,-69.86"/>
+<polygon fill="#ffffff" stroke="transparent" points="1681,-72.08 1681,-188.08 1926,-188.08 1926,-72.08 1681,-72.08"/>
+<polygon fill="#2563eb" stroke="transparent" points="1682.5,-179.08 1682.5,-187.08 1925.5,-187.08 1925.5,-179.08 1682.5,-179.08"/>
+<polygon fill="#eff6ff" stroke="transparent" points="1682.5,-148.08 1682.5,-179.08 1925.5,-179.08 1925.5,-148.08 1682.5,-148.08"/>
+<text text-anchor="start" x="1686.5" y="-165.68" font-family="Arial" font-weight="bold" font-size="13.00">data_refresh_signal.projects_loaded</text>
+<text text-anchor="start" x="1686.5" y="-154.68" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
+<text text-anchor="start" x="1686.5" y="-137.08" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Successful list queries refresh ready&#45;state</text>
+<text text-anchor="start" x="1686.5" y="-126.08" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">collection data.</text>
+<text text-anchor="start" x="1687.5" y="-106.08" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
+<text text-anchor="start" x="1715.5" y="-106.08" font-family="Arial" font-size="10.00">  list_projects.workspace_id</text>
+<text text-anchor="start" x="1837.5" y="-106.08" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
+<text text-anchor="start" x="1687.5" y="-94.08" font-family="Arial" font-weight="bold" font-size="10.00">data_loaders:</text>
+<text text-anchor="start" x="1750.5" y="-94.08" font-family="Arial" font-size="10.00">  list_projects</text>
+<text text-anchor="start" x="1687.5" y="-82.08" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
+<text text-anchor="start" x="1711.5" y="-82.08" font-family="Arial" font-size="10.00">  query.project.list</text>
+<text text-anchor="start" x="1789.5" y="-82.08" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
+<polygon fill="none" stroke="#2563eb" points="1681,-72.08 1681,-188.08 1926,-188.08 1926,-72.08 1681,-72.08"/>
 </g>
 <!-- view_state_ready&#45;&gt;transition_8_ready_ready_data_refresh_signal_projects_loaded -->
 <g id="edge17" class="edge">
 <title>view_state_ready&#45;&gt;transition_8_ready_ready_data_refresh_signal_projects_loaded</title>
-<path fill="none" stroke="#3f3f46" d="M1534.84,-251.24C1565.63,-234.87 1599.51,-217.4 1631.58,-201.35"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1632.91,-203.81 1638.82,-197.73 1630.41,-198.8 1632.91,-203.81"/>
+<path fill="none" stroke="#3f3f46" d="M1591.8,-209.74C1618.49,-198.1 1646.65,-186.18 1673.4,-175.2"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1674.56,-177.75 1680.9,-172.12 1672.44,-172.56 1674.56,-177.75"/>
 </g>
 <!-- transition_9_ready_error_local_signal_show_transition_not_allowed -->
 <g id="node14" class="node">
 <title>transition_9_ready_error_local_signal_show_transition_not_allowed</title>
-<polygon fill="#ffffff" stroke="transparent" points="1626,-517.36 1626,-588.36 1905,-588.36 1905,-517.36 1626,-517.36"/>
-<polygon fill="#2563eb" stroke="transparent" points="1627.5,-578.86 1627.5,-586.86 1904.5,-586.86 1904.5,-578.86 1627.5,-578.86"/>
-<polygon fill="#eff6ff" stroke="transparent" points="1627.5,-547.86 1627.5,-578.86 1904.5,-578.86 1904.5,-547.86 1627.5,-547.86"/>
-<text text-anchor="start" x="1631.5" y="-565.46" font-family="Arial" font-weight="bold" font-size="13.00">local_signal.show_transition_not_allowed</text>
-<text text-anchor="start" x="1631.5" y="-554.46" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
-<text text-anchor="start" x="1631.5" y="-536.86" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Invalid list application_actions move the list</text>
-<text text-anchor="start" x="1631.5" y="-525.86" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">into its displayable error state.</text>
-<polygon fill="none" stroke="#2563eb" points="1626,-517.36 1626,-588.36 1905,-588.36 1905,-517.36 1626,-517.36"/>
+<polygon fill="#ffffff" stroke="transparent" points="1664,-459.58 1664,-530.58 1943,-530.58 1943,-459.58 1664,-459.58"/>
+<polygon fill="#2563eb" stroke="transparent" points="1665.5,-521.08 1665.5,-529.08 1942.5,-529.08 1942.5,-521.08 1665.5,-521.08"/>
+<polygon fill="#eff6ff" stroke="transparent" points="1665.5,-490.08 1665.5,-521.08 1942.5,-521.08 1942.5,-490.08 1665.5,-490.08"/>
+<text text-anchor="start" x="1669.5" y="-507.68" font-family="Arial" font-weight="bold" font-size="13.00">local_signal.show_transition_not_allowed</text>
+<text text-anchor="start" x="1669.5" y="-496.68" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
+<text text-anchor="start" x="1669.5" y="-479.08" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Invalid list queries move the list into its</text>
+<text text-anchor="start" x="1669.5" y="-468.08" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">displayable error state.</text>
+<polygon fill="none" stroke="#2563eb" points="1664,-459.58 1664,-530.58 1943,-530.58 1943,-459.58 1664,-459.58"/>
 </g>
 <!-- view_state_ready&#45;&gt;transition_9_ready_error_local_signal_show_transition_not_allowed -->
 <g id="edge19" class="edge">
 <title>view_state_ready&#45;&gt;transition_9_ready_error_local_signal_show_transition_not_allowed</title>
-<path fill="none" stroke="#3f3f46" d="M1532.76,-430.38C1561.2,-456.67 1593.21,-482.77 1626,-502.86 1632.24,-506.69 1638.82,-510.28 1645.59,-513.65"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1644.57,-516.27 1652.99,-517.22 1647,-511.23 1644.57,-516.27"/>
+<path fill="none" stroke="#3f3f46" d="M1570.31,-376.77C1599.13,-401.41 1631.43,-426.04 1664,-445.08 1670.7,-449 1677.77,-452.69 1685.01,-456.16"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1683.87,-458.71 1692.3,-459.55 1686.23,-453.64 1683.87,-458.71"/>
 </g>
 <!-- transition_0_loading_empty_data_refresh_signal_project_collection_empty&#45;&gt;view_state_empty -->
 <g id="edge2" class="edge">
 <title>transition_0_loading_empty_data_refresh_signal_project_collection_empty&#45;&gt;view_state_empty</title>
-<path fill="none" stroke="#3f3f46" d="M545.21,-448.16C562.58,-449.45 580.32,-450.78 597.77,-452.08"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="597.57,-454.88 605.76,-452.68 597.99,-449.29 597.57,-454.88"/>
+<path fill="none" stroke="#3f3f46" d="M545.2,-382.81C562.47,-384.03 580.18,-385.29 597.74,-386.54"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="597.61,-389.34 605.79,-387.11 598.01,-383.75 597.61,-389.34"/>
 </g>
 <!-- transition_1_loading_ready_data_refresh_signal_projects_loaded&#45;&gt;view_state_ready -->
 <g id="edge4" class="edge">
 <title>transition_1_loading_ready_data_refresh_signal_projects_loaded&#45;&gt;view_state_ready</title>
-<path fill="none" stroke="#3f3f46" d="M519.82,-266.73C682.74,-268.6 975.42,-274.45 1225,-292.86 1252.06,-294.86 1281.1,-297.77 1308.42,-300.85"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1308.19,-303.64 1316.46,-301.76 1308.83,-298.08 1308.19,-303.64"/>
+<path fill="none" stroke="#3f3f46" d="M515.68,-233.17C683.81,-236.45 996.59,-243.93 1263,-258.08 1283.76,-259.18 1305.72,-260.59 1327.18,-262.1"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1327.2,-264.91 1335.38,-262.68 1327.59,-259.32 1327.2,-264.91"/>
 </g>
 <!-- transition_2_loading_error_data_refresh_signal_project_list_failed&#45;&gt;view_state_error -->
 <g id="edge6" class="edge">
 <title>transition_2_loading_error_data_refresh_signal_project_list_failed&#45;&gt;view_state_error</title>
-<path fill="none" stroke="#3f3f46" d="M885.24,-95.08C1150.51,-40.57 1749.31,65.05 1905,-55.86 1976.11,-111.09 2014.11,-389.1 2026.95,-503.54"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="2024.2,-504.17 2027.87,-511.82 2029.77,-503.56 2024.2,-504.17"/>
+<path fill="none" stroke="#3f3f46" d="M904.03,-84.77C1172.08,-34.65 1782.45,62.45 1943,-58.08 2005.67,-105.13 2047.47,-341.68 2063.12,-445.78"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="2060.39,-446.44 2064.33,-453.94 2065.93,-445.61 2060.39,-446.44"/>
 </g>
 <!-- transition_3_empty_ready_data_refresh_signal_projects_loaded&#45;&gt;view_state_ready -->
 <g id="edge8" class="edge">
 <title>transition_3_empty_ready_data_refresh_signal_projects_loaded&#45;&gt;view_state_ready</title>
-<path fill="none" stroke="#3f3f46" d="M1223.46,-345.99C1251.38,-341.81 1280.84,-337.39 1308.35,-333.27"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1308.94,-336.01 1316.43,-332.06 1308.11,-330.47 1308.94,-336.01"/>
+<path fill="none" stroke="#3f3f46" d="M1257.26,-299.44C1280.08,-296.51 1304.07,-293.43 1327.27,-290.45"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1327.86,-293.2 1335.44,-289.4 1327.15,-287.64 1327.86,-293.2"/>
 </g>
 <!-- transition_4_empty_empty_data_refresh_signal_projects_changed&#45;&gt;view_state_empty -->
 <g id="edge10" class="edge">
 <title>transition_4_empty_empty_data_refresh_signal_projects_changed&#45;&gt;view_state_empty</title>
-<path fill="none" stroke="#3f3f46" d="M967.82,-545.02C950.51,-539.42 932.58,-533.46 914.82,-527.4"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="915.7,-524.75 907.23,-524.8 913.89,-530.04 915.7,-524.75"/>
+<path fill="none" stroke="#3f3f46" d="M1005.98,-472.83C988.85,-468.35 971.03,-463.54 953.24,-458.59"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="953.53,-455.76 945.07,-456.31 952.02,-461.16 953.53,-455.76"/>
 </g>
 <!-- transition_5_empty_error_local_signal_show_transition_not_allowed&#45;&gt;view_state_error -->
 <g id="edge12" class="edge">
 <title>transition_5_empty_error_local_signal_show_transition_not_allowed&#45;&gt;view_state_error</title>
-<path fill="none" stroke="#3f3f46" d="M1565.2,-593.12C1585.49,-596.74 1606.21,-599.85 1626,-601.86 1749.36,-614.41 1783.1,-624.57 1905,-601.86 1922.63,-598.58 1940.97,-592.94 1958.04,-586.63"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1959.3,-589.14 1965.79,-583.68 1957.32,-583.91 1959.3,-589.14"/>
+<path fill="none" stroke="#3f3f46" d="M1603.17,-535.63C1699.24,-552.11 1829.72,-565.18 1943,-544.08 1960.63,-540.8 1978.97,-535.16 1996.04,-528.84"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1997.3,-531.36 2003.79,-525.9 1995.32,-526.12 1997.3,-531.36"/>
 </g>
 <!-- transition_6_ready_ready_local_signal_project_select&#45;&gt;view_state_ready -->
 <g id="edge14" class="edge">
 <title>transition_6_ready_ready_local_signal_project_select&#45;&gt;view_state_ready</title>
-<path fill="none" stroke="#3f3f46" d="M1674.45,-434.28C1658.26,-428.47 1641.59,-422.09 1626,-415.86 1598.59,-404.92 1569.29,-392.63 1541.83,-380.44"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1542.96,-377.88 1534.51,-377.17 1540.68,-382.99 1542.96,-377.88"/>
+<path fill="none" stroke="#3f3f46" d="M1712.42,-371.97C1677.74,-360.49 1637.35,-346.21 1599.36,-332.07"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1600.28,-329.42 1591.8,-329.24 1598.32,-334.66 1600.28,-329.42"/>
 </g>
 <!-- transition_7_ready_ready_data_refresh_signal_projects_changed&#45;&gt;view_state_ready -->
 <g id="edge16" class="edge">
 <title>transition_7_ready_ready_data_refresh_signal_projects_changed&#45;&gt;view_state_ready</title>
-<path fill="none" stroke="#3f3f46" d="M1636.72,-326.08C1605.91,-326.51 1573.15,-326.45 1542.89,-325.9"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1542.89,-323.1 1534.84,-325.74 1542.78,-328.7 1542.89,-323.1"/>
+<path fill="none" stroke="#3f3f46" d="M1674.75,-283.3C1650.36,-283.64 1624.74,-283.67 1600.11,-283.4"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1599.84,-280.59 1591.8,-283.29 1599.77,-286.19 1599.84,-280.59"/>
 </g>
 <!-- transition_8_ready_ready_data_refresh_signal_projects_loaded&#45;&gt;view_state_ready -->
 <g id="edge18" class="edge">
 <title>transition_8_ready_ready_data_refresh_signal_projects_loaded&#45;&gt;view_state_ready</title>
-<path fill="none" stroke="#3f3f46" d="M1641.5,-215.96C1609.04,-233.09 1574.12,-250.92 1542.06,-266.73"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1540.78,-264.24 1534.84,-270.29 1543.25,-269.27 1540.78,-264.24"/>
+<path fill="none" stroke="#3f3f46" d="M1688.92,-188.11C1660.17,-200.84 1629.01,-214.13 1599.32,-226.35"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1598.14,-223.81 1591.8,-229.43 1600.27,-228.99 1598.14,-223.81"/>
 </g>
 <!-- transition_9_ready_error_local_signal_show_transition_not_allowed&#45;&gt;view_state_error -->
 <g id="edge20" class="edge">
 <title>transition_9_ready_error_local_signal_show_transition_not_allowed&#45;&gt;view_state_error</title>
-<path fill="none" stroke="#3f3f46" d="M1905.08,-552.86C1923.07,-552.86 1940.91,-552.86 1957.29,-552.86"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1957.71,-555.66 1965.71,-552.86 1957.71,-550.06 1957.71,-555.66"/>
+<path fill="none" stroke="#3f3f46" d="M1943.08,-495.08C1961.07,-495.08 1978.91,-495.08 1995.29,-495.08"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1995.71,-497.88 2003.71,-495.08 1995.71,-492.28 1995.71,-497.88"/>
 </g>
 </g>
 </svg>

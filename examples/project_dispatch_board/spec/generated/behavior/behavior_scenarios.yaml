@@ -14,7 +14,7 @@ behavior_scenarios:
         emitted:
         - domain_event.project.approved
       invoked:
-      - application_action.project.send_approval_notice
+      - command.project.send_approval_notice
       workflow:
         executed: true
         outcome: completed
@@ -60,25 +60,25 @@ behavior_scenarios:
       - fixture.workspace.member
     rationale: A workspace member who is not a reviewer receives the mapped access_denied outcome before approval executes.
     system_under_test_ref:
-      application_action: application_action.project.approve
+      command: command.project.approve
     then:
       authorization:
         denied:
-        - application_action: application_action.project.approve
-          authorization_policy: authorization_policy.project.reviewer
+        - access_policy: access_policy.project.reviewer
+          command: command.project.approve
       domain_events:
         not_emitted:
         - domain_event.project.approved
       outcome: access_denied
     title: Approval authorization maps access_denied outcome
     when:
-      invoke_application_action:
+      invoke_command:
         input:
           approved_by:
             from: $fixture.actor.id
           project_id:
             value: project_submitted_1
-        ref: application_action.project.approve
+        ref: command.project.approve
   behavior_scenario.project.approve.success:
     archetype: action_outcome
     feature_tag: project.approve
@@ -111,12 +111,12 @@ behavior_scenarios:
       - fixture.workspace.reviewer
     rationale: Approval transitions a submitted project to approved and emits the domain event.
     system_under_test_ref:
-      application_action: application_action.project.approve
+      command: command.project.approve
     then:
       authorization:
         allowed:
-        - application_action: application_action.project.approve
-          authorization_policy: authorization_policy.project.reviewer
+        - access_policy: access_policy.project.reviewer
+          command: command.project.approve
       domain_events:
         emitted:
         - domain_event.project.approved
@@ -129,17 +129,17 @@ behavior_scenarios:
             status:
               value: approved
       invoked:
-      - application_action.project.approve
+      - command.project.approve
       outcome: approved
     title: Approve submitted dispatch project
     when:
-      invoke_application_action:
+      invoke_command:
         input:
           approved_by:
             from: $fixture.actor.id
           project_id:
             value: project_submitted_1
-        ref: application_action.project.approve
+        ref: command.project.approve
   behavior_scenario.project.board.empty:
     archetype: state_machine_composition
     feature_tag: project.board
@@ -158,10 +158,10 @@ behavior_scenarios:
     then:
       authorization:
         denied:
-        - application_action: application_action.project.approve
-          authorization_policy: authorization_policy.project.reviewer
+        - access_policy: access_policy.project.reviewer
+          command: command.project.approve
       enables:
-      - application_action.project.create
+      - command.project.create
       requires:
         action_bindings:
         - create
@@ -341,11 +341,11 @@ behavior_scenarios:
         view_state: ready
     title: Empty dispatch board
     when:
-      open_entry_point:
+      open_external_interface:
         input:
           workspace_id:
             from: $fixture.workspace.id
-        ref: entry_point.html.project.board
+        ref: external_interface.html.project.board
   behavior_scenario.project.board.ready:
     archetype: state_machine_composition
     feature_tag: project.board
@@ -381,8 +381,8 @@ behavior_scenarios:
       state_machine: state_machine.project.board
     then:
       enables:
-      - application_action.project.create
-      - application_action.project.submit
+      - command.project.create
+      - command.project.submit
       requires:
         action_bindings:
         - create
@@ -561,13 +561,13 @@ behavior_scenarios:
         view_state: ready
     title: Ready dispatch board
     when:
-      open_entry_point:
+      open_external_interface:
         input:
           workspace_id:
             from: $fixture.workspace.id
-        ref: entry_point.html.project.board
+        ref: external_interface.html.project.board
   behavior_scenario.project.create.api.success:
-    archetype: entry_point_response
+    archetype: external_interface_response
     feature_tag: project.create
     given:
       preconditions:
@@ -578,14 +578,14 @@ behavior_scenarios:
               from: $fixture.workspace.id
       seed_fixtures:
       - fixture.workspace.member
-    rationale: The API create endpoint delegates to the create application action and emits project.created.
+    rationale: The API create endpoint delegates to the create command and emits project.created.
     system_under_test_ref:
-      entry_point: entry_point.api.project.create
+      external_interface: external_interface.api.project.create
     then:
       authorization:
         allowed:
-        - application_action: application_action.project.create
-          authorization_policy: authorization_policy.project.member
+        - access_policy: access_policy.project.member
+          command: command.project.create
       domain_events:
         emitted:
         - domain_event.project.created
@@ -598,13 +598,13 @@ behavior_scenarios:
             workspace_id:
               from: $fixture.workspace.id
       invoked:
-      - application_action.project.create
+      - command.project.create
       outcome: created
       response:
         status: 201
     title: Create dispatch project through API
     when:
-      call_entry_point:
+      call_external_interface:
         input:
           customer:
             value: Atlas Foods
@@ -614,5 +614,5 @@ behavior_scenarios:
             value: Replace rooftop condenser fan
           workspace_id:
             from: $fixture.workspace.id
-        ref: entry_point.api.project.create
+        ref: external_interface.api.project.create
 project: project_dispatch_board

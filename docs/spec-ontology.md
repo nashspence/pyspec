@@ -13,26 +13,25 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 
 ## Top-Level Resource Kinds
 
-- <!-- top-level:assets --> `assets`: content assets with media kind, asset role, placeholders, and source-backed resolution when present.
-- <!-- top-level:content_examples --> `content_examples`: named content-source examples for dynamic text and asset content.
-- <!-- top-level:schemas --> `schemas`: first-class reusable JSON Schema payload or object schemas referenced with `schema.*` ids.
-- <!-- top-level:entry_points --> `entry_points`: external invocation declarations split into explicit adapter and target objects. An entry point is an externally invokable adapter plus a target.
-- <!-- top-level:domain_events --> `domain_events`: durable domain/application occurrences with payload_schema contracts and compiled emitters.
-- <!-- top-level:preconditions --> `preconditions`: reusable entity_type presence/absence setup predicates; preconditions are not assertions, invariants, or broad domain rules.
-- <!-- top-level:assertions --> `assertions`: reusable entity_type presence/absence expected predicates referenced by behavior-scenario `then.postconditions`; assertions are not setup predicates or invariants.
-- <!-- top-level:fixtures --> `fixtures`: named concrete seed data namespaces used by behavior scenarios, preconditions, assertions, content examples, and render examples.
 - <!-- top-level:entity_types --> `entity_types`: collection-prefixed stable product/domain entity type ids such as `entity_type.project`, each with a PascalCase display/type `name` such as `Project`, fields, and optional `entity_lifecycle` declarations. Entity types are not ORM types, API contracts, generated implementation classes, or storage schemas.
+- <!-- top-level:schemas --> `schemas`: first-class reusable JSON Schema payload or object schemas referenced with `schema.*` ids.
 - <!-- top-level:commands --> `commands`: effectful product operations with `input_schema`, optional authorization, explicit effects, outcomes, and `emits_domain_events`.
 - <!-- top-level:queries --> `queries`: read-only product operations with `input_schema`, `result_schema`, and outcomes.
-- <!-- top-level:application_actions --> `application_actions`: compatibility executable operation catalog used by existing target/projection slots while commands and queries are split out.
-- <!-- top-level:authorization_policies --> `authorization_policies`: authorization policies with subjects, authorization resources, conditions, and effect.
-- <!-- top-level:project --> `project`: the project slug for the specification workspace.
-- <!-- top-level:refs --> `refs`: compiled-only index of generated references used by projections and tests.
-- <!-- top-level:render_profiles --> `render_profiles`: global HTML and Textual viewport profiles for audit/golden-image rendering; state-machine render examples do not reference profiles directly.
-- <!-- top-level:state_machines --> `state_machines`: UI/component state-machine contracts with context, data loaders, view states, action bindings, transitions, signals, child state machines, and sync rules.
-- <!-- top-level:behavior_scenarios --> `behavior_scenarios`: formal BDD behavior scenarios with system_under_test_ref, given, when, and then contracts.
-- <!-- top-level:text_resources --> `text_resources`: text resources used by state-machine slots and content-source projections.
+- <!-- top-level:domain_events --> `domain_events`: durable domain/application occurrences with payload_schema contracts and compiled emitters.
 - <!-- top-level:workflows --> `workflows`: asynchronous or long-running flows with workflow triggers, steps, input bindings, exclusive outcome transitions, and outcomes.
+- <!-- top-level:state_machines --> `state_machines`: UI/component state-machine contracts with context, data loaders, view states, action bindings, transitions, signals, child state machines, and sync rules.
+- <!-- top-level:external_interfaces --> `external_interfaces`: canonical external invocation declarations split into explicit adapter and target objects.
+- <!-- top-level:access_policies --> `access_policies`: canonical access-control policies with subjects/principals, resources, actions, conditions, and effects.
+- <!-- top-level:fixtures --> `fixtures`: named concrete seed data namespaces used by behavior scenarios, preconditions, assertions, content examples, and render examples.
+- <!-- top-level:behavior_scenarios --> `behavior_scenarios`: formal BDD behavior scenarios with system_under_test_ref, given, when, and then contracts.
+- <!-- top-level:media_assets --> `media_assets`: canonical content assets with media kind, asset role, placeholders, and source-backed resolution when present.
+- <!-- top-level:text_resources --> `text_resources`: text resources used by state-machine slots and content-source projections.
+- <!-- top-level:content_examples --> `content_examples`: named content-source examples for dynamic text and asset content.
+- <!-- top-level:viewport_profiles --> `viewport_profiles`: canonical global HTML and Textual viewport profiles for audit/golden-image rendering.
+- <!-- top-level:reference_index --> `reference_index`: canonical compiled-only index of generated references used by projections and tests.
+- <!-- top-level:project --> `project`: the project slug for the specification workspace.
+- <!-- top-level:preconditions --> `preconditions`: reusable entity_type presence/absence setup predicates; preconditions are not assertions, invariants, or broad domain rules.
+- <!-- top-level:assertions --> `assertions`: reusable entity_type presence/absence expected predicates referenced by behavior-scenario `then.postconditions`; assertions are not setup predicates or invariants.
 
 ## ID Namespaces
 
@@ -40,8 +39,8 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `content_example_ref`: `content_example.<domain>...`; content source examples.
 - `schema_ref`: `schema.<domain>...`; reusable typed payload schemas referenced through JSON Schema `$ref`.
 - `data_refresh_signal_name`: local state-machine data-refresh signal name; authored sources do not use global-looking `data_refresh_signal.*` references for local refresh signals.
-- `entry_point_ref`: `entry_point.<adapter-or-target>.<domain>...`; entry-point declarations, entry-point delegation targets, and behavior-scenario `open_entry_point` or `call_entry_point` actions.
-- `domain_event_ref`: `domain_event.<domain>...`; durable domain-event declarations, application-action emissions, workflow triggers, and behavior-scenario domain-event assertions.
+- `external_interface_ref`: `external_interface.<adapter-or-target>.<domain>...`; external-interface declarations, external-interface delegation targets, and behavior-scenario `open_external_interface` or `call_external_interface` actions.
+- `domain_event_ref`: `domain_event.<domain>...`; durable domain-event declarations, command emissions, workflow triggers, and behavior-scenario domain-event assertions.
 - `precondition_ref`: `precondition.<domain>...`; named setup predicates referenced through `precondition_use.ref`.
 - `assertion_ref`: `assertion.<domain>...`; named expected predicates referenced through `assertion_use.ref`.
 - `fixture_ref`: `fixture.<domain>...`; seed data fixtures used by behavior scenarios, content examples, preconditions, assertions, and render examples.
@@ -49,86 +48,87 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `instance_id`: local child state-machine instance id within a composed view state.
 - `local_signal_name`: local state-machine signal name; authored sources do not use global-looking `local_signal.*` references for local signals.
 - `entity_type_ref`: `entity_type.<domain>...`; stable product/domain entity type id. The entity type object carries a separate PascalCase `name` for display/type naming.
-- `application_action_ref`: `application_action.<domain>...`; application-action declarations, state-machine action bindings/data loaders, workflow steps, entry-point application-action targets, and behavior-scenario assertions.
+- `command_ref`: `command.<domain>...`; effectful command declarations, state-machine action bindings, workflow steps, external-interface command targets, and behavior-scenario command assertions.
+- `query_ref`: `query.<domain>...`; read-only query declarations, state-machine data loaders, external-interface query targets, and behavior-scenario query assertions.
 - `action_binding_id`: local view-state action binding name; authored sources do not use global-looking `action_binding.*` references for local invocation keys.
 - `data_loader_id`: local state-machine or view-state data loader name; authored sources do not use global-looking `data_loader.*` references for local invocation keys.
 - `region_id`: local HTML layout region id within one view state.
-- `authorization_policy_ref`: `authorization_policy.<domain>...`; authorization-policy declarations, `application_action.authorization.policy`, entry-point `authorization_policy` fields, generated authorization projections, and authorization test assertions.
-- `render_profile_ref`: `render_profile.<domain>...`; named HTML/Textual viewport profiles.
+- `access_policy_ref`: `access_policy.<domain>...`; access-control policy declarations, `command.authorization.policy`, external-interface `access_policy` fields, generated access-policy projections, and authorization test assertions.
+- `viewport_profile_ref`: `viewport_profile.<domain>...`; named HTML/Textual viewport profiles.
 - `rule_id`: local state-machine signal-sync rule id within one composed view state.
-- `state_machine_ref`: `state_machine.<domain>...`; state-machine declarations, `child_state_machines`, state-machine entry-point targets, and behavior-scenario state-machine assertions.
+- `state_machine_ref`: `state_machine.<domain>...`; state-machine declarations, `child_state_machines`, state-machine external-interface targets, and behavior-scenario state-machine assertions.
 - `behavior_scenario_ref`: `behavior_scenario.<domain>...`; formal behavior-scenario declarations and generated feature tags.
 - `text_ref`: `text.<domain>...`; text resource declarations, generated text slots, content examples, and content source signatures.
 - `container_id`: local Textual layout container id within one view state.
-- `viewport_id`: local render-profile viewport id within `html_viewports` or `textual_viewports`.
-- `workflow_ref`: `workflow.<domain>...`; workflow declarations, workflow entry-point targets, and generated workflow references.
-- Generated refs use `asset`, `authorization_policy`, `cli_command`, `cli_response_handler`, `endpoint`, `entry_point_delegate`, `entry_point_target`, `local_signal_raise`, `action_binding`, `action_outcome_effect`, `data_loader`, `data_loader_outcome_effect`, `route`, `adapter_response_binding`, `screen`, `state_machine`, `surface`, `text`, and `workflow` buckets in compiled `refs`.
+- `viewport_id`: local viewport id within `html_viewports` or `textual_viewports`.
+- `workflow_ref`: `workflow.<domain>...`; workflow declarations, workflow external-interface targets, and generated workflow references.
+- Generated references use `asset`, `access_policy`, `cli_command`, `cli_response_handler`, `endpoint`, `external_interface_delegate`, `external_interface_target`, `local_signal_raise`, `action_binding`, `action_outcome_effect`, `data_loader`, `data_loader_outcome_effect`, `route`, `adapter_response_binding`, `screen`, `state_machine`, `surface`, `text`, and `workflow` buckets in compiled `reference_index`.
 
 ## Reference Types
 
-- `system_under_test_ref`: exactly one typed reference to the resource under test: `entry_point`, `domain_event`, `application_action`, `state_machine`, or `workflow`.
+- `system_under_test_ref`: exactly one typed reference to the resource under test: `external_interface`, `domain_event`, `command`, `query`, `state_machine`, or `workflow`.
 - `given`: setup contract split into `seed_fixtures` and `preconditions`.
-- `when`: one executable stimulus: `open_entry_point`, `call_entry_point`, `invoke_application_action`, or `emit_domain_event`.
-- `then`: assertions for `outcome`, entity existence, emitted/not-emitted domain events, workflow execution, authorization decisions, responses, invoked/enabled/access_denied application_actions, state-machine state, and `postconditions`. Compiled state-machine assertions may add `surface`, `composition`, and top-level `requires`.
+- `when`: one executable stimulus: `open_external_interface`, `call_external_interface`, `invoke_command`, `invoke_query`, or `emit_domain_event`.
+- `then`: assertions for `outcome`, entity existence, emitted/not-emitted domain events, workflow execution, authorization decisions, responses, invoked/enabled/access_denied commands or queries, state-machine state, and `postconditions`. Compiled state-machine assertions may add `surface`, `composition`, and top-level `requires`.
 - `then.requires`: compiled-only derived projection dependencies for a state-machine assertion, split into `surfaces`, `text`, `assets`, `data_loaders`, and `action_bindings`.
-- `entry_point_adapter`: exactly one adapter object: `http_api`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`.
+- `external_interface_adapter`: exactly one adapter object: `http_api`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`.
 - `adapter input shape`: HTTP API input may use `path_params`, `query_params`, and `body`; HTML route input may use `path_params` and `query_params`; CLI input uses `args`; worker input uses `payload`; webhook input may use `path_params`, `query_params`, and `payload`; scheduled input has no external input sections.
-- `entry_point_target`: exactly one target object: `application_action`, `state_machine`, `workflow`, or `entry_point`.
-- `application-action/state-machine target bindings`: `target.application_action.input_bindings` and `target.state_machine.input_bindings` bind adapter input into target input/context and must exactly cover the target fields. Workflow targets use `trigger_bindings` instead of `input_bindings`.
-- `state-machine entry target`: `target.state_machine` must declare `renderer: html` or `renderer: textual`. HTML route entries can target only `html`; CLI entries can launch `html` or `textual`; the target state machine must declare the selected renderer in at least one view state.
-- `workflow entry target`: `target.workflow.trigger_bindings` binds adapter input into workflow trigger payload fields and must exactly cover the workflow trigger payload.
-- `entry-point delegation`: an entry point whose `target.entry_point.ref` points at another entry point. Delegation is general and is not CLI-to-HTTP-specific.
-- `delegating entry point`: the outer entry point whose adapter exposes a facade and binds its input into the delegated entry point input shape.
-- `delegated entry point`: the inner entry point that receives delegated invocation. Its entry-point `authorization_policy` and the delegated target application action's authorization outcomes remain visible to the delegating entry point.
-- `target outcome response`: synchronous adapter response keyed by application-action, workflow, state-machine, or delegated entry-point outcome names. HTTP API `responses` and delegated CLI `response_handlers` are target-outcome response surfaces.
+- `external_interface_target`: exactly one target object: `command`, `query`, `state_machine`, `workflow`, or `external_interface`.
+- `operation/state-machine target bindings`: `target.command.input_bindings`, `target.query.input_bindings`, and `target.state_machine.input_bindings` bind adapter input into target input/context and must exactly cover the target fields. Workflow targets use `trigger_bindings` instead of `input_bindings`.
+- `state-machine external-interface target`: `target.state_machine` must declare `renderer: html` or `renderer: textual`. HTML route external interfaces can target only `html`; CLI external interfaces can launch `html` or `textual`; the target state machine must declare the selected renderer in at least one view state.
+- `workflow external-interface target`: `target.workflow.trigger_bindings` binds adapter input into workflow trigger payload fields and must exactly cover the workflow trigger payload.
+- `external-interface delegation`: an external interface whose `target.external_interface.ref` points at another external interface. Delegation is general and is not CLI-to-HTTP-specific.
+- `delegating external interface`: the outer external interface whose adapter exposes a facade and binds its input into the delegated external-interface input shape.
+- `delegated external interface`: the inner external interface that receives delegated invocation. Its `access_policy` and the delegated command/query authorization outcomes remain visible to the delegating external interface.
+- `target outcome response`: synchronous adapter response keyed by command, query, workflow, state-machine, or delegated external-interface outcome names. HTTP API `responses` and delegated CLI `response_handlers` are target-outcome response surfaces.
 - `adapter ingress response`: asynchronous adapter acknowledgement or disposition keyed by adapter-level outcomes, such as accepted, malformed, retry, reject, or dead-letter handling. Worker, webhook, and scheduled adapters use `ingress_responses` when receipt/disposition is distinct from target workflow execution outcomes.
 - `response handler`: adapter-specific projection of a target or delegated response outcome.
-- `CLI response handler`: maps a named response outcome to stdout, stderr, an exit code, and optionally a retry policy. It does not restate HTTP status classification when the delegated entry point is an HTTP API.
-- `retry_safe`: explicit application-action or entry-point marker permitting automatic retry of delegated, command, transition, or workflow execution. The default is false. Queries are retry-safe by action kind.
-- `retry safety`: validation that a retry policy applies only to a retry-safe delegated entry point and final target, a query, an explicitly retry-safe application action or entry point, or an ingress/disposition outcome where no target application action has executed. Transport retry, ingress retry, workflow retry, and application-action retry are separate scopes.
+- `CLI response handler`: maps a named response outcome to stdout, stderr, an exit code, and optionally a retry policy. It does not restate HTTP status classification when the delegated external interface is an HTTP API.
+- `retry_safe`: explicit command or external-interface marker permitting automatic retry of delegated, command, transition, or workflow execution. The default is false. Queries are retry-safe by definition.
+- `retry safety`: validation that a retry policy applies only to a retry-safe delegated external interface and final target, a query, an explicitly retry-safe command or external interface, or an ingress/disposition outcome where no target command has executed. Transport retry, ingress retry, workflow retry, and command retry are separate scopes.
 - `workflow_transition`: exclusive workflow control-flow target via `next_step`, `complete_as`, `fail_as`, `retry_policy`, or `dead_letter_as`.
 - `state-machine context schema`: local machine context declared as JSON Schema object `properties` and `required`. Nullability uses JSON Schema type arrays such as `type: [string, null]`; effects may set a context field to null only when that field schema allows null.
 - `context_present`: state-machine condition meaning the declared context field is present and non-null. Nullable context fields with a current `null` value are not present for this condition.
-- `render profile`: global audit/golden-image viewport map. Renderable state machines require at least one render profile, and profiles must include viewport sets for each declared renderer surface (`html_viewports` for HTML, `textual_viewports` for Textual).
-- `render example`: view-state-local visual evidence input. It supplies seed fixtures, optional context, optional precondition references, and, for composed states, an exact child instance view-state vector; it never names render profiles directly.
+- `viewport_profile`: global audit/golden-image viewport map. Renderable state machines require at least one viewport profile, and profiles must include viewport sets for each declared renderer surface (`html_viewports` for HTML, `textual_viewports` for Textual).
+- `render example`: view-state-local visual evidence input. It supplies seed fixtures, optional context, optional precondition references, and, for composed states, an exact child instance view-state vector; it never names viewport profiles directly.
 - `content source`: a final resolver declaration where `text_resource.source_ref` or `asset.source_ref` equals the resource id. Final content resolvers require at least one matching `content_example`, and example args must exactly match the resource args.
 - `rationale`: bounded plain text used on authored resources and on intentionally unobservable local effects. Missing top-level resource rationale is filled by a deterministic compiler default.
-- `Action binding`: local view-state use of a global application action, normally user/action-triggered, including input bindings and outcome effects. A renderer action binds to this local invocation, not directly to `application_action_ref`.
-- `Data loader`: local state-machine or view-state use of a query action for data loading or refresh, including input bindings, load policy, context updates, result binding, and outcome effects. State-machine-level queries load with `on_start`/`on_mount`; view-state-level queries load with `on_enter`.
+- `Action binding`: local view-state use of a global command, normally user-triggered, including input bindings and outcome effects. A renderer action binds to this local invocation, not directly to `command_ref`.
+- `Data loader`: local state-machine or view-state use of a query for data loading or refresh, including input bindings, load policy, context updates, result binding, and outcome effects. State-machine-level queries load with `on_start`/`on_mount`; view-state-level queries load with `on_enter`.
 - `Data loader effect`: each query outcome effect must update context, bind/cache a result, raise a local signal, or explicitly declare a scoped `no_local_effect`. `result_binding.data_key` names the state-machine/view-state result data populated from a binding value.
 - `Query refresh signal`: local data-refresh signal raised by a mutation, query outcome, or other invalidation effect, such as `project_changed`, and consumed by `data_loader.load.refresh_on`. Loaded/missing/error data-refresh signals should come from query outcomes after data has actually been bound or classified.
 - `Empty/non-empty query handling`: array-valued query outcomes split the outcome effect with `conditional_effects` using `when.result_empty` and `when.result_non_empty`. Both branches must be declared so empty collection states are reachable through authored handling rather than compiler length guesses.
 - `Machine-scoped query ownership`: state-machine-level data loaders declare `result_scope: local`, `shared`, or `prefetch`. Machine-scoped result bindings that do not raise a signal must use shared/prefetch ownership with rationale, especially when a child machine also owns visible loading.
 - `Field-slot source resolution`: every field slot resolves to exactly one context field or query result binding. A bound entity_type or array item can feed field slots when the slot name exists on the result type; ambiguous or missing sources fail semantic validation.
-- `Outcome effect`: mapping from an action/data-loader outcome to context updates, result binding, a local signal raise, or explicit `no_local_effect` handling.
+- `Outcome effect`: mapping from a command/data-loader outcome to context updates, result binding, a local signal raise, or explicit `no_local_effect` handling.
 - `No local effect`: explicit declaration that an outcome is covered but intentionally has no local state-machine effect. It is not omission and does not suppress durable domain events. Reasons are scope-sensitive: response-surface handling needs a real adapter/renderer surface, query refresh needs explicit result/context refresh, result-bound-without-signal needs result binding or context/cache update, and failure outcomes must use proven response-surface handling or `intentionally_unobservable` with rationale.
 - `Authored value`: explicit literal-or-fixture-reference value used in authored test, precondition, content-example, and render-example value maps. Use `{value: ...}` for JSON literals, including literal strings beginning with `$`, and `{from: $fixture...}` for fixture references. Raw `$...` strings are not interpreted as references.
-- `Binding root`: the first segment of a binding expression. Local state-machine bindings use `$state_context`, `$principal`, `$signal.payload`, and `$state_machine`; application-action payload mappings use `$operation_input` and `$action_outcome`; adapter/delegation bindings use `$adapter_input`, `$adapter_response`, and `$action_outcome`; workflow step bindings use `$workflow_input` and `$step_outcome`. `$message` is reserved for AsyncAPI/wire-level messages, not local state-machine signaling.
+- `Binding root`: the first segment of a binding expression. Local state-machine bindings use `$state_context`, `$principal`, `$signal.payload`, and `$state_machine`; command domain-event payload mappings use `$operation_input` and `$action_outcome`; adapter/delegation bindings use `$adapter_input`, `$adapter_response`, and `$action_outcome`; workflow step bindings use `$workflow_input` and `$step_outcome`. `$message` is reserved for AsyncAPI/wire-level messages, not local state-machine signaling.
 - `Actor/user binding source`: local action bindings should bind actor-like input fields such as `actor_id`, `approved_by`, or `reviewer_id` from `$principal.id` or an explicit context source. Literal actor/user ids are linted because they usually hide fixture-only assumptions in authored UI behavior.
 - `Local signal raise`: creation of a state-machine-local `local_signal` or `data_refresh_signal`.
 - `Data refresh signal`: local state-machine signal commonly used for data refresh, invalidation, loaded/missing states, or render updates. Data-refresh signals are not sent between child state-machine instances.
 - `Local signal`: local state-machine signal that may also be sent between child state-machine instances where sync rules support local-signal sends.
-- `Domain event`: durable domain occurrence emitted by an application-action outcome, distinct from local state-machine signals and AsyncAPI integration messages.
+- `Domain event`: durable domain occurrence emitted by a command outcome, distinct from local state-machine signals and AsyncAPI integration messages.
 - `Integration message`: AsyncAPI transport-level message projected from a domain event into a channel.
-- `action_outcome.emits`: durable domain-event emission from an application-action outcome. It is not used for local state-machine transition effects.
+- `emits_domain_events`: command-level durable domain-event emission mapping keyed by successful command outcome. It is not used for local state-machine transition effects.
 - `action_binding.outcome_effects.raise`: local state-machine `local_signal` or `data_refresh_signal` raise after a user/action action binding.
 - `data_loader.outcome_effects.raise`: local state-machine `local_signal` or `data_refresh_signal` raise after a query load or refresh outcome.
-- `no_local_effect`: explicit declaration that an action/data-loader outcome has no local state-machine effect.
+- `no_local_effect`: explicit declaration that a command/data-loader outcome has no local state-machine effect.
 - `signals`: local UI/component/state-machine signal contracts split into accepted `local_signals`/`data_refresh_signals` maps and emitted `local_signals` maps with JSON Schema `payload_schema` declarations.
 - `renderer_contracts`: view-state renderer declarations keyed by concrete target. `renderers.html` and `renderers.textual` each own target-local `layout`, `presentation`, and `style`.
 - `renderer placement validation`: HTML slots and child machines must reference declared HTML `region_id`s; Textual widgets and child machines must reference declared Textual `container_id`s. Placement ids are layout ids, not field names.
 - `resolver output escaping`: text, SVG, XML, and HTML resolvers must escape dynamic values before placing them in markup text or attributes. Plain-text outputs and alt text must not expose unescaped markup-sensitive values where they may be rendered into HTML/XML.
-- `schema`: JSON Schema subset used for payloads, entity types, action inputs, state-machine context, content args, and adapter input sections. It uses `type`, `$ref`, `properties`, `required`, `enum`, `const`, `items`, `additionalProperties`, and `format`; null is represented through JSON Schema type arrays such as `type: ["string", "null"]`.
-- `authorization_policy`: direct `authorization_policy_ref` fields identify the authorization policy applied to an entry point or authorization assertion. Application actions use `authorization.policy` plus explicit `authentication_required_as` and `access_denied_as` outcome mappings.
-- `action_authorization`: application-action-local authorization mapping with `policy`, `authentication_required_as`, and `access_denied_as`. The mapped names must be normal application-action outcomes with `kind: failure`.
-- `authorization policy`: reusable rule set that determines whether a subject may attempt an application action or entry point. Policies with identical subjects, effect, and conditions should be one `authorization_policy` with combined resources, not duplicated per application_action.
-- `authorization failure outcome`: named failure outcome produced before application-action execution when authorization fails. These outcomes live in `application_action.outcomes`; they are not a separate `errors` or `authorization_outcomes` collection.
+- `schema`: JSON Schema subset used for payloads, entity types, operation inputs, operation results, state-machine context, content args, and adapter input sections. It uses `type`, `$ref`, `properties`, `required`, `enum`, `const`, `items`, `additionalProperties`, and `format`; null is represented through JSON Schema type arrays such as `type: ["string", "null"]`.
+- `access_policy`: direct `access_policy_ref` fields identify the access policy applied to an external interface or authorization assertion. Commands use `authorization.policy` plus explicit `authentication_required_as` and `access_denied_as` outcome mappings.
+- `command_authorization`: command-local access-policy mapping with `policy`, `authentication_required_as`, and `access_denied_as`. The mapped names must be normal command outcomes with `kind: failure`.
+- `access policy`: reusable rule set that determines whether a subject/principal may attempt an action on a resource. Policies with identical subjects, resources, effect, and conditions should be one `access_policy`, not duplicated per command or external interface.
+- `authorization failure outcome`: named failure outcome produced before command execution when authorization fails. These outcomes live in `command.outcomes`; they are not a separate `errors` or `authorization_outcomes` collection.
 - `authentication_required`: authorization failure where no acceptable subject identity is available. HTTP examples conventionally map this outcome to `401`; CLI examples map it to stderr plus a nonzero exit code.
-- `access_denied`: authorization failure where a subject identity exists but does not satisfy the authorization policy. HTTP examples conventionally map this outcome to `403`; CLI examples map it to stderr plus a nonzero exit code.
-- `domain failure outcome`: application-action outcome produced by application-action execution or domain validation, such as `validation_failed` or `not_found`.
+- `access_denied`: authorization failure where a subject identity exists but does not satisfy the access policy. HTTP examples conventionally map this outcome to `403`; CLI examples map it to stderr plus a nonzero exit code.
+- `domain failure outcome`: command outcome produced by command execution or domain validation, such as `validation_failed` or `not_found`.
 - `transition applicability`: lifecycle source-state check derived from `entity_type.entity_lifecycle.lifecycle_transitions[*]`, not authorization.
-- `transition_not_allowed`: transition applicability/domain failure outcome for lifecycle source-state mismatch. It is not an authorization failure and should be asserted with `action_outcome` or `entry_point_response`, not `authorization_denial`.
-- `condition.entity_state_condition`: explicit author-authored access-control condition when an entity lifecycle state is truly part of who may attempt an application_action. The compiler does not generate this condition from lifecycle transition `from` states; lifecycle source-state mismatch remains transition applicability and maps to `transition_not_allowed`.
+- `transition_not_allowed`: transition applicability/domain failure outcome for lifecycle source-state mismatch. It is not an authorization failure and should be asserted with `action_outcome` or `external_interface_response`, not `authorization_denial`.
+- `condition.entity_state_condition`: explicit author-authored access-control condition when an entity lifecycle state is truly part of who may attempt a command. The compiler does not generate this condition from lifecycle transition `from` states; lifecycle source-state mismatch remains transition applicability and maps to `transition_not_allowed`.
 
 ## Action Binding Example
 
@@ -137,7 +137,7 @@ view_states:
   ready:
     action_bindings:
       approve:
-        application_action: application_action.project.approve
+        command: command.project.approve
         input_bindings:
           project_id:
             from: $state_context.project_id
@@ -162,7 +162,7 @@ view_states:
 ```yaml
 data_loaders:
   load_project:
-    application_action: application_action.project.read
+    query: query.project.read
     input_bindings:
       project_id:
         from: $state_context.project_id
@@ -196,7 +196,7 @@ data_loaders:
 data_loaders:
   list_projects:
     result_scope: local
-    application_action: application_action.project.list
+    query: query.project.list
     input_bindings:
       workspace_id:
         from: $state_context.workspace_id
@@ -225,13 +225,13 @@ data_loaders:
 
 Layers are compile/validate guardrails and are not written into `spec/generated/compiled/spec.yaml`.
 
-- `core`: `fixtures`, `preconditions`, `assertions`, `schemas`, `entity_types`, `authorization_policies`, `application_actions`, `domain_events`, and `behavior_scenarios`.
-- `http`: HTTP API entry-point adapters.
-- `domain_events`: webhook entry-point adapters.
-- `workflow`: `workflows` plus CLI, worker, and scheduled entry-point adapters.
-- `ui`: `state_machines`, `text_resources`, `assets`, `content_examples`, `render_profiles`, and HTML route entry-point adapters.
-- `html`: HTML renderer contracts and `render_profile.html_viewports`.
-- `textual`: Textual renderer contracts and `render_profile.textual_viewports`.
+- `core`: `fixtures`, `preconditions`, `assertions`, `schemas`, `entity_types`, `access_policies`, `commands`, `queries`, `domain_events`, and `behavior_scenarios`.
+- `http`: HTTP API external-interface adapters.
+- `domain_events`: webhook external-interface adapters.
+- `workflow`: `workflows` plus CLI, worker, and scheduled external-interface adapters.
+- `ui`: `state_machines`, `text_resources`, `media_assets`, `content_examples`, `viewport_profiles`, and HTML route external-interface adapters.
+- `html`: HTML renderer contracts and `viewport_profiles.*.html_viewports`.
+- `textual`: Textual renderer contracts and `viewport_profiles.*.textual_viewports`.
 - Layer normalization always includes `core`; selecting `html` or `textual` also includes `ui`. Aliases normalize as `api -> http`, `cli -> workflow`, `tui -> textual`, and `all`/`full` -> every layer.
 - Common layer-pruned authored schemas are generated for `core`, `core_http`, `core_domain_events`, `core_workflow`, `core_ui_textual`, `core_ui_html`, and `full`.
 
@@ -245,11 +245,11 @@ Layers are compile/validate guardrails and are not written into `spec/generated/
 | Data loader outcome effects | `$action_outcome`, `$operation_invocation`, `$state_context` |
 | State-machine transition effects | `$signal.payload`, `$state_context` |
 | Child state-machine `context_bindings` and selected-state conditions | `$state_machine` for parent state-machine context |
-| Application-action domain-event-emission payload mappings | `$operation_input`, `$action_outcome` |
-| Entry-point application-action/state-machine/delegation target bindings | `$adapter_input` |
-| Entry-point workflow `trigger_bindings` | `$adapter_input` |
+| Command domain-event-emission payload mappings | `$operation_input`, `$action_outcome` |
+| External-interface command/query/state-machine/delegation target bindings | `$adapter_input` |
+| External-interface workflow `trigger_bindings` | `$adapter_input` |
 | HTTP API response bodies | `$action_outcome.result` only |
-| CLI application-action response handlers | `$adapter_input`, `$action_outcome` |
+| CLI command/query response handlers | `$adapter_input`, `$action_outcome` |
 | CLI delegated response handlers | `$adapter_input`, `$adapter_response` |
 | Workflow step `input_bindings` | `$workflow_input`, `$step_outcome` |
 | Authored test/precondition/assertion/content-example/render-example value maps | `$fixture` |
@@ -258,16 +258,16 @@ Layers are compile/validate guardrails and are not written into `spec/generated/
 
 - `visual_evidence_set`: a shared list of generated diagrams or rendered captures (`*.svg` diagrams/captures and `*.png` screenshots) that visually evidence one or more compiled spec paths.
 - `required_visual_path`: a compiled spec leaf path that must have at least one `visual_evidence_set`; missing required paths fail validation.
-- `required_visual_text_witness`: a stable token that must appear in visible SVG text for a required visual path whose value is explicitly rendered as text. These witnesses are intentionally limited to durable ids, refs, field/type labels, and other renderer-owned tokens; they do not audit hidden SVG metadata, incidental prose, or render-only pixels.
+- `required_visual_text_witness`: a stable token that must appear in visible SVG text for a required visual path whose value is explicitly rendered as text. These witnesses are intentionally limited to durable ids, references, field/type labels, and other renderer-owned tokens; they do not audit hidden SVG metadata, incidental prose, or render-only pixels.
 - `optional_visual_path`: a compiled spec leaf path that may have visual evidence but is allowed to be absent from diagrams and render captures.
 - `missing_required_visual_path`: a required visual path with no diagram or render-capture evidence.
 - `optional_visual_path_not_shown`: an optional visual path with no diagram or render-capture evidence; this is reported but does not fail validation.
-- `non_visual_path`: compiled metadata that is intentionally outside visual-audit scope, such as `project` workspace metadata or the compiled `refs` index.
+- `non_visual_path`: compiled metadata that is intentionally outside visual-audit scope, such as `project` workspace metadata or the compiled `reference_index`.
 - `render_presence`: resource-level visibility in actual render captures, reported as `rendered` or `not_rendered` for assets, text resources, fixtures, preconditions, assertions, and content examples.
 
 Audit validation fails when any `missing_required_visual_path` exists or when a declared `required_visual_text_witness` is absent from its SVG evidence set. Required paths without a text witness are still required to have diagram or render-capture evidence, but their semantics are audited through the visual artifact rather than a machine-readable token.
 
-The visual audit includes state-machine and composition diagrams, entry-point and workflow flowcharts, plus action flows. Action flows are chronological branching data flows for input, authorization, touched resources, outcomes, and emitted domain events; other diagrams reference application_actions compactly instead of repeating the same cards.
+The visual audit includes state-machine and composition diagrams, external-interface and workflow flowcharts, plus command/query flows. Command/query flows are chronological branching data flows for input, authorization, touched resources, outcomes, and emitted domain events; other diagrams reference commands and queries compactly instead of repeating the same cards.
 
 ## Binding Expression Namespaces
 
@@ -275,16 +275,16 @@ The visual audit includes state-machine and composition diagrams, entry-point an
 - `$state_machine.<field>` reads parent state-machine context in child state-machine context bindings and composition conditions.
 - `$signal.payload.<field>` reads the current state-machine local-signal payload in transition effects and sync sends.
 - `$state_context.<field>` reads current state-machine context in transition effects, action/data-loader input bindings, and local outcome-effect signal payload binding.
-- `$adapter_input.path_params.<field>` reads HTTP API or HTML route path parameters in entry target or delegation bindings.
-- `$adapter_input.query_params.<field>` reads HTTP API or HTML route query parameters in entry target or delegation bindings.
-- `$adapter_input.body.<field>` reads HTTP request body fields in entry target or delegation bindings.
-- `$adapter_input.args.<field>` reads CLI argument fields in entry target or delegation bindings.
-- `$adapter_input.payload[.<field>]` reads worker or webhook payload data in entry target or workflow trigger bindings.
-- `$operation_input.<field>` reads application-action input during application-action domain-event emission mapping.
-- `$action_outcome.result[.<field>]` reads application-action outcome result during response, domain-event emission, and local outcome-effect mapping.
-- `$action_outcome.kind` reads the application-action outcome kind during local outcome-effect signal payload binding.
+- `$adapter_input.path_params.<field>` reads HTTP API or HTML route path parameters in external-interface target or delegation bindings.
+- `$adapter_input.query_params.<field>` reads HTTP API or HTML route query parameters in external-interface target or delegation bindings.
+- `$adapter_input.body.<field>` reads HTTP request body fields in external-interface target or delegation bindings.
+- `$adapter_input.args.<field>` reads CLI argument fields in external-interface target or delegation bindings.
+- `$adapter_input.payload[.<field>]` reads worker or webhook payload data in external-interface target or workflow trigger bindings.
+- `$operation_input.<field>` reads command input during command domain-event emission mapping.
+- `$action_outcome.result[.<field>]` reads command or query outcome result during response, domain-event emission, and local outcome-effect mapping.
+- `$action_outcome.kind` reads the command or query outcome kind during local outcome-effect signal payload binding.
 - `$operation_invocation.input.<field>` reads the bound action binding input during local outcome-effect signal payload binding.
-- `$adapter_response.body[.<field>]` reads the delegated entry-point response body inside delegating CLI `response_handlers`.
+- `$adapter_response.body[.<field>]` reads the delegated external-interface response body inside delegating CLI `response_handlers`.
 - `$workflow_input.payload[.<field>]` reads workflow trigger payload.
 - `$step_outcome.<step>.<outcome>.result[.<field>]` reads previous workflow step result.
 
@@ -293,26 +293,27 @@ Binding expressions appear inside binding objects. Authored value maps use `{fro
 
 ## Generated Artifacts
 
-- `spec/generated/compiled/spec.yaml`: compiled-output spec with normalized IDs, generated refs, derived domain events, and expanded empty collections.
+- `spec/generated/compiled/spec.yaml`: compiled-output spec with normalized IDs, generated reference_index entries, derived domain events, and expanded empty collections.
 - `spec/generated/agent_prompts/{pm_design,test,dev,review}.md`: layer-specific role prompts.
 - `spec/generated/behavior/fixtures.yaml`: seed fixture projection.
 - `spec/generated/behavior/behavior_scenarios.yaml`: semantic behavior-scenario projection.
-- `spec/generated/product_interfaces/http.openapi.yaml`: OpenAPI projection generated only from HTTP API entry points.
+- `spec/generated/product_interfaces/http.openapi.yaml`: OpenAPI projection generated only from HTTP API external interfaces.
 - `spec/generated/product_interfaces/integration_messages.asyncapi.yaml`: AsyncAPI projection for durable top-level domain events, webhooks, workers, and domain-event-triggered workflows; state-machine signals are not projected as domain events.
-- `spec/generated/product_interfaces/html.routes.json`: UI route projection generated from UI entry points.
+- `spec/generated/product_interfaces/html.routes.json`: UI route projection generated from HTML route external interfaces.
 - `spec/generated/product_interfaces/html.state_machines.json`: state-machine HTML/Textual renderer contract projection, including composition layout and renderer-specific style contracts.
 - `spec/generated/product_interfaces/textual.projection.py`: Textual renderer projection generated from `renderers.textual.presentation` widgets, `renderers.textual.style`, and `renderers.textual.layout` containers.
 - `spec/generated/product_interfaces/workflow.cwl.yaml`: CWL projection generated for workflow/CLI/worker-relevant execution graphs.
-- `spec/generated/product_interfaces/authorization_policies.json`: authorization-policy projection with application-action authorization mappings and entry-point policies.
+- `spec/generated/product_interfaces/access_policies.json`: access-policy projection with command authorization mappings and external-interface policies.
 - `spec/generated/content_resolvers/{signatures.py,stubs.py,examples.yaml}`: documented content-resolution contracts and examples.
 - `spec/generated/test_adapters/python_refs.py`: Python constants for resource and generated reference IDs.
 - `spec/generated/test_adapters/driver_protocol.py`: BDD driver protocol.
 - `spec/generated/test_adapters/pytest_bdd_steps.py`: BDD step glue.
 - `spec/generated/test_adapters/pytest_bdd_features/{feature}.feature`: generated behavior feature files.
-- `spec/generated/audit_evidence/entrypoints/{adapter}/{entry_point}/flow.svg`: entry-point flow diagrams grouped by adapter kind.
+- `spec/generated/audit_evidence/external_interfaces/{adapter}/{external_interface}/flow.svg`: external-interface flow diagrams grouped by adapter kind.
 - `spec/generated/audit_evidence/coverage.yaml`: generated visual coverage index mapping compiled spec paths to diagram and render-capture evidence, including explicit render coverage gaps for assets, text, fixtures, preconditions, assertions, and content examples.
 - `spec/generated/audit_evidence/workflows/{workflow}/flow.svg`: workflow flow diagrams.
-- `spec/generated/audit_evidence/application_actions/{application_action}/flow.svg`: chronological action flows showing input, authorization, touched resources, outcomes, and emitted domain events.
+- `spec/generated/audit_evidence/commands/{command}/flow.svg`: chronological command flows showing input, authorization, touched resources, outcomes, and emitted domain events.
+- `spec/generated/audit_evidence/queries/{query}/flow.svg`: chronological query flows showing input, authorization, results, and outcomes.
 - `spec/generated/audit_evidence/state_machines/{state_machine}/state_machine.svg`: state-machine diagrams.
 - `spec/generated/audit_evidence/state_machines/{state_machine}/view_states/{view_state}/composition.svg`: composed state-machine view-state diagrams.
 - `spec/generated/audit_evidence/state_machines/{state_machine}/view_states/{view_state}/{text.yaml,fixtures.yaml,assets/*}`: view-state-scoped audit inputs.
@@ -326,20 +327,19 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:aria_role --> `$defs/aria_role`: renderer contract component scoped to HTML and/or Textual targets.
 - <!-- schema-def:asset_placeholder --> `$defs/asset_placeholder`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:asset_ref --> `$defs/asset_ref`: typed reference definition for its namespace.
-- <!-- schema-def:render_profile_ref --> `$defs/render_profile_ref`: typed reference definition for its namespace.
+- <!-- schema-def:viewport_profile_ref --> `$defs/viewport_profile_ref`: typed reference definition for its namespace.
 - <!-- schema-def:authored_asset --> `$defs/authored_asset`: human-authored source object for this resource or nested contract.
-- <!-- schema-def:authored_render_profile --> `$defs/authored_render_profile`: human-authored source object for this resource or nested contract.
+- <!-- schema-def:authored_viewport_profile --> `$defs/authored_viewport_profile`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_child_state_machine --> `$defs/authored_child_state_machine`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_content_example --> `$defs/authored_content_example`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_text_resource --> `$defs/authored_text_resource`: human-authored source object for this resource or nested contract.
-- <!-- schema-def:authored_entry_point --> `$defs/authored_entry_point`: human-authored source object for this resource or nested contract.
+- <!-- schema-def:authored_external_interface --> `$defs/authored_external_interface`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_domain_event --> `$defs/authored_domain_event`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_precondition --> `$defs/authored_precondition`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_assertion --> `$defs/authored_assertion`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_fixture --> `$defs/authored_fixture`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_entity_type --> `$defs/authored_entity_type`: human-authored source object for this resource or nested contract.
-- <!-- schema-def:authored_authorization_policy --> `$defs/authored_authorization_policy`: human-authored source object for this resource or nested contract.
-- <!-- schema-def:authored_application_action --> `$defs/authored_application_action`: human-authored source object for this resource or nested contract.
+- <!-- schema-def:authored_access_policy --> `$defs/authored_access_policy`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_command --> `$defs/authored_command`: human-authored command with input_schema, authorization, effects, outcomes, and emitted domain-event mappings.
 - <!-- schema-def:authored_query --> `$defs/authored_query`: human-authored query with input_schema, result_schema, and outcomes.
 - <!-- schema-def:authored_state_machine --> `$defs/authored_state_machine`: human-authored source object for this resource or nested contract.
@@ -347,8 +347,8 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:authored_workflow --> `$defs/authored_workflow`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:rationale --> `$defs/rationale`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:child_state_machine_selected --> `$defs/child_state_machine_selected`: state-machine contract component.
-- <!-- schema-def:cli_adapter --> `$defs/cli_adapter`: entry-point adapter, target, input, or response contract component.
-- <!-- schema-def:cli_adapter_input --> `$defs/cli_adapter_input`: entry-point adapter, target, input, or response contract component.
+- <!-- schema-def:cli_adapter --> `$defs/cli_adapter`: external-interface adapter, target, input, or response contract component.
+- <!-- schema-def:cli_adapter_input --> `$defs/cli_adapter_input`: external-interface adapter, target, input, or response contract component.
 - <!-- schema-def:cli_output --> `$defs/cli_output`: CLI response handler output text and bindings.
 - <!-- schema-def:cli_response_handler --> `$defs/cli_response_handler`: CLI response handler for a named response outcome.
 - <!-- schema-def:cli_response_handlers --> `$defs/cli_response_handlers`: map from named response outcomes to CLI response handlers.
@@ -358,18 +358,19 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:content_source_ref --> `$defs/content_source_ref`: typed reference definition for its namespace.
 - <!-- schema-def:context_bindings --> `$defs/context_bindings`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:context_set_effect --> `$defs/context_set_effect`: state-machine contract component.
-- <!-- schema-def:entry_application_action_target --> `$defs/entry_application_action_target`: entry-point adapter, target, input, or response contract component.
-- <!-- schema-def:entry_point_adapter --> `$defs/entry_point_adapter`: entry-point adapter, target, input, or response contract component.
-- <!-- schema-def:entry_point_delegate_input_bindings --> `$defs/entry_point_delegate_input_bindings`: adapter-input-shaped bindings from a delegating entry point into a delegated entry point.
-- <!-- schema-def:entry_point_delegate_target --> `$defs/entry_point_delegate_target`: entry-point target variant that delegates to another entry point.
-- <!-- schema-def:entry_point_ref --> `$defs/entry_point_ref`: typed reference definition for its namespace.
-- <!-- schema-def:entry_point_target --> `$defs/entry_point_target`: entry-point adapter, target, input, or response contract component.
-- <!-- schema-def:entry_point_response --> `$defs/entry_point_response`: entry-point adapter, target, input, or response contract component.
-- <!-- schema-def:entry_point_response_value --> `$defs/entry_point_response_value`: entry-point adapter, target, input, or response contract component.
-- <!-- schema-def:entry_point_responses --> `$defs/entry_point_responses`: entry-point adapter, target, input, or response contract component.
-- <!-- schema-def:entry_point_retry_policy --> `$defs/entry_point_retry_policy`: bounded automatic retry policy for retry-safe delegated entry points.
-- <!-- schema-def:entry_state_machine_target --> `$defs/entry_state_machine_target`: entry-point adapter, target, input, or response contract component.
-- <!-- schema-def:entry_workflow_target --> `$defs/entry_workflow_target`: entry-point adapter, target, input, or response contract component.
+- <!-- schema-def:external_interface_command_target --> `$defs/external_interface_command_target`: external-interface adapter, target, input, or response contract component.
+- <!-- schema-def:external_interface_query_target --> `$defs/external_interface_query_target`: external-interface adapter, target, input, or response contract component.
+- <!-- schema-def:external_interface_adapter --> `$defs/external_interface_adapter`: external-interface adapter, target, input, or response contract component.
+- <!-- schema-def:external_interface_delegate_input_bindings --> `$defs/external_interface_delegate_input_bindings`: adapter-input-shaped bindings from a delegating external interface into a delegated external interface.
+- <!-- schema-def:external_interface_delegate_target --> `$defs/external_interface_delegate_target`: external-interface target variant that delegates to another external interface.
+- <!-- schema-def:external_interface_ref --> `$defs/external_interface_ref`: typed reference definition for its namespace.
+- <!-- schema-def:external_interface_target --> `$defs/external_interface_target`: external-interface adapter, target, input, or response contract component.
+- <!-- schema-def:external_interface_response --> `$defs/external_interface_response`: external-interface adapter, target, input, or response contract component.
+- <!-- schema-def:external_interface_response_value --> `$defs/external_interface_response_value`: external-interface adapter, target, input, or response contract component.
+- <!-- schema-def:external_interface_responses --> `$defs/external_interface_responses`: external-interface adapter, target, input, or response contract component.
+- <!-- schema-def:external_interface_retry_policy --> `$defs/external_interface_retry_policy`: bounded automatic retry policy for retry-safe delegated external interfaces.
+- <!-- schema-def:external_interface_state_machine_target --> `$defs/external_interface_state_machine_target`: external-interface adapter, target, input, or response contract component.
+- <!-- schema-def:external_interface_workflow_target --> `$defs/external_interface_workflow_target`: external-interface adapter, target, input, or response contract component.
 - <!-- schema-def:domain_event_ref --> `$defs/domain_event_ref`: typed reference definition for its namespace.
 - <!-- schema-def:precondition --> `$defs/precondition`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:precondition_ref --> `$defs/precondition_ref`: typed reference definition for its namespace.
@@ -402,19 +403,15 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:entity_type_ref --> `$defs/entity_type_ref`: typed reference definition for its namespace.
 - <!-- schema-def:entity_type_display_name --> `$defs/entity_type_display_name`: PascalCase entity type display/type name separated from the stable `entity_type.*` id.
 - <!-- schema-def:schema --> `$defs/schema`: JSON Schema subset used by payload, entity type, input, context, and reusable schema declarations.
-- <!-- schema-def:action_authorization --> `$defs/action_authorization`: explicit application-action authorization policy and mapped authorization failure outcomes.
-- <!-- schema-def:action_emit --> `$defs/action_emit`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:command_authorization --> `$defs/command_authorization`: explicit command access policy and mapped authorization failure outcomes.
 - <!-- schema-def:action_binding_id --> `$defs/action_binding_id`: local view-state action binding identifier.
-- <!-- schema-def:action_outcome --> `$defs/action_outcome`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:action_outcomes --> `$defs/action_outcomes`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:command_domain_event_emit --> `$defs/command_domain_event_emit`: command-level domain-event emission mapping keyed by outcome.
 - <!-- schema-def:command_effects --> `$defs/command_effects`: command effect summary containing creates, updates, deletes, or lifecycle_transition effects.
 - <!-- schema-def:command_ref --> `$defs/command_ref`: typed reference definition for its namespace.
 - <!-- schema-def:query_ref --> `$defs/query_ref`: typed reference definition for its namespace.
 - <!-- schema-def:operation_outcome --> `$defs/operation_outcome`: command/query outcome without embedded domain-event emission metadata.
 - <!-- schema-def:operation_outcomes --> `$defs/operation_outcomes`: map from outcome names to command/query outcomes.
-- <!-- schema-def:application_action_ref --> `$defs/application_action_ref`: typed reference definition for its namespace.
-- <!-- schema-def:authorization_policy_ref --> `$defs/authorization_policy_ref`: typed reference definition for its namespace.
+- <!-- schema-def:access_policy_ref --> `$defs/access_policy_ref`: typed reference definition for its namespace.
 - <!-- schema-def:python_class_name --> `$defs/python_class_name`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:python_identifier --> `$defs/python_identifier`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:data_loader_id --> `$defs/data_loader_id`: local state-machine or view-state data loader identifier.
@@ -430,7 +427,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:authored_behavior_scenario --> `$defs/authored_behavior_scenario`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:system_under_test_ref --> `$defs/system_under_test_ref`: typed reference definition for its namespace.
 - <!-- schema-def:behavior_scenario_ref --> `$defs/behavior_scenario_ref`: typed reference definition for its namespace.
-- <!-- schema-def:scheduled_adapter --> `$defs/scheduled_adapter`: entry-point adapter, target, input, or response contract component.
+- <!-- schema-def:scheduled_adapter --> `$defs/scheduled_adapter`: external-interface adapter, target, input, or response contract component.
 - <!-- schema-def:slot_binding --> `$defs/slot_binding`: renderer contract component scoped to HTML and/or Textual targets.
 - <!-- schema-def:local_no_effect --> `$defs/local_no_effect`: explicit local no-effect outcome coverage contract component.
 - <!-- schema-def:state_machine_action_binding --> `$defs/state_machine_action_binding`: state-machine action binding contract component.
@@ -464,11 +461,11 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:html_renderer_layout --> `$defs/html_renderer_layout`: HTML renderer contract component.
 - <!-- schema-def:html_renderer_presentation --> `$defs/html_renderer_presentation`: HTML renderer contract component.
 - <!-- schema-def:html_slot --> `$defs/html_slot`: HTML renderer contract component.
-- <!-- schema-def:webhook_adapter --> `$defs/webhook_adapter`: entry-point adapter, target, input, or response contract component.
-- <!-- schema-def:webhook_adapter_input --> `$defs/webhook_adapter_input`: entry-point adapter, target, input, or response contract component.
+- <!-- schema-def:webhook_adapter --> `$defs/webhook_adapter`: external-interface adapter, target, input, or response contract component.
+- <!-- schema-def:webhook_adapter_input --> `$defs/webhook_adapter_input`: external-interface adapter, target, input, or response contract component.
 - <!-- schema-def:when --> `$defs/when`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:worker_adapter --> `$defs/worker_adapter`: entry-point adapter, target, input, or response contract component.
-- <!-- schema-def:worker_adapter_input --> `$defs/worker_adapter_input`: entry-point adapter, target, input, or response contract component.
+- <!-- schema-def:worker_adapter --> `$defs/worker_adapter`: external-interface adapter, target, input, or response contract component.
+- <!-- schema-def:worker_adapter_input --> `$defs/worker_adapter_input`: external-interface adapter, target, input, or response contract component.
 - <!-- schema-def:workflow_outcome --> `$defs/workflow_outcome`: workflow trigger, step, transition, retry, outcome, or binding contract component.
 - <!-- schema-def:workflow_outcome_transitions --> `$defs/workflow_outcome_transitions`: workflow trigger, step, transition, retry, outcome, or binding contract component.
 - <!-- schema-def:workflow_outcomes --> `$defs/workflow_outcomes`: workflow trigger, step, transition, retry, outcome, or binding contract component.
@@ -485,13 +482,13 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:viewport_id --> `$defs/viewport_id`: local identifier contract component.
 - <!-- schema-def:region_id --> `$defs/region_id`: local HTML layout region identifier within a view state.
 - <!-- schema-def:container_id --> `$defs/container_id`: local Textual layout container identifier within a view state.
-- <!-- schema-def:http_api_adapter --> `$defs/http_api_adapter`: entry-point adapter, target, input, or response contract component.
-- <!-- schema-def:http_api_adapter_input --> `$defs/http_api_adapter_input`: entry-point adapter, target, input, or response contract component.
-- <!-- schema-def:authorization_assertion --> `$defs/authorization_assertion`: authorization-policy contract component.
-- <!-- schema-def:condition --> `$defs/condition`: authorization-policy contract component.
-- <!-- schema-def:authorization_decision_assertion --> `$defs/authorization_decision_assertion`: authorization-policy contract component.
-- <!-- schema-def:subject --> `$defs/subject`: authorization-policy contract component.
-- <!-- schema-def:resource --> `$defs/resource`: authorization-policy contract component.
+- <!-- schema-def:http_api_adapter --> `$defs/http_api_adapter`: external-interface adapter, target, input, or response contract component.
+- <!-- schema-def:http_api_adapter_input --> `$defs/http_api_adapter_input`: external-interface adapter, target, input, or response contract component.
+- <!-- schema-def:authorization_assertion --> `$defs/authorization_assertion`: access-policy contract component.
+- <!-- schema-def:condition --> `$defs/condition`: access-policy contract component.
+- <!-- schema-def:authorization_decision_assertion --> `$defs/authorization_decision_assertion`: access-policy contract component.
+- <!-- schema-def:subject --> `$defs/subject`: access-policy contract component.
+- <!-- schema-def:resource --> `$defs/resource`: access-policy contract component.
 - <!-- schema-def:html_css_class --> `$defs/html_css_class`: HTML renderer contract component.
 - <!-- schema-def:html_css_property --> `$defs/html_css_property`: HTML renderer contract component.
 - <!-- schema-def:html_css_value --> `$defs/html_css_value`: HTML renderer contract component.
@@ -507,11 +504,11 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:textual_tcss_rule --> `$defs/textual_tcss_rule`: Textual renderer contract component.
 - <!-- schema-def:textual_style_contract --> `$defs/textual_style_contract`: Textual renderer contract component.
 - <!-- schema-def:asset_item --> `$defs/asset_item`: compiled-output object for this resource or nested contract.
-- <!-- schema-def:render_profile_item --> `$defs/render_profile_item`: compiled-output object for this resource or nested contract.
+- <!-- schema-def:viewport_profile_item --> `$defs/viewport_profile_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:child_state_machine_item --> `$defs/child_state_machine_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:content_example_item --> `$defs/content_example_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:text_resource_item --> `$defs/text_resource_item`: compiled-output object for this resource or nested contract.
-- <!-- schema-def:entry_point_item --> `$defs/entry_point_item`: compiled-output object for this resource or nested contract.
+- <!-- schema-def:external_interface_item --> `$defs/external_interface_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:domain_event_item --> `$defs/domain_event_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:precondition_body --> `$defs/precondition_body`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:precondition_item --> `$defs/precondition_item`: compiled-output object for this resource or nested contract.
@@ -519,8 +516,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:assertion_item --> `$defs/assertion_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:fixture_item --> `$defs/fixture_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:entity_type_item --> `$defs/entity_type_item`: compiled-output object for this resource or nested contract.
-- <!-- schema-def:authorization_policy_item --> `$defs/authorization_policy_item`: compiled-output object for this resource or nested contract.
-- <!-- schema-def:application_action_item --> `$defs/application_action_item`: compiled-output object for this resource or nested contract.
+- <!-- schema-def:access_policy_item --> `$defs/access_policy_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:command_item --> `$defs/command_item`: compiled command with input_schema, effects, outcomes, and emitted domain-event mappings.
 - <!-- schema-def:query_item --> `$defs/query_item`: compiled query with input_schema, result_schema, and outcomes.
 - <!-- schema-def:behavior_scenario_item --> `$defs/behavior_scenario_item`: compiled-output object for this resource or nested contract.

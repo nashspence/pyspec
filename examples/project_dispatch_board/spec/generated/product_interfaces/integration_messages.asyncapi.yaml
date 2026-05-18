@@ -32,28 +32,28 @@ components:
         $ref: '#/components/schemas/schema.project.approved'
       title: Domain Event Project Approved
       x-emitted-by:
-      - application_action.project.approve
+      - command.project.approve
     integration_message_domain_event_project_archived:
       name: domain_event.project.archived
       payload:
         $ref: '#/components/schemas/Project'
       title: Domain Event Project Archived
       x-emitted-by:
-      - application_action.project.archive
+      - command.project.archive
     integration_message_domain_event_project_created:
       name: domain_event.project.created
       payload:
         $ref: '#/components/schemas/Project'
       title: Domain Event Project Created
       x-emitted-by:
-      - application_action.project.create
+      - command.project.create
     integration_message_domain_event_project_submitted:
       name: domain_event.project.submitted
       payload:
         $ref: '#/components/schemas/Project'
       title: Domain Event Project Submitted
       x-emitted-by:
-      - application_action.project.submit
+      - command.project.submit
   schemas:
     Problem:
       additionalProperties: false
@@ -143,7 +143,7 @@ operations:
     - $ref: '#/components/messages/integration_message_domain_event_project_approved'
     x-contract-ref: workflow.project.approval_notice
     x-dispositions:
-      entry_point.worker.project.approval_notice:
+      external_interface.worker.project.approval_notice:
         accepted:
           disposition: acknowledge
         malformed:
@@ -158,7 +158,7 @@ operations:
     messages:
     - $ref: '#/components/messages/integration_message_domain_event_project_approved'
     x-emitted-by:
-    - application_action.project.approve
+    - command.project.approve
   send_domain_event_project_archived:
     action: send
     channel:
@@ -166,7 +166,7 @@ operations:
     messages:
     - $ref: '#/components/messages/integration_message_domain_event_project_archived'
     x-emitted-by:
-    - application_action.project.archive
+    - command.project.archive
   send_domain_event_project_created:
     action: send
     channel:
@@ -174,7 +174,7 @@ operations:
     messages:
     - $ref: '#/components/messages/integration_message_domain_event_project_created'
     x-emitted-by:
-    - application_action.project.create
+    - command.project.create
   send_domain_event_project_submitted:
     action: send
     channel:
@@ -182,4 +182,4 @@ operations:
     messages:
     - $ref: '#/components/messages/integration_message_domain_event_project_submitted'
     x-emitted-by:
-    - application_action.project.submit
+    - command.project.submit

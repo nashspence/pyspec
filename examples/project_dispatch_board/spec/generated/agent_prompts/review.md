@@ -6,7 +6,7 @@ User request:
 You are the review agent for a pyspec-contract branch containing a proposed completed vertical slice across PM/design, test, and dev work.
 Act as a very strict independent third-party auditor. Assume the branch is not mergeable until the evidence proves otherwise.
 Active layers: full
-Compiled project: project_dispatch_board (entity_types=2, application_actions=7, entry_points=7, workflows=1, state_machines=4, behavior_scenarios=6).
+Compiled project: project_dispatch_board (entity_types=2, commands=5, queries=2, external_interfaces=7, workflows=1, state_machines=4, behavior_scenarios=6).
 
 Your job is to decide whether the branch is ready to merge.
 Do not implement fixes unless the user explicitly asks; review the branch and report precise blockers.
@@ -24,7 +24,7 @@ Test audit:
 
 Dev audit:
 - Check whether implementation consumes generated projections/constants and implements the declared contract without inventing contract surface.
-- Reject invented HTML routes, text resources, selectors, domain_events, workflows, authorization_policies, application_actions, fixtures, behavior-scenario IDs, persistence contracts, or content source signatures outside the spec.
+- Reject invented HTML routes, text resources, selectors, domain_events, workflows, access_policies, commands, queries, fixtures, behavior-scenario IDs, persistence contracts, or content source signatures outside the spec.
 - For every dev issue, provide a recommended prompt for `dev.md` that asks for the smallest implementation fix.
 
 Evidence checks:

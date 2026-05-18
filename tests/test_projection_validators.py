@@ -12,7 +12,7 @@ from pyspec_contract.projection_validators import (
     validate_asyncapi,
     validate_fixtures_and_behavior_scenarios,
     validate_openapi,
-    validate_authorization_policies_json,
+    validate_access_policies_json,
     validate_state_machines_json,
     validate_textual_contract,
     validate_workflows,
@@ -38,11 +38,11 @@ def test_openapi_validator_rejects_response_schema_drift() -> None:
 
 def test_authorization_projection_validator_rejects_guard_drift() -> None:
     contract = _contract()
-    authorization_policies = read_json(ROOT / "spec" / "generated" / "product_interfaces" / "authorization_policies.json")
-    mutated = copy.deepcopy(authorization_policies)
-    mutated["action_authorizations"]["application_action.project.approve"]["policy"] = "authorization_policy.project.member"
-    with pytest.raises(ContractError, match="authorization_policies.json"):
-        validate_authorization_policies_json(contract, mutated)
+    access_policies = read_json(ROOT / "spec" / "generated" / "product_interfaces" / "access_policies.json")
+    mutated = copy.deepcopy(access_policies)
+    mutated["operation_authorizations"]["command.project.approve"]["policy"] = "access_policy.project.member"
+    with pytest.raises(ContractError, match="access_policies.json"):
+        validate_access_policies_json(contract, mutated)
 
 
 def test_openapi_validator_rejects_unresolved_component_ref() -> None:

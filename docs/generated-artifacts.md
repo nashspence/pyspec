@@ -10,7 +10,7 @@ The tree is organized by artifact purpose:
 - `behavior/` contains semantic fixtures and behavior scenarios.
 - `content_resolvers/` contains typed signatures, examples, and implementation stubs for `spec/spec.py`.
 - `test_adapters/` contains Python and pytest-bdd glue derived from `behavior/`.
-- `audit_evidence/` contains subject-local entrypoint flows, workflow flows, state-machine diagrams, view-state composition diagrams, scoped inputs, and rendered visual evidence.
+- `audit_evidence/` contains subject-local external-interface flows, command/query flows, workflow flows, state-machine diagrams, view-state composition diagrams, scoped inputs, and rendered visual evidence.
 
 Validation enforces a closed generated tree:
 

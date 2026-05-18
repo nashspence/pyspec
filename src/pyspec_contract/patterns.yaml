@@ -2,30 +2,30 @@ authoring_layers:
   rule: Layers constrain authored spec vocabulary only. They are never written into spec/generated/compiled/spec.yaml and never imply absent adapters are planned.
   layers:
     core:
-      targets: [fixture, precondition, assertion, entity_type, schema, operation, behavior_scenario]
+      targets: [fixture, precondition, assertion, entity_type, schema, command, query, behavior_scenario]
       projections: [spec/generated/agent_prompts, spec/generated/behavior/fixtures.yaml, spec/generated/behavior/behavior_scenarios.yaml, spec/generated/test_adapters/pytest_bdd_features, spec/generated/test_adapters/python_refs.py]
     http:
-      opens: [entry_point.adapter.http_api]
+      opens: [external_interface.adapter.http_api]
       requires: [core]
-      projections_when_declared: [spec/generated/product_interfaces/http.openapi.yaml, spec/generated/audit_evidence/entrypoints]
+      projections_when_declared: [spec/generated/product_interfaces/http.openapi.yaml, spec/generated/audit_evidence/external_interfaces]
     domain_events:
-      opens: [entry_point.adapter.webhook]
+      opens: [external_interface.adapter.webhook]
       requires: [core]
-      projections_when_declared: [spec/generated/product_interfaces/integration_messages.asyncapi.yaml, spec/generated/audit_evidence/entrypoints]
+      projections_when_declared: [spec/generated/product_interfaces/integration_messages.asyncapi.yaml, spec/generated/audit_evidence/external_interfaces]
     workflow:
-      opens: [workflow, entry_point.adapter.cli, entry_point.adapter.worker, entry_point.adapter.scheduled]
+      opens: [workflow, external_interface.adapter.cli, external_interface.adapter.worker, external_interface.adapter.scheduled]
       requires: [core]
-      projections_when_declared: [spec/generated/product_interfaces/workflow.cwl.yaml, spec/generated/product_interfaces/integration_messages.asyncapi.yaml, spec/generated/audit_evidence/workflows, spec/generated/audit_evidence/entrypoints]
+      projections_when_declared: [spec/generated/product_interfaces/workflow.cwl.yaml, spec/generated/product_interfaces/integration_messages.asyncapi.yaml, spec/generated/audit_evidence/workflows, spec/generated/audit_evidence/external_interfaces]
     ui:
-      opens: [state_machine, text_resource, asset, content_example, render_profile, render_example]
+      opens: [state_machine, text_resource, asset, content_example, viewport_profile, render_example]
       requires: [core]
       projections_when_declared: [spec/generated/product_interfaces/html.state_machines.json, spec/generated/audit_evidence]
     textual:
-      opens: [renderers.textual, render_profile.textual_viewports]
+      opens: [renderers.textual, viewport_profile.textual_viewports]
       requires: [core, ui]
       projections_when_declared: [spec/generated/product_interfaces/textual.projection.py, spec/generated/audit_evidence/**/renders/*.svg]
     html:
-      opens: [entry_point.adapter.html_route, renderers.html, render_profile.html_viewports]
+      opens: [external_interface.adapter.html_route, renderers.html, viewport_profile.html_viewports]
       requires: [core, ui]
       projections_when_declared: [spec/generated/product_interfaces/html.routes.json, spec/generated/audit_evidence/**/renders/*.png]
   common_sets:
@@ -44,37 +44,37 @@ purity_rules:
 
 behavior_scenario_archetypes:
   empty_collection_state_machine:
-    when: open_entry_point
+    when: open_external_interface
     then: [state_machine.view_state.empty, enables, authorization.denied]
   ready_collection_state_machine:
-    when: open_entry_point
+    when: open_external_interface
     then: [state_machine.view_state.ready, enables]
   state_machine_composition:
-    when: open_entry_point
+    when: open_external_interface
     then: [state_machine.instances, enables, authorization.denied]
   state_machine_composition_sync:
-    when: open_entry_point
+    when: open_external_interface
     then: [state_machine.instances, state_machine.context, state_machine.signal_sync_rules.observed_rules]
   action_outcome:
-    when: invoke_application_action
+    when: invoke_command
     then: [outcome, entity.exists, domain_events.emitted, invoked]
-  entry_point_response:
-    when: call_entry_point
+  external_interface_response:
+    when: call_external_interface
     then: [outcome, response.status, entity.exists, domain_events.emitted, invoked]
   workflow_trigger_success:
     when: emit_domain_event
     then: [workflow.executed, workflow.outcome, invoked]
   authorization_denial:
-    when: open_entry_point
+    when: open_external_interface
     then: [authorization.denied]
 
-entry_point_adapters:
+external_interface_adapters:
   http_api:
-    target: operation
+    target: [command, query]
     requires: [method, path]
     layer: http
   cli:
-    target: [operation, state_machine, workflow]
+    target: [command, query, state_machine, workflow]
     requires: [cli_command]
     layer: workflow
   worker:
@@ -94,10 +94,10 @@ entry_point_adapters:
     requires: [path]
     layer: html
 
-entry_target_contracts:
-  boundary: 'Entry points declare adapter-specific input plus either target outcome responses or async ingress responses. target.*.input_bindings maps adapter input onto the target operation or state-machine context.'
-  state_machine: 'State-machine entry targets use target.state_machine.ref plus target.state_machine.renderer to distinguish invocation from html/textual rendering.'
-  workflow: 'Workflow entry targets use target.workflow.ref plus target.workflow.trigger_bindings so the entry point binds input into the workflow trigger payload. Workers declare ingress dispositions; workflows declare named execution outcomes and transition each step outcome explicitly.'
+external_interface_target_contracts:
+  boundary: 'External interfaces declare adapter-specific input plus either target outcome responses or async ingress responses. target.*.input_bindings maps adapter input onto the target command, query, or state-machine context.'
+  state_machine: 'State-machine external interface targets use target.state_machine.ref plus target.state_machine.renderer to distinguish invocation from html/textual rendering.'
+  workflow: 'Workflow external interface targets use target.workflow.ref plus target.workflow.trigger_bindings so adapter input binds into the workflow trigger payload. Workers declare ingress dispositions; workflows declare named execution outcomes and transition each step outcome explicitly.'
 
 renderer_contracts:
   html_layout:
@@ -140,12 +140,12 @@ composition_contracts:
 audit_contracts:
   text_resource: 'target: text_resource declares placeholder text for every rendered text ref.'
   asset: 'target: asset declares media kind, asset role, placeholder visual intent, and source_ref when source-backed; the compiler emits generic SVG placeholder assets.'
-  render_profile: 'target: render_profile declares fixed HTML and/or Textual viewport profiles.'
+  viewport_profile: 'target: viewport_profile declares fixed HTML and/or Textual viewport profiles.'
   render_example: 'state-local render examples bind a state-machine view state or composed state-machine instance vector to fixtures and contexts; render surfaces and artifacts are derived from the referenced view states.'
   content_example: 'target: content_example exercises every source_ref-backed text resource or asset with deterministic args.'
   final_content: 'target: text_resource or asset may declare args and source_ref; generated content stubs constrain spec/spec.py.'
   formats:
-    entrypoint: svg
+    external_interface: svg
     state_machine: svg
     composition: svg
     workflow: svg

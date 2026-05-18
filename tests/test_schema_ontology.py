@@ -10,14 +10,14 @@ from pyspec_contract.layers import COMMON_LAYER_SETS, author_schema_for_layers
 
 
 COLLECTION_SECTIONS = {
-    "assets": "asset",
-    "render_profiles": "render_profile",
-    "application_actions": "application_action",
+    "access_policies": "access_policy",
+    "media_assets": "asset",
+    "viewport_profiles": "viewport_profile",
     "commands": "command",
     "queries": "query",
     "content_examples": "content_example",
     "text_resources": "text_resource",
-    "entry_points": "entry_point",
+    "external_interfaces": "external_interface",
     "domain_events": "domain_event",
     "preconditions": "precondition",
     "assertions": "assertion",
@@ -25,7 +25,6 @@ COLLECTION_SECTIONS = {
     "state_machines": "state_machine",
     "entity_types": "entity_type",
     "schemas": "schema",
-    "authorization_policies": "authorization_policy",
     "behavior_scenarios": "behavior_scenario",
     "workflows": "workflow",
 }

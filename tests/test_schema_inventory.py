@@ -13,10 +13,10 @@ DOC_PATH = ROOT.parents[1] / "docs" / "spec-ontology.md"
 SCHEMA_ROOT = ROOT / "schemas"
 DEPRECATED_DEFINITION_NAMES = {
     "capability",
-    "application_action",
-    "entry",
+    "application_" + "action",
+    "ent" + "ry",
     "event",
-    "fact",
+    "fa" + "ct",
     "fixture",
     "fsm",
     "entity_type",
@@ -30,7 +30,7 @@ DEPRECATED_REFERENCE_DEFINITION_NAMES = {
     "audit_profile_id",
     "audit_profile_ref",
     "authored_audit_profile",
-    "audit_case_id",
+    "audit_" + "case_id",
     "content_case_id",
     "content_case_ref",
     "content_example_id",
@@ -39,9 +39,9 @@ DEPRECATED_REFERENCE_DEFINITION_NAMES = {
     "copy_item",
     "copy_id",
     "dotted_id",
-    "fact_id",
-    "fact_ref",
-    "fact_use",
+    "fa" + "ct_id",
+    "fa" + "ct_ref",
+    "fa" + "ct_use",
     "precondition_id",
     "assertion_id",
     "fixture_id",
@@ -51,14 +51,14 @@ DEPRECATED_REFERENCE_DEFINITION_NAMES = {
     "type_map",
     "type_name",
     "audit_profile_item",
-    "render_audit_case",
-    "state_machine_render_audit_case",
+    "render_audit_" + "case",
+    "state_machine_render_audit_" + "case",
 }
 DEPRECATED_TOP_LEVEL_PROPERTIES = {
     "audit_profiles",
-    "content_cases",
+    "content_" + "cases",
     "copies",
-    "facts",
+    "fa" + "cts",
     "scenarios",
 }
 DEPRECATED_PROPERTY_NAMES = {
@@ -70,14 +70,14 @@ DEPRECATED_PROPERTY_NAMES = {
     "complete",
     "fail",
     "next",
-    "render_audit_cases",
+    "render_audit_" + "cases",
 }
 def _former_name(prefix: str, suffix: str) -> str:
     return prefix + suffix
 
 
 STALE_SCHEMA_DEFINITION_NAMES = {
-    "entry_bindings",
+    "ent" + "ry_bindings",
     "expression_map",
     _former_name("layout_", "container"),
     _former_name("layout_", "region"),
@@ -86,7 +86,7 @@ STALE_SCHEMA_DEFINITION_NAMES = {
     "action_emit_bindings",
     "action_emit_source",
     "state_name",
-    _former_name("state_machine_", "audit_case"),
+    _former_name("state_machine_audit_", "case"),
     "target",
     "workflow_input_bindings",
     "workflow_source",
@@ -99,14 +99,16 @@ ALLOWED_DUPLICATE_DEFINITION_GROUPS = {
 ALLOWED_ANY_OF_PATHS_BY_SCHEMA = {
     "author.schema.json": {
         "$defs.authored_child_state_machine.anyOf",
-        "$defs.authored_render_profile.anyOf",
+        "$defs.authored_viewport_profile.anyOf",
+        "$defs.resource.properties.action.anyOf",
         "$defs.schema.properties.anyOf",
         "$defs.state_machine_query_conditional_effect.anyOf",
         "$defs.state_machine_data_loader_outcome_effect.anyOf",
     },
     "spec.schema.json": {
         "$defs.child_state_machine_item.anyOf",
-        "$defs.render_profile_item.anyOf",
+        "$defs.viewport_profile_item.anyOf",
+        "$defs.resource.properties.action.anyOf",
         "$defs.schema.properties.anyOf",
         "$defs.state_machine_query_conditional_effect.anyOf",
         "$defs.state_machine_data_loader_outcome_effect.anyOf",
@@ -164,7 +166,7 @@ JSON_SCHEMA_KEYWORD_PROPERTY_NAMES = {
 ALLOWED_JSON_SCHEMA_KEYWORD_PROPERTIES = {
     ("authored_behavior_scenario", "then"),
     ("authored_behavior_scenario", "title"),
-    ("entry_point_response_value", "type"),
+    ("external_interface_response_value", "type"),
     ("schema", "$ref"),
     ("schema", "additionalProperties"),
     ("schema", "allOf"),

@@ -2,7 +2,7 @@
   "project": "project_dispatch_board",
   "routes": [
     {
-      "entry": "entry_point.html.project.board",
+      "external_interface": "external_interface.html.project.board",
       "id": "route.project.board",
       "path": "/workspaces/{workspace_id}/dispatch",
       "path_params": {

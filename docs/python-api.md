@@ -9,7 +9,7 @@ compile_project(".", layers="core,http")
 validate_project(".", layers="core,http")
 ```
 
-Useful lower-level entry points:
+Useful lower-level helpers:
 
 ```python
 from pyspec_contract import (

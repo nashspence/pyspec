@@ -4,9 +4,10 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from pyspec_contract.io import read_json, read_yaml
+from pyspec_contract.operations import operation_resource_kind, operations
 from pyspec_contract.paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR
 from pyspec_contract.runtime import fixture_namespace, resolve_binding, resolve_map
-from pyspec_contract.targets import entry_state_machine_name, entry_point_adapter_pair, entry_point_input_bindings, entry_point_input, entry_point_responses, entry_target_pair
+from pyspec_contract.targets import external_interface_state_machine_name, external_interface_adapter_pair, external_interface_input_bindings, external_interface_input, external_interface_responses, external_interface_target_ref_pair
 
 
 PROJECT_ENTITY_TYPE = "entity_type.project"
@@ -30,7 +31,7 @@ class ProductApp:
         self.fixtures: dict[str, Any] = {}
         self.projects: list[dict[str, Any]] = []
         self.emitted_domain_events: list[str] = []
-        self.invoked_application_actions: list[str] = []
+        self.invoked_operations: list[str] = []
         self.executed_workflows: list[str] = []
         self.workflow_outcomes: dict[str, str] = {}
         self.authorization_decisions: dict[tuple[str, str, str], bool] = {}
@@ -52,9 +53,9 @@ class ProductApp:
                 self.projects.append(self._project(self._resolve_map(body["values"])))
 
     def open_web_entry(self, entry_id: str, input_values: Mapping[str, Any]) -> dict[str, Any]:
-        entry = self.contract["entry_points"][entry_id]
-        assert entry_point_adapter_pair(entry)[0] == "html_route"
-        state_machine_id = entry_state_machine_name(entry)
+        entry = self.contract["external_interfaces"][entry_id]
+        assert external_interface_adapter_pair(entry)[0] == "html_route"
+        state_machine_id = external_interface_state_machine_name(entry)
         state_machine = self.contract["state_machines"][state_machine_id]
         context = self._entry_target_input(entry, input_values)
         workspace_id = context.get("workspace_id")
@@ -146,33 +147,32 @@ class ProductApp:
             return values
         return set(self.rendered_state_machine.get(key, []))
 
-    def _rendered_application_action_refs(self) -> set[str]:
+    def _rendered_operation_refs(self) -> set[str]:
         if not self.rendered_state_machine:
             return set()
 
-        def application_actions(item: dict[str, Any]) -> set[str]:
+        def operation_refs(item: dict[str, Any]) -> set[str]:
             invocations = item.get("action_bindings") or {}
-            return {invocation["application_action"] for invocation in invocations.values()}
+            return {invocation.get("command") or invocation.get("query") for invocation in invocations.values()}
 
         if "instances" in self.rendered_state_machine:
-            refs = application_actions(self.rendered_state_machine)
+            refs = operation_refs(self.rendered_state_machine)
             for state_machine in self.rendered_state_machine["instances"].values():
-                refs.update(application_actions(state_machine))
+                refs.update(operation_refs(state_machine))
             return refs
-        return application_actions(self.rendered_state_machine)
+        return operation_refs(self.rendered_state_machine)
 
-    def call_entry_point(self, entry_id: str, input_values: Mapping[str, Any]) -> dict[str, Any]:
-        entry = self.contract["entry_points"][entry_id]
-        assert entry_point_adapter_pair(entry)[0] in {"http_api", "cli"}
+    def call_external_interface(self, entry_id: str, input_values: Mapping[str, Any]) -> dict[str, Any]:
+        entry = self.contract["external_interfaces"][entry_id]
+        assert external_interface_adapter_pair(entry)[0] in {"http_api", "cli"}
         target_input = self._entry_target_input(entry, input_values)
-        target_kind, application_action_id = entry_target_pair(entry)
-        assert target_kind == "application_action"
-        authorization_policy = entry.get("authorization_policy")
-        if authorization_policy:
-            policy_id = authorization_policy
-            self.authorization_decisions[("entry_point", entry_id, policy_id)] = self._evaluate_policy(policy_id, "entry_point", entry_id, target_input)
-        result = self.invoke_application_action(application_action_id, target_input)
-        response = entry_point_responses(entry)[self.last_outcome]
+        target_kind, operation_ref = external_interface_target_ref_pair(entry)
+        assert target_kind in {"command", "query"}
+        access_policy = entry.get("access_policy")
+        if access_policy:
+            self.authorization_decisions[("external_interface", entry_id, access_policy)] = self._evaluate_policy(access_policy, "external_interface", entry_id, target_input)
+        result = self.invoke_operation(operation_ref, target_input)
+        response = external_interface_responses(entry)[self.last_outcome]
         if "status" in response:
             self.http_response = {"status": response["status"], "body": result}
         elif "stdout" in response:
@@ -184,59 +184,60 @@ class ProductApp:
     def _entry_target_input(self, entry: Mapping[str, Any], input_values: Mapping[str, Any]) -> dict[str, Any]:
         namespace = {"adapter_input": {}}
         for section in ("path_params", "query_params", "body", "args"):
-            fields = entry_point_input(dict(entry)).get(section, {})
+            fields = external_interface_input(dict(entry)).get(section, {})
             if fields:
                 namespace["adapter_input"][section] = {name: input_values[name] for name in fields}
-        bindings = entry_point_input_bindings(dict(entry))
+        bindings = external_interface_input_bindings(dict(entry))
         return {name: resolve_binding(source, namespace) for name, source in bindings.items()}
 
-    def invoke_application_action(self, application_action_id: str, input_values: Mapping[str, Any]) -> Any:
-        application_action = self.contract["application_actions"][application_action_id]
-        authorization = application_action.get("authorization")
+    def invoke_operation(self, operation_ref: str, input_values: Mapping[str, Any]) -> Any:
+        operation = operations(self.contract)[operation_ref]
+        authorization = operation.get("authorization")
         if authorization:
-            authorization_policy = authorization["policy"]
-            allowed = self._evaluate_policy(authorization_policy, "application_action", application_action_id, input_values)
-            self.authorization_decisions[("application_action", application_action_id, authorization_policy)] = allowed
+            access_policy = authorization["policy"]
+            resource_kind = operation_resource_kind(operation_ref)
+            allowed = self._evaluate_policy(access_policy, resource_kind, operation_ref, input_values)
+            self.authorization_decisions[(resource_kind, operation_ref, access_policy)] = allowed
             if not allowed:
-                policy = self.contract["authorization_policies"][authorization_policy]
+                policy = self.contract["access_policies"][access_policy]
                 self.last_outcome = (
                     authorization["access_denied_as"]
                     if self._subject_available(policy, input_values)
                     else authorization["authentication_required_as"]
                 )
                 return {"code": self.last_outcome, "message": self.last_outcome.replace("_", " ")}
-        self.invoked_application_actions.append(application_action_id)
-        self.last_outcome = _success_outcome_id(application_action)
+        self.invoked_operations.append(operation_ref)
+        self.last_outcome = _success_outcome_id(operation)
         values = dict(input_values)
-        if application_action_id == "application_action.project.create":
+        if operation_ref == "command.project.create":
             project = self._project(values)
             self.projects.append(project)
             self._record_domain_event("domain_event.project.created")
             return project
-        if application_action_id == "application_action.project.list":
+        if operation_ref == "query.project.list":
             return [p for p in self.projects if p["workspace_id"] == values.get("workspace_id")]
-        if application_action_id == "application_action.project.submit":
+        if operation_ref == "command.project.submit":
             project = self._find_project(values["project_id"])
             assert project["status"] == "draft"
             project["status"] = "submitted"
             self._record_domain_event("domain_event.project.submitted")
             return project
-        if application_action_id == "application_action.project.approve":
+        if operation_ref == "command.project.approve":
             project = self._find_project(values["project_id"])
             assert project["status"] == "submitted"
             project["status"] = "approved"
             project["approved_by"] = values["approved_by"]
             self._record_domain_event("domain_event.project.approved")
             return project
-        if application_action_id == "application_action.project.archive":
+        if operation_ref == "command.project.archive":
             project = self._find_project(values["project_id"])
             assert project["status"] == "approved"
             project["status"] = "archived"
             self._record_domain_event("domain_event.project.archived")
             return project
-        if application_action_id == "application_action.project.send_approval_notice":
+        if operation_ref == "command.project.send_approval_notice":
             return {"ok": True, "sent": True, **values}
-        raise AssertionError(f"Unsupported application_action: {application_action_id}")
+        raise AssertionError(f"Unsupported operation: {operation_ref}")
 
     def emit_domain_event(self, event_id: str, payload: Mapping[str, Any]) -> None:
         self._record_domain_event(event_id)
@@ -252,7 +253,7 @@ class ProductApp:
         while True:
             step = step_by_id[current]
             input_values = {name: resolve_binding(source, namespace) for name, source in step["input_bindings"].items()}
-            result = self.invoke_application_action(step["application_action"], input_values)
+            result = self.invoke_operation(step["command"], input_values)
             assert self.last_outcome is not None
             namespace["step_outcome"].setdefault(step["id"], {})[self.last_outcome] = {"result": result}
             transition = step["outcome_transitions"][self.last_outcome]
@@ -299,9 +300,9 @@ class ProductApp:
             for cap in requires.get("action_bindings", []):
                 assert cap in rendered_actions
         for cap in assertions.get("enables", []):
-            assert cap in self._rendered_application_action_refs()
+            assert cap in self._rendered_operation_refs()
         for cap in assertions.get("forbids", []):
-            assert cap not in self._rendered_application_action_refs()
+            assert cap not in self._rendered_operation_refs()
         exists = (assertions.get("entity") or {}).get("exists")
         if exists:
             where = self._resolve_map(exists["where"])
@@ -317,7 +318,7 @@ class ProductApp:
             if "outcome" in workflow:
                 assert self.workflow_outcomes.get(workflow["ref"]) == workflow["outcome"]
         for cap in assertions.get("invoked", []):
-            assert cap in self.invoked_application_actions
+            assert cap in self.invoked_operations
         response = assertions.get("response")
         if response:
             assert self.http_response is not None
@@ -365,18 +366,18 @@ class ProductApp:
         return resolve_map(values, self.fixtures)
 
     def _authorization_assertion_allowed(self, assertion: Mapping[str, Any]) -> bool:
-        kind = "application_action" if "application_action" in assertion else "entry_point"
+        kind = next((candidate for candidate in ("command", "query", "external_interface") if candidate in assertion), "external_interface")
         resource_ref = assertion[kind]
-        authorization_policy = assertion.get("authorization_policy")
-        if authorization_policy:
-            policy_id = authorization_policy
-        elif kind == "application_action":
-            authorization = self.contract["application_actions"][resource_ref].get("authorization")
+        access_policy = assertion.get("access_policy")
+        if access_policy:
+            policy_id = access_policy
+        elif kind in {"command", "query"}:
+            authorization = operations(self.contract)[resource_ref].get("authorization")
             if not authorization:
                 return False
             policy_id = authorization["policy"]
         else:
-            policy_id = self.contract["entry_points"][resource_ref]["authorization_policy"]
+            policy_id = self.contract["external_interfaces"][resource_ref]["access_policy"]
         recorded = self.authorization_decisions.get((kind, resource_ref, policy_id))
         if recorded is not None:
             return recorded
@@ -386,12 +387,12 @@ class ProductApp:
         return self._evaluate_policy(policy_id, kind, resource_ref, input_values)
 
     def _evaluate_policy(self, policy_id: str, kind: str, resource_ref: str, input_values: Mapping[str, Any]) -> bool:
-        policy = self.contract["authorization_policies"][policy_id]
-        if not _authorization_policy_covers_resource(policy, kind, resource_ref):
-            if kind != "entry_point":
+        policy = self.contract["access_policies"][policy_id]
+        if not _access_policy_covers_resource(policy, kind, resource_ref):
+            if kind != "external_interface":
                 return False
-            invoked_kind, invoked_ref = entry_target_pair(self.contract["entry_points"][resource_ref])
-            if not _authorization_policy_covers_resource(policy, invoked_kind, invoked_ref):
+            invoked_kind, invoked_ref = external_interface_target_ref_pair(self.contract["external_interfaces"][resource_ref])
+            if not _access_policy_covers_resource(policy, invoked_kind, invoked_ref):
                 return False
         matched = all(self._condition_matches(condition, input_values) for condition in policy.get("conditions", []))
         return matched if policy["effect"] == "permit" else not matched
@@ -445,8 +446,8 @@ def _matches(record: Mapping[str, Any], where: Mapping[str, Any]) -> bool:
     return all(record.get(key) == value for key, value in where.items())
 
 
-def _success_outcome_id(application_action: Mapping[str, Any]) -> str:
-    successes = [outcome_id for outcome_id, outcome in application_action["outcomes"].items() if outcome["kind"] == "success"]
+def _success_outcome_id(operation: Mapping[str, Any]) -> str:
+    successes = [outcome_id for outcome_id, outcome in operation["outcomes"].items() if outcome["kind"] == "success"]
     assert len(successes) == 1, "Expected exactly one success outcome"
     return successes[0]
 
@@ -462,8 +463,8 @@ def _condition_matches(condition: Mapping[str, Any], context: Mapping[str, Any])
 
 
 def _authorization_resource_kind(kind: str) -> str:
-    return "action" if kind == "application_action" else kind
+    return "action" if kind in {"command", "query"} else kind
 
 
-def _authorization_policy_covers_resource(policy: Mapping[str, Any], kind: str, resource_ref: str) -> bool:
+def _access_policy_covers_resource(policy: Mapping[str, Any], kind: str, resource_ref: str) -> bool:
     return any(resource == {_authorization_resource_kind(kind): resource_ref} for resource in policy.get("resources", []))

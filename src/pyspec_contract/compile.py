@@ -32,19 +32,19 @@ from .project import projection_files
 from .binding_refs import BindingExpressionError, is_binding_expression, parse_binding_expression
 from .targets import (
     STATE_MACHINE_RENDERERS,
-    entry_state_machine_renderer,
-    entry_point_adapter_pair,
-    entry_point_input_bindings,
-    entry_point_cli_command,
-    entry_point_input,
-    entry_point_method,
-    entry_point_path,
-    entry_point_response_handlers,
-    entry_point_responses,
-    entry_point_schedule_expression,
-    entry_point_target_pair,
-    entry_target_pair,
-    entry_workflow_trigger_bindings,
+    external_interface_state_machine_renderer,
+    external_interface_adapter_pair,
+    external_interface_input_bindings,
+    external_interface_cli_command,
+    external_interface_input,
+    external_interface_method,
+    external_interface_path,
+    external_interface_response_handlers,
+    external_interface_responses,
+    external_interface_schedule_expression,
+    external_interface_target_pair,
+    external_interface_target_ref_pair,
+    external_interface_workflow_trigger_bindings,
 )
 from .json_schema import (
     EMPTY_OBJECT_SCHEMA,
@@ -123,17 +123,18 @@ TARGET_ORDER = (
     "text_resource",
     "asset",
     "content_example",
-    "render_profile",
+    "viewport_profile",
     "fixture",
     "precondition",
     "assertion",
     "schema",
     "entity_type",
-    "authorization_policy",
-    "application_action",
+    "access_policy",
+    "command",
+    "query",
     "domain_event",
     "state_machine",
-    "entry_point",
+    "external_interface",
     "workflow",
     "behavior_scenario",
 )
@@ -142,19 +143,20 @@ TARGET_ORDER = (
 
 ENTITY_SECTIONS: dict[str, str] = {
     "text_resource": "text_resources",
-    "asset": "assets",
+    "asset": "media_assets",
     "content_example": "content_examples",
-    "render_profile": "render_profiles",
+    "viewport_profile": "viewport_profiles",
     "fixture": "fixtures",
     "precondition": "preconditions",
     "assertion": "assertions",
     "schema": "schemas",
     "entity_type": "entity_types",
-    "authorization_policy": "authorization_policies",
-    "application_action": "application_actions",
+    "access_policy": "access_policies",
+    "command": "commands",
+    "query": "queries",
     "domain_event": "domain_events",
     "state_machine": "state_machines",
-    "entry_point": "entry_points",
+    "external_interface": "external_interfaces",
     "workflow": "workflows",
     "behavior_scenario": "behavior_scenarios",
 }
@@ -162,12 +164,12 @@ ENTITY_SECTIONS: dict[str, str] = {
 
 REF_KINDS = [
     "asset",
-    "authorization_policy",
+    "access_policy",
     "cli_command",
     "cli_response_handler",
     "endpoint",
-    "entry_point_delegate",
-    "entry_point_target",
+    "external_interface_delegate",
+    "external_interface_target",
     "local_signal_raise",
     "action_binding",
     "action_outcome_effect",
@@ -186,25 +188,24 @@ REF_KINDS = [
 def empty_compiled_contract(project: str) -> dict[str, Any]:
     return {
         "project": project,
-        "text_resources": {},
-        "assets": {},
-        "content_examples": {},
-        "render_profiles": {},
-        "fixtures": {},
-        "preconditions": {},
-        "assertions": {},
-        "schemas": {},
         "entity_types": {},
-        "authorization_policies": {},
+        "schemas": {},
         "commands": {},
         "queries": {},
-        "application_actions": {},
         "domain_events": {},
-        "state_machines": {},
-        "entry_points": {},
         "workflows": {},
+        "state_machines": {},
+        "external_interfaces": {},
+        "access_policies": {},
+        "fixtures": {},
         "behavior_scenarios": {},
-        "refs": {},
+        "media_assets": {},
+        "text_resources": {},
+        "content_examples": {},
+        "viewport_profiles": {},
+        "reference_index": {},
+        "preconditions": {},
+        "assertions": {},
     }
 
 
@@ -214,19 +215,18 @@ AUTHOR_SECTION_ORDER = (
     "assertions",
     "schemas",
     "entity_types",
-    "authorization_policies",
+    "access_policies",
     "commands",
     "queries",
-    "application_actions",
     "domain_events",
     "state_machines",
-    "entry_points",
+    "external_interfaces",
     "workflows",
     "behavior_scenarios",
     "text_resources",
-    "assets",
+    "media_assets",
     "content_examples",
-    "render_profiles",
+    "viewport_profiles",
 )
 
 
@@ -259,8 +259,8 @@ def _state_machine_context(state_machine: dict[str, Any]) -> dict[str, Any]:
     return _schema_fields(state_machine.get("context"))
 
 
-def _application_action_input(application_action: dict[str, Any]) -> dict[str, Any]:
-    return _schema_fields(application_action.get("input"))
+def _command_input(command: dict[str, Any]) -> dict[str, Any]:
+    return _schema_fields(command.get("input_schema", command.get("input")))
 
 
 def _signal_payload_fields(payload_schema: dict[str, Any] | None) -> dict[str, Any]:
@@ -340,10 +340,9 @@ def compile_author(author: dict[str, Any], layers: set[str] | None = None) -> di
             _apply_author_defaults(entity, spec)
             section[entity_id] = _compile_entity(entity, spec, contract)
 
-    _derive_application_action_lifecycle_transitions(contract)
-    _derive_command_query_sections(contract)
+    _derive_command_lifecycle_transitions(contract)
     contract["domain_events"] = _derive_domain_events(contract)
-    contract["refs"] = _derive_refs(contract)
+    contract["reference_index"] = _derive_refs(contract)
     used_preconditions, used_assertions = _expand_behavior_scenario_predicate_refs(contract)
     _semantic_validate(contract, used_preconditions, used_assertions)
     _expand_behavior_scenarios(contract)
@@ -359,9 +358,9 @@ def _apply_author_defaults(entity: str, spec: dict[str, Any]) -> None:
         spec.setdefault("data_loaders", {})
         spec["signals"] = _normalize_signals(spec.get("signals"))
         spec.setdefault("transitions", [])
-    elif entity == "application_action":
+    elif entity == "command":
         for outcome in spec.get("outcomes", {}).values():
-            outcome.setdefault("emits", [])
+            outcome.setdefault("result", EMPTY_OBJECT_SCHEMA)
 
 
 def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str, Any]) -> dict[str, Any]:
@@ -388,7 +387,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             item["seed_fixtures"] = spec["seed_fixtures"]
         return item
 
-    if entity == "render_profile":
+    if entity == "viewport_profile":
         item = {"rationale": spec["rationale"]}
         for field in ["html_viewports", "textual_viewports"]:
             if field in spec:
@@ -417,30 +416,39 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             "rationale": spec["rationale"],
         }
 
-    if entity == "application_action":
+    if entity == "command":
         outcomes = {}
         for outcome_id, outcome in spec["outcomes"].items():
             normalized_outcome = copy.deepcopy(outcome)
             normalized_outcome["result"] = normalize_schema(normalized_outcome["result"])
-            normalized_outcome.setdefault("emits", [])
             outcomes[outcome_id] = normalized_outcome
-        application_action: dict[str, Any] = {
-            "action_kind": spec["action_kind"],
-            "input": normalize_object_json_schema(spec.get("input", EMPTY_OBJECT_SCHEMA)),
+        command: dict[str, Any] = {
+            "input_schema": normalize_object_json_schema(spec.get("input_schema", EMPTY_OBJECT_SCHEMA)),
+            "effects": copy.deepcopy(spec.get("effects", {})),
             "outcomes": outcomes,
-            "reads": list(spec.get("reads", [])),
-            "creates": list(spec.get("creates", [])),
-            "updates": list(spec.get("updates", [])),
-            "deletes": list(spec.get("deletes", [])),
+            "emits_domain_events": copy.deepcopy(spec.get("emits_domain_events", [])),
             "rationale": spec["rationale"],
         }
         if spec.get("retry_safe"):
-            application_action["retry_safe"] = True
+            command["retry_safe"] = True
         if "authorization" in spec:
-            application_action["authorization"] = copy.deepcopy(spec["authorization"])
-        return application_action
+            command["authorization"] = copy.deepcopy(spec["authorization"])
+        return command
 
-    if entity == "authorization_policy":
+    if entity == "query":
+        outcomes = {}
+        for outcome_id, outcome in spec["outcomes"].items():
+            normalized_outcome = copy.deepcopy(outcome)
+            normalized_outcome["result"] = normalize_schema(normalized_outcome["result"])
+            outcomes[outcome_id] = normalized_outcome
+        return {
+            "input_schema": normalize_object_json_schema(spec.get("input_schema", EMPTY_OBJECT_SCHEMA)),
+            "result_schema": normalize_schema(spec["result_schema"]),
+            "outcomes": outcomes,
+            "rationale": spec["rationale"],
+        }
+
+    if entity == "access_policy":
         return {
             "subjects": copy.deepcopy(spec["subjects"]),
             "resources": copy.deepcopy(spec["resources"]),
@@ -473,34 +481,34 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             state_machine["archetype"] = spec["archetype"]
         return state_machine
 
-    if entity == "entry_point":
+    if entity == "external_interface":
         entry: dict[str, Any] = {
             "adapter": spec["adapter"],
             "target": spec["target"],
             "rationale": spec["rationale"],
         }
-        if "authorization_policy" in spec:
-            entry["authorization_policy"] = copy.deepcopy(spec["authorization_policy"])
+        if "access_policy" in spec:
+            entry["access_policy"] = copy.deepcopy(spec["access_policy"])
         if spec.get("retry_safe"):
             entry["retry_safe"] = True
-        adapter_kind, _ = entry_point_adapter_pair(entry)
-        target_kind, target = entry_point_target_pair(entry)
+        adapter_kind, _ = external_interface_adapter_pair(entry)
+        target_kind, target = external_interface_target_pair(entry)
         if adapter_kind == "html_route" and target_kind == "state_machine":
             entry["route"] = rules.route_ref(target["ref"])
-        elif adapter_kind == "http_api" and target_kind == "application_action":
+        elif adapter_kind == "http_api" and target_kind in {"command", "query"}:
             entry["endpoint"] = rules.endpoint_ref(target["ref"])
-            if target["ref"] in contract["application_actions"]:
-                action_authorization = contract["application_actions"][target["ref"]].get("authorization")
-                if action_authorization:
-                    entry.setdefault("authorization_policy", copy.deepcopy(action_authorization["policy"]))
+            if target["ref"] in _operations(contract):
+                command_authorization = _operations(contract)[target["ref"]].get("authorization")
+                if command_authorization:
+                    entry.setdefault("access_policy", copy.deepcopy(command_authorization["policy"]))
         elif adapter_kind == "cli":
             entry_id = spec["id"]
-            command_ref_source = entry_id[len("entry_point.cli."):] if target_kind == "entry_point" and entry_id.startswith("entry_point.cli.") else target["ref"]
+            command_ref_source = entry_id[len("external_interface.cli."):] if target_kind == "external_interface" and entry_id.startswith("external_interface.cli.") else target["ref"]
             entry["cli_command_ref"] = rules.cli_command_ref(command_ref_source)
-            if target_kind == "application_action" and target["ref"] in contract["application_actions"]:
-                action_authorization = contract["application_actions"][target["ref"]].get("authorization")
-                if action_authorization:
-                    entry.setdefault("authorization_policy", copy.deepcopy(action_authorization["policy"]))
+            if target_kind in {"command", "query"} and target["ref"] in _operations(contract):
+                command_authorization = _operations(contract)[target["ref"]].get("authorization")
+                if command_authorization:
+                    entry.setdefault("access_policy", copy.deepcopy(command_authorization["policy"]))
         elif adapter_kind in {"worker", "scheduled"} and target_kind == "workflow":
             entry["workflow_ref"] = rules.workflow_ref(target["ref"])
         return entry
@@ -594,128 +602,115 @@ def render_examples(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return cases
 
 
-def _derive_application_action_lifecycle_transitions(contract: dict[str, Any]) -> None:
+def _operations(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    operations: dict[str, dict[str, Any]] = {}
+    for command_ref, command in contract.get("commands", {}).items():
+        item = copy.deepcopy(command)
+        effects = item.get("effects", {})
+        item["action_kind"] = "lifecycle_transition" if effects.get("lifecycle_transition") else "command"
+        item["input"] = item.get("input_schema", EMPTY_OBJECT_SCHEMA)
+        item["creates"] = list(effects.get("creates", []))
+        item["updates"] = list(effects.get("updates", []))
+        item["deletes"] = list(effects.get("deletes", []))
+        item["reads"] = []
+        if effects.get("lifecycle_transition"):
+            item["lifecycle_transition"] = copy.deepcopy(effects["lifecycle_transition"])
+        emits_by_outcome = _command_emits_by_outcome(command)
+        for outcome_id, outcome in item.get("outcomes", {}).items():
+            outcome["emits"] = copy.deepcopy(emits_by_outcome.get(outcome_id, []))
+        operations[command_ref] = item
+    for query_ref, query in contract.get("queries", {}).items():
+        item = copy.deepcopy(query)
+        item["action_kind"] = "query"
+        item["input"] = item.get("input_schema", EMPTY_OBJECT_SCHEMA)
+        item["reads"] = []
+        item["creates"] = []
+        item["updates"] = []
+        item["deletes"] = []
+        operations[query_ref] = item
+    return operations
+
+
+def _operation_input(operation: dict[str, Any]) -> dict[str, Any]:
+    return _schema_fields(operation.get("input_schema", EMPTY_OBJECT_SCHEMA))
+
+
+def _operation_retry_safe(operation_ref: str, operation: dict[str, Any]) -> bool:
+    return operation_ref.startswith("query.") or bool(operation.get("retry_safe"))
+
+
+def _invocation_operation_ref(invocation: dict[str, Any]) -> str:
+    if "command" in invocation:
+        return invocation["command"]
+    if "query" in invocation:
+        return invocation["query"]
+    raise ContractError("Operation invocation must declare command or query")
+
+
+def _command_emits_by_outcome(command: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
+    result: dict[str, list[dict[str, Any]]] = {}
+    for emit in command.get("emits_domain_events", []):
+        result.setdefault(emit["outcome"], []).append(emit)
+    return result
+
+
+def _operation_effects(operation: dict[str, Any]) -> dict[str, Any]:
+    return operation.get("effects", {})
+
+
+def _derive_command_lifecycle_transitions(contract: dict[str, Any]) -> None:
     """Derive lifecycle-transition action details from entity_lifecycle declarations.
 
     Authored sources should not have to repeat the same state transition in both
-    the entity_lifecycle and the application_action. The compiled contract remains
+    the entity_lifecycle and the command. The compiled contract remains
     explicit for downstream projections and validators.
     """
-    by_application_action: dict[str, dict[str, Any]] = {}
+    by_command: dict[str, dict[str, Any]] = {}
     for entity_type_ref, entity_type in contract.get("entity_types", {}).items():
         entity_lifecycle = entity_type.get("entity_lifecycle")
         if not entity_lifecycle:
             continue
         field = entity_lifecycle["field"]
         for lifecycle_transition in entity_lifecycle.get("lifecycle_transitions", []):
-            application_action_id = lifecycle_transition["triggered_by"]
-            if application_action_id in by_application_action:
-                raise ContractError(f"Application action {application_action_id} is used by multiple lifecycle transitions")
-            by_application_action[application_action_id] = {
+            command_id = lifecycle_transition["triggered_by"]
+            if command_id in by_command:
+                raise ContractError(f"Command {command_id} is used by multiple lifecycle transitions")
+            by_command[command_id] = {
                 "entity_type": entity_type_ref,
                 "field": field,
                 "from": lifecycle_transition["from"],
                 "to": lifecycle_transition["to"],
             }
 
-    for application_action_id, application_action in contract.get("application_actions", {}).items():
-        if application_action.get("action_kind") != "lifecycle_transition" or "lifecycle_transition" in application_action:
+    for command_id, command in contract.get("commands", {}).items():
+        effects = command.setdefault("effects", {})
+        if "lifecycle_transition" in effects:
             continue
-        derived = by_application_action.get(application_action_id)
+        derived = by_command.get(command_id)
         if not derived:
             continue
-        application_action["lifecycle_transition"] = derived
-
-
-def _derive_command_query_sections(contract: dict[str, Any]) -> None:
-    commands: dict[str, Any] = {}
-    queries: dict[str, Any] = {}
-    for application_action_id, application_action in sorted(contract["application_actions"].items()):
-        if application_action["action_kind"] == "query":
-            queries[_operation_split_ref("query", application_action_id)] = _query_from_application_action(application_action)
-        else:
-            commands[_operation_split_ref("command", application_action_id)] = _command_from_application_action(application_action)
-    contract["commands"] = commands
-    contract["queries"] = queries
-
-
-def _operation_split_ref(kind: str, application_action_id: str) -> str:
-    if application_action_id.startswith("application_action."):
-        return f"{kind}.{application_action_id.removeprefix('application_action.')}"
-    if application_action_id.startswith(("command.", "query.")):
-        return application_action_id
-    return f"{kind}.{application_action_id}"
-
-
-def _outcomes_without_domain_event_emits(outcomes: dict[str, Any]) -> dict[str, Any]:
-    result: dict[str, Any] = {}
-    for outcome_id, outcome in sorted(outcomes.items()):
-        normalized = copy.deepcopy(outcome)
-        normalized.pop("emits", None)
-        result[outcome_id] = normalized
-    return result
-
-
-def _command_from_application_action(application_action: dict[str, Any]) -> dict[str, Any]:
-    effects: dict[str, Any] = {}
-    for field in ("creates", "updates", "deletes"):
-        values = list(application_action.get(field, []))
-        if values:
-            effects[field] = values
-    if application_action.get("lifecycle_transition"):
-        effects["lifecycle_transition"] = copy.deepcopy(application_action["lifecycle_transition"])
-
-    emits_domain_events: list[dict[str, Any]] = []
-    for outcome_id, outcome in sorted(application_action["outcomes"].items()):
-        for emit in outcome.get("emits", []):
-            item = copy.deepcopy(emit)
-            item["outcome"] = outcome_id
-            emits_domain_events.append(item)
-
-    command = {
-        "input_schema": application_action["input"],
-        "effects": effects,
-        "outcomes": _outcomes_without_domain_event_emits(application_action["outcomes"]),
-        "emits_domain_events": emits_domain_events,
-        "rationale": application_action["rationale"],
-    }
-    if application_action.get("authorization"):
-        command["authorization"] = copy.deepcopy(application_action["authorization"])
-    if application_action.get("retry_safe"):
-        command["retry_safe"] = True
-    return command
-
-
-def _query_from_application_action(application_action: dict[str, Any]) -> dict[str, Any]:
-    success_results = [
-        outcome["result"]
-        for outcome in application_action["outcomes"].values()
-        if outcome["kind"] == "success"
-    ]
-    return {
-        "input_schema": application_action["input"],
-        "result_schema": copy.deepcopy(success_results[0] if success_results else EMPTY_OBJECT_SCHEMA),
-        "outcomes": _outcomes_without_domain_event_emits(application_action["outcomes"]),
-        "rationale": application_action["rationale"],
-    }
+        effects["lifecycle_transition"] = derived
 
 
 def _derive_domain_events(contract: dict[str, Any]) -> dict[str, Any]:
     domain_events: dict[str, Any] = copy.deepcopy(contract.get("domain_events", {}))
-    for application_action_id, operation in sorted(contract["application_actions"].items()):
-        for outcome_id, outcome in sorted(operation["outcomes"].items()):
-            for emit in outcome.get("emits", []):
-                event_id = _emit_domain_event_id(emit)
-                if outcome["kind"] != "success":
-                    raise ContractError(f"Application action {application_action_id} failure outcome {outcome_id} must not emit domain events")
-                payload_type = domain_events.get(event_id, {}).get("payload_schema", outcome["result"])
-                event = domain_events.setdefault(event_id, {
-                    "emitted_by": [],
-                    "payload_schema": payload_type,
-                    "rationale": operation["rationale"],
-                })
-                _validate_emit_payload_mapping(contract, application_action_id, operation, outcome_id, outcome, event_id, event["payload_schema"], emit)
-                event["emitted_by"].append(application_action_id)
+    for command_id, command in sorted(contract["commands"].items()):
+        for emit in command.get("emits_domain_events", []):
+            outcome_id = emit["outcome"]
+            outcome = command["outcomes"].get(outcome_id)
+            if not outcome:
+                raise ContractError(f"Command {command_id} emits_domain_events references unknown outcome {outcome_id}")
+            event_id = _emit_domain_event_id(emit)
+            if outcome["kind"] != "success":
+                raise ContractError(f"Command {command_id} failure outcome {outcome_id} must not emit domain events")
+            payload_type = domain_events.get(event_id, {}).get("payload_schema", outcome["result"])
+            event = domain_events.setdefault(event_id, {
+                "emitted_by": [],
+                "payload_schema": payload_type,
+                "rationale": command["rationale"],
+            })
+            _validate_emit_payload_mapping(contract, command_id, command, outcome_id, outcome, event_id, event["payload_schema"], emit)
+            event["emitted_by"].append(command_id)
     return domain_events
 
 
@@ -727,9 +722,9 @@ def _emit_domain_event_id(emit: Any) -> str:
 
 def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
     refs: dict[str, set[str]] = {kind: set() for kind in REF_KINDS}
-    refs["authorization_policy"].update(contract.get("authorization_policies", {}))
+    refs["access_policy"].update(contract.get("access_policies", {}))
     refs["text"].update(contract.get("text_resources", {}))
-    refs["asset"].update(contract.get("assets", {}))
+    refs["asset"].update(contract.get("media_assets", {}))
     for state_machine_id in contract["state_machines"]:
         refs["state_machine"].add(state_machine_id)
     for state_machine_id, owner in contract["state_machines"].items():
@@ -767,15 +762,15 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
                     if signal:
                         kind, signal_id = _signal_raise_selector_key(signal)
                         refs["local_signal_raise"].add(
-                            _generated_application_action_local_signal_raise_ref(state_machine_id, state_name, invocation_id, outcome_id, kind, signal_id)
+                            _generated_command_local_signal_raise_ref(state_machine_id, state_name, invocation_id, outcome_id, kind, signal_id)
                         )
-    for entry_id, entry in contract["entry_points"].items():
-        target_kind, target_ref = entry_target_pair(entry)
-        refs["entry_point_target"].add(_generated_entry_point_target_ref(entry_id, target_kind, target_ref))
-        if target_kind == "entry_point":
-            refs["entry_point_delegate"].add(_generated_entry_point_delegate_ref(entry_id, target_ref))
-        if entry_point_adapter_pair(entry)[0] == "cli":
-            for outcome_id, handler in sorted(entry_point_response_handlers(entry).items()):
+    for entry_id, entry in contract["external_interfaces"].items():
+        target_kind, target_ref = external_interface_target_ref_pair(entry)
+        refs["external_interface_target"].add(_generated_external_interface_target_ref(entry_id, target_kind, target_ref))
+        if target_kind == "external_interface":
+            refs["external_interface_delegate"].add(_generated_external_interface_delegate_ref(entry_id, target_ref))
+        if external_interface_adapter_pair(entry)[0] == "cli":
+            for outcome_id, handler in sorted(external_interface_response_handlers(entry).items()):
                 refs["cli_response_handler"].add(_generated_cli_response_handler_ref(entry_id, outcome_id))
                 for stream_name in ("stdout", "stderr"):
                     output = handler.get(stream_name) or {}
@@ -799,12 +794,12 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
     return {kind: sorted(values) for kind, values in sorted(refs.items()) if values}
 
 
-def _generated_entry_point_target_ref(entry_id: str, target_kind: str, target_ref: str) -> str:
-    return f"entry_point_target.{rules.resource_tail(entry_id)}.{target_kind}.{rules.resource_tail(target_ref)}"
+def _generated_external_interface_target_ref(entry_id: str, target_kind: str, target_ref: str) -> str:
+    return f"external_interface_target.{rules.resource_tail(entry_id)}.{target_kind}.{rules.resource_tail(target_ref)}"
 
 
-def _generated_entry_point_delegate_ref(entry_id: str, delegated_entry_id: str) -> str:
-    return f"entry_point_delegate.{rules.resource_tail(entry_id)}.to.{rules.resource_tail(delegated_entry_id)}"
+def _generated_external_interface_delegate_ref(entry_id: str, delegated_entry_id: str) -> str:
+    return f"external_interface_delegate.{rules.resource_tail(entry_id)}.to.{rules.resource_tail(delegated_entry_id)}"
 
 
 def _generated_cli_response_handler_ref(entry_id: str, outcome_id: str) -> str:
@@ -833,7 +828,7 @@ def _generated_data_loader_outcome_effect_ref(state_machine_id: str, state_name:
     return f"data_loader_outcome_effect.{rules.resource_tail(state_machine_id)}{state_part}.{invocation_id}.{outcome_id}"
 
 
-def _generated_application_action_local_signal_raise_ref(
+def _generated_command_local_signal_raise_ref(
     state_machine_id: str,
     state_name: str,
     invocation_id: str,
@@ -876,17 +871,17 @@ def _state_machine_has_textual_screen(state_machine: dict[str, Any]) -> bool:
 def _semantic_validate(contract: dict[str, Any], used_preconditions: set[str], used_assertions: set[str]) -> None:
     _validate_text_assets(contract)
     _validate_content_examples(contract)
-    _validate_render_profiles(contract)
+    _validate_viewport_profiles(contract)
     _validate_schemas(contract)
     _validate_entity_types(contract)
     _validate_type_references(contract)
-    _validate_application_actions(contract)
-    _validate_entry_point_delegation_graph(contract)
-    _validate_entry_point_response_maps(contract)
+    _validate_commands(contract)
+    _validate_external_interface_delegation_graph(contract)
+    _validate_external_interface_response_maps(contract)
     _validate_state_machines(contract)
     _validate_state_machine_signal_payload_consistency(contract)
     _validate_entries(contract)
-    _validate_authorization_policies(contract)
+    _validate_access_policies(contract)
     _validate_workflows(contract)
     _validate_fixtures(contract)
     _validate_preconditions(contract)
@@ -905,14 +900,14 @@ def _validate_text_assets(contract: dict[str, Any]) -> None:
         for state in owner.get("view_states", {}).values():
             used_text.update(state.get("text", []))
             used_assets.update(state.get("assets", []))
-    for entry in contract.get("entry_points", {}).values():
-        for handler in entry_point_response_handlers(entry).values():
+    for entry in contract.get("external_interfaces", {}).values():
+        for handler in external_interface_response_handlers(entry).values():
             for stream in ("stdout", "stderr"):
                 output = handler.get(stream) or {}
                 if output.get("text"):
                     used_text.add(output["text"])
     declared_text = set(contract.get("text_resources", {}))
-    declared_assets = set(contract.get("assets", {}))
+    declared_assets = set(contract.get("media_assets", {}))
     if declared_text != used_text:
         raise ContractError(_diff_message("text resources", used_text, declared_text))
     if declared_assets != used_assets:
@@ -921,7 +916,7 @@ def _validate_text_assets(contract: dict[str, Any]) -> None:
         max_chars = item.get("max_chars")
         if max_chars is not None and len(item["placeholder"]) > max_chars:
             raise ContractError(f"Text resource {text_id} placeholder exceeds max_chars")
-    for asset_id, item in contract.get("assets", {}).items():
+    for asset_id, item in contract.get("media_assets", {}).items():
         alt_text = item.get("alt_text")
         if alt_text and alt_text not in declared_text:
             raise ContractError(f"Asset {asset_id} alt_text references unknown text resource {alt_text}")
@@ -932,12 +927,12 @@ def _validate_text_assets(contract: dict[str, Any]) -> None:
 def _validate_content_examples(contract: dict[str, Any]) -> None:
     final_refs = {
         ref
-        for section in ["text_resources", "assets"]
+        for section in ["text_resources", "media_assets"]
         for ref, item in contract.get(section, {}).items()
         if item.get("source_ref")
     }
     declared_example_refs: set[str] = set()
-    for ref, item in list(contract.get("text_resources", {}).items()) + list(contract.get("assets", {}).items()):
+    for ref, item in list(contract.get("text_resources", {}).items()) + list(contract.get("media_assets", {}).items()):
         source_ref = item.get("source_ref")
         if source_ref:
             if source_ref != ref:
@@ -947,7 +942,7 @@ def _validate_content_examples(contract: dict[str, Any]) -> None:
                 pass
     for case_id, case in contract.get("content_examples", {}).items():
         ref = case["ref"]
-        section = "text_resources" if ref.startswith("text.") else "assets"
+        section = "text_resources" if ref.startswith("text.") else "media_assets"
         if ref not in contract.get(section, {}):
             label = "text resource" if section == "text_resources" else "asset"
             raise ContractError(f"Content example {case_id} references unknown {label} {ref}")
@@ -966,24 +961,24 @@ def _validate_content_examples(contract: dict[str, Any]) -> None:
         raise ContractError("Final content resolvers require content_example coverage: " + ", ".join(missing))
 
 
-def _validate_render_profiles(contract: dict[str, Any]) -> None:
+def _validate_viewport_profiles(contract: dict[str, Any]) -> None:
     required_renderers = {
         renderer
         for state_machine in contract.get("state_machines", {}).values()
         for state in state_machine.get("view_states", {}).values()
         for renderer in _view_state_renderers(state)
     }
-    if required_renderers and not contract.get("render_profiles"):
-        raise ContractError("At least one render_profile is required when renderable state_machines are declared")
+    if required_renderers and not contract.get("viewport_profiles"):
+        raise ContractError("At least one viewport_profile is required when renderable state_machines are declared")
     available_renderers = set()
-    for profile in contract.get("render_profiles", {}).values():
+    for profile in contract.get("viewport_profiles", {}).values():
         if profile.get("html_viewports"):
             available_renderers.add("html")
         if profile.get("textual_viewports"):
             available_renderers.add("textual")
     missing = sorted(required_renderers - available_renderers)
     if missing:
-        raise ContractError("Renderable state_machines require render_profile viewports for: " + ", ".join(missing))
+        raise ContractError("Renderable state_machines require viewport_profile viewports for: " + ", ".join(missing))
 
 
 def _validate_render_examples(contract: dict[str, Any]) -> None:
@@ -1109,9 +1104,9 @@ def _validate_entity_types(contract: dict[str, Any]) -> None:
         for lifecycle_transition in entity_lifecycle.get("lifecycle_transitions", []):
             if lifecycle_transition["from"] not in states or lifecycle_transition["to"] not in states:
                 raise ContractError(f"Entity type {rid} lifecycle_transition uses unknown lifecycle_state: {lifecycle_transition}")
-            if lifecycle_transition["triggered_by"] not in contract["application_actions"]:
+            if lifecycle_transition["triggered_by"] not in _operations(contract):
                 raise ContractError(
-                    f"Entity type {rid} lifecycle_transition references unknown application action {lifecycle_transition['triggered_by']}"
+                    f"Entity type {rid} lifecycle_transition references unknown command {lifecycle_transition['triggered_by']}"
                 )
 
 
@@ -1128,11 +1123,11 @@ def _validate_type_references(contract: dict[str, Any]) -> None:
         _validate_type_reference(contract, f"Entity type {entity_type_id} schema", entity_type["schema"])
     for schema_id, schema in contract.get("schemas", {}).items():
         _validate_type_reference(contract, f"Schema {schema_id}", schema["schema"])
-    for application_action_id, application_action in contract.get("application_actions", {}).items():
-        for field_name, schema in _application_action_input(application_action).items():
-            _validate_type_reference(contract, f"Application action {application_action_id} input {field_name}", schema)
-        for outcome_id, outcome in application_action.get("outcomes", {}).items():
-            _validate_type_reference(contract, f"Application action {application_action_id} outcome {outcome_id}", outcome["result"])
+    for command_id, command in _operations(contract).items():
+        for field_name, schema in _command_input(command).items():
+            _validate_type_reference(contract, f"Command {command_id} input {field_name}", schema)
+        for outcome_id, outcome in command.get("outcomes", {}).items():
+            _validate_type_reference(contract, f"Command {command_id} outcome {outcome_id}", outcome["result"])
     for state_machine_id, state_machine in contract.get("state_machines", {}).items():
         for field_name, field in _state_machine_context(state_machine).items():
             _validate_type_reference(contract, f"State machine {state_machine_id} context {field_name}", field)
@@ -1156,81 +1151,85 @@ def _validate_type_reference(contract: dict[str, Any], label: str, expr: Any) ->
             raise ContractError(f"{label} references unknown schema ref {ref}")
 
 
-def _validate_application_actions(contract: dict[str, Any]) -> None:
+def _validate_commands(contract: dict[str, Any]) -> None:
     entity_types = contract["entity_types"]
-    application_actions = contract["application_actions"]
-    for cid, cap in application_actions.items():
-        _validate_application_action_relationships(cid, cap, entity_types)
-        _validate_action_authorization_outcomes(cid, cap)
+    commands = _operations(contract)
+    for cid, cap in commands.items():
+        _validate_command_relationships(cid, cap, entity_types)
+        _validate_command_authorization_outcomes(cid, cap)
         lifecycle_transition = cap.get("lifecycle_transition")
         if lifecycle_transition:
             entity_type_ref = lifecycle_transition["entity_type"]
             entity_lifecycle = entity_types[entity_type_ref].get("entity_lifecycle")
             if not entity_lifecycle:
-                raise ContractError(f"Application action {cid} declares lifecycle_transition but {entity_type_ref} has no entity_lifecycle")
+                raise ContractError(f"Command {cid} declares lifecycle_transition but {entity_type_ref} has no entity_lifecycle")
+            if not any(
+                transition["triggered_by"] == cid
+                for transition in entity_lifecycle.get("lifecycle_transitions", [])
+            ):
+                raise ContractError(f"Lifecycle-transition command {cid} must be referenced by entity_lifecycle declarations")
             if lifecycle_transition["field"] != entity_lifecycle["field"]:
-                raise ContractError(f"Application action {cid} lifecycle_transition field does not match entity_lifecycle")
+                raise ContractError(f"Command {cid} lifecycle_transition field does not match entity_lifecycle")
             if lifecycle_transition["from"] not in entity_lifecycle["lifecycle_states"] or lifecycle_transition["to"] not in entity_lifecycle["lifecycle_states"]:
-                raise ContractError(f"Application action {cid} lifecycle_transition references unknown lifecycle_state")
+                raise ContractError(f"Command {cid} lifecycle_transition references unknown lifecycle_state")
     for rid, entity_type in entity_types.items():
         entity_lifecycle = entity_type.get("entity_lifecycle")
         if not entity_lifecycle:
             continue
         for lifecycle_transition in entity_lifecycle.get("lifecycle_transitions", []):
             triggered_by = lifecycle_transition["triggered_by"]
-            operation = application_actions[triggered_by]
+            operation = commands[triggered_by]
             if operation["action_kind"] != "lifecycle_transition":
                 raise ContractError(
-                    f"Entity type {rid} lifecycle_transition {triggered_by} must reference a lifecycle_transition application action"
+                    f"Entity type {rid} lifecycle_transition {triggered_by} must reference a lifecycle_transition command"
                 )
             transition_not_allowed = operation["outcomes"].get("transition_not_allowed")
             if not transition_not_allowed or transition_not_allowed["kind"] != "failure":
                 raise ContractError(
-                    f"Lifecycle-transition application action {triggered_by} referenced by entity_lifecycle must declare transition_not_allowed failure outcome"
+                    f"Lifecycle-transition command {triggered_by} referenced by entity_lifecycle must declare transition_not_allowed failure outcome"
                 )
             cap_transition = operation.get("lifecycle_transition")
             if not cap_transition:
-                raise ContractError(f"Lifecycle-transition application action {triggered_by} must be referenced by entity_lifecycle declarations")
+                raise ContractError(f"Lifecycle-transition command {triggered_by} must be referenced by entity_lifecycle declarations")
             if (
                 cap_transition["entity_type"] != rid
                 or cap_transition["from"] != lifecycle_transition["from"]
                 or cap_transition["to"] != lifecycle_transition["to"]
             ):
-                raise ContractError(f"Entity type {rid} entity_lifecycle and application action {triggered_by} disagree")
+                raise ContractError(f"Entity type {rid} entity_lifecycle and command {triggered_by} disagree")
     for event_id, event in contract["domain_events"].items():
         for cap_id in event["emitted_by"]:
-            if cap_id not in application_actions:
-                raise ContractError(f"Domain event {event_id} emitted by unknown application action {cap_id}")
+            if cap_id not in commands:
+                raise ContractError(f"Domain event {event_id} emitted by unknown command {cap_id}")
 
 
-def _validate_application_action_relationships(cid: str, cap: dict[str, Any], entity_types: dict[str, Any]) -> None:
+def _validate_command_relationships(cid: str, cap: dict[str, Any], entity_types: dict[str, Any]) -> None:
     _validate_action_outcomes(cid, cap)
     for field in ["creates", "reads", "updates", "deletes"]:
         for entity_type_id in cap.get(field, []):
             if entity_type_id not in entity_types:
-                raise ContractError(f"Application action {cid} {field} unknown entity_type {entity_type_id}")
+                raise ContractError(f"Command {cid} {field} unknown entity_type {entity_type_id}")
 
     if "lifecycle_transition" in cap:
         entity_type_ref = cap["lifecycle_transition"]["entity_type"]
         if entity_type_ref not in entity_types:
-            raise ContractError(f"Application action {cid} lifecycle_transition references unknown entity_type {entity_type_ref}")
+            raise ContractError(f"Command {cid} lifecycle_transition references unknown entity_type {entity_type_ref}")
 
     action_kind = cap["action_kind"]
     if action_kind == "query":
-        _require_relationship(cid, cap, "reads")
         _reject_non_empty_relationships(cid, cap, {"creates", "updates", "deletes"})
         if "lifecycle_transition" in cap:
-            raise ContractError(f"Query application action {cid} must not declare lifecycle_transition")
+            raise ContractError(f"Query command {cid} must not declare lifecycle_transition")
         emitting_outcomes = sorted(outcome_id for outcome_id, outcome in cap["outcomes"].items() if outcome.get("emits"))
         if emitting_outcomes:
-            raise ContractError(f"Query application action {cid} must not emit domain events: {emitting_outcomes}")
+            raise ContractError(f"Query command {cid} must not emit domain events: {emitting_outcomes}")
         _validate_query_success_result(cid, cap)
     elif action_kind == "command":
         if "lifecycle_transition" in cap:
-            raise ContractError(f"Only lifecycle_transition application_actions may declare lifecycle_transition: {cid}")
+            raise ContractError(f"Only lifecycle_transition commands may declare lifecycle_transition: {cid}")
     elif action_kind == "lifecycle_transition":
         if "lifecycle_transition" not in cap:
-            raise ContractError(f"Lifecycle-transition application action {cid} must be referenced by entity_lifecycle declarations")
+            raise ContractError(f"Lifecycle-transition command {cid} must be referenced by entity_lifecycle declarations")
         _reject_non_empty_relationships(cid, cap, {"creates", "reads", "updates", "deletes"})
         _require_output_entity_type(cid, cap, cap["lifecycle_transition"]["entity_type"])
     else:  # pragma: no cover - schema prevents this.
@@ -1239,25 +1238,25 @@ def _validate_application_action_relationships(cid: str, cap: dict[str, Any], en
 
 def _require_relationship(cid: str, cap: dict[str, Any], field: str) -> None:
     if not cap.get(field):
-        raise ContractError(f"Application action {cid} action_kind {cap['action_kind']} must declare {field}")
+        raise ContractError(f"Command {cid} action_kind {cap['action_kind']} must declare {field}")
 
 
 def _require_exact_relationship(cid: str, cap: dict[str, Any], field: str, count: int) -> None:
     _require_relationship(cid, cap, field)
     actual = len(cap[field])
     if actual != count:
-        raise ContractError(f"Application action {cid} action_kind {cap['action_kind']} must declare exactly {count} {field}")
+        raise ContractError(f"Command {cid} action_kind {cap['action_kind']} must declare exactly {count} {field}")
 
 
 def _reject_non_empty_relationships(cid: str, cap: dict[str, Any], fields: set[str]) -> None:
     extras = sorted(field for field in fields if cap.get(field))
     if extras:
-        raise ContractError(f"Application action {cid} action_kind {cap['action_kind']} does not support effects: {extras}")
+        raise ContractError(f"Command {cid} action_kind {cap['action_kind']} does not support effects: {extras}")
 
 
 def _require_output_entity_type(cid: str, cap: dict[str, Any], expected_entity_type: str) -> None:
     if entity_type_id(_success_result_type(cap)) != expected_entity_type:
-        raise ContractError(f"Application action {cid} success outcome result must be {expected_entity_type}")
+        raise ContractError(f"Command {cid} success outcome result must be {expected_entity_type}")
 
 
 def _validate_query_success_result(cid: str, cap: dict[str, Any]) -> None:
@@ -1269,7 +1268,7 @@ def _validate_query_success_result(cid: str, cap: dict[str, Any]) -> None:
     if entity_type_id(result_type) == expected_entity_type or is_array_of_entity_type(result_type, expected_entity_type):
         return
     raise ContractError(
-        f"Application action {cid} query success outcome result must be {expected_entity_type} "
+        f"Command {cid} query success outcome result must be {expected_entity_type} "
         f"or {type_display(array_of({'$ref': expected_entity_type}))}"
     )
 
@@ -1279,113 +1278,113 @@ def _validate_action_outcomes(cid: str, cap: dict[str, Any]) -> None:
     successes = _success_outcomes(cap)
     failures = _failure_outcomes(cap)
     if len(successes) != 1:
-        raise ContractError(f"Application action {cid} must declare exactly one success outcome")
+        raise ContractError(f"Command {cid} must declare exactly one success outcome")
     if not failures:
-        raise ContractError(f"Application action {cid} must declare at least one failure outcome")
+        raise ContractError(f"Command {cid} must declare at least one failure outcome")
     unknown_kinds = sorted(
         f"{name}:{outcome['kind']}" for name, outcome in outcomes.items() if outcome["kind"] not in {"success", "failure"}
     )
     if unknown_kinds:
-        raise ContractError(f"Application action {cid} has unsupported outcome kinds: {unknown_kinds}")
+        raise ContractError(f"Command {cid} has unsupported outcome kinds: {unknown_kinds}")
     for outcome_id, outcome in outcomes.items():
         emits = outcome.get("emits", [])
         emit_ids = [_emit_domain_event_id(emit) for emit in emits]
         if len(emit_ids) != len(set(emit_ids)):
-            raise ContractError(f"Application action {cid} outcome {outcome_id} emits duplicate domain events")
+            raise ContractError(f"Command {cid} outcome {outcome_id} emits duplicate domain events")
         if outcome["kind"] == "failure":
             if emits:
-                raise ContractError(f"Application action {cid} failure outcome {outcome_id} must not emit domain events")
+                raise ContractError(f"Command {cid} failure outcome {outcome_id} must not emit domain events")
             if not is_problem_type(outcome["result"]):
-                raise ContractError(f"Application action {cid} failure outcome {outcome_id} result must be Problem or a *Problem type")
+                raise ContractError(f"Command {cid} failure outcome {outcome_id} result must be Problem or a *Problem type")
 
 
-def _validate_action_authorization_outcomes(application_action_id: str, application_action: dict[str, Any]) -> None:
-    authorization = application_action.get("authorization")
+def _validate_command_authorization_outcomes(command_id: str, command: dict[str, Any]) -> None:
+    authorization = command.get("authorization")
     if not authorization:
         return
     authentication_required_as = authorization["authentication_required_as"]
     access_denied_as = authorization["access_denied_as"]
     if authentication_required_as == access_denied_as:
         raise ContractError(
-            f"Application action {application_action_id} authorization authentication_required_as and access_denied_as must be distinct outcomes"
+            f"Command {command_id} authorization authentication_required_as and access_denied_as must be distinct outcomes"
         )
     for field in ("authentication_required_as", "access_denied_as"):
         outcome_id = authorization[field]
-        outcome = application_action["outcomes"].get(outcome_id)
+        outcome = command["outcomes"].get(outcome_id)
         if not outcome:
             raise ContractError(
-                f"Application action {application_action_id} authorization.{field} references unknown outcome {outcome_id}"
+                f"Command {command_id} authorization.{field} references unknown outcome {outcome_id}"
             )
         if outcome["kind"] != "failure":
             raise ContractError(
-                f"Application action {application_action_id} authorization.{field} must map to a failure outcome: {outcome_id}"
+                f"Command {command_id} authorization.{field} must map to a failure outcome: {outcome_id}"
             )
         if outcome.get("emits"):
             raise ContractError(
-                f"Application action {application_action_id} authorization.{field} outcome {outcome_id} must not emit domain events"
+                f"Command {command_id} authorization.{field} outcome {outcome_id} must not emit domain events"
             )
 
 
-def _validate_authorization_policies(contract: dict[str, Any]) -> None:
-    authorization_policies = contract["authorization_policies"]
-    application_actions = contract["application_actions"]
-    entry_points = contract["entry_points"]
-    _validate_authorization_policy_reuse(authorization_policies)
-    for application_action_id, application_action in application_actions.items():
-        authorization = application_action.get("authorization")
+def _validate_access_policies(contract: dict[str, Any]) -> None:
+    access_policies = contract["access_policies"]
+    commands = _operations(contract)
+    external_interfaces = contract["external_interfaces"]
+    _validate_access_policy_reuse(access_policies)
+    for command_id, command in commands.items():
+        authorization = command.get("authorization")
         if not authorization:
             continue
         policy_id = authorization["policy"]
-        if policy_id not in authorization_policies:
-            raise ContractError(f"Application action {application_action_id} authorization.policy references unknown authorization policy {policy_id}")
-        if not _authorization_policy_covers_resource(authorization_policies[policy_id], "application_action", application_action_id):
-            raise ContractError(f"Application action {application_action_id} authorization.policy {policy_id} must cover application action resource")
-    for entry_id, entry in entry_points.items():
-        policy_id = entry.get("authorization_policy")
+        if policy_id not in access_policies:
+            raise ContractError(f"Command {command_id} authorization.policy references unknown access policy {policy_id}")
+        if not _access_policy_covers_resource(access_policies[policy_id], "query" if command_id.startswith("query.") else "command", command_id):
+            raise ContractError(f"Command {command_id} authorization.policy {policy_id} must cover command or query resource")
+    for entry_id, entry in external_interfaces.items():
+        policy_id = entry.get("access_policy")
         if not policy_id:
             continue
-        if policy_id not in authorization_policies:
-            raise ContractError(f"Entry point {entry_id} references unknown authorization policy {policy_id}")
-        invoked_kind, invoked_ref = entry_target_pair(entry)
-        if not _authorization_policy_covers_resource(authorization_policies[policy_id], "entry_point", entry_id) and not _authorization_policy_covers_resource(authorization_policies[policy_id], invoked_kind, invoked_ref):
-            raise ContractError(f"Entry point {entry_id} authorization_policy {policy_id} must cover entry point or invoked resource")
-    for policy_id, policy in authorization_policies.items():
+        if policy_id not in access_policies:
+            raise ContractError(f"External interface {entry_id} references unknown access policy {policy_id}")
+        invoked_kind, invoked_ref = external_interface_target_ref_pair(entry)
+        if not _access_policy_covers_resource(access_policies[policy_id], "external_interface", entry_id) and not _access_policy_covers_resource(access_policies[policy_id], invoked_kind, invoked_ref):
+            raise ContractError(f"External interface {entry_id} access_policy {policy_id} must cover external interface or invoked resource")
+    for policy_id, policy in access_policies.items():
         for resource in policy["resources"]:
-            kind, ref = _one(resource, f"Authorization policy {policy_id} resource")
+            kind, ref = _one(resource, f"Access policy {policy_id} resource")
             if kind == "entity_type" and ref not in contract["entity_types"]:
-                raise ContractError(f"Authorization policy {policy_id} resource references unknown entity_type {ref}")
-            if kind == "action" and ref not in application_actions:
-                raise ContractError(f"Authorization policy {policy_id} resource references unknown application action {ref}")
-            if kind == "entry_point" and ref not in entry_points:
-                raise ContractError(f"Authorization policy {policy_id} resource references unknown entry point {ref}")
+                raise ContractError(f"Access policy {policy_id} resource references unknown entity_type {ref}")
+            if kind == "action" and ref not in commands:
+                raise ContractError(f"Access policy {policy_id} resource references unknown command or query {ref}")
+            if kind == "external_interface" and ref not in external_interfaces:
+                raise ContractError(f"Access policy {policy_id} resource references unknown external interface {ref}")
         for condition in policy.get("conditions", []):
-            kind, body = _one(condition, f"Authorization policy {policy_id} condition")
+            kind, body = _one(condition, f"Access policy {policy_id} condition")
             if kind in {"unconditional", "input_present", "subject_has_role", "value_equals"}:
                 continue
             if kind in {"entity_exists", "entity_state_condition"}:
                 entity_type_id = body["entity_type"]
                 if entity_type_id not in contract["entity_types"]:
-                    raise ContractError(f"Authorization policy {policy_id} condition references unknown entity_type {entity_type_id}")
+                    raise ContractError(f"Access policy {policy_id} condition references unknown entity_type {entity_type_id}")
                 if kind == "entity_state_condition" and body["field"] not in _schema_fields(contract["entity_types"][entity_type_id]["schema"]):
-                    raise ContractError(f"Authorization policy {policy_id} condition references unknown {entity_type_id} field {body['field']}")
+                    raise ContractError(f"Access policy {policy_id} condition references unknown {entity_type_id} field {body['field']}")
                 continue
-            raise ContractError(f"Authorization policy {policy_id} condition is unsupported: {kind}")
+            raise ContractError(f"Access policy {policy_id} condition is unsupported: {kind}")
 
 
-def _validate_authorization_policy_reuse(authorization_policies: dict[str, Any]) -> None:
+def _validate_access_policy_reuse(access_policies: dict[str, Any]) -> None:
     fingerprints: dict[str, str] = {}
-    for policy_id, policy in authorization_policies.items():
-        fingerprint = _authorization_policy_rule_fingerprint(policy)
+    for policy_id, policy in access_policies.items():
+        fingerprint = _access_policy_rule_fingerprint(policy)
         existing = fingerprints.get(fingerprint)
         if existing:
             raise ContractError(
                 f"Authorization policies {existing} and {policy_id} have identical subjects, effect, and conditions; "
-                "reuse one authorization_policy with combined resources instead of duplicating rule sets"
+                "reuse one access_policy with combined resources instead of duplicating rule sets"
             )
         fingerprints[fingerprint] = policy_id
 
 
-def _authorization_policy_rule_fingerprint(policy: dict[str, Any]) -> str:
+def _access_policy_rule_fingerprint(policy: dict[str, Any]) -> str:
     subjects = sorted(_canonical_json(subject) for subject in policy.get("subjects", []))
     conditions = sorted(_canonical_json(condition) for condition in policy.get("conditions", []))
     return _canonical_json(
@@ -1402,16 +1401,16 @@ def _canonical_json(value: Any) -> str:
 
 
 def _authorization_resource_kind(kind: str) -> str:
-    return "action" if kind == "application_action" else kind
+    return "action" if kind in {"command", "query"} else kind
 
 
-def _authorization_policy_covers_resource(policy: dict[str, Any], kind: str, ref: str) -> bool:
+def _access_policy_covers_resource(policy: dict[str, Any], kind: str, ref: str) -> bool:
     resource_kind = _authorization_resource_kind(kind)
     return any(resource == {resource_kind: ref} for resource in policy.get("resources", []))
 
 
 def _authorization_assertion_resource(assertion: dict[str, Any], label: str) -> tuple[str, str]:
-    items = [(key, assertion[key]) for key in ("application_action", "entry_point") if key in assertion]
+    items = [(key, assertion[key]) for key in ("command", "external_interface") if key in assertion]
     if len(items) != 1:
         raise ContractError(f"{label} must contain exactly one authorization resource")
     return items[0]
@@ -1419,17 +1418,17 @@ def _authorization_assertion_resource(assertion: dict[str, Any], label: str) -> 
 
 def _validate_emit_payload_mapping(
     contract: dict[str, Any],
-    application_action_id: str,
-    application_action: dict[str, Any],
+    command_id: str,
+    command: dict[str, Any],
     outcome_id: str,
     outcome: dict[str, Any],
     event_id: str,
     event_payload: Any,
     emit: Any,
 ) -> None:
-    label = f"Application action {application_action_id} outcome {outcome_id} emit {event_id}"
+    label = f"Command {command_id} outcome {outcome_id} emit {event_id}"
     source_scopes: TypeScopes = {
-        "operation_input": _type_scope(_application_action_input(application_action)),
+        "operation_input": _type_scope(_command_input(command)),
         "action_outcome": _typed_source_paths(contract, ("result",), outcome["result"]),
     }
 
@@ -1538,11 +1537,11 @@ def _validate_action_bindings(
     context = _state_machine_context(state_machine)
     for invocation_id, invocation in sorted((state.get("action_bindings") or {}).items()):
         label = f"{owner_label}.{state_name} action_binding {invocation_id}"
-        application_action_id = invocation["application_action"]
-        if application_action_id not in contract["application_actions"]:
-            raise ContractError(f"{label} references unknown application action {application_action_id}")
-        application_action = contract["application_actions"][application_action_id]
-        expected_input = _application_action_input(application_action)
+        command_id = _invocation_operation_ref(invocation)
+        if command_id not in _operations(contract):
+            raise ContractError(f"{label} references unknown command {command_id}")
+        command = _operations(contract)[command_id]
+        expected_input = _command_input(command)
         bindings = invocation.get("input_bindings") or {}
         _validate_binding_map(
             contract,
@@ -1552,7 +1551,7 @@ def _validate_action_bindings(
             {"state_context": _type_scope(context), "principal": ACTOR_SOURCE_SCOPE},
         )
         _lint_literal_actor_bindings(label, bindings)
-        _validate_action_binding_outcome_effects(contract, label, state_machine, invocation, application_action_id, application_action)
+        _validate_action_binding_outcome_effects(contract, label, state_machine, invocation, command_id, command)
 
 
 def _lint_literal_actor_bindings(label: str, bindings: dict[str, Any]) -> None:
@@ -1572,11 +1571,11 @@ def _validate_action_binding_outcome_effects(
     label: str,
     state_machine: dict[str, Any],
     invocation: dict[str, Any],
-    application_action_id: str,
-    application_action: dict[str, Any],
+    command_id: str,
+    command: dict[str, Any],
 ) -> None:
     effects = invocation["outcome_effects"]
-    expected_outcomes = set(application_action["outcomes"])
+    expected_outcomes = set(command["outcomes"])
     actual_outcomes = set(effects)
     if actual_outcomes != expected_outcomes:
         missing = sorted(expected_outcomes - actual_outcomes)
@@ -1586,24 +1585,24 @@ def _validate_action_binding_outcome_effects(
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"{label} outcome_effects must exactly map application action outcomes" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"{label} outcome_effects must exactly map command outcomes" + (": " + "; ".join(parts) if parts else ""))
 
     for outcome_id, effect in sorted(effects.items()):
         effect_label = f"{label} outcome_effects.{outcome_id}"
-        outcome = application_action["outcomes"][outcome_id]
+        outcome = command["outcomes"][outcome_id]
         if _validate_no_local_effect(
             effect_label,
             outcome,
             effect,
             effect_scope="action_binding",
-            has_response_surface=_application_action_has_response_surface(contract, application_action_id, outcome_id),
-            authorization_outcome=outcome_id in _action_authorization_outcomes(application_action),
+            has_response_surface=_command_has_response_surface(contract, command_id, outcome_id),
+            authorization_outcome=outcome_id in _command_authorization_outcomes(command),
         ):
             continue
         signal = effect.get("raise")
         if not signal:
             raise ContractError(f"{effect_label} must raise a local signal or declare no_local_effect")
-        _lint_mutation_loaded_signal(effect_label, application_action, signal, effect)
+        _lint_mutation_loaded_signal(effect_label, command, signal, effect)
         payload = _state_machine_signal_payload(
             state_machine,
             "accepts",
@@ -1615,13 +1614,13 @@ def _validate_action_binding_outcome_effects(
             label=f"{effect_label} raise payload_bindings",
             bindings=signal.get("payload_bindings"),
             payload=payload,
-            scopes=_action_outcome_effect_scopes(state_machine, application_action, outcome),
+            scopes=_action_outcome_effect_scopes(state_machine, command, outcome),
         )
 
 
-def _lint_mutation_loaded_signal(label: str, application_action: dict[str, Any], signal: dict[str, Any], effect: dict[str, Any]) -> None:
+def _lint_mutation_loaded_signal(label: str, command: dict[str, Any], signal: dict[str, Any], effect: dict[str, Any]) -> None:
     data_refresh_signal = signal.get("data_refresh_signal")
-    if application_action.get("action_kind") not in {"command", "lifecycle_transition"} or not data_refresh_signal:
+    if command.get("action_kind") not in {"command", "lifecycle_transition"} or not data_refresh_signal:
         return
     if data_refresh_signal == "loaded" or data_refresh_signal.endswith("_loaded"):
         has_loaded_payload = bool(signal.get("payload_bindings")) or "result_binding" in effect or "context_updates" in effect
@@ -1673,33 +1672,33 @@ def _validate_no_local_effect(
     return True
 
 
-def _action_authorization_outcomes(application_action: dict[str, Any]) -> set[str]:
-    authorization = application_action.get("authorization") or {}
+def _command_authorization_outcomes(command: dict[str, Any]) -> set[str]:
+    authorization = command.get("authorization") or {}
     return {value for key, value in authorization.items() if key in {"authentication_required_as", "access_denied_as"}}
 
 
-def _application_action_has_response_surface(contract: dict[str, Any], application_action_id: str, outcome_id: str) -> bool:
-    for entry_id in contract.get("entry_points", {}):
-        if _entry_point_effective_application_action_ref(contract, entry_id) != application_action_id:
+def _command_has_response_surface(contract: dict[str, Any], command_id: str, outcome_id: str) -> bool:
+    for entry_id in contract.get("external_interfaces", {}):
+        if _external_interface_effective_command_ref(contract, entry_id) != command_id:
             continue
-        if outcome_id in _entry_point_named_response_outcomes(contract, entry_id):
+        if outcome_id in _external_interface_named_response_outcomes(contract, entry_id):
             return True
     return False
 
 
-def _application_action_retry_safe(application_action: dict[str, Any]) -> bool:
-    return application_action.get("action_kind") == "query" or bool(application_action.get("retry_safe"))
+def _command_retry_safe(command: dict[str, Any]) -> bool:
+    return command.get("action_kind") == "query" or bool(command.get("retry_safe"))
 
 
-def _entry_point_retry_safe(contract: dict[str, Any], entry_id: str) -> bool:
-    entry = contract["entry_points"][entry_id]
-    target_kind, target_ref = entry_target_pair(entry)
-    if target_kind == "application_action":
-        return _application_action_retry_safe(contract["application_actions"][target_ref]) and (
-            contract["application_actions"][target_ref]["action_kind"] == "query" or bool(entry.get("retry_safe"))
+def _external_interface_retry_safe(contract: dict[str, Any], entry_id: str) -> bool:
+    entry = contract["external_interfaces"][entry_id]
+    target_kind, target_ref = external_interface_target_ref_pair(entry)
+    if target_kind in {"command", "query"}:
+        return _command_retry_safe(_operations(contract)[target_ref]) and (
+            _operations(contract)[target_ref]["action_kind"] == "query" or bool(entry.get("retry_safe"))
         )
-    if target_kind == "entry_point":
-        return bool(entry.get("retry_safe")) and _entry_point_retry_safe(contract, target_ref)
+    if target_kind == "external_interface":
+        return bool(entry.get("retry_safe")) and _external_interface_retry_safe(contract, target_ref)
     if target_kind == "workflow":
         return bool(entry.get("retry_safe"))
     return bool(entry.get("retry_safe"))
@@ -1707,12 +1706,12 @@ def _entry_point_retry_safe(contract: dict[str, Any], entry_id: str) -> bool:
 
 def _action_outcome_effect_scopes(
     state_machine: dict[str, Any],
-    application_action: dict[str, Any],
+    command: dict[str, Any],
     outcome: dict[str, Any],
 ) -> TypeScopes:
-    application_action_input = _application_action_input(application_action)
-    invocation_scope = {("input",): application_action.get("input", EMPTY_OBJECT_SCHEMA)}
-    invocation_scope.update(_prefixed_type_scope(("input",), application_action_input))
+    command_input = _command_input(command)
+    invocation_scope = {("input",): command.get("input", EMPTY_OBJECT_SCHEMA)}
+    invocation_scope.update(_prefixed_type_scope(("input",), command_input))
     return {
         "action_outcome": {
             ("kind",): {"type": "string"},
@@ -1752,34 +1751,42 @@ def _validate_data_loaders(
             raise ContractError(f"{label} result_scope {invocation['result_scope']} must declare rationale")
         if scope == "state_machine" and _data_loader_has_result_bound_no_local_effect(invocation) and invocation.get("result_scope") not in {"shared", "prefetch"}:
             raise ContractError(f"{label} result_binding with no_local_effect must declare result_scope shared or prefetch")
-        application_action_id = invocation["application_action"]
-        if application_action_id not in contract["application_actions"]:
-            raise ContractError(f"{label} references unknown application action {application_action_id}")
-        application_action = contract["application_actions"][application_action_id]
-        if application_action["action_kind"] != "query":
-            raise ContractError(f"{label} application action must have action_kind: query")
-        if application_action.get("creates") or application_action.get("updates") or application_action.get("deletes"):
-            raise ContractError(f"{label} query application action must not create, update, or delete entity_types")
-        if application_action.get("lifecycle_transition"):
-            raise ContractError(f"{label} query application action must not be a lifecycle transition")
+        operation_ref = _invocation_operation_ref(invocation)
+        if operation_ref not in _operations(contract):
+            raise ContractError(f"{label} references unknown query {operation_ref}")
+        command = _operations(contract)[operation_ref]
+        if command["action_kind"] != "query":
+            raise ContractError(f"{label} must reference a query")
+        if command.get("creates") or command.get("updates") or command.get("deletes"):
+            raise ContractError(f"{label} query must not create, update, or delete entity_types")
+        if command.get("lifecycle_transition"):
+            raise ContractError(f"{label} query must not be a lifecycle transition")
         emitting_outcomes = sorted(
             outcome_id
-            for outcome_id, outcome in application_action.get("outcomes", {}).items()
+            for outcome_id, outcome in command.get("outcomes", {}).items()
             if outcome.get("emits")
         )
         if emitting_outcomes:
-            raise ContractError(f"{label} query application action outcomes must not emit durable domain events: {emitting_outcomes}")
-        if entity_type and entity_type not in application_action.get("reads", []):
-            raise ContractError(f"{label} application action must read entity_type {entity_type}")
+            raise ContractError(f"{label} query outcomes must not emit durable domain events: {emitting_outcomes}")
+        if entity_type and not (
+            entity_type_id(command.get("result_schema", EMPTY_OBJECT_SCHEMA)) == entity_type
+            or is_array_of_entity_type(command.get("result_schema", EMPTY_OBJECT_SCHEMA), entity_type)
+            or any(
+                entity_type_id(outcome["result"]) == entity_type or is_array_of_entity_type(outcome["result"], entity_type)
+                for outcome in command.get("outcomes", {}).values()
+                if outcome["kind"] == "success"
+            )
+        ):
+            raise ContractError(f"{label} query result_schema must return entity_type {entity_type}")
         _validate_binding_map(
             contract,
             f"{label} input_bindings",
             invocation.get("input_bindings") or {},
-            _application_action_input(application_action),
+            _command_input(command),
             {"state_context": _type_scope(context), "principal": ACTOR_SOURCE_SCOPE},
         )
         _validate_query_load_policy(contract, label, state_machine, invocation.get("load") or {}, scope=scope)
-        _validate_data_loader_outcome_effects(contract, label, state_machine, invocation, application_action, scope=scope, view_state=view_state)
+        _validate_data_loader_outcome_effects(contract, label, state_machine, invocation, command, scope=scope, view_state=view_state)
 
 
 def _validate_query_load_policy(
@@ -1803,13 +1810,13 @@ def _validate_data_loader_outcome_effects(
     label: str,
     state_machine: dict[str, Any],
     invocation: dict[str, Any],
-    application_action: dict[str, Any],
+    command: dict[str, Any],
     *,
     scope: str,
     view_state: dict[str, Any] | None,
 ) -> None:
     effects = invocation["outcome_effects"]
-    expected_outcomes = set(application_action["outcomes"])
+    expected_outcomes = set(command["outcomes"])
     actual_outcomes = set(effects)
     if actual_outcomes != expected_outcomes:
         missing = sorted(expected_outcomes - actual_outcomes)
@@ -1819,10 +1826,10 @@ def _validate_data_loader_outcome_effects(
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"{label} outcome_effects must exactly map query application action outcomes" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"{label} outcome_effects must exactly map query outcomes" + (": " + "; ".join(parts) if parts else ""))
 
     for outcome_id, effect in sorted(effects.items()):
-        outcome = application_action["outcomes"][outcome_id]
+        outcome = command["outcomes"][outcome_id]
         effect_label = f"{label} outcome_effects.{outcome_id}"
         if "conditional_effects" in effect:
             if any(key in effect for key in ("context_updates", "result_binding", "raise", "no_local_effect")):
@@ -1832,7 +1839,7 @@ def _validate_data_loader_outcome_effects(
                 effect_label,
                 state_machine,
                 invocation,
-                application_action,
+                command,
                 outcome_id,
                 outcome,
                 scope=scope,
@@ -1844,7 +1851,7 @@ def _validate_data_loader_outcome_effects(
             effect_label,
             state_machine,
             invocation,
-            application_action,
+            command,
             outcome_id,
             outcome,
             effect,
@@ -1860,7 +1867,7 @@ def _validate_query_conditional_effects(
     effect_label: str,
     state_machine: dict[str, Any],
     invocation: dict[str, Any],
-    application_action: dict[str, Any],
+    command: dict[str, Any],
     outcome_id: str,
     outcome: dict[str, Any],
     *,
@@ -1881,7 +1888,7 @@ def _validate_query_conditional_effects(
             branch_label,
             state_machine,
             invocation,
-            application_action,
+            command,
             outcome_id,
             outcome,
             branch,
@@ -1897,7 +1904,7 @@ def _validate_query_outcome_effect(
     effect_label: str,
     state_machine: dict[str, Any],
     invocation: dict[str, Any],
-    application_action: dict[str, Any],
+    command: dict[str, Any],
     outcome_id: str,
     outcome: dict[str, Any],
     effect: dict[str, Any],
@@ -1905,7 +1912,7 @@ def _validate_query_outcome_effect(
     scope: str,
     view_state: dict[str, Any] | None,
 ) -> None:
-        scopes = _action_outcome_effect_scopes(state_machine, application_action, outcome)
+        scopes = _action_outcome_effect_scopes(state_machine, command, outcome)
         has_context_updates = bool(effect.get("context_updates"))
         has_result_binding = "result_binding" in effect
         has_raise = "raise" in effect
@@ -1949,11 +1956,11 @@ def _validate_query_outcome_effect(
             outcome,
             effect,
             effect_scope="data_loader",
-            has_response_surface=_application_action_has_response_surface(contract, invocation["application_action"], outcome_id),
+            has_response_surface=_command_has_response_surface(contract, _invocation_operation_ref(invocation), outcome_id),
             has_query_refresh=has_query_refresh,
             has_result_binding=has_result_binding,
             has_data_effect=has_context_updates,
-            authorization_outcome=outcome_id in _action_authorization_outcomes(application_action),
+            authorization_outcome=outcome_id in _command_authorization_outcomes(command),
         )
         no_local_effect = effect.get("no_local_effect")
         if no_local_effect and no_local_effect.get("reason") == "result_bound_without_signal" and has_result_binding and not has_result_consumption:
@@ -2040,13 +2047,13 @@ def _validate_field_state_data_sources(
 
 def _query_result_field_sources(contract: dict[str, Any], invocations: dict[str, Any]) -> dict[str, set[str]]:
     sources: dict[str, set[str]] = {}
-    application_actions = contract.get("application_actions", {})
+    commands = _operations(contract)
     for invocation_id, invocation in sorted((invocations or {}).items()):
-        application_action = application_actions.get(invocation.get("application_action"))
-        if not application_action:
+        command = commands.get(_invocation_operation_ref(invocation))
+        if not command:
             continue
         for outcome_id, effect in sorted((invocation.get("outcome_effects") or {}).items()):
-            outcome = application_action.get("outcomes", {}).get(outcome_id)
+            outcome = command.get("outcomes", {}).get(outcome_id)
             if not outcome:
                 continue
             fields = object_fields_for_type(contract, _query_result_item_type(outcome["result"]))
@@ -2113,29 +2120,29 @@ def _validate_machine_query_ownership(contract: dict[str, Any], state_machine_id
     owner_queries = state_machine.get("data_loaders") or {}
     if not owner_queries:
         return
-    child_query_application_actions = _child_query_application_actions(contract, state_machine)
+    child_query_commands = _child_query_commands(contract, state_machine)
     for invocation_id, invocation in sorted(owner_queries.items()):
         label = f"state machine {state_machine_id} data_loader {invocation_id}"
         result_scope = invocation.get("result_scope")
         if _data_loader_has_result_bound_no_local_effect(invocation) and result_scope not in {"shared", "prefetch"}:
             raise ContractError(f"{label} result_binding with no_local_effect must declare result_scope shared or prefetch")
-        if invocation["application_action"] in child_query_application_actions and result_scope not in {"shared", "prefetch"}:
+        if _invocation_operation_ref(invocation) in child_query_commands and result_scope not in {"shared", "prefetch"}:
             raise ContractError(f"{label} duplicates child-owned query loading and must declare result_scope shared or prefetch")
 
 
-def _child_query_application_actions(contract: dict[str, Any], state_machine: dict[str, Any]) -> set[str]:
-    application_actions: set[str] = set()
+def _child_query_commands(contract: dict[str, Any], state_machine: dict[str, Any]) -> set[str]:
+    commands: set[str] = set()
     for state in state_machine.get("view_states", {}).values():
         for mount in state.get("child_state_machines", []):
             child = contract["state_machines"].get(mount["state_machine"])
             if not child:
                 continue
             for invocation in (child.get("data_loaders") or {}).values():
-                application_actions.add(invocation["application_action"])
+                commands.add(_invocation_operation_ref(invocation))
             for child_state in child.get("view_states", {}).values():
                 for invocation in (child_state.get("data_loaders") or {}).values():
-                    application_actions.add(invocation["application_action"])
-    return application_actions
+                    commands.add(_invocation_operation_ref(invocation))
+    return commands
 
 
 def _data_loader_has_result_bound_no_local_effect(invocation: dict[str, Any]) -> bool:
@@ -2222,14 +2229,14 @@ def _lint_signal_names(state_machine_id: str, state_machine: dict[str, Any], sig
     data_refresh_signals = set(data_refresh_signal_specs)
     for name in sorted((local_signals | data_refresh_signals) & view_states):
         warnings.warn(
-            f"state machine {state_machine_id} signal {name!r} also names a view state; prefer event-like names such as project_loaded, project_load_failed, collection_empty, or application_action_failed",
+            f"state machine {state_machine_id} signal {name!r} also names a view state; prefer event-like names such as project_loaded, project_load_failed, collection_empty, or command_failed",
             ContractLintWarning,
             stacklevel=3,
         )
     for name, signal in sorted(data_refresh_signal_specs.items()):
         if name in {"ready", "error", "empty", "loaded"} and not signal.get("rationale"):
             warnings.warn(
-                f"state machine {state_machine_id} data-refresh signal {name!r} is state-like; prefer event-like names such as project_loaded, project_load_failed, collection_empty, or application_action_failed",
+                f"state machine {state_machine_id} data-refresh signal {name!r} is state-like; prefer event-like names such as project_loaded, project_load_failed, collection_empty, or command_failed",
                 ContractLintWarning,
                 stacklevel=3,
             )
@@ -2899,23 +2906,23 @@ def _validate_composition_selector(state_machine_id: str, selector: str, regions
 
 
 def _validate_entries(contract: dict[str, Any]) -> None:
-    _validate_entry_point_delegation_graph(contract)
-    for eid, entry in contract["entry_points"].items():
-        adapter_kind, adapter = entry_point_adapter_pair(entry)
-        target_kind, target = entry_point_target_pair(entry)
+    _validate_external_interface_delegation_graph(contract)
+    for eid, entry in contract["external_interfaces"].items():
+        adapter_kind, adapter = external_interface_adapter_pair(entry)
+        target_kind, target = external_interface_target_pair(entry)
         kind = "state_machine" if target_kind == "state_machine" else target_kind
         value = target["ref"]
-        _validate_entry_point_fields(eid, entry, adapter_kind)
+        _validate_external_interface_fields(eid, entry, adapter_kind)
         _validate_entry_input_shape(eid, entry, adapter_kind)
-        if kind == "entry_point":
+        if kind == "external_interface":
             _validate_delegating_entry_adapter_surface(eid, entry, adapter_kind, adapter)
-            _validate_entry_point_delegate_target(contract, eid, entry, value)
+            _validate_external_interface_delegate_target(contract, eid, entry, value)
             if adapter_kind == "cli":
                 _validate_cli_delegated_response_handlers(contract, eid, entry, value)
             continue
         if adapter_kind == "html_route":
             if kind != "state_machine" or value not in contract["state_machines"]:
-                raise ContractError(f"UI entry point {eid} must target a known state machine")
+                raise ContractError(f"HTML external interface {eid} must target a known state machine")
             renderer = adapter.get("renderer")
             if renderer and "renderer" not in target:
                 target["renderer"] = renderer
@@ -2926,78 +2933,78 @@ def _validate_entries(contract: dict[str, Any]) -> None:
             _validate_state_machine_entry_inputs(contract, eid, value, declared=declared, input_label="input")
             _validate_target_bindings(contract, eid, entry, declared)
         elif adapter_kind == "http_api":
-            if kind != "application_action" or value not in contract["application_actions"]:
-                raise ContractError(f"HTTP API entry point {eid} must target a known application action")
+            if kind not in {"command", "query"} or value not in _operations(contract):
+                raise ContractError(f"HTTP API external interface {eid} must target a known command")
             _require_adapter(adapter, eid, "method")
             _require_adapter(adapter, eid, "path")
             _validate_path_params(entry, eid)
-            operation = contract["application_actions"][value]
+            operation = _operations(contract)[value]
             path_params = _entry_input_map(entry, "path_params")
             query_params = _entry_input_map(entry, "query_params")
             body = _entry_input_map(entry, "body")
             _validate_api_entry_input(eid, entry, operation, path_params, query_params, body)
             _validate_target_bindings(contract, eid, entry, {**path_params, **query_params, **body})
-            _validate_api_entry_point_responses(eid, entry, operation)
+            _validate_api_external_interface_responses(eid, entry, operation)
         elif adapter_kind == "cli":
             _require_adapter(adapter, eid, "cli_command")
             args = _entry_input_map(entry, "args")
-            if kind == "application_action":
-                if value not in contract["application_actions"]:
-                    raise ContractError(f"CLI entry point {eid} must target a known application action")
-                operation = contract["application_actions"][value]
-                _validate_exact_entry_inputs(eid, "input.args", args, _application_action_input(operation))
+            if kind in {"command", "query"}:
+                if value not in _operations(contract):
+                    raise ContractError(f"CLI external interface {eid} must target a known command")
+                operation = _operations(contract)[value]
+                _validate_exact_entry_inputs(eid, "input.args", args, _command_input(operation))
                 _validate_target_bindings(contract, eid, entry, args)
-                _validate_cli_application_action_response_handlers(contract, eid, entry, operation)
+                _validate_cli_command_response_handlers(contract, eid, entry, operation)
             elif kind == "state_machine":
                 if value not in contract["state_machines"]:
-                    raise ContractError(f"CLI entry point {eid} must target a known state machine")
+                    raise ContractError(f"CLI external interface {eid} must target a known state machine")
                 _validate_state_machine_target_renderer(contract, eid, entry, value, allowed_renderers=set(STATE_MACHINE_RENDERERS))
                 _validate_state_machine_entry_inputs(contract, eid, value, declared=args, input_label="input.args")
                 _validate_target_bindings(contract, eid, entry, args)
-                target_renderer = entry_state_machine_renderer(entry)
+                target_renderer = external_interface_state_machine_renderer(entry)
                 assert target_renderer is not None
-                if entry_point_response_handlers(entry):
-                    raise ContractError(f"CLI entry point {eid} targeting a state machine must not declare response_handlers")
+                if external_interface_response_handlers(entry):
+                    raise ContractError(f"CLI external interface {eid} targeting a state machine must not declare response_handlers")
             elif kind == "workflow":
                 if value not in contract["workflows"]:
-                    raise ContractError(f"CLI entry point {eid} must target a known workflow")
+                    raise ContractError(f"CLI external interface {eid} must target a known workflow")
                 _validate_workflow_entry_target_source(contract, eid, entry, value)
                 if args:
-                    raise ContractError(f"CLI entry point {eid} targeting a workflow must not declare input.args")
-                _validate_async_entry_point_responses(eid, entry, require_failure_disposition=False)
+                    raise ContractError(f"CLI external interface {eid} targeting a workflow must not declare input.args")
+                _validate_async_external_interface_responses(eid, entry, require_failure_disposition=False)
             else:
-                raise ContractError(f"CLI entry point {eid} cannot target raw {kind}")
+                raise ContractError(f"CLI external interface {eid} cannot target raw {kind}")
         elif adapter_kind in {"worker", "scheduled"}:
             if kind != "workflow" or value not in contract["workflows"]:
-                raise ContractError(f"{adapter_kind} entry point {eid} must target a known workflow")
+                raise ContractError(f"{adapter_kind} external interface {eid} must target a known workflow")
             if adapter_kind == "scheduled":
                 _require_adapter(adapter, eid, "schedule_expression")
-                if entry_point_input(entry):
-                    raise ContractError(f"Scheduled entry point {eid} must not declare input")
+                if external_interface_input(entry):
+                    raise ContractError(f"Scheduled external interface {eid} must not declare input")
             else:
                 _validate_event_payload_entry_input(contract, eid, entry, value)
             _validate_workflow_entry_target_source(contract, eid, entry, value)
-            _validate_async_entry_point_responses(eid, entry, require_failure_disposition=adapter_kind == "worker")
+            _validate_async_external_interface_responses(eid, entry, require_failure_disposition=adapter_kind == "worker")
         elif adapter_kind == "webhook":
             if kind != "workflow" or value not in contract["workflows"]:
-                raise ContractError(f"Webhook entry point {eid} must target a known workflow")
+                raise ContractError(f"Webhook external interface {eid} must target a known workflow")
             _require_adapter(adapter, eid, "path")
             _validate_path_params(entry, eid)
             _validate_event_payload_entry_input(contract, eid, entry, value)
             _validate_workflow_entry_target_source(contract, eid, entry, value)
-            _validate_webhook_entry_point_responses(eid, entry)
+            _validate_webhook_external_interface_responses(eid, entry)
 
 
-def _validate_entry_point_delegation_graph(contract: dict[str, Any]) -> None:
+def _validate_external_interface_delegation_graph(contract: dict[str, Any]) -> None:
     graph: dict[str, str] = {}
-    for entry_id, entry in contract.get("entry_points", {}).items():
-        target_kind, target_ref = entry_target_pair(entry)
-        if target_kind != "entry_point":
+    for entry_id, entry in contract.get("external_interfaces", {}).items():
+        target_kind, target_ref = external_interface_target_ref_pair(entry)
+        if target_kind != "external_interface":
             continue
-        if target_ref not in contract["entry_points"]:
-            raise ContractError(f"Entry point {entry_id} delegates to unknown entry point {target_ref}")
+        if target_ref not in contract["external_interfaces"]:
+            raise ContractError(f"External interface {entry_id} delegates to unknown external interface {target_ref}")
         if target_ref == entry_id:
-            raise ContractError(f"Entry point {entry_id} must not delegate to itself")
+            raise ContractError(f"External interface {entry_id} must not delegate to itself")
         graph[entry_id] = target_ref
 
     visiting: set[str] = set()
@@ -3009,7 +3016,7 @@ def _validate_entry_point_delegation_graph(contract: dict[str, Any]) -> None:
         if entry_id in visiting:
             cycle_start = path.index(entry_id)
             cycle = path[cycle_start:] + [entry_id]
-            raise ContractError("Entry point delegation cycle is invalid: " + " -> ".join(cycle))
+            raise ContractError("External interface delegation cycle is invalid: " + " -> ".join(cycle))
         visiting.add(entry_id)
         visit(graph[entry_id], [*path, entry_id])
         visiting.remove(entry_id)
@@ -3019,16 +3026,16 @@ def _validate_entry_point_delegation_graph(contract: dict[str, Any]) -> None:
         visit(entry_id, [])
 
 
-def _validate_entry_point_response_maps(contract: dict[str, Any]) -> None:
+def _validate_external_interface_response_maps(contract: dict[str, Any]) -> None:
     """Validate synchronous target response keys before local outcome effects depend on them."""
-    for entry_id, entry in contract.get("entry_points", {}).items():
-        adapter_kind, _adapter = entry_point_adapter_pair(entry)
-        target_kind, target = entry_point_target_pair(entry)
+    for entry_id, entry in contract.get("external_interfaces", {}).items():
+        adapter_kind, _adapter = external_interface_adapter_pair(entry)
+        target_kind, target = external_interface_target_pair(entry)
         target_ref = target["ref"]
-        if adapter_kind == "http_api" and target_kind == "application_action" and target_ref in contract["application_actions"]:
-            _application_action_entry_point_responses(entry_id, entry, contract["application_actions"][target_ref])
-        elif adapter_kind == "cli" and target_kind == "application_action" and target_ref in contract["application_actions"]:
-            _application_action_entry_point_response_handlers(entry_id, entry, contract["application_actions"][target_ref])
+        if adapter_kind == "http_api" and target_kind in {"command", "query"} and target_ref in _operations(contract):
+            _command_external_interface_responses(entry_id, entry, _operations(contract)[target_ref])
+        elif adapter_kind == "cli" and target_kind in {"command", "query"} and target_ref in _operations(contract):
+            _command_external_interface_response_handlers(entry_id, entry, _operations(contract)[target_ref])
 
 
 def _validate_delegating_entry_adapter_surface(
@@ -3048,22 +3055,22 @@ def _validate_delegating_entry_adapter_surface(
         _require_adapter(adapter, entry_id, "cli_command")
     elif adapter_kind == "scheduled":
         _require_adapter(adapter, entry_id, "schedule_expression")
-        if entry_point_input(entry):
-            raise ContractError(f"Scheduled entry point {entry_id} must not declare input")
+        if external_interface_input(entry):
+            raise ContractError(f"Scheduled external interface {entry_id} must not declare input")
     elif adapter_kind == "webhook":
         _require_adapter(adapter, entry_id, "path")
         _validate_path_params(entry, entry_id)
 
 
-def _validate_entry_point_delegate_target(
+def _validate_external_interface_delegate_target(
     contract: dict[str, Any],
     entry_id: str,
     entry: dict[str, Any],
     delegated_entry_id: str,
 ) -> None:
-    delegated_entry = contract["entry_points"][delegated_entry_id]
-    bindings = entry_point_input_bindings(entry)
-    expected_input = entry_point_input(delegated_entry)
+    delegated_entry = contract["external_interfaces"][delegated_entry_id]
+    bindings = external_interface_input_bindings(entry)
+    expected_input = external_interface_input(delegated_entry)
     expected_sections = set(expected_input)
     actual_sections = set(bindings)
     if actual_sections != expected_sections:
@@ -3075,18 +3082,18 @@ def _validate_entry_point_delegate_target(
         if extra:
             parts.append("extra sections: " + ", ".join(extra))
         raise ContractError(
-            f"Entry {entry_id} target.entry_point.input_bindings must exactly bind delegated entry input"
+            f"External interface {entry_id} target.external_interface.input_bindings must exactly bind delegated external interface input"
             + (": " + "; ".join(parts) if parts else "")
         )
     source_scopes: TypeScopes = {"adapter_input": _entry_input_source_types(contract, entry)}
     for section, expected in expected_input.items():
         section_bindings = bindings.get(section)
-        label = f"Entry {entry_id} target.entry_point.input_bindings.{section}"
+        label = f"External interface {entry_id} target.external_interface.input_bindings.{section}"
         if section == "payload":
             _validate_delegated_payload_binding(contract, label, section_bindings, expected, source_scopes)
             continue
         if not isinstance(expected, dict):
-            raise ContractError(f"Entry {entry_id} delegated input section {section} must be an object-shaped adapter input")
+            raise ContractError(f"External interface {entry_id} delegated input section {section} must be an object-shaped adapter input")
         if not isinstance(section_bindings, dict):
             raise ContractError(f"{label} must declare field bindings")
         _validate_binding_map(contract, label, section_bindings, expected, source_scopes)
@@ -3138,8 +3145,8 @@ def _validate_binding_map(
             )
 
 
-def _validate_entry_point_fields(entry_id: str, entry: dict[str, Any], adapter_kind: str) -> None:
-    allowed = {"adapter", "target", "rationale", "authorization_policy", "retry_safe"}
+def _validate_external_interface_fields(entry_id: str, entry: dict[str, Any], adapter_kind: str) -> None:
+    allowed = {"adapter", "target", "rationale", "access_policy", "retry_safe"}
     generated = {
         "html_route": {"route"},
         "http_api": {"endpoint"},
@@ -3151,7 +3158,7 @@ def _validate_entry_point_fields(entry_id: str, entry: dict[str, Any], adapter_k
     allowed.update(generated)
     extra = sorted(set(entry) - allowed)
     if extra:
-        raise ContractError(f"Entry point {entry_id} adapter {adapter_kind} has unsupported fields: {extra}")
+        raise ContractError(f"External interface {entry_id} adapter {adapter_kind} has unsupported fields: {extra}")
 
 
 def _validate_entry_input_shape(entry_id: str, entry: dict[str, Any], adapter_kind: str) -> None:
@@ -3163,17 +3170,17 @@ def _validate_entry_input_shape(entry_id: str, entry: dict[str, Any], adapter_ki
         "scheduled": set(),
         "webhook": {"path_params", "query_params", "payload"},
     }[adapter_kind]
-    input_spec = entry_point_input(entry)
+    input_spec = external_interface_input(entry)
     extra = sorted(set(input_spec) - allowed)
     if extra:
-        raise ContractError(f"Entry point {entry_id} adapter {adapter_kind} has unsupported input sections: {extra}")
+        raise ContractError(f"External interface {entry_id} adapter {adapter_kind} has unsupported input sections: {extra}")
     seen: dict[str, Any] = {}
     for section in ("path_params", "query_params", "body", "args"):
         for name, type_name in _entry_input_map(entry, section).items():
             previous = seen.get(name)
             if previous and not type_equals(previous, type_name):
                 raise ContractError(
-                    f"Entry {entry_id} input field {name} has conflicting types: "
+                    f"External interface {entry_id} input field {name} has conflicting types: "
                     f"{type_display(previous)} vs {type_display(type_name)}"
                 )
             seen[name] = type_name
@@ -3187,13 +3194,13 @@ def _validate_state_machine_target_renderer(
     *,
     allowed_renderers: set[str],
 ) -> None:
-    renderer = entry_state_machine_renderer(entry)
+    renderer = external_interface_state_machine_renderer(entry)
     if renderer is None:
-        raise ContractError(f"Entry {entry_id} state machine target must declare renderer")
+        raise ContractError(f"External interface {entry_id} state machine target must declare renderer")
     if renderer not in allowed_renderers:
-        raise ContractError(f"Entry {entry_id} cannot target state machine renderer {renderer!r}")
+        raise ContractError(f"External interface {entry_id} cannot target state machine renderer {renderer!r}")
     if not _state_machine_supports_renderer(contract["state_machines"][state_machine_id], renderer):
-        raise ContractError(f"Entry {entry_id} targets state machine {state_machine_id} renderer {renderer} but that state machine does not declare it")
+        raise ContractError(f"External interface {entry_id} targets state machine {state_machine_id} renderer {renderer} but that state machine does not declare it")
 
 
 def _state_machine_supports_renderer(state_machine: dict[str, Any], renderer: str) -> bool:
@@ -3205,9 +3212,9 @@ def _state_machine_supports_renderer(state_machine: dict[str, Any], renderer: st
 
 
 def _validate_workflow_entry_target_source(contract: dict[str, Any], entry_id: str, entry: dict[str, Any], workflow_id: str) -> None:
-    bindings = entry_workflow_trigger_bindings(entry)
+    bindings = external_interface_workflow_trigger_bindings(entry)
     if not bindings:
-        raise ContractError(f"Entry {entry_id} workflow target must declare trigger_bindings")
+        raise ContractError(f"External interface {entry_id} workflow target must declare trigger_bindings")
     expected = _workflow_trigger_payload_fields(contract, workflow_id, contract["workflows"][workflow_id])
     if set(bindings) != set(expected):
         missing = sorted(set(expected) - set(bindings))
@@ -3217,14 +3224,14 @@ def _validate_workflow_entry_target_source(contract: dict[str, Any], entry_id: s
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"Entry {entry_id} target.trigger_bindings must exactly bind workflow trigger" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"External interface {entry_id} target.trigger_bindings must exactly bind workflow trigger" + (": " + "; ".join(parts) if parts else ""))
     scopes: TypeScopes = {"adapter_input": _entry_input_source_types(contract, entry)}
     for name, binding in bindings.items():
-        actual_type = _expression_type(contract, binding, scopes, f"Entry {entry_id} target.trigger_bindings.{name}")
+        actual_type = _expression_type(contract, binding, scopes, f"External interface {entry_id} target.trigger_bindings.{name}")
         expected_type = expected[name]
         if actual_type and not _type_assignable(actual_type, expected_type):
             raise ContractError(
-                f"Entry {entry_id} target.trigger_bindings.{name} type mismatch: "
+                f"External interface {entry_id} target.trigger_bindings.{name} type mismatch: "
                 f"expected {type_display(_effective_type(expected_type))}, got {type_display(_effective_type(actual_type))} from {binding}"
             )
 
@@ -3232,35 +3239,35 @@ def _validate_workflow_entry_target_source(contract: dict[str, Any], entry_id: s
 def _validate_api_entry_input(
     entry_id: str,
     entry: dict[str, Any],
-    application_action: dict[str, Any],
+    operation: dict[str, Any],
     path_params: dict[str, Any],
     query_params: dict[str, Any],
     body: dict[str, Any],
 ) -> None:
-    cap_input = _application_action_input(application_action)
+    cap_input = _command_input(operation)
     all_params = {**path_params, **query_params}
     all_input = {**all_params, **body}
     if set(path_params) - set(cap_input):
-        raise ContractError(f"API entry {entry_id} input.path_params must be application action input fields")
+        raise ContractError(f"API external interface {entry_id} input.path_params must be operation input fields")
     if set(query_params) - set(cap_input):
-        raise ContractError(f"API entry {entry_id} input.query_params must be application action input fields")
+        raise ContractError(f"API external interface {entry_id} input.query_params must be operation input fields")
     if set(body) - set(cap_input):
-        raise ContractError(f"API entry {entry_id} input.body must be application action input fields")
+        raise ContractError(f"API external interface {entry_id} input.body must be operation input fields")
     if set(path_params) & set(query_params) or set(all_params) & set(body):
-        raise ContractError(f"API entry {entry_id} input fields cannot appear in multiple input sections")
+        raise ContractError(f"API external interface {entry_id} input fields cannot appear in multiple input sections")
     _validate_entry_input_types(entry_id, "input.path_params", path_params, cap_input)
     _validate_entry_input_types(entry_id, "input.query_params", query_params, cap_input)
     _validate_entry_input_types(entry_id, "input.body", body, cap_input)
-    method = (entry_point_method(entry) or "").lower()
+    method = (external_interface_method(entry) or "").lower()
     if method in {"get", "delete"}:
         if body:
-            raise ContractError(f"API entry {entry_id} {entry_point_method(entry)} must not declare input.body")
+            raise ContractError(f"API external interface {entry_id} {external_interface_method(entry)} must not declare input.body")
         if set(all_params) != set(cap_input):
             missing_params = sorted(set(cap_input) - set(all_params))
-            raise ContractError(f"API entry {entry_id} {entry_point_method(entry)} must declare all application action inputs as path_params or query_params: {missing_params}")
+            raise ContractError(f"API external interface {entry_id} {external_interface_method(entry)} must declare all operation inputs as path_params or query_params: {missing_params}")
     missing = sorted(set(cap_input) - set(all_input))
     if missing:
-        raise ContractError(f"API entry {entry_id} input must include every application action input: {missing}")
+        raise ContractError(f"API external interface {entry_id} input must include every operation input: {missing}")
 
 
 def _validate_event_payload_entry_input(contract: dict[str, Any], entry_id: str, entry: dict[str, Any], workflow_id: str) -> None:
@@ -3270,10 +3277,10 @@ def _validate_event_payload_entry_input(contract: dict[str, Any], entry_id: str,
     event_id = trigger["domain_event"]
     event = contract["domain_events"].get(event_id)
     if not event:
-        raise ContractError(f"Entry {entry_id} workflow target source references unknown domain event {event_id}")
-    payload_type = entry_point_input(entry).get("payload")
+        raise ContractError(f"External interface {entry_id} workflow target source references unknown domain event {event_id}")
+    payload_type = external_interface_input(entry).get("payload")
     if not type_equals(payload_type, event["payload_schema"]):
-        raise ContractError(f"Entry {entry_id} input.payload must be {type_display(event['payload_schema'])}, got {type_display(payload_type)}")
+        raise ContractError(f"External interface {entry_id} input.payload must be {type_display(event['payload_schema'])}, got {type_display(payload_type)}")
 
 
 def _validate_target_bindings(
@@ -3282,16 +3289,16 @@ def _validate_target_bindings(
     entry: dict[str, Any],
     target_input_types: dict[str, Any],
 ) -> None:
-    kind, value = entry_target_pair(entry)
-    bindings = entry_point_input_bindings(entry)
-    if kind == "application_action":
-        expected = _application_action_input(contract["application_actions"][value])
+    kind, value = external_interface_target_ref_pair(entry)
+    bindings = external_interface_input_bindings(entry)
+    if kind in {"command", "query"}:
+        expected = _command_input(_operations(contract)[value])
     elif kind == "state_machine":
         context = _state_machine_context(contract["state_machines"][value])
         expected = {name: context[name] for name in target_input_types}
     else:
         if bindings:
-            raise ContractError(f"Entry {entry_id} target.input_bindings is not supported for workflow targets")
+            raise ContractError(f"External interface {entry_id} target.input_bindings is not supported for workflow targets")
         return
     if set(bindings) != set(expected):
         missing = sorted(set(expected) - set(bindings))
@@ -3301,60 +3308,60 @@ def _validate_target_bindings(
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"Entry {entry_id} target.input_bindings must exactly bind target input" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"External interface {entry_id} target.input_bindings must exactly bind target input" + (": " + "; ".join(parts) if parts else ""))
     source_scopes: TypeScopes = {"adapter_input": _entry_input_source_types(contract, entry)}
     for target_name, source in bindings.items():
         actual_type = _expression_type(
             contract,
             source,
             source_scopes,
-            f"Entry {entry_id} target.input_bindings.{target_name}",
+            f"External interface {entry_id} target.input_bindings.{target_name}",
         )
         expected_type = expected[target_name]
         if actual_type and not _type_assignable(actual_type, expected_type):
             raise ContractError(
-                f"Entry {entry_id} target.input_bindings.{target_name} type mismatch: "
+                f"External interface {entry_id} target.input_bindings.{target_name} type mismatch: "
                 f"expected {type_display(_effective_type(expected_type))}, got {type_display(_effective_type(actual_type))} from {source}"
             )
 
 
-def _validate_api_entry_point_responses(entry_id: str, entry: dict[str, Any], application_action: dict[str, Any]) -> None:
-    responses = _application_action_entry_point_responses(entry_id, entry, application_action)
+def _validate_api_external_interface_responses(entry_id: str, entry: dict[str, Any], command: dict[str, Any]) -> None:
+    responses = _command_external_interface_responses(entry_id, entry, command)
     statuses: dict[int, str] = {}
     for outcome_id, response in responses.items():
-        outcome = application_action["outcomes"][outcome_id]
+        outcome = command["outcomes"][outcome_id]
         if set(response) != {"status", "body"}:
-            raise ContractError(f"API entry {entry_id} response {outcome_id} must declare exactly status and body")
+            raise ContractError(f"API external interface {entry_id} response {outcome_id} must declare exactly status and body")
         status = response["status"]
         if status in statuses:
             raise ContractError(
-                f"API entry {entry_id} responses {statuses[status]} and {outcome_id} cannot share HTTP status {status}"
+                f"API external interface {entry_id} responses {statuses[status]} and {outcome_id} cannot share HTTP status {status}"
             )
         statuses[status] = outcome_id
         if outcome["kind"] == "success":
-            expected = 201 if application_action.get("creates") else 200
+            expected = 201 if command.get("creates") else 200
             if status != expected:
-                raise ContractError(f"API entry {entry_id} success response {outcome_id} status must be {expected}")
+                raise ContractError(f"API external interface {entry_id} success response {outcome_id} status must be {expected}")
         elif status < 400:
-            raise ContractError(f"API entry {entry_id} failure response {outcome_id} status must be 4xx or 5xx")
+            raise ContractError(f"API external interface {entry_id} failure response {outcome_id} status must be 4xx or 5xx")
         body = response["body"]
         _validate_response_value(
-            f"API entry {entry_id} response {outcome_id}.body",
+            f"API external interface {entry_id} response {outcome_id}.body",
             body,
             outcome["result"],
         )
 
 
-def _validate_cli_application_action_response_handlers(
+def _validate_cli_command_response_handlers(
     contract: dict[str, Any],
     entry_id: str,
     entry: dict[str, Any],
-    application_action: dict[str, Any],
+    command: dict[str, Any],
 ) -> None:
-    responses = _application_action_entry_point_response_handlers(entry_id, entry, application_action)
+    responses = _command_external_interface_response_handlers(entry_id, entry, command)
     exit_codes: dict[int, str] = {}
     for outcome_id, response in responses.items():
-        outcome = application_action["outcomes"][outcome_id]
+        outcome = command["outcomes"][outcome_id]
         _validate_cli_response_handler(
             contract,
             entry_id,
@@ -3366,8 +3373,8 @@ def _validate_cli_application_action_response_handlers(
                 "action_outcome": _typed_source_paths(contract, ("result",), outcome["result"]),
             },
             delegated_entry_id=None,
-            retry_allowed=_application_action_retry_safe(application_action),
-            retry_error=f"CLI entry {entry_id} response handler {outcome_id} retry_policy requires a query or retry_safe target operation",
+            retry_allowed=_command_retry_safe(command),
+            retry_error=f"CLI external interface {entry_id} response handler {outcome_id} retry_policy requires a query or retry_safe target operation",
             exit_codes=exit_codes,
         )
 
@@ -3378,9 +3385,9 @@ def _validate_cli_delegated_response_handlers(
     entry: dict[str, Any],
     delegated_entry_id: str,
 ) -> None:
-    delegated_entry = contract["entry_points"][delegated_entry_id]
-    expected = _entry_point_named_response_outcomes(contract, delegated_entry_id)
-    handlers = entry_point_response_handlers(entry)
+    delegated_entry = contract["external_interfaces"][delegated_entry_id]
+    expected = _external_interface_named_response_outcomes(contract, delegated_entry_id)
+    handlers = external_interface_response_handlers(entry)
     if set(handlers) != expected:
         missing = sorted(expected - set(handlers))
         extra = sorted(set(handlers) - expected)
@@ -3390,17 +3397,17 @@ def _validate_cli_delegated_response_handlers(
         if extra:
             parts.append("extra: " + ", ".join(extra))
         raise ContractError(
-            f"CLI entry {entry_id} response_handlers must exactly map delegated entry outcomes"
+            f"CLI external interface {entry_id} response_handlers must exactly map delegated external-interface outcomes"
             + (": " + "; ".join(parts) if parts else "")
         )
     exit_codes: dict[int, str] = {}
-    outcome_kinds = _entry_point_outcome_kinds(contract, delegated_entry_id)
-    response_types = _entry_point_response_body_types(contract, delegated_entry_id)
-    retry_allowed = _entry_point_retry_safe(contract, delegated_entry_id)
+    outcome_kinds = _external_interface_outcome_kinds(contract, delegated_entry_id)
+    response_types = _external_interface_response_body_types(contract, delegated_entry_id)
+    retry_allowed = _external_interface_retry_safe(contract, delegated_entry_id)
     for outcome_id, handler in handlers.items():
         if handler.get("retry_policy") and not retry_allowed:
             raise ContractError(
-                f"CLI entry {entry_id} response handler {outcome_id} retry_policy requires delegated entry point "
+                f"CLI external interface {entry_id} response handler {outcome_id} retry_policy requires delegated external interface "
                 f"{delegated_entry_id} and its final target to be retry_safe or query"
             )
         source_scopes: TypeScopes = {"adapter_input": _entry_input_source_types(contract, entry)}
@@ -3417,7 +3424,7 @@ def _validate_cli_delegated_response_handlers(
             delegated_entry_id=delegated_entry_id,
             retry_allowed=retry_allowed,
             retry_error=(
-                f"CLI entry {entry_id} response handler {outcome_id} retry_policy requires delegated entry point "
+                f"CLI external interface {entry_id} response handler {outcome_id} retry_policy requires delegated external interface "
                 f"{delegated_entry_id} and its final target to be retry_safe or query"
             ),
             exit_codes=exit_codes,
@@ -3440,26 +3447,26 @@ def _validate_cli_response_handler(
     exit_code = handler["exit_code"]
     streams = [stream for stream in ("stdout", "stderr") if stream in handler]
     if len(streams) != 1:
-        raise ContractError(f"CLI entry {entry_id} response handler {outcome_id} must declare exactly one of stdout or stderr")
+        raise ContractError(f"CLI external interface {entry_id} response handler {outcome_id} must declare exactly one of stdout or stderr")
     if outcome_kind == "success" and streams[0] != "stdout":
-        raise ContractError(f"CLI entry {entry_id} success response handler {outcome_id} must declare stdout")
+        raise ContractError(f"CLI external interface {entry_id} success response handler {outcome_id} must declare stdout")
     if outcome_kind == "success" and exit_code != 0:
-        raise ContractError(f"CLI entry {entry_id} success response handler {outcome_id} exit_code must be 0")
+        raise ContractError(f"CLI external interface {entry_id} success response handler {outcome_id} exit_code must be 0")
     if outcome_kind == "failure" and streams[0] != "stderr":
-        raise ContractError(f"CLI entry {entry_id} failure response handler {outcome_id} must declare stderr")
+        raise ContractError(f"CLI external interface {entry_id} failure response handler {outcome_id} must declare stderr")
     if outcome_kind == "failure" and exit_code == 0:
-        raise ContractError(f"CLI entry {entry_id} failure response handler {outcome_id} exit_code must be nonzero")
+        raise ContractError(f"CLI external interface {entry_id} failure response handler {outcome_id} exit_code must be nonzero")
     if handler.get("retry_policy") and not retry_allowed:
         raise ContractError(retry_error)
     if exit_code in exit_codes:
         raise ContractError(
-            f"CLI entry {entry_id} response handlers {exit_codes[exit_code]} and {outcome_id} cannot share exit_code {exit_code}"
+            f"CLI external interface {entry_id} response handlers {exit_codes[exit_code]} and {outcome_id} cannot share exit_code {exit_code}"
         )
     exit_codes[exit_code] = outcome_id
     output = handler[streams[0]]
     text_ref = output["text"]
     if text_ref not in contract.get("text_resources", {}):
-        raise ContractError(f"CLI entry {entry_id} response handler {outcome_id} references unknown text resource {text_ref}")
+        raise ContractError(f"CLI external interface {entry_id} response handler {outcome_id} references unknown text resource {text_ref}")
     bindings = output.get("bindings") or {}
     expected_text_args = contract["text_resources"][text_ref].get("args", {})
     if set(bindings) != set(expected_text_args):
@@ -3471,79 +3478,79 @@ def _validate_cli_response_handler(
         if extra:
             parts.append("extra: " + ", ".join(extra))
         raise ContractError(
-            f"CLI entry {entry_id} response handler {outcome_id} bindings must match text args"
+            f"CLI external interface {entry_id} response handler {outcome_id} bindings must match text args"
             + (": " + "; ".join(parts) if parts else "")
         )
     for binding_name, binding in bindings.items():
-        actual_type = _expression_type(contract, binding, source_scopes, f"CLI entry {entry_id} response handler {outcome_id}.{streams[0]}.bindings.{binding_name}")
+        actual_type = _expression_type(contract, binding, source_scopes, f"CLI external interface {entry_id} response handler {outcome_id}.{streams[0]}.bindings.{binding_name}")
         expected_type = expected_text_args[binding_name]
         if actual_type and not _type_assignable(actual_type, expected_type):
             raise ContractError(
-                f"CLI entry {entry_id} response handler {outcome_id}.{streams[0]}.bindings.{binding_name} "
+                f"CLI external interface {entry_id} response handler {outcome_id}.{streams[0]}.bindings.{binding_name} "
                 f"type mismatch: expected {type_display(_effective_type(expected_type))}, got {type_display(_effective_type(actual_type))}"
             )
 
 
-def _application_action_entry_point_responses(entry_id: str, entry: dict[str, Any], application_action: dict[str, Any]) -> dict[str, Any]:
-    responses = entry_point_responses(entry)
-    if set(responses) != set(application_action["outcomes"]):
-        missing = sorted(set(application_action["outcomes"]) - set(responses))
-        extra = sorted(set(responses) - set(application_action["outcomes"]))
+def _command_external_interface_responses(entry_id: str, entry: dict[str, Any], command: dict[str, Any]) -> dict[str, Any]:
+    responses = external_interface_responses(entry)
+    if set(responses) != set(command["outcomes"]):
+        missing = sorted(set(command["outcomes"]) - set(responses))
+        extra = sorted(set(responses) - set(command["outcomes"]))
         parts = []
         if missing:
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"Entry {entry_id} responses must exactly map application action outcomes" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"External interface {entry_id} responses must exactly map command outcomes" + (": " + "; ".join(parts) if parts else ""))
     return responses
 
 
-def _application_action_entry_point_response_handlers(entry_id: str, entry: dict[str, Any], application_action: dict[str, Any]) -> dict[str, Any]:
-    handlers = entry_point_response_handlers(entry)
-    if set(handlers) != set(application_action["outcomes"]):
-        missing = sorted(set(application_action["outcomes"]) - set(handlers))
-        extra = sorted(set(handlers) - set(application_action["outcomes"]))
+def _command_external_interface_response_handlers(entry_id: str, entry: dict[str, Any], command: dict[str, Any]) -> dict[str, Any]:
+    handlers = external_interface_response_handlers(entry)
+    if set(handlers) != set(command["outcomes"]):
+        missing = sorted(set(command["outcomes"]) - set(handlers))
+        extra = sorted(set(handlers) - set(command["outcomes"]))
         parts = []
         if missing:
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"Entry {entry_id} response_handlers must exactly map application action outcomes" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"External interface {entry_id} response_handlers must exactly map command outcomes" + (": " + "; ".join(parts) if parts else ""))
     return handlers
 
 
-def _entry_point_named_response_outcomes(contract: dict[str, Any], entry_id: str) -> set[str]:
-    entry = contract["entry_points"][entry_id]
-    handlers = entry_point_response_handlers(entry)
+def _external_interface_named_response_outcomes(contract: dict[str, Any], entry_id: str) -> set[str]:
+    entry = contract["external_interfaces"][entry_id]
+    handlers = external_interface_response_handlers(entry)
     if handlers:
         return set(handlers)
-    responses = entry_point_responses(entry)
+    responses = external_interface_responses(entry)
     if responses:
         return set(responses)
-    target_kind, target_ref = entry_target_pair(entry)
-    if target_kind == "application_action":
-        return set(contract["application_actions"][target_ref]["outcomes"])
+    target_kind, target_ref = external_interface_target_ref_pair(entry)
+    if target_kind in {"command", "query"}:
+        return set(_operations(contract)[target_ref]["outcomes"])
     if target_kind == "workflow":
         return set(contract["workflows"][target_ref]["outcomes"])
-    if target_kind == "entry_point":
-        return _entry_point_named_response_outcomes(contract, target_ref)
+    if target_kind == "external_interface":
+        return _external_interface_named_response_outcomes(contract, target_ref)
     return set()
 
 
-def _entry_point_outcome_kinds(contract: dict[str, Any], entry_id: str) -> dict[str, str]:
-    target_kind, target_ref = entry_target_pair(contract["entry_points"][entry_id])
-    if target_kind == "application_action":
-        return {name: outcome["kind"] for name, outcome in contract["application_actions"][target_ref]["outcomes"].items()}
+def _external_interface_outcome_kinds(contract: dict[str, Any], entry_id: str) -> dict[str, str]:
+    target_kind, target_ref = external_interface_target_ref_pair(contract["external_interfaces"][entry_id])
+    if target_kind in {"command", "query"}:
+        return {name: outcome["kind"] for name, outcome in _operations(contract)[target_ref]["outcomes"].items()}
     if target_kind == "workflow":
         return {name: outcome["kind"] for name, outcome in contract["workflows"][target_ref]["outcomes"].items()}
-    if target_kind == "entry_point":
-        return _entry_point_outcome_kinds(contract, target_ref)
+    if target_kind == "external_interface":
+        return _external_interface_outcome_kinds(contract, target_ref)
     return {}
 
 
-def _entry_point_response_body_types(contract: dict[str, Any], entry_id: str) -> dict[str, Any]:
-    entry = contract["entry_points"][entry_id]
-    responses = entry_point_responses(entry)
+def _external_interface_response_body_types(contract: dict[str, Any], entry_id: str) -> dict[str, Any]:
+    entry = contract["external_interfaces"][entry_id]
+    responses = external_interface_responses(entry)
     result: dict[str, Any] = {}
     for outcome_id, response in responses.items():
         body = response.get("body")
@@ -3551,13 +3558,13 @@ def _entry_point_response_body_types(contract: dict[str, Any], entry_id: str) ->
             result[outcome_id] = body["type"]
     if result:
         return result
-    target_kind, target_ref = entry_target_pair(entry)
-    if target_kind == "application_action":
-        return {name: outcome["result"] for name, outcome in contract["application_actions"][target_ref]["outcomes"].items()}
+    target_kind, target_ref = external_interface_target_ref_pair(entry)
+    if target_kind in {"command", "query"}:
+        return {name: outcome["result"] for name, outcome in _operations(contract)[target_ref]["outcomes"].items()}
     if target_kind == "workflow":
         return {name: outcome["result"] for name, outcome in contract["workflows"][target_ref]["outcomes"].items()}
-    if target_kind == "entry_point":
-        return _entry_point_response_body_types(contract, target_ref)
+    if target_kind == "external_interface":
+        return _external_interface_response_body_types(contract, target_ref)
     return {}
 
 
@@ -3566,27 +3573,27 @@ def _validate_response_value(label: str, value: dict[str, Any], expected_type: A
         raise ContractError(f"{label} must expose $action_outcome.result as {type_display(expected_type)}")
 
 
-def _validate_async_entry_point_responses(entry_id: str, entry: dict[str, Any], *, require_failure_disposition: bool) -> None:
-    responses = entry_point_responses(entry)
+def _validate_async_external_interface_responses(entry_id: str, entry: dict[str, Any], *, require_failure_disposition: bool) -> None:
+    responses = external_interface_responses(entry)
     accepted = responses.get("accepted")
     if accepted != {"disposition": "acknowledge"}:
-        raise ContractError(f"Entry {entry_id} ingress_responses.accepted must declare disposition: acknowledge")
+        raise ContractError(f"External interface {entry_id} ingress_responses.accepted must declare disposition: acknowledge")
     failure_responses = {name: response for name, response in responses.items() if name != "accepted"}
     if require_failure_disposition and not failure_responses:
-        raise ContractError(f"Entry {entry_id} must declare at least one non-acknowledge ingress disposition such as retry, reject, or dead_letter")
+        raise ContractError(f"External interface {entry_id} must declare at least one non-acknowledge ingress disposition such as retry, reject, or dead_letter")
     for response_id, response in failure_responses.items():
         if set(response) != {"disposition", "problem"}:
-            raise ContractError(f"Entry {entry_id} ingress disposition {response_id} must declare exactly disposition and problem")
+            raise ContractError(f"External interface {entry_id} ingress disposition {response_id} must declare exactly disposition and problem")
         if response["disposition"] not in {"retry", "reject", "dead_letter"}:
-            raise ContractError(f"Entry {entry_id} ingress disposition {response_id} must be retry, reject, or dead_letter")
-        _validate_problem_type(f"Entry {entry_id} disposition {response_id} problem", response["problem"])
+            raise ContractError(f"External interface {entry_id} ingress disposition {response_id} must be retry, reject, or dead_letter")
+        _validate_problem_type(f"External interface {entry_id} disposition {response_id} problem", response["problem"])
     if require_failure_disposition and not any(response["disposition"] in {"reject", "dead_letter"} for response in failure_responses.values()):
-        raise ContractError(f"Entry {entry_id} must declare a reject or dead_letter ingress disposition for malformed or poison messages")
+        raise ContractError(f"External interface {entry_id} must declare a reject or dead_letter ingress disposition for malformed or poison messages")
 
 
-def _validate_webhook_entry_point_responses(entry_id: str, entry: dict[str, Any]) -> None:
-    if entry_point_responses(entry) != {"accepted": {"status": 202}}:
-        raise ContractError(f"Webhook entry {entry_id} ingress_responses.accepted.status must be 202")
+def _validate_webhook_external_interface_responses(entry_id: str, entry: dict[str, Any]) -> None:
+    if external_interface_responses(entry) != {"accepted": {"status": 202}}:
+        raise ContractError(f"Webhook external interface {entry_id} ingress_responses.accepted.status must be 202")
 
 
 def _validate_state_machine_entry_inputs(
@@ -3601,12 +3608,12 @@ def _validate_state_machine_entry_inputs(
     state_machine_context = _state_machine_context(state_machine)
     extra = sorted(set(declared) - set(state_machine_context))
     if extra:
-        raise ContractError(f"Entry {entry_id} {input_label} must be declared state machine context fields: {extra}")
+        raise ContractError(f"External interface {entry_id} {input_label} must be declared state machine context fields: {extra}")
     _validate_entry_input_types(entry_id, input_label, declared, state_machine_context)
     required = _required_entry_state_machine_context(contract, state_machine_id)
     missing = sorted(set(required) - set(declared))
     if missing:
-        raise ContractError(f"Entry {entry_id} {input_label} must include required state machine context inputs: {missing}")
+        raise ContractError(f"External interface {entry_id} {input_label} must include required state machine context inputs: {missing}")
 
 
 def _required_entry_state_machine_context(contract: dict[str, Any], state_machine_id: str) -> dict[str, Any]:
@@ -3731,7 +3738,7 @@ def _add_required_entry_context(required: dict[str, Any], key: str, type_name: A
     existing = required.get(key)
     if existing and not type_equals(schema_without_null(_effective_type(existing)), schema_without_null(_effective_type(type_name))):
         raise ContractError(
-            f"{label} requires conflicting entry input type for {key}: "
+            f"{label} requires conflicting external interface input type for {key}: "
             f"{type_display(_effective_type(existing))} vs {type_display(_effective_type(type_name))}"
         )
     required[key] = type_name
@@ -3746,7 +3753,7 @@ def _validate_exact_entry_inputs(entry_id: str, field: str, actual: dict[str, An
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"Entry {entry_id} {field} must exactly match target input" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"External interface {entry_id} {field} must exactly match target input" + (": " + "; ".join(parts) if parts else ""))
     _validate_entry_input_types(entry_id, field, actual, expected)
 
 
@@ -3755,13 +3762,13 @@ def _validate_entry_input_types(entry_id: str, field: str, actual: dict[str, Any
         expected_type = expected.get(name)
         if not _type_assignable(type_name, expected_type):
             raise ContractError(
-                f"Entry {entry_id} {field}.{name} type mismatch: "
+                f"External interface {entry_id} {field}.{name} type mismatch: "
                 f"expected {type_display(_effective_type(expected_type))}, got {type_display(_effective_type(type_name))}"
             )
 
 
 def _entry_input_map(entry: dict[str, Any], section: str) -> dict[str, Any]:
-    value = entry_point_input(entry).get(section, {})
+    value = external_interface_input(entry).get(section, {})
     return value if isinstance(value, dict) else {}
 
 
@@ -3770,7 +3777,7 @@ def _entry_input_source_types(contract: dict[str, Any], entry: dict[str, Any]) -
     for section in ("path_params", "query_params", "body", "args"):
         for name, type_name in _entry_input_map(entry, section).items():
             source_types[(section, name)] = type_name
-    payload = entry_point_input(entry).get("payload")
+    payload = external_interface_input(entry).get("payload")
     if payload is not None:
         source_types.update(_typed_source_paths(contract, ("payload",), payload))
     return source_types
@@ -3842,7 +3849,7 @@ def _failure_outcomes(cap: dict[str, Any]) -> dict[str, dict[str, Any]]:
 def _primary_success_outcome(cap: dict[str, Any]) -> tuple[str, dict[str, Any]]:
     successes = _success_outcomes(cap)
     if len(successes) != 1:
-        raise ContractError("Application action must declare exactly one success outcome")
+        raise ContractError("Command must declare exactly one success outcome")
     return next(iter(successes.items()))
 
 
@@ -3855,8 +3862,8 @@ def _validate_workflows(contract: dict[str, Any]) -> None:
         kind, value = _one(workflow["trigger"], f"workflow {wid} trigger")
         if kind == "domain_event" and value not in contract["domain_events"]:
             raise ContractError(f"Workflow {wid} trigger references unknown domain event {value}")
-        if kind == "application_action" and value not in contract["application_actions"]:
-            raise ContractError(f"Workflow {wid} trigger references unknown application action {value}")
+        if kind in {"command", "query"} and value not in _operations(contract):
+            raise ContractError(f"Workflow {wid} trigger references unknown command {value}")
         _validate_workflow_outcomes(wid, workflow)
         step_ids = [step["id"] for step in workflow["steps"]]
         if len(step_ids) != len(set(step_ids)):
@@ -3865,9 +3872,9 @@ def _validate_workflows(contract: dict[str, Any]) -> None:
         source_types = _workflow_trigger_source_types(contract, wid, workflow)
         terminal_outcomes: set[str] = set()
         for step in workflow["steps"]:
-            if step["application_action"] not in contract["application_actions"]:
-                raise ContractError(f"Workflow {wid} step references unknown application action {step['application_action']}")
-            operation = contract["application_actions"][step["application_action"]]
+            if step["command"] not in _operations(contract):
+                raise ContractError(f"Workflow {wid} step references unknown command {step['command']}")
+            operation = _operations(contract)[step["command"]]
             _validate_workflow_step_bindings(contract, wid, step, operation, source_types)
             terminal_outcomes.update(_validate_workflow_step_transitions(wid, workflow, step, operation, step_id_set))
             _merge_type_scopes(source_types, _workflow_step_source_types(contract, step, operation))
@@ -3903,7 +3910,7 @@ def _workflow_trigger_payload_type(contract: dict[str, Any], workflow_id: str, w
     kind, value = _one(workflow["trigger"], f"workflow {workflow_id} trigger")
     if kind == "domain_event":
         return contract["domain_events"][value]["payload_schema"]
-    return _success_result_type(contract["application_actions"][value])
+    return _success_result_type(_operations(contract)[value])
 
 
 def _workflow_trigger_payload_fields(contract: dict[str, Any], workflow_id: str, workflow: dict[str, Any]) -> dict[str, Any]:
@@ -3914,9 +3921,9 @@ def _workflow_trigger_payload_fields(contract: dict[str, Any], workflow_id: str,
     return {"payload": payload_type}
 
 
-def _workflow_step_source_types(contract: dict[str, Any], step: dict[str, Any], application_action: dict[str, Any]) -> TypeScopes:
+def _workflow_step_source_types(contract: dict[str, Any], step: dict[str, Any], command: dict[str, Any]) -> TypeScopes:
     sources: TypeScope = {}
-    for outcome_id, outcome in application_action["outcomes"].items():
+    for outcome_id, outcome in command["outcomes"].items():
         sources.update(_typed_source_paths(contract, (step["id"], outcome_id, "result"), outcome["result"]))
     return {"step_outcome": sources}
 
@@ -3947,11 +3954,11 @@ def _validate_workflow_step_bindings(
     contract: dict[str, Any],
     workflow_id: str,
     step: dict[str, Any],
-    application_action: dict[str, Any],
+    command: dict[str, Any],
     source_types: TypeScopes,
 ) -> None:
     bindings = step["input_bindings"]
-    expected = _application_action_input(application_action)
+    expected = _command_input(command)
     if set(bindings) != set(expected):
         missing = sorted(set(expected) - set(bindings))
         extra = sorted(set(bindings) - set(expected))
@@ -3960,7 +3967,7 @@ def _validate_workflow_step_bindings(
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"Workflow {workflow_id} step {step['id']} input_bindings must exactly map application action input" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"Workflow {workflow_id} step {step['id']} input_bindings must exactly map command input" + (": " + "; ".join(parts) if parts else ""))
     for name, source in bindings.items():
         actual_type = _expression_type(
             contract,
@@ -3980,19 +3987,19 @@ def _validate_workflow_step_transitions(
     workflow_id: str,
     workflow: dict[str, Any],
     step: dict[str, Any],
-    application_action: dict[str, Any],
+    command: dict[str, Any],
     step_ids: set[str],
 ) -> set[str]:
     transitions = step["outcome_transitions"]
-    if set(transitions) != set(application_action["outcomes"]):
-        missing = sorted(set(application_action["outcomes"]) - set(transitions))
-        extra = sorted(set(transitions) - set(application_action["outcomes"]))
+    if set(transitions) != set(command["outcomes"]):
+        missing = sorted(set(command["outcomes"]) - set(transitions))
+        extra = sorted(set(transitions) - set(command["outcomes"]))
         parts = []
         if missing:
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"Workflow {workflow_id} step {step['id']} outcome_transitions must exactly map application action outcomes" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"Workflow {workflow_id} step {step['id']} outcome_transitions must exactly map command outcomes" + (": " + "; ".join(parts) if parts else ""))
 
     terminal_outcomes: set[str] = set()
     for outcome_id, transition in transitions.items():
@@ -4000,7 +4007,7 @@ def _validate_workflow_step_transitions(
             action, value = _workflow_transition_action(transition)
         except ContractError as exc:
             raise ContractError(f"Workflow {workflow_id} step {step['id']} transition {outcome_id} {exc}") from exc
-        outcome = application_action["outcomes"][outcome_id]
+        outcome = command["outcomes"][outcome_id]
         if action == "next_step":
             next_step = value
             if next_step not in step_ids:
@@ -4021,7 +4028,7 @@ def _validate_workflow_step_transitions(
                     f"Workflow {workflow_id} outcome {routed_outcome_id} result must be "
                     f"{type_display(outcome['result'])} to receive step outcome {outcome_id}"
                 )
-            if outcome_id in _action_authorization_outcomes(application_action) and not _is_explicit_authorization_workflow_outcome(routed_outcome_id) and not transition.get("rationale"):
+            if outcome_id in _command_authorization_outcomes(command) and not _is_explicit_authorization_workflow_outcome(routed_outcome_id) and not transition.get("rationale"):
                 raise ContractError(
                     f"Workflow {workflow_id} step {step['id']} transition {outcome_id} collapses authorization failure into {routed_outcome_id}; declare an explicit authorization outcome or add rationale"
                 )
@@ -4029,7 +4036,7 @@ def _validate_workflow_step_transitions(
         if action == "retry_policy":
             if outcome["kind"] != "failure":
                 raise ContractError(f"Workflow {workflow_id} step {step['id']} transition {outcome_id} retry_policy is only valid for failure outcomes")
-            if not _application_action_retry_safe(application_action):
+            if not _command_retry_safe(command):
                 raise ContractError(
                     f"Workflow {workflow_id} step {step['id']} transition {outcome_id} retry_policy requires "
                     "a query or retry_safe target operation"
@@ -4166,20 +4173,20 @@ def _resolve_fixture_path(fixture_values: dict[str, Any], ref: str, behavior_sce
 def _validate_behavior_scenario_when(contract: dict[str, Any], behavior_scenario_id: str, behavior_scenario: dict[str, Any]) -> None:
     kind, body = _one(behavior_scenario["when"], f"behavior scenario {behavior_scenario_id} when")
     ref = body["ref"]
-    if kind in {"open_entry_point", "call_entry_point"}:
-        if ref not in contract["entry_points"]:
-            raise ContractError(f"Behavior scenario {behavior_scenario_id} references unknown entry point {ref}")
-        entry = contract["entry_points"][ref]
-        adapter_kind, _ = entry_point_adapter_pair(entry)
-        entry_target_kind, _ = entry_target_pair(entry)
-        if kind == "open_entry_point" and not (adapter_kind in {"html_route", "cli"} and entry_target_kind == "state_machine"):
-            raise ContractError(f"Behavior scenario {behavior_scenario_id} open_entry_point must reference an HTML route or CLI state machine entry point")
-        if kind == "call_entry_point" and not (adapter_kind in {"http_api", "cli"} and _entry_point_effective_application_action_ref(contract, ref)):
-            raise ContractError(f"Behavior scenario {behavior_scenario_id} call_entry_point must reference an HTTP API or CLI application action entry point")
+    if kind in {"open_external_interface", "call_external_interface"}:
+        if ref not in contract["external_interfaces"]:
+            raise ContractError(f"Behavior scenario {behavior_scenario_id} references unknown external interface {ref}")
+        entry = contract["external_interfaces"][ref]
+        adapter_kind, _ = external_interface_adapter_pair(entry)
+        entry_target_kind, _ = external_interface_target_ref_pair(entry)
+        if kind == "open_external_interface" and not (adapter_kind in {"html_route", "cli"} and entry_target_kind == "state_machine"):
+            raise ContractError(f"Behavior scenario {behavior_scenario_id} open_external_interface must reference an HTML route or CLI state machine external interface")
+        if kind == "call_external_interface" and not (adapter_kind in {"http_api", "cli"} and _external_interface_effective_command_ref(contract, ref)):
+            raise ContractError(f"Behavior scenario {behavior_scenario_id} call_external_interface must reference an HTTP API or CLI command external interface")
         _validate_behavior_scenario_entry_input(behavior_scenario_id, kind, body, entry)
-    elif kind == "invoke_application_action":
-        if ref not in contract["application_actions"]:
-            raise ContractError(f"Behavior scenario {behavior_scenario_id} references unknown application action {ref}")
+    elif kind == "invoke_command":
+        if ref not in _operations(contract):
+            raise ContractError(f"Behavior scenario {behavior_scenario_id} references unknown command {ref}")
     elif kind == "emit_domain_event":
         if ref not in contract["domain_events"]:
             raise ContractError(f"Behavior scenario {behavior_scenario_id} references unknown domain event {ref}")
@@ -4219,7 +4226,7 @@ def _validate_behavior_scenario_entry_input(behavior_scenario_id: str, kind: str
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"Behavior scenario {behavior_scenario_id} {kind}.input must exactly match entry input" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"Behavior scenario {behavior_scenario_id} {kind}.input must exactly match external interface input" + (": " + "; ".join(parts) if parts else ""))
 
 
 def _entry_external_input_types(entry: dict[str, Any]) -> dict[str, Any]:
@@ -4236,9 +4243,9 @@ def _system_under_test_ref(system_under_test_ref: dict[str, str]) -> tuple[str, 
 def _validate_behavior_scenario_system_under_test(contract: dict[str, Any], behavior_scenario_id: str, behavior_scenario: dict[str, Any]) -> None:
     sut_kind, sut_ref = _system_under_test_ref(behavior_scenario["system_under_test_ref"])
     collections = {
-        "entry_point": "entry_points",
+        "external_interface": "external_interfaces",
         "domain_event": "domain_events",
-        "application_action": "application_actions",
+        "command": "commands", "query": "queries",
         "state_machine": "state_machines",
         "workflow": "workflows",
     }
@@ -4247,15 +4254,15 @@ def _validate_behavior_scenario_system_under_test(contract: dict[str, Any], beha
 
     when_kind, when_body = _one(behavior_scenario["when"], f"behavior scenario {behavior_scenario_id} when")
     then = behavior_scenario["then"]
-    application_action_ref = _behavior_scenario_application_action_ref(contract, when_kind, when_body)
-    entry_ref = when_body["ref"] if when_kind in {"open_entry_point", "call_entry_point"} else None
+    command_ref = _behavior_scenario_command_ref(contract, when_kind, when_body)
+    entry_ref = when_body["ref"] if when_kind in {"open_external_interface", "call_external_interface"} else None
     domain_event_ref = when_body["ref"] if when_kind == "emit_domain_event" else None
     state_machine_ref = _behavior_scenario_state_machine_ref(contract, when_kind, when_body)
 
-    if sut_kind == "entry_point" and entry_ref != sut_ref:
-        raise ContractError(f"Behavior scenario {behavior_scenario_id} system_under_test_ref.entry_point must match the entry point under test")
-    if sut_kind == "application_action" and application_action_ref != sut_ref:
-        raise ContractError(f"Behavior scenario {behavior_scenario_id} system_under_test_ref.application_action must match the application action under test")
+    if sut_kind == "external_interface" and entry_ref != sut_ref:
+        raise ContractError(f"Behavior scenario {behavior_scenario_id} system_under_test_ref.external_interface must match the external interface under test")
+    if sut_kind in {"command", "query"} and command_ref != sut_ref:
+        raise ContractError(f"Behavior scenario {behavior_scenario_id} system_under_test_ref.command must match the command under test")
     if sut_kind == "domain_event" and domain_event_ref != sut_ref and sut_ref not in (then.get("domain_events") or {}).get("emitted", []):
         raise ContractError(f"Behavior scenario {behavior_scenario_id} system_under_test_ref.domain_event must match the emitted domain event under test")
     if sut_kind == "state_machine":
@@ -4268,27 +4275,27 @@ def _validate_behavior_scenario_system_under_test(contract: dict[str, Any], beha
             raise ContractError(f"Behavior scenario {behavior_scenario_id} system_under_test_ref.workflow must match then.workflow.ref")
 
 
-def _behavior_scenario_application_action_ref(contract: dict[str, Any], when_kind: str, when_body: dict[str, Any]) -> str | None:
-    if when_kind == "invoke_application_action":
+def _behavior_scenario_command_ref(contract: dict[str, Any], when_kind: str, when_body: dict[str, Any]) -> str | None:
+    if when_kind == "invoke_command":
         return when_body["ref"]
-    if when_kind == "call_entry_point":
-        return _entry_point_effective_application_action_ref(contract, when_body["ref"])
+    if when_kind == "call_external_interface":
+        return _external_interface_effective_command_ref(contract, when_body["ref"])
     return None
 
 
-def _entry_point_effective_application_action_ref(contract: dict[str, Any], entry_id: str) -> str | None:
-    target_kind, target_ref = entry_target_pair(contract["entry_points"][entry_id])
-    if target_kind == "application_action":
+def _external_interface_effective_command_ref(contract: dict[str, Any], entry_id: str) -> str | None:
+    target_kind, target_ref = external_interface_target_ref_pair(contract["external_interfaces"][entry_id])
+    if target_kind in {"command", "query"}:
         return target_ref
-    if target_kind == "entry_point":
-        return _entry_point_effective_application_action_ref(contract, target_ref)
+    if target_kind == "external_interface":
+        return _external_interface_effective_command_ref(contract, target_ref)
     return None
 
 
 def _behavior_scenario_state_machine_ref(contract: dict[str, Any], when_kind: str, when_body: dict[str, Any]) -> str | None:
-    if when_kind != "open_entry_point":
+    if when_kind != "open_external_interface":
         return None
-    target_kind, target_ref = entry_target_pair(contract["entry_points"][when_body["ref"]])
+    target_kind, target_ref = external_interface_target_ref_pair(contract["external_interfaces"][when_body["ref"]])
     if target_kind == "state_machine":
         return target_ref
     return None
@@ -4328,19 +4335,19 @@ def _validate_behavior_scenario_then(contract: dict[str, Any], behavior_scenario
                 raise ContractError(f"Behavior scenario {behavior_scenario_id} asserts undeclared state machine context {state_machine_id}.{key}")
     for field in ["enables", "forbids", "invoked"]:
         for cap_id in then.get(field, []):
-            if cap_id not in contract["application_actions"]:
-                raise ContractError(f"Behavior scenario {behavior_scenario_id} {field} unknown application action {cap_id}")
+            if cap_id not in _operations(contract):
+                raise ContractError(f"Behavior scenario {behavior_scenario_id} {field} unknown command {cap_id}")
     authorization_assertion = then.get("authorization") or {}
     for effect in ("allowed", "denied"):
         for assertion in authorization_assertion.get(effect, []):
-            kind, ref = _authorization_assertion_resource(assertion, f"Behavior scenario {behavior_scenario_id} authorization_policy.{effect}")
-            if kind == "application_action" and ref not in contract["application_actions"]:
-                raise ContractError(f"Behavior scenario {behavior_scenario_id} authorization_policy.{effect} unknown application action {ref}")
-            if kind == "entry_point" and ref not in contract["entry_points"]:
-                raise ContractError(f"Behavior scenario {behavior_scenario_id} authorization_policy.{effect} unknown entry point {ref}")
-            authorization_policy = assertion.get("authorization_policy")
-            if authorization_policy and authorization_policy not in contract["authorization_policies"]:
-                raise ContractError(f"Behavior scenario {behavior_scenario_id} authorization_policy.{effect} unknown authorization_policy {authorization_policy}")
+            kind, ref = _authorization_assertion_resource(assertion, f"Behavior scenario {behavior_scenario_id} access_policy.{effect}")
+            if kind in {"command", "query"} and ref not in _operations(contract):
+                raise ContractError(f"Behavior scenario {behavior_scenario_id} access_policy.{effect} unknown command {ref}")
+            if kind == "external_interface" and ref not in contract["external_interfaces"]:
+                raise ContractError(f"Behavior scenario {behavior_scenario_id} access_policy.{effect} unknown external interface {ref}")
+            access_policy = assertion.get("access_policy")
+            if access_policy and access_policy not in contract["access_policies"]:
+                raise ContractError(f"Behavior scenario {behavior_scenario_id} access_policy.{effect} unknown access_policy {access_policy}")
     entity_exists = (then.get("entity") or {}).get("exists")
     if entity_exists:
         entity_type_id = entity_exists["entity_type"]
@@ -4372,8 +4379,8 @@ def _validate_behavior_scenario_then(contract: dict[str, Any], behavior_scenario
         raise ContractError(f"Behavior scenario {behavior_scenario_id} asserts workflow executed but when does not trigger workflow {workflow['ref']}")
     if "response" in then:
         when_kind, _ = _one(behavior_scenario["when"], f"behavior scenario {behavior_scenario_id} when")
-        if when_kind != "call_entry_point":
-            raise ContractError(f"Behavior scenario {behavior_scenario_id} response assertions require call_entry_point")
+        if when_kind != "call_external_interface":
+            raise ContractError(f"Behavior scenario {behavior_scenario_id} response assertions require call_external_interface")
     _validate_authorization_denial_outcome(contract, behavior_scenario_id, behavior_scenario)
 
 
@@ -4384,16 +4391,16 @@ def _validate_authorization_denial_outcome(contract: dict[str, Any], behavior_sc
     if not outcome_id:
         return
     when_kind, when_body = _one(behavior_scenario["when"], f"behavior scenario {behavior_scenario_id} when")
-    application_action_id = _behavior_scenario_application_action_ref(contract, when_kind, when_body)
-    if not application_action_id:
+    command_id = _behavior_scenario_command_ref(contract, when_kind, when_body)
+    if not command_id:
         raise ContractError(f"Behavior scenario {behavior_scenario_id} authorization_denial outcome requires an action binding")
-    authorization = contract["application_actions"][application_action_id].get("authorization")
+    authorization = _operations(contract)[command_id].get("authorization")
     if not authorization:
-        raise ContractError(f"Behavior scenario {behavior_scenario_id} authorization_denial outcome requires application action authorization")
+        raise ContractError(f"Behavior scenario {behavior_scenario_id} authorization_denial outcome requires command authorization")
     mapped = {authorization["authentication_required_as"], authorization["access_denied_as"]}
     if outcome_id not in mapped:
         raise ContractError(
-            f"Behavior scenario {behavior_scenario_id} authorization_denial outcome must be one of application action authorization failure outcomes: "
+            f"Behavior scenario {behavior_scenario_id} authorization_denial outcome must be one of command authorization failure outcomes: "
             + ", ".join(sorted(mapped))
         )
 
@@ -4411,20 +4418,20 @@ def _validate_behavior_scenario_event_emissions(
         if when_body["ref"] in emitted:
             return
         return
-    application_action_id = _behavior_scenario_application_action_ref(contract, when_kind, when_body)
+    command_id = _behavior_scenario_command_ref(contract, when_kind, when_body)
     outcome_id = then.get("outcome")
-    if not application_action_id or not outcome_id or outcome_id not in contract["application_actions"][application_action_id]["outcomes"]:
+    if not command_id or not outcome_id or outcome_id not in _operations(contract)[command_id]["outcomes"]:
         return
     possible = {
         _emit_domain_event_id(emit)
-        for emit in contract["application_actions"][application_action_id]["outcomes"][outcome_id].get("emits", [])
+        for emit in _operations(contract)[command_id]["outcomes"][outcome_id].get("emits", [])
     }
     unexpected = sorted(emitted - possible)
     if unexpected:
-        raise ContractError(f"Behavior scenario {behavior_scenario_id} asserts domain events not emitted by {application_action_id}.{outcome_id}: {unexpected}")
+        raise ContractError(f"Behavior scenario {behavior_scenario_id} asserts domain events not emitted by {command_id}.{outcome_id}: {unexpected}")
     contradicted = sorted(not_emitted & possible)
     if contradicted:
-        raise ContractError(f"Behavior scenario {behavior_scenario_id} asserts not_emitted domain events emitted by {application_action_id}.{outcome_id}: {contradicted}")
+        raise ContractError(f"Behavior scenario {behavior_scenario_id} asserts not_emitted domain events emitted by {command_id}.{outcome_id}: {contradicted}")
 
 
 def _validate_behavior_scenario_invocations(contract: dict[str, Any], behavior_scenario_id: str, behavior_scenario: dict[str, Any]) -> None:
@@ -4432,13 +4439,13 @@ def _validate_behavior_scenario_invocations(contract: dict[str, Any], behavior_s
     if not invoked:
         return
     when_kind, when_body = _one(behavior_scenario["when"], f"behavior scenario {behavior_scenario_id} when")
-    direct = _behavior_scenario_application_action_ref(contract, when_kind, when_body)
+    direct = _behavior_scenario_command_ref(contract, when_kind, when_body)
     expected = {direct} if direct else set()
     if when_kind == "emit_domain_event":
         event_id = when_body["ref"]
         for workflow in contract["workflows"].values():
             if workflow["trigger"] == {"domain_event": event_id}:
-                expected.update(step["application_action"] for step in workflow["steps"])
+                expected.update(step["command"] for step in workflow["steps"])
     unexpected = sorted(invoked - expected)
     if unexpected:
         raise ContractError(f"Behavior scenario {behavior_scenario_id} asserts action bindings unrelated to when: {unexpected}")
@@ -4454,8 +4461,8 @@ def _workflow_can_run_from_behavior_scenario(contract: dict[str, Any], behavior_
     trigger_kind, trigger_ref = _one(workflow["trigger"], f"workflow {workflow_id} trigger")
     if when_kind == "emit_domain_event" and trigger_kind == "domain_event":
         return when_body["ref"] == trigger_ref
-    application_action_id = _behavior_scenario_application_action_ref(contract, when_kind, when_body)
-    return trigger_kind == "application_action" and application_action_id == trigger_ref
+    command_id = _behavior_scenario_command_ref(contract, when_kind, when_body)
+    return trigger_kind in {"command", "query"} and command_id == trigger_ref
 
 
 def _validate_behavior_scenario_outcome(contract: dict[str, Any], behavior_scenario_id: str, behavior_scenario: dict[str, Any]) -> None:
@@ -4464,38 +4471,38 @@ def _validate_behavior_scenario_outcome(contract: dict[str, Any], behavior_scena
     outcome_id = then.get("outcome")
     cap: dict[str, Any] | None = None
     entry: dict[str, Any] | None = None
-    if when_kind == "invoke_application_action":
-        cap = contract["application_actions"][when_body["ref"]]
-    elif when_kind == "call_entry_point":
-        entry = contract["entry_points"][when_body["ref"]]
-        target_ref = _entry_point_effective_application_action_ref(contract, when_body["ref"])
+    if when_kind == "invoke_command":
+        cap = _operations(contract)[when_body["ref"]]
+    elif when_kind == "call_external_interface":
+        entry = contract["external_interfaces"][when_body["ref"]]
+        target_ref = _external_interface_effective_command_ref(contract, when_body["ref"])
         if target_ref:
-            cap = contract["application_actions"][target_ref]
+            cap = _operations(contract)[target_ref]
     if cap is None:
         if outcome_id:
-            raise ContractError(f"Behavior scenario {behavior_scenario_id} asserts outcome but does not execute an application action")
+            raise ContractError(f"Behavior scenario {behavior_scenario_id} asserts outcome but does not execute an command")
         return
     if not outcome_id:
-        raise ContractError(f"Behavior scenario {behavior_scenario_id} must assert an application action outcome")
+        raise ContractError(f"Behavior scenario {behavior_scenario_id} must assert an command outcome")
     if outcome_id not in cap["outcomes"]:
         raise ContractError(f"Behavior scenario {behavior_scenario_id} asserts unknown outcome {outcome_id}")
     if entry is None:
         return
-    if outcome_id not in _entry_point_named_response_outcomes(contract, when_body["ref"]):
-        raise ContractError(f"Behavior scenario {behavior_scenario_id} outcome {outcome_id} is not mapped by entry point {when_body['ref']}")
+    if outcome_id not in _external_interface_named_response_outcomes(contract, when_body["ref"]):
+        raise ContractError(f"Behavior scenario {behavior_scenario_id} outcome {outcome_id} is not mapped by external interface {when_body['ref']}")
     response_assertion = then.get("response")
     if response_assertion:
-        response = _entry_point_test_response_projection(entry, outcome_id)
+        response = _external_interface_test_response_projection(entry, outcome_id)
         for key in ("status", "exit_code"):
             if key in response_assertion and response.get(key) != response_assertion[key]:
-                raise ContractError(f"Behavior scenario {behavior_scenario_id} response.{key} does not match entry point response for outcome {outcome_id}")
+                raise ContractError(f"Behavior scenario {behavior_scenario_id} response.{key} does not match external interface response for outcome {outcome_id}")
 
 
-def _entry_point_test_response_projection(entry: dict[str, Any], outcome_id: str) -> dict[str, Any]:
-    responses = entry_point_responses(entry)
+def _external_interface_test_response_projection(entry: dict[str, Any], outcome_id: str) -> dict[str, Any]:
+    responses = external_interface_responses(entry)
     if outcome_id in responses:
         return responses[outcome_id]
-    handlers = entry_point_response_handlers(entry)
+    handlers = external_interface_response_handlers(entry)
     if outcome_id in handlers:
         return handlers[outcome_id]
     return {}
@@ -4506,25 +4513,25 @@ def _validate_behavior_scenario_archetype(behavior_scenario_id: str, behavior_sc
     when_kind, _ = _one(behavior_scenario["when"], f"behavior scenario {behavior_scenario_id} when")
     then = behavior_scenario["then"]
     if archetype == "empty_collection_state_machine":
-        if when_kind != "open_entry_point" or then.get("state_machine", {}).get("view_state") != "empty":
-            raise ContractError(f"Behavior scenario {behavior_scenario_id} empty_collection_state_machine requires open_entry_point and state_machine.view_state=empty")
+        if when_kind != "open_external_interface" or then.get("state_machine", {}).get("view_state") != "empty":
+            raise ContractError(f"Behavior scenario {behavior_scenario_id} empty_collection_state_machine requires open_external_interface and state_machine.view_state=empty")
     elif archetype == "ready_collection_state_machine":
-        if when_kind != "open_entry_point" or then.get("state_machine", {}).get("view_state") != "ready":
-            raise ContractError(f"Behavior scenario {behavior_scenario_id} ready_collection_state_machine requires open_entry_point and state_machine.view_state=ready")
+        if when_kind != "open_external_interface" or then.get("state_machine", {}).get("view_state") != "ready":
+            raise ContractError(f"Behavior scenario {behavior_scenario_id} ready_collection_state_machine requires open_external_interface and state_machine.view_state=ready")
     elif archetype == "state_machine_composition_sync":
         state_machine_assert = then.get("state_machine", {})
-        if when_kind != "open_entry_point" or not state_machine_assert.get("instances"):
-            raise ContractError(f"Behavior scenario {behavior_scenario_id} state_machine_composition_sync requires open_entry_point and state_machine.instances")
+        if when_kind != "open_external_interface" or not state_machine_assert.get("instances"):
+            raise ContractError(f"Behavior scenario {behavior_scenario_id} state_machine_composition_sync requires open_external_interface and state_machine.instances")
     elif archetype == "state_machine_composition":
         state_machine_assert = then.get("state_machine", {})
-        if when_kind != "open_entry_point" or not state_machine_assert.get("instances"):
-            raise ContractError(f"Behavior scenario {behavior_scenario_id} state_machine_composition requires open_entry_point and state_machine.instances")
+        if when_kind != "open_external_interface" or not state_machine_assert.get("instances"):
+            raise ContractError(f"Behavior scenario {behavior_scenario_id} state_machine_composition requires open_external_interface and state_machine.instances")
     elif archetype == "action_outcome":
-        if when_kind != "invoke_application_action" or "outcome" not in then:
-            raise ContractError(f"Behavior scenario {behavior_scenario_id} action_outcome requires invoke_application_action and outcome")
-    elif archetype == "entry_point_response":
-        if when_kind != "call_entry_point" or "outcome" not in then or "response" not in then:
-            raise ContractError(f"Behavior scenario {behavior_scenario_id} entry_point_response requires call_entry_point, outcome, and response")
+        if when_kind != "invoke_command" or "outcome" not in then:
+            raise ContractError(f"Behavior scenario {behavior_scenario_id} action_outcome requires invoke_command and outcome")
+    elif archetype == "external_interface_response":
+        if when_kind != "call_external_interface" or "outcome" not in then or "response" not in then:
+            raise ContractError(f"Behavior scenario {behavior_scenario_id} external_interface_response requires call_external_interface, outcome, and response")
     elif archetype == "workflow_trigger_success":
         workflow = then.get("workflow", {})
         if when_kind != "emit_domain_event" or not workflow.get("executed") or "outcome" not in workflow:
@@ -4677,12 +4684,12 @@ def _expand_behavior_scenarios(contract: dict[str, Any]) -> None:
                 }
         when_kind, when_body = _one(behavior_scenario["when"], "behavior scenario when")
         cap_id = None
-        if when_kind == "invoke_application_action":
+        if when_kind == "invoke_command":
             cap_id = when_body["ref"]
-        elif when_kind == "call_entry_point":
-            cap_id = _entry_point_effective_application_action_ref(contract, when_body["ref"])
+        elif when_kind == "call_external_interface":
+            cap_id = _external_interface_effective_command_ref(contract, when_body["ref"])
         if cap_id:
-            assertions.setdefault("authorization", {"allowed": [{"application_action": cap_id}]})
+            assertions.setdefault("authorization", {"allowed": [{"command": cap_id}]})
         _expand_authorization_assertions(contract, assertions)
 
 
@@ -4692,17 +4699,17 @@ def _expand_authorization_assertions(contract: dict[str, Any], assertions: dict[
         return
     for effect in ("allowed", "denied"):
         for assertion in policy.get(effect, []):
-            if "authorization_policy" in assertion:
+            if "access_policy" in assertion:
                 continue
-            kind, ref = _authorization_assertion_resource(assertion, f"authorization_policy.{effect}")
-            if kind == "application_action":
-                authorization = contract["application_actions"][ref].get("authorization")
+            kind, ref = _authorization_assertion_resource(assertion, f"access_policy.{effect}")
+            if kind in {"command", "query"}:
+                authorization = _operations(contract)[ref].get("authorization")
                 if authorization:
-                    assertion["authorization_policy"] = authorization["policy"]
-            elif kind == "entry_point":
-                authorization_policy = contract["entry_points"][ref].get("authorization_policy")
-                if authorization_policy:
-                    assertion["authorization_policy"] = authorization_policy
+                    assertion["access_policy"] = authorization["policy"]
+            elif kind == "external_interface":
+                access_policy = contract["external_interfaces"][ref].get("access_policy")
+                if access_policy:
+                    assertion["access_policy"] = access_policy
 
 
 def _stash_generated_tree(root: Path) -> tuple[Path | None, Path | None]:
@@ -4798,12 +4805,12 @@ def _one_predicate(mapping: dict[str, Any], label: str) -> tuple[str, Any]:
 
 def _require(mapping: dict[str, Any], owner: str, field: str) -> None:
     if field not in mapping:
-        raise ContractError(f"Entry {owner} must declare {field}")
+        raise ContractError(f"External interface {owner} must declare {field}")
 
 
 def _require_adapter(adapter: dict[str, Any], owner: str, field: str) -> None:
     if field not in adapter:
-        raise ContractError(f"Entry point {owner} adapter must declare {field}")
+        raise ContractError(f"External interface {owner} adapter must declare {field}")
 
 
 def _path_params(path: str | None) -> set[str]:
@@ -4811,11 +4818,11 @@ def _path_params(path: str | None) -> set[str]:
 
 
 def _validate_path_params(entry: dict[str, Any], entry_id: str) -> None:
-    placeholders = _path_params(entry_point_path(entry))
+    placeholders = _path_params(external_interface_path(entry))
     declared = set(_entry_input_map(entry, "path_params"))
     if placeholders != declared:
         raise ContractError(
-            f"Entry {entry_id} path params {sorted(placeholders)} must exactly match input.path_params {sorted(declared)}"
+            f"External interface {entry_id} path params {sorted(placeholders)} must exactly match input.path_params {sorted(declared)}"
         )
 
 

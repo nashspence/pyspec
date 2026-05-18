@@ -102,7 +102,7 @@ def test_author_query_conditional_effects_and_result_scope_validate() -> None:
 
 def test_author_value_maps_require_tagged_literals_or_binding_sources() -> None:
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
-    body = author["behavior_scenarios"]["behavior_scenario.project.board.empty"]["when"]["open_entry_point"]
+    body = author["behavior_scenarios"]["behavior_scenario.project.board.empty"]["when"]["open_external_interface"]
     body["input"]["workspace_id"] = "$fixture.workspace.id"
     with pytest.raises(ContractError, match="Schema validation failed"):
         validate_against_schema(author, "author.schema.json")
@@ -122,7 +122,7 @@ def test_author_no_local_effect_reasons_are_closed_vocabulary() -> None:
 
 def test_author_async_adapters_use_ingress_responses() -> None:
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
-    worker = author["entry_points"]["entry_point.worker.project.approval_notice"]["adapter"]["worker"]
+    worker = author["external_interfaces"]["external_interface.worker.project.approval_notice"]["adapter"]["worker"]
     worker["responses"] = worker.pop("ingress_responses")
     with pytest.raises(ContractError, match="Schema validation failed"):
         validate_against_schema(author, "author.schema.json")
@@ -147,8 +147,8 @@ def test_author_contract_can_be_minimal_and_renderer_invisible() -> None:
     contract = compile_source(author, layers={"core"})
     assert contract["entity_types"][ET("Project")]["schema"]["properties"]["title"] == P("Text")
     assert contract["state_machines"] == {}
-    assert contract["entry_points"] == {}
-    assert contract["refs"] == {}
+    assert contract["external_interfaces"] == {}
+    assert contract["reference_index"] == {}
 
 
 def test_author_contract_reuses_layer_guardrails() -> None:

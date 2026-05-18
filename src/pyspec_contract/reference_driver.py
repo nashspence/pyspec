@@ -4,18 +4,19 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from .io import read_json, read_yaml
+from .operations import operation_resource_kind, operations
 from .paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR
 from .runtime import fixture_namespace, resolve_map
 from .binding_refs import resolve_binding_expression
 from .targets import (
-    entry_state_machine_name,
-    entry_point_input,
-    entry_point_response_handlers,
-    entry_point_responses,
-    entry_target_pair,
-    entry_point_input_bindings,
+    external_interface_state_machine_name,
+    external_interface_input,
+    external_interface_response_handlers,
+    external_interface_responses,
+    external_interface_target_ref_pair,
+    external_interface_input_bindings,
 )
-from .json_schema import is_array_of_entity_type, entity_type_id, schema_properties
+from .json_schema import entity_type_id, schema_properties
 
 
 class ReferenceSpecDriver:
@@ -56,11 +57,11 @@ class ReferenceSpecDriver:
 
     def when(self, behavior_scenario_id: str, behavior_scenario: Mapping[str, Any]) -> None:
         kind, body = next(iter(behavior_scenario["when"].items()))
-        if kind == "open_entry_point":
-            self.last_state_machine = self._open_entry_point(body["ref"], self._resolve_map(body.get("input", {})))
-        elif kind == "call_entry_point":
-            self.response = self._call_entry_point(body["ref"], self._resolve_map(body.get("input", {})), behavior_scenario["then"].get("outcome"))
-        elif kind == "invoke_application_action":
+        if kind == "open_external_interface":
+            self.last_state_machine = self._open_external_interface(body["ref"], self._resolve_map(body.get("input", {})))
+        elif kind == "call_external_interface":
+            self.response = self._call_external_interface(body["ref"], self._resolve_map(body.get("input", {})), behavior_scenario["then"].get("outcome"))
+        elif kind in {"invoke_command", "invoke_query"}:
             self.last_result = self._invoke(body["ref"], self._resolve_map(body.get("input", {})), behavior_scenario["then"].get("outcome"))
         elif kind == "emit_domain_event":
             self._emit(body["ref"], self._resolve_map(body.get("payload", {})))
@@ -104,9 +105,9 @@ class ReferenceSpecDriver:
             for query in requires.get("data_loaders", []):
                 assert query in rendered_queries
         for cap in assertions.get("enables", []):
-            assert cap in self._rendered_application_action_refs()
+            assert cap in self._rendered_operation_refs()
         for cap in assertions.get("forbids", []):
-            assert cap not in self._rendered_application_action_refs()
+            assert cap not in self._rendered_operation_refs()
         exists = (assertions.get("entity_type") or {}).get("exists")
         if exists:
             where = self._resolve_map(exists["where"])
@@ -137,9 +138,9 @@ class ReferenceSpecDriver:
             assert self.last_outcome == outcome
         policy = assertions.get("authorization") or {}
         for assertion in policy.get("allowed", []):
-            assert self._authorization_assertion_allowed(assertion), f"Expected authorization policy to permit {assertion}"
+            assert self._authorization_assertion_allowed(assertion), f"Expected access policy to permit {assertion}"
         for assertion in policy.get("denied", []):
-            assert not self._authorization_assertion_allowed(assertion), f"Expected authorization policy to deny {assertion}"
+            assert not self._authorization_assertion_allowed(assertion), f"Expected access policy to deny {assertion}"
         for assertion in assertions.get("postconditions", []):
             kind, body = next(iter(assertion.items()))
             if kind == "present":
@@ -149,9 +150,9 @@ class ReferenceSpecDriver:
                 where = self._resolve_map(body["where"])
                 assert not any(_matches(record, where) for record in self.store[body["entity_type"]]), f"Unexpected assertion {body}"
 
-    def _open_entry_point(self, entry_id: str, input_values: dict[str, Any]) -> dict[str, Any]:
-        entry = self.contract["entry_points"][entry_id]
-        state_machine_id = entry_state_machine_name(entry)
+    def _open_external_interface(self, entry_id: str, input_values: dict[str, Any]) -> dict[str, Any]:
+        entry = self.contract["external_interfaces"][entry_id]
+        state_machine_id = external_interface_state_machine_name(entry)
         state_machine = self.contract["state_machines"][state_machine_id]
         context = self._entry_target_input(entry, input_values)
         records = self._filter(state_machine["entity_type"], context) if state_machine.get("entity_type") else []
@@ -240,38 +241,38 @@ class ReferenceSpecDriver:
             return values
         return set(self.last_state_machine.get(key, []))
 
-    def _rendered_application_action_refs(self) -> set[str]:
+    def _rendered_operation_refs(self) -> set[str]:
         if not self.last_state_machine:
             return set()
 
-        def application_actions(item: dict[str, Any]) -> set[str]:
+        def operation_refs(item: dict[str, Any]) -> set[str]:
             invocations = item.get("action_bindings") or {}
-            return {invocation["application_action"] for invocation in invocations.values()}
+            return {invocation.get("command") or invocation.get("query") for invocation in invocations.values()}
 
         if "instances" in self.last_state_machine:
-            refs = application_actions(self.last_state_machine)
+            refs = operation_refs(self.last_state_machine)
             for state_machine in self.last_state_machine["instances"].values():
-                refs.update(application_actions(state_machine))
+                refs.update(operation_refs(state_machine))
             return refs
-        return application_actions(self.last_state_machine)
+        return operation_refs(self.last_state_machine)
 
-    def _call_entry_point(self, entry_id: str, input_values: dict[str, Any], outcome_id: str | None = None) -> dict[str, Any]:
-        entry = self.contract["entry_points"][entry_id]
-        target_kind, cap_id = entry_target_pair(entry)
-        policy_id = entry.get("authorization_policy")
+    def _call_external_interface(self, entry_id: str, input_values: dict[str, Any], outcome_id: str | None = None) -> dict[str, Any]:
+        entry = self.contract["external_interfaces"][entry_id]
+        target_kind, cap_id = external_interface_target_ref_pair(entry)
+        policy_id = entry.get("access_policy")
         if policy_id:
-            self.authorization_decisions[("entry_point", entry_id, policy_id)] = self._evaluate_policy(policy_id, "entry_point", entry_id, input_values)
-        if target_kind == "entry_point":
+            self.authorization_decisions[("external_interface", entry_id, policy_id)] = self._evaluate_policy(policy_id, "external_interface", entry_id, input_values)
+        if target_kind == "external_interface":
             target_input = self._entry_delegate_input(entry, input_values)
-            delegated_response = self._call_entry_point(cap_id, target_input, outcome_id)
-            handler = entry_point_response_handlers(entry)[self.last_outcome]
+            delegated_response = self._call_external_interface(cap_id, target_input, outcome_id)
+            handler = external_interface_response_handlers(entry)[self.last_outcome]
             if "stdout" in handler:
                 return {"exit_code": handler["exit_code"], "stdout": self._cli_output(handler["stdout"], delegated_response, input_values)}
             return {"exit_code": handler["exit_code"], "stderr": self._cli_output(handler["stderr"], delegated_response, input_values)}
-        assert target_kind == "application_action"
+        assert target_kind in {"command", "query"}
         target_input = self._entry_target_input(entry, input_values)
         result = self._invoke(cap_id, target_input, outcome_id)
-        response = _entry_point_response(entry, self.last_outcome)
+        response = _external_interface_response(entry, self.last_outcome)
         if "status" in response:
             return {"status": response["status"], "body": result}
         if "stdout" in response:
@@ -281,22 +282,22 @@ class ReferenceSpecDriver:
     def _entry_target_input(self, entry: dict[str, Any], input_values: dict[str, Any]) -> dict[str, Any]:
         namespace = {"adapter_input": {}}
         for section in ("path_params", "query_params", "body", "args"):
-            fields = entry_point_input(entry).get(section, {})
+            fields = external_interface_input(entry).get(section, {})
             if fields:
                 namespace["adapter_input"][section] = {name: input_values[name] for name in fields}
-        bindings = entry_point_input_bindings(entry)
+        bindings = external_interface_input_bindings(entry)
         return {name: _resolve_binding(source, namespace) for name, source in bindings.items()}
 
     def _entry_delegate_input(self, entry: dict[str, Any], input_values: dict[str, Any]) -> dict[str, Any]:
         namespace = {"adapter_input": {}}
         for section in ("path_params", "query_params", "body", "args"):
-            fields = entry_point_input(entry).get(section, {})
+            fields = external_interface_input(entry).get(section, {})
             if fields:
                 namespace["adapter_input"][section] = {name: input_values[name] for name in fields}
-        if "payload" in entry_point_input(entry):
+        if "payload" in external_interface_input(entry):
             namespace["adapter_input"]["payload"] = input_values.get("payload", input_values)
         delegated_input: dict[str, Any] = {}
-        for section, section_bindings in entry_point_input_bindings(entry).items():
+        for section, section_bindings in external_interface_input_bindings(entry).items():
             if section == "payload" and isinstance(section_bindings, Mapping) and "from" in section_bindings:
                 delegated_input["payload"] = _resolve_binding(section_bindings, namespace)
                 continue
@@ -316,14 +317,15 @@ class ReferenceSpecDriver:
         }
 
     def _invoke(self, cap_id: str, input_values: dict[str, Any], outcome_id: str | None = None) -> Any:
-        cap = self.contract["application_actions"][cap_id]
+        cap = operations(self.contract)[cap_id]
         authorization = cap.get("authorization")
         if authorization:
             policy_id = authorization["policy"]
-            allowed = self._evaluate_policy(policy_id, "application_action", cap_id, input_values)
-            self.authorization_decisions[("application_action", cap_id, policy_id)] = allowed
+            resource_kind = operation_resource_kind(cap_id)
+            allowed = self._evaluate_policy(policy_id, resource_kind, cap_id, input_values)
+            self.authorization_decisions[(resource_kind, cap_id, policy_id)] = allowed
             if not allowed:
-                policy = self.contract["authorization_policies"][policy_id]
+                policy = self.contract["access_policies"][policy_id]
                 outcome_id = (
                     authorization["access_denied_as"]
                     if self._subject_available(policy, input_values)
@@ -352,14 +354,16 @@ class ReferenceSpecDriver:
                 self._record_event(event_id, payload)
             self.last_result = record
             return record
-        if action_kind == "query" and cap.get("reads") and entity_type_id(outcome["result"]):
-            entity_type_ref = _single_entity_type(cap, "reads")
+        query_entity_type_ref = _result_entity_type(outcome["result"]) if action_kind == "query" else None
+        if action_kind == "query" and query_entity_type_ref:
+            entity_type_ref = query_entity_type_ref
             entity_key = _entity_input_key(entity_type_ref)
-            self.last_result = self._find(entity_type_ref, {"id": input_values.get(entity_key) or input_values.get("id")})
-            return self.last_result
-        if action_kind == "query" and cap.get("reads") and is_array_of_entity_type(outcome["result"], _single_entity_type(cap, "reads")):
-            entity_type_ref = _single_entity_type(cap, "reads")
-            self.last_result = self._filter(entity_type_ref, input_values)
+            selected_id = input_values.get(entity_key) or input_values.get("id")
+            self.last_result = (
+                self._filter(entity_type_ref, input_values)
+                if _is_array_schema(outcome["result"])
+                else self._find(entity_type_ref, {"id": selected_id})
+            )
             return self.last_result
         if action_kind == "lifecycle_transition":
             lifecycle_transition = cap["lifecycle_transition"]
@@ -374,8 +378,8 @@ class ReferenceSpecDriver:
                 self._record_event(event_id, payload)
             self.last_result = record
             return record
-        # Command/query application_actions are recorded as effects in the spec world.
-        result = {"ok": True, "application_action": cap_id, **input_values}
+        # Commands and queries without a richer reference behavior are recorded as operation effects.
+        result = {"ok": True, "operation": cap_id, **input_values}
         self.last_result = result
         return result
 
@@ -393,7 +397,7 @@ class ReferenceSpecDriver:
         while True:
             step = step_by_id[current]
             input_values = {name: _resolve_binding(source, namespace) for name, source in step["input_bindings"].items()}
-            result = self._invoke(step["application_action"], input_values)
+            result = self._invoke(step["command"], input_values)
             outcome_id = self.last_outcome
             assert outcome_id is not None
             namespace["step_outcome"].setdefault(step["id"], {})[outcome_id] = {"result": result}
@@ -411,7 +415,7 @@ class ReferenceSpecDriver:
     def _event_payload_from_emit(
         self,
         emit: Any,
-        application_action: Mapping[str, Any],
+        operation: Mapping[str, Any],
         outcome: Mapping[str, Any],
         input_values: Mapping[str, Any],
         result: Mapping[str, Any],
@@ -449,18 +453,18 @@ class ReferenceSpecDriver:
         return resolve_map(values, self.fixtures)
 
     def _authorization_assertion_allowed(self, assertion: Mapping[str, Any]) -> bool:
-        kind = "application_action" if "application_action" in assertion else "entry_point"
+        kind = next((candidate for candidate in ("command", "query", "external_interface") if candidate in assertion), "external_interface")
         resource_ref = assertion[kind]
-        authorization_policy = assertion.get("authorization_policy")
-        if authorization_policy:
-            policy_id = authorization_policy
-        elif kind == "application_action":
-            authorization = self.contract["application_actions"][resource_ref].get("authorization")
+        access_policy = assertion.get("access_policy")
+        if access_policy:
+            policy_id = access_policy
+        elif kind in {"command", "query"}:
+            authorization = operations(self.contract)[resource_ref].get("authorization")
             if not authorization:
                 return False
             policy_id = authorization["policy"]
         else:
-            policy_id = self.contract["entry_points"][resource_ref]["authorization_policy"]
+            policy_id = self.contract["external_interfaces"][resource_ref]["access_policy"]
         recorded = self.authorization_decisions.get((kind, resource_ref, policy_id))
         if recorded is not None:
             return recorded
@@ -470,11 +474,11 @@ class ReferenceSpecDriver:
         return self._evaluate_policy(policy_id, kind, resource_ref, input_values)
 
     def _evaluate_policy(self, policy_id: str, kind: str, resource_ref: str, input_values: Mapping[str, Any]) -> bool:
-        policy = self.contract["authorization_policies"][policy_id]
-        if not _authorization_policy_covers_resource(policy, kind, resource_ref):
-            if kind == "entry_point":
-                invoked_kind, invoked_ref = entry_target_pair(self.contract["entry_points"][resource_ref])
-                if not _authorization_policy_covers_resource(policy, invoked_kind, invoked_ref):
+        policy = self.contract["access_policies"][policy_id]
+        if not _access_policy_covers_resource(policy, kind, resource_ref):
+            if kind == "external_interface":
+                invoked_kind, invoked_ref = external_interface_target_ref_pair(self.contract["external_interfaces"][resource_ref])
+                if not _access_policy_covers_resource(policy, invoked_kind, invoked_ref):
                     return False
             else:
                 return False
@@ -533,8 +537,8 @@ def _matches(record: Mapping[str, Any], where: Mapping[str, Any]) -> bool:
     return all(record.get(key) == value for key, value in where.items())
 
 
-def _single_entity_type(application_action: Mapping[str, Any], field: str) -> str:
-    entity_types = application_action[field]
+def _single_entity_type(operation: Mapping[str, Any], field: str) -> str:
+    entity_types = operation[field]
     assert len(entity_types) == 1, f"Expected exactly one {field} entity_type"
     return entity_types[0]
 
@@ -543,18 +547,31 @@ def _entity_input_key(entity_type_ref: str) -> str:
     return f"{entity_type_ref.removeprefix('entity_type.')}_id"
 
 
-def _success_outcome_id(application_action: Mapping[str, Any]) -> str:
-    successes = [outcome_id for outcome_id, outcome in application_action["outcomes"].items() if outcome["kind"] == "success"]
+def _is_array_schema(schema: Mapping[str, Any]) -> bool:
+    return schema.get("type") == "array"
+
+
+def _result_entity_type(schema: Mapping[str, Any]) -> str | None:
+    direct = entity_type_id(schema)
+    if direct:
+        return direct
+    if _is_array_schema(schema):
+        return entity_type_id(schema.get("items", {}))
+    return None
+
+
+def _success_outcome_id(operation: Mapping[str, Any]) -> str:
+    successes = [outcome_id for outcome_id, outcome in operation["outcomes"].items() if outcome["kind"] == "success"]
     assert len(successes) == 1, "Expected exactly one success outcome"
     return successes[0]
 
 
-def _entry_point_response(entry: Mapping[str, Any], outcome_id: str | None) -> Mapping[str, Any]:
+def _external_interface_response(entry: Mapping[str, Any], outcome_id: str | None) -> Mapping[str, Any]:
     assert outcome_id is not None
-    responses = entry_point_responses(dict(entry))
+    responses = external_interface_responses(dict(entry))
     if outcome_id in responses:
         return responses[outcome_id]
-    return entry_point_response_handlers(dict(entry))[outcome_id]
+    return external_interface_response_handlers(dict(entry))[outcome_id]
 
 
 def _resolve_binding(binding: Any, namespace: Mapping[str, Any]) -> Any:
@@ -577,8 +594,8 @@ def _condition_matches(condition: Mapping[str, Any], context: Mapping[str, Any])
 
 
 def _authorization_resource_kind(kind: str) -> str:
-    return "action" if kind == "application_action" else kind
+    return "action" if kind in {"command", "query"} else kind
 
 
-def _authorization_policy_covers_resource(policy: Mapping[str, Any], kind: str, resource_ref: str) -> bool:
+def _access_policy_covers_resource(policy: Mapping[str, Any], kind: str, resource_ref: str) -> bool:
     return any(resource == {_authorization_resource_kind(kind): resource_ref} for resource in policy.get("resources", []))
