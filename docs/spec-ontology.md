@@ -4,7 +4,7 @@ This glossary is the vocabulary contract for the authored-source, layer-pruned a
 
 ## Terminology Boundaries
 
-- `domain_event`: a durable product/domain occurrence that happened. Domain events are emitted by successful command or lifecycle-transition outcomes and may trigger workflows.
+- `domain_event`: a durable product/domain occurrence that happened. Domain events are emitted by successful command or lifecycle-transition outcomes and may serve as workflow inputs.
 - `integration_message`: a wire-level AsyncAPI message in `integration_messages.asyncapi.yaml`. It carries a domain-event payload over a channel, but it is not state-machine vocabulary.
 - `local_signal`: a state-machine-local trigger/effect. Local signals may be accepted by transitions, emitted by transitions, and synced between mounted child state-machine instances.
 - `data_refresh_signal`: a state-machine-local data refresh or invalidation signal, commonly consumed by `query_binding.load.refresh_on`.
@@ -62,7 +62,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `container_id`: local Textual layout container id within one state.
 - `viewport_id`: local viewport id within `html_viewports` or `textual_viewports`.
 - `workflow_ref`: `workflow.<domain>...`; workflow declarations, workflow external-interface invocations, and generated workflow references.
-- Generated references use `asset`, `access_policy`, `cli_command`, `cli_response_handler`, `endpoint`, `external_interface_delegate`, `external_interface_invokes`, `local_signal_raise`, `command_binding`, `action_outcome_effect`, `query_binding`, `query_binding_outcome_effect`, `route`, `adapter_response_binding`, `screen`, `state_machine`, `surface`, `text`, and `workflow` buckets in compiled `reference_index`.
+- Generated references use `asset`, `access_policy`, `cli_command`, `cli_response_handler`, `endpoint`, `external_interface_delegate`, `external_interface_invocation`, `local_signal_raise`, `command_binding`, `action_outcome_effect`, `query_binding`, `query_binding_outcome_effect`, `route`, `adapter_response_binding`, `screen`, `state_machine`, `surface`, `text`, and `workflow` buckets in compiled `reference_index`.
 
 ## Reference Types
 
@@ -74,10 +74,10 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `external_interface_adapter`: exactly one adapter object: `http_api`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`.
 - `adapter input shape`: HTTP API input may use `path_params`, `query_params`, and `body`; HTML route input may use `path_params` and `query_params`; CLI input uses `args`; worker input uses `payload`; webhook input may use `path_params`, `query_params`, and `payload`; scheduled input has no external input sections.
 - `external_interface_invokes`: exactly one invocation object: `command`, `query`, `state_machine`, `workflow`, or `external_interface`.
-- `operation/state-machine invocation bindings`: top-level `input_mapping.bindings` binds adapter input into command input, query input, state-machine context, workflow input, or delegated external-interface input and must exactly cover the invoked fields.
+- `operation/state-machine/workflow invocation bindings`: top-level `input_mapping.bindings` binds adapter input into command input, query input, state-machine context, or workflow input and must exactly cover the invoked fields.
 - `state-machine external-interface invocation`: `invokes.state_machine` must declare `renderer: html` or `renderer: textual`. HTML route external interfaces can invoke only `html`; CLI external interfaces can launch `html` or `textual`; the invoked state machine must declare the selected renderer in at least one state.
 - `workflow external-interface invocation`: `invokes.workflow.ref` names the workflow and `input_mapping.bindings` binds adapter input into workflow input fields.
-- `external-interface delegation`: an external interface whose `invokes.external_interface.ref` points at another external interface. Delegation is general and is not CLI-to-HTTP-specific.
+- `external-interface delegation`: an external interface whose `invokes.external_interface.ref` points at another external interface. `input_mapping.delegated_input` binds adapter input into the delegated external-interface adapter input shape. Delegation is general and is not CLI-to-HTTP-specific.
 - `delegating external interface`: the outer external interface whose adapter exposes a facade and binds its input into the delegated external-interface input shape.
 - `delegated external interface`: the inner external interface that receives delegated invocation. Its `access_policy` and the delegated command/query authorization outcomes remain visible to the delegating external interface.
 - `invoked outcome response`: synchronous adapter response keyed by command, query, workflow, state-machine, or delegated external-interface outcome names. HTTP API `responses` and delegated CLI `response_handlers` are invoked-outcome response surfaces.
@@ -113,8 +113,8 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `emits_domain_events`: command-level durable domain-event emission mapping keyed by successful command outcome. It is not used for local state-machine transition effects.
 - `command_binding.effects.raise`: local state-machine `local_signal` or `data_refresh_signal` raise after a user/action command binding.
 - `query_binding.effects.raise`: local state-machine `local_signal` or `data_refresh_signal` raise after a query load or refresh outcome.
-- `no_local_effect`: explicit declaration that a command/data-loader outcome has no local state-machine effect.
-- `signals`: local UI/component/state-machine signal contracts split into accepted `local_signals`/`data_refresh_signals` maps and emitted `local_signals` maps with JSON Schema `payload_schema` declarations.
+- `no_local_effect`: explicit declaration that a command-binding or query-binding outcome has no local state-machine effect.
+- `local_signals`: local UI/component/state-machine signal contracts split into accepted `local_signals`/`data_refresh_signals` maps and emitted `local_signals` maps with JSON Schema `payload_schema` declarations.
 - `renderer_contracts`: state renderer declarations keyed by concrete renderer surface. `renderers.html` and `renderers.textual` each own renderer-local `layout`, `presentation`, and `style`.
 - `renderer placement validation`: HTML slots and child machines must reference declared HTML `region_id`s; Textual widgets and child machines must reference declared Textual `container_id`s. Placement ids are layout ids, not field names.
 - `resolver output escaping`: text, SVG, XML, and HTML resolvers must escape dynamic values before placing them in markup text or attributes. Plain-text outputs and alt text must not expose unescaped markup-sensitive values where they may be rendered into HTML/XML.
@@ -298,7 +298,7 @@ Binding expressions appear inside binding objects. Authored value maps use `{fro
 - `spec/generated/behavior/fixtures.yaml`: seed fixture projection.
 - `spec/generated/behavior/behavior_scenarios.yaml`: semantic behavior-scenario projection.
 - `spec/generated/product_interfaces/http.openapi.yaml`: OpenAPI projection generated only from HTTP API external interfaces.
-- `spec/generated/product_interfaces/integration_messages.asyncapi.yaml`: AsyncAPI projection for durable top-level domain events, webhooks, workers, and domain-event-triggered workflows; state-machine signals are not projected as domain events.
+- `spec/generated/product_interfaces/integration_messages.asyncapi.yaml`: AsyncAPI projection for durable top-level domain events, webhooks, workers, and domain-event-input workflows; state-machine signals are not projected as domain events.
 - `spec/generated/product_interfaces/html.routes.json`: UI route projection generated from HTML route external interfaces.
 - `spec/generated/product_interfaces/html.state_machines.json`: state-machine HTML/Textual renderer contract projection, including composition layout and renderer-specific style contracts.
 - `spec/generated/product_interfaces/textual.projection.py`: Textual renderer projection generated from `renderers.textual.presentation` widgets, `renderers.textual.style`, and `renderers.textual.layout` containers.
@@ -482,7 +482,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:container_id --> `$defs/container_id`: local Textual layout container identifier within a state.
 - <!-- schema-def:http_api_adapter --> `$defs/http_api_adapter`: external-interface adapter, invocation, input, or response contract component.
 - <!-- schema-def:authorization_assertion --> `$defs/authorization_assertion`: access-policy contract component.
-- <!-- schema-def:condition --> `$defs/condition`: access-policy contract component.
+- <!-- schema-def:condition --> `$defs/condition`: access-policy rule predicate component used by policy `environment` and `rules` lists.
 - <!-- schema-def:authorization_decision_assertion --> `$defs/authorization_decision_assertion`: access-policy contract component.
 - <!-- schema-def:subject --> `$defs/subject`: access-policy contract component.
 - <!-- schema-def:resource --> `$defs/resource`: access-policy contract component.

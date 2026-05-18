@@ -22,7 +22,7 @@
     },
     "command_binding_id": {
       "$ref": "#/$defs/local_name",
-      "description": "Local action binding identifier within a view state."
+      "description": "Local command binding identifier within a state."
     },
     "command_ref": {
       "pattern": "^command\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
@@ -1242,7 +1242,7 @@
         },
         "unconditional": {
           "const": true,
-          "description": "Unconditional authorization condition; the only valid value is true."
+          "description": "Unconditional access-policy rule; the only valid value is true."
         },
         "value_equals": {
           "additionalProperties": false,
@@ -1266,7 +1266,7 @@
     },
     "container_id": {
       "$ref": "#/$defs/local_name",
-      "description": "Local Textual layout container identifier within a view state."
+      "description": "Local Textual layout container identifier within a state."
     },
     "content_args": {
       "additionalProperties": {
@@ -1384,7 +1384,7 @@
     },
     "query_binding_id": {
       "$ref": "#/$defs/local_name",
-      "description": "Local data loader identifier within a state machine or view state."
+      "description": "Local query binding identifier within a state machine or state."
     },
     "query_binding_load_policy": {
       "additionalProperties": false,
@@ -1646,7 +1646,7 @@
       "type": "object"
     },
     "html_css_selector": {
-      "description": "Selector over generated HTML state-machine artifacts: root, slots, regions, action bindings, or child state-machine containers.",
+      "description": "Selector over generated HTML state-machine artifacts: root, slots, regions, command bindings, or child state-machine containers.",
       "pattern": "^(root|(slot|region)\\.[a-z][a-z0-9_]*|command_binding\\.[a-z][a-z0-9_]*|child_state_machine\\.[a-z][a-z0-9_]*)$",
       "type": "string"
     },
@@ -2128,11 +2128,11 @@
     },
     "region_id": {
       "$ref": "#/$defs/local_name",
-      "description": "Local HTML layout region identifier within a view state."
+      "description": "Local HTML layout region identifier within a state."
     },
     "render_example": {
       "additionalProperties": false,
-      "description": "Render example for a state-machine view state. Global viewport profiles are applied by tooling; render examples do not reference viewport profiles.",
+      "description": "Render example for a state-machine state. Global viewport profiles are applied by tooling; render examples do not reference viewport profiles.",
       "properties": {
         "context": {
           "$ref": "#/$defs/value_map"
@@ -2171,7 +2171,7 @@
     },
     "render_example_id": {
       "$ref": "#/$defs/local_name",
-      "description": "Local render example identifier within a view state."
+      "description": "Local render example identifier within a state."
     },
     "viewport_profile_ref": {
       "pattern": "^viewport_profile\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
@@ -2448,14 +2448,14 @@
       "type": "object"
     },
     "slot_binding": {
-      "description": "View-state-local slot binding. text_slot, asset_slot, and field_slot refer to local slots; command_binding binds a local view-state action binding; literal binds fixed text.",
+      "description": "State-local slot binding. text_slot, asset_slot, and field_slot refer to local slots; command_binding binds a local command binding; literal binds fixed text.",
       "oneOf": [
         {
           "additionalProperties": false,
           "properties": {
             "text_slot": {
               "$ref": "#/$defs/slot_name",
-              "description": "Local text slot name in the current view state."
+              "description": "Local text slot name in the current state."
             }
           },
           "required": [
@@ -2468,7 +2468,7 @@
           "properties": {
             "asset_slot": {
               "$ref": "#/$defs/slot_name",
-              "description": "Local asset slot name in the current view state."
+              "description": "Local asset slot name in the current state."
             }
           },
           "required": [
@@ -2481,7 +2481,7 @@
           "properties": {
             "field_slot": {
               "$ref": "#/$defs/slot_name",
-              "description": "Local field slot name in the current view state."
+              "description": "Local field slot name in the current state."
             }
           },
           "required": [
@@ -2518,7 +2518,7 @@
     },
     "slot_name": {
       "$ref": "#/$defs/local_name",
-      "description": "Local slot identifier within a view state."
+      "description": "Local slot identifier within a state."
     },
     "state_machine_command_binding": {
       "additionalProperties": false,
@@ -3047,7 +3047,7 @@
       "type": "object"
     },
     "textual_tcss_selector": {
-      "description": "Selector over generated Textual screens, widgets, containers, action bindings, or child state-machine containers.",
+      "description": "Selector over generated Textual screens, widgets, containers, command bindings, or child state-machine containers.",
       "pattern": "^(screen|slot\\.[a-z][a-z0-9_]*|container\\.[a-z][a-z0-9_]*|command_binding\\.[a-z][a-z0-9_]*|child_state_machine\\.[a-z][a-z0-9_]*)$",
       "type": "string"
     },
