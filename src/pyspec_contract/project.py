@@ -69,7 +69,7 @@ def projection_paths(contract: dict[str, Any]) -> list[str]:
     if _has_authorization_policies(contract):
         paths.append(g("product_interfaces", "authorization_policies.json"))
     if _has_content(contract):
-        paths.extend([g("content_resolvers", "__init__.py"), g("content_resolvers", "signatures.py"), g("content_resolvers", "stubs.py"), g("content_resolvers", "cases.yaml")])
+        paths.extend([g("content_resolvers", "__init__.py"), g("content_resolvers", "signatures.py"), g("content_resolvers", "stubs.py"), g("content_resolvers", "examples.yaml")])
     paths.extend(sorted(feature_projections(contract)))
     paths.extend(agent_prompt_paths())
     return paths
@@ -109,7 +109,7 @@ def projection_files(contract: dict[str, Any], *, layers: str | set[str] | None 
         yield g("content_resolvers", "__init__.py"), "# Generated package. Do not edit.\n", "text"
         yield g("content_resolvers", "signatures.py"), content_contract_projection(contract), "text"
         yield g("content_resolvers", "stubs.py"), content_stubs_projection(contract), "text"
-        yield g("content_resolvers", "cases.yaml"), content_cases_projection(contract), "yaml"
+        yield g("content_resolvers", "examples.yaml"), content_examples_projection(contract), "yaml"
     yield g("test_adapters", "driver_protocol.py"), driver_protocol_projection(), "text"
     yield g("test_adapters", "pytest_bdd_steps.py"), bdd_steps_projection(), "text"
     for relative, text in feature_projections(contract).items():
@@ -162,7 +162,7 @@ def _has_textual_ui(contract: dict[str, Any]) -> bool:
 
 
 def _has_content(contract: dict[str, Any]) -> bool:
-    return bool(contract.get("text_resources") or contract.get("assets") or contract.get("content_cases"))
+    return bool(contract.get("text_resources") or contract.get("assets") or contract.get("content_examples"))
 
 
 def _has_authorization_policies(contract: dict[str, Any]) -> bool:
@@ -781,8 +781,8 @@ def authorization_policies_projection(contract: dict[str, Any]) -> dict[str, Any
     }
 
 
-def content_cases_projection(contract: dict[str, Any]) -> dict[str, Any]:
-    return {"project": contract["project"], "content_cases": contract.get("content_cases", {})}
+def content_examples_projection(contract: dict[str, Any]) -> dict[str, Any]:
+    return {"project": contract["project"], "content_examples": contract.get("content_examples", {})}
 
 
 def python_type_for_contract_type(type_name: Any) -> str:
@@ -876,17 +876,17 @@ def refs_py_projection(contract: dict[str, Any]) -> str:
         "EntryPoint": sorted(contract["entry_points"]),
         "Operation": sorted(contract["application_actions"]),
         "Text": sorted(contract.get("text_resources", {})),
-        "ContentCase": sorted(contract.get("content_cases", {})),
+        "ContentExample": sorted(contract.get("content_examples", {})),
         "DomainEvent": sorted(contract["domain_events"]),
         "Precondition": sorted(contract.get("preconditions", {})),
         "Assertion": sorted(contract.get("assertions", {})),
         "Fixture": sorted(contract["fixtures"]),
         "StateMachine": sorted(contract.get("state_machines", {})),
-        "RenderAuditCase": sorted(
+        "RenderExample": sorted(
             f"{state_machine_id}.{state_name}.{case_name}.audit"
             for state_machine_id, state_machine in contract.get("state_machines", {}).items()
             for state_name, state in state_machine.get("view_states", {}).items()
-            for case_name in (state.get("render_audit_cases") or {})
+            for case_name in (state.get("render_examples") or {})
         ),
         "BehaviorScenario": sorted(contract["behavior_scenarios"]),
     }

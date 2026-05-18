@@ -64,9 +64,9 @@ class CliResponseHandler:
     CLI_RESPONSE_HANDLER_CLI_PROJECT_APPROVE_TRANSITION_NOT_ALLOWED = 'cli_response_handler.cli.project.approve.transition_not_allowed'
     CLI_RESPONSE_HANDLER_CLI_PROJECT_APPROVE_UNAVAILABLE = 'cli_response_handler.cli.project.approve.unavailable'
 
-class ContentCase:
-    CONTENT_CASE_PROJECT_DETAIL_HEADING_HIGH_PRIORITY = 'content_case.project.detail.heading.high_priority'
-    CONTENT_CASE_PROJECT_DETAIL_PRIORITY_BADGE_HIGH_PRIORITY = 'content_case.project.detail.priority_badge.high_priority'
+class ContentExample:
+    CONTENT_EXAMPLE_PROJECT_DETAIL_HEADING_HIGH_PRIORITY = 'content_example.project.detail.heading.high_priority'
+    CONTENT_EXAMPLE_PROJECT_DETAIL_PRIORITY_BADGE_HIGH_PRIORITY = 'content_example.project.detail.priority_badge.high_priority'
 
 class DataLoader:
     DATA_LOADER_PROJECT_ACTIVITY_READY_READ_ACTIVITY = 'data_loader.project.activity.ready.read_activity'
@@ -175,7 +175,7 @@ class Precondition:
     PRECONDITION_PROJECT_DRAFT = 'precondition.project.draft'
     PRECONDITION_PROJECT_SUBMITTED = 'precondition.project.submitted'
 
-class RenderAuditCase:
+class RenderExample:
     STATE_MACHINE_PROJECT_BOARD_READY_EMPTY_AUDIT = 'state_machine.project.board.ready.empty.audit'
     STATE_MACHINE_PROJECT_BOARD_READY_READY_SELECTED_AUDIT = 'state_machine.project.board.ready.ready_selected.audit'
 

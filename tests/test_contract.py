@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from pyspec_contract.api import write_generated
-from pyspec_contract.compile import ContractError, ContractLintWarning, audit_cases, author_from_source, compile_author, compile_source, validate_against_schema
+from pyspec_contract.compile import ContractError, ContractLintWarning, render_examples, author_from_source, compile_author, compile_source, validate_against_schema
 from pyspec_contract.io import read_yaml, write_yaml
 from pyspec_contract.paths import COMPILED_SPEC_PATH, SOURCE_SPEC_PATH
 from pyspec_contract.reference_driver import ReferenceSpecDriver
@@ -202,11 +202,11 @@ def test_named_precondition_expands_into_compiled_behavior_scenario() -> None:
     behavior_scenario_fact = contract["behavior_scenarios"]["behavior_scenario.project.approve.success"]["given"]["preconditions"][0]
     assert "ref" not in behavior_scenario_fact
     assert behavior_scenario_fact == {"present": precondition["present"]}
-    assert audit_cases(contract)["state_machine.project.board.ready.ready_selected.audit"]["precondition_refs"] == [
+    assert render_examples(contract)["state_machine.project.board.ready.ready_selected.audit"]["precondition_refs"] == [
         {"ref": "precondition.project.submitted"},
         {"ref": "precondition.project.draft"},
     ]
-    assert "render_profiles" not in audit_cases(contract)["state_machine.project.board.ready.ready_selected.audit"]
+    assert "render_profiles" not in render_examples(contract)["state_machine.project.board.ready.ready_selected.audit"]
 
 
 def test_unknown_precondition_use_is_rejected() -> None:
@@ -226,20 +226,20 @@ def test_duplicate_precondition_use_in_one_behavior_scenario_is_rejected() -> No
         compile_author(author)
 
 
-def test_unknown_render_audit_case_precondition_use_is_rejected() -> None:
+def test_unknown_render_example_precondition_use_is_rejected() -> None:
     author = _author()
-    author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["render_audit_cases"]["ready_selected"]["precondition_refs"] = [{"ref": "precondition.project.missing"}]
-    with pytest.raises(ContractError, match=r"Render audit case state_machine\.project\.board\.ready\.ready_selected\.audit references unknown precondition precondition\.project\.missing"):
+    author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["render_examples"]["ready_selected"]["precondition_refs"] = [{"ref": "precondition.project.missing"}]
+    with pytest.raises(ContractError, match=r"Render example state_machine\.project\.board\.ready\.ready_selected\.audit references unknown precondition precondition\.project\.missing"):
         compile_author(author)
 
 
-def test_duplicate_render_audit_case_precondition_use_is_rejected() -> None:
+def test_duplicate_render_example_precondition_use_is_rejected() -> None:
     author = _author()
-    author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["render_audit_cases"]["ready_selected"]["precondition_refs"] = [
+    author["state_machines"]["state_machine.project.board"]["view_states"]["ready"]["render_examples"]["ready_selected"]["precondition_refs"] = [
         {"ref": "precondition.project.submitted"},
         {"ref": "precondition.project.submitted"},
     ]
-    with pytest.raises(ContractError, match=r"Render audit case state_machine\.project\.board\.ready\.ready_selected\.audit uses precondition precondition\.project\.submitted more than once"):
+    with pytest.raises(ContractError, match=r"Render example state_machine\.project\.board\.ready\.ready_selected\.audit uses precondition precondition\.project\.submitted more than once"):
         compile_author(author)
 
 
@@ -2214,7 +2214,7 @@ def test_layer_pruned_author_schema_hides_irrelevant_sections() -> None:
     assert "entry_points" in schema["properties"]
     assert "entity_types" in schema["properties"]
     assert "state_machines" not in schema["properties"]
-    assert "audit_cases" not in schema["properties"]
+    assert "render_examples" not in schema["properties"]
 
 
 def test_pyspec_contract_rejects_behavior_scenario_harness_routing() -> None:

@@ -289,9 +289,9 @@
       "pattern": "^asset\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
-    "audit_case_id": {
+    "render_example_id": {
       "$ref": "#/$defs/local_name",
-      "description": "Local render audit case identifier within a view state."
+      "description": "Local render example identifier within a view state."
     },
     "authored_value": {
       "description": "Explicit authored literal-or-runtime-reference value used by tests, preconditions, and render audit inputs.",
@@ -743,7 +743,7 @@
       },
       "type": "object"
     },
-    "content_case_item": {
+    "content_example_item": {
       "additionalProperties": false,
       "properties": {
         "args": {
@@ -763,7 +763,7 @@
           ]
         },
         "seed_fixtures": {
-          "description": "Seed fixtures used when resolving this content case.",
+          "description": "Seed fixtures used when resolving this content example.",
           "items": {
             "$ref": "#/$defs/fixture_ref"
           },
@@ -778,8 +778,8 @@
       ],
       "type": "object"
     },
-    "content_case_ref": {
-      "pattern": "^content_case\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+    "content_example_ref": {
+      "pattern": "^content_example\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
     "content_source_ref": {
@@ -1910,7 +1910,7 @@
       ]
     },
     "local_name": {
-      "description": "Local unprefixed identifier used for named slots, outcomes, rules, roles, render audit cases, and viewports.",
+      "description": "Local unprefixed identifier used for named slots, outcomes, rules, roles, render examples, and viewports.",
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
     },
@@ -2015,7 +2015,7 @@
           ]
         }
       ],
-      "description": "Global audit/golden-image render profile. Audit tooling applies declared HTML and Textual viewport sizes globally to eligible state-machine render audit cases and renderer contracts.",
+      "description": "Global audit/golden-image render profile. Audit tooling applies declared HTML and Textual viewport sizes globally to eligible state-machine render examples and renderer contracts.",
       "properties": {
         "html_viewports": {
           "additionalProperties": {
@@ -2680,15 +2680,15 @@
       "pattern": "^state_machine\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
-    "state_machine_render_audit_case": {
+    "render_example": {
       "additionalProperties": false,
-      "description": "Render-audit case for a state-machine view state. Global render profiles are applied by tooling; cases do not reference render profiles.",
+      "description": "Render example for a state-machine view state. Global render profiles are applied by tooling; render examples do not reference render profiles.",
       "properties": {
         "context": {
           "$ref": "#/$defs/value_map"
         },
         "precondition_refs": {
-          "description": "Precondition references used to seed rendered entity_type state for this render audit case.",
+          "description": "Precondition references used to seed rendered entity_type state for this render example.",
           "items": {
             "$ref": "#/$defs/precondition_use"
           },
@@ -3487,12 +3487,12 @@
           },
           "type": "array"
         },
-        "render_audit_cases": {
+        "render_examples": {
           "additionalProperties": {
-            "$ref": "#/$defs/state_machine_render_audit_case"
+            "$ref": "#/$defs/render_example"
           },
           "propertyNames": {
-            "$ref": "#/$defs/audit_case_id"
+            "$ref": "#/$defs/render_example_id"
           },
           "type": "object"
         },
@@ -3932,12 +3932,12 @@
       },
       "type": "object"
     },
-    "content_cases": {
+    "content_examples": {
       "additionalProperties": {
-        "$ref": "#/$defs/content_case_item"
+        "$ref": "#/$defs/content_example_item"
       },
       "propertyNames": {
-        "$ref": "#/$defs/content_case_ref"
+        "$ref": "#/$defs/content_example_ref"
       },
       "type": "object"
     },
@@ -4012,7 +4012,7 @@
       "additionalProperties": {
         "$ref": "#/$defs/render_profile_item"
       },
-      "description": "Global audit/golden-image render profiles. Audit tooling applies them to all eligible state-machine render audit cases and renderer contracts; render audit cases do not reference profiles directly.",
+      "description": "Global audit/golden-image render profiles. Audit tooling applies them to all eligible state-machine render examples and renderer contracts; render examples do not reference profiles directly.",
       "propertyNames": {
         "$ref": "#/$defs/render_profile_ref"
       },
@@ -4080,7 +4080,7 @@
     "workflows",
     "behavior_scenarios",
     "refs",
-    "content_cases",
+    "content_examples",
     "state_machines"
   ],
   "title": "Compiled-Output Product Spec",

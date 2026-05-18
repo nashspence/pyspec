@@ -12,17 +12,17 @@ from typing import Any, Iterable
 from jsonschema import Draft202012Validator
 
 from .agent_prompts import USER_PROMPT_PLACEHOLDER, agent_prompt_paths
-from .compile import ContractError, audit_cases
+from .compile import ContractError, render_examples
 from .content import ContentContext, ContentError, asset as asset_registry, call_asset, call_text, text as text_registry, instantiate_args, load_resolvers, validate_resolver_function
 from .runtime import fixture_namespace, resolve, resolve_binding
 from .runtime_refs import ReferenceExpressionError, parse_reference_expression
 from .io import read_json, read_yaml
 from .layout import renderer_textual_presentation, renderer_textual_style
 from .audit import (
-    _case_file,
-    _case_render_surfaces,
-    _case_root,
-    _case_scope_inputs,
+    _render_example_file,
+    _render_example_surfaces,
+    _render_example_root,
+    _render_example_scope_inputs,
     _audit_projection_surfaces,
     _fixtures_doc,
     _profile_viewports,
@@ -431,9 +431,9 @@ def validate_textual_contract(root: Path, contract: dict[str, Any]) -> None:
 
 def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
     generated = root / GENERATED_SPEC_DIR
-    content_doc = read_yaml(generated / "content_resolvers" / "cases.yaml")
-    if content_doc != {"project": contract["project"], "content_cases": contract.get("content_cases", {})}:
-        raise ContractError("content_resolvers/cases.yaml does not exactly match contract content cases")
+    content_doc = read_yaml(generated / "content_resolvers" / "examples.yaml")
+    if content_doc != {"project": contract["project"], "content_examples": contract.get("content_examples", {})}:
+        raise ContractError("content_resolvers/examples.yaml does not exactly match contract content examples")
     try:
         load_resolvers(root)
     except ContentError as exc:
@@ -483,7 +483,7 @@ def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
                 raise ContractError(str(exc)) from exc
 
     exercised: set[str] = set()
-    for case_id, case in contract.get("content_cases", {}).items():
+    for case_id, case in contract.get("content_examples", {}).items():
         namespace = fixture_namespace(contract, case.get("seed_fixtures", []))
         args = {key: resolve_binding(value, {"fixture": namespace}) for key, value in case.get("args", {}).items()}
         ref = case["ref"]
@@ -493,26 +493,26 @@ def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
                 result = item["placeholder"]
             else:
                 try:
-                    result = call_text(root, ref, args, ContentContext(surface="content_case"))
+                    result = call_text(root, ref, args, ContentContext(surface="content_example"))
                 except ContentError as exc:
                     raise ContractError(str(exc)) from exc
             if not isinstance(result, str) or not result.strip():
-                raise ContractError(f"Content case {case_id} text result must be non-empty")
+                raise ContractError(f"Content example {case_id} text result must be non-empty")
             if item.get("max_chars") is not None and len(result) > item["max_chars"]:
-                raise ContractError(f"Content case {case_id} text result exceeds max_chars")
+                raise ContractError(f"Content example {case_id} text result exceeds max_chars")
         else:
             item = contract["assets"][ref]
             if item.get("source_ref"):
                 try:
-                    result = call_asset(root, ref, args, ContentContext(surface="content_case"))
+                    result = call_asset(root, ref, args, ContentContext(surface="content_example"))
                 except ContentError as exc:
                     raise ContractError(str(exc)) from exc
                 if result.mime_type != "image/svg+xml" or not result.body.lstrip().startswith("<svg") or "</svg>" not in result.body:
-                    raise ContractError(f"Content case {case_id} asset result must be SVG")
+                    raise ContractError(f"Content example {case_id} asset result must be SVG")
         exercised.add(ref)
     missing = _final_content_refs(contract) - exercised
     if missing:
-        raise ContractError("Final content is not exercised by content cases: " + ", ".join(sorted(missing)))
+        raise ContractError("Final content is not exercised by content examples: " + ", ".join(sorted(missing)))
 
 
 def _final_content_refs(contract: dict[str, Any]) -> set[str]:
@@ -711,19 +711,19 @@ def validate_audit_outputs(root: Path, contract: dict[str, Any]) -> None:
                 if "rich-terminal" not in svg_path.read_text(encoding="utf-8"):
                     raise ContractError(f"Textual audit SVG does not look like a Textual capture: {state_machine['id']}/{breakpoint}")
 
-    for case_id, case in audit_cases(contract).items():
-        _validate_audit_scope_inputs(root, contract, _case_root(contract, case_id, case), *_case_scope_inputs(contract, case))
-        render_surfaces = _case_render_surfaces(contract, case)
+    for case_id, case in render_examples(contract).items():
+        _validate_audit_scope_inputs(root, contract, _render_example_root(contract, case_id, case), *_render_example_scope_inputs(contract, case))
+        render_surfaces = _render_example_surfaces(contract, case)
         if "html" in render_surfaces:
             for profile_id, breakpoint, viewport in _profile_viewports(contract, "html"):
-                html_path = root / _case_file(contract, case_id, case, profile_id, breakpoint, "html")
-                png_path = root / _case_file(contract, case_id, case, profile_id, breakpoint, "png")
+                html_path = root / _render_example_file(contract, case_id, case, profile_id, breakpoint, "html")
+                png_path = root / _render_example_file(contract, case_id, case, profile_id, breakpoint, "png")
                 _assert_html_source(html_path, f"HTML state_machine audit {case_id}/{breakpoint}")
                 _assert_png(png_path, f"HTML state_machine audit {case_id}/{breakpoint}", viewport)
         if "textual" in render_surfaces:
             for profile_id, breakpoint, _ in _profile_viewports(contract, "textual"):
-                py_path = root / _case_file(contract, case_id, case, profile_id, breakpoint, "py")
-                svg_path = root / _case_file(contract, case_id, case, profile_id, breakpoint, "svg")
+                py_path = root / _render_example_file(contract, case_id, case, profile_id, breakpoint, "py")
+                svg_path = root / _render_example_file(contract, case_id, case, profile_id, breakpoint, "svg")
                 _assert_textual_source(py_path, f"Textual state_machine audit {case_id}/{breakpoint}")
                 _assert_svg(svg_path, f"Textual state_machine audit {case_id}/{breakpoint}")
                 if "rich-terminal" not in svg_path.read_text(encoding="utf-8"):
@@ -827,7 +827,7 @@ def _assert_html_source(path: Path, label: str) -> None:
     text = path.read_text(encoding="utf-8")
     if not text.startswith("<!doctype html>\n"):
         raise ContractError(f"{label} source is not exact generated HTML")
-    forbidden = ["data-audit-label", "data-audit-fixtures", "audit-fixtures", "Audit case:", "state machine:"]
+    forbidden = ["data-audit-label", "data-audit-fixtures", "audit-fixtures", "Render example:", "state machine:"]
     present = [item for item in forbidden if item in text]
     if present:
         raise ContractError(f"{label} source contains audit metadata labels: {present}")
@@ -837,7 +837,7 @@ def _assert_textual_source(path: Path, label: str) -> None:
     source = path.read_text(encoding="utf-8")
     if "class AuditApp" not in source or "LINES = " not in source:
         raise ContractError(f"{label} source is not exact generated Textual code")
-    forbidden = ["Audit case:", "state machine:", "data-audit"]
+    forbidden = ["Render example:", "state machine:", "data-audit"]
     present = [item for item in forbidden if item in source]
     if present:
         raise ContractError(f"{label} source contains audit metadata labels: {present}")
@@ -884,7 +884,7 @@ def validate_refs_py(root: Path, contract: dict[str, Any]) -> None:
     expected_groups: dict[str, list[str]] = {
         "Asset": sorted(contract.get("assets", {})),
         "RenderProfile": sorted(contract.get("render_profiles", {})),
-        "ContentCase": sorted(contract.get("content_cases", {})),
+        "ContentExample": sorted(contract.get("content_examples", {})),
         "EntryPoint": sorted(contract["entry_points"]),
         "DomainEvent": sorted(contract["domain_events"]),
         "Precondition": sorted(contract.get("preconditions", {})),
@@ -893,7 +893,7 @@ def validate_refs_py(root: Path, contract: dict[str, Any]) -> None:
         "Operation": sorted(contract["application_actions"]),
         "StateMachine": sorted(contract.get("state_machines", {})),
         "Text": sorted(contract.get("text_resources", {})),
-        "RenderAuditCase": sorted(audit_cases(contract)),
+        "RenderExample": sorted(render_examples(contract)),
         "BehaviorScenario": sorted(contract["behavior_scenarios"]),
     }
     for kind, values in sorted(contract["refs"].items()):

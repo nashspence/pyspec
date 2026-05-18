@@ -14,19 +14,19 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 ## Top-Level Resource Kinds
 
 - <!-- top-level:assets --> `assets`: content assets with media kind, asset role, placeholders, and source-backed resolution when present.
-- <!-- top-level:content_cases --> `content_cases`: named content-source examples for dynamic text and asset content.
+- <!-- top-level:content_examples --> `content_examples`: named content-source examples for dynamic text and asset content.
 - <!-- top-level:schemas --> `schemas`: first-class reusable JSON Schema payload or object schemas referenced with `schema.*` ids.
 - <!-- top-level:entry_points --> `entry_points`: external invocation declarations split into explicit adapter and target objects. An entry point is an externally invokable adapter plus a target.
 - <!-- top-level:domain_events --> `domain_events`: durable domain/application occurrences with payload_schema contracts and compiled emitters.
 - <!-- top-level:preconditions --> `preconditions`: reusable entity_type presence/absence setup predicates; preconditions are not assertions, invariants, or broad domain rules.
 - <!-- top-level:assertions --> `assertions`: reusable entity_type presence/absence expected predicates referenced by behavior-scenario `then.postconditions`; assertions are not setup predicates or invariants.
-- <!-- top-level:fixtures --> `fixtures`: named concrete seed data namespaces used by behavior scenarios, preconditions, assertions, content cases, and render audit cases.
+- <!-- top-level:fixtures --> `fixtures`: named concrete seed data namespaces used by behavior scenarios, preconditions, assertions, content examples, and render examples.
 - <!-- top-level:entity_types --> `entity_types`: collection-prefixed stable product/domain entity type ids such as `entity_type.project`, each with a PascalCase display/type `name` such as `Project`, fields, and optional `entity_lifecycle` declarations. Entity types are not ORM types, API contracts, generated implementation classes, or storage schemas.
 - <!-- top-level:application_actions --> `application_actions`: executable product application actions with typed input, effects, outcomes, emitted domain events, and optional explicit authorization mapping.
 - <!-- top-level:authorization_policies --> `authorization_policies`: authorization policies with subjects, authorization resources, conditions, and effect.
 - <!-- top-level:project --> `project`: the project slug for the specification workspace.
 - <!-- top-level:refs --> `refs`: compiled-only index of generated references used by projections and tests.
-- <!-- top-level:render_profiles --> `render_profiles`: global HTML and Textual viewport profiles for audit/golden-image rendering; state-machine render audit cases do not reference profiles directly.
+- <!-- top-level:render_profiles --> `render_profiles`: global HTML and Textual viewport profiles for audit/golden-image rendering; state-machine render examples do not reference profiles directly.
 - <!-- top-level:state_machines --> `state_machines`: UI/component state-machine contracts with context, data loaders, view states, action bindings, transitions, signals, child state machines, and sync rules.
 - <!-- top-level:behavior_scenarios --> `behavior_scenarios`: formal BDD behavior scenarios with system_under_test_ref, given, when, and then contracts.
 - <!-- top-level:text_resources --> `text_resources`: text resources used by state-machine slots and content-source projections.
@@ -34,15 +34,15 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 
 ## ID Namespaces
 
-- `asset_ref`: `asset.<domain>...`; asset declarations, generated asset slots, content cases, and audit evidence.
-- `content_case_ref`: `content_case.<domain>...`; content source examples.
+- `asset_ref`: `asset.<domain>...`; asset declarations, generated asset slots, content examples, and audit evidence.
+- `content_example_ref`: `content_example.<domain>...`; content source examples.
 - `schema_ref`: `schema.<domain>...`; reusable typed payload schemas referenced through JSON Schema `$ref`.
 - `data_refresh_signal_name`: local state-machine data-refresh signal name; authored sources do not use global-looking `data_refresh_signal.*` references for local refresh signals.
 - `entry_point_ref`: `entry_point.<adapter-or-target>.<domain>...`; entry-point declarations, entry-point delegation targets, and behavior-scenario `open_entry_point` or `call_entry_point` actions.
 - `domain_event_ref`: `domain_event.<domain>...`; durable domain-event declarations, application-action emissions, workflow triggers, and behavior-scenario domain-event assertions.
 - `precondition_ref`: `precondition.<domain>...`; named setup predicates referenced through `precondition_use.ref`.
 - `assertion_ref`: `assertion.<domain>...`; named expected predicates referenced through `assertion_use.ref`.
-- `fixture_ref`: `fixture.<domain>...`; seed data fixtures used by behavior scenarios, content cases, preconditions, assertions, and render audit cases.
+- `fixture_ref`: `fixture.<domain>...`; seed data fixtures used by behavior scenarios, content examples, preconditions, assertions, and render examples.
 - `feature_tag`: unprefixed dotted feature grouping label used by behavior scenarios and generated feature files; it is not a typed reference.
 - `instance_id`: local child state-machine instance id within a composed view state.
 - `local_signal_name`: local state-machine signal name; authored sources do not use global-looking `local_signal.*` references for local signals.
@@ -56,7 +56,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `rule_id`: local state-machine signal-sync rule id within one composed view state.
 - `state_machine_ref`: `state_machine.<domain>...`; state-machine declarations, `child_state_machines`, state-machine entry-point targets, and behavior-scenario state-machine assertions.
 - `behavior_scenario_ref`: `behavior_scenario.<domain>...`; formal behavior-scenario declarations and generated feature tags.
-- `text_ref`: `text.<domain>...`; text resource declarations, generated text slots, content cases, and content source signatures.
+- `text_ref`: `text.<domain>...`; text resource declarations, generated text slots, content examples, and content source signatures.
 - `container_id`: local Textual layout container id within one view state.
 - `viewport_id`: local render-profile viewport id within `html_viewports` or `textual_viewports`.
 - `workflow_ref`: `workflow.<domain>...`; workflow declarations, workflow entry-point targets, and generated workflow references.
@@ -88,8 +88,8 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `state-machine context schema`: local machine context declared as JSON Schema object `properties` and `required`. Nullability uses JSON Schema type arrays such as `type: [string, null]`; effects may set a context field to null only when that field schema allows null.
 - `context_present`: state-machine condition meaning the declared context field is present and non-null. Nullable context fields with a current `null` value are not present for this condition.
 - `render profile`: global audit/golden-image viewport map. Renderable state machines require at least one render profile, and profiles must include viewport sets for each declared renderer surface (`html_viewports` for HTML, `textual_viewports` for Textual).
-- `render audit case`: view-state-local visual evidence input. It supplies seed fixtures, optional context, optional precondition references, and, for composed states, an exact child instance view-state vector; it never names render profiles directly.
-- `content source`: a final resolver declaration where `text_resource.source_ref` or `asset.source_ref` equals the resource id. Final content resolvers require at least one matching `content_case`, and case args must exactly match the resource args.
+- `render example`: view-state-local visual evidence input. It supplies seed fixtures, optional context, optional precondition references, and, for composed states, an exact child instance view-state vector; it never names render profiles directly.
+- `content source`: a final resolver declaration where `text_resource.source_ref` or `asset.source_ref` equals the resource id. Final content resolvers require at least one matching `content_example`, and example args must exactly match the resource args.
 - `rationale`: bounded plain text used on authored resources and on intentionally unobservable local effects. Missing top-level resource rationale is filled by a deterministic compiler default.
 - `Action binding`: local view-state use of a global application action, normally user/action-triggered, including input bindings and outcome effects. A renderer action binds to this local invocation, not directly to `application_action_ref`.
 - `Data loader`: local state-machine or view-state use of a query action for data loading or refresh, including input bindings, load policy, context updates, result binding, and outcome effects. State-machine-level queries load with `on_start`/`on_mount`; view-state-level queries load with `on_enter`.
@@ -100,8 +100,8 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `Field-slot source resolution`: every field slot resolves to exactly one context field or query result binding. A bound entity_type or array item can feed field slots when the slot name exists on the result type; ambiguous or missing sources fail semantic validation.
 - `Outcome effect`: mapping from an action/data-loader outcome to context updates, result binding, a local signal raise, or explicit `no_local_effect` handling.
 - `No local effect`: explicit declaration that an outcome is covered but intentionally has no local state-machine effect. It is not omission and does not suppress durable domain events. Reasons are scope-sensitive: response-surface handling needs a real adapter/renderer surface, query refresh needs explicit result/context refresh, result-bound-without-signal needs result binding or context/cache update, and failure outcomes must use proven response-surface handling or `intentionally_unobservable` with rationale.
-- `Authored value`: explicit literal-or-fixture-reference value used in authored test, precondition, content-case, and render-audit value maps. Use `{value: ...}` for JSON literals, including literal strings beginning with `$`, and `{from: $fixture...}` for fixture references. Raw `$...` strings are not interpreted as references.
-- `Runtime root`: the first segment of a runtime expression. Action binding and data loader input bindings may use `$context` and `$actor`; action/data-loader outcome effects may use `$outcome`, `$invocation`, and `$context`; application-action domain-event-emission mappings use `$input` and `$outcome`; workflow step bindings use `$trigger` and `$steps`; child context bindings use `$state_machine` for the parent machine context; entry response/delegation handlers use the adapter/delegation-specific `$input`, `$response`, or `$outcome` roots documented by that target. Authored test, precondition, content-case, and render-audit value maps use `$fixture` for fixture data.
+- `Authored value`: explicit literal-or-fixture-reference value used in authored test, precondition, content-example, and render-audit value maps. Use `{value: ...}` for JSON literals, including literal strings beginning with `$`, and `{from: $fixture...}` for fixture references. Raw `$...` strings are not interpreted as references.
+- `Runtime root`: the first segment of a runtime expression. Action binding and data loader input bindings may use `$context` and `$actor`; action/data-loader outcome effects may use `$outcome`, `$invocation`, and `$context`; application-action domain-event-emission mappings use `$input` and `$outcome`; workflow step bindings use `$trigger` and `$steps`; child context bindings use `$state_machine` for the parent machine context; entry response/delegation handlers use the adapter/delegation-specific `$input`, `$response`, or `$outcome` roots documented by that target. Authored test, precondition, content-example, and render-audit value maps use `$fixture` for fixture data.
 - `Actor/user binding source`: local action bindings should bind actor-like input fields such as `actor_id`, `approved_by`, or `reviewer_id` from `$actor.id` or an explicit context source. Literal actor/user ids are linted because they usually hide fixture-only assumptions in authored UI behavior.
 - `Local signal raise`: creation of a state-machine-local `local_signal` or `data_refresh_signal`.
 - `Data refresh signal`: local state-machine signal commonly used for data refresh, invalidation, loaded/missing states, or render updates. Data-refresh signals are not sent between child state-machine instances.
@@ -227,7 +227,7 @@ Layers are compile/validate guardrails and are not written into `spec/generated/
 - `http`: HTTP API entry-point adapters.
 - `domain_events`: webhook entry-point adapters.
 - `workflow`: `workflows` plus CLI, worker, and scheduled entry-point adapters.
-- `ui`: `state_machines`, `text_resources`, `assets`, `content_cases`, `render_profiles`, and HTML route entry-point adapters.
+- `ui`: `state_machines`, `text_resources`, `assets`, `content_examples`, `render_profiles`, and HTML route entry-point adapters.
 - `html`: HTML renderer contracts and `render_profile.html_viewports`.
 - `textual`: Textual renderer contracts and `render_profile.textual_viewports`.
 - Layer normalization always includes `core`; selecting `html` or `textual` also includes `ui`. Aliases normalize as `api -> http`, `cli -> workflow`, `tui -> textual`, and `all`/`full` -> every layer.
@@ -250,7 +250,7 @@ Layers are compile/validate guardrails and are not written into `spec/generated/
 | CLI application-action response handlers | `$input`, `$outcome` |
 | CLI delegated response handlers | `$input`, `$response` |
 | Workflow step `input_bindings` | `$trigger`, `$steps` |
-| Authored test/precondition/assertion/content-case/render-audit value maps | `$fixture` |
+| Authored test/precondition/assertion/content-example/render-audit value maps | `$fixture` |
 
 ## Visual Audit Coverage
 
@@ -261,7 +261,7 @@ Layers are compile/validate guardrails and are not written into `spec/generated/
 - `missing_required_visual_path`: a required visual path with no diagram or render-capture evidence.
 - `optional_visual_path_not_shown`: an optional visual path with no diagram or render-capture evidence; this is reported but does not fail validation.
 - `non_visual_path`: compiled metadata that is intentionally outside visual-audit scope, such as `project` workspace metadata or the compiled `refs` index.
-- `render_presence`: resource-level visibility in actual render captures, reported as `rendered` or `not_rendered` for assets, text resources, fixtures, preconditions, assertions, and content cases.
+- `render_presence`: resource-level visibility in actual render captures, reported as `rendered` or `not_rendered` for assets, text resources, fixtures, preconditions, assertions, and content examples.
 
 Audit validation fails when any `missing_required_visual_path` exists or when a declared `required_visual_text_witness` is absent from its SVG evidence set. Required paths without a text witness are still required to have diagram or render-capture evidence, but their semantics are audited through the visual artifact rather than a machine-readable token.
 
@@ -269,7 +269,7 @@ The visual audit includes state-machine and composition diagrams, entry-point an
 
 ## Runtime Expression Namespaces
 
-- `$fixture.<path>` reads merged seed fixture data in behavior scenarios, preconditions, assertions, content cases, and render audit cases.
+- `$fixture.<path>` reads merged seed fixture data in behavior scenarios, preconditions, assertions, content examples, and render examples.
 - `$state_machine.<field>` reads parent state-machine context in child state-machine context bindings and composition conditions.
 - `$local_signal.<field>` reads the current state-machine local-signal payload in transition effects and sync sends.
 - `$context.<field>` reads current state-machine context in transition effects, action/data-loader input bindings, and local outcome-effect signal payload binding.
@@ -302,20 +302,20 @@ Runtime expressions appear inside binding objects. Authored value maps use `{fro
 - `spec/generated/product_interfaces/textual.projection.py`: Textual renderer projection generated from `renderers.textual.presentation` widgets, `renderers.textual.style`, and `renderers.textual.layout` containers.
 - `spec/generated/product_interfaces/workflow.cwl.yaml`: CWL projection generated for workflow/CLI/worker-relevant execution graphs.
 - `spec/generated/product_interfaces/authorization_policies.json`: authorization-policy projection with application-action authorization mappings and entry-point policies.
-- `spec/generated/content_resolvers/{signatures.py,stubs.py,cases.yaml}`: documented content-resolution contracts and examples.
+- `spec/generated/content_resolvers/{signatures.py,stubs.py,examples.yaml}`: documented content-resolution contracts and examples.
 - `spec/generated/test_adapters/python_refs.py`: Python constants for resource and generated reference IDs.
 - `spec/generated/test_adapters/driver_protocol.py`: BDD driver protocol.
 - `spec/generated/test_adapters/pytest_bdd_steps.py`: BDD step glue.
 - `spec/generated/test_adapters/pytest_bdd_features/{feature}.feature`: generated behavior feature files.
 - `spec/generated/audit_evidence/entrypoints/{adapter}/{entry_point}/flow.svg`: entry-point flow diagrams grouped by adapter kind.
-- `spec/generated/audit_evidence/coverage.yaml`: generated visual coverage index mapping compiled spec paths to diagram and render-capture evidence, including explicit render coverage gaps for assets, text, fixtures, preconditions, assertions, and content cases.
+- `spec/generated/audit_evidence/coverage.yaml`: generated visual coverage index mapping compiled spec paths to diagram and render-capture evidence, including explicit render coverage gaps for assets, text, fixtures, preconditions, assertions, and content examples.
 - `spec/generated/audit_evidence/workflows/{workflow}/flow.svg`: workflow flow diagrams.
 - `spec/generated/audit_evidence/application_actions/{application_action}/flow.svg`: chronological action flows showing input, authorization, touched resources, outcomes, and emitted domain events.
 - `spec/generated/audit_evidence/state_machines/{state_machine}/state_machine.svg`: state-machine diagrams.
 - `spec/generated/audit_evidence/state_machines/{state_machine}/view_states/{view_state}/composition.svg`: composed state-machine view-state diagrams.
 - `spec/generated/audit_evidence/state_machines/{state_machine}/view_states/{view_state}/{text.yaml,fixtures.yaml,assets/*}`: view-state-scoped audit inputs.
 - `spec/generated/audit_evidence/state_machines/{state_machine}/view_states/{view_state}/renders/*`: HTML/Textual view-state render source and captures.
-- `spec/generated/audit_evidence/state_machines/{state_machine}/view_states/{view_state}/cases/{case}/**`: audit-case scoped inputs and render captures.
+- `spec/generated/audit_evidence/state_machines/{state_machine}/view_states/{view_state}/render_examples/{render_example}/**`: render-example scoped inputs and render captures.
 
 ## Schema Definition Inventory
 
@@ -328,7 +328,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:authored_asset --> `$defs/authored_asset`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_render_profile --> `$defs/authored_render_profile`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_child_state_machine --> `$defs/authored_child_state_machine`: human-authored source object for this resource or nested contract.
-- <!-- schema-def:authored_content_case --> `$defs/authored_content_case`: human-authored source object for this resource or nested contract.
+- <!-- schema-def:authored_content_example --> `$defs/authored_content_example`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_text_resource --> `$defs/authored_text_resource`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_entry_point --> `$defs/authored_entry_point`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_domain_event --> `$defs/authored_domain_event`: human-authored source object for this resource or nested contract.
@@ -350,7 +350,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:cli_response_handlers --> `$defs/cli_response_handlers`: map from named response outcomes to CLI response handlers.
 - <!-- schema-def:context_condition --> `$defs/context_condition`: state-machine contract component.
 - <!-- schema-def:content_args --> `$defs/content_args`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:content_case_ref --> `$defs/content_case_ref`: typed reference definition for its namespace.
+- <!-- schema-def:content_example_ref --> `$defs/content_example_ref`: typed reference definition for its namespace.
 - <!-- schema-def:content_source_ref --> `$defs/content_source_ref`: typed reference definition for its namespace.
 - <!-- schema-def:context_bindings --> `$defs/context_bindings`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:context_set_effect --> `$defs/context_set_effect`: state-machine contract component.
@@ -379,7 +379,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:outcome_name --> `$defs/outcome_name`: local identifier contract component.
 - <!-- schema-def:rule_id --> `$defs/rule_id`: local identifier contract component.
 - <!-- schema-def:role_name --> `$defs/role_name`: local identifier contract component.
-- <!-- schema-def:audit_case_id --> `$defs/audit_case_id`: local identifier contract component.
+- <!-- schema-def:render_example_id --> `$defs/render_example_id`: local identifier contract component.
 - <!-- schema-def:fixture_ref --> `$defs/fixture_ref`: typed reference definition for its namespace.
 - <!-- schema-def:given --> `$defs/given`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:html_element --> `$defs/html_element`: HTML renderer contract component.
@@ -430,7 +430,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:state_machine_query_conditional_effect --> `$defs/state_machine_query_conditional_effect`: conditional query effect branch with result-shape guard and normal query outcome effects.
 - <!-- schema-def:state_machine_data_loader_outcome_effect --> `$defs/state_machine_data_loader_outcome_effect`: state-machine data loader outcome-effect contract component.
 - <!-- schema-def:state_machine_data_loader_outcome_effects --> `$defs/state_machine_data_loader_outcome_effects`: state-machine data loader outcome-effect map.
-- <!-- schema-def:state_machine_render_audit_case --> `$defs/state_machine_render_audit_case`: state-machine contract component.
+- <!-- schema-def:render_example --> `$defs/render_example`: state-machine contract component.
 - <!-- schema-def:state_machine_signal_raise --> `$defs/state_machine_signal_raise`: state-machine local signal raise contract component.
 - <!-- schema-def:state_machine_signal_trigger --> `$defs/state_machine_signal_trigger`: tagged local signal/data-refresh-signal trigger contract component.
 - <!-- schema-def:state_machine_signal --> `$defs/state_machine_signal`: state-machine contract component.
@@ -499,7 +499,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:asset_item --> `$defs/asset_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:render_profile_item --> `$defs/render_profile_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:child_state_machine_item --> `$defs/child_state_machine_item`: compiled-output object for this resource or nested contract.
-- <!-- schema-def:content_case_item --> `$defs/content_case_item`: compiled-output object for this resource or nested contract.
+- <!-- schema-def:content_example_item --> `$defs/content_example_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:text_resource_item --> `$defs/text_resource_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:entry_point_item --> `$defs/entry_point_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:domain_event_item --> `$defs/domain_event_item`: compiled-output object for this resource or nested contract.

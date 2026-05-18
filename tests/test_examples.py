@@ -3,7 +3,7 @@ from __future__ import annotations
 import importlib.util
 from pathlib import Path
 
-from pyspec_contract.audit import audit_expected_files, audit_case_render_file
+from pyspec_contract.audit import audit_expected_files, render_example_render_file
 from pyspec_contract.compile import compile_source
 from pyspec_contract.io import read_json, read_yaml
 from pyspec_contract.paths import COMPILED_SPEC_PATH, SOURCE_SPEC_PATH
@@ -83,9 +83,9 @@ def test_textual_screens_are_driven_by_textual_state_machine_layout() -> None:
 
 
 def test_canonical_audit_contains_real_visual_references() -> None:
-    html = (ROOT / audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "html")).read_text(encoding="utf-8")
+    html = (ROOT / render_example_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "html")).read_text(encoding="utf-8")
     assert "Replace rooftop condenser fan" in html
     assert "Atlas Foods" in html
     assert "Dispatch queue" in html
-    assert (ROOT / audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "png")).exists()
-    assert (ROOT / audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "svg")).exists()
+    assert (ROOT / render_example_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "png")).exists()
+    assert (ROOT / render_example_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "svg")).exists()

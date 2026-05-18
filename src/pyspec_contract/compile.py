@@ -122,7 +122,7 @@ def validate_against_schema(data: dict[str, Any], schema_name: str) -> None:
 TARGET_ORDER = (
     "text_resource",
     "asset",
-    "content_case",
+    "content_example",
     "render_profile",
     "fixture",
     "precondition",
@@ -143,7 +143,7 @@ TARGET_ORDER = (
 ENTITY_SECTIONS: dict[str, str] = {
     "text_resource": "text_resources",
     "asset": "assets",
-    "content_case": "content_cases",
+    "content_example": "content_examples",
     "render_profile": "render_profiles",
     "fixture": "fixtures",
     "precondition": "preconditions",
@@ -188,7 +188,7 @@ def empty_compiled_contract(project: str) -> dict[str, Any]:
         "project": project,
         "text_resources": {},
         "assets": {},
-        "content_cases": {},
+        "content_examples": {},
         "render_profiles": {},
         "fixtures": {},
         "preconditions": {},
@@ -221,7 +221,7 @@ AUTHOR_SECTION_ORDER = (
     "behavior_scenarios",
     "text_resources",
     "assets",
-    "content_cases",
+    "content_examples",
     "render_profiles",
 )
 
@@ -377,7 +377,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
                 item[field] = spec[field]
         return item
 
-    if entity == "content_case":
+    if entity == "content_example":
         item = {"ref": spec["ref"], "args": spec["args"], "rationale": spec["rationale"]}
         if "seed_fixtures" in spec:
             item["seed_fixtures"] = spec["seed_fixtures"]
@@ -559,19 +559,19 @@ def _compile_view_states(owner_id: str, states: dict[str, Any]) -> dict[str, Any
         for field in ["child_state_machines", "signal_sync_rules"]:
             if field in state:
                 item[field] = state[field]
-        if state.get("render_audit_cases"):
-            item["render_audit_cases"] = {
-                case_name: _compile_audit_case(owner_id, state_name, case_name, case)
-                for case_name, case in state["render_audit_cases"].items()
+        if state.get("render_examples"):
+            item["render_examples"] = {
+                case_name: _compile_render_example(owner_id, state_name, case_name, case)
+                for case_name, case in state["render_examples"].items()
             }
         compiled[state_name] = item
     return compiled
 
 
-def _compile_audit_case(state_machine_id: str, state_name: str, case_name: str, case: dict[str, Any]) -> dict[str, Any]:
+def _compile_render_example(state_machine_id: str, state_name: str, case_name: str, case: dict[str, Any]) -> dict[str, Any]:
     item = {
         "seed_fixtures": case["seed_fixtures"],
-        "rationale": case.get("rationale", _default_rationale("render_audit_case", f"{state_machine_id}.{state_name}.{case_name}")),
+        "rationale": case.get("rationale", _default_rationale("render_example", f"{state_machine_id}.{state_name}.{case_name}")),
     }
     for field in ["context", "precondition_refs", "instances"]:
         if field in case:
@@ -579,11 +579,11 @@ def _compile_audit_case(state_machine_id: str, state_name: str, case_name: str, 
     return item
 
 
-def audit_cases(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
+def render_examples(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
     cases: dict[str, dict[str, Any]] = {}
     for state_machine_id, state_machine in sorted(contract.get("state_machines", {}).items()):
         for state_name, state in sorted(state_machine.get("view_states", {}).items()):
-            for case_name, case in sorted((state.get("render_audit_cases") or {}).items()):
+            for case_name, case in sorted((state.get("render_examples") or {}).items()):
                 case_id = f"{state_machine_id}.{state_name}.{case_name}.audit"
                 cases[case_id] = {"state_machine": state_machine_id, "view_state": state_name, "name": case_name, **case}
     return cases
@@ -797,7 +797,7 @@ def _state_machine_has_textual_screen(state_machine: dict[str, Any]) -> bool:
 
 def _semantic_validate(contract: dict[str, Any], used_preconditions: set[str], used_assertions: set[str]) -> None:
     _validate_text_assets(contract)
-    _validate_content_cases(contract)
+    _validate_content_examples(contract)
     _validate_render_profiles(contract)
     _validate_schemas(contract)
     _validate_entity_types(contract)
@@ -814,7 +814,7 @@ def _semantic_validate(contract: dict[str, Any], used_preconditions: set[str], u
     _validate_preconditions(contract)
     _validate_assertions(contract)
     _validate_behavior_scenarios(contract)
-    _validate_audit_cases(contract)
+    _validate_render_examples(contract)
     _validate_preconditions_are_used(contract, used_preconditions)
     _validate_assertions_are_used(contract, used_assertions)
 
@@ -851,14 +851,14 @@ def _validate_text_assets(contract: dict[str, Any]) -> None:
 
 
 
-def _validate_content_cases(contract: dict[str, Any]) -> None:
+def _validate_content_examples(contract: dict[str, Any]) -> None:
     final_refs = {
         ref
         for section in ["text_resources", "assets"]
         for ref, item in contract.get(section, {}).items()
         if item.get("source_ref")
     }
-    declared_case_refs: set[str] = set()
+    declared_example_refs: set[str] = set()
     for ref, item in list(contract.get("text_resources", {}).items()) + list(contract.get("assets", {}).items()):
         source_ref = item.get("source_ref")
         if source_ref:
@@ -867,25 +867,25 @@ def _validate_content_cases(contract: dict[str, Any]) -> None:
             if not item.get("args"):
                 # Arg-less resolvers are allowed, but declaring args is preferred for dynamic content.
                 pass
-    for case_id, case in contract.get("content_cases", {}).items():
+    for case_id, case in contract.get("content_examples", {}).items():
         ref = case["ref"]
         section = "text_resources" if ref.startswith("text.") else "assets"
         if ref not in contract.get(section, {}):
             label = "text resource" if section == "text_resources" else "asset"
-            raise ContractError(f"Content case {case_id} references unknown {label} {ref}")
+            raise ContractError(f"Content example {case_id} references unknown {label} {ref}")
         for fixture_id in case.get("seed_fixtures", []):
             if fixture_id not in contract["fixtures"]:
-                raise ContractError(f"Content case {case_id} references unknown fixture {fixture_id}")
-        fixture_values = _fixture_namespace(contract, case.get("seed_fixtures", []), f"content case {case_id}")
-        _validate_fixture_templates(case, fixture_values, f"content case {case_id}")
+                raise ContractError(f"Content example {case_id} references unknown fixture {fixture_id}")
+        fixture_values = _fixture_namespace(contract, case.get("seed_fixtures", []), f"content example {case_id}")
+        _validate_fixture_templates(case, fixture_values, f"content example {case_id}")
         expected = set(contract[section][ref].get("args", {}))
         actual = set(case.get("args", {}))
         if expected != actual:
-            raise ContractError(_diff_message(f"content case {case_id} args", expected, actual))
-        declared_case_refs.add(ref)
-    missing = sorted(final_refs - declared_case_refs)
+            raise ContractError(_diff_message(f"content example {case_id} args", expected, actual))
+        declared_example_refs.add(ref)
+    missing = sorted(final_refs - declared_example_refs)
     if missing:
-        raise ContractError("Final content resolvers require content_case coverage: " + ", ".join(missing))
+        raise ContractError("Final content resolvers require content_example coverage: " + ", ".join(missing))
 
 
 def _validate_render_profiles(contract: dict[str, Any]) -> None:
@@ -908,8 +908,8 @@ def _validate_render_profiles(contract: dict[str, Any]) -> None:
         raise ContractError("Renderable state_machines require render_profile viewports for: " + ", ".join(missing))
 
 
-def _validate_audit_cases(contract: dict[str, Any]) -> None:
-    cases = audit_cases(contract)
+def _validate_render_examples(contract: dict[str, Any]) -> None:
+    cases = render_examples(contract)
     composable_states = {
         (state_machine_id, state_name)
         for state_machine_id, state_machine in contract.get("state_machines", {}).items()
@@ -924,33 +924,33 @@ def _validate_audit_cases(contract: dict[str, Any]) -> None:
         state = state_machine["view_states"][state_name]
         entity_type = state_machine.get("entity_type")
         if not _view_state_renderers(state):
-            raise ContractError(f"Render audit case {case_id} references view state {state_machine_id}.{state_name} with no visual renderer")
+            raise ContractError(f"Render example {case_id} references view state {state_machine_id}.{state_name} with no visual renderer")
         for fixture_id in case.get("seed_fixtures", []):
             if fixture_id not in contract["fixtures"]:
-                raise ContractError(f"Render audit case {case_id} references unknown fixture {fixture_id}")
-        fixture_values = _fixture_namespace(contract, case.get("seed_fixtures", []), f"render audit case {case_id}")
-        _validate_fixture_templates(case, fixture_values, f"render audit case {case_id}")
+                raise ContractError(f"Render example {case_id} references unknown fixture {fixture_id}")
+        fixture_values = _fixture_namespace(contract, case.get("seed_fixtures", []), f"render example {case_id}")
+        _validate_fixture_templates(case, fixture_values, f"render example {case_id}")
         for precondition_use in case.get("precondition_refs", []):
             precondition_id = precondition_use["ref"]
-            _validate_fixture_templates(contract["preconditions"][precondition_id], fixture_values, f"render audit case {case_id} precondition {precondition_id}")
+            _validate_fixture_templates(contract["preconditions"][precondition_id], fixture_values, f"render example {case_id} precondition {precondition_id}")
         if entity_type and state.get("fields") and not set(state.get("fields", [])) <= set(_state_machine_context(state_machine)) and not _setup_has_entity_type(contract, case.get("seed_fixtures", []), case.get("precondition_refs", []), entity_type):
-            raise ContractError(f"Render audit case {case_id} renders fields for {state_machine_id}.{state_name} but does not include a {entity_type} fixture or precondition")
+            raise ContractError(f"Render example {case_id} renders fields for {state_machine_id}.{state_name} but does not include a {entity_type} fixture or precondition")
         if state.get("child_state_machines"):
             mounted_instances = {mount["id"]: mount for mount in state["child_state_machines"]}
             expected_instances = case.get("instances")
             if not expected_instances:
-                raise ContractError(f"Render audit case {case_id} for composed state machine state {state_machine_id}.{state_name} must declare instances")
+                raise ContractError(f"Render example {case_id} for composed state machine state {state_machine_id}.{state_name} must declare instances")
             if set(expected_instances) != set(mounted_instances):
-                raise ContractError(f"Render audit case {case_id} instance state vector must exactly cover mounted state machine instances")
+                raise ContractError(f"Render example {case_id} instance state vector must exactly cover mounted state machine instances")
             for instance_id, expected in expected_instances.items():
                 child_state_machine_id = mounted_instances[instance_id]["state_machine"]
                 if expected["view_state"] not in contract["state_machines"][child_state_machine_id]["view_states"]:
-                    raise ContractError(f"Render audit case {case_id} references unknown state machine view state {child_state_machine_id}.{expected['view_state']}")
+                    raise ContractError(f"Render example {case_id} references unknown state machine view state {child_state_machine_id}.{expected['view_state']}")
                 selected_state = contract["state_machines"][child_state_machine_id]["view_states"][expected["view_state"]]
                 child_model = contract["state_machines"][child_state_machine_id].get("entity_type")
                 child_context = set(_state_machine_context(contract["state_machines"][child_state_machine_id]))
                 if child_model and selected_state.get("fields") and not set(selected_state.get("fields", [])) <= child_context and not _setup_has_entity_type(contract, case.get("seed_fixtures", []), case.get("precondition_refs", []), child_model):
-                    raise ContractError(f"Render audit case {case_id} renders fields for {child_state_machine_id}.{expected['view_state']} but does not include a {child_model} fixture or precondition")
+                    raise ContractError(f"Render example {case_id} renders fields for {child_state_machine_id}.{expected['view_state']} but does not include a {child_model} fixture or precondition")
             covered_composable_states.add((state_machine_id, state_name))
     missing_composed = sorted(f"{state_machine_id}.{state_name}" for state_machine_id, state_name in composable_states - covered_composable_states)
     if missing_composed:
@@ -4472,14 +4472,14 @@ def _expand_behavior_scenario_predicate_refs(contract: dict[str, Any]) -> tuple[
             "postconditions",
             f"Behavior scenario {behavior_scenario_id}",
         ))
-    for case_id, case in audit_cases(contract).items():
+    for case_id, case in render_examples(contract).items():
         case_uses: set[str] = set()
         for precondition_use in case.get("precondition_refs", []):
             precondition_id = precondition_use["ref"]
             if precondition_id not in contract["preconditions"]:
-                raise ContractError(f"Render audit case {case_id} references unknown precondition {precondition_id}")
+                raise ContractError(f"Render example {case_id} references unknown precondition {precondition_id}")
             if precondition_id in case_uses:
-                raise ContractError(f"Render audit case {case_id} uses precondition {precondition_id} more than once")
+                raise ContractError(f"Render example {case_id} uses precondition {precondition_id} more than once")
             case_uses.add(precondition_id)
             used_preconditions.add(precondition_id)
     return used_preconditions, used_assertions

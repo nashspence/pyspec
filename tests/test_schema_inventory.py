@@ -30,7 +30,10 @@ DEPRECATED_REFERENCE_DEFINITION_NAMES = {
     "audit_profile_id",
     "audit_profile_ref",
     "authored_audit_profile",
+    "audit_case_id",
     "content_case_id",
+    "content_case_ref",
+    "content_example_id",
     "content_resolver_id",
     "authored_copy",
     "copy_item",
@@ -48,9 +51,12 @@ DEPRECATED_REFERENCE_DEFINITION_NAMES = {
     "type_map",
     "type_name",
     "audit_profile_item",
+    "render_audit_case",
+    "state_machine_render_audit_case",
 }
 DEPRECATED_TOP_LEVEL_PROPERTIES = {
     "audit_profiles",
+    "content_cases",
     "copies",
     "facts",
     "scenarios",
@@ -64,6 +70,7 @@ DEPRECATED_PROPERTY_NAMES = {
     "complete",
     "fail",
     "next",
+    "render_audit_cases",
 }
 def _former_name(prefix: str, suffix: str) -> str:
     return prefix + suffix
@@ -106,8 +113,8 @@ ALLOWED_ANY_OF_PATHS_BY_SCHEMA = {
     },
 }
 ALLOWED_ONE_OF_WITHOUT_OBJECT_DISCRIMINATORS = {
-    "$defs.authored_content_case.properties.ref.oneOf",
-    "$defs.content_case_item.properties.ref.oneOf",
+    "$defs.authored_content_example.properties.ref.oneOf",
+    "$defs.content_example_item.properties.ref.oneOf",
     "$defs.content_source_ref.oneOf",
     "$defs.given.properties.preconditions.items.oneOf",
     "$defs.json_value.oneOf",

@@ -31,7 +31,7 @@ Evidence checks:
 - Run or inspect `pyspec compile . --layers full` and `pyspec validate . --layers full` for generated-tree freshness and layer correctness.
 - Run the project tests that exercise the generated pytest-bdd corpus.
 - For UI layers, inspect render/audit evidence and call out visual, accessibility, or composition mismatches.
-- For content sources, confirm generated signatures/stubs are followed and outputs are deterministic for declared cases.
+- For content sources, confirm generated signatures/stubs are followed and outputs are deterministic for declared examples.
 
 Output format:
 - Start with `Ready for merge: yes` or `Ready for merge: no`.

@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable, Literal
 
-from .compile import ContractError, audit_cases
+from .compile import ContractError, render_examples
 from .content import AssetResult, ContentContext, ContentError, call_asset, call_text
 from .io import write_yaml
 from .layout import renderer_textual_presentation, renderer_html_layout, renderer_html_presentation, renderer_html_regions
@@ -149,8 +149,8 @@ def audit_coverage_file() -> str:
     return g("audit_evidence", "coverage.yaml")
 
 
-def audit_case_root(state_machine_id: str, case_id: str, state_name: str = "ready") -> str:
-    return g("audit_evidence", "state_machines", safe_id(state_machine_id), "view_states", safe_id(state_name), "cases", safe_id(case_id))
+def render_example_root(state_machine_id: str, case_id: str, state_name: str = "ready") -> str:
+    return g("audit_evidence", "state_machines", safe_id(state_machine_id), "view_states", safe_id(state_name), "render_examples", safe_id(case_id))
 
 
 def _render_filename(profile_id: str, viewport_id: str, extension: str) -> str:
@@ -170,8 +170,8 @@ def view_state_render_file(state_machine_id: str, state_name: str, profile_id: s
     return _under(view_state_root(state_machine_id, state_name), "renders", _render_filename(profile_id, viewport_id, extension))
 
 
-def audit_case_render_file(state_machine_id: str, case_id: str, profile_id: str, viewport_id: str, extension: str, state_name: str = "ready") -> str:
-    return _under(audit_case_root(state_machine_id, case_id, state_name), "renders", _render_filename(profile_id, viewport_id, extension))
+def render_example_render_file(state_machine_id: str, case_id: str, profile_id: str, viewport_id: str, extension: str, state_name: str = "ready") -> str:
+    return _under(render_example_root(state_machine_id, case_id, state_name), "renders", _render_filename(profile_id, viewport_id, extension))
 
 
 def _projection_surface_root(state_machine: dict[str, Any]) -> str:
@@ -182,12 +182,12 @@ def _projection_surface_file(state_machine: dict[str, Any], profile_id: str, vie
     return view_state_render_file(state_machine["owner"], state_machine["view_state"], profile_id, viewport_id, extension)
 
 
-def _case_root(contract: dict[str, Any], case_id: str, case: dict[str, Any]) -> str:
-    return audit_case_root(case["state_machine"], case_id, case["view_state"])
+def _render_example_root(contract: dict[str, Any], case_id: str, case: dict[str, Any]) -> str:
+    return render_example_root(case["state_machine"], case_id, case["view_state"])
 
 
-def _case_file(contract: dict[str, Any], case_id: str, case: dict[str, Any], profile_id: str, viewport_id: str, extension: str) -> str:
-    return audit_case_render_file(case["state_machine"], case_id, profile_id, viewport_id, extension, case["view_state"])
+def _render_example_file(contract: dict[str, Any], case_id: str, case: dict[str, Any], profile_id: str, viewport_id: str, extension: str) -> str:
+    return render_example_render_file(case["state_machine"], case_id, profile_id, viewport_id, extension, case["view_state"])
 
 
 def _projection_render_surfaces(state_machine: dict[str, Any]) -> set[str]:
@@ -200,7 +200,7 @@ def _projection_render_surfaces(state_machine: dict[str, Any]) -> set[str]:
     return surfaces
 
 
-def _case_render_surfaces(contract: dict[str, Any], case: dict[str, Any]) -> set[str]:
+def _render_example_surfaces(contract: dict[str, Any], case: dict[str, Any]) -> set[str]:
     state = contract["state_machines"][case["state_machine"]]["view_states"][case["view_state"]]
     renderers = state.get("renderers") or {}
     surfaces: set[str] = set()
@@ -308,8 +308,8 @@ def _surface_scope_inputs(contract: dict[str, Any], state_machine: dict[str, Any
     return text_refs, asset_refs, fixture_ids, precondition_ids, {}
 
 
-def _case_scope_inputs(contract: dict[str, Any], case: dict[str, Any]) -> tuple[set[str], set[str], set[str], set[str], dict[str, Any]]:
-    state_machines = case_render_state_machines(contract, case)
+def _render_example_scope_inputs(contract: dict[str, Any], case: dict[str, Any]) -> tuple[set[str], set[str], set[str], set[str], dict[str, Any]]:
+    state_machines = render_example_state_machines(contract, case)
     text_refs = {text_ref for state_machine in state_machines for text_ref in state_machine["slots"].get("text", [])}
     asset_refs = {asset_ref for state_machine in state_machines for asset_ref in state_machine["slots"].get("assets", [])}
     fixture_ids = set(case.get("seed_fixtures", []))
@@ -350,8 +350,8 @@ def _write_audit_inputs(root: Path, contract: dict[str, Any], projection: dict[s
         if not _projection_render_surfaces(state_machine):
             continue
         _write_audit_scope_inputs(root, contract, _projection_surface_root(state_machine), *_surface_scope_inputs(contract, state_machine))
-    for case_id, case in sorted(audit_cases(contract).items()):
-        _write_audit_scope_inputs(root, contract, _case_root(contract, case_id, case), *_case_scope_inputs(contract, case))
+    for case_id, case in sorted(render_examples(contract).items()):
+        _write_audit_scope_inputs(root, contract, _render_example_root(contract, case_id, case), *_render_example_scope_inputs(contract, case))
 
 
 def _audit_projection_surfaces(contract: dict[str, Any], projection: dict[str, Any]) -> list[dict[str, Any]]:
@@ -395,19 +395,19 @@ def _audit_visual_expected_files(contract: dict[str, Any]) -> set[str]:
                 files.add(_projection_surface_file(state_machine, profile_id, breakpoint, "py"))
                 files.add(_projection_surface_file(state_machine, profile_id, breakpoint, "svg"))
 
-    for case_id, case in audit_cases(contract).items():
-        scope_root = _case_root(contract, case_id, case)
-        _, asset_refs, _, _, _ = _case_scope_inputs(contract, case)
+    for case_id, case in render_examples(contract).items():
+        scope_root = _render_example_root(contract, case_id, case)
+        _, asset_refs, _, _, _ = _render_example_scope_inputs(contract, case)
         files.update(_audit_scope_expected_files(scope_root, asset_refs))
-        render_surfaces = _case_render_surfaces(contract, case)
+        render_surfaces = _render_example_surfaces(contract, case)
         if "html" in render_surfaces:
             for profile_id, breakpoint, _ in _profile_viewports(contract, "html"):
-                files.add(_case_file(contract, case_id, case, profile_id, breakpoint, "html"))
-                files.add(_case_file(contract, case_id, case, profile_id, breakpoint, "png"))
+                files.add(_render_example_file(contract, case_id, case, profile_id, breakpoint, "html"))
+                files.add(_render_example_file(contract, case_id, case, profile_id, breakpoint, "png"))
         if "textual" in render_surfaces:
             for profile_id, breakpoint, _ in _profile_viewports(contract, "textual"):
-                files.add(_case_file(contract, case_id, case, profile_id, breakpoint, "py"))
-                files.add(_case_file(contract, case_id, case, profile_id, breakpoint, "svg"))
+                files.add(_render_example_file(contract, case_id, case, profile_id, breakpoint, "py"))
+                files.add(_render_example_file(contract, case_id, case, profile_id, breakpoint, "svg"))
     return files
 
 
@@ -434,8 +434,8 @@ def _audit_visual_evidence_files(contract: dict[str, Any]) -> set[str]:
     projection = state_machines_projection(contract)
     for surface in _audit_projection_surfaces(contract, projection):
         files.update(_projection_surface_render_capture_files(contract, surface))
-    for case_id, case in audit_cases(contract).items():
-        files.update(_case_render_capture_files(contract, case_id, case))
+    for case_id, case in render_examples(contract).items():
+        files.update(_render_example_capture_files(contract, case_id, case))
     return files
 
 
@@ -563,7 +563,7 @@ def _non_visual_path_classification(contract: dict[str, Any], pointer: str) -> d
 
 def _visual_path_obligation(contract: dict[str, Any], pointer: str) -> dict[str, str]:
     parts = _json_pointer_parts(pointer)
-    if parts and parts[0] in {"assets", "assertions", "content_cases", "preconditions", "fixtures", "behavior_scenarios", "text_resources"}:
+    if parts and parts[0] in {"assets", "assertions", "content_examples", "preconditions", "fixtures", "behavior_scenarios", "text_resources"}:
         return {"level": "optional", "reason": _optional_visual_path_reason(parts[0])}
     _ = contract
     return {"level": "required", "reason": "required product contract path has no diagram or render-capture evidence"}
@@ -572,11 +572,11 @@ def _visual_path_obligation(contract: dict[str, Any], pointer: str) -> dict[str,
 def _optional_visual_path_reason(collection: str) -> str:
     return {
         "assets": "declared assets may be unused by rendered states",
-        "assertions": "assertions are expected predicates and need not appear in render audit cases",
-        "content_cases": "content examples are visual only when their referenced resource is rendered",
+        "assertions": "assertions are expected predicates and need not appear in render examples",
+        "content_examples": "content examples are visual only when their referenced resource is rendered",
         "preconditions": "preconditions may support behavior setup without dedicated visual evidence",
-        "fixtures": "fixtures may support behavior or content tests without appearing in render audit cases",
-        "behavior_scenarios": "behavior cases may be represented by diagrams or renders, but are not required visual evidence",
+        "fixtures": "fixtures may support behavior or content tests without appearing in render examples",
+        "behavior_scenarios": "behavior scenarios may be represented by diagrams or renders, but are not required visual evidence",
         "text_resources": "text resources may be adapter or branch-specific and need not appear in rendered states",
     }[collection]
 
@@ -594,8 +594,8 @@ def _audit_evidence_for_pointer(contract: dict[str, Any], pointer: str) -> list[
         return _asset_evidence_files(contract, owner)
     if parts[0] == "authorization_policies":
         return _authorization_policy_evidence_files(contract, owner)
-    if parts[0] == "content_cases":
-        return _content_case_evidence_files(contract, owner)
+    if parts[0] == "content_examples":
+        return _content_example_evidence_files(contract, owner)
     if parts[0] == "schemas":
         return _schema_evidence_files(contract, owner)
     if parts[0] == "entry_points":
@@ -635,7 +635,7 @@ def _render_resource_coverage(contract: dict[str, Any], evidence_set_id: Any) ->
         "text_resources": _render_resource_collection_coverage(contract, "text_resources", "text", evidence_set_id),
         "fixtures": _render_resource_collection_coverage(contract, "fixtures", "fixture", evidence_set_id),
         "preconditions": _render_resource_collection_coverage(contract, "preconditions", "precondition", evidence_set_id),
-        "content_cases": _render_content_case_coverage(contract, evidence_set_id),
+        "content_examples": _render_content_example_coverage(contract, evidence_set_id),
     }
 
 
@@ -651,20 +651,20 @@ def _render_resource_collection_coverage(contract: dict[str, Any], collection: s
     return {"rendered": rendered, "not_rendered": not_rendered}
 
 
-def _render_content_case_coverage(contract: dict[str, Any], evidence_set_id: Any) -> dict[str, Any]:
+def _render_content_example_coverage(contract: dict[str, Any], evidence_set_id: Any) -> dict[str, Any]:
     rendered: dict[str, str] = {}
     not_rendered: list[str] = []
-    for content_case_id, content_case in sorted(contract.get("content_cases", {}).items()):
-        ref = content_case.get("ref")
+    for content_example_id, content_example in sorted(contract.get("content_examples", {}).items()):
+        ref = content_example.get("ref")
         evidence: list[str] = []
         if ref in contract.get("text_resources", {}):
             evidence = _filter_evidence_files(contract, _scope_input_evidence_files(contract, ref, "text"))
         elif ref in contract.get("assets", {}):
             evidence = _filter_evidence_files(contract, _scope_input_evidence_files(contract, ref, "asset"))
         if evidence:
-            rendered[content_case_id] = evidence_set_id(evidence)
+            rendered[content_example_id] = evidence_set_id(evidence)
         else:
-            not_rendered.append(content_case_id)
+            not_rendered.append(content_example_id)
     return {"rendered": rendered, "not_rendered": not_rendered}
 
 
@@ -1164,18 +1164,18 @@ def _behavior_scenario_evidence_files(contract: dict[str, Any], behavior_scenari
         files.extend(_event_evidence_files(contract, when["emit_domain_event"]["ref"]))
     if "run_workflow" in when:
         files.extend(_workflow_evidence_files(contract, when["run_workflow"]["ref"]))
-    for case_id, case in sorted(audit_cases(contract).items()):
+    for case_id, case in sorted(render_examples(contract).items()):
         if case_id == behavior_scenario_id or case.get("behavior_scenario") == behavior_scenario_id:
-            files.extend(_case_render_capture_files(contract, case_id, case))
+            files.extend(_render_example_capture_files(contract, case_id, case))
     return files
 
 
-def _content_case_evidence_files(contract: dict[str, Any], content_case_id: str) -> list[str]:
-    content_case = contract.get("content_cases", {}).get(content_case_id)
-    if not content_case:
+def _content_example_evidence_files(contract: dict[str, Any], content_example_id: str) -> list[str]:
+    content_example = contract.get("content_examples", {}).get(content_example_id)
+    if not content_example:
         return []
     files: list[str] = []
-    ref = content_case.get("ref")
+    ref = content_example.get("ref")
     if ref in contract.get("text_resources", {}):
         files.extend(_text_resource_evidence_files(contract, ref))
     if ref in contract.get("assets", {}):
@@ -1196,16 +1196,16 @@ def _scope_input_evidence_files(contract: dict[str, Any], ref: str, kind: str) -
             files.extend(_projection_surface_render_capture_files(contract, surface))
         elif kind == "precondition" and ref in precondition_ids:
             files.extend(_projection_surface_render_capture_files(contract, surface))
-    for case_id, case in sorted(audit_cases(contract).items()):
-        text_refs, asset_refs, fixture_ids, precondition_ids, _ = _case_scope_inputs(contract, case)
+    for case_id, case in sorted(render_examples(contract).items()):
+        text_refs, asset_refs, fixture_ids, precondition_ids, _ = _render_example_scope_inputs(contract, case)
         if kind == "text" and ref in text_refs:
-            files.extend(_case_render_capture_files(contract, case_id, case))
+            files.extend(_render_example_capture_files(contract, case_id, case))
         elif kind == "asset" and ref in asset_refs:
-            files.extend(_case_render_capture_files(contract, case_id, case))
+            files.extend(_render_example_capture_files(contract, case_id, case))
         elif kind == "fixture" and ref in fixture_ids:
-            files.extend(_case_render_capture_files(contract, case_id, case))
+            files.extend(_render_example_capture_files(contract, case_id, case))
         elif kind == "precondition" and ref in precondition_ids:
-            files.extend(_case_render_capture_files(contract, case_id, case))
+            files.extend(_render_example_capture_files(contract, case_id, case))
     return files
 
 
@@ -1218,12 +1218,12 @@ def _projection_surface_render_capture_files(contract: dict[str, Any], surface: 
     return files
 
 
-def _case_render_capture_files(contract: dict[str, Any], case_id: str, case: dict[str, Any]) -> list[str]:
+def _render_example_capture_files(contract: dict[str, Any], case_id: str, case: dict[str, Any]) -> list[str]:
     files: list[str] = []
-    for render_surface in _case_render_surfaces(contract, case):
+    for render_surface in _render_example_surfaces(contract, case):
         for profile_id, breakpoint, _ in _profile_viewports(contract, render_surface):
             extension = "png" if render_surface == "html" else "svg"
-            files.append(_case_file(contract, case_id, case, profile_id, breakpoint, extension))
+            files.append(_render_example_file(contract, case_id, case, profile_id, breakpoint, extension))
     return files
 
 
@@ -1232,8 +1232,8 @@ def _all_render_evidence_files(contract: dict[str, Any]) -> list[str]:
     projection = state_machines_projection(contract)
     for surface in _audit_projection_surfaces(contract, projection):
         files.extend(_view_state_render_evidence_files(contract, surface["owner"], surface["view_state"]))
-    for case_id, case in sorted(audit_cases(contract).items()):
-        files.extend(_case_render_capture_files(contract, case_id, case))
+    for case_id, case in sorted(render_examples(contract).items()):
+        files.extend(_render_example_capture_files(contract, case_id, case))
     return _filter_evidence_files(contract, files)
 
 
@@ -1244,10 +1244,10 @@ def _view_state_render_evidence_files(contract: dict[str, Any], state_machine_id
         if surface["owner"] != state_machine_id or surface["view_state"] != state_name:
             continue
         files.extend(_projection_surface_render_capture_files(contract, surface))
-    for case_id, case in sorted(audit_cases(contract).items()):
+    for case_id, case in sorted(render_examples(contract).items()):
         if case.get("state_machine") != state_machine_id or case.get("view_state") != state_name:
             continue
-        files.extend(_case_render_capture_files(contract, case_id, case))
+        files.extend(_render_example_capture_files(contract, case_id, case))
     return _filter_evidence_files(contract, files)
 
 
@@ -1355,7 +1355,7 @@ def _render_visual_audit(
 
     has_html_audit = bool(_profile_viewports(contract, "html")) and (
         any("html" in _projection_render_surfaces(state_machine) for state_machine in _audit_projection_surfaces(contract, projection))
-        or any("html" in _case_render_surfaces(contract, case) for case in audit_cases(contract).values())
+        or any("html" in _render_example_surfaces(contract, case) for case in render_examples(contract).values())
     )
     if has_html_audit:
         _render_html_audit(root, contract, projection, previous_audit_root)
@@ -1363,7 +1363,7 @@ def _render_visual_audit(
     audit_state_machines = _audit_projection_surfaces(contract, projection)
     has_textual_audit = bool(_profile_viewports(contract, "textual")) and (
         any("textual" in _projection_render_surfaces(state_machine) for state_machine in audit_state_machines)
-        or any("textual" in _case_render_surfaces(contract, case) for case in audit_cases(contract).values())
+        or any("textual" in _render_example_surfaces(contract, case) for case in render_examples(contract).values())
     )
     if has_textual_audit:
         try:
@@ -1386,13 +1386,13 @@ def _render_visual_audit(
                     _previous_audit_path(root, previous_audit_root, py_path),
                     _previous_audit_path(root, previous_audit_root, svg_path),
                 ))
-        for case_id, case in sorted(audit_cases(contract).items()):
-            if "textual" not in _case_render_surfaces(contract, case):
+        for case_id, case in sorted(render_examples(contract).items()):
+            if "textual" not in _render_example_surfaces(contract, case):
                 continue
             lines = textual_audit_lines(root, contract, case_id, case)
             for profile_id, name, viewport in _profile_viewports(contract, "textual"):
-                py_path = root / _case_file(contract, case_id, case, profile_id, name, "py")
-                svg_path = root / _case_file(contract, case_id, case, profile_id, name, "svg")
+                py_path = root / _render_example_file(contract, case_id, case, profile_id, name, "py")
+                svg_path = root / _render_example_file(contract, case_id, case, profile_id, name, "svg")
                 previous_py_path = _previous_audit_path(root, previous_audit_root, py_path)
                 previous_svg_path = _previous_audit_path(root, previous_audit_root, svg_path)
                 _write_textual_source(py_path, lines)
@@ -1436,17 +1436,17 @@ def _render_html_audit(root: Path, contract: dict[str, Any], projection: dict[st
                             _previous_audit_path(root, previous_audit_root, html_path),
                             _previous_audit_path(root, previous_audit_root, png_path),
                         )
-                for case_id, case in sorted(audit_cases(contract).items()):
-                    if "html" in _case_render_surfaces(contract, case):
+                for case_id, case in sorted(render_examples(contract).items()):
+                    if "html" in _render_example_surfaces(contract, case):
                         html_doc = audit_html_document(
                             contract,
-                            render_audit_case_html(root, contract, case_id, case),
-                            state_machine_surface_ids={state_machine["id"] for state_machine in case_render_state_machines(contract, case)},
-                            composition_ids=_case_composition_ids(contract, case),
+                            render_example_html(root, contract, case_id, case),
+                            state_machine_surface_ids={state_machine["id"] for state_machine in render_example_state_machines(contract, case)},
+                            composition_ids=_render_example_composition_ids(contract, case),
                         )
                         for profile_id, name, viewport in _profile_viewports(contract, "html"):
-                            html_path = root / _case_file(contract, case_id, case, profile_id, name, "html")
-                            png_path = root / _case_file(contract, case_id, case, profile_id, name, "png")
+                            html_path = root / _render_example_file(contract, case_id, case, profile_id, name, "html")
+                            png_path = root / _render_example_file(contract, case_id, case, profile_id, name, "png")
                             _write_html_and_png_page(
                                 page,
                                 html_doc,
@@ -3342,17 +3342,17 @@ def audit_html_document(
     ])
 
 
-def render_audit_case_html(root: Path, contract: dict[str, Any], case_id: str, case: dict[str, Any]) -> str:
+def render_example_html(root: Path, contract: dict[str, Any], case_id: str, case: dict[str, Any]) -> str:
     state_machine = contract["state_machines"][case["state_machine"]]
     state = state_machine["view_states"][case["view_state"]]
     if state.get("child_state_machines"):
-        return render_composed_case_html(root, contract, case)
+        return render_composed_example_html(root, contract, case)
     projection = state_machines_projection(contract)
     state_machine = next(item for item in projection["state_machines"] if item["owner_kind"] == "state_machine" and item["owner"] == case["state_machine"] and item["view_state"] == case["view_state"])
     return render_state_machine_audit_html(root, contract, state_machine, case)
 
 
-def case_render_state_machines(contract: dict[str, Any], case: dict[str, Any]) -> list[dict[str, Any]]:
+def render_example_state_machines(contract: dict[str, Any], case: dict[str, Any]) -> list[dict[str, Any]]:
     projection = state_machines_projection(contract)
     state_machine = contract["state_machines"][case["state_machine"]]
     state = state_machine["view_states"][case["view_state"]]
@@ -3365,14 +3365,14 @@ def case_render_state_machines(contract: dict[str, Any], case: dict[str, Any]) -
     return [next(item for item in projection["state_machines"] if item["owner_kind"] == "state_machine" and item["owner"] == case["state_machine"] and item["view_state"] == case["view_state"])]
 
 
-def _case_composition_ids(contract: dict[str, Any], case: dict[str, Any]) -> set[str]:
+def _render_example_composition_ids(contract: dict[str, Any], case: dict[str, Any]) -> set[str]:
     state = contract["state_machines"][case["state_machine"]]["view_states"][case["view_state"]]
     if state.get("child_state_machines"):
         return {f"{case['state_machine']}.{case['view_state']}"}
     return set()
 
 
-def render_composed_case_html(root: Path, contract: dict[str, Any], case: dict[str, Any]) -> str:
+def render_composed_example_html(root: Path, contract: dict[str, Any], case: dict[str, Any]) -> str:
     state_machine = contract["state_machines"][case["state_machine"]]
     state = state_machine["view_states"][case["view_state"]]
     projection = state_machines_projection(contract)
@@ -3570,7 +3570,7 @@ def records_for_state_machine(contract: dict[str, Any], state_machine: dict[str,
         namespace = fixture_namespace(contract, fixtures)
         records.extend(_find_model_records(namespace, entity_type_id))
         records = _apply_precondition_uses(contract, case.get("precondition_refs", []), namespace, entity_type_id, records)
-        context = _resolved_case_context(contract, case, namespace)
+        context = _resolved_render_example_context(contract, case, namespace)
     else:
         context = {}
         for fixture_id in fixtures:
@@ -3596,7 +3596,7 @@ def state_machine_owner_context(contract: dict[str, Any], state_machine: dict[st
     return schema_properties(contract["state_machines"][state_machine["owner"]].get("context", {}))
 
 
-def _resolved_case_context(contract: dict[str, Any], case: dict[str, Any], namespace: dict[str, Any]) -> dict[str, Any]:
+def _resolved_render_example_context(contract: dict[str, Any], case: dict[str, Any], namespace: dict[str, Any]) -> dict[str, Any]:
     context = {}
     for key, value in (case.get("context") or {}).items():
         context[key] = resolve(value, namespace)
@@ -3686,7 +3686,7 @@ def render_context(contract: dict[str, Any], case: dict[str, Any] | None) -> dic
     if not case:
         return {}
     namespace = render_namespace(contract, case)
-    return _resolved_case_context(contract, case, namespace)
+    return _resolved_render_example_context(contract, case, namespace)
 
 
 def content_args(contract: dict[str, Any], ref: str, item: dict[str, Any], record: dict[str, Any], context: dict[str, Any], namespace: dict[str, Any]) -> dict[str, Any]:

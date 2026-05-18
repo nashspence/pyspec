@@ -53,12 +53,12 @@ spec/spec.yaml
   -> spec/generated/compiled/spec.yaml
   -> product interfaces and behavior projections required by positive declarations
   -> pytest-bdd adapter files derived from behavior/behavior_scenarios.yaml
-  -> audit evidence when state-machine view states declare audit cases
+  -> audit evidence when state-machine view states declare render examples
 ```
 
 The spec is progressive. If a concern is absent, it has no declaration and no generated projection. The spec does not contain storage implementation details, test-harness dispatch, dev-environment metadata, review state, release state, or schema-version chatter.
 
-Reusable top-level `preconditions` name setup predicates, such as an entity that must already exist. Behavior scenarios reference them with `given.preconditions: [{ref: precondition.project.submitted}]`, and state-local audit cases use `precondition_refs: [precondition.project.submitted]`. Reusable expected predicates belong in top-level `assertions` and are referenced from `then.postconditions`.
+Reusable top-level `preconditions` name setup predicates, such as an entity that must already exist. Behavior scenarios reference them with `given.preconditions: [{ref: precondition.project.submitted}]`, and state-local render examples use `precondition_refs: [precondition.project.submitted]`. Reusable expected predicates belong in top-level `assertions` and are referenced from `then.postconditions`.
 
 ## Layers
 
@@ -118,7 +118,7 @@ spec/generated/
   content_resolvers/
     signatures.py
     stubs.py
-    cases.yaml
+    examples.yaml
   test_adapters/
     python_refs.py
     driver_protocol.py
@@ -136,21 +136,21 @@ spec/generated/
       state_machine.svg
       view_states/<view_state>/
         composition.svg
-        copy.yaml
+        text.yaml
         fixtures.yaml
         assets/*.svg
         renders/html.<profile>.<breakpoint>.source.html
         renders/html.<profile>.<breakpoint>.screenshot.png
         renders/textual.<profile>.<breakpoint>.source.py
         renders/textual.<profile>.<breakpoint>.capture.svg
-      cases/<audit_case>/
-        copy.yaml
-        fixtures.yaml
-        assets/*.svg
-        renders/html.<profile>.<breakpoint>.source.html
-        renders/html.<profile>.<breakpoint>.screenshot.png
-        renders/textual.<profile>.<breakpoint>.source.py
-        renders/textual.<profile>.<breakpoint>.capture.svg
+        render_examples/<render_example>/
+          text.yaml
+          fixtures.yaml
+          assets/*.svg
+          renders/html.<profile>.<breakpoint>.source.html
+          renders/html.<profile>.<breakpoint>.screenshot.png
+          renders/textual.<profile>.<breakpoint>.source.py
+          renders/textual.<profile>.<breakpoint>.capture.svg
 ```
 
 The role prompt templates are standalone, layer-specific prompts with a stable

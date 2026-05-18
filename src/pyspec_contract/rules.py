@@ -18,7 +18,7 @@ def resource_tail(value: str) -> str:
         "assertion",
         "asset",
         "text",
-        "content_case",
+        "content_example",
         "schema",
         "render_profile",
         "local_signal",

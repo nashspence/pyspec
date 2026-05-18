@@ -19,7 +19,7 @@ from pyspec_contract.audit import (
     state_machine_graph_file,
     view_state_root,
     generate_audit,
-    audit_case_render_file,
+    render_example_render_file,
     workflow_flow_dot,
     workflow_flow_file,
 )
@@ -75,12 +75,12 @@ def test_audit_outputs_cover_full_contract() -> None:
     assert application_action_flow_file("application_action.project.approve") in expected
     assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/view_states/" in path and path.endswith("/text.yaml") for path in expected)
     assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/view_states/" in path and "/renders/" in path and path.endswith(".png") for path in expected)
-    assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/cases/" in path and "/renders/" in path and path.endswith(".html") for path in expected)
-    assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/cases/" in path and "/renders/" in path and path.endswith(".svg") for path in expected)
-    assert audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "html").endswith("/renders/html.render_profile_default.wide.source.html")
-    assert audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "png").endswith("/renders/html.render_profile_default.wide.screenshot.png")
-    assert audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "py").endswith("/renders/textual.render_profile_default.wide.source.py")
-    assert audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "svg").endswith("/renders/textual.render_profile_default.wide.capture.svg")
+    assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/render_examples/" in path and "/renders/" in path and path.endswith(".html") for path in expected)
+    assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/render_examples/" in path and "/renders/" in path and path.endswith(".svg") for path in expected)
+    assert render_example_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "html").endswith("/renders/html.render_profile_default.wide.source.html")
+    assert render_example_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "png").endswith("/renders/html.render_profile_default.wide.screenshot.png")
+    assert render_example_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "py").endswith("/renders/textual.render_profile_default.wide.source.py")
+    assert render_example_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "svg").endswith("/renders/textual.render_profile_default.wide.capture.svg")
     validate_audit_outputs(ROOT, contract)
 
 
@@ -721,7 +721,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
 
 
 def test_audit_html_sources_render_copy_assets_and_fixture_fields() -> None:
-    ready = ROOT / audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "html")
+    ready = ROOT / render_example_render_file("state_machine.project.board", "state_machine.project.board.ready.ready_selected.audit", "render_profile.default", "wide", "html")
     text = ready.read_text(encoding="utf-8")
     assert "Dispatch queue" in text
     assert "Replace rooftop condenser fan · Atlas Foods" in text
@@ -732,7 +732,7 @@ def test_audit_html_sources_render_copy_assets_and_fixture_fields() -> None:
     assert "fixture.projects.audit_records" not in text
     assert "data-audit" not in text
 
-    empty = ROOT / audit_case_render_file("state_machine.project.board", "state_machine.project.board.ready.empty.audit", "render_profile.default", "compact", "html")
+    empty = ROOT / render_example_render_file("state_machine.project.board", "state_machine.project.board.ready.empty.audit", "render_profile.default", "compact", "html")
     empty_text = empty.read_text(encoding="utf-8")
     assert "No dispatch projects yet" in empty_text
     assert "asset.project.list.empty.illustration" in empty_text
@@ -740,7 +740,7 @@ def test_audit_html_sources_render_copy_assets_and_fixture_fields() -> None:
 
 
 def test_audit_asset_placeholder_is_generic_and_not_named() -> None:
-    asset = ROOT / "spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/assets/asset_project_list_empty_illustration.svg"
+    asset = ROOT / "spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/assets/asset_project_list_empty_illustration.svg"
     text = asset.read_text(encoding="utf-8")
     assert text.lstrip().startswith("<svg")
     assert "asset.project.list.empty.illustration" not in text
@@ -772,9 +772,9 @@ def test_asset_placeholder_schema_rejects_missing_visual_intent() -> None:
         compile_source(author)
 
 
-def test_render_audit_case_coverage_is_required() -> None:
+def test_render_example_coverage_is_required() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
-    author["state_machines"]["state_machine.project.board"]["view_states"]["ready"].pop("render_audit_cases")
+    author["state_machines"]["state_machine.project.board"]["view_states"]["ready"].pop("render_examples")
     with pytest.raises(ContractError, match="Missing render audit coverage for composed state machine states"):
         compile_source(author)
 

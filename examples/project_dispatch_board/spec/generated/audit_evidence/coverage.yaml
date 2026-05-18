@@ -25,15 +25,15 @@ visual_evidence_sets:
   - spec/generated/audit_evidence/application_actions/application_action_project_list/flow.svg
   - spec/generated/audit_evidence/entrypoints/http_api/entry_point_api_project_list/flow.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/state_machine.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.compact.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.wide.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.compact.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.wide.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.compact.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.wide.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.compact.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.wide.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/composition.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.compact.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.wide.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.compact.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.wide.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.compact.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.wide.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.compact.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.wide.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_list/state_machine.svg
   V0005:
   - spec/generated/audit_evidence/application_actions/application_action_project_read/flow.svg
@@ -46,16 +46,16 @@ visual_evidence_sets:
   - spec/generated/audit_evidence/application_actions/application_action_project_submit/flow.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_list/state_machine.svg
   V0008:
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.compact.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.wide.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.compact.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.wide.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.compact.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.wide.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.compact.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.wide.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_detail/state_machine.svg
   V0009:
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.compact.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.wide.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.compact.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.wide.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.compact.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.wide.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.compact.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.wide.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_list/state_machine.svg
   V0010:
   - spec/generated/audit_evidence/application_actions/application_action_project_create/flow.svg
@@ -66,15 +66,15 @@ visual_evidence_sets:
   - spec/generated/audit_evidence/entrypoints/http_api/entry_point_api_project_list/flow.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_activity/state_machine.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/state_machine.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.compact.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.wide.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.compact.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.wide.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.compact.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.wide.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.compact.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.wide.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/composition.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.compact.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.wide.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.compact.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.wide.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.compact.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.wide.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.compact.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.wide.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_detail/state_machine.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_list/state_machine.svg
   V0011:
@@ -110,15 +110,15 @@ visual_evidence_sets:
   - spec/generated/audit_evidence/entrypoints/worker/entry_point_worker_project_approval_notice/flow.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_activity/state_machine.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/state_machine.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.compact.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.wide.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.compact.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.wide.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.compact.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.wide.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.compact.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.wide.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/composition.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.compact.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.wide.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.compact.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.wide.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.compact.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.wide.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.compact.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.wide.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_detail/state_machine.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_list/state_machine.svg
   - spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg
@@ -135,15 +135,15 @@ visual_evidence_sets:
   - spec/generated/audit_evidence/entrypoints/http_api/entry_point_api_project_list/flow.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_activity/state_machine.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/state_machine.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.compact.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.wide.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.compact.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.wide.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.compact.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.wide.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.compact.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.wide.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/composition.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.compact.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.wide.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.compact.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.wide.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.compact.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.wide.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.compact.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.wide.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_detail/state_machine.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_list/state_machine.svg
   V0017:
@@ -157,19 +157,19 @@ visual_evidence_sets:
   V0021:
   - spec/generated/audit_evidence/entrypoints/worker/entry_point_worker_project_approval_notice/flow.svg
   V0022:
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.compact.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.wide.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.compact.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.wide.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.compact.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.wide.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.compact.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.wide.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.compact.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.wide.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.compact.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.wide.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.compact.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.wide.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.compact.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.wide.capture.svg
   V0023:
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.compact.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.wide.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.compact.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.wide.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.compact.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.wide.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.compact.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.wide.capture.svg
   V0024:
   - spec/generated/audit_evidence/application_actions/application_action_project_approve/flow.svg
   - spec/generated/audit_evidence/entrypoints/cli/entry_point_cli_project_approve/flow.svg
@@ -181,50 +181,50 @@ visual_evidence_sets:
   - spec/generated/audit_evidence/state_machines/state_machine_project_activity/state_machine.svg
   V0026:
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/state_machine.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.compact.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.wide.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.compact.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.wide.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.compact.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.wide.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.compact.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.wide.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/composition.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.compact.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.wide.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.compact.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.wide.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.compact.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.wide.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.compact.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.wide.capture.svg
   V0027:
   - spec/generated/audit_evidence/state_machines/state_machine_project_detail/state_machine.svg
   V0028:
   - spec/generated/audit_evidence/state_machines/state_machine_project_list/state_machine.svg
   V0029:
   - spec/generated/audit_evidence/state_machines/state_machine_project_activity/state_machine.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.compact.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.wide.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.compact.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.wide.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.compact.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.wide.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.compact.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.wide.capture.svg
   V0030:
   - spec/generated/audit_evidence/state_machines/state_machine_project_activity/state_machine.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.compact.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.wide.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.compact.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.wide.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.compact.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.wide.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.compact.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.wide.capture.svg
   V0031:
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.compact.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.wide.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.compact.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.wide.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.compact.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.wide.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.compact.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.wide.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_detail/state_machine.svg
   V0032:
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.compact.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.wide.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.compact.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.wide.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.compact.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.wide.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.compact.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.render_profile_default.wide.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_list/state_machine.svg
   V0033:
   - spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg
   V0034:
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.compact.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.wide.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.compact.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.wide.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.compact.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.render_profile_default.wide.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.compact.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.render_profile_default.wide.capture.svg
 render_presence:
   assets:
     rendered:
@@ -265,10 +265,10 @@ render_presence:
       precondition.project.draft: V0023
       precondition.project.submitted: V0023
     not_rendered: []
-  content_cases:
+  content_examples:
     rendered:
-      content_case.project.detail.heading.high_priority: V0023
-      content_case.project.detail.priority_badge.high_priority: V0023
+      content_example.project.detail.heading.high_priority: V0023
+      content_example.project.detail.priority_badge.high_priority: V0023
     not_rendered: []
 visual_audit:
   required:
@@ -849,22 +849,20 @@ visual_audit:
       /state_machines/state_machine.project.board/view_states/ready/child_state_machines/2/textual_container: V0026
       /state_machines/state_machine.project.board/view_states/ready/data_loaders: V0026
       /state_machines/state_machine.project.board/view_states/ready/fields: V0026
-      /state_machines/state_machine.project.board/view_states/ready/render_audit_cases/empty/instances/activity/view_state: V0026
-      /state_machines/state_machine.project.board/view_states/ready/render_audit_cases/empty/instances/detail/view_state: V0026
-      /state_machines/state_machine.project.board/view_states/ready/render_audit_cases/empty/instances/list/view_state: V0026
-      /state_machines/state_machine.project.board/view_states/ready/render_audit_cases/empty/rationale: V0026
-      /state_machines/state_machine.project.board/view_states/ready/render_audit_cases/empty/seed_fixtures/0: V0026
-      ? /state_machines/state_machine.project.board/view_states/ready/render_audit_cases/ready_selected/context/selected_project_id/value
+      /state_machines/state_machine.project.board/view_states/ready/render_examples/empty/instances/activity/view_state: V0026
+      /state_machines/state_machine.project.board/view_states/ready/render_examples/empty/instances/detail/view_state: V0026
+      /state_machines/state_machine.project.board/view_states/ready/render_examples/empty/instances/list/view_state: V0026
+      /state_machines/state_machine.project.board/view_states/ready/render_examples/empty/rationale: V0026
+      /state_machines/state_machine.project.board/view_states/ready/render_examples/empty/seed_fixtures/0: V0026
+      ? /state_machines/state_machine.project.board/view_states/ready/render_examples/ready_selected/context/selected_project_id/value
       : V0026
-      ? /state_machines/state_machine.project.board/view_states/ready/render_audit_cases/ready_selected/instances/activity/view_state
-      : V0026
-      ? /state_machines/state_machine.project.board/view_states/ready/render_audit_cases/ready_selected/instances/detail/view_state
-      : V0026
-      /state_machines/state_machine.project.board/view_states/ready/render_audit_cases/ready_selected/instances/list/view_state: V0026
-      /state_machines/state_machine.project.board/view_states/ready/render_audit_cases/ready_selected/precondition_refs/0/ref: V0026
-      /state_machines/state_machine.project.board/view_states/ready/render_audit_cases/ready_selected/precondition_refs/1/ref: V0026
-      /state_machines/state_machine.project.board/view_states/ready/render_audit_cases/ready_selected/rationale: V0026
-      /state_machines/state_machine.project.board/view_states/ready/render_audit_cases/ready_selected/seed_fixtures/0: V0026
+      /state_machines/state_machine.project.board/view_states/ready/render_examples/ready_selected/instances/activity/view_state: V0026
+      /state_machines/state_machine.project.board/view_states/ready/render_examples/ready_selected/instances/detail/view_state: V0026
+      /state_machines/state_machine.project.board/view_states/ready/render_examples/ready_selected/instances/list/view_state: V0026
+      /state_machines/state_machine.project.board/view_states/ready/render_examples/ready_selected/precondition_refs/0/ref: V0026
+      /state_machines/state_machine.project.board/view_states/ready/render_examples/ready_selected/precondition_refs/1/ref: V0026
+      /state_machines/state_machine.project.board/view_states/ready/render_examples/ready_selected/rationale: V0026
+      /state_machines/state_machine.project.board/view_states/ready/render_examples/ready_selected/seed_fixtures/0: V0026
       /state_machines/state_machine.project.board/view_states/ready/renderers/html/layout/regions/aside/classes/0: V0026
       /state_machines/state_machine.project.board/view_states/ready/renderers/html/layout/regions/aside/element: V0026
       /state_machines/state_machine.project.board/view_states/ready/renderers/html/layout/regions/aside/must_render: V0026
@@ -3187,13 +3185,13 @@ visual_audit:
       /behavior_scenarios/behavior_scenario.project.create.api.success/when/call_entry_point/input/title/value: V0014
       /behavior_scenarios/behavior_scenario.project.create.api.success/when/call_entry_point/input/workspace_id/from: V0014
       /behavior_scenarios/behavior_scenario.project.create.api.success/when/call_entry_point/ref: V0014
-      /content_cases/content_case.project.detail.heading.high_priority/args/customer/value: V0008
-      /content_cases/content_case.project.detail.heading.high_priority/args/title/value: V0008
-      /content_cases/content_case.project.detail.heading.high_priority/rationale: V0008
-      /content_cases/content_case.project.detail.heading.high_priority/ref: V0008
-      /content_cases/content_case.project.detail.priority_badge.high_priority/args/priority/value: V0008
-      /content_cases/content_case.project.detail.priority_badge.high_priority/rationale: V0008
-      /content_cases/content_case.project.detail.priority_badge.high_priority/ref: V0008
+      /content_examples/content_example.project.detail.heading.high_priority/args/customer/value: V0008
+      /content_examples/content_example.project.detail.heading.high_priority/args/title/value: V0008
+      /content_examples/content_example.project.detail.heading.high_priority/rationale: V0008
+      /content_examples/content_example.project.detail.heading.high_priority/ref: V0008
+      /content_examples/content_example.project.detail.priority_badge.high_priority/args/priority/value: V0008
+      /content_examples/content_example.project.detail.priority_badge.high_priority/rationale: V0008
+      /content_examples/content_example.project.detail.priority_badge.high_priority/ref: V0008
       /fixtures/fixture.workspace.member/rationale: V0022
       /fixtures/fixture.workspace.member/values/actor/id: V0022
       /fixtures/fixture.workspace.member/values/actor/roles/0: V0022
@@ -3317,17 +3315,17 @@ visual_audit:
       /text_resources/text.project.list.ready.heading/rationale: V0032
     not_shown:
       /assertions:
-        reason: assertions are expected predicates and need not appear in render audit cases
+        reason: assertions are expected predicates and need not appear in render examples
       /fixtures/fixture.workspace.reviewer/rationale:
-        reason: fixtures may support behavior or content tests without appearing in render audit cases
+        reason: fixtures may support behavior or content tests without appearing in render examples
       /fixtures/fixture.workspace.reviewer/values/actor/id:
-        reason: fixtures may support behavior or content tests without appearing in render audit cases
+        reason: fixtures may support behavior or content tests without appearing in render examples
       /fixtures/fixture.workspace.reviewer/values/actor/roles/0:
-        reason: fixtures may support behavior or content tests without appearing in render audit cases
+        reason: fixtures may support behavior or content tests without appearing in render examples
       /fixtures/fixture.workspace.reviewer/values/workspace/id:
-        reason: fixtures may support behavior or content tests without appearing in render audit cases
+        reason: fixtures may support behavior or content tests without appearing in render examples
       /fixtures/fixture.workspace.reviewer/values/workspace/name:
-        reason: fixtures may support behavior or content tests without appearing in render audit cases
+        reason: fixtures may support behavior or content tests without appearing in render examples
   non_visual:
     /project:
       reason: workspace metadata for generated artifacts; visual coverage tracks product contract paths

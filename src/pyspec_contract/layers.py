@@ -29,7 +29,7 @@ TARGET_LAYERS: dict[str, set[str]] = {
     "state_machine": {"ui"},
     "text_resource": {"ui"},
     "asset": {"ui"},
-    "content_case": {"ui"},
+    "content_example": {"ui"},
     "render_profile": {"ui"},
     "schema": {"core"},
     # entry_point is adapter-specific and handled separately.
@@ -48,7 +48,7 @@ ENTRY_ADAPTER_LAYER = {
 AUTHOR_SECTIONS: dict[str, str] = {
     "text_resources": "text_resource",
     "assets": "asset",
-    "content_cases": "content_case",
+    "content_examples": "content_example",
     "render_profiles": "render_profile",
     "fixtures": "fixture",
     "preconditions": "precondition",

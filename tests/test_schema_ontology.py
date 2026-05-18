@@ -13,7 +13,7 @@ COLLECTION_SECTIONS = {
     "assets": "asset",
     "render_profiles": "render_profile",
     "application_actions": "application_action",
-    "content_cases": "content_case",
+    "content_examples": "content_example",
     "text_resources": "text_resource",
     "entry_points": "entry_point",
     "domain_events": "domain_event",

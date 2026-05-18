@@ -52,19 +52,19 @@ def test_priority_badge_escapes_dynamic_svg_values() -> None:
     assert result.alt == "High &amp; &lt;urgent&gt; &quot;quoted&quot; &#x27;single&#x27; priority"
 
 
-def test_content_contract_validator_executes_content_cases() -> None:
+def test_content_contract_validator_executes_content_examples() -> None:
     validate_content_contract(ROOT, read_yaml(ROOT / COMPILED_SPEC_PATH))
 
 
-def test_final_content_requires_content_case_coverage() -> None:
+def test_final_content_requires_content_example_coverage() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
-    author.pop("content_cases")
-    with pytest.raises(ContractError, match="content_case coverage"):
+    author.pop("content_examples")
+    with pytest.raises(ContractError, match="content_example coverage"):
         compile_source(author)
 
 
-def test_content_case_args_must_match_declared_signature() -> None:
+def test_content_example_args_must_match_declared_signature() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
-    del author["content_cases"]["content_case.project.detail.heading.high_priority"]["args"]["customer"]
+    del author["content_examples"]["content_example.project.detail.heading.high_priority"]["args"]["customer"]
     with pytest.raises(ContractError, match="args"):
         compile_source(author)

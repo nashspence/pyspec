@@ -1014,8 +1014,8 @@ behavior_scenarios:
           workspace_id:
             from: $fixture.workspace.id
         ref: entry_point.api.project.create
-content_cases:
-  content_case.project.detail.heading.high_priority:
+content_examples:
+  content_example.project.detail.heading.high_priority:
     args:
       customer:
         value: Atlas Foods
@@ -1023,7 +1023,7 @@ content_cases:
         value: Replace rooftop condenser fan
     rationale: Exercise final detail heading text with representative fixture-backed content.
     ref: text.project.detail.ready.heading
-  content_case.project.detail.priority_badge.high_priority:
+  content_example.project.detail.priority_badge.high_priority:
     args:
       priority:
         value: High
@@ -1897,7 +1897,7 @@ state_machines:
           textual_container: aside
         data_loaders: {}
         fields: []
-        render_audit_cases:
+        render_examples:
           empty:
             instances:
               activity:

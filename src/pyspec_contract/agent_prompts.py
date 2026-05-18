@@ -82,7 +82,7 @@ def _contract_has_ui(contract: dict[str, Any]) -> bool:
         contract.get("state_machines")
         or contract.get("text_resources")
         or contract.get("assets")
-        or contract.get("content_cases")
+        or contract.get("content_examples")
         or contract.get("render_profiles")
     )
 
@@ -109,11 +109,11 @@ def _contract_has_textual(contract: dict[str, Any]) -> bool:
     return False
 
 
-def _contract_audit_cases(contract: dict[str, Any]) -> list[dict[str, Any]]:
+def _contract_render_examples(contract: dict[str, Any]) -> list[dict[str, Any]]:
     cases = []
     for state_machine in (contract.get("state_machines") or {}).values():
         for state in (state_machine.get("view_states") or {}).values():
-            cases.extend((state.get("render_audit_cases") or {}).values())
+            cases.extend((state.get("render_examples") or {}).values())
     return cases
 
 
@@ -193,9 +193,9 @@ def _pm_design_prompt(context: _PromptContext) -> str:
     else:
         lines.append("- Do not add workflow, CLI, worker, or schedule vocabulary.")
     if "ui" in context.layers:
-        lines.append("- UI: state machines with view-state-local layouts, child state machines, render audit cases, text resources/assets, content cases, and render profiles.")
+        lines.append("- UI: state machines with view-state-local layouts, child state machines, render examples, text resources/assets, content examples, and render profiles.")
     else:
-        lines.append("- Do not author UI state machines, text resources/assets, render audit cases, or surface presentation.")
+        lines.append("- Do not author UI state machines, text resources/assets, render examples, or surface presentation.")
     if "html" in context.layers:
         lines.append("- HTML UI: html renderer layout, presentation, style, UI entry points, HTML routes, and HTML audit surfaces.")
     elif "ui" in context.layers:
@@ -293,7 +293,7 @@ def _review_prompt(context: _PromptContext) -> str:
         f"- Run or inspect `pyspec compile . --layers {context.layer_arg}` and `pyspec validate . --layers {context.layer_arg}` for generated-tree freshness and layer correctness.",
         "- Run the project tests that exercise the generated pytest-bdd corpus.",
         "- For UI layers, inspect render/audit evidence and call out visual, accessibility, or composition mismatches.",
-        "- For content sources, confirm generated signatures/stubs are followed and outputs are deterministic for declared cases.",
+        "- For content sources, confirm generated signatures/stubs are followed and outputs are deterministic for declared examples.",
         "",
         "Output format:",
         "- Start with `Ready for merge: yes` or `Ready for merge: no`.",
