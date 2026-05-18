@@ -2389,8 +2389,8 @@ def _validate_renderer_layouts(state_machine_id: str, state: dict[str, Any]) -> 
 def _validate_condition_context(contract: dict[str, Any], state_machine_id: str, context: dict[str, Any], condition: Any) -> None:
     comparisons: list[tuple[str, Any]] = []
     if isinstance(condition, dict):
-        if "context_present" in condition:
-            keys = [condition["context_present"]]
+        if "context_non_null" in condition:
+            keys = [condition["context_non_null"]]
         elif "context_equals" in condition:
             keys = [condition["context_equals"]["field"]]
             comparisons.append((condition["context_equals"]["field"], condition["context_equals"]["value"]))

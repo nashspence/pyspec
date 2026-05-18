@@ -672,7 +672,7 @@ state_machines:
           id: detail
           selected:
             condition:
-              context_present: selected_project_id
+              context_non_null: selected_project_id
             state: loading
           state_machine: state_machine.project.detail
           html_region: main
@@ -684,7 +684,7 @@ state_machines:
           id: activity
           selected:
             condition:
-              context_present: selected_project_id
+              context_non_null: selected_project_id
             state: ready
           state_machine: state_machine.project.activity
           html_region: aside

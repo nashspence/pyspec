@@ -455,8 +455,8 @@ def _success_outcome_id(behavior: Mapping[str, Any]) -> str:
 
 
 def _condition_matches(condition: Mapping[str, Any], context: Mapping[str, Any]) -> bool:
-    if "context_present" in condition:
-        key = condition["context_present"]
+    if "context_non_null" in condition:
+        key = condition["context_non_null"]
         return key in context and context[key] is not None
     if "context_equals" in condition:
         body = condition["context_equals"]

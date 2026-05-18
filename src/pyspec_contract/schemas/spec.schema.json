@@ -828,12 +828,12 @@
         {
           "additionalProperties": false,
           "properties": {
-            "context_present": {
+            "context_non_null": {
               "$ref": "#/$defs/field_name"
             }
           },
           "required": [
-            "context_present"
+            "context_non_null"
           ],
           "type": "object"
         },

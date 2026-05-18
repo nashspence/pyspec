@@ -203,7 +203,7 @@ behavior_scenarios:
             initial_state: none
             selected:
               condition:
-                context_present: selected_project_id
+                context_non_null: selected_project_id
               state: loading
             state_machine: state_machine.project.detail
             textual_container: main
@@ -215,7 +215,7 @@ behavior_scenarios:
             initial_state: empty
             selected:
               condition:
-                context_present: selected_project_id
+                context_non_null: selected_project_id
               state: ready
             state_machine: state_machine.project.activity
             textual_container: aside
@@ -423,7 +423,7 @@ behavior_scenarios:
             initial_state: none
             selected:
               condition:
-                context_present: selected_project_id
+                context_non_null: selected_project_id
               state: loading
             state_machine: state_machine.project.detail
             textual_container: main
@@ -435,7 +435,7 @@ behavior_scenarios:
             initial_state: empty
             selected:
               condition:
-                context_present: selected_project_id
+                context_non_null: selected_project_id
               state: ready
             state_machine: state_machine.project.activity
             textual_container: aside

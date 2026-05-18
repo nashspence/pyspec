@@ -28,7 +28,7 @@
           "initial_state": "none",
           "selected": {
             "condition": {
-              "context_present": "selected_project_id"
+              "context_non_null": "selected_project_id"
             },
             "state": "loading"
           },
@@ -46,7 +46,7 @@
           "initial_state": "empty",
           "selected": {
             "condition": {
-              "context_present": "selected_project_id"
+              "context_non_null": "selected_project_id"
             },
             "state": "ready"
           },

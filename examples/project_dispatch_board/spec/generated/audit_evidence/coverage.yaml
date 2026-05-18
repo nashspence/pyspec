@@ -769,7 +769,7 @@ visual_audit:
       /state_machines/state_machine.project.board/states/ready/child_state_machines/1/html_region: V0025
       /state_machines/state_machine.project.board/states/ready/child_state_machines/1/id: V0025
       /state_machines/state_machine.project.board/states/ready/child_state_machines/1/initial_state: V0025
-      /state_machines/state_machine.project.board/states/ready/child_state_machines/1/selected/condition/context_present: V0025
+      /state_machines/state_machine.project.board/states/ready/child_state_machines/1/selected/condition/context_non_null: V0025
       /state_machines/state_machine.project.board/states/ready/child_state_machines/1/selected/state: V0025
       /state_machines/state_machine.project.board/states/ready/child_state_machines/1/state_machine: V0025
       /state_machines/state_machine.project.board/states/ready/child_state_machines/1/textual_container: V0025
@@ -777,7 +777,7 @@ visual_audit:
       /state_machines/state_machine.project.board/states/ready/child_state_machines/2/html_region: V0025
       /state_machines/state_machine.project.board/states/ready/child_state_machines/2/id: V0025
       /state_machines/state_machine.project.board/states/ready/child_state_machines/2/initial_state: V0025
-      /state_machines/state_machine.project.board/states/ready/child_state_machines/2/selected/condition/context_present: V0025
+      /state_machines/state_machine.project.board/states/ready/child_state_machines/2/selected/condition/context_non_null: V0025
       /state_machines/state_machine.project.board/states/ready/child_state_machines/2/selected/state: V0025
       /state_machines/state_machine.project.board/states/ready/child_state_machines/2/state_machine: V0025
       /state_machines/state_machine.project.board/states/ready/child_state_machines/2/textual_container: V0025
@@ -2650,7 +2650,7 @@ visual_audit:
       /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/child_state_machines/1/id: V0005
       ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/child_state_machines/1/initial_state
       : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/child_state_machines/1/selected/condition/context_present
+      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/child_state_machines/1/selected/condition/context_non_null
       : V0005
       ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/child_state_machines/1/selected/state
       : V0005
@@ -2665,7 +2665,7 @@ visual_audit:
       /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/child_state_machines/2/id: V0005
       ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/child_state_machines/2/initial_state
       : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/child_state_machines/2/selected/condition/context_present
+      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/child_state_machines/2/selected/condition/context_non_null
       : V0005
       ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/child_state_machines/2/selected/state
       : V0005
@@ -2860,7 +2860,7 @@ visual_audit:
       /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/child_state_machines/1/id: V0005
       ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/child_state_machines/1/initial_state
       : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/child_state_machines/1/selected/condition/context_present
+      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/child_state_machines/1/selected/condition/context_non_null
       : V0005
       ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/child_state_machines/1/selected/state
       : V0005
@@ -2875,7 +2875,7 @@ visual_audit:
       /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/child_state_machines/2/id: V0005
       ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/child_state_machines/2/initial_state
       : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/child_state_machines/2/selected/condition/context_present
+      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/child_state_machines/2/selected/condition/context_non_null
       : V0005
       ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/child_state_machines/2/selected/state
       : V0005
