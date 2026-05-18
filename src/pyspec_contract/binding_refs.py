@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Any, Mapping
 
 
-class ReferenceExpressionError(ValueError):
+class BindingExpressionError(ValueError):
     pass
 
 
@@ -13,7 +13,7 @@ _SEGMENT_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
 
 
 @dataclass(frozen=True)
-class RuntimeReference:
+class BindingReference:
     root: str
     path: tuple[str, ...]
 
@@ -22,34 +22,34 @@ class RuntimeReference:
         return "$" + ".".join((self.root, *self.path))
 
 
-def is_reference_expression(value: Any) -> bool:
+def is_binding_expression(value: Any) -> bool:
     return isinstance(value, str) and value.startswith("$")
 
 
-def parse_reference_expression(value: str) -> RuntimeReference:
+def parse_binding_expression(value: str) -> BindingReference:
     if not isinstance(value, str) or not value.startswith("$"):
-        raise ReferenceExpressionError(f"Runtime reference must start with $: {value!r}")
+        raise BindingExpressionError(f"Binding expression must start with $: {value!r}")
     body = value[1:]
     parts = tuple(body.split("."))
     if len(parts) < 2 or any(not part for part in parts):
-        raise ReferenceExpressionError(f"Malformed runtime reference: {value}")
+        raise BindingExpressionError(f"Malformed binding expression: {value}")
     root = parts[0]
     if root.lower() != root or not _SEGMENT_RE.fullmatch(root):
-        raise ReferenceExpressionError(f"Malformed runtime reference root: {value}")
+        raise BindingExpressionError(f"Malformed binding expression root: {value}")
     for segment in parts[1:]:
         if not _SEGMENT_RE.fullmatch(segment):
-            raise ReferenceExpressionError(f"Malformed runtime reference path: {value}")
-    return RuntimeReference(root=root, path=parts[1:])
+            raise BindingExpressionError(f"Malformed binding expression path: {value}")
+    return BindingReference(root=root, path=parts[1:])
 
 
-def resolve_reference_expression(value: str, namespace: Mapping[str, Any]) -> Any:
-    ref = parse_reference_expression(value)
+def resolve_binding_expression(value: str, namespace: Mapping[str, Any]) -> Any:
+    ref = parse_binding_expression(value)
     try:
         current: Any = namespace[ref.root]
     except KeyError as exc:
-        raise ReferenceExpressionError(f"Unknown runtime reference root: ${ref.root}") from exc
+        raise BindingExpressionError(f"Unknown binding expression root: ${ref.root}") from exc
     for segment in ref.path:
         if not isinstance(current, Mapping) or segment not in current:
-            raise ReferenceExpressionError(f"Unresolved runtime reference: {value}")
+            raise BindingExpressionError(f"Unresolved binding expression: {value}")
         current = current[segment]
     return current

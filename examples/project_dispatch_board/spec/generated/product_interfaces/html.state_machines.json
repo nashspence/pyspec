@@ -203,7 +203,7 @@
             {
               "set": {
                 "context": "selected_project_id",
-                "from": "$local_signal.project_id"
+                "from": "$signal.payload.project_id"
               }
             },
             {
@@ -212,7 +212,7 @@
                 "local_signal": "selection_changed",
                 "payload_bindings": {
                   "project_id": {
-                    "from": "$local_signal.project_id"
+                    "from": "$signal.payload.project_id"
                   }
                 }
               }
@@ -223,7 +223,7 @@
                 "local_signal": "selection_changed",
                 "payload_bindings": {
                   "project_id": {
-                    "from": "$local_signal.project_id"
+                    "from": "$signal.payload.project_id"
                   }
                 }
               }
@@ -304,7 +304,7 @@
           "application_action": "application_action.project.read",
           "input_bindings": {
             "project_id": {
-              "from": "$context.project_id"
+              "from": "$state_context.project_id"
             }
           },
           "load": {
@@ -330,7 +330,7 @@
               "result_binding": {
                 "data_key": "activity",
                 "from": {
-                  "from": "$outcome.result"
+                  "from": "$action_outcome.result"
                 }
               }
             },
@@ -594,7 +594,7 @@
           "application_action": "application_action.project.read",
           "input_bindings": {
             "project_id": {
-              "from": "$context.project_id"
+              "from": "$state_context.project_id"
             }
           },
           "load": {
@@ -618,7 +618,7 @@
               "result_binding": {
                 "data_key": "project",
                 "from": {
-                  "from": "$outcome.result"
+                  "from": "$action_outcome.result"
                 }
               }
             },
@@ -805,7 +805,7 @@
           "application_action": "application_action.project.read",
           "input_bindings": {
             "project_id": {
-              "from": "$context.project_id"
+              "from": "$state_context.project_id"
             }
           },
           "load": {
@@ -822,7 +822,7 @@
                 "local_signal": "show_transition_not_allowed",
                 "payload_bindings": {
                   "message": {
-                    "from": "$outcome.result.message"
+                    "from": "$action_outcome.result.message"
                   }
                 }
               }
@@ -832,7 +832,7 @@
                 "local_signal": "show_transition_not_allowed",
                 "payload_bindings": {
                   "message": {
-                    "from": "$outcome.result.message"
+                    "from": "$action_outcome.result.message"
                   }
                 }
               }
@@ -844,7 +844,7 @@
               "result_binding": {
                 "data_key": "project",
                 "from": {
-                  "from": "$outcome.result"
+                  "from": "$action_outcome.result"
                 }
               }
             },
@@ -853,7 +853,7 @@
                 "local_signal": "show_transition_not_allowed",
                 "payload_bindings": {
                   "message": {
-                    "from": "$outcome.result.message"
+                    "from": "$action_outcome.result.message"
                   }
                 }
               }
@@ -870,10 +870,10 @@
             "application_action": "application_action.project.approve",
             "input_bindings": {
               "approved_by": {
-                "from": "$actor.id"
+                "from": "$principal.id"
               },
               "project_id": {
-                "from": "$context.project_id"
+                "from": "$state_context.project_id"
               }
             },
             "outcome_effects": {
@@ -905,7 +905,7 @@
                   "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
-                      "from": "$outcome.result.message"
+                      "from": "$action_outcome.result.message"
                     }
                   }
                 }
@@ -922,7 +922,7 @@
             "application_action": "application_action.project.archive",
             "input_bindings": {
               "project_id": {
-                "from": "$context.project_id"
+                "from": "$state_context.project_id"
               }
             },
             "outcome_effects": {
@@ -931,7 +931,7 @@
                   "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
-                      "from": "$outcome.result.message"
+                      "from": "$action_outcome.result.message"
                     }
                   }
                 }
@@ -946,7 +946,7 @@
                   "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
-                      "from": "$outcome.result.message"
+                      "from": "$action_outcome.result.message"
                     }
                   }
                 }
@@ -956,7 +956,7 @@
                   "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
-                      "from": "$outcome.result.message"
+                      "from": "$action_outcome.result.message"
                     }
                   }
                 }
@@ -966,7 +966,7 @@
                   "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
-                      "from": "$outcome.result.message"
+                      "from": "$action_outcome.result.message"
                     }
                   }
                 }
@@ -1080,7 +1080,7 @@
                 "value": "Replace rooftop condenser fan"
               },
               "workspace_id": {
-                "from": "$context.workspace_id"
+                "from": "$state_context.workspace_id"
               }
             },
             "outcome_effects": {
@@ -1106,7 +1106,7 @@
                   "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
-                      "from": "$outcome.result.message"
+                      "from": "$action_outcome.result.message"
                     }
                   }
                 }
@@ -1195,7 +1195,7 @@
                   "local_signal": "project_selected",
                   "payload_bindings": {
                     "project_id": {
-                      "from": "$local_signal.project_id"
+                      "from": "$signal.payload.project_id"
                     }
                   }
                 }
@@ -1321,7 +1321,7 @@
                   "local_signal": "project_selected",
                   "payload_bindings": {
                     "project_id": {
-                      "from": "$local_signal.project_id"
+                      "from": "$signal.payload.project_id"
                     }
                   }
                 }
@@ -1446,7 +1446,7 @@
                   "local_signal": "project_selected",
                   "payload_bindings": {
                     "project_id": {
-                      "from": "$local_signal.project_id"
+                      "from": "$signal.payload.project_id"
                     }
                   }
                 }
@@ -1506,7 +1506,7 @@
                 "value": "Replace rooftop condenser fan"
               },
               "workspace_id": {
-                "from": "$context.workspace_id"
+                "from": "$state_context.workspace_id"
               }
             },
             "outcome_effects": {
@@ -1539,7 +1539,7 @@
             "application_action": "application_action.project.submit",
             "input_bindings": {
               "project_id": {
-                "from": "$context.selected_project_id"
+                "from": "$state_context.selected_project_id"
               }
             },
             "outcome_effects": {
@@ -1548,7 +1548,7 @@
                   "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
-                      "from": "$outcome.result.message"
+                      "from": "$action_outcome.result.message"
                     }
                   }
                 }
@@ -1558,7 +1558,7 @@
                   "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
-                      "from": "$outcome.result.message"
+                      "from": "$action_outcome.result.message"
                     }
                   }
                 }
@@ -1568,7 +1568,7 @@
                   "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
-                      "from": "$outcome.result.message"
+                      "from": "$action_outcome.result.message"
                     }
                   }
                 }
@@ -1583,7 +1583,7 @@
                   "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
-                      "from": "$outcome.result.message"
+                      "from": "$action_outcome.result.message"
                     }
                   }
                 }
@@ -1674,7 +1674,7 @@
                   "local_signal": "project_selected",
                   "payload_bindings": {
                     "project_id": {
-                      "from": "$local_signal.project_id"
+                      "from": "$signal.payload.project_id"
                     }
                   }
                 }

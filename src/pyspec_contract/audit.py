@@ -3033,7 +3033,7 @@ def _wrap_dot_token(text: str, width: int) -> list[str]:
     return lines or [text]
 
 
-def _format_data_flow(mapping: dict[str, Any], *, identity_scope: str | None = "local_signal") -> list[str]:
+def _format_data_flow(mapping: dict[str, Any], *, identity_scope: str | None = "signal.payload") -> list[str]:
     return [_format_flow_assignment(key, value, identity_scope=identity_scope) for key, value in sorted(mapping.items())]
 
 
@@ -3041,7 +3041,7 @@ def _format_typed_data_flow(
     mapping: dict[str, Any],
     field_types: dict[str, str],
     *,
-    identity_scope: str | None = "local_signal",
+    identity_scope: str | None = "signal.payload",
 ) -> list[_DotTypedField]:
     return [
         _format_typed_flow_assignment(key, field_types[key], value, identity_scope=identity_scope)
@@ -3054,22 +3054,22 @@ def _format_typed_flow_assignment(
     type_name: Any,
     value: Any,
     *,
-    identity_scope: str | None = "local_signal",
+    identity_scope: str | None = "signal.payload",
 ) -> _DotTypedField:
     source = _format_flow_source(value)
     if identity_scope and source == f"{identity_scope}.{target}":
         return _DotTypedField(target, type_name)
-    if source.startswith("local_signal."):
-        source = source[len("local_signal.") :]
+    if source.startswith("signal.payload."):
+        source = source[len("signal.payload.") :]
     return _DotTypedField(target, type_name, source)
 
 
-def _format_flow_assignment(target: str, value: Any, *, identity_scope: str | None = "local_signal") -> str:
+def _format_flow_assignment(target: str, value: Any, *, identity_scope: str | None = "signal.payload") -> str:
     source = _format_flow_source(value)
     if identity_scope and source == f"{identity_scope}.{target}":
         return target
-    if source.startswith("local_signal."):
-        source = source[len("local_signal.") :]
+    if source.startswith("signal.payload."):
+        source = source[len("signal.payload.") :]
     return f"{target} {_DOT_ARROW_ASSIGN} {source}"
 
 

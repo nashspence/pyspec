@@ -3,7 +3,7 @@ from __future__ import annotations
 import copy
 from typing import Any, Mapping
 
-from .runtime_refs import ReferenceExpressionError, is_reference_expression, parse_reference_expression, resolve_reference_expression
+from .binding_refs import BindingExpressionError, is_binding_expression, parse_binding_expression, resolve_binding_expression
 
 
 class FixtureError(AssertionError):
@@ -29,8 +29,8 @@ def resolve_binding(binding: Any, namespace: Mapping[str, Any]) -> Any:
     if isinstance(binding, Mapping):
         if "from" in binding:
             try:
-                return resolve_reference_expression(binding["from"], namespace)
-            except ReferenceExpressionError as exc:
+                return resolve_binding_expression(binding["from"], namespace)
+            except BindingExpressionError as exc:
                 raise FixtureError(str(exc)) from exc
         if "value" in binding:
             return binding["value"]
@@ -44,16 +44,16 @@ def resolve_bindings(bindings: Mapping[str, Any], namespace: Mapping[str, Any]) 
 def resolve(value: Any, fixtures: Mapping[str, Any]) -> Any:
     if isinstance(value, Mapping) and set(value) == {"from"}:
         try:
-            ref = parse_reference_expression(value["from"])
+            ref = parse_binding_expression(value["from"])
             if ref.root != "fixture":
-                raise FixtureError(f"Unsupported fixture runtime reference root: ${ref.root}")
-            return resolve_reference_expression(value["from"], {"fixture": fixtures})
-        except ReferenceExpressionError as exc:
+                raise FixtureError(f"Unsupported fixture binding expression root: ${ref.root}")
+            return resolve_binding_expression(value["from"], {"fixture": fixtures})
+        except BindingExpressionError as exc:
             raise FixtureError(str(exc)) from exc
     if isinstance(value, Mapping) and set(value) == {"value"}:
         return value["value"]
-    if is_reference_expression(value):
-        raise FixtureError(f"Raw runtime reference strings are not allowed in authored value maps: {value}")
+    if is_binding_expression(value):
+        raise FixtureError(f"Raw binding expression strings are not allowed in authored value maps: {value}")
     if isinstance(value, list):
         return [resolve(item, fixtures) for item in value]
     if isinstance(value, dict):

@@ -60,7 +60,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `container_id`: local Textual layout container id within one view state.
 - `viewport_id`: local render-profile viewport id within `html_viewports` or `textual_viewports`.
 - `workflow_ref`: `workflow.<domain>...`; workflow declarations, workflow entry-point targets, and generated workflow references.
-- Generated refs use `asset`, `authorization_policy`, `cli_command`, `cli_response_handler`, `endpoint`, `entry_point_delegate`, `entry_point_target`, `local_signal_raise`, `action_binding`, `action_outcome_effect`, `data_loader`, `data_loader_outcome_effect`, `route`, `runtime_response`, `screen`, `state_machine`, `surface`, `text`, and `workflow` buckets in compiled `refs`.
+- Generated refs use `asset`, `authorization_policy`, `cli_command`, `cli_response_handler`, `endpoint`, `entry_point_delegate`, `entry_point_target`, `local_signal_raise`, `action_binding`, `action_outcome_effect`, `data_loader`, `data_loader_outcome_effect`, `route`, `adapter_response_binding`, `screen`, `state_machine`, `surface`, `text`, and `workflow` buckets in compiled `refs`.
 
 ## Reference Types
 
@@ -100,9 +100,9 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `Field-slot source resolution`: every field slot resolves to exactly one context field or query result binding. A bound entity_type or array item can feed field slots when the slot name exists on the result type; ambiguous or missing sources fail semantic validation.
 - `Outcome effect`: mapping from an action/data-loader outcome to context updates, result binding, a local signal raise, or explicit `no_local_effect` handling.
 - `No local effect`: explicit declaration that an outcome is covered but intentionally has no local state-machine effect. It is not omission and does not suppress durable domain events. Reasons are scope-sensitive: response-surface handling needs a real adapter/renderer surface, query refresh needs explicit result/context refresh, result-bound-without-signal needs result binding or context/cache update, and failure outcomes must use proven response-surface handling or `intentionally_unobservable` with rationale.
-- `Authored value`: explicit literal-or-fixture-reference value used in authored test, precondition, content-example, and render-audit value maps. Use `{value: ...}` for JSON literals, including literal strings beginning with `$`, and `{from: $fixture...}` for fixture references. Raw `$...` strings are not interpreted as references.
-- `Runtime root`: the first segment of a runtime expression. Action binding and data loader input bindings may use `$context` and `$actor`; action/data-loader outcome effects may use `$outcome`, `$invocation`, and `$context`; application-action domain-event-emission mappings use `$input` and `$outcome`; workflow step bindings use `$trigger` and `$steps`; child context bindings use `$state_machine` for the parent machine context; entry response/delegation handlers use the adapter/delegation-specific `$input`, `$response`, or `$outcome` roots documented by that target. Authored test, precondition, content-example, and render-audit value maps use `$fixture` for fixture data.
-- `Actor/user binding source`: local action bindings should bind actor-like input fields such as `actor_id`, `approved_by`, or `reviewer_id` from `$actor.id` or an explicit context source. Literal actor/user ids are linted because they usually hide fixture-only assumptions in authored UI behavior.
+- `Authored value`: explicit literal-or-fixture-reference value used in authored test, precondition, content-example, and render-example value maps. Use `{value: ...}` for JSON literals, including literal strings beginning with `$`, and `{from: $fixture...}` for fixture references. Raw `$...` strings are not interpreted as references.
+- `Binding root`: the first segment of a binding expression. Local state-machine bindings use `$state_context`, `$principal`, `$signal.payload`, and `$state_machine`; application-action payload mappings use `$operation_input` and `$action_outcome`; adapter/delegation bindings use `$adapter_input`, `$adapter_response`, and `$action_outcome`; workflow step bindings use `$workflow_input` and `$step_outcome`. `$message` is reserved for AsyncAPI/wire-level messages, not local state-machine signaling.
+- `Actor/user binding source`: local action bindings should bind actor-like input fields such as `actor_id`, `approved_by`, or `reviewer_id` from `$principal.id` or an explicit context source. Literal actor/user ids are linted because they usually hide fixture-only assumptions in authored UI behavior.
 - `Local signal raise`: creation of a state-machine-local `local_signal` or `data_refresh_signal`.
 - `Data refresh signal`: local state-machine signal commonly used for data refresh, invalidation, loaded/missing states, or render updates. Data-refresh signals are not sent between child state-machine instances.
 - `Local signal`: local state-machine signal that may also be sent between child state-machine instances where sync rules support local-signal sends.
@@ -138,7 +138,7 @@ view_states:
         application_action: application_action.project.approve
         input_bindings:
           project_id:
-            from: $context.project_id
+            from: $state_context.project_id
         outcome_effects:
           approved:
             raise:
@@ -148,7 +148,7 @@ view_states:
               local_signal: show_transition_not_allowed
               payload_bindings:
                 message:
-                  from: $outcome.result.message
+                  from: $action_outcome.result.message
           access_denied:
             no_local_effect:
               reason: handled_by_response_surface
@@ -163,7 +163,7 @@ data_loaders:
     application_action: application_action.project.read
     input_bindings:
       project_id:
-        from: $context.project_id
+        from: $state_context.project_id
     load:
       on_enter: true
       refresh_on:
@@ -173,10 +173,10 @@ data_loaders:
         result_binding:
           data_key: project
           from:
-            from: $outcome.result
+            from: $action_outcome.result
         context_updates:
           project_id:
-            from: $invocation.input.project_id
+            from: $operation_invocation.input.project_id
         raise:
           data_refresh_signal: project_loaded
       not_found:
@@ -197,7 +197,7 @@ data_loaders:
     application_action: application_action.project.list
     input_bindings:
       workspace_id:
-        from: $context.workspace_id
+        from: $state_context.workspace_id
     outcome_effects:
       listed:
         conditional_effects:
@@ -206,7 +206,7 @@ data_loaders:
           result_binding:
             data_key: projects
             from:
-              from: $outcome.result
+              from: $action_outcome.result
           raise:
             data_refresh_signal: project_collection_empty
         - when:
@@ -214,7 +214,7 @@ data_loaders:
           result_binding:
             data_key: projects
             from:
-              from: $outcome.result
+              from: $action_outcome.result
           raise:
             data_refresh_signal: projects_loaded
 ```
@@ -233,24 +233,24 @@ Layers are compile/validate guardrails and are not written into `spec/generated/
 - Layer normalization always includes `core`; selecting `html` or `textual` also includes `ui`. Aliases normalize as `api -> http`, `cli -> workflow`, `tui -> textual`, and `all`/`full` -> every layer.
 - Common layer-pruned authored schemas are generated for `core`, `core_http`, `core_domain_events`, `core_workflow`, `core_ui_textual`, `core_ui_html`, and `full`.
 
-## Runtime Roots
+## Binding Roots
 
 | Context | Valid roots |
 | --- | --- |
-| Action binding `input_bindings` | `$context`, `$actor` |
-| Action binding outcome effects | `$outcome`, `$invocation`, `$context` |
-| Data loader `input_bindings` | `$context`, `$actor` |
-| Data loader outcome effects | `$outcome`, `$invocation`, `$context` |
-| State-machine transition effects | `$local_signal`, `$context` |
+| Action binding `input_bindings` | `$state_context`, `$principal` |
+| Action binding outcome effects | `$action_outcome`, `$operation_invocation`, `$state_context` |
+| Data loader `input_bindings` | `$state_context`, `$principal` |
+| Data loader outcome effects | `$action_outcome`, `$operation_invocation`, `$state_context` |
+| State-machine transition effects | `$signal.payload`, `$state_context` |
 | Child state-machine `context_bindings` and selected-state conditions | `$state_machine` for parent state-machine context |
-| Application-action domain-event-emission payload mappings | `$input`, `$outcome` |
-| Entry-point application-action/state-machine/delegation target bindings | `$input` |
-| Entry-point workflow `trigger_bindings` | `$input` |
-| HTTP API response bodies | `$outcome.result` only |
-| CLI application-action response handlers | `$input`, `$outcome` |
-| CLI delegated response handlers | `$input`, `$response` |
-| Workflow step `input_bindings` | `$trigger`, `$steps` |
-| Authored test/precondition/assertion/content-example/render-audit value maps | `$fixture` |
+| Application-action domain-event-emission payload mappings | `$operation_input`, `$action_outcome` |
+| Entry-point application-action/state-machine/delegation target bindings | `$adapter_input` |
+| Entry-point workflow `trigger_bindings` | `$adapter_input` |
+| HTTP API response bodies | `$action_outcome.result` only |
+| CLI application-action response handlers | `$adapter_input`, `$action_outcome` |
+| CLI delegated response handlers | `$adapter_input`, `$adapter_response` |
+| Workflow step `input_bindings` | `$workflow_input`, `$step_outcome` |
+| Authored test/precondition/assertion/content-example/render-example value maps | `$fixture` |
 
 ## Visual Audit Coverage
 
@@ -267,26 +267,26 @@ Audit validation fails when any `missing_required_visual_path` exists or when a 
 
 The visual audit includes state-machine and composition diagrams, entry-point and workflow flowcharts, plus action flows. Action flows are chronological branching data flows for input, authorization, touched resources, outcomes, and emitted domain events; other diagrams reference application_actions compactly instead of repeating the same cards.
 
-## Runtime Expression Namespaces
+## Binding Expression Namespaces
 
 - `$fixture.<path>` reads merged seed fixture data in behavior scenarios, preconditions, assertions, content examples, and render examples.
 - `$state_machine.<field>` reads parent state-machine context in child state-machine context bindings and composition conditions.
-- `$local_signal.<field>` reads the current state-machine local-signal payload in transition effects and sync sends.
-- `$context.<field>` reads current state-machine context in transition effects, action/data-loader input bindings, and local outcome-effect signal payload binding.
-- `$input.path_params.<field>` reads HTTP API or HTML route path parameters in entry target or delegation bindings.
-- `$input.query_params.<field>` reads HTTP API or HTML route query parameters in entry target or delegation bindings.
-- `$input.body.<field>` reads HTTP request body fields in entry target or delegation bindings.
-- `$input.args.<field>` reads CLI argument fields in entry target or delegation bindings.
-- `$input.payload[.<field>]` reads worker or webhook payload data in entry target or workflow trigger bindings.
-- `$input.<field>` reads application-action input during application-action domain-event emission mapping.
-- `$outcome.result[.<field>]` reads application-action outcome result during response, domain-event emission, and local outcome-effect mapping.
-- `$outcome.kind` reads the application-action outcome kind during local outcome-effect signal payload binding.
-- `$invocation.input.<field>` reads the bound action binding input during local outcome-effect signal payload binding.
-- `$response.body[.<field>]` reads the delegated entry-point response body inside delegating CLI `response_handlers`.
-- `$trigger.payload[.<field>]` reads workflow trigger payload.
-- `$steps.<step>.outcomes.<outcome>.result[.<field>]` reads previous workflow step result.
+- `$signal.payload.<field>` reads the current state-machine local-signal payload in transition effects and sync sends.
+- `$state_context.<field>` reads current state-machine context in transition effects, action/data-loader input bindings, and local outcome-effect signal payload binding.
+- `$adapter_input.path_params.<field>` reads HTTP API or HTML route path parameters in entry target or delegation bindings.
+- `$adapter_input.query_params.<field>` reads HTTP API or HTML route query parameters in entry target or delegation bindings.
+- `$adapter_input.body.<field>` reads HTTP request body fields in entry target or delegation bindings.
+- `$adapter_input.args.<field>` reads CLI argument fields in entry target or delegation bindings.
+- `$adapter_input.payload[.<field>]` reads worker or webhook payload data in entry target or workflow trigger bindings.
+- `$operation_input.<field>` reads application-action input during application-action domain-event emission mapping.
+- `$action_outcome.result[.<field>]` reads application-action outcome result during response, domain-event emission, and local outcome-effect mapping.
+- `$action_outcome.kind` reads the application-action outcome kind during local outcome-effect signal payload binding.
+- `$operation_invocation.input.<field>` reads the bound action binding input during local outcome-effect signal payload binding.
+- `$adapter_response.body[.<field>]` reads the delegated entry-point response body inside delegating CLI `response_handlers`.
+- `$workflow_input.payload[.<field>]` reads workflow trigger payload.
+- `$step_outcome.<step>.<outcome>.result[.<field>]` reads previous workflow step result.
 
-Runtime expressions appear inside binding objects. Authored value maps use `{from: ...}` for these expressions and `{value: ...}` for literal JSON values; a raw string beginning with `$` is a literal only when wrapped with `value`.
+Binding expressions appear inside binding objects. Authored value maps use `{from: ...}` for these expressions and `{value: ...}` for literal JSON values; a raw string beginning with `$` is a literal only when wrapped with `value`.
 - The shared grammar is `$source.path.to.field`; semantic validation checks available roots and declared field paths for each context.
 
 ## Generated Artifacts
@@ -412,10 +412,10 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:query_result_condition --> `$defs/query_result_condition`: explicit query-result shape condition for empty/non-empty array handling.
 - <!-- schema-def:query_result_binding --> `$defs/query_result_binding`: explicit query result binding to a named local `data_key`.
 - <!-- schema-def:renderer_contracts --> `$defs/renderer_contracts`: renderer contract component scoped to HTML and/or Textual targets.
-- <!-- schema-def:runtime_expression --> `$defs/runtime_expression`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:runtime_bindings --> `$defs/runtime_bindings`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:binding_value --> `$defs/binding_value`: explicit binding value object using either `from` for runtime expressions or `value` for literal JSON.
-- <!-- schema-def:authored_value --> `$defs/authored_value`: explicit authored value object using either `from` for runtime expressions or `value` for literal JSON.
+- <!-- schema-def:binding_expression --> `$defs/binding_expression`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:binding_map --> `$defs/binding_map`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:binding_value --> `$defs/binding_value`: explicit binding value object using either `from` for binding expressions or `value` for literal JSON.
+- <!-- schema-def:authored_value --> `$defs/authored_value`: explicit authored value object using either `from` for binding expressions or `value` for literal JSON.
 - <!-- schema-def:scalar --> `$defs/scalar`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:authored_behavior_scenario --> `$defs/authored_behavior_scenario`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:system_under_test_ref --> `$defs/system_under_test_ref`: typed reference definition for its namespace.

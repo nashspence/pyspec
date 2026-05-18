@@ -6,7 +6,7 @@ from typing import Any, Mapping
 from .io import read_json, read_yaml
 from .paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR
 from .runtime import fixture_namespace, resolve_map
-from .runtime_refs import resolve_reference_expression
+from .binding_refs import resolve_binding_expression
 from .targets import (
     entry_state_machine_name,
     entry_point_input,
@@ -279,22 +279,22 @@ class ReferenceSpecDriver:
         return {"exit_code": response["exit_code"], "stderr": self._cli_output(response["stderr"], {"body": result}, input_values)}
 
     def _entry_target_input(self, entry: dict[str, Any], input_values: dict[str, Any]) -> dict[str, Any]:
-        namespace = {"input": {}}
+        namespace = {"adapter_input": {}}
         for section in ("path_params", "query_params", "body", "args"):
             fields = entry_point_input(entry).get(section, {})
             if fields:
-                namespace["input"][section] = {name: input_values[name] for name in fields}
+                namespace["adapter_input"][section] = {name: input_values[name] for name in fields}
         bindings = entry_point_input_bindings(entry)
         return {name: _resolve_binding(source, namespace) for name, source in bindings.items()}
 
     def _entry_delegate_input(self, entry: dict[str, Any], input_values: dict[str, Any]) -> dict[str, Any]:
-        namespace = {"input": {}}
+        namespace = {"adapter_input": {}}
         for section in ("path_params", "query_params", "body", "args"):
             fields = entry_point_input(entry).get(section, {})
             if fields:
-                namespace["input"][section] = {name: input_values[name] for name in fields}
+                namespace["adapter_input"][section] = {name: input_values[name] for name in fields}
         if "payload" in entry_point_input(entry):
-            namespace["input"]["payload"] = input_values.get("payload", input_values)
+            namespace["adapter_input"]["payload"] = input_values.get("payload", input_values)
         delegated_input: dict[str, Any] = {}
         for section, section_bindings in entry_point_input_bindings(entry).items():
             if section == "payload" and isinstance(section_bindings, Mapping) and "from" in section_bindings:
@@ -306,7 +306,7 @@ class ReferenceSpecDriver:
         return delegated_input
 
     def _cli_output(self, output: Mapping[str, Any], response: Mapping[str, Any], input_values: Mapping[str, Any]) -> dict[str, Any]:
-        namespace = {"response": response, "outcome": {"result": response.get("body")}, "input": dict(input_values)}
+        namespace = {"adapter_response": response, "action_outcome": {"result": response.get("body")}, "adapter_input": dict(input_values)}
         return {
             "text": output["text"],
             "bindings": {
@@ -389,14 +389,14 @@ class ReferenceSpecDriver:
     def _run_workflow(self, workflow: dict[str, Any], payload: dict[str, Any]) -> str:
         step_by_id = {step["id"]: step for step in workflow["steps"]}
         current = workflow["steps"][0]["id"]
-        namespace: dict[str, Any] = {"trigger": {"payload": payload}, "steps": {}}
+        namespace: dict[str, Any] = {"workflow_input": {"payload": payload}, "step_outcome": {}}
         while True:
             step = step_by_id[current]
             input_values = {name: _resolve_binding(source, namespace) for name, source in step["input_bindings"].items()}
             result = self._invoke(step["application_action"], input_values)
             outcome_id = self.last_outcome
             assert outcome_id is not None
-            namespace["steps"].setdefault(step["id"], {"outcomes": {}})["outcomes"][outcome_id] = {"result": result}
+            namespace["step_outcome"].setdefault(step["id"], {})[outcome_id] = {"result": result}
             transition = step["outcome_transitions"][outcome_id]
             if "complete_as" in transition:
                 return transition["complete_as"]
@@ -418,7 +418,7 @@ class ReferenceSpecDriver:
     ) -> tuple[str, dict[str, Any]]:
         if isinstance(emit, str):
             return emit, dict(result)
-        namespace = {"input": dict(input_values), "outcome": {"result": dict(result)}}
+        namespace = {"operation_input": dict(input_values), "action_outcome": {"result": dict(result)}}
         if "payload_source" in emit:
             return emit["domain_event"], _resolve_binding(emit["payload_source"], namespace)
         return emit["domain_event"], {field: _resolve_binding(source, namespace) for field, source in emit["payload_bindings"].items()}
@@ -488,8 +488,8 @@ class ReferenceSpecDriver:
             source = subject.get("source")
             if source:
                 try:
-                    return _resolve_binding({"from": source}, {"input": dict(input_values), "fixture": self.fixtures}) is not None
-                except (KeyError, ReferenceExpressionError):
+                    return _resolve_binding({"from": source}, {"operation_input": dict(input_values), "fixture": self.fixtures}) is not None
+                except (KeyError, BindingExpressionError):
                     return False
             actor = self.fixtures.get("actor", {})
             if actor.get("id"):
@@ -513,7 +513,7 @@ class ReferenceSpecDriver:
             return role in actor.get("roles", [])
         if "value_equals" in condition:
             body = condition["value_equals"]
-            namespace = {"input": dict(input_values), "fixture": self.fixtures}
+            namespace = {"operation_input": dict(input_values), "fixture": self.fixtures}
             return _resolve_binding(body["left"], namespace) == _resolve_binding(body["right"], namespace)
         return False
 
@@ -560,10 +560,10 @@ def _entry_point_response(entry: Mapping[str, Any], outcome_id: str | None) -> M
 def _resolve_binding(binding: Any, namespace: Mapping[str, Any]) -> Any:
     if isinstance(binding, Mapping):
         if "from" in binding:
-            return resolve_reference_expression(binding["from"], namespace)
+            return resolve_binding_expression(binding["from"], namespace)
         if "value" in binding:
             return binding["value"]
-    return resolve_reference_expression(binding, namespace)
+    return resolve_binding_expression(binding, namespace)
 
 
 def _condition_matches(condition: Mapping[str, Any], context: Mapping[str, Any]) -> bool:

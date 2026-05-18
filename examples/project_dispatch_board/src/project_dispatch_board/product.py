@@ -182,11 +182,11 @@ class ProductApp:
         return self.http_response
 
     def _entry_target_input(self, entry: Mapping[str, Any], input_values: Mapping[str, Any]) -> dict[str, Any]:
-        namespace = {"input": {}}
+        namespace = {"adapter_input": {}}
         for section in ("path_params", "query_params", "body", "args"):
             fields = entry_point_input(dict(entry)).get(section, {})
             if fields:
-                namespace["input"][section] = {name: input_values[name] for name in fields}
+                namespace["adapter_input"][section] = {name: input_values[name] for name in fields}
         bindings = entry_point_input_bindings(dict(entry))
         return {name: resolve_binding(source, namespace) for name, source in bindings.items()}
 
@@ -248,13 +248,13 @@ class ProductApp:
     def _run_workflow(self, workflow: Mapping[str, Any], payload: Mapping[str, Any]) -> str:
         step_by_id = {step["id"]: step for step in workflow["steps"]}
         current = workflow["steps"][0]["id"]
-        namespace: dict[str, Any] = {"trigger": {"payload": dict(payload)}, "steps": {}}
+        namespace: dict[str, Any] = {"workflow_input": {"payload": dict(payload)}, "step_outcome": {}}
         while True:
             step = step_by_id[current]
             input_values = {name: resolve_binding(source, namespace) for name, source in step["input_bindings"].items()}
             result = self.invoke_application_action(step["application_action"], input_values)
             assert self.last_outcome is not None
-            namespace["steps"].setdefault(step["id"], {"outcomes": {}})["outcomes"][self.last_outcome] = {"result": result}
+            namespace["step_outcome"].setdefault(step["id"], {})[self.last_outcome] = {"result": result}
             transition = step["outcome_transitions"][self.last_outcome]
             if "complete_as" in transition:
                 return transition["complete_as"]
@@ -403,7 +403,7 @@ class ProductApp:
             source = subject.get("source")
             if source:
                 try:
-                    return resolve_binding({"from": source}, {"input": dict(input_values), "fixture": self.fixtures}) is not None
+                    return resolve_binding({"from": source}, {"operation_input": dict(input_values), "fixture": self.fixtures}) is not None
                 except Exception:
                     return False
             if self.fixtures.get("actor", {}).get("id"):
@@ -425,7 +425,7 @@ class ProductApp:
             return condition["subject_has_role"] in self.fixtures.get("actor", {}).get("roles", [])
         if "value_equals" in condition:
             body = condition["value_equals"]
-            namespace = {"input": dict(input_values), "fixture": self.fixtures}
+            namespace = {"operation_input": dict(input_values), "fixture": self.fixtures}
             return resolve_binding(body["left"], namespace) == resolve_binding(body["right"], namespace)
         return False
 

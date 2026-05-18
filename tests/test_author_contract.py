@@ -83,7 +83,7 @@ def test_author_query_result_binding_uses_data_key() -> None:
 
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
     effect = author["state_machines"]["state_machine.project.board"]["data_loaders"]["list_board"]["outcome_effects"]["listed"]
-    effect["result_binding"] = {"data_key": "projects", "from": {"from": "$outcome.result"}}
+    effect["result_binding"] = {"data_key": "projects", "from": {"from": "$action_outcome.result"}}
     validate_against_schema(author, "author.schema.json")
 
 
@@ -100,7 +100,7 @@ def test_author_query_conditional_effects_and_result_scope_validate() -> None:
         validate_against_schema(author, "author.schema.json")
 
 
-def test_author_value_maps_require_tagged_literals_or_runtime_sources() -> None:
+def test_author_value_maps_require_tagged_literals_or_binding_sources() -> None:
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
     body = author["behavior_scenarios"]["behavior_scenario.project.board.empty"]["when"]["open_entry_point"]
     body["input"]["workspace_id"] = "$fixture.workspace.id"

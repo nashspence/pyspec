@@ -14,7 +14,7 @@ from .layout import (
     renderer_textual_containers,
 )
 from .paths import generated_relative as g
-from .runtime_refs import ReferenceExpressionError, parse_reference_expression
+from .binding_refs import BindingExpressionError, parse_binding_expression
 from .targets import (
     entry_state_machine_name,
     entry_point_adapter_pair,
@@ -746,13 +746,13 @@ def _workflow_cwl_source(source: Any) -> str:
         elif "value" in source:
             return repr(source["value"])
     try:
-        ref = parse_reference_expression(source)
-    except ReferenceExpressionError:
+        ref = parse_binding_expression(source)
+    except BindingExpressionError:
         return source
-    if ref.root == "trigger" and ref.path[:1] == ("payload",):
+    if ref.root == "workflow_input" and ref.path[:1] == ("payload",):
         return "trigger_payload"
-    if ref.root == "steps" and len(ref.path) >= 4 and ref.path[1] == "outcomes" and ref.path[3] == "result":
-        return f"{ref.path[0]}/{ref.path[2]}"
+    if ref.root == "step_outcome" and len(ref.path) >= 3 and ref.path[2] == "result":
+        return f"{ref.path[0]}/{ref.path[1]}"
     return source
 
 

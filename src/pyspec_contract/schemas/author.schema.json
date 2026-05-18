@@ -43,10 +43,10 @@
           "$ref": "#/$defs/domain_event_ref"
         },
         "payload_bindings": {
-          "$ref": "#/$defs/runtime_bindings"
+          "$ref": "#/$defs/binding_map"
         },
         "payload_source": {
-          "$ref": "#/$defs/runtime_expression"
+          "$ref": "#/$defs/binding_expression"
         }
       },
       "required": [
@@ -360,7 +360,7 @@
       "additionalProperties": false,
       "properties": {
         "args": {
-          "$ref": "#/$defs/runtime_bindings"
+          "$ref": "#/$defs/binding_map"
         },
         "rationale": {
           "$ref": "#/$defs/rationale"
@@ -787,7 +787,7 @@
       "type": "object"
     },
     "authored_value": {
-      "description": "Explicit authored literal-or-runtime-reference value used by tests, preconditions, and render audit inputs.",
+      "description": "Explicit authored literal-or-binding-expression value used by tests, preconditions, and render example inputs.",
       "oneOf": [
         {
           "additionalProperties": false,
@@ -805,7 +805,7 @@
           "additionalProperties": false,
           "properties": {
             "from": {
-              "$ref": "#/$defs/runtime_expression"
+              "$ref": "#/$defs/binding_expression"
             }
           },
           "required": [
@@ -1071,7 +1071,7 @@
           ]
         },
         "source": {
-          "$ref": "#/$defs/runtime_expression"
+          "$ref": "#/$defs/binding_expression"
         }
       },
       "required": [
@@ -1112,13 +1112,13 @@
       "type": "object"
     },
     "binding_value": {
-      "description": "Explicit runtime binding value. Use from for runtime references and value for literal JSON values.",
+      "description": "Explicit binding value. Use from for binding expressions and value for literal JSON values.",
       "oneOf": [
         {
           "additionalProperties": false,
           "properties": {
             "from": {
-              "$ref": "#/$defs/runtime_expression"
+              "$ref": "#/$defs/binding_expression"
             }
           },
           "required": [
@@ -1188,7 +1188,7 @@
       "additionalProperties": false,
       "properties": {
         "bindings": {
-          "$ref": "#/$defs/runtime_bindings"
+          "$ref": "#/$defs/binding_map"
         },
         "text": {
           "$ref": "#/$defs/text_ref"
@@ -1331,7 +1331,7 @@
               "$ref": "#/$defs/field_name"
             },
             "from": {
-              "$ref": "#/$defs/runtime_expression"
+              "$ref": "#/$defs/binding_expression"
             },
             "value": {
               "$ref": "#/$defs/json_value"
@@ -1395,7 +1395,7 @@
       "additionalProperties": false,
       "properties": {
         "input_bindings": {
-          "$ref": "#/$defs/runtime_bindings"
+          "$ref": "#/$defs/binding_map"
         },
         "ref": {
           "$ref": "#/$defs/application_action_ref"
@@ -1466,19 +1466,19 @@
       "additionalProperties": false,
       "properties": {
         "args": {
-          "$ref": "#/$defs/runtime_bindings"
+          "$ref": "#/$defs/binding_map"
         },
         "body": {
-          "$ref": "#/$defs/runtime_bindings"
+          "$ref": "#/$defs/binding_map"
         },
         "path_params": {
-          "$ref": "#/$defs/runtime_bindings"
+          "$ref": "#/$defs/binding_map"
         },
         "payload": {
-          "$ref": "#/$defs/runtime_bindings"
+          "$ref": "#/$defs/binding_map"
         },
         "query_params": {
-          "$ref": "#/$defs/runtime_bindings"
+          "$ref": "#/$defs/binding_map"
         }
       },
       "type": "object"
@@ -1542,7 +1542,7 @@
       "properties": {
         "from": {
           "enum": [
-            "$outcome.result"
+            "$action_outcome.result"
           ]
         },
         "type": {
@@ -1631,7 +1631,7 @@
       "additionalProperties": false,
       "properties": {
         "input_bindings": {
-          "$ref": "#/$defs/runtime_bindings"
+          "$ref": "#/$defs/binding_map"
         },
         "ref": {
           "$ref": "#/$defs/state_machine_ref"
@@ -1656,7 +1656,7 @@
           "$ref": "#/$defs/workflow_ref"
         },
         "trigger_bindings": {
-          "$ref": "#/$defs/runtime_bindings"
+          "$ref": "#/$defs/binding_map"
         }
       },
       "required": [
@@ -2280,18 +2280,18 @@
       "$ref": "#/$defs/local_name",
       "description": "Local state-machine synchronization rule identifier."
     },
-    "runtime_bindings": {
+    "binding_map": {
       "additionalProperties": {
         "$ref": "#/$defs/binding_value"
       },
-      "description": "Map from target field names to explicit runtime binding values.",
+      "description": "Map from target field names to explicit binding values.",
       "propertyNames": {
         "$ref": "#/$defs/field_name"
       },
       "type": "object"
     },
-    "runtime_expression": {
-      "description": "Shared runtime reference expression using $root.path.to.field syntax. Context-specific compiler validation restricts allowed roots and field paths.",
+    "binding_expression": {
+      "description": "Shared binding expression using $root.path.to.field syntax. Context-specific compiler validation restricts allowed roots and field paths.",
       "pattern": "^\\$[a-z][a-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+$",
       "type": "string"
     },
@@ -2491,7 +2491,7 @@
               "$ref": "#/$defs/local_signal_name"
             },
             "payload_bindings": {
-              "$ref": "#/$defs/runtime_bindings"
+              "$ref": "#/$defs/binding_map"
             }
           },
           "required": [
@@ -2604,7 +2604,7 @@
           "$ref": "#/$defs/application_action_ref"
         },
         "input_bindings": {
-          "$ref": "#/$defs/runtime_bindings"
+          "$ref": "#/$defs/binding_map"
         },
         "outcome_effects": {
           "$ref": "#/$defs/state_machine_action_outcome_effects"
@@ -2664,7 +2664,7 @@
           "$ref": "#/$defs/application_action_ref"
         },
         "input_bindings": {
-          "$ref": "#/$defs/runtime_bindings"
+          "$ref": "#/$defs/binding_map"
         },
         "load": {
           "$ref": "#/$defs/data_loader_load_policy"
@@ -2874,7 +2874,7 @@
               "$ref": "#/$defs/local_signal_name"
             },
             "payload_bindings": {
-              "$ref": "#/$defs/runtime_bindings"
+              "$ref": "#/$defs/binding_map"
             }
           },
           "required": [
@@ -2889,7 +2889,7 @@
               "$ref": "#/$defs/data_refresh_signal_name"
             },
             "payload_bindings": {
-              "$ref": "#/$defs/runtime_bindings"
+              "$ref": "#/$defs/binding_map"
             }
           },
           "required": [
@@ -2992,7 +2992,7 @@
                         "$ref": "#/$defs/local_signal_name"
                       },
                       "payload_bindings": {
-                        "$ref": "#/$defs/runtime_bindings"
+                        "$ref": "#/$defs/binding_map"
                       }
                     },
                     "required": [
@@ -3684,7 +3684,7 @@
           "type": "string"
         },
         "input_bindings": {
-          "$ref": "#/$defs/runtime_bindings"
+          "$ref": "#/$defs/binding_map"
         },
         "outcome_transitions": {
           "$ref": "#/$defs/workflow_outcome_transitions"

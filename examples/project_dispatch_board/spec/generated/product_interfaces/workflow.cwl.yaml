@@ -18,10 +18,10 @@ $graph:
       type: Any
   steps:
     send_notice:
-      doc: 'input_bindings={''approved_by'': {''from'': ''$trigger.payload.approved_by''}, ''project_id'': {''from'': ''$trigger.payload.project_id''}};
-        outcome_transitions={''delivery_failed'': {''retry_policy'': {''attempts'': 3, ''backoff'': ''exponential'', ''fail_as'':
-        ''delivery_failed''}}, ''access_denied'': {''fail_as'': ''notice_access_denied''}, ''sent'': {''complete_as'': ''completed''},
-        ''authentication_required'': {''fail_as'': ''notice_authentication_required''}}'
+      doc: 'input_bindings={''approved_by'': {''from'': ''$workflow_input.payload.approved_by''}, ''project_id'': {''from'':
+        ''$workflow_input.payload.project_id''}}; outcome_transitions={''delivery_failed'': {''retry_policy'': {''attempts'':
+        3, ''backoff'': ''exponential'', ''fail_as'': ''delivery_failed''}}, ''access_denied'': {''fail_as'': ''notice_access_denied''},
+        ''sent'': {''complete_as'': ''completed''}, ''authentication_required'': {''fail_as'': ''notice_authentication_required''}}'
       in:
         approved_by: trigger_payload
         project_id: trigger_payload

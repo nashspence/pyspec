@@ -2291,7 +2291,7 @@ visual_audit:
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/access_denied/stderr/bindings/message/from:
         visual_evidence_set: V0019
         tokens:
-        - response.body.message
+        - adapter_response.body.message
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/access_denied/stderr/text:
         visual_evidence_set: V0019
         tokens:
@@ -2304,7 +2304,7 @@ visual_audit:
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/approved/stdout/bindings/project_id/from:
         visual_evidence_set: V0019
         tokens:
-        - response.body.id
+        - adapter_response.body.id
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/approved/stdout/text:
         visual_evidence_set: V0019
         tokens:
@@ -2317,7 +2317,7 @@ visual_audit:
       ? /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/authentication_required/stderr/bindings/message/from
       : visual_evidence_set: V0019
         tokens:
-        - response.body.message
+        - adapter_response.body.message
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/authentication_required/stderr/text:
         visual_evidence_set: V0019
         tokens:
@@ -2330,7 +2330,7 @@ visual_audit:
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/not_found/stderr/bindings/message/from:
         visual_evidence_set: V0019
         tokens:
-        - response.body.message
+        - adapter_response.body.message
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/not_found/stderr/text:
         visual_evidence_set: V0019
         tokens:
@@ -2343,7 +2343,7 @@ visual_audit:
       ? /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/transition_not_allowed/stderr/bindings/message/from
       : visual_evidence_set: V0019
         tokens:
-        - response.body.message
+        - adapter_response.body.message
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/transition_not_allowed/stderr/text:
         visual_evidence_set: V0019
         tokens:
@@ -3387,6 +3387,16 @@ visual_audit:
       reason: compiled reference index metadata; owning resources are covered at their compiled spec paths
     /refs/action_outcome_effect/9:
       reason: compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /refs/adapter_response_binding/0:
+      reason: compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /refs/adapter_response_binding/1:
+      reason: compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /refs/adapter_response_binding/2:
+      reason: compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /refs/adapter_response_binding/3:
+      reason: compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /refs/adapter_response_binding/4:
+      reason: compiled reference index metadata; owning resources are covered at their compiled spec paths
     /refs/asset/0:
       reason: compiled reference index metadata; owning resources are covered at their compiled spec paths
     /refs/asset/1:
@@ -3538,16 +3548,6 @@ visual_audit:
     /refs/local_signal_raise/9:
       reason: compiled reference index metadata; owning resources are covered at their compiled spec paths
     /refs/route/0:
-      reason: compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /refs/runtime_response/0:
-      reason: compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /refs/runtime_response/1:
-      reason: compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /refs/runtime_response/2:
-      reason: compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /refs/runtime_response/3:
-      reason: compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /refs/runtime_response/4:
       reason: compiled reference index metadata; owning resources are covered at their compiled spec paths
     /refs/screen/0:
       reason: compiled reference index metadata; owning resources are covered at their compiled spec paths

@@ -15,7 +15,7 @@ from .agent_prompts import USER_PROMPT_PLACEHOLDER, agent_prompt_paths
 from .compile import ContractError, render_examples
 from .content import ContentContext, ContentError, asset as asset_registry, call_asset, call_text, text as text_registry, instantiate_args, load_resolvers, validate_resolver_function
 from .runtime import fixture_namespace, resolve, resolve_binding
-from .runtime_refs import ReferenceExpressionError, parse_reference_expression
+from .binding_refs import BindingExpressionError, parse_binding_expression
 from .io import read_json, read_yaml
 from .layout import renderer_textual_presentation, renderer_textual_style
 from .audit import (
@@ -612,13 +612,13 @@ def _workflow_cwl_source(source: Any) -> str:
         elif "value" in source:
             return repr(source["value"])
     try:
-        ref = parse_reference_expression(source)
-    except ReferenceExpressionError:
+        ref = parse_binding_expression(source)
+    except BindingExpressionError:
         return source
-    if ref.root == "trigger" and ref.path[:1] == ("payload",):
+    if ref.root == "workflow_input" and ref.path[:1] == ("payload",):
         return "trigger_payload"
-    if ref.root == "steps" and len(ref.path) >= 4 and ref.path[1] == "outcomes" and ref.path[3] == "result":
-        return f"{ref.path[0]}/{ref.path[2]}"
+    if ref.root == "step_outcome" and len(ref.path) >= 3 and ref.path[2] == "result":
+        return f"{ref.path[0]}/{ref.path[1]}"
     return source
 
 

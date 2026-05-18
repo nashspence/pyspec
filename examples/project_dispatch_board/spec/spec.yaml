@@ -229,9 +229,9 @@ application_actions:
         - domain_event: domain_event.project.approved
           payload_bindings:
             approved_by:
-              from: $input.approved_by
+              from: $operation_input.approved_by
             project_id:
-              from: $input.project_id
+              from: $operation_input.project_id
         kind: success
         result:
           $ref: entity_type.project
@@ -274,7 +274,7 @@ application_actions:
       archived:
         emits:
         - domain_event: domain_event.project.archived
-          payload_source: $outcome.result
+          payload_source: $action_outcome.result
         kind: success
         result:
           $ref: entity_type.project
@@ -324,7 +324,7 @@ application_actions:
       created:
         emits:
         - domain_event: domain_event.project.created
-          payload_source: $outcome.result
+          payload_source: $action_outcome.result
         kind: success
         result:
           $ref: entity_type.project
@@ -477,7 +477,7 @@ application_actions:
       submitted:
         emits:
         - domain_event: domain_event.project.submitted
-          payload_source: $outcome.result
+          payload_source: $action_outcome.result
         kind: success
         result:
           $ref: entity_type.project
@@ -545,13 +545,13 @@ state_machines:
             application_action: application_action.project.read
             input_bindings:
               project_id:
-                from: $context.project_id
+                from: $state_context.project_id
             outcome_effects:
               found:
                 result_binding:
                   data_key: activity
                   from:
-                    from: $outcome.result
+                    from: $action_outcome.result
                 no_local_effect:
                   reason: result_bound_without_signal
               access_denied:
@@ -595,13 +595,13 @@ state_machines:
         application_action: application_action.project.list
         input_bindings:
           workspace_id:
-            from: $context.workspace_id
+            from: $state_context.workspace_id
         outcome_effects:
           listed:
             result_binding:
               data_key: projects
               from:
-                from: $outcome.result
+                from: $action_outcome.result
             no_local_effect:
               reason: result_bound_without_signal
           access_denied:
@@ -688,19 +688,19 @@ state_machines:
         - effects:
           - set:
               context: selected_project_id
-              from: $local_signal.project_id
+              from: $signal.payload.project_id
           - send:
               instance: detail
               local_signal: selection_changed
               payload_bindings:
                 project_id:
-                  from: $local_signal.project_id
+                  from: $signal.payload.project_id
           - send:
               instance: activity
               local_signal: selection_changed
               payload_bindings:
                 project_id:
-                  from: $local_signal.project_id
+                  from: $signal.payload.project_id
           id: select_project_updates_state_machines
           when:
             instance: list
@@ -870,13 +870,13 @@ state_machines:
             application_action: application_action.project.read
             input_bindings:
               project_id:
-                from: $context.project_id
+                from: $state_context.project_id
             outcome_effects:
               found:
                 result_binding:
                   data_key: project
                   from:
-                    from: $outcome.result
+                    from: $action_outcome.result
                 raise:
                   data_refresh_signal: project_loaded
               access_denied:
@@ -904,13 +904,13 @@ state_machines:
             application_action: application_action.project.read
             input_bindings:
               project_id:
-                from: $context.project_id
+                from: $state_context.project_id
             outcome_effects:
               found:
                 result_binding:
                   data_key: project
                   from:
-                    from: $outcome.result
+                    from: $action_outcome.result
                 no_local_effect:
                   reason: result_bound_without_signal
               access_denied:
@@ -918,19 +918,19 @@ state_machines:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
-                      from: $outcome.result.message
+                      from: $action_outcome.result.message
               not_found:
                 raise:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
-                      from: $outcome.result.message
+                      from: $action_outcome.result.message
               authentication_required:
                 raise:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
-                      from: $outcome.result.message
+                      from: $action_outcome.result.message
         text_slots:
         - heading
         field_slots:
@@ -944,9 +944,9 @@ state_machines:
             application_action: application_action.project.approve
             input_bindings:
               approved_by:
-                from: $actor.id
+                from: $principal.id
               project_id:
-                from: $context.project_id
+                from: $state_context.project_id
             outcome_effects:
               approved:
                 raise:
@@ -960,7 +960,7 @@ state_machines:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
-                      from: $outcome.result.message
+                      from: $action_outcome.result.message
               not_found:
                 no_local_effect:
                   reason: handled_by_response_surface
@@ -977,7 +977,7 @@ state_machines:
             application_action: application_action.project.archive
             input_bindings:
               project_id:
-                from: $context.project_id
+                from: $state_context.project_id
             outcome_effects:
               archived:
                 raise:
@@ -987,25 +987,25 @@ state_machines:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
-                      from: $outcome.result.message
+                      from: $action_outcome.result.message
               transition_not_allowed:
                 raise:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
-                      from: $outcome.result.message
+                      from: $action_outcome.result.message
               not_found:
                 raise:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
-                      from: $outcome.result.message
+                      from: $action_outcome.result.message
               authentication_required:
                 raise:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
-                      from: $outcome.result.message
+                      from: $action_outcome.result.message
   state_machine.project.list:
     rationale: The list state machine owns collection loading, empty, ready, error, and selection behavior.
     context:
@@ -1030,7 +1030,7 @@ state_machines:
         application_action: application_action.project.list
         input_bindings:
           workspace_id:
-            from: $context.workspace_id
+            from: $state_context.workspace_id
         outcome_effects:
           listed:
             conditional_effects:
@@ -1039,10 +1039,10 @@ state_machines:
               result_binding:
                 data_key: projects
                 from:
-                  from: $outcome.result
+                  from: $action_outcome.result
               context_updates:
                 workspace_id:
-                  from: $invocation.input.workspace_id
+                  from: $operation_invocation.input.workspace_id
               raise:
                 data_refresh_signal: project_collection_empty
             - when:
@@ -1050,10 +1050,10 @@ state_machines:
               result_binding:
                 data_key: projects
                 from:
-                  from: $outcome.result
+                  from: $action_outcome.result
               context_updates:
                 workspace_id:
-                  from: $invocation.input.workspace_id
+                  from: $operation_invocation.input.workspace_id
               raise:
                 data_refresh_signal: projects_loaded
           access_denied:
@@ -1136,7 +1136,7 @@ state_machines:
           local_signal: project_selected
           payload_bindings:
             project_id:
-              from: $local_signal.project_id
+              from: $signal.payload.project_id
       from: ready
       on:
         local_signal: project_select
@@ -1174,7 +1174,7 @@ state_machines:
               title:
                 value: Replace rooftop condenser fan
               workspace_id:
-                from: $context.workspace_id
+                from: $state_context.workspace_id
             outcome_effects:
               created:
                 raise:
@@ -1192,7 +1192,7 @@ state_machines:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
-                      from: $outcome.result.message
+                      from: $action_outcome.result.message
       error:
         text_slots:
         - heading
@@ -1219,7 +1219,7 @@ state_machines:
               title:
                 value: Replace rooftop condenser fan
               workspace_id:
-                from: $context.workspace_id
+                from: $state_context.workspace_id
             outcome_effects:
               created:
                 raise:
@@ -1240,26 +1240,26 @@ state_machines:
             application_action: application_action.project.submit
             input_bindings:
               project_id:
-                from: $context.selected_project_id
+                from: $state_context.selected_project_id
             outcome_effects:
               access_denied:
                 raise:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
-                      from: $outcome.result.message
+                      from: $action_outcome.result.message
               transition_not_allowed:
                 raise:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
-                      from: $outcome.result.message
+                      from: $action_outcome.result.message
               not_found:
                 raise:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
-                      from: $outcome.result.message
+                      from: $action_outcome.result.message
               submitted:
                 raise:
                   data_refresh_signal: projects_changed
@@ -1268,7 +1268,7 @@ state_machines:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
-                      from: $outcome.result.message
+                      from: $action_outcome.result.message
 entry_points:
   entry_point.api.project.create:
     adapter:
@@ -1289,25 +1289,25 @@ entry_points:
         responses:
           created:
             body:
-              from: $outcome.result
+              from: $action_outcome.result
               type:
                 $ref: entity_type.project
             status: 201
           access_denied:
             body:
-              from: $outcome.result
+              from: $action_outcome.result
               type:
                 $ref: entity_type.problem
             status: 403
           authentication_required:
             body:
-              from: $outcome.result
+              from: $action_outcome.result
               type:
                 $ref: entity_type.problem
             status: 401
           validation_failed:
             body:
-              from: $outcome.result
+              from: $action_outcome.result
               type:
                 $ref: entity_type.problem
             status: 422
@@ -1317,13 +1317,13 @@ entry_points:
         ref: application_action.project.create
         input_bindings:
           customer:
-            from: $input.body.customer
+            from: $adapter_input.body.customer
           priority:
-            from: $input.body.priority
+            from: $adapter_input.body.priority
           title:
-            from: $input.body.title
+            from: $adapter_input.body.title
           workspace_id:
-            from: $input.path_params.workspace_id
+            from: $adapter_input.path_params.workspace_id
   entry_point.api.project.list:
     adapter:
       http_api:
@@ -1336,7 +1336,7 @@ entry_points:
         responses:
           listed:
             body:
-              from: $outcome.result
+              from: $action_outcome.result
               type:
                 type: array
                 items:
@@ -1344,19 +1344,19 @@ entry_points:
             status: 200
           access_denied:
             body:
-              from: $outcome.result
+              from: $action_outcome.result
               type:
                 $ref: entity_type.problem
             status: 403
           authentication_required:
             body:
-              from: $outcome.result
+              from: $action_outcome.result
               type:
                 $ref: entity_type.problem
             status: 401
           unavailable:
             body:
-              from: $outcome.result
+              from: $action_outcome.result
               type:
                 $ref: entity_type.problem
             status: 503
@@ -1366,7 +1366,7 @@ entry_points:
         ref: application_action.project.list
         input_bindings:
           workspace_id:
-            from: $input.path_params.workspace_id
+            from: $adapter_input.path_params.workspace_id
   entry_point.api.project.approve:
     retry_safe: true
     adapter:
@@ -1383,37 +1383,37 @@ entry_points:
         responses:
           approved:
             body:
-              from: $outcome.result
+              from: $action_outcome.result
               type:
                 $ref: entity_type.project
             status: 200
           access_denied:
             body:
-              from: $outcome.result
+              from: $action_outcome.result
               type:
                 $ref: entity_type.problem
             status: 403
           transition_not_allowed:
             body:
-              from: $outcome.result
+              from: $action_outcome.result
               type:
                 $ref: entity_type.problem
             status: 409
           not_found:
             body:
-              from: $outcome.result
+              from: $action_outcome.result
               type:
                 $ref: entity_type.problem
             status: 404
           unavailable:
             body:
-              from: $outcome.result
+              from: $action_outcome.result
               type:
                 $ref: entity_type.problem
             status: 503
           authentication_required:
             body:
-              from: $outcome.result
+              from: $action_outcome.result
               type:
                 $ref: entity_type.problem
             status: 401
@@ -1423,9 +1423,9 @@ entry_points:
         ref: application_action.project.approve
         input_bindings:
           approved_by:
-            from: $input.body.approved_by
+            from: $adapter_input.body.approved_by
           project_id:
-            from: $input.path_params.project_id
+            from: $adapter_input.path_params.project_id
   entry_point.cli.project.approve:
     adapter:
       cli:
@@ -1443,28 +1443,28 @@ entry_points:
               text: text.project.approve.success
               bindings:
                 project_id:
-                  from: $response.body.id
+                  from: $adapter_response.body.id
           access_denied:
             exit_code: 5
             stderr:
               text: text.project.approve.access_denied
               bindings:
                 message:
-                  from: $response.body.message
+                  from: $adapter_response.body.message
           transition_not_allowed:
             exit_code: 2
             stderr:
               text: text.project.approve.transition_not_allowed
               bindings:
                 message:
-                  from: $response.body.message
+                  from: $adapter_response.body.message
           not_found:
             exit_code: 3
             stderr:
               text: text.project.approve.not_found
               bindings:
                 message:
-                  from: $response.body.message
+                  from: $adapter_response.body.message
           unavailable:
             exit_code: 75
             retry_policy:
@@ -1478,7 +1478,7 @@ entry_points:
               text: text.project.approve.authentication_required
               bindings:
                 message:
-                  from: $response.body.message
+                  from: $adapter_response.body.message
     rationale: CLI entry for approval automation.
     target:
       entry_point:
@@ -1486,10 +1486,10 @@ entry_points:
         input_bindings:
           body:
             approved_by:
-              from: $input.args.approved_by
+              from: $adapter_input.args.approved_by
           path_params:
             project_id:
-              from: $input.args.project_id
+              from: $adapter_input.args.project_id
   entry_point.cli.project.board:
     adapter:
       cli:
@@ -1505,7 +1505,7 @@ entry_points:
         renderer: textual
         input_bindings:
           workspace_id:
-            from: $input.args.workspace_id
+            from: $adapter_input.args.workspace_id
   entry_point.html.project.board:
     adapter:
       html_route:
@@ -1521,7 +1521,7 @@ entry_points:
         renderer: html
         input_bindings:
           workspace_id:
-            from: $input.path_params.workspace_id
+            from: $adapter_input.path_params.workspace_id
   entry_point.worker.project.approval_notice:
     adapter:
       worker:
@@ -1541,9 +1541,9 @@ entry_points:
         ref: workflow.project.approval_notice
         trigger_bindings:
           approved_by:
-            from: $input.payload.approved_by
+            from: $adapter_input.payload.approved_by
           project_id:
-            from: $input.payload.project_id
+            from: $adapter_input.payload.project_id
 workflows:
   workflow.project.approval_notice:
     rationale: Approval domain event sends a downstream notice.
@@ -1568,9 +1568,9 @@ workflows:
     - id: send_notice
       input_bindings:
         approved_by:
-          from: $trigger.payload.approved_by
+          from: $workflow_input.payload.approved_by
         project_id:
-          from: $trigger.payload.project_id
+          from: $workflow_input.payload.project_id
       application_action: application_action.project.send_approval_notice
       outcome_transitions:
         delivery_failed:

@@ -29,7 +29,7 @@ from .layout import (
 )
 from .paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR, SOURCE_SPEC_PATH
 from .project import projection_files
-from .runtime_refs import ReferenceExpressionError, is_reference_expression, parse_reference_expression
+from .binding_refs import BindingExpressionError, is_binding_expression, parse_binding_expression
 from .targets import (
     STATE_MACHINE_RENDERERS,
     entry_state_machine_renderer,
@@ -174,7 +174,7 @@ REF_KINDS = [
     "data_loader",
     "data_loader_outcome_effect",
     "route",
-    "runtime_response",
+    "adapter_response_binding",
     "screen",
     "state_machine",
     "surface",
@@ -703,8 +703,8 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
                     output = handler.get(stream_name) or {}
                     bindings = output.get("bindings") or {}
                     for binding_name, binding in sorted(bindings.items()):
-                        if _binding_references_root(binding, "response"):
-                            refs["runtime_response"].add(_generated_runtime_response_ref(entry_id, outcome_id, stream_name, binding_name))
+                        if _binding_references_root(binding, "adapter_response"):
+                            refs["adapter_response_binding"].add(_generated_adapter_response_binding_ref(entry_id, outcome_id, stream_name, binding_name))
         for ref_kind, field in [
             ("route", "route"),
             ("endpoint", "endpoint"),
@@ -733,8 +733,8 @@ def _generated_cli_response_handler_ref(entry_id: str, outcome_id: str) -> str:
     return f"cli_response_handler.{rules.resource_tail(entry_id)}.{outcome_id}"
 
 
-def _generated_runtime_response_ref(entry_id: str, outcome_id: str, stream_name: str, binding_name: str) -> str:
-    return f"runtime_response.{rules.resource_tail(entry_id)}.{outcome_id}.{stream_name}.{binding_name}"
+def _generated_adapter_response_binding_ref(entry_id: str, outcome_id: str, stream_name: str, binding_name: str) -> str:
+    return f"adapter_response_binding.{rules.resource_tail(entry_id)}.{outcome_id}.{stream_name}.{binding_name}"
 
 
 def _generated_action_binding_ref(state_machine_id: str, state_name: str, invocation_id: str) -> str:
@@ -782,8 +782,8 @@ def _binding_references_root(binding: Any, root: str) -> bool:
     if not isinstance(binding, dict) or "from" not in binding:
         return False
     try:
-        return parse_reference_expression(binding["from"]).root == root
-    except ReferenceExpressionError:
+        return parse_binding_expression(binding["from"]).root == root
+    except BindingExpressionError:
         return False
 
 
@@ -1351,8 +1351,8 @@ def _validate_emit_payload_mapping(
 ) -> None:
     label = f"Application action {application_action_id} outcome {outcome_id} emit {event_id}"
     source_scopes: TypeScopes = {
-        "input": _type_scope(_application_action_input(application_action)),
-        "outcome": _typed_source_paths(contract, ("result",), outcome["result"]),
+        "operation_input": _type_scope(_application_action_input(application_action)),
+        "action_outcome": _typed_source_paths(contract, ("result",), outcome["result"]),
     }
 
     if isinstance(emit, str):
@@ -1466,12 +1466,12 @@ def _validate_action_bindings(
         application_action = contract["application_actions"][application_action_id]
         expected_input = _application_action_input(application_action)
         bindings = invocation.get("input_bindings") or {}
-        _validate_runtime_binding_map(
+        _validate_binding_map(
             contract,
             f"{label} input_bindings",
             bindings,
             expected_input,
-            {"context": _type_scope(context), "actor": ACTOR_SOURCE_SCOPE},
+            {"state_context": _type_scope(context), "principal": ACTOR_SOURCE_SCOPE},
         )
         _lint_literal_actor_bindings(label, bindings)
         _validate_action_binding_outcome_effects(contract, label, state_machine, invocation, application_action_id, application_action)
@@ -1483,7 +1483,7 @@ def _lint_literal_actor_bindings(label: str, bindings: dict[str, Any]) -> None:
             continue
         if isinstance(binding, dict) and set(binding) == {"value"} and isinstance(binding["value"], str):
             warnings.warn(
-                f"{label} input_bindings.{field_name} uses a literal actor/user id; prefer $actor.id or an explicit context binding",
+                f"{label} input_bindings.{field_name} uses a literal actor/user id; prefer $principal.id or an explicit context binding",
                 ContractLintWarning,
                 stacklevel=3,
             )
@@ -1636,12 +1636,12 @@ def _action_outcome_effect_scopes(
     invocation_scope = {("input",): application_action.get("input", EMPTY_OBJECT_SCHEMA)}
     invocation_scope.update(_prefixed_type_scope(("input",), application_action_input))
     return {
-        "outcome": {
+        "action_outcome": {
             ("kind",): {"type": "string"},
             ("result",): outcome["result"],
         },
-        "invocation": invocation_scope,
-        "context": _type_scope(_state_machine_context(state_machine)),
+        "operation_invocation": invocation_scope,
+        "state_context": _type_scope(_state_machine_context(state_machine)),
     }
 
 
@@ -1693,12 +1693,12 @@ def _validate_data_loaders(
             raise ContractError(f"{label} query application action outcomes must not emit durable domain events: {emitting_outcomes}")
         if entity_type and entity_type not in application_action.get("reads", []):
             raise ContractError(f"{label} application action must read entity_type {entity_type}")
-        _validate_runtime_binding_map(
+        _validate_binding_map(
             contract,
             f"{label} input_bindings",
             invocation.get("input_bindings") or {},
             _application_action_input(application_action),
-            {"context": _type_scope(context), "actor": ACTOR_SOURCE_SCOPE},
+            {"state_context": _type_scope(context), "principal": ACTOR_SOURCE_SCOPE},
         )
         _validate_query_load_policy(contract, label, state_machine, invocation.get("load") or {}, scope=scope)
         _validate_data_loader_outcome_effects(contract, label, state_machine, invocation, application_action, scope=scope, view_state=view_state)
@@ -2091,7 +2091,7 @@ def _validate_state_machine_transitions(contract: dict[str, Any], state_machine_
                     f"state machine {state_machine_id} transition set {body['context']}",
                     binding,
                     context[body["context"]],
-                    {"local_signal": _type_scope(local_signal_payload), "context": _type_scope(context)},
+                    {"signal": _prefixed_type_scope(("payload",), local_signal_payload), "state_context": _type_scope(context)},
                     allow_null_source=False,
                 )
             elif kind == "emit":
@@ -2101,7 +2101,7 @@ def _validate_state_machine_transitions(contract: dict[str, Any], state_machine_
                     label=f"state machine {state_machine_id} transition emit {body['local_signal']} payload_bindings",
                     bindings=body["payload_bindings"],
                     payload=emitted_payload,
-                    scopes={"local_signal": _type_scope(local_signal_payload), "context": _type_scope(_state_machine_context(state_machine))},
+                    scopes={"signal": _prefixed_type_scope(("payload",), local_signal_payload), "state_context": _type_scope(_state_machine_context(state_machine))},
                 )
             else:  # pragma: no cover - schema prevents this.
                 raise ContractError(f"state machine {state_machine_id} unsupported transition effect: {kind}")
@@ -2286,13 +2286,13 @@ def _validate_condition_context(contract: dict[str, Any], state_machine_id: str,
             comparisons.append((condition["context_equals"]["field"], condition["context_equals"]["value"]))
         else:
             keys = []
-    elif is_reference_expression(condition):
+    elif is_binding_expression(condition):
         try:
-            ref = parse_reference_expression(condition)
-        except ReferenceExpressionError as exc:
-            raise ContractError(f"composed state machine {state_machine_id} condition has malformed runtime reference: {condition}") from exc
+            ref = parse_binding_expression(condition)
+        except BindingExpressionError as exc:
+            raise ContractError(f"composed state machine {state_machine_id} condition has malformed binding expression: {condition}") from exc
         if ref.root != "state_machine":
-            raise ContractError(f"composed state machine {state_machine_id} condition references unavailable runtime root: ${ref.root}")
+            raise ContractError(f"composed state machine {state_machine_id} condition references unavailable binding root: ${ref.root}")
         keys = [ref.path[0]]
     else:
         keys = []
@@ -2459,7 +2459,7 @@ def _literal_expression_value(expression: Any) -> Any:
         return _NO_LITERAL
     if isinstance(expression, dict) and set(expression) == {"value"}:
         return expression["value"]
-    if is_reference_expression(expression):
+    if is_binding_expression(expression):
         return _NO_LITERAL
     return expression
 
@@ -2497,7 +2497,7 @@ def _expression_type(contract: dict[str, Any] | None, expression: Any, scopes: T
         return _reference_expression_type(contract, label, expression["from"], scopes)
     if isinstance(expression, dict) and set(expression) == {"value"}:
         return _literal_type(expression["value"])
-    if is_reference_expression(expression):
+    if is_binding_expression(expression):
         return _reference_expression_type(contract, label, expression, scopes)
     return _literal_type(expression)
 
@@ -2509,11 +2509,11 @@ def _reference_expression_type(
     scopes: TypeScopes,
 ) -> Any:
     try:
-        ref = parse_reference_expression(expression)
-    except ReferenceExpressionError as exc:
+        ref = parse_binding_expression(expression)
+    except BindingExpressionError as exc:
         raise ContractError(f"{label} references unsupported expression: {expression}") from exc
     if ref.root not in scopes:
-        raise ContractError(f"{label} references unavailable runtime root: ${ref.root}")
+        raise ContractError(f"{label} references unavailable binding root: ${ref.root}")
     return _resolve_reference_type(contract, label, ref.root, ref.path, scopes[ref.root])
 
 
@@ -2635,7 +2635,7 @@ def _validate_sync_rules(
                     f"composed state machine state {label} sync set {body['context']}",
                     binding,
                     context[body["context"]],
-                    {"local_signal": _type_scope(source_payload), "state_machine": _type_scope(context)},
+                    {"signal": _prefixed_type_scope(("payload",), source_payload), "state_machine": _type_scope(context)},
                     allow_null_source=False,
                 )
             elif kind == "send":
@@ -2651,7 +2651,7 @@ def _validate_sync_rules(
                     label=f"composed state machine state {label} sync send {body['local_signal']} to {target_id} payload_bindings",
                     bindings=body["payload_bindings"],
                     payload=target_payload,
-                    scopes={"local_signal": _type_scope(source_payload), "state_machine": _type_scope(context)},
+                    scopes={"signal": _prefixed_type_scope(("payload",), source_payload), "state_machine": _type_scope(context)},
                 )
             else:  # pragma: no cover - schema prevents this.
                 raise ContractError(f"composed state machine state {label} unsupported sync effect: {kind}")
@@ -3000,7 +3000,7 @@ def _validate_entry_point_delegate_target(
             f"Entry {entry_id} target.entry_point.input_bindings must exactly bind delegated entry input"
             + (": " + "; ".join(parts) if parts else "")
         )
-    source_scopes: TypeScopes = {"input": _entry_input_source_types(contract, entry)}
+    source_scopes: TypeScopes = {"adapter_input": _entry_input_source_types(contract, entry)}
     for section, expected in expected_input.items():
         section_bindings = bindings.get(section)
         label = f"Entry {entry_id} target.entry_point.input_bindings.{section}"
@@ -3011,7 +3011,7 @@ def _validate_entry_point_delegate_target(
             raise ContractError(f"Entry {entry_id} delegated input section {section} must be an object-shaped adapter input")
         if not isinstance(section_bindings, dict):
             raise ContractError(f"{label} must declare field bindings")
-        _validate_runtime_binding_map(contract, label, section_bindings, expected, source_scopes)
+        _validate_binding_map(contract, label, section_bindings, expected, source_scopes)
 
 
 def _validate_delegated_payload_binding(
@@ -3031,10 +3031,10 @@ def _validate_delegated_payload_binding(
         raise ContractError(f"{label} must bind payload as a single binding value for {type_display(expected_type)}")
     if not isinstance(binding, dict):
         raise ContractError(f"{label} must declare payload field bindings")
-    _validate_runtime_binding_map(contract, label, binding, expected_fields, source_scopes)
+    _validate_binding_map(contract, label, binding, expected_fields, source_scopes)
 
 
-def _validate_runtime_binding_map(
+def _validate_binding_map(
     contract: dict[str, Any],
     label: str,
     bindings: dict[str, Any],
@@ -3140,7 +3140,7 @@ def _validate_workflow_entry_target_source(contract: dict[str, Any], entry_id: s
         if extra:
             parts.append("extra: " + ", ".join(extra))
         raise ContractError(f"Entry {entry_id} target.trigger_bindings must exactly bind workflow trigger" + (": " + "; ".join(parts) if parts else ""))
-    scopes: TypeScopes = {"input": _entry_input_source_types(contract, entry)}
+    scopes: TypeScopes = {"adapter_input": _entry_input_source_types(contract, entry)}
     for name, binding in bindings.items():
         actual_type = _expression_type(contract, binding, scopes, f"Entry {entry_id} target.trigger_bindings.{name}")
         expected_type = expected[name]
@@ -3224,7 +3224,7 @@ def _validate_target_bindings(
         if extra:
             parts.append("extra: " + ", ".join(extra))
         raise ContractError(f"Entry {entry_id} target.input_bindings must exactly bind target input" + (": " + "; ".join(parts) if parts else ""))
-    source_scopes: TypeScopes = {"input": _entry_input_source_types(contract, entry)}
+    source_scopes: TypeScopes = {"adapter_input": _entry_input_source_types(contract, entry)}
     for target_name, source in bindings.items():
         actual_type = _expression_type(
             contract,
@@ -3284,8 +3284,8 @@ def _validate_cli_application_action_response_handlers(
             response,
             outcome_kind=outcome["kind"],
             source_scopes={
-                "input": _entry_input_source_types(contract, entry),
-                "outcome": _typed_source_paths(contract, ("result",), outcome["result"]),
+                "adapter_input": _entry_input_source_types(contract, entry),
+                "action_outcome": _typed_source_paths(contract, ("result",), outcome["result"]),
             },
             delegated_entry_id=None,
             retry_allowed=_application_action_retry_safe(application_action),
@@ -3325,10 +3325,10 @@ def _validate_cli_delegated_response_handlers(
                 f"CLI entry {entry_id} response handler {outcome_id} retry_policy requires delegated entry point "
                 f"{delegated_entry_id} and its final target to be retry_safe or query"
             )
-        source_scopes: TypeScopes = {"input": _entry_input_source_types(contract, entry)}
+        source_scopes: TypeScopes = {"adapter_input": _entry_input_source_types(contract, entry)}
         response_type = response_types.get(outcome_id)
         if response_type is not None:
-            source_scopes["response"] = _typed_source_paths(contract, ("body",), response_type)
+            source_scopes["adapter_response"] = _typed_source_paths(contract, ("body",), response_type)
         _validate_cli_response_handler(
             contract,
             entry_id,
@@ -3484,8 +3484,8 @@ def _entry_point_response_body_types(contract: dict[str, Any], entry_id: str) ->
 
 
 def _validate_response_value(label: str, value: dict[str, Any], expected_type: Any) -> None:
-    if set(value) != {"type", "from"} or value["from"] != "$outcome.result" or not type_equals(value["type"], expected_type):
-        raise ContractError(f"{label} must expose $outcome.result as {type_display(expected_type)}")
+    if set(value) != {"type", "from"} or value["from"] != "$action_outcome.result" or not type_equals(value["type"], expected_type):
+        raise ContractError(f"{label} must expose $action_outcome.result as {type_display(expected_type)}")
 
 
 def _validate_async_entry_point_responses(entry_id: str, entry: dict[str, Any], *, require_failure_disposition: bool) -> None:
@@ -3607,12 +3607,12 @@ def _add_mount_context_requirements(
                 raise ContractError(f"{label} references undeclared child context field: {child_key}")
             expected_type = child_state_machine_context[child_key]
             value = mount_context.get(child_key)
-            if not (isinstance(value, dict) and "from" in value and is_reference_expression(value["from"])):
+            if not (isinstance(value, dict) and "from" in value and is_binding_expression(value["from"])):
                 continue
             try:
-                ref = parse_reference_expression(value["from"])
-            except ReferenceExpressionError as exc:
-                raise ContractError(f"composed state machine {state_machine_id}.{mount['id']} has malformed runtime reference: {value}") from exc
+                ref = parse_binding_expression(value["from"])
+            except BindingExpressionError as exc:
+                raise ContractError(f"composed state machine {state_machine_id}.{mount['id']} has malformed binding expression: {value}") from exc
             if ref.root != "state_machine":
                 continue
             parent_key = ref.path[0]
@@ -3641,10 +3641,10 @@ def _context_roots_from_input_bindings(label: str, bindings: dict[str, Any]) -> 
         if not (isinstance(binding, dict) and set(binding) == {"from"}):
             continue
         try:
-            ref = parse_reference_expression(binding["from"])
-        except ReferenceExpressionError as exc:
+            ref = parse_binding_expression(binding["from"])
+        except BindingExpressionError as exc:
             raise ContractError(f"{label} input_bindings.{field} references unsupported expression: {binding['from']}") from exc
-        if ref.root == "context" and ref.path:
+        if ref.root == "state_context" and ref.path:
             roots.add(ref.path[0])
     return roots
 
@@ -3818,7 +3818,7 @@ def _validate_workflow_outcomes(workflow_id: str, workflow: dict[str, Any]) -> N
 
 def _workflow_trigger_source_types(contract: dict[str, Any], workflow_id: str, workflow: dict[str, Any]) -> TypeScopes:
     payload_type = _workflow_trigger_payload_type(contract, workflow_id, workflow)
-    return {"trigger": _typed_source_paths(contract, ("payload",), payload_type)}
+    return {"workflow_input": _typed_source_paths(contract, ("payload",), payload_type)}
 
 
 def _workflow_trigger_payload_type(contract: dict[str, Any], workflow_id: str, workflow: dict[str, Any]) -> Any:
@@ -3839,8 +3839,8 @@ def _workflow_trigger_payload_fields(contract: dict[str, Any], workflow_id: str,
 def _workflow_step_source_types(contract: dict[str, Any], step: dict[str, Any], application_action: dict[str, Any]) -> TypeScopes:
     sources: TypeScope = {}
     for outcome_id, outcome in application_action["outcomes"].items():
-        sources.update(_typed_source_paths(contract, (step["id"], "outcomes", outcome_id, "result"), outcome["result"]))
-    return {"steps": sources}
+        sources.update(_typed_source_paths(contract, (step["id"], outcome_id, "result"), outcome["result"]))
+    return {"step_outcome": sources}
 
 
 WORKFLOW_TRANSITION_ACTIONS = ("next_step", "complete_as", "fail_as", "retry_policy", "dead_letter_as")
@@ -4054,7 +4054,7 @@ def _validate_fixture_templates(node: Any, fixture_values: dict[str, Any], behav
 def _fixture_refs(node: Any) -> list[str]:
     refs: list[str] = []
     if isinstance(node, dict):
-        if set(node) == {"from"} and is_reference_expression(node["from"]):
+        if set(node) == {"from"} and is_binding_expression(node["from"]):
             refs.append(node["from"])
             return refs
         if set(node) == {"value"}:
@@ -4069,11 +4069,11 @@ def _fixture_refs(node: Any) -> list[str]:
 
 def _resolve_fixture_path(fixture_values: dict[str, Any], ref: str, behavior_scenario_id: str) -> Any:
     try:
-        expression = parse_reference_expression(ref)
-    except ReferenceExpressionError as exc:
-        raise ContractError(f"Behavior scenario {behavior_scenario_id} has malformed runtime reference {ref}") from exc
+        expression = parse_binding_expression(ref)
+    except BindingExpressionError as exc:
+        raise ContractError(f"Behavior scenario {behavior_scenario_id} has malformed binding expression {ref}") from exc
     if expression.root != "fixture":
-        raise ContractError(f"Behavior scenario {behavior_scenario_id} references unavailable runtime root: ${expression.root}")
+        raise ContractError(f"Behavior scenario {behavior_scenario_id} references unavailable binding root: ${expression.root}")
     current: Any = fixture_values
     traversed: list[str] = []
     for part in expression.path:

@@ -1,6 +1,6 @@
 <svg width="1311pt" height="482pt"
  viewBox="0.00 0.00 1311.00 482.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 6b4601fa7e9645a31a9fc9769ed98e350da992164ad8adaef9c9a3364c95f7dc -->
+<!-- pyspec-contract-input-sha256: 925da5587e092677f8c738f45054e6282644b07cadb2a9660156088ec71a48a5 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 464)">
 <title>workflow_workflow_project_approval_notice</title>
 <!-- workflow_trigger_domain_event_domain_event_project_approved -->
@@ -68,8 +68,8 @@
 <text text-anchor="start" x="591.5" y="-264.5" font-family="Arial" font-weight="bold" font-size="10.00">application_action:</text>
 <text text-anchor="start" x="680.5" y="-264.5" font-family="Arial" font-size="10.00">  application_action.project.send_approval_notice</text>
 <text text-anchor="start" x="590.5" y="-244.5" font-family="Arial" font-weight="bold" font-size="10.00">input bindings</text>
-<text text-anchor="start" x="590.5" y="-232.5" font-family="Arial" font-size="10.00">approved_by ← trigger.payload.approved_by</text>
-<text text-anchor="start" x="590.5" y="-221.5" font-family="Arial" font-size="10.00">project_id ← trigger.payload.project_id</text>
+<text text-anchor="start" x="590.5" y="-232.5" font-family="Arial" font-size="10.00">approved_by ← workflow_input.payload.approved_by</text>
+<text text-anchor="start" x="590.5" y="-221.5" font-family="Arial" font-size="10.00">project_id ← workflow_input.payload.project_id</text>
 <text text-anchor="start" x="590.5" y="-203.5" font-family="Arial" font-weight="bold" font-size="10.00">transitions</text>
 <text text-anchor="start" x="590.5" y="-191.5" font-family="Arial" font-size="10.00">access_denied: fail_as → notice_access_denied</text>
 <text text-anchor="start" x="590.5" y="-180.5" font-family="Arial" font-size="10.00">authentication_required: fail_as →</text>

@@ -303,19 +303,19 @@ behavior_scenarios:
           - effects:
             - set:
                 context: selected_project_id
-                from: $local_signal.project_id
+                from: $signal.payload.project_id
             - send:
                 instance: detail
                 local_signal: selection_changed
                 payload_bindings:
                   project_id:
-                    from: $local_signal.project_id
+                    from: $signal.payload.project_id
             - send:
                 instance: activity
                 local_signal: selection_changed
                 payload_bindings:
                   project_id:
-                    from: $local_signal.project_id
+                    from: $signal.payload.project_id
             id: select_project_updates_state_machines
             when:
               instance: list
@@ -523,19 +523,19 @@ behavior_scenarios:
           - effects:
             - set:
                 context: selected_project_id
-                from: $local_signal.project_id
+                from: $signal.payload.project_id
             - send:
                 instance: detail
                 local_signal: selection_changed
                 payload_bindings:
                   project_id:
-                    from: $local_signal.project_id
+                    from: $signal.payload.project_id
             - send:
                 instance: activity
                 local_signal: selection_changed
                 payload_bindings:
                   project_id:
-                    from: $local_signal.project_id
+                    from: $signal.payload.project_id
             id: select_project_updates_state_machines
             when:
               instance: list

@@ -354,7 +354,7 @@ def test_authorization_policies_require_explicit_conditions_and_support_value_eq
     author["authorization_policies"]["authorization_policy.ticket.submit"]["conditions"] = [
         {
             "value_equals": {
-                "left": {"from": "$input.ticket_id"},
+                "left": {"from": "$operation_input.ticket_id"},
                 "right": {"value": "ticket_1"},
             }
         }
@@ -453,7 +453,7 @@ def test_authorization_failure_outcomes_must_not_emit_domain_events() -> None:
         }
     }
     author["application_actions"]["application_action.ticket.submit"]["outcomes"]["access_denied"]["emits"] = [
-        {"domain_event": "domain_event.ticket.denied", "payload_source": "$outcome.result"}
+        {"domain_event": "domain_event.ticket.denied", "payload_source": "$action_outcome.result"}
     ]
     with pytest.raises(ContractError, match=r"failure outcome access_denied must not emit domain events"):
         compile_author(author)
@@ -634,7 +634,7 @@ def test_query_application_actions_are_side_effect_free_and_do_not_emit_domain_e
 
     author = _author()
     author["application_actions"]["application_action.project.list"]["outcomes"]["listed"]["emits"] = [
-        {"domain_event": "domain_event.project.listed", "payload_source": "$outcome.result"}
+        {"domain_event": "domain_event.project.listed", "payload_source": "$action_outcome.result"}
     ]
     with pytest.raises(ContractError, match=r"Query application action application_action\.project\.list must not emit domain events"):
         compile_source(author)
@@ -807,7 +807,7 @@ def test_context_set_effect_respects_context_null_type() -> None:
                         "from": "ready",
                         "to": "ready",
                         "on": {"local_signal": "copy"},
-                        "effects": [{"set": {"context": "target_project_id", "from": "$context.source_project_id"}}],
+                        "effects": [{"set": {"context": "target_project_id", "from": "$state_context.source_project_id"}}],
                     }
                 ],
                 "rationale": "Sources that allow null cannot feed context fields that do not allow null.",
@@ -818,7 +818,7 @@ def test_context_set_effect_respects_context_null_type() -> None:
         compile_author(author)
 
 
-def test_workflow_input_bindings_support_runtime_sources_and_literal_values() -> None:
+def test_workflow_input_bindings_support_binding_sources_and_literal_values() -> None:
     author = {
         "project": "workflow_bindings",
         "schemas": {
@@ -867,7 +867,7 @@ def test_workflow_input_bindings_support_runtime_sources_and_literal_values() ->
                         "id": "notify",
                         "application_action": "application_action.ticket.notify",
                         "input_bindings": {
-                            "source_id": {"from": "$trigger.payload.source_id"},
+                            "source_id": {"from": "$workflow_input.payload.source_id"},
                             "title": {"value": "Literal title"},
                         },
                         "outcome_transitions": {
@@ -882,11 +882,11 @@ def test_workflow_input_bindings_support_runtime_sources_and_literal_values() ->
     }
     contract = compile_author(author)
     bindings = contract["workflows"]["workflow.ticket.notice"]["steps"][0]["input_bindings"]
-    assert bindings["source_id"] == {"from": "$trigger.payload.source_id"}
+    assert bindings["source_id"] == {"from": "$workflow_input.payload.source_id"}
     assert bindings["title"] == {"value": "Literal title"}
 
 
-def test_state_machine_empty_message_directions_can_be_omitted() -> None:
+def test_state_machine_empty_signal_directions_can_be_omitted() -> None:
     author = _author()
     activity = _item(author, "state_machines", "state_machine.project.activity")
 
@@ -896,7 +896,7 @@ def test_state_machine_empty_message_directions_can_be_omitted() -> None:
     assert contract["state_machines"]["state_machine.project.activity"]["signals"]["emits"] == {"local_signals": {}}
 
 
-def test_author_source_prunes_empty_message_directions() -> None:
+def test_author_source_prunes_empty_signal_directions() -> None:
     author = _author()
     activity = _item(author, "state_machines", "state_machine.project.activity")
     activity["signals"]["emits"] = {}
@@ -998,7 +998,7 @@ def test_state_machine_data_inputs_must_come_from_context() -> None:
             mount["context_bindings"].pop("workspace_id", None)
     with pytest.raises(
         ContractError,
-        match=r"state machine state_machine\.project\.list data_loader list_projects input_bindings\.workspace_id references unknown \$context field: workspace_id",
+        match=r"state machine state_machine\.project\.list data_loader list_projects input_bindings\.workspace_id references unknown \$state_context field: workspace_id",
     ):
         compile_source(author)
 
@@ -1194,7 +1194,7 @@ def test_renderer_slot_binding_accepts_action_binding_and_rejects_application_ac
                 "customer": {"value": "Atlas Foods"},
                 "priority": {"value": "High"},
                 "title": {"value": "Replace rooftop condenser fan"},
-                "workspace_id": {"from": "$context.workspace_id"},
+                "workspace_id": {"from": "$state_context.workspace_id"},
             },
             "outcome_effects": {
                 "created": {"raise": {"data_refresh_signal": "application_action_completed"}},
@@ -1221,7 +1221,7 @@ def test_renderer_slot_binding_accepts_action_binding_and_rejects_application_ac
                 "customer": {"value": "Atlas Foods"},
                 "priority": {"value": "High"},
                 "title": {"value": "Replace rooftop condenser fan"},
-                "workspace_id": {"from": "$context.workspace_id"},
+                "workspace_id": {"from": "$state_context.workspace_id"},
             },
             "outcome_effects": {
                 "created": {"raise": {"data_refresh_signal": "application_action_completed"}},
@@ -1415,7 +1415,7 @@ def test_data_loader_load_policy_and_application_action_purity_are_validated() -
 
     author = _author()
     author["application_actions"]["application_action.project.list"]["outcomes"]["listed"]["emits"] = [
-        {"domain_event": "domain_event.project.listed", "payload_source": "$outcome.result"}
+        {"domain_event": "domain_event.project.listed", "payload_source": "$action_outcome.result"}
     ]
     author["domain_events"]["domain_event.project.listed"] = {
         "payload_schema": A(M("Project")),
@@ -1474,12 +1474,12 @@ def test_query_empty_non_empty_conditions_require_array_results() -> None:
     effect["conditional_effects"] = [
         {
             "when": {"result_empty": True},
-            "result_binding": {"data_key": "project", "from": {"from": "$outcome.result"}},
+            "result_binding": {"data_key": "project", "from": {"from": "$action_outcome.result"}},
             "raise": {"data_refresh_signal": "project_loaded"},
         },
         {
             "when": {"result_non_empty": True},
-            "result_binding": {"data_key": "project", "from": {"from": "$outcome.result"}},
+            "result_binding": {"data_key": "project", "from": {"from": "$action_outcome.result"}},
             "raise": {"data_refresh_signal": "project_loaded"},
         },
     ]
@@ -1545,10 +1545,10 @@ def test_data_loader_ids_cannot_shadow_state_machine_scope() -> None:
     list_fsm["view_states"]["ready"]["data_loaders"] = {
         "list_projects": {
             "application_action": "application_action.project.list",
-            "input_bindings": {"workspace_id": {"from": "$context.workspace_id"}},
+            "input_bindings": {"workspace_id": {"from": "$state_context.workspace_id"}},
             "outcome_effects": {
                 "listed": {
-                    "result_binding": {"data_key": "projects", "from": {"from": "$outcome.result"}},
+                    "result_binding": {"data_key": "projects", "from": {"from": "$action_outcome.result"}},
                     "no_local_effect": {"reason": "result_bound_without_signal"},
                 },
                 "access_denied": {"no_local_effect": {"reason": "handled_by_response_surface", "rationale": "Shadow test."}},
@@ -1567,11 +1567,11 @@ def test_data_loader_routes_are_local_per_state() -> None:
     ready_read = contract["state_machines"]["state_machine.project.detail"]["view_states"]["ready"]["data_loaders"]["read_project"]
     assert loading_read["application_action"] == ready_read["application_action"] == "application_action.project.read"
     assert loading_read["outcome_effects"]["found"] == {
-        "result_binding": {"data_key": "project", "from": {"from": "$outcome.result"}},
+        "result_binding": {"data_key": "project", "from": {"from": "$action_outcome.result"}},
         "raise": {"data_refresh_signal": "project_loaded"},
     }
     assert ready_read["outcome_effects"]["found"] == {
-        "result_binding": {"data_key": "project", "from": {"from": "$outcome.result"}},
+        "result_binding": {"data_key": "project", "from": {"from": "$action_outcome.result"}},
         "no_local_effect": {"reason": "result_bound_without_signal"},
     }
 
@@ -1718,13 +1718,13 @@ def _api_only_author() -> dict:
                         "path": "/tickets",
                         "input": {"body": {"title": P("Text")}},
                         "responses": {
-                            "created": {"status": 201, "body": {"type": M("Ticket"), "from": "$outcome.result"}},
-                            "validation_failed": {"status": 422, "body": {"type": M("Problem"), "from": "$outcome.result"}},
+                            "created": {"status": 201, "body": {"type": M("Ticket"), "from": "$action_outcome.result"}},
+                            "validation_failed": {"status": 422, "body": {"type": M("Problem"), "from": "$action_outcome.result"}},
                         },
                     }
                 },
                 "target": {
-                    "application_action": {"ref": "application_action.ticket.create", "input_bindings": {"title": {"from": "$input.body.title"}}},
+                    "application_action": {"ref": "application_action.ticket.create", "input_bindings": {"title": {"from": "$adapter_input.body.title"}}},
                 },
                 "rationale": _rationale("HTTP create ticket entry"),
             }
@@ -1807,7 +1807,7 @@ def test_textual_is_not_an_entrypoint_renderer() -> None:
 def test_cli_delegation_bindings_use_outer_input_shape() -> None:
     author = _author()
     del author["entry_points"]["entry_point.cli.project.approve"]["adapter"]["cli"]["input"]["args"]
-    with pytest.raises(ContractError, match=r"target\.entry_point\.input_bindings\.body\.approved_by references unknown \$input field: args"):
+    with pytest.raises(ContractError, match=r"target\.entry_point\.input_bindings\.body\.approved_by references unknown \$adapter_input field: args"):
         compile_source(author)
 
 
@@ -1821,7 +1821,7 @@ def test_entry_target_bindings_must_exactly_match_target_input() -> None:
 def test_entry_point_response_must_match_renderer_contract() -> None:
     author = _author()
     author["entry_points"]["entry_point.api.project.create"]["adapter"]["http_api"]["responses"]["created"]["body"]["type"] = P("Text")
-    with pytest.raises(ContractError, match=r"API entry entry_point.api\.project\.create response created\.body must expose \$outcome\.result as Project"):
+    with pytest.raises(ContractError, match=r"API entry entry_point.api\.project\.create response created\.body must expose \$action_outcome\.result as Project"):
         compile_source(author)
 
 
@@ -1839,21 +1839,21 @@ def test_action_outcomes_must_have_one_success_and_real_failure_result() -> None
 
 def test_event_emits_must_map_declared_payload() -> None:
     author = _author()
-    author["application_actions"]["application_action.project.approve"]["outcomes"]["approved"]["emits"][0]["payload_bindings"]["approved_by"] = {"from": "$outcome.result"}
-    with pytest.raises(ContractError, match=r"emit domain_event.project\.approved mapping approved_by source .*\$outcome\.result.* type must be string"):
+    author["application_actions"]["application_action.project.approve"]["outcomes"]["approved"]["emits"][0]["payload_bindings"]["approved_by"] = {"from": "$action_outcome.result"}
+    with pytest.raises(ContractError, match=r"emit domain_event.project\.approved mapping approved_by source .*\$action_outcome\.result.* type must be string"):
         compile_source(author)
 
 
-def test_runtime_references_are_context_scoped() -> None:
+def test_binding_expressions_are_context_scoped() -> None:
     author = _author()
-    author["entry_points"]["entry_point.api.project.create"]["target"]["application_action"]["input_bindings"]["title"] = {"from": "$trigger.payload.title"}
-    with pytest.raises(ContractError, match=r"target\.input_bindings\.title references unavailable runtime root: \$trigger"):
+    author["entry_points"]["entry_point.api.project.create"]["target"]["application_action"]["input_bindings"]["title"] = {"from": "$workflow_input.payload.title"}
+    with pytest.raises(ContractError, match=r"target\.input_bindings\.title references unavailable binding root: \$workflow_input"):
         compile_source(author)
 
 
-def test_runtime_references_validate_declared_fields() -> None:
+def test_binding_expressions_validate_declared_fields() -> None:
     author = _author()
-    author["workflows"]["workflow.project.approval_notice"]["steps"][0]["input_bindings"]["project_id"] = {"from": "$trigger.payload.missing"}
+    author["workflows"]["workflow.project.approval_notice"]["steps"][0]["input_bindings"]["project_id"] = {"from": "$workflow_input.payload.missing"}
     with pytest.raises(ContractError, match=r"input project_id references unknown schema\.project\.approved field: missing"):
         compile_source(author)
 
@@ -1894,7 +1894,7 @@ def test_entry_point_delegation_compiles_and_generates_refs() -> None:
     assert "entry_point_target.cli.project.approve.entry_point.api.project.approve" in contract["refs"]["entry_point_target"]
     assert "entry_point_delegate.cli.project.approve.to.api.project.approve" in contract["refs"]["entry_point_delegate"]
     assert "cli_response_handler.cli.project.approve.approved" in contract["refs"]["cli_response_handler"]
-    assert "runtime_response.cli.project.approve.approved.stdout.project_id" in contract["refs"]["runtime_response"]
+    assert "adapter_response_binding.cli.project.approve.approved.stdout.project_id" in contract["refs"]["adapter_response_binding"]
 
 
 def test_entry_point_delegate_target_requires_ref_and_input_bindings() -> None:
@@ -1911,7 +1911,7 @@ def test_entry_point_delegate_target_requires_ref_and_input_bindings() -> None:
 
 def test_cli_response_handlers_require_binding_values() -> None:
     author = _author()
-    author["entry_points"]["entry_point.cli.project.approve"]["adapter"]["cli"]["response_handlers"]["approved"]["stdout"]["bindings"]["project_id"] = "$response.body.id"
+    author["entry_points"]["entry_point.cli.project.approve"]["adapter"]["cli"]["response_handlers"]["approved"]["stdout"]["bindings"]["project_id"] = "$adapter_response.body.id"
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
@@ -1949,8 +1949,8 @@ def test_entry_point_delegation_cycles_are_rejected() -> None:
             "ref": "entry_point.cli.project.approve",
             "input_bindings": {
                 "args": {
-                    "approved_by": {"from": "$input.body.approved_by"},
-                    "project_id": {"from": "$input.path_params.project_id"},
+                    "approved_by": {"from": "$adapter_input.body.approved_by"},
+                    "project_id": {"from": "$adapter_input.path_params.project_id"},
                 }
             },
         }
@@ -1969,9 +1969,9 @@ def test_delegation_input_bindings_must_match_delegated_adapter_input() -> None:
 def test_delegation_input_bindings_use_outer_input_roots() -> None:
     author = _author()
     author["entry_points"]["entry_point.cli.project.approve"]["target"]["entry_point"]["input_bindings"]["path_params"]["project_id"] = {
-        "from": "$response.body.id"
+        "from": "$adapter_response.body.id"
     }
-    with pytest.raises(ContractError, match=r"input_bindings\.path_params\.project_id references unavailable runtime root: \$response"):
+    with pytest.raises(ContractError, match=r"input_bindings\.path_params\.project_id references unavailable binding root: \$adapter_response"):
         compile_source(author)
 
 
@@ -1993,12 +1993,12 @@ def test_cli_response_handlers_do_not_restate_http_status_matching() -> None:
 def test_response_root_is_only_available_inside_delegated_cli_response_handlers() -> None:
     contract = compile_source(_author())
     assert contract["entry_points"]["entry_point.cli.project.approve"]["adapter"]["cli"]["response_handlers"]["approved"]["stdout"]["bindings"]["project_id"] == {
-        "from": "$response.body.id"
+        "from": "$adapter_response.body.id"
     }
 
     author = _author()
-    author["entry_points"]["entry_point.api.project.create"]["target"]["application_action"]["input_bindings"]["title"] = {"from": "$response.body.title"}
-    with pytest.raises(ContractError, match=r"target\.input_bindings\.title references unavailable runtime root: \$response"):
+    author["entry_points"]["entry_point.api.project.create"]["target"]["application_action"]["input_bindings"]["title"] = {"from": "$adapter_response.body.title"}
+    with pytest.raises(ContractError, match=r"target\.input_bindings\.title references unavailable binding root: \$adapter_response"):
         compile_source(author)
 
 

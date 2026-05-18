@@ -33,6 +33,13 @@ class ActionOutcomeEffect:
     ACTION_OUTCOME_EFFECT_PROJECT_LIST_READY_SUBMIT_SUBMITTED = 'action_outcome_effect.project.list.ready.submit.submitted'
     ACTION_OUTCOME_EFFECT_PROJECT_LIST_READY_SUBMIT_TRANSITION_NOT_ALLOWED = 'action_outcome_effect.project.list.ready.submit.transition_not_allowed'
 
+class AdapterResponseBinding:
+    ADAPTER_RESPONSE_BINDING_CLI_PROJECT_APPROVE_ACCESS_DENIED_STDERR_MESSAGE = 'adapter_response_binding.cli.project.approve.access_denied.stderr.message'
+    ADAPTER_RESPONSE_BINDING_CLI_PROJECT_APPROVE_APPROVED_STDOUT_PROJECT_ID = 'adapter_response_binding.cli.project.approve.approved.stdout.project_id'
+    ADAPTER_RESPONSE_BINDING_CLI_PROJECT_APPROVE_AUTHENTICATION_REQUIRED_STDERR_MESSAGE = 'adapter_response_binding.cli.project.approve.authentication_required.stderr.message'
+    ADAPTER_RESPONSE_BINDING_CLI_PROJECT_APPROVE_NOT_FOUND_STDERR_MESSAGE = 'adapter_response_binding.cli.project.approve.not_found.stderr.message'
+    ADAPTER_RESPONSE_BINDING_CLI_PROJECT_APPROVE_TRANSITION_NOT_ALLOWED_STDERR_MESSAGE = 'adapter_response_binding.cli.project.approve.transition_not_allowed.stderr.message'
+
 class Assertion:
     pass
 
@@ -184,13 +191,6 @@ class RenderProfile:
 
 class Route:
     ROUTE_PROJECT_BOARD = 'route.project.board'
-
-class RuntimeResponse:
-    RUNTIME_RESPONSE_CLI_PROJECT_APPROVE_ACCESS_DENIED_STDERR_MESSAGE = 'runtime_response.cli.project.approve.access_denied.stderr.message'
-    RUNTIME_RESPONSE_CLI_PROJECT_APPROVE_APPROVED_STDOUT_PROJECT_ID = 'runtime_response.cli.project.approve.approved.stdout.project_id'
-    RUNTIME_RESPONSE_CLI_PROJECT_APPROVE_AUTHENTICATION_REQUIRED_STDERR_MESSAGE = 'runtime_response.cli.project.approve.authentication_required.stderr.message'
-    RUNTIME_RESPONSE_CLI_PROJECT_APPROVE_NOT_FOUND_STDERR_MESSAGE = 'runtime_response.cli.project.approve.not_found.stderr.message'
-    RUNTIME_RESPONSE_CLI_PROJECT_APPROVE_TRANSITION_NOT_ALLOWED_STDERR_MESSAGE = 'runtime_response.cli.project.approve.transition_not_allowed.stderr.message'
 
 class Screen:
     SCREEN_PROJECT_BOARD = 'screen.project.board'
