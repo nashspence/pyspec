@@ -49,16 +49,17 @@ from .targets import (
 from .type_expr import (
     TypeExpressionError,
     array_of,
-    base_model_name,
+    base_entity_type_id,
     dereference_type,
     effective_field_type,
-    is_array_of_model,
+    entity_type_display_name,
+    is_array_of_entity_type,
     is_problem_type,
     literal_type_expr,
     normalize_field_map,
     normalize_type_expr,
     normalize_type_map,
-    model_name,
+    entity_type_id,
     object_fields_for_type,
     type_display,
     type_equals,
@@ -120,7 +121,7 @@ TARGET_ORDER = (
     "fixture",
     "fact",
     "data_contract",
-    "model",
+    "entity_type",
     "authorization_policy",
     "application_action",
     "domain_event",
@@ -140,7 +141,7 @@ ENTITY_SECTIONS: dict[str, str] = {
     "fixture": "fixtures",
     "fact": "facts",
     "data_contract": "data_contracts",
-    "model": "models",
+    "entity_type": "entity_types",
     "authorization_policy": "authorization_policies",
     "application_action": "application_actions",
     "domain_event": "domain_events",
@@ -184,7 +185,7 @@ def empty_compiled_contract(project: str) -> dict[str, Any]:
         "fixtures": {},
         "facts": {},
         "data_contracts": {},
-        "models": {},
+        "entity_types": {},
         "authorization_policies": {},
         "application_actions": {},
         "domain_events": {},
@@ -200,7 +201,7 @@ AUTHOR_SECTION_ORDER = (
     "fixtures",
     "facts",
     "data_contracts",
-    "models",
+    "entity_types",
     "authorization_policies",
     "application_actions",
     "domain_events",
@@ -305,7 +306,7 @@ def compile_author(author: dict[str, Any], layers: set[str] | None = None) -> di
             _apply_author_defaults(entity, spec)
             section[entity_id] = _compile_entity(entity, spec, contract)
 
-    _derive_application_action_transitions(contract)
+    _derive_application_action_lifecycle_transitions(contract)
     contract["domain_events"] = _derive_domain_events(contract)
     contract["refs"] = _derive_refs(contract)
     used_facts = _expand_test_case_fact_uses(contract)
@@ -316,7 +317,8 @@ def compile_author(author: dict[str, Any], layers: set[str] | None = None) -> di
 
 
 def _apply_author_defaults(entity: str, spec: dict[str, Any]) -> None:
-    spec.setdefault("rationale", _default_rationale(entity, spec["id"]))
+    rationale_subject = spec.get("name", spec["id"]) if entity == "entity_type" else spec["id"]
+    spec.setdefault("rationale", _default_rationale(entity, rationale_subject))
     if entity == "state_machine":
         spec.setdefault("context", {})
         spec.setdefault("data_loaders", {})
@@ -365,10 +367,11 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
         kind, body = _one_fact(spec, f"Fact {spec['id']}")
         return {kind: body, "rationale": spec["rationale"]}
 
-    if entity == "model":
+    if entity == "entity_type":
         item = {
+            "name": spec["name"],
             "fields": normalize_field_map(spec["fields"]),
-            "lifecycle": spec.get("lifecycle"),
+            "entity_lifecycle": spec.get("entity_lifecycle"),
             "rationale": spec["rationale"],
         }
         return item
@@ -429,8 +432,8 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             "transitions": spec.get("transitions", []),
             "rationale": spec["rationale"],
         }
-        if "model" in spec:
-            state_machine["model"] = spec["model"]
+        if "entity_type" in spec:
+            state_machine["entity_type"] = spec["entity_type"]
         if "archetype" in spec:
             state_machine["archetype"] = spec["archetype"]
         return state_machine
@@ -556,37 +559,37 @@ def audit_cases(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return cases
 
 
-def _derive_application_action_transitions(contract: dict[str, Any]) -> None:
-    """Derive transition application action details from model lifecycle declarations.
+def _derive_application_action_lifecycle_transitions(contract: dict[str, Any]) -> None:
+    """Derive lifecycle-transition action details from entity_lifecycle declarations.
 
     Authored sources should not have to repeat the same state transition in both
-    the model lifecycle and the application_action. The compiled contract remains
+    the entity_lifecycle and the application_action. The compiled contract remains
     explicit for downstream projections and validators.
     """
     by_application_action: dict[str, dict[str, Any]] = {}
-    for model_id, model in contract.get("models", {}).items():
-        lifecycle = model.get("lifecycle")
-        if not lifecycle:
+    for entity_type_ref, entity_type in contract.get("entity_types", {}).items():
+        entity_lifecycle = entity_type.get("entity_lifecycle")
+        if not entity_lifecycle:
             continue
-        field = lifecycle["field"]
-        for transition in lifecycle.get("transitions", []):
-            application_action_id = transition["triggered_by"]
+        field = entity_lifecycle["field"]
+        for lifecycle_transition in entity_lifecycle.get("lifecycle_transitions", []):
+            application_action_id = lifecycle_transition["triggered_by"]
             if application_action_id in by_application_action:
                 raise ContractError(f"Application action {application_action_id} is used by multiple lifecycle transitions")
             by_application_action[application_action_id] = {
-                "model": model_id,
+                "entity_type": entity_type_ref,
                 "field": field,
-                "from": transition["from"],
-                "to": transition["to"],
+                "from": lifecycle_transition["from"],
+                "to": lifecycle_transition["to"],
             }
 
     for application_action_id, application_action in contract.get("application_actions", {}).items():
-        if application_action.get("action_kind") != "transition" or "transition" in application_action:
+        if application_action.get("action_kind") != "lifecycle_transition" or "lifecycle_transition" in application_action:
             continue
         derived = by_application_action.get(application_action_id)
         if not derived:
             continue
-        application_action["transition"] = derived
+        application_action["lifecycle_transition"] = derived
 
 
 def _derive_domain_events(contract: dict[str, Any]) -> dict[str, Any]:
@@ -767,7 +770,7 @@ def _semantic_validate(contract: dict[str, Any], used_facts: set[str]) -> None:
     _validate_content_cases(contract)
     _validate_render_profiles(contract)
     _validate_data_contracts(contract)
-    _validate_models(contract)
+    _validate_entity_types(contract)
     _validate_type_references(contract)
     _validate_application_actions(contract)
     _validate_entry_point_delegation_graph(contract)
@@ -887,7 +890,7 @@ def _validate_audit_cases(contract: dict[str, Any]) -> None:
         state_name = case["view_state"]
         state_machine = contract["state_machines"][state_machine_id]
         state = state_machine["view_states"][state_name]
-        model = state_machine.get("model")
+        entity_type = state_machine.get("entity_type")
         if not _view_state_renderers(state):
             raise ContractError(f"Render audit case {case_id} references view state {state_machine_id}.{state_name} with no visual renderer")
         for fixture_id in case.get("seed_fixtures", []):
@@ -898,8 +901,8 @@ def _validate_audit_cases(contract: dict[str, Any]) -> None:
         for fact_use in case.get("fact_refs", []):
             fact_id = fact_use["ref"]
             _validate_fixture_templates(contract["facts"][fact_id], fixture_values, f"render audit case {case_id} fact {fact_id}")
-        if model and state.get("fields") and not set(state.get("fields", [])) <= set(state_machine.get("context", {})) and not _setup_has_model(contract, case.get("seed_fixtures", []), case.get("fact_refs", []), model):
-            raise ContractError(f"Render audit case {case_id} renders fields for {state_machine_id}.{state_name} but does not include a {model} fixture or fact")
+        if entity_type and state.get("fields") and not set(state.get("fields", [])) <= set(state_machine.get("context", {})) and not _setup_has_entity_type(contract, case.get("seed_fixtures", []), case.get("fact_refs", []), entity_type):
+            raise ContractError(f"Render audit case {case_id} renders fields for {state_machine_id}.{state_name} but does not include a {entity_type} fixture or fact")
         if state.get("child_state_machines"):
             mounted_instances = {mount["id"]: mount for mount in state["child_state_machines"]}
             expected_instances = case.get("instances")
@@ -912,9 +915,9 @@ def _validate_audit_cases(contract: dict[str, Any]) -> None:
                 if expected["view_state"] not in contract["state_machines"][child_state_machine_id]["view_states"]:
                     raise ContractError(f"Render audit case {case_id} references unknown state machine view state {child_state_machine_id}.{expected['view_state']}")
                 selected_state = contract["state_machines"][child_state_machine_id]["view_states"][expected["view_state"]]
-                child_model = contract["state_machines"][child_state_machine_id].get("model")
+                child_model = contract["state_machines"][child_state_machine_id].get("entity_type")
                 child_context = set(contract["state_machines"][child_state_machine_id].get("context", {}))
-                if child_model and selected_state.get("fields") and not set(selected_state.get("fields", [])) <= child_context and not _setup_has_model(contract, case.get("seed_fixtures", []), case.get("fact_refs", []), child_model):
+                if child_model and selected_state.get("fields") and not set(selected_state.get("fields", [])) <= child_context and not _setup_has_entity_type(contract, case.get("seed_fixtures", []), case.get("fact_refs", []), child_model):
                     raise ContractError(f"Render audit case {case_id} renders fields for {child_state_machine_id}.{expected['view_state']} but does not include a {child_model} fixture or fact")
             covered_composable_states.add((state_machine_id, state_name))
     missing_composed = sorted(f"{state_machine_id}.{state_name}" for state_machine_id, state_name in composable_states - covered_composable_states)
@@ -935,31 +938,31 @@ def _view_state_renderers(state: dict[str, Any]) -> set[str]:
 
 def _validate_state_machine_view_state_fixture_coverage(contract: dict[str, Any]) -> None:
     for state_machine_id, state_machine in contract.get("state_machines", {}).items():
-        model = state_machine.get("model")
+        entity_type = state_machine.get("entity_type")
         for state_name, state in state_machine.get("view_states", {}).items():
-            if model and state.get("fields") and not set(state.get("fields", [])) <= set(state_machine.get("context", {})) and not _setup_has_model(contract, list(contract.get("fixtures", {})), _all_fact_uses(contract), model):
-                raise ContractError(f"Rendered fields for {state_machine_id}.{state_name} require at least one {model} fixture or fact")
+            if entity_type and state.get("fields") and not set(state.get("fields", [])) <= set(state_machine.get("context", {})) and not _setup_has_entity_type(contract, list(contract.get("fixtures", {})), _all_fact_uses(contract), entity_type):
+                raise ContractError(f"Rendered fields for {state_machine_id}.{state_name} require at least one {entity_type} fixture or fact")
 
 
-def _setup_has_model(contract: dict[str, Any], fixture_ids: list[str], fact_uses: list[dict[str, str]], model_id: str) -> bool:
-    return _fixtures_include_model(contract, fixture_ids, model_id) or _fact_uses_include_model(contract, fact_uses, model_id)
+def _setup_has_entity_type(contract: dict[str, Any], fixture_ids: list[str], fact_uses: list[dict[str, str]], entity_type_id: str) -> bool:
+    return _fixtures_include_entity_type(contract, fixture_ids, entity_type_id) or _fact_uses_include_entity_type(contract, fact_uses, entity_type_id)
 
 
-def _fixtures_include_model(contract: dict[str, Any], fixture_ids: list[str], model_id: str) -> bool:
+def _fixtures_include_entity_type(contract: dict[str, Any], fixture_ids: list[str], entity_type_id: str) -> bool:
     for fixture_id in fixture_ids:
-        if fixture_id in contract.get("fixtures", {}) and _value_contains_model(contract["fixtures"][fixture_id]["values"], model_id):
+        if fixture_id in contract.get("fixtures", {}) and _value_contains_entity_type(contract["fixtures"][fixture_id]["values"], entity_type_id):
             return True
     return False
 
 
-def _fact_uses_include_model(contract: dict[str, Any], fact_uses: list[dict[str, str]], model_id: str) -> bool:
+def _fact_uses_include_entity_type(contract: dict[str, Any], fact_uses: list[dict[str, str]], entity_type_id: str) -> bool:
     for fact_use in fact_uses:
         fact_id = fact_use["ref"]
         fact = contract["facts"].get(fact_id)
         if not fact:
             continue
         kind, body = _one_fact(fact, f"Fact {fact_id}")
-        if kind == "present" and body["model"] == model_id:
+        if kind == "present" and body["entity_type"] == entity_type_id:
             return True
     return False
 
@@ -968,32 +971,37 @@ def _all_fact_uses(contract: dict[str, Any]) -> list[dict[str, str]]:
     return [{"ref": fact_id} for fact_id in contract.get("facts", {})]
 
 
-def _value_contains_model(value: Any, model_id: str) -> bool:
+def _value_contains_entity_type(value: Any, entity_type_id: str) -> bool:
     if isinstance(value, dict):
-        if value.get("model") == model_id:
+        if value.get("entity_type") == entity_type_id:
             return True
-        return any(_value_contains_model(child, model_id) for child in value.values())
+        return any(_value_contains_entity_type(child, entity_type_id) for child in value.values())
     if isinstance(value, list):
-        return any(_value_contains_model(item, model_id) for item in value)
+        return any(_value_contains_entity_type(item, entity_type_id) for item in value)
     return False
 
 
-def _validate_models(contract: dict[str, Any]) -> None:
-    for rid, model in contract["models"].items():
-        lifecycle = model.get("lifecycle")
-        if not lifecycle:
+def _validate_entity_types(contract: dict[str, Any]) -> None:
+    for rid, entity_type in contract["entity_types"].items():
+        if not rid.startswith("entity_type."):
+            raise ContractError(f"Entity type id must start with entity_type.: {rid}")
+        expected_name = entity_type_display_name(rid)
+        if entity_type["name"] != expected_name:
+            raise ContractError(f"Entity type {rid} name must be {expected_name}")
+        entity_lifecycle = entity_type.get("entity_lifecycle")
+        if not entity_lifecycle:
             continue
-        if lifecycle["field"] not in model["fields"]:
-            raise ContractError(f"Model {rid} lifecycle field is not a field: {lifecycle['field']}")
-        states = set(lifecycle["states"])
-        if lifecycle["initial"] not in states:
-            raise ContractError(f"Model {rid} lifecycle initial state is not declared: {lifecycle['initial']}")
-        for transition in lifecycle.get("transitions", []):
-            if transition["from"] not in states or transition["to"] not in states:
-                raise ContractError(f"Model {rid} lifecycle transition uses unknown state: {transition}")
-            if transition["triggered_by"] not in contract["application_actions"]:
+        if entity_lifecycle["field"] not in entity_type["fields"]:
+            raise ContractError(f"Entity type {rid} entity_lifecycle field is not a field: {entity_lifecycle['field']}")
+        states = set(entity_lifecycle["lifecycle_states"])
+        if entity_lifecycle["initial_state"] not in states:
+            raise ContractError(f"Entity type {rid} initial lifecycle_state is not declared: {entity_lifecycle['initial_state']}")
+        for lifecycle_transition in entity_lifecycle.get("lifecycle_transitions", []):
+            if lifecycle_transition["from"] not in states or lifecycle_transition["to"] not in states:
+                raise ContractError(f"Entity type {rid} lifecycle_transition uses unknown lifecycle_state: {lifecycle_transition}")
+            if lifecycle_transition["triggered_by"] not in contract["application_actions"]:
                 raise ContractError(
-                    f"Model {rid} lifecycle transition references unknown application action {transition['triggered_by']}"
+                    f"Entity type {rid} lifecycle_transition references unknown application action {lifecycle_transition['triggered_by']}"
                 )
 
 
@@ -1006,9 +1014,9 @@ def _validate_data_contracts(contract: dict[str, Any]) -> None:
 
 
 def _validate_type_references(contract: dict[str, Any]) -> None:
-    for model_id, model in contract.get("models", {}).items():
-        for field_name, field in model.get("fields", {}).items():
-            _validate_type_reference(contract, f"Model {model_id}.{field_name}", field["type"])
+    for entity_type_id, entity_type in contract.get("entity_types", {}).items():
+        for field_name, field in entity_type.get("fields", {}).items():
+            _validate_type_reference(contract, f"Entity type {entity_type_id}.{field_name}", field["type"])
     for data_contract_id, data_contract in contract.get("data_contracts", {}).items():
         for field_name, field in data_contract.get("fields", {}).items():
             _validate_type_reference(contract, f"Data contract {data_contract_id}.{field_name}", field["type"])
@@ -1027,9 +1035,9 @@ def _validate_type_references(contract: dict[str, Any]) -> None:
 def _validate_type_reference(contract: dict[str, Any], label: str, expr: Any) -> None:
     normalized = normalize_type_expr(expr)
     kind, value = next(iter(normalized.items()))
-    if kind == "model":
-        if value not in contract["models"]:
-            raise ContractError(f"{label} references unknown model {value}")
+    if kind == "entity_type":
+        if value not in contract["entity_types"]:
+            raise ContractError(f"{label} references unknown entity_type {value}")
         return
     if kind == "data_contract":
         if value not in contract.get("data_contracts", {}):
@@ -1044,82 +1052,82 @@ def _validate_type_reference(contract: dict[str, Any], label: str, expr: Any) ->
 
 
 def _validate_application_actions(contract: dict[str, Any]) -> None:
-    models = contract["models"]
+    entity_types = contract["entity_types"]
     application_actions = contract["application_actions"]
     for cid, cap in application_actions.items():
-        _validate_application_action_relationships(cid, cap, models)
+        _validate_application_action_relationships(cid, cap, entity_types)
         _validate_action_authorization_outcomes(cid, cap)
-        transition = cap.get("transition")
-        if transition:
-            model_id = transition["model"]
-            lifecycle = models[model_id].get("lifecycle")
-            if not lifecycle:
-                raise ContractError(f"Application action {cid} declares transition but {model_id} has no lifecycle")
-            if transition["field"] != lifecycle["field"]:
-                raise ContractError(f"Application action {cid} transition field does not match model lifecycle")
-            if transition["from"] not in lifecycle["states"] or transition["to"] not in lifecycle["states"]:
-                raise ContractError(f"Application action {cid} transition references unknown lifecycle state")
-    for rid, model in models.items():
-        lifecycle = model.get("lifecycle")
-        if not lifecycle:
+        lifecycle_transition = cap.get("lifecycle_transition")
+        if lifecycle_transition:
+            entity_type_ref = lifecycle_transition["entity_type"]
+            entity_lifecycle = entity_types[entity_type_ref].get("entity_lifecycle")
+            if not entity_lifecycle:
+                raise ContractError(f"Application action {cid} declares lifecycle_transition but {entity_type_ref} has no entity_lifecycle")
+            if lifecycle_transition["field"] != entity_lifecycle["field"]:
+                raise ContractError(f"Application action {cid} lifecycle_transition field does not match entity_lifecycle")
+            if lifecycle_transition["from"] not in entity_lifecycle["lifecycle_states"] or lifecycle_transition["to"] not in entity_lifecycle["lifecycle_states"]:
+                raise ContractError(f"Application action {cid} lifecycle_transition references unknown lifecycle_state")
+    for rid, entity_type in entity_types.items():
+        entity_lifecycle = entity_type.get("entity_lifecycle")
+        if not entity_lifecycle:
             continue
-        for transition in lifecycle.get("transitions", []):
-            triggered_by = transition["triggered_by"]
+        for lifecycle_transition in entity_lifecycle.get("lifecycle_transitions", []):
+            triggered_by = lifecycle_transition["triggered_by"]
             operation = application_actions[triggered_by]
-            if operation["action_kind"] != "transition":
+            if operation["action_kind"] != "lifecycle_transition":
                 raise ContractError(
-                    f"Model {rid} lifecycle transition {triggered_by} must reference a transition application action"
+                    f"Entity type {rid} lifecycle_transition {triggered_by} must reference a lifecycle_transition application action"
                 )
-            invalid_state = operation["outcomes"].get("invalid_state")
-            if not invalid_state or invalid_state["kind"] != "failure":
+            transition_not_allowed = operation["outcomes"].get("transition_not_allowed")
+            if not transition_not_allowed or transition_not_allowed["kind"] != "failure":
                 raise ContractError(
-                    f"Transition application action {triggered_by} referenced by model lifecycle must declare invalid_state failure outcome"
+                    f"Lifecycle-transition application action {triggered_by} referenced by entity_lifecycle must declare transition_not_allowed failure outcome"
                 )
-            cap_transition = operation.get("transition")
+            cap_transition = operation.get("lifecycle_transition")
             if not cap_transition:
-                raise ContractError(f"Transition application action {triggered_by} must be referenced by model lifecycle declarations")
+                raise ContractError(f"Lifecycle-transition application action {triggered_by} must be referenced by entity_lifecycle declarations")
             if (
-                cap_transition["model"] != rid
-                or cap_transition["from"] != transition["from"]
-                or cap_transition["to"] != transition["to"]
+                cap_transition["entity_type"] != rid
+                or cap_transition["from"] != lifecycle_transition["from"]
+                or cap_transition["to"] != lifecycle_transition["to"]
             ):
-                raise ContractError(f"Model {rid} lifecycle and application action {triggered_by} disagree")
+                raise ContractError(f"Entity type {rid} entity_lifecycle and application action {triggered_by} disagree")
     for event_id, event in contract["domain_events"].items():
         for cap_id in event["emitted_by"]:
             if cap_id not in application_actions:
                 raise ContractError(f"Domain event {event_id} emitted by unknown application action {cap_id}")
 
 
-def _validate_application_action_relationships(cid: str, cap: dict[str, Any], models: dict[str, Any]) -> None:
+def _validate_application_action_relationships(cid: str, cap: dict[str, Any], entity_types: dict[str, Any]) -> None:
     _validate_action_outcomes(cid, cap)
     for field in ["creates", "reads", "updates", "deletes"]:
-        for model_id in cap.get(field, []):
-            if model_id not in models:
-                raise ContractError(f"Application action {cid} {field} unknown model {model_id}")
+        for entity_type_id in cap.get(field, []):
+            if entity_type_id not in entity_types:
+                raise ContractError(f"Application action {cid} {field} unknown entity_type {entity_type_id}")
 
-    if "transition" in cap:
-        model_id = cap["transition"]["model"]
-        if model_id not in models:
-            raise ContractError(f"Application action {cid} transition references unknown model {model_id}")
+    if "lifecycle_transition" in cap:
+        entity_type_ref = cap["lifecycle_transition"]["entity_type"]
+        if entity_type_ref not in entity_types:
+            raise ContractError(f"Application action {cid} lifecycle_transition references unknown entity_type {entity_type_ref}")
 
     action_kind = cap["action_kind"]
     if action_kind == "query":
         _require_relationship(cid, cap, "reads")
         _reject_non_empty_relationships(cid, cap, {"creates", "updates", "deletes"})
-        if "transition" in cap:
-            raise ContractError(f"Query application action {cid} must not declare transition")
+        if "lifecycle_transition" in cap:
+            raise ContractError(f"Query application action {cid} must not declare lifecycle_transition")
         emitting_outcomes = sorted(outcome_id for outcome_id, outcome in cap["outcomes"].items() if outcome.get("emits"))
         if emitting_outcomes:
             raise ContractError(f"Query application action {cid} must not emit domain events: {emitting_outcomes}")
         _validate_query_success_result(cid, cap)
     elif action_kind == "command":
-        if "transition" in cap:
-            raise ContractError(f"Only transition application_actions may declare transition: {cid}")
-    elif action_kind == "transition":
-        if "transition" not in cap:
-            raise ContractError(f"Transition application action {cid} must be referenced by model lifecycle declarations")
+        if "lifecycle_transition" in cap:
+            raise ContractError(f"Only lifecycle_transition application_actions may declare lifecycle_transition: {cid}")
+    elif action_kind == "lifecycle_transition":
+        if "lifecycle_transition" not in cap:
+            raise ContractError(f"Lifecycle-transition application action {cid} must be referenced by entity_lifecycle declarations")
         _reject_non_empty_relationships(cid, cap, {"creates", "reads", "updates", "deletes"})
-        _require_output_model(cid, cap, cap["transition"]["model"])
+        _require_output_entity_type(cid, cap, cap["lifecycle_transition"]["entity_type"])
     else:  # pragma: no cover - schema prevents this.
         raise ContractError(f"Unsupported action_kind {action_kind}: {cid}")
 
@@ -1142,22 +1150,22 @@ def _reject_non_empty_relationships(cid: str, cap: dict[str, Any], fields: set[s
         raise ContractError(f"Application action {cid} action_kind {cap['action_kind']} does not support effects: {extras}")
 
 
-def _require_output_model(cid: str, cap: dict[str, Any], model_id: str) -> None:
-    if model_name(_success_result_type(cap)) != model_id:
-        raise ContractError(f"Application action {cid} success outcome result must be {model_id}")
+def _require_output_entity_type(cid: str, cap: dict[str, Any], expected_entity_type: str) -> None:
+    if entity_type_id(_success_result_type(cap)) != expected_entity_type:
+        raise ContractError(f"Application action {cid} success outcome result must be {expected_entity_type}")
 
 
 def _validate_query_success_result(cid: str, cap: dict[str, Any]) -> None:
     reads = cap.get("reads", [])
     if len(reads) != 1:
         return
-    expected_model = reads[0]
+    expected_entity_type = reads[0]
     result_type = _success_result_type(cap)
-    if model_name(result_type) == expected_model or is_array_of_model(result_type, expected_model):
+    if entity_type_id(result_type) == expected_entity_type or is_array_of_entity_type(result_type, expected_entity_type):
         return
     raise ContractError(
-        f"Application action {cid} query success outcome result must be {expected_model} "
-        f"or {type_display(array_of({'model': expected_model}))}"
+        f"Application action {cid} query success outcome result must be {expected_entity_type} "
+        f"or {type_display(array_of({'entity_type': expected_entity_type}))}"
     )
 
 
@@ -1239,8 +1247,8 @@ def _validate_authorization_policies(contract: dict[str, Any]) -> None:
     for policy_id, policy in authorization_policies.items():
         for target in policy["targets"]:
             kind, ref = _one(target, f"Authorization policy {policy_id} target")
-            if kind == "model" and ref not in contract["models"]:
-                raise ContractError(f"Authorization policy {policy_id} target references unknown model {ref}")
+            if kind == "entity_type" and ref not in contract["entity_types"]:
+                raise ContractError(f"Authorization policy {policy_id} target references unknown entity_type {ref}")
             if kind == "application_action" and ref not in application_actions:
                 raise ContractError(f"Authorization policy {policy_id} target references unknown application action {ref}")
             if kind == "entry_point" and ref not in entry_points:
@@ -1249,12 +1257,12 @@ def _validate_authorization_policies(contract: dict[str, Any]) -> None:
             kind, body = _one(condition, f"Authorization policy {policy_id} condition")
             if kind in {"unconditional", "input_present", "subject_has_role", "value_equals"}:
                 continue
-            if kind in {"model_exists", "model_state"}:
-                model_id = body["model"]
-                if model_id not in contract["models"]:
-                    raise ContractError(f"Authorization policy {policy_id} condition references unknown model {model_id}")
-                if kind == "model_state" and body["field"] not in contract["models"][model_id]["fields"]:
-                    raise ContractError(f"Authorization policy {policy_id} condition references unknown {model_id} field {body['field']}")
+            if kind in {"entity_exists", "entity_lifecycle_state"}:
+                entity_type_id = body["entity_type"]
+                if entity_type_id not in contract["entity_types"]:
+                    raise ContractError(f"Authorization policy {policy_id} condition references unknown entity_type {entity_type_id}")
+                if kind == "entity_lifecycle_state" and body["field"] not in contract["entity_types"][entity_type_id]["fields"]:
+                    raise ContractError(f"Authorization policy {policy_id} condition references unknown {entity_type_id} field {body['field']}")
                 continue
             raise ContractError(f"Authorization policy {policy_id} condition is unsupported: {kind}")
 
@@ -1341,21 +1349,21 @@ def _validate_state_machines(contract: dict[str, Any]) -> None:
     for state_machine_id, state_machine in contract["state_machines"].items():
         if not state_machine_id.startswith("state_machine."):
             raise ContractError(f"state machine id must start with state_machine.: {state_machine_id}")
-        model = state_machine.get("model")
-        if model and model not in contract["models"]:
-            raise ContractError(f"state machine {state_machine_id} references unknown model {model}")
+        entity_type = state_machine.get("entity_type")
+        if entity_type and entity_type not in contract["entity_types"]:
+            raise ContractError(f"state machine {state_machine_id} references unknown entity_type {entity_type}")
         _validate_data_loaders(
             contract,
             f"state machine {state_machine_id}",
             state_machine,
             state_machine.get("data_loaders", {}),
             scope="state_machine",
-            model=model,
+            entity_type=entity_type,
         )
         if state_machine["initial_view_state"] not in state_machine["view_states"]:
             raise ContractError(f"state machine {state_machine_id} initial view state is not declared: {state_machine['initial_view_state']}")
-        model_fields = set(contract["models"][model]["fields"]) if model else set()
-        field_names = model_fields | set(state_machine.get("context", {}))
+        entity_type_fields = set(contract["entity_types"][entity_type]["fields"]) if entity_type else set()
+        field_names = entity_type_fields | set(state_machine.get("context", {}))
         for state_name, state in state_machine["view_states"].items():
             _validate_state_machine_view_state(
                 contract,
@@ -1365,7 +1373,7 @@ def _validate_state_machines(contract: dict[str, Any]) -> None:
                 state,
                 field_names=field_names,
                 data_context=state_machine.get("context", {}),
-                model=model,
+                entity_type=entity_type,
             )
             if state.get("child_state_machines") or state.get("renderers") or state.get("signal_sync_rules"):
                 _validate_state_composition(contract, state_machine_id, state_machine, state_name, state)
@@ -1392,7 +1400,7 @@ def _validate_state_machine_view_state(
     state: dict[str, Any],
     field_names: set[str],
     data_context: dict[str, Any] | None = None,
-    model: str | None = None,
+    entity_type: str | None = None,
 ) -> None:
     _validate_data_loaders(
         contract,
@@ -1400,12 +1408,12 @@ def _validate_state_machine_view_state(
         state_machine,
         state.get("data_loaders", {}),
         scope="view_state",
-        model=model,
+        entity_type=entity_type,
         view_state=state,
     )
     for field in state.get("fields", []):
         if field not in field_names:
-            raise ContractError(f"{owner_label}.{state_name} field slot is not declared on the model/context: {field}")
+            raise ContractError(f"{owner_label}.{state_name} field slot is not declared on the entity_type/context: {field}")
     _validate_action_bindings(contract, owner_label, state_machine, state_name, state)
     _validate_presentation(contract, owner_label, field_names, state_name, state)
 
@@ -1503,7 +1511,7 @@ def _validate_action_binding_outcome_effects(
 
 def _lint_mutation_loaded_signal(label: str, application_action: dict[str, Any], signal: dict[str, Any], effect: dict[str, Any]) -> None:
     data_refresh_signal = signal.get("data_refresh_signal")
-    if application_action.get("action_kind") not in {"command", "transition"} or not data_refresh_signal:
+    if application_action.get("action_kind") not in {"command", "lifecycle_transition"} or not data_refresh_signal:
         return
     if data_refresh_signal == "loaded" or data_refresh_signal.endswith("_loaded"):
         has_loaded_payload = bool(signal.get("payload_bindings")) or "result_binding" in effect or "context_updates" in effect
@@ -1622,7 +1630,7 @@ def _validate_data_loaders(
     invocations: dict[str, Any],
     *,
     scope: str,
-    model: str | None = None,
+    entity_type: str | None = None,
     view_state: dict[str, Any] | None = None,
 ) -> None:
     context = state_machine.get("context", {})
@@ -1641,8 +1649,8 @@ def _validate_data_loaders(
         if application_action["action_kind"] != "query":
             raise ContractError(f"{label} application action must have action_kind: query")
         if application_action.get("creates") or application_action.get("updates") or application_action.get("deletes"):
-            raise ContractError(f"{label} query application action must not create, update, or delete models")
-        if application_action.get("transition"):
+            raise ContractError(f"{label} query application action must not create, update, or delete entity_types")
+        if application_action.get("lifecycle_transition"):
             raise ContractError(f"{label} query application action must not be a lifecycle transition")
         emitting_outcomes = sorted(
             outcome_id
@@ -1651,8 +1659,8 @@ def _validate_data_loaders(
         )
         if emitting_outcomes:
             raise ContractError(f"{label} query application action outcomes must not emit durable domain events: {emitting_outcomes}")
-        if model and model not in application_action.get("reads", []):
-            raise ContractError(f"{label} application action must read model {model}")
+        if entity_type and entity_type not in application_action.get("reads", []):
+            raise ContractError(f"{label} application action must read entity_type {entity_type}")
         _validate_runtime_binding_map(
             contract,
             f"{label} input_bindings",
@@ -2384,7 +2392,7 @@ def _validate_expression_type(
 
 
 def _effective_type(type_name: Any) -> Any:
-    if isinstance(type_name, dict) and len(type_name) == 1 and next(iter(type_name)) in {"primitive", "model", "data_contract", "array", "map", "nullable", "enum", "object"}:
+    if isinstance(type_name, dict) and len(type_name) == 1 and next(iter(type_name)) in {"primitive", "entity_type", "data_contract", "array", "map", "nullable", "enum", "object"}:
         return normalize_type_expr(type_name)
     if isinstance(type_name, dict) and "type" in type_name and isinstance(type_name["type"], dict) and "nullable" in type_name["type"]:
         return normalize_type_expr(type_name["type"])
@@ -2444,7 +2452,7 @@ def _literal_value_compatible(value: Any, expected_type: Any) -> bool:
         return isinstance(value, str) and value in body
     if kind == "array":
         return isinstance(value, list)
-    if kind in {"map", "object", "model", "data_contract"}:
+    if kind in {"map", "object", "entity_type", "data_contract"}:
         return isinstance(value, dict)
     return False
 
@@ -3655,7 +3663,7 @@ def _entry_input_source_types(contract: dict[str, Any], entry: dict[str, Any]) -
 
 
 def _base_type(type_name: Any) -> str | None:
-    return base_model_name(type_name)
+    return base_entity_type_id(type_name)
 
 
 def _validate_problem_type(label: str, type_name: Any) -> None:
@@ -3959,18 +3967,19 @@ def _validate_test_cases(contract: dict[str, Any]) -> None:
 
 def _validate_fact_body(contract: dict[str, Any], fact: dict[str, Any], label: str) -> None:
     kind, body = _one_fact(fact, label)
-    model_id = body["model"]
-    if model_id not in contract["models"]:
-        raise ContractError(f"{label} references unknown model {model_id}")
-    fields = set(contract["models"][model_id]["fields"])
+    entity_type_id = body["entity_type"]
+    if entity_type_id not in contract["entity_types"]:
+        raise ContractError(f"{label} references unknown entity_type {entity_type_id}")
+    entity_type_name = type_display({"entity_type": entity_type_id})
+    fields = set(contract["entity_types"][entity_type_id]["fields"])
     if kind == "present":
         unknown = set(body["values"]) - fields
         if unknown:
-            raise ContractError(f"{label} seeds unknown {model_id} fields: {sorted(unknown)}")
+            raise ContractError(f"{label} seeds unknown {entity_type_name} fields: {sorted(unknown)}")
     elif kind == "absent":
         unknown = set(body["where"]) - fields
         if unknown:
-            raise ContractError(f"{label} filters unknown {model_id} fields: {sorted(unknown)}")
+            raise ContractError(f"{label} filters unknown {entity_type_name} fields: {sorted(unknown)}")
     else:  # pragma: no cover - schema prevents this.
         raise ContractError(f"{label} uses unsupported fact kind {kind}")
 
@@ -4211,14 +4220,15 @@ def _validate_test_case_then(contract: dict[str, Any], test_case_id: str, test_c
             authorization_policy = assertion.get("authorization_policy")
             if authorization_policy and authorization_policy not in contract["authorization_policies"]:
                 raise ContractError(f"Test case {test_case_id} authorization_policy.{effect} unknown authorization_policy {authorization_policy}")
-    model_exists = (then.get("model") or {}).get("exists")
-    if model_exists:
-        model_id = model_exists["model"]
-        if model_id not in contract["models"]:
-            raise ContractError(f"Test case {test_case_id} asserts unknown model {model_id}")
-        unknown_fields = sorted(set(model_exists["where"]) - set(contract["models"][model_id]["fields"]))
+    entity_exists = (then.get("entity") or {}).get("exists")
+    if entity_exists:
+        entity_type_id = entity_exists["entity_type"]
+        if entity_type_id not in contract["entity_types"]:
+            raise ContractError(f"Test case {test_case_id} asserts unknown entity_type {entity_type_id}")
+        unknown_fields = sorted(set(entity_exists["where"]) - set(contract["entity_types"][entity_type_id]["fields"]))
         if unknown_fields:
-            raise ContractError(f"Test case {test_case_id} model.exists filters unknown {model_id} fields: {unknown_fields}")
+            entity_type_name = type_display({"entity_type": entity_type_id})
+            raise ContractError(f"Test case {test_case_id} entity.exists filters unknown {entity_type_name} fields: {unknown_fields}")
     domain_events = then.get("domain_events") or {}
     emitted = set(domain_events.get("emitted", []))
     not_emitted = set(domain_events.get("not_emitted", []))

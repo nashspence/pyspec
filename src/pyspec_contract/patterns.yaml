@@ -2,7 +2,7 @@ authoring_layers:
   rule: Layers constrain authored spec vocabulary only. They are never written into spec/generated/compiled/spec.yaml and never imply absent adapters are planned.
   layers:
     core:
-      targets: [fixture, model, data_contract, operation, test_case]
+      targets: [fixture, entity_type, data_contract, operation, test_case]
       projections: [spec/generated/agent_prompts, spec/generated/behavior/fixtures.yaml, spec/generated/behavior/test_cases.yaml, spec/generated/test_adapters/pytest_bdd_features, spec/generated/test_adapters/python_refs.py]
     http:
       opens: [entry_point.adapter.http_api]
@@ -38,7 +38,7 @@ authoring_layers:
 
 purity_rules:
   test_cases: Do not include harness, test, dev, or environment dispatch. The same generated feature corpus is consumed by both spec and prod harnesses.
-  models: Do not include persistence dialects, SQL tables, ORM details, datastore engines, indexes, or migrations. Models are product/design data contracts only.
+  entity_types: Do not include persistence dialects, SQL tables, ORM details, datastore engines, indexes, or migrations. Entity types are product/design data contracts only.
   generated: Do not edit generated projections or audit renders by hand.
   agent_prompts: Use spec/generated/agent_prompts/{pm_design,test,dev,review}.md as role-specific standalone prompts; each contains a {{USER_PROMPT}} substitution point.
 
@@ -57,10 +57,10 @@ test_case_archetypes:
     then: [state_machine.instances, state_machine.context, state_machine.signal_sync_rules.observed_rules]
   action_outcome:
     when: invoke_application_action
-    then: [outcome, model.exists, domain_events.emitted, invoked]
+    then: [outcome, entity.exists, domain_events.emitted, invoked]
   entry_point_response:
     when: call_entry_point
-    then: [outcome, response.status, model.exists, domain_events.emitted, invoked]
+    then: [outcome, response.status, entity.exists, domain_events.emitted, invoked]
   workflow_trigger_success:
     when: emit_domain_event
     then: [workflow.executed, workflow.outcome, invoked]

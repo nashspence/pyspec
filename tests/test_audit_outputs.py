@@ -102,9 +102,9 @@ def test_audit_coverage_index_maps_compiled_paths_to_evidence() -> None:
     assert "spec/generated/audit_evidence/application_actions/application_action_project_send_approval_notice/flow.svg" in visual_evidence_sets[notice_result_set]
     assert "spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg" in visual_evidence_sets[notice_result_set]
     assert "/data_contracts/data_contract.project.notice_result/fields/notice_id/type/primitive" not in text_witnesses
-    lifecycle_set = index["visual_audit"]["required"]["covered"]["/models/Project/lifecycle/transitions/1/triggered_by"]
+    lifecycle_set = index["visual_audit"]["required"]["covered"]["/entity_types/entity_type.project/entity_lifecycle/lifecycle_transitions/1/triggered_by"]
     assert "spec/generated/audit_evidence/application_actions/application_action_project_approve/flow.svg" in visual_evidence_sets[lifecycle_set]
-    assert "/models/Project/lifecycle/transitions/1/triggered_by" not in text_witnesses
+    assert "/entity_types/entity_type.project/entity_lifecycle/lifecycle_transitions/1/triggered_by" not in text_witnesses
     renderer_set = index["visual_audit"]["required"]["covered"]["/state_machines/state_machine.project.board/view_states/ready/renderers/html/layout/regions/aside/classes/0"]
     assert any(path.endswith(".screenshot.png") for path in visual_evidence_sets[renderer_set])
     assert index["render_presence"]["assets"]["not_rendered"] == []
@@ -214,7 +214,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert state_machine.count("list_projects") >= 5
     assert "<B>authorization_policies:</B>&#160;&#160;application_action.project.create:" in state_machine
     assert "authorization_policy.project.member" in state_machine
-    assert "<B>model:</B>" not in state_machine
+    assert "<B>entity_type:</B>" not in state_machine
     assert "<B>context:</B>" not in state_machine
     assert "$local_signal." not in state_machine
     assert "$domain_event." not in state_machine
@@ -242,12 +242,12 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert '"application_action_application_action_project_approve" [shape=' not in operation
     assert "transition application action" not in operation
     assert operation.index('"application_action_input_application_action_project_approve"') < operation.index('"application_action_policy_authorization_policy_project_reviewer"')
-    assert operation.index('"application_action_policy_authorization_policy_project_reviewer"') < operation.index('"application_action_resource_application_action_project_approve_transition_Project_status"')
-    assert operation.index('"application_action_resource_application_action_project_approve_transition_Project_status"') < operation.index('"action_outcome_application_action_project_approve_approved"')
+    assert operation.index('"application_action_policy_authorization_policy_project_reviewer"') < operation.index('"application_action_resource_application_action_project_approve_lifecycle_transition_entity_type_project_status"')
+    assert operation.index('"application_action_resource_application_action_project_approve_lifecycle_transition_entity_type_project_status"') < operation.index('"action_outcome_application_action_project_approve_approved"')
     assert operation.index('"action_outcome_application_action_project_approve_approved"') < operation.index('"application_action_event_application_action_project_approve_domain_event_project_approved"')
     assert '"application_action_input_application_action_project_approve" -> "application_action_policy_authorization_policy_project_reviewer" [label="authorize"' in operation
-    assert '"application_action_policy_authorization_policy_project_reviewer" -> "application_action_resource_application_action_project_approve_transition_Project_status" [label="transition"' in operation
-    assert '"application_action_resource_application_action_project_approve_transition_Project_status" -> "action_outcome_application_action_project_approve_approved" [label="success"' in operation
+    assert '"application_action_policy_authorization_policy_project_reviewer" -> "application_action_resource_application_action_project_approve_lifecycle_transition_entity_type_project_status" [label="lifecycle_transition"' in operation
+    assert '"application_action_resource_application_action_project_approve_lifecycle_transition_entity_type_project_status" -> "action_outcome_application_action_project_approve_approved" [label="success"' in operation
     assert '"action_outcome_application_action_project_approve_approved" -> "application_action_event_application_action_project_approve_domain_event_project_approved" [label="emit"' in operation
     assert "<B>authorization_policy:</B>" not in operation
     assert "<B>creates:</B>" not in create_operation
@@ -277,7 +277,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "state_machine.project.board" not in composition
     assert "dashboard state machine" not in composition
     assert "query.project.board.list" not in composition
-    assert "<B>model:</B>" not in composition
+    assert "<B>entity_type:</B>" not in composition
     assert "<B>context</B>" not in composition
     assert "$local_signal." not in composition
     assert "$domain_event." not in composition
@@ -390,7 +390,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>authorization_effect:</B>&#160;&#160;allow" not in target_card
     assert "<B>authorization_targets</B>" not in target_card
     assert "<FONT POINT-SIZE=\"10\">application_action: application_action.project.create</FONT>" not in target_card
-    assert "<FONT POINT-SIZE=\"10\">model: Project</FONT>" not in target_card
+    assert "<FONT POINT-SIZE=\"10\">entity_type: Project</FONT>" not in target_card
     assert "<B>authorization_conditions:</B>&#160;&#160;unconditional true" not in target_card
     cli_approve_target_card = cli_approve_entrypoint[cli_approve_entrypoint.index('"entrypoint_target_entry_point_api_project_approve"') : cli_approve_entrypoint.index('"entrypoint_response_entry_point_cli_project_approve_approved"')]
     assert "<B>entry_point.api.project.approve</B>" in cli_approve_entrypoint
@@ -439,7 +439,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
 def test_composition_dot_syncs_local_signals_generically() -> None:
     state_machine = {
         "archetype": "workspace",
-        "model": "generic.model",
+        "entity_type": "generic.entity_type",
         "context": {"selected_id": F(P("ID")), "workspace_id": F(P("ID"))},
         "data_loaders": {},
         "renderers": {
@@ -599,7 +599,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert 'fill="#94a3b8">\xa0\xa0enum&lt;draft|submitted|approved|archived&gt;</text>' in list_fsm
     assert "Project fields" not in list_fsm
     assert "projection:" not in list_fsm
-    assert "model:" not in list_fsm
+    assert "entity_type:" not in list_fsm
     assert "context:" not in list_fsm
     assert "&#45; data_refresh_signal.projects_loaded" not in list_fsm
     assert "&#45; text.project" not in list_fsm

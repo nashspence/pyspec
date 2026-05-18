@@ -26,8 +26,9 @@ from .targets import (
 )
 from .type_expr import (
     PRIMITIVES,
-    base_model_name,
+    base_entity_type_id,
     effective_field_type,
+    entity_type_display_name,
     object_to_json_schema,
     referenced_named_types,
     type_display,
@@ -981,17 +982,17 @@ def components_projection(contract: dict[str, Any]) -> dict[str, Any]:
     opaque: set[str] = set()
     for rid, data_contract in sorted(contract.get("data_contracts", {}).items()):
         components["schemas"][rid] = object_schema(data_contract["fields"])
-    for rid, model in sorted(contract["models"].items()):
-        components["schemas"][rid] = object_schema(model["fields"])
-        for field in model["fields"].values():
+    for rid, entity_type in sorted(contract["entity_types"].items()):
+        components["schemas"][entity_type.get("name", entity_type_display_name(rid))] = object_schema(entity_type["fields"])
+        for field in entity_type["fields"].values():
             for ref in referenced_named_types(effective_field_type(field)):
-                if ref != rid and ref not in contract["models"] and ref not in contract.get("data_contracts", {}):
+                if ref != rid and ref not in contract["entity_types"] and ref not in contract.get("data_contracts", {}):
                     opaque.add(ref)
     for cap in contract["application_actions"].values():
         outcome_types = [outcome["result"] for outcome in cap["outcomes"].values()]
         for type_name in list(cap["input"].values()) + outcome_types:
             for ref in referenced_named_types(type_name):
-                if ref not in components["schemas"] and ref not in contract["models"] and ref not in contract.get("data_contracts", {}):
+                if ref not in components["schemas"] and ref not in contract["entity_types"] and ref not in contract.get("data_contracts", {}):
                     opaque.add(ref)
     for type_name in sorted(opaque):
         components["schemas"].setdefault(type_name, {"type": "object", "additionalProperties": True})
@@ -1011,7 +1012,7 @@ def cwl_type(type_name: Any) -> str | dict[str, Any] | list[Any]:
 
 
 def base_type(type_name: Any) -> str | None:
-    return base_model_name(type_name)
+    return base_entity_type_id(type_name)
 
 
 def is_scalar(type_name: Any) -> bool:

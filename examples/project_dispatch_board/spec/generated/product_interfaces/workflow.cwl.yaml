@@ -47,9 +47,9 @@ $graph:
       type: Any
     forbidden:
       type: Any
-    invalid_state:
-      type: Any
     not_found:
+      type: Any
+    transition_not_allowed:
       type: Any
     unauthenticated:
       type: Any

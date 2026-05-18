@@ -258,36 +258,36 @@ def _state_needs_data(contract: dict[str, Any], state_machine: dict[str, Any]) -
     return any(contract["text_resources"][ref].get("args") for ref in text_refs) or any(contract["assets"][ref].get("args") for ref in asset_refs)
 
 
-def _fixture_ids_for_model(contract: dict[str, Any], model_id: str) -> set[str]:
+def _fixture_ids_for_model(contract: dict[str, Any], entity_type_id: str) -> set[str]:
     return {
         fixture_id
         for fixture_id, fixture in contract.get("fixtures", {}).items()
-        if _find_model_records(fixture.get("values", {}), model_id)
+        if _find_model_records(fixture.get("values", {}), entity_type_id)
     }
 
 
-def _fact_ids_for_model(contract: dict[str, Any], model_id: str) -> set[str]:
+def _fact_ids_for_model(contract: dict[str, Any], entity_type_id: str) -> set[str]:
     fact_ids = set()
     for fact_id, fact in contract.get("facts", {}).items():
         _, body = _fact_selector(fact, fact_id)
-        if body["model"] == model_id:
+        if body["entity_type"] == entity_type_id:
             fact_ids.add(fact_id)
     return fact_ids
 
 
-def _fixture_ids_for_facts(contract: dict[str, Any], fact_ids: Iterable[str], model_id: str) -> set[str]:
+def _fixture_ids_for_facts(contract: dict[str, Any], fact_ids: Iterable[str], entity_type_id: str) -> set[str]:
     fixture_ids: set[str] = set()
     for fact_id in sorted(fact_ids):
         fact_uses = [{"ref": fact_id}]
         try:
-            _apply_fact_uses(contract, fact_uses, {}, model_id, [])
+            _apply_fact_uses(contract, fact_uses, {}, entity_type_id, [])
             continue
         except (AssertionError, KeyError, TypeError):
             pass
         for fixture_id in contract.get("fixtures", {}):
             try:
                 namespace = fixture_namespace(contract, [fixture_id])
-                _apply_fact_uses(contract, fact_uses, namespace, model_id, [])
+                _apply_fact_uses(contract, fact_uses, namespace, entity_type_id, [])
             except (AssertionError, KeyError, TypeError):
                 continue
             fixture_ids.add(fixture_id)
@@ -301,10 +301,10 @@ def _surface_scope_inputs(contract: dict[str, Any], state_machine: dict[str, Any
     fixture_ids: set[str] = set()
     fact_ids: set[str] = set()
     if _state_needs_data(contract, state_machine):
-        model_id = state_machine_model(contract, state_machine)
-        fixture_ids = _fixture_ids_for_model(contract, model_id)
-        fact_ids = _fact_ids_for_model(contract, model_id)
-        fixture_ids.update(_fixture_ids_for_facts(contract, fact_ids, model_id))
+        entity_type_id = state_machine_model(contract, state_machine)
+        fixture_ids = _fixture_ids_for_model(contract, entity_type_id)
+        fact_ids = _fact_ids_for_model(contract, entity_type_id)
+        fixture_ids.update(_fixture_ids_for_facts(contract, fact_ids, entity_type_id))
     return text_refs, asset_refs, fixture_ids, fact_ids, {}
 
 
@@ -605,7 +605,7 @@ def _audit_evidence_for_pointer(contract: dict[str, Any], pointer: str) -> list[
         return _fact_evidence_files(contract, owner)
     if parts[0] == "fixtures":
         return _fixture_evidence_files(contract, owner)
-    if parts[0] == "models":
+    if parts[0] == "entity_types":
         return _model_evidence_files(contract, owner)
     if parts[0] == "application_actions":
         return _application_action_evidence_files(contract, owner)
@@ -732,8 +732,8 @@ def _visual_text_witness_tokens(contract: dict[str, Any], pointer: str, evidence
         tokens.extend(_workflow_text_witness_tokens(contract, parts, value))
     elif collection == "state_machines":
         tokens.extend(_state_machine_text_witness_tokens(contract, parts, value))
-    elif collection == "models":
-        tokens.extend(_model_text_witness_tokens(contract, parts, value))
+    elif collection == "entity_types":
+        tokens.extend(_entity_type_text_witness_tokens(contract, parts, value))
     return _unique_visual_text_tokens(tokens)
 
 
@@ -818,14 +818,14 @@ def _authorization_policy_text_witness_tokens(contract: dict[str, Any], parts: l
             condition = policy.get("conditions", [])[int(parts[3])]
         except (IndexError, TypeError, ValueError):
             return []
-        if "model_state" in condition:
-            body = condition["model_state"]
-            tokens = [f"{body['model']}.{body['field']}"]
+        if "entity_lifecycle_state" in condition:
+            body = condition["entity_lifecycle_state"]
+            tokens = [f"{type_display({'entity_type': body['entity_type']})}.{body['field']}"]
             if parts[-1] == "equals":
                 tokens.append(_format_scalar(value))
             return tokens
-        if "model_exists" in condition and isinstance(value, str):
-            return [f"{value} exists"]
+        if "entity_exists" in condition and isinstance(value, str):
+            return [f"{type_display({'entity_type': value})} exists"]
         if "input_present" in condition and isinstance(value, str):
             return ["input_present", value]
         if "subject_has_role" in condition and isinstance(value, str):
@@ -869,9 +869,9 @@ def _application_action_text_witness_tokens(contract: dict[str, Any], parts: lis
             return [value]
         if parts[-1] in {"unauthenticated_as", "forbidden_as"} and isinstance(value, str):
             return [parts[-1], value]
-    if len(parts) >= 5 and parts[2] == "transition":
-        transition = contract["application_actions"][parts[1]]["transition"]
-        field_token = f"{transition['model']}.{transition['field']}"
+    if len(parts) >= 5 and parts[2] == "lifecycle_transition":
+        lifecycle_transition = contract["application_actions"][parts[1]]["lifecycle_transition"]
+        field_token = f"{type_display({'entity_type': lifecycle_transition['entity_type']})}.{lifecycle_transition['field']}"
         tokens.append(field_token)
         if parts[-1] in {"from", "to"}:
             tokens.append(_format_scalar(value))
@@ -881,8 +881,8 @@ def _application_action_text_witness_tokens(contract: dict[str, Any], parts: lis
         outcome = contract["application_actions"][parts[1]]["outcomes"][outcome_id]
         if parts[-1] == "kind" and isinstance(value, str):
             return [outcome_id, value]
-        if parts[-2:] == ["result", "model"] and isinstance(value, str):
-            return [outcome_id, value]
+        if parts[-2:] == ["result", "entity_type"] and isinstance(value, str):
+            return [outcome_id, type_display({"entity_type": value})]
     tokens.extend(_type_leaf_text_witness_tokens(contract, parts))
     return tokens
 
@@ -924,20 +924,20 @@ def _state_machine_text_witness_tokens(contract: dict[str, Any], parts: list[str
     return tokens
 
 
-def _model_text_witness_tokens(contract: dict[str, Any], parts: list[str], value: Any) -> list[str]:
+def _entity_type_text_witness_tokens(contract: dict[str, Any], parts: list[str], value: Any) -> list[str]:
     tokens = _type_leaf_text_witness_tokens(contract, parts)
-    if len(parts) >= 4 and parts[2] == "lifecycle" and isinstance(value, str):
-        if parts[-1] in {"field", "initial"}:
+    if len(parts) >= 4 and parts[2] == "entity_lifecycle" and isinstance(value, str):
+        if parts[-1] in {"field", "initial_state"}:
             tokens.append(value)
-        elif "states" in parts or parts[-1] in {"from", "to"}:
+        elif "lifecycle_states" in parts or parts[-1] in {"from", "to"}:
             tokens.append(value)
     return tokens
 
 
 def _type_leaf_text_witness_tokens(contract: dict[str, Any], parts: list[str]) -> list[str]:
-    if not parts or parts[-1] not in {"primitive", "model", "data_contract", "array"}:
+    if not parts or parts[-1] not in {"primitive", "entity_type", "data_contract", "array"}:
         return []
-    if parts[0] not in {"entry_points", "models", "application_actions", "state_machines", "workflows"}:
+    if parts[0] not in {"entry_points", "entity_types", "application_actions", "state_machines", "workflows"}:
         return []
     parent_parts = parts[:-1]
     try:
@@ -951,7 +951,7 @@ def _type_leaf_text_witness_tokens(contract: dict[str, Any], parts: list[str]) -
 
 
 def _type_field_name(parts: list[str]) -> str | None:
-    if len(parts) >= 5 and parts[0] == "models" and parts[2] == "fields":
+    if len(parts) >= 5 and parts[0] == "entity_types" and parts[2] == "fields":
         return parts[3]
     if len(parts) >= 5 and parts[0] == "application_actions" and parts[2] == "input":
         return parts[3]
@@ -1092,21 +1092,21 @@ def _data_contract_evidence_files(contract: dict[str, Any], data_contract_id: st
     return files
 
 
-def _model_evidence_files(contract: dict[str, Any], model_id: str) -> list[str]:
-    if model_id not in contract.get("models", {}):
+def _model_evidence_files(contract: dict[str, Any], entity_type_id: str) -> list[str]:
+    if entity_type_id not in contract.get("entity_types", {}):
         return []
     files: list[str] = []
     for application_action_id, operation in sorted(contract.get("application_actions", {}).items()):
-        if _value_contains_string(operation, model_id):
+        if _value_contains_string(operation, entity_type_id):
             files.extend(_application_action_evidence_files(contract, application_action_id))
     for event_id, event in sorted(contract.get("domain_events", {}).items()):
-        if _value_contains_string(event, model_id):
+        if _value_contains_string(event, entity_type_id):
             files.extend(_event_evidence_files(contract, event_id))
     for entry_id, entry in sorted(contract.get("entry_points", {}).items()):
-        if _value_contains_string(entry, model_id):
+        if _value_contains_string(entry, entity_type_id):
             files.extend(_entry_point_evidence_files(contract, entry_id))
     for state_machine_id, state_machine in sorted(contract.get("state_machines", {}).items()):
-        if state_machine.get("model") == model_id or _value_contains_string(state_machine.get("view_states", {}), model_id):
+        if state_machine.get("entity_type") == entity_type_id or _value_contains_string(state_machine.get("view_states", {}), entity_type_id):
             files.extend(_state_machine_evidence_files(contract, state_machine_id))
     return files
 
@@ -1981,7 +1981,7 @@ def application_action_flow_dot(application_action_id: str, application_action: 
     if policy_id:
         lines.append(_dot_html_node(policy_node or "", _policy_reference_card(policy_id, contract, subtitle="authorization gate", include_targets=False)))
     for node_id, _, target_id, target_kind, sections in resource_nodes:
-        style = _DOT_STYLE_MODEL if target_kind == "model" else _DOT_STYLE_DATA_CONTRACT
+        style = _DOT_STYLE_MODEL if target_kind == "entity_type" else _DOT_STYLE_DATA_CONTRACT
         lines.append(_dot_html_node(node_id, _dot_card(target_id, f"{target_kind} resource", sections, style=style)))
     for node_id, outcome_id, outcome in outcome_nodes:
         lines.append(_dot_html_node(node_id, _action_outcome_card(outcome_id, outcome)))
@@ -1998,7 +1998,7 @@ def application_action_flow_dot(application_action_id: str, application_action: 
     flow_tail = entry_node
     for node_id, action, _, target_kind, _ in resource_nodes:
         if flow_tail:
-            resource_color = _DOT_COLOR_MODEL_BORDER if target_kind == "model" else _DOT_COLOR_DATA_CONTRACT_BORDER
+            resource_color = _DOT_COLOR_MODEL_BORDER if target_kind == "entity_type" else _DOT_COLOR_DATA_CONTRACT_BORDER
             lines.append(_dot_edge(flow_tail, node_id, {"label": action, "color": resource_color}))
         flow_tail = node_id
 
@@ -2044,12 +2044,12 @@ def _application_action_resource_nodes(
     seen: set[tuple[str, str, str]] = set()
     for action in ["creates", "reads", "updates", "deletes"]:
         for target_id in application_action.get(action, []):
-            target_kind = "model" if target_id in contract.get("models", {}) else "data_contract"
+            target_kind = "entity_type" if target_id in contract.get("entity_types", {}) else "data_contract"
             key = (action, target_kind, target_id)
             if key in seen:
                 continue
             seen.add(key)
-            fields = contract.get("models", {}).get(target_id, contract.get("data_contracts", {}).get(target_id, {})).get("fields", {})
+            fields = contract.get("entity_types", {}).get(target_id, contract.get("data_contracts", {}).get(target_id, {})).get("fields", {})
             nodes.append((
                 _dot_node_id("application_action_resource", f"{application_action_id}_{action}_{target_id}"),
                 action,
@@ -2057,15 +2057,15 @@ def _application_action_resource_nodes(
                 target_kind,
                 [("fields", _schema_fields(fields))],
             ))
-    if application_action.get("transition"):
-        transition = application_action["transition"]
-        field = contract["models"][transition["model"]]["fields"][transition["field"]]
+    if application_action.get("lifecycle_transition"):
+        lifecycle_transition = application_action["lifecycle_transition"]
+        field = contract["entity_types"][lifecycle_transition["entity_type"]]["fields"][lifecycle_transition["field"]]
         nodes.append((
-            _dot_node_id("application_action_resource", f"{application_action_id}_transition_{transition['model']}_{transition['field']}"),
-            "transition",
-            transition["model"],
-            "model",
-            [("change", [_DotTransitionField(f"{transition['model']}.{transition['field']}", effective_field_type(field), f"{transition['from']} {_DOT_ARROW_FORWARD} {transition['to']}")])],
+            _dot_node_id("application_action_resource", f"{application_action_id}_lifecycle_transition_{lifecycle_transition['entity_type']}_{lifecycle_transition['field']}"),
+            "lifecycle_transition",
+            lifecycle_transition["entity_type"],
+            "entity_type",
+            [("change", [_DotTransitionField(f"{type_display({'entity_type': lifecycle_transition['entity_type']})}.{lifecycle_transition['field']}", effective_field_type(field), f"{lifecycle_transition['from']} {_DOT_ARROW_FORWARD} {lifecycle_transition['to']}")])],
         ))
     return nodes
 
@@ -2350,7 +2350,7 @@ def _state_machine_summary_sections(state_machine: dict[str, Any], contract: dic
         sections.append(("load", loads))
     if guards:
         sections.append(("authorization_policies", guards))
-    sections.append(("model", [state_machine["model"]]))
+    sections.append(("entity_type", [state_machine["entity_type"]]))
     sync_ids = [rule["id"] for state in state_machine.get("view_states", {}).values() for rule in state.get("signal_sync_rules", [])]
     if sync_ids:
         sections.append(("signal_sync_rules", sync_ids))
@@ -2524,10 +2524,10 @@ def _format_authorization_conditions(conditions: Iterable[dict[str, Any]]) -> li
             lines.append(f"unconditional {_format_scalar(body)}")
         elif kind == "input_present":
             lines.append(f"input_present {body}")
-        elif kind == "model_exists":
-            lines.append(f"{body['model']} exists")
-        elif kind == "model_state":
-            lines.append(f"{body['model']}.{body['field']} = {_format_scalar(body['equals'])}")
+        elif kind == "entity_exists":
+            lines.append(f"{body['entity_type']} exists")
+        elif kind == "entity_lifecycle_state":
+            lines.append(f"{body['entity_type']}.{body['field']} = {_format_scalar(body['equals'])}")
         elif kind == "subject_has_role":
             lines.append(f"subject_has_role {body}")
         else:
@@ -3131,8 +3131,8 @@ def _state_field_section_title(state_machine: dict[str, Any], state_name: str, s
         return f"{unique[0]} fields"
     if unique:
         return "data fields"
-    if state_machine.get("model"):
-        return f"{state_machine['model']} fields"
+    if state_machine.get("entity_type"):
+        return f"{state_machine['entity_type']} fields"
     return "state machine context fields"
 
 
@@ -3150,12 +3150,12 @@ def _state_field_data_bindings(state_machine: dict[str, Any], state_name: str, s
 
 
 def _format_state_fields(state_machine: dict[str, Any], state: dict[str, Any], contract: dict[str, Any]) -> list[_DotTypedField]:
-    model_fields = contract["models"][state_machine["model"]]["fields"] if state_machine.get("model") else {}
+    entity_type_fields = contract["entity_types"][state_machine["entity_type"]]["fields"] if state_machine.get("entity_type") else {}
     context_fields = state_machine.get("context", {})
     fields: list[_DotTypedField] = []
     for field in state["fields"]:
-        if field in model_fields:
-            fields.append(_DotTypedField(field, effective_field_type(model_fields[field])))
+        if field in entity_type_fields:
+            fields.append(_DotTypedField(field, effective_field_type(entity_type_fields[field])))
         elif field in context_fields:
             fields.append(_DotTypedField(field, context_fields[field]))
     return fields
@@ -3559,21 +3559,21 @@ def state_machine_textual_lines(root: Path, contract: dict[str, Any], state_mach
 
 
 def records_for_state_machine(contract: dict[str, Any], state_machine: dict[str, Any], case: dict[str, Any] | None) -> list[dict[str, Any]]:
-    model_id = state_machine_model(contract, state_machine)
-    model_key = f"{model_id.lower()}_id"
+    entity_type_id = state_machine_model(contract, state_machine)
+    model_key = f"{entity_type_id.lower()}_id"
     owner_context = state_machine_owner_context(contract, state_machine)
     fixtures = case.get("seed_fixtures", []) if case else sorted(contract.get("fixtures", {}))
     records: list[dict[str, Any]] = []
     if case:
         namespace = fixture_namespace(contract, fixtures)
-        records.extend(_find_model_records(namespace, model_id))
-        records = _apply_fact_uses(contract, case.get("fact_refs", []), namespace, model_id, records)
+        records.extend(_find_model_records(namespace, entity_type_id))
+        records = _apply_fact_uses(contract, case.get("fact_refs", []), namespace, entity_type_id, records)
         context = _resolved_case_context(contract, case, namespace)
     else:
         context = {}
         for fixture_id in fixtures:
-            records.extend(_find_model_records(contract["fixtures"][fixture_id]["values"], model_id))
-        records = _apply_facts_with_available_fixtures(contract, model_id, records)
+            records.extend(_find_model_records(contract["fixtures"][fixture_id]["values"], entity_type_id))
+        records = _apply_facts_with_available_fixtures(contract, entity_type_id, records)
     selected_id = context.get(model_key)
     if not selected_id and model_key in owner_context:
         selected_id = context.get(f"selected_{model_key}")
@@ -3587,7 +3587,7 @@ def records_for_state_machine(contract: dict[str, Any], state_machine: dict[str,
 
 
 def state_machine_model(contract: dict[str, Any], state_machine: dict[str, Any]) -> str:
-    return contract["state_machines"][state_machine["owner"]]["model"]
+    return contract["state_machines"][state_machine["owner"]]["entity_type"]
 
 
 def state_machine_owner_context(contract: dict[str, Any], state_machine: dict[str, Any]) -> dict[str, Any]:
@@ -3601,22 +3601,22 @@ def _resolved_case_context(contract: dict[str, Any], case: dict[str, Any], names
     return context
 
 
-def _find_model_records(value: Any, model_id: str) -> list[dict[str, Any]]:
+def _find_model_records(value: Any, entity_type_id: str) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
     if isinstance(value, dict):
-        if value.get("model") == model_id:
+        if value.get("entity_type") == entity_type_id:
             record = dict(value)
-            record.pop("model", None)
+            record.pop("entity_type", None)
             records.append(record)
         for child in value.values():
-            records.extend(_find_model_records(child, model_id))
+            records.extend(_find_model_records(child, entity_type_id))
     elif isinstance(value, list):
         for item in value:
-            records.extend(_find_model_records(item, model_id))
+            records.extend(_find_model_records(item, entity_type_id))
     return records
 
 
-def _apply_facts_with_available_fixtures(contract: dict[str, Any], model_id: str, records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _apply_facts_with_available_fixtures(contract: dict[str, Any], entity_type_id: str, records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     current = list(records)
     namespaces = [{}]
     for fixture_id in sorted(contract.get("fixtures", {})):
@@ -3628,7 +3628,7 @@ def _apply_facts_with_available_fixtures(contract: dict[str, Any], model_id: str
         fact_uses = [{"ref": fact_id}]
         for namespace in namespaces:
             try:
-                next_records = _apply_fact_uses(contract, fact_uses, namespace, model_id, current)
+                next_records = _apply_fact_uses(contract, fact_uses, namespace, entity_type_id, current)
             except (AssertionError, KeyError, TypeError):
                 continue
             current = _dedupe_records(next_records)
@@ -3636,12 +3636,12 @@ def _apply_facts_with_available_fixtures(contract: dict[str, Any], model_id: str
     return current
 
 
-def _apply_fact_uses(contract: dict[str, Any], fact_uses: list[dict[str, str]], namespace: dict[str, Any], model_id: str, records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _apply_fact_uses(contract: dict[str, Any], fact_uses: list[dict[str, str]], namespace: dict[str, Any], entity_type_id: str, records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     current = list(records)
     for fact_use in fact_uses:
         fact_id = fact_use["ref"]
         kind, body = _fact_selector(contract["facts"][fact_id], fact_id)
-        if body["model"] != model_id:
+        if body["entity_type"] != entity_type_id:
             continue
         if kind == "present":
             current.append(resolve(body["values"], namespace))

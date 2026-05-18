@@ -1,6 +1,6 @@
 <svg width="943pt" height="482pt"
  viewBox="0.00 0.00 943.00 482.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 05248ebf953c2672d0a8d2512fa9476b77aeca611800c07ff99581c2847edbb8 -->
+<!-- pyspec-contract-input-sha256: 068abdd814488fa4b9bcb44daf97731e2fee3e04d3e74cec51c645f48571e02b -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 464)">
 <title>application_action_application_action_project_read</title>
 <!-- application_action_input_application_action_project_read -->
@@ -41,14 +41,14 @@
 <polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="159.84,-181.3 167.84,-178.5 159.84,-175.7 159.84,-181.3"/>
 <text text-anchor="middle" x="117" y="-181.5" font-family="Arial" font-size="10.00">authorize</text>
 </g>
-<!-- application_action_resource_application_action_project_read_reads_Project -->
+<!-- application_action_resource_application_action_project_read_reads_entity_type_project -->
 <g id="node3" class="node">
-<title>application_action_resource_application_action_project_read_reads_Project</title>
+<title>application_action_resource_application_action_project_read_reads_entity_type_project</title>
 <polygon fill="#ffffff" stroke="transparent" points="499,-93.5 499,-263.5 693,-263.5 693,-93.5 499,-93.5"/>
 <polygon fill="#15803d" stroke="transparent" points="500,-254.5 500,-262.5 692,-262.5 692,-254.5 500,-254.5"/>
 <polygon fill="#f0fdfa" stroke="transparent" points="500,-223.5 500,-254.5 692,-254.5 692,-223.5 500,-223.5"/>
-<text text-anchor="start" x="504" y="-241.1" font-family="Arial" font-weight="bold" font-size="13.00">Project</text>
-<text text-anchor="start" x="504" y="-230.1" font-family="Arial" font-size="8.00" fill="#64748b">model resource</text>
+<text text-anchor="start" x="504" y="-241.1" font-family="Arial" font-weight="bold" font-size="13.00">entity_type.project</text>
+<text text-anchor="start" x="504" y="-230.1" font-family="Arial" font-size="8.00" fill="#64748b">entity_type resource</text>
 <text text-anchor="start" x="504" y="-212.5" font-family="Arial" font-weight="bold" font-size="10.00">fields</text>
 <text text-anchor="start" x="504" y="-201.5" font-family="Arial" font-size="10.00">assignee</text>
 <text text-anchor="start" x="544" y="-201.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Text</text>
@@ -72,9 +72,9 @@
 <text text-anchor="start" x="565" y="-102.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
 <polygon fill="none" stroke="#15803d" points="499,-93.5 499,-263.5 693,-263.5 693,-93.5 499,-93.5"/>
 </g>
-<!-- application_action_policy_authorization_policy_project_member&#45;&gt;application_action_resource_application_action_project_read_reads_Project -->
+<!-- application_action_policy_authorization_policy_project_member&#45;&gt;application_action_resource_application_action_project_read_reads_entity_type_project -->
 <g id="edge2" class="edge">
-<title>application_action_policy_authorization_policy_project_member&#45;&gt;application_action_resource_application_action_project_read_reads_Project</title>
+<title>application_action_policy_authorization_policy_project_member&#45;&gt;application_action_resource_application_action_project_read_reads_entity_type_project</title>
 <path fill="none" stroke="#3f3f46" d="M412.02,-178.5C438.02,-178.5 465.28,-178.5 490.58,-178.5"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="490.72,-181.3 498.72,-178.5 490.72,-175.7 490.72,-181.3"/>
 <text text-anchor="middle" x="455.5" y="-181.5" font-family="Arial" font-size="10.00">reads</text>
@@ -132,9 +132,9 @@
 <text text-anchor="start" x="844.5" y="-258.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
 <polygon fill="none" stroke="#16a34a" points="814,-250 814,-321 885,-321 885,-250 814,-250"/>
 </g>
-<!-- application_action_resource_application_action_project_read_reads_Project&#45;&gt;action_outcome_application_action_project_read_found -->
+<!-- application_action_resource_application_action_project_read_reads_entity_type_project&#45;&gt;action_outcome_application_action_project_read_found -->
 <g id="edge4" class="edge">
-<title>application_action_resource_application_action_project_read_reads_Project&#45;&gt;action_outcome_application_action_project_read_found</title>
+<title>application_action_resource_application_action_project_read_reads_entity_type_project&#45;&gt;action_outcome_application_action_project_read_found</title>
 <path fill="none" stroke="#3f3f46" d="M693.16,-219.41C732.28,-236.05 775.44,-254.42 806.33,-267.56"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="805.44,-270.22 813.9,-270.78 807.64,-265.07 805.44,-270.22"/>
 <text text-anchor="middle" x="742.5" y="-251.5" font-family="Arial" font-size="10.00">success</text>
@@ -152,9 +152,9 @@
 <text text-anchor="start" x="841.5" y="-133.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
 <polygon fill="none" stroke="#dc2626" points="811,-125 811,-196 888,-196 888,-125 811,-125"/>
 </g>
-<!-- application_action_resource_application_action_project_read_reads_Project&#45;&gt;action_outcome_application_action_project_read_not_found -->
+<!-- application_action_resource_application_action_project_read_reads_entity_type_project&#45;&gt;action_outcome_application_action_project_read_not_found -->
 <g id="edge5" class="edge">
-<title>application_action_resource_application_action_project_read_reads_Project&#45;&gt;action_outcome_application_action_project_read_not_found</title>
+<title>application_action_resource_application_action_project_read_reads_entity_type_project&#45;&gt;action_outcome_application_action_project_read_not_found</title>
 <path fill="none" stroke="#3f3f46" d="M693.16,-171.62C730.68,-168.93 771.92,-165.98 802.48,-163.79"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="803.02,-166.56 810.8,-163.2 802.62,-160.98 803.02,-166.56"/>
 <text text-anchor="middle" x="742.5" y="-172.5" font-family="Arial" font-size="10.00">failure</text>

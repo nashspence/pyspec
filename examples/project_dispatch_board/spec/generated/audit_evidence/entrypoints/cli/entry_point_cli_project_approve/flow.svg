@@ -1,6 +1,6 @@
 <svg width="900pt" height="687pt"
  viewBox="0.00 0.00 900.00 687.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 4cfe844a9a25ebaba06d78d7e97233e157dcade2aaecafc145710655baf3535c -->
+<!-- pyspec-contract-input-sha256: 5de42a93a4895efe3120ce5fdd7041c29d89f78d963024cfbbd613f3e11440c2 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 669)">
 <title>entrypoint_entry_point_cli_project_approve</title>
 <!-- entrypoint_entry_point_cli_project_approve -->
@@ -36,7 +36,7 @@
 <text text-anchor="start" x="277.5" y="-315" font-family="Arial" font-weight="bold" font-size="10.00">target:</text>
 <text text-anchor="start" x="307.5" y="-315" font-family="Arial" font-size="10.00">  application_action application_action.project.approve</text>
 <text text-anchor="start" x="277.5" y="-303" font-family="Arial" font-weight="bold" font-size="10.00">kind:</text>
-<text text-anchor="start" x="301.5" y="-303" font-family="Arial" font-size="10.00">  transition</text>
+<text text-anchor="start" x="301.5" y="-303" font-family="Arial" font-size="10.00">  lifecycle_transition</text>
 <text text-anchor="start" x="276.5" y="-283" font-family="Arial" font-weight="bold" font-size="10.00">authorization</text>
 <text text-anchor="start" x="276.5" y="-271" font-family="Arial" font-size="10.00">policy: authorization_policy.project.reviewer</text>
 <text text-anchor="start" x="276.5" y="-260" font-family="Arial" font-size="10.00">unauthenticated_as: unauthenticated</text>
@@ -93,47 +93,47 @@
 <path fill="none" stroke="#3f3f46" d="M548.04,-406.45C568.3,-417.73 589.06,-428.9 609,-439 615.16,-442.12 621.53,-445.25 627.99,-448.34"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="627.17,-451.05 635.6,-451.95 629.57,-445.99 627.17,-451.05"/>
 </g>
-<!-- entrypoint_response_entry_point_cli_project_approve_invalid_state -->
+<!-- entrypoint_response_entry_point_cli_project_approve_not_found -->
 <g id="node5" class="node">
-<title>entrypoint_response_entry_point_cli_project_approve_invalid_state</title>
+<title>entrypoint_response_entry_point_cli_project_approve_not_found</title>
 <polygon fill="#ffffff" stroke="transparent" points="609,-339 609,-425 864,-425 864,-339 609,-339"/>
 <polygon fill="#dc2626" stroke="transparent" points="610.5,-416 610.5,-424 863.5,-424 863.5,-416 610.5,-416"/>
 <polygon fill="#fef2f2" stroke="transparent" points="610.5,-385 610.5,-416 863.5,-416 863.5,-385 610.5,-385"/>
-<text text-anchor="start" x="614.5" y="-402.6" font-family="Arial" font-weight="bold" font-size="13.00">invalid_state</text>
+<text text-anchor="start" x="614.5" y="-402.6" font-family="Arial" font-weight="bold" font-size="13.00">not_found</text>
 <text text-anchor="start" x="614.5" y="-391.6" font-family="Arial" font-size="8.00" fill="#64748b">failure response handler</text>
 <text text-anchor="start" x="615.5" y="-373" font-family="Arial" font-weight="bold" font-size="10.00">stderr:</text>
-<text text-anchor="start" x="646.5" y="-373" font-family="Arial" font-size="10.00">  text.project.approve.invalid_state</text>
+<text text-anchor="start" x="646.5" y="-373" font-family="Arial" font-size="10.00">  text.project.approve.not_found</text>
 <text text-anchor="start" x="615.5" y="-361" font-family="Arial" font-weight="bold" font-size="10.00">stderr bindings:</text>
 <text text-anchor="start" x="690.5" y="-361" font-family="Arial" font-size="10.00">  message ← response.body.message</text>
 <text text-anchor="start" x="615.5" y="-349" font-family="Arial" font-weight="bold" font-size="10.00">exit_code:</text>
-<text text-anchor="start" x="663.5" y="-349" font-family="Arial" font-size="10.00">  2</text>
+<text text-anchor="start" x="663.5" y="-349" font-family="Arial" font-size="10.00">  3</text>
 <polygon fill="none" stroke="#dc2626" points="609,-339 609,-425 864,-425 864,-339 609,-339"/>
 </g>
-<!-- entrypoint_target_entry_point_api_project_approve&#45;&gt;entrypoint_response_entry_point_cli_project_approve_invalid_state -->
+<!-- entrypoint_target_entry_point_api_project_approve&#45;&gt;entrypoint_response_entry_point_cli_project_approve_not_found -->
 <g id="edge4" class="edge">
-<title>entrypoint_target_entry_point_api_project_approve&#45;&gt;entrypoint_response_entry_point_cli_project_approve_invalid_state</title>
+<title>entrypoint_target_entry_point_api_project_approve&#45;&gt;entrypoint_response_entry_point_cli_project_approve_not_found</title>
 <path fill="none" stroke="#3f3f46" d="M548.33,-349.17C565.73,-352.23 583.52,-355.35 600.87,-358.39"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="600.45,-361.16 608.81,-359.78 601.42,-355.64 600.45,-361.16"/>
 </g>
-<!-- entrypoint_response_entry_point_cli_project_approve_not_found -->
+<!-- entrypoint_response_entry_point_cli_project_approve_transition_not_allowed -->
 <g id="node6" class="node">
-<title>entrypoint_response_entry_point_cli_project_approve_not_found</title>
+<title>entrypoint_response_entry_point_cli_project_approve_transition_not_allowed</title>
 <polygon fill="#ffffff" stroke="transparent" points="609,-226 609,-312 864,-312 864,-226 609,-226"/>
 <polygon fill="#dc2626" stroke="transparent" points="610.5,-303 610.5,-311 863.5,-311 863.5,-303 610.5,-303"/>
 <polygon fill="#fef2f2" stroke="transparent" points="610.5,-272 610.5,-303 863.5,-303 863.5,-272 610.5,-272"/>
-<text text-anchor="start" x="614.5" y="-289.6" font-family="Arial" font-weight="bold" font-size="13.00">not_found</text>
+<text text-anchor="start" x="614.5" y="-289.6" font-family="Arial" font-weight="bold" font-size="13.00">transition_not_allowed</text>
 <text text-anchor="start" x="614.5" y="-278.6" font-family="Arial" font-size="8.00" fill="#64748b">failure response handler</text>
 <text text-anchor="start" x="615.5" y="-260" font-family="Arial" font-weight="bold" font-size="10.00">stderr:</text>
-<text text-anchor="start" x="646.5" y="-260" font-family="Arial" font-size="10.00">  text.project.approve.not_found</text>
+<text text-anchor="start" x="646.5" y="-260" font-family="Arial" font-size="10.00">  text.project.approve.transition_not_allowed</text>
 <text text-anchor="start" x="615.5" y="-248" font-family="Arial" font-weight="bold" font-size="10.00">stderr bindings:</text>
 <text text-anchor="start" x="690.5" y="-248" font-family="Arial" font-size="10.00">  message ← response.body.message</text>
 <text text-anchor="start" x="615.5" y="-236" font-family="Arial" font-weight="bold" font-size="10.00">exit_code:</text>
-<text text-anchor="start" x="663.5" y="-236" font-family="Arial" font-size="10.00">  3</text>
+<text text-anchor="start" x="663.5" y="-236" font-family="Arial" font-size="10.00">  2</text>
 <polygon fill="none" stroke="#dc2626" points="609,-226 609,-312 864,-312 864,-226 609,-226"/>
 </g>
-<!-- entrypoint_target_entry_point_api_project_approve&#45;&gt;entrypoint_response_entry_point_cli_project_approve_not_found -->
+<!-- entrypoint_target_entry_point_api_project_approve&#45;&gt;entrypoint_response_entry_point_cli_project_approve_transition_not_allowed -->
 <g id="edge5" class="edge">
-<title>entrypoint_target_entry_point_api_project_approve&#45;&gt;entrypoint_response_entry_point_cli_project_approve_not_found</title>
+<title>entrypoint_target_entry_point_api_project_approve&#45;&gt;entrypoint_response_entry_point_cli_project_approve_transition_not_allowed</title>
 <path fill="none" stroke="#3f3f46" d="M548.33,-301.25C565.73,-298.25 583.52,-295.19 600.87,-292.2"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="601.41,-294.95 608.81,-290.83 600.45,-289.43 601.41,-294.95"/>
 </g>
@@ -182,9 +182,9 @@
 <polygon fill="#3f3f46" stroke="#3f3f46" points="636.7,-85.66 642.4,-79.38 634.03,-80.74 636.7,-85.66"/>
 </g>
 <!-- entrypoint_response_entry_point_cli_project_approve_approved&#45;&gt;entrypoint_response_entry_point_cli_project_approve_forbidden -->
-<!-- entrypoint_response_entry_point_cli_project_approve_forbidden&#45;&gt;entrypoint_response_entry_point_cli_project_approve_invalid_state -->
-<!-- entrypoint_response_entry_point_cli_project_approve_invalid_state&#45;&gt;entrypoint_response_entry_point_cli_project_approve_not_found -->
-<!-- entrypoint_response_entry_point_cli_project_approve_not_found&#45;&gt;entrypoint_response_entry_point_cli_project_approve_unauthenticated -->
+<!-- entrypoint_response_entry_point_cli_project_approve_forbidden&#45;&gt;entrypoint_response_entry_point_cli_project_approve_not_found -->
+<!-- entrypoint_response_entry_point_cli_project_approve_not_found&#45;&gt;entrypoint_response_entry_point_cli_project_approve_transition_not_allowed -->
+<!-- entrypoint_response_entry_point_cli_project_approve_transition_not_allowed&#45;&gt;entrypoint_response_entry_point_cli_project_approve_unauthenticated -->
 <!-- entrypoint_response_entry_point_cli_project_approve_unauthenticated&#45;&gt;entrypoint_response_entry_point_cli_project_approve_unavailable -->
 </g>
 </svg>

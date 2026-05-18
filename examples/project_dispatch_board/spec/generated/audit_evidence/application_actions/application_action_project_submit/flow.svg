@@ -1,6 +1,6 @@
-<svg width="1358pt" height="607pt"
- viewBox="0.00 0.00 1358.00 607.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: e81c5799f9e4dd6ff63c471f2d98cac7b900b032bd9b56cd56f9f9a3e179f9d5 -->
+<svg width="1442pt" height="607pt"
+ viewBox="0.00 0.00 1442.00 607.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: f7d697017992255b6f306bdfd660976d22eff30a1968a5d0d67f5acab6773fb7 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 589)">
 <title>application_action_application_action_project_submit</title>
 <!-- application_action_input_application_action_project_submit -->
@@ -41,152 +41,152 @@
 <polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="159.84,-288.3 167.84,-285.5 159.84,-282.7 159.84,-288.3"/>
 <text text-anchor="middle" x="117" y="-288.5" font-family="Arial" font-size="10.00">authorize</text>
 </g>
-<!-- application_action_resource_application_action_project_submit_transition_Project_status -->
+<!-- application_action_resource_application_action_project_submit_lifecycle_transition_entity_type_project_status -->
 <g id="node3" class="node">
-<title>application_action_resource_application_action_project_submit_transition_Project_status</title>
-<polygon fill="#ffffff" stroke="transparent" points="514,-250 514,-321 810,-321 810,-250 514,-250"/>
-<polygon fill="#15803d" stroke="transparent" points="515,-311.5 515,-319.5 809,-319.5 809,-311.5 515,-311.5"/>
-<polygon fill="#f0fdfa" stroke="transparent" points="515,-280.5 515,-311.5 809,-311.5 809,-280.5 515,-280.5"/>
-<text text-anchor="start" x="519" y="-298.1" font-family="Arial" font-weight="bold" font-size="13.00">Project</text>
-<text text-anchor="start" x="519" y="-287.1" font-family="Arial" font-size="8.00" fill="#64748b">model resource</text>
-<text text-anchor="start" x="519" y="-269.5" font-family="Arial" font-weight="bold" font-size="10.00">change</text>
-<text text-anchor="start" x="519" y="-258.5" font-family="Arial" font-size="10.00">Project.status</text>
-<text text-anchor="start" x="580" y="-258.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  enum&lt;draft|submitted|approved|archived&gt;</text>
-<text text-anchor="start" x="736" y="-258.5" font-family="Arial" font-size="8.00">  draft → submitted</text>
-<polygon fill="none" stroke="#15803d" points="514,-250 514,-321 810,-321 810,-250 514,-250"/>
+<title>application_action_resource_application_action_project_submit_lifecycle_transition_entity_type_project_status</title>
+<polygon fill="#ffffff" stroke="transparent" points="556,-250 556,-321 852,-321 852,-250 556,-250"/>
+<polygon fill="#15803d" stroke="transparent" points="557,-311.5 557,-319.5 851,-319.5 851,-311.5 557,-311.5"/>
+<polygon fill="#f0fdfa" stroke="transparent" points="557,-280.5 557,-311.5 851,-311.5 851,-280.5 557,-280.5"/>
+<text text-anchor="start" x="561" y="-298.1" font-family="Arial" font-weight="bold" font-size="13.00">entity_type.project</text>
+<text text-anchor="start" x="561" y="-287.1" font-family="Arial" font-size="8.00" fill="#64748b">entity_type resource</text>
+<text text-anchor="start" x="561" y="-269.5" font-family="Arial" font-weight="bold" font-size="10.00">change</text>
+<text text-anchor="start" x="561" y="-258.5" font-family="Arial" font-size="10.00">Project.status</text>
+<text text-anchor="start" x="622" y="-258.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  enum&lt;draft|submitted|approved|archived&gt;</text>
+<text text-anchor="start" x="778" y="-258.5" font-family="Arial" font-size="8.00">  draft → submitted</text>
+<polygon fill="none" stroke="#15803d" points="556,-250 556,-321 852,-321 852,-250 556,-250"/>
 </g>
-<!-- application_action_policy_authorization_policy_project_member&#45;&gt;application_action_resource_application_action_project_submit_transition_Project_status -->
+<!-- application_action_policy_authorization_policy_project_member&#45;&gt;application_action_resource_application_action_project_submit_lifecycle_transition_entity_type_project_status -->
 <g id="edge2" class="edge">
-<title>application_action_policy_authorization_policy_project_member&#45;&gt;application_action_resource_application_action_project_submit_transition_Project_status</title>
-<path fill="none" stroke="#3f3f46" d="M412.15,-285.5C441.95,-285.5 474.26,-285.5 505.43,-285.5"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="505.75,-288.3 513.75,-285.5 505.75,-282.7 505.75,-288.3"/>
-<text text-anchor="middle" x="463" y="-288.5" font-family="Arial" font-size="10.00">transition</text>
+<title>application_action_policy_authorization_policy_project_member&#45;&gt;application_action_resource_application_action_project_submit_lifecycle_transition_entity_type_project_status</title>
+<path fill="none" stroke="#3f3f46" d="M412.11,-285.5C454.55,-285.5 502.81,-285.5 547.66,-285.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="547.7,-288.3 555.7,-285.5 547.7,-282.7 547.7,-288.3"/>
+<text text-anchor="middle" x="484" y="-288.5" font-family="Arial" font-size="10.00">lifecycle_transition</text>
 </g>
 <!-- action_outcome_application_action_project_submit_forbidden -->
 <g id="node4" class="node">
 <title>action_outcome_application_action_project_submit_forbidden</title>
-<polygon fill="#ffffff" stroke="transparent" points="930,-500 930,-571 1003,-571 1003,-500 930,-500"/>
-<polygon fill="#dc2626" stroke="transparent" points="931.5,-561.5 931.5,-569.5 1002.5,-569.5 1002.5,-561.5 931.5,-561.5"/>
-<polygon fill="#fef2f2" stroke="transparent" points="931.5,-530.5 931.5,-561.5 1002.5,-561.5 1002.5,-530.5 931.5,-530.5"/>
-<text text-anchor="start" x="935.5" y="-548.1" font-family="Arial" font-weight="bold" font-size="13.00">forbidden</text>
-<text text-anchor="start" x="935.5" y="-537.1" font-family="Arial" font-size="8.00" fill="#64748b">failure outcome</text>
-<text text-anchor="start" x="935.5" y="-519.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
-<text text-anchor="start" x="935.5" y="-508.5" font-family="Arial" font-size="10.00">result</text>
-<text text-anchor="start" x="960.5" y="-508.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<polygon fill="none" stroke="#dc2626" points="930,-500 930,-571 1003,-571 1003,-500 930,-500"/>
+<polygon fill="#ffffff" stroke="transparent" points="993,-500 993,-571 1066,-571 1066,-500 993,-500"/>
+<polygon fill="#dc2626" stroke="transparent" points="994.5,-561.5 994.5,-569.5 1065.5,-569.5 1065.5,-561.5 994.5,-561.5"/>
+<polygon fill="#fef2f2" stroke="transparent" points="994.5,-530.5 994.5,-561.5 1065.5,-561.5 1065.5,-530.5 994.5,-530.5"/>
+<text text-anchor="start" x="998.5" y="-548.1" font-family="Arial" font-weight="bold" font-size="13.00">forbidden</text>
+<text text-anchor="start" x="998.5" y="-537.1" font-family="Arial" font-size="8.00" fill="#64748b">failure outcome</text>
+<text text-anchor="start" x="998.5" y="-519.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
+<text text-anchor="start" x="998.5" y="-508.5" font-family="Arial" font-size="10.00">result</text>
+<text text-anchor="start" x="1023.5" y="-508.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<polygon fill="none" stroke="#dc2626" points="993,-500 993,-571 1066,-571 1066,-500 993,-500"/>
 </g>
 <!-- application_action_policy_authorization_policy_project_member&#45;&gt;action_outcome_application_action_project_submit_forbidden -->
 <g id="edge3" class="edge">
 <title>application_action_policy_authorization_policy_project_member&#45;&gt;action_outcome_application_action_project_submit_forbidden</title>
-<path fill="none" stroke="#3f3f46" d="M412.37,-330.48C565.4,-387.21 820.75,-481.85 922.12,-519.42"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="921.25,-522.08 929.72,-522.24 923.19,-516.83 921.25,-522.08"/>
-<text text-anchor="middle" x="662" y="-477.5" font-family="Arial" font-size="10.00">forbidden_as</text>
+<path fill="none" stroke="#3f3f46" d="M412.37,-326.64C580.28,-383.56 875.18,-483.53 985.36,-520.88"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="984.5,-523.54 992.97,-523.46 986.3,-518.24 984.5,-523.54"/>
+<text text-anchor="middle" x="704" y="-477.5" font-family="Arial" font-size="10.00">forbidden_as</text>
 </g>
 <!-- action_outcome_application_action_project_submit_unauthenticated -->
 <g id="node8" class="node">
 <title>action_outcome_application_action_project_submit_unauthenticated</title>
-<polygon fill="#ffffff" stroke="transparent" points="909,0 909,-71 1024,-71 1024,0 909,0"/>
-<polygon fill="#dc2626" stroke="transparent" points="910.5,-61.5 910.5,-69.5 1023.5,-69.5 1023.5,-61.5 910.5,-61.5"/>
-<polygon fill="#fef2f2" stroke="transparent" points="910.5,-30.5 910.5,-61.5 1023.5,-61.5 1023.5,-30.5 910.5,-30.5"/>
-<text text-anchor="start" x="914.5" y="-48.1" font-family="Arial" font-weight="bold" font-size="13.00">unauthenticated</text>
-<text text-anchor="start" x="914.5" y="-37.1" font-family="Arial" font-size="8.00" fill="#64748b">failure outcome</text>
-<text text-anchor="start" x="914.5" y="-19.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
-<text text-anchor="start" x="914.5" y="-8.5" font-family="Arial" font-size="10.00">result</text>
-<text text-anchor="start" x="939.5" y="-8.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<polygon fill="none" stroke="#dc2626" points="909,0 909,-71 1024,-71 1024,0 909,0"/>
+<polygon fill="#ffffff" stroke="transparent" points="972,0 972,-71 1087,-71 1087,0 972,0"/>
+<polygon fill="#dc2626" stroke="transparent" points="973.5,-61.5 973.5,-69.5 1086.5,-69.5 1086.5,-61.5 973.5,-61.5"/>
+<polygon fill="#fef2f2" stroke="transparent" points="973.5,-30.5 973.5,-61.5 1086.5,-61.5 1086.5,-30.5 973.5,-30.5"/>
+<text text-anchor="start" x="977.5" y="-48.1" font-family="Arial" font-weight="bold" font-size="13.00">unauthenticated</text>
+<text text-anchor="start" x="977.5" y="-37.1" font-family="Arial" font-size="8.00" fill="#64748b">failure outcome</text>
+<text text-anchor="start" x="977.5" y="-19.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
+<text text-anchor="start" x="977.5" y="-8.5" font-family="Arial" font-size="10.00">result</text>
+<text text-anchor="start" x="1002.5" y="-8.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<polygon fill="none" stroke="#dc2626" points="972,0 972,-71 1087,-71 1087,0 972,0"/>
 </g>
 <!-- application_action_policy_authorization_policy_project_member&#45;&gt;action_outcome_application_action_project_submit_unauthenticated -->
 <g id="edge8" class="edge">
 <title>application_action_policy_authorization_policy_project_member&#45;&gt;action_outcome_application_action_project_submit_unauthenticated</title>
-<path fill="none" stroke="#3f3f46" d="M412.37,-240.52C555.85,-187.33 789.28,-100.81 901.4,-59.26"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="902.41,-61.87 908.94,-56.46 900.46,-56.62 902.41,-61.87"/>
-<text text-anchor="middle" x="662" y="-204.5" font-family="Arial" font-size="10.00">unauthenticated_as</text>
-</g>
-<!-- action_outcome_application_action_project_submit_invalid_state -->
-<g id="node5" class="node">
-<title>action_outcome_application_action_project_submit_invalid_state</title>
-<polygon fill="#ffffff" stroke="transparent" points="920.5,-375 920.5,-446 1012.5,-446 1012.5,-375 920.5,-375"/>
-<polygon fill="#dc2626" stroke="transparent" points="921.5,-436.5 921.5,-444.5 1011.5,-444.5 1011.5,-436.5 921.5,-436.5"/>
-<polygon fill="#fef2f2" stroke="transparent" points="921.5,-405.5 921.5,-436.5 1011.5,-436.5 1011.5,-405.5 921.5,-405.5"/>
-<text text-anchor="start" x="925.5" y="-423.1" font-family="Arial" font-weight="bold" font-size="13.00">invalid_state</text>
-<text text-anchor="start" x="925.5" y="-412.1" font-family="Arial" font-size="8.00" fill="#64748b">failure outcome</text>
-<text text-anchor="start" x="925.5" y="-394.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
-<text text-anchor="start" x="925.5" y="-383.5" font-family="Arial" font-size="10.00">result</text>
-<text text-anchor="start" x="950.5" y="-383.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<polygon fill="none" stroke="#dc2626" points="920.5,-375 920.5,-446 1012.5,-446 1012.5,-375 920.5,-375"/>
-</g>
-<!-- application_action_resource_application_action_project_submit_transition_Project_status&#45;&gt;action_outcome_application_action_project_submit_invalid_state -->
-<g id="edge4" class="edge">
-<title>application_action_resource_application_action_project_submit_transition_Project_status&#45;&gt;action_outcome_application_action_project_submit_invalid_state</title>
-<path fill="none" stroke="#3f3f46" d="M749.28,-321.15C801.94,-342.91 867.57,-370.03 912.63,-388.65"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="911.78,-391.33 920.24,-391.8 913.91,-386.15 911.78,-391.33"/>
-<text text-anchor="middle" x="859.5" y="-377.5" font-family="Arial" font-size="10.00">failure</text>
+<path fill="none" stroke="#3f3f46" d="M412.37,-244.36C570.41,-190.78 840.96,-99.07 964.09,-57.33"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="965.31,-59.88 971.98,-54.66 963.51,-54.57 965.31,-59.88"/>
+<text text-anchor="middle" x="704" y="-196.5" font-family="Arial" font-size="10.00">unauthenticated_as</text>
 </g>
 <!-- action_outcome_application_action_project_submit_not_found -->
-<g id="node6" class="node">
+<g id="node5" class="node">
 <title>action_outcome_application_action_project_submit_not_found</title>
-<polygon fill="#ffffff" stroke="transparent" points="928,-250 928,-321 1005,-321 1005,-250 928,-250"/>
-<polygon fill="#dc2626" stroke="transparent" points="929.5,-311.5 929.5,-319.5 1004.5,-319.5 1004.5,-311.5 929.5,-311.5"/>
-<polygon fill="#fef2f2" stroke="transparent" points="929.5,-280.5 929.5,-311.5 1004.5,-311.5 1004.5,-280.5 929.5,-280.5"/>
-<text text-anchor="start" x="933.5" y="-298.1" font-family="Arial" font-weight="bold" font-size="13.00">not_found</text>
-<text text-anchor="start" x="933.5" y="-287.1" font-family="Arial" font-size="8.00" fill="#64748b">failure outcome</text>
-<text text-anchor="start" x="933.5" y="-269.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
-<text text-anchor="start" x="933.5" y="-258.5" font-family="Arial" font-size="10.00">result</text>
-<text text-anchor="start" x="958.5" y="-258.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<polygon fill="none" stroke="#dc2626" points="928,-250 928,-321 1005,-321 1005,-250 928,-250"/>
+<polygon fill="#ffffff" stroke="transparent" points="991,-375 991,-446 1068,-446 1068,-375 991,-375"/>
+<polygon fill="#dc2626" stroke="transparent" points="992.5,-436.5 992.5,-444.5 1067.5,-444.5 1067.5,-436.5 992.5,-436.5"/>
+<polygon fill="#fef2f2" stroke="transparent" points="992.5,-405.5 992.5,-436.5 1067.5,-436.5 1067.5,-405.5 992.5,-405.5"/>
+<text text-anchor="start" x="996.5" y="-423.1" font-family="Arial" font-weight="bold" font-size="13.00">not_found</text>
+<text text-anchor="start" x="996.5" y="-412.1" font-family="Arial" font-size="8.00" fill="#64748b">failure outcome</text>
+<text text-anchor="start" x="996.5" y="-394.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
+<text text-anchor="start" x="996.5" y="-383.5" font-family="Arial" font-size="10.00">result</text>
+<text text-anchor="start" x="1021.5" y="-383.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<polygon fill="none" stroke="#dc2626" points="991,-375 991,-446 1068,-446 1068,-375 991,-375"/>
 </g>
-<!-- application_action_resource_application_action_project_submit_transition_Project_status&#45;&gt;action_outcome_application_action_project_submit_not_found -->
-<g id="edge5" class="edge">
-<title>application_action_resource_application_action_project_submit_transition_Project_status&#45;&gt;action_outcome_application_action_project_submit_not_found</title>
-<path fill="none" stroke="#3f3f46" d="M810.26,-285.5C850.09,-285.5 890.29,-285.5 919.8,-285.5"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="919.83,-288.3 927.83,-285.5 919.83,-282.7 919.83,-288.3"/>
-<text text-anchor="middle" x="859.5" y="-288.5" font-family="Arial" font-size="10.00">failure</text>
+<!-- application_action_resource_application_action_project_submit_lifecycle_transition_entity_type_project_status&#45;&gt;action_outcome_application_action_project_submit_not_found -->
+<g id="edge4" class="edge">
+<title>application_action_resource_application_action_project_submit_lifecycle_transition_entity_type_project_status&#45;&gt;action_outcome_application_action_project_submit_not_found</title>
+<path fill="none" stroke="#3f3f46" d="M797.27,-321.15C858.12,-344.67 935.18,-374.44 983.17,-392.98"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="982.43,-395.7 990.9,-395.97 984.45,-390.48 982.43,-395.7"/>
+<text text-anchor="middle" x="901.5" y="-369.5" font-family="Arial" font-size="10.00">failure</text>
 </g>
 <!-- action_outcome_application_action_project_submit_submitted -->
-<g id="node7" class="node">
+<g id="node6" class="node">
 <title>action_outcome_application_action_project_submit_submitted</title>
-<polygon fill="#ffffff" stroke="transparent" points="929.5,-125 929.5,-196 1003.5,-196 1003.5,-125 929.5,-125"/>
-<polygon fill="#16a34a" stroke="transparent" points="930.5,-186.5 930.5,-194.5 1002.5,-194.5 1002.5,-186.5 930.5,-186.5"/>
-<polygon fill="#f0fdf4" stroke="transparent" points="930.5,-155.5 930.5,-186.5 1002.5,-186.5 1002.5,-155.5 930.5,-155.5"/>
-<text text-anchor="start" x="934.5" y="-173.1" font-family="Arial" font-weight="bold" font-size="13.00">submitted</text>
-<text text-anchor="start" x="934.5" y="-162.1" font-family="Arial" font-size="8.00" fill="#64748b">success outcome</text>
-<text text-anchor="start" x="934.5" y="-144.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
-<text text-anchor="start" x="934.5" y="-133.5" font-family="Arial" font-size="10.00">result</text>
-<text text-anchor="start" x="959.5" y="-133.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
-<polygon fill="none" stroke="#16a34a" points="929.5,-125 929.5,-196 1003.5,-196 1003.5,-125 929.5,-125"/>
+<polygon fill="#ffffff" stroke="transparent" points="992.5,-250 992.5,-321 1066.5,-321 1066.5,-250 992.5,-250"/>
+<polygon fill="#16a34a" stroke="transparent" points="993.5,-311.5 993.5,-319.5 1065.5,-319.5 1065.5,-311.5 993.5,-311.5"/>
+<polygon fill="#f0fdf4" stroke="transparent" points="993.5,-280.5 993.5,-311.5 1065.5,-311.5 1065.5,-280.5 993.5,-280.5"/>
+<text text-anchor="start" x="997.5" y="-298.1" font-family="Arial" font-weight="bold" font-size="13.00">submitted</text>
+<text text-anchor="start" x="997.5" y="-287.1" font-family="Arial" font-size="8.00" fill="#64748b">success outcome</text>
+<text text-anchor="start" x="997.5" y="-269.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
+<text text-anchor="start" x="997.5" y="-258.5" font-family="Arial" font-size="10.00">result</text>
+<text text-anchor="start" x="1022.5" y="-258.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
+<polygon fill="none" stroke="#16a34a" points="992.5,-250 992.5,-321 1066.5,-321 1066.5,-250 992.5,-250"/>
 </g>
-<!-- application_action_resource_application_action_project_submit_transition_Project_status&#45;&gt;action_outcome_application_action_project_submit_submitted -->
-<g id="edge6" class="edge">
-<title>application_action_resource_application_action_project_submit_transition_Project_status&#45;&gt;action_outcome_application_action_project_submit_submitted</title>
-<path fill="none" stroke="#3f3f46" d="M749.28,-249.85C805.57,-226.59 876.69,-197.2 921.65,-178.62"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="922.86,-181.15 929.18,-175.51 920.72,-175.97 922.86,-181.15"/>
-<text text-anchor="middle" x="859.5" y="-215.5" font-family="Arial" font-size="10.00">success</text>
+<!-- application_action_resource_application_action_project_submit_lifecycle_transition_entity_type_project_status&#45;&gt;action_outcome_application_action_project_submit_submitted -->
+<g id="edge5" class="edge">
+<title>application_action_resource_application_action_project_submit_lifecycle_transition_entity_type_project_status&#45;&gt;action_outcome_application_action_project_submit_submitted</title>
+<path fill="none" stroke="#3f3f46" d="M852.08,-285.5C899.93,-285.5 949.51,-285.5 983.88,-285.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="984.28,-288.3 992.28,-285.5 984.28,-282.7 984.28,-288.3"/>
+<text text-anchor="middle" x="901.5" y="-288.5" font-family="Arial" font-size="10.00">success</text>
 </g>
-<!-- action_outcome_application_action_project_submit_forbidden&#45;&gt;action_outcome_application_action_project_submit_invalid_state -->
-<!-- action_outcome_application_action_project_submit_invalid_state&#45;&gt;action_outcome_application_action_project_submit_not_found -->
+<!-- action_outcome_application_action_project_submit_transition_not_allowed -->
+<g id="node7" class="node">
+<title>action_outcome_application_action_project_submit_transition_not_allowed</title>
+<polygon fill="#ffffff" stroke="transparent" points="951,-125 951,-196 1108,-196 1108,-125 951,-125"/>
+<polygon fill="#dc2626" stroke="transparent" points="952.5,-186.5 952.5,-194.5 1107.5,-194.5 1107.5,-186.5 952.5,-186.5"/>
+<polygon fill="#fef2f2" stroke="transparent" points="952.5,-155.5 952.5,-186.5 1107.5,-186.5 1107.5,-155.5 952.5,-155.5"/>
+<text text-anchor="start" x="956.5" y="-173.1" font-family="Arial" font-weight="bold" font-size="13.00">transition_not_allowed</text>
+<text text-anchor="start" x="956.5" y="-162.1" font-family="Arial" font-size="8.00" fill="#64748b">failure outcome</text>
+<text text-anchor="start" x="956.5" y="-144.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
+<text text-anchor="start" x="956.5" y="-133.5" font-family="Arial" font-size="10.00">result</text>
+<text text-anchor="start" x="981.5" y="-133.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<polygon fill="none" stroke="#dc2626" points="951,-125 951,-196 1108,-196 1108,-125 951,-125"/>
+</g>
+<!-- application_action_resource_application_action_project_submit_lifecycle_transition_entity_type_project_status&#45;&gt;action_outcome_application_action_project_submit_transition_not_allowed -->
+<g id="edge7" class="edge">
+<title>application_action_resource_application_action_project_submit_lifecycle_transition_entity_type_project_status&#45;&gt;action_outcome_application_action_project_submit_transition_not_allowed</title>
+<path fill="none" stroke="#3f3f46" d="M797.27,-249.85C843.17,-232.11 898.29,-210.81 943.19,-193.46"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="944.43,-195.99 950.88,-190.49 942.41,-190.76 944.43,-195.99"/>
+<text text-anchor="middle" x="901.5" y="-219.5" font-family="Arial" font-size="10.00">failure</text>
+</g>
+<!-- action_outcome_application_action_project_submit_forbidden&#45;&gt;action_outcome_application_action_project_submit_not_found -->
 <!-- action_outcome_application_action_project_submit_not_found&#45;&gt;action_outcome_application_action_project_submit_submitted -->
-<!-- action_outcome_application_action_project_submit_submitted&#45;&gt;action_outcome_application_action_project_submit_unauthenticated -->
+<!-- action_outcome_application_action_project_submit_submitted&#45;&gt;action_outcome_application_action_project_submit_transition_not_allowed -->
 <!-- application_action_event_application_action_project_submit_domain_event_project_submitted -->
 <g id="node9" class="node">
 <title>application_action_event_application_action_project_submit_domain_event_project_submitted</title>
-<polygon fill="#ffffff" stroke="transparent" points="1105,-110 1105,-211 1322,-211 1322,-110 1105,-110"/>
-<polygon fill="#4f46e5" stroke="transparent" points="1106.5,-201.5 1106.5,-209.5 1321.5,-209.5 1321.5,-201.5 1106.5,-201.5"/>
-<polygon fill="#eef2ff" stroke="transparent" points="1106.5,-170.5 1106.5,-201.5 1321.5,-201.5 1321.5,-170.5 1106.5,-170.5"/>
-<text text-anchor="start" x="1110.5" y="-188.1" font-family="Arial" font-weight="bold" font-size="13.00">domain_event.project.submitted</text>
-<text text-anchor="start" x="1110.5" y="-177.1" font-family="Arial" font-size="8.00" fill="#64748b">emitted event</text>
-<text text-anchor="start" x="1110.5" y="-159.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Draft dispatch projects can be submitted for</text>
-<text text-anchor="start" x="1110.5" y="-148.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">review.</text>
-<text text-anchor="start" x="1110.5" y="-129.5" font-family="Arial" font-weight="bold" font-size="10.00">payload</text>
-<text text-anchor="start" x="1110.5" y="-118.5" font-family="Arial" font-size="10.00">payload</text>
-<text text-anchor="start" x="1144.5" y="-118.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
-<polygon fill="none" stroke="#4f46e5" points="1105,-110 1105,-211 1322,-211 1322,-110 1105,-110"/>
+<polygon fill="#ffffff" stroke="transparent" points="1189,-235 1189,-336 1406,-336 1406,-235 1189,-235"/>
+<polygon fill="#4f46e5" stroke="transparent" points="1190.5,-326.5 1190.5,-334.5 1405.5,-334.5 1405.5,-326.5 1190.5,-326.5"/>
+<polygon fill="#eef2ff" stroke="transparent" points="1190.5,-295.5 1190.5,-326.5 1405.5,-326.5 1405.5,-295.5 1190.5,-295.5"/>
+<text text-anchor="start" x="1194.5" y="-313.1" font-family="Arial" font-weight="bold" font-size="13.00">domain_event.project.submitted</text>
+<text text-anchor="start" x="1194.5" y="-302.1" font-family="Arial" font-size="8.00" fill="#64748b">emitted event</text>
+<text text-anchor="start" x="1194.5" y="-284.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Draft dispatch projects can be submitted for</text>
+<text text-anchor="start" x="1194.5" y="-273.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">review.</text>
+<text text-anchor="start" x="1194.5" y="-254.5" font-family="Arial" font-weight="bold" font-size="10.00">payload</text>
+<text text-anchor="start" x="1194.5" y="-243.5" font-family="Arial" font-size="10.00">payload</text>
+<text text-anchor="start" x="1228.5" y="-243.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
+<polygon fill="none" stroke="#4f46e5" points="1189,-235 1189,-336 1406,-336 1406,-235 1189,-235"/>
 </g>
 <!-- action_outcome_application_action_project_submit_submitted&#45;&gt;application_action_event_application_action_project_submit_domain_event_project_submitted -->
-<g id="edge7" class="edge">
+<g id="edge6" class="edge">
 <title>action_outcome_application_action_project_submit_submitted&#45;&gt;application_action_event_application_action_project_submit_domain_event_project_submitted</title>
-<path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M1003.65,-160.5C1028.48,-160.5 1062.94,-160.5 1096.72,-160.5"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="1096.83,-163.3 1104.82,-160.5 1096.82,-157.7 1096.83,-163.3"/>
-<text text-anchor="middle" x="1064.5" y="-163.5" font-family="Arial" font-size="10.00">emit</text>
+<path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M1066.65,-285.5C1096.15,-285.5 1139.53,-285.5 1180.68,-285.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="1180.87,-288.3 1188.87,-285.5 1180.87,-282.7 1180.87,-288.3"/>
+<text text-anchor="middle" x="1148.5" y="-288.5" font-family="Arial" font-size="10.00">emit</text>
 </g>
+<!-- action_outcome_application_action_project_submit_transition_not_allowed&#45;&gt;action_outcome_application_action_project_submit_unauthenticated -->
 </g>
 </svg>

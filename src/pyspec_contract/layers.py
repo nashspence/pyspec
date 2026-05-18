@@ -19,7 +19,7 @@ LAYER_ALIASES = {"full": "full", "all": "full", "api": "http", "cli": "workflow"
 TARGET_LAYERS: dict[str, set[str]] = {
     "fixture": {"core"},
     "fact": {"core"},
-    "model": {"core"},
+    "entity_type": {"core"},
     "authorization_policy": {"core"},
     "application_action": {"core"},
     "domain_event": {"core"},
@@ -51,7 +51,7 @@ AUTHOR_SECTIONS: dict[str, str] = {
     "render_profiles": "render_profile",
     "fixtures": "fixture",
     "facts": "fact",
-    "models": "model",
+    "entity_types": "entity_type",
     "authorization_policies": "authorization_policy",
     "application_actions": "application_action",
     "domain_events": "domain_event",
@@ -134,7 +134,7 @@ def validate_author_layers(author: dict[str, Any], layers: set[str] | None) -> N
 
 
 def _validate_author_spec_layers(label: str, target: str, spec: dict[str, Any], layers: set[str]) -> None:
-    if target == "model":
+    if target == "entity_type":
         return
 
     if target == "entry_point":

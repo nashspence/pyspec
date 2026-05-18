@@ -20,7 +20,7 @@ COLLECTION_SECTIONS = {
     "facts": "fact",
     "fixtures": "fixture",
     "state_machines": "state_machine",
-    "models": "model",
+    "entity_types": "entity_type",
     "data_contracts": "data_contract",
     "authorization_policies": "authorization_policy",
     "test_cases": "test_case",

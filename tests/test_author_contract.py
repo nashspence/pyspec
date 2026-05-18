@@ -17,6 +17,12 @@ def P(name: str) -> dict[str, str]:
     return {"primitive": name}
 
 
+def ET(name: str) -> str:
+    if name.startswith("entity_type."):
+        return name
+    return "entity_type." + name.lower()
+
+
 def F(type_expr: dict, *, required: bool = True, nullable: bool = False) -> dict:
     return {"type": type_expr, "required": required, "nullable": nullable}
 
@@ -109,15 +115,16 @@ def test_author_contract_compiles_to_checked_in_machine_contract() -> None:
 def test_author_contract_can_be_minimal_and_renderer_invisible() -> None:
     author = {
         "project": "minimal_author",
-        "models": {
-            "Project": {
-                "rationale": "Minimal product model for an API-free contract.",
+        "entity_types": {
+            ET("Project"): {
+                "name": "Project",
+                "rationale": "Minimal product entity_type for an API-free contract.",
                 "fields": {"id": F(P("ID")), "title": F(P("Text"))},
             }
         },
     }
     contract = compile_source(author, layers={"core"})
-    assert contract["models"]["Project"]["fields"]["title"] == F(P("Text"))
+    assert contract["entity_types"][ET("Project")]["fields"]["title"] == F(P("Text"))
     assert contract["state_machines"] == {}
     assert contract["entry_points"] == {}
     assert contract["refs"] == {}

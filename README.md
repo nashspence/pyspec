@@ -44,7 +44,7 @@ pyspec check examples/project_dispatch_board --layers full
 pyspec prompts examples/new_project --layers core,http
 ```
 
-## Authoring Model
+## Authoring Entity Types
 
 The human source is `spec/spec.yaml`. It is sparse, positive-only, and grouped by product concepts:
 
@@ -58,7 +58,7 @@ spec/spec.yaml
 
 The spec is progressive. If a concern is absent, it has no declaration and no generated projection. The spec does not contain storage implementation details, test-harness dispatch, dev-environment metadata, review state, release state, or schema-version chatter.
 
-Reusable top-level `facts` name preconditions, such as a model that must already exist. Test cases can reference them with `given.domain_facts: [{ref: fact.project.submitted}]`, and state-local audit cases can reference them with `facts: [{ref: fact.project.submitted}]`; the compiled spec expands test-case references back into concrete `present` or `absent` facts for the generated BDD harnesses.
+Reusable top-level `facts` name preconditions, such as an entity that must already exist. Test cases can reference them with `given.domain_facts: [{ref: fact.project.submitted}]`, and state-local audit cases can reference them with `facts: [{ref: fact.project.submitted}]`; the compiled spec expands test-case references back into concrete `present` or `absent` facts for the generated BDD harnesses.
 
 ## Layers
 

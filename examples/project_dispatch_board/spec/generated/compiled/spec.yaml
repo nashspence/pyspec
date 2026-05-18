@@ -1,6 +1,6 @@
 application_actions:
   application_action.project.approve:
-    action_kind: transition
+    action_kind: lifecycle_transition
     authorization:
       forbidden_as: forbidden
       policy: authorization_policy.project.reviewer
@@ -12,6 +12,11 @@ application_actions:
         primitive: ID
       project_id:
         primitive: ID
+    lifecycle_transition:
+      entity_type: entity_type.project
+      field: status
+      from: submitted
+      to: approved
     outcomes:
       approved:
         emits:
@@ -23,43 +28,38 @@ application_actions:
               from: $input.project_id
         kind: success
         result:
-          model: Project
+          entity_type: entity_type.project
       forbidden:
         emits: []
         kind: failure
         result:
-          model: Problem
-      invalid_state:
-        emits: []
-        kind: failure
-        result:
-          model: Problem
+          entity_type: entity_type.problem
       not_found:
         emits: []
         kind: failure
         result:
-          model: Problem
+          entity_type: entity_type.problem
+      transition_not_allowed:
+        emits: []
+        kind: failure
+        result:
+          entity_type: entity_type.problem
       unauthenticated:
         emits: []
         kind: failure
         result:
-          model: Problem
+          entity_type: entity_type.problem
       unavailable:
         emits: []
         kind: failure
         result:
-          model: Problem
+          entity_type: entity_type.problem
     rationale: Reviewers can approve submitted dispatch projects.
     reads: []
     retry_safe: true
-    transition:
-      field: status
-      from: submitted
-      model: Project
-      to: approved
     updates: []
   application_action.project.archive:
-    action_kind: transition
+    action_kind: lifecycle_transition
     authorization:
       forbidden_as: forbidden
       policy: authorization_policy.project.reviewer
@@ -69,6 +69,11 @@ application_actions:
     input:
       project_id:
         primitive: ID
+    lifecycle_transition:
+      entity_type: entity_type.project
+      field: status
+      from: approved
+      to: archived
     outcomes:
       archived:
         emits:
@@ -76,34 +81,29 @@ application_actions:
           payload_source: $outcome.result
         kind: success
         result:
-          model: Project
+          entity_type: entity_type.project
       forbidden:
         emits: []
         kind: failure
         result:
-          model: Problem
-      invalid_state:
-        emits: []
-        kind: failure
-        result:
-          model: Problem
+          entity_type: entity_type.problem
       not_found:
         emits: []
         kind: failure
         result:
-          model: Problem
+          entity_type: entity_type.problem
+      transition_not_allowed:
+        emits: []
+        kind: failure
+        result:
+          entity_type: entity_type.problem
       unauthenticated:
         emits: []
         kind: failure
         result:
-          model: Problem
+          entity_type: entity_type.problem
     rationale: Approved dispatch projects can be archived.
     reads: []
-    transition:
-      field: status
-      from: approved
-      model: Project
-      to: archived
     updates: []
   application_action.project.create:
     action_kind: command
@@ -112,7 +112,7 @@ application_actions:
       policy: authorization_policy.project.member
       unauthenticated_as: unauthenticated
     creates:
-    - Project
+    - entity_type.project
     deletes: []
     input:
       customer:
@@ -130,22 +130,22 @@ application_actions:
           payload_source: $outcome.result
         kind: success
         result:
-          model: Project
+          entity_type: entity_type.project
       forbidden:
         emits: []
         kind: failure
         result:
-          model: Problem
+          entity_type: entity_type.problem
       unauthenticated:
         emits: []
         kind: failure
         result:
-          model: Problem
+          entity_type: entity_type.problem
       validation_failed:
         emits: []
         kind: failure
         result:
-          model: Problem
+          entity_type: entity_type.problem
     rationale: Members can create a new dispatch project.
     reads: []
     updates: []
@@ -165,26 +165,26 @@ application_actions:
         emits: []
         kind: failure
         result:
-          model: Problem
+          entity_type: entity_type.problem
       listed:
         emits: []
         kind: success
         result:
           array:
-            model: Project
+            entity_type: entity_type.project
       unauthenticated:
         emits: []
         kind: failure
         result:
-          model: Problem
+          entity_type: entity_type.problem
       unavailable:
         emits: []
         kind: failure
         result:
-          model: Problem
+          entity_type: entity_type.problem
     rationale: The board requires a project list query scoped by workspace.
     reads:
-    - Project
+    - entity_type.project
     updates: []
   application_action.project.read:
     action_kind: query
@@ -202,25 +202,25 @@ application_actions:
         emits: []
         kind: failure
         result:
-          model: Problem
+          entity_type: entity_type.problem
       found:
         emits: []
         kind: success
         result:
-          model: Project
+          entity_type: entity_type.project
       not_found:
         emits: []
         kind: failure
         result:
-          model: Problem
+          entity_type: entity_type.problem
       unauthenticated:
         emits: []
         kind: failure
         result:
-          model: Problem
+          entity_type: entity_type.problem
     rationale: The detail state machine loads the selected project by id.
     reads:
-    - Project
+    - entity_type.project
     updates: []
   application_action.project.send_approval_notice:
     action_kind: command
@@ -240,12 +240,12 @@ application_actions:
         emits: []
         kind: failure
         result:
-          model: Problem
+          entity_type: entity_type.problem
       forbidden:
         emits: []
         kind: failure
         result:
-          model: Problem
+          entity_type: entity_type.problem
       sent:
         emits: []
         kind: success
@@ -255,13 +255,13 @@ application_actions:
         emits: []
         kind: failure
         result:
-          model: Problem
+          entity_type: entity_type.problem
     rationale: Approval triggers a notification command for downstream coordination.
     reads: []
     retry_safe: true
     updates: []
   application_action.project.submit:
-    action_kind: transition
+    action_kind: lifecycle_transition
     authorization:
       forbidden_as: forbidden
       policy: authorization_policy.project.member
@@ -271,41 +271,41 @@ application_actions:
     input:
       project_id:
         primitive: ID
+    lifecycle_transition:
+      entity_type: entity_type.project
+      field: status
+      from: draft
+      to: submitted
     outcomes:
       forbidden:
         emits: []
         kind: failure
         result:
-          model: Problem
-      invalid_state:
-        emits: []
-        kind: failure
-        result:
-          model: Problem
+          entity_type: entity_type.problem
       not_found:
         emits: []
         kind: failure
         result:
-          model: Problem
+          entity_type: entity_type.problem
       submitted:
         emits:
         - domain_event: domain_event.project.submitted
           payload_source: $outcome.result
         kind: success
         result:
-          model: Project
+          entity_type: entity_type.project
+      transition_not_allowed:
+        emits: []
+        kind: failure
+        result:
+          entity_type: entity_type.problem
       unauthenticated:
         emits: []
         kind: failure
         result:
-          model: Problem
+          entity_type: entity_type.problem
     rationale: Draft dispatch projects can be submitted for review.
     reads: []
-    transition:
-      field: status
-      from: draft
-      model: Project
-      to: submitted
     updates: []
 assets:
   asset.project.detail.ready.priority_badge:
@@ -342,7 +342,7 @@ authorization_policies:
     - application_action: application_action.project.list
     - application_action: application_action.project.read
     - application_action: application_action.project.submit
-    - model: Project
+    - entity_type: entity_type.project
   authorization_policy.project.reviewer:
     conditions:
     - subject_has_role: reviewer
@@ -354,7 +354,7 @@ authorization_policies:
     - application_action: application_action.project.approve
     - application_action: application_action.project.archive
     - application_action: application_action.project.send_approval_notice
-    - model: Project
+    - entity_type: entity_type.project
 content_cases:
   content_case.project.detail.heading.high_priority:
     args:
@@ -396,7 +396,7 @@ data_contracts:
         required: true
         type:
           primitive: Timestamp
-    rationale: Approval notice commands return a transient delivery receipt rather than a durable product model.
+    rationale: Approval notice commands return a transient delivery receipt rather than a durable product entity_type.
 domain_events:
   domain_event.project.approved:
     emitted_by:
@@ -408,20 +408,112 @@ domain_events:
     emitted_by:
     - application_action.project.archive
     payload_schema:
-      model: Project
+      entity_type: entity_type.project
     rationale: Approved dispatch projects can be archived.
   domain_event.project.created:
     emitted_by:
     - application_action.project.create
     payload_schema:
-      model: Project
+      entity_type: entity_type.project
     rationale: Members can create a new dispatch project.
   domain_event.project.submitted:
     emitted_by:
     - application_action.project.submit
     payload_schema:
-      model: Project
+      entity_type: entity_type.project
     rationale: Draft dispatch projects can be submitted for review.
+entity_types:
+  entity_type.problem:
+    entity_lifecycle: null
+    fields:
+      code:
+        nullable: false
+        required: true
+        type:
+          primitive: Text
+      message:
+        nullable: false
+        required: true
+        type:
+          primitive: Text
+    name: Problem
+    rationale: A structured problem result explains intentional failure outcomes across API and CLI surfaces.
+  entity_type.project:
+    entity_lifecycle:
+      field: status
+      initial_state: draft
+      lifecycle_states:
+      - draft
+      - submitted
+      - approved
+      - archived
+      lifecycle_transitions:
+      - from: draft
+        to: submitted
+        triggered_by: application_action.project.submit
+      - from: submitted
+        to: approved
+        triggered_by: application_action.project.approve
+      - from: approved
+        to: archived
+        triggered_by: application_action.project.archive
+    fields:
+      assignee:
+        nullable: false
+        required: true
+        type:
+          primitive: Text
+      created_at:
+        nullable: false
+        required: true
+        type:
+          primitive: Timestamp
+      customer:
+        nullable: false
+        required: true
+        type:
+          primitive: Text
+      id:
+        nullable: false
+        required: true
+        type:
+          primitive: ID
+      priority:
+        nullable: false
+        required: true
+        type:
+          primitive: Text
+      status:
+        nullable: false
+        required: true
+        type:
+          enum:
+          - draft
+          - submitted
+          - approved
+          - archived
+      summary:
+        nullable: false
+        required: true
+        type:
+          primitive: Text
+      title:
+        nullable: false
+        required: true
+        type:
+          primitive: Text
+      updated_at:
+        nullable: false
+        required: true
+        type:
+          primitive: Timestamp
+      workspace_id:
+        nullable: false
+        required: true
+        type:
+          primitive: ID
+    name: Project
+    rationale: A dispatch project is the durable work item displayed and acted on by the board.
 entry_points:
   entry_point.api.project.approve:
     adapter:
@@ -440,37 +532,37 @@ entry_points:
             body:
               from: $outcome.result
               type:
-                model: Project
+                entity_type: entity_type.project
             status: 200
           forbidden:
             body:
               from: $outcome.result
               type:
-                model: Problem
+                entity_type: entity_type.problem
             status: 403
-          invalid_state:
-            body:
-              from: $outcome.result
-              type:
-                model: Problem
-            status: 409
           not_found:
             body:
               from: $outcome.result
               type:
-                model: Problem
+                entity_type: entity_type.problem
             status: 404
+          transition_not_allowed:
+            body:
+              from: $outcome.result
+              type:
+                entity_type: entity_type.problem
+            status: 409
           unauthenticated:
             body:
               from: $outcome.result
               type:
-                model: Problem
+                entity_type: entity_type.problem
             status: 401
           unavailable:
             body:
               from: $outcome.result
               type:
-                model: Problem
+                entity_type: entity_type.problem
             status: 503
     authorization_policy: authorization_policy.project.reviewer
     endpoint: endpoint.project.approve
@@ -505,25 +597,25 @@ entry_points:
             body:
               from: $outcome.result
               type:
-                model: Project
+                entity_type: entity_type.project
             status: 201
           forbidden:
             body:
               from: $outcome.result
               type:
-                model: Problem
+                entity_type: entity_type.problem
             status: 403
           unauthenticated:
             body:
               from: $outcome.result
               type:
-                model: Problem
+                entity_type: entity_type.problem
             status: 401
           validation_failed:
             body:
               from: $outcome.result
               type:
-                model: Problem
+                entity_type: entity_type.problem
             status: 422
     authorization_policy: authorization_policy.project.member
     endpoint: endpoint.project.create
@@ -554,26 +646,26 @@ entry_points:
             body:
               from: $outcome.result
               type:
-                model: Problem
+                entity_type: entity_type.problem
             status: 403
           listed:
             body:
               from: $outcome.result
               type:
                 array:
-                  model: Project
+                  entity_type: entity_type.project
             status: 200
           unauthenticated:
             body:
               from: $outcome.result
               type:
-                model: Problem
+                entity_type: entity_type.problem
             status: 401
           unavailable:
             body:
               from: $outcome.result
               type:
-                model: Problem
+                entity_type: entity_type.problem
             status: 503
     authorization_policy: authorization_policy.project.member
     endpoint: endpoint.project.list
@@ -609,13 +701,6 @@ entry_points:
                 message:
                   from: $response.body.message
               text: text.project.approve.forbidden
-          invalid_state:
-            exit_code: 2
-            stderr:
-              bindings:
-                message:
-                  from: $response.body.message
-              text: text.project.approve.invalid_state
           not_found:
             exit_code: 3
             stderr:
@@ -623,6 +708,13 @@ entry_points:
                 message:
                   from: $response.body.message
               text: text.project.approve.not_found
+          transition_not_allowed:
+            exit_code: 2
+            stderr:
+              bindings:
+                message:
+                  from: $response.body.message
+              text: text.project.approve.transition_not_allowed
           unauthenticated:
             exit_code: 4
             stderr:
@@ -692,7 +784,7 @@ entry_points:
           malformed:
             disposition: dead_letter
             problem:
-              model: Problem
+              entity_type: entity_type.problem
         input:
           payload:
             data_contract: data_contract.project.approved
@@ -709,7 +801,7 @@ entry_points:
 facts:
   fact.project.draft:
     present:
-      model: Project
+      entity_type: entity_type.project
       values:
         assignee:
           value: Unassigned
@@ -734,7 +826,7 @@ facts:
     rationale: Draft dispatch project used as a secondary row in ready-board audit renders.
   fact.project.submitted:
     present:
-      model: Project
+      entity_type: entity_type.project
       values:
         assignee:
           value: Maya Chen
@@ -778,96 +870,6 @@ fixtures:
       workspace:
         id: workspace_1
         name: North Region Dispatch
-models:
-  Problem:
-    fields:
-      code:
-        nullable: false
-        required: true
-        type:
-          primitive: Text
-      message:
-        nullable: false
-        required: true
-        type:
-          primitive: Text
-    lifecycle: null
-    rationale: A structured problem result explains intentional failure outcomes across API and CLI surfaces.
-  Project:
-    fields:
-      assignee:
-        nullable: false
-        required: true
-        type:
-          primitive: Text
-      created_at:
-        nullable: false
-        required: true
-        type:
-          primitive: Timestamp
-      customer:
-        nullable: false
-        required: true
-        type:
-          primitive: Text
-      id:
-        nullable: false
-        required: true
-        type:
-          primitive: ID
-      priority:
-        nullable: false
-        required: true
-        type:
-          primitive: Text
-      status:
-        nullable: false
-        required: true
-        type:
-          enum:
-          - draft
-          - submitted
-          - approved
-          - archived
-      summary:
-        nullable: false
-        required: true
-        type:
-          primitive: Text
-      title:
-        nullable: false
-        required: true
-        type:
-          primitive: Text
-      updated_at:
-        nullable: false
-        required: true
-        type:
-          primitive: Timestamp
-      workspace_id:
-        nullable: false
-        required: true
-        type:
-          primitive: ID
-    lifecycle:
-      field: status
-      initial: draft
-      states:
-      - draft
-      - submitted
-      - approved
-      - archived
-      transitions:
-      - from: draft
-        to: submitted
-        triggered_by: application_action.project.submit
-      - from: submitted
-        to: approved
-        triggered_by: application_action.project.approve
-      - from: approved
-        to: archived
-        triggered_by: application_action.project.archive
-    rationale: A dispatch project is the durable work item displayed and acted on by the board.
 project: project_dispatch_board
 refs:
   action_binding:
@@ -879,14 +881,14 @@ refs:
   action_outcome_effect:
   - action_outcome_effect.project.detail.ready.approve.approved
   - action_outcome_effect.project.detail.ready.approve.forbidden
-  - action_outcome_effect.project.detail.ready.approve.invalid_state
   - action_outcome_effect.project.detail.ready.approve.not_found
+  - action_outcome_effect.project.detail.ready.approve.transition_not_allowed
   - action_outcome_effect.project.detail.ready.approve.unauthenticated
   - action_outcome_effect.project.detail.ready.approve.unavailable
   - action_outcome_effect.project.detail.ready.archive.archived
   - action_outcome_effect.project.detail.ready.archive.forbidden
-  - action_outcome_effect.project.detail.ready.archive.invalid_state
   - action_outcome_effect.project.detail.ready.archive.not_found
+  - action_outcome_effect.project.detail.ready.archive.transition_not_allowed
   - action_outcome_effect.project.detail.ready.archive.unauthenticated
   - action_outcome_effect.project.list.empty.create.created
   - action_outcome_effect.project.list.empty.create.forbidden
@@ -897,9 +899,9 @@ refs:
   - action_outcome_effect.project.list.ready.create.unauthenticated
   - action_outcome_effect.project.list.ready.create.validation_failed
   - action_outcome_effect.project.list.ready.submit.forbidden
-  - action_outcome_effect.project.list.ready.submit.invalid_state
   - action_outcome_effect.project.list.ready.submit.not_found
   - action_outcome_effect.project.list.ready.submit.submitted
+  - action_outcome_effect.project.list.ready.submit.transition_not_allowed
   - action_outcome_effect.project.list.ready.submit.unauthenticated
   asset:
   - asset.project.detail.ready.priority_badge
@@ -913,8 +915,8 @@ refs:
   cli_response_handler:
   - cli_response_handler.cli.project.approve.approved
   - cli_response_handler.cli.project.approve.forbidden
-  - cli_response_handler.cli.project.approve.invalid_state
   - cli_response_handler.cli.project.approve.not_found
+  - cli_response_handler.cli.project.approve.transition_not_allowed
   - cli_response_handler.cli.project.approve.unauthenticated
   - cli_response_handler.cli.project.approve.unavailable
   data_loader:
@@ -964,35 +966,35 @@ refs:
   - local_signal_raise.project.detail.loading.data_loader.read_project.not_found.data_refresh_signal.project_load_failed
   - local_signal_raise.project.detail.loading.data_loader.read_project.unauthenticated.data_refresh_signal.project_load_failed
   - local_signal_raise.project.detail.ready.action_binding.approve.approved.data_refresh_signal.project_changed
-  - local_signal_raise.project.detail.ready.action_binding.approve.invalid_state.local_signal.show_invalid_state
+  - local_signal_raise.project.detail.ready.action_binding.approve.transition_not_allowed.local_signal.show_transition_not_allowed
   - local_signal_raise.project.detail.ready.action_binding.archive.archived.data_refresh_signal.project_changed
-  - local_signal_raise.project.detail.ready.action_binding.archive.forbidden.local_signal.show_invalid_state
-  - local_signal_raise.project.detail.ready.action_binding.archive.invalid_state.local_signal.show_invalid_state
-  - local_signal_raise.project.detail.ready.action_binding.archive.not_found.local_signal.show_invalid_state
-  - local_signal_raise.project.detail.ready.action_binding.archive.unauthenticated.local_signal.show_invalid_state
-  - local_signal_raise.project.detail.ready.data_loader.read_project.forbidden.local_signal.show_invalid_state
-  - local_signal_raise.project.detail.ready.data_loader.read_project.not_found.local_signal.show_invalid_state
-  - local_signal_raise.project.detail.ready.data_loader.read_project.unauthenticated.local_signal.show_invalid_state
+  - local_signal_raise.project.detail.ready.action_binding.archive.forbidden.local_signal.show_transition_not_allowed
+  - local_signal_raise.project.detail.ready.action_binding.archive.not_found.local_signal.show_transition_not_allowed
+  - local_signal_raise.project.detail.ready.action_binding.archive.transition_not_allowed.local_signal.show_transition_not_allowed
+  - local_signal_raise.project.detail.ready.action_binding.archive.unauthenticated.local_signal.show_transition_not_allowed
+  - local_signal_raise.project.detail.ready.data_loader.read_project.forbidden.local_signal.show_transition_not_allowed
+  - local_signal_raise.project.detail.ready.data_loader.read_project.not_found.local_signal.show_transition_not_allowed
+  - local_signal_raise.project.detail.ready.data_loader.read_project.unauthenticated.local_signal.show_transition_not_allowed
   - local_signal_raise.project.list.data_loader.list_projects.forbidden.data_refresh_signal.project_list_failed
   - local_signal_raise.project.list.data_loader.list_projects.listed.data_refresh_signal.project_collection_empty
   - local_signal_raise.project.list.data_loader.list_projects.listed.data_refresh_signal.projects_loaded
   - local_signal_raise.project.list.data_loader.list_projects.unauthenticated.data_refresh_signal.project_list_failed
   - local_signal_raise.project.list.data_loader.list_projects.unavailable.data_refresh_signal.project_list_failed
   - local_signal_raise.project.list.empty.action_binding.create.created.data_refresh_signal.projects_changed
-  - local_signal_raise.project.list.empty.action_binding.create.validation_failed.local_signal.show_invalid_state
+  - local_signal_raise.project.list.empty.action_binding.create.validation_failed.local_signal.show_transition_not_allowed
   - local_signal_raise.project.list.ready.action_binding.create.created.data_refresh_signal.projects_changed
-  - local_signal_raise.project.list.ready.action_binding.submit.forbidden.local_signal.show_invalid_state
-  - local_signal_raise.project.list.ready.action_binding.submit.invalid_state.local_signal.show_invalid_state
-  - local_signal_raise.project.list.ready.action_binding.submit.not_found.local_signal.show_invalid_state
+  - local_signal_raise.project.list.ready.action_binding.submit.forbidden.local_signal.show_transition_not_allowed
+  - local_signal_raise.project.list.ready.action_binding.submit.not_found.local_signal.show_transition_not_allowed
   - local_signal_raise.project.list.ready.action_binding.submit.submitted.data_refresh_signal.projects_changed
-  - local_signal_raise.project.list.ready.action_binding.submit.unauthenticated.local_signal.show_invalid_state
+  - local_signal_raise.project.list.ready.action_binding.submit.transition_not_allowed.local_signal.show_transition_not_allowed
+  - local_signal_raise.project.list.ready.action_binding.submit.unauthenticated.local_signal.show_transition_not_allowed
   route:
   - route.project.board
   runtime_response:
   - runtime_response.cli.project.approve.approved.stdout.project_id
   - runtime_response.cli.project.approve.forbidden.stderr.message
-  - runtime_response.cli.project.approve.invalid_state.stderr.message
   - runtime_response.cli.project.approve.not_found.stderr.message
+  - runtime_response.cli.project.approve.transition_not_allowed.stderr.message
   - runtime_response.cli.project.approve.unauthenticated.stderr.message
   screen:
   - screen.project.board
@@ -1018,9 +1020,9 @@ refs:
   - text.project.activity.empty.heading
   - text.project.activity.ready.heading
   - text.project.approve.forbidden
-  - text.project.approve.invalid_state
   - text.project.approve.not_found
   - text.project.approve.success
+  - text.project.approve.transition_not_allowed
   - text.project.approve.unauthenticated
   - text.project.approve.unavailable
   - text.project.detail.error.body
@@ -1063,8 +1065,8 @@ state_machines:
         type:
           primitive: ID
     data_loaders: {}
+    entity_type: entity_type.project
     initial_view_state: empty
-    model: Project
     rationale: The activity state machine summarizes latest status around the selected project.
     signals:
       accepts:
@@ -1183,8 +1185,8 @@ state_machines:
         rationale: Board-level project list is shared shell data for composed child state machines; the child list machine
           owns visible loading and empty/non-empty transitions.
         result_scope: shared
+    entity_type: entity_type.project
     initial_view_state: ready
-    model: Project
     rationale: The dispatch board composes list, detail, and activity state machines through shared selected-project context.
     signals:
       accepts:
@@ -1374,8 +1376,8 @@ state_machines:
         type:
           primitive: ID
     data_loaders: {}
+    entity_type: entity_type.project
     initial_view_state: none
-    model: Project
     rationale: The detail state machine is independent from the list and reacts to selected project context.
     signals:
       accepts:
@@ -1393,7 +1395,7 @@ state_machines:
                 primitive: ID
           selection_cleared:
             payload_schema: {}
-          show_invalid_state:
+          show_transition_not_allowed:
             payload_schema:
               message:
                 primitive: Text
@@ -1427,7 +1429,7 @@ state_machines:
       to: ready
     - from: ready
       on:
-        local_signal: show_invalid_state
+        local_signal: show_transition_not_allowed
       rationale: Invalid detail application_actions move the detail panel into its displayable error state.
       to: error
     view_states:
@@ -1498,16 +1500,16 @@ state_machines:
                 no_local_effect:
                   rationale: The response surface keeps the detail panel unchanged for forbidden approval.
                   reason: handled_by_response_surface
-              invalid_state:
-                raise:
-                  local_signal: show_invalid_state
-                  payload_bindings:
-                    message:
-                      from: $outcome.result.message
               not_found:
                 no_local_effect:
                   rationale: The response surface reports a missing project without a local transition.
                   reason: handled_by_response_surface
+              transition_not_allowed:
+                raise:
+                  local_signal: show_transition_not_allowed
+                  payload_bindings:
+                    message:
+                      from: $outcome.result.message
               unauthenticated:
                 no_local_effect:
                   rationale: The response surface reports authentication failure without a local transition.
@@ -1527,25 +1529,25 @@ state_machines:
                   data_refresh_signal: project_changed
               forbidden:
                 raise:
-                  local_signal: show_invalid_state
-                  payload_bindings:
-                    message:
-                      from: $outcome.result.message
-              invalid_state:
-                raise:
-                  local_signal: show_invalid_state
+                  local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $outcome.result.message
               not_found:
                 raise:
-                  local_signal: show_invalid_state
+                  local_signal: show_transition_not_allowed
+                  payload_bindings:
+                    message:
+                      from: $outcome.result.message
+              transition_not_allowed:
+                raise:
+                  local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $outcome.result.message
               unauthenticated:
                 raise:
-                  local_signal: show_invalid_state
+                  local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $outcome.result.message
@@ -1564,7 +1566,7 @@ state_machines:
             outcome_effects:
               forbidden:
                 raise:
-                  local_signal: show_invalid_state
+                  local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $outcome.result.message
@@ -1577,13 +1579,13 @@ state_machines:
                     from: $outcome.result
               not_found:
                 raise:
-                  local_signal: show_invalid_state
+                  local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $outcome.result.message
               unauthenticated:
                 raise:
-                  local_signal: show_invalid_state
+                  local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $outcome.result.message
@@ -1653,8 +1655,8 @@ state_machines:
             raise:
               data_refresh_signal: project_list_failed
         result_scope: local
+    entity_type: entity_type.project
     initial_view_state: loading
-    model: Project
     rationale: The list state machine owns collection loading, empty, ready, error, and selection behavior.
     signals:
       accepts:
@@ -1672,7 +1674,7 @@ state_machines:
             payload_schema:
               project_id:
                 primitive: ID
-          show_invalid_state:
+          show_transition_not_allowed:
             payload_schema:
               message:
                 primitive: Text
@@ -1706,7 +1708,7 @@ state_machines:
       to: empty
     - from: empty
       on:
-        local_signal: show_invalid_state
+        local_signal: show_transition_not_allowed
       rationale: Invalid create attempts move the list into its displayable error state.
       to: error
     - effects:
@@ -1731,7 +1733,7 @@ state_machines:
       to: ready
     - from: ready
       on:
-        local_signal: show_invalid_state
+        local_signal: show_transition_not_allowed
       rationale: Invalid list application_actions move the list into its displayable error state.
       to: error
     view_states:
@@ -1762,7 +1764,7 @@ state_machines:
                   reason: handled_by_response_surface
               validation_failed:
                 raise:
-                  local_signal: show_invalid_state
+                  local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $outcome.result.message
@@ -1828,28 +1830,28 @@ state_machines:
             outcome_effects:
               forbidden:
                 raise:
-                  local_signal: show_invalid_state
-                  payload_bindings:
-                    message:
-                      from: $outcome.result.message
-              invalid_state:
-                raise:
-                  local_signal: show_invalid_state
+                  local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $outcome.result.message
               not_found:
                 raise:
-                  local_signal: show_invalid_state
+                  local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $outcome.result.message
               submitted:
                 raise:
                   data_refresh_signal: projects_changed
+              transition_not_allowed:
+                raise:
+                  local_signal: show_transition_not_allowed
+                  payload_bindings:
+                    message:
+                      from: $outcome.result.message
               unauthenticated:
                 raise:
-                  local_signal: show_invalid_state
+                  local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $outcome.result.message
@@ -1899,7 +1901,7 @@ test_cases:
     given:
       domain_facts:
       - present:
-          model: Project
+          entity_type: entity_type.project
           values:
             assignee:
               value: Maya Chen
@@ -1950,7 +1952,7 @@ test_cases:
     given:
       domain_facts:
       - present:
-          model: Project
+          entity_type: entity_type.project
           values:
             assignee:
               value: Maya Chen
@@ -1985,16 +1987,16 @@ test_cases:
       domain_events:
         emitted:
         - domain_event.project.approved
-      invoked:
-      - application_action.project.approve
-      model:
+      entity:
         exists:
-          model: Project
+          entity_type: entity_type.project
           where:
             id:
               value: project_submitted_1
             status:
               value: approved
+      invoked:
+      - application_action.project.approve
       outcome: approved
     title: Approve submitted dispatch project
     when:
@@ -2011,7 +2013,7 @@ test_cases:
     given:
       domain_facts:
       - absent:
-          model: Project
+          entity_type: entity_type.project
           where:
             workspace_id:
               from: $fixture.workspace.id
@@ -2217,7 +2219,7 @@ test_cases:
     given:
       domain_facts:
       - present:
-          model: Project
+          entity_type: entity_type.project
           values:
             assignee:
               value: Maya Chen
@@ -2437,7 +2439,7 @@ test_cases:
     given:
       domain_facts:
       - absent:
-          model: Project
+          entity_type: entity_type.project
           where:
             workspace_id:
               from: $fixture.workspace.id
@@ -2454,16 +2456,16 @@ test_cases:
       domain_events:
         emitted:
         - domain_event.project.created
-      invoked:
-      - application_action.project.create
-      model:
+      entity:
         exists:
-          model: Project
+          entity_type: entity_type.project
           where:
             title:
               value: Replace rooftop condenser fan
             workspace_id:
               from: $fixture.workspace.id
+      invoked:
+      - application_action.project.create
       outcome: created
       response:
         status: 201
@@ -2504,14 +2506,6 @@ text_resources:
     max_chars: 120
     placeholder: 'Approval is forbidden: {message}'
     rationale: CLI approval forbidden message.
-  text.project.approve.invalid_state:
-    args:
-      message:
-        primitive: Text
-    intent: error
-    max_chars: 120
-    placeholder: 'Cannot approve project: {message}'
-    rationale: CLI approval invalid-state message.
   text.project.approve.not_found:
     args:
       message:
@@ -2528,6 +2522,14 @@ text_resources:
     max_chars: 120
     placeholder: Approved project {project_id}
     rationale: CLI approval success message.
+  text.project.approve.transition_not_allowed:
+    args:
+      message:
+        primitive: Text
+    intent: error
+    max_chars: 120
+    placeholder: 'Cannot approve project: {message}'
+    rationale: CLI approval invalid-state message.
   text.project.approve.unauthenticated:
     args:
       message:
@@ -2617,15 +2619,15 @@ workflows:
       delivery_failed:
         kind: failure
         result:
-          model: Problem
+          entity_type: entity_type.problem
       notice_forbidden:
         kind: failure
         result:
-          model: Problem
+          entity_type: entity_type.problem
       notice_unauthenticated:
         kind: failure
         result:
-          model: Problem
+          entity_type: entity_type.problem
     rationale: Approval domain event sends a downstream notice.
     ref: workflow.project.approval_notice
     steps:

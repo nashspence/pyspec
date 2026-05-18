@@ -1,6 +1,6 @@
-<svg width="1397pt" height="747pt"
- viewBox="0.00 0.00 1397.00 747.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 5da332b6a85f16b67f9ff289a026dc88f47aa571d896bd5cf074f0cee30dd51b -->
+<svg width="1481pt" height="747pt"
+ viewBox="0.00 0.00 1481.00 747.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: 8da7c05e58d5940e773067bc15b57f9708501b80c06f11ec7ed7831335c64b82 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 729)">
 <title>application_action_application_action_project_approve</title>
 <!-- application_action_input_application_action_project_approve -->
@@ -43,173 +43,173 @@
 <polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="172.99,-342.3 180.99,-339.5 172.99,-336.7 172.99,-342.3"/>
 <text text-anchor="middle" x="130" y="-342.5" font-family="Arial" font-size="10.00">authorize</text>
 </g>
-<!-- application_action_resource_application_action_project_approve_transition_Project_status -->
+<!-- application_action_resource_application_action_project_approve_lifecycle_transition_entity_type_project_status -->
 <g id="node3" class="node">
-<title>application_action_resource_application_action_project_approve_transition_Project_status</title>
-<polygon fill="#ffffff" stroke="transparent" points="530,-304 530,-375 843,-375 843,-304 530,-304"/>
-<polygon fill="#15803d" stroke="transparent" points="531.5,-365.5 531.5,-373.5 842.5,-373.5 842.5,-365.5 531.5,-365.5"/>
-<polygon fill="#f0fdfa" stroke="transparent" points="531.5,-334.5 531.5,-365.5 842.5,-365.5 842.5,-334.5 531.5,-334.5"/>
-<text text-anchor="start" x="535.5" y="-352.1" font-family="Arial" font-weight="bold" font-size="13.00">Project</text>
-<text text-anchor="start" x="535.5" y="-341.1" font-family="Arial" font-size="8.00" fill="#64748b">model resource</text>
-<text text-anchor="start" x="535.5" y="-323.5" font-family="Arial" font-weight="bold" font-size="10.00">change</text>
-<text text-anchor="start" x="535.5" y="-312.5" font-family="Arial" font-size="10.00">Project.status</text>
-<text text-anchor="start" x="596.5" y="-312.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  enum&lt;draft|submitted|approved|archived&gt;</text>
-<text text-anchor="start" x="752.5" y="-312.5" font-family="Arial" font-size="8.00">  submitted → approved</text>
-<polygon fill="none" stroke="#15803d" points="530,-304 530,-375 843,-375 843,-304 530,-304"/>
+<title>application_action_resource_application_action_project_approve_lifecycle_transition_entity_type_project_status</title>
+<polygon fill="#ffffff" stroke="transparent" points="572,-304 572,-375 885,-375 885,-304 572,-304"/>
+<polygon fill="#15803d" stroke="transparent" points="573.5,-365.5 573.5,-373.5 884.5,-373.5 884.5,-365.5 573.5,-365.5"/>
+<polygon fill="#f0fdfa" stroke="transparent" points="573.5,-334.5 573.5,-365.5 884.5,-365.5 884.5,-334.5 573.5,-334.5"/>
+<text text-anchor="start" x="577.5" y="-352.1" font-family="Arial" font-weight="bold" font-size="13.00">entity_type.project</text>
+<text text-anchor="start" x="577.5" y="-341.1" font-family="Arial" font-size="8.00" fill="#64748b">entity_type resource</text>
+<text text-anchor="start" x="577.5" y="-323.5" font-family="Arial" font-weight="bold" font-size="10.00">change</text>
+<text text-anchor="start" x="577.5" y="-312.5" font-family="Arial" font-size="10.00">Project.status</text>
+<text text-anchor="start" x="638.5" y="-312.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  enum&lt;draft|submitted|approved|archived&gt;</text>
+<text text-anchor="start" x="794.5" y="-312.5" font-family="Arial" font-size="8.00">  submitted → approved</text>
+<polygon fill="none" stroke="#15803d" points="572,-304 572,-375 885,-375 885,-304 572,-304"/>
 </g>
-<!-- application_action_policy_authorization_policy_project_reviewer&#45;&gt;application_action_resource_application_action_project_approve_transition_Project_status -->
+<!-- application_action_policy_authorization_policy_project_reviewer&#45;&gt;application_action_resource_application_action_project_approve_lifecycle_transition_entity_type_project_status -->
 <g id="edge2" class="edge">
-<title>application_action_policy_authorization_policy_project_reviewer&#45;&gt;application_action_resource_application_action_project_approve_transition_Project_status</title>
-<path fill="none" stroke="#3f3f46" d="M428.09,-339.5C457.86,-339.5 490.16,-339.5 521.5,-339.5"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="521.88,-342.3 529.88,-339.5 521.88,-336.7 521.88,-342.3"/>
-<text text-anchor="middle" x="479" y="-342.5" font-family="Arial" font-size="10.00">transition</text>
+<title>application_action_policy_authorization_policy_project_reviewer&#45;&gt;application_action_resource_application_action_project_approve_lifecycle_transition_entity_type_project_status</title>
+<path fill="none" stroke="#3f3f46" d="M428.13,-339.5C470.48,-339.5 518.64,-339.5 563.75,-339.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="563.84,-342.3 571.84,-339.5 563.84,-336.7 563.84,-342.3"/>
+<text text-anchor="middle" x="500" y="-342.5" font-family="Arial" font-size="10.00">lifecycle_transition</text>
 </g>
 <!-- action_outcome_application_action_project_approve_forbidden -->
 <g id="node5" class="node">
 <title>action_outcome_application_action_project_approve_forbidden</title>
-<polygon fill="#ffffff" stroke="transparent" points="963,-500 963,-571 1036,-571 1036,-500 963,-500"/>
-<polygon fill="#dc2626" stroke="transparent" points="964.5,-561.5 964.5,-569.5 1035.5,-569.5 1035.5,-561.5 964.5,-561.5"/>
-<polygon fill="#fef2f2" stroke="transparent" points="964.5,-530.5 964.5,-561.5 1035.5,-561.5 1035.5,-530.5 964.5,-530.5"/>
-<text text-anchor="start" x="968.5" y="-548.1" font-family="Arial" font-weight="bold" font-size="13.00">forbidden</text>
-<text text-anchor="start" x="968.5" y="-537.1" font-family="Arial" font-size="8.00" fill="#64748b">failure outcome</text>
-<text text-anchor="start" x="968.5" y="-519.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
-<text text-anchor="start" x="968.5" y="-508.5" font-family="Arial" font-size="10.00">result</text>
-<text text-anchor="start" x="993.5" y="-508.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<polygon fill="none" stroke="#dc2626" points="963,-500 963,-571 1036,-571 1036,-500 963,-500"/>
+<polygon fill="#ffffff" stroke="transparent" points="1026,-500 1026,-571 1099,-571 1099,-500 1026,-500"/>
+<polygon fill="#dc2626" stroke="transparent" points="1027.5,-561.5 1027.5,-569.5 1098.5,-569.5 1098.5,-561.5 1027.5,-561.5"/>
+<polygon fill="#fef2f2" stroke="transparent" points="1027.5,-530.5 1027.5,-561.5 1098.5,-561.5 1098.5,-530.5 1027.5,-530.5"/>
+<text text-anchor="start" x="1031.5" y="-548.1" font-family="Arial" font-weight="bold" font-size="13.00">forbidden</text>
+<text text-anchor="start" x="1031.5" y="-537.1" font-family="Arial" font-size="8.00" fill="#64748b">failure outcome</text>
+<text text-anchor="start" x="1031.5" y="-519.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
+<text text-anchor="start" x="1031.5" y="-508.5" font-family="Arial" font-size="10.00">result</text>
+<text text-anchor="start" x="1056.5" y="-508.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<polygon fill="none" stroke="#dc2626" points="1026,-500 1026,-571 1099,-571 1099,-500 1026,-500"/>
 </g>
 <!-- application_action_policy_authorization_policy_project_reviewer&#45;&gt;action_outcome_application_action_project_approve_forbidden -->
 <g id="edge5" class="edge">
 <title>application_action_policy_authorization_policy_project_reviewer&#45;&gt;action_outcome_application_action_project_approve_forbidden</title>
-<path fill="none" stroke="#3f3f46" d="M428.12,-377.14C542.94,-411.95 719.5,-464.35 874,-505.5 900.83,-512.65 931.11,-519.96 955.09,-525.58"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="954.54,-528.32 962.97,-527.41 955.81,-522.87 954.54,-528.32"/>
-<text text-anchor="middle" x="686.5" y="-498.5" font-family="Arial" font-size="10.00">forbidden_as</text>
+<path fill="none" stroke="#3f3f46" d="M428.28,-375.3C551.16,-410.55 745.87,-464.87 916,-505.5 950.05,-513.63 988.9,-521.57 1017.88,-527.24"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1017.4,-530 1025.78,-528.78 1018.47,-524.5 1017.4,-530"/>
+<text text-anchor="middle" x="728.5" y="-499.5" font-family="Arial" font-size="10.00">forbidden_as</text>
 </g>
 <!-- action_outcome_application_action_project_approve_unauthenticated -->
 <g id="node8" class="node">
 <title>action_outcome_application_action_project_approve_unauthenticated</title>
-<polygon fill="#ffffff" stroke="transparent" points="942,-125 942,-196 1057,-196 1057,-125 942,-125"/>
-<polygon fill="#dc2626" stroke="transparent" points="943.5,-186.5 943.5,-194.5 1056.5,-194.5 1056.5,-186.5 943.5,-186.5"/>
-<polygon fill="#fef2f2" stroke="transparent" points="943.5,-155.5 943.5,-186.5 1056.5,-186.5 1056.5,-155.5 943.5,-155.5"/>
-<text text-anchor="start" x="947.5" y="-173.1" font-family="Arial" font-weight="bold" font-size="13.00">unauthenticated</text>
-<text text-anchor="start" x="947.5" y="-162.1" font-family="Arial" font-size="8.00" fill="#64748b">failure outcome</text>
-<text text-anchor="start" x="947.5" y="-144.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
-<text text-anchor="start" x="947.5" y="-133.5" font-family="Arial" font-size="10.00">result</text>
-<text text-anchor="start" x="972.5" y="-133.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<polygon fill="none" stroke="#dc2626" points="942,-125 942,-196 1057,-196 1057,-125 942,-125"/>
+<polygon fill="#ffffff" stroke="transparent" points="1005,-125 1005,-196 1120,-196 1120,-125 1005,-125"/>
+<polygon fill="#dc2626" stroke="transparent" points="1006.5,-186.5 1006.5,-194.5 1119.5,-194.5 1119.5,-186.5 1006.5,-186.5"/>
+<polygon fill="#fef2f2" stroke="transparent" points="1006.5,-155.5 1006.5,-186.5 1119.5,-186.5 1119.5,-155.5 1006.5,-155.5"/>
+<text text-anchor="start" x="1010.5" y="-173.1" font-family="Arial" font-weight="bold" font-size="13.00">unauthenticated</text>
+<text text-anchor="start" x="1010.5" y="-162.1" font-family="Arial" font-size="8.00" fill="#64748b">failure outcome</text>
+<text text-anchor="start" x="1010.5" y="-144.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
+<text text-anchor="start" x="1010.5" y="-133.5" font-family="Arial" font-size="10.00">result</text>
+<text text-anchor="start" x="1035.5" y="-133.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<polygon fill="none" stroke="#dc2626" points="1005,-125 1005,-196 1120,-196 1120,-125 1005,-125"/>
 </g>
 <!-- application_action_policy_authorization_policy_project_reviewer&#45;&gt;action_outcome_application_action_project_approve_unauthenticated -->
 <g id="edge8" class="edge">
 <title>application_action_policy_authorization_policy_project_reviewer&#45;&gt;action_outcome_application_action_project_approve_unauthenticated</title>
-<path fill="none" stroke="#3f3f46" d="M428.06,-306.45C461.13,-297.61 496.91,-288.12 530,-279.5 674.06,-241.96 843.43,-199.3 933.86,-176.65"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="934.75,-179.31 941.83,-174.65 933.39,-173.88 934.75,-179.31"/>
-<text text-anchor="middle" x="686.5" y="-282.5" font-family="Arial" font-size="10.00">unauthenticated_as</text>
+<path fill="none" stroke="#3f3f46" d="M428.23,-310.44C590.46,-272.03 870.46,-205.73 996.59,-175.87"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="997.53,-178.52 1004.67,-173.96 996.24,-173.07 997.53,-178.52"/>
+<text text-anchor="middle" x="728.5" y="-276.5" font-family="Arial" font-size="10.00">unauthenticated_as</text>
 </g>
 <!-- action_outcome_application_action_project_approve_approved -->
 <g id="node4" class="node">
 <title>action_outcome_application_action_project_approve_approved</title>
-<polygon fill="#ffffff" stroke="transparent" points="964,-625 964,-696 1035,-696 1035,-625 964,-625"/>
-<polygon fill="#16a34a" stroke="transparent" points="965.5,-686.5 965.5,-694.5 1034.5,-694.5 1034.5,-686.5 965.5,-686.5"/>
-<polygon fill="#f0fdf4" stroke="transparent" points="965.5,-655.5 965.5,-686.5 1034.5,-686.5 1034.5,-655.5 965.5,-655.5"/>
-<text text-anchor="start" x="969.5" y="-673.1" font-family="Arial" font-weight="bold" font-size="13.00">approved</text>
-<text text-anchor="start" x="969.5" y="-662.1" font-family="Arial" font-size="8.00" fill="#64748b">success outcome</text>
-<text text-anchor="start" x="969.5" y="-644.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
-<text text-anchor="start" x="969.5" y="-633.5" font-family="Arial" font-size="10.00">result</text>
-<text text-anchor="start" x="994.5" y="-633.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
-<polygon fill="none" stroke="#16a34a" points="964,-625 964,-696 1035,-696 1035,-625 964,-625"/>
+<polygon fill="#ffffff" stroke="transparent" points="1027,-625 1027,-696 1098,-696 1098,-625 1027,-625"/>
+<polygon fill="#16a34a" stroke="transparent" points="1028.5,-686.5 1028.5,-694.5 1097.5,-694.5 1097.5,-686.5 1028.5,-686.5"/>
+<polygon fill="#f0fdf4" stroke="transparent" points="1028.5,-655.5 1028.5,-686.5 1097.5,-686.5 1097.5,-655.5 1028.5,-655.5"/>
+<text text-anchor="start" x="1032.5" y="-673.1" font-family="Arial" font-weight="bold" font-size="13.00">approved</text>
+<text text-anchor="start" x="1032.5" y="-662.1" font-family="Arial" font-size="8.00" fill="#64748b">success outcome</text>
+<text text-anchor="start" x="1032.5" y="-644.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
+<text text-anchor="start" x="1032.5" y="-633.5" font-family="Arial" font-size="10.00">result</text>
+<text text-anchor="start" x="1057.5" y="-633.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
+<polygon fill="none" stroke="#16a34a" points="1027,-625 1027,-696 1098,-696 1098,-625 1027,-625"/>
 </g>
-<!-- application_action_resource_application_action_project_approve_transition_Project_status&#45;&gt;action_outcome_application_action_project_approve_approved -->
+<!-- application_action_resource_application_action_project_approve_lifecycle_transition_entity_type_project_status&#45;&gt;action_outcome_application_action_project_approve_approved -->
 <g id="edge3" class="edge">
-<title>application_action_resource_application_action_project_approve_transition_Project_status&#45;&gt;action_outcome_application_action_project_approve_approved</title>
-<path fill="none" stroke="#3f3f46" d="M725.5,-375.2C757.37,-405.41 803.82,-450.13 843,-490.5 884.44,-533.19 930.22,-583.66 961.31,-618.46"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="959.52,-620.67 966.93,-624.77 963.7,-616.94 959.52,-620.67"/>
-<text text-anchor="middle" x="892.5" y="-562.5" font-family="Arial" font-size="10.00">success</text>
-</g>
-<!-- action_outcome_application_action_project_approve_invalid_state -->
-<g id="node6" class="node">
-<title>action_outcome_application_action_project_approve_invalid_state</title>
-<polygon fill="#ffffff" stroke="transparent" points="953.5,-375 953.5,-446 1045.5,-446 1045.5,-375 953.5,-375"/>
-<polygon fill="#dc2626" stroke="transparent" points="954.5,-436.5 954.5,-444.5 1044.5,-444.5 1044.5,-436.5 954.5,-436.5"/>
-<polygon fill="#fef2f2" stroke="transparent" points="954.5,-405.5 954.5,-436.5 1044.5,-436.5 1044.5,-405.5 954.5,-405.5"/>
-<text text-anchor="start" x="958.5" y="-423.1" font-family="Arial" font-weight="bold" font-size="13.00">invalid_state</text>
-<text text-anchor="start" x="958.5" y="-412.1" font-family="Arial" font-size="8.00" fill="#64748b">failure outcome</text>
-<text text-anchor="start" x="958.5" y="-394.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
-<text text-anchor="start" x="958.5" y="-383.5" font-family="Arial" font-size="10.00">result</text>
-<text text-anchor="start" x="983.5" y="-383.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<polygon fill="none" stroke="#dc2626" points="953.5,-375 953.5,-446 1045.5,-446 1045.5,-375 953.5,-375"/>
-</g>
-<!-- application_action_resource_application_action_project_approve_transition_Project_status&#45;&gt;action_outcome_application_action_project_approve_invalid_state -->
-<g id="edge6" class="edge">
-<title>application_action_resource_application_action_project_approve_transition_Project_status&#45;&gt;action_outcome_application_action_project_approve_invalid_state</title>
-<path fill="none" stroke="#3f3f46" d="M843.46,-375.1C880.31,-383.52 917.12,-391.92 945.63,-398.43"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="945.02,-401.16 953.44,-400.21 946.26,-395.7 945.02,-401.16"/>
-<text text-anchor="middle" x="892.5" y="-392.5" font-family="Arial" font-size="10.00">failure</text>
+<title>application_action_resource_application_action_project_approve_lifecycle_transition_entity_type_project_status&#45;&gt;action_outcome_application_action_project_approve_approved</title>
+<path fill="none" stroke="#3f3f46" d="M766.3,-375.08C828.78,-435.49 955.15,-557.68 1020.42,-620.78"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1018.85,-623.15 1026.54,-626.7 1022.74,-619.13 1018.85,-623.15"/>
+<text text-anchor="middle" x="934.5" y="-550.5" font-family="Arial" font-size="10.00">success</text>
 </g>
 <!-- action_outcome_application_action_project_approve_not_found -->
-<g id="node7" class="node">
+<g id="node6" class="node">
 <title>action_outcome_application_action_project_approve_not_found</title>
-<polygon fill="#ffffff" stroke="transparent" points="961,-250 961,-321 1038,-321 1038,-250 961,-250"/>
-<polygon fill="#dc2626" stroke="transparent" points="962.5,-311.5 962.5,-319.5 1037.5,-319.5 1037.5,-311.5 962.5,-311.5"/>
-<polygon fill="#fef2f2" stroke="transparent" points="962.5,-280.5 962.5,-311.5 1037.5,-311.5 1037.5,-280.5 962.5,-280.5"/>
-<text text-anchor="start" x="966.5" y="-298.1" font-family="Arial" font-weight="bold" font-size="13.00">not_found</text>
-<text text-anchor="start" x="966.5" y="-287.1" font-family="Arial" font-size="8.00" fill="#64748b">failure outcome</text>
-<text text-anchor="start" x="966.5" y="-269.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
-<text text-anchor="start" x="966.5" y="-258.5" font-family="Arial" font-size="10.00">result</text>
-<text text-anchor="start" x="991.5" y="-258.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<polygon fill="none" stroke="#dc2626" points="961,-250 961,-321 1038,-321 1038,-250 961,-250"/>
+<polygon fill="#ffffff" stroke="transparent" points="1024,-375 1024,-446 1101,-446 1101,-375 1024,-375"/>
+<polygon fill="#dc2626" stroke="transparent" points="1025.5,-436.5 1025.5,-444.5 1100.5,-444.5 1100.5,-436.5 1025.5,-436.5"/>
+<polygon fill="#fef2f2" stroke="transparent" points="1025.5,-405.5 1025.5,-436.5 1100.5,-436.5 1100.5,-405.5 1025.5,-405.5"/>
+<text text-anchor="start" x="1029.5" y="-423.1" font-family="Arial" font-weight="bold" font-size="13.00">not_found</text>
+<text text-anchor="start" x="1029.5" y="-412.1" font-family="Arial" font-size="8.00" fill="#64748b">failure outcome</text>
+<text text-anchor="start" x="1029.5" y="-394.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
+<text text-anchor="start" x="1029.5" y="-383.5" font-family="Arial" font-size="10.00">result</text>
+<text text-anchor="start" x="1054.5" y="-383.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<polygon fill="none" stroke="#dc2626" points="1024,-375 1024,-446 1101,-446 1101,-375 1024,-375"/>
 </g>
-<!-- application_action_resource_application_action_project_approve_transition_Project_status&#45;&gt;action_outcome_application_action_project_approve_not_found -->
+<!-- application_action_resource_application_action_project_approve_lifecycle_transition_entity_type_project_status&#45;&gt;action_outcome_application_action_project_approve_not_found -->
+<g id="edge6" class="edge">
+<title>application_action_resource_application_action_project_approve_lifecycle_transition_entity_type_project_status&#45;&gt;action_outcome_application_action_project_approve_not_found</title>
+<path fill="none" stroke="#3f3f46" d="M885.29,-372.82C933.02,-383.02 981.88,-393.47 1016,-400.77"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1015.51,-403.53 1023.92,-402.46 1016.68,-398.05 1015.51,-403.53"/>
+<text text-anchor="middle" x="934.5" y="-388.5" font-family="Arial" font-size="10.00">failure</text>
+</g>
+<!-- action_outcome_application_action_project_approve_transition_not_allowed -->
+<g id="node7" class="node">
+<title>action_outcome_application_action_project_approve_transition_not_allowed</title>
+<polygon fill="#ffffff" stroke="transparent" points="984,-250 984,-321 1141,-321 1141,-250 984,-250"/>
+<polygon fill="#dc2626" stroke="transparent" points="985.5,-311.5 985.5,-319.5 1140.5,-319.5 1140.5,-311.5 985.5,-311.5"/>
+<polygon fill="#fef2f2" stroke="transparent" points="985.5,-280.5 985.5,-311.5 1140.5,-311.5 1140.5,-280.5 985.5,-280.5"/>
+<text text-anchor="start" x="989.5" y="-298.1" font-family="Arial" font-weight="bold" font-size="13.00">transition_not_allowed</text>
+<text text-anchor="start" x="989.5" y="-287.1" font-family="Arial" font-size="8.00" fill="#64748b">failure outcome</text>
+<text text-anchor="start" x="989.5" y="-269.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
+<text text-anchor="start" x="989.5" y="-258.5" font-family="Arial" font-size="10.00">result</text>
+<text text-anchor="start" x="1014.5" y="-258.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<polygon fill="none" stroke="#dc2626" points="984,-250 984,-321 1141,-321 1141,-250 984,-250"/>
+</g>
+<!-- application_action_resource_application_action_project_approve_lifecycle_transition_entity_type_project_status&#45;&gt;action_outcome_application_action_project_approve_transition_not_allowed -->
 <g id="edge7" class="edge">
-<title>application_action_resource_application_action_project_approve_transition_Project_status&#45;&gt;action_outcome_application_action_project_approve_not_found</title>
-<path fill="none" stroke="#3f3f46" d="M843.46,-312.42C883.49,-305.47 923.49,-298.52 952.83,-293.43"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="953.41,-296.17 960.81,-292.04 952.45,-290.65 953.41,-296.17"/>
-<text text-anchor="middle" x="892.5" y="-308.5" font-family="Arial" font-size="10.00">failure</text>
+<title>application_action_resource_application_action_project_approve_lifecycle_transition_entity_type_project_status&#45;&gt;action_outcome_application_action_project_approve_transition_not_allowed</title>
+<path fill="none" stroke="#3f3f46" d="M885.29,-314.16C916.42,-309.1 948.03,-303.96 975.72,-299.45"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="976.35,-302.19 983.8,-298.14 975.45,-296.66 976.35,-302.19"/>
+<text text-anchor="middle" x="934.5" y="-310.5" font-family="Arial" font-size="10.00">failure</text>
 </g>
 <!-- action_outcome_application_action_project_approve_unavailable -->
 <g id="node9" class="node">
 <title>action_outcome_application_action_project_approve_unavailable</title>
-<polygon fill="#ffffff" stroke="transparent" points="957.5,0 957.5,-71 1041.5,-71 1041.5,0 957.5,0"/>
-<polygon fill="#dc2626" stroke="transparent" points="958.5,-61.5 958.5,-69.5 1040.5,-69.5 1040.5,-61.5 958.5,-61.5"/>
-<polygon fill="#fef2f2" stroke="transparent" points="958.5,-30.5 958.5,-61.5 1040.5,-61.5 1040.5,-30.5 958.5,-30.5"/>
-<text text-anchor="start" x="962.5" y="-48.1" font-family="Arial" font-weight="bold" font-size="13.00">unavailable</text>
-<text text-anchor="start" x="962.5" y="-37.1" font-family="Arial" font-size="8.00" fill="#64748b">failure outcome</text>
-<text text-anchor="start" x="962.5" y="-19.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
-<text text-anchor="start" x="962.5" y="-8.5" font-family="Arial" font-size="10.00">result</text>
-<text text-anchor="start" x="987.5" y="-8.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<polygon fill="none" stroke="#dc2626" points="957.5,0 957.5,-71 1041.5,-71 1041.5,0 957.5,0"/>
+<polygon fill="#ffffff" stroke="transparent" points="1020.5,0 1020.5,-71 1104.5,-71 1104.5,0 1020.5,0"/>
+<polygon fill="#dc2626" stroke="transparent" points="1021.5,-61.5 1021.5,-69.5 1103.5,-69.5 1103.5,-61.5 1021.5,-61.5"/>
+<polygon fill="#fef2f2" stroke="transparent" points="1021.5,-30.5 1021.5,-61.5 1103.5,-61.5 1103.5,-30.5 1021.5,-30.5"/>
+<text text-anchor="start" x="1025.5" y="-48.1" font-family="Arial" font-weight="bold" font-size="13.00">unavailable</text>
+<text text-anchor="start" x="1025.5" y="-37.1" font-family="Arial" font-size="8.00" fill="#64748b">failure outcome</text>
+<text text-anchor="start" x="1025.5" y="-19.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
+<text text-anchor="start" x="1025.5" y="-8.5" font-family="Arial" font-size="10.00">result</text>
+<text text-anchor="start" x="1050.5" y="-8.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<polygon fill="none" stroke="#dc2626" points="1020.5,0 1020.5,-71 1104.5,-71 1104.5,0 1020.5,0"/>
 </g>
-<!-- application_action_resource_application_action_project_approve_transition_Project_status&#45;&gt;action_outcome_application_action_project_approve_unavailable -->
+<!-- application_action_resource_application_action_project_approve_lifecycle_transition_entity_type_project_status&#45;&gt;action_outcome_application_action_project_approve_unavailable -->
 <g id="edge9" class="edge">
-<title>application_action_resource_application_action_project_approve_transition_Project_status&#45;&gt;action_outcome_application_action_project_approve_unavailable</title>
-<path fill="none" stroke="#3f3f46" d="M728.51,-303.77C760.3,-275.72 805.17,-235.39 843,-198.5 884.13,-158.4 929.24,-110.67 960.23,-77.25"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="962.47,-78.96 965.85,-71.19 958.36,-75.15 962.47,-78.96"/>
-<text text-anchor="middle" x="892.5" y="-166.5" font-family="Arial" font-size="10.00">failure</text>
+<title>application_action_resource_application_action_project_approve_lifecycle_transition_entity_type_project_status&#45;&gt;action_outcome_application_action_project_approve_unavailable</title>
+<path fill="none" stroke="#3f3f46" d="M768.89,-303.96C800.38,-275.51 845.61,-234.54 885,-198.5 930.09,-157.24 981.38,-109.81 1017.01,-76.8"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1019.07,-78.71 1023.03,-71.21 1015.26,-74.6 1019.07,-78.71"/>
+<text text-anchor="middle" x="934.5" y="-169.5" font-family="Arial" font-size="10.00">failure</text>
 </g>
 <!-- action_outcome_application_action_project_approve_approved&#45;&gt;action_outcome_application_action_project_approve_forbidden -->
 <!-- application_action_event_application_action_project_approve_domain_event_project_approved -->
 <g id="node10" class="node">
 <title>application_action_event_application_action_project_approve_domain_event_project_approved</title>
-<polygon fill="#ffffff" stroke="transparent" points="1138,-610 1138,-711 1361,-711 1361,-610 1138,-610"/>
-<polygon fill="#4f46e5" stroke="transparent" points="1139.5,-701.5 1139.5,-709.5 1360.5,-709.5 1360.5,-701.5 1139.5,-701.5"/>
-<polygon fill="#eef2ff" stroke="transparent" points="1139.5,-670.5 1139.5,-701.5 1360.5,-701.5 1360.5,-670.5 1139.5,-670.5"/>
-<text text-anchor="start" x="1143.5" y="-688.1" font-family="Arial" font-weight="bold" font-size="13.00">domain_event.project.approved</text>
-<text text-anchor="start" x="1143.5" y="-677.1" font-family="Arial" font-size="8.00" fill="#64748b">emitted event</text>
-<text text-anchor="start" x="1143.5" y="-659.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approval domain events carry the reviewer and</text>
-<text text-anchor="start" x="1143.5" y="-648.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">project identity needed by notification workflows.</text>
-<text text-anchor="start" x="1143.5" y="-629.5" font-family="Arial" font-weight="bold" font-size="10.00">payload</text>
-<text text-anchor="start" x="1143.5" y="-618.5" font-family="Arial" font-size="10.00">payload</text>
-<text text-anchor="start" x="1177.5" y="-618.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  data_contract.project.approved</text>
-<polygon fill="none" stroke="#4f46e5" points="1138,-610 1138,-711 1361,-711 1361,-610 1138,-610"/>
+<polygon fill="#ffffff" stroke="transparent" points="1222,-610 1222,-711 1445,-711 1445,-610 1222,-610"/>
+<polygon fill="#4f46e5" stroke="transparent" points="1223.5,-701.5 1223.5,-709.5 1444.5,-709.5 1444.5,-701.5 1223.5,-701.5"/>
+<polygon fill="#eef2ff" stroke="transparent" points="1223.5,-670.5 1223.5,-701.5 1444.5,-701.5 1444.5,-670.5 1223.5,-670.5"/>
+<text text-anchor="start" x="1227.5" y="-688.1" font-family="Arial" font-weight="bold" font-size="13.00">domain_event.project.approved</text>
+<text text-anchor="start" x="1227.5" y="-677.1" font-family="Arial" font-size="8.00" fill="#64748b">emitted event</text>
+<text text-anchor="start" x="1227.5" y="-659.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approval domain events carry the reviewer and</text>
+<text text-anchor="start" x="1227.5" y="-648.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">project identity needed by notification workflows.</text>
+<text text-anchor="start" x="1227.5" y="-629.5" font-family="Arial" font-weight="bold" font-size="10.00">payload</text>
+<text text-anchor="start" x="1227.5" y="-618.5" font-family="Arial" font-size="10.00">payload</text>
+<text text-anchor="start" x="1261.5" y="-618.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  data_contract.project.approved</text>
+<polygon fill="none" stroke="#4f46e5" points="1222,-610 1222,-711 1445,-711 1445,-610 1222,-610"/>
 </g>
 <!-- action_outcome_application_action_project_approve_approved&#45;&gt;application_action_event_application_action_project_approve_domain_event_project_approved -->
 <g id="edge4" class="edge">
 <title>action_outcome_application_action_project_approve_approved&#45;&gt;application_action_event_application_action_project_approve_domain_event_project_approved</title>
-<path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M1035.24,-660.5C1060.11,-660.5 1095.17,-660.5 1129.69,-660.5"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="1129.97,-663.3 1137.97,-660.5 1129.97,-657.7 1129.97,-663.3"/>
-<text text-anchor="middle" x="1097.5" y="-663.5" font-family="Arial" font-size="10.00">emit</text>
+<path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M1098.12,-660.5C1127.58,-660.5 1171.69,-660.5 1213.72,-660.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="1213.82,-663.3 1221.82,-660.5 1213.82,-657.7 1213.82,-663.3"/>
+<text text-anchor="middle" x="1181.5" y="-663.5" font-family="Arial" font-size="10.00">emit</text>
 </g>
-<!-- action_outcome_application_action_project_approve_forbidden&#45;&gt;action_outcome_application_action_project_approve_invalid_state -->
-<!-- action_outcome_application_action_project_approve_invalid_state&#45;&gt;action_outcome_application_action_project_approve_not_found -->
-<!-- action_outcome_application_action_project_approve_not_found&#45;&gt;action_outcome_application_action_project_approve_unauthenticated -->
+<!-- action_outcome_application_action_project_approve_forbidden&#45;&gt;action_outcome_application_action_project_approve_not_found -->
+<!-- action_outcome_application_action_project_approve_not_found&#45;&gt;action_outcome_application_action_project_approve_transition_not_allowed -->
+<!-- action_outcome_application_action_project_approve_transition_not_allowed&#45;&gt;action_outcome_application_action_project_approve_unauthenticated -->
 <!-- action_outcome_application_action_project_approve_unauthenticated&#45;&gt;action_outcome_application_action_project_approve_unavailable -->
 </g>
 </svg>

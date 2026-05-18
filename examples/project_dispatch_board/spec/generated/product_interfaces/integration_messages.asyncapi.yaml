@@ -149,7 +149,7 @@ operations:
         malformed:
           disposition: dead_letter
           problem:
-            model: Problem
+            entity_type: entity_type.problem
     x-workflow: workflow.project.approval_notice
   send_domain_event_project_approved:
     action: send

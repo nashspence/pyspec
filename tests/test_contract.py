@@ -24,8 +24,14 @@ def P(name: str) -> dict[str, str]:
     return {"primitive": name}
 
 
+def ET(name: str) -> str:
+    if name.startswith("entity_type."):
+        return name
+    return "entity_type." + name.lower()
+
+
 def M(name: str) -> dict[str, str]:
-    return {"model": name}
+    return {"entity_type": ET(name)}
 
 
 def D(name: str) -> dict[str, str]:
@@ -150,7 +156,7 @@ def test_author_contract_is_sparse_source() -> None:
         }
     }
     assert "refs" not in author
-    assert "transition" not in author["application_actions"]["application_action.project.submit"]
+    assert "lifecycle_transition" not in author["application_actions"]["application_action.project.submit"]
     assert author["test_cases"]["test_case.project.approve.success"]["given"]["domain_facts"] == [{"ref": "fact.project.submitted"}]
     assert compile_author(author) == read_yaml(ROOT / COMPILED_SPEC_PATH)
 
@@ -207,7 +213,7 @@ def test_unused_fact_is_rejected() -> None:
     author = _author()
     author["facts"]["fact.project.unused"] = {
         "present": {
-            "model": "Project",
+            "entity_type": ET("Project"),
             "values": {
                 "id": {"value": "project_unused_1"},
                 "status": {"value": "submitted"},
@@ -245,11 +251,11 @@ def test_test_case_subject_ref_must_match_application_action_under_test() -> Non
         compile_author(author)
 
 
-def test_model_exists_assertion_rejects_unknown_field() -> None:
+def test_entity_exists_assertion_rejects_unknown_field() -> None:
     author = _author()
-    exists = author["test_cases"]["test_case.project.approve.success"]["then"]["model"]["exists"]
+    exists = author["test_cases"]["test_case.project.approve.success"]["then"]["entity"]["exists"]
     exists["where"]["ghost"] = {"value": "nope"}
-    with pytest.raises(ContractError, match=r"model\.exists filters unknown Project fields: \['ghost'\]"):
+    with pytest.raises(ContractError, match=r"entity\.exists filters unknown Project fields: \['ghost'\]"):
         compile_author(author)
 
 
@@ -263,7 +269,7 @@ def test_response_assertion_requires_call_entry_point() -> None:
 def test_authorization_denial_outcome_must_be_mapped_authorization_failure() -> None:
     author = _author()
     case = author["test_cases"]["test_case.project.approve.forbidden"]
-    case["then"]["outcome"] = "invalid_state"
+    case["then"]["outcome"] = "transition_not_allowed"
     with pytest.raises(ContractError, match=r"authorization_denial outcome must be one of application action authorization failure outcomes"):
         compile_author(author)
 
@@ -323,7 +329,7 @@ def test_authorization_policies_reject_duplicated_rule_sets() -> None:
     author = _authorized_transition_author()
     author["authorization_policies"]["authorization_policy.ticket.submit_duplicate"] = {
         "subjects": [{"kind": "actor"}],
-        "targets": [{"model": "Ticket"}],
+        "targets": [{"entity_type": ET("Ticket")}],
         "effect": "allow",
         "conditions": [{"subject_has_role": "member"}],
         "rationale": "This should reuse the member submit policy instead.",
@@ -416,29 +422,31 @@ def test_authorization_failure_outcomes_must_not_emit_domain_events() -> None:
 def _derived_transition_author() -> dict:
     return {
         "project": "derived_transition",
-        "models": {
-            "Ticket": {
+        "entity_types": {
+            "entity_type.ticket": {
+                "name": "Ticket",
                 "fields": {"id": F(P("ID")), "status": F(E("draft", "submitted"))},
-                "lifecycle": {
+                "entity_lifecycle": {
                     "field": "status",
-                    "initial": "draft",
-                    "states": ["draft", "submitted"],
-                    "transitions": [{"triggered_by": "application_action.ticket.submit", "from": "draft", "to": "submitted"}],
+                    "initial_state": "draft",
+                    "lifecycle_states": ["draft", "submitted"],
+                    "lifecycle_transitions": [{"triggered_by": "application_action.ticket.submit", "from": "draft", "to": "submitted"}],
                 },
                 "rationale": "Ticket lifecycle owns state transitions.",
             },
-            "Problem": {
+            "entity_type.problem": {
+                "name": "Problem",
                 "fields": {"code": F(P("Text")), "message": F(P("Text"))},
                 "rationale": "Problem describes failed transitions.",
             },
         },
         "application_actions": {
             "application_action.ticket.submit": {
-                "action_kind": "transition",
+                "action_kind": "lifecycle_transition",
                 "input": {"ticket_id": P("ID")},
                 "outcomes": {
                     "submitted": {"kind": "success", "result": M("Ticket")},
-                    "invalid_state": {"kind": "failure", "result": M("Problem")},
+                    "transition_not_allowed": {"kind": "failure", "result": M("Problem")},
                 },
                 "rationale": "Submitting moves a draft ticket forward.",
             }
@@ -446,11 +454,11 @@ def _derived_transition_author() -> dict:
     }
 
 
-def test_transition_application_action_derives_state_change_from_model_lifecycle() -> None:
+def test_lifecycle_transition_application_action_derives_state_change_from_entity_lifecycle() -> None:
     author = _derived_transition_author()
     contract = compile_author(author)
-    assert contract["application_actions"]["application_action.ticket.submit"]["transition"] == {
-        "model": "Ticket",
+    assert contract["application_actions"]["application_action.ticket.submit"]["lifecycle_transition"] == {
+        "entity_type": "entity_type.ticket",
         "field": "status",
         "from": "draft",
         "to": "submitted",
@@ -461,8 +469,8 @@ def test_transition_application_action_derives_state_change_from_model_lifecycle
 
 def test_authored_application_actions_do_not_duplicate_lifecycle_transition_metadata() -> None:
     author = _derived_transition_author()
-    author["application_actions"]["application_action.ticket.submit"]["transition"] = {
-        "model": "Ticket",
+    author["application_actions"]["application_action.ticket.submit"]["lifecycle_transition"] = {
+        "entity_type": "entity_type.ticket",
         "field": "status",
         "from": "draft",
         "to": "submitted",
@@ -471,47 +479,47 @@ def test_authored_application_actions_do_not_duplicate_lifecycle_transition_meta
         compile_author(author)
 
 
-def test_transition_application_actions_must_be_referenced_by_model_lifecycle() -> None:
+def test_lifecycle_transition_application_actions_must_be_referenced_by_entity_lifecycle() -> None:
     author = _derived_transition_author()
     author["application_actions"]["application_action.ticket.close"] = {
-        "action_kind": "transition",
+        "action_kind": "lifecycle_transition",
         "input": {"ticket_id": P("ID")},
         "outcomes": {
             "closed": {"kind": "success", "result": M("Ticket")},
-            "invalid_state": {"kind": "failure", "result": M("Problem")},
+            "transition_not_allowed": {"kind": "failure", "result": M("Problem")},
         },
         "rationale": "Closing is intentionally not declared in the lifecycle graph.",
     }
-    with pytest.raises(ContractError, match=r"Transition application action application_action\.ticket\.close must be referenced by model lifecycle declarations"):
+    with pytest.raises(ContractError, match=r"Lifecycle-transition application action application_action\.ticket\.close must be referenced by entity_lifecycle declarations"):
         compile_author(author)
 
 
-def test_lifecycle_transition_application_actions_must_declare_invalid_state_failure() -> None:
+def test_lifecycle_transition_application_actions_must_declare_transition_not_allowed_failure() -> None:
     author = _derived_transition_author()
     author["application_actions"]["application_action.ticket.submit"]["outcomes"]["other_failure"] = {"kind": "failure", "result": M("Problem")}
-    del author["application_actions"]["application_action.ticket.submit"]["outcomes"]["invalid_state"]
-    with pytest.raises(ContractError, match=r"must declare invalid_state failure outcome"):
+    del author["application_actions"]["application_action.ticket.submit"]["outcomes"]["transition_not_allowed"]
+    with pytest.raises(ContractError, match=r"must declare transition_not_allowed failure outcome"):
         compile_author(author)
 
 
-def test_lifecycle_field_must_exist_on_model() -> None:
+def test_entity_lifecycle_field_must_exist_on_entity_type() -> None:
     author = _derived_transition_author()
-    del author["models"]["Ticket"]["fields"]["status"]
-    with pytest.raises(ContractError, match=r"Model Ticket lifecycle field is not a field: status"):
+    del author["entity_types"]["entity_type.ticket"]["fields"]["status"]
+    with pytest.raises(ContractError, match=r"Entity type entity_type\.ticket entity_lifecycle field is not a field: status"):
         compile_author(author)
 
 
 def test_lifecycle_initial_state_must_be_declared() -> None:
     author = _derived_transition_author()
-    author["models"]["Ticket"]["lifecycle"]["initial"] = "missing"
-    with pytest.raises(ContractError, match=r"Model Ticket lifecycle initial state is not declared: missing"):
+    author["entity_types"]["entity_type.ticket"]["entity_lifecycle"]["initial_state"] = "missing"
+    with pytest.raises(ContractError, match=r"Entity type entity_type\.ticket initial lifecycle_state is not declared: missing"):
         compile_author(author)
 
 
 def test_lifecycle_transition_states_must_be_declared() -> None:
     author = _derived_transition_author()
-    author["models"]["Ticket"]["lifecycle"]["transitions"][0]["to"] = "missing"
-    with pytest.raises(ContractError, match=r"Model Ticket lifecycle transition uses unknown state"):
+    author["entity_types"]["entity_type.ticket"]["entity_lifecycle"]["lifecycle_transitions"][0]["to"] = "missing"
+    with pytest.raises(ContractError, match=r"Entity type entity_type\.ticket lifecycle_transition uses unknown lifecycle_state"):
         compile_author(author)
 
 
@@ -520,36 +528,36 @@ def test_lifecycle_transition_must_reference_transition_operation() -> None:
     author["application_actions"]["application_action.ticket.submit"]["action_kind"] = "command"
     with pytest.raises(
         ContractError,
-        match=r"Model Ticket lifecycle transition application_action\.ticket\.submit must reference a transition application action",
+        match=r"Entity type entity_type\.ticket lifecycle_transition application_action\.ticket\.submit must reference a lifecycle_transition application action",
     ):
         compile_author(author)
 
 
 def test_lifecycle_transition_must_reference_known_operation() -> None:
     author = _derived_transition_author()
-    author["models"]["Ticket"]["lifecycle"]["transitions"][0]["triggered_by"] = "application_action.ticket.missing"
+    author["entity_types"]["entity_type.ticket"]["entity_lifecycle"]["lifecycle_transitions"][0]["triggered_by"] = "application_action.ticket.missing"
     with pytest.raises(
         ContractError,
-        match=r"Model Ticket lifecycle transition references unknown application action application_action\.ticket\.missing",
+        match=r"Entity type entity_type\.ticket lifecycle_transition references unknown application action application_action\.ticket\.missing",
     ):
         compile_author(author)
 
 
 def test_application_action_rejects_primary_model_field() -> None:
     author = _author()
-    author["application_actions"]["application_action.project.create"]["model"] = "Project"
+    author["application_actions"]["application_action.project.create"]["entity_type"] = "Project"
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
 
 def test_field_type_rejects_nullable_and_presence_wrappers() -> None:
     author = _author()
-    author["models"]["Project"]["fields"]["summary"]["type"] = {"nullable": P("Text")}
+    author["entity_types"]["entity_type.project"]["fields"]["summary"]["type"] = {"nullable": P("Text")}
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
     author = _author()
-    author["models"]["Project"]["fields"]["summary"]["type"] = {"op" + "tional": P("Text")}
+    author["entity_types"]["entity_type.project"]["fields"]["summary"]["type"] = {"op" + "tional": P("Text")}
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
@@ -563,22 +571,23 @@ def test_command_application_action_allows_empty_crud_effects() -> None:
     assert contract["application_actions"]["application_action.project.create"]["creates"] == []
 
 
-def test_state_machine_data_application_action_must_read_state_machine_model() -> None:
+def test_state_machine_data_application_action_must_read_state_machine_entity_type() -> None:
     author = _author()
-    author["models"]["Workspace"] = {
+    author["entity_types"][ET("Workspace")] = {
+        "name": "Workspace",
         "fields": {"id": F(P("ID")), "name": F(P("Text"))},
-        "rationale": "Workspace is a separate model used to prove data bindings are model-aware.",
+        "rationale": "Workspace is a separate entity_type used to prove data bindings are entity_type-aware.",
     }
     author["application_actions"]["application_action.project.read"]["action_kind"] = "query"
-    author["application_actions"]["application_action.project.read"]["reads"] = ["Workspace"]
+    author["application_actions"]["application_action.project.read"]["reads"] = [ET("Workspace")]
     author["application_actions"]["application_action.project.read"]["outcomes"]["found"]["result"] = M("Workspace")
-    with pytest.raises(ContractError, match=r"state machine state_machine\.project\.activity\.ready data_loader read_activity application action must read model Project"):
+    with pytest.raises(ContractError, match=r"state machine state_machine\.project\.activity\.ready data_loader read_activity application action must read entity_type entity_type\.project"):
         compile_source(author)
 
 
 def test_query_application_actions_are_side_effect_free_and_do_not_emit_domain_events() -> None:
     author = _author()
-    author["application_actions"]["application_action.project.list"]["creates"] = ["Project"]
+    author["application_actions"]["application_action.project.list"]["creates"] = [ET("Project")]
     with pytest.raises(ContractError, match=r"Application action application_action\.project\.list action_kind query does not support effects: .*creates"):
         compile_source(author)
 
@@ -590,7 +599,7 @@ def test_query_application_actions_are_side_effect_free_and_do_not_emit_domain_e
         compile_source(author)
 
 
-def test_command_application_action_does_not_need_model_relationship() -> None:
+def test_command_application_action_does_not_need_entity_type_relationship() -> None:
     contract = compile_source(_author())
     assert contract["application_actions"]["application_action.project.send_approval_notice"]["creates"] == []
     assert contract["application_actions"]["application_action.project.send_approval_notice"]["reads"] == []
@@ -601,18 +610,20 @@ def test_command_application_action_does_not_need_model_relationship() -> None:
 def test_author_contract_can_omit_absent_sections() -> None:
     author = {
         "project": "author_core",
-        "models": {
-            "Ticket": {
+        "entity_types": {
+            ET("Ticket"): {
+                "name": "Ticket",
                 "fields": {"id": F(P("ID")), "title": F(P("Text"))},
             },
-            "Problem": {
+            ET("Problem"): {
+                "name": "Problem",
                 "fields": {"code": F(P("Text")), "message": F(P("Text"))},
             },
         },
         "application_actions": {
             "application_action.ticket.create": {
                 "action_kind": "command",
-                "creates": ["Ticket"],
+                "creates": [ET("Ticket")],
                 "input": {"title": P("Text")},
                 "outcomes": {
                     "created": {"kind": "success", "result": M("Ticket")},
@@ -623,13 +634,13 @@ def test_author_contract_can_omit_absent_sections() -> None:
         },
     }
     contract = compile_author(author)
-    assert set(contract["models"]) == {"Problem", "Ticket"}
+    assert set(contract["entity_types"]) == {ET("Problem"), ET("Ticket")}
     assert contract["entry_points"] == {}
     assert contract["state_machines"] == {}
     assert contract["authorization_policies"] == {}
     assert "authorization" not in contract["application_actions"]["application_action.ticket.create"]
     assert "authorization_policy" not in contract["refs"]
-    assert contract["models"]["Ticket"]["rationale"] == "Declared model Ticket."
+    assert contract["entity_types"]["entity_type.ticket"]["rationale"] == "Declared entity_type Ticket."
     assert contract["application_actions"]["application_action.ticket.create"]["rationale"] == "Members can create tickets."
 
 
@@ -638,8 +649,9 @@ def test_author_state_machine_defaults_empty_collections() -> None:
 
     author = {
         "project": "author_ui",
-        "models": {
-            "Ticket": {
+        "entity_types": {
+            ET("Ticket"): {
+                "name": "Ticket",
                 "fields": {"id": F(P("ID")), "title": F(P("Text"))},
                 "rationale": "Ticket is the product work item.",
             }
@@ -652,7 +664,7 @@ def test_author_state_machine_defaults_empty_collections() -> None:
         },
         "state_machines": {
             "state_machine.ticket.empty": {
-                "model": "Ticket",
+                "entity_type": ET("Ticket"),
                 "initial_view_state": "empty",
                 "view_states": {"empty": {}},
                 "rationale": "state machine can start as a minimal empty-state.",
@@ -698,13 +710,13 @@ def test_nested_json_values_binding_values_and_model_less_state_machines_compile
                         ],
                     }
                 ],
-                "rationale": "Model-less settings panel keeps local JSON context.",
+                "rationale": "Entity type-less settings panel keeps local JSON context.",
             }
         },
     }
     contract = compile_author(author)
     state_machine = contract["state_machines"]["state_machine.settings.panel"]
-    assert "model" not in state_machine
+    assert "entity_type" not in state_machine
     assert state_machine["transitions"][0]["effects"][0]["set"]["value"]["theme"]["density"]["compact"] is True
 
 
@@ -775,8 +787,9 @@ def test_workflow_input_bindings_support_runtime_sources_and_literal_values() ->
                 "rationale": "Workflow success payload.",
             },
         },
-        "models": {
-            "Problem": {
+        "entity_types": {
+            ET("Problem"): {
+                "name": "Problem",
                 "fields": {"code": F(P("Text")), "message": F(P("Text"))},
                 "rationale": "Problem result.",
             }
@@ -969,13 +982,13 @@ def test_state_machine_data_source_must_be_query_like_operation() -> None:
 
 def test_rationale_is_plain_bounded_text() -> None:
     author = _author()
-    assert isinstance(author["models"]["Project"]["rationale"], str)
+    assert isinstance(author["entity_types"]["entity_type.project"]["rationale"], str)
     bad = _author()
-    bad["models"]["Project"]["rationale"] = {"text": "object rationale", "kind": "explicit", "confidence": "high"}
+    bad["entity_types"]["entity_type.project"]["rationale"] = {"text": "object rationale", "kind": "explicit", "confidence": "high"}
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(bad)
     bad = _author()
-    bad["models"]["Project"]["rationale"] = "x" * 281
+    bad["entity_types"]["entity_type.project"]["rationale"] = "x" * 281
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(bad)
 
@@ -1213,14 +1226,14 @@ def test_action_binding_rejects_legacy_non_routing_route() -> None:
 
 def test_action_binding_failure_no_local_effect_requires_reason_and_rationale() -> None:
     author = _author()
-    effect = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_effects"]["invalid_state"]
+    effect = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_effects"]["transition_not_allowed"]
     effect.clear()
     effect["no_local_effect"] = {"reason": "intentionally_unobservable"}
     with pytest.raises(ContractError, match=r"failure outcome no_local_effect must declare rationale"):
         compile_source(author)
 
     author = _author()
-    effect = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_effects"]["invalid_state"]
+    effect = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_effects"]["transition_not_allowed"]
     effect.clear()
     effect["no_local_effect"] = {"reason": "handled_by_response_surface", "rationale": "test effect"}
     with pytest.raises(ContractError, match=r"handled_by_response_surface requires an adapter or renderer response surface"):
@@ -1229,7 +1242,7 @@ def test_action_binding_failure_no_local_effect_requires_reason_and_rationale() 
 
 def test_action_binding_failure_no_local_effect_rejects_state_unchanged() -> None:
     author = _author()
-    effect = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_effects"]["invalid_state"]
+    effect = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_effects"]["transition_not_allowed"]
     effect.clear()
     effect["no_local_effect"] = {"reason": "state_unchanged", "rationale": "Invalid submit leaves the list unchanged."}
     with pytest.raises(ContractError, match=r"failure outcome no_local_effect must use reason handled_by_response_surface with a proven response surface or intentionally_unobservable with rationale"):
@@ -1244,7 +1257,7 @@ def test_action_binding_raised_signals_must_be_declared_locally() -> None:
         compile_source(author)
 
     author = _author()
-    effect = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_effects"]["invalid_state"]
+    effect = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_effects"]["transition_not_allowed"]
     effect["raise"]["local_signal"] = "ghost"
     with pytest.raises(ContractError, match=r"raise references undeclared state-machine signal: local_signal\.ghost"):
         compile_source(author)
@@ -1252,7 +1265,7 @@ def test_action_binding_raised_signals_must_be_declared_locally() -> None:
 
 def test_action_binding_payload_and_input_bindings_are_type_checked() -> None:
     author = _author()
-    effect = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_effects"]["invalid_state"]
+    effect = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_effects"]["transition_not_allowed"]
     del effect["raise"]["payload_bindings"]["message"]
     with pytest.raises(ContractError, match=r"payload_bindings must exactly match payload fields: missing: message"):
         compile_source(author)
@@ -1360,14 +1373,14 @@ def test_data_loader_load_policy_and_application_action_purity_are_validated() -
         {"domain_event": "domain_event.project.listed", "payload_source": "$outcome.result"}
     ]
     author["domain_events"]["domain_event.project.listed"] = {
-        "payload_schema": {"array": {"model": "Project"}},
+        "payload_schema": {"array": {"entity_type": ET("Project")}},
         "rationale": "List domain events are deliberately invalid for data loaders.",
     }
     with pytest.raises(ContractError, match=r"Query application action application_action\.project\.list must not emit domain events: .*listed"):
         compile_source(author)
 
     author = _author()
-    author["application_actions"]["application_action.project.list"]["updates"] = ["Project"]
+    author["application_actions"]["application_action.project.list"]["updates"] = [ET("Project")]
     with pytest.raises(ContractError, match=r"Application action application_action\.project\.list action_kind query does not support effects: .*updates"):
         compile_source(author)
 
@@ -1628,20 +1641,22 @@ def test_composed_test_case_rejects_unknown_state_machine_instance() -> None:
 def _api_only_author() -> dict:
     return {
         "project": "api_only",
-        "models": {
-            "Ticket": {
+        "entity_types": {
+            ET("Ticket"): {
+                "name": "Ticket",
                 "fields": {"id": F(P("ID")), "title": F(P("Text"))},
-                "rationale": _rationale("ticket model"),
+                "rationale": _rationale("ticket entity_type"),
             },
-            "Problem": {
+            ET("Problem"): {
+                "name": "Problem",
                 "fields": {"code": F(P("Text")), "message": F(P("Text"))},
-                "rationale": _rationale("problem model"),
+                "rationale": _rationale("problem entity_type"),
             },
         },
         "application_actions": {
             "application_action.ticket.create": {
                 "action_kind": "command",
-                "creates": ["Ticket"],
+                "creates": [ET("Ticket")],
                 "input": {"title": P("Text")},
                 "outcomes": {
                     "created": {"kind": "success", "result": M("Ticket")},
@@ -1694,7 +1709,7 @@ def test_authoring_layers_reject_irrelevant_ui_targets() -> None:
     author = _api_only_author()
     author["state_machines"] = {
         "state_machine.ticket.list": {
-            "model": "Ticket",
+            "entity_type": ET("Ticket"),
             "context": {},
             "initial_view_state": "empty",
             "view_states": {"empty": {}},
@@ -1822,8 +1837,8 @@ def test_entry_point_responses_must_map_authorization_failure_outcomes() -> None
 
 def test_cli_failure_response_must_use_nonzero_exit_and_stderr() -> None:
     author = _author()
-    author["entry_points"]["entry_point.cli.project.approve"]["adapter"]["cli"]["response_handlers"]["invalid_state"]["exit_code"] = 0
-    with pytest.raises(ContractError, match=r"CLI entry entry_point.cli\.project\.approve failure response handler invalid_state exit_code must be nonzero"):
+    author["entry_points"]["entry_point.cli.project.approve"]["adapter"]["cli"]["response_handlers"]["transition_not_allowed"]["exit_code"] = 0
+    with pytest.raises(ContractError, match=r"CLI entry entry_point.cli\.project\.approve failure response handler transition_not_allowed exit_code must be nonzero"):
         compile_source(author)
 
 
@@ -2137,7 +2152,7 @@ def test_authoring_layers_reject_html_state_machine_layout_without_html_layer() 
     author["state_machines"] = {
         "state_machine.ticket.board": {
             "archetype": "dashboard",
-            "model": "Ticket",
+            "entity_type": ET("Ticket"),
             "initial_view_state": "ready",
             "view_states": {"ready": {"renderers": {"html": {"layout": {"regions": {"main": {"must_render": True}}}}}}},
             "rationale": _rationale("HTML layout requires the html layer"),
@@ -2152,7 +2167,7 @@ def test_layer_pruned_author_schema_hides_irrelevant_sections() -> None:
 
     schema = author_schema_for_layers(parse_layers("core,http"))
     assert "entry_points" in schema["properties"]
-    assert "models" in schema["properties"]
+    assert "entity_types" in schema["properties"]
     assert "state_machines" not in schema["properties"]
     assert "audit_cases" not in schema["properties"]
 
@@ -2167,8 +2182,8 @@ def test_pyspec_contract_rejects_test_case_harness_routing() -> None:
 
 def test_pyspec_contract_rejects_storage_implementation_details_on_model() -> None:
     author = _author()
-    model = _first_item(author, "models")
-    model["persistence"] = {"dialect": "sqlite", "table": "projects"}
+    entity_type = _first_item(author, "entity_types")
+    entity_type["persistence"] = {"dialect": "sqlite", "table": "projects"}
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 

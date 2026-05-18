@@ -15,7 +15,7 @@ from .targets import (
     entry_target_pair,
     entry_point_input_bindings,
 )
-from .type_expr import is_array_of_model, model_name
+from .type_expr import is_array_of_entity_type, entity_type_id
 
 
 class ReferenceSpecDriver:
@@ -29,7 +29,7 @@ class ReferenceSpecDriver:
 
     def reset(self) -> None:
         self.fixtures: dict[str, Any] = {}
-        self.store: dict[str, list[dict[str, Any]]] = {rid: [] for rid in self.contract["models"]}
+        self.store: dict[str, list[dict[str, Any]]] = {rid: [] for rid in self.contract["entity_types"]}
         self.emitted: list[str] = []
         self.invoked: list[str] = []
         self.workflows_executed: list[str] = []
@@ -47,10 +47,10 @@ class ReferenceSpecDriver:
             kind, body = next(iter(fact.items()))
             if kind == "absent":
                 where = self._resolve_map(body["where"])
-                self.store[body["model"]] = [r for r in self.store[body["model"]] if not _matches(r, where)]
+                self.store[body["entity_type"]] = [r for r in self.store[body["entity_type"]] if not _matches(r, where)]
             elif kind == "present":
-                values = self._complete_record(body["model"], self._resolve_map(body["values"]))
-                self.store[body["model"]].append(values)
+                values = self._complete_record(body["entity_type"], self._resolve_map(body["values"]))
+                self.store[body["entity_type"]].append(values)
             else:  # pragma: no cover - schema prevents this.
                 raise AssertionError(f"Unsupported fact kind: {kind}")
 
@@ -107,10 +107,10 @@ class ReferenceSpecDriver:
             assert cap in self._rendered_application_action_refs()
         for cap in assertions.get("forbids", []):
             assert cap not in self._rendered_application_action_refs()
-        exists = (assertions.get("model") or {}).get("exists")
+        exists = (assertions.get("entity_type") or {}).get("exists")
         if exists:
             where = self._resolve_map(exists["where"])
-            assert any(_matches(record, where) for record in self.store[exists["model"]]), f"Missing model {exists}"
+            assert any(_matches(record, where) for record in self.store[exists["entity_type"]]), f"Missing entity_type {exists}"
         domain_events = assertions.get("domain_events") or {}
         for event_id in domain_events.get("emitted", []):
             assert event_id in self.emitted
@@ -144,17 +144,17 @@ class ReferenceSpecDriver:
             kind, body = next(iter(fact.items()))
             if kind == "present":
                 values = self._resolve_map(body["values"])
-                assert any(_matches(record, values) for record in self.store[body["model"]]), f"Missing assertion fact {body}"
+                assert any(_matches(record, values) for record in self.store[body["entity_type"]]), f"Missing assertion fact {body}"
             elif kind == "absent":
                 where = self._resolve_map(body["where"])
-                assert not any(_matches(record, where) for record in self.store[body["model"]]), f"Unexpected assertion fact {body}"
+                assert not any(_matches(record, where) for record in self.store[body["entity_type"]]), f"Unexpected assertion fact {body}"
 
     def _open_entry_point(self, entry_id: str, input_values: dict[str, Any]) -> dict[str, Any]:
         entry = self.contract["entry_points"][entry_id]
         state_machine_id = entry_state_machine_name(entry)
         state_machine = self.contract["state_machines"][state_machine_id]
         context = self._entry_target_input(entry, input_values)
-        records = self._filter(state_machine["model"], context) if state_machine.get("model") else []
+        records = self._filter(state_machine["entity_type"], context) if state_machine.get("entity_type") else []
         parent_state_name = "ready" if "ready" in state_machine.get("view_states", {}) else next(iter(state_machine.get("view_states", {"ready": {}})))
         state = state_machine["view_states"].get(parent_state_name, {"surface": None, "text": [], "assets": [], "action_bindings": {}, "data_loaders": {}})
         if state.get("child_state_machines"):
@@ -341,34 +341,34 @@ class ReferenceSpecDriver:
             return self.last_result
         action_kind = cap["action_kind"]
         if action_kind == "command" and cap.get("creates"):
-            model_id = _single_model(cap, "creates")
-            record = self._complete_record(model_id, input_values)
-            lifecycle = self.contract["models"][model_id].get("lifecycle")
-            if lifecycle and lifecycle["field"] not in record:
-                record[lifecycle["field"]] = lifecycle["initial"]
-            self.store[model_id].append(record)
+            entity_type_ref = _single_entity_type(cap, "creates")
+            record = self._complete_record(entity_type_ref, input_values)
+            entity_lifecycle = self.contract["entity_types"][entity_type_ref].get("entity_lifecycle")
+            if entity_lifecycle and entity_lifecycle["field"] not in record:
+                record[entity_lifecycle["field"]] = entity_lifecycle["initial_state"]
+            self.store[entity_type_ref].append(record)
             for emit in outcome.get("emits", []):
                 event_id, payload = self._event_payload_from_emit(emit, cap, outcome, input_values, record)
                 self._record_event(event_id, payload)
             self.last_result = record
             return record
-        if action_kind == "query" and cap.get("reads") and model_name(outcome["result"]):
-            model_id = _single_model(cap, "reads")
-            model_key = f"{model_id.lower()}_id"
-            self.last_result = self._find(model_id, {"id": input_values.get(model_key) or input_values.get("id")})
+        if action_kind == "query" and cap.get("reads") and entity_type_id(outcome["result"]):
+            entity_type_ref = _single_entity_type(cap, "reads")
+            entity_key = _entity_input_key(entity_type_ref)
+            self.last_result = self._find(entity_type_ref, {"id": input_values.get(entity_key) or input_values.get("id")})
             return self.last_result
-        if action_kind == "query" and cap.get("reads") and is_array_of_model(outcome["result"], _single_model(cap, "reads")):
-            model_id = _single_model(cap, "reads")
-            self.last_result = self._filter(model_id, input_values)
+        if action_kind == "query" and cap.get("reads") and is_array_of_entity_type(outcome["result"], _single_entity_type(cap, "reads")):
+            entity_type_ref = _single_entity_type(cap, "reads")
+            self.last_result = self._filter(entity_type_ref, input_values)
             return self.last_result
-        if action_kind == "transition":
-            transition = cap["transition"]
-            model_id = transition["model"]
-            model_key = f"{model_id.lower()}_id"
-            selected_id = input_values.get(model_key) or input_values.get("id")
-            record = self._find(model_id, {"id": selected_id})
-            assert record[transition["field"]] == transition["from"]
-            record[transition["field"]] = transition["to"]
+        if action_kind == "lifecycle_transition":
+            lifecycle_transition = cap["lifecycle_transition"]
+            entity_type_ref = lifecycle_transition["entity_type"]
+            entity_key = _entity_input_key(entity_type_ref)
+            selected_id = input_values.get(entity_key) or input_values.get("id")
+            record = self._find(entity_type_ref, {"id": selected_id})
+            assert record[lifecycle_transition["field"]] == lifecycle_transition["from"]
+            record[lifecycle_transition["field"]] = lifecycle_transition["to"]
             for emit in outcome.get("emits", []):
                 event_id, payload = self._event_payload_from_emit(emit, cap, outcome, input_values, record)
                 self._record_event(event_id, payload)
@@ -426,19 +426,19 @@ class ReferenceSpecDriver:
     def _record_event(self, event_id: str, payload: dict[str, Any]) -> None:
         self.emitted.append(event_id)
 
-    def _filter(self, model_id: str, where: dict[str, Any]) -> list[dict[str, Any]]:
-        return [record for record in self.store[model_id] if _matches(record, where)]
+    def _filter(self, entity_type_id: str, where: dict[str, Any]) -> list[dict[str, Any]]:
+        return [record for record in self.store[entity_type_id] if _matches(record, where)]
 
-    def _find(self, model_id: str, where: dict[str, Any]) -> dict[str, Any]:
-        matches = self._filter(model_id, where)
-        assert matches, f"No {model_id} found for {where}"
+    def _find(self, entity_type_id: str, where: dict[str, Any]) -> dict[str, Any]:
+        matches = self._filter(entity_type_id, where)
+        assert matches, f"No {entity_type_id} found for {where}"
         return matches[0]
 
-    def _complete_record(self, model_id: str, values: dict[str, Any]) -> dict[str, Any]:
-        fields = self.contract["models"][model_id]["fields"]
+    def _complete_record(self, entity_type_id: str, values: dict[str, Any]) -> dict[str, Any]:
+        fields = self.contract["entity_types"][entity_type_id]["fields"]
         record = dict(values)
         if "id" in fields and "id" not in record:
-            record["id"] = f"{model_id.lower()}_{len(self.store[model_id]) + 1}"
+            record["id"] = f"{entity_type_id.lower()}_{len(self.store[entity_type_id]) + 1}"
         if "created_at" in fields and "created_at" not in record:
             record["created_at"] = "2026-05-10T00:00:00Z"
         if "updated_at" in fields and "updated_at" not in record:
@@ -502,11 +502,11 @@ class ReferenceSpecDriver:
         if "input_present" in condition:
             field = condition["input_present"]
             return field in input_values and input_values[field] is not None
-        if "model_exists" in condition:
-            return bool(self._authorization_records(condition["model_exists"]["model"], input_values))
-        if "model_state" in condition:
-            body = condition["model_state"]
-            return any(record.get(body["field"]) == body["equals"] for record in self._authorization_records(body["model"], input_values))
+        if "entity_exists" in condition:
+            return bool(self._authorization_records(condition["entity_exists"]["entity_type"], input_values))
+        if "entity_lifecycle_state" in condition:
+            body = condition["entity_lifecycle_state"]
+            return any(record.get(body["field"]) == body["equals"] for record in self._authorization_records(body["entity_type"], input_values))
         if "subject_has_role" in condition:
             role = condition["subject_has_role"]
             actor = self.fixtures.get("actor", {})
@@ -517,10 +517,10 @@ class ReferenceSpecDriver:
             return _resolve_binding(body["left"], namespace) == _resolve_binding(body["right"], namespace)
         return False
 
-    def _authorization_records(self, model_id: str, input_values: Mapping[str, Any]) -> list[dict[str, Any]]:
-        records = list(self.store[model_id])
-        model_key = f"{model_id.lower()}_id"
-        selected_id = input_values.get(model_key) or input_values.get("id")
+    def _authorization_records(self, entity_type_ref: str, input_values: Mapping[str, Any]) -> list[dict[str, Any]]:
+        records = list(self.store[entity_type_ref])
+        entity_key = _entity_input_key(entity_type_ref)
+        selected_id = input_values.get(entity_key) or input_values.get("id")
         if selected_id is not None:
             records = [record for record in records if record.get("id") == selected_id]
         for scope_key in ("workspace_id", "tenant_id", "organization_id"):
@@ -533,10 +533,14 @@ def _matches(record: Mapping[str, Any], where: Mapping[str, Any]) -> bool:
     return all(record.get(key) == value for key, value in where.items())
 
 
-def _single_model(application_action: Mapping[str, Any], field: str) -> str:
-    models = application_action[field]
-    assert len(models) == 1, f"Expected exactly one {field} model"
-    return models[0]
+def _single_entity_type(application_action: Mapping[str, Any], field: str) -> str:
+    entity_types = application_action[field]
+    assert len(entity_types) == 1, f"Expected exactly one {field} entity_type"
+    return entity_types[0]
+
+
+def _entity_input_key(entity_type_ref: str) -> str:
+    return f"{entity_type_ref.removeprefix('entity_type.')}_id"
 
 
 def _success_outcome_id(application_action: Mapping[str, Any]) -> str:

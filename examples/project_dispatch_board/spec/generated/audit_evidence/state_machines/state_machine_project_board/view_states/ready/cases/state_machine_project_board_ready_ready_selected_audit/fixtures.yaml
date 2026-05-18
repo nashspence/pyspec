@@ -4,7 +4,7 @@ context:
 facts:
   fact.project.draft:
     present:
-      model: Project
+      entity_type: entity_type.project
       values:
         assignee:
           value: Unassigned
@@ -29,7 +29,7 @@ facts:
     rationale: Draft dispatch project used as a secondary row in ready-board audit renders.
   fact.project.submitted:
     present:
-      model: Project
+      entity_type: entity_type.project
       values:
         assignee:
           value: Maya Chen

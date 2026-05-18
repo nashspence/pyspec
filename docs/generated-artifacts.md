@@ -22,4 +22,4 @@ Validation enforces a closed generated tree:
 - BDD features must be the single canonical generated corpus
 - agent prompt templates must match the active layers and include the `{{USER_PROMPT}}` substitution point
 
-Future work can add compression or retention knobs, but the default package API already models that decision through `ArtifactPolicy`.
+Future work can add compression or retention knobs, but the default package API already represents that decision through `ArtifactPolicy`.

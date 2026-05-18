@@ -9,6 +9,9 @@ from pyspec_contract.runtime import fixture_namespace, resolve_binding, resolve_
 from pyspec_contract.targets import entry_state_machine_name, entry_point_adapter_pair, entry_point_input_bindings, entry_point_input, entry_point_responses, entry_target_pair
 
 
+PROJECT_ENTITY_TYPE = "entity_type.project"
+
+
 class ProductApp:
     """A minimal real app surface for the starter's prod BDD harness.
 
@@ -40,7 +43,7 @@ class ProductApp:
         self.fixtures = fixture_namespace(self.contract, list(given.get("seed_fixtures", [])))
         for fact in given.get("domain_facts", []):
             kind, body = next(iter(fact.items()))
-            if body["model"] != "Project":
+            if body["entity_type"] != PROJECT_ENTITY_TYPE:
                 raise AssertionError("Example app only implements Project")
             if kind == "absent":
                 where = self._resolve_map(body["where"])
@@ -299,7 +302,7 @@ class ProductApp:
             assert cap in self._rendered_application_action_refs()
         for cap in assertions.get("forbids", []):
             assert cap not in self._rendered_application_action_refs()
-        exists = (assertions.get("model") or {}).get("exists")
+        exists = (assertions.get("entity") or {}).get("exists")
         if exists:
             where = self._resolve_map(exists["where"])
             assert any(_matches(project, where) for project in self.projects)
@@ -332,7 +335,7 @@ class ProductApp:
                 assert not self._authorization_assertion_allowed(assertion)
         for fact in assertions.get("expected_facts", []):
             kind, body = next(iter(fact.items()))
-            if body["model"] != "Project":
+            if body["entity_type"] != PROJECT_ENTITY_TYPE:
                 raise AssertionError("Example app only implements Project")
             if kind == "present":
                 values = self._resolve_map(body["values"])
@@ -413,11 +416,11 @@ class ProductApp:
         if "input_present" in condition:
             field = condition["input_present"]
             return field in input_values and input_values[field] is not None
-        if "model_exists" in condition:
-            return bool(self._authorization_records(condition["model_exists"]["model"], input_values))
-        if "model_state" in condition:
-            body = condition["model_state"]
-            return any(project.get(body["field"]) == body["equals"] for project in self._authorization_records(body["model"], input_values))
+        if "entity_exists" in condition:
+            return bool(self._authorization_records(condition["entity_exists"]["entity_type"], input_values))
+        if "entity_lifecycle_state" in condition:
+            body = condition["entity_lifecycle_state"]
+            return any(project.get(body["field"]) == body["equals"] for project in self._authorization_records(body["entity_type"], input_values))
         if "subject_has_role" in condition:
             return condition["subject_has_role"] in self.fixtures.get("actor", {}).get("roles", [])
         if "value_equals" in condition:
@@ -426,8 +429,8 @@ class ProductApp:
             return resolve_binding(body["left"], namespace) == resolve_binding(body["right"], namespace)
         return False
 
-    def _authorization_records(self, model_id: str, input_values: Mapping[str, Any]) -> list[dict[str, Any]]:
-        if model_id != "Project":
+    def _authorization_records(self, entity_type_ref: str, input_values: Mapping[str, Any]) -> list[dict[str, Any]]:
+        if entity_type_ref != PROJECT_ENTITY_TYPE:
             return []
         records = list(self.projects)
         selected_id = input_values.get("project_id") or input_values.get("id")

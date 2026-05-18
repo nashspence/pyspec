@@ -18,7 +18,7 @@ DEPRECATED_DEFINITION_NAMES = {
     "event",
     "fixture",
     "fsm",
-    "model",
+    "entity_type",
     "scenario",
     "test_case",
     "workflow",
@@ -38,7 +38,7 @@ DEPRECATED_REFERENCE_DEFINITION_NAMES = {
     "fact_id",
     "fixture_id",
     "fsm_id",
-    "model_id",
+    "entity_type_id",
     "scenario_ref",
     "type_map",
     "type_name",
@@ -69,7 +69,7 @@ STALE_SCHEMA_DEFINITION_NAMES = {
     _former_name("layout_", "container"),
     _former_name("layout_", "region"),
     _former_name("layout_", "root"),
-    "model_refs",
+    "entity_type_refs",
     "action_emit_bindings",
     "action_emit_source",
     "state_name",
@@ -81,7 +81,7 @@ STALE_SCHEMA_DEFINITION_NAMES = {
 }
 ALLOWED_DUPLICATE_DEFINITION_GROUPS = {
     frozenset({"instance_id", "view_state_name"}),
-    frozenset({"model_ref", "python_class_name"}),
+    frozenset({"entity_type_ref", "python_class_name"}),
 }
 ALLOWED_ANY_OF_PATHS_BY_SCHEMA = {
     "author.schema.json": {

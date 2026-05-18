@@ -4,7 +4,7 @@ This glossary is the vocabulary contract for the authored-source, layer-pruned a
 
 ## Terminology Boundaries
 
-- `domain_event`: a durable product/domain fact that happened. Domain events are emitted by successful command or transition outcomes and may trigger workflows.
+- `domain_event`: a durable product/domain fact that happened. Domain events are emitted by successful command or lifecycle-transition outcomes and may trigger workflows.
 - `integration_message`: a wire-level AsyncAPI message in `integration_messages.asyncapi.yaml`. It carries a domain-event payload over a channel, but it is not state-machine vocabulary.
 - `local_signal`: a state-machine-local trigger/effect. Local signals may be accepted by transitions, emitted by transitions, and synced between mounted child state-machine instances.
 - `data_refresh_signal`: a state-machine-local data refresh or invalidation signal, commonly consumed by `data_loader.load.refresh_on`.
@@ -18,9 +18,9 @@ Bare `event` is avoided for durable facts because CloudEvents and UML/state-mach
 - <!-- top-level:data_contracts --> `data_contracts`: first-class typed payload/data contracts referenced by type expressions with `data_contract.*` ids.
 - <!-- top-level:entry_points --> `entry_points`: external invocation declarations split into explicit adapter and target objects. An entry point is an externally invokable adapter plus a target.
 - <!-- top-level:domain_events --> `domain_events`: durable domain/application facts with payload_schema contracts and compiled emitters.
-- <!-- top-level:facts --> `facts`: reusable model presence/absence setup or assertion facts; facts are not broad domain invariants.
+- <!-- top-level:facts --> `facts`: reusable entity_type presence/absence setup or assertion facts; facts are not broad domain invariants.
 - <!-- top-level:fixtures --> `fixtures`: named seed data namespaces used by test cases, facts, content cases, and render audit cases.
-- <!-- top-level:models --> `models`: PascalCase product/domain entity type names and lifecycle declarations. Models are not ORM models, API contracts, generated implementation classes, or storage schemas.
+- <!-- top-level:entity_types --> `entity_types`: collection-prefixed stable product/domain entity type ids such as `entity_type.project`, each with a PascalCase display/type `name` such as `Project`, fields, and optional `entity_lifecycle` declarations. Entity types are not ORM types, API contracts, generated implementation classes, or storage schemas.
 - <!-- top-level:application_actions --> `application_actions`: executable product application actions with typed input, effects, outcomes, emitted domain events, and optional explicit authorization mapping.
 - <!-- top-level:authorization_policies --> `authorization_policies`: authorization policies with subjects, authorization targets, conditions, and effect.
 - <!-- top-level:project --> `project`: the project slug for the specification workspace.
@@ -44,7 +44,7 @@ Bare `event` is avoided for durable facts because CloudEvents and UML/state-mach
 - `feature_tag`: unprefixed dotted feature grouping label used by test cases and generated feature files; it is not a typed reference.
 - `instance_id`: local child state-machine instance id within a composed view state.
 - `local_signal_name`: local state-machine signal name; authored sources do not use global-looking `local_signal.*` references for local signals.
-- `model_ref`: `PascalCase`; model references are the sole collection-prefix exception because model ids are also type names.
+- `entity_type_ref`: `entity_type.<domain>...`; stable product/domain entity type id. The entity type object carries a separate PascalCase `name` for display/type naming.
 - `application_action_ref`: `application_action.<domain>...`; application-action declarations, state-machine action bindings/data loaders, workflow steps, entry-point application-action targets, and test-case assertions.
 - `action_binding_id`: local view-state action binding name; authored sources do not use global-looking `action_binding.*` references for local invocation keys.
 - `data_loader_id`: local state-machine or view-state data loader name; authored sources do not use global-looking `data_loader.*` references for local invocation keys.
@@ -65,7 +65,7 @@ Bare `event` is avoided for durable facts because CloudEvents and UML/state-mach
 - `subject_ref`: exactly one typed reference to the resource under test: `entry_point`, `domain_event`, `application_action`, `state_machine`, or `workflow`.
 - `given`: setup contract split into `seed_fixtures` and `domain_facts`.
 - `when`: one executable stimulus: `open_entry_point`, `call_entry_point`, `invoke_application_action`, or `emit_domain_event`.
-- `then`: assertions for `outcome`, model existence, emitted/not-emitted domain events, workflow execution, authorization decisions, responses, invoked/enabled/forbidden application_actions, state-machine state, and `expected_facts`. Compiled state-machine assertions may add `surface`, `composition`, and top-level `requires`.
+- `then`: assertions for `outcome`, entity existence, emitted/not-emitted domain events, workflow execution, authorization decisions, responses, invoked/enabled/forbidden application_actions, state-machine state, and `expected_facts`. Compiled state-machine assertions may add `surface`, `composition`, and top-level `requires`.
 - `then.requires`: compiled-only derived projection dependencies for a state-machine assertion, split into `surfaces`, `text`, `assets`, `data_loaders`, and `action_bindings`.
 - `entry_point_adapter`: exactly one adapter object: `http_api`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`.
 - `adapter input shape`: HTTP API input may use `path_params`, `query_params`, and `body`; HTML route input may use `path_params` and `query_params`; CLI input uses `args`; worker input uses `payload`; webhook input may use `path_params`, `query_params`, and `payload`; scheduled input has no external input sections.
@@ -95,7 +95,7 @@ Bare `event` is avoided for durable facts because CloudEvents and UML/state-mach
 - `Query refresh signal`: local data-refresh signal raised by a mutation, query outcome, or other invalidation effect, such as `project_changed`, and consumed by `data_loader.load.refresh_on`. Loaded/missing/error data-refresh signals should come from query outcomes after data has actually been bound or classified.
 - `Empty/non-empty query handling`: array-valued query outcomes split the outcome effect with `conditional_effects` using `when.result_empty` and `when.result_non_empty`. Both branches must be declared so empty collection states are reachable through authored handling rather than compiler length guesses.
 - `Machine-scoped query ownership`: state-machine-level data loaders declare `result_scope: local`, `shared`, or `prefetch`. Machine-scoped result bindings that do not raise a signal must use shared/prefetch ownership with rationale, especially when a child machine also owns visible loading.
-- `Field-slot source resolution`: every field slot resolves to exactly one context field or query result binding. A bound model or array item can feed field slots when the slot name exists on the result type; ambiguous or missing sources fail semantic validation.
+- `Field-slot source resolution`: every field slot resolves to exactly one context field or query result binding. A bound entity_type or array item can feed field slots when the slot name exists on the result type; ambiguous or missing sources fail semantic validation.
 - `Outcome effect`: mapping from an action/data-loader outcome to context updates, result binding, a local signal raise, or explicit `no_local_effect` handling.
 - `No local effect`: explicit declaration that an outcome is covered but intentionally has no local state-machine effect. It is not omission and does not suppress durable domain events. Reasons are scope-sensitive: response-surface handling needs a real adapter/renderer surface, query refresh needs explicit result/context refresh, result-bound-without-signal needs result binding or context/cache update, and failure outcomes must use proven response-surface handling or `intentionally_unobservable` with rationale.
 - `Authored value`: explicit literal-or-fixture-reference value used in authored test, fact, content-case, and render-audit value maps. Use `{value: ...}` for JSON literals, including literal strings beginning with `$`, and `{from: $fixture...}` for fixture references. Raw `$...` strings are not interpreted as references.
@@ -114,7 +114,7 @@ Bare `event` is avoided for durable facts because CloudEvents and UML/state-mach
 - `renderer_contracts`: view-state renderer declarations keyed by concrete target. `renderers.html` and `renderers.textual` each own target-local `layout`, `presentation`, and `style`.
 - `renderer placement validation`: HTML slots and child machines must reference declared HTML `region_id`s; Textual widgets and child machines must reference declared Textual `container_id`s. Placement ids are layout ids, not field names.
 - `resolver output escaping`: text, SVG, XML, and HTML resolvers must escape dynamic values before placing them in markup text or attributes. Plain-text outputs and alt text must not expose unescaped markup-sensitive values where they may be rendered into HTML/XML.
-- `type_expr`: structured primitive, model, data_contract, array, map, nullable whole-value wrapper, enum, or inline object type expression. Object field presence and nullability are controlled only by `field_schema.required` and `field_schema.nullable`.
+- `type_expr`: structured primitive, entity_type, data_contract, array, map, nullable whole-value wrapper, enum, or inline object type expression. Object field presence and nullability are controlled only by `field_schema.required` and `field_schema.nullable`.
 - `authorization_policy`: direct `authorization_policy_ref` fields identify the authorization policy applied to an entry point or authorization assertion. Application actions use `authorization.policy` plus explicit `unauthenticated_as` and `forbidden_as` outcome mappings.
 - `action_authorization`: application-action-local authorization mapping with `policy`, `unauthenticated_as`, and `forbidden_as`. The mapped names must be normal application-action outcomes with `kind: failure`.
 - `authorization policy`: reusable rule set that determines whether a subject may attempt an application action or entry point. Policies with identical subjects, effect, and conditions should be one `authorization_policy` with combined targets, not duplicated per application_action.
@@ -122,9 +122,9 @@ Bare `event` is avoided for durable facts because CloudEvents and UML/state-mach
 - `unauthenticated`: authorization failure where no acceptable subject identity is available. HTTP examples conventionally map this outcome to `401`; CLI examples map it to stderr plus a nonzero exit code.
 - `forbidden`: authorization failure where a subject identity exists but does not satisfy the authorization policy. HTTP examples conventionally map this outcome to `403`; CLI examples map it to stderr plus a nonzero exit code.
 - `domain failure outcome`: application-action outcome produced by application-action execution or domain validation, such as `validation_failed` or `not_found`.
-- `transition applicability`: lifecycle source-state check derived from `model.lifecycle.transitions[*]`, not authorization.
-- `invalid_state`: transition applicability/domain failure outcome for lifecycle source-state mismatch. It is not an authorization failure and should be asserted with `action_outcome` or `entry_point_response`, not `authorization_denial`.
-- `authorization_condition.model_state`: explicit author-authored access-control condition when model state is truly part of who may attempt an application_action. The compiler does not generate this condition from lifecycle transition `from` states; lifecycle source-state mismatch remains transition applicability and maps to `invalid_state`.
+- `transition applicability`: lifecycle source-state check derived from `entity_type.entity_lifecycle.lifecycle_transitions[*]`, not authorization.
+- `transition_not_allowed`: transition applicability/domain failure outcome for lifecycle source-state mismatch. It is not an authorization failure and should be asserted with `action_outcome` or `entry_point_response`, not `authorization_denial`.
+- `authorization_condition.entity_lifecycle_state`: explicit author-authored access-control condition when an entity lifecycle state is truly part of who may attempt an application_action. The compiler does not generate this condition from lifecycle transition `from` states; lifecycle source-state mismatch remains transition applicability and maps to `transition_not_allowed`.
 
 ## Action Binding Example
 
@@ -141,9 +141,9 @@ view_states:
           approved:
             raise:
               data_refresh_signal: project_changed
-          invalid_state:
+          transition_not_allowed:
             raise:
-              local_signal: show_invalid_state
+              local_signal: show_transition_not_allowed
               payload_bindings:
                 message:
                   from: $outcome.result.message
@@ -221,7 +221,7 @@ data_loaders:
 
 Layers are compile/validate guardrails and are not written into `spec/generated/compiled/spec.yaml`.
 
-- `core`: `fixtures`, `facts`, `data_contracts`, `models`, `authorization_policies`, `application_actions`, `domain_events`, and `test_cases`.
+- `core`: `fixtures`, `facts`, `data_contracts`, `entity_types`, `authorization_policies`, `application_actions`, `domain_events`, and `test_cases`.
 - `http`: HTTP API entry-point adapters.
 - `domain_events`: webhook entry-point adapters.
 - `workflow`: `workflows` plus CLI, worker, and scheduled entry-point adapters.
@@ -332,7 +332,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:authored_domain_event --> `$defs/authored_domain_event`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_fact --> `$defs/authored_fact`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_fixture --> `$defs/authored_fixture`: human-authored source object for this resource or nested contract.
-- <!-- schema-def:authored_model --> `$defs/authored_model`: human-authored source object for this resource or nested contract.
+- <!-- schema-def:authored_entity_type --> `$defs/authored_entity_type`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_authorization_policy --> `$defs/authored_authorization_policy`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_application_action --> `$defs/authored_application_action`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_state_machine --> `$defs/authored_state_machine`: human-authored source object for this resource or nested contract.
@@ -391,7 +391,8 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:signal_sync_rule --> `$defs/signal_sync_rule`: state-machine signal synchronization contract component.
 - <!-- schema-def:signal_sync_send_effect --> `$defs/signal_sync_send_effect`: state-machine signal synchronization contract component.
 - <!-- schema-def:signal_sync_trigger --> `$defs/signal_sync_trigger`: state-machine signal synchronization contract component.
-- <!-- schema-def:model_ref --> `$defs/model_ref`: typed reference definition for its namespace.
+- <!-- schema-def:entity_type_ref --> `$defs/entity_type_ref`: typed reference definition for its namespace.
+- <!-- schema-def:entity_type_display_name --> `$defs/entity_type_display_name`: PascalCase entity type display/type name separated from the stable `entity_type.*` id.
 - <!-- schema-def:object_schema --> `$defs/object_schema`: structured type-expression and object-schema contract component.
 - <!-- schema-def:action_authorization --> `$defs/action_authorization`: explicit application-action authorization policy and mapped authorization failure outcomes.
 - <!-- schema-def:action_emit --> `$defs/action_emit`: shared schema component used by authored source or compiled output.
@@ -503,7 +504,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:fact_body --> `$defs/fact_body`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:fact_item --> `$defs/fact_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:fixture_item --> `$defs/fixture_item`: compiled-output object for this resource or nested contract.
-- <!-- schema-def:model_item --> `$defs/model_item`: compiled-output object for this resource or nested contract.
+- <!-- schema-def:entity_type_item --> `$defs/entity_type_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:authorization_policy_item --> `$defs/authorization_policy_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:application_action_item --> `$defs/application_action_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:test_case_item --> `$defs/test_case_item`: compiled-output object for this resource or nested contract.

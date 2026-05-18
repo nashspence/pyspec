@@ -26,8 +26,8 @@ def primitive(name: str) -> dict[str, str]:
     return {"primitive": name}
 
 
-def model(name: str) -> dict[str, str]:
-    return {"model": name}
+def entity_type(name: str) -> dict[str, str]:
+    return {"entity_type": name}
 
 
 def array_of(item: Any) -> dict[str, Any]:
@@ -45,7 +45,7 @@ def normalize_type_expr(expr: Any) -> dict[str, Any]:
         if value not in PRIMITIVES:
             raise TypeExpressionError(f"Unknown primitive type: {value!r}")
         return {"primitive": value}
-    if kind in {"model", "data_contract"}:
+    if kind in {"entity_type", "data_contract"}:
         if not isinstance(value, str):
             raise TypeExpressionError(f"{kind} type must name a reusable contract")
         return {kind: value}
@@ -129,10 +129,18 @@ def type_key(expr: Any) -> str:
     return json.dumps(normalize_type_expr(expr), sort_keys=True, separators=(",", ":"))
 
 
+def entity_type_display_name(ref: str) -> str:
+    if not ref.startswith("entity_type."):
+        return ref
+    return "".join(part.capitalize() for part in ref.removeprefix("entity_type.").split("_"))
+
+
 def type_display(expr: Any) -> str:
     expr = normalize_type_expr(expr)
     kind, value = next(iter(expr.items()))
-    if kind in {"primitive", "model", "data_contract"}:
+    if kind == "entity_type":
+        return entity_type_display_name(value)
+    if kind in {"primitive", "data_contract"}:
         return value
     if kind == "array":
         return f"array<{type_display(value)}>"
@@ -158,10 +166,10 @@ def unwrap_nullable(expr: Any) -> dict[str, Any]:
     return expr
 
 
-def model_name(expr: Any) -> str | None:
+def entity_type_id(expr: Any) -> str | None:
     expr = unwrap_nullable(expr)
-    if "model" in expr:
-        return expr["model"]
+    if "entity_type" in expr:
+        return expr["entity_type"]
     return None
 
 
@@ -172,30 +180,30 @@ def data_contract_name(expr: Any) -> str | None:
     return None
 
 
-def base_model_name(expr: Any) -> str | None:
+def base_entity_type_id(expr: Any) -> str | None:
     expr = unwrap_nullable(expr)
     if "array" in expr:
-        return model_name(expr["array"])
-    return model_name(expr)
+        return entity_type_id(expr["array"])
+    return entity_type_id(expr)
 
 
-def is_array_of_model(expr: Any, model_id: str) -> bool:
+def is_array_of_entity_type(expr: Any, expected_entity_type_id: str) -> bool:
     expr = unwrap_nullable(expr)
-    return "array" in expr and model_name(expr["array"]) == model_id
+    return "array" in expr and entity_type_id(expr["array"]) == expected_entity_type_id
 
 
 def is_problem_type(expr: Any) -> bool:
-    name = base_model_name(expr)
-    return bool(name and (name == "Problem" or name.endswith("Problem")))
+    name = base_entity_type_id(expr)
+    return bool(name and (name == "entity_type.problem" or name.endswith(".problem")))
 
 
 def object_fields_for_type(contract: Mapping[str, Any] | None, expr: Any) -> dict[str, Any] | None:
     expr = unwrap_nullable(expr)
     if "object" in expr:
         return effective_type_map(expr["object"]["fields"])
-    name = model_name(expr)
-    if name and contract and name in contract.get("models", {}):
-        return effective_type_map(contract["models"][name]["fields"])
+    name = entity_type_id(expr)
+    if name and contract and name in contract.get("entity_types", {}):
+        return effective_type_map(contract["entity_types"][name]["fields"])
     data_name = data_contract_name(expr)
     if data_name and contract and data_name in contract.get("data_contracts", {}):
         return effective_type_map(contract["data_contracts"][data_name]["fields"])
@@ -209,7 +217,7 @@ def dereference_type(contract: Mapping[str, Any] | None, expr: Any, path: Iterab
         if fields is None:
             raise TypeExpressionError(f"cannot dereference non-object field: {source}")
         if segment not in fields:
-            container = model_name(current) or data_contract_name(current) or "inline object"
+            container = entity_type_id(current) or data_contract_name(current) or "inline object"
             raise TypeExpressionError(f"unknown {container} field: {segment}")
         current = fields[segment]
     return normalize_type_expr(current)
@@ -218,7 +226,7 @@ def dereference_type(contract: Mapping[str, Any] | None, expr: Any, path: Iterab
 def referenced_named_types(expr: Any) -> set[str]:
     expr = normalize_type_expr(expr)
     kind, value = next(iter(expr.items()))
-    if kind in {"model", "data_contract"}:
+    if kind in {"entity_type", "data_contract"}:
         return {value}
     if kind in {"array", "map", "nullable"}:
         return referenced_named_types(value)
@@ -247,7 +255,9 @@ def type_to_json_schema(expr: Any) -> dict[str, Any]:
     kind, value = next(iter(expr.items()))
     if kind == "primitive":
         return copy.deepcopy(PRIMITIVES[value])
-    if kind in {"model", "data_contract"}:
+    if kind == "entity_type":
+        return {"$ref": f"#/components/schemas/{entity_type_display_name(value)}"}
+    if kind == "data_contract":
         return {"$ref": f"#/components/schemas/{value}"}
     if kind == "array":
         return {"type": "array", "items": type_to_json_schema(value)}
@@ -289,7 +299,7 @@ def type_to_cwl(expr: Any) -> str | dict[str, Any] | list[Any]:
         if value == "Decimal":
             return "double"
         return "Any"
-    if kind in {"model", "data_contract", "enum", "object", "map"}:
+    if kind in {"entity_type", "data_contract", "enum", "object", "map"}:
         return "Any"
     if kind == "array":
         return {"type": "array", "items": type_to_cwl(value)}
@@ -311,7 +321,7 @@ def type_to_python(expr: Any) -> str:
         if value == "Decimal":
             return "float"
         return "object"
-    if kind in {"model", "data_contract", "enum", "object"}:
+    if kind in {"entity_type", "data_contract", "enum", "object"}:
         return "dict[str, object]" if kind == "object" else "str"
     if kind == "array":
         return f"list[{type_to_python(value)}]"
@@ -331,7 +341,7 @@ def sample_value(expr: Any) -> Any:
             "Decimal": 1.0,
             "JSON": {},
         }.get(value, "sample")
-    if kind in {"model", "data_contract", "map"}:
+    if kind in {"entity_type", "data_contract", "map"}:
         return {}
     if kind == "object":
         return {

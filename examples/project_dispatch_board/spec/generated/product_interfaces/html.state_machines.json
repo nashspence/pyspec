@@ -563,7 +563,7 @@
           {
             "from": "ready",
             "on": {
-              "local_signal": "show_invalid_state"
+              "local_signal": "show_transition_not_allowed"
             },
             "rationale": "Invalid detail application_actions move the detail panel into its displayable error state.",
             "to": "error"
@@ -684,7 +684,7 @@
           {
             "from": "ready",
             "on": {
-              "local_signal": "show_invalid_state"
+              "local_signal": "show_transition_not_allowed"
             },
             "rationale": "Invalid detail application_actions move the detail panel into its displayable error state.",
             "to": "error"
@@ -766,7 +766,7 @@
           {
             "from": "ready",
             "on": {
-              "local_signal": "show_invalid_state"
+              "local_signal": "show_transition_not_allowed"
             },
             "rationale": "Invalid detail application_actions move the detail panel into its displayable error state.",
             "to": "error"
@@ -795,7 +795,7 @@
           "outcome_effects": {
             "forbidden": {
               "raise": {
-                "local_signal": "show_invalid_state",
+                "local_signal": "show_transition_not_allowed",
                 "payload_bindings": {
                   "message": {
                     "from": "$outcome.result.message"
@@ -816,7 +816,7 @@
             },
             "not_found": {
               "raise": {
-                "local_signal": "show_invalid_state",
+                "local_signal": "show_transition_not_allowed",
                 "payload_bindings": {
                   "message": {
                     "from": "$outcome.result.message"
@@ -826,7 +826,7 @@
             },
             "unauthenticated": {
               "raise": {
-                "local_signal": "show_invalid_state",
+                "local_signal": "show_transition_not_allowed",
                 "payload_bindings": {
                   "message": {
                     "from": "$outcome.result.message"
@@ -864,20 +864,20 @@
                   "reason": "handled_by_response_surface"
                 }
               },
-              "invalid_state": {
+              "not_found": {
+                "no_local_effect": {
+                  "rationale": "The response surface reports a missing project without a local transition.",
+                  "reason": "handled_by_response_surface"
+                }
+              },
+              "transition_not_allowed": {
                 "raise": {
-                  "local_signal": "show_invalid_state",
+                  "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
                       "from": "$outcome.result.message"
                     }
                   }
-                }
-              },
-              "not_found": {
-                "no_local_effect": {
-                  "rationale": "The response surface reports a missing project without a local transition.",
-                  "reason": "handled_by_response_surface"
                 }
               },
               "unauthenticated": {
@@ -909,17 +909,7 @@
               },
               "forbidden": {
                 "raise": {
-                  "local_signal": "show_invalid_state",
-                  "payload_bindings": {
-                    "message": {
-                      "from": "$outcome.result.message"
-                    }
-                  }
-                }
-              },
-              "invalid_state": {
-                "raise": {
-                  "local_signal": "show_invalid_state",
+                  "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
                       "from": "$outcome.result.message"
@@ -929,7 +919,17 @@
               },
               "not_found": {
                 "raise": {
-                  "local_signal": "show_invalid_state",
+                  "local_signal": "show_transition_not_allowed",
+                  "payload_bindings": {
+                    "message": {
+                      "from": "$outcome.result.message"
+                    }
+                  }
+                }
+              },
+              "transition_not_allowed": {
+                "raise": {
+                  "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
                       "from": "$outcome.result.message"
@@ -939,7 +939,7 @@
               },
               "unauthenticated": {
                 "raise": {
-                  "local_signal": "show_invalid_state",
+                  "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
                       "from": "$outcome.result.message"
@@ -1023,7 +1023,7 @@
           {
             "from": "ready",
             "on": {
-              "local_signal": "show_invalid_state"
+              "local_signal": "show_transition_not_allowed"
             },
             "rationale": "Invalid detail application_actions move the detail panel into its displayable error state.",
             "to": "error"
@@ -1075,7 +1075,7 @@
               },
               "validation_failed": {
                 "raise": {
-                  "local_signal": "show_invalid_state",
+                  "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
                       "from": "$outcome.result.message"
@@ -1153,7 +1153,7 @@
           {
             "from": "empty",
             "on": {
-              "local_signal": "show_invalid_state"
+              "local_signal": "show_transition_not_allowed"
             },
             "rationale": "Invalid create attempts move the list into its displayable error state.",
             "to": "error"
@@ -1196,7 +1196,7 @@
           {
             "from": "ready",
             "on": {
-              "local_signal": "show_invalid_state"
+              "local_signal": "show_transition_not_allowed"
             },
             "rationale": "Invalid list application_actions move the list into its displayable error state.",
             "to": "error"
@@ -1277,7 +1277,7 @@
           {
             "from": "empty",
             "on": {
-              "local_signal": "show_invalid_state"
+              "local_signal": "show_transition_not_allowed"
             },
             "rationale": "Invalid create attempts move the list into its displayable error state.",
             "to": "error"
@@ -1320,7 +1320,7 @@
           {
             "from": "ready",
             "on": {
-              "local_signal": "show_invalid_state"
+              "local_signal": "show_transition_not_allowed"
             },
             "rationale": "Invalid list application_actions move the list into its displayable error state.",
             "to": "error"
@@ -1400,7 +1400,7 @@
           {
             "from": "empty",
             "on": {
-              "local_signal": "show_invalid_state"
+              "local_signal": "show_transition_not_allowed"
             },
             "rationale": "Invalid create attempts move the list into its displayable error state.",
             "to": "error"
@@ -1443,7 +1443,7 @@
           {
             "from": "ready",
             "on": {
-              "local_signal": "show_invalid_state"
+              "local_signal": "show_transition_not_allowed"
             },
             "rationale": "Invalid list application_actions move the list into its displayable error state.",
             "to": "error"
@@ -1511,17 +1511,7 @@
             "outcome_effects": {
               "forbidden": {
                 "raise": {
-                  "local_signal": "show_invalid_state",
-                  "payload_bindings": {
-                    "message": {
-                      "from": "$outcome.result.message"
-                    }
-                  }
-                }
-              },
-              "invalid_state": {
-                "raise": {
-                  "local_signal": "show_invalid_state",
+                  "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
                       "from": "$outcome.result.message"
@@ -1531,7 +1521,7 @@
               },
               "not_found": {
                 "raise": {
-                  "local_signal": "show_invalid_state",
+                  "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
                       "from": "$outcome.result.message"
@@ -1544,9 +1534,19 @@
                   "data_refresh_signal": "projects_changed"
                 }
               },
+              "transition_not_allowed": {
+                "raise": {
+                  "local_signal": "show_transition_not_allowed",
+                  "payload_bindings": {
+                    "message": {
+                      "from": "$outcome.result.message"
+                    }
+                  }
+                }
+              },
               "unauthenticated": {
                 "raise": {
-                  "local_signal": "show_invalid_state",
+                  "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
                       "from": "$outcome.result.message"
@@ -1626,7 +1626,7 @@
           {
             "from": "empty",
             "on": {
-              "local_signal": "show_invalid_state"
+              "local_signal": "show_transition_not_allowed"
             },
             "rationale": "Invalid create attempts move the list into its displayable error state.",
             "to": "error"
@@ -1669,7 +1669,7 @@
           {
             "from": "ready",
             "on": {
-              "local_signal": "show_invalid_state"
+              "local_signal": "show_transition_not_allowed"
             },
             "rationale": "Invalid list application_actions move the list into its displayable error state.",
             "to": "error"

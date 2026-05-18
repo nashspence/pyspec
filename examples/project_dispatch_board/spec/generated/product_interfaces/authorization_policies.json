@@ -64,7 +64,7 @@
           "application_action": "application_action.project.submit"
         },
         {
-          "model": "Project"
+          "entity_type": "entity_type.project"
         }
       ]
     },
@@ -92,7 +92,7 @@
           "application_action": "application_action.project.send_approval_notice"
         },
         {
-          "model": "Project"
+          "entity_type": "entity_type.project"
         }
       ]
     }

@@ -293,15 +293,15 @@
             "absent": {
               "additionalProperties": false,
               "properties": {
-                "model": {
-                  "$ref": "#/$defs/model_ref"
+                "entity_type": {
+                  "$ref": "#/$defs/entity_type_ref"
                 },
                 "where": {
                   "$ref": "#/$defs/value_map"
                 }
               },
               "required": [
-                "model",
+                "entity_type",
                 "where"
               ],
               "type": "object"
@@ -321,15 +321,15 @@
             "present": {
               "additionalProperties": false,
               "properties": {
-                "model": {
-                  "$ref": "#/$defs/model_ref"
+                "entity_type": {
+                  "$ref": "#/$defs/entity_type_ref"
                 },
                 "values": {
                   "$ref": "#/$defs/value_map"
                 }
               },
               "required": [
-                "model",
+                "entity_type",
                 "values"
               ],
               "type": "object"
@@ -364,23 +364,26 @@
       ],
       "type": "object"
     },
-    "authored_model": {
+    "authored_entity_type": {
       "additionalProperties": false,
       "properties": {
         "fields": {
           "$ref": "#/$defs/field_schema_map"
         },
-        "lifecycle": {
+        "name": {
+          "$ref": "#/$defs/entity_type_display_name"
+        },
+        "entity_lifecycle": {
           "additionalProperties": false,
           "properties": {
             "field": {
               "$ref": "#/$defs/field_name"
             },
-            "initial": {
+            "initial_state": {
               "pattern": "^[a-z][a-z0-9_]*$",
               "type": "string"
             },
-            "states": {
+            "lifecycle_states": {
               "items": {
                 "pattern": "^[a-z][a-z0-9_]*$",
                 "type": "string"
@@ -389,7 +392,7 @@
               "type": "array",
               "uniqueItems": true
             },
-            "transitions": {
+            "lifecycle_transitions": {
               "items": {
                 "additionalProperties": false,
                 "properties": {
@@ -417,8 +420,8 @@
           },
           "required": [
             "field",
-            "states",
-            "initial"
+            "lifecycle_states",
+            "initial_state"
           ],
           "type": "object"
         },
@@ -427,6 +430,7 @@
         }
       },
       "required": [
+        "name",
         "fields"
       ],
       "type": "object"
@@ -439,7 +443,7 @@
         },
         "creates": {
           "items": {
-            "$ref": "#/$defs/model_ref"
+            "$ref": "#/$defs/entity_type_ref"
           },
           "minItems": 1,
           "type": "array",
@@ -447,7 +451,7 @@
         },
         "deletes": {
           "items": {
-            "$ref": "#/$defs/model_ref"
+            "$ref": "#/$defs/entity_type_ref"
           },
           "minItems": 1,
           "type": "array",
@@ -460,7 +464,7 @@
           "enum": [
             "command",
             "query",
-            "transition"
+            "lifecycle_transition"
           ]
         },
         "outcomes": {
@@ -470,12 +474,12 @@
           "$ref": "#/$defs/rationale"
         },
         "retry_safe": {
-          "description": "Explicitly marks a command or transition action as safe for automatic action-level retries.",
+          "description": "Explicitly marks a command or lifecycle-transition action as safe for automatic action-level retries.",
           "type": "boolean"
         },
         "reads": {
           "items": {
-            "$ref": "#/$defs/model_ref"
+            "$ref": "#/$defs/entity_type_ref"
           },
           "minItems": 1,
           "type": "array",
@@ -483,7 +487,7 @@
         },
         "updates": {
           "items": {
-            "$ref": "#/$defs/model_ref"
+            "$ref": "#/$defs/entity_type_ref"
           },
           "minItems": 1,
           "type": "array",
@@ -559,8 +563,8 @@
         "initial_view_state": {
           "$ref": "#/$defs/view_state_name"
         },
-        "model": {
-          "$ref": "#/$defs/model_ref"
+        "entity_type": {
+          "$ref": "#/$defs/entity_type_ref"
         },
         "data_loaders": {
           "additionalProperties": {
@@ -817,12 +821,12 @@
         },
         {
           "required": [
-            "model_exists"
+            "entity_exists"
           ]
         },
         {
           "required": [
-            "model_state"
+            "entity_lifecycle_state"
           ]
         },
         {
@@ -840,19 +844,19 @@
         "input_present": {
           "$ref": "#/$defs/field_name"
         },
-        "model_exists": {
+        "entity_exists": {
           "additionalProperties": false,
           "properties": {
-            "model": {
-              "$ref": "#/$defs/model_ref"
+            "entity_type": {
+              "$ref": "#/$defs/entity_type_ref"
             }
           },
           "required": [
-            "model"
+            "entity_type"
           ],
           "type": "object"
         },
-        "model_state": {
+        "entity_lifecycle_state": {
           "additionalProperties": false,
           "properties": {
             "equals": {
@@ -861,12 +865,12 @@
             "field": {
               "$ref": "#/$defs/field_name"
             },
-            "model": {
-              "$ref": "#/$defs/model_ref"
+            "entity_type": {
+              "$ref": "#/$defs/entity_type_ref"
             }
           },
           "required": [
-            "model",
+            "entity_type",
             "field",
             "equals"
           ],
@@ -954,7 +958,7 @@
       "oneOf": [
         {
           "required": [
-            "model"
+            "entity_type"
           ]
         },
         {
@@ -972,8 +976,8 @@
         "entry_point": {
           "$ref": "#/$defs/entry_point_ref"
         },
-        "model": {
-          "$ref": "#/$defs/model_ref"
+        "entity_type": {
+          "$ref": "#/$defs/entity_type_ref"
         },
         "application_action": {
           "$ref": "#/$defs/application_action_ref"
@@ -1541,15 +1545,15 @@
             "absent": {
               "additionalProperties": false,
               "properties": {
-                "model": {
-                  "$ref": "#/$defs/model_ref"
+                "entity_type": {
+                  "$ref": "#/$defs/entity_type_ref"
                 },
                 "where": {
                   "$ref": "#/$defs/value_map"
                 }
               },
               "required": [
-                "model",
+                "entity_type",
                 "where"
               ],
               "type": "object"
@@ -1566,15 +1570,15 @@
             "present": {
               "additionalProperties": false,
               "properties": {
-                "model": {
-                  "$ref": "#/$defs/model_ref"
+                "entity_type": {
+                  "$ref": "#/$defs/entity_type_ref"
                 },
                 "values": {
                   "$ref": "#/$defs/value_map"
                 }
               },
               "required": [
-                "model",
+                "entity_type",
                 "values"
               ],
               "type": "object"
@@ -1609,7 +1613,7 @@
       "type": "string"
     },
     "field_name": {
-      "description": "Actual data/model/input/context field identifier.",
+      "description": "Actual data/entity_type/input/context field identifier.",
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
     },
@@ -1672,12 +1676,12 @@
         {
           "additionalProperties": false,
           "properties": {
-            "model": {
-              "$ref": "#/$defs/model_ref"
+            "entity_type": {
+              "$ref": "#/$defs/entity_type_ref"
             }
           },
           "required": [
-            "model"
+            "entity_type"
           ],
           "type": "object"
         },
@@ -2157,7 +2161,12 @@
       "$ref": "#/$defs/local_name",
       "description": "State-machine-local signal name."
     },
-    "model_ref": {
+    "entity_type_ref": {
+      "pattern": "^entity_type\\.[a-z][a-z0-9_]*$",
+      "type": "string"
+    },
+    "entity_type_display_name": {
+      "description": "PascalCase product/domain type display name stored separately from entity_type_ref.",
       "pattern": "^[A-Z][A-Za-z0-9]*$",
       "type": "string"
     },
@@ -2557,7 +2566,7 @@
           "$ref": "#/$defs/value_map"
         },
         "fact_refs": {
-          "description": "Fact references used to seed rendered model state for this render audit case.",
+          "description": "Fact references used to seed rendered entity_type state for this render audit case.",
           "items": {
             "$ref": "#/$defs/fact_use"
           },
@@ -3340,21 +3349,21 @@
           "type": "array",
           "uniqueItems": true
         },
-        "model": {
+        "entity": {
           "additionalProperties": false,
           "properties": {
             "exists": {
               "additionalProperties": false,
               "properties": {
-                "model": {
-                  "$ref": "#/$defs/model_ref"
+                "entity_type": {
+                  "$ref": "#/$defs/entity_type_ref"
                 },
                 "where": {
                   "$ref": "#/$defs/value_map"
                 }
               },
               "required": [
-                "model",
+                "entity_type",
                 "where"
               ],
               "type": "object"
@@ -3432,7 +3441,7 @@
       "type": "object"
     },
     "type_expr": {
-      "description": "Structured data type expression for non-field values. Supports formal primitives, PascalCase model references (the exception to collection-prefixed refs because model ids are type names), data-contract references, arrays, maps, nullable whole-value wrappers, enums, and inline object schemas. Object field presence and nullability are controlled only by field_schema.required and field_schema.nullable.",
+      "description": "Structured data type expression for non-field values. Supports formal primitives, collection-prefixed entity_type references, data-contract references, arrays, maps, nullable whole-value wrappers, enums, and inline object schemas. Object field presence and nullability are controlled only by field_schema.required and field_schema.nullable.",
       "oneOf": [
         {
           "additionalProperties": false,
@@ -3459,12 +3468,12 @@
         {
           "additionalProperties": false,
           "properties": {
-            "model": {
-              "$ref": "#/$defs/model_ref"
+            "entity_type": {
+              "$ref": "#/$defs/entity_type_ref"
             }
           },
           "required": [
-            "model"
+            "entity_type"
           ],
           "type": "object"
         },
@@ -3980,12 +3989,12 @@
       },
       "type": "object"
     },
-    "models": {
+    "entity_types": {
       "additionalProperties": {
-        "$ref": "#/$defs/authored_model"
+        "$ref": "#/$defs/authored_entity_type"
       },
       "propertyNames": {
-        "$ref": "#/$defs/model_ref"
+        "$ref": "#/$defs/entity_type_ref"
       },
       "type": "object"
     },

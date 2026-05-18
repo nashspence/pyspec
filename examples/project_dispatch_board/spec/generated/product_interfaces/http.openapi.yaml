@@ -132,7 +132,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Problem'
-          description: Invalid State
+          description: Transition Not Allowed
         '503':
           content:
             application/json:

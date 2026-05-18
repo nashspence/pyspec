@@ -1,6 +1,6 @@
 <svg width="1255pt" height="492pt"
  viewBox="0.00 0.00 1255.00 491.50" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 760454bd58310a253b4d24b6b3d54ddf65a692023be10e63765fa6ce7fef5231 -->
+<!-- pyspec-contract-input-sha256: 15e47adb38de2d0ece062d2a3ac2ef6765433189fcbff4598a08180557c3918a -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 473.5)">
 <title>application_action_application_action_project_create</title>
 <!-- application_action_input_application_action_project_create -->
@@ -47,14 +47,14 @@
 <polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="177.91,-217.3 185.91,-214.5 177.91,-211.7 177.91,-217.3"/>
 <text text-anchor="middle" x="135" y="-217.5" font-family="Arial" font-size="10.00">authorize</text>
 </g>
-<!-- application_action_resource_application_action_project_create_creates_Project -->
+<!-- application_action_resource_application_action_project_create_creates_entity_type_project -->
 <g id="node3" class="node">
-<title>application_action_resource_application_action_project_create_creates_Project</title>
+<title>application_action_resource_application_action_project_create_creates_entity_type_project</title>
 <polygon fill="#ffffff" stroke="transparent" points="525,-129.5 525,-299.5 719,-299.5 719,-129.5 525,-129.5"/>
 <polygon fill="#15803d" stroke="transparent" points="526,-290.5 526,-298.5 718,-298.5 718,-290.5 526,-290.5"/>
 <polygon fill="#f0fdfa" stroke="transparent" points="526,-259.5 526,-290.5 718,-290.5 718,-259.5 526,-259.5"/>
-<text text-anchor="start" x="530" y="-277.1" font-family="Arial" font-weight="bold" font-size="13.00">Project</text>
-<text text-anchor="start" x="530" y="-266.1" font-family="Arial" font-size="8.00" fill="#64748b">model resource</text>
+<text text-anchor="start" x="530" y="-277.1" font-family="Arial" font-weight="bold" font-size="13.00">entity_type.project</text>
+<text text-anchor="start" x="530" y="-266.1" font-family="Arial" font-size="8.00" fill="#64748b">entity_type resource</text>
 <text text-anchor="start" x="530" y="-248.5" font-family="Arial" font-weight="bold" font-size="10.00">fields</text>
 <text text-anchor="start" x="530" y="-237.5" font-family="Arial" font-size="10.00">assignee</text>
 <text text-anchor="start" x="570" y="-237.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Text</text>
@@ -78,9 +78,9 @@
 <text text-anchor="start" x="591" y="-138.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
 <polygon fill="none" stroke="#15803d" points="525,-129.5 525,-299.5 719,-299.5 719,-129.5 525,-129.5"/>
 </g>
-<!-- application_action_policy_authorization_policy_project_member&#45;&gt;application_action_resource_application_action_project_create_creates_Project -->
+<!-- application_action_policy_authorization_policy_project_member&#45;&gt;application_action_resource_application_action_project_create_creates_entity_type_project -->
 <g id="edge2" class="edge">
-<title>application_action_policy_authorization_policy_project_member&#45;&gt;application_action_resource_application_action_project_create_creates_Project</title>
+<title>application_action_policy_authorization_policy_project_member&#45;&gt;application_action_resource_application_action_project_create_creates_entity_type_project</title>
 <path fill="none" stroke="#3f3f46" d="M430.07,-214.5C458.6,-214.5 488.78,-214.5 516.5,-214.5"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="516.64,-217.3 524.64,-214.5 516.64,-211.7 516.64,-217.3"/>
 <text text-anchor="middle" x="477.5" y="-217.5" font-family="Arial" font-size="10.00">creates</text>
@@ -138,9 +138,9 @@
 <text text-anchor="start" x="871" y="-383.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
 <polygon fill="none" stroke="#16a34a" points="840.5,-375 840.5,-446 911.5,-446 911.5,-375 840.5,-375"/>
 </g>
-<!-- application_action_resource_application_action_project_create_creates_Project&#45;&gt;action_outcome_application_action_project_create_created -->
+<!-- application_action_resource_application_action_project_create_creates_entity_type_project&#45;&gt;action_outcome_application_action_project_create_created -->
 <g id="edge3" class="edge">
-<title>application_action_resource_application_action_project_create_creates_Project&#45;&gt;action_outcome_application_action_project_create_created</title>
+<title>application_action_resource_application_action_project_create_creates_entity_type_project&#45;&gt;action_outcome_application_action_project_create_created</title>
 <path fill="none" stroke="#3f3f46" d="M719.35,-289.44C759.04,-320.31 802.9,-354.42 833.92,-378.55"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="832.3,-380.84 840.33,-383.54 835.74,-376.42 832.3,-380.84"/>
 <text text-anchor="middle" x="768.5" y="-344.5" font-family="Arial" font-size="10.00">success</text>
@@ -158,9 +158,9 @@
 <text text-anchor="start" x="848" y="-8.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
 <polygon fill="none" stroke="#dc2626" points="818,0 818,-71 934,-71 934,0 818,0"/>
 </g>
-<!-- application_action_resource_application_action_project_create_creates_Project&#45;&gt;action_outcome_application_action_project_create_validation_failed -->
+<!-- application_action_resource_application_action_project_create_creates_entity_type_project&#45;&gt;action_outcome_application_action_project_create_validation_failed -->
 <g id="edge7" class="edge">
-<title>application_action_resource_application_action_project_create_creates_Project&#45;&gt;action_outcome_application_action_project_create_validation_failed</title>
+<title>application_action_resource_application_action_project_create_creates_entity_type_project&#45;&gt;action_outcome_application_action_project_create_validation_failed</title>
 <path fill="none" stroke="#3f3f46" d="M719.35,-146.06C752.67,-122.4 788.91,-96.65 818.04,-75.96"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="820,-78 824.9,-71.08 816.76,-73.43 820,-78"/>
 <text text-anchor="middle" x="768.5" y="-122.5" font-family="Arial" font-size="10.00">failure</text>

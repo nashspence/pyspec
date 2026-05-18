@@ -35,7 +35,7 @@ test_cases:
     given:
       domain_facts:
       - present:
-          model: Project
+          entity_type: entity_type.project
           values:
             assignee:
               value: Maya Chen
@@ -86,7 +86,7 @@ test_cases:
     given:
       domain_facts:
       - present:
-          model: Project
+          entity_type: entity_type.project
           values:
             assignee:
               value: Maya Chen
@@ -121,16 +121,16 @@ test_cases:
       domain_events:
         emitted:
         - domain_event.project.approved
-      invoked:
-      - application_action.project.approve
-      model:
+      entity:
         exists:
-          model: Project
+          entity_type: entity_type.project
           where:
             id:
               value: project_submitted_1
             status:
               value: approved
+      invoked:
+      - application_action.project.approve
       outcome: approved
     title: Approve submitted dispatch project
     when:
@@ -147,7 +147,7 @@ test_cases:
     given:
       domain_facts:
       - absent:
-          model: Project
+          entity_type: entity_type.project
           where:
             workspace_id:
               from: $fixture.workspace.id
@@ -353,7 +353,7 @@ test_cases:
     given:
       domain_facts:
       - present:
-          model: Project
+          entity_type: entity_type.project
           values:
             assignee:
               value: Maya Chen
@@ -573,7 +573,7 @@ test_cases:
     given:
       domain_facts:
       - absent:
-          model: Project
+          entity_type: entity_type.project
           where:
             workspace_id:
               from: $fixture.workspace.id
@@ -590,16 +590,16 @@ test_cases:
       domain_events:
         emitted:
         - domain_event.project.created
-      invoked:
-      - application_action.project.create
-      model:
+      entity:
         exists:
-          model: Project
+          entity_type: entity_type.project
           where:
             title:
               value: Replace rooftop condenser fan
             workspace_id:
               from: $fixture.workspace.id
+      invoked:
+      - application_action.project.create
       outcome: created
       response:
         status: 201

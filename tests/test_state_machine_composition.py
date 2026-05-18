@@ -23,7 +23,7 @@ def _item(author: dict, section: str, item_id: str) -> dict:
 def test_composed_state_machine_contract_is_closed_and_projected() -> None:
     contract = compile_source(_author())
     list_fsm = contract["state_machines"]["state_machine.project.list"]
-    assert set(list_fsm) == {"model", "context", "data_loaders", "signals", "initial_view_state", "view_states", "transitions", "rationale"}
+    assert set(list_fsm) == {"entity_type", "context", "data_loaders", "signals", "initial_view_state", "view_states", "transitions", "rationale"}
     assert list_fsm["initial_view_state"] == "loading"
     assert set(list_fsm["data_loaders"]) == {"list_projects"}
     assert list_fsm["data_loaders"]["list_projects"]["application_action"] == "application_action.project.list"

@@ -152,7 +152,7 @@ class _PromptContext:
         if not self.contract:
             return "No compiled spec was supplied. Use the active layers as the complete starting context."
         sections = [
-            ("models", self.contract.get("models") or {}),
+            ("entity_types", self.contract.get("entity_types") or {}),
             ("application_actions", self.contract.get("application_actions") or {}),
             ("entry_points", self.contract.get("entry_points") or {}),
             ("workflows", self.contract.get("workflows") or {}),
@@ -178,7 +178,7 @@ def _pm_design_prompt(context: _PromptContext) -> str:
         f"After authoring, run `pyspec compile . --layers {context.layer_arg}` and `pyspec validate . --layers {context.layer_arg}`.",
         "",
         "Authoring scope:",
-        "- Core: fixtures, facts, models, application_actions, and product test cases.",
+        "- Core: fixtures, facts, entity_types, application_actions, and product test cases.",
     ]
     if "http" in context.layers:
         lines.append("- HTTP: HTTP entry points that bind application_actions to externally visible API application_actions.")
@@ -212,7 +212,7 @@ def _pm_design_prompt(context: _PromptContext) -> str:
             "- Declare product meaning once in `spec/spec.yaml`; the compiler owns all generated projections and adapters.",
             "- Keep implementation and storage concerns out of `spec/spec.yaml`.",
             "- Use test-case archetypes from `src/pyspec_contract/patterns.yaml`; define every seed fixture explicitly.",
-            "- Models are product data models: fields, lifecycle, and invariants only.",
+            "- Entity types are product data entity_types: fields, entity_lifecycle, and invariants only.",
             "- Use `rationale` only when it preserves non-obvious product intent.",
             "- For entry points, declare one explicit `adapter` (`http_api`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`) and one explicit `target` (`operation`, `state_machine`, `workflow`, or `entry_point`).",
             "- For state-machine entry points, keep invocation and rendering separate with adapter input and target `renderer` (`html` or `textual`).",

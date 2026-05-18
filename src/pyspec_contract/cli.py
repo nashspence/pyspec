@@ -15,8 +15,9 @@ from .paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR, SOURCE_SPEC_PATH
 
 
 MINIMAL_SPEC = """project: new_product_spec
-models:
-  Item:
+entity_types:
+  entity_type.item:
+    name: Item
     fields:
       id:
         type:
