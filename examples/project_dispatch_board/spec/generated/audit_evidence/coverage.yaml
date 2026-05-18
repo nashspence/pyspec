@@ -474,7 +474,7 @@ visual_audit:
       /external_interfaces/external_interface.api.project.approve/access_policy: V0014
       /external_interfaces/external_interface.api.project.approve/adapter/http_api/method: V0014
       /external_interfaces/external_interface.api.project.approve/adapter/http_api/path: V0014
-      /external_interfaces/external_interface.api.project.approve/endpoint: V0014
+      /external_interfaces/external_interface.api.project.approve/http_operation: V0014
       /external_interfaces/external_interface.api.project.approve/input_mapping/bindings/approved_by/from: V0014
       /external_interfaces/external_interface.api.project.approve/input_mapping/bindings/project_id/from: V0014
       /external_interfaces/external_interface.api.project.approve/input_mapping/body/approved_by/type: V0014
@@ -504,7 +504,7 @@ visual_audit:
       /external_interfaces/external_interface.api.project.create/access_policy: V0006
       /external_interfaces/external_interface.api.project.create/adapter/http_api/method: V0006
       /external_interfaces/external_interface.api.project.create/adapter/http_api/path: V0006
-      /external_interfaces/external_interface.api.project.create/endpoint: V0006
+      /external_interfaces/external_interface.api.project.create/http_operation: V0006
       /external_interfaces/external_interface.api.project.create/input_mapping/bindings/customer/from: V0006
       /external_interfaces/external_interface.api.project.create/input_mapping/bindings/priority/from: V0006
       /external_interfaces/external_interface.api.project.create/input_mapping/bindings/title/from: V0006
@@ -529,7 +529,7 @@ visual_audit:
       /external_interfaces/external_interface.api.project.create/rationale: V0006
       /external_interfaces/external_interface.api.project.list/adapter/http_api/method: V0015
       /external_interfaces/external_interface.api.project.list/adapter/http_api/path: V0015
-      /external_interfaces/external_interface.api.project.list/endpoint: V0015
+      /external_interfaces/external_interface.api.project.list/http_operation: V0015
       /external_interfaces/external_interface.api.project.list/input_mapping/bindings/workspace_id/from: V0015
       /external_interfaces/external_interface.api.project.list/input_mapping/path_params/workspace_id/type: V0015
       /external_interfaces/external_interface.api.project.list/invokes/query/ref: V0015
@@ -594,13 +594,13 @@ visual_audit:
       /external_interfaces/external_interface.cli.project.board/output_mapping: V0017
       /external_interfaces/external_interface.cli.project.board/rationale: V0017
       /external_interfaces/external_interface.html.project.board/adapter/html_route/path: V0005
+      /external_interfaces/external_interface.html.project.board/html_route: V0005
       /external_interfaces/external_interface.html.project.board/input_mapping/bindings/workspace_id/from: V0005
       /external_interfaces/external_interface.html.project.board/input_mapping/path_params/workspace_id/type: V0005
       /external_interfaces/external_interface.html.project.board/invokes/state_machine/ref: V0005
       /external_interfaces/external_interface.html.project.board/invokes/state_machine/renderer: V0005
       /external_interfaces/external_interface.html.project.board/output_mapping: V0005
       /external_interfaces/external_interface.html.project.board/rationale: V0005
-      /external_interfaces/external_interface.html.project.board/route: V0005
       /external_interfaces/external_interface.worker.project.approval_notice/adapter/worker: V0018
       /external_interfaces/external_interface.worker.project.approval_notice/input_mapping/bindings/approved_by/from: V0018
       /external_interfaces/external_interface.worker.project.approval_notice/input_mapping/bindings/project_id/from: V0018
@@ -1804,10 +1804,10 @@ visual_audit:
         visual_evidence_set: V0014
         tokens:
         - /projects/{project_id}/approve
-      /external_interfaces/external_interface.api.project.approve/endpoint:
+      /external_interfaces/external_interface.api.project.approve/http_operation:
         visual_evidence_set: V0014
         tokens:
-        - endpoint.project.approve
+        - http_operation.project.approve
       /external_interfaces/external_interface.api.project.approve/input_mapping/bindings/approved_by/from:
         visual_evidence_set: V0014
         tokens:
@@ -1902,10 +1902,10 @@ visual_audit:
         visual_evidence_set: V0006
         tokens:
         - /workspaces/{workspace_id}/projects
-      /external_interfaces/external_interface.api.project.create/endpoint:
+      /external_interfaces/external_interface.api.project.create/http_operation:
         visual_evidence_set: V0006
         tokens:
-        - endpoint.project.create
+        - http_operation.project.create
       /external_interfaces/external_interface.api.project.create/input_mapping/bindings/customer/from:
         visual_evidence_set: V0006
         tokens:
@@ -1994,10 +1994,10 @@ visual_audit:
         visual_evidence_set: V0015
         tokens:
         - /workspaces/{workspace_id}/projects
-      /external_interfaces/external_interface.api.project.list/endpoint:
+      /external_interfaces/external_interface.api.project.list/http_operation:
         visual_evidence_set: V0015
         tokens:
-        - endpoint.project.list
+        - http_operation.project.list
       /external_interfaces/external_interface.api.project.list/input_mapping/bindings/workspace_id/from:
         visual_evidence_set: V0015
         tokens:
@@ -2187,6 +2187,10 @@ visual_audit:
         visual_evidence_set: V0005
         tokens:
         - /workspaces/{workspace_id}/dispatch
+      /external_interfaces/external_interface.html.project.board/html_route:
+        visual_evidence_set: V0005
+        tokens:
+        - html_route.project.board
       /external_interfaces/external_interface.html.project.board/input_mapping/bindings/workspace_id/from:
         visual_evidence_set: V0005
         tokens:
@@ -2200,10 +2204,6 @@ visual_audit:
         visual_evidence_set: V0005
         tokens:
         - state_machine.project.board
-      /external_interfaces/external_interface.html.project.board/route:
-        visual_evidence_set: V0005
-        tokens:
-        - route.project.board
       /external_interfaces/external_interface.worker.project.approval_notice/input_mapping/bindings/approved_by/from:
         visual_evidence_set: V0018
         tokens:
@@ -3237,10 +3237,6 @@ visual_audit:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/adapter_response_binding/4:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/asset/0:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/asset/1:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/cli_command/0:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/cli_command/1:
@@ -3315,12 +3311,6 @@ visual_audit:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding_local_outcome_effect/9:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/endpoint/0:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/endpoint/1:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/endpoint/2:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/external_interface_delegate/0:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/external_interface_invocation/0:
@@ -3336,6 +3326,14 @@ visual_audit:
     /reference_index/external_interface_invocation/5:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/external_interface_invocation/6:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
+    /reference_index/html_route/0:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
+    /reference_index/http_operation/0:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
+    /reference_index/http_operation/1:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
+    /reference_index/http_operation/2:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/0:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
@@ -3391,6 +3389,10 @@ visual_audit:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/9:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
+    /reference_index/media_asset/0:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
+    /reference_index/media_asset/1:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/query_binding/0:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/query_binding/1:
@@ -3441,9 +3443,29 @@ visual_audit:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/query_binding_local_outcome_effect/9:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/route/0:
+    /reference_index/renderer_screen/0:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/screen/0:
+    /reference_index/renderer_surface/0:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
+    /reference_index/renderer_surface/1:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
+    /reference_index/renderer_surface/10:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
+    /reference_index/renderer_surface/2:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
+    /reference_index/renderer_surface/3:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
+    /reference_index/renderer_surface/4:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
+    /reference_index/renderer_surface/5:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
+    /reference_index/renderer_surface/6:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
+    /reference_index/renderer_surface/7:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
+    /reference_index/renderer_surface/8:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
+    /reference_index/renderer_surface/9:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/state_machine/0:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
@@ -3453,69 +3475,47 @@ visual_audit:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/state_machine/3:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/surface/0:
+    /reference_index/text_resource/0:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/surface/1:
+    /reference_index/text_resource/1:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/surface/10:
+    /reference_index/text_resource/10:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/surface/2:
+    /reference_index/text_resource/11:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/surface/3:
+    /reference_index/text_resource/12:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/surface/4:
+    /reference_index/text_resource/13:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/surface/5:
+    /reference_index/text_resource/14:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/surface/6:
+    /reference_index/text_resource/15:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/surface/7:
+    /reference_index/text_resource/16:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/surface/8:
+    /reference_index/text_resource/17:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/surface/9:
+    /reference_index/text_resource/18:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/text/0:
+    /reference_index/text_resource/19:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/text/1:
+    /reference_index/text_resource/2:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/text/10:
+    /reference_index/text_resource/20:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/text/11:
+    /reference_index/text_resource/3:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/text/12:
+    /reference_index/text_resource/4:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/text/13:
+    /reference_index/text_resource/5:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/text/14:
+    /reference_index/text_resource/6:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/text/15:
+    /reference_index/text_resource/7:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/text/16:
+    /reference_index/text_resource/8:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/text/17:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/text/18:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/text/19:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/text/2:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/text/20:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/text/3:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/text/4:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/text/5:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/text/6:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/text/7:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/text/8:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
-    /reference_index/text/9:
+    /reference_index/text_resource/9:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/workflow/0:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers

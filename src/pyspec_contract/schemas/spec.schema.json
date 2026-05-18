@@ -1107,8 +1107,8 @@
           "pattern": "^cli_command\\.",
           "type": "string"
         },
-        "endpoint": {
-          "pattern": "^endpoint\\.",
+        "http_operation": {
+          "pattern": "^http_operation\\.",
           "type": "string"
         },
         "rationale": {
@@ -1117,8 +1117,8 @@
         "retry_safe": {
           "type": "boolean"
         },
-        "route": {
-          "pattern": "^route\\.",
+        "html_route": {
+          "pattern": "^html_route\\.",
           "type": "string"
         },
         "workflow_ref": {
@@ -3965,7 +3965,7 @@
   "$id": "https://example.invalid/compiled-output-product-spec.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Compiler-normalized output schema for the compiled specification file at spec/generated/compiled/spec.yaml. Contains normalized ids, derived domain_events, derived HTML routes, generated references, endpoint expansions, and empty collection expansions.",
+  "description": "Compiler-normalized output schema for the compiled specification file at spec/generated/compiled/spec.yaml. Contains normalized ids, derived domain_events, derived HTML routes, generated references, HTTP operation expansions, and empty collection expansions.",
   "properties": {
     "access_policies": {
       "additionalProperties": {

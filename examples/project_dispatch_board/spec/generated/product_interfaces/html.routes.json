@@ -3,7 +3,7 @@
   "routes": [
     {
       "external_interface": "external_interface.html.project.board",
-      "id": "route.project.board",
+      "id": "html_route.project.board",
       "path": "/workspaces/{workspace_id}/dispatch",
       "path_params": {
         "workspace_id": {

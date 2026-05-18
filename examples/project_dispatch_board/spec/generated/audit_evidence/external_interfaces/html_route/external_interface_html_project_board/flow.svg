@@ -1,6 +1,6 @@
 <svg width="725pt" height="187pt"
  viewBox="0.00 0.00 725.00 187.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 9efd8da290ca68559908cdb0a3a664f5530f325047fe7e0c91c959b32e0f0994 -->
+<!-- pyspec-contract-input-sha256: 58e986c76ab74e64b90d3b707da108d31a86d06c4ace106249fe2b8641134a57 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 169)">
 <title>external_interface_external_interface_html_project_board</title>
 <!-- external_interface_external_interface_html_project_board -->
@@ -12,8 +12,8 @@
 <text text-anchor="start" x="5.5" y="-119.1" font-family="Arial" font-weight="bold" font-size="13.00">/workspaces/{workspace_id}/dispatch</text>
 <text text-anchor="start" x="5.5" y="-108.1" font-family="Arial" font-size="8.00" fill="#64748b">html_route external interface</text>
 <text text-anchor="start" x="5.5" y="-90.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">HTML entry for the dispatch board.</text>
-<text text-anchor="start" x="6.5" y="-70.5" font-family="Arial" font-weight="bold" font-size="10.00">route:</text>
-<text text-anchor="start" x="34.5" y="-70.5" font-family="Arial" font-size="10.00">  route.project.board</text>
+<text text-anchor="start" x="6.5" y="-70.5" font-family="Arial" font-weight="bold" font-size="10.00">html_route:</text>
+<text text-anchor="start" x="60.5" y="-70.5" font-family="Arial" font-size="10.00">  html_route.project.board</text>
 <text text-anchor="start" x="5.5" y="-50.5" font-family="Arial" font-weight="bold" font-size="10.00">path params</text>
 <text text-anchor="start" x="5.5" y="-39.5" font-family="Arial" font-size="10.00">workspace_id</text>
 <text text-anchor="start" x="66.5" y="-39.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>

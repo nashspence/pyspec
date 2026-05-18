@@ -164,11 +164,11 @@ ENTITY_SECTIONS: dict[str, str] = {
 
 
 REF_KINDS = [
-    "asset",
+    "media_asset",
     "access_policy",
     "cli_command",
     "cli_response_handler",
-    "endpoint",
+    "http_operation",
     "external_interface_delegate",
     "external_interface_invocation",
     "local_signal_raise",
@@ -176,12 +176,12 @@ REF_KINDS = [
     "command_binding_local_outcome_effect",
     "query_binding",
     "query_binding_local_outcome_effect",
-    "route",
+    "html_route",
     "adapter_response_binding",
-    "screen",
+    "renderer_screen",
     "state_machine",
-    "surface",
-    "text",
+    "renderer_surface",
+    "text_resource",
     "workflow",
 ]
 
@@ -499,9 +499,9 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
         adapter_kind, _ = external_interface_adapter_pair(entry)
         invoked_kind, invoked = external_interface_invokes_pair(entry)
         if adapter_kind == "html_route" and invoked_kind == "state_machine":
-            entry["route"] = rules.route_ref(invoked["ref"])
+            entry["html_route"] = rules.html_route_ref(invoked["ref"])
         elif adapter_kind == "http_api" and invoked_kind in {"command", "query"}:
-            entry["endpoint"] = rules.endpoint_ref(invoked["ref"])
+            entry["http_operation"] = rules.http_operation_ref(invoked["ref"])
             if invoked["ref"] in _command_query_map(contract):
                 command_authorization = _command_query_map(contract)[invoked["ref"]].get("authorization")
                 if command_authorization:
@@ -726,8 +726,8 @@ def _emit_domain_event_id(emit: Any) -> str:
 def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
     refs: dict[str, set[str]] = {kind: set() for kind in REF_KINDS}
     refs["access_policy"].update(contract.get("access_policies", {}))
-    refs["text"].update(contract.get("text_resources", {}))
-    refs["asset"].update(contract.get("media_assets", {}))
+    refs["text_resource"].update(contract.get("text_resources", {}))
+    refs["media_asset"].update(contract.get("media_assets", {}))
     for state_machine_id in contract["state_machines"]:
         refs["state_machine"].add(state_machine_id)
     for state_machine_id, owner in contract["state_machines"].items():
@@ -743,9 +743,9 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
                             _generated_query_local_signal_raise_ref(state_machine_id, None, invocation_id, outcome_id, kind, signal_id)
                         )
         for state_name, state in owner.get("states", {}).items():
-            refs["surface"].add(state["surface"])
-            refs["text"].update(state["text"])
-            refs["asset"].update(state["assets"])
+            refs["renderer_surface"].add(state["surface"])
+            refs["text_resource"].update(state["text"])
+            refs["media_asset"].update(state["assets"])
             for invocation_id, invocation in sorted((state.get("query_bindings") or {}).items()):
                 refs["query_binding"].add(_generated_query_binding_ref(state_machine_id, state_name, invocation_id))
                 for outcome_id, effect in sorted(invocation.get("local_effects", {}).items()):
@@ -782,8 +782,8 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
                         if _binding_references_root(binding, "adapter_response"):
                             refs["adapter_response_binding"].add(_generated_adapter_response_binding_ref(entry_id, outcome_id, stream_name, binding_name))
         for ref_kind, field in [
-            ("route", "route"),
-            ("endpoint", "endpoint"),
+            ("html_route", "html_route"),
+            ("http_operation", "http_operation"),
             ("cli_command", "cli_command_ref"),
             ("workflow", "workflow_ref"),
         ]:
@@ -791,7 +791,7 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
                 refs[ref_kind].add(entry[field])
     for state_machine_id, state_machine in contract["state_machines"].items():
         if _state_machine_has_textual_screen(state_machine):
-            refs["screen"].add(rules.screen_ref(state_machine_id))
+            refs["renderer_screen"].add(rules.renderer_screen_ref(state_machine_id))
     for workflow in contract["workflows"].values():
         refs["workflow"].add(workflow["ref"])
     return {kind: sorted(values) for kind, values in sorted(refs.items()) if values}
@@ -3174,8 +3174,8 @@ def _validate_binding_map(
 def _validate_external_interface_fields(entry_id: str, entry: dict[str, Any], adapter_kind: str) -> None:
     allowed = {"adapter", "invokes", "input_mapping", "output_mapping", "rationale", "access_policy", "retry_safe"}
     generated = {
-        "html_route": {"route"},
-        "http_api": {"endpoint"},
+        "html_route": {"html_route"},
+        "http_api": {"http_operation"},
         "cli": {"cli_command_ref"},
         "worker": {"workflow_ref"},
         "scheduled": {"workflow_ref"},

@@ -345,7 +345,7 @@ def validate_routes(contract: dict[str, Any], doc: dict[str, Any]) -> None:
     for entry_id, entry in sorted(contract["external_interfaces"].items()):
         if external_interface_adapter_pair(entry)[0] == "html_route":
             expected.append({
-                "id": entry["route"],
+                "id": entry["html_route"],
                 "external_interface": entry_id,
                 "path": external_interface_path(entry),
                 "path_params": external_interface_input_mapping(entry).get("path_params", {}),
@@ -888,7 +888,7 @@ def _validate_python_projections(root: Path) -> None:
 def validate_refs_py(root: Path, contract: dict[str, Any]) -> None:
     module = _load_generated_module(root / GENERATED_SPEC_DIR / "test_adapters" / "python_refs.py", "generated_refs")
     expected_groups: dict[str, list[str]] = {
-        "Asset": sorted(contract.get("media_assets", {})),
+        "MediaAsset": sorted(contract.get("media_assets", {})),
         "RenderProfile": sorted(contract.get("viewport_profiles", {})),
         "ContentExample": sorted(contract.get("content_examples", {})),
         "EntryPoint": sorted(contract["external_interfaces"]),
@@ -898,7 +898,7 @@ def validate_refs_py(root: Path, contract: dict[str, Any]) -> None:
         "Fixture": sorted(contract["fixtures"]),
         "CommandQuery": sorted(_command_query_map(contract)),
         "StateMachine": sorted(contract.get("state_machines", {})),
-        "Text": sorted(contract.get("text_resources", {})),
+        "TextResource": sorted(contract.get("text_resources", {})),
         "RenderExample": sorted(render_examples(contract)),
         "BehaviorScenario": sorted(contract["behavior_scenarios"]),
     }

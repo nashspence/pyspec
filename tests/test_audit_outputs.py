@@ -319,7 +319,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "html_layout_region_nav" not in composition
     assert "fontcolor" not in composition
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">html_route external interface</FONT>' in external_interface
-    assert "<B>route:</B>&#160;&#160;route.project.board" in external_interface
+    assert "<B>html_route:</B>&#160;&#160;html_route.project.board" in external_interface
     assert "<B>path params</B>" in external_interface
     assert '<FONT POINT-SIZE="10">workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;string</FONT>' in external_interface
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">invoked state machine (html)</FONT>' in external_interface

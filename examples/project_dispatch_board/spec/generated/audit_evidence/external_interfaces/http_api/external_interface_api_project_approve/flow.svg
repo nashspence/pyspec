@@ -1,6 +1,6 @@
 <svg width="816pt" height="723pt"
  viewBox="0.00 0.00 816.00 723.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 8aef847584e81f199bf00c5e2d6e37f7608ef8c857754c292c643ad8b48c7219 -->
+<!-- pyspec-contract-input-sha256: ea16a8bdec5b4d4b568ec36ea7fc99df035bb33582e54e30a2623417e0817914 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 705)">
 <title>external_interface_external_interface_api_project_approve</title>
 <!-- external_interface_external_interface_api_project_approve -->
@@ -13,8 +13,8 @@
 <text text-anchor="start" x="5" y="-411.6" font-family="Arial" font-size="8.00" fill="#64748b">http_api external interface</text>
 <text text-anchor="start" x="5" y="-394" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">HTTP endpoint for approving submitted dispatch</text>
 <text text-anchor="start" x="5" y="-383" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">projects.</text>
-<text text-anchor="start" x="6" y="-363" font-family="Arial" font-weight="bold" font-size="10.00">endpoint:</text>
-<text text-anchor="start" x="51" y="-363" font-family="Arial" font-size="10.00">  endpoint.project.approve</text>
+<text text-anchor="start" x="6" y="-363" font-family="Arial" font-weight="bold" font-size="10.00">http operation:</text>
+<text text-anchor="start" x="75" y="-363" font-family="Arial" font-size="10.00">  http_operation.project.approve</text>
 <text text-anchor="start" x="6" y="-351" font-family="Arial" font-weight="bold" font-size="10.00">access_policy:</text>
 <text text-anchor="start" x="75" y="-351" font-family="Arial" font-size="10.00">  access_policy.project.reviewer</text>
 <text text-anchor="start" x="5" y="-331" font-family="Arial" font-weight="bold" font-size="10.00">path params</text>

@@ -63,7 +63,7 @@ def test_canonical_textual_contract_imports_and_composes() -> None:
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    assert module.SCREENS[0]["id"] == "screen.state_machine.project.board"
+    assert module.SCREENS[0]["id"] == "renderer_screen.project.board"
     assert "entry" not in module.SCREENS[0]
     assert module.SCREENS[0]["screen_class"] == "ProjectBoardScreen"
     assert module.COMPOSITIONS[0]["id"] == "state_machine.project.board.ready"

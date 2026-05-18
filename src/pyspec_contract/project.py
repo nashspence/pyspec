@@ -5,6 +5,7 @@ import re
 from collections import defaultdict
 from typing import Any, Iterable
 
+from . import rules
 from .agent_prompts import agent_prompt_paths, agent_prompt_projection_files
 from .layout import (
     renderer_textual_layout,
@@ -305,7 +306,7 @@ def routes_projection(contract: dict[str, Any]) -> dict[str, Any]:
         "project": contract["project"],
         "routes": [
             {
-                "id": entry["route"],
+                "id": entry["html_route"],
                 "external_interface": entry_id,
                 "path": external_interface_path(entry),
                 "path_params": external_interface_input_mapping(entry).get("path_params", {}),
@@ -522,7 +523,7 @@ def textual_screen_entries(
         if screen_class is None:
             continue
         screens.append({
-            "id": f"screen.{state_machine_id}",
+            "id": rules.renderer_screen_ref(state_machine_id),
             "state_machine": state_machine_id,
             "screen_class": screen_class,
         })
@@ -845,7 +846,7 @@ def content_stubs_projection(contract: dict[str, Any]) -> str:
         "",
         "from pyspec_contract.content import AssetResult, ContentContext, asset, text",
         "from generated.content_resolvers.signatures import *  # generated arg classes",
-        "from generated.test_adapters.python_refs import Asset, Text",
+        "from generated.test_adapters.python_refs import MediaAsset, TextResource",
         "",
     ]
     for ref, spec, class_name in _content_signature_items(contract, "text_resources"):
@@ -853,7 +854,7 @@ def content_stubs_projection(contract: dict[str, Any]) -> str:
         if not source_ref:
             continue
         lines.extend([
-            f"@text.implements(Text.{constant_name(ref)})",
+            f"@text.implements(TextResource.{constant_name(ref)})",
             f"def {safe_id(ref)}(args: {class_name}, ctx: ContentContext) -> str:",
             f"    raise NotImplementedError({ref!r})",
             "",
@@ -863,7 +864,7 @@ def content_stubs_projection(contract: dict[str, Any]) -> str:
         if not source_ref:
             continue
         lines.extend([
-            f"@asset.implements(Asset.{constant_name(ref)})",
+            f"@asset.implements(MediaAsset.{constant_name(ref)})",
             f"def {safe_id(ref)}(args: {class_name}, ctx: ContentContext) -> AssetResult:",
             f"    raise NotImplementedError({ref!r})",
             "",
@@ -875,11 +876,11 @@ def content_stubs_projection(contract: dict[str, Any]) -> str:
 
 def refs_py_projection(contract: dict[str, Any]) -> str:
     groups: dict[str, list[str]] = {
-        "Asset": sorted(contract.get("media_assets", {})),
+        "MediaAsset": sorted(contract.get("media_assets", {})),
         "RenderProfile": sorted(contract.get("viewport_profiles", {})),
         "EntryPoint": sorted(contract["external_interfaces"]),
         "CommandQuery": sorted(_command_query_map(contract)),
-        "Text": sorted(contract.get("text_resources", {})),
+        "TextResource": sorted(contract.get("text_resources", {})),
         "ContentExample": sorted(contract.get("content_examples", {})),
         "DomainEvent": sorted(contract["domain_events"]),
         "Precondition": sorted(contract.get("preconditions", {})),

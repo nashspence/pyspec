@@ -4,15 +4,15 @@ import html
 
 from pyspec_contract.content import AssetResult, ContentContext, asset, text
 from generated.content_resolvers.signatures import AssetProjectDetailReadyPriorityBadgeArgs, TextProjectDetailReadyHeadingArgs
-from generated.test_adapters.python_refs import Asset, Text
+from generated.test_adapters.python_refs import MediaAsset, TextResource
 
 
-@text.implements(Text.TEXT_PROJECT_DETAIL_READY_HEADING)
+@text.implements(TextResource.TEXT_PROJECT_DETAIL_READY_HEADING)
 def project_detail_ready_heading(args: TextProjectDetailReadyHeadingArgs, ctx: ContentContext) -> str:
     return f"{args.title} · {args.customer}"
 
 
-@asset.implements(Asset.ASSET_PROJECT_DETAIL_READY_PRIORITY_BADGE)
+@asset.implements(MediaAsset.ASSET_PROJECT_DETAIL_READY_PRIORITY_BADGE)
 def project_detail_ready_priority_badge(args: AssetProjectDetailReadyPriorityBadgeArgs, ctx: ContentContext) -> AssetResult:
     priority = str(args.priority).strip() or "Priority"
     priority_text = html.escape(priority, quote=False)

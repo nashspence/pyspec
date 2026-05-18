@@ -1,6 +1,6 @@
 # Spec Ontology
 
-This glossary is the vocabulary contract for the authored-source, layer-pruned authored-source, and compiled-output schemas. The authored schema describes sparse human-authored input. Layer-pruned authored schemas are generated from the same source schema and hide sections outside the active authoring layers. The compiled schema describes normalized output in `spec/generated/compiled/spec.yaml`, including generated references, derived domain events, derived HTML routes, endpoint expansions, and expanded empty-collection states.
+This glossary is the vocabulary contract for the authored-source, layer-pruned authored-source, and compiled-output schemas. The authored schema describes sparse human-authored input. Layer-pruned authored schemas are generated from the same source schema and hide sections outside the active authoring layers. The compiled schema describes normalized output in `spec/generated/compiled/spec.yaml`, including generated references, derived domain events, derived HTML routes, HTTP operation expansions, and expanded empty-collection states.
 
 ## Terminology Boundaries
 
@@ -62,7 +62,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `container_id`: local Textual layout container id within one state.
 - `viewport_id`: local viewport id within `html_viewports` or `textual_viewports`.
 - `workflow_ref`: `workflow.<domain>...`; workflow declarations, workflow external-interface invocations, and generated workflow references.
-- Generated references use `asset`, `access_policy`, `cli_command`, `cli_response_handler`, `endpoint`, `external_interface_delegate`, `external_interface_invocation`, `local_signal_raise`, `command_binding`, `command_binding_local_outcome_effect`, `query_binding`, `query_binding_local_outcome_effect`, `route`, `adapter_response_binding`, `screen`, `state_machine`, `surface`, `text`, and `workflow` buckets in compiled `reference_index`.
+- Generated references use `media_asset`, `access_policy`, `cli_command`, `cli_response_handler`, `http_operation`, `external_interface_delegate`, `external_interface_invocation`, `local_signal_raise`, `command_binding`, `command_binding_local_outcome_effect`, `query_binding`, `query_binding_local_outcome_effect`, `html_route`, `adapter_response_binding`, `renderer_screen`, `state_machine`, `renderer_surface`, `text_resource`, and `workflow` buckets in compiled `reference_index`.
 
 ## Reference Types
 

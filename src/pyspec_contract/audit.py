@@ -858,7 +858,7 @@ def _external_interface_text_witness_tokens(contract: dict[str, Any], parts: lis
             tokens.append(value)
         elif parts[-1] == "method":
             tokens.append(value.upper())
-        elif parts[-1] in {"path", "route", "endpoint", "screen"}:
+        elif parts[-1] in {"path", "html_route", "http_operation", "screen"}:
             tokens.append(value)
         elif parts[-1] == "disposition":
             tokens.extend(["disposition", value])
@@ -2150,9 +2150,9 @@ def _entry_surface_title(entry: dict[str, Any]) -> str:
 
 def _entry_binding_sections(entry: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, list[object]]]:
     labels = {
-        "route": "route",
+        "html_route": "html_route",
         "screen": "screen",
-        "endpoint": "endpoint",
+        "http_operation": "http operation",
         "cli_command_ref": "cli command",
         "workflow_ref": "workflow",
     }

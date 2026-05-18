@@ -14,10 +14,6 @@ class AdapterResponseBinding:
 class Assertion:
     pass
 
-class Asset:
-    ASSET_PROJECT_DETAIL_READY_PRIORITY_BADGE = 'asset.project.detail.ready.priority_badge'
-    ASSET_PROJECT_LIST_EMPTY_ILLUSTRATION = 'asset.project.list.empty.illustration'
-
 class BehaviorScenario:
     BEHAVIOR_SCENARIO_PROJECT_APPROVAL_NOTICE_WORKFLOW = 'behavior_scenario.project.approval_notice.workflow'
     BEHAVIOR_SCENARIO_PROJECT_APPROVE_ACCESS_DENIED = 'behavior_scenario.project.approve.access_denied'
@@ -90,11 +86,6 @@ class DomainEvent:
     DOMAIN_EVENT_PROJECT_CREATED = 'domain_event.project.created'
     DOMAIN_EVENT_PROJECT_SUBMITTED = 'domain_event.project.submitted'
 
-class Endpoint:
-    ENDPOINT_PROJECT_APPROVE = 'endpoint.project.approve'
-    ENDPOINT_PROJECT_CREATE = 'endpoint.project.create'
-    ENDPOINT_PROJECT_LIST = 'endpoint.project.list'
-
 class EntryPoint:
     EXTERNAL_INTERFACE_API_PROJECT_APPROVE = 'external_interface.api.project.approve'
     EXTERNAL_INTERFACE_API_PROJECT_CREATE = 'external_interface.api.project.create'
@@ -119,6 +110,14 @@ class ExternalInterfaceInvocation:
 class Fixture:
     FIXTURE_WORKSPACE_MEMBER = 'fixture.workspace.member'
     FIXTURE_WORKSPACE_REVIEWER = 'fixture.workspace.reviewer'
+
+class HtmlRoute:
+    HTML_ROUTE_PROJECT_BOARD = 'html_route.project.board'
+
+class HttpOperation:
+    HTTP_OPERATION_PROJECT_APPROVE = 'http_operation.project.approve'
+    HTTP_OPERATION_PROJECT_CREATE = 'http_operation.project.create'
+    HTTP_OPERATION_PROJECT_LIST = 'http_operation.project.list'
 
 class LocalSignalRaise:
     LOCAL_SIGNAL_RAISE_PROJECT_DETAIL_LOADING_QUERY_BINDING_READ_PROJECT_ACCESS_DENIED_DATA_REFRESH_SIGNAL_PROJECT_LOAD_FAILED = 'local_signal_raise.project.detail.loading.query_binding.read_project.access_denied.data_refresh_signal.project_load_failed'
@@ -148,6 +147,10 @@ class LocalSignalRaise:
     LOCAL_SIGNAL_RAISE_PROJECT_LIST_READY_COMMAND_BINDING_SUBMIT_NOT_FOUND_LOCAL_SIGNAL_SHOW_TRANSITION_NOT_ALLOWED = 'local_signal_raise.project.list.ready.command_binding.submit.not_found.local_signal.show_transition_not_allowed'
     LOCAL_SIGNAL_RAISE_PROJECT_LIST_READY_COMMAND_BINDING_SUBMIT_SUBMITTED_DATA_REFRESH_SIGNAL_PROJECTS_CHANGED = 'local_signal_raise.project.list.ready.command_binding.submit.submitted.data_refresh_signal.projects_changed'
     LOCAL_SIGNAL_RAISE_PROJECT_LIST_READY_COMMAND_BINDING_SUBMIT_TRANSITION_NOT_ALLOWED_LOCAL_SIGNAL_SHOW_TRANSITION_NOT_ALLOWED = 'local_signal_raise.project.list.ready.command_binding.submit.transition_not_allowed.local_signal.show_transition_not_allowed'
+
+class MediaAsset:
+    ASSET_PROJECT_DETAIL_READY_PRIORITY_BADGE = 'asset.project.detail.ready.priority_badge'
+    ASSET_PROJECT_LIST_EMPTY_ILLUSTRATION = 'asset.project.list.empty.illustration'
 
 class Precondition:
     PRECONDITION_PROJECT_DRAFT = 'precondition.project.draft'
@@ -189,19 +192,10 @@ class RenderExample:
 class RenderProfile:
     VIEWPORT_PROFILE_DEFAULT = 'viewport_profile.default'
 
-class Route:
-    ROUTE_PROJECT_BOARD = 'route.project.board'
+class RendererScreen:
+    RENDERER_SCREEN_PROJECT_BOARD = 'renderer_screen.project.board'
 
-class Screen:
-    SCREEN_PROJECT_BOARD = 'screen.project.board'
-
-class StateMachine:
-    STATE_MACHINE_PROJECT_ACTIVITY = 'state_machine.project.activity'
-    STATE_MACHINE_PROJECT_BOARD = 'state_machine.project.board'
-    STATE_MACHINE_PROJECT_DETAIL = 'state_machine.project.detail'
-    STATE_MACHINE_PROJECT_LIST = 'state_machine.project.list'
-
-class Surface:
+class RendererSurface:
     STATE_MACHINE_PROJECT_ACTIVITY_EMPTY = 'state_machine.project.activity.empty'
     STATE_MACHINE_PROJECT_ACTIVITY_READY = 'state_machine.project.activity.ready'
     STATE_MACHINE_PROJECT_BOARD_READY = 'state_machine.project.board.ready'
@@ -214,7 +208,13 @@ class Surface:
     STATE_MACHINE_PROJECT_LIST_LOADING = 'state_machine.project.list.loading'
     STATE_MACHINE_PROJECT_LIST_READY = 'state_machine.project.list.ready'
 
-class Text:
+class StateMachine:
+    STATE_MACHINE_PROJECT_ACTIVITY = 'state_machine.project.activity'
+    STATE_MACHINE_PROJECT_BOARD = 'state_machine.project.board'
+    STATE_MACHINE_PROJECT_DETAIL = 'state_machine.project.detail'
+    STATE_MACHINE_PROJECT_LIST = 'state_machine.project.list'
+
+class TextResource:
     TEXT_PROJECT_ACTIVITY_EMPTY_BODY = 'text.project.activity.empty.body'
     TEXT_PROJECT_ACTIVITY_EMPTY_HEADING = 'text.project.activity.empty.heading'
     TEXT_PROJECT_ACTIVITY_READY_HEADING = 'text.project.activity.ready.heading'

@@ -32,12 +32,12 @@ def resource_tail(value: str) -> str:
     return value
 
 
-def route_ref(state_machine_id: str) -> str:
-    return dotted("route", resource_tail(state_machine_id))
+def html_route_ref(state_machine_id: str) -> str:
+    return dotted("html_route", resource_tail(state_machine_id))
 
 
-def endpoint_ref(command_query_ref: str) -> str:
-    return dotted("endpoint", resource_tail(command_query_ref))
+def http_operation_ref(command_query_ref: str) -> str:
+    return dotted("http_operation", resource_tail(command_query_ref))
 
 
 def cli_command_ref(ref: str) -> str:
@@ -72,5 +72,5 @@ def asset_ref(state_machine_id: str, state: str, slot: str) -> str:
     return f"asset.{resource_tail(state_machine_id)}.{state}.{slot}"
 
 
-def screen_ref(state_machine_id: str) -> str:
-    return dotted("screen", resource_tail(state_machine_id))
+def renderer_screen_ref(state_machine_id: str) -> str:
+    return dotted("renderer_screen", resource_tail(state_machine_id))
