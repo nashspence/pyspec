@@ -110,7 +110,7 @@ def test_canonical_top_level_sections_compile_without_compatibility_mirrors() ->
     assert "media_assets" in contract
     assert "viewport_profiles" in contract
     assert "reference_index" in contract
-    assert "application" + "_actions" not in contract
+    assert "application_" + "act" + "ions" not in contract
     assert "authorization" + "_policies" not in contract
     assert "entry" + "_points" not in contract
     assert "assets" not in contract
@@ -344,7 +344,7 @@ def test_authorization_denial_outcome_must_be_mapped_authorization_failure() -> 
 def test_invocation_assertion_must_follow_when() -> None:
     author = _author()
     author["behavior_scenarios"]["behavior_scenario.project.approve.success"]["then"]["invoked"].append("command.project.create")
-    with pytest.raises(ContractError, match="asserts action bindings unrelated to when"):
+    with pytest.raises(ContractError, match="asserts command/query bindings unrelated to when"):
         compile_author(author)
 
 
@@ -498,7 +498,7 @@ def test_authorization_failure_outcomes_must_not_emit_domain_events() -> None:
         {
             "domain_event": "domain_event.ticket.denied",
             "outcome": "access_denied",
-            "payload_source": "$action_outcome.result",
+            "payload_source": "$command_outcome.result",
         }
     ]
     with pytest.raises(ContractError, match=r"failure outcome access_denied must not emit domain events"):
@@ -619,9 +619,9 @@ def test_lifecycle_transition_states_must_be_declared() -> None:
         compile_author(author)
 
 
-def test_commands_reject_action_kind_field() -> None:
+def test_commands_reject_behavior_kind_field() -> None:
     author = _derived_transition_author()
-    author["commands"]["command.ticket.submit"]["action_kind"] = "command"
+    author["commands"]["command.ticket.submit"]["behavior_kind"] = "command"
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_author(author)
 
@@ -685,7 +685,7 @@ def test_queries_reject_command_effect_and_emit_fields() -> None:
 
     author = _author()
     author["queries"]["query.project.list"]["outcomes"]["listed"]["emits"] = [
-        {"domain_event": "domain_event.project.listed", "payload_source": "$action_outcome.result"}
+        {"domain_event": "domain_event.project.listed", "payload_source": "$command_outcome.result"}
     ]
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
@@ -1209,7 +1209,7 @@ def test_command_binding_keys_are_local_names() -> None:
         compile_source(author)
 
 
-def test_legacy_state_machine_action_and_query_fields_are_rejected() -> None:
+def test_legacy_state_machine_command_and_query_fields_are_rejected() -> None:
     author = _author()
     state = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]
     state["available_" + "commands"] = ["command.project.create"]
@@ -1294,7 +1294,7 @@ def test_command_binding_command_must_resolve() -> None:
         compile_source(author)
 
 
-def test_command_binding_routes_must_cover_exact_action_outcomes() -> None:
+def test_command_binding_routes_must_cover_exact_command_outcomes() -> None:
     author = _author()
     effects = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["effects"]
     del effects["not_found"]
@@ -1386,7 +1386,7 @@ def test_mutation_routes_raising_loaded_signal_emit_lint_warning() -> None:
         compile_source(author)
 
 
-def test_action_outcome_emits_is_not_local_state_machine_routing() -> None:
+def test_command_outcome_emits_is_not_local_state_machine_routing() -> None:
     author = _author()
     effects = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["create"]["effects"]
     del effects["created"]
@@ -1463,7 +1463,7 @@ def test_query_binding_load_policy_and_query_purity_are_validated() -> None:
 
     author = _author()
     author["queries"]["query.project.list"]["outcomes"]["listed"]["emits"] = [
-        {"domain_event": "domain_event.project.listed", "payload_source": "$action_outcome.result"}
+        {"domain_event": "domain_event.project.listed", "payload_source": "$command_outcome.result"}
     ]
     author["domain_events"]["domain_event.project.listed"] = {
         "payload_schema": A(M("Project")),
@@ -1522,12 +1522,12 @@ def test_query_empty_non_empty_conditions_require_array_results() -> None:
     effect["conditional_effects"] = [
         {
             "when": {"result_empty": True},
-            "result_binding": {"data_key": "project", "from": {"from": "$action_outcome.result"}},
+            "result_binding": {"data_key": "project", "from": {"from": "$query_outcome.result"}},
             "raise": {"data_refresh_signal": "project_loaded"},
         },
         {
             "when": {"result_non_empty": True},
-            "result_binding": {"data_key": "project", "from": {"from": "$action_outcome.result"}},
+            "result_binding": {"data_key": "project", "from": {"from": "$query_outcome.result"}},
             "raise": {"data_refresh_signal": "project_loaded"},
         },
     ]
@@ -1596,7 +1596,7 @@ def test_query_binding_ids_cannot_shadow_state_machine_scope() -> None:
             "input_mapping": {"workspace_id": {"from": "$state_context.workspace_id"}},
             "effects": {
                 "listed": {
-                    "result_binding": {"data_key": "projects", "from": {"from": "$action_outcome.result"}},
+                    "result_binding": {"data_key": "projects", "from": {"from": "$query_outcome.result"}},
                     "no_local_effect": {"reason": "result_bound_without_signal"},
                 },
                 "access_denied": {"no_local_effect": {"reason": "handled_by_response_surface", "rationale": "Shadow test."}},
@@ -1615,11 +1615,11 @@ def test_query_binding_effects_are_local_per_state() -> None:
     ready_read = contract["state_machines"]["state_machine.project.detail"]["states"]["ready"]["query_bindings"]["read_project"]
     assert loading_read["query"] == ready_read["query"] == "query.project.read"
     assert loading_read["effects"]["found"] == {
-        "result_binding": {"data_key": "project", "from": {"from": "$action_outcome.result"}},
+        "result_binding": {"data_key": "project", "from": {"from": "$query_outcome.result"}},
         "raise": {"data_refresh_signal": "project_loaded"},
     }
     assert ready_read["effects"]["found"] == {
-        "result_binding": {"data_key": "project", "from": {"from": "$action_outcome.result"}},
+        "result_binding": {"data_key": "project", "from": {"from": "$query_outcome.result"}},
         "no_local_effect": {"reason": "result_bound_without_signal"},
     }
 
@@ -1775,8 +1775,8 @@ def _api_only_author() -> dict:
                 },
                 "output_mapping": {
                     "responses": {
-                        "created": {"status": 201, "body": {"type": M("Ticket"), "from": "$action_outcome.result"}},
-                        "validation_failed": {"status": 422, "body": {"type": M("Problem"), "from": "$action_outcome.result"}},
+                        "created": {"status": 201, "body": {"type": M("Ticket"), "from": "$invocation_outcome.result"}},
+                        "validation_failed": {"status": 422, "body": {"type": M("Problem"), "from": "$invocation_outcome.result"}},
                     },
                 },
                 "rationale": _rationale("HTTP create ticket entry"),
@@ -1876,11 +1876,11 @@ def test_entry_target_bindings_must_exactly_match_target_input() -> None:
 def test_external_interface_response_must_match_renderer_contract() -> None:
     author = _author()
     author["external_interfaces"]["external_interface.api.project.create"]["output_mapping"]["responses"]["created"]["body"]["type"] = P("Text")
-    with pytest.raises(ContractError, match=r"API external interface external_interface.api\.project\.create response created\.body must expose \$action_outcome\.result as Project"):
+    with pytest.raises(ContractError, match=r"API external interface external_interface.api\.project\.create response created\.body must expose \$invocation_outcome\.result as Project"):
         compile_source(author)
 
 
-def test_action_outcomes_must_have_one_success_and_real_failure_result() -> None:
+def test_command_query_outcomes_must_have_one_success_and_real_failure_result() -> None:
     author = _author()
     author["commands"]["command.project.create"]["outcomes"]["validation_failed"]["kind"] = "success"
     with pytest.raises(ContractError, match=r"Command command\.project\.create must declare exactly one success outcome"):
@@ -1894,8 +1894,8 @@ def test_action_outcomes_must_have_one_success_and_real_failure_result() -> None
 
 def test_event_emits_must_map_declared_payload() -> None:
     author = _author()
-    author["commands"]["command.project.approve"]["emits_domain_events"][0]["payload_bindings"]["approved_by"] = {"from": "$action_outcome.result"}
-    with pytest.raises(ContractError, match=r"emit domain_event.project\.approved mapping approved_by source .*\$action_outcome\.result.* type must be string"):
+    author["commands"]["command.project.approve"]["emits_domain_events"][0]["payload_bindings"]["approved_by"] = {"from": "$command_outcome.result"}
+    with pytest.raises(ContractError, match=r"emit domain_event.project\.approved mapping approved_by source .*\$command_outcome\.result.* type must be string"):
         compile_source(author)
 
 
@@ -1913,7 +1913,7 @@ def test_binding_expressions_validate_declared_fields() -> None:
         compile_source(author)
 
 
-def test_external_interface_responses_must_map_all_action_outcomes() -> None:
+def test_external_interface_responses_must_map_all_command_outcomes() -> None:
     author = _author()
     del author["external_interfaces"]["external_interface.api.project.create"]["output_mapping"]["responses"]["validation_failed"]
     with pytest.raises(ContractError, match=r"External interface external_interface.api\.project\.create responses must exactly map command outcomes: missing: validation_failed"):
@@ -2146,7 +2146,7 @@ def test_worker_entry_must_declare_realistic_dispositions() -> None:
         compile_source(author)
 
 
-def test_workflow_steps_must_sequence_flow_all_action_outcomes() -> None:
+def test_workflow_steps_must_sequence_flow_all_command_outcomes() -> None:
     author = _author()
     del author["workflows"]["workflow.project.approval_notice"]["steps"][0]["sequence_flows"]["delivery_failed"]
     with pytest.raises(ContractError, match=r"Workflow workflow.project\.approval_notice step send_notice sequence_flows must exactly map command outcomes: missing: delivery_failed"):
@@ -2172,7 +2172,7 @@ def test_workflow_authorization_failure_collapse_requires_rationale() -> None:
     compile_source(author)
 
 
-def test_workflow_sequence_flow_actions_must_be_exclusive() -> None:
+def test_workflow_sequence_flow_choices_must_be_exclusive() -> None:
     author = _author()
     transition = author["workflows"]["workflow.project.approval_notice"]["steps"][0]["sequence_flows"]["delivery_failed"]
     transition["fail_as"] = "delivery_failed"

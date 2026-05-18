@@ -83,7 +83,7 @@ def test_author_query_result_binding_uses_data_key() -> None:
 
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
     effect = author["state_machines"]["state_machine.project.board"]["query_bindings"]["list_board"]["effects"]["listed"]
-    effect["result_binding"] = {"data_key": "projects", "from": {"from": "$action_outcome.result"}}
+    effect["result_binding"] = {"data_key": "projects", "from": {"from": "$query_outcome.result"}}
     validate_against_schema(author, "author.schema.json")
 
 

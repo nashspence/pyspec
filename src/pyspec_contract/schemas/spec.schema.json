@@ -1175,7 +1175,7 @@
       "properties": {
         "from": {
           "enum": [
-            "$action_outcome.result"
+            "$invocation_outcome.result"
           ]
         },
         "type": {
@@ -2063,7 +2063,7 @@
     },
     "schema": {
       "additionalProperties": false,
-      "description": "JSON Schema subset used by the product-spec ontology for payloads, entity types, action inputs, context, and reusable schemas.",
+      "description": "JSON Schema subset used by the product-spec ontology for payloads, entity types, command/query inputs, context, and reusable schemas.",
       "properties": {
         "$ref": {
           "pattern": "^(entity_type|schema)\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
@@ -2188,7 +2188,7 @@
       "pattern": "^schema\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
-    "signal_sync_action": {
+    "signal_sync_effect": {
       "oneOf": [
         {
           "$ref": "#/$defs/context_set_effect"
@@ -2216,7 +2216,7 @@
       "properties": {
         "effects": {
           "items": {
-            "$ref": "#/$defs/signal_sync_action"
+            "$ref": "#/$defs/signal_sync_effect"
           },
           "minItems": 1,
           "type": "array"
@@ -2376,7 +2376,7 @@
       ],
       "type": "object"
     },
-    "state_machine_action_outcome_effect": {
+    "state_machine_command_outcome_local_effect": {
       "oneOf": [
         {
           "additionalProperties": false,
@@ -3908,7 +3908,7 @@
     },
     "state_machine_command_binding_effects": {
       "additionalProperties": {
-        "$ref": "#/$defs/state_machine_action_outcome_effect"
+        "$ref": "#/$defs/state_machine_command_outcome_local_effect"
       },
       "minProperties": 1,
       "propertyNames": {

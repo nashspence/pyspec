@@ -1958,7 +1958,7 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
     for node_id, step in step_nodes:
         for outcome_id, transition in sorted(step["sequence_flows"].items()):
             attrs = {"label": outcome_id}
-            transition_key, value = _workflow_sequence_flow_action(transition)
+            transition_key, value = _workflow_sequence_flow_choice(transition)
             if transition_key == "next_step":
                 lines.append(_dot_edge(node_id, step_node_by_id[value], attrs))
             else:
@@ -2006,7 +2006,7 @@ def command_query_flow_dot(behavior_ref: str, behavior: dict[str, Any], contract
         style = _DOT_STYLE_ENTITY_TYPE if target_kind == "entity_type" else _DOT_STYLE_SCHEMA
         lines.append(_dot_html_node(node_id, _dot_card(target_id, f"{target_kind} resource", sections, style=style)))
     for node_id, outcome_id, outcome in outcome_nodes:
-        lines.append(_dot_html_node(node_id, _action_outcome_card(outcome_id, outcome)))
+        lines.append(_dot_html_node(node_id, _command_query_outcome_card(outcome_id, outcome)))
     for event_id, node_id in event_nodes.items():
         lines.append(_dot_html_node(node_id, _event_card(event_id, contract, subtitle="emitted event", mode="emitted")))
 
@@ -2041,8 +2041,8 @@ def command_query_flow_dot(behavior_ref: str, behavior: dict[str, Any], contract
 
 def _command_query_reference_sections(behavior_ref: str, behavior: dict[str, Any]) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
-    if behavior.get("action_kind"):
-        sections.append(("kind", [behavior["action_kind"]]))
+    if behavior.get("behavior_kind"):
+        sections.append(("kind", [behavior["behavior_kind"]]))
     authorization = behavior.get("authorization")
     if authorization:
         sections.append((
@@ -2092,7 +2092,7 @@ def _command_query_resource_nodes(
     return nodes
 
 
-def _action_outcome_card(outcome_id: str, outcome: dict[str, Any]) -> str:
+def _command_query_outcome_card(outcome_id: str, outcome: dict[str, Any]) -> str:
     sections: list[tuple[str, list[object]]] = [("result", [_DotTypedField("result", outcome["result"])])]
     return _dot_card(outcome_id, f"{outcome['kind']} outcome", sections, style=_exit_card_style(outcome["kind"]))
 
@@ -2455,7 +2455,7 @@ def _workflow_step_card(step: dict[str, Any], contract: dict[str, Any]) -> str:
 def _workflow_sequence_flow_lines(step: dict[str, Any]) -> list[str]:
     lines: list[str] = []
     for outcome_id, sequence_flow in sorted(step["sequence_flows"].items()):
-        sequence_flow_key, value = _workflow_sequence_flow_action(sequence_flow)
+        sequence_flow_key, value = _workflow_sequence_flow_choice(sequence_flow)
         if sequence_flow_key == "retry_policy":
             destination = f"retry_policy {_DOT_ARROW_FORWARD} {value['fail_as']}"
             suffix = f" ({value['attempts']} {value['backoff']})"
@@ -2466,11 +2466,11 @@ def _workflow_sequence_flow_lines(step: dict[str, Any]) -> list[str]:
     return lines
 
 
-def _workflow_sequence_flow_action(sequence_flow: dict[str, Any]) -> tuple[str, Any]:
+def _workflow_sequence_flow_choice(sequence_flow: dict[str, Any]) -> tuple[str, Any]:
     for sequence_flow_key in ("next_step", "complete_as", "fail_as", "retry_policy", "dead_letter_as"):
         if sequence_flow_key in sequence_flow:
             return sequence_flow_key, sequence_flow[sequence_flow_key]
-    raise KeyError("workflow sequence_flow has no action")
+    raise KeyError("workflow sequence_flow has no recognized key")
 
 
 def _workflow_sequence_flow_outcome(sequence_flow_key: str, value: Any) -> str | None:
@@ -3498,7 +3498,7 @@ def render_html_slot_runtime(root: Path, contract: dict[str, Any], state_machine
     if kind == "literal":
         return [f"<{tag}{format_attrs(attrs)}>{html.escape(str(bind_value))}</{tag}>"]
     command_binding = bind_value
-    attrs["data-action-binding"] = command_binding
+    attrs["data-command-binding"] = command_binding
     if tag == "a":
         attrs.setdefault("href", "#")
     if tag == "button":

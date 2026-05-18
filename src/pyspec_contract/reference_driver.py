@@ -91,7 +91,7 @@ class ReferenceSpecDriver:
             rendered_state_machines = self._rendered_state_machine_ids()
             rendered_text = self._rendered_values("text")
             rendered_assets = self._rendered_values("assets")
-            rendered_actions = self._rendered_values("command_bindings")
+            rendered_command_bindings = self._rendered_values("command_bindings")
             for state_machine in requires.get("surfaces", []):
                 assert state_machine in self.surfaces
                 assert state_machine in rendered_state_machines
@@ -100,7 +100,7 @@ class ReferenceSpecDriver:
             for key in requires.get("assets", []):
                 assert key in rendered_assets
             for cap in requires.get("command_bindings", []):
-                assert cap in rendered_actions
+                assert cap in rendered_command_bindings
             rendered_queries = self._rendered_values("query_bindings")
             for query in requires.get("query_bindings", []):
                 assert query in rendered_queries
@@ -307,7 +307,7 @@ class ReferenceSpecDriver:
         return delegated_input
 
     def _cli_output(self, output: Mapping[str, Any], response: Mapping[str, Any], input_values: Mapping[str, Any]) -> dict[str, Any]:
-        namespace = {"adapter_response": response, "action_outcome": {"result": response.get("body")}, "adapter_input": dict(input_values)}
+        namespace = {"adapter_response": response, "invocation_outcome": {"result": response.get("body")}, "adapter_input": dict(input_values)}
         return {
             "text": output["text"],
             "bindings": {
@@ -341,8 +341,8 @@ class ReferenceSpecDriver:
         if outcome["kind"] == "failure":
             self.last_result = {"code": outcome_id, "message": outcome_id.replace("_", " ")}
             return self.last_result
-        action_kind = cap["action_kind"]
-        if action_kind == "command" and cap.get("creates"):
+        behavior_kind = cap["behavior_kind"]
+        if behavior_kind == "command" and cap.get("creates"):
             entity_type_ref = _single_entity_type(cap, "creates")
             record = self._complete_record(entity_type_ref, input_values)
             entity_lifecycle = self.contract["entity_types"][entity_type_ref].get("entity_lifecycle")
@@ -354,8 +354,8 @@ class ReferenceSpecDriver:
                 self._record_event(event_id, payload)
             self.last_result = record
             return record
-        query_entity_type_ref = _result_entity_type(outcome["result"]) if action_kind == "query" else None
-        if action_kind == "query" and query_entity_type_ref:
+        query_entity_type_ref = _result_entity_type(outcome["result"]) if behavior_kind == "query" else None
+        if behavior_kind == "query" and query_entity_type_ref:
             entity_type_ref = query_entity_type_ref
             entity_key = _entity_input_key(entity_type_ref)
             selected_id = input_values.get(entity_key) or input_values.get("id")
@@ -365,7 +365,7 @@ class ReferenceSpecDriver:
                 else self._find(entity_type_ref, {"id": selected_id})
             )
             return self.last_result
-        if action_kind == "lifecycle_transition":
+        if behavior_kind == "lifecycle_transition":
             lifecycle_transition = cap["lifecycle_transition"]
             entity_type_ref = lifecycle_transition["entity_type"]
             entity_key = _entity_input_key(entity_type_ref)
@@ -422,7 +422,7 @@ class ReferenceSpecDriver:
     ) -> tuple[str, dict[str, Any]]:
         if isinstance(emit, str):
             return emit, dict(result)
-        namespace = {"command_input": dict(input_values), "action_outcome": {"result": dict(result)}}
+        namespace = {"command_input": dict(input_values), "command_outcome": {"result": dict(result)}}
         if "payload_source" in emit:
             return emit["domain_event"], _resolve_binding(emit["payload_source"], namespace)
         return emit["domain_event"], {field: _resolve_binding(source, namespace) for field, source in emit["payload_bindings"].items()}

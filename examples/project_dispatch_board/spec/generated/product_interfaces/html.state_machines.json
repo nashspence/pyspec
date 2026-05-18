@@ -324,7 +324,7 @@
               "result_binding": {
                 "data_key": "activity",
                 "from": {
-                  "from": "$action_outcome.result"
+                  "from": "$query_outcome.result"
                 }
               }
             },
@@ -612,7 +612,7 @@
               "result_binding": {
                 "data_key": "project",
                 "from": {
-                  "from": "$action_outcome.result"
+                  "from": "$query_outcome.result"
                 }
               }
             },
@@ -811,7 +811,7 @@
                 "local_signal": "show_transition_not_allowed",
                 "payload_bindings": {
                   "message": {
-                    "from": "$action_outcome.result.message"
+                    "from": "$query_outcome.result.message"
                   }
                 }
               }
@@ -821,7 +821,7 @@
                 "local_signal": "show_transition_not_allowed",
                 "payload_bindings": {
                   "message": {
-                    "from": "$action_outcome.result.message"
+                    "from": "$query_outcome.result.message"
                   }
                 }
               }
@@ -833,7 +833,7 @@
               "result_binding": {
                 "data_key": "project",
                 "from": {
-                  "from": "$action_outcome.result"
+                  "from": "$query_outcome.result"
                 }
               }
             },
@@ -842,7 +842,7 @@
                 "local_signal": "show_transition_not_allowed",
                 "payload_bindings": {
                   "message": {
-                    "from": "$action_outcome.result.message"
+                    "from": "$query_outcome.result.message"
                   }
                 }
               }
@@ -900,7 +900,7 @@
                   "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
-                      "from": "$action_outcome.result.message"
+                      "from": "$command_outcome.result.message"
                     }
                   }
                 }
@@ -929,7 +929,7 @@
                   "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
-                      "from": "$action_outcome.result.message"
+                      "from": "$command_outcome.result.message"
                     }
                   }
                 }
@@ -944,7 +944,7 @@
                   "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
-                      "from": "$action_outcome.result.message"
+                      "from": "$command_outcome.result.message"
                     }
                   }
                 }
@@ -954,7 +954,7 @@
                   "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
-                      "from": "$action_outcome.result.message"
+                      "from": "$command_outcome.result.message"
                     }
                   }
                 }
@@ -964,7 +964,7 @@
                   "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
-                      "from": "$action_outcome.result.message"
+                      "from": "$command_outcome.result.message"
                     }
                   }
                 }
@@ -1095,7 +1095,7 @@
                   "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
-                      "from": "$action_outcome.result.message"
+                      "from": "$command_outcome.result.message"
                     }
                   }
                 }
@@ -1544,7 +1544,7 @@
                   "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
-                      "from": "$action_outcome.result.message"
+                      "from": "$command_outcome.result.message"
                     }
                   }
                 }
@@ -1554,7 +1554,7 @@
                   "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
-                      "from": "$action_outcome.result.message"
+                      "from": "$command_outcome.result.message"
                     }
                   }
                 }
@@ -1564,7 +1564,7 @@
                   "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
-                      "from": "$action_outcome.result.message"
+                      "from": "$command_outcome.result.message"
                     }
                   }
                 }
@@ -1579,7 +1579,7 @@
                   "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
-                      "from": "$action_outcome.result.message"
+                      "from": "$command_outcome.result.message"
                     }
                   }
                 }

@@ -42,7 +42,7 @@ def command_query_map(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
     for command_ref, command in contract.get("commands", {}).items():
         item = copy.deepcopy(command)
         effects = item.get("effects", {})
-        item["action_kind"] = "lifecycle_transition" if effects.get("lifecycle_transition") else "command"
+        item["behavior_kind"] = "lifecycle_transition" if effects.get("lifecycle_transition") else "command"
         item["input"] = item.get("input_schema", EMPTY_OBJECT_SCHEMA)
         item["creates"] = list(effects.get("creates", []))
         item["updates"] = list(effects.get("updates", []))
@@ -56,7 +56,7 @@ def command_query_map(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
         result[command_ref] = item
     for query_ref, query in contract.get("queries", {}).items():
         item = copy.deepcopy(query)
-        item["action_kind"] = "query"
+        item["behavior_kind"] = "query"
         item["input"] = item.get("input_schema", EMPTY_OBJECT_SCHEMA)
         item["reads"] = list(item.get("reads", []))
         item["creates"] = []

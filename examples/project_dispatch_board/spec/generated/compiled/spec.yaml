@@ -113,7 +113,7 @@ behavior_scenarios:
             value: project_submitted_1
         ref: command.project.approve
   behavior_scenario.project.approve.success:
-    archetype: action_outcome
+    archetype: command_outcome
     feature_tag: project.approve
     given:
       preconditions:
@@ -720,7 +720,7 @@ commands:
     emits_domain_events:
     - domain_event: domain_event.project.archived
       outcome: archived
-      payload_source: $action_outcome.result
+      payload_source: $command_outcome.result
     input_schema:
       additionalProperties: false
       properties:
@@ -762,7 +762,7 @@ commands:
     emits_domain_events:
     - domain_event: domain_event.project.created
       outcome: created
-      payload_source: $action_outcome.result
+      payload_source: $command_outcome.result
     input_schema:
       additionalProperties: false
       properties:
@@ -849,7 +849,7 @@ commands:
     emits_domain_events:
     - domain_event: domain_event.project.submitted
       outcome: submitted
-      payload_source: $action_outcome.result
+      payload_source: $command_outcome.result
     input_schema:
       additionalProperties: false
       properties:
@@ -1026,37 +1026,37 @@ external_interfaces:
       responses:
         access_denied:
           body:
-            from: $action_outcome.result
+            from: $invocation_outcome.result
             type:
               $ref: entity_type.problem
           status: 403
         approved:
           body:
-            from: $action_outcome.result
+            from: $invocation_outcome.result
             type:
               $ref: entity_type.project
           status: 200
         authentication_required:
           body:
-            from: $action_outcome.result
+            from: $invocation_outcome.result
             type:
               $ref: entity_type.problem
           status: 401
         not_found:
           body:
-            from: $action_outcome.result
+            from: $invocation_outcome.result
             type:
               $ref: entity_type.problem
           status: 404
         transition_not_allowed:
           body:
-            from: $action_outcome.result
+            from: $invocation_outcome.result
             type:
               $ref: entity_type.problem
           status: 409
         unavailable:
           body:
-            from: $action_outcome.result
+            from: $invocation_outcome.result
             type:
               $ref: entity_type.problem
           status: 503
@@ -1096,25 +1096,25 @@ external_interfaces:
       responses:
         access_denied:
           body:
-            from: $action_outcome.result
+            from: $invocation_outcome.result
             type:
               $ref: entity_type.problem
           status: 403
         authentication_required:
           body:
-            from: $action_outcome.result
+            from: $invocation_outcome.result
             type:
               $ref: entity_type.problem
           status: 401
         created:
           body:
-            from: $action_outcome.result
+            from: $invocation_outcome.result
             type:
               $ref: entity_type.project
           status: 201
         validation_failed:
           body:
-            from: $action_outcome.result
+            from: $invocation_outcome.result
             type:
               $ref: entity_type.problem
           status: 422
@@ -1139,19 +1139,19 @@ external_interfaces:
       responses:
         access_denied:
           body:
-            from: $action_outcome.result
+            from: $invocation_outcome.result
             type:
               $ref: entity_type.problem
           status: 403
         authentication_required:
           body:
-            from: $action_outcome.result
+            from: $invocation_outcome.result
             type:
               $ref: entity_type.problem
           status: 401
         listed:
           body:
-            from: $action_outcome.result
+            from: $invocation_outcome.result
             type:
               items:
                 $ref: entity_type.project
@@ -1159,7 +1159,7 @@ external_interfaces:
           status: 200
         unavailable:
           body:
-            from: $action_outcome.result
+            from: $invocation_outcome.result
             type:
               $ref: entity_type.problem
           status: 503
@@ -1452,31 +1452,6 @@ reference_index:
   access_policy:
   - access_policy.project.member
   - access_policy.project.reviewer
-  action_outcome_effect:
-  - action_outcome_effect.project.detail.ready.approve.access_denied
-  - action_outcome_effect.project.detail.ready.approve.approved
-  - action_outcome_effect.project.detail.ready.approve.authentication_required
-  - action_outcome_effect.project.detail.ready.approve.not_found
-  - action_outcome_effect.project.detail.ready.approve.transition_not_allowed
-  - action_outcome_effect.project.detail.ready.approve.unavailable
-  - action_outcome_effect.project.detail.ready.archive.access_denied
-  - action_outcome_effect.project.detail.ready.archive.archived
-  - action_outcome_effect.project.detail.ready.archive.authentication_required
-  - action_outcome_effect.project.detail.ready.archive.not_found
-  - action_outcome_effect.project.detail.ready.archive.transition_not_allowed
-  - action_outcome_effect.project.list.empty.create.access_denied
-  - action_outcome_effect.project.list.empty.create.authentication_required
-  - action_outcome_effect.project.list.empty.create.created
-  - action_outcome_effect.project.list.empty.create.validation_failed
-  - action_outcome_effect.project.list.ready.create.access_denied
-  - action_outcome_effect.project.list.ready.create.authentication_required
-  - action_outcome_effect.project.list.ready.create.created
-  - action_outcome_effect.project.list.ready.create.validation_failed
-  - action_outcome_effect.project.list.ready.submit.access_denied
-  - action_outcome_effect.project.list.ready.submit.authentication_required
-  - action_outcome_effect.project.list.ready.submit.not_found
-  - action_outcome_effect.project.list.ready.submit.submitted
-  - action_outcome_effect.project.list.ready.submit.transition_not_allowed
   adapter_response_binding:
   - adapter_response_binding.cli.project.approve.access_denied.stderr.message
   - adapter_response_binding.cli.project.approve.approved.stdout.project_id
@@ -1502,6 +1477,31 @@ reference_index:
   - command_binding.project.list.empty.create
   - command_binding.project.list.ready.create
   - command_binding.project.list.ready.submit
+  command_outcome_local_effect:
+  - command_outcome_local_effect.project.detail.ready.approve.access_denied
+  - command_outcome_local_effect.project.detail.ready.approve.approved
+  - command_outcome_local_effect.project.detail.ready.approve.authentication_required
+  - command_outcome_local_effect.project.detail.ready.approve.not_found
+  - command_outcome_local_effect.project.detail.ready.approve.transition_not_allowed
+  - command_outcome_local_effect.project.detail.ready.approve.unavailable
+  - command_outcome_local_effect.project.detail.ready.archive.access_denied
+  - command_outcome_local_effect.project.detail.ready.archive.archived
+  - command_outcome_local_effect.project.detail.ready.archive.authentication_required
+  - command_outcome_local_effect.project.detail.ready.archive.not_found
+  - command_outcome_local_effect.project.detail.ready.archive.transition_not_allowed
+  - command_outcome_local_effect.project.list.empty.create.access_denied
+  - command_outcome_local_effect.project.list.empty.create.authentication_required
+  - command_outcome_local_effect.project.list.empty.create.created
+  - command_outcome_local_effect.project.list.empty.create.validation_failed
+  - command_outcome_local_effect.project.list.ready.create.access_denied
+  - command_outcome_local_effect.project.list.ready.create.authentication_required
+  - command_outcome_local_effect.project.list.ready.create.created
+  - command_outcome_local_effect.project.list.ready.create.validation_failed
+  - command_outcome_local_effect.project.list.ready.submit.access_denied
+  - command_outcome_local_effect.project.list.ready.submit.authentication_required
+  - command_outcome_local_effect.project.list.ready.submit.not_found
+  - command_outcome_local_effect.project.list.ready.submit.submitted
+  - command_outcome_local_effect.project.list.ready.submit.transition_not_allowed
   endpoint:
   - endpoint.project.approve
   - endpoint.project.create
@@ -1714,7 +1714,7 @@ state_machines:
                 result_binding:
                   data_key: activity
                   from:
-                    from: $action_outcome.result
+                    from: $query_outcome.result
               not_found:
                 no_local_effect:
                   rationale: The parent detail panel owns not-found display for the selected project.
@@ -1780,7 +1780,7 @@ state_machines:
             result_binding:
               data_key: projects
               from:
-                from: $action_outcome.result
+                from: $query_outcome.result
           unavailable:
             no_local_effect:
               rationale: The board shell leaves child surfaces unchanged while the list service is unavailable.
@@ -2060,7 +2060,7 @@ state_machines:
                 result_binding:
                   data_key: project
                   from:
-                    from: $action_outcome.result
+                    from: $query_outcome.result
               not_found:
                 raise:
                   data_refresh_signal: project_load_failed
@@ -2109,7 +2109,7 @@ state_machines:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
-                      from: $action_outcome.result.message
+                      from: $command_outcome.result.message
               unavailable:
                 no_local_effect:
                   rationale: The response surface reports temporary unavailability without a local transition.
@@ -2127,7 +2127,7 @@ state_machines:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
-                      from: $action_outcome.result.message
+                      from: $command_outcome.result.message
               archived:
                 raise:
                   data_refresh_signal: project_changed
@@ -2136,19 +2136,19 @@ state_machines:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
-                      from: $action_outcome.result.message
+                      from: $command_outcome.result.message
               not_found:
                 raise:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
-                      from: $action_outcome.result.message
+                      from: $command_outcome.result.message
               transition_not_allowed:
                 raise:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
-                      from: $action_outcome.result.message
+                      from: $command_outcome.result.message
             input_mapping:
               project_id:
                 from: $state_context.project_id
@@ -2166,26 +2166,26 @@ state_machines:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
-                      from: $action_outcome.result.message
+                      from: $query_outcome.result.message
               authentication_required:
                 raise:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
-                      from: $action_outcome.result.message
+                      from: $query_outcome.result.message
               found:
                 no_local_effect:
                   reason: result_bound_without_signal
                 result_binding:
                   data_key: project
                   from:
-                    from: $action_outcome.result
+                    from: $query_outcome.result
               not_found:
                 raise:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
-                      from: $action_outcome.result.message
+                      from: $query_outcome.result.message
             input_mapping:
               project_id:
                 from: $state_context.project_id
@@ -2319,7 +2319,7 @@ state_machines:
               result_binding:
                 data_key: projects
                 from:
-                  from: $action_outcome.result
+                  from: $query_outcome.result
               when:
                 result_empty: true
             - context_updates:
@@ -2330,7 +2330,7 @@ state_machines:
               result_binding:
                 data_key: projects
                 from:
-                  from: $action_outcome.result
+                  from: $query_outcome.result
               when:
                 result_non_empty: true
           unavailable:
@@ -2370,7 +2370,7 @@ state_machines:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
-                      from: $action_outcome.result.message
+                      from: $command_outcome.result.message
             input_mapping:
               customer:
                 value: Atlas Foods
@@ -2441,19 +2441,19 @@ state_machines:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
-                      from: $action_outcome.result.message
+                      from: $command_outcome.result.message
               authentication_required:
                 raise:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
-                      from: $action_outcome.result.message
+                      from: $command_outcome.result.message
               not_found:
                 raise:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
-                      from: $action_outcome.result.message
+                      from: $command_outcome.result.message
               submitted:
                 raise:
                   data_refresh_signal: projects_changed
@@ -2462,7 +2462,7 @@ state_machines:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
                     message:
-                      from: $action_outcome.result.message
+                      from: $command_outcome.result.message
             input_mapping:
               project_id:
                 from: $state_context.selected_project_id

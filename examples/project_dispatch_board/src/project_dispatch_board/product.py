@@ -289,7 +289,7 @@ class ProductApp:
             rendered_state_machines = self._rendered_state_machine_ids()
             rendered_text = self._rendered_values("text")
             rendered_assets = self._rendered_values("assets")
-            rendered_actions = self._rendered_values("command_bindings")
+            rendered_command_bindings = self._rendered_values("command_bindings")
             for state_machine in requires.get("surfaces", []):
                 assert state_machine in self.surfaces
                 assert state_machine in rendered_state_machines
@@ -298,7 +298,7 @@ class ProductApp:
             for key in requires.get("assets", []):
                 assert key in rendered_assets
             for cap in requires.get("command_bindings", []):
-                assert cap in rendered_actions
+                assert cap in rendered_command_bindings
         for cap in assertions.get("enables", []):
             assert cap in self._rendered_command_query_refs()
         for cap in assertions.get("forbids", []):

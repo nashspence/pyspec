@@ -80,7 +80,7 @@ behavior_scenarios:
             value: project_submitted_1
         ref: command.project.approve
   behavior_scenario.project.approve.success:
-    archetype: action_outcome
+    archetype: command_outcome
     feature_tag: project.approve
     given:
       preconditions:

@@ -256,7 +256,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "payload_schema:" not in behavior
     assert "emitted by" not in behavior
     assert "<B>rules:</B>&#160;&#160;subject_has_role member" in create_behavior
-    assert ('"application' + "_action_application" + '_action_project_approve" [shape=') not in behavior
+    assert ('"application_' + "act" + 'ion_application_' + "act" + 'ion_project_approve" [shape=') not in behavior
     assert "transition command" not in behavior
     assert behavior.index('"command_input_command_project_approve"') < behavior.index('"command_query_policy_access_policy_project_reviewer"')
     assert behavior.index('"command_query_policy_access_policy_project_reviewer"') < behavior.index('"command_query_resource_command_project_approve_lifecycle_transition_entity_type_project_status"')
@@ -273,7 +273,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<FONT POINT-SIZE=\"10\">command: command.project.create</FONT>" not in create_behavior
     assert "<B>emits</B>" not in behavior
     assert "delegated external interface" in cli_approve_external_interface
-    assert "command.project.approve action map" not in cli_approve_external_interface
+    assert "command.project.approve behavior map" not in cli_approve_external_interface
     assert "Project.status" not in cli_approve_external_interface
     assert "access_policy.project.reviewer" in cli_approve_external_interface
     assert "authorization_effect" not in behavior
@@ -360,7 +360,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "external_interface_mount" not in cli_external_interface
     assert "<B>transitions</B>" not in cli_approve_external_interface
     assert '<FONT POINT-SIZE="10">Project.status</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;enum&lt;draft|submitted|approved|archived&gt;</FONT><FONT POINT-SIZE="8">&#160;&#160;submitted → approved</FONT>' not in cli_approve_external_interface
-    assert "command.project.approve action map" not in cli_approve_external_interface
+    assert "command.project.approve behavior map" not in cli_approve_external_interface
     assert "<B>state:</B>" not in cli_approve_external_interface
     assert "<B>change:</B>" not in cli_approve_external_interface
     assert "<B>transition:</B>" not in cli_approve_external_interface
@@ -386,7 +386,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>external interface input</B>" not in worker_external_interface
     assert "<B>external interface output</B>" not in worker_external_interface
     assert "<B>body</B>" in api_external_interface
-    assert 'body</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT><FONT POINT-SIZE="8">&#160;←&#160;$action_outcome.result</FONT>' in api_external_interface
+    assert 'body</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT><FONT POINT-SIZE="8">&#160;←&#160;$invocation_outcome.result</FONT>' in api_external_interface
     assert "validation_failed" in api_external_interface
     invocation_card = api_external_interface[api_external_interface.index('"external_interface_invocation_command_project_create"') : api_external_interface.index('"external_interface_response_external_interface_api_project_create_created"')]
     assert '<FONT POINT-SIZE="10"><B>input</B></FONT>' not in invocation_card
@@ -395,7 +395,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert '<FONT POINT-SIZE="10">workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;string</FONT>' not in invocation_card
     assert "<B>outcomes</B>" not in invocation_card
     assert "validation_failed" not in invocation_card
-    assert "command.project.create action map" not in invocation_card
+    assert "command.project.create behavior map" not in invocation_card
     assert "<B>detail:</B>" not in invocation_card
     assert "<B>emit:</B>&#160;&#160;created → domain_event.project.created" not in invocation_card
     assert '<FONT POINT-SIZE="10"><B>payload_schema:</B>&#160;&#160;payload_schema</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' not in invocation_card
@@ -601,7 +601,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "payload:" in list_fsm
     assert "emit local_signal.project_selected" not in list_fsm
     assert "effects:" not in list_fsm
-    assert "application" + "_action: query.project.list" not in list_fsm
+    assert "application_" + "act" + "ion: query.project.list" not in list_fsm
     assert "query_bindings:" in list_fsm
     assert "list_projects" in list_fsm
     assert "workspace_id: string" not in list_fsm
@@ -650,7 +650,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "project_id: string" not in detail_fsm
     assert 'project_id</text>' in detail_fsm
     assert 'fill="#94a3b8">\xa0\xa0string</text>' in detail_fsm
-    assert "application" + "_action: query.project.read" not in detail_fsm
+    assert "application_" + "act" + "ion: query.project.read" not in detail_fsm
     assert "set:" in detail_fsm
     assert "project_id &lt;&#45; null" not in detail_fsm
     assert 'fill="#94a3b8">\xa0\xa0string</text>' in detail_fsm

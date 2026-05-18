@@ -3228,54 +3228,6 @@ visual_audit:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
     /reference_index/access_policy/1:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/action_outcome_effect/0:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/action_outcome_effect/1:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/action_outcome_effect/10:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/action_outcome_effect/11:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/action_outcome_effect/12:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/action_outcome_effect/13:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/action_outcome_effect/14:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/action_outcome_effect/15:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/action_outcome_effect/16:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/action_outcome_effect/17:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/action_outcome_effect/18:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/action_outcome_effect/19:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/action_outcome_effect/2:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/action_outcome_effect/20:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/action_outcome_effect/21:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/action_outcome_effect/22:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/action_outcome_effect/23:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/action_outcome_effect/3:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/action_outcome_effect/4:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/action_outcome_effect/5:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/action_outcome_effect/6:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/action_outcome_effect/7:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/action_outcome_effect/8:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
-    /reference_index/action_outcome_effect/9:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
     /reference_index/adapter_response_binding/0:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
     /reference_index/adapter_response_binding/1:
@@ -3315,6 +3267,54 @@ visual_audit:
     /reference_index/command_binding/3:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
     /reference_index/command_binding/4:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /reference_index/command_outcome_local_effect/0:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /reference_index/command_outcome_local_effect/1:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /reference_index/command_outcome_local_effect/10:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /reference_index/command_outcome_local_effect/11:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /reference_index/command_outcome_local_effect/12:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /reference_index/command_outcome_local_effect/13:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /reference_index/command_outcome_local_effect/14:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /reference_index/command_outcome_local_effect/15:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /reference_index/command_outcome_local_effect/16:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /reference_index/command_outcome_local_effect/17:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /reference_index/command_outcome_local_effect/18:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /reference_index/command_outcome_local_effect/19:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /reference_index/command_outcome_local_effect/2:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /reference_index/command_outcome_local_effect/20:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /reference_index/command_outcome_local_effect/21:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /reference_index/command_outcome_local_effect/22:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /reference_index/command_outcome_local_effect/23:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /reference_index/command_outcome_local_effect/3:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /reference_index/command_outcome_local_effect/4:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /reference_index/command_outcome_local_effect/5:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /reference_index/command_outcome_local_effect/6:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /reference_index/command_outcome_local_effect/7:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /reference_index/command_outcome_local_effect/8:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+    /reference_index/command_outcome_local_effect/9:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
     /reference_index/endpoint/0:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
