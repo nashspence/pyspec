@@ -30,7 +30,7 @@ TARGET_LAYERS: dict[str, set[str]] = {
     "asset": {"ui"},
     "content_case": {"ui"},
     "render_profile": {"ui"},
-    "data_contract": {"core"},
+    "schema": {"core"},
     # entry_point is adapter-specific and handled separately.
     "entry_point": set(),
 }
@@ -55,7 +55,7 @@ AUTHOR_SECTIONS: dict[str, str] = {
     "authorization_policies": "authorization_policy",
     "application_actions": "application_action",
     "domain_events": "domain_event",
-    "data_contracts": "data_contract",
+    "schemas": "schema",
     "state_machines": "state_machine",
     "entry_points": "entry_point",
     "workflows": "workflow",

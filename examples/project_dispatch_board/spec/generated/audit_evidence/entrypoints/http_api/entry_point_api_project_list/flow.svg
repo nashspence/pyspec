@@ -1,6 +1,6 @@
 <svg width="822pt" height="485pt"
  viewBox="0.00 0.00 822.00 485.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 34bd7a0f494c72bdd8f20bd30560314c80bc04290e324d1463f65e1ef4c48fac -->
+<!-- pyspec-contract-input-sha256: 12cc205e26698a5b459e324be200ac93c098fe16f4c35d8a593706f9314c729f -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 467)">
 <title>entrypoint_entry_point_api_project_list</title>
 <!-- entrypoint_entry_point_api_project_list -->
@@ -18,7 +18,7 @@
 <text text-anchor="start" x="105.5" y="-202" font-family="Arial" font-size="10.00">  authorization_policy.project.member</text>
 <text text-anchor="start" x="5.5" y="-182" font-family="Arial" font-weight="bold" font-size="10.00">path params</text>
 <text text-anchor="start" x="5.5" y="-171" font-family="Arial" font-size="10.00">workspace_id</text>
-<text text-anchor="start" x="66.5" y="-171" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<text text-anchor="start" x="66.5" y="-171" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
 <polygon fill="none" stroke="#0891b2" points="0,-162.5 0,-285.5 281,-285.5 281,-162.5 0,-162.5"/>
 </g>
 <!-- entrypoint_target_application_action_project_list -->

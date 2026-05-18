@@ -8,9 +8,9 @@ text_resources:
   text.project.detail.ready.heading:
     args:
       customer:
-        primitive: Text
+        type: string
       title:
-        primitive: Text
+        type: string
     intent: neutral
     max_chars: 80
     placeholder: Project detail

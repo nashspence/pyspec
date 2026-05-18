@@ -1,6 +1,6 @@
 <svg width="1379pt" height="211pt"
  viewBox="0.00 0.00 1379.00 211.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 0f8a09d6efde59494bb159cebcfaa841cff5d74903de2211452765574b258539 -->
+<!-- pyspec-contract-input-sha256: cc9d90b750458641e840ec54929ef65cb590fb40d21cd551b5e5bebcb5c17ed6 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 193)">
 <title>composition_state_machine_project_board_ready</title>
 <!-- child_state_machine_list -->
@@ -29,7 +29,7 @@
 <text text-anchor="start" x="302" y="-72" font-family="Arial" font-size="10.00">  local_signal.project_select</text>
 <text text-anchor="start" x="267" y="-60" font-family="Arial" font-weight="bold" font-size="10.00">payload:</text>
 <text text-anchor="start" x="307" y="-60" font-family="Arial" font-size="10.00">  project_id</text>
-<text text-anchor="start" x="356" y="-60" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<text text-anchor="start" x="356" y="-60" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
 <polygon fill="none" stroke="#4f46e5" points="261,-50 261,-124 459,-124 459,-50 261,-50"/>
 </g>
 <!-- child_state_machine_list&#45;&gt;local_signal_emit_select_project_updates_state_machines_list_project_selected -->
@@ -76,8 +76,8 @@
 <text text-anchor="start" x="525.5" y="-84.6" font-family="Arial" font-size="8.00" fill="#64748b">local signal sync</text>
 <text text-anchor="start" x="526.5" y="-66" font-family="Arial" font-weight="bold" font-size="10.00">set:</text>
 <text text-anchor="start" x="543.5" y="-66" font-family="Arial" font-size="10.00">  selected_project_id</text>
-<text text-anchor="start" x="634.5" y="-66" font-family="Arial" font-size="8.00" fill="#94a3b8">  nullable&lt;ID&gt;</text>
-<text text-anchor="start" x="683.5" y="-66" font-family="Arial" font-size="8.00"> ← project_id</text>
+<text text-anchor="start" x="634.5" y="-66" font-family="Arial" font-size="8.00" fill="#94a3b8">  string | null</text>
+<text text-anchor="start" x="677.5" y="-66" font-family="Arial" font-size="8.00"> ← project_id</text>
 <polygon fill="none" stroke="#a16207" points="520,-56 520,-118 789,-118 789,-56 520,-56"/>
 </g>
 <!-- local_signal_emit_select_project_updates_state_machines_list_project_selected&#45;&gt;local_signal_sync_select_project_updates_state_machines -->
@@ -98,7 +98,7 @@
 <text text-anchor="start" x="892.5" y="-123" font-family="Arial" font-size="10.00">  to loading</text>
 <text text-anchor="start" x="856.5" y="-111" font-family="Arial" font-weight="bold" font-size="10.00">payload:</text>
 <text text-anchor="start" x="896.5" y="-111" font-family="Arial" font-size="10.00">  project_id</text>
-<text text-anchor="start" x="945.5" y="-111" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<text text-anchor="start" x="945.5" y="-111" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
 <polygon fill="none" stroke="#be185d" points="850,-101 850,-175 1063,-175 1063,-101 850,-101"/>
 </g>
 <!-- local_signal_sync_select_project_updates_state_machines&#45;&gt;local_signal_effect_select_project_updates_state_machines_1 -->
@@ -119,7 +119,7 @@
 <text text-anchor="start" x="892.5" y="-22" font-family="Arial" font-size="10.00">  to ready</text>
 <text text-anchor="start" x="856.5" y="-10" font-family="Arial" font-weight="bold" font-size="10.00">payload:</text>
 <text text-anchor="start" x="896.5" y="-10" font-family="Arial" font-size="10.00">  project_id</text>
-<text text-anchor="start" x="945.5" y="-10" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<text text-anchor="start" x="945.5" y="-10" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
 <polygon fill="none" stroke="#be185d" points="850,0 850,-74 1063,-74 1063,0 850,0"/>
 </g>
 <!-- local_signal_sync_select_project_updates_state_machines&#45;&gt;local_signal_effect_select_project_updates_state_machines_2 -->

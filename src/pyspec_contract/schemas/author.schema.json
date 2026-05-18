@@ -1,5 +1,99 @@
 {
   "$defs": {
+    "action_authorization": {
+      "additionalProperties": false,
+      "properties": {
+        "forbidden_as": {
+          "$ref": "#/$defs/outcome_name"
+        },
+        "policy": {
+          "$ref": "#/$defs/authorization_policy_ref"
+        },
+        "unauthenticated_as": {
+          "$ref": "#/$defs/outcome_name"
+        }
+      },
+      "required": [
+        "policy",
+        "unauthenticated_as",
+        "forbidden_as"
+      ],
+      "type": "object"
+    },
+    "action_binding_id": {
+      "$ref": "#/$defs/local_name",
+      "description": "Local action binding identifier within a view state."
+    },
+    "action_emit": {
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "payload_source"
+          ]
+        },
+        {
+          "required": [
+            "payload_bindings"
+          ]
+        }
+      ],
+      "properties": {
+        "domain_event": {
+          "$ref": "#/$defs/domain_event_ref"
+        },
+        "payload_bindings": {
+          "$ref": "#/$defs/runtime_bindings"
+        },
+        "payload_source": {
+          "$ref": "#/$defs/runtime_expression"
+        }
+      },
+      "required": [
+        "domain_event"
+      ],
+      "type": "object"
+    },
+    "action_outcome": {
+      "additionalProperties": false,
+      "properties": {
+        "emits": {
+          "items": {
+            "$ref": "#/$defs/action_emit"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "kind": {
+          "enum": [
+            "success",
+            "failure"
+          ]
+        },
+        "result": {
+          "$ref": "#/$defs/schema"
+        }
+      },
+      "required": [
+        "kind",
+        "result"
+      ],
+      "type": "object"
+    },
+    "action_outcomes": {
+      "additionalProperties": {
+        "$ref": "#/$defs/action_outcome"
+      },
+      "minProperties": 2,
+      "propertyNames": {
+        "$ref": "#/$defs/outcome_name"
+      },
+      "type": "object"
+    },
+    "application_action_ref": {
+      "pattern": "^application_action\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "type": "string"
+    },
     "aria_role": {
       "enum": [
         "alert",
@@ -63,6 +157,72 @@
     "audit_case_id": {
       "$ref": "#/$defs/local_name",
       "description": "Local render audit case identifier within a view state."
+    },
+    "authored_application_action": {
+      "additionalProperties": false,
+      "properties": {
+        "action_kind": {
+          "enum": [
+            "command",
+            "query",
+            "lifecycle_transition"
+          ]
+        },
+        "authorization": {
+          "$ref": "#/$defs/action_authorization"
+        },
+        "creates": {
+          "items": {
+            "$ref": "#/$defs/entity_type_ref"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "deletes": {
+          "items": {
+            "$ref": "#/$defs/entity_type_ref"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "input": {
+          "$ref": "#/$defs/schema"
+        },
+        "outcomes": {
+          "$ref": "#/$defs/action_outcomes"
+        },
+        "rationale": {
+          "$ref": "#/$defs/rationale"
+        },
+        "reads": {
+          "items": {
+            "$ref": "#/$defs/entity_type_ref"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "retry_safe": {
+          "description": "Explicitly marks a command or lifecycle-transition action as safe for automatic action-level retries.",
+          "type": "boolean"
+        },
+        "updates": {
+          "items": {
+            "$ref": "#/$defs/entity_type_ref"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "action_kind",
+        "input",
+        "outcomes"
+      ],
+      "type": "object"
     },
     "authored_asset": {
       "additionalProperties": false,
@@ -230,18 +390,89 @@
       ],
       "type": "object"
     },
-    "authored_data_contract": {
+    "authored_domain_event": {
       "additionalProperties": false,
       "properties": {
-        "fields": {
-          "$ref": "#/$defs/field_schema_map"
+        "payload_schema": {
+          "$ref": "#/$defs/schema"
         },
         "rationale": {
           "$ref": "#/$defs/rationale"
         }
       },
       "required": [
-        "fields"
+        "payload_schema"
+      ],
+      "type": "object"
+    },
+    "authored_entity_type": {
+      "additionalProperties": false,
+      "properties": {
+        "entity_lifecycle": {
+          "additionalProperties": false,
+          "properties": {
+            "field": {
+              "$ref": "#/$defs/field_name"
+            },
+            "initial_state": {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            "lifecycle_states": {
+              "items": {
+                "pattern": "^[a-z][a-z0-9_]*$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            },
+            "lifecycle_transitions": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "from": {
+                    "pattern": "^[a-z][a-z0-9_]*$",
+                    "type": "string"
+                  },
+                  "to": {
+                    "pattern": "^[a-z][a-z0-9_]*$",
+                    "type": "string"
+                  },
+                  "triggered_by": {
+                    "$ref": "#/$defs/application_action_ref"
+                  }
+                },
+                "required": [
+                  "from",
+                  "to",
+                  "triggered_by"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "field",
+            "lifecycle_states",
+            "initial_state"
+          ],
+          "type": "object"
+        },
+        "name": {
+          "$ref": "#/$defs/entity_type_display_name"
+        },
+        "rationale": {
+          "$ref": "#/$defs/rationale"
+        },
+        "schema": {
+          "$ref": "#/$defs/schema"
+        }
+      },
+      "required": [
+        "name",
+        "schema"
       ],
       "type": "object"
     },
@@ -267,21 +498,6 @@
       "required": [
         "adapter",
         "target"
-      ],
-      "type": "object"
-    },
-    "authored_domain_event": {
-      "additionalProperties": false,
-      "properties": {
-        "payload_schema": {
-          "$ref": "#/$defs/type_expr"
-        },
-        "rationale": {
-          "$ref": "#/$defs/rationale"
-        }
-      },
-      "required": [
-        "payload_schema"
       ],
       "type": "object"
     },
@@ -364,143 +580,6 @@
       ],
       "type": "object"
     },
-    "authored_entity_type": {
-      "additionalProperties": false,
-      "properties": {
-        "fields": {
-          "$ref": "#/$defs/field_schema_map"
-        },
-        "name": {
-          "$ref": "#/$defs/entity_type_display_name"
-        },
-        "entity_lifecycle": {
-          "additionalProperties": false,
-          "properties": {
-            "field": {
-              "$ref": "#/$defs/field_name"
-            },
-            "initial_state": {
-              "pattern": "^[a-z][a-z0-9_]*$",
-              "type": "string"
-            },
-            "lifecycle_states": {
-              "items": {
-                "pattern": "^[a-z][a-z0-9_]*$",
-                "type": "string"
-              },
-              "minItems": 1,
-              "type": "array",
-              "uniqueItems": true
-            },
-            "lifecycle_transitions": {
-              "items": {
-                "additionalProperties": false,
-                "properties": {
-                  "from": {
-                    "pattern": "^[a-z][a-z0-9_]*$",
-                    "type": "string"
-                  },
-                  "to": {
-                    "pattern": "^[a-z][a-z0-9_]*$",
-                    "type": "string"
-                  },
-                  "triggered_by": {
-                    "$ref": "#/$defs/application_action_ref"
-                  }
-                },
-                "required": [
-                  "from",
-                  "to",
-                  "triggered_by"
-                ],
-                "type": "object"
-              },
-              "type": "array"
-            }
-          },
-          "required": [
-            "field",
-            "lifecycle_states",
-            "initial_state"
-          ],
-          "type": "object"
-        },
-        "rationale": {
-          "$ref": "#/$defs/rationale"
-        }
-      },
-      "required": [
-        "name",
-        "fields"
-      ],
-      "type": "object"
-    },
-    "authored_application_action": {
-      "additionalProperties": false,
-      "properties": {
-        "authorization": {
-          "$ref": "#/$defs/action_authorization"
-        },
-        "creates": {
-          "items": {
-            "$ref": "#/$defs/entity_type_ref"
-          },
-          "minItems": 1,
-          "type": "array",
-          "uniqueItems": true
-        },
-        "deletes": {
-          "items": {
-            "$ref": "#/$defs/entity_type_ref"
-          },
-          "minItems": 1,
-          "type": "array",
-          "uniqueItems": true
-        },
-        "input": {
-          "$ref": "#/$defs/type_expr_map"
-        },
-        "action_kind": {
-          "enum": [
-            "command",
-            "query",
-            "lifecycle_transition"
-          ]
-        },
-        "outcomes": {
-          "$ref": "#/$defs/action_outcomes"
-        },
-        "rationale": {
-          "$ref": "#/$defs/rationale"
-        },
-        "retry_safe": {
-          "description": "Explicitly marks a command or lifecycle-transition action as safe for automatic action-level retries.",
-          "type": "boolean"
-        },
-        "reads": {
-          "items": {
-            "$ref": "#/$defs/entity_type_ref"
-          },
-          "minItems": 1,
-          "type": "array",
-          "uniqueItems": true
-        },
-        "updates": {
-          "items": {
-            "$ref": "#/$defs/entity_type_ref"
-          },
-          "minItems": 1,
-          "type": "array",
-          "uniqueItems": true
-        }
-      },
-      "required": [
-        "action_kind",
-        "input",
-        "outcomes"
-      ],
-      "type": "object"
-    },
     "authored_render_profile": {
       "additionalProperties": false,
       "anyOf": [
@@ -545,6 +624,21 @@
       },
       "type": "object"
     },
+    "authored_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "rationale": {
+          "$ref": "#/$defs/rationale"
+        },
+        "schema": {
+          "$ref": "#/$defs/schema"
+        }
+      },
+      "required": [
+        "schema"
+      ],
+      "type": "object"
+    },
     "authored_state_machine": {
       "additionalProperties": false,
       "properties": {
@@ -558,13 +652,7 @@
           ]
         },
         "context": {
-          "$ref": "#/$defs/field_schema_map"
-        },
-        "initial_view_state": {
-          "$ref": "#/$defs/view_state_name"
-        },
-        "entity_type": {
-          "$ref": "#/$defs/entity_type_ref"
+          "$ref": "#/$defs/schema"
         },
         "data_loaders": {
           "additionalProperties": {
@@ -575,6 +663,12 @@
             "$ref": "#/$defs/data_loader_id"
           },
           "type": "object"
+        },
+        "entity_type": {
+          "$ref": "#/$defs/entity_type_ref"
+        },
+        "initial_view_state": {
+          "$ref": "#/$defs/view_state_name"
         },
         "rationale": {
           "$ref": "#/$defs/rationale"
@@ -689,9 +783,47 @@
       ],
       "type": "object"
     },
+    "authored_value": {
+      "description": "Explicit authored literal-or-runtime-reference value used by tests, facts, and render audit inputs.",
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "$ref": "#/$defs/json_value"
+            }
+          },
+          "required": [
+            "value"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "from": {
+              "$ref": "#/$defs/runtime_expression"
+            }
+          },
+          "required": [
+            "from"
+          ],
+          "type": "object"
+        }
+      ]
+    },
     "authored_view_state": {
       "additionalProperties": false,
       "properties": {
+        "action_bindings": {
+          "additionalProperties": {
+            "$ref": "#/$defs/state_machine_action_binding"
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/action_binding_id"
+          },
+          "type": "object"
+        },
         "asset_slots": {
           "items": {
             "$ref": "#/$defs/slot_name"
@@ -705,22 +837,6 @@
           },
           "type": "array"
         },
-        "field_slots": {
-          "items": {
-            "$ref": "#/$defs/slot_name"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "action_bindings": {
-          "additionalProperties": {
-            "$ref": "#/$defs/state_machine_action_binding"
-          },
-          "propertyNames": {
-            "$ref": "#/$defs/action_binding_id"
-          },
-          "type": "object"
-        },
         "data_loaders": {
           "additionalProperties": {
             "$ref": "#/$defs/view_state_data_loader"
@@ -730,6 +846,13 @@
             "$ref": "#/$defs/data_loader_id"
           },
           "type": "object"
+        },
+        "field_slots": {
+          "items": {
+            "$ref": "#/$defs/slot_name"
+          },
+          "type": "array",
+          "uniqueItems": true
         },
         "render_audit_cases": {
           "additionalProperties": {
@@ -841,9 +964,6 @@
         }
       ],
       "properties": {
-        "input_present": {
-          "$ref": "#/$defs/field_name"
-        },
         "entity_exists": {
           "additionalProperties": false,
           "properties": {
@@ -859,14 +979,14 @@
         "entity_lifecycle_state": {
           "additionalProperties": false,
           "properties": {
+            "entity_type": {
+              "$ref": "#/$defs/entity_type_ref"
+            },
             "equals": {
               "$ref": "#/$defs/json_value"
             },
             "field": {
               "$ref": "#/$defs/field_name"
-            },
-            "entity_type": {
-              "$ref": "#/$defs/entity_type_ref"
             }
           },
           "required": [
@@ -875,6 +995,9 @@
             "equals"
           ],
           "type": "object"
+        },
+        "input_present": {
+          "$ref": "#/$defs/field_name"
         },
         "subject_has_role": {
           "$ref": "#/$defs/role_name"
@@ -918,14 +1041,14 @@
         }
       ],
       "properties": {
+        "application_action": {
+          "$ref": "#/$defs/application_action_ref"
+        },
         "authorization_policy": {
           "$ref": "#/$defs/authorization_policy_ref"
         },
         "entry_point": {
           "$ref": "#/$defs/entry_point_ref"
-        },
-        "application_action": {
-          "$ref": "#/$defs/application_action_ref"
         }
       },
       "type": "object"
@@ -973,14 +1096,14 @@
         }
       ],
       "properties": {
-        "entry_point": {
-          "$ref": "#/$defs/entry_point_ref"
+        "application_action": {
+          "$ref": "#/$defs/application_action_ref"
         },
         "entity_type": {
           "$ref": "#/$defs/entity_type_ref"
         },
-        "application_action": {
-          "$ref": "#/$defs/application_action_ref"
+        "entry_point": {
+          "$ref": "#/$defs/entry_point_ref"
         }
       },
       "type": "object"
@@ -1053,7 +1176,7 @@
       "additionalProperties": false,
       "properties": {
         "args": {
-          "$ref": "#/$defs/type_expr_map"
+          "$ref": "#/$defs/schema_map"
         }
       },
       "type": "object"
@@ -1110,7 +1233,7 @@
     },
     "content_args": {
       "additionalProperties": {
-        "$ref": "#/$defs/type_expr"
+        "$ref": "#/$defs/schema"
       },
       "propertyNames": {
         "$ref": "#/$defs/field_name"
@@ -1222,13 +1345,48 @@
       ],
       "type": "object"
     },
-    "data_contract_ref": {
-      "pattern": "^data_contract\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
-      "type": "string"
+    "data_loader_id": {
+      "$ref": "#/$defs/local_name",
+      "description": "Local data loader identifier within a state machine or view state."
+    },
+    "data_loader_load_policy": {
+      "additionalProperties": false,
+      "properties": {
+        "on_enter": {
+          "type": "boolean"
+        },
+        "on_mount": {
+          "type": "boolean"
+        },
+        "on_start": {
+          "type": "boolean"
+        },
+        "refresh_on": {
+          "items": {
+            "$ref": "#/$defs/state_machine_signal_trigger"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "type": "object"
     },
     "data_refresh_signal_name": {
       "$ref": "#/$defs/local_name",
       "description": "State-machine-local data-refresh signal name."
+    },
+    "domain_event_ref": {
+      "pattern": "^domain_event\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "type": "string"
+    },
+    "entity_type_display_name": {
+      "description": "PascalCase product/domain type display name stored separately from entity_type_ref.",
+      "pattern": "^[A-Z][A-Za-z0-9]*$",
+      "type": "string"
+    },
+    "entity_type_ref": {
+      "pattern": "^entity_type\\.[a-z][a-z0-9_]*$",
+      "type": "string"
     },
     "entry_application_action_target": {
       "additionalProperties": false,
@@ -1242,43 +1400,6 @@
       },
       "required": [
         "ref"
-      ],
-      "type": "object"
-    },
-    "entry_point_delegate_input_bindings": {
-      "additionalProperties": false,
-      "properties": {
-        "args": {
-          "$ref": "#/$defs/runtime_bindings"
-        },
-        "body": {
-          "$ref": "#/$defs/runtime_bindings"
-        },
-        "path_params": {
-          "$ref": "#/$defs/runtime_bindings"
-        },
-        "payload": {
-          "$ref": "#/$defs/runtime_bindings"
-        },
-        "query_params": {
-          "$ref": "#/$defs/runtime_bindings"
-        }
-      },
-      "type": "object"
-    },
-    "entry_point_delegate_target": {
-      "additionalProperties": false,
-      "properties": {
-        "input_bindings": {
-          "$ref": "#/$defs/entry_point_delegate_input_bindings"
-        },
-        "ref": {
-          "$ref": "#/$defs/entry_point_ref"
-        }
-      },
-      "required": [
-        "ref",
-        "input_bindings"
       ],
       "type": "object"
     },
@@ -1338,6 +1459,43 @@
       },
       "type": "object"
     },
+    "entry_point_delegate_input_bindings": {
+      "additionalProperties": false,
+      "properties": {
+        "args": {
+          "$ref": "#/$defs/runtime_bindings"
+        },
+        "body": {
+          "$ref": "#/$defs/runtime_bindings"
+        },
+        "path_params": {
+          "$ref": "#/$defs/runtime_bindings"
+        },
+        "payload": {
+          "$ref": "#/$defs/runtime_bindings"
+        },
+        "query_params": {
+          "$ref": "#/$defs/runtime_bindings"
+        }
+      },
+      "type": "object"
+    },
+    "entry_point_delegate_target": {
+      "additionalProperties": false,
+      "properties": {
+        "input_bindings": {
+          "$ref": "#/$defs/entry_point_delegate_input_bindings"
+        },
+        "ref": {
+          "$ref": "#/$defs/entry_point_ref"
+        }
+      },
+      "required": [
+        "ref",
+        "input_bindings"
+      ],
+      "type": "object"
+    },
     "entry_point_ref": {
       "pattern": "^entry_point\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
@@ -1360,7 +1518,7 @@
           "type": "integer"
         },
         "problem": {
-          "$ref": "#/$defs/type_expr"
+          "$ref": "#/$defs/schema"
         },
         "status": {
           "maximum": 599,
@@ -1385,7 +1543,7 @@
           ]
         },
         "type": {
-          "$ref": "#/$defs/type_expr"
+          "$ref": "#/$defs/schema"
         }
       },
       "required": [
@@ -1403,35 +1561,6 @@
         "$ref": "#/$defs/outcome_name"
       },
       "type": "object"
-    },
-    "authored_value": {
-      "description": "Explicit authored literal-or-runtime-reference value used by tests, facts, and render audit inputs.",
-      "oneOf": [
-        {
-          "additionalProperties": false,
-          "properties": {
-            "value": {
-              "$ref": "#/$defs/json_value"
-            }
-          },
-          "required": [
-            "value"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "from": {
-              "$ref": "#/$defs/runtime_expression"
-            }
-          },
-          "required": [
-            "from"
-          ],
-          "type": "object"
-        }
-      ]
     },
     "entry_point_retry_policy": {
       "additionalProperties": false,
@@ -1480,11 +1609,11 @@
         }
       ],
       "properties": {
-        "entry_point": {
-          "$ref": "#/$defs/entry_point_delegate_target"
-        },
         "application_action": {
           "$ref": "#/$defs/entry_application_action_target"
+        },
+        "entry_point": {
+          "$ref": "#/$defs/entry_point_delegate_target"
         },
         "state_machine": {
           "$ref": "#/$defs/entry_state_machine_target"
@@ -1532,10 +1661,6 @@
         "trigger_bindings"
       ],
       "type": "object"
-    },
-    "domain_event_ref": {
-      "pattern": "^domain_event\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
-      "type": "string"
     },
     "fact": {
       "oneOf": [
@@ -1616,142 +1741,6 @@
       "description": "Actual data/entity_type/input/context field identifier.",
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
-    },
-    "field_schema": {
-      "additionalProperties": false,
-      "description": "Object field declaration with explicit required and nullable semantics.",
-      "properties": {
-        "nullable": {
-          "type": "boolean"
-        },
-        "required": {
-          "type": "boolean"
-        },
-        "type": {
-          "$ref": "#/$defs/field_type_expr"
-        }
-      },
-      "required": [
-        "type",
-        "required",
-        "nullable"
-      ],
-      "type": "object"
-    },
-    "field_schema_map": {
-      "additionalProperties": {
-        "$ref": "#/$defs/field_schema"
-      },
-      "description": "Object field map whose values declare type, required, and nullable semantics.",
-      "propertyNames": {
-        "$ref": "#/$defs/field_name"
-      },
-      "type": "object"
-    },
-    "field_type_expr": {
-      "description": "Non-nullable object field type expression. field_schema.required and field_schema.nullable are the sole presence and nullability controls for fields.",
-      "oneOf": [
-        {
-          "additionalProperties": false,
-          "properties": {
-            "primitive": {
-              "enum": [
-                "ID",
-                "Text",
-                "Markdown",
-                "Date",
-                "Timestamp",
-                "Boolean",
-                "Integer",
-                "Decimal",
-                "JSON"
-              ]
-            }
-          },
-          "required": [
-            "primitive"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "entity_type": {
-              "$ref": "#/$defs/entity_type_ref"
-            }
-          },
-          "required": [
-            "entity_type"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "data_contract": {
-              "$ref": "#/$defs/data_contract_ref"
-            }
-          },
-          "required": [
-            "data_contract"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "array": {
-              "$ref": "#/$defs/field_type_expr"
-            }
-          },
-          "required": [
-            "array"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "map": {
-              "$ref": "#/$defs/field_type_expr"
-            }
-          },
-          "required": [
-            "map"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "enum": {
-              "items": {
-                "pattern": "^[A-Za-z][A-Za-z0-9_ -]*$",
-                "type": "string"
-              },
-              "minItems": 1,
-              "type": "array",
-              "uniqueItems": true
-            }
-          },
-          "required": [
-            "enum"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "object": {
-              "$ref": "#/$defs/object_schema"
-            }
-          },
-          "required": [
-            "object"
-          ],
-          "type": "object"
-        }
-      ]
     },
     "fixture_ref": {
       "pattern": "^fixture\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
@@ -1977,10 +1966,10 @@
       "additionalProperties": false,
       "properties": {
         "path_params": {
-          "$ref": "#/$defs/type_expr_map"
+          "$ref": "#/$defs/schema_map"
         },
         "query_params": {
-          "$ref": "#/$defs/type_expr_map"
+          "$ref": "#/$defs/schema_map"
         }
       },
       "type": "object"
@@ -2112,13 +2101,13 @@
       "additionalProperties": false,
       "properties": {
         "body": {
-          "$ref": "#/$defs/type_expr_map"
+          "$ref": "#/$defs/schema_map"
         },
         "path_params": {
-          "$ref": "#/$defs/type_expr_map"
+          "$ref": "#/$defs/schema_map"
         },
         "query_params": {
-          "$ref": "#/$defs/type_expr_map"
+          "$ref": "#/$defs/schema_map"
         }
       },
       "type": "object"
@@ -2157,125 +2146,30 @@
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
     },
+    "local_no_effect": {
+      "additionalProperties": false,
+      "properties": {
+        "rationale": {
+          "$ref": "#/$defs/rationale"
+        },
+        "reason": {
+          "enum": [
+            "state_unchanged",
+            "handled_by_response_surface",
+            "handled_by_query_refresh",
+            "intentionally_unobservable",
+            "result_bound_without_signal"
+          ]
+        }
+      },
+      "required": [
+        "reason"
+      ],
+      "type": "object"
+    },
     "local_signal_name": {
       "$ref": "#/$defs/local_name",
       "description": "State-machine-local signal name."
-    },
-    "entity_type_ref": {
-      "pattern": "^entity_type\\.[a-z][a-z0-9_]*$",
-      "type": "string"
-    },
-    "entity_type_display_name": {
-      "description": "PascalCase product/domain type display name stored separately from entity_type_ref.",
-      "pattern": "^[A-Z][A-Za-z0-9]*$",
-      "type": "string"
-    },
-    "object_schema": {
-      "additionalProperties": false,
-      "description": "Structured object schema with explicit per-field required and nullable semantics.",
-      "properties": {
-        "fields": {
-          "$ref": "#/$defs/field_schema_map"
-        }
-      },
-      "required": [
-        "fields"
-      ],
-      "type": "object"
-    },
-    "action_authorization": {
-      "additionalProperties": false,
-      "properties": {
-        "forbidden_as": {
-          "$ref": "#/$defs/outcome_name"
-        },
-        "policy": {
-          "$ref": "#/$defs/authorization_policy_ref"
-        },
-        "unauthenticated_as": {
-          "$ref": "#/$defs/outcome_name"
-        }
-      },
-      "required": [
-        "policy",
-        "unauthenticated_as",
-        "forbidden_as"
-      ],
-      "type": "object"
-    },
-    "action_emit": {
-      "additionalProperties": false,
-      "oneOf": [
-        {
-          "required": [
-            "payload_source"
-          ]
-        },
-        {
-          "required": [
-            "payload_bindings"
-          ]
-        }
-      ],
-      "properties": {
-        "domain_event": {
-          "$ref": "#/$defs/domain_event_ref"
-        },
-        "payload_bindings": {
-          "$ref": "#/$defs/runtime_bindings"
-        },
-        "payload_source": {
-          "$ref": "#/$defs/runtime_expression"
-        }
-      },
-      "required": [
-        "domain_event"
-      ],
-      "type": "object"
-    },
-    "action_outcome": {
-      "additionalProperties": false,
-      "properties": {
-        "emits": {
-          "items": {
-            "$ref": "#/$defs/action_emit"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "kind": {
-          "enum": [
-            "success",
-            "failure"
-          ]
-        },
-        "result": {
-          "$ref": "#/$defs/type_expr"
-        }
-      },
-      "required": [
-        "kind",
-        "result"
-      ],
-      "type": "object"
-    },
-    "action_outcomes": {
-      "additionalProperties": {
-        "$ref": "#/$defs/action_outcome"
-      },
-      "minProperties": 2,
-      "propertyNames": {
-        "$ref": "#/$defs/outcome_name"
-      },
-      "type": "object"
-    },
-    "application_action_ref": {
-      "pattern": "^application_action\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
-      "type": "string"
-    },
-    "action_binding_id": {
-      "$ref": "#/$defs/local_name",
-      "description": "Local action binding identifier within a view state."
     },
     "outcome_name": {
       "$ref": "#/$defs/local_name",
@@ -2289,9 +2183,46 @@
       "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$",
       "type": "string"
     },
-    "data_loader_id": {
-      "$ref": "#/$defs/local_name",
-      "description": "Local data loader identifier within a state machine or view state."
+    "query_result_binding": {
+      "additionalProperties": false,
+      "description": "Explicitly binds a query outcome value into named state-machine or view-state data for rendering or later bindings.",
+      "properties": {
+        "data_key": {
+          "$ref": "#/$defs/local_name"
+        },
+        "from": {
+          "$ref": "#/$defs/binding_value"
+        }
+      },
+      "required": [
+        "data_key",
+        "from"
+      ],
+      "type": "object"
+    },
+    "query_result_condition": {
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "result_empty"
+          ]
+        },
+        {
+          "required": [
+            "result_non_empty"
+          ]
+        }
+      ],
+      "properties": {
+        "result_empty": {
+          "const": true
+        },
+        "result_non_empty": {
+          "const": true
+        }
+      },
+      "type": "object"
     },
     "rationale": {
       "maxLength": 280,
@@ -2342,27 +2273,6 @@
       "pattern": "^\\$[a-z][a-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+$",
       "type": "string"
     },
-    "local_no_effect": {
-      "additionalProperties": false,
-      "properties": {
-        "rationale": {
-          "$ref": "#/$defs/rationale"
-        },
-        "reason": {
-          "enum": [
-            "state_unchanged",
-            "handled_by_response_surface",
-            "handled_by_query_refresh",
-            "intentionally_unobservable",
-            "result_bound_without_signal"
-          ]
-        }
-      },
-      "required": [
-        "reason"
-      ],
-      "type": "object"
-    },
     "scalar": {
       "type": [
         "string",
@@ -2387,6 +2297,117 @@
         "schedule_expression"
       ],
       "type": "object"
+    },
+    "schema": {
+      "additionalProperties": false,
+      "description": "JSON Schema subset used by the product-spec ontology for payloads, entity types, action inputs, context, and reusable schemas.",
+      "properties": {
+        "$ref": {
+          "pattern": "^(entity_type|schema)\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+          "type": "string"
+        },
+        "additionalProperties": {
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/schema"
+            }
+          ]
+        },
+        "allOf": {
+          "items": {
+            "$ref": "#/$defs/schema"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "anyOf": {
+          "items": {
+            "$ref": "#/$defs/schema"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "const": {},
+        "enum": {
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "format": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "items": {
+          "$ref": "#/$defs/schema"
+        },
+        "oneOf": {
+          "items": {
+            "$ref": "#/$defs/schema"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "properties": {
+          "additionalProperties": {
+            "$ref": "#/$defs/schema"
+          },
+          "type": "object"
+        },
+        "required": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "type": {
+          "oneOf": [
+            {
+              "enum": [
+                "array",
+                "boolean",
+                "integer",
+                "null",
+                "number",
+                "object",
+                "string"
+              ]
+            },
+            {
+              "items": {
+                "enum": [
+                  "array",
+                  "boolean",
+                  "integer",
+                  "null",
+                  "number",
+                  "object",
+                  "string"
+                ]
+              },
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "schema_map": {
+      "additionalProperties": {
+        "$ref": "#/$defs/schema"
+      },
+      "description": "Map of field or parameter names to JSON Schema fragments.",
+      "type": "object"
+    },
+    "schema_ref": {
+      "pattern": "^schema\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "type": "string"
     },
     "signal_sync_action": {
       "oneOf": [
@@ -2554,57 +2575,14 @@
       "$ref": "#/$defs/local_name",
       "description": "Local slot identifier within a view state."
     },
-    "state_machine_ref": {
-      "pattern": "^state_machine\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
-      "type": "string"
-    },
-    "state_machine_render_audit_case": {
-      "additionalProperties": false,
-      "description": "Render-audit case for a state-machine view state. Global render profiles are applied by tooling; cases do not reference render profiles.",
-      "properties": {
-        "context": {
-          "$ref": "#/$defs/value_map"
-        },
-        "fact_refs": {
-          "description": "Fact references used to seed rendered entity_type state for this render audit case.",
-          "items": {
-            "$ref": "#/$defs/fact_use"
-          },
-          "type": "array"
-        },
-        "instances": {
-          "additionalProperties": {
-            "$ref": "#/$defs/view_state_assertion"
-          },
-          "propertyNames": {
-            "$ref": "#/$defs/instance_id"
-          },
-          "type": "object"
-        },
-        "rationale": {
-          "$ref": "#/$defs/rationale"
-        },
-        "seed_fixtures": {
-          "items": {
-            "$ref": "#/$defs/fixture_ref"
-          },
-          "type": "array",
-          "uniqueItems": true
-        }
-      },
-      "required": [
-        "seed_fixtures"
-      ],
-      "type": "object"
-    },
     "state_machine_action_binding": {
       "additionalProperties": false,
       "properties": {
-        "input_bindings": {
-          "$ref": "#/$defs/runtime_bindings"
-        },
         "application_action": {
           "$ref": "#/$defs/application_action_ref"
+        },
+        "input_bindings": {
+          "$ref": "#/$defs/runtime_bindings"
         },
         "outcome_effects": {
           "$ref": "#/$defs/state_machine_action_outcome_effects"
@@ -2657,39 +2635,17 @@
       },
       "type": "object"
     },
-    "data_loader_load_policy": {
-      "additionalProperties": false,
-      "properties": {
-        "on_enter": {
-          "type": "boolean"
-        },
-        "on_mount": {
-          "type": "boolean"
-        },
-        "on_start": {
-          "type": "boolean"
-        },
-        "refresh_on": {
-          "items": {
-            "$ref": "#/$defs/state_machine_signal_trigger"
-          },
-          "type": "array",
-          "uniqueItems": true
-        }
-      },
-      "type": "object"
-    },
     "state_machine_data_loader": {
       "additionalProperties": false,
       "properties": {
+        "application_action": {
+          "$ref": "#/$defs/application_action_ref"
+        },
         "input_bindings": {
           "$ref": "#/$defs/runtime_bindings"
         },
         "load": {
           "$ref": "#/$defs/data_loader_load_policy"
-        },
-        "application_action": {
-          "$ref": "#/$defs/application_action_ref"
         },
         "outcome_effects": {
           "$ref": "#/$defs/state_machine_data_loader_outcome_effects"
@@ -2711,9 +2667,6 @@
         "outcome_effects"
       ],
       "type": "object"
-    },
-    "view_state_data_loader": {
-      "$ref": "#/$defs/state_machine_data_loader"
     },
     "state_machine_data_loader_outcome_effect": {
       "additionalProperties": false,
@@ -2773,6 +2726,16 @@
       },
       "type": "object"
     },
+    "state_machine_data_loader_outcome_effects": {
+      "additionalProperties": {
+        "$ref": "#/$defs/state_machine_data_loader_outcome_effect"
+      },
+      "minProperties": 1,
+      "propertyNames": {
+        "$ref": "#/$defs/outcome_name"
+      },
+      "type": "object"
+    },
     "state_machine_query_conditional_effect": {
       "additionalProperties": false,
       "anyOf": [
@@ -2825,54 +2788,58 @@
       ],
       "type": "object"
     },
-    "query_result_condition": {
-      "additionalProperties": false,
-      "oneOf": [
-        {
-          "required": [
-            "result_empty"
-          ]
-        },
-        {
-          "required": [
-            "result_non_empty"
-          ]
-        }
-      ],
-      "properties": {
-        "result_empty": {
-          "const": true
-        },
-        "result_non_empty": {
-          "const": true
-        }
-      },
-      "type": "object"
+    "state_machine_ref": {
+      "pattern": "^state_machine\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "type": "string"
     },
-    "query_result_binding": {
+    "state_machine_render_audit_case": {
       "additionalProperties": false,
-      "description": "Explicitly binds a query outcome value into named state-machine or view-state data for rendering or later bindings.",
+      "description": "Render-audit case for a state-machine view state. Global render profiles are applied by tooling; cases do not reference render profiles.",
       "properties": {
-        "data_key": {
-          "$ref": "#/$defs/local_name"
+        "context": {
+          "$ref": "#/$defs/value_map"
         },
-        "from": {
-          "$ref": "#/$defs/binding_value"
+        "fact_refs": {
+          "description": "Fact references used to seed rendered entity_type state for this render audit case.",
+          "items": {
+            "$ref": "#/$defs/fact_use"
+          },
+          "type": "array"
+        },
+        "instances": {
+          "additionalProperties": {
+            "$ref": "#/$defs/view_state_assertion"
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/instance_id"
+          },
+          "type": "object"
+        },
+        "rationale": {
+          "$ref": "#/$defs/rationale"
+        },
+        "seed_fixtures": {
+          "items": {
+            "$ref": "#/$defs/fixture_ref"
+          },
+          "type": "array",
+          "uniqueItems": true
         }
       },
       "required": [
-        "data_key",
-        "from"
+        "seed_fixtures"
       ],
       "type": "object"
     },
-    "state_machine_data_loader_outcome_effects": {
-      "additionalProperties": {
-        "$ref": "#/$defs/state_machine_data_loader_outcome_effect"
-      },
-      "minProperties": 1,
-      "propertyNames": {
-        "$ref": "#/$defs/outcome_name"
+    "state_machine_signal": {
+      "additionalProperties": false,
+      "properties": {
+        "payload_schema": {
+          "$ref": "#/$defs/schema"
+        },
+        "rationale": {
+          "$ref": "#/$defs/rationale"
+        }
       },
       "type": "object"
     },
@@ -2937,18 +2904,6 @@
           "type": "object"
         }
       ]
-    },
-    "state_machine_signal": {
-      "additionalProperties": false,
-      "properties": {
-        "payload_schema": {
-          "$ref": "#/$defs/type_expr_map"
-        },
-        "rationale": {
-          "$ref": "#/$defs/rationale"
-        }
-      },
-      "type": "object"
     },
     "state_machine_signals": {
       "additionalProperties": false,
@@ -3060,14 +3015,14 @@
       "maxProperties": 1,
       "minProperties": 1,
       "properties": {
-        "entry_point": {
-          "$ref": "#/$defs/entry_point_ref"
+        "application_action": {
+          "$ref": "#/$defs/application_action_ref"
         },
         "domain_event": {
           "$ref": "#/$defs/domain_event_ref"
         },
-        "application_action": {
-          "$ref": "#/$defs/application_action_ref"
+        "entry_point": {
+          "$ref": "#/$defs/entry_point_ref"
         },
         "state_machine": {
           "$ref": "#/$defs/state_machine_ref"
@@ -3295,13 +3250,6 @@
         "authorization": {
           "$ref": "#/$defs/authorization_assertion"
         },
-        "enables": {
-          "items": {
-            "$ref": "#/$defs/application_action_ref"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
         "domain_events": {
           "additionalProperties": false,
           "properties": {
@@ -3318,6 +3266,35 @@
               },
               "type": "array",
               "uniqueItems": true
+            }
+          },
+          "type": "object"
+        },
+        "enables": {
+          "items": {
+            "$ref": "#/$defs/application_action_ref"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "entity": {
+          "additionalProperties": false,
+          "properties": {
+            "exists": {
+              "additionalProperties": false,
+              "properties": {
+                "entity_type": {
+                  "$ref": "#/$defs/entity_type_ref"
+                },
+                "where": {
+                  "$ref": "#/$defs/value_map"
+                }
+              },
+              "required": [
+                "entity_type",
+                "where"
+              ],
+              "type": "object"
             }
           },
           "type": "object"
@@ -3348,28 +3325,6 @@
           },
           "type": "array",
           "uniqueItems": true
-        },
-        "entity": {
-          "additionalProperties": false,
-          "properties": {
-            "exists": {
-              "additionalProperties": false,
-              "properties": {
-                "entity_type": {
-                  "$ref": "#/$defs/entity_type_ref"
-                },
-                "where": {
-                  "$ref": "#/$defs/value_map"
-                }
-              },
-              "required": [
-                "entity_type",
-                "where"
-              ],
-              "type": "object"
-            }
-          },
-          "type": "object"
         },
         "outcome": {
           "$ref": "#/$defs/outcome_name"
@@ -3440,133 +3395,6 @@
       },
       "type": "object"
     },
-    "type_expr": {
-      "description": "Structured data type expression for non-field values. Supports formal primitives, collection-prefixed entity_type references, data-contract references, arrays, maps, nullable whole-value wrappers, enums, and inline object schemas. Object field presence and nullability are controlled only by field_schema.required and field_schema.nullable.",
-      "oneOf": [
-        {
-          "additionalProperties": false,
-          "properties": {
-            "primitive": {
-              "enum": [
-                "ID",
-                "Text",
-                "Markdown",
-                "Date",
-                "Timestamp",
-                "Boolean",
-                "Integer",
-                "Decimal",
-                "JSON"
-              ]
-            }
-          },
-          "required": [
-            "primitive"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "entity_type": {
-              "$ref": "#/$defs/entity_type_ref"
-            }
-          },
-          "required": [
-            "entity_type"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "data_contract": {
-              "$ref": "#/$defs/data_contract_ref"
-            }
-          },
-          "required": [
-            "data_contract"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "array": {
-              "$ref": "#/$defs/type_expr"
-            }
-          },
-          "required": [
-            "array"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "map": {
-              "$ref": "#/$defs/type_expr"
-            }
-          },
-          "required": [
-            "map"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "nullable": {
-              "$ref": "#/$defs/type_expr"
-            }
-          },
-          "required": [
-            "nullable"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "enum": {
-              "items": {
-                "pattern": "^[A-Za-z][A-Za-z0-9_ -]*$",
-                "type": "string"
-              },
-              "minItems": 1,
-              "type": "array",
-              "uniqueItems": true
-            }
-          },
-          "required": [
-            "enum"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "object": {
-              "$ref": "#/$defs/object_schema"
-            }
-          },
-          "required": [
-            "object"
-          ],
-          "type": "object"
-        }
-      ]
-    },
-    "type_expr_map": {
-      "additionalProperties": {
-        "$ref": "#/$defs/type_expr"
-      },
-      "description": "Input or payload map whose values are structured type expressions.",
-      "propertyNames": {
-        "$ref": "#/$defs/field_name"
-      },
-      "type": "object"
-    },
     "value_map": {
       "additionalProperties": {
         "$ref": "#/$defs/authored_value"
@@ -3588,6 +3416,9 @@
       ],
       "type": "object"
     },
+    "view_state_data_loader": {
+      "$ref": "#/$defs/state_machine_data_loader"
+    },
     "view_state_name": {
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
@@ -3599,15 +3430,15 @@
     "webhook_adapter": {
       "additionalProperties": false,
       "properties": {
+        "ingress_responses": {
+          "$ref": "#/$defs/entry_point_responses"
+        },
         "input": {
           "$ref": "#/$defs/webhook_adapter_input"
         },
         "path": {
           "pattern": "^/",
           "type": "string"
-        },
-        "ingress_responses": {
-          "$ref": "#/$defs/entry_point_responses"
         }
       },
       "required": [
@@ -3619,13 +3450,13 @@
       "additionalProperties": false,
       "properties": {
         "path_params": {
-          "$ref": "#/$defs/type_expr_map"
+          "$ref": "#/$defs/schema_map"
         },
         "payload": {
-          "$ref": "#/$defs/type_expr"
+          "$ref": "#/$defs/schema"
         },
         "query_params": {
-          "$ref": "#/$defs/type_expr_map"
+          "$ref": "#/$defs/schema_map"
         }
       },
       "type": "object"
@@ -3733,11 +3564,11 @@
     "worker_adapter": {
       "additionalProperties": false,
       "properties": {
-        "input": {
-          "$ref": "#/$defs/worker_adapter_input"
-        },
         "ingress_responses": {
           "$ref": "#/$defs/entry_point_responses"
+        },
+        "input": {
+          "$ref": "#/$defs/worker_adapter_input"
         }
       },
       "type": "object"
@@ -3746,7 +3577,7 @@
       "additionalProperties": false,
       "properties": {
         "payload": {
-          "$ref": "#/$defs/type_expr"
+          "$ref": "#/$defs/schema"
         }
       },
       "type": "object"
@@ -3761,7 +3592,7 @@
           ]
         },
         "result": {
-          "$ref": "#/$defs/type_expr"
+          "$ref": "#/$defs/schema"
         }
       },
       "required": [
@@ -3820,6 +3651,31 @@
       ],
       "type": "object"
     },
+    "workflow_step": {
+      "additionalProperties": false,
+      "properties": {
+        "application_action": {
+          "$ref": "#/$defs/application_action_ref"
+        },
+        "id": {
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        },
+        "input_bindings": {
+          "$ref": "#/$defs/runtime_bindings"
+        },
+        "outcome_transitions": {
+          "$ref": "#/$defs/workflow_outcome_transitions"
+        }
+      },
+      "required": [
+        "id",
+        "application_action",
+        "input_bindings",
+        "outcome_transitions"
+      ],
+      "type": "object"
+    },
     "workflow_transition": {
       "additionalProperties": false,
       "oneOf": [
@@ -3863,38 +3719,13 @@
           "pattern": "^[a-z][a-z0-9_]*$",
           "type": "string"
         },
-        "retry_policy": {
-          "$ref": "#/$defs/workflow_retry_policy"
-        },
         "rationale": {
           "$ref": "#/$defs/rationale"
+        },
+        "retry_policy": {
+          "$ref": "#/$defs/workflow_retry_policy"
         }
       },
-      "type": "object"
-    },
-    "workflow_step": {
-      "additionalProperties": false,
-      "properties": {
-        "id": {
-          "pattern": "^[a-z][a-z0-9_]*$",
-          "type": "string"
-        },
-        "input_bindings": {
-          "$ref": "#/$defs/runtime_bindings"
-        },
-        "application_action": {
-          "$ref": "#/$defs/application_action_ref"
-        },
-        "outcome_transitions": {
-          "$ref": "#/$defs/workflow_outcome_transitions"
-        }
-      },
-      "required": [
-        "id",
-        "application_action",
-        "input_bindings",
-        "outcome_transitions"
-      ],
       "type": "object"
     },
     "workflow_trigger_source": {
@@ -3902,11 +3733,11 @@
       "maxProperties": 1,
       "minProperties": 1,
       "properties": {
-        "domain_event": {
-          "$ref": "#/$defs/domain_event_ref"
-        },
         "application_action": {
           "$ref": "#/$defs/application_action_ref"
+        },
+        "domain_event": {
+          "$ref": "#/$defs/domain_event_ref"
         }
       },
       "type": "object"
@@ -3917,6 +3748,15 @@
   "additionalProperties": false,
   "description": "Sparse, human-authored source product specification. The compiler produces the compiled specification at spec/generated/compiled/spec.yaml, including normalized identifiers, derived domain_events, derived HTML routes, generated references, expanded endpoints, and expanded empty-collection states.",
   "properties": {
+    "application_actions": {
+      "additionalProperties": {
+        "$ref": "#/$defs/authored_application_action"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/application_action_ref"
+      },
+      "type": "object"
+    },
     "assets": {
       "additionalProperties": {
         "$ref": "#/$defs/authored_asset"
@@ -3944,12 +3784,21 @@
       },
       "type": "object"
     },
-    "data_contracts": {
+    "domain_events": {
       "additionalProperties": {
-        "$ref": "#/$defs/authored_data_contract"
+        "$ref": "#/$defs/authored_domain_event"
       },
       "propertyNames": {
-        "$ref": "#/$defs/data_contract_ref"
+        "$ref": "#/$defs/domain_event_ref"
+      },
+      "type": "object"
+    },
+    "entity_types": {
+      "additionalProperties": {
+        "$ref": "#/$defs/authored_entity_type"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/entity_type_ref"
       },
       "type": "object"
     },
@@ -3959,15 +3808,6 @@
       },
       "propertyNames": {
         "$ref": "#/$defs/entry_point_ref"
-      },
-      "type": "object"
-    },
-    "domain_events": {
-      "additionalProperties": {
-        "$ref": "#/$defs/authored_domain_event"
-      },
-      "propertyNames": {
-        "$ref": "#/$defs/domain_event_ref"
       },
       "type": "object"
     },
@@ -3989,24 +3829,6 @@
       },
       "type": "object"
     },
-    "entity_types": {
-      "additionalProperties": {
-        "$ref": "#/$defs/authored_entity_type"
-      },
-      "propertyNames": {
-        "$ref": "#/$defs/entity_type_ref"
-      },
-      "type": "object"
-    },
-    "application_actions": {
-      "additionalProperties": {
-        "$ref": "#/$defs/authored_application_action"
-      },
-      "propertyNames": {
-        "$ref": "#/$defs/application_action_ref"
-      },
-      "type": "object"
-    },
     "project": {
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
@@ -4018,6 +3840,15 @@
       "description": "Global audit/golden-image render profiles. Audit tooling applies them to all eligible state-machine render audit cases and renderer contracts; render audit cases do not reference profiles directly.",
       "propertyNames": {
         "$ref": "#/$defs/render_profile_ref"
+      },
+      "type": "object"
+    },
+    "schemas": {
+      "additionalProperties": {
+        "$ref": "#/$defs/authored_schema"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/schema_ref"
       },
       "type": "object"
     },

@@ -1,6 +1,6 @@
 <svg width="1230pt" height="482pt"
  viewBox="0.00 0.00 1230.00 482.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 8844a8e1a594a7a61c52cd146895b2d055b0b7096c4d4499dd682ae21512cc1a -->
+<!-- pyspec-contract-input-sha256: 74559dbe891e306caaa7db13fe595085c5cb1ba864291da88f520dff1285b1fa -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 464)">
 <title>workflow_workflow_project_approval_notice</title>
 <!-- workflow_trigger_domain_event_domain_event_project_approved -->
@@ -15,7 +15,7 @@
 <text text-anchor="start" x="5.5" y="-191.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">project identity needed by notification workflows.</text>
 <text text-anchor="start" x="6.5" y="-171.5" font-family="Arial" font-weight="bold" font-size="10.00">payload:</text>
 <text text-anchor="start" x="46.5" y="-171.5" font-family="Arial" font-size="10.00">  payload</text>
-<text text-anchor="start" x="86.5" y="-171.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  data_contract.project.approved</text>
+<text text-anchor="start" x="86.5" y="-171.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  schema.project.approved</text>
 <text text-anchor="start" x="6.5" y="-159.5" font-family="Arial" font-weight="bold" font-size="10.00">emitted by:</text>
 <text text-anchor="start" x="58.5" y="-159.5" font-family="Arial" font-size="10.00">  application_action.project.approve</text>
 <polygon fill="none" stroke="#4f46e5" points="0,-149.5 0,-253.5 223,-253.5 223,-149.5 0,-149.5"/>
@@ -36,8 +36,8 @@
 <text text-anchor="start" x="291" y="-185.5" font-family="Arial" font-size="10.00">  application_action.project.send_approval_notice</text>
 <text text-anchor="start" x="291" y="-167.5" font-family="Arial" font-weight="bold" font-size="10.00">outcomes</text>
 <text text-anchor="start" x="291" y="-156.5" font-family="Arial" font-size="10.00">completed</text>
-<text text-anchor="start" x="337" y="-156.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  data_contract.project.notice_result</text>
-<text text-anchor="start" x="464" y="-156.5" font-family="Arial" font-size="8.00"> ← success</text>
+<text text-anchor="start" x="337" y="-156.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  schema.project.notice_result</text>
+<text text-anchor="start" x="443" y="-156.5" font-family="Arial" font-size="8.00"> ← success</text>
 <text text-anchor="start" x="291" y="-145.5" font-family="Arial" font-size="10.00">delivery_failed</text>
 <text text-anchor="start" x="354" y="-145.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
 <text text-anchor="start" x="389" y="-145.5" font-family="Arial" font-size="8.00"> ← failure</text>
@@ -93,15 +93,15 @@
 <!-- workflow_outcome_workflow_project_approval_notice_completed -->
 <g id="node4" class="node">
 <title>workflow_outcome_workflow_project_approval_notice_completed</title>
-<polygon fill="#ffffff" stroke="transparent" points="1032,-375 1032,-446 1194,-446 1194,-375 1032,-375"/>
-<polygon fill="#16a34a" stroke="transparent" points="1033,-436.5 1033,-444.5 1193,-444.5 1193,-436.5 1033,-436.5"/>
-<polygon fill="#f0fdf4" stroke="transparent" points="1033,-405.5 1033,-436.5 1193,-436.5 1193,-405.5 1033,-405.5"/>
-<text text-anchor="start" x="1037" y="-423.1" font-family="Arial" font-weight="bold" font-size="13.00">completed</text>
-<text text-anchor="start" x="1037" y="-412.1" font-family="Arial" font-size="8.00" fill="#64748b">success workflow outcome</text>
-<text text-anchor="start" x="1037" y="-394.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
-<text text-anchor="start" x="1037" y="-383.5" font-family="Arial" font-size="10.00">result</text>
-<text text-anchor="start" x="1062" y="-383.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  data_contract.project.notice_result</text>
-<polygon fill="none" stroke="#16a34a" points="1032,-375 1032,-446 1194,-446 1194,-375 1032,-375"/>
+<polygon fill="#ffffff" stroke="transparent" points="1042.5,-375 1042.5,-446 1183.5,-446 1183.5,-375 1042.5,-375"/>
+<polygon fill="#16a34a" stroke="transparent" points="1044,-436.5 1044,-444.5 1183,-444.5 1183,-436.5 1044,-436.5"/>
+<polygon fill="#f0fdf4" stroke="transparent" points="1044,-405.5 1044,-436.5 1183,-436.5 1183,-405.5 1044,-405.5"/>
+<text text-anchor="start" x="1048" y="-423.1" font-family="Arial" font-weight="bold" font-size="13.00">completed</text>
+<text text-anchor="start" x="1048" y="-412.1" font-family="Arial" font-size="8.00" fill="#64748b">success workflow outcome</text>
+<text text-anchor="start" x="1048" y="-394.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
+<text text-anchor="start" x="1048" y="-383.5" font-family="Arial" font-size="10.00">result</text>
+<text text-anchor="start" x="1073" y="-383.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  schema.project.notice_result</text>
+<polygon fill="none" stroke="#16a34a" points="1042.5,-375 1042.5,-446 1183.5,-446 1183.5,-375 1042.5,-375"/>
 </g>
 <!-- workflow_step_workflow_project_approval_notice_send_notice&#45;&gt;workflow_outcome_workflow_project_approval_notice_completed -->
 <g id="edge5" class="edge">

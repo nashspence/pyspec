@@ -34,7 +34,7 @@ from .targets import (
     entry_point_schedule_expression,
     entry_target_pair,
 )
-from .type_expr import effective_field_type, type_display
+from .json_schema import effective_property_schema, schema_properties, type_display
 
 ROOT = Path(__file__).resolve().parent
 
@@ -83,10 +83,10 @@ _DOT_COLOR_MESSAGE_BORDER = "#be185d"
 _DOT_COLOR_MESSAGE_HEADER = "#fdf2f8"
 _DOT_COLOR_CONTEXT_BORDER = "#15803d"
 _DOT_COLOR_CONTEXT_HEADER = "#f0fdf4"
-_DOT_COLOR_MODEL_BORDER = "#15803d"
-_DOT_COLOR_MODEL_HEADER = "#f0fdfa"
-_DOT_COLOR_DATA_CONTRACT_BORDER = "#7c3aed"
-_DOT_COLOR_DATA_CONTRACT_HEADER = "#f5f3ff"
+_DOT_COLOR_ENTITY_TYPE_BORDER = "#15803d"
+_DOT_COLOR_ENTITY_TYPE_HEADER = "#f0fdfa"
+_DOT_COLOR_SCHEMA_BORDER = "#7c3aed"
+_DOT_COLOR_SCHEMA_HEADER = "#f5f3ff"
 _DOT_COLOR_POLICY_BORDER = "#c2410c"
 _DOT_COLOR_POLICY_HEADER = "#fff7ed"
 
@@ -112,8 +112,8 @@ _DOT_STYLE_STATE_MACHINE = _DotCardStyle(header_bg=_DOT_COLOR_STATE_MACHINE_HEAD
 _DOT_STYLE_WORKFLOW = _DotCardStyle(header_bg=_DOT_COLOR_WORKFLOW_HEADER, border=_DOT_COLOR_WORKFLOW_BORDER)
 _DOT_STYLE_MESSAGE = _DotCardStyle(header_bg=_DOT_COLOR_MESSAGE_HEADER, border=_DOT_COLOR_MESSAGE_BORDER)
 _DOT_STYLE_CONTEXT = _DotCardStyle(header_bg=_DOT_COLOR_CONTEXT_HEADER, border=_DOT_COLOR_CONTEXT_BORDER)
-_DOT_STYLE_MODEL = _DotCardStyle(header_bg=_DOT_COLOR_MODEL_HEADER, border=_DOT_COLOR_MODEL_BORDER)
-_DOT_STYLE_DATA_CONTRACT = _DotCardStyle(header_bg=_DOT_COLOR_DATA_CONTRACT_HEADER, border=_DOT_COLOR_DATA_CONTRACT_BORDER)
+_DOT_STYLE_ENTITY_TYPE = _DotCardStyle(header_bg=_DOT_COLOR_ENTITY_TYPE_HEADER, border=_DOT_COLOR_ENTITY_TYPE_BORDER)
+_DOT_STYLE_SCHEMA = _DotCardStyle(header_bg=_DOT_COLOR_SCHEMA_HEADER, border=_DOT_COLOR_SCHEMA_BORDER)
 _DOT_STYLE_POLICY = _DotCardStyle(header_bg=_DOT_COLOR_POLICY_HEADER, border=_DOT_COLOR_POLICY_BORDER)
 
 
@@ -595,8 +595,8 @@ def _audit_evidence_for_pointer(contract: dict[str, Any], pointer: str) -> list[
         return _authorization_policy_evidence_files(contract, owner)
     if parts[0] == "content_cases":
         return _content_case_evidence_files(contract, owner)
-    if parts[0] == "data_contracts":
-        return _data_contract_evidence_files(contract, owner)
+    if parts[0] == "schemas":
+        return _schema_evidence_files(contract, owner)
     if parts[0] == "entry_points":
         return _entry_point_evidence_files(contract, owner)
     if parts[0] == "domain_events":
@@ -671,7 +671,7 @@ _VISUAL_TEXT_REF_PREFIXES = (
     "asset.",
     "authorization_policy.",
     "cli_command.",
-    "data_contract.",
+    "schema.",
     "data_refresh_signal.",
     "entry_point.",
     "domain_event.",
@@ -820,12 +820,12 @@ def _authorization_policy_text_witness_tokens(contract: dict[str, Any], parts: l
             return []
         if "entity_lifecycle_state" in condition:
             body = condition["entity_lifecycle_state"]
-            tokens = [f"{type_display({'entity_type': body['entity_type']})}.{body['field']}"]
+            tokens = [f"{type_display({'$ref': body['entity_type']})}.{body['field']}"]
             if parts[-1] == "equals":
                 tokens.append(_format_scalar(value))
             return tokens
         if "entity_exists" in condition and isinstance(value, str):
-            return [f"{type_display({'entity_type': value})} exists"]
+            return [f"{type_display({'$ref': value})} exists"]
         if "input_present" in condition and isinstance(value, str):
             return ["input_present", value]
         if "subject_has_role" in condition and isinstance(value, str):
@@ -871,7 +871,7 @@ def _application_action_text_witness_tokens(contract: dict[str, Any], parts: lis
             return [parts[-1], value]
     if len(parts) >= 5 and parts[2] == "lifecycle_transition":
         lifecycle_transition = contract["application_actions"][parts[1]]["lifecycle_transition"]
-        field_token = f"{type_display({'entity_type': lifecycle_transition['entity_type']})}.{lifecycle_transition['field']}"
+        field_token = f"{type_display({'$ref': lifecycle_transition['entity_type']})}.{lifecycle_transition['field']}"
         tokens.append(field_token)
         if parts[-1] in {"from", "to"}:
             tokens.append(_format_scalar(value))
@@ -881,8 +881,8 @@ def _application_action_text_witness_tokens(contract: dict[str, Any], parts: lis
         outcome = contract["application_actions"][parts[1]]["outcomes"][outcome_id]
         if parts[-1] == "kind" and isinstance(value, str):
             return [outcome_id, value]
-        if parts[-2:] == ["result", "entity_type"] and isinstance(value, str):
-            return [outcome_id, type_display({"entity_type": value})]
+        if parts[-2:] == ["result", "$ref"] and isinstance(value, str):
+            return [outcome_id, type_display({"$ref": value})]
     tokens.extend(_type_leaf_text_witness_tokens(contract, parts))
     return tokens
 
@@ -904,7 +904,7 @@ def _workflow_text_witness_tokens(contract: dict[str, Any], parts: list[str], va
             outcome_id = parts[3]
             if parts[-1] == "kind":
                 tokens.extend([outcome_id, value])
-            elif parts[-2:] == ["result", "data_contract"]:
+            elif parts[-2:] == ["result", "schema"]:
                 tokens.extend([outcome_id, value])
         elif parts[-1] in {"complete_as", "fail_as", "dead_letter_as", "next_step"}:
             tokens.append(value)
@@ -935,26 +935,28 @@ def _entity_type_text_witness_tokens(contract: dict[str, Any], parts: list[str],
 
 
 def _type_leaf_text_witness_tokens(contract: dict[str, Any], parts: list[str]) -> list[str]:
-    if not parts or parts[-1] not in {"primitive", "entity_type", "data_contract", "array"}:
+    if not parts or parts[-1] not in {"$ref", "type", "items", "enum", "const", "format"}:
         return []
-    if parts[0] not in {"entry_points", "entity_types", "application_actions", "state_machines", "workflows"}:
+    if parts[0] not in {"entry_points", "entity_types", "schemas", "application_actions", "state_machines", "workflows"}:
         return []
     parent_parts = parts[:-1]
     try:
-        type_expr = _contract_value_at_parts(contract, parent_parts)
+        schema = _contract_value_at_parts(contract, parent_parts)
     except (KeyError, IndexError, TypeError, ValueError):
         return []
     field = _type_field_name(parts)
     if not field:
         return []
-    return [field, type_display(type_expr)]
+    return [field, type_display(schema)]
 
 
 def _type_field_name(parts: list[str]) -> str | None:
-    if len(parts) >= 5 and parts[0] == "entity_types" and parts[2] == "fields":
-        return parts[3]
-    if len(parts) >= 5 and parts[0] == "application_actions" and parts[2] == "input":
-        return parts[3]
+    if len(parts) >= 6 and parts[0] == "entity_types" and parts[2] == "schema" and "properties" in parts:
+        return _part_after(parts, "properties")
+    if len(parts) >= 6 and parts[0] == "application_actions" and parts[2] == "input" and "properties" in parts:
+        return _part_after(parts, "properties")
+    if len(parts) >= 6 and parts[0] == "schemas" and parts[2] == "schema" and "properties" in parts:
+        return _part_after(parts, "properties")
     if parts[0] == "entry_points":
         if "path_params" in parts:
             return _part_after(parts, "path_params")
@@ -978,7 +980,7 @@ def _type_field_name(parts: list[str]) -> str | None:
     if len(parts) >= 5 and parts[0] == "workflows" and parts[2] == "outcomes" and parts[4] == "result":
         return parts[3]
     if parts[0] == "state_machines" and "payload_schema" in parts:
-        return _part_after(parts, "payload_schema")
+        return _part_after(parts, "properties")
     return None
 
 
@@ -1073,21 +1075,21 @@ def _event_evidence_files(contract: dict[str, Any], event_id: str) -> list[str]:
     return files
 
 
-def _data_contract_evidence_files(contract: dict[str, Any], data_contract_id: str) -> list[str]:
-    if data_contract_id not in contract.get("data_contracts", {}):
+def _schema_evidence_files(contract: dict[str, Any], schema_id: str) -> list[str]:
+    if schema_id not in contract.get("schemas", {}):
         return []
     files: list[str] = []
     for event_id, event in sorted(contract.get("domain_events", {}).items()):
-        if _value_contains_string(event.get("payload_schema", {}), data_contract_id):
+        if _value_contains_string(event.get("payload_schema", {}), schema_id):
             files.extend(_event_evidence_files(contract, event_id))
     for application_action_id, operation in sorted(contract.get("application_actions", {}).items()):
-        if _value_contains_string(operation, data_contract_id):
+        if _value_contains_string(operation, schema_id):
             files.extend(_application_action_evidence_files(contract, application_action_id))
     for workflow_id, workflow in sorted(contract.get("workflows", {}).items()):
-        if _value_contains_string(workflow, data_contract_id):
+        if _value_contains_string(workflow, schema_id):
             files.extend(_workflow_evidence_files(contract, workflow_id))
     for entry_id, entry in sorted(contract.get("entry_points", {}).items()):
-        if _value_contains_string(entry, data_contract_id):
+        if _value_contains_string(entry, schema_id):
             files.extend(_entry_point_evidence_files(contract, entry_id))
     return files
 
@@ -1981,7 +1983,7 @@ def application_action_flow_dot(application_action_id: str, application_action: 
     if policy_id:
         lines.append(_dot_html_node(policy_node or "", _policy_reference_card(policy_id, contract, subtitle="authorization gate", include_targets=False)))
     for node_id, _, target_id, target_kind, sections in resource_nodes:
-        style = _DOT_STYLE_MODEL if target_kind == "entity_type" else _DOT_STYLE_DATA_CONTRACT
+        style = _DOT_STYLE_ENTITY_TYPE if target_kind == "entity_type" else _DOT_STYLE_SCHEMA
         lines.append(_dot_html_node(node_id, _dot_card(target_id, f"{target_kind} resource", sections, style=style)))
     for node_id, outcome_id, outcome in outcome_nodes:
         lines.append(_dot_html_node(node_id, _action_outcome_card(outcome_id, outcome)))
@@ -1998,7 +2000,7 @@ def application_action_flow_dot(application_action_id: str, application_action: 
     flow_tail = entry_node
     for node_id, action, _, target_kind, _ in resource_nodes:
         if flow_tail:
-            resource_color = _DOT_COLOR_MODEL_BORDER if target_kind == "entity_type" else _DOT_COLOR_DATA_CONTRACT_BORDER
+            resource_color = _DOT_COLOR_ENTITY_TYPE_BORDER if target_kind == "entity_type" else _DOT_COLOR_SCHEMA_BORDER
             lines.append(_dot_edge(flow_tail, node_id, {"label": action, "color": resource_color}))
         flow_tail = node_id
 
@@ -2044,12 +2046,13 @@ def _application_action_resource_nodes(
     seen: set[tuple[str, str, str]] = set()
     for action in ["creates", "reads", "updates", "deletes"]:
         for target_id in application_action.get(action, []):
-            target_kind = "entity_type" if target_id in contract.get("entity_types", {}) else "data_contract"
+            target_kind = "entity_type" if target_id in contract.get("entity_types", {}) else "schema"
             key = (action, target_kind, target_id)
             if key in seen:
                 continue
             seen.add(key)
-            fields = contract.get("entity_types", {}).get(target_id, contract.get("data_contracts", {}).get(target_id, {})).get("fields", {})
+            resource = contract.get("entity_types", {}).get(target_id, contract.get("schemas", {}).get(target_id, {}))
+            fields = schema_properties(resource.get("schema", {}))
             nodes.append((
                 _dot_node_id("application_action_resource", f"{application_action_id}_{action}_{target_id}"),
                 action,
@@ -2059,13 +2062,13 @@ def _application_action_resource_nodes(
             ))
     if application_action.get("lifecycle_transition"):
         lifecycle_transition = application_action["lifecycle_transition"]
-        field = contract["entity_types"][lifecycle_transition["entity_type"]]["fields"][lifecycle_transition["field"]]
+        field = schema_properties(contract["entity_types"][lifecycle_transition["entity_type"]]["schema"])[lifecycle_transition["field"]]
         nodes.append((
             _dot_node_id("application_action_resource", f"{application_action_id}_lifecycle_transition_{lifecycle_transition['entity_type']}_{lifecycle_transition['field']}"),
             "lifecycle_transition",
             lifecycle_transition["entity_type"],
             "entity_type",
-            [("change", [_DotTransitionField(f"{type_display({'entity_type': lifecycle_transition['entity_type']})}.{lifecycle_transition['field']}", effective_field_type(field), f"{lifecycle_transition['from']} {_DOT_ARROW_FORWARD} {lifecycle_transition['to']}")])],
+            [("change", [_DotTransitionField(f"{type_display({'$ref': lifecycle_transition['entity_type']})}.{lifecycle_transition['field']}", effective_property_schema(field), f"{lifecycle_transition['from']} {_DOT_ARROW_FORWARD} {lifecycle_transition['to']}")])],
         ))
     return nodes
 
@@ -2102,7 +2105,7 @@ def _policy_reference_card(
 
 
 def _schema_fields(fields: dict[str, Any]) -> list[_DotTypedField]:
-    return [_DotTypedField(name, effective_field_type(field)) for name, field in sorted(fields.items())]
+    return [_DotTypedField(name, effective_property_schema(field)) for name, field in sorted(schema_properties(fields).items())]
 
 
 def _entry_surface_title(entry: dict[str, Any]) -> str:
@@ -2535,8 +2538,8 @@ def _format_authorization_conditions(conditions: Iterable[dict[str, Any]]) -> li
     return lines
 
 
-def _typed_fields(fields: dict[str, str]) -> list[_DotTypedField]:
-    return [_DotTypedField(name, type_name) for name, type_name in sorted(fields.items())]
+def _typed_fields(fields: dict[str, Any]) -> list[_DotTypedField]:
+    return [_DotTypedField(name, type_name) for name, type_name in sorted(schema_properties(fields).items())]
 
 
 def _target_pair(target: dict[str, str]) -> tuple[str, str]:
@@ -2615,7 +2618,7 @@ def _emitted_local_signal_data_lines(
 
 def _sync_set_lines(rule: dict[str, Any], state_machine: dict[str, Any]) -> list[_DotTypedField]:
     lines = []
-    context = state_machine["context"]
+    context = schema_properties(state_machine["context"])
     for effect in rule.get("effects", []):
         assignment = effect.get("set")
         if not assignment:
@@ -2647,7 +2650,7 @@ def _local_signal_payload_for_instance(
 ) -> dict[str, str]:
     mount = mount_by_id[instance_id]
     state_machine = contract["state_machines"][mount["state_machine"]]
-    return state_machine["signals"][direction]["local_signals"][local_signal]["payload_schema"]
+    return schema_properties(state_machine["signals"][direction]["local_signals"][local_signal]["payload_schema"])
 
 
 def _emitting_transition_emits(
@@ -2801,8 +2804,6 @@ class _DotTransitionField:
 
 
 def _display_type(type_name: Any) -> Any:
-    if isinstance(type_name, dict) and "type" in type_name and "required" in type_name and "nullable" in type_name:
-        return effective_field_type(type_name)
     return type_name
 
 
@@ -3150,12 +3151,12 @@ def _state_field_data_bindings(state_machine: dict[str, Any], state_name: str, s
 
 
 def _format_state_fields(state_machine: dict[str, Any], state: dict[str, Any], contract: dict[str, Any]) -> list[_DotTypedField]:
-    entity_type_fields = contract["entity_types"][state_machine["entity_type"]]["fields"] if state_machine.get("entity_type") else {}
-    context_fields = state_machine.get("context", {})
+    entity_type_fields = schema_properties(contract["entity_types"][state_machine["entity_type"]]["schema"]) if state_machine.get("entity_type") else {}
+    context_fields = schema_properties(state_machine.get("context", {}))
     fields: list[_DotTypedField] = []
     for field in state["fields"]:
         if field in entity_type_fields:
-            fields.append(_DotTypedField(field, effective_field_type(entity_type_fields[field])))
+            fields.append(_DotTypedField(field, effective_property_schema(entity_type_fields[field])))
         elif field in context_fields:
             fields.append(_DotTypedField(field, context_fields[field]))
     return fields
@@ -3204,8 +3205,7 @@ def _format_data_inputs(
     seen: set[str] = set()
     for binding in bindings:
         operation = application_actions[binding["application_action"]]
-        for key in sorted(operation["input"]):
-            input_type = operation["input"][key]
+        for key, input_type in sorted(schema_properties(operation["input"]).items()):
             input_label = f"{binding.get('data_loader', binding['application_action'])}.{key}"
             signature = f"{input_label} {input_type}"
             if signature not in seen:
@@ -3260,16 +3260,17 @@ def _format_transition_effect_sections(state_machine: dict[str, Any], transition
         if "emit" in effect:
             emit = effect["emit"]
             sections.append(("emit", [_local_signal_label(emit["local_signal"])]))
-            payload_types = state_machine["signals"]["emits"]["local_signals"][emit["local_signal"]]["payload_schema"]
+            payload_types = schema_properties(state_machine["signals"]["emits"]["local_signals"][emit["local_signal"]]["payload_schema"])
             payload = _format_typed_data_flow(emit.get("payload_bindings", {}), payload_types)
             if payload:
                 sections.append(("payload", payload))
         elif "set" in effect:
             assignment = effect["set"]
             target = assignment["context"]
+            context = schema_properties(state_machine["context"])
             sections.append((
                 "set",
-                [_format_typed_flow_assignment(target, state_machine["context"][target], _assignment_value(assignment), identity_scope=None)],
+                [_format_typed_flow_assignment(target, context[target], _assignment_value(assignment), identity_scope=None)],
             ))
     return sections
 
@@ -3591,7 +3592,7 @@ def state_machine_model(contract: dict[str, Any], state_machine: dict[str, Any])
 
 
 def state_machine_owner_context(contract: dict[str, Any], state_machine: dict[str, Any]) -> dict[str, Any]:
-    return contract["state_machines"][state_machine["owner"]].get("context", {})
+    return schema_properties(contract["state_machines"][state_machine["owner"]].get("context", {}))
 
 
 def _resolved_case_context(contract: dict[str, Any], case: dict[str, Any], namespace: dict[str, Any]) -> dict[str, Any]:

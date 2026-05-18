@@ -1,6 +1,6 @@
 <svg width="579pt" height="226pt"
  viewBox="0.00 0.00 579.00 226.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 5e20d6dab5e93b4d874e7bd8ecf2cbd4d723639cff8b79c06376225a2368d1f7 -->
+<!-- pyspec-contract-input-sha256: 3eb4a9835ac99f4834e23e998fcfaed4a3c633375ab7d1e583e24a1cc1bfab89 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 208)">
 <title>entrypoint_entry_point_cli_project_board</title>
 <!-- entrypoint_entry_point_cli_project_board -->
@@ -16,7 +16,7 @@
 <text text-anchor="start" x="70.5" y="-79" font-family="Arial" font-size="10.00">  cli_command.project.board</text>
 <text text-anchor="start" x="5.5" y="-59" font-family="Arial" font-weight="bold" font-size="10.00">args</text>
 <text text-anchor="start" x="5.5" y="-48" font-family="Arial" font-size="10.00">workspace_id</text>
-<text text-anchor="start" x="66.5" y="-48" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<text text-anchor="start" x="66.5" y="-48" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
 <polygon fill="none" stroke="#0891b2" points="0,-39.5 0,-150.5 201,-150.5 201,-39.5 0,-39.5"/>
 </g>
 <!-- entrypoint_target_state_machine_project_board -->
@@ -32,7 +32,7 @@
 <text text-anchor="start" x="267.5" y="-117" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">selected&#45;project context.</text>
 <text text-anchor="start" x="268.5" y="-97" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
 <text text-anchor="start" x="296.5" y="-97" font-family="Arial" font-size="10.00">  list_board.workspace_id</text>
-<text text-anchor="start" x="408.5" y="-97" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<text text-anchor="start" x="408.5" y="-97" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
 <text text-anchor="start" x="268.5" y="-85" font-family="Arial" font-weight="bold" font-size="10.00">data_loaders:</text>
 <text text-anchor="start" x="331.5" y="-85" font-family="Arial" font-size="10.00">  list_board</text>
 <text text-anchor="start" x="268.5" y="-73" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>

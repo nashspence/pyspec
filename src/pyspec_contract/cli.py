@@ -18,17 +18,17 @@ MINIMAL_SPEC = """project: new_product_spec
 entity_types:
   entity_type.item:
     name: Item
-    fields:
-      id:
-        type:
-          primitive: ID
-        required: true
-        nullable: false
-      title:
-        type:
-          primitive: Text
-        required: true
-        nullable: false
+    schema:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+      required:
+      - id
+      - title
+      additionalProperties: false
     rationale: Item is the first product concept in this specification.
 """
 

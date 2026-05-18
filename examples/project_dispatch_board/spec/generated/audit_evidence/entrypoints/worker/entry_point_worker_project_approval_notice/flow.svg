@@ -1,6 +1,6 @@
 <svg width="766pt" height="221pt"
  viewBox="0.00 0.00 766.00 221.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: e40cd3f80b4193f02d88d0bb08ff7ab71ceb552198a875c0977aac0ead82673e -->
+<!-- pyspec-contract-input-sha256: 71fc392511685a0c547d4eee8084d0e4eb0881ace9fe7284e549c882a574098d -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 203)">
 <title>entrypoint_entry_point_worker_project_approval_notice</title>
 <!-- entrypoint_entry_point_worker_project_approval_notice -->
@@ -17,7 +17,7 @@
 <text text-anchor="start" x="52" y="-68" font-family="Arial" font-size="10.00">  workflow.project.approval_notice</text>
 <text text-anchor="start" x="6" y="-56" font-family="Arial" font-weight="bold" font-size="10.00">payload:</text>
 <text text-anchor="start" x="46" y="-56" font-family="Arial" font-size="10.00">  payload</text>
-<text text-anchor="start" x="86" y="-56" font-family="Arial" font-size="8.00" fill="#94a3b8">  data_contract.project.approved</text>
+<text text-anchor="start" x="86" y="-56" font-family="Arial" font-size="8.00" fill="#94a3b8">  schema.project.approved</text>
 <polygon fill="none" stroke="#0891b2" points="0,-46 0,-150 224,-150 224,-46 0,-46"/>
 </g>
 <!-- entrypoint_target_workflow_project_approval_notice -->
@@ -36,8 +36,8 @@
 <text text-anchor="start" x="290" y="-82" font-family="Arial" font-size="10.00">  application_action.project.send_approval_notice</text>
 <text text-anchor="start" x="290" y="-64" font-family="Arial" font-weight="bold" font-size="10.00">outcomes</text>
 <text text-anchor="start" x="290" y="-53" font-family="Arial" font-size="10.00">completed</text>
-<text text-anchor="start" x="336" y="-53" font-family="Arial" font-size="8.00" fill="#94a3b8">  data_contract.project.notice_result</text>
-<text text-anchor="start" x="463" y="-53" font-family="Arial" font-size="8.00"> ← success</text>
+<text text-anchor="start" x="336" y="-53" font-family="Arial" font-size="8.00" fill="#94a3b8">  schema.project.notice_result</text>
+<text text-anchor="start" x="442" y="-53" font-family="Arial" font-size="8.00"> ← success</text>
 <text text-anchor="start" x="290" y="-42" font-family="Arial" font-size="10.00">delivery_failed</text>
 <text text-anchor="start" x="353" y="-42" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
 <text text-anchor="start" x="388" y="-42" font-family="Arial" font-size="8.00"> ← failure</text>

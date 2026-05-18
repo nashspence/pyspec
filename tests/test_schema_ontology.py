@@ -21,7 +21,7 @@ COLLECTION_SECTIONS = {
     "fixtures": "fixture",
     "state_machines": "state_machine",
     "entity_types": "entity_type",
-    "data_contracts": "data_contract",
+    "schemas": "schema",
     "authorization_policies": "authorization_policy",
     "test_cases": "test_case",
     "workflows": "workflow",
@@ -80,7 +80,7 @@ def test_compiled_schema_uses_item_defs_for_compiled_collections() -> None:
     defs = schema["$defs"]
     legacy = sorted(name for name in defs if name.endswith(("_author", "_spec")))
     assert legacy == []
-    assert sorted(name for name in defs if name in COLLECTION_SECTIONS.values()) == []
+    assert sorted(name for name in defs if name in COLLECTION_SECTIONS.values() and name != "schema") == []
 
     refs = _definition_refs(schema)
     assert sorted(refs - set(defs)) == []

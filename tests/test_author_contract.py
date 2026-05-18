@@ -13,8 +13,14 @@ from tests.helpers import EXAMPLE_ROOT
 ROOT = EXAMPLE_ROOT
 
 
-def P(name: str) -> dict[str, str]:
-    return {"primitive": name}
+SCHEMA_ALIASES = {
+    "ID": {"type": "string"},
+    "Text": {"type": "string"},
+}
+
+
+def P(name: str) -> dict[str, object]:
+    return copy.deepcopy(SCHEMA_ALIASES[name])
 
 
 def ET(name: str) -> str:
@@ -23,8 +29,22 @@ def ET(name: str) -> str:
     return "entity_type." + name.lower()
 
 
-def F(type_expr: dict, *, required: bool = True, nullable: bool = False) -> dict:
-    return {"type": type_expr, "required": required, "nullable": nullable}
+def F(schema: dict, *, required: bool = True, allow_null: bool = False) -> dict:
+    schema = copy.deepcopy(schema)
+    if allow_null:
+        type_value = schema.get("type")
+        if isinstance(type_value, str):
+            schema["type"] = sorted({type_value, "null"})
+    return schema
+
+
+def O(fields: dict[str, dict], *, required: list[str] | None = None) -> dict:
+    return {
+        "type": "object",
+        "properties": fields,
+        "required": sorted(fields if required is None else required),
+        "additionalProperties": False,
+    }
 
 
 def test_author_contract_schema_validates() -> None:
@@ -43,13 +63,14 @@ def test_author_data_loaders_must_be_non_empty_when_present() -> None:
         validate_against_schema(author, "author.schema.json")
 
 
-def test_author_state_machine_context_uses_explicit_field_schema() -> None:
+def test_author_state_machine_context_uses_json_schema_properties() -> None:
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
     author["state_machines"]["state_machine.project.list"]["context"]["workspace_id"] = P("ID")
     with pytest.raises(ContractError, match="Schema validation failed"):
         validate_against_schema(author, "author.schema.json")
 
-    author["state_machines"]["state_machine.project.list"]["context"]["workspace_id"] = F(P("ID"))
+    author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+    author["state_machines"]["state_machine.project.list"]["context"]["properties"]["workspace_id"] = P("ID")
     validate_against_schema(author, "author.schema.json")
 
 
@@ -119,12 +140,12 @@ def test_author_contract_can_be_minimal_and_renderer_invisible() -> None:
             ET("Project"): {
                 "name": "Project",
                 "rationale": "Minimal product entity_type for an API-free contract.",
-                "fields": {"id": F(P("ID")), "title": F(P("Text"))},
+                "schema": O({"id": P("ID"), "title": P("Text")}),
             }
         },
     }
     contract = compile_source(author, layers={"core"})
-    assert contract["entity_types"][ET("Project")]["fields"]["title"] == F(P("Text"))
+    assert contract["entity_types"][ET("Project")]["schema"]["properties"]["title"] == P("Text")
     assert contract["state_machines"] == {}
     assert contract["entry_points"] == {}
     assert contract["refs"] == {}

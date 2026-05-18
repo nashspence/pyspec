@@ -8,10 +8,16 @@ application_actions:
     creates: []
     deletes: []
     input:
-      approved_by:
-        primitive: ID
-      project_id:
-        primitive: ID
+      additionalProperties: false
+      properties:
+        approved_by:
+          type: string
+        project_id:
+          type: string
+      required:
+      - approved_by
+      - project_id
+      type: object
     lifecycle_transition:
       entity_type: entity_type.project
       field: status
@@ -28,32 +34,32 @@ application_actions:
               from: $input.project_id
         kind: success
         result:
-          entity_type: entity_type.project
+          $ref: entity_type.project
       forbidden:
         emits: []
         kind: failure
         result:
-          entity_type: entity_type.problem
+          $ref: entity_type.problem
       not_found:
         emits: []
         kind: failure
         result:
-          entity_type: entity_type.problem
+          $ref: entity_type.problem
       transition_not_allowed:
         emits: []
         kind: failure
         result:
-          entity_type: entity_type.problem
+          $ref: entity_type.problem
       unauthenticated:
         emits: []
         kind: failure
         result:
-          entity_type: entity_type.problem
+          $ref: entity_type.problem
       unavailable:
         emits: []
         kind: failure
         result:
-          entity_type: entity_type.problem
+          $ref: entity_type.problem
     rationale: Reviewers can approve submitted dispatch projects.
     reads: []
     retry_safe: true
@@ -67,8 +73,13 @@ application_actions:
     creates: []
     deletes: []
     input:
-      project_id:
-        primitive: ID
+      additionalProperties: false
+      properties:
+        project_id:
+          type: string
+      required:
+      - project_id
+      type: object
     lifecycle_transition:
       entity_type: entity_type.project
       field: status
@@ -81,27 +92,27 @@ application_actions:
           payload_source: $outcome.result
         kind: success
         result:
-          entity_type: entity_type.project
+          $ref: entity_type.project
       forbidden:
         emits: []
         kind: failure
         result:
-          entity_type: entity_type.problem
+          $ref: entity_type.problem
       not_found:
         emits: []
         kind: failure
         result:
-          entity_type: entity_type.problem
+          $ref: entity_type.problem
       transition_not_allowed:
         emits: []
         kind: failure
         result:
-          entity_type: entity_type.problem
+          $ref: entity_type.problem
       unauthenticated:
         emits: []
         kind: failure
         result:
-          entity_type: entity_type.problem
+          $ref: entity_type.problem
     rationale: Approved dispatch projects can be archived.
     reads: []
     updates: []
@@ -115,14 +126,22 @@ application_actions:
     - entity_type.project
     deletes: []
     input:
-      customer:
-        primitive: Text
-      priority:
-        primitive: Text
-      title:
-        primitive: Text
-      workspace_id:
-        primitive: ID
+      additionalProperties: false
+      properties:
+        customer:
+          type: string
+        priority:
+          type: string
+        title:
+          type: string
+        workspace_id:
+          type: string
+      required:
+      - customer
+      - priority
+      - title
+      - workspace_id
+      type: object
     outcomes:
       created:
         emits:
@@ -130,22 +149,22 @@ application_actions:
           payload_source: $outcome.result
         kind: success
         result:
-          entity_type: entity_type.project
+          $ref: entity_type.project
       forbidden:
         emits: []
         kind: failure
         result:
-          entity_type: entity_type.problem
+          $ref: entity_type.problem
       unauthenticated:
         emits: []
         kind: failure
         result:
-          entity_type: entity_type.problem
+          $ref: entity_type.problem
       validation_failed:
         emits: []
         kind: failure
         result:
-          entity_type: entity_type.problem
+          $ref: entity_type.problem
     rationale: Members can create a new dispatch project.
     reads: []
     updates: []
@@ -158,30 +177,36 @@ application_actions:
     creates: []
     deletes: []
     input:
-      workspace_id:
-        primitive: ID
+      additionalProperties: false
+      properties:
+        workspace_id:
+          type: string
+      required:
+      - workspace_id
+      type: object
     outcomes:
       forbidden:
         emits: []
         kind: failure
         result:
-          entity_type: entity_type.problem
+          $ref: entity_type.problem
       listed:
         emits: []
         kind: success
         result:
-          array:
-            entity_type: entity_type.project
+          items:
+            $ref: entity_type.project
+          type: array
       unauthenticated:
         emits: []
         kind: failure
         result:
-          entity_type: entity_type.problem
+          $ref: entity_type.problem
       unavailable:
         emits: []
         kind: failure
         result:
-          entity_type: entity_type.problem
+          $ref: entity_type.problem
     rationale: The board requires a project list query scoped by workspace.
     reads:
     - entity_type.project
@@ -195,29 +220,34 @@ application_actions:
     creates: []
     deletes: []
     input:
-      project_id:
-        primitive: ID
+      additionalProperties: false
+      properties:
+        project_id:
+          type: string
+      required:
+      - project_id
+      type: object
     outcomes:
       forbidden:
         emits: []
         kind: failure
         result:
-          entity_type: entity_type.problem
+          $ref: entity_type.problem
       found:
         emits: []
         kind: success
         result:
-          entity_type: entity_type.project
+          $ref: entity_type.project
       not_found:
         emits: []
         kind: failure
         result:
-          entity_type: entity_type.problem
+          $ref: entity_type.problem
       unauthenticated:
         emits: []
         kind: failure
         result:
-          entity_type: entity_type.problem
+          $ref: entity_type.problem
     rationale: The detail state machine loads the selected project by id.
     reads:
     - entity_type.project
@@ -231,31 +261,37 @@ application_actions:
     creates: []
     deletes: []
     input:
-      approved_by:
-        primitive: ID
-      project_id:
-        primitive: ID
+      additionalProperties: false
+      properties:
+        approved_by:
+          type: string
+        project_id:
+          type: string
+      required:
+      - approved_by
+      - project_id
+      type: object
     outcomes:
       delivery_failed:
         emits: []
         kind: failure
         result:
-          entity_type: entity_type.problem
+          $ref: entity_type.problem
       forbidden:
         emits: []
         kind: failure
         result:
-          entity_type: entity_type.problem
+          $ref: entity_type.problem
       sent:
         emits: []
         kind: success
         result:
-          data_contract: data_contract.project.notice_result
+          $ref: schema.project.notice_result
       unauthenticated:
         emits: []
         kind: failure
         result:
-          entity_type: entity_type.problem
+          $ref: entity_type.problem
     rationale: Approval triggers a notification command for downstream coordination.
     reads: []
     retry_safe: true
@@ -269,8 +305,13 @@ application_actions:
     creates: []
     deletes: []
     input:
-      project_id:
-        primitive: ID
+      additionalProperties: false
+      properties:
+        project_id:
+          type: string
+      required:
+      - project_id
+      type: object
     lifecycle_transition:
       entity_type: entity_type.project
       field: status
@@ -281,29 +322,29 @@ application_actions:
         emits: []
         kind: failure
         result:
-          entity_type: entity_type.problem
+          $ref: entity_type.problem
       not_found:
         emits: []
         kind: failure
         result:
-          entity_type: entity_type.problem
+          $ref: entity_type.problem
       submitted:
         emits:
         - domain_event: domain_event.project.submitted
           payload_source: $outcome.result
         kind: success
         result:
-          entity_type: entity_type.project
+          $ref: entity_type.project
       transition_not_allowed:
         emits: []
         kind: failure
         result:
-          entity_type: entity_type.problem
+          $ref: entity_type.problem
       unauthenticated:
         emits: []
         kind: failure
         result:
-          entity_type: entity_type.problem
+          $ref: entity_type.problem
     rationale: Draft dispatch projects can be submitted for review.
     reads: []
     updates: []
@@ -311,7 +352,7 @@ assets:
   asset.project.detail.ready.priority_badge:
     args:
       priority:
-        primitive: Text
+        type: string
     asset_role: badge
     media_kind: icon
     placeholder:
@@ -370,74 +411,47 @@ content_cases:
         value: High
     rationale: Exercise final dynamic priority badge asset.
     ref: asset.project.detail.ready.priority_badge
-data_contracts:
-  data_contract.project.approved:
-    fields:
-      approved_by:
-        nullable: false
-        required: true
-        type:
-          primitive: ID
-      project_id:
-        nullable: false
-        required: true
-        type:
-          primitive: ID
-    rationale: Approval domain events carry only the integration payload required by downstream workflows.
-  data_contract.project.notice_result:
-    fields:
-      notice_id:
-        nullable: false
-        required: true
-        type:
-          primitive: ID
-      queued_at:
-        nullable: false
-        required: true
-        type:
-          primitive: Timestamp
-    rationale: Approval notice commands return a transient delivery receipt rather than a durable product entity_type.
 domain_events:
   domain_event.project.approved:
     emitted_by:
     - application_action.project.approve
     payload_schema:
-      data_contract: data_contract.project.approved
+      $ref: schema.project.approved
     rationale: Approval domain events carry the reviewer and project identity needed by notification workflows.
   domain_event.project.archived:
     emitted_by:
     - application_action.project.archive
     payload_schema:
-      entity_type: entity_type.project
+      $ref: entity_type.project
     rationale: Approved dispatch projects can be archived.
   domain_event.project.created:
     emitted_by:
     - application_action.project.create
     payload_schema:
-      entity_type: entity_type.project
+      $ref: entity_type.project
     rationale: Members can create a new dispatch project.
   domain_event.project.submitted:
     emitted_by:
     - application_action.project.submit
     payload_schema:
-      entity_type: entity_type.project
+      $ref: entity_type.project
     rationale: Draft dispatch projects can be submitted for review.
 entity_types:
   entity_type.problem:
     entity_lifecycle: null
-    fields:
-      code:
-        nullable: false
-        required: true
-        type:
-          primitive: Text
-      message:
-        nullable: false
-        required: true
-        type:
-          primitive: Text
     name: Problem
     rationale: A structured problem result explains intentional failure outcomes across API and CLI surfaces.
+    schema:
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+      required:
+      - code
+      - message
+      type: object
   entity_type.project:
     entity_lifecycle:
       field: status
@@ -457,63 +471,50 @@ entity_types:
       - from: approved
         to: archived
         triggered_by: application_action.project.archive
-    fields:
-      assignee:
-        nullable: false
-        required: true
-        type:
-          primitive: Text
-      created_at:
-        nullable: false
-        required: true
-        type:
-          primitive: Timestamp
-      customer:
-        nullable: false
-        required: true
-        type:
-          primitive: Text
-      id:
-        nullable: false
-        required: true
-        type:
-          primitive: ID
-      priority:
-        nullable: false
-        required: true
-        type:
-          primitive: Text
-      status:
-        nullable: false
-        required: true
-        type:
+    name: Project
+    rationale: A dispatch project is the durable work item displayed and acted on by the board.
+    schema:
+      additionalProperties: false
+      properties:
+        assignee:
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        customer:
+          type: string
+        id:
+          type: string
+        priority:
+          type: string
+        status:
           enum:
           - draft
           - submitted
           - approved
           - archived
-      summary:
-        nullable: false
-        required: true
-        type:
-          primitive: Text
-      title:
-        nullable: false
-        required: true
-        type:
-          primitive: Text
-      updated_at:
-        nullable: false
-        required: true
-        type:
-          primitive: Timestamp
-      workspace_id:
-        nullable: false
-        required: true
-        type:
-          primitive: ID
-    name: Project
-    rationale: A dispatch project is the durable work item displayed and acted on by the board.
+          type: string
+        summary:
+          type: string
+        title:
+          type: string
+        updated_at:
+          format: date-time
+          type: string
+        workspace_id:
+          type: string
+      required:
+      - assignee
+      - created_at
+      - customer
+      - id
+      - priority
+      - status
+      - summary
+      - title
+      - updated_at
+      - workspace_id
+      type: object
 entry_points:
   entry_point.api.project.approve:
     adapter:
@@ -521,10 +522,10 @@ entry_points:
         input:
           body:
             approved_by:
-              primitive: ID
+              type: string
           path_params:
             project_id:
-              primitive: ID
+              type: string
         method: POST
         path: /projects/{project_id}/approve
         responses:
@@ -532,37 +533,37 @@ entry_points:
             body:
               from: $outcome.result
               type:
-                entity_type: entity_type.project
+                $ref: entity_type.project
             status: 200
           forbidden:
             body:
               from: $outcome.result
               type:
-                entity_type: entity_type.problem
+                $ref: entity_type.problem
             status: 403
           not_found:
             body:
               from: $outcome.result
               type:
-                entity_type: entity_type.problem
+                $ref: entity_type.problem
             status: 404
           transition_not_allowed:
             body:
               from: $outcome.result
               type:
-                entity_type: entity_type.problem
+                $ref: entity_type.problem
             status: 409
           unauthenticated:
             body:
               from: $outcome.result
               type:
-                entity_type: entity_type.problem
+                $ref: entity_type.problem
             status: 401
           unavailable:
             body:
               from: $outcome.result
               type:
-                entity_type: entity_type.problem
+                $ref: entity_type.problem
             status: 503
     authorization_policy: authorization_policy.project.reviewer
     endpoint: endpoint.project.approve
@@ -582,14 +583,14 @@ entry_points:
         input:
           body:
             customer:
-              primitive: Text
+              type: string
             priority:
-              primitive: Text
+              type: string
             title:
-              primitive: Text
+              type: string
           path_params:
             workspace_id:
-              primitive: ID
+              type: string
         method: POST
         path: /workspaces/{workspace_id}/projects
         responses:
@@ -597,25 +598,25 @@ entry_points:
             body:
               from: $outcome.result
               type:
-                entity_type: entity_type.project
+                $ref: entity_type.project
             status: 201
           forbidden:
             body:
               from: $outcome.result
               type:
-                entity_type: entity_type.problem
+                $ref: entity_type.problem
             status: 403
           unauthenticated:
             body:
               from: $outcome.result
               type:
-                entity_type: entity_type.problem
+                $ref: entity_type.problem
             status: 401
           validation_failed:
             body:
               from: $outcome.result
               type:
-                entity_type: entity_type.problem
+                $ref: entity_type.problem
             status: 422
     authorization_policy: authorization_policy.project.member
     endpoint: endpoint.project.create
@@ -638,7 +639,7 @@ entry_points:
         input:
           path_params:
             workspace_id:
-              primitive: ID
+              type: string
         method: GET
         path: /workspaces/{workspace_id}/projects
         responses:
@@ -646,26 +647,27 @@ entry_points:
             body:
               from: $outcome.result
               type:
-                entity_type: entity_type.problem
+                $ref: entity_type.problem
             status: 403
           listed:
             body:
               from: $outcome.result
               type:
-                array:
-                  entity_type: entity_type.project
+                items:
+                  $ref: entity_type.project
+                type: array
             status: 200
           unauthenticated:
             body:
               from: $outcome.result
               type:
-                entity_type: entity_type.problem
+                $ref: entity_type.problem
             status: 401
           unavailable:
             body:
               from: $outcome.result
               type:
-                entity_type: entity_type.problem
+                $ref: entity_type.problem
             status: 503
     authorization_policy: authorization_policy.project.member
     endpoint: endpoint.project.list
@@ -683,9 +685,9 @@ entry_points:
         input:
           args:
             approved_by:
-              primitive: ID
+              type: string
             project_id:
-              primitive: ID
+              type: string
         response_handlers:
           approved:
             exit_code: 0
@@ -748,7 +750,7 @@ entry_points:
         input:
           args:
             workspace_id:
-              primitive: ID
+              type: string
     cli_command_ref: cli_command.project.board
     rationale: CLI launcher for the Textual dispatch board.
     target:
@@ -764,7 +766,7 @@ entry_points:
         input:
           path_params:
             workspace_id:
-              primitive: ID
+              type: string
         path: /workspaces/{workspace_id}/dispatch
     rationale: HTML entry for the dispatch board.
     route: route.project.board
@@ -784,10 +786,10 @@ entry_points:
           malformed:
             disposition: dead_letter
             problem:
-              entity_type: entity_type.problem
+              $ref: entity_type.problem
         input:
           payload:
-            data_contract: data_contract.project.approved
+            $ref: schema.project.approved
     rationale: Worker entry exposing the approval notice workflow.
     target:
       workflow:
@@ -1056,14 +1058,45 @@ render_profiles:
       wide:
         columns: 120
         rows: 36
+schemas:
+  schema.project.approved:
+    rationale: Approval domain events carry only the integration payload required by downstream workflows.
+    schema:
+      additionalProperties: false
+      properties:
+        approved_by:
+          type: string
+        project_id:
+          type: string
+      required:
+      - approved_by
+      - project_id
+      type: object
+  schema.project.notice_result:
+    rationale: Approval notice commands return a transient delivery receipt rather than a durable product entity_type.
+    schema:
+      additionalProperties: false
+      properties:
+        notice_id:
+          type: string
+        queued_at:
+          format: date-time
+          type: string
+      required:
+      - notice_id
+      - queued_at
+      type: object
 state_machines:
   state_machine.project.activity:
     context:
-      project_id:
-        nullable: true
-        required: false
-        type:
-          primitive: ID
+      additionalProperties: false
+      properties:
+        project_id:
+          type:
+          - 'null'
+          - string
+      required: []
+      type: object
     data_loaders: {}
     entity_type: entity_type.project
     initial_view_state: empty
@@ -1074,10 +1107,19 @@ state_machines:
         local_signals:
           selection_changed:
             payload_schema:
-              project_id:
-                primitive: ID
+              additionalProperties: false
+              properties:
+                project_id:
+                  type: string
+              required:
+              - project_id
+              type: object
           selection_cleared:
-            payload_schema: {}
+            payload_schema:
+              additionalProperties: false
+              properties: {}
+              required: []
+              type: object
       emits:
         local_signals: {}
     transitions:
@@ -1144,16 +1186,17 @@ state_machines:
   state_machine.project.board:
     archetype: dashboard
     context:
-      selected_project_id:
-        nullable: true
-        required: false
-        type:
-          primitive: ID
-      workspace_id:
-        nullable: false
-        required: true
-        type:
-          primitive: ID
+      additionalProperties: false
+      properties:
+        selected_project_id:
+          type:
+          - 'null'
+          - string
+        workspace_id:
+          type: string
+      required:
+      - workspace_id
+      type: object
     data_loaders:
       list_board:
         application_action: application_action.project.list
@@ -1370,11 +1413,14 @@ state_machines:
         text: []
   state_machine.project.detail:
     context:
-      project_id:
-        nullable: true
-        required: false
-        type:
-          primitive: ID
+      additionalProperties: false
+      properties:
+        project_id:
+          type:
+          - 'null'
+          - string
+      required: []
+      type: object
     data_loaders: {}
     entity_type: entity_type.project
     initial_view_state: none
@@ -1383,22 +1429,48 @@ state_machines:
       accepts:
         data_refresh_signals:
           project_changed:
-            payload_schema: {}
+            payload_schema:
+              additionalProperties: false
+              properties: {}
+              required: []
+              type: object
           project_load_failed:
-            payload_schema: {}
+            payload_schema:
+              additionalProperties: false
+              properties: {}
+              required: []
+              type: object
           project_loaded:
-            payload_schema: {}
+            payload_schema:
+              additionalProperties: false
+              properties: {}
+              required: []
+              type: object
         local_signals:
           selection_changed:
             payload_schema:
-              project_id:
-                primitive: ID
+              additionalProperties: false
+              properties:
+                project_id:
+                  type: string
+              required:
+              - project_id
+              type: object
           selection_cleared:
-            payload_schema: {}
+            payload_schema:
+              additionalProperties: false
+              properties: {}
+              required: []
+              type: object
           show_transition_not_allowed:
             payload_schema:
-              message:
-                primitive: Text
+              additionalProperties: false
+              properties:
+                message:
+                  type: string
+              required:
+              - message
+              type: object
       emits:
         local_signals: {}
     transitions:
@@ -1600,16 +1672,17 @@ state_machines:
         - text.project.detail.ready.heading
   state_machine.project.list:
     context:
-      selected_project_id:
-        nullable: true
-        required: false
-        type:
-          primitive: ID
-      workspace_id:
-        nullable: false
-        required: true
-        type:
-          primitive: ID
+      additionalProperties: false
+      properties:
+        selected_project_id:
+          type:
+          - 'null'
+          - string
+        workspace_id:
+          type: string
+      required:
+      - workspace_id
+      type: object
     data_loaders:
       list_projects:
         application_action: application_action.project.list
@@ -1662,28 +1735,59 @@ state_machines:
       accepts:
         data_refresh_signals:
           project_collection_empty:
-            payload_schema: {}
+            payload_schema:
+              additionalProperties: false
+              properties: {}
+              required: []
+              type: object
           project_list_failed:
-            payload_schema: {}
+            payload_schema:
+              additionalProperties: false
+              properties: {}
+              required: []
+              type: object
           projects_changed:
-            payload_schema: {}
+            payload_schema:
+              additionalProperties: false
+              properties: {}
+              required: []
+              type: object
           projects_loaded:
-            payload_schema: {}
+            payload_schema:
+              additionalProperties: false
+              properties: {}
+              required: []
+              type: object
         local_signals:
           project_select:
             payload_schema:
-              project_id:
-                primitive: ID
+              additionalProperties: false
+              properties:
+                project_id:
+                  type: string
+              required:
+              - project_id
+              type: object
           show_transition_not_allowed:
             payload_schema:
-              message:
-                primitive: Text
+              additionalProperties: false
+              properties:
+                message:
+                  type: string
+              required:
+              - message
+              type: object
       emits:
         local_signals:
           project_selected:
             payload_schema:
-              project_id:
-                primitive: ID
+              additionalProperties: false
+              properties:
+                project_id:
+                  type: string
+              required:
+              - project_id
+              type: object
     transitions:
     - from: loading
       on:
@@ -2501,7 +2605,7 @@ text_resources:
   text.project.approve.forbidden:
     args:
       message:
-        primitive: Text
+        type: string
     intent: error
     max_chars: 120
     placeholder: 'Approval is forbidden: {message}'
@@ -2509,7 +2613,7 @@ text_resources:
   text.project.approve.not_found:
     args:
       message:
-        primitive: Text
+        type: string
     intent: error
     max_chars: 120
     placeholder: 'Cannot approve project: {message}'
@@ -2517,7 +2621,7 @@ text_resources:
   text.project.approve.success:
     args:
       project_id:
-        primitive: ID
+        type: string
     intent: success
     max_chars: 120
     placeholder: Approved project {project_id}
@@ -2525,7 +2629,7 @@ text_resources:
   text.project.approve.transition_not_allowed:
     args:
       message:
-        primitive: Text
+        type: string
     intent: error
     max_chars: 120
     placeholder: 'Cannot approve project: {message}'
@@ -2533,7 +2637,7 @@ text_resources:
   text.project.approve.unauthenticated:
     args:
       message:
-        primitive: Text
+        type: string
     intent: error
     max_chars: 120
     placeholder: 'Sign in before approving: {message}'
@@ -2571,9 +2675,9 @@ text_resources:
   text.project.detail.ready.heading:
     args:
       customer:
-        primitive: Text
+        type: string
       title:
-        primitive: Text
+        type: string
     intent: neutral
     max_chars: 80
     placeholder: Project detail
@@ -2615,19 +2719,19 @@ workflows:
       completed:
         kind: success
         result:
-          data_contract: data_contract.project.notice_result
+          $ref: schema.project.notice_result
       delivery_failed:
         kind: failure
         result:
-          entity_type: entity_type.problem
+          $ref: entity_type.problem
       notice_forbidden:
         kind: failure
         result:
-          entity_type: entity_type.problem
+          $ref: entity_type.problem
       notice_unauthenticated:
         kind: failure
         result:
-          entity_type: entity_type.problem
+          $ref: entity_type.problem
     rationale: Approval domain event sends a downstream notice.
     ref: workflow.project.approval_notice
     steps:

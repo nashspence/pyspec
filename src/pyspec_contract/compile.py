@@ -46,24 +46,30 @@ from .targets import (
     entry_target_pair,
     entry_workflow_trigger_bindings,
 )
-from .type_expr import (
-    TypeExpressionError,
+from .json_schema import (
+    EMPTY_OBJECT_SCHEMA,
+    SchemaExpressionError,
     array_of,
     base_entity_type_id,
     dereference_type,
-    effective_field_type,
+    effective_property_schema,
     entity_type_display_name,
     is_array_of_entity_type,
     is_problem_type,
-    literal_type_expr,
-    normalize_field_map,
-    normalize_type_expr,
-    normalize_type_map,
+    literal_schema,
+    normalize_property_map,
+    normalize_object_json_schema,
+    normalize_schema,
+    schema_property_required,
+    schema_properties,
+    schema_required,
+    normalize_schema_map,
     entity_type_id,
     object_fields_for_type,
+    referenced_named_types,
     type_display,
     type_equals,
-    unwrap_nullable,
+    schema_without_null,
 )
 
 ROOT = Path(__file__).resolve().parent
@@ -82,7 +88,7 @@ TypeScopes = dict[str, TypeScope]
 
 
 ACTOR_SOURCE_SCOPE: TypeScope = {
-    ("id",): {"primitive": "ID"},
+    ("id",): {"type": "string"},
 }
 
 ACTOR_LITERAL_FIELD_NAMES = {
@@ -120,7 +126,7 @@ TARGET_ORDER = (
     "render_profile",
     "fixture",
     "fact",
-    "data_contract",
+    "schema",
     "entity_type",
     "authorization_policy",
     "application_action",
@@ -140,7 +146,7 @@ ENTITY_SECTIONS: dict[str, str] = {
     "render_profile": "render_profiles",
     "fixture": "fixtures",
     "fact": "facts",
-    "data_contract": "data_contracts",
+    "schema": "schemas",
     "entity_type": "entity_types",
     "authorization_policy": "authorization_policies",
     "application_action": "application_actions",
@@ -184,7 +190,7 @@ def empty_compiled_contract(project: str) -> dict[str, Any]:
         "render_profiles": {},
         "fixtures": {},
         "facts": {},
-        "data_contracts": {},
+        "schemas": {},
         "entity_types": {},
         "authorization_policies": {},
         "application_actions": {},
@@ -200,7 +206,7 @@ def empty_compiled_contract(project: str) -> dict[str, Any]:
 AUTHOR_SECTION_ORDER = (
     "fixtures",
     "facts",
-    "data_contracts",
+    "schemas",
     "entity_types",
     "authorization_policies",
     "application_actions",
@@ -233,22 +239,42 @@ def _empty_signals() -> dict[str, dict[str, Any]]:
     return {"accepts": {"local_signals": {}, "data_refresh_signals": {}}, "emits": {"local_signals": {}}}
 
 
+def _schema_fields(schema: Any) -> dict[str, Any]:
+    return schema_properties(schema or EMPTY_OBJECT_SCHEMA)
+
+
+def _schema_required_fields(schema: Any) -> set[str]:
+    return schema_required(schema or EMPTY_OBJECT_SCHEMA)
+
+
+def _state_machine_context(state_machine: dict[str, Any]) -> dict[str, Any]:
+    return _schema_fields(state_machine.get("context"))
+
+
+def _application_action_input(application_action: dict[str, Any]) -> dict[str, Any]:
+    return _schema_fields(application_action.get("input"))
+
+
+def _signal_payload_fields(payload_schema: dict[str, Any] | None) -> dict[str, Any]:
+    return _schema_fields(payload_schema)
+
+
 def _normalize_signals(signals: dict[str, Any] | None) -> dict[str, dict[str, Any]]:
     signals = signals or {}
     normalized = _empty_signals()
     accepts = signals.get("accepts") or {}
     for signal_name, signal in (accepts.get("local_signals") or {}).items():
         signal_spec = copy.deepcopy(signal)
-        signal_spec["payload_schema"] = normalize_type_map(signal_spec.get("payload_schema"))
+        signal_spec["payload_schema"] = normalize_object_json_schema(signal_spec.get("payload_schema") or EMPTY_OBJECT_SCHEMA)
         normalized["accepts"]["local_signals"][signal_name] = signal_spec
     for signal_name, signal in (accepts.get("data_refresh_signals") or {}).items():
         signal_spec = copy.deepcopy(signal)
-        signal_spec["payload_schema"] = normalize_type_map(signal_spec.get("payload_schema"))
+        signal_spec["payload_schema"] = normalize_object_json_schema(signal_spec.get("payload_schema") or EMPTY_OBJECT_SCHEMA)
         normalized["accepts"]["data_refresh_signals"][signal_name] = signal_spec
     emits = signals.get("emits") or {}
     for signal_name, signal in (emits.get("local_signals") or {}).items():
         signal_spec = copy.deepcopy(signal)
-        signal_spec["payload_schema"] = normalize_type_map(signal_spec.get("payload_schema"))
+        signal_spec["payload_schema"] = normalize_object_json_schema(signal_spec.get("payload_schema") or EMPTY_OBJECT_SCHEMA)
         normalized["emits"]["local_signals"][signal_name] = signal_spec
     return normalized
 
@@ -320,7 +346,7 @@ def _apply_author_defaults(entity: str, spec: dict[str, Any]) -> None:
     rationale_subject = spec.get("name", spec["id"]) if entity == "entity_type" else spec["id"]
     spec.setdefault("rationale", _default_rationale(entity, rationale_subject))
     if entity == "state_machine":
-        spec.setdefault("context", {})
+        spec.setdefault("context", EMPTY_OBJECT_SCHEMA)
         spec.setdefault("data_loaders", {})
         spec["signals"] = _normalize_signals(spec.get("signals"))
         spec.setdefault("transitions", [])
@@ -370,15 +396,15 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
     if entity == "entity_type":
         item = {
             "name": spec["name"],
-            "fields": normalize_field_map(spec["fields"]),
+            "schema": normalize_object_json_schema(spec["schema"]),
             "entity_lifecycle": spec.get("entity_lifecycle"),
             "rationale": spec["rationale"],
         }
         return item
 
-    if entity == "data_contract":
+    if entity == "schema":
         return {
-            "fields": normalize_field_map(spec["fields"]),
+            "schema": normalize_object_json_schema(spec["schema"]),
             "rationale": spec["rationale"],
         }
 
@@ -386,12 +412,12 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
         outcomes = {}
         for outcome_id, outcome in spec["outcomes"].items():
             normalized_outcome = copy.deepcopy(outcome)
-            normalized_outcome["result"] = normalize_type_expr(normalized_outcome["result"])
+            normalized_outcome["result"] = normalize_schema(normalized_outcome["result"])
             normalized_outcome.setdefault("emits", [])
             outcomes[outcome_id] = normalized_outcome
         application_action: dict[str, Any] = {
             "action_kind": spec["action_kind"],
-            "input": normalize_type_map(spec.get("input", {})),
+            "input": normalize_object_json_schema(spec.get("input", EMPTY_OBJECT_SCHEMA)),
             "outcomes": outcomes,
             "reads": list(spec.get("reads", [])),
             "creates": list(spec.get("creates", [])),
@@ -416,7 +442,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
 
     if entity == "domain_event":
         return {
-            "payload_schema": normalize_type_expr(spec["payload_schema"]),
+            "payload_schema": normalize_schema(spec["payload_schema"]),
             "emitted_by": [],
             "rationale": spec["rationale"],
         }
@@ -424,7 +450,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
     if entity == "state_machine":
         state_machine_id = spec["id"]
         state_machine: dict[str, Any] = {
-            "context": normalize_field_map(spec["context"]),
+            "context": normalize_object_json_schema(spec["context"]),
             "data_loaders": _compile_data_loaders(spec.get("data_loaders", {}), scope="state_machine"),
             "signals": _normalize_signals(spec.get("signals")),
             "initial_view_state": spec["initial_view_state"],
@@ -769,7 +795,7 @@ def _semantic_validate(contract: dict[str, Any], used_facts: set[str]) -> None:
     _validate_text_assets(contract)
     _validate_content_cases(contract)
     _validate_render_profiles(contract)
-    _validate_data_contracts(contract)
+    _validate_schemas(contract)
     _validate_entity_types(contract)
     _validate_type_references(contract)
     _validate_application_actions(contract)
@@ -901,7 +927,7 @@ def _validate_audit_cases(contract: dict[str, Any]) -> None:
         for fact_use in case.get("fact_refs", []):
             fact_id = fact_use["ref"]
             _validate_fixture_templates(contract["facts"][fact_id], fixture_values, f"render audit case {case_id} fact {fact_id}")
-        if entity_type and state.get("fields") and not set(state.get("fields", [])) <= set(state_machine.get("context", {})) and not _setup_has_entity_type(contract, case.get("seed_fixtures", []), case.get("fact_refs", []), entity_type):
+        if entity_type and state.get("fields") and not set(state.get("fields", [])) <= set(_state_machine_context(state_machine)) and not _setup_has_entity_type(contract, case.get("seed_fixtures", []), case.get("fact_refs", []), entity_type):
             raise ContractError(f"Render audit case {case_id} renders fields for {state_machine_id}.{state_name} but does not include a {entity_type} fixture or fact")
         if state.get("child_state_machines"):
             mounted_instances = {mount["id"]: mount for mount in state["child_state_machines"]}
@@ -916,7 +942,7 @@ def _validate_audit_cases(contract: dict[str, Any]) -> None:
                     raise ContractError(f"Render audit case {case_id} references unknown state machine view state {child_state_machine_id}.{expected['view_state']}")
                 selected_state = contract["state_machines"][child_state_machine_id]["view_states"][expected["view_state"]]
                 child_model = contract["state_machines"][child_state_machine_id].get("entity_type")
-                child_context = set(contract["state_machines"][child_state_machine_id].get("context", {}))
+                child_context = set(_state_machine_context(contract["state_machines"][child_state_machine_id]))
                 if child_model and selected_state.get("fields") and not set(selected_state.get("fields", [])) <= child_context and not _setup_has_entity_type(contract, case.get("seed_fixtures", []), case.get("fact_refs", []), child_model):
                     raise ContractError(f"Render audit case {case_id} renders fields for {child_state_machine_id}.{expected['view_state']} but does not include a {child_model} fixture or fact")
             covered_composable_states.add((state_machine_id, state_name))
@@ -940,7 +966,7 @@ def _validate_state_machine_view_state_fixture_coverage(contract: dict[str, Any]
     for state_machine_id, state_machine in contract.get("state_machines", {}).items():
         entity_type = state_machine.get("entity_type")
         for state_name, state in state_machine.get("view_states", {}).items():
-            if entity_type and state.get("fields") and not set(state.get("fields", [])) <= set(state_machine.get("context", {})) and not _setup_has_entity_type(contract, list(contract.get("fixtures", {})), _all_fact_uses(contract), entity_type):
+            if entity_type and state.get("fields") and not set(state.get("fields", [])) <= set(_state_machine_context(state_machine)) and not _setup_has_entity_type(contract, list(contract.get("fixtures", {})), _all_fact_uses(contract), entity_type):
                 raise ContractError(f"Rendered fields for {state_machine_id}.{state_name} require at least one {entity_type} fixture or fact")
 
 
@@ -991,7 +1017,7 @@ def _validate_entity_types(contract: dict[str, Any]) -> None:
         entity_lifecycle = entity_type.get("entity_lifecycle")
         if not entity_lifecycle:
             continue
-        if entity_lifecycle["field"] not in entity_type["fields"]:
+        if entity_lifecycle["field"] not in _schema_fields(entity_type["schema"]):
             raise ContractError(f"Entity type {rid} entity_lifecycle field is not a field: {entity_lifecycle['field']}")
         states = set(entity_lifecycle["lifecycle_states"])
         if entity_lifecycle["initial_state"] not in states:
@@ -1005,50 +1031,45 @@ def _validate_entity_types(contract: dict[str, Any]) -> None:
                 )
 
 
-def _validate_data_contracts(contract: dict[str, Any]) -> None:
-    for data_contract_id, data_contract in contract.get("data_contracts", {}).items():
-        if not data_contract_id.startswith("data_contract."):
-            raise ContractError(f"Data contract id must start with data_contract.: {data_contract_id}")
-        if not data_contract.get("fields"):
-            raise ContractError(f"Data contract {data_contract_id} must declare fields")
+def _validate_schemas(contract: dict[str, Any]) -> None:
+    for schema_id, schema in contract.get("schemas", {}).items():
+        if not schema_id.startswith("schema."):
+            raise ContractError(f"Schema id must start with schema.: {schema_id}")
+        if not _schema_fields(schema.get("schema")):
+            raise ContractError(f"Schema {schema_id} must declare properties")
 
 
 def _validate_type_references(contract: dict[str, Any]) -> None:
     for entity_type_id, entity_type in contract.get("entity_types", {}).items():
-        for field_name, field in entity_type.get("fields", {}).items():
-            _validate_type_reference(contract, f"Entity type {entity_type_id}.{field_name}", field["type"])
-    for data_contract_id, data_contract in contract.get("data_contracts", {}).items():
-        for field_name, field in data_contract.get("fields", {}).items():
-            _validate_type_reference(contract, f"Data contract {data_contract_id}.{field_name}", field["type"])
+        _validate_type_reference(contract, f"Entity type {entity_type_id} schema", entity_type["schema"])
+    for schema_id, schema in contract.get("schemas", {}).items():
+        _validate_type_reference(contract, f"Schema {schema_id}", schema["schema"])
     for application_action_id, application_action in contract.get("application_actions", {}).items():
-        for field_name, type_expr in application_action.get("input", {}).items():
-            _validate_type_reference(contract, f"Application action {application_action_id} input {field_name}", type_expr)
+        for field_name, schema in _application_action_input(application_action).items():
+            _validate_type_reference(contract, f"Application action {application_action_id} input {field_name}", schema)
         for outcome_id, outcome in application_action.get("outcomes", {}).items():
             _validate_type_reference(contract, f"Application action {application_action_id} outcome {outcome_id}", outcome["result"])
     for state_machine_id, state_machine in contract.get("state_machines", {}).items():
-        for field_name, field in state_machine.get("context", {}).items():
-            _validate_type_reference(contract, f"State machine {state_machine_id} context {field_name}", field["type"])
+        for field_name, field in _state_machine_context(state_machine).items():
+            _validate_type_reference(contract, f"State machine {state_machine_id} context {field_name}", field)
     for event_id, event in contract.get("domain_events", {}).items():
         _validate_type_reference(contract, f"Domain event {event_id} payload_schema", event["payload_schema"])
 
 
 def _validate_type_reference(contract: dict[str, Any], label: str, expr: Any) -> None:
-    normalized = normalize_type_expr(expr)
-    kind, value = next(iter(normalized.items()))
-    if kind == "entity_type":
-        if value not in contract["entity_types"]:
-            raise ContractError(f"{label} references unknown entity_type {value}")
-        return
-    if kind == "data_contract":
-        if value not in contract.get("data_contracts", {}):
-            raise ContractError(f"{label} references unknown data contract {value}")
-        return
-    if kind in {"array", "map", "nullable"}:
-        _validate_type_reference(contract, label, value)
-        return
-    if kind == "object":
-        for field_name, field in normalize_field_map(value.get("fields", value)).items():
-            _validate_type_reference(contract, f"{label}.{field_name}", field["type"])
+    try:
+        normalized = normalize_schema(expr)
+    except SchemaExpressionError as exc:
+        raise ContractError(f"{label} has invalid schema: {exc}") from exc
+    for ref in sorted(referenced_named_types(normalized)):
+        if ref.startswith("entity_type."):
+            if ref not in contract["entity_types"]:
+                raise ContractError(f"{label} references unknown entity_type {ref}")
+        elif ref.startswith("schema."):
+            if ref not in contract.get("schemas", {}):
+                raise ContractError(f"{label} references unknown schema {ref}")
+        else:
+            raise ContractError(f"{label} references unknown schema ref {ref}")
 
 
 def _validate_application_actions(contract: dict[str, Any]) -> None:
@@ -1165,7 +1186,7 @@ def _validate_query_success_result(cid: str, cap: dict[str, Any]) -> None:
         return
     raise ContractError(
         f"Application action {cid} query success outcome result must be {expected_entity_type} "
-        f"or {type_display(array_of({'entity_type': expected_entity_type}))}"
+        f"or {type_display(array_of({'$ref': expected_entity_type}))}"
     )
 
 
@@ -1261,7 +1282,7 @@ def _validate_authorization_policies(contract: dict[str, Any]) -> None:
                 entity_type_id = body["entity_type"]
                 if entity_type_id not in contract["entity_types"]:
                     raise ContractError(f"Authorization policy {policy_id} condition references unknown entity_type {entity_type_id}")
-                if kind == "entity_lifecycle_state" and body["field"] not in contract["entity_types"][entity_type_id]["fields"]:
+                if kind == "entity_lifecycle_state" and body["field"] not in _schema_fields(contract["entity_types"][entity_type_id]["schema"]):
                     raise ContractError(f"Authorization policy {policy_id} condition references unknown {entity_type_id} field {body['field']}")
                 continue
             raise ContractError(f"Authorization policy {policy_id} condition is unsupported: {kind}")
@@ -1319,7 +1340,7 @@ def _validate_emit_payload_mapping(
 ) -> None:
     label = f"Application action {application_action_id} outcome {outcome_id} emit {event_id}"
     source_scopes: TypeScopes = {
-        "input": _type_scope(application_action["input"]),
+        "input": _type_scope(_application_action_input(application_action)),
         "outcome": _typed_source_paths(contract, ("result",), outcome["result"]),
     }
 
@@ -1362,8 +1383,8 @@ def _validate_state_machines(contract: dict[str, Any]) -> None:
         )
         if state_machine["initial_view_state"] not in state_machine["view_states"]:
             raise ContractError(f"state machine {state_machine_id} initial view state is not declared: {state_machine['initial_view_state']}")
-        entity_type_fields = set(contract["entity_types"][entity_type]["fields"]) if entity_type else set()
-        field_names = entity_type_fields | set(state_machine.get("context", {}))
+        entity_type_fields = set(_schema_fields(contract["entity_types"][entity_type]["schema"])) if entity_type else set()
+        field_names = entity_type_fields | set(_state_machine_context(state_machine))
         for state_name, state in state_machine["view_states"].items():
             _validate_state_machine_view_state(
                 contract,
@@ -1372,7 +1393,7 @@ def _validate_state_machines(contract: dict[str, Any]) -> None:
                 state_name,
                 state,
                 field_names=field_names,
-                data_context=state_machine.get("context", {}),
+                data_context=_state_machine_context(state_machine),
                 entity_type=entity_type,
             )
             if state.get("child_state_machines") or state.get("renderers") or state.get("signal_sync_rules"):
@@ -1384,7 +1405,7 @@ def _validate_state_machines(contract: dict[str, Any]) -> None:
             state_machine,
             state_machine["view_states"],
             state_machine.get("data_loaders", {}),
-            set(state_machine.get("context", {})),
+            set(_state_machine_context(state_machine)),
         )
         _validate_collection_empty_signal_effects(state_machine_id, state_machine)
         _validate_machine_query_ownership(contract, state_machine_id, state_machine)
@@ -1425,14 +1446,14 @@ def _validate_action_bindings(
     state_name: str,
     state: dict[str, Any],
 ) -> None:
-    context = state_machine.get("context", {})
+    context = _state_machine_context(state_machine)
     for invocation_id, invocation in sorted((state.get("action_bindings") or {}).items()):
         label = f"{owner_label}.{state_name} action_binding {invocation_id}"
         application_action_id = invocation["application_action"]
         if application_action_id not in contract["application_actions"]:
             raise ContractError(f"{label} references unknown application action {application_action_id}")
         application_action = contract["application_actions"][application_action_id]
-        expected_input = application_action.get("input") or {}
+        expected_input = _application_action_input(application_action)
         bindings = invocation.get("input_bindings") or {}
         _validate_runtime_binding_map(
             contract,
@@ -1600,16 +1621,16 @@ def _action_outcome_effect_scopes(
     application_action: dict[str, Any],
     outcome: dict[str, Any],
 ) -> TypeScopes:
-    application_action_input = application_action.get("input") or {}
-    invocation_scope = {("input",): {"object": application_action_input}}
+    application_action_input = _application_action_input(application_action)
+    invocation_scope = {("input",): application_action.get("input", EMPTY_OBJECT_SCHEMA)}
     invocation_scope.update(_prefixed_type_scope(("input",), application_action_input))
     return {
         "outcome": {
-            ("kind",): {"primitive": "Text"},
+            ("kind",): {"type": "string"},
             ("result",): outcome["result"],
         },
         "invocation": invocation_scope,
-        "context": _type_scope(state_machine.get("context", {})),
+        "context": _type_scope(_state_machine_context(state_machine)),
     }
 
 
@@ -1633,7 +1654,7 @@ def _validate_data_loaders(
     entity_type: str | None = None,
     view_state: dict[str, Any] | None = None,
 ) -> None:
-    context = state_machine.get("context", {})
+    context = _state_machine_context(state_machine)
     for invocation_id, invocation in sorted((invocations or {}).items()):
         label = f"{owner_label} data_loader {invocation_id}"
         if scope == "state_machine" and "result_scope" not in invocation:
@@ -1665,7 +1686,7 @@ def _validate_data_loaders(
             contract,
             f"{label} input_bindings",
             invocation.get("input_bindings") or {},
-            application_action.get("input") or {},
+            _application_action_input(application_action),
             {"context": _type_scope(context), "actor": ACTOR_SOURCE_SCOPE},
         )
         _validate_query_load_policy(contract, label, state_machine, invocation.get("load") or {}, scope=scope)
@@ -1802,7 +1823,7 @@ def _validate_query_outcome_effect(
         if not any((has_context_updates, has_result_binding, has_raise, "no_local_effect" in effect)):
             raise ContractError(f"{effect_label} must declare context_updates, result_binding, raise, or no_local_effect")
         for field, binding in (effect.get("context_updates") or {}).items():
-            context = state_machine.get("context", {})
+            context = _state_machine_context(state_machine)
             if field not in context:
                 raise ContractError(f"{effect_label} context_updates references undeclared context field: {field}")
             _validate_expression_type(
@@ -1811,12 +1832,12 @@ def _validate_query_outcome_effect(
                 binding,
                 context[field],
                 scopes,
-                allow_nullable_source=False,
+                allow_null_source=False,
             )
         result_binding = effect.get("result_binding")
         if result_binding:
             data_key = result_binding["data_key"]
-            if data_key in state_machine.get("context", {}):
+            if data_key in _state_machine_context(state_machine):
                 raise ContractError(f"{effect_label} result_binding.data_key {data_key!r} conflicts with state-machine context field")
             _expression_type(
                 contract,
@@ -1877,14 +1898,14 @@ def _query_outcome_is_only_no_local_effect(effect: dict[str, Any]) -> bool:
     return all("no_local_effect" in branch and not any(key in branch for key in ("context_updates", "result_binding", "raise")) for branch in branches)
 
 
-def _type_supports_emptiness(type_expr: Any) -> bool:
-    return "array" in unwrap_nullable(_effective_type(type_expr))
+def _type_supports_emptiness(schema: Any) -> bool:
+    return schema_without_null(_effective_type(schema)).get("type") == "array"
 
 
 def _result_type_has_field(contract: dict[str, Any], result_type: Any, field: str) -> bool:
-    effective = unwrap_nullable(_effective_type(result_type))
-    if "array" in effective:
-        effective = unwrap_nullable(_effective_type(effective["array"]))
+    effective = schema_without_null(_effective_type(result_type))
+    if effective.get("type") == "array":
+        effective = schema_without_null(_effective_type(effective.get("items", {})))
     return field in object_fields_for_type(contract, effective)
 
 
@@ -1955,9 +1976,9 @@ def _query_outcome_effect_branches(effect: dict[str, Any]) -> list[dict[str, Any
 
 
 def _query_result_item_type(result_type: Any) -> Any:
-    effective = unwrap_nullable(_effective_type(result_type))
-    if "array" in effective:
-        return unwrap_nullable(_effective_type(effective["array"]))
+    effective = schema_without_null(_effective_type(result_type))
+    if effective.get("type") == "array":
+        return schema_without_null(_effective_type(effective.get("items", {})))
     return effective
 
 
@@ -2050,16 +2071,17 @@ def _validate_state_machine_transitions(contract: dict[str, Any], state_machine_
         for effect in transition.get("effects", []):
             kind, body = _one(effect, f"state machine {state_machine_id} transition effect")
             if kind == "set":
-                if body["context"] not in state_machine.get("context", {}):
+                context = _state_machine_context(state_machine)
+                if body["context"] not in context:
                     raise ContractError(f"state machine {state_machine_id} transition sets undeclared context: {body['context']}")
                 binding = body["from"] if "from" in body else {"value": body.get("value")}
                 _validate_expression_type(
                     contract,
                     f"state machine {state_machine_id} transition set {body['context']}",
                     binding,
-                    state_machine["context"][body["context"]],
-                    {"local_signal": _type_scope(local_signal_payload), "context": _type_scope(state_machine.get("context", {}))},
-                    allow_nullable_source=False,
+                    context[body["context"]],
+                    {"local_signal": _type_scope(local_signal_payload), "context": _type_scope(context)},
+                    allow_null_source=False,
                 )
             elif kind == "emit":
                 emitted_payload = _state_machine_signal_payload(state_machine, "emits", {"local_signal": body["local_signal"]}, f"state machine {state_machine_id} transition emit")
@@ -2068,7 +2090,7 @@ def _validate_state_machine_transitions(contract: dict[str, Any], state_machine_
                     label=f"state machine {state_machine_id} transition emit {body['local_signal']} payload_bindings",
                     bindings=body["payload_bindings"],
                     payload=emitted_payload,
-                    scopes={"local_signal": _type_scope(local_signal_payload), "context": _type_scope(state_machine.get("context", {}))},
+                    scopes={"local_signal": _type_scope(local_signal_payload), "context": _type_scope(_state_machine_context(state_machine))},
                 )
             else:  # pragma: no cover - schema prevents this.
                 raise ContractError(f"state machine {state_machine_id} unsupported transition effect: {kind}")
@@ -2152,7 +2174,8 @@ def _validate_state_machine_signal_payload_consistency(contract: dict[str, Any])
                     signal_key = f"{kind}.{signal_id}"
                     if signal_key in domain_events:
                         raise ContractError(f"state-machine signal {signal_key} conflicts with domain event {signal_key}")
-                    payload = signal["payload_schema"]
+                    payload_schema = signal["payload_schema"]
+                    payload = _signal_payload_fields(payload_schema)
                     existing = declared.get(signal_key)
                     if existing and (
                         set(existing[2]) != set(payload)
@@ -2203,10 +2226,10 @@ def _validate_state_composition(contract: dict[str, Any], state_machine_id: str,
         if selected and selected["view_state"] not in child_state_machine["view_states"]:
             raise ContractError(f"composed state machine view state {label}.{mount['id']} selected view state is unknown: {selected['view_state']}")
         if selected:
-            _validate_condition_context(contract, label, parent_state_machine.get("context", {}), selected["when"])
+            _validate_condition_context(contract, label, _state_machine_context(parent_state_machine), selected["when"])
         mount_context = mount.get("context_bindings", {})
-        child_context = child_state_machine.get("context", {})
-        expected_context = {name for name, field in child_context.items() if field.get("required", True)}
+        child_context = _state_machine_context(child_state_machine)
+        expected_context = _schema_required_fields(child_state_machine.get("context"))
         unknown_context = sorted(set(mount_context) - set(child_context))
         missing_context = sorted(expected_context - set(mount_context))
         if unknown_context or missing_context:
@@ -2222,7 +2245,7 @@ def _validate_state_composition(contract: dict[str, Any], state_machine_id: str,
         _validate_state_machine_context_refs(
             contract,
             label,
-            parent_state_machine.get("context", {}),
+            _state_machine_context(parent_state_machine),
             child_context,
             mount_context,
         )
@@ -2287,8 +2310,8 @@ def _validate_state_machine_context_refs(
         actual_type = _expression_type(contract, value, scopes, f"composed state machine {state_machine_id} context {key}")
         if actual_type and _type_allows_null(actual_type) and not _type_allows_null(child_context[key]):
             raise ContractError(
-                f"composed state machine {state_machine_id} context {key} cannot bind nullable source "
-                f"to non-nullable child context"
+                f"composed state machine {state_machine_id} context {key} cannot bind a source that allows null "
+                f"to child context that does not allow null"
             )
         _validate_expression_type(
             contract,
@@ -2327,7 +2350,7 @@ def _state_machine_signal_payload(state_machine: dict[str, Any], direction: str,
     signal = state_machine.get("signals", {}).get(direction, {}).get(group, {}).get(signal_id)
     if not signal:
         raise ContractError(f"{label} references undeclared state-machine signal: {_signal_label((kind, signal_id))}")
-    return signal.get("payload_schema", {})
+    return _signal_payload_fields(signal.get("payload_schema"))
 
 
 def _validate_payload_bindings(
@@ -2375,34 +2398,32 @@ def _validate_expression_type(
     expected_type: Any,
     scopes: TypeScopes,
     *,
-    allow_nullable_source: bool = True,
+    allow_null_source: bool = True,
 ) -> None:
     if _is_null_expression(expression):
         if not _type_allows_null(expected_type):
-            raise ContractError(f"{label} cannot assign null to non-nullable {type_display(_effective_type(expected_type))}")
+            raise ContractError(f"{label} cannot assign null to {type_display(_effective_type(expected_type))}, which does not allow null")
         return
     literal = _literal_expression_value(expression)
     if literal is not _NO_LITERAL and not _literal_value_compatible(literal, expected_type):
         raise ContractError(f"{label} literal value is not compatible with {type_display(_effective_type(expected_type))}")
     actual_type = _expression_type(contract, expression, scopes, label)
-    if actual_type and not allow_nullable_source and _type_allows_null(actual_type) and not _type_allows_null(expected_type):
-        raise ContractError(f"{label} cannot assign nullable source to non-nullable {type_display(_effective_type(expected_type))}")
+    if actual_type and not allow_null_source and _type_allows_null(actual_type) and not _type_allows_null(expected_type):
+        raise ContractError(f"{label} cannot assign a source that allows null to {type_display(_effective_type(expected_type))}, which does not allow null")
     if actual_type and not _type_assignable(actual_type, expected_type):
         raise ContractError(f"{label} type mismatch: expected {type_display(_effective_type(expected_type))}, got {type_display(_effective_type(actual_type))}")
 
 
 def _effective_type(type_name: Any) -> Any:
-    if isinstance(type_name, dict) and len(type_name) == 1 and next(iter(type_name)) in {"primitive", "entity_type", "data_contract", "array", "map", "nullable", "enum", "object"}:
-        return normalize_type_expr(type_name)
-    if isinstance(type_name, dict) and "type" in type_name and isinstance(type_name["type"], dict) and "nullable" in type_name["type"]:
-        return normalize_type_expr(type_name["type"])
-    return effective_field_type(type_name)
+    return effective_property_schema(type_name)
 
 
 def _type_allows_null(type_name: Any) -> bool:
-    if isinstance(type_name, dict) and "type" in type_name and "nullable" in type_name:
-        return bool(type_name["nullable"])
-    return "nullable" in normalize_type_expr(type_name)
+    schema = normalize_schema(type_name)
+    type_value = schema.get("type")
+    if type_value == "null" or (isinstance(type_value, list) and "null" in type_value):
+        return True
+    return any(member.get("type") == "null" for member in schema.get("anyOf", []))
 
 
 def _type_assignable(actual_type: Any, expected_type: Any) -> bool:
@@ -2411,7 +2432,7 @@ def _type_assignable(actual_type: Any, expected_type: Any) -> bool:
     if type_equals(actual, expected):
         return True
     if _type_allows_null(expected) or _type_allows_null(actual):
-        return type_equals(unwrap_nullable(actual), unwrap_nullable(expected))
+        return type_equals(schema_without_null(actual), schema_without_null(expected))
     return type_equals(actual, expected)
 
 
@@ -2435,24 +2456,27 @@ def _literal_expression_value(expression: Any) -> Any:
 def _literal_value_compatible(value: Any, expected_type: Any) -> bool:
     if value is None:
         return _type_allows_null(expected_type)
-    expected = unwrap_nullable(_effective_type(expected_type))
-    kind, body = next(iter(expected.items()))
-    if kind == "primitive":
-        if body in {"ID", "Text", "Markdown", "Date", "Timestamp"}:
-            return isinstance(value, str)
-        if body == "Boolean":
-            return isinstance(value, bool)
-        if body == "Integer":
-            return isinstance(value, int) and not isinstance(value, bool)
-        if body == "Decimal":
-            return isinstance(value, (int, float)) and not isinstance(value, bool)
-        if body == "JSON":
-            return isinstance(value, (dict, list))
-    if kind == "enum":
-        return isinstance(value, str) and value in body
-    if kind == "array":
+    expected = schema_without_null(_effective_type(expected_type))
+    if "const" in expected:
+        return value == expected["const"]
+    if "enum" in expected:
+        return value in expected["enum"]
+    if "$ref" in expected:
+        return isinstance(value, dict)
+    type_value = expected.get("type")
+    if isinstance(type_value, list):
+        return any(_literal_value_compatible(value, {**expected, "type": item}) for item in type_value if item != "null")
+    if type_value == "string":
+        return isinstance(value, str)
+    if type_value == "boolean":
+        return isinstance(value, bool)
+    if type_value == "integer":
+        return isinstance(value, int) and not isinstance(value, bool)
+    if type_value == "number":
+        return isinstance(value, (int, float)) and not isinstance(value, bool)
+    if type_value == "array":
         return isinstance(value, list)
-    if kind in {"map", "object", "entity_type", "data_contract"}:
+    if type_value == "object":
         return isinstance(value, dict)
     return False
 
@@ -2511,14 +2535,14 @@ def _resolve_nested_type(
 ) -> Any:
     try:
         return dereference_type(contract, type_name, nested_path, source)
-    except TypeExpressionError as exc:
+    except SchemaExpressionError as exc:
         raise ContractError(f"{label} references {exc}") from exc
 
 
 def _literal_type(value: Any) -> Any | None:
     # String/null literals can represent several contract scalar types, so schema
     # validation accepts them and semantic validation only type-checks references.
-    return literal_type_expr(value)
+    return literal_schema(value)
 
 
 def _signal_selector_key(selector: dict[str, str]) -> tuple[str, str]:
@@ -2576,7 +2600,7 @@ def _validate_sync_rules(
 ) -> None:
     label = f"{state_machine_id}.{state_name}"
     seen: set[str] = set()
-    context = state_machine.get("context", {})
+    context = _state_machine_context(state_machine)
     for rule in state.get("signal_sync_rules", []):
         if rule["id"] in seen:
             raise ContractError(f"composed state machine state {label} has duplicate sync rule: {rule['id']}")
@@ -2601,7 +2625,7 @@ def _validate_sync_rules(
                     binding,
                     context[body["context"]],
                     {"local_signal": _type_scope(source_payload), "state_machine": _type_scope(context)},
-                    allow_nullable_source=False,
+                    allow_null_source=False,
                 )
             elif kind == "send":
                 target_id = body["instance"]
@@ -2832,7 +2856,7 @@ def _validate_entries(contract: dict[str, Any]) -> None:
                 if value not in contract["application_actions"]:
                     raise ContractError(f"CLI entry point {eid} must target a known application action")
                 operation = contract["application_actions"][value]
-                _validate_exact_entry_inputs(eid, "input.args", args, operation["input"])
+                _validate_exact_entry_inputs(eid, "input.args", args, _application_action_input(operation))
                 _validate_target_bindings(contract, eid, entry, args)
                 _validate_cli_application_action_response_handlers(contract, eid, entry, operation)
             elif kind == "state_machine":
@@ -3124,7 +3148,7 @@ def _validate_api_entry_input(
     query_params: dict[str, Any],
     body: dict[str, Any],
 ) -> None:
-    cap_input = application_action["input"]
+    cap_input = _application_action_input(application_action)
     all_params = {**path_params, **query_params}
     all_input = {**all_params, **body}
     if set(path_params) - set(cap_input):
@@ -3172,9 +3196,10 @@ def _validate_target_bindings(
     kind, value = entry_target_pair(entry)
     bindings = entry_point_input_bindings(entry)
     if kind == "application_action":
-        expected = contract["application_actions"][value]["input"]
+        expected = _application_action_input(contract["application_actions"][value])
     elif kind == "state_machine":
-        expected = {name: contract["state_machines"][value].get("context", {})[name] for name in target_input_types}
+        context = _state_machine_context(contract["state_machines"][value])
+        expected = {name: context[name] for name in target_input_types}
     else:
         if bindings:
             raise ContractError(f"Entry {entry_id} target.input_bindings is not supported for workflow targets")
@@ -3484,7 +3509,7 @@ def _validate_state_machine_entry_inputs(
     input_label: str,
 ) -> None:
     state_machine = contract["state_machines"][state_machine_id]
-    state_machine_context = state_machine.get("context", {})
+    state_machine_context = _state_machine_context(state_machine)
     extra = sorted(set(declared) - set(state_machine_context))
     if extra:
         raise ContractError(f"Entry {entry_id} {input_label} must be declared state machine context fields: {extra}")
@@ -3499,14 +3524,14 @@ def _required_entry_state_machine_context(contract: dict[str, Any], state_machin
     state_machine = contract["state_machines"][state_machine_id]
     required: dict[str, Any] = {
         name: field
-        for name, field in state_machine.get("context", {}).items()
-        if field.get("required", True)
+        for name, field in _state_machine_context(state_machine).items()
+        if name in _schema_required_fields(state_machine.get("context"))
     }
     _add_query_context_requirements(
         contract,
         f"state machine {state_machine_id}",
         state_machine.get("data_loaders", {}),
-        state_machine.get("context", {}),
+        _state_machine_context(state_machine),
         required,
     )
     for state_name, state in state_machine.get("view_states", {}).items():
@@ -3514,7 +3539,7 @@ def _required_entry_state_machine_context(contract: dict[str, Any], state_machin
             contract,
             f"state machine {state_machine_id}.{state_name}",
             state.get("data_loaders", {}),
-            state_machine.get("context", {}),
+            _state_machine_context(state_machine),
             required,
         )
         for mount in state.get("child_state_machines", []):
@@ -3562,8 +3587,8 @@ def _add_mount_context_requirements(
     required: dict[str, Any],
 ) -> None:
     mount_context = mount.get("context_bindings", {})
-    child_state_machine_context = state_machine.get("context", {})
-    parent_state_machine_context = contract["state_machines"][state_machine_id].get("context", {})
+    child_state_machine_context = _state_machine_context(state_machine)
+    parent_state_machine_context = _state_machine_context(contract["state_machines"][state_machine_id])
     for invocation_id, invocation in sorted((invocations or {}).items()):
         label = f"composed state machine {state_machine_id}.{mount['id']} data_loader {invocation_id}"
         for child_key in _context_roots_from_input_bindings(label, invocation.get("input_bindings") or {}):
@@ -3615,7 +3640,7 @@ def _context_roots_from_input_bindings(label: str, bindings: dict[str, Any]) -> 
 
 def _add_required_entry_context(required: dict[str, Any], key: str, type_name: Any, label: str) -> None:
     existing = required.get(key)
-    if existing and not type_equals(unwrap_nullable(_effective_type(existing)), unwrap_nullable(_effective_type(type_name))):
+    if existing and not type_equals(schema_without_null(_effective_type(existing)), schema_without_null(_effective_type(type_name))):
         raise ContractError(
             f"{label} requires conflicting entry input type for {key}: "
             f"{type_display(_effective_type(existing))} vs {type_display(_effective_type(type_name))}"
@@ -3837,7 +3862,7 @@ def _validate_workflow_step_bindings(
     source_types: TypeScopes,
 ) -> None:
     bindings = step["input_bindings"]
-    expected = application_action["input"]
+    expected = _application_action_input(application_action)
     if set(bindings) != set(expected):
         missing = sorted(set(expected) - set(bindings))
         extra = sorted(set(bindings) - set(expected))
@@ -3970,8 +3995,8 @@ def _validate_fact_body(contract: dict[str, Any], fact: dict[str, Any], label: s
     entity_type_id = body["entity_type"]
     if entity_type_id not in contract["entity_types"]:
         raise ContractError(f"{label} references unknown entity_type {entity_type_id}")
-    entity_type_name = type_display({"entity_type": entity_type_id})
-    fields = set(contract["entity_types"][entity_type_id]["fields"])
+    entity_type_name = type_display({"$ref": entity_type_id})
+    fields = set(_schema_fields(contract["entity_types"][entity_type_id]["schema"]))
     if kind == "present":
         unknown = set(body["values"]) - fields
         if unknown:
@@ -4203,7 +4228,7 @@ def _validate_test_case_then(contract: dict[str, Any], test_case_id: str, test_c
             if sync_id not in {rule["id"] for rule in selected_state.get("signal_sync_rules", [])}:
                 raise ContractError(f"Test case {test_case_id} references unknown sync rule {state_machine_id}.{sync_id}")
         for key in (expected_state_machine.get("context") or {}):
-            if key not in state_machine.get("context", {}):
+            if key not in _state_machine_context(state_machine):
                 raise ContractError(f"Test case {test_case_id} asserts undeclared state machine context {state_machine_id}.{key}")
     for field in ["enables", "forbids", "invoked"]:
         for cap_id in then.get(field, []):
@@ -4225,9 +4250,9 @@ def _validate_test_case_then(contract: dict[str, Any], test_case_id: str, test_c
         entity_type_id = entity_exists["entity_type"]
         if entity_type_id not in contract["entity_types"]:
             raise ContractError(f"Test case {test_case_id} asserts unknown entity_type {entity_type_id}")
-        unknown_fields = sorted(set(entity_exists["where"]) - set(contract["entity_types"][entity_type_id]["fields"]))
+        unknown_fields = sorted(set(entity_exists["where"]) - set(_schema_fields(contract["entity_types"][entity_type_id]["schema"])))
         if unknown_fields:
-            entity_type_name = type_display({"entity_type": entity_type_id})
+            entity_type_name = type_display({"$ref": entity_type_id})
             raise ContractError(f"Test case {test_case_id} entity.exists filters unknown {entity_type_name} fields: {unknown_fields}")
     domain_events = then.get("domain_events") or {}
     emitted = set(domain_events.get("emitted", []))

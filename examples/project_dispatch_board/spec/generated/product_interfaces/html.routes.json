@@ -7,7 +7,7 @@
       "path": "/workspaces/{workspace_id}/dispatch",
       "path_params": {
         "workspace_id": {
-          "primitive": "ID"
+          "type": "string"
         }
       },
       "query_params": {},

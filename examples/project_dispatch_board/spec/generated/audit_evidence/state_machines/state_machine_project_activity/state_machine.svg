@@ -1,6 +1,6 @@
 <svg width="1147pt" height="235pt"
  viewBox="0.00 0.00 1147.00 234.50" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: b4d7b8e9f4976ed6f2b34e013cfbf2639f3fffae8b9045d978d03c9ac276fdfb -->
+<!-- pyspec-contract-input-sha256: ffed37ceab5274280e1356f1d7bfe34ac6be06dc9c3d3dfb2d3850b00098eeb6 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 216.5)">
 <title>state_machine_state_machine_project_activity</title>
 <!-- view_state_empty -->
@@ -26,7 +26,7 @@
 <text text-anchor="start" x="225.5" y="-127.6" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
 <text text-anchor="start" x="226.5" y="-109" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
 <text text-anchor="start" x="254.5" y="-109" font-family="Arial" font-size="10.00">  read_activity.project_id</text>
-<text text-anchor="start" x="360.5" y="-109" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<text text-anchor="start" x="360.5" y="-109" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
 <text text-anchor="start" x="226.5" y="-97" font-family="Arial" font-weight="bold" font-size="10.00">data_loaders:</text>
 <text text-anchor="start" x="289.5" y="-97" font-family="Arial" font-size="10.00">  read_activity</text>
 <text text-anchor="start" x="226.5" y="-85" font-family="Arial" font-weight="bold" font-size="10.00">load:</text>
@@ -55,11 +55,11 @@
 <text text-anchor="start" x="566.5" y="-146" font-family="Arial" font-size="10.00">  text.project.activity.ready.heading</text>
 <text text-anchor="start" x="545.5" y="-126" font-family="Arial" font-weight="bold" font-size="10.00">application_action.project.read fields</text>
 <text text-anchor="start" x="545.5" y="-115" font-family="Arial" font-size="10.00">updated_at</text>
-<text text-anchor="start" x="594.5" y="-115" font-family="Arial" font-size="8.00" fill="#94a3b8">  Timestamp</text>
+<text text-anchor="start" x="594.5" y="-115" font-family="Arial" font-size="8.00" fill="#94a3b8">  string:date&#45;time</text>
 <text text-anchor="start" x="545.5" y="-104" font-family="Arial" font-size="10.00">status</text>
 <text text-anchor="start" x="573.5" y="-104" font-family="Arial" font-size="8.00" fill="#94a3b8">  enum&lt;draft|submitted|approved|archived&gt;</text>
 <text text-anchor="start" x="545.5" y="-93" font-family="Arial" font-size="10.00">assignee</text>
-<text text-anchor="start" x="585.5" y="-93" font-family="Arial" font-size="8.00" fill="#94a3b8">  Text</text>
+<text text-anchor="start" x="585.5" y="-93" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
 <text text-anchor="start" x="546.5" y="-73" font-family="Arial" font-weight="bold" font-size="10.00">data_loaders:</text>
 <text text-anchor="start" x="609.5" y="-73" font-family="Arial" font-size="10.00">  read_activity: application_action.project.read</text>
 <text text-anchor="start" x="809.5" y="-73" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
@@ -78,8 +78,8 @@
 <text text-anchor="start" x="911.5" y="-51.6" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
 <text text-anchor="start" x="912.5" y="-33" font-family="Arial" font-weight="bold" font-size="10.00">set:</text>
 <text text-anchor="start" x="929.5" y="-33" font-family="Arial" font-size="10.00">  project_id</text>
-<text text-anchor="start" x="978.5" y="-33" font-family="Arial" font-size="8.00" fill="#94a3b8">  nullable&lt;ID&gt;</text>
-<text text-anchor="start" x="1027.5" y="-33" font-family="Arial" font-size="8.00"> ← null</text>
+<text text-anchor="start" x="978.5" y="-33" font-family="Arial" font-size="8.00" fill="#94a3b8">  string | null</text>
+<text text-anchor="start" x="1021.5" y="-33" font-family="Arial" font-size="8.00"> ← null</text>
 <polygon fill="none" stroke="#2563eb" points="906,-23 906,-85 1111,-85 1111,-23 906,-23"/>
 </g>
 <!-- view_state_ready&#45;&gt;transition_1_ready_empty_local_signal_selection_cleared -->

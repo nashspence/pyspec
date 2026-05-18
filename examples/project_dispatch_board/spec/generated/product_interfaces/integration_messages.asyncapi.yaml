@@ -29,7 +29,7 @@ components:
     integration_message_domain_event_project_approved:
       name: domain_event.project.approved
       payload:
-        $ref: '#/components/schemas/data_contract.project.approved'
+        $ref: '#/components/schemas/schema.project.approved'
       title: Domain Event Project Approved
       x-emitted-by:
       - application_action.project.approve
@@ -108,7 +108,7 @@ components:
       - updated_at
       - workspace_id
       type: object
-    data_contract.project.approved:
+    schema.project.approved:
       additionalProperties: false
       properties:
         approved_by:
@@ -119,7 +119,7 @@ components:
       - approved_by
       - project_id
       type: object
-    data_contract.project.notice_result:
+    schema.project.notice_result:
       additionalProperties: false
       properties:
         notice_id:
@@ -149,7 +149,7 @@ operations:
         malformed:
           disposition: dead_letter
           problem:
-            entity_type: entity_type.problem
+            $ref: '#/components/schemas/Problem'
     x-workflow: workflow.project.approval_notice
   send_domain_event_project_approved:
     action: send

@@ -18,7 +18,7 @@ def resource_tail(value: str) -> str:
         "asset",
         "text",
         "content_case",
-        "data_contract",
+        "schema",
         "render_profile",
         "local_signal",
         "data_refresh_signal",

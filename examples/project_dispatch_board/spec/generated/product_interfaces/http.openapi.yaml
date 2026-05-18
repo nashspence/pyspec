@@ -53,7 +53,7 @@ components:
       - updated_at
       - workspace_id
       type: object
-    data_contract.project.approved:
+    schema.project.approved:
       additionalProperties: false
       properties:
         approved_by:
@@ -64,7 +64,7 @@ components:
       - approved_by
       - project_id
       type: object
-    data_contract.project.notice_result:
+    schema.project.notice_result:
       additionalProperties: false
       properties:
         notice_id:

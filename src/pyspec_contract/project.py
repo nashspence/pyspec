@@ -24,13 +24,13 @@ from .targets import (
     entry_point_responses,
     entry_target_pair,
 )
-from .type_expr import (
-    PRIMITIVES,
+from .json_schema import (
+    SCHEMA_ALIASES,
     base_entity_type_id,
-    effective_field_type,
     entity_type_display_name,
     object_to_json_schema,
     referenced_named_types,
+    schema_properties,
     type_display,
     type_to_cwl,
     type_to_json_schema,
@@ -38,7 +38,7 @@ from .type_expr import (
 )
 
 
-SCALAR_JSON_SCHEMA: dict[str, dict[str, Any]] = PRIMITIVES
+SCALAR_JSON_SCHEMA: dict[str, dict[str, Any]] = SCHEMA_ALIASES
 
 
 
@@ -209,7 +209,7 @@ def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
         if body_fields and method not in {"get", "delete"}:
             op["requestBody"] = {
                 "required": True,
-                "content": {"application/json": {"schema": object_schema(body_fields)}}
+                "content": {"application/json": {"schema": object_json_schema(body_fields)}}
             }
         paths.setdefault(entry_point_path(entry), {})[method] = op
 
@@ -286,7 +286,13 @@ def _workflow_entry_dispositions(contract: dict[str, Any], workflow_id: str) -> 
         target_kind, target_ref = entry_target_pair(entry)
         if target_kind != "workflow" or target_ref != workflow_id:
             continue
-        dispositions[entry_id] = entry_point_responses(entry)
+        entry_dispositions = {}
+        for response_id, response in sorted(entry_point_responses(entry).items()):
+            projected = dict(response)
+            if "problem" in projected:
+                projected["problem"] = type_schema(projected["problem"])
+            entry_dispositions[response_id] = projected
+        dispositions[entry_id] = entry_dispositions
     return dispositions
 
 
@@ -688,7 +694,7 @@ def workflows_projection(contract: dict[str, Any]) -> dict[str, Any]:
             "class": "CommandLineTool",
             "label": cap_id,
             "baseCommand": ["contract-operation", cap_id],
-            "inputs": {name: {"type": cwl_type(type_name)} for name, type_name in sorted(cap["input"].items())},
+            "inputs": {name: {"type": cwl_type(type_name)} for name, type_name in sorted(schema_properties(cap["input"]).items())},
             "outputs": {
                 outcome_id: {"type": cwl_type(outcome["result"])}
                 for outcome_id, outcome in sorted(cap["outcomes"].items())
@@ -980,26 +986,25 @@ def feature_text(feature_tag: str, test_cases: list[tuple[str, dict[str, Any]]])
 def components_projection(contract: dict[str, Any]) -> dict[str, Any]:
     components = {"schemas": {}}
     opaque: set[str] = set()
-    for rid, data_contract in sorted(contract.get("data_contracts", {}).items()):
-        components["schemas"][rid] = object_schema(data_contract["fields"])
+    for rid, schema in sorted(contract.get("schemas", {}).items()):
+        components["schemas"][rid] = type_schema(schema["schema"])
     for rid, entity_type in sorted(contract["entity_types"].items()):
-        components["schemas"][entity_type.get("name", entity_type_display_name(rid))] = object_schema(entity_type["fields"])
-        for field in entity_type["fields"].values():
-            for ref in referenced_named_types(effective_field_type(field)):
-                if ref != rid and ref not in contract["entity_types"] and ref not in contract.get("data_contracts", {}):
-                    opaque.add(ref)
+        components["schemas"][entity_type.get("name", entity_type_display_name(rid))] = type_schema(entity_type["schema"])
+        for ref in referenced_named_types(entity_type["schema"]):
+            if ref != rid and ref not in contract["entity_types"] and ref not in contract.get("schemas", {}):
+                opaque.add(ref)
     for cap in contract["application_actions"].values():
         outcome_types = [outcome["result"] for outcome in cap["outcomes"].values()]
-        for type_name in list(cap["input"].values()) + outcome_types:
+        for type_name in [cap["input"], *outcome_types]:
             for ref in referenced_named_types(type_name):
-                if ref not in components["schemas"] and ref not in contract["entity_types"] and ref not in contract.get("data_contracts", {}):
+                if ref not in components["schemas"] and ref not in contract["entity_types"] and ref not in contract.get("schemas", {}):
                     opaque.add(ref)
     for type_name in sorted(opaque):
         components["schemas"].setdefault(type_name, {"type": "object", "additionalProperties": True})
     return components
 
 
-def object_schema(fields: dict[str, Any]) -> dict[str, Any]:
+def object_json_schema(fields: dict[str, Any]) -> dict[str, Any]:
     return object_to_json_schema(fields)
 
 

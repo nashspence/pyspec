@@ -51,7 +51,7 @@ from .project import (
     composition_tcss_selector,
     constant_name,
     cwl_type,
-    object_schema,
+    object_json_schema,
     authorization_policies_projection,
     state_machines_projection,
     humanize,
@@ -60,7 +60,7 @@ from .project import (
     type_schema,
 )
 from .targets import entry_state_machine_name, entry_point_adapter_pair, entry_point_input, entry_point_method, entry_point_path, entry_point_responses, entry_target_pair
-from .type_expr import sample_value
+from .json_schema import sample_value, schema_properties
 
 _HTTP_METHODS = {"get", "put", "post", "delete", "patch", "head", "options", "trace"}
 _OPENAPI_OPERATION_KEYS = {
@@ -199,7 +199,7 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
         if body_fields and method not in {"get", "delete"}:
             expected_body = {
                 "required": True,
-                "content": {"application/json": {"schema": object_schema(body_fields)}},
+                "content": {"application/json": {"schema": object_json_schema(body_fields)}},
             }
             if operation.get("requestBody") != expected_body:
                 raise ContractError(f"OpenAPI requestBody does not match operation input for {cap_id}")
@@ -319,7 +319,13 @@ def _workflow_entry_dispositions(contract: dict[str, Any], workflow_id: str) -> 
         target_kind, target_ref = entry_target_pair(entry)
         if target_kind != "workflow" or target_ref != workflow_id:
             continue
-        dispositions[entry_id] = entry_point_responses(entry)
+        entry_dispositions = {}
+        for response_id, response in sorted(entry_point_responses(entry).items()):
+            projected = dict(response)
+            if "problem" in projected:
+                projected["problem"] = type_schema(projected["problem"])
+            entry_dispositions[response_id] = projected
+        dispositions[entry_id] = entry_dispositions
     return dispositions
 
 
@@ -573,7 +579,7 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             raise ContractError(f"CWL operation node {cap_id} must be a labelled CommandLineTool")
         if item.get("baseCommand") != ["contract-operation", cap_id]:
             raise ContractError(f"CWL operation node {cap_id} baseCommand mismatch")
-        expected_inputs = {name: {"type": cwl_type(type_name)} for name, type_name in sorted(cap["input"].items())}
+        expected_inputs = {name: {"type": cwl_type(type_name)} for name, type_name in sorted(schema_properties(cap["input"]).items())}
         if item.get("inputs") != expected_inputs:
             raise ContractError(f"CWL operation node {cap_id} inputs mismatch")
         expected_outputs = {

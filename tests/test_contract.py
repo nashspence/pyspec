@@ -20,8 +20,21 @@ def _rationale(text: str = "test contract declaration") -> str:
     return text
 
 
-def P(name: str) -> dict[str, str]:
-    return {"primitive": name}
+SCHEMA_ALIASES = {
+    "ID": {"type": "string"},
+    "Text": {"type": "string"},
+    "Markdown": {"type": "string"},
+    "Date": {"type": "string", "format": "date"},
+    "Timestamp": {"type": "string", "format": "date-time"},
+    "Boolean": {"type": "boolean"},
+    "Integer": {"type": "integer"},
+    "Decimal": {"type": "number"},
+    "JSON": {"type": "object", "additionalProperties": True},
+}
+
+
+def P(name: str) -> dict[str, object]:
+    return copy.deepcopy(SCHEMA_ALIASES[name])
 
 
 def ET(name: str) -> str:
@@ -31,23 +44,44 @@ def ET(name: str) -> str:
 
 
 def M(name: str) -> dict[str, str]:
-    return {"entity_type": ET(name)}
+    return {"$ref": ET(name)}
 
 
 def D(name: str) -> dict[str, str]:
-    return {"data_contract": name}
+    return {"$ref": name}
 
 
 def A(item: dict) -> dict:
-    return {"array": item}
+    return {"type": "array", "items": item}
 
 
 def E(*values: str) -> dict[str, list[str]]:
-    return {"enum": list(values)}
+    return {"type": "string", "enum": list(values)}
 
 
-def F(type_expr: dict, *, required: bool = True, nullable: bool = False) -> dict:
-    return {"type": type_expr, "required": required, "nullable": nullable}
+def F(schema: dict, *, required: bool = True, allow_null: bool = False) -> dict:
+    schema = copy.deepcopy(schema)
+    if allow_null:
+        type_value = schema.get("type")
+        if isinstance(type_value, list):
+            schema["type"] = sorted(set(type_value) | {"null"})
+        elif isinstance(type_value, str):
+            schema["type"] = sorted({type_value, "null"})
+        else:
+            schema = {"anyOf": [schema, {"type": "null"}]}
+    return schema
+
+
+def O(fields: dict[str, dict], *, required: list[str] | None = None) -> dict:
+    return {
+        "type": "object",
+        "properties": fields,
+        "required": sorted(fields if required is None else required),
+        "additionalProperties": False,
+    }
+
+
+EMPTY_OBJECT_SCHEMA = O({}, required=[])
 
 
 def _author() -> dict:
@@ -152,7 +186,7 @@ def test_author_contract_is_sparse_source() -> None:
     assert author["domain_events"] == {
         "domain_event.project.approved": {
             "rationale": "Approval domain events carry the reviewer and project identity needed by notification workflows.",
-            "payload_schema": D("data_contract.project.approved"),
+            "payload_schema": D("schema.project.approved"),
         }
     }
     assert "refs" not in author
@@ -425,7 +459,7 @@ def _derived_transition_author() -> dict:
         "entity_types": {
             "entity_type.ticket": {
                 "name": "Ticket",
-                "fields": {"id": F(P("ID")), "status": F(E("draft", "submitted"))},
+                "schema": O({"id": P("ID"), "status": E("draft", "submitted")}),
                 "entity_lifecycle": {
                     "field": "status",
                     "initial_state": "draft",
@@ -436,14 +470,14 @@ def _derived_transition_author() -> dict:
             },
             "entity_type.problem": {
                 "name": "Problem",
-                "fields": {"code": F(P("Text")), "message": F(P("Text"))},
+                "schema": O({"code": P("Text"), "message": P("Text")}),
                 "rationale": "Problem describes failed transitions.",
             },
         },
         "application_actions": {
             "application_action.ticket.submit": {
                 "action_kind": "lifecycle_transition",
-                "input": {"ticket_id": P("ID")},
+                "input": O({"ticket_id": P("ID")}),
                 "outcomes": {
                     "submitted": {"kind": "success", "result": M("Ticket")},
                     "transition_not_allowed": {"kind": "failure", "result": M("Problem")},
@@ -483,7 +517,7 @@ def test_lifecycle_transition_application_actions_must_be_referenced_by_entity_l
     author = _derived_transition_author()
     author["application_actions"]["application_action.ticket.close"] = {
         "action_kind": "lifecycle_transition",
-        "input": {"ticket_id": P("ID")},
+        "input": O({"ticket_id": P("ID")}),
         "outcomes": {
             "closed": {"kind": "success", "result": M("Ticket")},
             "transition_not_allowed": {"kind": "failure", "result": M("Problem")},
@@ -504,7 +538,8 @@ def test_lifecycle_transition_application_actions_must_declare_transition_not_al
 
 def test_entity_lifecycle_field_must_exist_on_entity_type() -> None:
     author = _derived_transition_author()
-    del author["entity_types"]["entity_type.ticket"]["fields"]["status"]
+    del author["entity_types"]["entity_type.ticket"]["schema"]["properties"]["status"]
+    author["entity_types"]["entity_type.ticket"]["schema"]["required"].remove("status")
     with pytest.raises(ContractError, match=r"Entity type entity_type\.ticket entity_lifecycle field is not a field: status"):
         compile_author(author)
 
@@ -543,21 +578,21 @@ def test_lifecycle_transition_must_reference_known_operation() -> None:
         compile_author(author)
 
 
-def test_application_action_rejects_primary_model_field() -> None:
+def test_application_action_rejects_primary_entity_type_field() -> None:
     author = _author()
     author["application_actions"]["application_action.project.create"]["entity_type"] = "Project"
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
 
-def test_field_type_rejects_nullable_and_presence_wrappers() -> None:
+def test_schema_properties_reject_legacy_nullability_and_presence_wrappers() -> None:
     author = _author()
-    author["entity_types"]["entity_type.project"]["fields"]["summary"]["type"] = {"nullable": P("Text")}
+    author["entity_types"]["entity_type.project"]["schema"]["properties"]["summary"] = {"null" + "able": P("Text")}
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
     author = _author()
-    author["entity_types"]["entity_type.project"]["fields"]["summary"]["type"] = {"op" + "tional": P("Text")}
+    author["entity_types"]["entity_type.project"]["schema"]["properties"]["summary"] = {"op" + "tional": P("Text")}
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
@@ -575,7 +610,7 @@ def test_state_machine_data_application_action_must_read_state_machine_entity_ty
     author = _author()
     author["entity_types"][ET("Workspace")] = {
         "name": "Workspace",
-        "fields": {"id": F(P("ID")), "name": F(P("Text"))},
+        "schema": O({"id": P("ID"), "name": P("Text")}),
         "rationale": "Workspace is a separate entity_type used to prove data bindings are entity_type-aware.",
     }
     author["application_actions"]["application_action.project.read"]["action_kind"] = "query"
@@ -613,18 +648,18 @@ def test_author_contract_can_omit_absent_sections() -> None:
         "entity_types": {
             ET("Ticket"): {
                 "name": "Ticket",
-                "fields": {"id": F(P("ID")), "title": F(P("Text"))},
+                "schema": O({"id": P("ID"), "title": P("Text")}),
             },
             ET("Problem"): {
                 "name": "Problem",
-                "fields": {"code": F(P("Text")), "message": F(P("Text"))},
+                "schema": O({"code": P("Text"), "message": P("Text")}),
             },
         },
         "application_actions": {
             "application_action.ticket.create": {
                 "action_kind": "command",
                 "creates": [ET("Ticket")],
-                "input": {"title": P("Text")},
+                "input": O({"title": P("Text")}),
                 "outcomes": {
                     "created": {"kind": "success", "result": M("Ticket")},
                     "validation_failed": {"kind": "failure", "result": M("Problem")},
@@ -652,7 +687,7 @@ def test_author_state_machine_defaults_empty_collections() -> None:
         "entity_types": {
             ET("Ticket"): {
                 "name": "Ticket",
-                "fields": {"id": F(P("ID")), "title": F(P("Text"))},
+                "schema": O({"id": P("ID"), "title": P("Text")}),
                 "rationale": "Ticket is the product work item.",
             }
         },
@@ -673,7 +708,7 @@ def test_author_state_machine_defaults_empty_collections() -> None:
     }
     contract = compile_author(author, layers=parse_layers("core,ui,html"))
     state_machine = contract["state_machines"]["state_machine.ticket.empty"]
-    assert state_machine["context"] == {}
+    assert state_machine["context"] == EMPTY_OBJECT_SCHEMA
     assert state_machine["data_loaders"] == {}
     assert state_machine["signals"] == {"accepts": {"local_signals": {}, "data_refresh_signals": {}}, "emits": {"local_signals": {}}}
     assert state_machine["transitions"] == []
@@ -685,11 +720,11 @@ def test_nested_json_values_binding_values_and_model_less_state_machines_compile
         "project": "nested_values",
         "state_machines": {
             "state_machine.settings.panel": {
-                "context": {"settings": F(P("JSON"))},
+                "context": O({"settings": P("JSON")}),
                 "signals": {
                     "accepts": {
                         "local_signals": {
-                            "configure": {"payload_schema": {"settings": P("JSON")}},
+                            "configure": {"payload_schema": O({"settings": P("JSON")})},
                         }
                     }
                 },
@@ -720,12 +755,12 @@ def test_nested_json_values_binding_values_and_model_less_state_machines_compile
     assert state_machine["transitions"][0]["effects"][0]["set"]["value"]["theme"]["density"]["compact"] is True
 
 
-def test_context_set_effect_respects_context_nullability() -> None:
+def test_context_set_effect_respects_context_null_type() -> None:
     author = {
-        "project": "context_nullability",
+        "project": "context_null_type",
         "state_machines": {
             "state_machine.project.panel": {
-                "context": {"project_id": F(P("ID"), required=False, nullable=True)},
+                "context": O({"project_id": F(P("ID"), allow_null=True)}, required=[]),
                 "signals": {"accepts": {"local_signals": {"clear": {}}}},
                 "initial_view_state": "ready",
                 "view_states": {"ready": {}},
@@ -737,24 +772,27 @@ def test_context_set_effect_respects_context_nullability() -> None:
                         "effects": [{"set": {"context": "project_id", "value": None}}],
                     }
                 ],
-                "rationale": "Nullable local context may be cleared explicitly.",
+                "rationale": "Local context that allows null may be cleared explicitly.",
             }
         },
     }
     compile_author(author)
 
-    author["state_machines"]["state_machine.project.panel"]["context"]["project_id"]["nullable"] = False
-    with pytest.raises(ContractError, match=r"transition set project_id cannot assign null to non-nullable ID"):
+    author["state_machines"]["state_machine.project.panel"]["context"]["properties"]["project_id"] = P("ID")
+    with pytest.raises(ContractError, match=r"transition set project_id cannot assign null to string, which does not allow null"):
         compile_author(author)
 
     author = {
-        "project": "context_nullable_source",
+        "project": "context_null_source",
         "state_machines": {
             "state_machine.project.panel": {
-                "context": {
-                    "source_project_id": F(P("ID"), required=False, nullable=True),
-                    "target_project_id": F(P("ID")),
-                },
+                "context": O(
+                    {
+                        "source_project_id": F(P("ID"), allow_null=True),
+                        "target_project_id": P("ID"),
+                    },
+                    required=["target_project_id"],
+                ),
                 "signals": {"accepts": {"local_signals": {"copy": {}}}},
                 "initial_view_state": "ready",
                 "view_states": {"ready": {}},
@@ -766,40 +804,40 @@ def test_context_set_effect_respects_context_nullability() -> None:
                         "effects": [{"set": {"context": "target_project_id", "from": "$context.source_project_id"}}],
                     }
                 ],
-                "rationale": "Nullable sources cannot feed non-nullable context fields.",
+                "rationale": "Sources that allow null cannot feed context fields that do not allow null.",
             }
         },
     }
-    with pytest.raises(ContractError, match=r"transition set target_project_id cannot assign nullable source to non-nullable ID"):
+    with pytest.raises(ContractError, match=r"transition set target_project_id cannot assign a source that allows null to string, which does not allow null"):
         compile_author(author)
 
 
 def test_workflow_input_bindings_support_runtime_sources_and_literal_values() -> None:
     author = {
         "project": "workflow_bindings",
-        "data_contracts": {
-            "data_contract.ticket.triggered": {
-                "fields": {"source_id": F(P("ID"))},
+        "schemas": {
+            "schema.ticket.triggered": {
+                "schema": O({"source_id": P("ID")}),
                 "rationale": "Workflow trigger payload.",
             },
-            "data_contract.ticket.notice": {
-                "fields": {"notice_id": F(P("ID"))},
+            "schema.ticket.notice": {
+                "schema": O({"notice_id": P("ID")}),
                 "rationale": "Workflow success payload.",
             },
         },
         "entity_types": {
             ET("Problem"): {
                 "name": "Problem",
-                "fields": {"code": F(P("Text")), "message": F(P("Text"))},
+                "schema": O({"code": P("Text"), "message": P("Text")}),
                 "rationale": "Problem result.",
             }
         },
         "application_actions": {
             "application_action.ticket.notify": {
                 "action_kind": "command",
-                "input": {"source_id": P("ID"), "title": P("Text")},
+                "input": O({"source_id": P("ID"), "title": P("Text")}),
                 "outcomes": {
-                    "sent": {"kind": "success", "result": D("data_contract.ticket.notice")},
+                    "sent": {"kind": "success", "result": D("schema.ticket.notice")},
                     "failed": {"kind": "failure", "result": M("Problem")},
                 },
                 "rationale": "Sends a notice.",
@@ -807,7 +845,7 @@ def test_workflow_input_bindings_support_runtime_sources_and_literal_values() ->
         },
         "domain_events": {
             "domain_event.ticket.triggered": {
-                "payload_schema": D("data_contract.ticket.triggered"),
+                "payload_schema": D("schema.ticket.triggered"),
                 "rationale": "Ticket trigger domain event.",
             }
         },
@@ -815,7 +853,7 @@ def test_workflow_input_bindings_support_runtime_sources_and_literal_values() ->
             "workflow.ticket.notice": {
                 "trigger": {"domain_event": "domain_event.ticket.triggered"},
                 "outcomes": {
-                    "completed": {"kind": "success", "result": D("data_contract.ticket.notice")},
+                    "completed": {"kind": "success", "result": D("schema.ticket.notice")},
                     "failed": {"kind": "failure", "result": M("Problem")},
                 },
                 "steps": [
@@ -869,7 +907,7 @@ def test_empty_state_machine_signal_payloads_can_be_omitted() -> None:
     assert activity["signals"]["accepts"]["local_signals"]["selection_cleared"] == {}
     contract = compile_source(author)
 
-    assert contract["state_machines"]["state_machine.project.activity"]["signals"]["accepts"]["local_signals"]["selection_cleared"]["payload_schema"] == {}
+    assert contract["state_machines"]["state_machine.project.activity"]["signals"]["accepts"]["local_signals"]["selection_cleared"]["payload_schema"] == EMPTY_OBJECT_SCHEMA
 
 
 def test_author_source_prunes_empty_local_signal_payloads() -> None:
@@ -946,7 +984,8 @@ def test_state_machine_transition_rationale_can_explain_otherwise_empty_audit_ca
 def test_state_machine_data_inputs_must_come_from_context() -> None:
     author = _author()
     state_machine = _item(author, "state_machines", "state_machine.project.list")
-    del state_machine["context"]["workspace_id"]
+    del state_machine["context"]["properties"]["workspace_id"]
+    state_machine["context"]["required"].remove("workspace_id")
     board = _item(author, "state_machines", "state_machine.project.board")
     for mount in board["view_states"]["ready"]["child_state_machines"]:
         if mount["state_machine"] == "state_machine.project.list":
@@ -1373,7 +1412,7 @@ def test_data_loader_load_policy_and_application_action_purity_are_validated() -
         {"domain_event": "domain_event.project.listed", "payload_source": "$outcome.result"}
     ]
     author["domain_events"]["domain_event.project.listed"] = {
-        "payload_schema": {"array": {"entity_type": ET("Project")}},
+        "payload_schema": A(M("Project")),
         "rationale": "List domain events are deliberately invalid for data loaders.",
     }
     with pytest.raises(ContractError, match=r"Query application action application_action\.project\.list must not emit domain events: .*listed"):
@@ -1583,22 +1622,22 @@ def test_sync_send_data_must_match_target_local_signal_payload_type() -> None:
     state_machine = _item(author, "state_machines", "state_machine.project.board")["view_states"]["ready"]
     send = next(effect["send"] for effect in state_machine["signal_sync_rules"][0]["effects"] if "send" in effect)
     send["payload_bindings"]["project_id"] = {"value": 1}
-    with pytest.raises(ContractError, match=r"payload_bindings\.project_id literal value is not compatible with ID"):
+    with pytest.raises(ContractError, match=r"payload_bindings\.project_id literal value is not compatible with string"):
         compile_source(author)
 
 
 def test_state_machine_signal_payloads_must_be_consistent_across_state_machines() -> None:
     author = _author()
     activity = _item(author, "state_machines", "state_machine.project.activity")
-    activity["signals"]["accepts"]["local_signals"]["selection_changed"]["payload_schema"]["project_id"] = P("Text")
-    with pytest.raises(ContractError, match=r"sync send selection_changed to activity payload_bindings\.project_id type mismatch"):
+    activity["signals"]["accepts"]["local_signals"]["selection_cleared"] = {"payload_schema": O({"project_id": P("ID")})}
+    with pytest.raises(ContractError, match=r"state-machine signal local_signal.selection_cleared payload_schema differs"):
         compile_source(author)
 
 
 def test_state_machine_signal_direction_must_be_unambiguous() -> None:
     author = _author()
     state_machine = _item(author, "state_machines", "state_machine.project.list")
-    state_machine["signals"]["emits"]["local_signals"]["project_select"] = {"payload_schema": {"project_id": P("ID")}}
+    state_machine["signals"]["emits"]["local_signals"]["project_select"] = {"payload_schema": O({"project_id": P("ID")})}
     with pytest.raises(ContractError, match=r"declares state-machine signal as both accepted and emitted: .*local_signal\.project_select"):
         compile_source(author)
 
@@ -1644,12 +1683,12 @@ def _api_only_author() -> dict:
         "entity_types": {
             ET("Ticket"): {
                 "name": "Ticket",
-                "fields": {"id": F(P("ID")), "title": F(P("Text"))},
+                "schema": O({"id": P("ID"), "title": P("Text")}),
                 "rationale": _rationale("ticket entity_type"),
             },
             ET("Problem"): {
                 "name": "Problem",
-                "fields": {"code": F(P("Text")), "message": F(P("Text"))},
+                "schema": O({"code": P("Text"), "message": P("Text")}),
                 "rationale": _rationale("problem entity_type"),
             },
         },
@@ -1657,7 +1696,7 @@ def _api_only_author() -> dict:
             "application_action.ticket.create": {
                 "action_kind": "command",
                 "creates": [ET("Ticket")],
-                "input": {"title": P("Text")},
+                "input": O({"title": P("Text")}),
                 "outcomes": {
                     "created": {"kind": "success", "result": M("Ticket")},
                     "validation_failed": {"kind": "failure", "result": M("Problem")},
@@ -1795,7 +1834,7 @@ def test_action_outcomes_must_have_one_success_and_real_failure_result() -> None
 def test_event_emits_must_map_declared_payload() -> None:
     author = _author()
     author["application_actions"]["application_action.project.approve"]["outcomes"]["approved"]["emits"][0]["payload_bindings"]["approved_by"] = {"from": "$outcome.result"}
-    with pytest.raises(ContractError, match=r"emit domain_event.project\.approved mapping approved_by source .*\$outcome\.result.* type must be ID"):
+    with pytest.raises(ContractError, match=r"emit domain_event.project\.approved mapping approved_by source .*\$outcome\.result.* type must be string"):
         compile_source(author)
 
 
@@ -1809,7 +1848,7 @@ def test_runtime_references_are_context_scoped() -> None:
 def test_runtime_references_validate_declared_fields() -> None:
     author = _author()
     author["workflows"]["workflow.project.approval_notice"]["steps"][0]["input_bindings"]["project_id"] = {"from": "$trigger.payload.missing"}
-    with pytest.raises(ContractError, match=r"input project_id references unknown data_contract\.project\.approved field: missing"):
+    with pytest.raises(ContractError, match=r"input project_id references unknown schema\.project\.approved field: missing"):
         compile_source(author)
 
 
@@ -2029,8 +2068,8 @@ def test_state_machine_entry_must_not_declare_output() -> None:
 
 def test_worker_entry_payload_must_match_trigger_domain_event_payload() -> None:
     author = _author()
-    author["entry_points"]["entry_point.worker.project.approval_notice"]["adapter"]["worker"]["input"]["payload"] = D("data_contract.project.notice_result")
-    with pytest.raises(ContractError, match=r"Entry entry_point.worker\.project\.approval_notice input\.payload must be data_contract\.project\.approved, got data_contract\.project\.notice_result"):
+    author["entry_points"]["entry_point.worker.project.approval_notice"]["adapter"]["worker"]["input"]["payload"] = D("schema.project.notice_result")
+    with pytest.raises(ContractError, match=r"Entry entry_point.worker\.project\.approval_notice input\.payload must be schema\.project\.approved, got schema\.project\.notice_result"):
         compile_source(author)
 
 

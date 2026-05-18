@@ -1,6 +1,6 @@
 <svg width="829pt" height="723pt"
  viewBox="0.00 0.00 829.00 723.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: ac5435ea3ce185e7d5aa834691d8b8b557732ec61d2175b201b4d80e184b9a2f -->
+<!-- pyspec-contract-input-sha256: efb109c38d7319efbe22d73dcda43ccd528fcff0b795d0f9abde4615c43272a5 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 705)">
 <title>entrypoint_entry_point_api_project_approve</title>
 <!-- entrypoint_entry_point_api_project_approve -->
@@ -19,10 +19,10 @@
 <text text-anchor="start" x="105.5" y="-331" font-family="Arial" font-size="10.00">  authorization_policy.project.reviewer</text>
 <text text-anchor="start" x="5.5" y="-311" font-family="Arial" font-weight="bold" font-size="10.00">path params</text>
 <text text-anchor="start" x="5.5" y="-300" font-family="Arial" font-size="10.00">project_id</text>
-<text text-anchor="start" x="48.5" y="-300" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<text text-anchor="start" x="48.5" y="-300" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
 <text text-anchor="start" x="5.5" y="-281" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
 <text text-anchor="start" x="5.5" y="-270" font-family="Arial" font-size="10.00">approved_by</text>
-<text text-anchor="start" x="61.5" y="-270" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<text text-anchor="start" x="61.5" y="-270" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
 <polygon fill="none" stroke="#0891b2" points="0,-261 0,-425 275,-425 275,-261 0,-261"/>
 </g>
 <!-- entrypoint_target_application_action_project_approve -->

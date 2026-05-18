@@ -1,6 +1,6 @@
 <svg width="806pt" height="485pt"
  viewBox="0.00 0.00 806.00 485.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 07eaf756784eaaf47cebf1cf943de7f3f6c937c7b0ace561275126dc2983123e -->
+<!-- pyspec-contract-input-sha256: 27dd18d849ae494993bc63377fe9d34aad3039f9a988ee28d5e618c9a7afd822 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 467)">
 <title>entrypoint_entry_point_api_project_create</title>
 <!-- entrypoint_entry_point_api_project_create -->
@@ -18,14 +18,14 @@
 <text text-anchor="start" x="105" y="-228" font-family="Arial" font-size="10.00">  authorization_policy.project.member</text>
 <text text-anchor="start" x="5" y="-208" font-family="Arial" font-weight="bold" font-size="10.00">path params</text>
 <text text-anchor="start" x="5" y="-197" font-family="Arial" font-size="10.00">workspace_id</text>
-<text text-anchor="start" x="66" y="-197" font-family="Arial" font-size="8.00" fill="#94a3b8">  ID</text>
+<text text-anchor="start" x="66" y="-197" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
 <text text-anchor="start" x="5" y="-178" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
 <text text-anchor="start" x="5" y="-167" font-family="Arial" font-size="10.00">customer</text>
-<text text-anchor="start" x="46" y="-167" font-family="Arial" font-size="8.00" fill="#94a3b8">  Text</text>
+<text text-anchor="start" x="46" y="-167" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
 <text text-anchor="start" x="5" y="-156" font-family="Arial" font-size="10.00">priority</text>
-<text text-anchor="start" x="35" y="-156" font-family="Arial" font-size="8.00" fill="#94a3b8">  Text</text>
+<text text-anchor="start" x="35" y="-156" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
 <text text-anchor="start" x="5" y="-145" font-family="Arial" font-size="10.00">title</text>
-<text text-anchor="start" x="21" y="-145" font-family="Arial" font-size="8.00" fill="#94a3b8">  Text</text>
+<text text-anchor="start" x="21" y="-145" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
 <polygon fill="none" stroke="#0891b2" points="0,-136.5 0,-311.5 290,-311.5 290,-136.5 0,-136.5"/>
 </g>
 <!-- entrypoint_target_application_action_project_create -->

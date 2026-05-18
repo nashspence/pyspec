@@ -15,7 +15,7 @@ Bare `event` is avoided for durable facts because CloudEvents and UML/state-mach
 
 - <!-- top-level:assets --> `assets`: content assets with media kind, asset role, placeholders, and source-backed resolution when present.
 - <!-- top-level:content_cases --> `content_cases`: named content-source examples for dynamic text and asset content.
-- <!-- top-level:data_contracts --> `data_contracts`: first-class typed payload/data contracts referenced by type expressions with `data_contract.*` ids.
+- <!-- top-level:schemas --> `schemas`: first-class reusable JSON Schema payload or object schemas referenced with `schema.*` ids.
 - <!-- top-level:entry_points --> `entry_points`: external invocation declarations split into explicit adapter and target objects. An entry point is an externally invokable adapter plus a target.
 - <!-- top-level:domain_events --> `domain_events`: durable domain/application facts with payload_schema contracts and compiled emitters.
 - <!-- top-level:facts --> `facts`: reusable entity_type presence/absence setup or assertion facts; facts are not broad domain invariants.
@@ -35,7 +35,7 @@ Bare `event` is avoided for durable facts because CloudEvents and UML/state-mach
 
 - `asset_ref`: `asset.<domain>...`; asset declarations, generated asset slots, content cases, and audit evidence.
 - `content_case_ref`: `content_case.<domain>...`; content source examples.
-- `data_contract_ref`: `data_contract.<domain>...`; reusable typed payload/data contracts in `type_expr.data_contract`.
+- `schema_ref`: `schema.<domain>...`; reusable typed payload schemas referenced through JSON Schema `$ref`.
 - `data_refresh_signal_name`: local state-machine data-refresh signal name; authored sources do not use global-looking `data_refresh_signal.*` references for local refresh signals.
 - `entry_point_ref`: `entry_point.<adapter-or-target>.<domain>...`; entry-point declarations, entry-point delegation targets, and test-case `open_entry_point` or `call_entry_point` actions.
 - `domain_event_ref`: `domain_event.<domain>...`; durable domain-event declarations, application-action emissions, workflow triggers, and test-case domain-event assertions.
@@ -83,7 +83,7 @@ Bare `event` is avoided for durable facts because CloudEvents and UML/state-mach
 - `retry_safe`: explicit application-action or entry-point marker permitting automatic retry of delegated, command, transition, or workflow execution. The default is false. Queries are retry-safe by action kind.
 - `retry safety`: validation that a retry policy applies only to a retry-safe delegated entry point and final target, a query, an explicitly retry-safe application action or entry point, or an ingress/disposition outcome where no target application action has executed. Transport retry, ingress retry, workflow retry, and application-action retry are separate scopes.
 - `workflow_transition`: exclusive workflow control-flow target via `next_step`, `complete_as`, `fail_as`, `retry_policy`, or `dead_letter_as`.
-- `state-machine context schema`: explicit `field_schema_map` for local machine context. Each context field declares `type`, `required`, and `nullable`; effects may set a context field to null only when that field is nullable.
+- `state-machine context schema`: local machine context declared as JSON Schema object `properties` and `required`. Nullability uses JSON Schema type arrays such as `type: [string, null]`; effects may set a context field to null only when that field schema allows null.
 - `context_present`: state-machine condition meaning the declared context field is present and non-null. Nullable context fields with a current `null` value are not present for this condition.
 - `render profile`: global audit/golden-image viewport map. Renderable state machines require at least one render profile, and profiles must include viewport sets for each declared renderer surface (`html_viewports` for HTML, `textual_viewports` for Textual).
 - `render audit case`: view-state-local visual evidence input. It supplies seed fixtures, optional context, optional fact references, and, for composed states, an exact child instance view-state vector; it never names render profiles directly.
@@ -110,11 +110,11 @@ Bare `event` is avoided for durable facts because CloudEvents and UML/state-mach
 - `action_binding.outcome_effects.raise`: local state-machine `local_signal` or `data_refresh_signal` raise after a user/action action binding.
 - `data_loader.outcome_effects.raise`: local state-machine `local_signal` or `data_refresh_signal` raise after a query load or refresh outcome.
 - `no_local_effect`: explicit declaration that an action/data-loader outcome has no local state-machine effect.
-- `signals`: local UI/component/state-machine signal contracts split into accepted `local_signals`/`data_refresh_signals` maps and emitted `local_signals` maps with `payload_schema` maps.
+- `signals`: local UI/component/state-machine signal contracts split into accepted `local_signals`/`data_refresh_signals` maps and emitted `local_signals` maps with JSON Schema `payload_schema` declarations.
 - `renderer_contracts`: view-state renderer declarations keyed by concrete target. `renderers.html` and `renderers.textual` each own target-local `layout`, `presentation`, and `style`.
 - `renderer placement validation`: HTML slots and child machines must reference declared HTML `region_id`s; Textual widgets and child machines must reference declared Textual `container_id`s. Placement ids are layout ids, not field names.
 - `resolver output escaping`: text, SVG, XML, and HTML resolvers must escape dynamic values before placing them in markup text or attributes. Plain-text outputs and alt text must not expose unescaped markup-sensitive values where they may be rendered into HTML/XML.
-- `type_expr`: structured primitive, entity_type, data_contract, array, map, nullable whole-value wrapper, enum, or inline object type expression. Object field presence and nullability are controlled only by `field_schema.required` and `field_schema.nullable`.
+- `schema`: JSON Schema subset used for payloads, entity types, action inputs, state-machine context, content args, and adapter input sections. It uses `type`, `$ref`, `properties`, `required`, `enum`, `const`, `items`, `additionalProperties`, and `format`; null is represented through JSON Schema type arrays such as `type: ["string", "null"]`.
 - `authorization_policy`: direct `authorization_policy_ref` fields identify the authorization policy applied to an entry point or authorization assertion. Application actions use `authorization.policy` plus explicit `unauthenticated_as` and `forbidden_as` outcome mappings.
 - `action_authorization`: application-action-local authorization mapping with `policy`, `unauthenticated_as`, and `forbidden_as`. The mapped names must be normal application-action outcomes with `kind: failure`.
 - `authorization policy`: reusable rule set that determines whether a subject may attempt an application action or entry point. Policies with identical subjects, effect, and conditions should be one `authorization_policy` with combined targets, not duplicated per application_action.
@@ -221,7 +221,7 @@ data_loaders:
 
 Layers are compile/validate guardrails and are not written into `spec/generated/compiled/spec.yaml`.
 
-- `core`: `fixtures`, `facts`, `data_contracts`, `entity_types`, `authorization_policies`, `application_actions`, `domain_events`, and `test_cases`.
+- `core`: `fixtures`, `facts`, `schemas`, `entity_types`, `authorization_policies`, `application_actions`, `domain_events`, and `test_cases`.
 - `http`: HTTP API entry-point adapters.
 - `domain_events`: webhook entry-point adapters.
 - `workflow`: `workflows` plus CLI, worker, and scheduled entry-point adapters.
@@ -374,8 +374,6 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:rule_id --> `$defs/rule_id`: local identifier contract component.
 - <!-- schema-def:role_name --> `$defs/role_name`: local identifier contract component.
 - <!-- schema-def:audit_case_id --> `$defs/audit_case_id`: local identifier contract component.
-- <!-- schema-def:field_schema --> `$defs/field_schema`: structured type-expression and object-schema contract component.
-- <!-- schema-def:field_schema_map --> `$defs/field_schema_map`: structured type-expression and object-schema contract component.
 - <!-- schema-def:fixture_ref --> `$defs/fixture_ref`: typed reference definition for its namespace.
 - <!-- schema-def:given --> `$defs/given`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:html_element --> `$defs/html_element`: HTML renderer contract component.
@@ -393,7 +391,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:signal_sync_trigger --> `$defs/signal_sync_trigger`: state-machine signal synchronization contract component.
 - <!-- schema-def:entity_type_ref --> `$defs/entity_type_ref`: typed reference definition for its namespace.
 - <!-- schema-def:entity_type_display_name --> `$defs/entity_type_display_name`: PascalCase entity type display/type name separated from the stable `entity_type.*` id.
-- <!-- schema-def:object_schema --> `$defs/object_schema`: structured type-expression and object-schema contract component.
+- <!-- schema-def:schema --> `$defs/schema`: JSON Schema subset used by payload, entity type, input, context, and reusable schema declarations.
 - <!-- schema-def:action_authorization --> `$defs/action_authorization`: explicit application-action authorization policy and mapped authorization failure outcomes.
 - <!-- schema-def:action_emit --> `$defs/action_emit`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:action_binding_id --> `$defs/action_binding_id`: local view-state action binding identifier.
@@ -440,9 +438,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:textual_viewport --> `$defs/textual_viewport`: Textual renderer contract component.
 - <!-- schema-def:textual_widget --> `$defs/textual_widget`: Textual renderer contract component.
 - <!-- schema-def:then --> `$defs/then`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:type_expr --> `$defs/type_expr`: structured type-expression and object-schema contract component.
-- <!-- schema-def:field_type_expr --> `$defs/field_type_expr`: field type expression without nullable or presence wrappers.
-- <!-- schema-def:type_expr_map --> `$defs/type_expr_map`: structured type-expression and object-schema contract component.
+- <!-- schema-def:schema_map --> `$defs/schema_map`: map from field or parameter names to JSON Schema fragments.
 - <!-- schema-def:html_route_adapter --> `$defs/html_route_adapter`: HTML renderer contract component.
 - <!-- schema-def:html_route_adapter_input --> `$defs/html_route_adapter_input`: HTML renderer contract component.
 - <!-- schema-def:value_map --> `$defs/value_map`: shared schema component used by authored source or compiled output.
@@ -465,8 +461,8 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:workflow_transition --> `$defs/workflow_transition`: workflow trigger, step, transition, retry, outcome, or binding contract component.
 - <!-- schema-def:workflow_step --> `$defs/workflow_step`: workflow trigger, step, transition, retry, outcome, or binding contract component.
 - <!-- schema-def:workflow_trigger_source --> `$defs/workflow_trigger_source`: workflow trigger, step, transition, retry, outcome, or binding contract component.
-- <!-- schema-def:data_contract_ref --> `$defs/data_contract_ref`: typed reference definition for its namespace.
-- <!-- schema-def:authored_data_contract --> `$defs/authored_data_contract`: human-authored source object for this resource or nested contract.
+- <!-- schema-def:schema_ref --> `$defs/schema_ref`: typed reference definition for its namespace.
+- <!-- schema-def:authored_schema --> `$defs/authored_schema`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:feature_tag --> `$defs/feature_tag`: unprefixed test-case feature grouping tag, not a typed reference.
 - <!-- schema-def:data_refresh_signal_name --> `$defs/data_refresh_signal_name`: state-machine-local data-refresh signal identifier.
 - <!-- schema-def:state_machine_signals --> `$defs/state_machine_signals`: state-machine contract component.
@@ -511,4 +507,4 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:state_machine_item --> `$defs/state_machine_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:view_state --> `$defs/view_state`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:workflow_item --> `$defs/workflow_item`: compiled-output object for this resource or nested contract.
-- <!-- schema-def:data_contract_item --> `$defs/data_contract_item`: compiled-output object for this resource or nested contract.
+- <!-- schema-def:schema_item --> `$defs/schema_item`: compiled-output object for this resource or nested contract.

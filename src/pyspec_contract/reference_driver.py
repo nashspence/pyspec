@@ -15,7 +15,7 @@ from .targets import (
     entry_target_pair,
     entry_point_input_bindings,
 )
-from .type_expr import is_array_of_entity_type, entity_type_id
+from .json_schema import is_array_of_entity_type, entity_type_id, schema_properties
 
 
 class ReferenceSpecDriver:
@@ -435,7 +435,7 @@ class ReferenceSpecDriver:
         return matches[0]
 
     def _complete_record(self, entity_type_id: str, values: dict[str, Any]) -> dict[str, Any]:
-        fields = self.contract["entity_types"][entity_type_id]["fields"]
+        fields = schema_properties(self.contract["entity_types"][entity_type_id]["schema"])
         record = dict(values)
         if "id" in fields and "id" not in record:
             record["id"] = f"{entity_type_id.lower()}_{len(self.store[entity_type_id]) + 1}"

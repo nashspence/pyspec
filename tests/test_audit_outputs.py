@@ -33,12 +33,30 @@ ROOT = EXAMPLE_ROOT
 PNG_HEADER = bytes([137, 80, 78, 71, 13, 10, 26, 10])
 
 
-def P(name: str) -> dict[str, str]:
-    return {"primitive": name}
+SCHEMA_ALIASES = {
+    "ID": {"type": "string"},
+    "Text": {"type": "string"},
+}
 
 
-def F(type_expr: dict, *, required: bool = True, nullable: bool = False) -> dict:
-    return {"type": type_expr, "required": required, "nullable": nullable}
+def P(name: str) -> dict[str, object]:
+    return copy.deepcopy(SCHEMA_ALIASES[name])
+
+
+def F(schema: dict, *, required: bool = True, allow_null: bool = False) -> dict:
+    schema = copy.deepcopy(schema)
+    if allow_null and isinstance(schema.get("type"), str):
+        schema["type"] = sorted({schema["type"], "null"})
+    return schema
+
+
+def O(fields: dict[str, dict], *, required: list[str] | None = None) -> dict:
+    return {
+        "type": "object",
+        "properties": fields,
+        "required": sorted(fields if required is None else required),
+        "additionalProperties": False,
+    }
 
 
 def _contract(root: Path = ROOT) -> dict:
@@ -91,17 +109,17 @@ def test_audit_coverage_index_maps_compiled_paths_to_evidence() -> None:
         "visual_evidence_set": approve_policy_set,
         "tokens": ["authorization_policy.project.reviewer"],
     }
-    approved_payload_set = index["visual_audit"]["required"]["covered"]["/domain_events/domain_event.project.approved/payload_schema/data_contract"]
+    approved_payload_set = index["visual_audit"]["required"]["covered"]["/domain_events/domain_event.project.approved/payload_schema/$ref"]
     assert "spec/generated/audit_evidence/application_actions/application_action_project_approve/flow.svg" in visual_evidence_sets[approved_payload_set]
     assert "spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg" in visual_evidence_sets[approved_payload_set]
-    assert text_witnesses["/domain_events/domain_event.project.approved/payload_schema/data_contract"] == {
+    assert text_witnesses["/domain_events/domain_event.project.approved/payload_schema/$ref"] == {
         "visual_evidence_set": approved_payload_set,
-        "tokens": ["data_contract.project.approved"],
+        "tokens": ["schema.project.approved"],
     }
-    notice_result_set = index["visual_audit"]["required"]["covered"]["/data_contracts/data_contract.project.notice_result/fields/notice_id/type/primitive"]
+    notice_result_set = index["visual_audit"]["required"]["covered"]["/schemas/schema.project.notice_result/schema/properties/notice_id/type"]
     assert "spec/generated/audit_evidence/application_actions/application_action_project_send_approval_notice/flow.svg" in visual_evidence_sets[notice_result_set]
     assert "spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg" in visual_evidence_sets[notice_result_set]
-    assert "/data_contracts/data_contract.project.notice_result/fields/notice_id/type/primitive" not in text_witnesses
+    assert "/schemas/schema.project.notice_result/schema/properties/notice_id/type" not in text_witnesses
     lifecycle_set = index["visual_audit"]["required"]["covered"]["/entity_types/entity_type.project/entity_lifecycle/lifecycle_transitions/1/triggered_by"]
     assert "spec/generated/audit_evidence/application_actions/application_action_project_approve/flow.svg" in visual_evidence_sets[lifecycle_set]
     assert "/entity_types/entity_type.project/entity_lifecycle/lifecycle_transitions/1/triggered_by" not in text_witnesses
@@ -185,29 +203,29 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert state_machine.index("<B>text:</B>&#160;&#160;text.project.list.ready.heading") < state_machine.index("<B>application_action.project.list fields</B>")
     assert state_machine.index("<B>application_action.project.list fields</B>") < state_machine.index("<B>action_bindings</B>")
     assert "<B>emit:</B>&#160;&#160;local_signal.project_selected" in state_machine
-    payload_project = '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
+    payload_project = '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;string</FONT>'
     assert payload_project in state_machine
     assert "<B>effects:</B>" not in state_machine
     assert "emit local_signal.project_selected" not in state_machine
     assert "<B>projection:</B>" not in state_machine
     assert '<FONT POINT-SIZE="10"><B>load:</B>&#160;&#160;application_action.project.list</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;array&lt;Project&gt;</FONT>' in state_machine
     assert "<B>data_loaders:</B>&#160;&#160;list_projects" in state_machine
-    input_workspace = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;list_projects.workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
+    input_workspace = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;list_projects.workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;string</FONT>'
     assert input_workspace in state_machine
     assert state_machine.index(input_workspace) < state_machine.index("<B>data_loaders:</B>&#160;&#160;list_projects")
     assert state_machine.index("<B>data_loaders:</B>&#160;&#160;list_projects") < state_machine.index("<B>load:</B>&#160;&#160;application_action.project.list")
     detail_transition = state_machine_dot("state_machine.project.detail", contract["state_machines"]["state_machine.project.detail"], contract)
     selection_card = detail_transition[detail_transition.index("local_signal.selection_changed") :]
-    input_project = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;read_project.project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
+    input_project = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;read_project.project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;string</FONT>'
     assert selection_card.index(input_project) < selection_card.index("<B>data_loaders:</B>&#160;&#160;read_project")
     load_project = '<FONT POINT-SIZE="10"><B>load:</B>&#160;&#160;application_action.project.read</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>'
     assert selection_card.index("<B>data_loaders:</B>&#160;&#160;read_project") < selection_card.index(load_project)
     assert "<B>application_action.project.list fields</B>" in state_machine
     assert '<FONT POINT-SIZE="10"><B>action_bindings:</B>&#160;&#160;create: application_action.project.create</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in state_machine
     assert '<FONT POINT-SIZE="10">submit: application_action.project.submit</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' in state_machine
-    assert '<FONT POINT-SIZE="10">title</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Text</FONT>' in state_machine
+    assert '<FONT POINT-SIZE="10">title</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;string</FONT>' in state_machine
     assert '<FONT POINT-SIZE="10">status</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;enum&lt;draft|submitted|approved|archived&gt;</FONT>' in state_machine
-    assert '<FONT POINT-SIZE="10">summary</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Text</FONT>' in detail_transition
+    assert '<FONT POINT-SIZE="10">summary</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;string</FONT>' in detail_transition
     assert "title: Text" not in state_machine
     assert "status: enum" not in state_machine
     assert "<B>Project fields</B>" not in state_machine
@@ -233,7 +251,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "domain_event.project.approved" in operation
     assert "domain_event.project.created" in create_operation
     assert '<FONT POINT-SIZE="10"><B>payload</B></FONT>' in operation
-    assert '<FONT POINT-SIZE="10">payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.approved</FONT>' in operation
+    assert '<FONT POINT-SIZE="10">payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;schema.project.approved</FONT>' in operation
     assert "payload:" not in operation
     assert "payload_schema:" not in operation
     assert "emitted by" not in operation
@@ -266,8 +284,8 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "ready to ready" not in composition
     assert "<B>transition:</B>" not in composition
     assert "selected state:" not in composition
-    composition_data_project = '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
-    composition_set_project = '<FONT POINT-SIZE="10"><B>set:</B>&#160;&#160;selected_project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;nullable&lt;ID&gt;</FONT><FONT POINT-SIZE="8">&#160;←&#160;project_id</FONT>'
+    composition_data_project = '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;string</FONT>'
+    composition_set_project = '<FONT POINT-SIZE="10"><B>set:</B>&#160;&#160;selected_project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;string | null</FONT><FONT POINT-SIZE="8">&#160;←&#160;project_id</FONT>'
     assert composition_data_project in composition
     assert composition_set_project in composition
     assert "selected_project_id &lt;- project_id" not in composition
@@ -306,7 +324,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">html_route entry point</FONT>' in entrypoint
     assert "<B>route:</B>&#160;&#160;route.project.board" in entrypoint
     assert "<B>path params</B>" in entrypoint
-    assert '<FONT POINT-SIZE="10">workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in entrypoint
+    assert '<FONT POINT-SIZE="10">workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;string</FONT>' in entrypoint
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">target state machine (html)</FONT>' in entrypoint
     state_machine_target_card = entrypoint[entrypoint.index('"entrypoint_target_state_machine_project_board"') :]
     assert 'COLOR="#9333ea" BGCOLOR="#ffffff"' in state_machine_target_card
@@ -314,9 +332,9 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">target state machine (textual)</FONT>' in cli_entrypoint
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">target workflow</FONT>' in worker_entrypoint
     assert "<B>integration message disposition</B>" not in worker_entrypoint
-    assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.approved</FONT>' in worker_entrypoint
+    assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;schema.project.approved</FONT>' in worker_entrypoint
     worker_entry_card = worker_entrypoint[worker_entrypoint.index('"entrypoint_entry_point_worker_project_approval_notice"') : worker_entrypoint.index('"entrypoint_target_workflow_project_approval_notice"')]
-    assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.approved</FONT>' in worker_entry_card
+    assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;schema.project.approved</FONT>' in worker_entry_card
     worker_accepted_card = worker_entrypoint[worker_entrypoint.index('"entrypoint_response_entry_point_worker_project_approval_notice_accepted"') : worker_entrypoint.index('"entrypoint_response_entry_point_worker_project_approval_notice_malformed"')]
     worker_malformed_card = worker_entrypoint[worker_entrypoint.index('"entrypoint_response_entry_point_worker_project_approval_notice_malformed"') :]
     assert "<B>accepted</B>" in worker_accepted_card
@@ -377,7 +395,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert '<FONT POINT-SIZE="10"><B>input</B></FONT>' not in target_card
     assert '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;customer</FONT>' not in target_card
     assert '<FONT POINT-SIZE="10">customer</FONT>' not in target_card
-    assert '<FONT POINT-SIZE="10">workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' not in target_card
+    assert '<FONT POINT-SIZE="10">workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;string</FONT>' not in target_card
     assert "<B>outcomes</B>" not in target_card
     assert "validation_failed" not in target_card
     assert "application_action.project.create action map" not in target_card
@@ -396,13 +414,13 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>entry_point.api.project.approve</B>" in cli_approve_entrypoint
     assert "delegated entry point" in cli_approve_entrypoint
     assert "<B>emit:</B>&#160;&#160;approved → domain_event.project.approved" not in cli_approve_target_card
-    assert '<FONT POINT-SIZE="10"><B>payload_schema:</B>&#160;&#160;payload_schema</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.approved</FONT>' not in cli_approve_target_card
+    assert '<FONT POINT-SIZE="10"><B>payload_schema:</B>&#160;&#160;payload_schema</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;schema.project.approved</FONT>' not in cli_approve_target_card
     assert "<B>emits:</B>&#160;&#160;domain_event.project.approved" not in cli_approve_target_card
     assert "<B>authorization_policy:</B>" not in cli_approve_target_card
     assert "authorization_policy.project.reviewer" in cli_approve_target_card
     assert "actor ← input.approved_by" not in cli_approve_target_card
     assert "<B>authorization_conditions:</B>&#160;&#160;Project.status = submitted" not in cli_approve_target_card
-    entrypoint_input = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;list_board.workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
+    entrypoint_input = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;list_board.workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;string</FONT>'
     assert entrypoint_input in entrypoint
     assert entrypoint.index(entrypoint_input) < entrypoint.index("<B>data_loaders:</B>&#160;&#160;list_board")
     assert entrypoint.index("<B>data_loaders:</B>&#160;&#160;list_board") < entrypoint.index("<B>load:</B>&#160;&#160;application_action.project.list")
@@ -417,13 +435,13 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert 'COLOR="#16a34a" BGCOLOR="#ffffff"' in workflow_completed_card
     assert 'COLOR="#dc2626" BGCOLOR="#ffffff"' in workflow_failed_card
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">domain event trigger</FONT>' in workflow
-    assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.approved</FONT>' in workflow
+    assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;schema.project.approved</FONT>' in workflow
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">workflow step</FONT>' in workflow
     assert "<B>application_action:</B>&#160;&#160;application_action.project.send_approval_notice" in workflow
     workflow_step = workflow[workflow.index('"workflow_step_workflow_project_approval_notice_send_notice"') :]
     assert '<FONT POINT-SIZE="10"><B>input</B></FONT>' not in workflow_step
     assert "approved_by ← trigger.payload.approved_by" in workflow_step
-    assert '<FONT POINT-SIZE="10">completed</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.notice_result</FONT>' in workflow
+    assert '<FONT POINT-SIZE="10">completed</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;schema.project.notice_result</FONT>' in workflow
     assert '<FONT POINT-SIZE="10">delivery_failed</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Problem</FONT>' in workflow
     assert "authorization_policy.project.reviewer" in workflow_step
     assert "success workflow outcome" in workflow
@@ -440,7 +458,7 @@ def test_composition_dot_syncs_local_signals_generically() -> None:
     state_machine = {
         "archetype": "workspace",
         "entity_type": "generic.entity_type",
-        "context": {"selected_id": F(P("ID")), "workspace_id": F(P("ID"))},
+        "context": O({"selected_id": P("ID"), "workspace_id": P("ID")}),
         "data_loaders": {},
         "renderers": {
             "html": {
@@ -473,11 +491,11 @@ def test_composition_dot_syncs_local_signals_generically() -> None:
             "state_machine.alpha": {
                 "signals": {
                     "accepts": {
-                        "local_signals": {"submit": {"payload_schema": {"id": P("ID")}}},
+                            "local_signals": {"submit": {"payload_schema": O({"id": P("ID")})}},
                         "data_refresh_signals": {},
                     },
                     "emits": {
-                        "local_signals": {"ready": {"payload_schema": {"id": P("ID")}}},
+                            "local_signals": {"ready": {"payload_schema": O({"id": P("ID")})}},
                     },
                 },
                 "transitions": [
@@ -492,7 +510,7 @@ def test_composition_dot_syncs_local_signals_generically() -> None:
             "state_machine.beta": {
                 "signals": {
                     "accepts": {
-                        "local_signals": {"consume": {"payload_schema": {"item_id": P("ID")}}},
+                            "local_signals": {"consume": {"payload_schema": O({"item_id": P("ID")})}},
                         "data_refresh_signals": {},
                     },
                     "emits": {"local_signals": {}},
@@ -519,9 +537,9 @@ def test_composition_dot_syncs_local_signals_generically() -> None:
     assert "<B>transition:</B>" not in composition
     assert "local_signal.consume" in composition
     assert "<B>causes:</B>&#160;&#160;to consumed" in composition
-    assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in composition
-    assert '<FONT POINT-SIZE="10"><B>set:</B>&#160;&#160;selected_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT><FONT POINT-SIZE="8">&#160;←&#160;id</FONT>' in composition
-    assert 'item_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT><FONT POINT-SIZE="8">&#160;←&#160;id</FONT>' in composition
+    assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;string</FONT>' in composition
+    assert '<FONT POINT-SIZE="10"><B>set:</B>&#160;&#160;selected_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;string</FONT><FONT POINT-SIZE="8">&#160;←&#160;id</FONT>' in composition
+    assert 'item_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;string</FONT><FONT POINT-SIZE="8">&#160;←&#160;id</FONT>' in composition
     assert "item_id &lt;- state_machine.selected_id" not in composition
     assert "context binding" not in composition
     assert "$local_signal." not in composition
@@ -589,13 +607,13 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "application_action: application_action.project.list" not in list_fsm
     assert "data_loaders:" in list_fsm
     assert "list_projects" in list_fsm
-    assert "workspace_id: ID" not in list_fsm
+    assert "workspace_id: string" not in list_fsm
     assert 'workspace_id</text>' in list_fsm
-    assert 'fill="#94a3b8">\xa0\xa0ID</text>' in list_fsm
+    assert 'fill="#94a3b8">\xa0\xa0string</text>' in list_fsm
     assert "application_action.project.list fields" in list_fsm
     assert "title: Text" not in list_fsm
     assert "status: enum" not in list_fsm
-    assert 'fill="#94a3b8">\xa0\xa0Text</text>' in list_fsm
+    assert 'fill="#94a3b8">\xa0\xa0string</text>' in list_fsm
     assert 'fill="#94a3b8">\xa0\xa0enum&lt;draft|submitted|approved|archived&gt;</text>' in list_fsm
     assert "Project fields" not in list_fsm
     assert "projection:" not in list_fsm
@@ -620,7 +638,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "application_action.project.read" in detail_fsm
     assert 'fill="#94a3b8">\xa0\xa0Project</text>' in detail_fsm
     assert "summary: Text" not in detail_fsm
-    assert 'fill="#94a3b8">\xa0\xa0Text</text>' in detail_fsm
+    assert 'fill="#94a3b8">\xa0\xa0string</text>' in detail_fsm
     assert "application_action.project.approve" in detail_fsm
     assert "application_action.project.archive" in detail_fsm
     assert "application_action.project.approve:" in detail_fsm
@@ -628,26 +646,26 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "application_action.project.read fields" in activity_fsm
     assert "updated_at: Timestamp" not in activity_fsm
     assert "assignee: Text" not in activity_fsm
-    assert 'fill="#94a3b8">\xa0\xa0Timestamp</text>' in activity_fsm
+    assert 'fill="#94a3b8">\xa0\xa0string:date&#45;time</text>' in activity_fsm
     assert "input:" in detail_fsm
     assert "data_loaders:" in detail_fsm
     assert "read_project" in detail_fsm
-    assert "project_id: ID" not in detail_fsm
+    assert "project_id: string" not in detail_fsm
     assert 'project_id</text>' in detail_fsm
-    assert 'fill="#94a3b8">\xa0\xa0ID</text>' in detail_fsm
+    assert 'fill="#94a3b8">\xa0\xa0string</text>' in detail_fsm
     assert "application_action: application_action.project.read" not in detail_fsm
     assert "set:" in detail_fsm
     assert "project_id &lt;&#45; null" not in detail_fsm
-    assert 'fill="#94a3b8">\xa0\xa0ID</text>' in detail_fsm
+    assert 'fill="#94a3b8">\xa0\xa0string</text>' in detail_fsm
     assert '\xa0←\xa0null</text>' in detail_fsm
     assert "select_project_updates_state_machines" not in detail_fsm
     assert "data_refresh_signal.project_loaded" not in activity_fsm
     assert "input:" in activity_fsm
     assert "data_loaders:" in activity_fsm
     assert "read_activity" in activity_fsm
-    assert "project_id: ID" not in activity_fsm
+    assert "project_id: string" not in activity_fsm
     assert 'project_id</text>' in activity_fsm
-    assert 'fill="#94a3b8">\xa0\xa0ID</text>' in activity_fsm
+    assert 'fill="#94a3b8">\xa0\xa0string</text>' in activity_fsm
     assert "set:" in activity_fsm
     assert "project_id &lt;&#45; null" not in activity_fsm
     assert '\xa0←\xa0null</text>' in activity_fsm
@@ -663,7 +681,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "set:" in composition
     assert "selected_project_id &lt;&#45; project_id" not in composition
     assert 'selected_project_id</text>' in composition
-    assert 'fill="#94a3b8">\xa0\xa0ID</text>' in composition
+    assert 'fill="#94a3b8">\xa0\xa0string</text>' in composition
     assert '\xa0←\xa0project_id</text>' in composition
     assert "set selected_project_id" not in composition
     assert "flow:" not in composition

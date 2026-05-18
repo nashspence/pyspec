@@ -55,20 +55,22 @@
         }
       ],
       "context": {
-        "selected_project_id": {
-          "nullable": true,
-          "required": false,
-          "type": {
-            "primitive": "ID"
+        "additionalProperties": false,
+        "properties": {
+          "selected_project_id": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "workspace_id": {
+            "type": "string"
           }
         },
-        "workspace_id": {
-          "nullable": false,
-          "required": true,
-          "type": {
-            "primitive": "ID"
-          }
-        }
+        "required": [
+          "workspace_id"
+        ],
+        "type": "object"
       },
       "id": "state_machine.project.board.ready",
       "renderers": {
@@ -256,13 +258,17 @@
       },
       "state_machine": {
         "context": {
-          "project_id": {
-            "nullable": true,
-            "required": false,
-            "type": {
-              "primitive": "ID"
+          "additionalProperties": false,
+          "properties": {
+            "project_id": {
+              "type": [
+                "null",
+                "string"
+              ]
             }
-          }
+          },
+          "required": [],
+          "type": "object"
         },
         "initial_view_state": "empty",
         "transitions": [
@@ -354,13 +360,17 @@
       },
       "state_machine": {
         "context": {
-          "project_id": {
-            "nullable": true,
-            "required": false,
-            "type": {
-              "primitive": "ID"
+          "additionalProperties": false,
+          "properties": {
+            "project_id": {
+              "type": [
+                "null",
+                "string"
+              ]
             }
-          }
+          },
+          "required": [],
+          "type": "object"
         },
         "initial_view_state": "empty",
         "transitions": [
@@ -470,20 +480,22 @@
       },
       "state_machine": {
         "context": {
-          "selected_project_id": {
-            "nullable": true,
-            "required": false,
-            "type": {
-              "primitive": "ID"
+          "additionalProperties": false,
+          "properties": {
+            "selected_project_id": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "workspace_id": {
+              "type": "string"
             }
           },
-          "workspace_id": {
-            "nullable": false,
-            "required": true,
-            "type": {
-              "primitive": "ID"
-            }
-          }
+          "required": [
+            "workspace_id"
+          ],
+          "type": "object"
         },
         "initial_view_state": "ready",
         "transitions": []
@@ -506,13 +518,17 @@
       },
       "state_machine": {
         "context": {
-          "project_id": {
-            "nullable": true,
-            "required": false,
-            "type": {
-              "primitive": "ID"
+          "additionalProperties": false,
+          "properties": {
+            "project_id": {
+              "type": [
+                "null",
+                "string"
+              ]
             }
-          }
+          },
+          "required": [],
+          "type": "object"
         },
         "initial_view_state": "none",
         "transitions": [
@@ -627,13 +643,17 @@
       },
       "state_machine": {
         "context": {
-          "project_id": {
-            "nullable": true,
-            "required": false,
-            "type": {
-              "primitive": "ID"
+          "additionalProperties": false,
+          "properties": {
+            "project_id": {
+              "type": [
+                "null",
+                "string"
+              ]
             }
-          }
+          },
+          "required": [],
+          "type": "object"
         },
         "initial_view_state": "none",
         "transitions": [
@@ -709,13 +729,17 @@
       },
       "state_machine": {
         "context": {
-          "project_id": {
-            "nullable": true,
-            "required": false,
-            "type": {
-              "primitive": "ID"
+          "additionalProperties": false,
+          "properties": {
+            "project_id": {
+              "type": [
+                "null",
+                "string"
+              ]
             }
-          }
+          },
+          "required": [],
+          "type": "object"
         },
         "initial_view_state": "none",
         "transitions": [
@@ -966,13 +990,17 @@
       },
       "state_machine": {
         "context": {
-          "project_id": {
-            "nullable": true,
-            "required": false,
-            "type": {
-              "primitive": "ID"
+          "additionalProperties": false,
+          "properties": {
+            "project_id": {
+              "type": [
+                "null",
+                "string"
+              ]
             }
-          }
+          },
+          "required": [],
+          "type": "object"
         },
         "initial_view_state": "none",
         "transitions": [
@@ -1097,20 +1125,22 @@
       },
       "state_machine": {
         "context": {
-          "selected_project_id": {
-            "nullable": true,
-            "required": false,
-            "type": {
-              "primitive": "ID"
+          "additionalProperties": false,
+          "properties": {
+            "selected_project_id": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "workspace_id": {
+              "type": "string"
             }
           },
-          "workspace_id": {
-            "nullable": false,
-            "required": true,
-            "type": {
-              "primitive": "ID"
-            }
-          }
+          "required": [
+            "workspace_id"
+          ],
+          "type": "object"
         },
         "initial_view_state": "loading",
         "transitions": [
@@ -1221,20 +1251,22 @@
       },
       "state_machine": {
         "context": {
-          "selected_project_id": {
-            "nullable": true,
-            "required": false,
-            "type": {
-              "primitive": "ID"
+          "additionalProperties": false,
+          "properties": {
+            "selected_project_id": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "workspace_id": {
+              "type": "string"
             }
           },
-          "workspace_id": {
-            "nullable": false,
-            "required": true,
-            "type": {
-              "primitive": "ID"
-            }
-          }
+          "required": [
+            "workspace_id"
+          ],
+          "type": "object"
         },
         "initial_view_state": "loading",
         "transitions": [
@@ -1344,20 +1376,22 @@
       },
       "state_machine": {
         "context": {
-          "selected_project_id": {
-            "nullable": true,
-            "required": false,
-            "type": {
-              "primitive": "ID"
+          "additionalProperties": false,
+          "properties": {
+            "selected_project_id": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "workspace_id": {
+              "type": "string"
             }
           },
-          "workspace_id": {
-            "nullable": false,
-            "required": true,
-            "type": {
-              "primitive": "ID"
-            }
-          }
+          "required": [
+            "workspace_id"
+          ],
+          "type": "object"
         },
         "initial_view_state": "loading",
         "transitions": [
@@ -1570,20 +1604,22 @@
       },
       "state_machine": {
         "context": {
-          "selected_project_id": {
-            "nullable": true,
-            "required": false,
-            "type": {
-              "primitive": "ID"
+          "additionalProperties": false,
+          "properties": {
+            "selected_project_id": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "workspace_id": {
+              "type": "string"
             }
           },
-          "workspace_id": {
-            "nullable": false,
-            "required": true,
-            "type": {
-              "primitive": "ID"
-            }
-          }
+          "required": [
+            "workspace_id"
+          ],
+          "type": "object"
         },
         "initial_view_state": "loading",
         "transitions": [
