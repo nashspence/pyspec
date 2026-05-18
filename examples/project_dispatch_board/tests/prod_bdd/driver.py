@@ -23,7 +23,7 @@ class ProdDriver:
         elif kind == "call_external_interface":
             self.app.call_external_interface(body["ref"], self._resolve_map(body.get("input", {})))
         elif kind in {"invoke_command", "invoke_query"}:
-            self.app.invoke_operation(body["ref"], self._resolve_map(body.get("input", {})))
+            self.app.invoke_behavior(body["ref"], self._resolve_map(body.get("input", {})))
         elif kind == "emit_domain_event":
             self.app.emit_domain_event(body["ref"], self._resolve_map(body.get("payload", {})))
         else:  # pragma: no cover - generated behavior scenarios prevent this.

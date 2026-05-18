@@ -182,7 +182,7 @@ def _pm_design_prompt(context: _PromptContext) -> str:
         "- Core: fixtures, preconditions, assertions, entity_types, commands, queries, and product behavior scenarios.",
     ]
     if "http" in context.layers:
-        lines.append("- HTTP: HTTP external interfaces that bind commands or queries to externally visible API operations.")
+        lines.append("- HTTP: HTTP external interfaces that bind commands or queries to externally visible API endpoints.")
     else:
         lines.append("- Do not author HTTP/API external interfaces or OpenAPI details; the HTTP layer is inactive.")
     if "domain_events" in context.layers:

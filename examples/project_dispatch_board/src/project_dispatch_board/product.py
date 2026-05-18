@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from pyspec_contract.io import read_json, read_yaml
-from pyspec_contract.operations import operation_resource_kind, operations
+from pyspec_contract.behaviors import command_or_query_resource_kind, command_query_map
 from pyspec_contract.paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR
 from pyspec_contract.runtime import fixture_namespace, resolve_binding, resolve_map
 from pyspec_contract.targets import external_interface_state_machine_name, external_interface_adapter_pair, external_interface_invocation_input_mapping, external_interface_input_mapping, external_interface_output_responses, external_interface_invoked_ref_pair
@@ -31,7 +31,7 @@ class ProductApp:
         self.fixtures: dict[str, Any] = {}
         self.projects: list[dict[str, Any]] = []
         self.emitted_domain_events: list[str] = []
-        self.invoked_operations: list[str] = []
+        self.invoked_behaviors: list[str] = []
         self.executed_workflows: list[str] = []
         self.workflow_outcomes: dict[str, str] = {}
         self.authorization_decisions: dict[tuple[str, str, str], bool] = {}
@@ -147,31 +147,31 @@ class ProductApp:
             return values
         return set(self.rendered_state_machine.get(key, []))
 
-    def _rendered_operation_refs(self) -> set[str]:
+    def _rendered_command_query_refs(self) -> set[str]:
         if not self.rendered_state_machine:
             return set()
 
-        def operation_refs(item: dict[str, Any]) -> set[str]:
+        def command_query_refs(item: dict[str, Any]) -> set[str]:
             invocations = item.get("command_bindings") or {}
             return {invocation.get("command") or invocation.get("query") for invocation in invocations.values()}
 
         if "instances" in self.rendered_state_machine:
-            refs = operation_refs(self.rendered_state_machine)
+            refs = command_query_refs(self.rendered_state_machine)
             for state_machine in self.rendered_state_machine["instances"].values():
-                refs.update(operation_refs(state_machine))
+                refs.update(command_query_refs(state_machine))
             return refs
-        return operation_refs(self.rendered_state_machine)
+        return command_query_refs(self.rendered_state_machine)
 
     def call_external_interface(self, entry_id: str, input_values: Mapping[str, Any]) -> dict[str, Any]:
         entry = self.contract["external_interfaces"][entry_id]
         assert external_interface_adapter_pair(entry)[0] in {"http_api", "cli"}
         target_input = self._entry_target_input(entry, input_values)
-        target_kind, operation_ref = external_interface_invoked_ref_pair(entry)
+        target_kind, behavior_ref = external_interface_invoked_ref_pair(entry)
         assert target_kind in {"command", "query"}
         access_policy = entry.get("access_policy")
         if access_policy:
             self.authorization_decisions[("external_interface", entry_id, access_policy)] = self._evaluate_policy(access_policy, "external_interface", entry_id, target_input)
-        result = self.invoke_operation(operation_ref, target_input)
+        result = self.invoke_behavior(behavior_ref, target_input)
         response = external_interface_output_responses(entry)[self.last_outcome]
         if "status" in response:
             self.http_response = {"status": response["status"], "body": result}
@@ -190,14 +190,14 @@ class ProductApp:
         bindings = external_interface_invocation_input_mapping(dict(entry))
         return {name: resolve_binding(source, namespace) for name, source in bindings.items()}
 
-    def invoke_operation(self, operation_ref: str, input_values: Mapping[str, Any]) -> Any:
-        operation = operations(self.contract)[operation_ref]
-        authorization = operation.get("authorization")
+    def invoke_behavior(self, behavior_ref: str, input_values: Mapping[str, Any]) -> Any:
+        behavior = command_query_map(self.contract)[behavior_ref]
+        authorization = behavior.get("authorization")
         if authorization:
             access_policy = authorization["policy"]
-            resource_kind = operation_resource_kind(operation_ref)
-            allowed = self._evaluate_policy(access_policy, resource_kind, operation_ref, input_values)
-            self.authorization_decisions[(resource_kind, operation_ref, access_policy)] = allowed
+            resource_kind = command_or_query_resource_kind(behavior_ref)
+            allowed = self._evaluate_policy(access_policy, resource_kind, behavior_ref, input_values)
+            self.authorization_decisions[(resource_kind, behavior_ref, access_policy)] = allowed
             if not allowed:
                 policy = self.contract["access_policies"][access_policy]
                 self.last_outcome = (
@@ -206,38 +206,38 @@ class ProductApp:
                     else authorization["authentication_required_as"]
                 )
                 return {"code": self.last_outcome, "message": self.last_outcome.replace("_", " ")}
-        self.invoked_operations.append(operation_ref)
-        self.last_outcome = _success_outcome_id(operation)
+        self.invoked_behaviors.append(behavior_ref)
+        self.last_outcome = _success_outcome_id(behavior)
         values = dict(input_values)
-        if operation_ref == "command.project.create":
+        if behavior_ref == "command.project.create":
             project = self._project(values)
             self.projects.append(project)
             self._record_domain_event("domain_event.project.created")
             return project
-        if operation_ref == "query.project.list":
+        if behavior_ref == "query.project.list":
             return [p for p in self.projects if p["workspace_id"] == values.get("workspace_id")]
-        if operation_ref == "command.project.submit":
+        if behavior_ref == "command.project.submit":
             project = self._find_project(values["project_id"])
             assert project["status"] == "draft"
             project["status"] = "submitted"
             self._record_domain_event("domain_event.project.submitted")
             return project
-        if operation_ref == "command.project.approve":
+        if behavior_ref == "command.project.approve":
             project = self._find_project(values["project_id"])
             assert project["status"] == "submitted"
             project["status"] = "approved"
             project["approved_by"] = values["approved_by"]
             self._record_domain_event("domain_event.project.approved")
             return project
-        if operation_ref == "command.project.archive":
+        if behavior_ref == "command.project.archive":
             project = self._find_project(values["project_id"])
             assert project["status"] == "approved"
             project["status"] = "archived"
             self._record_domain_event("domain_event.project.archived")
             return project
-        if operation_ref == "command.project.send_approval_notice":
+        if behavior_ref == "command.project.send_approval_notice":
             return {"ok": True, "sent": True, **values}
-        raise AssertionError(f"Unsupported operation: {operation_ref}")
+        raise AssertionError(f"Unsupported behavior: {behavior_ref}")
 
     def emit_domain_event(self, event_id: str, payload: Mapping[str, Any]) -> None:
         self._record_domain_event(event_id)
@@ -253,7 +253,7 @@ class ProductApp:
         while True:
             step = step_by_id[current]
             input_values = {name: resolve_binding(source, namespace) for name, source in step["input_mapping"].items()}
-            result = self.invoke_operation(step["command"], input_values)
+            result = self.invoke_behavior(step["command"], input_values)
             assert self.last_outcome is not None
             namespace["step_outcome"].setdefault(step["id"], {})[self.last_outcome] = {"result": result}
             transition = step["sequence_flows"][self.last_outcome]
@@ -300,9 +300,9 @@ class ProductApp:
             for cap in requires.get("command_bindings", []):
                 assert cap in rendered_actions
         for cap in assertions.get("enables", []):
-            assert cap in self._rendered_operation_refs()
+            assert cap in self._rendered_command_query_refs()
         for cap in assertions.get("forbids", []):
-            assert cap not in self._rendered_operation_refs()
+            assert cap not in self._rendered_command_query_refs()
         exists = (assertions.get("entity") or {}).get("exists")
         if exists:
             where = self._resolve_map(exists["where"])
@@ -318,7 +318,7 @@ class ProductApp:
             if "outcome" in workflow:
                 assert self.workflow_outcomes.get(workflow["ref"]) == workflow["outcome"]
         for cap in assertions.get("invoked", []):
-            assert cap in self.invoked_operations
+            assert cap in self.invoked_behaviors
         response = assertions.get("response")
         if response:
             assert self.http_response is not None
@@ -372,7 +372,7 @@ class ProductApp:
         if access_policy:
             policy_id = access_policy
         elif kind in {"command", "query"}:
-            authorization = operations(self.contract)[resource_ref].get("authorization")
+            authorization = command_query_map(self.contract)[resource_ref].get("authorization")
             if not authorization:
                 return False
             policy_id = authorization["policy"]
@@ -404,7 +404,7 @@ class ProductApp:
             source = subject.get("source")
             if source:
                 try:
-                    return resolve_binding({"from": source}, {"operation_input": dict(input_values), "fixture": self.fixtures}) is not None
+                    return resolve_binding({"from": source}, {"command_input": dict(input_values), "fixture": self.fixtures}) is not None
                 except Exception:
                     return False
             if self.fixtures.get("actor", {}).get("id"):
@@ -426,7 +426,7 @@ class ProductApp:
             return condition["subject_has_role"] in self.fixtures.get("actor", {}).get("roles", [])
         if "value_equals" in condition:
             body = condition["value_equals"]
-            namespace = {"operation_input": dict(input_values), "fixture": self.fixtures}
+            namespace = {"command_input": dict(input_values), "fixture": self.fixtures}
             return resolve_binding(body["left"], namespace) == resolve_binding(body["right"], namespace)
         return False
 
@@ -446,8 +446,8 @@ def _matches(record: Mapping[str, Any], where: Mapping[str, Any]) -> bool:
     return all(record.get(key) == value for key, value in where.items())
 
 
-def _success_outcome_id(operation: Mapping[str, Any]) -> str:
-    successes = [outcome_id for outcome_id, outcome in operation["outcomes"].items() if outcome["kind"] == "success"]
+def _success_outcome_id(behavior: Mapping[str, Any]) -> str:
+    successes = [outcome_id for outcome_id, outcome in behavior["outcomes"].items() if outcome["kind"] == "success"]
     assert len(successes) == 1, "Expected exactly one success outcome"
     return successes[0]
 

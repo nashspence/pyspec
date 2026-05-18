@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 # Generated Textual projection. Do not edit by hand.
-# The PM contract owns state machines/states/operation bindings/widgets/Textual styles; a real Textual app imports this file
-# and renders state machine state surfaces by id instead of inventing screens, widgets, or operation keys.
+# The PM contract owns state machines/states/command/query bindings/widgets/Textual styles; a real Textual app imports this file
+# and renders state machine state surfaces by id instead of inventing screens, widgets, or command/query keys.
 
 PROJECT = 'project_dispatch_board'
 SCREENS = [{'id': 'screen.state_machine.project.board', 'state_machine': 'state_machine.project.board', 'screen_class': 'ProjectBoardScreen'}]

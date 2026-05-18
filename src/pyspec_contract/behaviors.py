@@ -6,28 +6,28 @@ from typing import Any
 EMPTY_OBJECT_SCHEMA: dict[str, Any] = {"type": "object", "properties": {}, "additionalProperties": False}
 
 
-def operation_collection(operation_ref: str) -> str:
-    if operation_ref.startswith("command."):
+def command_or_query_collection(ref: str) -> str:
+    if ref.startswith("command."):
         return "commands"
-    if operation_ref.startswith("query."):
+    if ref.startswith("query."):
         return "queries"
-    raise KeyError(f"Operation ref must start with command. or query.: {operation_ref}")
+    raise KeyError(f"Command/query ref must start with command. or query.: {ref}")
 
 
-def operation_resource_kind(operation_ref: str) -> str:
-    if operation_ref.startswith("command."):
+def command_or_query_resource_kind(ref: str) -> str:
+    if ref.startswith("command."):
         return "command"
-    if operation_ref.startswith("query."):
+    if ref.startswith("query."):
         return "query"
-    raise KeyError(f"Operation ref must start with command. or query.: {operation_ref}")
+    raise KeyError(f"Command/query ref must start with command. or query.: {ref}")
 
 
-def invocation_operation_ref(invocation: dict[str, Any]) -> str:
+def invocation_command_or_query_ref(invocation: dict[str, Any]) -> str:
     if "command" in invocation:
         return invocation["command"]
     if "query" in invocation:
         return invocation["query"]
-    raise KeyError("operation invocation must declare command or query")
+    raise KeyError("state-machine binding must declare command or query")
 
 
 def command_emits_by_outcome(command: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
@@ -37,7 +37,7 @@ def command_emits_by_outcome(command: dict[str, Any]) -> dict[str, list[dict[str
     return result
 
 
-def operations(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
+def command_query_map(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
     result: dict[str, dict[str, Any]] = {}
     for command_ref, command in contract.get("commands", {}).items():
         item = copy.deepcopy(command)

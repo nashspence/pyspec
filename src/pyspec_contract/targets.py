@@ -97,7 +97,7 @@ def external_interface_invoked_ref_pair(invokes: dict[str, Any]) -> tuple[str, s
         return "workflow", workflow_invocation_name(body)
     if kind == "external_interface":
         return "external_interface", external_interface_delegate_invocation_name(body)
-    return kind, operation_invocation_name(body)
+    return kind, command_or_query_ref(body)
 
 
 def external_interface_state_machine_invocation(external_interface_or_invokes: dict[str, Any]) -> dict[str, str]:
@@ -122,7 +122,7 @@ def state_machine_invocation_name(value: Any) -> str:
     return value
 
 
-def operation_invocation_name(value: Any) -> str:
+def command_or_query_ref(value: Any) -> str:
     if isinstance(value, dict):
         return value.get("ref") or value["name"]
     return value

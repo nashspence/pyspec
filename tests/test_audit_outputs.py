@@ -13,8 +13,8 @@ from pyspec_contract.audit import (
     composition_file,
     external_interface_flow_dot,
     external_interface_flow_file,
-    operation_flow_dot,
-    operation_flow_file,
+    command_query_flow_dot,
+    command_query_flow_file,
     state_machine_dot,
     state_machine_graph_file,
     state_root,
@@ -72,7 +72,7 @@ def test_audit_outputs_cover_full_contract() -> None:
     assert "spec/generated/audit_evidence/external_interfaces/html_route/external_interface_html_project_board/flow.svg" in expected
     assert "spec/generated/audit_evidence/external_interfaces/cli/external_interface_cli_project_board/flow.svg" in expected
     assert "spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg" in expected
-    assert operation_flow_file("command.project.approve") in expected
+    assert command_query_flow_file("command.project.approve") in expected
     assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/states/" in path and path.endswith("/text.yaml") for path in expected)
     assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/states/" in path and "/renders/" in path and path.endswith(".png") for path in expected)
     assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/render_examples/" in path and "/renders/" in path and path.endswith(".html") for path in expected)
@@ -165,8 +165,8 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     cli_approve_external_interface = external_interface_flow_dot("external_interface.cli.project.approve", contract["external_interfaces"]["external_interface.cli.project.approve"], contract)
     worker_external_interface = external_interface_flow_dot("external_interface.worker.project.approval_notice", contract["external_interfaces"]["external_interface.worker.project.approval_notice"], contract)
     workflow = workflow_flow_dot("workflow.project.approval_notice", contract["workflows"]["workflow.project.approval_notice"], contract)
-    operation = operation_flow_dot("command.project.approve", contract["commands"]["command.project.approve"], contract)
-    create_operation = operation_flow_dot("command.project.create", contract["commands"]["command.project.create"], contract)
+    behavior = command_query_flow_dot("command.project.approve", contract["commands"]["command.project.approve"], contract)
+    create_behavior = command_query_flow_dot("command.project.create", contract["commands"]["command.project.create"], contract)
     diagram_sources = (
         state_machine,
         composition,
@@ -176,8 +176,8 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
         cli_approve_external_interface,
         worker_external_interface,
         workflow,
-        operation,
-        create_operation,
+        behavior,
+        create_behavior,
     )
     for dot_source in diagram_sources:
         edge_lines = [line for line in dot_source.splitlines() if " -> " in line]
@@ -187,7 +187,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert composition.startswith("digraph ")
     assert external_interface.startswith("digraph ")
     assert workflow.startswith("digraph ")
-    assert operation.startswith("digraph ")
+    assert behavior.startswith("digraph ")
     assert "stateDiagram" not in state_machine
     assert "flowchart" not in composition
     assert "data_refresh_signal.projects_loaded" in state_machine
@@ -245,38 +245,38 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert '<FONT POINT-SIZE="10">nav</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;state_machine.project.list</FONT>' in board_fsm
     assert "nav: state_machine.project.list" not in board_fsm
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">emitted local signal</FONT>' in composition
-    assert "access_policy.project.reviewer" in operation
-    assert 'graph [label="command.project.approve"' not in operation
-    assert "Project.status" in operation
-    assert "domain_event.project.approved" in operation
-    assert "domain_event.project.created" in create_operation
-    assert '<FONT POINT-SIZE="10"><B>payload</B></FONT>' in operation
-    assert '<FONT POINT-SIZE="10">payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;schema.project.approved</FONT>' in operation
-    assert "payload:" not in operation
-    assert "payload_schema:" not in operation
-    assert "emitted by" not in operation
-    assert "<B>rules:</B>&#160;&#160;subject_has_role member" in create_operation
-    assert ('"application' + "_action_application" + '_action_project_approve" [shape=') not in operation
-    assert "transition command" not in operation
-    assert operation.index('"operation_input_command_project_approve"') < operation.index('"operation_policy_access_policy_project_reviewer"')
-    assert operation.index('"operation_policy_access_policy_project_reviewer"') < operation.index('"operation_resource_command_project_approve_lifecycle_transition_entity_type_project_status"')
-    assert operation.index('"operation_resource_command_project_approve_lifecycle_transition_entity_type_project_status"') < operation.index('"operation_outcome_command_project_approve_approved"')
-    assert operation.index('"operation_outcome_command_project_approve_approved"') < operation.index('"operation_event_command_project_approve_domain_event_project_approved"')
-    assert '"operation_input_command_project_approve" -> "operation_policy_access_policy_project_reviewer" [label="authorize"' in operation
-    assert '"operation_policy_access_policy_project_reviewer" -> "operation_resource_command_project_approve_lifecycle_transition_entity_type_project_status" [label="lifecycle_transition"' in operation
-    assert '"operation_resource_command_project_approve_lifecycle_transition_entity_type_project_status" -> "operation_outcome_command_project_approve_approved" [label="success"' in operation
-    assert '"operation_outcome_command_project_approve_approved" -> "operation_event_command_project_approve_domain_event_project_approved" [label="emit"' in operation
-    assert "<B>access_policy:</B>" not in operation
-    assert "<B>creates:</B>" not in create_operation
-    assert "<B>kind:</B>" not in operation
-    assert "<B>resource</B>" not in create_operation
-    assert "<FONT POINT-SIZE=\"10\">command: command.project.create</FONT>" not in create_operation
-    assert "<B>emits</B>" not in operation
+    assert "access_policy.project.reviewer" in behavior
+    assert 'graph [label="command.project.approve"' not in behavior
+    assert "Project.status" in behavior
+    assert "domain_event.project.approved" in behavior
+    assert "domain_event.project.created" in create_behavior
+    assert '<FONT POINT-SIZE="10"><B>payload</B></FONT>' in behavior
+    assert '<FONT POINT-SIZE="10">payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;schema.project.approved</FONT>' in behavior
+    assert "payload:" not in behavior
+    assert "payload_schema:" not in behavior
+    assert "emitted by" not in behavior
+    assert "<B>rules:</B>&#160;&#160;subject_has_role member" in create_behavior
+    assert ('"application' + "_action_application" + '_action_project_approve" [shape=') not in behavior
+    assert "transition command" not in behavior
+    assert behavior.index('"command_input_command_project_approve"') < behavior.index('"command_query_policy_access_policy_project_reviewer"')
+    assert behavior.index('"command_query_policy_access_policy_project_reviewer"') < behavior.index('"command_query_resource_command_project_approve_lifecycle_transition_entity_type_project_status"')
+    assert behavior.index('"command_query_resource_command_project_approve_lifecycle_transition_entity_type_project_status"') < behavior.index('"command_outcome_command_project_approve_approved"')
+    assert behavior.index('"command_outcome_command_project_approve_approved"') < behavior.index('"command_query_event_command_project_approve_domain_event_project_approved"')
+    assert '"command_input_command_project_approve" -> "command_query_policy_access_policy_project_reviewer" [label="authorize"' in behavior
+    assert '"command_query_policy_access_policy_project_reviewer" -> "command_query_resource_command_project_approve_lifecycle_transition_entity_type_project_status" [label="lifecycle_transition"' in behavior
+    assert '"command_query_resource_command_project_approve_lifecycle_transition_entity_type_project_status" -> "command_outcome_command_project_approve_approved" [label="success"' in behavior
+    assert '"command_outcome_command_project_approve_approved" -> "command_query_event_command_project_approve_domain_event_project_approved" [label="emit"' in behavior
+    assert "<B>access_policy:</B>" not in behavior
+    assert "<B>creates:</B>" not in create_behavior
+    assert "<B>kind:</B>" not in behavior
+    assert "<B>resource</B>" not in create_behavior
+    assert "<FONT POINT-SIZE=\"10\">command: command.project.create</FONT>" not in create_behavior
+    assert "<B>emits</B>" not in behavior
     assert "delegated external interface" in cli_approve_external_interface
     assert "command.project.approve action map" not in cli_approve_external_interface
     assert "Project.status" not in cli_approve_external_interface
     assert "access_policy.project.reviewer" in cli_approve_external_interface
-    assert "authorization_effect" not in operation
+    assert "authorization_effect" not in behavior
     assert "<B>source:</B>&#160;&#160;local_signal.project_select" in composition
     assert "ready to ready" not in composition
     assert "<B>transition:</B>" not in composition
@@ -591,7 +591,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     api_external_interface = (ROOT / external_interface_flow_file("external_interface.api.project.create", "http_api")).read_text(encoding="utf-8")
     cli_approve_external_interface = (ROOT / external_interface_flow_file("external_interface.cli.project.approve", "cli")).read_text(encoding="utf-8")
     workflow = (ROOT / workflow_flow_file("workflow.project.approval_notice")).read_text(encoding="utf-8")
-    approve_operation = (ROOT / operation_flow_file("command.project.approve")).read_text(encoding="utf-8")
+    approve_behavior = (ROOT / command_query_flow_file("command.project.approve")).read_text(encoding="utf-8")
     assert "data_refresh_signal.projects_loaded" in list_fsm
     assert "on data_refresh_signal.projects_loaded" not in list_fsm
     assert "text.project.list.ready.heading" in list_fsm
@@ -714,10 +714,10 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "access_policy.project.reviewer" in cli_approve_external_interface
     assert "Project.status = submitted" not in cli_approve_external_interface
     assert "access_policy.project.reviewer" in workflow
-    assert "access_policy.project.reviewer" in approve_operation
-    assert "rules" in approve_operation
-    assert "submitted → approved" in approve_operation
-    assert "domain_event.project.approved" in approve_operation
+    assert "access_policy.project.reviewer" in approve_behavior
+    assert "rules" in approve_behavior
+    assert "submitted → approved" in approve_behavior
+    assert "domain_event.project.approved" in approve_behavior
 
 
 def test_audit_html_sources_render_copy_assets_and_fixture_fields() -> None:

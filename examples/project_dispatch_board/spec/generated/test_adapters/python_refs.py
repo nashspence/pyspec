@@ -71,6 +71,15 @@ class CommandBinding:
     COMMAND_BINDING_PROJECT_LIST_READY_CREATE = 'command_binding.project.list.ready.create'
     COMMAND_BINDING_PROJECT_LIST_READY_SUBMIT = 'command_binding.project.list.ready.submit'
 
+class CommandQuery:
+    COMMAND_PROJECT_APPROVE = 'command.project.approve'
+    COMMAND_PROJECT_ARCHIVE = 'command.project.archive'
+    COMMAND_PROJECT_CREATE = 'command.project.create'
+    COMMAND_PROJECT_SEND_APPROVAL_NOTICE = 'command.project.send_approval_notice'
+    COMMAND_PROJECT_SUBMIT = 'command.project.submit'
+    QUERY_PROJECT_LIST = 'query.project.list'
+    QUERY_PROJECT_READ = 'query.project.read'
+
 class ContentExample:
     CONTENT_EXAMPLE_PROJECT_DETAIL_HEADING_HIGH_PRIORITY = 'content_example.project.detail.heading.high_priority'
     CONTENT_EXAMPLE_PROJECT_DETAIL_PRIORITY_BADGE_HIGH_PRIORITY = 'content_example.project.detail.priority_badge.high_priority'
@@ -139,15 +148,6 @@ class LocalSignalRaise:
     LOCAL_SIGNAL_RAISE_PROJECT_LIST_READY_COMMAND_BINDING_SUBMIT_NOT_FOUND_LOCAL_SIGNAL_SHOW_TRANSITION_NOT_ALLOWED = 'local_signal_raise.project.list.ready.command_binding.submit.not_found.local_signal.show_transition_not_allowed'
     LOCAL_SIGNAL_RAISE_PROJECT_LIST_READY_COMMAND_BINDING_SUBMIT_SUBMITTED_DATA_REFRESH_SIGNAL_PROJECTS_CHANGED = 'local_signal_raise.project.list.ready.command_binding.submit.submitted.data_refresh_signal.projects_changed'
     LOCAL_SIGNAL_RAISE_PROJECT_LIST_READY_COMMAND_BINDING_SUBMIT_TRANSITION_NOT_ALLOWED_LOCAL_SIGNAL_SHOW_TRANSITION_NOT_ALLOWED = 'local_signal_raise.project.list.ready.command_binding.submit.transition_not_allowed.local_signal.show_transition_not_allowed'
-
-class Operation:
-    COMMAND_PROJECT_APPROVE = 'command.project.approve'
-    COMMAND_PROJECT_ARCHIVE = 'command.project.archive'
-    COMMAND_PROJECT_CREATE = 'command.project.create'
-    COMMAND_PROJECT_SEND_APPROVAL_NOTICE = 'command.project.send_approval_notice'
-    COMMAND_PROJECT_SUBMIT = 'command.project.submit'
-    QUERY_PROJECT_LIST = 'query.project.list'
-    QUERY_PROJECT_READ = 'query.project.read'
 
 class Precondition:
     PRECONDITION_PROJECT_DRAFT = 'precondition.project.draft'

@@ -36,8 +36,8 @@ def route_ref(state_machine_id: str) -> str:
     return dotted("route", resource_tail(state_machine_id))
 
 
-def endpoint_ref(operation_ref: str) -> str:
-    return dotted("endpoint", resource_tail(operation_ref))
+def endpoint_ref(command_query_ref: str) -> str:
+    return dotted("endpoint", resource_tail(command_query_ref))
 
 
 def cli_command_ref(ref: str) -> str:
@@ -50,13 +50,13 @@ def workflow_ref(workflow_id: str) -> str:
     return dotted("workflow", resource_tail(workflow_id))
 
 
-def access_policy_ref(operation_ref: str) -> str:
-    return dotted("access_policy", resource_tail(operation_ref))
+def access_policy_ref(command_query_ref: str) -> str:
+    return dotted("access_policy", resource_tail(command_query_ref))
 
 
-def query_ref(state_machine_subject: str, operation_ref: str, many: bool = False) -> str:
-    operation_subject = resource_tail(operation_ref)
-    suffix = operation_subject.replace(".", "_") if many else operation_subject.split(".")[-1]
+def query_ref(state_machine_subject: str, command_query_ref: str, many: bool = False) -> str:
+    behavior_subject = resource_tail(command_query_ref)
+    suffix = behavior_subject.replace(".", "_") if many else behavior_subject.split(".")[-1]
     return f"query.{resource_tail(state_machine_subject)}.{suffix}"
 
 

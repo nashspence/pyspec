@@ -1,16 +1,16 @@
 <svg width="811pt" height="482pt"
  viewBox="0.00 0.00 811.00 482.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: e6e1865e531e6aefd1ef1cb80ac5a65a1bc5e0c3976fa6435df85f738bb2ce2c -->
+<!-- pyspec-contract-input-sha256: bbde08b06ede8137e5fca7e01824542616a30ba1c169056f7d61fbf7f8920bad -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 464)">
-<title>operation_command_project_send_approval_notice</title>
-<!-- operation_input_command_project_send_approval_notice -->
+<title>command_command_project_send_approval_notice</title>
+<!-- command_input_command_project_send_approval_notice -->
 <g id="node1" class="node">
-<title>operation_input_command_project_send_approval_notice</title>
+<title>command_input_command_project_send_approval_notice</title>
 <polygon fill="#ffffff" stroke="transparent" points="0,-160.5 0,-242.5 91,-242.5 91,-160.5 0,-160.5"/>
 <polygon fill="#64748b" stroke="transparent" points="1.5,-233.5 1.5,-241.5 90.5,-241.5 90.5,-233.5 1.5,-233.5"/>
 <polygon fill="#f8fafc" stroke="transparent" points="1.5,-202.5 1.5,-233.5 90.5,-233.5 90.5,-202.5 1.5,-202.5"/>
 <text text-anchor="start" x="5.5" y="-220.1" font-family="Arial" font-weight="bold" font-size="13.00">input</text>
-<text text-anchor="start" x="5.5" y="-209.1" font-family="Arial" font-size="8.00" fill="#64748b">operation input</text>
+<text text-anchor="start" x="5.5" y="-209.1" font-family="Arial" font-size="8.00" fill="#64748b">command input</text>
 <text text-anchor="start" x="5.5" y="-191.5" font-family="Arial" font-weight="bold" font-size="10.00">fields</text>
 <text text-anchor="start" x="5.5" y="-180.5" font-family="Arial" font-size="10.00">approved_by</text>
 <text text-anchor="start" x="61.5" y="-180.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
@@ -18,9 +18,9 @@
 <text text-anchor="start" x="48.5" y="-169.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
 <polygon fill="none" stroke="#64748b" points="0,-160.5 0,-242.5 91,-242.5 91,-160.5 0,-160.5"/>
 </g>
-<!-- operation_policy_access_policy_project_reviewer -->
+<!-- command_query_policy_access_policy_project_reviewer -->
 <g id="node2" class="node">
-<title>operation_policy_access_policy_project_reviewer</title>
+<title>command_query_policy_access_policy_project_reviewer</title>
 <polygon fill="#ffffff" stroke="transparent" points="193,-107 193,-296 432,-296 432,-107 193,-107"/>
 <polygon fill="#c2410c" stroke="transparent" points="194.5,-286.5 194.5,-294.5 431.5,-294.5 431.5,-286.5 194.5,-286.5"/>
 <polygon fill="#fff7ed" stroke="transparent" points="194.5,-255.5 194.5,-286.5 431.5,-286.5 431.5,-255.5 194.5,-255.5"/>
@@ -42,16 +42,16 @@
 <text text-anchor="start" x="226.5" y="-116.5" font-family="Arial" font-size="10.00">  subject_has_role reviewer</text>
 <polygon fill="none" stroke="#c2410c" points="193,-107 193,-296 432,-296 432,-107 193,-107"/>
 </g>
-<!-- operation_input_command_project_send_approval_notice&#45;&gt;operation_policy_access_policy_project_reviewer -->
+<!-- command_input_command_project_send_approval_notice&#45;&gt;command_query_policy_access_policy_project_reviewer -->
 <g id="edge1" class="edge">
-<title>operation_input_command_project_send_approval_notice&#45;&gt;operation_policy_access_policy_project_reviewer</title>
+<title>command_input_command_project_send_approval_notice&#45;&gt;command_query_policy_access_policy_project_reviewer</title>
 <path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M91.15,-201.5C117.1,-201.5 151.23,-201.5 184.85,-201.5"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="184.92,-204.3 192.92,-201.5 184.92,-198.7 184.92,-204.3"/>
 <text text-anchor="middle" x="142" y="-204.5" font-family="Arial" font-size="10.00">authorize</text>
 </g>
-<!-- operation_outcome_command_project_send_approval_notice_access_denied -->
+<!-- command_outcome_command_project_send_approval_notice_access_denied -->
 <g id="node3" class="node">
-<title>operation_outcome_command_project_send_approval_notice_access_denied</title>
+<title>command_outcome_command_project_send_approval_notice_access_denied</title>
 <polygon fill="#ffffff" stroke="transparent" points="639.5,-375 639.5,-446 746.5,-446 746.5,-375 639.5,-375"/>
 <polygon fill="#dc2626" stroke="transparent" points="641,-436.5 641,-444.5 746,-444.5 746,-436.5 641,-436.5"/>
 <polygon fill="#fef2f2" stroke="transparent" points="641,-405.5 641,-436.5 746,-436.5 746,-405.5 641,-405.5"/>
@@ -62,16 +62,16 @@
 <text text-anchor="start" x="670" y="-383.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
 <polygon fill="none" stroke="#dc2626" points="639.5,-375 639.5,-446 746.5,-446 746.5,-375 639.5,-375"/>
 </g>
-<!-- operation_policy_access_policy_project_reviewer&#45;&gt;operation_outcome_command_project_send_approval_notice_access_denied -->
+<!-- command_query_policy_access_policy_project_reviewer&#45;&gt;command_outcome_command_project_send_approval_notice_access_denied -->
 <g id="edge2" class="edge">
-<title>operation_policy_access_policy_project_reviewer&#45;&gt;operation_outcome_command_project_send_approval_notice_access_denied</title>
+<title>command_query_policy_access_policy_project_reviewer&#45;&gt;command_outcome_command_project_send_approval_notice_access_denied</title>
 <path fill="none" stroke="#3f3f46" d="M432.22,-267.06C498.62,-303.72 578.53,-347.84 632.03,-377.39"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="630.72,-379.86 639.07,-381.27 633.42,-374.96 630.72,-379.86"/>
 <text text-anchor="middle" x="521.5" y="-345.5" font-family="Arial" font-size="10.00">access_denied_as</text>
 </g>
-<!-- operation_outcome_command_project_send_approval_notice_authentication_required -->
+<!-- command_outcome_command_project_send_approval_notice_authentication_required -->
 <g id="node4" class="node">
-<title>operation_outcome_command_project_send_approval_notice_authentication_required</title>
+<title>command_outcome_command_project_send_approval_notice_authentication_required</title>
 <polygon fill="#ffffff" stroke="transparent" points="611,-250 611,-321 775,-321 775,-250 611,-250"/>
 <polygon fill="#dc2626" stroke="transparent" points="612,-311.5 612,-319.5 774,-319.5 774,-311.5 612,-311.5"/>
 <polygon fill="#fef2f2" stroke="transparent" points="612,-280.5 612,-311.5 774,-311.5 774,-280.5 612,-280.5"/>
@@ -82,16 +82,16 @@
 <text text-anchor="start" x="641" y="-258.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
 <polygon fill="none" stroke="#dc2626" points="611,-250 611,-321 775,-321 775,-250 611,-250"/>
 </g>
-<!-- operation_policy_access_policy_project_reviewer&#45;&gt;operation_outcome_command_project_send_approval_notice_authentication_required -->
+<!-- command_query_policy_access_policy_project_reviewer&#45;&gt;command_outcome_command_project_send_approval_notice_authentication_required -->
 <g id="edge3" class="edge">
-<title>operation_policy_access_policy_project_reviewer&#45;&gt;operation_outcome_command_project_send_approval_notice_authentication_required</title>
+<title>command_query_policy_access_policy_project_reviewer&#45;&gt;command_outcome_command_project_send_approval_notice_authentication_required</title>
 <path fill="none" stroke="#3f3f46" d="M432.22,-227.85C487.37,-240.09 551.85,-254.4 602.77,-265.7"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="602.41,-268.48 610.82,-267.48 603.62,-263.02 602.41,-268.48"/>
 <text text-anchor="middle" x="521.5" y="-260.5" font-family="Arial" font-size="10.00">authentication_required_as</text>
 </g>
-<!-- operation_outcome_command_project_send_approval_notice_delivery_failed -->
+<!-- command_outcome_command_project_send_approval_notice_delivery_failed -->
 <g id="node5" class="node">
-<title>operation_outcome_command_project_send_approval_notice_delivery_failed</title>
+<title>command_outcome_command_project_send_approval_notice_delivery_failed</title>
 <polygon fill="#ffffff" stroke="transparent" points="641,-125 641,-196 745,-196 745,-125 641,-125"/>
 <polygon fill="#dc2626" stroke="transparent" points="642,-186.5 642,-194.5 744,-194.5 744,-186.5 642,-186.5"/>
 <polygon fill="#fef2f2" stroke="transparent" points="642,-155.5 642,-186.5 744,-186.5 744,-155.5 642,-155.5"/>
@@ -102,16 +102,16 @@
 <text text-anchor="start" x="671" y="-133.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
 <polygon fill="none" stroke="#dc2626" points="641,-125 641,-196 745,-196 745,-125 641,-125"/>
 </g>
-<!-- operation_policy_access_policy_project_reviewer&#45;&gt;operation_outcome_command_project_send_approval_notice_delivery_failed -->
+<!-- command_query_policy_access_policy_project_reviewer&#45;&gt;command_outcome_command_project_send_approval_notice_delivery_failed -->
 <g id="edge4" class="edge">
-<title>operation_policy_access_policy_project_reviewer&#45;&gt;operation_outcome_command_project_send_approval_notice_delivery_failed</title>
+<title>command_query_policy_access_policy_project_reviewer&#45;&gt;command_outcome_command_project_send_approval_notice_delivery_failed</title>
 <path fill="none" stroke="#3f3f46" d="M432.22,-188.64C498.83,-181.42 579.04,-172.74 632.54,-166.94"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="632.91,-169.72 640.56,-166.07 632.31,-164.15 632.91,-169.72"/>
 <text text-anchor="middle" x="521.5" y="-187.5" font-family="Arial" font-size="10.00">failure</text>
 </g>
-<!-- operation_outcome_command_project_send_approval_notice_sent -->
+<!-- command_outcome_command_project_send_approval_notice_sent -->
 <g id="node6" class="node">
-<title>operation_outcome_command_project_send_approval_notice_sent</title>
+<title>command_outcome_command_project_send_approval_notice_sent</title>
 <polygon fill="#ffffff" stroke="transparent" points="622.5,0 622.5,-71 763.5,-71 763.5,0 622.5,0"/>
 <polygon fill="#16a34a" stroke="transparent" points="624,-61.5 624,-69.5 763,-69.5 763,-61.5 624,-61.5"/>
 <polygon fill="#f0fdf4" stroke="transparent" points="624,-30.5 624,-61.5 763,-61.5 763,-30.5 624,-30.5"/>
@@ -122,15 +122,15 @@
 <text text-anchor="start" x="653" y="-8.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  schema.project.notice_result</text>
 <polygon fill="none" stroke="#16a34a" points="622.5,0 622.5,-71 763.5,-71 763.5,0 622.5,0"/>
 </g>
-<!-- operation_policy_access_policy_project_reviewer&#45;&gt;operation_outcome_command_project_send_approval_notice_sent -->
+<!-- command_query_policy_access_policy_project_reviewer&#45;&gt;command_outcome_command_project_send_approval_notice_sent -->
 <g id="edge5" class="edge">
-<title>operation_policy_access_policy_project_reviewer&#45;&gt;operation_outcome_command_project_send_approval_notice_sent</title>
+<title>command_query_policy_access_policy_project_reviewer&#45;&gt;command_outcome_command_project_send_approval_notice_sent</title>
 <path fill="none" stroke="#3f3f46" d="M432.22,-149.43C491.84,-123.29 562.35,-92.36 614.85,-69.33"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="616.27,-71.77 622.47,-65.99 614.02,-66.64 616.27,-71.77"/>
 <text text-anchor="middle" x="521.5" y="-135.5" font-family="Arial" font-size="10.00">success</text>
 </g>
-<!-- operation_outcome_command_project_send_approval_notice_access_denied&#45;&gt;operation_outcome_command_project_send_approval_notice_authentication_required -->
-<!-- operation_outcome_command_project_send_approval_notice_authentication_required&#45;&gt;operation_outcome_command_project_send_approval_notice_delivery_failed -->
-<!-- operation_outcome_command_project_send_approval_notice_delivery_failed&#45;&gt;operation_outcome_command_project_send_approval_notice_sent -->
+<!-- command_outcome_command_project_send_approval_notice_access_denied&#45;&gt;command_outcome_command_project_send_approval_notice_authentication_required -->
+<!-- command_outcome_command_project_send_approval_notice_authentication_required&#45;&gt;command_outcome_command_project_send_approval_notice_delivery_failed -->
+<!-- command_outcome_command_project_send_approval_notice_delivery_failed&#45;&gt;command_outcome_command_project_send_approval_notice_sent -->
 </g>
 </svg>

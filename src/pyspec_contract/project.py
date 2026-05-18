@@ -13,7 +13,7 @@ from .layout import (
     renderer_html_style,
     renderer_textual_containers,
 )
-from .operations import operations
+from .behaviors import command_query_map
 from .paths import generated_relative as g
 from .binding_refs import BindingExpressionError, parse_binding_expression
 from .targets import (
@@ -42,8 +42,8 @@ from .json_schema import (
 SCALAR_JSON_SCHEMA: dict[str, dict[str, Any]] = SCHEMA_ALIASES
 
 
-def _operations(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
-    return operations(contract)
+def _command_query_map(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    return command_query_map(contract)
 
 
 
@@ -181,7 +181,7 @@ def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
         target_kind, cap_id = external_interface_invoked_ref_pair(entry)
         if target_kind not in {"command", "query"}:
             continue
-        cap = _operations(contract)[cap_id]
+        cap = _command_query_map(contract)[cap_id]
         entry_input = external_interface_input_mapping(entry)
         path_params = entry_input.get("path_params", {})
         query_params = entry_input.get("query_params", {})
@@ -228,7 +228,7 @@ def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
 
 def asyncapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
     channels: dict[str, Any] = {}
-    operations: dict[str, Any] = {}
+    asyncapi_operations: dict[str, Any] = {}
     messages: dict[str, Any] = {}
 
     for event_id, event in sorted(contract["domain_events"].items()):
@@ -246,7 +246,7 @@ def asyncapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
             "payload": type_schema(event["payload_schema"]),
             "x-emitted-by": sorted(event["emitted_by"]),
         }
-        operations[f"send_{key}"] = {
+        asyncapi_operations[f"send_{key}"] = {
             "action": "send",
             "channel": {"$ref": f"#/channels/{channel_id}"},
             "messages": [{"$ref": f"#/components/messages/{message_id}"}],
@@ -259,7 +259,7 @@ def asyncapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
             continue
         event_id = trigger["domain_event"]
         key = safe_id(event_id)
-        operations[f"receive_{safe_id(workflow_id)}"] = {
+        asyncapi_operations[f"receive_{safe_id(workflow_id)}"] = {
             "action": "receive",
             "channel": {"$ref": f"#/channels/domain_event_{key}"},
             "messages": [{"$ref": f"#/components/messages/integration_message_{key}"}],
@@ -268,13 +268,13 @@ def asyncapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
         }
         dispositions = _workflow_entry_dispositions(contract, workflow_id)
         if dispositions:
-            operations[f"receive_{safe_id(workflow_id)}"]["x-dispositions"] = dispositions
+            asyncapi_operations[f"receive_{safe_id(workflow_id)}"]["x-dispositions"] = dispositions
 
     return {
         "asyncapi": "3.1.0",
         "info": {"title": contract["project"], "version": "0.0.0-contract"},
         "channels": channels,
-        "operations": operations,
+        "operations": asyncapi_operations,
         "components": {
             "messages": messages,
             "schemas": components_projection(contract)["schemas"],
@@ -442,8 +442,8 @@ def textual_contract_projection(contract: dict[str, Any]) -> str:
     return f'''from __future__ import annotations
 
 # Generated Textual projection. Do not edit by hand.
-# The PM contract owns state machines/states/operation bindings/widgets/Textual styles; a real Textual app imports this file
-# and renders state machine state surfaces by id instead of inventing screens, widgets, or operation keys.
+# The PM contract owns state machines/states/command/query bindings/widgets/Textual styles; a real Textual app imports this file
+# and renders state machine state surfaces by id instead of inventing screens, widgets, or command/query keys.
 
 PROJECT = {contract["project"]!r}
 SCREENS = {screen_entries!r}
@@ -578,7 +578,7 @@ def css_selector(state_machine: dict[str, Any], selector: str) -> str:
         return f'{root} [data-contract-slot="{slot}"]'
     if selector.startswith("command_binding."):
         invocation_id = selector[len("command_binding."):]
-        return f'{root} [data-operation-invocation="{invocation_id}"]'
+        return f'{root} [data-command-binding="{invocation_id}"]'
     return root
 
 
@@ -633,11 +633,11 @@ def tcss_selector(state_machine: dict[str, Any], selector: str) -> str:
                 return "#" + safe_id(widget["id"])
         return "#" + slot
     if selector.startswith("command_binding."):
-        operation = selector[len("command_binding."):]
+        command_binding = selector[len("command_binding."):]
         for widget in widgets:
-            if widget["binding"].get("command_binding") == operation:
+            if widget["binding"].get("command_binding") == command_binding:
                 return "#" + safe_id(widget["id"])
-        return "#" + safe_id(operation)
+        return "#" + safe_id(command_binding)
     return selector
 
 
@@ -671,7 +671,7 @@ def workflows_projection(contract: dict[str, Any]) -> dict[str, Any]:
     for workflow_id, workflow in sorted(contract["workflows"].items()):
         steps = {}
         for step in workflow["steps"]:
-            cap = _operations(contract)[step["command"]]
+            cap = _command_query_map(contract)[step["command"]]
             steps[step["id"]] = {
                 "doc": f"input_mapping={step['input_mapping']}; sequence_flows={step['sequence_flows']}",
                 "run": f"#{safe_id(step['command'])}",
@@ -691,13 +691,13 @@ def workflows_projection(contract: dict[str, Any]) -> dict[str, Any]:
             },
             "steps": steps,
         })
-    for cap_id in _cwl_operation_ids(contract):
-        cap = _operations(contract)[cap_id]
+    for cap_id in _cwl_command_query_ids(contract):
+        cap = _command_query_map(contract)[cap_id]
         graph.append({
             "id": f"#{safe_id(cap_id)}",
             "class": "CommandLineTool",
             "label": cap_id,
-            "baseCommand": ["contract-operation", cap_id],
+            "baseCommand": ["contract-command-query", cap_id],
             "inputs": {name: {"type": cwl_type(type_name)} for name, type_name in sorted(schema_properties(cap["input"]).items())},
             "outputs": {
                 outcome_id: {"type": cwl_type(outcome["result"])}
@@ -707,8 +707,8 @@ def workflows_projection(contract: dict[str, Any]) -> dict[str, Any]:
     return {"cwlVersion": "v1.2", "$graph": graph}
 
 
-def _cwl_operation_ids(contract: dict[str, Any]) -> list[str]:
-    operation_refs = {
+def _cwl_command_query_ids(contract: dict[str, Any]) -> list[str]:
+    command_query_refs = {
         step["command"]
         for workflow in contract.get("workflows", {}).values()
         for step in workflow.get("steps", [])
@@ -717,20 +717,20 @@ def _cwl_operation_ids(contract: dict[str, Any]) -> list[str]:
         adapter_kind, _ = external_interface_adapter_pair(entry)
         target_kind, target_ref = external_interface_invoked_ref_pair(entry)
         if adapter_kind == "cli" and target_kind in {"command", "query"}:
-            operation_refs.add(target_ref)
+            command_query_refs.add(target_ref)
         elif adapter_kind == "cli" and target_kind == "external_interface":
-            operation_ref = _external_interface_effective_operation_ref(contract, target_ref)
-            if operation_ref:
-                operation_refs.add(operation_ref)
-    return sorted(operation_refs)
+            behavior_ref = _external_interface_effective_command_query_ref(contract, target_ref)
+            if behavior_ref:
+                command_query_refs.add(behavior_ref)
+    return sorted(command_query_refs)
 
 
-def _external_interface_effective_operation_ref(contract: dict[str, Any], entry_id: str) -> str | None:
+def _external_interface_effective_command_query_ref(contract: dict[str, Any], entry_id: str) -> str | None:
     target_kind, target_ref = external_interface_invoked_ref_pair(contract["external_interfaces"][entry_id])
     if target_kind in {"command", "query"}:
         return target_ref
     if target_kind == "external_interface":
-        return _external_interface_effective_operation_ref(contract, target_ref)
+        return _external_interface_effective_command_query_ref(contract, target_ref)
     return None
 
 
@@ -738,8 +738,8 @@ def _workflow_input_payload_type(contract: dict[str, Any], workflow: dict[str, A
     trigger = workflow["inputs"]
     if "domain_event" in trigger:
         return contract["domain_events"][trigger["domain_event"]]["payload_schema"]
-    operation = _operations(contract)[trigger["command"]]
-    successes = [outcome["result"] for outcome in operation["outcomes"].values() if outcome["kind"] == "success"]
+    behavior = _command_query_map(contract)[trigger["command"]]
+    successes = [outcome["result"] for outcome in behavior["outcomes"].values() if outcome["kind"] == "success"]
     return successes[0]
 
 
@@ -772,10 +772,10 @@ def access_policies_projection(contract: dict[str, Any]) -> dict[str, Any]:
     return {
         "project": contract["project"],
         "access_policies": contract.get("access_policies", {}),
-        "operation_authorizations": {
-            operation_ref: operation["authorization"]
-            for operation_ref, operation in sorted(_operations(contract).items())
-            if "authorization" in operation
+        "command_query_authorizations": {
+            behavior_ref: behavior["authorization"]
+            for behavior_ref, behavior in sorted(_command_query_map(contract).items())
+            if "authorization" in behavior
         },
         "external_interface_access_policies": {
             entry_id: entry["access_policy"]
@@ -878,7 +878,7 @@ def refs_py_projection(contract: dict[str, Any]) -> str:
         "Asset": sorted(contract.get("media_assets", {})),
         "RenderProfile": sorted(contract.get("viewport_profiles", {})),
         "EntryPoint": sorted(contract["external_interfaces"]),
-        "Operation": sorted(_operations(contract)),
+        "CommandQuery": sorted(_command_query_map(contract)),
         "Text": sorted(contract.get("text_resources", {})),
         "ContentExample": sorted(contract.get("content_examples", {})),
         "DomainEvent": sorted(contract["domain_events"]),
@@ -998,7 +998,7 @@ def components_projection(contract: dict[str, Any]) -> dict[str, Any]:
         for ref in referenced_named_types(entity_type["schema"]):
             if ref != rid and ref not in contract["entity_types"] and ref not in contract.get("schemas", {}):
                 opaque.add(ref)
-    for cap in _operations(contract).values():
+    for cap in _command_query_map(contract).values():
         outcome_types = [outcome["result"] for outcome in cap["outcomes"].values()]
         for type_name in [cap["input"], *outcome_types]:
             for ref in referenced_named_types(type_name):

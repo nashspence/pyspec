@@ -127,7 +127,7 @@
           "$ref": "#/$defs/schema"
         },
         "outcomes": {
-          "$ref": "#/$defs/operation_outcomes"
+          "$ref": "#/$defs/command_outcomes"
         },
         "rationale": {
           "$ref": "#/$defs/rationale"
@@ -599,7 +599,7 @@
           "$ref": "#/$defs/schema"
         },
         "outcomes": {
-          "$ref": "#/$defs/operation_outcomes"
+          "$ref": "#/$defs/query_outcomes"
         },
         "rationale": {
           "$ref": "#/$defs/rationale"
@@ -1964,9 +1964,9 @@
       "$ref": "#/$defs/local_name",
       "description": "State-machine-local signal name."
     },
-    "operation_outcome": {
+    "command_outcome": {
       "additionalProperties": false,
-      "description": "Command or query outcome without embedded domain-event emission metadata.",
+      "description": "Command outcome without embedded domain-event emission metadata.",
       "properties": {
         "kind": {
           "enum": [
@@ -1984,9 +1984,23 @@
       ],
       "type": "object"
     },
-    "operation_outcomes": {
+    "command_outcomes": {
       "additionalProperties": {
-        "$ref": "#/$defs/operation_outcome"
+        "$ref": "#/$defs/command_outcome"
+      },
+      "minProperties": 2,
+      "propertyNames": {
+        "$ref": "#/$defs/outcome_name"
+      },
+      "type": "object"
+    },
+    "query_outcome": {
+      "$ref": "#/$defs/command_outcome",
+      "description": "Query outcome."
+    },
+    "query_outcomes": {
+      "additionalProperties": {
+        "$ref": "#/$defs/query_outcome"
       },
       "minProperties": 2,
       "propertyNames": {

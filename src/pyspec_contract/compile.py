@@ -503,16 +503,16 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             entry["route"] = rules.route_ref(invoked["ref"])
         elif adapter_kind == "http_api" and invoked_kind in {"command", "query"}:
             entry["endpoint"] = rules.endpoint_ref(invoked["ref"])
-            if invoked["ref"] in _operations(contract):
-                command_authorization = _operations(contract)[invoked["ref"]].get("authorization")
+            if invoked["ref"] in _command_query_map(contract):
+                command_authorization = _command_query_map(contract)[invoked["ref"]].get("authorization")
                 if command_authorization:
                     entry.setdefault("access_policy", copy.deepcopy(command_authorization["policy"]))
         elif adapter_kind == "cli":
             entry_id = spec["id"]
             command_ref_source = entry_id[len("external_interface.cli."):] if invoked_kind == "external_interface" and entry_id.startswith("external_interface.cli.") else invoked["ref"]
             entry["cli_command_ref"] = rules.cli_command_ref(command_ref_source)
-            if invoked_kind in {"command", "query"} and invoked["ref"] in _operations(contract):
-                command_authorization = _operations(contract)[invoked["ref"]].get("authorization")
+            if invoked_kind in {"command", "query"} and invoked["ref"] in _command_query_map(contract):
+                command_authorization = _command_query_map(contract)[invoked["ref"]].get("authorization")
                 if command_authorization:
                     entry.setdefault("access_policy", copy.deepcopy(command_authorization["policy"]))
         elif adapter_kind in {"worker", "scheduled"} and invoked_kind == "workflow":
@@ -610,8 +610,8 @@ def render_examples(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return cases
 
 
-def _operations(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
-    operations: dict[str, dict[str, Any]] = {}
+def _command_query_map(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    command_queries: dict[str, dict[str, Any]] = {}
     for command_ref, command in contract.get("commands", {}).items():
         item = copy.deepcopy(command)
         effects = item.get("effects", {})
@@ -626,7 +626,7 @@ def _operations(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
         emits_by_outcome = _command_emits_by_outcome(command)
         for outcome_id, outcome in item.get("outcomes", {}).items():
             outcome["emits"] = copy.deepcopy(emits_by_outcome.get(outcome_id, []))
-        operations[command_ref] = item
+        command_queries[command_ref] = item
     for query_ref, query in contract.get("queries", {}).items():
         item = copy.deepcopy(query)
         item["action_kind"] = "query"
@@ -635,24 +635,24 @@ def _operations(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
         item["creates"] = []
         item["updates"] = []
         item["deletes"] = []
-        operations[query_ref] = item
-    return operations
+        command_queries[query_ref] = item
+    return command_queries
 
 
-def _operation_input(operation: dict[str, Any]) -> dict[str, Any]:
-    return _schema_fields(operation.get("input_schema", EMPTY_OBJECT_SCHEMA))
+def _command_or_query_input(behavior: dict[str, Any]) -> dict[str, Any]:
+    return _schema_fields(behavior.get("input_schema", EMPTY_OBJECT_SCHEMA))
 
 
-def _operation_retry_safe(operation_ref: str, operation: dict[str, Any]) -> bool:
-    return operation_ref.startswith("query.") or bool(operation.get("retry_safe"))
+def _command_or_query_retry_safe(behavior_ref: str, behavior: dict[str, Any]) -> bool:
+    return behavior_ref.startswith("query.") or bool(behavior.get("retry_safe"))
 
 
-def _invocation_operation_ref(invocation: dict[str, Any]) -> str:
+def _invocation_command_or_query_ref(invocation: dict[str, Any]) -> str:
     if "command" in invocation:
         return invocation["command"]
     if "query" in invocation:
         return invocation["query"]
-    raise ContractError("Operation invocation must declare command or query")
+    raise ContractError("Command/query binding must declare command or query")
 
 
 def _command_emits_by_outcome(command: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
@@ -662,8 +662,8 @@ def _command_emits_by_outcome(command: dict[str, Any]) -> dict[str, list[dict[st
     return result
 
 
-def _operation_effects(operation: dict[str, Any]) -> dict[str, Any]:
-    return operation.get("effects", {})
+def _command_or_query_effects(behavior: dict[str, Any]) -> dict[str, Any]:
+    return behavior.get("effects", {})
 
 
 def _derive_command_lifecycle_transitions(contract: dict[str, Any]) -> None:
@@ -1112,7 +1112,7 @@ def _validate_entity_types(contract: dict[str, Any]) -> None:
         for lifecycle_transition in entity_lifecycle.get("lifecycle_transitions", []):
             if lifecycle_transition["from"] not in states or lifecycle_transition["to"] not in states:
                 raise ContractError(f"Entity type {rid} lifecycle_transition uses unknown lifecycle_state: {lifecycle_transition}")
-            if lifecycle_transition["triggered_by"] not in _operations(contract):
+            if lifecycle_transition["triggered_by"] not in _command_query_map(contract):
                 raise ContractError(
                     f"Entity type {rid} lifecycle_transition references unknown command {lifecycle_transition['triggered_by']}"
                 )
@@ -1131,7 +1131,7 @@ def _validate_type_references(contract: dict[str, Any]) -> None:
         _validate_type_reference(contract, f"Entity type {entity_type_id} schema", entity_type["schema"])
     for schema_id, schema in contract.get("schemas", {}).items():
         _validate_type_reference(contract, f"Schema {schema_id}", schema["schema"])
-    for command_id, command in _operations(contract).items():
+    for command_id, command in _command_query_map(contract).items():
         for field_name, schema in _command_input(command).items():
             _validate_type_reference(contract, f"Command {command_id} input {field_name}", schema)
         for outcome_id, outcome in command.get("outcomes", {}).items():
@@ -1161,7 +1161,7 @@ def _validate_type_reference(contract: dict[str, Any], label: str, expr: Any) ->
 
 def _validate_commands(contract: dict[str, Any]) -> None:
     entity_types = contract["entity_types"]
-    commands = _operations(contract)
+    commands = _command_query_map(contract)
     for cid, cap in commands.items():
         _validate_command_relationships(cid, cap, entity_types)
         _validate_command_authorization_outcomes(cid, cap)
@@ -1186,17 +1186,17 @@ def _validate_commands(contract: dict[str, Any]) -> None:
             continue
         for lifecycle_transition in entity_lifecycle.get("lifecycle_transitions", []):
             triggered_by = lifecycle_transition["triggered_by"]
-            operation = commands[triggered_by]
-            if operation["action_kind"] != "lifecycle_transition":
+            behavior = commands[triggered_by]
+            if behavior["action_kind"] != "lifecycle_transition":
                 raise ContractError(
                     f"Entity type {rid} lifecycle_transition {triggered_by} must reference a lifecycle_transition command"
                 )
-            transition_not_allowed = operation["outcomes"].get("transition_not_allowed")
+            transition_not_allowed = behavior["outcomes"].get("transition_not_allowed")
             if not transition_not_allowed or transition_not_allowed["kind"] != "failure":
                 raise ContractError(
                     f"Lifecycle-transition command {triggered_by} referenced by entity_lifecycle must declare transition_not_allowed failure outcome"
                 )
-            cap_transition = operation.get("lifecycle_transition")
+            cap_transition = behavior.get("lifecycle_transition")
             if not cap_transition:
                 raise ContractError(f"Lifecycle-transition command {triggered_by} must be referenced by entity_lifecycle declarations")
             if (
@@ -1335,7 +1335,7 @@ def _validate_command_authorization_outcomes(command_id: str, command: dict[str,
 
 def _validate_access_policies(contract: dict[str, Any]) -> None:
     access_policies = contract["access_policies"]
-    commands = _operations(contract)
+    commands = _command_query_map(contract)
     external_interfaces = contract["external_interfaces"]
     _validate_access_policy_reuse(access_policies)
     for command_id, command in commands.items():
@@ -1447,7 +1447,7 @@ def _validate_emit_payload_mapping(
 ) -> None:
     label = f"Command {command_id} outcome {outcome_id} emit {event_id}"
     source_scopes: TypeScopes = {
-        "operation_input": _type_scope(_command_input(command)),
+        "command_input": _type_scope(_command_input(command)),
         "action_outcome": _typed_source_paths(contract, ("result",), outcome["result"]),
     }
 
@@ -1556,10 +1556,10 @@ def _validate_command_bindings(
     context = _state_machine_context(state_machine)
     for invocation_id, invocation in sorted((state.get("command_bindings") or {}).items()):
         label = f"{owner_label}.{state_name} command_binding {invocation_id}"
-        command_id = _invocation_operation_ref(invocation)
-        if command_id not in _operations(contract):
+        command_id = _invocation_command_or_query_ref(invocation)
+        if command_id not in _command_query_map(contract):
             raise ContractError(f"{label} references unknown command {command_id}")
-        command = _operations(contract)[command_id]
+        command = _command_query_map(contract)[command_id]
         expected_input = _command_input(command)
         bindings = invocation.get("input_mapping") or {}
         _validate_binding_map(
@@ -1633,7 +1633,7 @@ def _validate_command_binding_effects(
             label=f"{effect_label} raise payload_bindings",
             bindings=signal.get("payload_bindings"),
             payload=payload,
-            scopes=_action_outcome_effect_scopes(state_machine, command, outcome),
+            scopes=_action_outcome_effect_scopes(state_machine, command, outcome, binding_root="command_binding"),
         )
 
 
@@ -1713,8 +1713,8 @@ def _external_interface_retry_safe(contract: dict[str, Any], entry_id: str) -> b
     entry = contract["external_interfaces"][entry_id]
     target_kind, target_ref = external_interface_invoked_ref_pair(entry)
     if target_kind in {"command", "query"}:
-        return _command_retry_safe(_operations(contract)[target_ref]) and (
-            _operations(contract)[target_ref]["action_kind"] == "query" or bool(entry.get("retry_safe"))
+        return _command_retry_safe(_command_query_map(contract)[target_ref]) and (
+            _command_query_map(contract)[target_ref]["action_kind"] == "query" or bool(entry.get("retry_safe"))
         )
     if target_kind == "external_interface":
         return bool(entry.get("retry_safe")) and _external_interface_retry_safe(contract, target_ref)
@@ -1727,6 +1727,8 @@ def _action_outcome_effect_scopes(
     state_machine: dict[str, Any],
     command: dict[str, Any],
     outcome: dict[str, Any],
+    *,
+    binding_root: str,
 ) -> TypeScopes:
     command_input = _command_input(command)
     invocation_scope = {("input",): command.get("input", EMPTY_OBJECT_SCHEMA)}
@@ -1736,7 +1738,7 @@ def _action_outcome_effect_scopes(
             ("kind",): {"type": "string"},
             ("result",): outcome["result"],
         },
-        "operation_invocation": invocation_scope,
+        binding_root: invocation_scope,
         "state_context": _type_scope(_state_machine_context(state_machine)),
     }
 
@@ -1770,10 +1772,10 @@ def _validate_query_bindings(
             raise ContractError(f"{label} result_scope {invocation['result_scope']} must declare rationale")
         if scope == "state_machine" and _query_binding_has_result_bound_no_local_effect(invocation) and invocation.get("result_scope") not in {"shared", "prefetch"}:
             raise ContractError(f"{label} result_binding with no_local_effect must declare result_scope shared or prefetch")
-        operation_ref = _invocation_operation_ref(invocation)
-        if operation_ref not in _operations(contract):
-            raise ContractError(f"{label} references unknown query {operation_ref}")
-        command = _operations(contract)[operation_ref]
+        behavior_ref = _invocation_command_or_query_ref(invocation)
+        if behavior_ref not in _command_query_map(contract):
+            raise ContractError(f"{label} references unknown query {behavior_ref}")
+        command = _command_query_map(contract)[behavior_ref]
         if command["action_kind"] != "query":
             raise ContractError(f"{label} must reference a query")
         if command.get("creates") or command.get("updates") or command.get("deletes"):
@@ -1931,7 +1933,7 @@ def _validate_query_outcome_effect(
     scope: str,
     state: dict[str, Any] | None,
 ) -> None:
-        scopes = _action_outcome_effect_scopes(state_machine, command, outcome)
+        scopes = _action_outcome_effect_scopes(state_machine, command, outcome, binding_root="query_binding")
         has_context_updates = bool(effect.get("context_updates"))
         has_result_binding = "result_binding" in effect
         has_raise = "raise" in effect
@@ -1975,7 +1977,7 @@ def _validate_query_outcome_effect(
             outcome,
             effect,
             effect_scope="query_binding",
-            has_response_surface=_command_has_response_surface(contract, _invocation_operation_ref(invocation), outcome_id),
+            has_response_surface=_command_has_response_surface(contract, _invocation_command_or_query_ref(invocation), outcome_id),
             has_query_refresh=has_query_refresh,
             has_result_binding=has_result_binding,
             has_data_effect=has_context_updates,
@@ -2066,9 +2068,9 @@ def _validate_field_state_data_sources(
 
 def _query_result_field_sources(contract: dict[str, Any], invocations: dict[str, Any]) -> dict[str, set[str]]:
     sources: dict[str, set[str]] = {}
-    commands = _operations(contract)
+    commands = _command_query_map(contract)
     for invocation_id, invocation in sorted((invocations or {}).items()):
-        command = commands.get(_invocation_operation_ref(invocation))
+        command = commands.get(_invocation_command_or_query_ref(invocation))
         if not command:
             continue
         for outcome_id, effect in sorted((invocation.get("effects") or {}).items()):
@@ -2145,7 +2147,7 @@ def _validate_machine_query_ownership(contract: dict[str, Any], state_machine_id
         result_scope = invocation.get("result_scope")
         if _query_binding_has_result_bound_no_local_effect(invocation) and result_scope not in {"shared", "prefetch"}:
             raise ContractError(f"{label} result_binding with no_local_effect must declare result_scope shared or prefetch")
-        if _invocation_operation_ref(invocation) in child_query_commands and result_scope not in {"shared", "prefetch"}:
+        if _invocation_command_or_query_ref(invocation) in child_query_commands and result_scope not in {"shared", "prefetch"}:
             raise ContractError(f"{label} duplicates child-owned query loading and must declare result_scope shared or prefetch")
 
 
@@ -2157,10 +2159,10 @@ def _child_query_commands(contract: dict[str, Any], state_machine: dict[str, Any
             if not child:
                 continue
             for invocation in (child.get("query_bindings") or {}).values():
-                commands.add(_invocation_operation_ref(invocation))
+                commands.add(_invocation_command_or_query_ref(invocation))
             for child_state in child.get("states", {}).values():
                 for invocation in (child_state.get("query_bindings") or {}).values():
-                    commands.add(_invocation_operation_ref(invocation))
+                    commands.add(_invocation_command_or_query_ref(invocation))
     return commands
 
 
@@ -2949,28 +2951,28 @@ def _validate_entries(contract: dict[str, Any]) -> None:
             _validate_state_machine_entry_inputs(contract, eid, value, declared=declared, input_label="input")
             _validate_target_bindings(contract, eid, entry, declared)
         elif adapter_kind == "http_api":
-            if kind not in {"command", "query"} or value not in _operations(contract):
+            if kind not in {"command", "query"} or value not in _command_query_map(contract):
                 raise ContractError(f"HTTP API external interface {eid} must invoke a known command")
             _require_adapter(adapter, eid, "method")
             _require_adapter(adapter, eid, "path")
             _validate_path_params(entry, eid)
-            operation = _operations(contract)[value]
+            behavior = _command_query_map(contract)[value]
             path_params = _entry_input_map(entry, "path_params")
             query_params = _entry_input_map(entry, "query_params")
             body = _entry_input_map(entry, "body")
-            _validate_api_entry_input(eid, entry, operation, path_params, query_params, body)
+            _validate_api_entry_input(eid, entry, behavior, path_params, query_params, body)
             _validate_target_bindings(contract, eid, entry, {**path_params, **query_params, **body})
-            _validate_api_external_interface_output_responses(eid, entry, operation)
+            _validate_api_external_interface_output_responses(eid, entry, behavior)
         elif adapter_kind == "cli":
             _require_adapter(adapter, eid, "cli_command")
             args = _entry_input_map(entry, "args")
             if kind in {"command", "query"}:
-                if value not in _operations(contract):
+                if value not in _command_query_map(contract):
                     raise ContractError(f"CLI external interface {eid} must invoke a known command")
-                operation = _operations(contract)[value]
-                _validate_exact_entry_inputs(eid, "input.args", args, _command_input(operation))
+                behavior = _command_query_map(contract)[value]
+                _validate_exact_entry_inputs(eid, "input.args", args, _command_input(behavior))
                 _validate_target_bindings(contract, eid, entry, args)
-                _validate_cli_command_response_handlers(contract, eid, entry, operation)
+                _validate_cli_command_response_handlers(contract, eid, entry, behavior)
             elif kind == "state_machine":
                 if value not in contract["state_machines"]:
                     raise ContractError(f"CLI external interface {eid} must invoke a known state machine")
@@ -3043,15 +3045,15 @@ def _validate_external_interface_delegation_graph(contract: dict[str, Any]) -> N
 
 
 def _validate_external_interface_response_maps(contract: dict[str, Any]) -> None:
-    """Validate synchronous invoked-operation response keys before local effects depend on them."""
+    """Validate synchronous invoked command/query response keys before local effects depend on them."""
     for entry_id, entry in contract.get("external_interfaces", {}).items():
         adapter_kind, _adapter = external_interface_adapter_pair(entry)
         invoked_kind, invoked = external_interface_invokes_pair(entry)
         invoked_ref = invoked["ref"]
-        if adapter_kind == "http_api" and invoked_kind in {"command", "query"} and invoked_ref in _operations(contract):
-            _command_external_interface_output_responses(entry_id, entry, _operations(contract)[invoked_ref])
-        elif adapter_kind == "cli" and invoked_kind in {"command", "query"} and invoked_ref in _operations(contract):
-            _command_external_interface_output_response_handlers(entry_id, entry, _operations(contract)[invoked_ref])
+        if adapter_kind == "http_api" and invoked_kind in {"command", "query"} and invoked_ref in _command_query_map(contract):
+            _command_external_interface_output_responses(entry_id, entry, _command_query_map(contract)[invoked_ref])
+        elif adapter_kind == "cli" and invoked_kind in {"command", "query"} and invoked_ref in _command_query_map(contract):
+            _command_external_interface_output_response_handlers(entry_id, entry, _command_query_map(contract)[invoked_ref])
 
 
 def _validate_delegating_entry_adapter_surface(
@@ -3260,20 +3262,20 @@ def _validate_workflow_entry_target_source(contract: dict[str, Any], entry_id: s
 def _validate_api_entry_input(
     entry_id: str,
     entry: dict[str, Any],
-    operation: dict[str, Any],
+    behavior: dict[str, Any],
     path_params: dict[str, Any],
     query_params: dict[str, Any],
     body: dict[str, Any],
 ) -> None:
-    cap_input = _command_input(operation)
+    cap_input = _command_input(behavior)
     all_params = {**path_params, **query_params}
     all_input = {**all_params, **body}
     if set(path_params) - set(cap_input):
-        raise ContractError(f"API external interface {entry_id} input.path_params must be operation input fields")
+        raise ContractError(f"API external interface {entry_id} input.path_params must be command/query input fields")
     if set(query_params) - set(cap_input):
-        raise ContractError(f"API external interface {entry_id} input.query_params must be operation input fields")
+        raise ContractError(f"API external interface {entry_id} input.query_params must be command/query input fields")
     if set(body) - set(cap_input):
-        raise ContractError(f"API external interface {entry_id} input.body must be operation input fields")
+        raise ContractError(f"API external interface {entry_id} input.body must be command/query input fields")
     if set(path_params) & set(query_params) or set(all_params) & set(body):
         raise ContractError(f"API external interface {entry_id} input fields cannot appear in multiple input sections")
     _validate_entry_input_types(entry_id, "input.path_params", path_params, cap_input)
@@ -3285,10 +3287,10 @@ def _validate_api_entry_input(
             raise ContractError(f"API external interface {entry_id} {external_interface_method(entry)} must not declare input.body")
         if set(all_params) != set(cap_input):
             missing_params = sorted(set(cap_input) - set(all_params))
-            raise ContractError(f"API external interface {entry_id} {external_interface_method(entry)} must declare all operation inputs as path_params or query_params: {missing_params}")
+            raise ContractError(f"API external interface {entry_id} {external_interface_method(entry)} must declare all command/query inputs as path_params or query_params: {missing_params}")
     missing = sorted(set(cap_input) - set(all_input))
     if missing:
-        raise ContractError(f"API external interface {entry_id} input must include every operation input: {missing}")
+        raise ContractError(f"API external interface {entry_id} input must include every command/query input: {missing}")
 
 
 def _validate_event_payload_entry_input(contract: dict[str, Any], entry_id: str, entry: dict[str, Any], workflow_id: str) -> None:
@@ -3313,7 +3315,7 @@ def _validate_target_bindings(
     kind, value = external_interface_invoked_ref_pair(entry)
     bindings = external_interface_invocation_input_mapping(entry)
     if kind in {"command", "query"}:
-        expected = _command_input(_operations(contract)[value])
+        expected = _command_input(_command_query_map(contract)[value])
     elif kind == "state_machine":
         context = _state_machine_context(contract["state_machines"][value])
         expected = {name: context[name] for name in target_input_types}
@@ -3395,7 +3397,7 @@ def _validate_cli_command_response_handlers(
             },
             delegated_entry_id=None,
             retry_allowed=_command_retry_safe(command),
-            retry_error=f"CLI external interface {entry_id} response handler {outcome_id} retry_policy requires a query or retry_safe invoked operation",
+            retry_error=f"CLI external interface {entry_id} response handler {outcome_id} retry_policy requires a query or retry_safe invoked behavior",
             exit_codes=exit_codes,
         )
 
@@ -3550,7 +3552,7 @@ def _external_interface_named_response_outcomes(contract: dict[str, Any], entry_
         return set(responses)
     target_kind, target_ref = external_interface_invoked_ref_pair(entry)
     if target_kind in {"command", "query"}:
-        return set(_operations(contract)[target_ref]["outcomes"])
+        return set(_command_query_map(contract)[target_ref]["outcomes"])
     if target_kind == "workflow":
         return set(contract["workflows"][target_ref]["outputs"])
     if target_kind == "external_interface":
@@ -3561,7 +3563,7 @@ def _external_interface_named_response_outcomes(contract: dict[str, Any], entry_
 def _external_interface_outcome_kinds(contract: dict[str, Any], entry_id: str) -> dict[str, str]:
     target_kind, target_ref = external_interface_invoked_ref_pair(contract["external_interfaces"][entry_id])
     if target_kind in {"command", "query"}:
-        return {name: outcome["kind"] for name, outcome in _operations(contract)[target_ref]["outcomes"].items()}
+        return {name: outcome["kind"] for name, outcome in _command_query_map(contract)[target_ref]["outcomes"].items()}
     if target_kind == "workflow":
         return {name: outcome["kind"] for name, outcome in contract["workflows"][target_ref]["outputs"].items()}
     if target_kind == "external_interface":
@@ -3581,7 +3583,7 @@ def _external_interface_response_body_types(contract: dict[str, Any], entry_id: 
         return result
     target_kind, target_ref = external_interface_invoked_ref_pair(entry)
     if target_kind in {"command", "query"}:
-        return {name: outcome["result"] for name, outcome in _operations(contract)[target_ref]["outcomes"].items()}
+        return {name: outcome["result"] for name, outcome in _command_query_map(contract)[target_ref]["outcomes"].items()}
     if target_kind == "workflow":
         return {name: outcome["result"] for name, outcome in contract["workflows"][target_ref]["outputs"].items()}
     if target_kind == "external_interface":
@@ -3887,7 +3889,7 @@ def _validate_workflows(contract: dict[str, Any]) -> None:
         kind, value = _one(workflow["inputs"], f"workflow {wid} trigger")
         if kind == "domain_event" and value not in contract["domain_events"]:
             raise ContractError(f"Workflow {wid} trigger references unknown domain event {value}")
-        if kind in {"command", "query"} and value not in _operations(contract):
+        if kind in {"command", "query"} and value not in _command_query_map(contract):
             raise ContractError(f"Workflow {wid} trigger references unknown command {value}")
         _validate_workflow_outputs(wid, workflow)
         step_ids = [step["id"] for step in workflow["steps"]]
@@ -3897,12 +3899,12 @@ def _validate_workflows(contract: dict[str, Any]) -> None:
         source_types = _workflow_input_source_types(contract, wid, workflow)
         terminal_outcomes: set[str] = set()
         for step in workflow["steps"]:
-            if step["command"] not in _operations(contract):
+            if step["command"] not in _command_query_map(contract):
                 raise ContractError(f"Workflow {wid} step references unknown command {step['command']}")
-            operation = _operations(contract)[step["command"]]
-            _validate_workflow_step_bindings(contract, wid, step, operation, source_types)
-            terminal_outcomes.update(_validate_workflow_step_sequence_flows(wid, workflow, step, operation, step_id_set))
-            _merge_type_scopes(source_types, _workflow_step_source_types(contract, step, operation))
+            behavior = _command_query_map(contract)[step["command"]]
+            _validate_workflow_step_bindings(contract, wid, step, behavior, source_types)
+            terminal_outcomes.update(_validate_workflow_step_sequence_flows(wid, workflow, step, behavior, step_id_set))
+            _merge_type_scopes(source_types, _workflow_step_source_types(contract, step, behavior))
         if terminal_outcomes != set(workflow["outputs"]):
             missing = sorted(set(workflow["outputs"]) - terminal_outcomes)
             extra = sorted(terminal_outcomes - set(workflow["outputs"]))
@@ -3935,7 +3937,7 @@ def _workflow_input_payload_type(contract: dict[str, Any], workflow_id: str, wor
     kind, value = _one(workflow["inputs"], f"workflow {workflow_id} trigger")
     if kind == "domain_event":
         return contract["domain_events"][value]["payload_schema"]
-    return _success_result_type(_operations(contract)[value])
+    return _success_result_type(_command_query_map(contract)[value])
 
 
 def _workflow_input_payload_fields(contract: dict[str, Any], workflow_id: str, workflow: dict[str, Any]) -> dict[str, Any]:
@@ -4064,7 +4066,7 @@ def _validate_workflow_step_sequence_flows(
             if not _command_retry_safe(command):
                 raise ContractError(
                     f"Workflow {workflow_id} step {step['id']} sequence_flow {outcome_id} retry_policy requires "
-                    "a query or retry_safe invoked operation"
+                    "a query or retry_safe invoked behavior"
                 )
             retry = value
             if retry["attempts"] < 1 or retry["attempts"] > 10:
@@ -4210,7 +4212,7 @@ def _validate_behavior_scenario_when(contract: dict[str, Any], behavior_scenario
             raise ContractError(f"Behavior scenario {behavior_scenario_id} call_external_interface must reference an HTTP API or CLI command external interface")
         _validate_behavior_scenario_entry_input(behavior_scenario_id, kind, body, entry)
     elif kind == "invoke_command":
-        if ref not in _operations(contract):
+        if ref not in _command_query_map(contract):
             raise ContractError(f"Behavior scenario {behavior_scenario_id} references unknown command {ref}")
     elif kind == "emit_domain_event":
         if ref not in contract["domain_events"]:
@@ -4360,13 +4362,13 @@ def _validate_behavior_scenario_then(contract: dict[str, Any], behavior_scenario
                 raise ContractError(f"Behavior scenario {behavior_scenario_id} asserts undeclared state machine context {state_machine_id}.{key}")
     for field in ["enables", "forbids", "invoked"]:
         for cap_id in then.get(field, []):
-            if cap_id not in _operations(contract):
+            if cap_id not in _command_query_map(contract):
                 raise ContractError(f"Behavior scenario {behavior_scenario_id} {field} unknown command {cap_id}")
     authorization_assertion = then.get("authorization") or {}
     for effect in ("allowed", "denied"):
         for assertion in authorization_assertion.get(effect, []):
             kind, ref = _authorization_assertion_resource(assertion, f"Behavior scenario {behavior_scenario_id} access_policy.{effect}")
-            if kind in {"command", "query"} and ref not in _operations(contract):
+            if kind in {"command", "query"} and ref not in _command_query_map(contract):
                 raise ContractError(f"Behavior scenario {behavior_scenario_id} access_policy.{effect} unknown command {ref}")
             if kind == "external_interface" and ref not in contract["external_interfaces"]:
                 raise ContractError(f"Behavior scenario {behavior_scenario_id} access_policy.{effect} unknown external interface {ref}")
@@ -4419,7 +4421,7 @@ def _validate_authorization_denial_outcome(contract: dict[str, Any], behavior_sc
     command_id = _behavior_scenario_command_ref(contract, when_kind, when_body)
     if not command_id:
         raise ContractError(f"Behavior scenario {behavior_scenario_id} authorization_denial outcome requires an action binding")
-    authorization = _operations(contract)[command_id].get("authorization")
+    authorization = _command_query_map(contract)[command_id].get("authorization")
     if not authorization:
         raise ContractError(f"Behavior scenario {behavior_scenario_id} authorization_denial outcome requires command authorization")
     mapped = {authorization["authentication_required_as"], authorization["access_denied_as"]}
@@ -4445,11 +4447,11 @@ def _validate_behavior_scenario_event_emissions(
         return
     command_id = _behavior_scenario_command_ref(contract, when_kind, when_body)
     outcome_id = then.get("outcome")
-    if not command_id or not outcome_id or outcome_id not in _operations(contract)[command_id]["outcomes"]:
+    if not command_id or not outcome_id or outcome_id not in _command_query_map(contract)[command_id]["outcomes"]:
         return
     possible = {
         _emit_domain_event_id(emit)
-        for emit in _operations(contract)[command_id]["outcomes"][outcome_id].get("emits", [])
+        for emit in _command_query_map(contract)[command_id]["outcomes"][outcome_id].get("emits", [])
     }
     unexpected = sorted(emitted - possible)
     if unexpected:
@@ -4497,12 +4499,12 @@ def _validate_behavior_scenario_outcome(contract: dict[str, Any], behavior_scena
     cap: dict[str, Any] | None = None
     entry: dict[str, Any] | None = None
     if when_kind == "invoke_command":
-        cap = _operations(contract)[when_body["ref"]]
+        cap = _command_query_map(contract)[when_body["ref"]]
     elif when_kind == "call_external_interface":
         entry = contract["external_interfaces"][when_body["ref"]]
         target_ref = _external_interface_effective_command_ref(contract, when_body["ref"])
         if target_ref:
-            cap = _operations(contract)[target_ref]
+            cap = _command_query_map(contract)[target_ref]
     if cap is None:
         if outcome_id:
             raise ContractError(f"Behavior scenario {behavior_scenario_id} asserts outcome but does not execute an command")
@@ -4728,7 +4730,7 @@ def _expand_authorization_assertions(contract: dict[str, Any], assertions: dict[
                 continue
             kind, ref = _authorization_assertion_resource(assertion, f"access_policy.{effect}")
             if kind in {"command", "query"}:
-                authorization = _operations(contract)[ref].get("authorization")
+                authorization = _command_query_map(contract)[ref].get("authorization")
                 if authorization:
                     assertion["access_policy"] = authorization["policy"]
             elif kind == "external_interface":

@@ -665,9 +665,9 @@ commands:
       outcome: approved
       payload_bindings:
         approved_by:
-          from: $operation_input.approved_by
+          from: $command_input.approved_by
         project_id:
-          from: $operation_input.project_id
+          from: $command_input.project_id
     input_schema:
       additionalProperties: false
       properties:
@@ -2313,7 +2313,7 @@ state_machines:
             conditional_effects:
             - context_updates:
                 workspace_id:
-                  from: $operation_invocation.input.workspace_id
+                  from: $query_binding.input.workspace_id
               raise:
                 data_refresh_signal: project_collection_empty
               result_binding:
@@ -2324,7 +2324,7 @@ state_machines:
                 result_empty: true
             - context_updates:
                 workspace_id:
-                  from: $operation_invocation.input.workspace_id
+                  from: $query_binding.input.workspace_id
               raise:
                 data_refresh_signal: projects_loaded
               result_binding:

@@ -20,7 +20,7 @@ from .compile import ContractError, render_examples
 from .content import AssetResult, ContentContext, ContentError, call_asset, call_text
 from .io import write_yaml
 from .layout import renderer_textual_presentation, renderer_html_layout, renderer_html_presentation, renderer_html_regions
-from .operations import invocation_operation_ref, operation_collection, operations
+from .behaviors import invocation_command_or_query_ref, command_or_query_collection, command_or_query_resource_kind, command_query_map
 from .paths import GENERATED_SPEC_DIR, generated_relative as g
 from .project import default_html_slots, format_attrs, humanize, state_machines_projection, state_machine_styles_projection, safe_id
 from .runtime import fixture_namespace, resolve
@@ -143,8 +143,8 @@ def workflow_flow_file(workflow_id: str) -> str:
     return g("audit_evidence", "workflows", safe_id(workflow_id), "flow.svg")
 
 
-def operation_flow_file(operation_ref: str) -> str:
-    return g("audit_evidence", operation_collection(operation_ref), safe_id(operation_ref), "flow.svg")
+def command_query_flow_file(behavior_ref: str) -> str:
+    return g("audit_evidence", command_or_query_collection(behavior_ref), safe_id(behavior_ref), "flow.svg")
 
 
 def audit_coverage_file() -> str:
@@ -377,8 +377,8 @@ def _audit_visual_expected_files(contract: dict[str, Any]) -> set[str]:
         files.add(external_interface_flow_file(entry_id, adapter_kind))
     for workflow_id in contract.get("workflows", {}):
         files.add(workflow_flow_file(workflow_id))
-    for operation_ref in _operations(contract):
-        files.add(operation_flow_file(operation_ref))
+    for behavior_ref in _command_query_map(contract):
+        files.add(command_query_flow_file(behavior_ref))
 
     projection = state_machines_projection(contract)
     for state_machine in _audit_projection_surfaces(contract, projection):
@@ -430,8 +430,8 @@ def _audit_visual_evidence_files(contract: dict[str, Any]) -> set[str]:
         files.add(external_interface_flow_file(entry_id, adapter_kind))
     for workflow_id in contract.get("workflows", {}):
         files.add(workflow_flow_file(workflow_id))
-    for operation_ref in _operations(contract):
-        files.add(operation_flow_file(operation_ref))
+    for behavior_ref in _command_query_map(contract):
+        files.add(command_query_flow_file(behavior_ref))
 
     projection = state_machines_projection(contract)
     for surface in _audit_projection_surfaces(contract, projection):
@@ -611,7 +611,7 @@ def _audit_evidence_for_pointer(contract: dict[str, Any], pointer: str) -> list[
     if parts[0] == "entity_types":
         return _model_evidence_files(contract, owner)
     if parts[0] in {"commands", "queries"}:
-        return _operation_evidence_files(contract, owner)
+        return _command_query_evidence_files(contract, owner)
     if parts[0] == "viewport_profiles":
         return _all_render_evidence_files(contract)
     if parts[0] == "state_machines":
@@ -687,12 +687,12 @@ _VISUAL_TEXT_REF_PREFIXES = (
 )
 
 
-def _operations(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
-    return operations(contract)
+def _command_query_map(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    return command_query_map(contract)
 
 
-def _invocation_operation_ref(invocation: dict[str, Any]) -> str:
-    return invocation_operation_ref(invocation)
+def _invocation_command_or_query_ref(invocation: dict[str, Any]) -> str:
+    return invocation_command_or_query_ref(invocation)
 
 
 def _visual_text_witnesses(
@@ -736,7 +736,7 @@ def _visual_text_witness_tokens(contract: dict[str, Any], pointer: str, evidence
     elif collection == "external_interfaces":
         tokens.extend(_external_interface_text_witness_tokens(contract, parts, value))
     elif collection in {"commands", "queries"}:
-        tokens.extend(_operation_text_witness_tokens(contract, parts, value, detail_evidence))
+        tokens.extend(_command_query_text_witness_tokens(contract, parts, value, detail_evidence))
     elif collection == "domain_events":
         tokens.extend(_event_text_witness_tokens(contract, parts, value))
     elif collection == "workflows":
@@ -875,7 +875,7 @@ def _external_interface_text_witness_tokens(contract: dict[str, Any], parts: lis
     return tokens
 
 
-def _operation_text_witness_tokens(contract: dict[str, Any], parts: list[str], value: Any, detail_evidence: bool) -> list[str]:
+def _command_query_text_witness_tokens(contract: dict[str, Any], parts: list[str], value: Any, detail_evidence: bool) -> list[str]:
     if not detail_evidence:
         return []
     tokens: list[str] = []
@@ -885,7 +885,7 @@ def _operation_text_witness_tokens(contract: dict[str, Any], parts: list[str], v
         if parts[-1] in {"authentication_required_as", "access_denied_as"} and isinstance(value, str):
             return [parts[-1], value]
     if len(parts) >= 5 and parts[2] == "lifecycle_transition":
-        lifecycle_transition = _operations(contract)[parts[1]]["lifecycle_transition"]
+        lifecycle_transition = _command_query_map(contract)[parts[1]]["lifecycle_transition"]
         field_token = f"{type_display({'$ref': lifecycle_transition['entity_type']})}.{lifecycle_transition['field']}"
         tokens.append(field_token)
         if parts[-1] in {"from", "to"}:
@@ -893,7 +893,7 @@ def _operation_text_witness_tokens(contract: dict[str, Any], parts: list[str], v
         return tokens
     if len(parts) >= 5 and parts[2] == "outcomes":
         outcome_id = parts[3]
-        outcome = _operations(contract)[parts[1]]["outcomes"][outcome_id]
+        outcome = _command_query_map(contract)[parts[1]]["outcomes"][outcome_id]
         if parts[-1] == "kind" and isinstance(value, str):
             return [outcome_id, value]
         if parts[-2:] == ["result", "$ref"] and isinstance(value, str):
@@ -1038,25 +1038,25 @@ def _state_machine_evidence_files(contract: dict[str, Any], state_machine_id: st
     return files
 
 
-def _operation_evidence_files(contract: dict[str, Any], operation_ref: str) -> list[str]:
-    if operation_ref not in _operations(contract):
+def _command_query_evidence_files(contract: dict[str, Any], behavior_ref: str) -> list[str]:
+    if behavior_ref not in _command_query_map(contract):
         return []
-    files: list[str] = [operation_flow_file(operation_ref)]
+    files: list[str] = [command_query_flow_file(behavior_ref)]
     for entry_id, entry in sorted(contract.get("external_interfaces", {}).items()):
         target_kind, target_value = external_interface_invoked_ref_pair(entry)
-        if target_kind in {"command", "query"} and target_value == operation_ref:
+        if target_kind in {"command", "query"} and target_value == behavior_ref:
             files.extend(_external_interface_evidence_files(contract, entry_id))
         elif target_kind == "external_interface":
             delegated = contract.get("external_interfaces", {}).get(target_value)
             if delegated:
                 delegated_target_kind, delegated_target_value = external_interface_invoked_ref_pair(delegated)
-                if delegated_target_kind in {"command", "query"} and delegated_target_value == operation_ref:
+                if delegated_target_kind in {"command", "query"} and delegated_target_value == behavior_ref:
                     files.extend(_external_interface_evidence_files(contract, entry_id))
     for workflow_id, workflow in sorted(contract.get("workflows", {}).items()):
-        if any(step.get("command") == operation_ref for step in workflow.get("steps", [])):
+        if any(step.get("command") == behavior_ref for step in workflow.get("steps", [])):
             files.extend(_workflow_evidence_files(contract, workflow_id))
     for state_machine_id, state_machine in sorted(contract.get("state_machines", {}).items()):
-        if _value_contains_string(state_machine, operation_ref):
+        if _value_contains_string(state_machine, behavior_ref):
             files.extend(_state_machine_evidence_files(contract, state_machine_id))
     return files
 
@@ -1068,9 +1068,9 @@ def _access_policy_evidence_files(contract: dict[str, Any], policy_id: str) -> l
     for entry_id, entry in sorted(contract.get("external_interfaces", {}).items()):
         if entry.get("access_policy") == policy_id:
             files.extend(_external_interface_evidence_files(contract, entry_id))
-    for operation_ref, operation in sorted(_operations(contract).items()):
-        if (operation.get("authorization") or {}).get("policy") == policy_id:
-            files.extend(_operation_evidence_files(contract, operation_ref))
+    for behavior_ref, behavior in sorted(_command_query_map(contract).items()):
+        if (behavior.get("authorization") or {}).get("policy") == policy_id:
+            files.extend(_command_query_evidence_files(contract, behavior_ref))
     return files
 
 
@@ -1079,8 +1079,8 @@ def _event_evidence_files(contract: dict[str, Any], event_id: str) -> list[str]:
         return []
     files: list[str] = []
     event = contract["domain_events"][event_id]
-    for operation_ref in event.get("emitted_by", []):
-        files.extend(_operation_evidence_files(contract, operation_ref))
+    for behavior_ref in event.get("emitted_by", []):
+        files.extend(_command_query_evidence_files(contract, behavior_ref))
     for workflow_id, workflow in sorted(contract.get("workflows", {}).items()):
         if _value_contains_string(workflow.get("inputs", {}), event_id):
             files.extend(_workflow_evidence_files(contract, workflow_id))
@@ -1097,9 +1097,9 @@ def _schema_evidence_files(contract: dict[str, Any], schema_id: str) -> list[str
     for event_id, event in sorted(contract.get("domain_events", {}).items()):
         if _value_contains_string(event.get("payload_schema", {}), schema_id):
             files.extend(_event_evidence_files(contract, event_id))
-    for operation_ref, operation in sorted(_operations(contract).items()):
-        if _value_contains_string(operation, schema_id):
-            files.extend(_operation_evidence_files(contract, operation_ref))
+    for behavior_ref, behavior in sorted(_command_query_map(contract).items()):
+        if _value_contains_string(behavior, schema_id):
+            files.extend(_command_query_evidence_files(contract, behavior_ref))
     for workflow_id, workflow in sorted(contract.get("workflows", {}).items()):
         if _value_contains_string(workflow, schema_id):
             files.extend(_workflow_evidence_files(contract, workflow_id))
@@ -1113,9 +1113,9 @@ def _model_evidence_files(contract: dict[str, Any], entity_type_id: str) -> list
     if entity_type_id not in contract.get("entity_types", {}):
         return []
     files: list[str] = []
-    for operation_ref, operation in sorted(_operations(contract).items()):
-        if _value_contains_string(operation, entity_type_id):
-            files.extend(_operation_evidence_files(contract, operation_ref))
+    for behavior_ref, behavior in sorted(_command_query_map(contract).items()):
+        if _value_contains_string(behavior, entity_type_id):
+            files.extend(_command_query_evidence_files(contract, behavior_ref))
     for event_id, event in sorted(contract.get("domain_events", {}).items()):
         if _value_contains_string(event, entity_type_id):
             files.extend(_event_evidence_files(contract, event_id))
@@ -1173,7 +1173,7 @@ def _behavior_scenario_evidence_files(contract: dict[str, Any], behavior_scenari
         if action in when:
             files.extend(_external_interface_evidence_files(contract, when[action]["ref"]))
     if "invoke_command" in when:
-        files.extend(_operation_evidence_files(contract, when["invoke_command"]["ref"]))
+        files.extend(_command_query_evidence_files(contract, when["invoke_command"]["ref"]))
     if "emit_domain_event" in when:
         files.extend(_event_evidence_files(contract, when["emit_domain_event"]["ref"]))
     if "run_workflow" in when:
@@ -1363,9 +1363,9 @@ def _render_visual_audit(
     for workflow_id, workflow in sorted(contract.get("workflows", {}).items()):
         path = root / workflow_flow_file(workflow_id)
         _write_graphviz_svg(path, workflow_flow_dot(workflow_id, workflow, contract), _previous_audit_path(root, previous_audit_root, path))
-    for operation_ref, operation in sorted(_operations(contract).items()):
-        path = root / operation_flow_file(operation_ref)
-        _write_graphviz_svg(path, operation_flow_dot(operation_ref, operation, contract), _previous_audit_path(root, previous_audit_root, path))
+    for behavior_ref, behavior in sorted(_command_query_map(contract).items()):
+        path = root / command_query_flow_file(behavior_ref)
+        _write_graphviz_svg(path, command_query_flow_dot(behavior_ref, behavior, contract), _previous_audit_path(root, previous_audit_root, path))
 
     has_html_audit = bool(_profile_viewports(contract, "html")) and (
         any("html" in _projection_render_surfaces(state_machine) for state_machine in _audit_projection_surfaces(contract, projection))
@@ -1972,33 +1972,34 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
     return "\n".join(lines) + "\n"
 
 
-def operation_flow_dot(operation_ref: str, operation: dict[str, Any], contract: dict[str, Any]) -> str:
-    operation = _operations(contract).get(operation_ref, operation)
-    input_node = _dot_node_id("operation_input", operation_ref)
-    authorization = operation.get("authorization") or {}
+def command_query_flow_dot(behavior_ref: str, behavior: dict[str, Any], contract: dict[str, Any]) -> str:
+    behavior = _command_query_map(contract).get(behavior_ref, behavior)
+    behavior_kind = command_or_query_resource_kind(behavior_ref)
+    input_node = _dot_node_id(f"{behavior_kind}_input", behavior_ref)
+    authorization = behavior.get("authorization") or {}
     policy_id = authorization.get("policy")
-    policy_node = _dot_node_id("operation_policy", policy_id) if policy_id else None
+    policy_node = _dot_node_id("command_query_policy", policy_id) if policy_id else None
     authorization_failure_labels = {
         authorization.get("authentication_required_as"): "authentication_required_as",
         authorization.get("access_denied_as"): "access_denied_as",
     }
-    resource_nodes = _operation_resource_nodes(operation_ref, operation, contract)
+    resource_nodes = _command_query_resource_nodes(behavior_ref, behavior, contract)
     outcome_nodes = [
-        (_dot_node_id("operation_outcome", f"{operation_ref}_{outcome_id}"), outcome_id, outcome)
-        for outcome_id, outcome in sorted(operation.get("outcomes", {}).items())
+        (_dot_node_id(f"{behavior_kind}_outcome", f"{behavior_ref}_{outcome_id}"), outcome_id, outcome)
+        for outcome_id, outcome in sorted(behavior.get("outcomes", {}).items())
     ]
     event_nodes: dict[str, str] = {}
     emits_by_outcome: dict[str, list[str]] = {}
-    for emit in operation.get("emits_domain_events", []):
+    for emit in behavior.get("emits_domain_events", []):
         event_id = emit["domain_event"] if isinstance(emit, dict) else emit
         outcome_id = emit.get("outcome") if isinstance(emit, dict) else None
         if outcome_id:
             emits_by_outcome.setdefault(outcome_id, []).append(event_id)
-        event_nodes.setdefault(event_id, _dot_node_id("operation_event", f"{operation_ref}_{event_id}"))
+        event_nodes.setdefault(event_id, _dot_node_id("command_query_event", f"{behavior_ref}_{event_id}"))
 
-    lines = _dot_graph_preamble("operation_" + safe_id(operation_ref))
-    if operation.get("input"):
-        lines.append(_dot_html_node(input_node, _dot_card("input", "operation input", [("fields", _typed_fields(operation["input"]))], style=_DOT_STYLE_EXTERNAL)))
+    lines = _dot_graph_preamble(f"{behavior_kind}_" + safe_id(behavior_ref))
+    if behavior.get("input"):
+        lines.append(_dot_html_node(input_node, _dot_card("input", f"{behavior_kind} input", [("fields", _typed_fields(behavior["input"]))], style=_DOT_STYLE_EXTERNAL)))
     if policy_id:
         lines.append(_dot_html_node(policy_node or "", _policy_reference_card(policy_id, contract, subtitle="authorization gate", include_resources=False)))
     for node_id, _, target_id, target_kind, sections in resource_nodes:
@@ -2009,7 +2010,7 @@ def operation_flow_dot(operation_ref: str, operation: dict[str, Any], contract: 
     for event_id, node_id in event_nodes.items():
         lines.append(_dot_html_node(node_id, _event_card(event_id, contract, subtitle="emitted event", mode="emitted")))
 
-    entry_node = input_node if operation.get("input") else None
+    entry_node = input_node if behavior.get("input") else None
     if entry_node and policy_node:
         lines.append(_dot_edge(entry_node, policy_node, {"label": "authorize", "color": _DOT_COLOR_POLICY_BORDER, "penwidth": "1.2"}))
         entry_node = policy_node
@@ -2038,11 +2039,11 @@ def operation_flow_dot(operation_ref: str, operation: dict[str, Any], contract: 
     return "\n".join(lines) + "\n"
 
 
-def _operation_reference_sections(operation_ref: str, operation: dict[str, Any]) -> list[tuple[str, list[object]]]:
+def _command_query_reference_sections(behavior_ref: str, behavior: dict[str, Any]) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
-    if operation.get("action_kind"):
-        sections.append(("kind", [operation["action_kind"]]))
-    authorization = operation.get("authorization")
+    if behavior.get("action_kind"):
+        sections.append(("kind", [behavior["action_kind"]]))
+    authorization = behavior.get("authorization")
     if authorization:
         sections.append((
             "authorization",
@@ -2055,15 +2056,15 @@ def _operation_reference_sections(operation_ref: str, operation: dict[str, Any])
     return sections
 
 
-def _operation_resource_nodes(
-    operation_ref: str,
-    operation: dict[str, Any],
+def _command_query_resource_nodes(
+    behavior_ref: str,
+    behavior: dict[str, Any],
     contract: dict[str, Any],
 ) -> list[tuple[str, str, str, str, list[tuple[str, list[object]]]]]:
     nodes: list[tuple[str, str, str, str, list[tuple[str, list[object]]]]] = []
     seen: set[tuple[str, str, str]] = set()
     for action in ["creates", "reads", "updates", "deletes"]:
-        for target_id in operation.get(action, []):
+        for target_id in behavior.get(action, []):
             target_kind = "entity_type" if target_id in contract.get("entity_types", {}) else "schema"
             key = (action, target_kind, target_id)
             if key in seen:
@@ -2072,17 +2073,17 @@ def _operation_resource_nodes(
             resource = contract.get("entity_types", {}).get(target_id, contract.get("schemas", {}).get(target_id, {}))
             fields = schema_properties(resource.get("schema", {}))
             nodes.append((
-                _dot_node_id("operation_resource", f"{operation_ref}_{action}_{target_id}"),
+                _dot_node_id("command_query_resource", f"{behavior_ref}_{action}_{target_id}"),
                 action,
                 target_id,
                 target_kind,
                 [("fields", _schema_fields(fields))],
             ))
-    if operation.get("lifecycle_transition"):
-        lifecycle_transition = operation["lifecycle_transition"]
+    if behavior.get("lifecycle_transition"):
+        lifecycle_transition = behavior["lifecycle_transition"]
         field = schema_properties(contract["entity_types"][lifecycle_transition["entity_type"]]["schema"])[lifecycle_transition["field"]]
         nodes.append((
-            _dot_node_id("operation_resource", f"{operation_ref}_lifecycle_transition_{lifecycle_transition['entity_type']}_{lifecycle_transition['field']}"),
+            _dot_node_id("command_query_resource", f"{behavior_ref}_lifecycle_transition_{lifecycle_transition['entity_type']}_{lifecycle_transition['field']}"),
             "lifecycle_transition",
             lifecycle_transition["entity_type"],
             "entity_type",
@@ -2233,7 +2234,7 @@ def _exit_card_style(outcome_kind: str | None) -> _DotCardStyle:
 
 def _external_interface_response_outcomes(contract: dict[str, Any], target_kind: str, target_value: str) -> dict[str, Any]:
     if target_kind in {"command", "query"}:
-        return _operations(contract)[target_value]["outcomes"]
+        return _command_query_map(contract)[target_value]["outcomes"]
     if target_kind == "external_interface":
         delegated_kind, delegated_value = external_interface_invoked_ref_pair(contract["external_interfaces"][target_value])
         return _external_interface_response_outcomes(contract, delegated_kind, delegated_value)
@@ -2304,12 +2305,12 @@ def _entry_target_card(
             style=_DOT_STYLE_TARGET,
         )
     if target_kind in {"command", "query"}:
-        operation = _operations(contract)[target_value]
+        behavior = _command_query_map(contract)[target_value]
         return _dot_card(
             target_value,
             f"invoked {target_kind}",
-            _operation_reference_sections(target_value, operation),
-            rationale=operation.get("rationale", ""),
+            _command_query_reference_sections(target_value, behavior),
+            rationale=behavior.get("rationale", ""),
             style=_DOT_STYLE_CAPABILITY,
         )
     if target_kind == "workflow":
@@ -2334,7 +2335,7 @@ def _entry_target_card(
             ("invokes", [_target_label(delegated_target_kind, delegated_target_value)]),
         ]
         if delegated_target_kind in {"command", "query"}:
-            sections.extend(_operation_reference_sections(delegated_target_value, _operations(contract)[delegated_target_value]))
+            sections.extend(_command_query_reference_sections(delegated_target_value, _command_query_map(contract)[delegated_target_value]))
         else:
             sections.extend(_access_policy_sections(delegated.get("access_policy"), contract, include_details=False))
         return _dot_card(
@@ -2368,11 +2369,11 @@ def _entry_target_tail_nodes(target_kind: str, target_value: str, contract: dict
 def _state_machine_summary_sections(state_machine: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
     bindings = _query_binding_bindings(state_machine.get("query_bindings", {}))
-    operation_refs = [binding["operation"] for binding in bindings]
+    behavior_refs = [binding["behavior"] for binding in bindings]
     inputs = _format_data_inputs(state_machine, bindings, contract)
     queries = [binding["query_binding"] for binding in bindings]
-    loads = _format_operation_outputs(operation_refs, contract)
-    guards = _format_action_access_policies(operation_refs, contract)
+    loads = _format_command_query_outputs(behavior_refs, contract)
+    guards = _format_action_access_policies(behavior_refs, contract)
     if inputs:
         sections.append(("input", inputs))
     if queries:
@@ -2405,15 +2406,15 @@ def _state_machine_state_sections(
 ) -> list[tuple[str, Iterable[object]]]:
     query_bindings = state.get("query_bindings", {})
     command_bindings = state.get("command_bindings", {})
-    query_operation_refs = [_invocation_operation_ref(invocation) for invocation in query_bindings.values()]
-    command_refs = [_invocation_operation_ref(invocation) for invocation in command_bindings.values()]
+    query_command_query_refs = [_invocation_command_or_query_ref(invocation) for invocation in query_bindings.values()]
+    command_refs = [_invocation_command_or_query_ref(invocation) for invocation in command_bindings.values()]
     return [
         ("text", state.get("text", [])),
         ("assets", state.get("assets", [])),
         (_state_field_section_title(state_machine, state_name, state), _format_state_fields(state_machine, state, contract)),
         ("query_bindings", _format_command_binding_outputs(query_bindings, contract)),
         ("command_bindings", _format_command_binding_outputs(command_bindings, contract)),
-        ("access_policies", _format_action_access_policies([*query_operation_refs, *command_refs], contract)),
+        ("access_policies", _format_action_access_policies([*query_command_query_refs, *command_refs], contract)),
         ("child_state_machines", _format_mounts(state.get("child_state_machines", []))),
         ("signal_sync_rules", [rule["id"] for rule in state.get("signal_sync_rules", [])]),
     ]
@@ -2423,30 +2424,30 @@ def _workflow_input_card(trigger_kind: str, trigger_value: str, contract: dict[s
     if trigger_kind == "domain_event":
         return _event_card(trigger_value, contract, subtitle="domain event input")
     if trigger_kind in {"command", "query"}:
-        operation = _operations(contract)[trigger_value]
+        behavior = _command_query_map(contract)[trigger_value]
         return _dot_card(
             trigger_value,
             f"{trigger_kind} input",
-            _operation_reference_sections(trigger_value, operation),
-            rationale=operation.get("rationale", ""),
+            _command_query_reference_sections(trigger_value, behavior),
+            rationale=behavior.get("rationale", ""),
             style=_DOT_STYLE_EVENT,
         )
     return _dot_card(trigger_value, f"{trigger_kind} input", [], style=_DOT_STYLE_EVENT)
 
 
 def _workflow_step_card(step: dict[str, Any], contract: dict[str, Any]) -> str:
-    operation = _operations(contract)[step["command"]]
+    behavior = _command_query_map(contract)[step["command"]]
     sections: list[tuple[str, list[object]]] = [
         ("command", [step["command"]]),
         ("input mapping", _format_binding_lines(step["input_mapping"])),
         ("sequence flows", _workflow_sequence_flow_lines(step)),
     ]
-    sections.extend(_operation_reference_sections(step["command"], operation))
+    sections.extend(_command_query_reference_sections(step["command"], behavior))
     return _dot_card(
         step["id"],
         "workflow step",
         sections,
-        rationale=operation.get("rationale", ""),
+        rationale=behavior.get("rationale", ""),
         style=_DOT_STYLE_NEUTRAL,
     )
 
@@ -3118,9 +3119,9 @@ def _format_transition_sections(
     sections: list[tuple[str, list[object]]] = []
     if _is_data_refresh_signal(transition["trigger"]):
         bindings = _transition_data_bindings(state_machine, transition)
-        operation_refs = [binding["operation"] for binding in bindings]
-        data_sources = _format_operation_outputs(operation_refs, contract)
-        guards = _format_action_access_policies(operation_refs, contract)
+        behavior_refs = [binding["behavior"] for binding in bindings]
+        data_sources = _format_command_query_outputs(behavior_refs, contract)
+        guards = _format_action_access_policies(behavior_refs, contract)
         queries = [binding["query_binding"] for binding in bindings]
         inputs = _format_data_inputs(state_machine, bindings, contract)
         if inputs:
@@ -3133,9 +3134,9 @@ def _format_transition_sections(
             sections.append(("access_policies", guards))
     else:
         target_bindings = _transition_target_data_bindings(state_machine, transition)
-        operation_refs = [binding["operation"] for binding in target_bindings]
-        data_sources = _format_operation_outputs(operation_refs, contract)
-        guards = _format_action_access_policies(operation_refs, contract)
+        behavior_refs = [binding["behavior"] for binding in target_bindings]
+        data_sources = _format_command_query_outputs(behavior_refs, contract)
+        guards = _format_action_access_policies(behavior_refs, contract)
         queries = [binding["query_binding"] for binding in target_bindings]
         required_context = _format_data_inputs(state_machine, target_bindings, contract)
         if required_context:
@@ -3156,8 +3157,8 @@ def _transition_target_data_bindings(state_machine: dict[str, Any], transition: 
 
 
 def _state_field_section_title(state_machine: dict[str, Any], state_name: str, state: dict[str, Any]) -> str:
-    operation_refs = [binding["operation"] for binding in _state_field_data_bindings(state_machine, state_name, state) if binding.get("operation")]
-    unique = sorted(dict.fromkeys(operation_refs))
+    behavior_refs = [binding["behavior"] for binding in _state_field_data_bindings(state_machine, state_name, state) if binding.get("behavior")]
+    unique = sorted(dict.fromkeys(behavior_refs))
     if len(unique) == 1:
         return f"{unique[0]} fields"
     if unique:
@@ -3192,51 +3193,51 @@ def _format_state_fields(state_machine: dict[str, Any], state: dict[str, Any], c
     return fields
 
 
-def _format_operation_outputs(operation_refs: Iterable[str], contract: dict[str, Any]) -> list[_DotTypedField]:
-    operation_map = _operations(contract)
+def _format_command_query_outputs(behavior_refs: Iterable[str], contract: dict[str, Any]) -> list[_DotTypedField]:
+    behavior_map = _command_query_map(contract)
     fields: list[_DotTypedField] = []
-    for operation_ref in operation_refs:
-        for _, outcome in sorted(operation_map[operation_ref]["outcomes"].items()):
+    for behavior_ref in behavior_refs:
+        for _, outcome in sorted(behavior_map[behavior_ref]["outcomes"].items()):
             if outcome["kind"] == "success":
-                fields.append(_DotTypedField(operation_ref, outcome["result"]))
+                fields.append(_DotTypedField(behavior_ref, outcome["result"]))
     return fields
 
 
 def _format_command_binding_outputs(invocations: dict[str, Any], contract: dict[str, Any]) -> list[_DotTypedField]:
-    operation_map = _operations(contract)
+    behavior_map = _command_query_map(contract)
     fields: list[_DotTypedField] = []
     for invocation_id, invocation in sorted(invocations.items()):
-        operation_ref = _invocation_operation_ref(invocation)
-        for _, outcome in sorted(operation_map[operation_ref]["outcomes"].items()):
+        behavior_ref = _invocation_command_or_query_ref(invocation)
+        for _, outcome in sorted(behavior_map[behavior_ref]["outcomes"].items()):
             if outcome["kind"] == "success":
-                fields.append(_DotTypedField(f"{invocation_id}: {operation_ref}", outcome["result"]))
+                fields.append(_DotTypedField(f"{invocation_id}: {behavior_ref}", outcome["result"]))
     return fields
 
 
-def _format_action_access_policies(operation_refs: Iterable[str], contract: dict[str, Any]) -> list[str]:
+def _format_action_access_policies(behavior_refs: Iterable[str], contract: dict[str, Any]) -> list[str]:
     lines: list[str] = []
     seen: set[str] = set()
-    for operation_ref in operation_refs:
-        if operation_ref in seen:
+    for behavior_ref in behavior_refs:
+        if behavior_ref in seen:
             continue
-        seen.add(operation_ref)
-        operation = _operations(contract).get(operation_ref)
-        access_policy = (operation.get("authorization") or {}).get("policy") if operation else None
+        seen.add(behavior_ref)
+        behavior = _command_query_map(contract).get(behavior_ref)
+        access_policy = (behavior.get("authorization") or {}).get("policy") if behavior else None
         if access_policy:
-            lines.append(f"{operation_ref}: {access_policy}")
+            lines.append(f"{behavior_ref}: {access_policy}")
     return lines
 
 
 def _format_data_inputs(
     state_machine: dict[str, Any], bindings: Iterable[dict[str, Any]], contract: dict[str, Any]
 ) -> list[_DotTypedField]:
-    operation_map = _operations(contract)
+    behavior_map = _command_query_map(contract)
     inputs: list[_DotTypedField] = []
     seen: set[str] = set()
     for binding in bindings:
-        operation = operation_map[binding["operation"]]
-        for key, input_type in sorted(schema_properties(operation["input"]).items()):
-            input_label = f"{binding.get('query_binding', binding['operation'])}.{key}"
+        behavior = behavior_map[binding["behavior"]]
+        for key, input_type in sorted(schema_properties(behavior["input"]).items()):
+            input_label = f"{binding.get('query_binding', binding['behavior'])}.{key}"
             signature = f"{input_label} {input_type}"
             if signature not in seen:
                 inputs.append(_DotTypedField(input_label, input_type))
@@ -3268,7 +3269,7 @@ def _transition_data_bindings(state_machine: dict[str, Any], transition: dict[st
 
 def _query_binding_bindings(invocations: dict[str, Any]) -> list[dict[str, Any]]:
     return _unique_data_bindings(
-        {"query_binding": invocation_id, "operation": _invocation_operation_ref(invocation)}
+        {"query_binding": invocation_id, "behavior": _invocation_command_or_query_ref(invocation)}
         for invocation_id, invocation in sorted((invocations or {}).items())
     )
 
@@ -3277,7 +3278,7 @@ def _unique_data_bindings(bindings: Iterable[dict[str, Any]]) -> list[dict[str, 
     unique: list[dict[str, Any]] = []
     seen: set[tuple[Any, Any]] = set()
     for binding in bindings:
-        key = (binding["operation"], binding.get("query_binding"))
+        key = (binding["behavior"], binding.get("query_binding"))
         if key not in seen:
             unique.append(binding)
             seen.add(key)

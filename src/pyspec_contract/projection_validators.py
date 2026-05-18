@@ -18,7 +18,7 @@ from .runtime import fixture_namespace, resolve, resolve_binding
 from .binding_refs import BindingExpressionError, parse_binding_expression
 from .io import read_json, read_yaml
 from .layout import renderer_textual_presentation, renderer_textual_style
-from .operations import operations
+from .behaviors import command_query_map
 from .audit import (
     _render_example_file,
     _render_example_surfaces,
@@ -40,13 +40,13 @@ from .audit import (
     audit_expected_files,
     composition_file,
     external_interface_flow_file,
-    operation_flow_file,
+    command_query_flow_file,
     state_machine_graph_file,
     workflow_flow_file,
 )
 from .paths import GENERATED_SPEC_DIR, SPEC_ROOT, generated_relative as g
 from .project import (
-    _cwl_operation_ids,
+    _cwl_command_query_ids,
     components_projection,
     validated_projection_paths,
     composition_tcss_selector,
@@ -85,8 +85,8 @@ _PYTHON_PROJECTIONS = [
 ]
 
 
-def _operations(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
-    return operations(contract)
+def _command_query_map(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    return command_query_map(contract)
 
 
 def validate_generated_projections(root: Path, contract: dict[str, Any]) -> None:
@@ -147,7 +147,7 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
         key = (external_interface_path(entry), method)
         if key in expected_operations:
             raise ContractError(f"OpenAPI duplicate path/method binding in contract: {external_interface_path(entry)} {method}")
-        expected_operations[key] = (entry_id, entry, _operations(contract)[cap_id])
+        expected_operations[key] = (entry_id, entry, _command_query_map(contract)[cap_id])
 
     actual_operations: dict[tuple[str, str], dict[str, Any]] = {}
     for path, methods in doc["paths"].items():
@@ -170,22 +170,22 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
         operation = actual_operations[(path, method)]
         unknown_keys = set(operation) - _OPENAPI_OPERATION_KEYS
         if unknown_keys:
-            raise ContractError(f"OpenAPI {method.upper()} {path} has unsupported operation keys: {sorted(unknown_keys)}")
+            raise ContractError(f"OpenAPI {method.upper()} {path} has unsupported command/query keys: {sorted(unknown_keys)}")
         target_kind, cap_id = external_interface_invoked_ref_pair(entry)
         if operation.get("operationId") in seen_operation_ids:
             raise ContractError(f"OpenAPI operationId is duplicated: {operation.get('operationId')}")
         seen_operation_ids.add(operation.get("operationId"))
         if operation.get("operationId") != cap_id:
-            raise ContractError(f"OpenAPI operationId must equal operation id for {entry_id}")
+            raise ContractError(f"OpenAPI operationId must equal command/query id for {entry_id}")
         if operation.get("x-external-interface") != entry_id or operation.get(f"x-{target_kind}") != cap_id:
             raise ContractError(f"OpenAPI extensions do not point back to {entry_id}/{cap_id}")
         expected_policy = (cap.get("authorization") or {}).get("policy")
         if expected_policy:
             if operation.get("x-access-policy") != expected_policy:
-                raise ContractError(f"OpenAPI access policy extension does not match operation {cap_id}")
+                raise ContractError(f"OpenAPI access policy extension does not match command/query {cap_id}")
         elif "x-access-policy" in operation:
             raise ContractError(
-                f"OpenAPI access policy extension is not allowed for operation without authentication {cap_id}"
+                f"OpenAPI access policy extension is not allowed for command/query without authentication {cap_id}"
             )
 
         placeholders = _path_params(path)
@@ -210,7 +210,7 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
                 "content": {"application/json": {"schema": object_json_schema(body_fields)}},
             }
             if operation.get("requestBody") != expected_body:
-                raise ContractError(f"OpenAPI requestBody does not match operation input for {cap_id}")
+                raise ContractError(f"OpenAPI requestBody does not match command/query input for {cap_id}")
         elif "requestBody" in operation:
             raise ContractError(f"OpenAPI requestBody is not allowed for {entry_id}")
 
@@ -544,7 +544,7 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
     if len(by_id) != len(graph):
         raise ContractError("CWL $graph contains duplicate or missing ids")
     expected_ids = {f"#{safe_id(workflow_id)}" for workflow_id in contract["workflows"]}
-    expected_ids.update(f"#{safe_id(cap_id)}" for cap_id in _cwl_operation_ids(contract))
+    expected_ids.update(f"#{safe_id(cap_id)}" for cap_id in _cwl_command_query_ids(contract))
     if set(by_id) != expected_ids:
         raise ContractError(_diff_message("CWL graph ids", expected_ids, set(by_id)))
 
@@ -571,43 +571,43 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             run_id = f"#{safe_id(step['command'])}"
             if actual.get("run") != run_id or run_id not in by_id:
                 raise ContractError(f"CWL workflow {workflow_id} step {step['id']} references unknown run")
-            cap = _operations(contract)[step["command"]]
+            cap = _command_query_map(contract)[step["command"]]
             expected_in = {name: _workflow_cwl_source(source) for name, source in sorted(step["input_mapping"].items())}
             expected_out = sorted(cap["outcomes"])
             expected_doc = f"input_mapping={step['input_mapping']}; sequence_flows={step['sequence_flows']}"
             if set(actual) != {"doc", "run", "in", "out"} or actual.get("doc") != expected_doc or actual.get("in") != expected_in or actual.get("out") != expected_out:
                 raise ContractError(f"CWL workflow {workflow_id} step {step['id']} malformed")
 
-    for cap_id in _cwl_operation_ids(contract):
-        cap = _operations(contract)[cap_id]
+    for cap_id in _cwl_command_query_ids(contract):
+        cap = _command_query_map(contract)[cap_id]
         item = by_id[f"#{safe_id(cap_id)}"]
         if set(item) != {"id", "class", "label", "baseCommand", "inputs", "outputs"}:
-            raise ContractError(f"CWL operation node {cap_id} has unsupported keys")
+            raise ContractError(f"CWL command/query node {cap_id} has unsupported keys")
         if item.get("class") != "CommandLineTool" or item.get("label") != cap_id:
-            raise ContractError(f"CWL operation node {cap_id} must be a labelled CommandLineTool")
-        if item.get("baseCommand") != ["contract-operation", cap_id]:
-            raise ContractError(f"CWL operation node {cap_id} baseCommand mismatch")
+            raise ContractError(f"CWL command/query node {cap_id} must be a labelled CommandLineTool")
+        if item.get("baseCommand") != ["contract-command-query", cap_id]:
+            raise ContractError(f"CWL command/query node {cap_id} baseCommand mismatch")
         expected_inputs = {name: {"type": cwl_type(type_name)} for name, type_name in sorted(schema_properties(cap["input"]).items())}
         if item.get("inputs") != expected_inputs:
-            raise ContractError(f"CWL operation node {cap_id} inputs mismatch")
+            raise ContractError(f"CWL command/query node {cap_id} inputs mismatch")
         expected_outputs = {
             outcome_id: {"type": cwl_type(outcome["result"])}
             for outcome_id, outcome in sorted(cap["outcomes"].items())
         }
         if item.get("outputs") != expected_outputs:
-            raise ContractError(f"CWL operation node {cap_id} outputs mismatch")
+            raise ContractError(f"CWL command/query node {cap_id} outputs mismatch")
         for parameter in list(item["inputs"].values()) + list(item["outputs"].values()):
             if set(parameter) != {"type"}:
-                raise ContractError(f"CWL operation {cap_id} parameter has unsupported keys")
-            _validate_cwl_type(parameter["type"], f"CWL operation {cap_id}")
+                raise ContractError(f"CWL command/query {cap_id} parameter has unsupported keys")
+            _validate_cwl_type(parameter["type"], f"CWL command/query {cap_id}")
 
 
 def _workflow_input_payload_type(contract: dict[str, Any], workflow: dict[str, Any]) -> str:
     trigger = workflow["inputs"]
     if "domain_event" in trigger:
         return contract["domain_events"][trigger["domain_event"]]["payload_schema"]
-    operation = _operations(contract)[trigger["command"]]
-    successes = [outcome["result"] for outcome in operation["outcomes"].values() if outcome["kind"] == "success"]
+    behavior = _command_query_map(contract)[trigger["command"]]
+    successes = [outcome["result"] for outcome in behavior["outcomes"].values() if outcome["kind"] == "success"]
     return successes[0]
 
 
@@ -653,12 +653,12 @@ def validate_fixtures_and_behavior_scenarios(root: Path, contract: dict[str, Any
 def validate_access_policies_json(contract: dict[str, Any], doc: dict[str, Any]) -> None:
     if doc != access_policies_projection(contract):
         raise ContractError("access_policies.json does not match contract access policies")
-    for operation_ref, authorization in doc["operation_authorizations"].items():
-        if operation_ref not in _operations(contract):
-            raise ContractError(f"access_policies.json has unknown operation authorization {operation_ref}")
+    for behavior_ref, authorization in doc["command_query_authorizations"].items():
+        if behavior_ref not in _command_query_map(contract):
+            raise ContractError(f"access_policies.json has unknown command/query authorization {behavior_ref}")
         access_policy = authorization["policy"]
         if access_policy not in doc["access_policies"]:
-            raise ContractError(f"access_policies.json operation authorization references unknown access policy {access_policy}")
+            raise ContractError(f"access_policies.json command/query authorization references unknown access policy {access_policy}")
     for entry_id, access_policy in doc["external_interface_access_policies"].items():
         if entry_id not in contract["external_interfaces"]:
             raise ContractError(f"access_policies.json has unknown external interface access policy {entry_id}")
@@ -693,8 +693,8 @@ def validate_audit_outputs(root: Path, contract: dict[str, Any]) -> None:
         _assert_svg(root / external_interface_flow_file(entry_id, adapter_kind), f"external interface {entry_id}")
     for workflow_id in contract.get("workflows", {}):
         _assert_svg(root / workflow_flow_file(workflow_id), f"workflow {workflow_id}")
-    for operation_ref in _operations(contract):
-        _assert_svg(root / operation_flow_file(operation_ref), f"operation {operation_ref}")
+    for behavior_ref in _command_query_map(contract):
+        _assert_svg(root / command_query_flow_file(behavior_ref), f"command/query {behavior_ref}")
 
     projection = state_machines_projection(contract)
     for state_machine in _audit_projection_surfaces(contract, projection):
@@ -896,7 +896,7 @@ def validate_refs_py(root: Path, contract: dict[str, Any]) -> None:
         "Precondition": sorted(contract.get("preconditions", {})),
         "Assertion": sorted(contract.get("assertions", {})),
         "Fixture": sorted(contract["fixtures"]),
-        "Operation": sorted(_operations(contract)),
+        "CommandQuery": sorted(_command_query_map(contract)),
         "StateMachine": sorted(contract.get("state_machines", {})),
         "Text": sorted(contract.get("text_resources", {})),
         "RenderExample": sorted(render_examples(contract)),
@@ -1060,11 +1060,11 @@ def _textual_selector(state_machine: dict[str, Any], selector: str) -> str:
                 return "#" + safe_id(widget["id"])
         return "#" + slot
     if selector.startswith("command_binding."):
-        operation = selector[len("command_binding."):]
+        command_binding = selector[len("command_binding."):]
         for widget in widgets:
-            if widget["binding"].get("command_binding") == operation:
+            if widget["binding"].get("command_binding") == command_binding:
                 return "#" + safe_id(widget["id"])
-        return "#" + safe_id(operation)
+        return "#" + safe_id(command_binding)
     return selector
 
 

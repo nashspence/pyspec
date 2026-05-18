@@ -390,7 +390,7 @@ def test_access_policies_require_explicit_conditions_and_support_value_equals() 
     author["access_policies"]["access_policy.ticket.submit"]["rules"] = [
         {
             "value_equals": {
-                "left": {"from": "$operation_input.ticket_id"},
+                "left": {"from": "$command_input.ticket_id"},
                 "right": {"value": "ticket_1"},
             }
         }
@@ -419,14 +419,14 @@ def test_access_policies_reject_duplicated_rule_sets() -> None:
 
 def _authorized_transition_author() -> dict:
     author = _derived_transition_author()
-    operation = author["commands"]["command.ticket.submit"]
-    operation["authorization"] = {
+    command = author["commands"]["command.ticket.submit"]
+    command["authorization"] = {
         "policy": "access_policy.ticket.submit",
         "authentication_required_as": "authentication_required",
         "access_denied_as": "access_denied",
     }
-    operation["outcomes"]["authentication_required"] = {"kind": "failure", "result": M("Problem")}
-    operation["outcomes"]["access_denied"] = {"kind": "failure", "result": M("Problem")}
+    command["outcomes"]["authentication_required"] = {"kind": "failure", "result": M("Problem")}
+    command["outcomes"]["access_denied"] = {"kind": "failure", "result": M("Problem")}
     author["access_policies"] = {
         "access_policy.ticket.submit": {
             "subject": [{"kind": "actor"}],
@@ -626,7 +626,7 @@ def test_commands_reject_action_kind_field() -> None:
         compile_author(author)
 
 
-def test_lifecycle_transition_must_reference_known_operation() -> None:
+def test_lifecycle_transition_must_reference_known_command() -> None:
     author = _derived_transition_author()
     author["entity_types"]["entity_type.ticket"]["entity_lifecycle"]["lifecycle_transitions"][0]["triggered_by"] = "command.ticket.missing"
     with pytest.raises(
@@ -1065,7 +1065,7 @@ def test_state_machine_field_slots_require_data_source() -> None:
         compile_source(author)
 
 
-def test_state_machine_data_source_must_be_query_like_operation() -> None:
+def test_state_machine_data_source_must_be_query_binding() -> None:
     author = _author()
     activity = _item(author, "state_machines", "state_machine.project.activity")
     activity["states"]["ready"]["query_bindings"]["read_activity"]["command"] = "command.project.submit"
@@ -2066,7 +2066,7 @@ def test_cli_retry_policy_requires_retry_safe_delegated_external_interface() -> 
         compile_source(author)
 
 
-def test_cli_retry_policy_requires_retry_safe_final_operation() -> None:
+def test_cli_retry_policy_requires_retry_safe_final_command() -> None:
     author = _author()
     del author["commands"]["command.project.approve"]["retry_safe"]
     with pytest.raises(ContractError, match=r"retry_policy requires delegated external interface external_interface\.api\.project\.approve and its final invocation to be retry_safe or query"):
@@ -2246,7 +2246,7 @@ def test_get_api_entry_must_provide_all_query_input_as_path_or_query_params() ->
     entry["adapter"]["http_api"]["path"] = "/projects"
     entry["input_mapping"].pop("path_params")
     entry["input_mapping"]["bindings"].pop("workspace_id")
-    with pytest.raises(ContractError, match=r"API external interface external_interface.api\.project\.list GET must declare all operation inputs as path_params or query_params: \['workspace_id'\]"):
+    with pytest.raises(ContractError, match=r"API external interface external_interface.api\.project\.list GET must declare all command/query inputs as path_params or query_params: \['workspace_id'\]"):
         compile_source(author)
 
 

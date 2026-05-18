@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from .io import read_json, read_yaml
-from .operations import operation_resource_kind, operations
+from .behaviors import command_or_query_resource_kind, command_query_map
 from .paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR
 from .runtime import fixture_namespace, resolve_map
 from .binding_refs import resolve_binding_expression
@@ -105,9 +105,9 @@ class ReferenceSpecDriver:
             for query in requires.get("query_bindings", []):
                 assert query in rendered_queries
         for cap in assertions.get("enables", []):
-            assert cap in self._rendered_operation_refs()
+            assert cap in self._rendered_command_query_refs()
         for cap in assertions.get("forbids", []):
-            assert cap not in self._rendered_operation_refs()
+            assert cap not in self._rendered_command_query_refs()
         exists = (assertions.get("entity_type") or {}).get("exists")
         if exists:
             where = self._resolve_map(exists["where"])
@@ -241,20 +241,20 @@ class ReferenceSpecDriver:
             return values
         return set(self.last_state_machine.get(key, []))
 
-    def _rendered_operation_refs(self) -> set[str]:
+    def _rendered_command_query_refs(self) -> set[str]:
         if not self.last_state_machine:
             return set()
 
-        def operation_refs(item: dict[str, Any]) -> set[str]:
+        def command_query_refs(item: dict[str, Any]) -> set[str]:
             invocations = item.get("command_bindings") or {}
             return {invocation.get("command") or invocation.get("query") for invocation in invocations.values()}
 
         if "instances" in self.last_state_machine:
-            refs = operation_refs(self.last_state_machine)
+            refs = command_query_refs(self.last_state_machine)
             for state_machine in self.last_state_machine["instances"].values():
-                refs.update(operation_refs(state_machine))
+                refs.update(command_query_refs(state_machine))
             return refs
-        return operation_refs(self.last_state_machine)
+        return command_query_refs(self.last_state_machine)
 
     def _call_external_interface(self, entry_id: str, input_values: dict[str, Any], outcome_id: str | None = None) -> dict[str, Any]:
         entry = self.contract["external_interfaces"][entry_id]
@@ -317,11 +317,11 @@ class ReferenceSpecDriver:
         }
 
     def _invoke(self, cap_id: str, input_values: dict[str, Any], outcome_id: str | None = None) -> Any:
-        cap = operations(self.contract)[cap_id]
+        cap = command_query_map(self.contract)[cap_id]
         authorization = cap.get("authorization")
         if authorization:
             policy_id = authorization["policy"]
-            resource_kind = operation_resource_kind(cap_id)
+            resource_kind = command_or_query_resource_kind(cap_id)
             allowed = self._evaluate_policy(policy_id, resource_kind, cap_id, input_values)
             self.authorization_decisions[(resource_kind, cap_id, policy_id)] = allowed
             if not allowed:
@@ -378,8 +378,8 @@ class ReferenceSpecDriver:
                 self._record_event(event_id, payload)
             self.last_result = record
             return record
-        # Commands and queries without a richer reference behavior are recorded as operation effects.
-        result = {"ok": True, "operation": cap_id, **input_values}
+        # Commands and queries without a richer reference behavior are recorded as behavior effects.
+        result = {"ok": True, "behavior": cap_id, **input_values}
         self.last_result = result
         return result
 
@@ -415,14 +415,14 @@ class ReferenceSpecDriver:
     def _event_payload_from_emit(
         self,
         emit: Any,
-        operation: Mapping[str, Any],
+        behavior: Mapping[str, Any],
         outcome: Mapping[str, Any],
         input_values: Mapping[str, Any],
         result: Mapping[str, Any],
     ) -> tuple[str, dict[str, Any]]:
         if isinstance(emit, str):
             return emit, dict(result)
-        namespace = {"operation_input": dict(input_values), "action_outcome": {"result": dict(result)}}
+        namespace = {"command_input": dict(input_values), "action_outcome": {"result": dict(result)}}
         if "payload_source" in emit:
             return emit["domain_event"], _resolve_binding(emit["payload_source"], namespace)
         return emit["domain_event"], {field: _resolve_binding(source, namespace) for field, source in emit["payload_bindings"].items()}
@@ -459,7 +459,7 @@ class ReferenceSpecDriver:
         if access_policy:
             policy_id = access_policy
         elif kind in {"command", "query"}:
-            authorization = operations(self.contract)[resource_ref].get("authorization")
+            authorization = command_query_map(self.contract)[resource_ref].get("authorization")
             if not authorization:
                 return False
             policy_id = authorization["policy"]
@@ -492,7 +492,7 @@ class ReferenceSpecDriver:
             source = subject.get("source")
             if source:
                 try:
-                    return _resolve_binding({"from": source}, {"operation_input": dict(input_values), "fixture": self.fixtures}) is not None
+                    return _resolve_binding({"from": source}, {"command_input": dict(input_values), "fixture": self.fixtures}) is not None
                 except (KeyError, BindingExpressionError):
                     return False
             actor = self.fixtures.get("actor", {})
@@ -517,7 +517,7 @@ class ReferenceSpecDriver:
             return role in actor.get("roles", [])
         if "value_equals" in condition:
             body = condition["value_equals"]
-            namespace = {"operation_input": dict(input_values), "fixture": self.fixtures}
+            namespace = {"command_input": dict(input_values), "fixture": self.fixtures}
             return _resolve_binding(body["left"], namespace) == _resolve_binding(body["right"], namespace)
         return False
 
@@ -537,8 +537,8 @@ def _matches(record: Mapping[str, Any], where: Mapping[str, Any]) -> bool:
     return all(record.get(key) == value for key, value in where.items())
 
 
-def _single_entity_type(operation: Mapping[str, Any], field: str) -> str:
-    entity_types = operation[field]
+def _single_entity_type(behavior: Mapping[str, Any], field: str) -> str:
+    entity_types = behavior[field]
     assert len(entity_types) == 1, f"Expected exactly one {field} entity_type"
     return entity_types[0]
 
@@ -560,8 +560,8 @@ def _result_entity_type(schema: Mapping[str, Any]) -> str | None:
     return None
 
 
-def _success_outcome_id(operation: Mapping[str, Any]) -> str:
-    successes = [outcome_id for outcome_id, outcome in operation["outcomes"].items() if outcome["kind"] == "success"]
+def _success_outcome_id(behavior: Mapping[str, Any]) -> str:
+    successes = [outcome_id for outcome_id, outcome in behavior["outcomes"].items() if outcome["kind"] == "success"]
     assert len(successes) == 1, "Expected exactly one success outcome"
     return successes[0]
 

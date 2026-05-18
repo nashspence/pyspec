@@ -253,9 +253,9 @@ commands:
     - domain_event: domain_event.project.approved
       payload_bindings:
         approved_by:
-          from: $operation_input.approved_by
+          from: $command_input.approved_by
         project_id:
-          from: $operation_input.project_id
+          from: $command_input.project_id
       outcome: approved
     authorization:
       policy: access_policy.project.reviewer
@@ -1099,7 +1099,7 @@ state_machines:
                   from: $action_outcome.result
               context_updates:
                 workspace_id:
-                  from: $operation_invocation.input.workspace_id
+                  from: $query_binding.input.workspace_id
               raise:
                 data_refresh_signal: project_collection_empty
             - when:
@@ -1110,7 +1110,7 @@ state_machines:
                   from: $action_outcome.result
               context_updates:
                 workspace_id:
-                  from: $operation_invocation.input.workspace_id
+                  from: $query_binding.input.workspace_id
               raise:
                 data_refresh_signal: projects_loaded
           access_denied:
