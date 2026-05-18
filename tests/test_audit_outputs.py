@@ -90,7 +90,7 @@ def test_audit_coverage_index_maps_compiled_paths_to_evidence() -> None:
     assert index == audit_coverage_index(contract)
     visual_evidence_sets = index["visual_evidence_sets"]
     assert all(path.startswith("spec/generated/audit_evidence/") and path.endswith((".svg", ".png")) for files in visual_evidence_sets.values() for path in files)
-    assert index["summary"]["missing_required_visual_paths"] == 0
+    assert index["summary"]["missing_required_visual_pointers"] == 0
     assert index["summary"]["required_visual_text_witnesses"] > 0
     assert index["visual_audit"]["required"]["missing"] == {}
     text_witnesses = index["visual_audit"]["required"]["text_witnesses"]
@@ -131,14 +131,14 @@ def test_audit_coverage_index_maps_compiled_paths_to_evidence() -> None:
     assert "/fixtures/fixture.workspace.reviewer/values/actor/id" in index["visual_audit"]["optional"]["not_shown"]
 
 
-def test_audit_coverage_index_rejects_missing_required_visual_paths(tmp_path: Path) -> None:
+def test_audit_coverage_index_rejects_missing_required_visual_pointers(tmp_path: Path) -> None:
     project = tmp_path / "project"
     copy_project_tree(ROOT, project)
     contract = copy.deepcopy(_contract(project))
     contract["unvisualized_required"] = {"path": "value"}
     coverage_path = project / audit_coverage_file()
     write_yaml(coverage_path, audit_coverage_index(contract), sort_keys=False)
-    with pytest.raises(ContractError, match="missing required visual audit paths"):
+    with pytest.raises(ContractError, match="missing required visual audit pointers"):
         validate_audit_outputs(project, contract)
 
 

@@ -1,12 +1,12 @@
 version: 1
 project: project_dispatch_board
 summary:
-  required_visual_paths: 879
-  missing_required_visual_paths: 0
+  required_visual_pointers: 879
+  missing_required_visual_pointers: 0
   required_visual_text_witnesses: 274
-  optional_visual_paths: 503
-  optional_visual_paths_not_shown: 21
-  non_visual_paths: 149
+  optional_visual_pointers: 503
+  optional_visual_pointers_not_shown: 21
+  non_visual_pointers: 149
   visual_evidence_sets: 34
 visual_evidence_sets:
   V0001:
@@ -3224,298 +3224,298 @@ visual_audit:
     /project:
       reason: workspace metadata for generated artifacts; visual coverage tracks product contract paths
     /reference_index/access_policy/0:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/access_policy/1:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/adapter_response_binding/0:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/adapter_response_binding/1:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/adapter_response_binding/2:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/adapter_response_binding/3:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/adapter_response_binding/4:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/asset/0:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/asset/1:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/cli_command/0:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/cli_command/1:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/cli_response_handler/0:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/cli_response_handler/1:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/cli_response_handler/2:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/cli_response_handler/3:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/cli_response_handler/4:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/cli_response_handler/5:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding/0:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding/1:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding/2:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding/3:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding/4:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding_local_outcome_effect/0:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding_local_outcome_effect/1:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding_local_outcome_effect/10:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding_local_outcome_effect/11:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding_local_outcome_effect/12:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding_local_outcome_effect/13:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding_local_outcome_effect/14:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding_local_outcome_effect/15:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding_local_outcome_effect/16:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding_local_outcome_effect/17:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding_local_outcome_effect/18:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding_local_outcome_effect/19:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding_local_outcome_effect/2:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding_local_outcome_effect/20:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding_local_outcome_effect/21:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding_local_outcome_effect/22:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding_local_outcome_effect/23:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding_local_outcome_effect/3:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding_local_outcome_effect/4:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding_local_outcome_effect/5:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding_local_outcome_effect/6:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding_local_outcome_effect/7:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding_local_outcome_effect/8:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding_local_outcome_effect/9:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/endpoint/0:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/endpoint/1:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/endpoint/2:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/external_interface_delegate/0:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/external_interface_invocation/0:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/external_interface_invocation/1:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/external_interface_invocation/2:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/external_interface_invocation/3:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/external_interface_invocation/4:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/external_interface_invocation/5:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/external_interface_invocation/6:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/0:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/1:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/10:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/11:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/12:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/13:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/14:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/15:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/16:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/17:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/18:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/19:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/2:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/20:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/21:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/22:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/23:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/24:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/25:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/26:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/3:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/4:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/5:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/6:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/7:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/8:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/9:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/query_binding/0:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/query_binding/1:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/query_binding/2:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/query_binding/3:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/query_binding/4:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/query_binding_local_outcome_effect/0:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/query_binding_local_outcome_effect/1:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/query_binding_local_outcome_effect/10:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/query_binding_local_outcome_effect/11:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/query_binding_local_outcome_effect/12:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/query_binding_local_outcome_effect/13:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/query_binding_local_outcome_effect/14:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/query_binding_local_outcome_effect/15:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/query_binding_local_outcome_effect/16:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/query_binding_local_outcome_effect/17:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/query_binding_local_outcome_effect/18:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/query_binding_local_outcome_effect/19:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/query_binding_local_outcome_effect/2:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/query_binding_local_outcome_effect/3:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/query_binding_local_outcome_effect/4:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/query_binding_local_outcome_effect/5:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/query_binding_local_outcome_effect/6:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/query_binding_local_outcome_effect/7:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/query_binding_local_outcome_effect/8:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/query_binding_local_outcome_effect/9:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/route/0:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/screen/0:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/state_machine/0:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/state_machine/1:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/state_machine/2:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/state_machine/3:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/surface/0:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/surface/1:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/surface/10:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/surface/2:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/surface/3:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/surface/4:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/surface/5:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/surface/6:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/surface/7:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/surface/8:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/surface/9:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/text/0:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/text/1:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/text/10:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/text/11:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/text/12:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/text/13:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/text/14:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/text/15:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/text/16:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/text/17:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/text/18:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/text/19:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/text/2:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/text/20:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/text/3:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/text/4:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/text/5:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/text/6:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/text/7:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/text/8:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/text/9:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/workflow/0:
-      reason: canonical compiled reference index metadata; owning resources are covered at their compiled spec paths
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers

@@ -454,7 +454,7 @@ def audit_coverage_index(contract: dict[str, Any]) -> dict[str, Any]:
     required_missing: dict[str, dict[str, str]] = {}
     optional_covered: dict[str, str] = {}
     optional_not_shown: dict[str, dict[str, str]] = {}
-    non_visual_paths: dict[str, dict[str, Any]] = {}
+    non_visual_pointers: dict[str, dict[str, Any]] = {}
 
     def visual_evidence_set_id(files: list[str]) -> str:
         key = tuple(files)
@@ -465,14 +465,14 @@ def audit_coverage_index(contract: dict[str, Any]) -> dict[str, Any]:
         return visual_evidence_set_ids[key]
 
     for pointer in _contract_audit_pointers(contract):
-        non_visual_path = _non_visual_path_classification(contract, pointer)
-        if non_visual_path:
-            non_visual_evidence = non_visual_path.pop("evidence", [])
+        non_visual_pointer = _non_visual_pointer_classification(contract, pointer)
+        if non_visual_pointer:
+            non_visual_evidence = non_visual_pointer.pop("evidence", [])
             if non_visual_evidence:
-                non_visual_path["visual_evidence_set"] = visual_evidence_set_id(non_visual_evidence)
-            non_visual_paths[pointer] = non_visual_path
+                non_visual_pointer["visual_evidence_set"] = visual_evidence_set_id(non_visual_evidence)
+            non_visual_pointers[pointer] = non_visual_pointer
             continue
-        obligation = _visual_path_obligation(contract, pointer)
+        obligation = _visual_pointer_obligation(contract, pointer)
         evidence = _filter_evidence_files(contract, _audit_evidence_for_pointer(contract, pointer))
         if obligation["level"] == "required":
             if evidence:
@@ -490,12 +490,12 @@ def audit_coverage_index(contract: dict[str, Any]) -> dict[str, Any]:
         "version": 1,
         "project": contract.get("project"),
         "summary": {
-            "required_visual_paths": len(required_covered) + len(required_missing),
-            "missing_required_visual_paths": len(required_missing),
+            "required_visual_pointers": len(required_covered) + len(required_missing),
+            "missing_required_visual_pointers": len(required_missing),
             "required_visual_text_witnesses": len(required_text_witnesses),
-            "optional_visual_paths": len(optional_covered) + len(optional_not_shown),
-            "optional_visual_paths_not_shown": len(optional_not_shown),
-            "non_visual_paths": len(non_visual_paths),
+            "optional_visual_pointers": len(optional_covered) + len(optional_not_shown),
+            "optional_visual_pointers_not_shown": len(optional_not_shown),
+            "non_visual_pointers": len(non_visual_pointers),
             "visual_evidence_sets": len(visual_evidence_sets),
         },
         "visual_evidence_sets": visual_evidence_sets,
@@ -510,7 +510,7 @@ def audit_coverage_index(contract: dict[str, Any]) -> dict[str, Any]:
                 "covered": optional_covered,
                 "not_shown": optional_not_shown,
             },
-            "non_visual": non_visual_paths,
+            "non_visual": non_visual_pointers,
         },
     }
 
@@ -547,7 +547,7 @@ def _json_pointer_parts(pointer: str) -> list[str]:
     return [part.replace("~1", "/").replace("~0", "~") for part in pointer.removeprefix("/").split("/")]
 
 
-def _non_visual_path_classification(contract: dict[str, Any], pointer: str) -> dict[str, Any] | None:
+def _non_visual_pointer_classification(contract: dict[str, Any], pointer: str) -> dict[str, Any] | None:
     parts = _json_pointer_parts(pointer)
     if not parts:
         return None
@@ -558,19 +558,19 @@ def _non_visual_path_classification(contract: dict[str, Any], pointer: str) -> d
         }
     if parts[0] == "reference_index":
         return {
-            "reason": "canonical compiled reference index metadata; owning resources are covered at their compiled spec paths",
+            "reason": "canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers",
         }
     return None
 
-def _visual_path_obligation(contract: dict[str, Any], pointer: str) -> dict[str, str]:
+def _visual_pointer_obligation(contract: dict[str, Any], pointer: str) -> dict[str, str]:
     parts = _json_pointer_parts(pointer)
     if parts and parts[0] in {"media_assets", "assertions", "content_examples", "preconditions", "fixtures", "behavior_scenarios", "text_resources", "viewport_profiles"}:
-        return {"level": "optional", "reason": _optional_visual_path_reason(parts[0])}
+        return {"level": "optional", "reason": _optional_visual_pointer_reason(parts[0])}
     _ = contract
-    return {"level": "required", "reason": "required product contract path has no diagram or render-capture evidence"}
+    return {"level": "required", "reason": "required compiled JSON Pointer has no diagram or render-capture evidence"}
 
 
-def _optional_visual_path_reason(collection: str) -> str:
+def _optional_visual_pointer_reason(collection: str) -> str:
     return {
         "media_assets": "declared media assets may be unused by rendered states",
         "assertions": "assertions are expected predicates and need not appear in render examples",

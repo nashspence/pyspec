@@ -745,25 +745,25 @@ def _validate_audit_coverage_index(root: Path, contract: dict[str, Any]) -> None
     missing_required = expected["visual_audit"]["required"]["missing"]
     if missing_required:
         sample = ", ".join(list(missing_required)[:10])
-        raise ContractError(f"audit coverage index has missing required visual audit paths: {sample}")
+        raise ContractError(f"audit coverage index has missing required visual audit pointers: {sample}")
     for section in (expected["visual_audit"]["required"]["covered"], expected["visual_audit"]["optional"]["covered"]):
-        for spec_path, evidence_set in section.items():
+        for compiled_json_pointer, evidence_set in section.items():
             if evidence_set not in visual_evidence_sets:
-                raise ContractError(f"audit coverage index references unknown evidence set for {spec_path}: {evidence_set}")
+                raise ContractError(f"audit coverage index references unknown evidence set for {compiled_json_pointer}: {evidence_set}")
             files = visual_evidence_sets[evidence_set]
             for relative in files:
                 if not (root / relative).exists():
-                    raise ContractError(f"audit coverage index references missing evidence for {spec_path}: {relative}")
-    for spec_path, evidence_ref in expected["visual_audit"]["non_visual"].items():
+                    raise ContractError(f"audit coverage index references missing evidence for {compiled_json_pointer}: {relative}")
+    for compiled_json_pointer, evidence_ref in expected["visual_audit"]["non_visual"].items():
         evidence_set = evidence_ref.get("visual_evidence_set")
         if evidence_set is None:
             continue
         if evidence_set not in visual_evidence_sets:
-            raise ContractError(f"audit coverage index references unknown evidence set for {spec_path}: {evidence_set}")
+            raise ContractError(f"audit coverage index references unknown evidence set for {compiled_json_pointer}: {evidence_set}")
         files = visual_evidence_sets[evidence_set]
         for relative in files:
             if not (root / relative).exists():
-                raise ContractError(f"audit coverage index references missing evidence for {spec_path}: {relative}")
+                raise ContractError(f"audit coverage index references missing evidence for {compiled_json_pointer}: {relative}")
     for collection in expected["render_presence"].values():
         for resource_id, evidence_set in collection["rendered"].items():
             if evidence_set not in visual_evidence_sets:
@@ -774,18 +774,18 @@ def _validate_audit_coverage_index(root: Path, contract: dict[str, Any]) -> None
 def _validate_visual_text_witnesses(root: Path, coverage_index: dict[str, Any]) -> None:
     visual_evidence_sets = coverage_index["visual_evidence_sets"]
     svg_text_cache: dict[str, str] = {}
-    for spec_path, witness in coverage_index["visual_audit"]["required"].get("text_witnesses", {}).items():
+    for compiled_json_pointer, witness in coverage_index["visual_audit"]["required"].get("text_witnesses", {}).items():
         evidence_set = witness["visual_evidence_set"]
         if evidence_set not in visual_evidence_sets:
-            raise ContractError(f"audit visual text witness references unknown evidence set for {spec_path}: {evidence_set}")
+            raise ContractError(f"audit visual text witness references unknown evidence set for {compiled_json_pointer}: {evidence_set}")
         evidence_files = visual_evidence_sets[evidence_set]
         svg_files = [relative for relative in evidence_files if relative.endswith(".svg")]
         if not svg_files:
-            raise ContractError(f"audit visual text witness has no SVG evidence for {spec_path}: {evidence_set}")
+            raise ContractError(f"audit visual text witness has no SVG evidence for {compiled_json_pointer}: {evidence_set}")
         evidence_text = "\n".join(_audit_svg_visible_text(root / relative, svg_text_cache) for relative in svg_files)
         for token in witness["tokens"]:
             if token not in evidence_text:
-                raise ContractError(f"audit visual text witness missing for {spec_path}: {token!r} in {evidence_set}")
+                raise ContractError(f"audit visual text witness missing for {compiled_json_pointer}: {token!r} in {evidence_set}")
 
 
 def _audit_svg_visible_text(path: Path, cache: dict[str, str]) -> str:
