@@ -200,9 +200,9 @@ class ProductApp:
             if not allowed:
                 policy = self.contract["authorization_policies"][authorization_policy]
                 self.last_outcome = (
-                    authorization["forbidden_as"]
-                    if self._authorization_subject_available(policy, input_values)
-                    else authorization["unauthenticated_as"]
+                    authorization["access_denied_as"]
+                    if self._subject_available(policy, input_values)
+                    else authorization["authentication_required_as"]
                 )
                 return {"code": self.last_outcome, "message": self.last_outcome.replace("_", " ")}
         self.invoked_application_actions.append(application_action_id)
@@ -366,37 +366,37 @@ class ProductApp:
 
     def _authorization_assertion_allowed(self, assertion: Mapping[str, Any]) -> bool:
         kind = "application_action" if "application_action" in assertion else "entry_point"
-        target = assertion[kind]
+        resource_ref = assertion[kind]
         authorization_policy = assertion.get("authorization_policy")
         if authorization_policy:
             policy_id = authorization_policy
         elif kind == "application_action":
-            authorization = self.contract["application_actions"][target].get("authorization")
+            authorization = self.contract["application_actions"][resource_ref].get("authorization")
             if not authorization:
                 return False
             policy_id = authorization["policy"]
         else:
-            policy_id = self.contract["entry_points"][target]["authorization_policy"]
-        recorded = self.authorization_decisions.get((kind, target, policy_id))
+            policy_id = self.contract["entry_points"][resource_ref]["authorization_policy"]
+        recorded = self.authorization_decisions.get((kind, resource_ref, policy_id))
         if recorded is not None:
             return recorded
         input_values: dict[str, Any] = {}
         if self.rendered_state_machine and "context" in self.rendered_state_machine:
             input_values.update(self.rendered_state_machine["context"])
-        return self._evaluate_policy(policy_id, kind, target, input_values)
+        return self._evaluate_policy(policy_id, kind, resource_ref, input_values)
 
-    def _evaluate_policy(self, policy_id: str, kind: str, target: str, input_values: Mapping[str, Any]) -> bool:
+    def _evaluate_policy(self, policy_id: str, kind: str, resource_ref: str, input_values: Mapping[str, Any]) -> bool:
         policy = self.contract["authorization_policies"][policy_id]
-        if not _authorization_policy_covers_target(policy, kind, target):
+        if not _authorization_policy_covers_resource(policy, kind, resource_ref):
             if kind != "entry_point":
                 return False
-            target_kind, target_ref = entry_target_pair(self.contract["entry_points"][target])
-            if not _authorization_policy_covers_target(policy, target_kind, target_ref):
+            invoked_kind, invoked_ref = entry_target_pair(self.contract["entry_points"][resource_ref])
+            if not _authorization_policy_covers_resource(policy, invoked_kind, invoked_ref):
                 return False
-        matched = all(self._authorization_condition_matches(condition, input_values) for condition in policy.get("conditions", []))
-        return matched if policy["effect"] == "allow" else not matched
+        matched = all(self._condition_matches(condition, input_values) for condition in policy.get("conditions", []))
+        return matched if policy["effect"] == "permit" else not matched
 
-    def _authorization_subject_available(self, policy: Mapping[str, Any], input_values: Mapping[str, Any]) -> bool:
+    def _subject_available(self, policy: Mapping[str, Any], input_values: Mapping[str, Any]) -> bool:
         for subject in policy.get("subjects", []):
             if subject.get("kind") != "actor":
                 continue
@@ -410,7 +410,7 @@ class ProductApp:
                 return True
         return False
 
-    def _authorization_condition_matches(self, condition: Mapping[str, Any], input_values: Mapping[str, Any]) -> bool:
+    def _condition_matches(self, condition: Mapping[str, Any], input_values: Mapping[str, Any]) -> bool:
         if "unconditional" in condition:
             return bool(condition["unconditional"])
         if "input_present" in condition:
@@ -418,8 +418,8 @@ class ProductApp:
             return field in input_values and input_values[field] is not None
         if "entity_exists" in condition:
             return bool(self._authorization_records(condition["entity_exists"]["entity_type"], input_values))
-        if "entity_lifecycle_state" in condition:
-            body = condition["entity_lifecycle_state"]
+        if "entity_state_condition" in condition:
+            body = condition["entity_state_condition"]
             return any(project.get(body["field"]) == body["equals"] for project in self._authorization_records(body["entity_type"], input_values))
         if "subject_has_role" in condition:
             return condition["subject_has_role"] in self.fixtures.get("actor", {}).get("roles", [])
@@ -461,5 +461,9 @@ def _condition_matches(condition: Mapping[str, Any], context: Mapping[str, Any])
     return False
 
 
-def _authorization_policy_covers_target(policy: Mapping[str, Any], kind: str, target: str) -> bool:
-    return any(authorization_target == {kind: target} for authorization_target in policy.get("targets", []))
+def _authorization_resource_kind(kind: str) -> str:
+    return "action" if kind == "application_action" else kind
+
+
+def _authorization_policy_covers_resource(policy: Mapping[str, Any], kind: str, resource_ref: str) -> bool:
+    return any(resource == {_authorization_resource_kind(kind): resource_ref} for resource in policy.get("resources", []))

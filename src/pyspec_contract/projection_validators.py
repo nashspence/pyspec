@@ -178,7 +178,9 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             if operation.get("x-authorization-policy") != expected_policy:
                 raise ContractError(f"OpenAPI authorization policy extension does not match operation {cap_id}")
         elif "x-authorization-policy" in operation:
-            raise ContractError(f"OpenAPI authorization policy extension is not allowed for unauthenticated operation {cap_id}")
+            raise ContractError(
+                f"OpenAPI authorization policy extension is not allowed for operation without authentication {cap_id}"
+            )
 
         placeholders = _path_params(path)
         path_params = entry_point_input(entry).get("path_params", {})

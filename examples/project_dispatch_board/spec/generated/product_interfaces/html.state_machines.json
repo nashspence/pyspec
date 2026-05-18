@@ -311,9 +311,15 @@
             "on_enter": true
           },
           "outcome_effects": {
-            "forbidden": {
+            "access_denied": {
               "no_local_effect": {
                 "rationale": "The activity panel remains in its current state when authorization blocks the refresh.",
+                "reason": "intentionally_unobservable"
+              }
+            },
+            "authentication_required": {
+              "no_local_effect": {
+                "rationale": "The entry response surface owns authentication_required display.",
                 "reason": "intentionally_unobservable"
               }
             },
@@ -331,12 +337,6 @@
             "not_found": {
               "no_local_effect": {
                 "rationale": "The parent detail panel owns not-found display for the selected project.",
-                "reason": "intentionally_unobservable"
-              }
-            },
-            "unauthenticated": {
-              "no_local_effect": {
-                "rationale": "The entry response surface owns unauthenticated display.",
                 "reason": "intentionally_unobservable"
               }
             }
@@ -601,7 +601,12 @@
             "on_enter": true
           },
           "outcome_effects": {
-            "forbidden": {
+            "access_denied": {
+              "raise": {
+                "data_refresh_signal": "project_load_failed"
+              }
+            },
+            "authentication_required": {
               "raise": {
                 "data_refresh_signal": "project_load_failed"
               }
@@ -618,11 +623,6 @@
               }
             },
             "not_found": {
-              "raise": {
-                "data_refresh_signal": "project_load_failed"
-              }
-            },
-            "unauthenticated": {
               "raise": {
                 "data_refresh_signal": "project_load_failed"
               }
@@ -817,7 +817,17 @@
             ]
           },
           "outcome_effects": {
-            "forbidden": {
+            "access_denied": {
+              "raise": {
+                "local_signal": "show_transition_not_allowed",
+                "payload_bindings": {
+                  "message": {
+                    "from": "$outcome.result.message"
+                  }
+                }
+              }
+            },
+            "authentication_required": {
               "raise": {
                 "local_signal": "show_transition_not_allowed",
                 "payload_bindings": {
@@ -847,16 +857,6 @@
                   }
                 }
               }
-            },
-            "unauthenticated": {
-              "raise": {
-                "local_signal": "show_transition_not_allowed",
-                "payload_bindings": {
-                  "message": {
-                    "from": "$outcome.result.message"
-                  }
-                }
-              }
             }
           }
         }
@@ -877,14 +877,20 @@
               }
             },
             "outcome_effects": {
+              "access_denied": {
+                "no_local_effect": {
+                  "rationale": "The response surface keeps the detail panel unchanged for access_denied approval.",
+                  "reason": "handled_by_response_surface"
+                }
+              },
               "approved": {
                 "raise": {
                   "data_refresh_signal": "project_changed"
                 }
               },
-              "forbidden": {
+              "authentication_required": {
                 "no_local_effect": {
-                  "rationale": "The response surface keeps the detail panel unchanged for forbidden approval.",
+                  "rationale": "The response surface reports authentication failure without a local transition.",
                   "reason": "handled_by_response_surface"
                 }
               },
@@ -904,12 +910,6 @@
                   }
                 }
               },
-              "unauthenticated": {
-                "no_local_effect": {
-                  "rationale": "The response surface reports authentication failure without a local transition.",
-                  "reason": "handled_by_response_surface"
-                }
-              },
               "unavailable": {
                 "no_local_effect": {
                   "rationale": "The response surface reports temporary unavailability without a local transition.",
@@ -926,12 +926,22 @@
               }
             },
             "outcome_effects": {
+              "access_denied": {
+                "raise": {
+                  "local_signal": "show_transition_not_allowed",
+                  "payload_bindings": {
+                    "message": {
+                      "from": "$outcome.result.message"
+                    }
+                  }
+                }
+              },
               "archived": {
                 "raise": {
                   "data_refresh_signal": "project_changed"
                 }
               },
-              "forbidden": {
+              "authentication_required": {
                 "raise": {
                   "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
@@ -952,16 +962,6 @@
                 }
               },
               "transition_not_allowed": {
-                "raise": {
-                  "local_signal": "show_transition_not_allowed",
-                  "payload_bindings": {
-                    "message": {
-                      "from": "$outcome.result.message"
-                    }
-                  }
-                }
-              },
-              "unauthenticated": {
                 "raise": {
                   "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
@@ -1084,21 +1084,21 @@
               }
             },
             "outcome_effects": {
-              "created": {
-                "raise": {
-                  "data_refresh_signal": "projects_changed"
-                }
-              },
-              "forbidden": {
+              "access_denied": {
                 "no_local_effect": {
-                  "rationale": "The response surface keeps the empty list visible for forbidden create.",
+                  "rationale": "The response surface keeps the empty list visible for access_denied create.",
                   "reason": "handled_by_response_surface"
                 }
               },
-              "unauthenticated": {
+              "authentication_required": {
                 "no_local_effect": {
                   "rationale": "The response surface reports authentication failure without a local transition.",
                   "reason": "handled_by_response_surface"
+                }
+              },
+              "created": {
+                "raise": {
+                  "data_refresh_signal": "projects_changed"
                 }
               },
               "validation_failed": {
@@ -1510,21 +1510,21 @@
               }
             },
             "outcome_effects": {
-              "created": {
-                "raise": {
-                  "data_refresh_signal": "projects_changed"
-                }
-              },
-              "forbidden": {
+              "access_denied": {
                 "no_local_effect": {
-                  "rationale": "The response surface keeps the ready list visible for forbidden create.",
+                  "rationale": "The response surface keeps the ready list visible for access_denied create.",
                   "reason": "handled_by_response_surface"
                 }
               },
-              "unauthenticated": {
+              "authentication_required": {
                 "no_local_effect": {
                   "rationale": "The response surface reports authentication failure without a local transition.",
                   "reason": "handled_by_response_surface"
+                }
+              },
+              "created": {
+                "raise": {
+                  "data_refresh_signal": "projects_changed"
                 }
               },
               "validation_failed": {
@@ -1543,7 +1543,17 @@
               }
             },
             "outcome_effects": {
-              "forbidden": {
+              "access_denied": {
+                "raise": {
+                  "local_signal": "show_transition_not_allowed",
+                  "payload_bindings": {
+                    "message": {
+                      "from": "$outcome.result.message"
+                    }
+                  }
+                }
+              },
+              "authentication_required": {
                 "raise": {
                   "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {
@@ -1569,16 +1579,6 @@
                 }
               },
               "transition_not_allowed": {
-                "raise": {
-                  "local_signal": "show_transition_not_allowed",
-                  "payload_bindings": {
-                    "message": {
-                      "from": "$outcome.result.message"
-                    }
-                  }
-                }
-              },
-              "unauthenticated": {
                 "raise": {
                   "local_signal": "show_transition_not_allowed",
                   "payload_bindings": {

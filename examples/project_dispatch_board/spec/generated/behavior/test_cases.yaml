@@ -29,7 +29,7 @@ test_cases:
           project_id:
             value: project_submitted_1
         ref: domain_event.project.approved
-  test_case.project.approve.forbidden:
+  test_case.project.approve.access_denied:
     archetype: authorization_denial
     feature_tag: project.approve
     given:
@@ -59,7 +59,7 @@ test_cases:
               from: $fixture.workspace.id
       seed_fixtures:
       - fixture.workspace.member
-    rationale: A workspace member who is not a reviewer receives the mapped forbidden outcome before approval executes.
+    rationale: A workspace member who is not a reviewer receives the mapped access_denied outcome before approval executes.
     subject_ref:
       application_action: application_action.project.approve
     then:
@@ -70,8 +70,8 @@ test_cases:
       domain_events:
         not_emitted:
         - domain_event.project.approved
-      outcome: forbidden
-    title: Approval authorization maps forbidden outcome
+      outcome: access_denied
+    title: Approval authorization maps access_denied outcome
     when:
       invoke_application_action:
         input:

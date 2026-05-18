@@ -22,7 +22,7 @@ Bare `event` is avoided for durable facts because CloudEvents and UML/state-mach
 - <!-- top-level:fixtures --> `fixtures`: named seed data namespaces used by test cases, facts, content cases, and render audit cases.
 - <!-- top-level:entity_types --> `entity_types`: collection-prefixed stable product/domain entity type ids such as `entity_type.project`, each with a PascalCase display/type `name` such as `Project`, fields, and optional `entity_lifecycle` declarations. Entity types are not ORM types, API contracts, generated implementation classes, or storage schemas.
 - <!-- top-level:application_actions --> `application_actions`: executable product application actions with typed input, effects, outcomes, emitted domain events, and optional explicit authorization mapping.
-- <!-- top-level:authorization_policies --> `authorization_policies`: authorization policies with subjects, authorization targets, conditions, and effect.
+- <!-- top-level:authorization_policies --> `authorization_policies`: authorization policies with subjects, authorization resources, conditions, and effect.
 - <!-- top-level:project --> `project`: the project slug for the specification workspace.
 - <!-- top-level:refs --> `refs`: compiled-only index of generated references used by projections and tests.
 - <!-- top-level:render_profiles --> `render_profiles`: global HTML and Textual viewport profiles for audit/golden-image rendering; state-machine render audit cases do not reference profiles directly.
@@ -65,7 +65,7 @@ Bare `event` is avoided for durable facts because CloudEvents and UML/state-mach
 - `subject_ref`: exactly one typed reference to the resource under test: `entry_point`, `domain_event`, `application_action`, `state_machine`, or `workflow`.
 - `given`: setup contract split into `seed_fixtures` and `domain_facts`.
 - `when`: one executable stimulus: `open_entry_point`, `call_entry_point`, `invoke_application_action`, or `emit_domain_event`.
-- `then`: assertions for `outcome`, entity existence, emitted/not-emitted domain events, workflow execution, authorization decisions, responses, invoked/enabled/forbidden application_actions, state-machine state, and `expected_facts`. Compiled state-machine assertions may add `surface`, `composition`, and top-level `requires`.
+- `then`: assertions for `outcome`, entity existence, emitted/not-emitted domain events, workflow execution, authorization decisions, responses, invoked/enabled/access_denied application_actions, state-machine state, and `expected_facts`. Compiled state-machine assertions may add `surface`, `composition`, and top-level `requires`.
 - `then.requires`: compiled-only derived projection dependencies for a state-machine assertion, split into `surfaces`, `text`, `assets`, `data_loaders`, and `action_bindings`.
 - `entry_point_adapter`: exactly one adapter object: `http_api`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`.
 - `adapter input shape`: HTTP API input may use `path_params`, `query_params`, and `body`; HTML route input may use `path_params` and `query_params`; CLI input uses `args`; worker input uses `payload`; webhook input may use `path_params`, `query_params`, and `payload`; scheduled input has no external input sections.
@@ -115,16 +115,16 @@ Bare `event` is avoided for durable facts because CloudEvents and UML/state-mach
 - `renderer placement validation`: HTML slots and child machines must reference declared HTML `region_id`s; Textual widgets and child machines must reference declared Textual `container_id`s. Placement ids are layout ids, not field names.
 - `resolver output escaping`: text, SVG, XML, and HTML resolvers must escape dynamic values before placing them in markup text or attributes. Plain-text outputs and alt text must not expose unescaped markup-sensitive values where they may be rendered into HTML/XML.
 - `schema`: JSON Schema subset used for payloads, entity types, action inputs, state-machine context, content args, and adapter input sections. It uses `type`, `$ref`, `properties`, `required`, `enum`, `const`, `items`, `additionalProperties`, and `format`; null is represented through JSON Schema type arrays such as `type: ["string", "null"]`.
-- `authorization_policy`: direct `authorization_policy_ref` fields identify the authorization policy applied to an entry point or authorization assertion. Application actions use `authorization.policy` plus explicit `unauthenticated_as` and `forbidden_as` outcome mappings.
-- `action_authorization`: application-action-local authorization mapping with `policy`, `unauthenticated_as`, and `forbidden_as`. The mapped names must be normal application-action outcomes with `kind: failure`.
-- `authorization policy`: reusable rule set that determines whether a subject may attempt an application action or entry point. Policies with identical subjects, effect, and conditions should be one `authorization_policy` with combined targets, not duplicated per application_action.
+- `authorization_policy`: direct `authorization_policy_ref` fields identify the authorization policy applied to an entry point or authorization assertion. Application actions use `authorization.policy` plus explicit `authentication_required_as` and `access_denied_as` outcome mappings.
+- `action_authorization`: application-action-local authorization mapping with `policy`, `authentication_required_as`, and `access_denied_as`. The mapped names must be normal application-action outcomes with `kind: failure`.
+- `authorization policy`: reusable rule set that determines whether a subject may attempt an application action or entry point. Policies with identical subjects, effect, and conditions should be one `authorization_policy` with combined resources, not duplicated per application_action.
 - `authorization failure outcome`: named failure outcome produced before application-action execution when authorization fails. These outcomes live in `application_action.outcomes`; they are not a separate `errors` or `authorization_outcomes` collection.
-- `unauthenticated`: authorization failure where no acceptable subject identity is available. HTTP examples conventionally map this outcome to `401`; CLI examples map it to stderr plus a nonzero exit code.
-- `forbidden`: authorization failure where a subject identity exists but does not satisfy the authorization policy. HTTP examples conventionally map this outcome to `403`; CLI examples map it to stderr plus a nonzero exit code.
+- `authentication_required`: authorization failure where no acceptable subject identity is available. HTTP examples conventionally map this outcome to `401`; CLI examples map it to stderr plus a nonzero exit code.
+- `access_denied`: authorization failure where a subject identity exists but does not satisfy the authorization policy. HTTP examples conventionally map this outcome to `403`; CLI examples map it to stderr plus a nonzero exit code.
 - `domain failure outcome`: application-action outcome produced by application-action execution or domain validation, such as `validation_failed` or `not_found`.
 - `transition applicability`: lifecycle source-state check derived from `entity_type.entity_lifecycle.lifecycle_transitions[*]`, not authorization.
 - `transition_not_allowed`: transition applicability/domain failure outcome for lifecycle source-state mismatch. It is not an authorization failure and should be asserted with `action_outcome` or `entry_point_response`, not `authorization_denial`.
-- `authorization_condition.entity_lifecycle_state`: explicit author-authored access-control condition when an entity lifecycle state is truly part of who may attempt an application_action. The compiler does not generate this condition from lifecycle transition `from` states; lifecycle source-state mismatch remains transition applicability and maps to `transition_not_allowed`.
+- `condition.entity_state_condition`: explicit author-authored access-control condition when an entity lifecycle state is truly part of who may attempt an application_action. The compiler does not generate this condition from lifecycle transition `from` states; lifecycle source-state mismatch remains transition applicability and maps to `transition_not_allowed`.
 
 ## Action Binding Example
 
@@ -147,7 +147,7 @@ view_states:
               payload_bindings:
                 message:
                   from: $outcome.result.message
-          forbidden:
+          access_denied:
             no_local_effect:
               reason: handled_by_response_surface
               rationale: The response surface reports authorization failure.
@@ -472,10 +472,10 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:http_api_adapter --> `$defs/http_api_adapter`: entry-point adapter, target, input, or response contract component.
 - <!-- schema-def:http_api_adapter_input --> `$defs/http_api_adapter_input`: entry-point adapter, target, input, or response contract component.
 - <!-- schema-def:authorization_assertion --> `$defs/authorization_assertion`: authorization-policy contract component.
-- <!-- schema-def:authorization_condition --> `$defs/authorization_condition`: authorization-policy contract component.
+- <!-- schema-def:condition --> `$defs/condition`: authorization-policy contract component.
 - <!-- schema-def:authorization_decision_assertion --> `$defs/authorization_decision_assertion`: authorization-policy contract component.
-- <!-- schema-def:authorization_subject --> `$defs/authorization_subject`: authorization-policy contract component.
-- <!-- schema-def:authorization_target --> `$defs/authorization_target`: authorization-policy contract component.
+- <!-- schema-def:subject --> `$defs/subject`: authorization-policy contract component.
+- <!-- schema-def:resource --> `$defs/resource`: authorization-policy contract component.
 - <!-- schema-def:html_css_class --> `$defs/html_css_class`: HTML renderer contract component.
 - <!-- schema-def:html_css_property --> `$defs/html_css_property`: HTML renderer contract component.
 - <!-- schema-def:html_css_value --> `$defs/html_css_value`: HTML renderer contract component.

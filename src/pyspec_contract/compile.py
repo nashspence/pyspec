@@ -434,7 +434,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
     if entity == "authorization_policy":
         return {
             "subjects": copy.deepcopy(spec["subjects"]),
-            "targets": copy.deepcopy(spec["targets"]),
+            "resources": copy.deepcopy(spec["resources"]),
             "effect": spec["effect"],
             "conditions": copy.deepcopy(spec.get("conditions", [])),
             "rationale": spec["rationale"],
@@ -1219,13 +1219,13 @@ def _validate_action_authorization_outcomes(application_action_id: str, applicat
     authorization = application_action.get("authorization")
     if not authorization:
         return
-    unauthenticated_as = authorization["unauthenticated_as"]
-    forbidden_as = authorization["forbidden_as"]
-    if unauthenticated_as == forbidden_as:
+    authentication_required_as = authorization["authentication_required_as"]
+    access_denied_as = authorization["access_denied_as"]
+    if authentication_required_as == access_denied_as:
         raise ContractError(
-            f"Application action {application_action_id} authorization unauthenticated_as and forbidden_as must be distinct outcomes"
+            f"Application action {application_action_id} authorization authentication_required_as and access_denied_as must be distinct outcomes"
         )
-    for field in ("unauthenticated_as", "forbidden_as"):
+    for field in ("authentication_required_as", "access_denied_as"):
         outcome_id = authorization[field]
         outcome = application_action["outcomes"].get(outcome_id)
         if not outcome:
@@ -1254,35 +1254,35 @@ def _validate_authorization_policies(contract: dict[str, Any]) -> None:
         policy_id = authorization["policy"]
         if policy_id not in authorization_policies:
             raise ContractError(f"Application action {application_action_id} authorization.policy references unknown authorization policy {policy_id}")
-        if not _authorization_policy_covers_target(authorization_policies[policy_id], "application_action", application_action_id):
-            raise ContractError(f"Application action {application_action_id} authorization.policy {policy_id} must cover application action target")
+        if not _authorization_policy_covers_resource(authorization_policies[policy_id], "application_action", application_action_id):
+            raise ContractError(f"Application action {application_action_id} authorization.policy {policy_id} must cover application action resource")
     for entry_id, entry in entry_points.items():
         policy_id = entry.get("authorization_policy")
         if not policy_id:
             continue
         if policy_id not in authorization_policies:
             raise ContractError(f"Entry point {entry_id} references unknown authorization policy {policy_id}")
-        target_kind, target_ref = entry_target_pair(entry)
-        if not _authorization_policy_covers_target(authorization_policies[policy_id], "entry_point", entry_id) and not _authorization_policy_covers_target(authorization_policies[policy_id], target_kind, target_ref):
-            raise ContractError(f"Entry point {entry_id} authorization_policy {policy_id} must cover entry point or invoked target")
+        invoked_kind, invoked_ref = entry_target_pair(entry)
+        if not _authorization_policy_covers_resource(authorization_policies[policy_id], "entry_point", entry_id) and not _authorization_policy_covers_resource(authorization_policies[policy_id], invoked_kind, invoked_ref):
+            raise ContractError(f"Entry point {entry_id} authorization_policy {policy_id} must cover entry point or invoked resource")
     for policy_id, policy in authorization_policies.items():
-        for target in policy["targets"]:
-            kind, ref = _one(target, f"Authorization policy {policy_id} target")
+        for resource in policy["resources"]:
+            kind, ref = _one(resource, f"Authorization policy {policy_id} resource")
             if kind == "entity_type" and ref not in contract["entity_types"]:
-                raise ContractError(f"Authorization policy {policy_id} target references unknown entity_type {ref}")
-            if kind == "application_action" and ref not in application_actions:
-                raise ContractError(f"Authorization policy {policy_id} target references unknown application action {ref}")
+                raise ContractError(f"Authorization policy {policy_id} resource references unknown entity_type {ref}")
+            if kind == "action" and ref not in application_actions:
+                raise ContractError(f"Authorization policy {policy_id} resource references unknown application action {ref}")
             if kind == "entry_point" and ref not in entry_points:
-                raise ContractError(f"Authorization policy {policy_id} target references unknown entry point {ref}")
+                raise ContractError(f"Authorization policy {policy_id} resource references unknown entry point {ref}")
         for condition in policy.get("conditions", []):
             kind, body = _one(condition, f"Authorization policy {policy_id} condition")
             if kind in {"unconditional", "input_present", "subject_has_role", "value_equals"}:
                 continue
-            if kind in {"entity_exists", "entity_lifecycle_state"}:
+            if kind in {"entity_exists", "entity_state_condition"}:
                 entity_type_id = body["entity_type"]
                 if entity_type_id not in contract["entity_types"]:
                     raise ContractError(f"Authorization policy {policy_id} condition references unknown entity_type {entity_type_id}")
-                if kind == "entity_lifecycle_state" and body["field"] not in _schema_fields(contract["entity_types"][entity_type_id]["schema"]):
+                if kind == "entity_state_condition" and body["field"] not in _schema_fields(contract["entity_types"][entity_type_id]["schema"]):
                     raise ContractError(f"Authorization policy {policy_id} condition references unknown {entity_type_id} field {body['field']}")
                 continue
             raise ContractError(f"Authorization policy {policy_id} condition is unsupported: {kind}")
@@ -1296,7 +1296,7 @@ def _validate_authorization_policy_reuse(authorization_policies: dict[str, Any])
         if existing:
             raise ContractError(
                 f"Authorization policies {existing} and {policy_id} have identical subjects, effect, and conditions; "
-                "reuse one authorization_policy with combined targets instead of duplicating rule sets"
+                "reuse one authorization_policy with combined resources instead of duplicating rule sets"
             )
         fingerprints[fingerprint] = policy_id
 
@@ -1317,14 +1317,19 @@ def _canonical_json(value: Any) -> str:
     return json.dumps(value, sort_keys=True, separators=(",", ":"))
 
 
-def _authorization_policy_covers_target(policy: dict[str, Any], kind: str, ref: str) -> bool:
-    return any(target == {kind: ref} for target in policy.get("targets", []))
+def _authorization_resource_kind(kind: str) -> str:
+    return "action" if kind == "application_action" else kind
 
 
-def _authorization_assertion_target(assertion: dict[str, Any], label: str) -> tuple[str, str]:
+def _authorization_policy_covers_resource(policy: dict[str, Any], kind: str, ref: str) -> bool:
+    resource_kind = _authorization_resource_kind(kind)
+    return any(resource == {resource_kind: ref} for resource in policy.get("resources", []))
+
+
+def _authorization_assertion_resource(assertion: dict[str, Any], label: str) -> tuple[str, str]:
     items = [(key, assertion[key]) for key in ("application_action", "entry_point") if key in assertion]
     if len(items) != 1:
-        raise ContractError(f"{label} must contain exactly one authorization target")
+        raise ContractError(f"{label} must contain exactly one authorization resource")
     return items[0]
 
 
@@ -1586,7 +1591,7 @@ def _validate_no_local_effect(
 
 def _action_authorization_outcomes(application_action: dict[str, Any]) -> set[str]:
     authorization = application_action.get("authorization") or {}
-    return {value for key, value in authorization.items() if key in {"unauthenticated_as", "forbidden_as"}}
+    return {value for key, value in authorization.items() if key in {"authentication_required_as", "access_denied_as"}}
 
 
 def _application_action_has_response_surface(contract: dict[str, Any], application_action_id: str, outcome_id: str) -> bool:
@@ -3954,7 +3959,7 @@ def _validate_workflow_step_transitions(
 
 
 def _is_explicit_authorization_workflow_outcome(outcome_id: str) -> bool:
-    return any(token in outcome_id for token in ("authorization", "unauthenticated", "forbidden"))
+    return any(token in outcome_id for token in ("authorization", "authentication_required", "access_denied"))
 
 
 def _validate_fixtures(contract: dict[str, Any]) -> None:
@@ -4237,7 +4242,7 @@ def _validate_test_case_then(contract: dict[str, Any], test_case_id: str, test_c
     authorization_assertion = then.get("authorization") or {}
     for effect in ("allowed", "denied"):
         for assertion in authorization_assertion.get(effect, []):
-            kind, ref = _authorization_assertion_target(assertion, f"Test case {test_case_id} authorization_policy.{effect}")
+            kind, ref = _authorization_assertion_resource(assertion, f"Test case {test_case_id} authorization_policy.{effect}")
             if kind == "application_action" and ref not in contract["application_actions"]:
                 raise ContractError(f"Test case {test_case_id} authorization_policy.{effect} unknown application action {ref}")
             if kind == "entry_point" and ref not in contract["entry_points"]:
@@ -4294,7 +4299,7 @@ def _validate_authorization_denial_outcome(contract: dict[str, Any], test_case_i
     authorization = contract["application_actions"][application_action_id].get("authorization")
     if not authorization:
         raise ContractError(f"Test case {test_case_id} authorization_denial outcome requires application action authorization")
-    mapped = {authorization["unauthenticated_as"], authorization["forbidden_as"]}
+    mapped = {authorization["authentication_required_as"], authorization["access_denied_as"]}
     if outcome_id not in mapped:
         raise ContractError(
             f"Test case {test_case_id} authorization_denial outcome must be one of application action authorization failure outcomes: "
@@ -4570,7 +4575,7 @@ def _expand_authorization_assertions(contract: dict[str, Any], assertions: dict[
         for assertion in policy.get(effect, []):
             if "authorization_policy" in assertion:
                 continue
-            kind, ref = _authorization_assertion_target(assertion, f"authorization_policy.{effect}")
+            kind, ref = _authorization_assertion_resource(assertion, f"authorization_policy.{effect}")
             if kind == "application_action":
                 authorization = contract["application_actions"][ref].get("authorization")
                 if authorization:

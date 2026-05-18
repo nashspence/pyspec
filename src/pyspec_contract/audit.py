@@ -811,15 +811,15 @@ def _authorization_policy_text_witness_tokens(contract: dict[str, Any], parts: l
             return ["subjects", value]
         if parts[-1] == "source" and isinstance(value, str):
             return ["subjects", _format_flow_source(value)]
-    if parts[2] == "targets" and isinstance(value, str):
+    if parts[2] == "resources" and isinstance(value, str):
         return [value]
     if parts[2] == "conditions" and len(parts) >= 5:
         try:
             condition = policy.get("conditions", [])[int(parts[3])]
         except (IndexError, TypeError, ValueError):
             return []
-        if "entity_lifecycle_state" in condition:
-            body = condition["entity_lifecycle_state"]
+        if "entity_state_condition" in condition:
+            body = condition["entity_state_condition"]
             tokens = [f"{type_display({'$ref': body['entity_type']})}.{body['field']}"]
             if parts[-1] == "equals":
                 tokens.append(_format_scalar(value))
@@ -867,7 +867,7 @@ def _application_action_text_witness_tokens(contract: dict[str, Any], parts: lis
     if len(parts) >= 4 and parts[2] == "authorization":
         if parts[-1] == "policy" and isinstance(value, str):
             return [value]
-        if parts[-1] in {"unauthenticated_as", "forbidden_as"} and isinstance(value, str):
+        if parts[-1] in {"authentication_required_as", "access_denied_as"} and isinstance(value, str):
             return [parts[-1], value]
     if len(parts) >= 5 and parts[2] == "lifecycle_transition":
         lifecycle_transition = contract["application_actions"][parts[1]]["lifecycle_transition"]
@@ -1963,8 +1963,8 @@ def application_action_flow_dot(application_action_id: str, application_action: 
     policy_id = authorization.get("policy")
     policy_node = _dot_node_id("application_action_policy", policy_id) if policy_id else None
     authorization_failure_labels = {
-        authorization.get("unauthenticated_as"): "unauthenticated_as",
-        authorization.get("forbidden_as"): "forbidden_as",
+        authorization.get("authentication_required_as"): "authentication_required_as",
+        authorization.get("access_denied_as"): "access_denied_as",
     }
     resource_nodes = _application_action_resource_nodes(application_action_id, application_action, contract)
     outcome_nodes = [
@@ -1981,7 +1981,7 @@ def application_action_flow_dot(application_action_id: str, application_action: 
     if application_action.get("input"):
         lines.append(_dot_html_node(input_node, _dot_card("input", "action input", [("fields", _typed_fields(application_action["input"]))], style=_DOT_STYLE_EXTERNAL)))
     if policy_id:
-        lines.append(_dot_html_node(policy_node or "", _policy_reference_card(policy_id, contract, subtitle="authorization gate", include_targets=False)))
+        lines.append(_dot_html_node(policy_node or "", _policy_reference_card(policy_id, contract, subtitle="authorization gate", include_resources=False)))
     for node_id, _, target_id, target_kind, sections in resource_nodes:
         style = _DOT_STYLE_ENTITY_TYPE if target_kind == "entity_type" else _DOT_STYLE_SCHEMA
         lines.append(_dot_html_node(node_id, _dot_card(target_id, f"{target_kind} resource", sections, style=style)))
@@ -2030,8 +2030,8 @@ def _application_action_reference_sections(application_action_id: str, applicati
             "authorization",
             [
                 f"policy: {authorization['policy']}",
-                f"unauthenticated_as: {authorization['unauthenticated_as']}",
-                f"forbidden_as: {authorization['forbidden_as']}",
+                f"authentication_required_as: {authorization['authentication_required_as']}",
+                f"access_denied_as: {authorization['access_denied_as']}",
             ],
         ))
     return sections
@@ -2091,16 +2091,16 @@ def _policy_reference_card(
     contract: dict[str, Any],
     *,
     subtitle: str = "authorization policy",
-    include_targets: bool = True,
+    include_resources: bool = True,
 ) -> str:
     policy = contract.get("authorization_policies", {}).get(policy_id, {})
     sections = [("effect", [policy.get("effect", "")])]
     if policy.get("subjects"):
-        sections.append(("subjects", _format_authorization_subjects(policy["subjects"])))
-    if include_targets and policy.get("targets"):
-        sections.append(("targets", _format_authorization_targets(policy["targets"])))
+        sections.append(("subjects", _format_subjects(policy["subjects"])))
+    if include_resources and policy.get("resources"):
+        sections.append(("resources", _format_authorization_resources(policy["resources"])))
     if policy.get("conditions"):
-        sections.append(("conditions", _format_authorization_conditions(policy["conditions"])))
+        sections.append(("conditions", _format_conditions(policy["conditions"])))
     return _dot_card(policy_id, subtitle, sections, rationale=policy.get("rationale", ""), style=_DOT_STYLE_POLICY)
 
 
@@ -2499,13 +2499,13 @@ def _authorization_policy_sections(
     if not policy:
         return sections
     sections.append(("effect", [policy["effect"]]))
-    sections.append(("subjects", _format_authorization_subjects(policy.get("subjects", []))))
-    sections.append(("targets", _format_authorization_targets(policy.get("targets", []))))
-    sections.append(("conditions", _format_authorization_conditions(policy.get("conditions", []))))
+    sections.append(("subjects", _format_subjects(policy.get("subjects", []))))
+    sections.append(("resources", _format_authorization_resources(policy.get("resources", []))))
+    sections.append(("conditions", _format_conditions(policy.get("conditions", []))))
     return sections
 
 
-def _format_authorization_subjects(subjects: Iterable[dict[str, Any]]) -> list[str]:
+def _format_subjects(subjects: Iterable[dict[str, Any]]) -> list[str]:
     lines: list[str] = []
     for subject in subjects:
         line = subject["kind"]
@@ -2515,11 +2515,11 @@ def _format_authorization_subjects(subjects: Iterable[dict[str, Any]]) -> list[s
     return lines
 
 
-def _format_authorization_targets(targets: Iterable[dict[str, str]]) -> list[str]:
-    return [f"{kind}: {value}" for kind, value in (_target_pair(target) for target in targets)]
+def _format_authorization_resources(resources: Iterable[dict[str, str]]) -> list[str]:
+    return [f"{kind}: {value}" for kind, value in (_target_pair(resource) for resource in resources)]
 
 
-def _format_authorization_conditions(conditions: Iterable[dict[str, Any]]) -> list[str]:
+def _format_conditions(conditions: Iterable[dict[str, Any]]) -> list[str]:
     lines: list[str] = []
     for condition in conditions:
         kind, body = _target_pair(condition)
@@ -2529,7 +2529,7 @@ def _format_authorization_conditions(conditions: Iterable[dict[str, Any]]) -> li
             lines.append(f"input_present {body}")
         elif kind == "entity_exists":
             lines.append(f"{body['entity_type']} exists")
-        elif kind == "entity_lifecycle_state":
+        elif kind == "entity_state_condition":
             lines.append(f"{body['entity_type']}.{body['field']} = {_format_scalar(body['equals'])}")
         elif kind == "subject_has_role":
             lines.append(f"subject_has_role {body}")

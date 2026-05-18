@@ -114,13 +114,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Problem'
-          description: Unauthenticated
+          description: Authentication Required
         '403':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Problem'
-          description: Forbidden
+          description: Access Denied
         '404':
           content:
             application/json:
@@ -165,13 +165,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Problem'
-          description: Unauthenticated
+          description: Authentication Required
         '403':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Problem'
-          description: Forbidden
+          description: Access Denied
         '503':
           content:
             application/json:
@@ -219,13 +219,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Problem'
-          description: Unauthenticated
+          description: Authentication Required
         '403':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Problem'
-          description: Forbidden
+          description: Access Denied
         '422':
           content:
             application/json:

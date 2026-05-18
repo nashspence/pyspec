@@ -181,25 +181,25 @@ authorization_policies:
   authorization_policy.project.member:
     subjects:
     - kind: actor
-    targets:
-    - application_action: application_action.project.create
-    - application_action: application_action.project.list
-    - application_action: application_action.project.read
-    - application_action: application_action.project.submit
+    resources:
+    - action: application_action.project.create
+    - action: application_action.project.list
+    - action: application_action.project.read
+    - action: application_action.project.submit
     - entity_type: entity_type.project
-    effect: allow
+    effect: permit
     conditions:
     - subject_has_role: member
     rationale: Workspace members may create, read, list, and submit dispatch projects.
   authorization_policy.project.reviewer:
     subjects:
     - kind: actor
-    targets:
-    - application_action: application_action.project.approve
-    - application_action: application_action.project.archive
-    - application_action: application_action.project.send_approval_notice
+    resources:
+    - action: application_action.project.approve
+    - action: application_action.project.archive
+    - action: application_action.project.send_approval_notice
     - entity_type: entity_type.project
-    effect: allow
+    effect: permit
     conditions:
     - subject_has_role: reviewer
     rationale: Reviewers may approve, archive, and send approval notices for dispatch projects.
@@ -209,8 +209,8 @@ application_actions:
     rationale: Reviewers can approve submitted dispatch projects.
     authorization:
       policy: authorization_policy.project.reviewer
-      unauthenticated_as: unauthenticated
-      forbidden_as: forbidden
+      authentication_required_as: authentication_required
+      access_denied_as: access_denied
     input:
       type: object
       properties:
@@ -235,7 +235,7 @@ application_actions:
         kind: success
         result:
           $ref: entity_type.project
-      forbidden:
+      access_denied:
         kind: failure
         result:
           $ref: entity_type.problem
@@ -251,7 +251,7 @@ application_actions:
         kind: failure
         result:
           $ref: entity_type.problem
-      unauthenticated:
+      authentication_required:
         kind: failure
         result:
           $ref: entity_type.problem
@@ -259,8 +259,8 @@ application_actions:
     rationale: Approved dispatch projects can be archived.
     authorization:
       policy: authorization_policy.project.reviewer
-      unauthenticated_as: unauthenticated
-      forbidden_as: forbidden
+      authentication_required_as: authentication_required
+      access_denied_as: access_denied
     input:
       type: object
       properties:
@@ -278,7 +278,7 @@ application_actions:
         kind: success
         result:
           $ref: entity_type.project
-      forbidden:
+      access_denied:
         kind: failure
         result:
           $ref: entity_type.problem
@@ -290,7 +290,7 @@ application_actions:
         kind: failure
         result:
           $ref: entity_type.problem
-      unauthenticated:
+      authentication_required:
         kind: failure
         result:
           $ref: entity_type.problem
@@ -298,8 +298,8 @@ application_actions:
     rationale: Members can create a new dispatch project.
     authorization:
       policy: authorization_policy.project.member
-      unauthenticated_as: unauthenticated
-      forbidden_as: forbidden
+      authentication_required_as: authentication_required
+      access_denied_as: access_denied
     creates:
     - entity_type.project
     input:
@@ -328,11 +328,11 @@ application_actions:
         kind: success
         result:
           $ref: entity_type.project
-      forbidden:
+      access_denied:
         kind: failure
         result:
           $ref: entity_type.problem
-      unauthenticated:
+      authentication_required:
         kind: failure
         result:
           $ref: entity_type.problem
@@ -344,8 +344,8 @@ application_actions:
     rationale: The board requires a project list query scoped by workspace.
     authorization:
       policy: authorization_policy.project.member
-      unauthenticated_as: unauthenticated
-      forbidden_as: forbidden
+      authentication_required_as: authentication_required
+      access_denied_as: access_denied
     input:
       type: object
       properties:
@@ -362,11 +362,11 @@ application_actions:
           type: array
           items:
             $ref: entity_type.project
-      forbidden:
+      access_denied:
         kind: failure
         result:
           $ref: entity_type.problem
-      unauthenticated:
+      authentication_required:
         kind: failure
         result:
           $ref: entity_type.problem
@@ -380,8 +380,8 @@ application_actions:
     rationale: The detail state machine loads the selected project by id.
     authorization:
       policy: authorization_policy.project.member
-      unauthenticated_as: unauthenticated
-      forbidden_as: forbidden
+      authentication_required_as: authentication_required
+      access_denied_as: access_denied
     input:
       type: object
       properties:
@@ -396,7 +396,7 @@ application_actions:
         kind: success
         result:
           $ref: entity_type.project
-      forbidden:
+      access_denied:
         kind: failure
         result:
           $ref: entity_type.problem
@@ -404,7 +404,7 @@ application_actions:
         kind: failure
         result:
           $ref: entity_type.problem
-      unauthenticated:
+      authentication_required:
         kind: failure
         result:
           $ref: entity_type.problem
@@ -415,8 +415,8 @@ application_actions:
     rationale: Approval triggers a notification command for downstream coordination.
     authorization:
       policy: authorization_policy.project.reviewer
-      unauthenticated_as: unauthenticated
-      forbidden_as: forbidden
+      authentication_required_as: authentication_required
+      access_denied_as: access_denied
     input:
       type: object
       properties:
@@ -434,7 +434,7 @@ application_actions:
         kind: failure
         result:
           $ref: entity_type.problem
-      forbidden:
+      access_denied:
         kind: failure
         result:
           $ref: entity_type.problem
@@ -442,7 +442,7 @@ application_actions:
         kind: success
         result:
           $ref: schema.project.notice_result
-      unauthenticated:
+      authentication_required:
         kind: failure
         result:
           $ref: entity_type.problem
@@ -450,8 +450,8 @@ application_actions:
     rationale: Draft dispatch projects can be submitted for review.
     authorization:
       policy: authorization_policy.project.member
-      unauthenticated_as: unauthenticated
-      forbidden_as: forbidden
+      authentication_required_as: authentication_required
+      access_denied_as: access_denied
     input:
       type: object
       properties:
@@ -466,7 +466,7 @@ application_actions:
         kind: failure
         result:
           $ref: entity_type.problem
-      forbidden:
+      access_denied:
         kind: failure
         result:
           $ref: entity_type.problem
@@ -481,7 +481,7 @@ application_actions:
         kind: success
         result:
           $ref: entity_type.project
-      unauthenticated:
+      authentication_required:
         kind: failure
         result:
           $ref: entity_type.problem
@@ -554,7 +554,7 @@ state_machines:
                     from: $outcome.result
                 no_local_effect:
                   reason: result_bound_without_signal
-              forbidden:
+              access_denied:
                 no_local_effect:
                   reason: intentionally_unobservable
                   rationale: The activity panel remains in its current state when authorization blocks the refresh.
@@ -562,10 +562,10 @@ state_machines:
                 no_local_effect:
                   reason: intentionally_unobservable
                   rationale: The parent detail panel owns not-found display for the selected project.
-              unauthenticated:
+              authentication_required:
                 no_local_effect:
                   reason: intentionally_unobservable
-                  rationale: The entry response surface owns unauthenticated display.
+                  rationale: The entry response surface owns authentication_required display.
         field_slots:
         - updated_at
         - status
@@ -604,14 +604,14 @@ state_machines:
                 from: $outcome.result
             no_local_effect:
               reason: result_bound_without_signal
-          forbidden:
+          access_denied:
             no_local_effect:
               reason: handled_by_response_surface
-              rationale: The board shell leaves child surfaces unchanged when list access is forbidden.
-          unauthenticated:
+              rationale: The board shell leaves child surfaces unchanged when list access is access_denied.
+          authentication_required:
             no_local_effect:
               reason: handled_by_response_surface
-              rationale: The entry response surface owns unauthenticated display.
+              rationale: The entry response surface owns authentication_required display.
           unavailable:
             no_local_effect:
               reason: handled_by_response_surface
@@ -879,13 +879,13 @@ state_machines:
                     from: $outcome.result
                 raise:
                   data_refresh_signal: project_loaded
-              forbidden:
+              access_denied:
                 raise:
                   data_refresh_signal: project_load_failed
               not_found:
                 raise:
                   data_refresh_signal: project_load_failed
-              unauthenticated:
+              authentication_required:
                 raise:
                   data_refresh_signal: project_load_failed
       none:
@@ -913,7 +913,7 @@ state_machines:
                     from: $outcome.result
                 no_local_effect:
                   reason: result_bound_without_signal
-              forbidden:
+              access_denied:
                 raise:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
@@ -925,7 +925,7 @@ state_machines:
                   payload_bindings:
                     message:
                       from: $outcome.result.message
-              unauthenticated:
+              authentication_required:
                 raise:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
@@ -951,10 +951,10 @@ state_machines:
               approved:
                 raise:
                   data_refresh_signal: project_changed
-              forbidden:
+              access_denied:
                 no_local_effect:
                   reason: handled_by_response_surface
-                  rationale: The response surface keeps the detail panel unchanged for forbidden approval.
+                  rationale: The response surface keeps the detail panel unchanged for access_denied approval.
               transition_not_allowed:
                 raise:
                   local_signal: show_transition_not_allowed
@@ -969,7 +969,7 @@ state_machines:
                 no_local_effect:
                   reason: handled_by_response_surface
                   rationale: The response surface reports temporary unavailability without a local transition.
-              unauthenticated:
+              authentication_required:
                 no_local_effect:
                   reason: handled_by_response_surface
                   rationale: The response surface reports authentication failure without a local transition.
@@ -982,7 +982,7 @@ state_machines:
               archived:
                 raise:
                   data_refresh_signal: project_changed
-              forbidden:
+              access_denied:
                 raise:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
@@ -1000,7 +1000,7 @@ state_machines:
                   payload_bindings:
                     message:
                       from: $outcome.result.message
-              unauthenticated:
+              authentication_required:
                 raise:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
@@ -1056,10 +1056,10 @@ state_machines:
                   from: $invocation.input.workspace_id
               raise:
                 data_refresh_signal: projects_loaded
-          forbidden:
+          access_denied:
             raise:
               data_refresh_signal: project_list_failed
-          unauthenticated:
+          authentication_required:
             raise:
               data_refresh_signal: project_list_failed
           unavailable:
@@ -1179,11 +1179,11 @@ state_machines:
               created:
                 raise:
                   data_refresh_signal: projects_changed
-              forbidden:
+              access_denied:
                 no_local_effect:
                   reason: handled_by_response_surface
-                  rationale: The response surface keeps the empty list visible for forbidden create.
-              unauthenticated:
+                  rationale: The response surface keeps the empty list visible for access_denied create.
+              authentication_required:
                 no_local_effect:
                   reason: handled_by_response_surface
                   rationale: The response surface reports authentication failure without a local transition.
@@ -1224,11 +1224,11 @@ state_machines:
               created:
                 raise:
                   data_refresh_signal: projects_changed
-              forbidden:
+              access_denied:
                 no_local_effect:
                   reason: handled_by_response_surface
-                  rationale: The response surface keeps the ready list visible for forbidden create.
-              unauthenticated:
+                  rationale: The response surface keeps the ready list visible for access_denied create.
+              authentication_required:
                 no_local_effect:
                   reason: handled_by_response_surface
                   rationale: The response surface reports authentication failure without a local transition.
@@ -1242,7 +1242,7 @@ state_machines:
               project_id:
                 from: $context.selected_project_id
             outcome_effects:
-              forbidden:
+              access_denied:
                 raise:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
@@ -1263,7 +1263,7 @@ state_machines:
               submitted:
                 raise:
                   data_refresh_signal: projects_changed
-              unauthenticated:
+              authentication_required:
                 raise:
                   local_signal: show_transition_not_allowed
                   payload_bindings:
@@ -1293,13 +1293,13 @@ entry_points:
               type:
                 $ref: entity_type.project
             status: 201
-          forbidden:
+          access_denied:
             body:
               from: $outcome.result
               type:
                 $ref: entity_type.problem
             status: 403
-          unauthenticated:
+          authentication_required:
             body:
               from: $outcome.result
               type:
@@ -1342,13 +1342,13 @@ entry_points:
                 items:
                   $ref: entity_type.project
             status: 200
-          forbidden:
+          access_denied:
             body:
               from: $outcome.result
               type:
                 $ref: entity_type.problem
             status: 403
-          unauthenticated:
+          authentication_required:
             body:
               from: $outcome.result
               type:
@@ -1387,7 +1387,7 @@ entry_points:
               type:
                 $ref: entity_type.project
             status: 200
-          forbidden:
+          access_denied:
             body:
               from: $outcome.result
               type:
@@ -1411,7 +1411,7 @@ entry_points:
               type:
                 $ref: entity_type.problem
             status: 503
-          unauthenticated:
+          authentication_required:
             body:
               from: $outcome.result
               type:
@@ -1444,10 +1444,10 @@ entry_points:
               bindings:
                 project_id:
                   from: $response.body.id
-          forbidden:
+          access_denied:
             exit_code: 5
             stderr:
-              text: text.project.approve.forbidden
+              text: text.project.approve.access_denied
               bindings:
                 message:
                   from: $response.body.message
@@ -1472,10 +1472,10 @@ entry_points:
               backoff: exponential
             stderr:
               text: text.project.approve.unavailable
-          unauthenticated:
+          authentication_required:
             exit_code: 4
             stderr:
-              text: text.project.approve.unauthenticated
+              text: text.project.approve.authentication_required
               bindings:
                 message:
                   from: $response.body.message
@@ -1556,11 +1556,11 @@ workflows:
         kind: failure
         result:
           $ref: entity_type.problem
-      notice_forbidden:
+      notice_access_denied:
         kind: failure
         result:
           $ref: entity_type.problem
-      notice_unauthenticated:
+      notice_authentication_required:
         kind: failure
         result:
           $ref: entity_type.problem
@@ -1578,12 +1578,12 @@ workflows:
             attempts: 3
             backoff: exponential
             fail_as: delivery_failed
-        forbidden:
-          fail_as: notice_forbidden
+        access_denied:
+          fail_as: notice_access_denied
         sent:
           complete_as: completed
-        unauthenticated:
-          fail_as: notice_unauthenticated
+        authentication_required:
+          fail_as: notice_authentication_required
     trigger:
       domain_event: domain_event.project.approved
 test_cases:
@@ -1651,9 +1651,9 @@ test_cases:
           project_id:
             value: project_submitted_1
         ref: application_action.project.approve
-  test_case.project.approve.forbidden:
+  test_case.project.approve.access_denied:
     archetype: authorization_denial
-    rationale: A workspace member who is not a reviewer receives the mapped forbidden outcome before approval executes.
+    rationale: A workspace member who is not a reviewer receives the mapped access_denied outcome before approval executes.
     feature_tag: project.approve
     subject_ref:
       application_action: application_action.project.approve
@@ -1669,8 +1669,8 @@ test_cases:
       domain_events:
         not_emitted:
         - domain_event.project.approved
-      outcome: forbidden
-    title: Approval authorization maps forbidden outcome
+      outcome: access_denied
+    title: Approval authorization maps access_denied outcome
     when:
       invoke_application_action:
         input:
@@ -1801,10 +1801,10 @@ test_cases:
             from: $fixture.workspace.id
         ref: entry_point.api.project.create
 text_resources:
-  text.project.approve.forbidden:
-    rationale: CLI approval forbidden message.
+  text.project.approve.access_denied:
+    rationale: CLI approval access_denied message.
     max_chars: 120
-    placeholder: 'Approval is forbidden: {message}'
+    placeholder: 'Approval is access_denied: {message}'
     intent: error
     args:
       message:
@@ -1833,8 +1833,8 @@ text_resources:
     args:
       project_id:
         type: string
-  text.project.approve.unauthenticated:
-    rationale: CLI approval unauthenticated message.
+  text.project.approve.authentication_required:
+    rationale: CLI approval authentication_required message.
     max_chars: 120
     placeholder: 'Sign in before approving: {message}'
     intent: error

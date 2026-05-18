@@ -302,7 +302,7 @@ def test_response_assertion_requires_call_entry_point() -> None:
 
 def test_authorization_denial_outcome_must_be_mapped_authorization_failure() -> None:
     author = _author()
-    case = author["test_cases"]["test_case.project.approve.forbidden"]
+    case = author["test_cases"]["test_case.project.approve.access_denied"]
     case["then"]["outcome"] = "transition_not_allowed"
     with pytest.raises(ContractError, match=r"authorization_denial outcome must be one of application action authorization failure outcomes"):
         compile_author(author)
@@ -329,16 +329,16 @@ def test_authorization_policies_require_explicit_conditions_and_support_value_eq
     author = _derived_transition_author()
     author["application_actions"]["application_action.ticket.submit"]["authorization"] = {
         "policy": "authorization_policy.ticket.submit",
-        "unauthenticated_as": "unauthenticated",
-        "forbidden_as": "forbidden",
+        "authentication_required_as": "authentication_required",
+        "access_denied_as": "access_denied",
     }
-    author["application_actions"]["application_action.ticket.submit"]["outcomes"]["unauthenticated"] = {"kind": "failure", "result": M("Problem")}
-    author["application_actions"]["application_action.ticket.submit"]["outcomes"]["forbidden"] = {"kind": "failure", "result": M("Problem")}
+    author["application_actions"]["application_action.ticket.submit"]["outcomes"]["authentication_required"] = {"kind": "failure", "result": M("Problem")}
+    author["application_actions"]["application_action.ticket.submit"]["outcomes"]["access_denied"] = {"kind": "failure", "result": M("Problem")}
     author["authorization_policies"] = {
         "authorization_policy.ticket.submit": {
             "subjects": [{"kind": "actor"}],
-            "targets": [{"application_action": "application_action.ticket.submit"}],
-            "effect": "allow",
+            "resources": [{"action": "application_action.ticket.submit"}],
+            "effect": "permit",
             "rationale": "Explicit policy missing conditions is invalid.",
         }
     }
@@ -363,12 +363,12 @@ def test_authorization_policies_reject_duplicated_rule_sets() -> None:
     author = _authorized_transition_author()
     author["authorization_policies"]["authorization_policy.ticket.submit_duplicate"] = {
         "subjects": [{"kind": "actor"}],
-        "targets": [{"entity_type": ET("Ticket")}],
-        "effect": "allow",
+        "resources": [{"entity_type": ET("Ticket")}],
+        "effect": "permit",
         "conditions": [{"subject_has_role": "member"}],
         "rationale": "This should reuse the member submit policy instead.",
     }
-    with pytest.raises(ContractError, match=r"reuse one authorization_policy with combined targets"):
+    with pytest.raises(ContractError, match=r"reuse one authorization_policy with combined resources"):
         compile_author(author)
 
 
@@ -377,16 +377,16 @@ def _authorized_transition_author() -> dict:
     operation = author["application_actions"]["application_action.ticket.submit"]
     operation["authorization"] = {
         "policy": "authorization_policy.ticket.submit",
-        "unauthenticated_as": "unauthenticated",
-        "forbidden_as": "forbidden",
+        "authentication_required_as": "authentication_required",
+        "access_denied_as": "access_denied",
     }
-    operation["outcomes"]["unauthenticated"] = {"kind": "failure", "result": M("Problem")}
-    operation["outcomes"]["forbidden"] = {"kind": "failure", "result": M("Problem")}
+    operation["outcomes"]["authentication_required"] = {"kind": "failure", "result": M("Problem")}
+    operation["outcomes"]["access_denied"] = {"kind": "failure", "result": M("Problem")}
     author["authorization_policies"] = {
         "authorization_policy.ticket.submit": {
             "subjects": [{"kind": "actor"}],
-            "targets": [{"application_action": "application_action.ticket.submit"}],
-            "effect": "allow",
+            "resources": [{"action": "application_action.ticket.submit"}],
+            "effect": "permit",
             "conditions": [{"subject_has_role": "member"}],
             "rationale": "Members may submit tickets.",
         }
@@ -404,14 +404,14 @@ def test_authored_application_action_replaces_legacy_authorization_policy_with_e
     contract = compile_author(author)
     assert contract["application_actions"]["application_action.ticket.submit"]["authorization"] == {
         "policy": "authorization_policy.ticket.submit",
-        "unauthenticated_as": "unauthenticated",
-        "forbidden_as": "forbidden",
+        "authentication_required_as": "authentication_required",
+        "access_denied_as": "access_denied",
     }
 
 
 def test_action_authorization_mapping_rejects_bad_outcome_names() -> None:
     author = _authorized_transition_author()
-    author["application_actions"]["application_action.ticket.submit"]["authorization"]["forbidden_as"] = "Forbidden"
+    author["application_actions"]["application_action.ticket.submit"]["authorization"]["access_denied_as"] = "Forbidden"
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_author(author)
 
@@ -423,18 +423,18 @@ def test_action_authorization_policy_and_outcomes_are_semantically_validated() -
         compile_author(author)
 
     author = _authorized_transition_author()
-    del author["application_actions"]["application_action.ticket.submit"]["outcomes"]["unauthenticated"]
-    with pytest.raises(ContractError, match=r"authorization\.unauthenticated_as references unknown outcome unauthenticated"):
+    del author["application_actions"]["application_action.ticket.submit"]["outcomes"]["authentication_required"]
+    with pytest.raises(ContractError, match=r"authorization\.authentication_required_as references unknown outcome authentication_required"):
         compile_author(author)
 
     author = _authorized_transition_author()
-    author["application_actions"]["application_action.ticket.submit"]["authorization"]["forbidden_as"] = "submitted"
-    with pytest.raises(ContractError, match=r"authorization\.forbidden_as must map to a failure outcome"):
+    author["application_actions"]["application_action.ticket.submit"]["authorization"]["access_denied_as"] = "submitted"
+    with pytest.raises(ContractError, match=r"authorization\.access_denied_as must map to a failure outcome"):
         compile_author(author)
 
     author = _authorized_transition_author()
-    author["application_actions"]["application_action.ticket.submit"]["authorization"]["forbidden_as"] = "unauthenticated"
-    with pytest.raises(ContractError, match=r"unauthenticated_as and forbidden_as must be distinct"):
+    author["application_actions"]["application_action.ticket.submit"]["authorization"]["access_denied_as"] = "authentication_required"
+    with pytest.raises(ContractError, match=r"authentication_required_as and access_denied_as must be distinct"):
         compile_author(author)
 
 
@@ -446,10 +446,10 @@ def test_authorization_failure_outcomes_must_not_emit_domain_events() -> None:
             "rationale": "Authorization failure outcomes are not domain-event emitters.",
         }
     }
-    author["application_actions"]["application_action.ticket.submit"]["outcomes"]["forbidden"]["emits"] = [
+    author["application_actions"]["application_action.ticket.submit"]["outcomes"]["access_denied"]["emits"] = [
         {"domain_event": "domain_event.ticket.denied", "payload_source": "$outcome.result"}
     ]
-    with pytest.raises(ContractError, match=r"failure outcome forbidden must not emit domain events"):
+    with pytest.raises(ContractError, match=r"failure outcome access_denied must not emit domain events"):
         compile_author(author)
 
 
@@ -1192,8 +1192,8 @@ def test_renderer_slot_binding_accepts_action_binding_and_rejects_application_ac
             },
             "outcome_effects": {
                 "created": {"raise": {"data_refresh_signal": "application_action_completed"}},
-                "forbidden": {"raise": {"data_refresh_signal": "application_action_completed"}},
-                "unauthenticated": {"raise": {"data_refresh_signal": "application_action_completed"}},
+                "access_denied": {"raise": {"data_refresh_signal": "application_action_completed"}},
+                "authentication_required": {"raise": {"data_refresh_signal": "application_action_completed"}},
                 "validation_failed": {"raise": {"data_refresh_signal": "application_action_completed"}},
             },
         }
@@ -1219,8 +1219,8 @@ def test_renderer_slot_binding_accepts_action_binding_and_rejects_application_ac
             },
             "outcome_effects": {
                 "created": {"raise": {"data_refresh_signal": "application_action_completed"}},
-                "forbidden": {"raise": {"data_refresh_signal": "application_action_completed"}},
-                "unauthenticated": {"raise": {"data_refresh_signal": "application_action_completed"}},
+                "access_denied": {"raise": {"data_refresh_signal": "application_action_completed"}},
+                "authentication_required": {"raise": {"data_refresh_signal": "application_action_completed"}},
                 "validation_failed": {"raise": {"data_refresh_signal": "application_action_completed"}},
             },
         }
@@ -1256,7 +1256,7 @@ def test_action_binding_routes_must_cover_exact_action_outcomes() -> None:
 
 def test_action_binding_rejects_legacy_non_routing_route() -> None:
     author = _author()
-    effect = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_effects"]["forbidden"]
+    effect = _item(author, "state_machines", "state_machine.project.list")["view_states"]["ready"]["action_bindings"]["submit"]["outcome_effects"]["access_denied"]
     effect.clear()
     effect["ig" + "nore"] = True
     with pytest.raises(ContractError, match="Schema validation failed"):
@@ -1545,8 +1545,8 @@ def test_data_loader_ids_cannot_shadow_state_machine_scope() -> None:
                     "result_binding": {"data_key": "projects", "from": {"from": "$outcome.result"}},
                     "no_local_effect": {"reason": "result_bound_without_signal"},
                 },
-                "forbidden": {"no_local_effect": {"reason": "handled_by_response_surface", "rationale": "Shadow test."}},
-                "unauthenticated": {"no_local_effect": {"reason": "handled_by_response_surface", "rationale": "Shadow test."}},
+                "access_denied": {"no_local_effect": {"reason": "handled_by_response_surface", "rationale": "Shadow test."}},
+                "authentication_required": {"no_local_effect": {"reason": "handled_by_response_surface", "rationale": "Shadow test."}},
                 "unavailable": {"no_local_effect": {"reason": "handled_by_response_surface", "rationale": "Shadow test."}},
             },
         }
@@ -1861,17 +1861,17 @@ def test_entry_point_responses_must_map_all_action_outcomes() -> None:
 
 def test_entry_point_responses_must_map_authorization_failure_outcomes() -> None:
     author = _author()
-    del author["entry_points"]["entry_point.api.project.create"]["adapter"]["http_api"]["responses"]["forbidden"]
-    with pytest.raises(ContractError, match=r"Entry entry_point.api\.project\.create responses must exactly map application action outcomes: missing: forbidden"):
+    del author["entry_points"]["entry_point.api.project.create"]["adapter"]["http_api"]["responses"]["access_denied"]
+    with pytest.raises(ContractError, match=r"Entry entry_point.api\.project\.create responses must exactly map application action outcomes: missing: access_denied"):
         compile_source(author)
 
     contract = compile_source(_author())
     api_responses = contract["entry_points"]["entry_point.api.project.approve"]["adapter"]["http_api"]["responses"]
-    assert api_responses["unauthenticated"]["status"] == 401
-    assert api_responses["forbidden"]["status"] == 403
+    assert api_responses["authentication_required"]["status"] == 401
+    assert api_responses["access_denied"]["status"] == 403
     cli_handlers = contract["entry_points"]["entry_point.cli.project.approve"]["adapter"]["cli"]["response_handlers"]
-    assert cli_handlers["unauthenticated"]["exit_code"] == 4
-    assert cli_handlers["forbidden"]["exit_code"] == 5
+    assert cli_handlers["authentication_required"]["exit_code"] == 4
+    assert cli_handlers["access_denied"]["exit_code"] == 5
 
 
 def test_cli_failure_response_must_use_nonzero_exit_and_stderr() -> None:
@@ -1971,9 +1971,9 @@ def test_delegation_input_bindings_use_outer_input_roots() -> None:
 
 def test_cli_response_handler_names_match_delegated_response_names() -> None:
     author = _author()
-    del author["entry_points"]["entry_point.cli.project.approve"]["adapter"]["cli"]["response_handlers"]["forbidden"]
-    del author["text_resources"]["text.project.approve.forbidden"]
-    with pytest.raises(ContractError, match=r"response_handlers must exactly map delegated entry outcomes: missing: forbidden"):
+    del author["entry_points"]["entry_point.cli.project.approve"]["adapter"]["cli"]["response_handlers"]["access_denied"]
+    del author["text_resources"]["text.project.approve.access_denied"]
+    with pytest.raises(ContractError, match=r"response_handlers must exactly map delegated entry outcomes: missing: access_denied"):
         compile_source(author)
 
 
@@ -2015,8 +2015,8 @@ def test_delegated_and_outer_authorization_policies_are_both_evaluated(tmp_path:
     outer_policy = "authorization_policy.project.cli_approve"
     author.setdefault("authorization_policies", {})[outer_policy] = {
         "subjects": [{"kind": "actor"}],
-        "targets": [{"entry_point": "entry_point.cli.project.approve"}],
-        "effect": "allow",
+        "resources": [{"entry_point": "entry_point.cli.project.approve"}],
+        "effect": "permit",
         "conditions": [{"subject_has_role": "reviewer"}, {"input_present": "approved_by"}],
         "rationale": "CLI approval requires reviewer role and an explicit approver argument.",
     }
@@ -2089,20 +2089,20 @@ def test_workflow_steps_must_transition_all_action_outcomes() -> None:
 
 def test_workflow_steps_must_transition_authorization_failure_outcomes() -> None:
     author = _author()
-    del author["workflows"]["workflow.project.approval_notice"]["steps"][0]["outcome_transitions"]["forbidden"]
-    with pytest.raises(ContractError, match=r"Workflow workflow.project\.approval_notice step send_notice outcome_transitions must exactly map application action outcomes: missing: forbidden"):
+    del author["workflows"]["workflow.project.approval_notice"]["steps"][0]["outcome_transitions"]["access_denied"]
+    with pytest.raises(ContractError, match=r"Workflow workflow.project\.approval_notice step send_notice outcome_transitions must exactly map application action outcomes: missing: access_denied"):
         compile_source(author)
 
 
 def test_workflow_authorization_failure_collapse_requires_rationale() -> None:
     author = _author()
     workflow = author["workflows"]["workflow.project.approval_notice"]
-    del workflow["outcomes"]["notice_forbidden"]
-    workflow["steps"][0]["outcome_transitions"]["forbidden"] = {"fail_as": "delivery_failed"}
+    del workflow["outcomes"]["notice_access_denied"]
+    workflow["steps"][0]["outcome_transitions"]["access_denied"] = {"fail_as": "delivery_failed"}
     with pytest.raises(ContractError, match=r"collapses authorization failure into delivery_failed"):
         compile_source(author)
 
-    workflow["steps"][0]["outcome_transitions"]["forbidden"]["rationale"] = "The worker deliberately treats policy denial as a delivery failure for this integration."
+    workflow["steps"][0]["outcome_transitions"]["access_denied"]["rationale"] = "The worker deliberately treats policy denial as a delivery failure for this integration."
     compile_source(author)
 
 

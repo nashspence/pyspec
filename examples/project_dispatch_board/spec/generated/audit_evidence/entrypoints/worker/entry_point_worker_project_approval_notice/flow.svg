@@ -1,6 +1,6 @@
 <svg width="766pt" height="221pt"
  viewBox="0.00 0.00 766.00 221.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 71fc392511685a0c547d4eee8084d0e4eb0881ace9fe7284e549c882a574098d -->
+<!-- pyspec-contract-input-sha256: e20504e8bd0c08410825f4c5330964c6ceeda4d5053fc2b543654cd720e38fb0 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 203)">
 <title>entrypoint_entry_point_worker_project_approval_notice</title>
 <!-- entrypoint_entry_point_worker_project_approval_notice -->
@@ -41,12 +41,12 @@
 <text text-anchor="start" x="290" y="-42" font-family="Arial" font-size="10.00">delivery_failed</text>
 <text text-anchor="start" x="353" y="-42" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
 <text text-anchor="start" x="388" y="-42" font-family="Arial" font-size="8.00"> ← failure</text>
-<text text-anchor="start" x="290" y="-31" font-family="Arial" font-size="10.00">notice_forbidden</text>
-<text text-anchor="start" x="362" y="-31" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<text text-anchor="start" x="397" y="-31" font-family="Arial" font-size="8.00"> ← failure</text>
-<text text-anchor="start" x="290" y="-20" font-family="Arial" font-size="10.00">notice_unauthenticated</text>
-<text text-anchor="start" x="391" y="-20" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<text text-anchor="start" x="426" y="-20" font-family="Arial" font-size="8.00"> ← failure</text>
+<text text-anchor="start" x="290" y="-31" font-family="Arial" font-size="10.00">notice_access_denied</text>
+<text text-anchor="start" x="387" y="-31" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<text text-anchor="start" x="422" y="-31" font-family="Arial" font-size="8.00"> ← failure</text>
+<text text-anchor="start" x="290" y="-20" font-family="Arial" font-size="10.00">notice_authentication_required</text>
+<text text-anchor="start" x="423" y="-20" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<text text-anchor="start" x="458" y="-20" font-family="Arial" font-size="8.00"> ← failure</text>
 <polygon fill="none" stroke="#a16207" points="285,-11 285,-185 537,-185 537,-11 285,-11"/>
 </g>
 <!-- entrypoint_entry_point_worker_project_approval_notice&#45;&gt;entrypoint_target_workflow_project_approval_notice -->

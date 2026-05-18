@@ -243,11 +243,11 @@ render_presence:
       text.project.list.empty.heading: V0034
       text.project.list.ready.heading: V0022
     not_rendered:
-    - text.project.approve.forbidden
+    - text.project.approve.access_denied
+    - text.project.approve.authentication_required
     - text.project.approve.not_found
     - text.project.approve.success
     - text.project.approve.transition_not_allowed
-    - text.project.approve.unauthenticated
     - text.project.approve.unavailable
     - text.project.detail.error.body
     - text.project.detail.error.heading
@@ -274,9 +274,9 @@ visual_audit:
   required:
     covered:
       /application_actions/application_action.project.approve/action_kind: V0001
-      /application_actions/application_action.project.approve/authorization/forbidden_as: V0001
+      /application_actions/application_action.project.approve/authorization/access_denied_as: V0001
+      /application_actions/application_action.project.approve/authorization/authentication_required_as: V0001
       /application_actions/application_action.project.approve/authorization/policy: V0001
-      /application_actions/application_action.project.approve/authorization/unauthenticated_as: V0001
       /application_actions/application_action.project.approve/creates: V0001
       /application_actions/application_action.project.approve/deletes: V0001
       /application_actions/application_action.project.approve/input/additionalProperties: V0001
@@ -289,23 +289,23 @@ visual_audit:
       /application_actions/application_action.project.approve/lifecycle_transition/field: V0001
       /application_actions/application_action.project.approve/lifecycle_transition/from: V0001
       /application_actions/application_action.project.approve/lifecycle_transition/to: V0001
+      /application_actions/application_action.project.approve/outcomes/access_denied/emits: V0001
+      /application_actions/application_action.project.approve/outcomes/access_denied/kind: V0001
+      /application_actions/application_action.project.approve/outcomes/access_denied/result/$ref: V0001
       /application_actions/application_action.project.approve/outcomes/approved/emits/0/domain_event: V0001
       /application_actions/application_action.project.approve/outcomes/approved/emits/0/payload_bindings/approved_by/from: V0001
       /application_actions/application_action.project.approve/outcomes/approved/emits/0/payload_bindings/project_id/from: V0001
       /application_actions/application_action.project.approve/outcomes/approved/kind: V0001
       /application_actions/application_action.project.approve/outcomes/approved/result/$ref: V0001
-      /application_actions/application_action.project.approve/outcomes/forbidden/emits: V0001
-      /application_actions/application_action.project.approve/outcomes/forbidden/kind: V0001
-      /application_actions/application_action.project.approve/outcomes/forbidden/result/$ref: V0001
+      /application_actions/application_action.project.approve/outcomes/authentication_required/emits: V0001
+      /application_actions/application_action.project.approve/outcomes/authentication_required/kind: V0001
+      /application_actions/application_action.project.approve/outcomes/authentication_required/result/$ref: V0001
       /application_actions/application_action.project.approve/outcomes/not_found/emits: V0001
       /application_actions/application_action.project.approve/outcomes/not_found/kind: V0001
       /application_actions/application_action.project.approve/outcomes/not_found/result/$ref: V0001
       /application_actions/application_action.project.approve/outcomes/transition_not_allowed/emits: V0001
       /application_actions/application_action.project.approve/outcomes/transition_not_allowed/kind: V0001
       /application_actions/application_action.project.approve/outcomes/transition_not_allowed/result/$ref: V0001
-      /application_actions/application_action.project.approve/outcomes/unauthenticated/emits: V0001
-      /application_actions/application_action.project.approve/outcomes/unauthenticated/kind: V0001
-      /application_actions/application_action.project.approve/outcomes/unauthenticated/result/$ref: V0001
       /application_actions/application_action.project.approve/outcomes/unavailable/emits: V0001
       /application_actions/application_action.project.approve/outcomes/unavailable/kind: V0001
       /application_actions/application_action.project.approve/outcomes/unavailable/result/$ref: V0001
@@ -314,9 +314,9 @@ visual_audit:
       /application_actions/application_action.project.approve/retry_safe: V0001
       /application_actions/application_action.project.approve/updates: V0001
       /application_actions/application_action.project.archive/action_kind: V0002
-      /application_actions/application_action.project.archive/authorization/forbidden_as: V0002
+      /application_actions/application_action.project.archive/authorization/access_denied_as: V0002
+      /application_actions/application_action.project.archive/authorization/authentication_required_as: V0002
       /application_actions/application_action.project.archive/authorization/policy: V0002
-      /application_actions/application_action.project.archive/authorization/unauthenticated_as: V0002
       /application_actions/application_action.project.archive/creates: V0002
       /application_actions/application_action.project.archive/deletes: V0002
       /application_actions/application_action.project.archive/input/additionalProperties: V0002
@@ -327,29 +327,29 @@ visual_audit:
       /application_actions/application_action.project.archive/lifecycle_transition/field: V0002
       /application_actions/application_action.project.archive/lifecycle_transition/from: V0002
       /application_actions/application_action.project.archive/lifecycle_transition/to: V0002
+      /application_actions/application_action.project.archive/outcomes/access_denied/emits: V0002
+      /application_actions/application_action.project.archive/outcomes/access_denied/kind: V0002
+      /application_actions/application_action.project.archive/outcomes/access_denied/result/$ref: V0002
       /application_actions/application_action.project.archive/outcomes/archived/emits/0/domain_event: V0002
       /application_actions/application_action.project.archive/outcomes/archived/emits/0/payload_source: V0002
       /application_actions/application_action.project.archive/outcomes/archived/kind: V0002
       /application_actions/application_action.project.archive/outcomes/archived/result/$ref: V0002
-      /application_actions/application_action.project.archive/outcomes/forbidden/emits: V0002
-      /application_actions/application_action.project.archive/outcomes/forbidden/kind: V0002
-      /application_actions/application_action.project.archive/outcomes/forbidden/result/$ref: V0002
+      /application_actions/application_action.project.archive/outcomes/authentication_required/emits: V0002
+      /application_actions/application_action.project.archive/outcomes/authentication_required/kind: V0002
+      /application_actions/application_action.project.archive/outcomes/authentication_required/result/$ref: V0002
       /application_actions/application_action.project.archive/outcomes/not_found/emits: V0002
       /application_actions/application_action.project.archive/outcomes/not_found/kind: V0002
       /application_actions/application_action.project.archive/outcomes/not_found/result/$ref: V0002
       /application_actions/application_action.project.archive/outcomes/transition_not_allowed/emits: V0002
       /application_actions/application_action.project.archive/outcomes/transition_not_allowed/kind: V0002
       /application_actions/application_action.project.archive/outcomes/transition_not_allowed/result/$ref: V0002
-      /application_actions/application_action.project.archive/outcomes/unauthenticated/emits: V0002
-      /application_actions/application_action.project.archive/outcomes/unauthenticated/kind: V0002
-      /application_actions/application_action.project.archive/outcomes/unauthenticated/result/$ref: V0002
       /application_actions/application_action.project.archive/rationale: V0002
       /application_actions/application_action.project.archive/reads: V0002
       /application_actions/application_action.project.archive/updates: V0002
       /application_actions/application_action.project.create/action_kind: V0003
-      /application_actions/application_action.project.create/authorization/forbidden_as: V0003
+      /application_actions/application_action.project.create/authorization/access_denied_as: V0003
+      /application_actions/application_action.project.create/authorization/authentication_required_as: V0003
       /application_actions/application_action.project.create/authorization/policy: V0003
-      /application_actions/application_action.project.create/authorization/unauthenticated_as: V0003
       /application_actions/application_action.project.create/creates/0: V0003
       /application_actions/application_action.project.create/deletes: V0003
       /application_actions/application_action.project.create/input/additionalProperties: V0003
@@ -362,16 +362,16 @@ visual_audit:
       /application_actions/application_action.project.create/input/required/2: V0003
       /application_actions/application_action.project.create/input/required/3: V0003
       /application_actions/application_action.project.create/input/type: V0003
+      /application_actions/application_action.project.create/outcomes/access_denied/emits: V0003
+      /application_actions/application_action.project.create/outcomes/access_denied/kind: V0003
+      /application_actions/application_action.project.create/outcomes/access_denied/result/$ref: V0003
+      /application_actions/application_action.project.create/outcomes/authentication_required/emits: V0003
+      /application_actions/application_action.project.create/outcomes/authentication_required/kind: V0003
+      /application_actions/application_action.project.create/outcomes/authentication_required/result/$ref: V0003
       /application_actions/application_action.project.create/outcomes/created/emits/0/domain_event: V0003
       /application_actions/application_action.project.create/outcomes/created/emits/0/payload_source: V0003
       /application_actions/application_action.project.create/outcomes/created/kind: V0003
       /application_actions/application_action.project.create/outcomes/created/result/$ref: V0003
-      /application_actions/application_action.project.create/outcomes/forbidden/emits: V0003
-      /application_actions/application_action.project.create/outcomes/forbidden/kind: V0003
-      /application_actions/application_action.project.create/outcomes/forbidden/result/$ref: V0003
-      /application_actions/application_action.project.create/outcomes/unauthenticated/emits: V0003
-      /application_actions/application_action.project.create/outcomes/unauthenticated/kind: V0003
-      /application_actions/application_action.project.create/outcomes/unauthenticated/result/$ref: V0003
       /application_actions/application_action.project.create/outcomes/validation_failed/emits: V0003
       /application_actions/application_action.project.create/outcomes/validation_failed/kind: V0003
       /application_actions/application_action.project.create/outcomes/validation_failed/result/$ref: V0003
@@ -379,25 +379,25 @@ visual_audit:
       /application_actions/application_action.project.create/reads: V0003
       /application_actions/application_action.project.create/updates: V0003
       /application_actions/application_action.project.list/action_kind: V0004
-      /application_actions/application_action.project.list/authorization/forbidden_as: V0004
+      /application_actions/application_action.project.list/authorization/access_denied_as: V0004
+      /application_actions/application_action.project.list/authorization/authentication_required_as: V0004
       /application_actions/application_action.project.list/authorization/policy: V0004
-      /application_actions/application_action.project.list/authorization/unauthenticated_as: V0004
       /application_actions/application_action.project.list/creates: V0004
       /application_actions/application_action.project.list/deletes: V0004
       /application_actions/application_action.project.list/input/additionalProperties: V0004
       /application_actions/application_action.project.list/input/properties/workspace_id/type: V0004
       /application_actions/application_action.project.list/input/required/0: V0004
       /application_actions/application_action.project.list/input/type: V0004
-      /application_actions/application_action.project.list/outcomes/forbidden/emits: V0004
-      /application_actions/application_action.project.list/outcomes/forbidden/kind: V0004
-      /application_actions/application_action.project.list/outcomes/forbidden/result/$ref: V0004
+      /application_actions/application_action.project.list/outcomes/access_denied/emits: V0004
+      /application_actions/application_action.project.list/outcomes/access_denied/kind: V0004
+      /application_actions/application_action.project.list/outcomes/access_denied/result/$ref: V0004
+      /application_actions/application_action.project.list/outcomes/authentication_required/emits: V0004
+      /application_actions/application_action.project.list/outcomes/authentication_required/kind: V0004
+      /application_actions/application_action.project.list/outcomes/authentication_required/result/$ref: V0004
       /application_actions/application_action.project.list/outcomes/listed/emits: V0004
       /application_actions/application_action.project.list/outcomes/listed/kind: V0004
       /application_actions/application_action.project.list/outcomes/listed/result/items/$ref: V0004
       /application_actions/application_action.project.list/outcomes/listed/result/type: V0004
-      /application_actions/application_action.project.list/outcomes/unauthenticated/emits: V0004
-      /application_actions/application_action.project.list/outcomes/unauthenticated/kind: V0004
-      /application_actions/application_action.project.list/outcomes/unauthenticated/result/$ref: V0004
       /application_actions/application_action.project.list/outcomes/unavailable/emits: V0004
       /application_actions/application_action.project.list/outcomes/unavailable/kind: V0004
       /application_actions/application_action.project.list/outcomes/unavailable/result/$ref: V0004
@@ -405,34 +405,34 @@ visual_audit:
       /application_actions/application_action.project.list/reads/0: V0004
       /application_actions/application_action.project.list/updates: V0004
       /application_actions/application_action.project.read/action_kind: V0005
-      /application_actions/application_action.project.read/authorization/forbidden_as: V0005
+      /application_actions/application_action.project.read/authorization/access_denied_as: V0005
+      /application_actions/application_action.project.read/authorization/authentication_required_as: V0005
       /application_actions/application_action.project.read/authorization/policy: V0005
-      /application_actions/application_action.project.read/authorization/unauthenticated_as: V0005
       /application_actions/application_action.project.read/creates: V0005
       /application_actions/application_action.project.read/deletes: V0005
       /application_actions/application_action.project.read/input/additionalProperties: V0005
       /application_actions/application_action.project.read/input/properties/project_id/type: V0005
       /application_actions/application_action.project.read/input/required/0: V0005
       /application_actions/application_action.project.read/input/type: V0005
-      /application_actions/application_action.project.read/outcomes/forbidden/emits: V0005
-      /application_actions/application_action.project.read/outcomes/forbidden/kind: V0005
-      /application_actions/application_action.project.read/outcomes/forbidden/result/$ref: V0005
+      /application_actions/application_action.project.read/outcomes/access_denied/emits: V0005
+      /application_actions/application_action.project.read/outcomes/access_denied/kind: V0005
+      /application_actions/application_action.project.read/outcomes/access_denied/result/$ref: V0005
+      /application_actions/application_action.project.read/outcomes/authentication_required/emits: V0005
+      /application_actions/application_action.project.read/outcomes/authentication_required/kind: V0005
+      /application_actions/application_action.project.read/outcomes/authentication_required/result/$ref: V0005
       /application_actions/application_action.project.read/outcomes/found/emits: V0005
       /application_actions/application_action.project.read/outcomes/found/kind: V0005
       /application_actions/application_action.project.read/outcomes/found/result/$ref: V0005
       /application_actions/application_action.project.read/outcomes/not_found/emits: V0005
       /application_actions/application_action.project.read/outcomes/not_found/kind: V0005
       /application_actions/application_action.project.read/outcomes/not_found/result/$ref: V0005
-      /application_actions/application_action.project.read/outcomes/unauthenticated/emits: V0005
-      /application_actions/application_action.project.read/outcomes/unauthenticated/kind: V0005
-      /application_actions/application_action.project.read/outcomes/unauthenticated/result/$ref: V0005
       /application_actions/application_action.project.read/rationale: V0005
       /application_actions/application_action.project.read/reads/0: V0005
       /application_actions/application_action.project.read/updates: V0005
       /application_actions/application_action.project.send_approval_notice/action_kind: V0006
-      /application_actions/application_action.project.send_approval_notice/authorization/forbidden_as: V0006
+      /application_actions/application_action.project.send_approval_notice/authorization/access_denied_as: V0006
+      /application_actions/application_action.project.send_approval_notice/authorization/authentication_required_as: V0006
       /application_actions/application_action.project.send_approval_notice/authorization/policy: V0006
-      /application_actions/application_action.project.send_approval_notice/authorization/unauthenticated_as: V0006
       /application_actions/application_action.project.send_approval_notice/creates: V0006
       /application_actions/application_action.project.send_approval_notice/deletes: V0006
       /application_actions/application_action.project.send_approval_notice/input/additionalProperties: V0006
@@ -441,26 +441,26 @@ visual_audit:
       /application_actions/application_action.project.send_approval_notice/input/required/0: V0006
       /application_actions/application_action.project.send_approval_notice/input/required/1: V0006
       /application_actions/application_action.project.send_approval_notice/input/type: V0006
+      /application_actions/application_action.project.send_approval_notice/outcomes/access_denied/emits: V0006
+      /application_actions/application_action.project.send_approval_notice/outcomes/access_denied/kind: V0006
+      /application_actions/application_action.project.send_approval_notice/outcomes/access_denied/result/$ref: V0006
+      /application_actions/application_action.project.send_approval_notice/outcomes/authentication_required/emits: V0006
+      /application_actions/application_action.project.send_approval_notice/outcomes/authentication_required/kind: V0006
+      /application_actions/application_action.project.send_approval_notice/outcomes/authentication_required/result/$ref: V0006
       /application_actions/application_action.project.send_approval_notice/outcomes/delivery_failed/emits: V0006
       /application_actions/application_action.project.send_approval_notice/outcomes/delivery_failed/kind: V0006
       /application_actions/application_action.project.send_approval_notice/outcomes/delivery_failed/result/$ref: V0006
-      /application_actions/application_action.project.send_approval_notice/outcomes/forbidden/emits: V0006
-      /application_actions/application_action.project.send_approval_notice/outcomes/forbidden/kind: V0006
-      /application_actions/application_action.project.send_approval_notice/outcomes/forbidden/result/$ref: V0006
       /application_actions/application_action.project.send_approval_notice/outcomes/sent/emits: V0006
       /application_actions/application_action.project.send_approval_notice/outcomes/sent/kind: V0006
       /application_actions/application_action.project.send_approval_notice/outcomes/sent/result/$ref: V0006
-      /application_actions/application_action.project.send_approval_notice/outcomes/unauthenticated/emits: V0006
-      /application_actions/application_action.project.send_approval_notice/outcomes/unauthenticated/kind: V0006
-      /application_actions/application_action.project.send_approval_notice/outcomes/unauthenticated/result/$ref: V0006
       /application_actions/application_action.project.send_approval_notice/rationale: V0006
       /application_actions/application_action.project.send_approval_notice/reads: V0006
       /application_actions/application_action.project.send_approval_notice/retry_safe: V0006
       /application_actions/application_action.project.send_approval_notice/updates: V0006
       /application_actions/application_action.project.submit/action_kind: V0007
-      /application_actions/application_action.project.submit/authorization/forbidden_as: V0007
+      /application_actions/application_action.project.submit/authorization/access_denied_as: V0007
+      /application_actions/application_action.project.submit/authorization/authentication_required_as: V0007
       /application_actions/application_action.project.submit/authorization/policy: V0007
-      /application_actions/application_action.project.submit/authorization/unauthenticated_as: V0007
       /application_actions/application_action.project.submit/creates: V0007
       /application_actions/application_action.project.submit/deletes: V0007
       /application_actions/application_action.project.submit/input/additionalProperties: V0007
@@ -471,9 +471,12 @@ visual_audit:
       /application_actions/application_action.project.submit/lifecycle_transition/field: V0007
       /application_actions/application_action.project.submit/lifecycle_transition/from: V0007
       /application_actions/application_action.project.submit/lifecycle_transition/to: V0007
-      /application_actions/application_action.project.submit/outcomes/forbidden/emits: V0007
-      /application_actions/application_action.project.submit/outcomes/forbidden/kind: V0007
-      /application_actions/application_action.project.submit/outcomes/forbidden/result/$ref: V0007
+      /application_actions/application_action.project.submit/outcomes/access_denied/emits: V0007
+      /application_actions/application_action.project.submit/outcomes/access_denied/kind: V0007
+      /application_actions/application_action.project.submit/outcomes/access_denied/result/$ref: V0007
+      /application_actions/application_action.project.submit/outcomes/authentication_required/emits: V0007
+      /application_actions/application_action.project.submit/outcomes/authentication_required/kind: V0007
+      /application_actions/application_action.project.submit/outcomes/authentication_required/result/$ref: V0007
       /application_actions/application_action.project.submit/outcomes/not_found/emits: V0007
       /application_actions/application_action.project.submit/outcomes/not_found/kind: V0007
       /application_actions/application_action.project.submit/outcomes/not_found/result/$ref: V0007
@@ -484,29 +487,26 @@ visual_audit:
       /application_actions/application_action.project.submit/outcomes/transition_not_allowed/emits: V0007
       /application_actions/application_action.project.submit/outcomes/transition_not_allowed/kind: V0007
       /application_actions/application_action.project.submit/outcomes/transition_not_allowed/result/$ref: V0007
-      /application_actions/application_action.project.submit/outcomes/unauthenticated/emits: V0007
-      /application_actions/application_action.project.submit/outcomes/unauthenticated/kind: V0007
-      /application_actions/application_action.project.submit/outcomes/unauthenticated/result/$ref: V0007
       /application_actions/application_action.project.submit/rationale: V0007
       /application_actions/application_action.project.submit/reads: V0007
       /application_actions/application_action.project.submit/updates: V0007
       /authorization_policies/authorization_policy.project.member/conditions/0/subject_has_role: V0010
       /authorization_policies/authorization_policy.project.member/effect: V0010
       /authorization_policies/authorization_policy.project.member/rationale: V0010
+      /authorization_policies/authorization_policy.project.member/resources/0/action: V0010
+      /authorization_policies/authorization_policy.project.member/resources/1/action: V0010
+      /authorization_policies/authorization_policy.project.member/resources/2/action: V0010
+      /authorization_policies/authorization_policy.project.member/resources/3/action: V0010
+      /authorization_policies/authorization_policy.project.member/resources/4/entity_type: V0010
       /authorization_policies/authorization_policy.project.member/subjects/0/kind: V0010
-      /authorization_policies/authorization_policy.project.member/targets/0/application_action: V0010
-      /authorization_policies/authorization_policy.project.member/targets/1/application_action: V0010
-      /authorization_policies/authorization_policy.project.member/targets/2/application_action: V0010
-      /authorization_policies/authorization_policy.project.member/targets/3/application_action: V0010
-      /authorization_policies/authorization_policy.project.member/targets/4/entity_type: V0010
       /authorization_policies/authorization_policy.project.reviewer/conditions/0/subject_has_role: V0011
       /authorization_policies/authorization_policy.project.reviewer/effect: V0011
       /authorization_policies/authorization_policy.project.reviewer/rationale: V0011
+      /authorization_policies/authorization_policy.project.reviewer/resources/0/action: V0011
+      /authorization_policies/authorization_policy.project.reviewer/resources/1/action: V0011
+      /authorization_policies/authorization_policy.project.reviewer/resources/2/action: V0011
+      /authorization_policies/authorization_policy.project.reviewer/resources/3/entity_type: V0011
       /authorization_policies/authorization_policy.project.reviewer/subjects/0/kind: V0011
-      /authorization_policies/authorization_policy.project.reviewer/targets/0/application_action: V0011
-      /authorization_policies/authorization_policy.project.reviewer/targets/1/application_action: V0011
-      /authorization_policies/authorization_policy.project.reviewer/targets/2/application_action: V0011
-      /authorization_policies/authorization_policy.project.reviewer/targets/3/entity_type: V0011
       /domain_events/domain_event.project.approved/emitted_by/0: V0012
       /domain_events/domain_event.project.approved/payload_schema/$ref: V0012
       /domain_events/domain_event.project.approved/rationale: V0012
@@ -577,21 +577,21 @@ visual_audit:
       /entry_points/entry_point.api.project.approve/adapter/http_api/input/path_params/project_id/type: V0015
       /entry_points/entry_point.api.project.approve/adapter/http_api/method: V0015
       /entry_points/entry_point.api.project.approve/adapter/http_api/path: V0015
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/access_denied/body/from: V0015
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/access_denied/body/type/$ref: V0015
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/access_denied/status: V0015
       /entry_points/entry_point.api.project.approve/adapter/http_api/responses/approved/body/from: V0015
       /entry_points/entry_point.api.project.approve/adapter/http_api/responses/approved/body/type/$ref: V0015
       /entry_points/entry_point.api.project.approve/adapter/http_api/responses/approved/status: V0015
-      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/forbidden/body/from: V0015
-      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/forbidden/body/type/$ref: V0015
-      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/forbidden/status: V0015
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/authentication_required/body/from: V0015
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/authentication_required/body/type/$ref: V0015
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/authentication_required/status: V0015
       /entry_points/entry_point.api.project.approve/adapter/http_api/responses/not_found/body/from: V0015
       /entry_points/entry_point.api.project.approve/adapter/http_api/responses/not_found/body/type/$ref: V0015
       /entry_points/entry_point.api.project.approve/adapter/http_api/responses/not_found/status: V0015
       /entry_points/entry_point.api.project.approve/adapter/http_api/responses/transition_not_allowed/body/from: V0015
       /entry_points/entry_point.api.project.approve/adapter/http_api/responses/transition_not_allowed/body/type/$ref: V0015
       /entry_points/entry_point.api.project.approve/adapter/http_api/responses/transition_not_allowed/status: V0015
-      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/unauthenticated/body/from: V0015
-      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/unauthenticated/body/type/$ref: V0015
-      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/unauthenticated/status: V0015
       /entry_points/entry_point.api.project.approve/adapter/http_api/responses/unavailable/body/from: V0015
       /entry_points/entry_point.api.project.approve/adapter/http_api/responses/unavailable/body/type/$ref: V0015
       /entry_points/entry_point.api.project.approve/adapter/http_api/responses/unavailable/status: V0015
@@ -608,15 +608,15 @@ visual_audit:
       /entry_points/entry_point.api.project.create/adapter/http_api/input/path_params/workspace_id/type: V0016
       /entry_points/entry_point.api.project.create/adapter/http_api/method: V0016
       /entry_points/entry_point.api.project.create/adapter/http_api/path: V0016
+      /entry_points/entry_point.api.project.create/adapter/http_api/responses/access_denied/body/from: V0016
+      /entry_points/entry_point.api.project.create/adapter/http_api/responses/access_denied/body/type/$ref: V0016
+      /entry_points/entry_point.api.project.create/adapter/http_api/responses/access_denied/status: V0016
+      /entry_points/entry_point.api.project.create/adapter/http_api/responses/authentication_required/body/from: V0016
+      /entry_points/entry_point.api.project.create/adapter/http_api/responses/authentication_required/body/type/$ref: V0016
+      /entry_points/entry_point.api.project.create/adapter/http_api/responses/authentication_required/status: V0016
       /entry_points/entry_point.api.project.create/adapter/http_api/responses/created/body/from: V0016
       /entry_points/entry_point.api.project.create/adapter/http_api/responses/created/body/type/$ref: V0016
       /entry_points/entry_point.api.project.create/adapter/http_api/responses/created/status: V0016
-      /entry_points/entry_point.api.project.create/adapter/http_api/responses/forbidden/body/from: V0016
-      /entry_points/entry_point.api.project.create/adapter/http_api/responses/forbidden/body/type/$ref: V0016
-      /entry_points/entry_point.api.project.create/adapter/http_api/responses/forbidden/status: V0016
-      /entry_points/entry_point.api.project.create/adapter/http_api/responses/unauthenticated/body/from: V0016
-      /entry_points/entry_point.api.project.create/adapter/http_api/responses/unauthenticated/body/type/$ref: V0016
-      /entry_points/entry_point.api.project.create/adapter/http_api/responses/unauthenticated/status: V0016
       /entry_points/entry_point.api.project.create/adapter/http_api/responses/validation_failed/body/from: V0016
       /entry_points/entry_point.api.project.create/adapter/http_api/responses/validation_failed/body/type/$ref: V0016
       /entry_points/entry_point.api.project.create/adapter/http_api/responses/validation_failed/status: V0016
@@ -631,16 +631,16 @@ visual_audit:
       /entry_points/entry_point.api.project.list/adapter/http_api/input/path_params/workspace_id/type: V0017
       /entry_points/entry_point.api.project.list/adapter/http_api/method: V0017
       /entry_points/entry_point.api.project.list/adapter/http_api/path: V0017
-      /entry_points/entry_point.api.project.list/adapter/http_api/responses/forbidden/body/from: V0017
-      /entry_points/entry_point.api.project.list/adapter/http_api/responses/forbidden/body/type/$ref: V0017
-      /entry_points/entry_point.api.project.list/adapter/http_api/responses/forbidden/status: V0017
+      /entry_points/entry_point.api.project.list/adapter/http_api/responses/access_denied/body/from: V0017
+      /entry_points/entry_point.api.project.list/adapter/http_api/responses/access_denied/body/type/$ref: V0017
+      /entry_points/entry_point.api.project.list/adapter/http_api/responses/access_denied/status: V0017
+      /entry_points/entry_point.api.project.list/adapter/http_api/responses/authentication_required/body/from: V0017
+      /entry_points/entry_point.api.project.list/adapter/http_api/responses/authentication_required/body/type/$ref: V0017
+      /entry_points/entry_point.api.project.list/adapter/http_api/responses/authentication_required/status: V0017
       /entry_points/entry_point.api.project.list/adapter/http_api/responses/listed/body/from: V0017
       /entry_points/entry_point.api.project.list/adapter/http_api/responses/listed/body/type/items/$ref: V0017
       /entry_points/entry_point.api.project.list/adapter/http_api/responses/listed/body/type/type: V0017
       /entry_points/entry_point.api.project.list/adapter/http_api/responses/listed/status: V0017
-      /entry_points/entry_point.api.project.list/adapter/http_api/responses/unauthenticated/body/from: V0017
-      /entry_points/entry_point.api.project.list/adapter/http_api/responses/unauthenticated/body/type/$ref: V0017
-      /entry_points/entry_point.api.project.list/adapter/http_api/responses/unauthenticated/status: V0017
       /entry_points/entry_point.api.project.list/adapter/http_api/responses/unavailable/body/from: V0017
       /entry_points/entry_point.api.project.list/adapter/http_api/responses/unavailable/body/type/$ref: V0017
       /entry_points/entry_point.api.project.list/adapter/http_api/responses/unavailable/status: V0017
@@ -652,12 +652,16 @@ visual_audit:
       /entry_points/entry_point.cli.project.approve/adapter/cli/cli_command: V0018
       /entry_points/entry_point.cli.project.approve/adapter/cli/input/args/approved_by/type: V0018
       /entry_points/entry_point.cli.project.approve/adapter/cli/input/args/project_id/type: V0018
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/access_denied/exit_code: V0018
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/access_denied/stderr/bindings/message/from: V0018
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/access_denied/stderr/text: V0018
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/approved/exit_code: V0018
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/approved/stdout/bindings/project_id/from: V0018
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/approved/stdout/text: V0018
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/forbidden/exit_code: V0018
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/forbidden/stderr/bindings/message/from: V0018
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/forbidden/stderr/text: V0018
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/authentication_required/exit_code: V0018
+      ? /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/authentication_required/stderr/bindings/message/from
+      : V0018
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/authentication_required/stderr/text: V0018
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/not_found/exit_code: V0018
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/not_found/stderr/bindings/message/from: V0018
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/not_found/stderr/text: V0018
@@ -665,9 +669,6 @@ visual_audit:
       ? /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/transition_not_allowed/stderr/bindings/message/from
       : V0018
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/transition_not_allowed/stderr/text: V0018
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unauthenticated/exit_code: V0018
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unauthenticated/stderr/bindings/message/from: V0018
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unauthenticated/stderr/text: V0018
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unavailable/exit_code: V0018
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unavailable/retry_policy/attempts: V0018
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unavailable/retry_policy/backoff: V0018
@@ -766,9 +767,13 @@ visual_audit:
       /state_machines/state_machine.project.activity/view_states/ready/data_loaders/read_activity/application_action: V0025
       /state_machines/state_machine.project.activity/view_states/ready/data_loaders/read_activity/input_bindings/project_id/from: V0025
       /state_machines/state_machine.project.activity/view_states/ready/data_loaders/read_activity/load/on_enter: V0025
-      ? /state_machines/state_machine.project.activity/view_states/ready/data_loaders/read_activity/outcome_effects/forbidden/no_local_effect/rationale
+      ? /state_machines/state_machine.project.activity/view_states/ready/data_loaders/read_activity/outcome_effects/access_denied/no_local_effect/rationale
       : V0025
-      ? /state_machines/state_machine.project.activity/view_states/ready/data_loaders/read_activity/outcome_effects/forbidden/no_local_effect/reason
+      ? /state_machines/state_machine.project.activity/view_states/ready/data_loaders/read_activity/outcome_effects/access_denied/no_local_effect/reason
+      : V0025
+      ? /state_machines/state_machine.project.activity/view_states/ready/data_loaders/read_activity/outcome_effects/authentication_required/no_local_effect/rationale
+      : V0025
+      ? /state_machines/state_machine.project.activity/view_states/ready/data_loaders/read_activity/outcome_effects/authentication_required/no_local_effect/reason
       : V0025
       ? /state_machines/state_machine.project.activity/view_states/ready/data_loaders/read_activity/outcome_effects/found/no_local_effect/reason
       : V0025
@@ -779,10 +784,6 @@ visual_audit:
       ? /state_machines/state_machine.project.activity/view_states/ready/data_loaders/read_activity/outcome_effects/not_found/no_local_effect/rationale
       : V0025
       ? /state_machines/state_machine.project.activity/view_states/ready/data_loaders/read_activity/outcome_effects/not_found/no_local_effect/reason
-      : V0025
-      ? /state_machines/state_machine.project.activity/view_states/ready/data_loaders/read_activity/outcome_effects/unauthenticated/no_local_effect/rationale
-      : V0025
-      ? /state_machines/state_machine.project.activity/view_states/ready/data_loaders/read_activity/outcome_effects/unauthenticated/no_local_effect/reason
       : V0025
       /state_machines/state_machine.project.activity/view_states/ready/fields/0: V0025
       /state_machines/state_machine.project.activity/view_states/ready/fields/1: V0025
@@ -799,14 +800,16 @@ visual_audit:
       /state_machines/state_machine.project.board/data_loaders/list_board/application_action: V0026
       /state_machines/state_machine.project.board/data_loaders/list_board/input_bindings/workspace_id/from: V0026
       /state_machines/state_machine.project.board/data_loaders/list_board/load/on_start: V0026
-      /state_machines/state_machine.project.board/data_loaders/list_board/outcome_effects/forbidden/no_local_effect/rationale: V0026
-      /state_machines/state_machine.project.board/data_loaders/list_board/outcome_effects/forbidden/no_local_effect/reason: V0026
+      ? /state_machines/state_machine.project.board/data_loaders/list_board/outcome_effects/access_denied/no_local_effect/rationale
+      : V0026
+      /state_machines/state_machine.project.board/data_loaders/list_board/outcome_effects/access_denied/no_local_effect/reason: V0026
+      ? /state_machines/state_machine.project.board/data_loaders/list_board/outcome_effects/authentication_required/no_local_effect/rationale
+      : V0026
+      ? /state_machines/state_machine.project.board/data_loaders/list_board/outcome_effects/authentication_required/no_local_effect/reason
+      : V0026
       /state_machines/state_machine.project.board/data_loaders/list_board/outcome_effects/listed/no_local_effect/reason: V0026
       /state_machines/state_machine.project.board/data_loaders/list_board/outcome_effects/listed/result_binding/data_key: V0026
       /state_machines/state_machine.project.board/data_loaders/list_board/outcome_effects/listed/result_binding/from/from: V0026
-      ? /state_machines/state_machine.project.board/data_loaders/list_board/outcome_effects/unauthenticated/no_local_effect/rationale
-      : V0026
-      /state_machines/state_machine.project.board/data_loaders/list_board/outcome_effects/unauthenticated/no_local_effect/reason: V0026
       /state_machines/state_machine.project.board/data_loaders/list_board/outcome_effects/unavailable/no_local_effect/rationale: V0026
       /state_machines/state_machine.project.board/data_loaders/list_board/outcome_effects/unavailable/no_local_effect/reason: V0026
       /state_machines/state_machine.project.board/data_loaders/list_board/rationale: V0026
@@ -1008,7 +1011,9 @@ visual_audit:
       /state_machines/state_machine.project.detail/view_states/loading/data_loaders/read_project/application_action: V0027
       /state_machines/state_machine.project.detail/view_states/loading/data_loaders/read_project/input_bindings/project_id/from: V0027
       /state_machines/state_machine.project.detail/view_states/loading/data_loaders/read_project/load/on_enter: V0027
-      ? /state_machines/state_machine.project.detail/view_states/loading/data_loaders/read_project/outcome_effects/forbidden/raise/data_refresh_signal
+      ? /state_machines/state_machine.project.detail/view_states/loading/data_loaders/read_project/outcome_effects/access_denied/raise/data_refresh_signal
+      : V0027
+      ? /state_machines/state_machine.project.detail/view_states/loading/data_loaders/read_project/outcome_effects/authentication_required/raise/data_refresh_signal
       : V0027
       ? /state_machines/state_machine.project.detail/view_states/loading/data_loaders/read_project/outcome_effects/found/raise/data_refresh_signal
       : V0027
@@ -1017,8 +1022,6 @@ visual_audit:
       ? /state_machines/state_machine.project.detail/view_states/loading/data_loaders/read_project/outcome_effects/found/result_binding/from/from
       : V0027
       ? /state_machines/state_machine.project.detail/view_states/loading/data_loaders/read_project/outcome_effects/not_found/raise/data_refresh_signal
-      : V0027
-      ? /state_machines/state_machine.project.detail/view_states/loading/data_loaders/read_project/outcome_effects/unauthenticated/raise/data_refresh_signal
       : V0027
       /state_machines/state_machine.project.detail/view_states/loading/fields: V0027
       /state_machines/state_machine.project.detail/view_states/loading/surface: V0027
@@ -1033,11 +1036,15 @@ visual_audit:
       /state_machines/state_machine.project.detail/view_states/ready/action_bindings/approve/application_action: V0027
       /state_machines/state_machine.project.detail/view_states/ready/action_bindings/approve/input_bindings/approved_by/from: V0027
       /state_machines/state_machine.project.detail/view_states/ready/action_bindings/approve/input_bindings/project_id/from: V0027
+      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/approve/outcome_effects/access_denied/no_local_effect/rationale
+      : V0027
+      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/approve/outcome_effects/access_denied/no_local_effect/reason
+      : V0027
       ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/approve/outcome_effects/approved/raise/data_refresh_signal
       : V0027
-      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/approve/outcome_effects/forbidden/no_local_effect/rationale
+      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/approve/outcome_effects/authentication_required/no_local_effect/rationale
       : V0027
-      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/approve/outcome_effects/forbidden/no_local_effect/reason
+      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/approve/outcome_effects/authentication_required/no_local_effect/reason
       : V0027
       ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/approve/outcome_effects/not_found/no_local_effect/rationale
       : V0027
@@ -1047,21 +1054,21 @@ visual_audit:
       : V0027
       ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/approve/outcome_effects/transition_not_allowed/raise/payload_bindings/message/from
       : V0027
-      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/approve/outcome_effects/unauthenticated/no_local_effect/rationale
-      : V0027
-      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/approve/outcome_effects/unauthenticated/no_local_effect/reason
-      : V0027
       ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/approve/outcome_effects/unavailable/no_local_effect/rationale
       : V0027
       ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/approve/outcome_effects/unavailable/no_local_effect/reason
       : V0027
       /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/application_action: V0027
       /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/input_bindings/project_id/from: V0027
+      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/outcome_effects/access_denied/raise/local_signal
+      : V0027
+      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/outcome_effects/access_denied/raise/payload_bindings/message/from
+      : V0027
       ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/outcome_effects/archived/raise/data_refresh_signal
       : V0027
-      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/outcome_effects/forbidden/raise/local_signal
+      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/outcome_effects/authentication_required/raise/local_signal
       : V0027
-      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/outcome_effects/forbidden/raise/payload_bindings/message/from
+      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/outcome_effects/authentication_required/raise/payload_bindings/message/from
       : V0027
       ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/outcome_effects/not_found/raise/local_signal
       : V0027
@@ -1071,19 +1078,19 @@ visual_audit:
       : V0027
       ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/outcome_effects/transition_not_allowed/raise/payload_bindings/message/from
       : V0027
-      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/outcome_effects/unauthenticated/raise/local_signal
-      : V0027
-      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/outcome_effects/unauthenticated/raise/payload_bindings/message/from
-      : V0027
       /state_machines/state_machine.project.detail/view_states/ready/assets/0: V0027
       /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/application_action: V0027
       /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/input_bindings/project_id/from: V0027
       /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/load/on_enter: V0027
       ? /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/load/refresh_on/0/data_refresh_signal
       : V0027
-      ? /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/outcome_effects/forbidden/raise/local_signal
+      ? /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/outcome_effects/access_denied/raise/local_signal
       : V0027
-      ? /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/outcome_effects/forbidden/raise/payload_bindings/message/from
+      ? /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/outcome_effects/access_denied/raise/payload_bindings/message/from
+      : V0027
+      ? /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/outcome_effects/authentication_required/raise/local_signal
+      : V0027
+      ? /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/outcome_effects/authentication_required/raise/payload_bindings/message/from
       : V0027
       ? /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/outcome_effects/found/no_local_effect/reason
       : V0027
@@ -1094,10 +1101,6 @@ visual_audit:
       ? /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/outcome_effects/not_found/raise/local_signal
       : V0027
       ? /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/outcome_effects/not_found/raise/payload_bindings/message/from
-      : V0027
-      ? /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/outcome_effects/unauthenticated/raise/local_signal
-      : V0027
-      ? /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/outcome_effects/unauthenticated/raise/payload_bindings/message/from
       : V0027
       /state_machines/state_machine.project.detail/view_states/ready/fields/0: V0027
       /state_machines/state_machine.project.detail/view_states/ready/fields/1: V0027
@@ -1116,7 +1119,10 @@ visual_audit:
       /state_machines/state_machine.project.list/data_loaders/list_projects/input_bindings/workspace_id/from: V0028
       /state_machines/state_machine.project.list/data_loaders/list_projects/load/on_start: V0028
       /state_machines/state_machine.project.list/data_loaders/list_projects/load/refresh_on/0/data_refresh_signal: V0028
-      /state_machines/state_machine.project.list/data_loaders/list_projects/outcome_effects/forbidden/raise/data_refresh_signal: V0028
+      ? /state_machines/state_machine.project.list/data_loaders/list_projects/outcome_effects/access_denied/raise/data_refresh_signal
+      : V0028
+      ? /state_machines/state_machine.project.list/data_loaders/list_projects/outcome_effects/authentication_required/raise/data_refresh_signal
+      : V0028
       ? /state_machines/state_machine.project.list/data_loaders/list_projects/outcome_effects/listed/conditional_effects/0/context_updates/workspace_id/from
       : V0028
       ? /state_machines/state_machine.project.list/data_loaders/list_projects/outcome_effects/listed/conditional_effects/0/raise/data_refresh_signal
@@ -1136,8 +1142,6 @@ visual_audit:
       ? /state_machines/state_machine.project.list/data_loaders/list_projects/outcome_effects/listed/conditional_effects/1/result_binding/from/from
       : V0028
       ? /state_machines/state_machine.project.list/data_loaders/list_projects/outcome_effects/listed/conditional_effects/1/when/result_non_empty
-      : V0028
-      ? /state_machines/state_machine.project.list/data_loaders/list_projects/outcome_effects/unauthenticated/raise/data_refresh_signal
       : V0028
       ? /state_machines/state_machine.project.list/data_loaders/list_projects/outcome_effects/unavailable/raise/data_refresh_signal
       : V0028
@@ -1231,15 +1235,15 @@ visual_audit:
       /state_machines/state_machine.project.list/view_states/empty/action_bindings/create/input_bindings/priority/value: V0028
       /state_machines/state_machine.project.list/view_states/empty/action_bindings/create/input_bindings/title/value: V0028
       /state_machines/state_machine.project.list/view_states/empty/action_bindings/create/input_bindings/workspace_id/from: V0028
+      ? /state_machines/state_machine.project.list/view_states/empty/action_bindings/create/outcome_effects/access_denied/no_local_effect/rationale
+      : V0028
+      ? /state_machines/state_machine.project.list/view_states/empty/action_bindings/create/outcome_effects/access_denied/no_local_effect/reason
+      : V0028
+      ? /state_machines/state_machine.project.list/view_states/empty/action_bindings/create/outcome_effects/authentication_required/no_local_effect/rationale
+      : V0028
+      ? /state_machines/state_machine.project.list/view_states/empty/action_bindings/create/outcome_effects/authentication_required/no_local_effect/reason
+      : V0028
       ? /state_machines/state_machine.project.list/view_states/empty/action_bindings/create/outcome_effects/created/raise/data_refresh_signal
-      : V0028
-      ? /state_machines/state_machine.project.list/view_states/empty/action_bindings/create/outcome_effects/forbidden/no_local_effect/rationale
-      : V0028
-      ? /state_machines/state_machine.project.list/view_states/empty/action_bindings/create/outcome_effects/forbidden/no_local_effect/reason
-      : V0028
-      ? /state_machines/state_machine.project.list/view_states/empty/action_bindings/create/outcome_effects/unauthenticated/no_local_effect/rationale
-      : V0028
-      ? /state_machines/state_machine.project.list/view_states/empty/action_bindings/create/outcome_effects/unauthenticated/no_local_effect/reason
       : V0028
       ? /state_machines/state_machine.project.list/view_states/empty/action_bindings/create/outcome_effects/validation_failed/raise/local_signal
       : V0028
@@ -1269,15 +1273,15 @@ visual_audit:
       /state_machines/state_machine.project.list/view_states/ready/action_bindings/create/input_bindings/priority/value: V0028
       /state_machines/state_machine.project.list/view_states/ready/action_bindings/create/input_bindings/title/value: V0028
       /state_machines/state_machine.project.list/view_states/ready/action_bindings/create/input_bindings/workspace_id/from: V0028
+      ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/create/outcome_effects/access_denied/no_local_effect/rationale
+      : V0028
+      ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/create/outcome_effects/access_denied/no_local_effect/reason
+      : V0028
+      ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/create/outcome_effects/authentication_required/no_local_effect/rationale
+      : V0028
+      ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/create/outcome_effects/authentication_required/no_local_effect/reason
+      : V0028
       ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/create/outcome_effects/created/raise/data_refresh_signal
-      : V0028
-      ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/create/outcome_effects/forbidden/no_local_effect/rationale
-      : V0028
-      ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/create/outcome_effects/forbidden/no_local_effect/reason
-      : V0028
-      ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/create/outcome_effects/unauthenticated/no_local_effect/rationale
-      : V0028
-      ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/create/outcome_effects/unauthenticated/no_local_effect/reason
       : V0028
       ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/create/outcome_effects/validation_failed/no_local_effect/rationale
       : V0028
@@ -1285,9 +1289,13 @@ visual_audit:
       : V0028
       /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/application_action: V0028
       /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/input_bindings/project_id/from: V0028
-      ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/outcome_effects/forbidden/raise/local_signal
+      ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/outcome_effects/access_denied/raise/local_signal
       : V0028
-      ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/outcome_effects/forbidden/raise/payload_bindings/message/from
+      ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/outcome_effects/access_denied/raise/payload_bindings/message/from
+      : V0028
+      ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/outcome_effects/authentication_required/raise/local_signal
+      : V0028
+      ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/outcome_effects/authentication_required/raise/payload_bindings/message/from
       : V0028
       ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/outcome_effects/not_found/raise/local_signal
       : V0028
@@ -1298,10 +1306,6 @@ visual_audit:
       ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/outcome_effects/transition_not_allowed/raise/local_signal
       : V0028
       ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/outcome_effects/transition_not_allowed/raise/payload_bindings/message/from
-      : V0028
-      ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/outcome_effects/unauthenticated/raise/local_signal
-      : V0028
-      ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/outcome_effects/unauthenticated/raise/payload_bindings/message/from
       : V0028
       /state_machines/state_machine.project.list/view_states/ready/assets: V0028
       /state_machines/state_machine.project.list/view_states/ready/data_loaders: V0028
@@ -1315,39 +1319,39 @@ visual_audit:
       /workflows/workflow.project.approval_notice/outcomes/completed/result/$ref: V0033
       /workflows/workflow.project.approval_notice/outcomes/delivery_failed/kind: V0033
       /workflows/workflow.project.approval_notice/outcomes/delivery_failed/result/$ref: V0033
-      /workflows/workflow.project.approval_notice/outcomes/notice_forbidden/kind: V0033
-      /workflows/workflow.project.approval_notice/outcomes/notice_forbidden/result/$ref: V0033
-      /workflows/workflow.project.approval_notice/outcomes/notice_unauthenticated/kind: V0033
-      /workflows/workflow.project.approval_notice/outcomes/notice_unauthenticated/result/$ref: V0033
+      /workflows/workflow.project.approval_notice/outcomes/notice_access_denied/kind: V0033
+      /workflows/workflow.project.approval_notice/outcomes/notice_access_denied/result/$ref: V0033
+      /workflows/workflow.project.approval_notice/outcomes/notice_authentication_required/kind: V0033
+      /workflows/workflow.project.approval_notice/outcomes/notice_authentication_required/result/$ref: V0033
       /workflows/workflow.project.approval_notice/rationale: V0033
       /workflows/workflow.project.approval_notice/ref: V0033
       /workflows/workflow.project.approval_notice/steps/0/application_action: V0033
       /workflows/workflow.project.approval_notice/steps/0/id: V0033
       /workflows/workflow.project.approval_notice/steps/0/input_bindings/approved_by/from: V0033
       /workflows/workflow.project.approval_notice/steps/0/input_bindings/project_id/from: V0033
+      /workflows/workflow.project.approval_notice/steps/0/outcome_transitions/access_denied/fail_as: V0033
+      /workflows/workflow.project.approval_notice/steps/0/outcome_transitions/authentication_required/fail_as: V0033
       /workflows/workflow.project.approval_notice/steps/0/outcome_transitions/delivery_failed/retry_policy/attempts: V0033
       /workflows/workflow.project.approval_notice/steps/0/outcome_transitions/delivery_failed/retry_policy/backoff: V0033
       /workflows/workflow.project.approval_notice/steps/0/outcome_transitions/delivery_failed/retry_policy/fail_as: V0033
-      /workflows/workflow.project.approval_notice/steps/0/outcome_transitions/forbidden/fail_as: V0033
       /workflows/workflow.project.approval_notice/steps/0/outcome_transitions/sent/complete_as: V0033
-      /workflows/workflow.project.approval_notice/steps/0/outcome_transitions/unauthenticated/fail_as: V0033
       /workflows/workflow.project.approval_notice/trigger/domain_event: V0033
     missing: {}
     text_witnesses:
-      /application_actions/application_action.project.approve/authorization/forbidden_as:
+      /application_actions/application_action.project.approve/authorization/access_denied_as:
         visual_evidence_set: V0001
         tokens:
-        - forbidden_as
-        - forbidden
+        - access_denied_as
+        - access_denied
+      /application_actions/application_action.project.approve/authorization/authentication_required_as:
+        visual_evidence_set: V0001
+        tokens:
+        - authentication_required_as
+        - authentication_required
       /application_actions/application_action.project.approve/authorization/policy:
         visual_evidence_set: V0001
         tokens:
         - authorization_policy.project.reviewer
-      /application_actions/application_action.project.approve/authorization/unauthenticated_as:
-        visual_evidence_set: V0001
-        tokens:
-        - unauthenticated_as
-        - unauthenticated
       /application_actions/application_action.project.approve/input/properties/approved_by/type:
         visual_evidence_set: V0001
         tokens:
@@ -1358,6 +1362,16 @@ visual_audit:
         tokens:
         - project_id
         - string
+      /application_actions/application_action.project.approve/outcomes/access_denied/kind:
+        visual_evidence_set: V0001
+        tokens:
+        - access_denied
+        - failure
+      /application_actions/application_action.project.approve/outcomes/access_denied/result/$ref:
+        visual_evidence_set: V0001
+        tokens:
+        - access_denied
+        - Problem
       /application_actions/application_action.project.approve/outcomes/approved/emits/0/domain_event:
         visual_evidence_set: V0001
         tokens:
@@ -1372,15 +1386,15 @@ visual_audit:
         tokens:
         - approved
         - Project
-      /application_actions/application_action.project.approve/outcomes/forbidden/kind:
+      /application_actions/application_action.project.approve/outcomes/authentication_required/kind:
         visual_evidence_set: V0001
         tokens:
-        - forbidden
+        - authentication_required
         - failure
-      /application_actions/application_action.project.approve/outcomes/forbidden/result/$ref:
+      /application_actions/application_action.project.approve/outcomes/authentication_required/result/$ref:
         visual_evidence_set: V0001
         tokens:
-        - forbidden
+        - authentication_required
         - Problem
       /application_actions/application_action.project.approve/outcomes/not_found/kind:
         visual_evidence_set: V0001
@@ -1402,16 +1416,6 @@ visual_audit:
         tokens:
         - transition_not_allowed
         - Problem
-      /application_actions/application_action.project.approve/outcomes/unauthenticated/kind:
-        visual_evidence_set: V0001
-        tokens:
-        - unauthenticated
-        - failure
-      /application_actions/application_action.project.approve/outcomes/unauthenticated/result/$ref:
-        visual_evidence_set: V0001
-        tokens:
-        - unauthenticated
-        - Problem
       /application_actions/application_action.project.approve/outcomes/unavailable/kind:
         visual_evidence_set: V0001
         tokens:
@@ -1422,25 +1426,35 @@ visual_audit:
         tokens:
         - unavailable
         - Problem
-      /application_actions/application_action.project.archive/authorization/forbidden_as:
+      /application_actions/application_action.project.archive/authorization/access_denied_as:
         visual_evidence_set: V0002
         tokens:
-        - forbidden_as
-        - forbidden
+        - access_denied_as
+        - access_denied
+      /application_actions/application_action.project.archive/authorization/authentication_required_as:
+        visual_evidence_set: V0002
+        tokens:
+        - authentication_required_as
+        - authentication_required
       /application_actions/application_action.project.archive/authorization/policy:
         visual_evidence_set: V0002
         tokens:
         - authorization_policy.project.reviewer
-      /application_actions/application_action.project.archive/authorization/unauthenticated_as:
-        visual_evidence_set: V0002
-        tokens:
-        - unauthenticated_as
-        - unauthenticated
       /application_actions/application_action.project.archive/input/properties/project_id/type:
         visual_evidence_set: V0002
         tokens:
         - project_id
         - string
+      /application_actions/application_action.project.archive/outcomes/access_denied/kind:
+        visual_evidence_set: V0002
+        tokens:
+        - access_denied
+        - failure
+      /application_actions/application_action.project.archive/outcomes/access_denied/result/$ref:
+        visual_evidence_set: V0002
+        tokens:
+        - access_denied
+        - Problem
       /application_actions/application_action.project.archive/outcomes/archived/emits/0/domain_event:
         visual_evidence_set: V0002
         tokens:
@@ -1455,15 +1469,15 @@ visual_audit:
         tokens:
         - archived
         - Project
-      /application_actions/application_action.project.archive/outcomes/forbidden/kind:
+      /application_actions/application_action.project.archive/outcomes/authentication_required/kind:
         visual_evidence_set: V0002
         tokens:
-        - forbidden
+        - authentication_required
         - failure
-      /application_actions/application_action.project.archive/outcomes/forbidden/result/$ref:
+      /application_actions/application_action.project.archive/outcomes/authentication_required/result/$ref:
         visual_evidence_set: V0002
         tokens:
-        - forbidden
+        - authentication_required
         - Problem
       /application_actions/application_action.project.archive/outcomes/not_found/kind:
         visual_evidence_set: V0002
@@ -1485,30 +1499,20 @@ visual_audit:
         tokens:
         - transition_not_allowed
         - Problem
-      /application_actions/application_action.project.archive/outcomes/unauthenticated/kind:
-        visual_evidence_set: V0002
-        tokens:
-        - unauthenticated
-        - failure
-      /application_actions/application_action.project.archive/outcomes/unauthenticated/result/$ref:
-        visual_evidence_set: V0002
-        tokens:
-        - unauthenticated
-        - Problem
-      /application_actions/application_action.project.create/authorization/forbidden_as:
+      /application_actions/application_action.project.create/authorization/access_denied_as:
         visual_evidence_set: V0003
         tokens:
-        - forbidden_as
-        - forbidden
+        - access_denied_as
+        - access_denied
+      /application_actions/application_action.project.create/authorization/authentication_required_as:
+        visual_evidence_set: V0003
+        tokens:
+        - authentication_required_as
+        - authentication_required
       /application_actions/application_action.project.create/authorization/policy:
         visual_evidence_set: V0003
         tokens:
         - authorization_policy.project.member
-      /application_actions/application_action.project.create/authorization/unauthenticated_as:
-        visual_evidence_set: V0003
-        tokens:
-        - unauthenticated_as
-        - unauthenticated
       /application_actions/application_action.project.create/input/properties/customer/type:
         visual_evidence_set: V0003
         tokens:
@@ -1529,6 +1533,26 @@ visual_audit:
         tokens:
         - workspace_id
         - string
+      /application_actions/application_action.project.create/outcomes/access_denied/kind:
+        visual_evidence_set: V0003
+        tokens:
+        - access_denied
+        - failure
+      /application_actions/application_action.project.create/outcomes/access_denied/result/$ref:
+        visual_evidence_set: V0003
+        tokens:
+        - access_denied
+        - Problem
+      /application_actions/application_action.project.create/outcomes/authentication_required/kind:
+        visual_evidence_set: V0003
+        tokens:
+        - authentication_required
+        - failure
+      /application_actions/application_action.project.create/outcomes/authentication_required/result/$ref:
+        visual_evidence_set: V0003
+        tokens:
+        - authentication_required
+        - Problem
       /application_actions/application_action.project.create/outcomes/created/emits/0/domain_event:
         visual_evidence_set: V0003
         tokens:
@@ -1543,26 +1567,6 @@ visual_audit:
         tokens:
         - created
         - Project
-      /application_actions/application_action.project.create/outcomes/forbidden/kind:
-        visual_evidence_set: V0003
-        tokens:
-        - forbidden
-        - failure
-      /application_actions/application_action.project.create/outcomes/forbidden/result/$ref:
-        visual_evidence_set: V0003
-        tokens:
-        - forbidden
-        - Problem
-      /application_actions/application_action.project.create/outcomes/unauthenticated/kind:
-        visual_evidence_set: V0003
-        tokens:
-        - unauthenticated
-        - failure
-      /application_actions/application_action.project.create/outcomes/unauthenticated/result/$ref:
-        visual_evidence_set: V0003
-        tokens:
-        - unauthenticated
-        - Problem
       /application_actions/application_action.project.create/outcomes/validation_failed/kind:
         visual_evidence_set: V0003
         tokens:
@@ -1573,50 +1577,50 @@ visual_audit:
         tokens:
         - validation_failed
         - Problem
-      /application_actions/application_action.project.list/authorization/forbidden_as:
+      /application_actions/application_action.project.list/authorization/access_denied_as:
         visual_evidence_set: V0004
         tokens:
-        - forbidden_as
-        - forbidden
+        - access_denied_as
+        - access_denied
+      /application_actions/application_action.project.list/authorization/authentication_required_as:
+        visual_evidence_set: V0004
+        tokens:
+        - authentication_required_as
+        - authentication_required
       /application_actions/application_action.project.list/authorization/policy:
         visual_evidence_set: V0004
         tokens:
         - authorization_policy.project.member
-      /application_actions/application_action.project.list/authorization/unauthenticated_as:
-        visual_evidence_set: V0004
-        tokens:
-        - unauthenticated_as
-        - unauthenticated
       /application_actions/application_action.project.list/input/properties/workspace_id/type:
         visual_evidence_set: V0004
         tokens:
         - workspace_id
         - string
-      /application_actions/application_action.project.list/outcomes/forbidden/kind:
+      /application_actions/application_action.project.list/outcomes/access_denied/kind:
         visual_evidence_set: V0004
         tokens:
-        - forbidden
+        - access_denied
         - failure
-      /application_actions/application_action.project.list/outcomes/forbidden/result/$ref:
+      /application_actions/application_action.project.list/outcomes/access_denied/result/$ref:
         visual_evidence_set: V0004
         tokens:
-        - forbidden
+        - access_denied
+        - Problem
+      /application_actions/application_action.project.list/outcomes/authentication_required/kind:
+        visual_evidence_set: V0004
+        tokens:
+        - authentication_required
+        - failure
+      /application_actions/application_action.project.list/outcomes/authentication_required/result/$ref:
+        visual_evidence_set: V0004
+        tokens:
+        - authentication_required
         - Problem
       /application_actions/application_action.project.list/outcomes/listed/kind:
         visual_evidence_set: V0004
         tokens:
         - listed
         - success
-      /application_actions/application_action.project.list/outcomes/unauthenticated/kind:
-        visual_evidence_set: V0004
-        tokens:
-        - unauthenticated
-        - failure
-      /application_actions/application_action.project.list/outcomes/unauthenticated/result/$ref:
-        visual_evidence_set: V0004
-        tokens:
-        - unauthenticated
-        - Problem
       /application_actions/application_action.project.list/outcomes/unavailable/kind:
         visual_evidence_set: V0004
         tokens:
@@ -1627,34 +1631,44 @@ visual_audit:
         tokens:
         - unavailable
         - Problem
-      /application_actions/application_action.project.read/authorization/forbidden_as:
+      /application_actions/application_action.project.read/authorization/access_denied_as:
         visual_evidence_set: V0005
         tokens:
-        - forbidden_as
-        - forbidden
+        - access_denied_as
+        - access_denied
+      /application_actions/application_action.project.read/authorization/authentication_required_as:
+        visual_evidence_set: V0005
+        tokens:
+        - authentication_required_as
+        - authentication_required
       /application_actions/application_action.project.read/authorization/policy:
         visual_evidence_set: V0005
         tokens:
         - authorization_policy.project.member
-      /application_actions/application_action.project.read/authorization/unauthenticated_as:
-        visual_evidence_set: V0005
-        tokens:
-        - unauthenticated_as
-        - unauthenticated
       /application_actions/application_action.project.read/input/properties/project_id/type:
         visual_evidence_set: V0005
         tokens:
         - project_id
         - string
-      /application_actions/application_action.project.read/outcomes/forbidden/kind:
+      /application_actions/application_action.project.read/outcomes/access_denied/kind:
         visual_evidence_set: V0005
         tokens:
-        - forbidden
+        - access_denied
         - failure
-      /application_actions/application_action.project.read/outcomes/forbidden/result/$ref:
+      /application_actions/application_action.project.read/outcomes/access_denied/result/$ref:
         visual_evidence_set: V0005
         tokens:
-        - forbidden
+        - access_denied
+        - Problem
+      /application_actions/application_action.project.read/outcomes/authentication_required/kind:
+        visual_evidence_set: V0005
+        tokens:
+        - authentication_required
+        - failure
+      /application_actions/application_action.project.read/outcomes/authentication_required/result/$ref:
+        visual_evidence_set: V0005
+        tokens:
+        - authentication_required
         - Problem
       /application_actions/application_action.project.read/outcomes/found/kind:
         visual_evidence_set: V0005
@@ -1676,30 +1690,20 @@ visual_audit:
         tokens:
         - not_found
         - Problem
-      /application_actions/application_action.project.read/outcomes/unauthenticated/kind:
-        visual_evidence_set: V0005
-        tokens:
-        - unauthenticated
-        - failure
-      /application_actions/application_action.project.read/outcomes/unauthenticated/result/$ref:
-        visual_evidence_set: V0005
-        tokens:
-        - unauthenticated
-        - Problem
-      /application_actions/application_action.project.send_approval_notice/authorization/forbidden_as:
+      /application_actions/application_action.project.send_approval_notice/authorization/access_denied_as:
         visual_evidence_set: V0006
         tokens:
-        - forbidden_as
-        - forbidden
+        - access_denied_as
+        - access_denied
+      /application_actions/application_action.project.send_approval_notice/authorization/authentication_required_as:
+        visual_evidence_set: V0006
+        tokens:
+        - authentication_required_as
+        - authentication_required
       /application_actions/application_action.project.send_approval_notice/authorization/policy:
         visual_evidence_set: V0006
         tokens:
         - authorization_policy.project.reviewer
-      /application_actions/application_action.project.send_approval_notice/authorization/unauthenticated_as:
-        visual_evidence_set: V0006
-        tokens:
-        - unauthenticated_as
-        - unauthenticated
       /application_actions/application_action.project.send_approval_notice/input/properties/approved_by/type:
         visual_evidence_set: V0006
         tokens:
@@ -1710,6 +1714,26 @@ visual_audit:
         tokens:
         - project_id
         - string
+      /application_actions/application_action.project.send_approval_notice/outcomes/access_denied/kind:
+        visual_evidence_set: V0006
+        tokens:
+        - access_denied
+        - failure
+      /application_actions/application_action.project.send_approval_notice/outcomes/access_denied/result/$ref:
+        visual_evidence_set: V0006
+        tokens:
+        - access_denied
+        - Problem
+      /application_actions/application_action.project.send_approval_notice/outcomes/authentication_required/kind:
+        visual_evidence_set: V0006
+        tokens:
+        - authentication_required
+        - failure
+      /application_actions/application_action.project.send_approval_notice/outcomes/authentication_required/result/$ref:
+        visual_evidence_set: V0006
+        tokens:
+        - authentication_required
+        - Problem
       /application_actions/application_action.project.send_approval_notice/outcomes/delivery_failed/kind:
         visual_evidence_set: V0006
         tokens:
@@ -1719,16 +1743,6 @@ visual_audit:
         visual_evidence_set: V0006
         tokens:
         - delivery_failed
-        - Problem
-      /application_actions/application_action.project.send_approval_notice/outcomes/forbidden/kind:
-        visual_evidence_set: V0006
-        tokens:
-        - forbidden
-        - failure
-      /application_actions/application_action.project.send_approval_notice/outcomes/forbidden/result/$ref:
-        visual_evidence_set: V0006
-        tokens:
-        - forbidden
         - Problem
       /application_actions/application_action.project.send_approval_notice/outcomes/sent/kind:
         visual_evidence_set: V0006
@@ -1740,44 +1754,44 @@ visual_audit:
         tokens:
         - schema.project.notice_result
         - sent
-      /application_actions/application_action.project.send_approval_notice/outcomes/unauthenticated/kind:
-        visual_evidence_set: V0006
-        tokens:
-        - unauthenticated
-        - failure
-      /application_actions/application_action.project.send_approval_notice/outcomes/unauthenticated/result/$ref:
-        visual_evidence_set: V0006
-        tokens:
-        - unauthenticated
-        - Problem
-      /application_actions/application_action.project.submit/authorization/forbidden_as:
+      /application_actions/application_action.project.submit/authorization/access_denied_as:
         visual_evidence_set: V0007
         tokens:
-        - forbidden_as
-        - forbidden
+        - access_denied_as
+        - access_denied
+      /application_actions/application_action.project.submit/authorization/authentication_required_as:
+        visual_evidence_set: V0007
+        tokens:
+        - authentication_required_as
+        - authentication_required
       /application_actions/application_action.project.submit/authorization/policy:
         visual_evidence_set: V0007
         tokens:
         - authorization_policy.project.member
-      /application_actions/application_action.project.submit/authorization/unauthenticated_as:
-        visual_evidence_set: V0007
-        tokens:
-        - unauthenticated_as
-        - unauthenticated
       /application_actions/application_action.project.submit/input/properties/project_id/type:
         visual_evidence_set: V0007
         tokens:
         - project_id
         - string
-      /application_actions/application_action.project.submit/outcomes/forbidden/kind:
+      /application_actions/application_action.project.submit/outcomes/access_denied/kind:
         visual_evidence_set: V0007
         tokens:
-        - forbidden
+        - access_denied
         - failure
-      /application_actions/application_action.project.submit/outcomes/forbidden/result/$ref:
+      /application_actions/application_action.project.submit/outcomes/access_denied/result/$ref:
         visual_evidence_set: V0007
         tokens:
-        - forbidden
+        - access_denied
+        - Problem
+      /application_actions/application_action.project.submit/outcomes/authentication_required/kind:
+        visual_evidence_set: V0007
+        tokens:
+        - authentication_required
+        - failure
+      /application_actions/application_action.project.submit/outcomes/authentication_required/result/$ref:
+        visual_evidence_set: V0007
+        tokens:
+        - authentication_required
         - Problem
       /application_actions/application_action.project.submit/outcomes/not_found/kind:
         visual_evidence_set: V0007
@@ -1813,16 +1827,6 @@ visual_audit:
         tokens:
         - transition_not_allowed
         - Problem
-      /application_actions/application_action.project.submit/outcomes/unauthenticated/kind:
-        visual_evidence_set: V0007
-        tokens:
-        - unauthenticated
-        - failure
-      /application_actions/application_action.project.submit/outcomes/unauthenticated/result/$ref:
-        visual_evidence_set: V0007
-        tokens:
-        - unauthenticated
-        - Problem
       /authorization_policies/authorization_policy.project.member/conditions/0/subject_has_role:
         visual_evidence_set: V0010
         tokens:
@@ -1832,32 +1836,32 @@ visual_audit:
         visual_evidence_set: V0010
         tokens:
         - effect
-        - allow
+        - permit
+      /authorization_policies/authorization_policy.project.member/resources/0/action:
+        visual_evidence_set: V0010
+        tokens:
+        - application_action.project.create
+      /authorization_policies/authorization_policy.project.member/resources/1/action:
+        visual_evidence_set: V0010
+        tokens:
+        - application_action.project.list
+      /authorization_policies/authorization_policy.project.member/resources/2/action:
+        visual_evidence_set: V0010
+        tokens:
+        - application_action.project.read
+      /authorization_policies/authorization_policy.project.member/resources/3/action:
+        visual_evidence_set: V0010
+        tokens:
+        - application_action.project.submit
+      /authorization_policies/authorization_policy.project.member/resources/4/entity_type:
+        visual_evidence_set: V0010
+        tokens:
+        - entity_type.project
       /authorization_policies/authorization_policy.project.member/subjects/0/kind:
         visual_evidence_set: V0010
         tokens:
         - subjects
         - actor
-      /authorization_policies/authorization_policy.project.member/targets/0/application_action:
-        visual_evidence_set: V0010
-        tokens:
-        - application_action.project.create
-      /authorization_policies/authorization_policy.project.member/targets/1/application_action:
-        visual_evidence_set: V0010
-        tokens:
-        - application_action.project.list
-      /authorization_policies/authorization_policy.project.member/targets/2/application_action:
-        visual_evidence_set: V0010
-        tokens:
-        - application_action.project.read
-      /authorization_policies/authorization_policy.project.member/targets/3/application_action:
-        visual_evidence_set: V0010
-        tokens:
-        - application_action.project.submit
-      /authorization_policies/authorization_policy.project.member/targets/4/entity_type:
-        visual_evidence_set: V0010
-        tokens:
-        - entity_type.project
       /authorization_policies/authorization_policy.project.reviewer/conditions/0/subject_has_role:
         visual_evidence_set: V0011
         tokens:
@@ -1867,28 +1871,28 @@ visual_audit:
         visual_evidence_set: V0011
         tokens:
         - effect
-        - allow
+        - permit
+      /authorization_policies/authorization_policy.project.reviewer/resources/0/action:
+        visual_evidence_set: V0011
+        tokens:
+        - application_action.project.approve
+      /authorization_policies/authorization_policy.project.reviewer/resources/1/action:
+        visual_evidence_set: V0011
+        tokens:
+        - application_action.project.archive
+      /authorization_policies/authorization_policy.project.reviewer/resources/2/action:
+        visual_evidence_set: V0011
+        tokens:
+        - application_action.project.send_approval_notice
+      /authorization_policies/authorization_policy.project.reviewer/resources/3/entity_type:
+        visual_evidence_set: V0011
+        tokens:
+        - entity_type.project
       /authorization_policies/authorization_policy.project.reviewer/subjects/0/kind:
         visual_evidence_set: V0011
         tokens:
         - subjects
         - actor
-      /authorization_policies/authorization_policy.project.reviewer/targets/0/application_action:
-        visual_evidence_set: V0011
-        tokens:
-        - application_action.project.approve
-      /authorization_policies/authorization_policy.project.reviewer/targets/1/application_action:
-        visual_evidence_set: V0011
-        tokens:
-        - application_action.project.archive
-      /authorization_policies/authorization_policy.project.reviewer/targets/2/application_action:
-        visual_evidence_set: V0011
-        tokens:
-        - application_action.project.send_approval_notice
-      /authorization_policies/authorization_policy.project.reviewer/targets/3/entity_type:
-        visual_evidence_set: V0011
-        tokens:
-        - entity_type.project
       /domain_events/domain_event.project.approved/emitted_by/0:
         visual_evidence_set: V0012
         tokens:
@@ -2045,6 +2049,16 @@ visual_audit:
         visual_evidence_set: V0015
         tokens:
         - /projects/{project_id}/approve
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/access_denied/body/type/$ref:
+        visual_evidence_set: V0015
+        tokens:
+        - body
+        - Problem
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/access_denied/status:
+        visual_evidence_set: V0015
+        tokens:
+        - status
+        - '403'
       /entry_points/entry_point.api.project.approve/adapter/http_api/responses/approved/body/type/$ref:
         visual_evidence_set: V0015
         tokens:
@@ -2055,16 +2069,16 @@ visual_audit:
         tokens:
         - status
         - '200'
-      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/forbidden/body/type/$ref:
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/authentication_required/body/type/$ref:
         visual_evidence_set: V0015
         tokens:
         - body
         - Problem
-      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/forbidden/status:
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/authentication_required/status:
         visual_evidence_set: V0015
         tokens:
         - status
-        - '403'
+        - '401'
       /entry_points/entry_point.api.project.approve/adapter/http_api/responses/not_found/body/type/$ref:
         visual_evidence_set: V0015
         tokens:
@@ -2085,16 +2099,6 @@ visual_audit:
         tokens:
         - status
         - '409'
-      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/unauthenticated/body/type/$ref:
-        visual_evidence_set: V0015
-        tokens:
-        - body
-        - Problem
-      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/unauthenticated/status:
-        visual_evidence_set: V0015
-        tokens:
-        - status
-        - '401'
       /entry_points/entry_point.api.project.approve/adapter/http_api/responses/unavailable/body/type/$ref:
         visual_evidence_set: V0015
         tokens:
@@ -2145,6 +2149,26 @@ visual_audit:
         visual_evidence_set: V0016
         tokens:
         - /workspaces/{workspace_id}/projects
+      /entry_points/entry_point.api.project.create/adapter/http_api/responses/access_denied/body/type/$ref:
+        visual_evidence_set: V0016
+        tokens:
+        - body
+        - Problem
+      /entry_points/entry_point.api.project.create/adapter/http_api/responses/access_denied/status:
+        visual_evidence_set: V0016
+        tokens:
+        - status
+        - '403'
+      /entry_points/entry_point.api.project.create/adapter/http_api/responses/authentication_required/body/type/$ref:
+        visual_evidence_set: V0016
+        tokens:
+        - body
+        - Problem
+      /entry_points/entry_point.api.project.create/adapter/http_api/responses/authentication_required/status:
+        visual_evidence_set: V0016
+        tokens:
+        - status
+        - '401'
       /entry_points/entry_point.api.project.create/adapter/http_api/responses/created/body/type/$ref:
         visual_evidence_set: V0016
         tokens:
@@ -2155,26 +2179,6 @@ visual_audit:
         tokens:
         - status
         - '201'
-      /entry_points/entry_point.api.project.create/adapter/http_api/responses/forbidden/body/type/$ref:
-        visual_evidence_set: V0016
-        tokens:
-        - body
-        - Problem
-      /entry_points/entry_point.api.project.create/adapter/http_api/responses/forbidden/status:
-        visual_evidence_set: V0016
-        tokens:
-        - status
-        - '403'
-      /entry_points/entry_point.api.project.create/adapter/http_api/responses/unauthenticated/body/type/$ref:
-        visual_evidence_set: V0016
-        tokens:
-        - body
-        - Problem
-      /entry_points/entry_point.api.project.create/adapter/http_api/responses/unauthenticated/status:
-        visual_evidence_set: V0016
-        tokens:
-        - status
-        - '401'
       /entry_points/entry_point.api.project.create/adapter/http_api/responses/validation_failed/body/type/$ref:
         visual_evidence_set: V0016
         tokens:
@@ -2210,16 +2214,26 @@ visual_audit:
         visual_evidence_set: V0017
         tokens:
         - /workspaces/{workspace_id}/projects
-      /entry_points/entry_point.api.project.list/adapter/http_api/responses/forbidden/body/type/$ref:
+      /entry_points/entry_point.api.project.list/adapter/http_api/responses/access_denied/body/type/$ref:
         visual_evidence_set: V0017
         tokens:
         - body
         - Problem
-      /entry_points/entry_point.api.project.list/adapter/http_api/responses/forbidden/status:
+      /entry_points/entry_point.api.project.list/adapter/http_api/responses/access_denied/status:
         visual_evidence_set: V0017
         tokens:
         - status
         - '403'
+      /entry_points/entry_point.api.project.list/adapter/http_api/responses/authentication_required/body/type/$ref:
+        visual_evidence_set: V0017
+        tokens:
+        - body
+        - Problem
+      /entry_points/entry_point.api.project.list/adapter/http_api/responses/authentication_required/status:
+        visual_evidence_set: V0017
+        tokens:
+        - status
+        - '401'
       /entry_points/entry_point.api.project.list/adapter/http_api/responses/listed/body/type/items/$ref:
         visual_evidence_set: V0017
         tokens:
@@ -2235,16 +2249,6 @@ visual_audit:
         tokens:
         - status
         - '200'
-      /entry_points/entry_point.api.project.list/adapter/http_api/responses/unauthenticated/body/type/$ref:
-        visual_evidence_set: V0017
-        tokens:
-        - body
-        - Problem
-      /entry_points/entry_point.api.project.list/adapter/http_api/responses/unauthenticated/status:
-        visual_evidence_set: V0017
-        tokens:
-        - status
-        - '401'
       /entry_points/entry_point.api.project.list/adapter/http_api/responses/unavailable/body/type/$ref:
         visual_evidence_set: V0017
         tokens:
@@ -2281,6 +2285,19 @@ visual_audit:
         tokens:
         - project_id
         - string
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/access_denied/exit_code:
+        visual_evidence_set: V0018
+        tokens:
+        - exit_code
+        - '5'
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/access_denied/stderr/bindings/message/from:
+        visual_evidence_set: V0018
+        tokens:
+        - response.body.message
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/access_denied/stderr/text:
+        visual_evidence_set: V0018
+        tokens:
+        - text.project.approve.access_denied
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/approved/exit_code:
         visual_evidence_set: V0018
         tokens:
@@ -2294,19 +2311,19 @@ visual_audit:
         visual_evidence_set: V0018
         tokens:
         - text.project.approve.success
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/forbidden/exit_code:
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/authentication_required/exit_code:
         visual_evidence_set: V0018
         tokens:
         - exit_code
-        - '5'
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/forbidden/stderr/bindings/message/from:
-        visual_evidence_set: V0018
+        - '4'
+      ? /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/authentication_required/stderr/bindings/message/from
+      : visual_evidence_set: V0018
         tokens:
         - response.body.message
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/forbidden/stderr/text:
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/authentication_required/stderr/text:
         visual_evidence_set: V0018
         tokens:
-        - text.project.approve.forbidden
+        - text.project.approve.authentication_required
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/not_found/exit_code:
         visual_evidence_set: V0018
         tokens:
@@ -2333,19 +2350,6 @@ visual_audit:
         visual_evidence_set: V0018
         tokens:
         - text.project.approve.transition_not_allowed
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unauthenticated/exit_code:
-        visual_evidence_set: V0018
-        tokens:
-        - exit_code
-        - '4'
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unauthenticated/stderr/bindings/message/from:
-        visual_evidence_set: V0018
-        tokens:
-        - response.body.message
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unauthenticated/stderr/text:
-        visual_evidence_set: V0018
-        tokens:
-        - text.project.approve.unauthenticated
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unavailable/exit_code:
         visual_evidence_set: V0018
         tokens:
@@ -2615,15 +2619,15 @@ visual_audit:
         tokens:
         - delivery_failed
         - failure
-      /workflows/workflow.project.approval_notice/outcomes/notice_forbidden/kind:
+      /workflows/workflow.project.approval_notice/outcomes/notice_access_denied/kind:
         visual_evidence_set: V0033
         tokens:
-        - notice_forbidden
+        - notice_access_denied
         - failure
-      /workflows/workflow.project.approval_notice/outcomes/notice_unauthenticated/kind:
+      /workflows/workflow.project.approval_notice/outcomes/notice_authentication_required/kind:
         visual_evidence_set: V0033
         tokens:
-        - notice_unauthenticated
+        - notice_authentication_required
         - failure
       /workflows/workflow.project.approval_notice/ref:
         visual_evidence_set: V0033
@@ -2637,6 +2641,14 @@ visual_audit:
         visual_evidence_set: V0033
         tokens:
         - send_notice
+      /workflows/workflow.project.approval_notice/steps/0/outcome_transitions/access_denied/fail_as:
+        visual_evidence_set: V0033
+        tokens:
+        - notice_access_denied
+      /workflows/workflow.project.approval_notice/steps/0/outcome_transitions/authentication_required/fail_as:
+        visual_evidence_set: V0033
+        tokens:
+        - notice_authentication_required
       /workflows/workflow.project.approval_notice/steps/0/outcome_transitions/delivery_failed/retry_policy/attempts:
         visual_evidence_set: V0033
         tokens:
@@ -2651,18 +2663,10 @@ visual_audit:
         visual_evidence_set: V0033
         tokens:
         - delivery_failed
-      /workflows/workflow.project.approval_notice/steps/0/outcome_transitions/forbidden/fail_as:
-        visual_evidence_set: V0033
-        tokens:
-        - notice_forbidden
       /workflows/workflow.project.approval_notice/steps/0/outcome_transitions/sent/complete_as:
         visual_evidence_set: V0033
         tokens:
         - completed
-      /workflows/workflow.project.approval_notice/steps/0/outcome_transitions/unauthenticated/fail_as:
-        visual_evidence_set: V0033
-        tokens:
-        - notice_unauthenticated
       /workflows/workflow.project.approval_notice/trigger/domain_event:
         visual_evidence_set: V0033
         tokens:
@@ -2735,30 +2739,30 @@ visual_audit:
       /test_cases/test_case.project.approval_notice.workflow/when/emit_domain_event/payload/approved_by/from: V0012
       /test_cases/test_case.project.approval_notice.workflow/when/emit_domain_event/payload/project_id/value: V0012
       /test_cases/test_case.project.approval_notice.workflow/when/emit_domain_event/ref: V0012
-      /test_cases/test_case.project.approve.forbidden/archetype: V0001
-      /test_cases/test_case.project.approve.forbidden/feature_tag: V0001
-      /test_cases/test_case.project.approve.forbidden/given/domain_facts/0/present/entity_type: V0001
-      /test_cases/test_case.project.approve.forbidden/given/domain_facts/0/present/values/assignee/value: V0001
-      /test_cases/test_case.project.approve.forbidden/given/domain_facts/0/present/values/created_at/value: V0001
-      /test_cases/test_case.project.approve.forbidden/given/domain_facts/0/present/values/customer/value: V0001
-      /test_cases/test_case.project.approve.forbidden/given/domain_facts/0/present/values/id/value: V0001
-      /test_cases/test_case.project.approve.forbidden/given/domain_facts/0/present/values/priority/value: V0001
-      /test_cases/test_case.project.approve.forbidden/given/domain_facts/0/present/values/status/value: V0001
-      /test_cases/test_case.project.approve.forbidden/given/domain_facts/0/present/values/summary/value: V0001
-      /test_cases/test_case.project.approve.forbidden/given/domain_facts/0/present/values/title/value: V0001
-      /test_cases/test_case.project.approve.forbidden/given/domain_facts/0/present/values/updated_at/value: V0001
-      /test_cases/test_case.project.approve.forbidden/given/domain_facts/0/present/values/workspace_id/from: V0001
-      /test_cases/test_case.project.approve.forbidden/given/seed_fixtures/0: V0001
-      /test_cases/test_case.project.approve.forbidden/rationale: V0001
-      /test_cases/test_case.project.approve.forbidden/subject_ref/application_action: V0001
-      /test_cases/test_case.project.approve.forbidden/then/authorization/denied/0/application_action: V0001
-      /test_cases/test_case.project.approve.forbidden/then/authorization/denied/0/authorization_policy: V0001
-      /test_cases/test_case.project.approve.forbidden/then/domain_events/not_emitted/0: V0001
-      /test_cases/test_case.project.approve.forbidden/then/outcome: V0001
-      /test_cases/test_case.project.approve.forbidden/title: V0001
-      /test_cases/test_case.project.approve.forbidden/when/invoke_application_action/input/approved_by/from: V0001
-      /test_cases/test_case.project.approve.forbidden/when/invoke_application_action/input/project_id/value: V0001
-      /test_cases/test_case.project.approve.forbidden/when/invoke_application_action/ref: V0001
+      /test_cases/test_case.project.approve.access_denied/archetype: V0001
+      /test_cases/test_case.project.approve.access_denied/feature_tag: V0001
+      /test_cases/test_case.project.approve.access_denied/given/domain_facts/0/present/entity_type: V0001
+      /test_cases/test_case.project.approve.access_denied/given/domain_facts/0/present/values/assignee/value: V0001
+      /test_cases/test_case.project.approve.access_denied/given/domain_facts/0/present/values/created_at/value: V0001
+      /test_cases/test_case.project.approve.access_denied/given/domain_facts/0/present/values/customer/value: V0001
+      /test_cases/test_case.project.approve.access_denied/given/domain_facts/0/present/values/id/value: V0001
+      /test_cases/test_case.project.approve.access_denied/given/domain_facts/0/present/values/priority/value: V0001
+      /test_cases/test_case.project.approve.access_denied/given/domain_facts/0/present/values/status/value: V0001
+      /test_cases/test_case.project.approve.access_denied/given/domain_facts/0/present/values/summary/value: V0001
+      /test_cases/test_case.project.approve.access_denied/given/domain_facts/0/present/values/title/value: V0001
+      /test_cases/test_case.project.approve.access_denied/given/domain_facts/0/present/values/updated_at/value: V0001
+      /test_cases/test_case.project.approve.access_denied/given/domain_facts/0/present/values/workspace_id/from: V0001
+      /test_cases/test_case.project.approve.access_denied/given/seed_fixtures/0: V0001
+      /test_cases/test_case.project.approve.access_denied/rationale: V0001
+      /test_cases/test_case.project.approve.access_denied/subject_ref/application_action: V0001
+      /test_cases/test_case.project.approve.access_denied/then/authorization/denied/0/application_action: V0001
+      /test_cases/test_case.project.approve.access_denied/then/authorization/denied/0/authorization_policy: V0001
+      /test_cases/test_case.project.approve.access_denied/then/domain_events/not_emitted/0: V0001
+      /test_cases/test_case.project.approve.access_denied/then/outcome: V0001
+      /test_cases/test_case.project.approve.access_denied/title: V0001
+      /test_cases/test_case.project.approve.access_denied/when/invoke_application_action/input/approved_by/from: V0001
+      /test_cases/test_case.project.approve.access_denied/when/invoke_application_action/input/project_id/value: V0001
+      /test_cases/test_case.project.approve.access_denied/when/invoke_application_action/ref: V0001
       /test_cases/test_case.project.approve.success/archetype: V0001
       /test_cases/test_case.project.approve.success/feature_tag: V0001
       /test_cases/test_case.project.approve.success/given/domain_facts/0/present/entity_type: V0001
@@ -3119,11 +3123,16 @@ visual_audit:
       /text_resources/text.project.activity.ready.heading/max_chars: V0030
       /text_resources/text.project.activity.ready.heading/placeholder: V0030
       /text_resources/text.project.activity.ready.heading/rationale: V0030
-      /text_resources/text.project.approve.forbidden/args/message/type: V0018
-      /text_resources/text.project.approve.forbidden/intent: V0018
-      /text_resources/text.project.approve.forbidden/max_chars: V0018
-      /text_resources/text.project.approve.forbidden/placeholder: V0018
-      /text_resources/text.project.approve.forbidden/rationale: V0018
+      /text_resources/text.project.approve.access_denied/args/message/type: V0018
+      /text_resources/text.project.approve.access_denied/intent: V0018
+      /text_resources/text.project.approve.access_denied/max_chars: V0018
+      /text_resources/text.project.approve.access_denied/placeholder: V0018
+      /text_resources/text.project.approve.access_denied/rationale: V0018
+      /text_resources/text.project.approve.authentication_required/args/message/type: V0018
+      /text_resources/text.project.approve.authentication_required/intent: V0018
+      /text_resources/text.project.approve.authentication_required/max_chars: V0018
+      /text_resources/text.project.approve.authentication_required/placeholder: V0018
+      /text_resources/text.project.approve.authentication_required/rationale: V0018
       /text_resources/text.project.approve.not_found/args/message/type: V0018
       /text_resources/text.project.approve.not_found/intent: V0018
       /text_resources/text.project.approve.not_found/max_chars: V0018
@@ -3139,11 +3148,6 @@ visual_audit:
       /text_resources/text.project.approve.transition_not_allowed/max_chars: V0018
       /text_resources/text.project.approve.transition_not_allowed/placeholder: V0018
       /text_resources/text.project.approve.transition_not_allowed/rationale: V0018
-      /text_resources/text.project.approve.unauthenticated/args/message/type: V0018
-      /text_resources/text.project.approve.unauthenticated/intent: V0018
-      /text_resources/text.project.approve.unauthenticated/max_chars: V0018
-      /text_resources/text.project.approve.unauthenticated/placeholder: V0018
-      /text_resources/text.project.approve.unauthenticated/rationale: V0018
       /text_resources/text.project.approve.unavailable/intent: V0018
       /text_resources/text.project.approve.unavailable/max_chars: V0018
       /text_resources/text.project.approve.unavailable/placeholder: V0018

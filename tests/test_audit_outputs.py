@@ -256,7 +256,6 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "payload_schema:" not in operation
     assert "emitted by" not in operation
     assert "<B>conditions:</B>&#160;&#160;subject_has_role member" in create_operation
-    assert "authorization_conditions" not in create_operation
     assert '"application_action_application_action_project_approve" [shape=' not in operation
     assert "transition application action" not in operation
     assert operation.index('"application_action_input_application_action_project_approve"') < operation.index('"application_action_policy_authorization_policy_project_reviewer"')
@@ -270,7 +269,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>authorization_policy:</B>" not in operation
     assert "<B>creates:</B>" not in create_operation
     assert "<B>kind:</B>" not in operation
-    assert "<B>authorization_targets</B>" not in create_operation
+    assert "<B>resources</B>" not in create_operation
     assert "<FONT POINT-SIZE=\"10\">application_action: application_action.project.create</FONT>" not in create_operation
     assert "<B>emits</B>" not in operation
     assert "delegated entry point" in cli_approve_entrypoint
@@ -278,8 +277,6 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "Project.status" not in cli_approve_entrypoint
     assert "authorization_policy.project.reviewer" in cli_approve_entrypoint
     assert "authorization_effect" not in operation
-    assert "authorization_subjects" not in operation
-    assert "authorization_conditions" not in operation
     assert "<B>source:</B>&#160;&#160;local_signal.project_select" in composition
     assert "ready to ready" not in composition
     assert "<B>transition:</B>" not in composition
@@ -405,11 +402,11 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>emits:</B>&#160;&#160;domain_event.project.created" not in target_card
     assert "<B>authorization_policy:</B>" not in target_card
     assert "authorization_policy.project.member" in target_card
-    assert "<B>authorization_effect:</B>&#160;&#160;allow" not in target_card
-    assert "<B>authorization_targets</B>" not in target_card
+    assert "<B>authorization_effect:</B>&#160;&#160;permit" not in target_card
+    assert "<B>resources</B>" not in target_card
     assert "<FONT POINT-SIZE=\"10\">application_action: application_action.project.create</FONT>" not in target_card
     assert "<FONT POINT-SIZE=\"10\">entity_type: Project</FONT>" not in target_card
-    assert "<B>authorization_conditions:</B>&#160;&#160;unconditional true" not in target_card
+    assert "<B>conditions:</B>&#160;&#160;unconditional true" not in target_card
     cli_approve_target_card = cli_approve_entrypoint[cli_approve_entrypoint.index('"entrypoint_target_entry_point_api_project_approve"') : cli_approve_entrypoint.index('"entrypoint_response_entry_point_cli_project_approve_approved"')]
     assert "<B>entry_point.api.project.approve</B>" in cli_approve_entrypoint
     assert "delegated entry point" in cli_approve_entrypoint
@@ -419,7 +416,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>authorization_policy:</B>" not in cli_approve_target_card
     assert "authorization_policy.project.reviewer" in cli_approve_target_card
     assert "actor ← input.approved_by" not in cli_approve_target_card
-    assert "<B>authorization_conditions:</B>&#160;&#160;Project.status = submitted" not in cli_approve_target_card
+    assert "<B>conditions:</B>&#160;&#160;Project.status = submitted" not in cli_approve_target_card
     entrypoint_input = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;list_board.workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;string</FONT>'
     assert entrypoint_input in entrypoint
     assert entrypoint.index(entrypoint_input) < entrypoint.index("<B>data_loaders:</B>&#160;&#160;list_board")
@@ -713,12 +710,11 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "role:" not in composition
     assert "required:" not in composition
     assert "authorization_policy.project.member" in api_entrypoint
-    assert "authorization_conditions" not in api_entrypoint
+    assert "<B>conditions:</B>" not in api_entrypoint
     assert "authorization_policy.project.reviewer" in cli_approve_entrypoint
     assert "Project.status = submitted" not in cli_approve_entrypoint
     assert "authorization_policy.project.reviewer" in workflow
     assert "authorization_policy.project.reviewer" in approve_operation
-    assert "authorization_conditions" not in approve_operation
     assert "conditions" in approve_operation
     assert "submitted → approved" in approve_operation
     assert "domain_event.project.approved" in approve_operation

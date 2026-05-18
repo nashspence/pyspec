@@ -3,20 +3,20 @@
     "action_authorization": {
       "additionalProperties": false,
       "properties": {
-        "forbidden_as": {
+        "access_denied_as": {
           "$ref": "#/$defs/outcome_name"
         },
         "policy": {
           "$ref": "#/$defs/authorization_policy_ref"
         },
-        "unauthenticated_as": {
+        "authentication_required_as": {
           "$ref": "#/$defs/outcome_name"
         }
       },
       "required": [
         "policy",
-        "unauthenticated_as",
-        "forbidden_as"
+        "authentication_required_as",
+        "access_denied_as"
       ],
       "type": "object"
     },
@@ -342,7 +342,7 @@
       },
       "type": "object"
     },
-    "authorization_condition": {
+    "condition": {
       "additionalProperties": false,
       "oneOf": [
         {
@@ -362,7 +362,7 @@
         },
         {
           "required": [
-            "entity_lifecycle_state"
+            "entity_state_condition"
           ]
         },
         {
@@ -389,7 +389,7 @@
           ],
           "type": "object"
         },
-        "entity_lifecycle_state": {
+        "entity_state_condition": {
           "additionalProperties": false,
           "properties": {
             "entity_type": {
@@ -471,7 +471,7 @@
       "properties": {
         "conditions": {
           "items": {
-            "$ref": "#/$defs/authorization_condition"
+            "$ref": "#/$defs/condition"
           },
           "minItems": 1,
           "type": "array",
@@ -479,7 +479,7 @@
         },
         "effect": {
           "enum": [
-            "allow",
+            "permit",
             "deny"
           ]
         },
@@ -488,15 +488,15 @@
         },
         "subjects": {
           "items": {
-            "$ref": "#/$defs/authorization_subject"
+            "$ref": "#/$defs/subject"
           },
           "minItems": 1,
           "type": "array",
           "uniqueItems": true
         },
-        "targets": {
+        "resources": {
           "items": {
-            "$ref": "#/$defs/authorization_target"
+            "$ref": "#/$defs/resource"
           },
           "minItems": 1,
           "type": "array",
@@ -505,7 +505,7 @@
       },
       "required": [
         "subjects",
-        "targets",
+        "resources",
         "effect",
         "conditions",
         "rationale"
@@ -516,7 +516,7 @@
       "pattern": "^authorization_policy\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
-    "authorization_subject": {
+    "subject": {
       "additionalProperties": false,
       "properties": {
         "kind": {
@@ -535,7 +535,7 @@
       ],
       "type": "object"
     },
-    "authorization_target": {
+    "resource": {
       "additionalProperties": false,
       "oneOf": [
         {
@@ -545,7 +545,7 @@
         },
         {
           "required": [
-            "application_action"
+            "action"
           ]
         },
         {
@@ -555,7 +555,7 @@
         }
       ],
       "properties": {
-        "application_action": {
+        "action": {
           "$ref": "#/$defs/application_action_ref"
         },
         "entity_type": {

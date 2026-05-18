@@ -1,7 +1,7 @@
 $graph:
 - class: Workflow
   doc: 'contract workflow workflow.project.approval_notice; trigger={''domain_event'': ''domain_event.project.approved''};
-    outcomes=[''completed'', ''delivery_failed'', ''notice_forbidden'', ''notice_unauthenticated'']; ref=workflow.project.approval_notice'
+    outcomes=[''completed'', ''delivery_failed'', ''notice_access_denied'', ''notice_authentication_required'']; ref=workflow.project.approval_notice'
   id: '#workflow_project_approval_notice'
   inputs:
     trigger_payload:
@@ -12,24 +12,24 @@ $graph:
       type: Any
     delivery_failed:
       type: Any
-    notice_forbidden:
+    notice_access_denied:
       type: Any
-    notice_unauthenticated:
+    notice_authentication_required:
       type: Any
   steps:
     send_notice:
       doc: 'input_bindings={''approved_by'': {''from'': ''$trigger.payload.approved_by''}, ''project_id'': {''from'': ''$trigger.payload.project_id''}};
         outcome_transitions={''delivery_failed'': {''retry_policy'': {''attempts'': 3, ''backoff'': ''exponential'', ''fail_as'':
-        ''delivery_failed''}}, ''forbidden'': {''fail_as'': ''notice_forbidden''}, ''sent'': {''complete_as'': ''completed''},
-        ''unauthenticated'': {''fail_as'': ''notice_unauthenticated''}}'
+        ''delivery_failed''}}, ''access_denied'': {''fail_as'': ''notice_access_denied''}, ''sent'': {''complete_as'': ''completed''},
+        ''authentication_required'': {''fail_as'': ''notice_authentication_required''}}'
       in:
         approved_by: trigger_payload
         project_id: trigger_payload
       out:
+      - access_denied
+      - authentication_required
       - delivery_failed
-      - forbidden
       - sent
-      - unauthenticated
       run: '#application_action_project_send_approval_notice'
 - baseCommand:
   - contract-operation
@@ -43,15 +43,15 @@ $graph:
       type: string
   label: application_action.project.approve
   outputs:
+    access_denied:
+      type: Any
     approved:
       type: Any
-    forbidden:
+    authentication_required:
       type: Any
     not_found:
       type: Any
     transition_not_allowed:
-      type: Any
-    unauthenticated:
       type: Any
     unavailable:
       type: Any
@@ -67,12 +67,12 @@ $graph:
       type: string
   label: application_action.project.send_approval_notice
   outputs:
+    access_denied:
+      type: Any
+    authentication_required:
+      type: Any
     delivery_failed:
       type: Any
-    forbidden:
-      type: Any
     sent:
-      type: Any
-    unauthenticated:
       type: Any
 cwlVersion: v1.2

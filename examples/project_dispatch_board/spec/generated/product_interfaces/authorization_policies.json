@@ -1,39 +1,39 @@
 {
   "action_authorizations": {
     "application_action.project.approve": {
-      "forbidden_as": "forbidden",
-      "policy": "authorization_policy.project.reviewer",
-      "unauthenticated_as": "unauthenticated"
+      "access_denied_as": "access_denied",
+      "authentication_required_as": "authentication_required",
+      "policy": "authorization_policy.project.reviewer"
     },
     "application_action.project.archive": {
-      "forbidden_as": "forbidden",
-      "policy": "authorization_policy.project.reviewer",
-      "unauthenticated_as": "unauthenticated"
+      "access_denied_as": "access_denied",
+      "authentication_required_as": "authentication_required",
+      "policy": "authorization_policy.project.reviewer"
     },
     "application_action.project.create": {
-      "forbidden_as": "forbidden",
-      "policy": "authorization_policy.project.member",
-      "unauthenticated_as": "unauthenticated"
+      "access_denied_as": "access_denied",
+      "authentication_required_as": "authentication_required",
+      "policy": "authorization_policy.project.member"
     },
     "application_action.project.list": {
-      "forbidden_as": "forbidden",
-      "policy": "authorization_policy.project.member",
-      "unauthenticated_as": "unauthenticated"
+      "access_denied_as": "access_denied",
+      "authentication_required_as": "authentication_required",
+      "policy": "authorization_policy.project.member"
     },
     "application_action.project.read": {
-      "forbidden_as": "forbidden",
-      "policy": "authorization_policy.project.member",
-      "unauthenticated_as": "unauthenticated"
+      "access_denied_as": "access_denied",
+      "authentication_required_as": "authentication_required",
+      "policy": "authorization_policy.project.member"
     },
     "application_action.project.send_approval_notice": {
-      "forbidden_as": "forbidden",
-      "policy": "authorization_policy.project.reviewer",
-      "unauthenticated_as": "unauthenticated"
+      "access_denied_as": "access_denied",
+      "authentication_required_as": "authentication_required",
+      "policy": "authorization_policy.project.reviewer"
     },
     "application_action.project.submit": {
-      "forbidden_as": "forbidden",
-      "policy": "authorization_policy.project.member",
-      "unauthenticated_as": "unauthenticated"
+      "access_denied_as": "access_denied",
+      "authentication_required_as": "authentication_required",
+      "policy": "authorization_policy.project.member"
     }
   },
   "authorization_policies": {
@@ -43,28 +43,28 @@
           "subject_has_role": "member"
         }
       ],
-      "effect": "allow",
+      "effect": "permit",
       "rationale": "Workspace members may create, read, list, and submit dispatch projects.",
-      "subjects": [
+      "resources": [
         {
-          "kind": "actor"
-        }
-      ],
-      "targets": [
-        {
-          "application_action": "application_action.project.create"
+          "action": "application_action.project.create"
         },
         {
-          "application_action": "application_action.project.list"
+          "action": "application_action.project.list"
         },
         {
-          "application_action": "application_action.project.read"
+          "action": "application_action.project.read"
         },
         {
-          "application_action": "application_action.project.submit"
+          "action": "application_action.project.submit"
         },
         {
           "entity_type": "entity_type.project"
+        }
+      ],
+      "subjects": [
+        {
+          "kind": "actor"
         }
       ]
     },
@@ -74,25 +74,25 @@
           "subject_has_role": "reviewer"
         }
       ],
-      "effect": "allow",
+      "effect": "permit",
       "rationale": "Reviewers may approve, archive, and send approval notices for dispatch projects.",
-      "subjects": [
+      "resources": [
         {
-          "kind": "actor"
-        }
-      ],
-      "targets": [
-        {
-          "application_action": "application_action.project.approve"
+          "action": "application_action.project.approve"
         },
         {
-          "application_action": "application_action.project.archive"
+          "action": "application_action.project.archive"
         },
         {
-          "application_action": "application_action.project.send_approval_notice"
+          "action": "application_action.project.send_approval_notice"
         },
         {
           "entity_type": "entity_type.project"
+        }
+      ],
+      "subjects": [
+        {
+          "kind": "actor"
         }
       ]
     }
