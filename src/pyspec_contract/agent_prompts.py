@@ -58,8 +58,8 @@ def infer_contract_layers(contract: dict[str, Any]) -> set[str]:
     adapter_kinds = _entry_adapter_kinds(contract)
     if "http_api" in adapter_kinds:
         active.add("http")
-    if contract.get("events") or "webhook" in adapter_kinds:
-        active.add("events")
+    if contract.get("domain_events") or "webhook" in adapter_kinds:
+        active.add("domain_events")
     if contract.get("workflows") or adapter_kinds & {"cli", "worker", "scheduled"}:
         active.add("workflow")
     if _contract_has_ui(contract):
@@ -184,10 +184,10 @@ def _pm_design_prompt(context: _PromptContext) -> str:
         lines.append("- HTTP: HTTP entry points that bind application_actions to externally visible API application_actions.")
     else:
         lines.append("- Do not author HTTP/API entry points or OpenAPI details; the HTTP layer is inactive.")
-    if "events" in context.layers:
-        lines.append("- Events: event-producing product behavior and webhook-facing contracts when requested.")
+    if "domain_events" in context.layers:
+        lines.append("- Domain events: durable domain facts and webhook-facing integration contracts when requested.")
     else:
-        lines.append("- Do not add event/webhook vocabulary unless the active layers change.")
+        lines.append("- Do not add domain-event, webhook, or integration-message vocabulary unless the active layers change.")
     if "workflow" in context.layers:
         lines.append("- Workflow: workflows with explicit outcomes, step outcome routing, CLI target-outcome response handlers, and worker/scheduled ingress responses.")
     else:
@@ -251,7 +251,7 @@ def _test_prompt(context: _PromptContext) -> str:
         "Rules:",
         "- There is exactly one generated Gherkin corpus; both spec and prod harnesses consume `spec/generated/test_adapters/pytest_bdd_features/`.",
         "- The spec harness may use the generated/reference driver to prove test-case coherence.",
-        "- The prod harness must call real product surfaces and must not import the reference driver, fake authorization decisions, fake emitted events, fake rendered state machine surfaces, or mutate generated test cases.",
+        "- The prod harness must call real product surfaces and must not import the reference driver, fake authorization decisions, fake emitted domain_events, fake rendered state machine surfaces, or mutate generated test cases.",
         "- If generated behavior files are missing, ask for PM/design authoring and `pyspec compile` before inventing tests.",
         f"- Check freshness with `pyspec validate . --layers {context.layer_arg}`.",
     ]
@@ -281,12 +281,12 @@ def _review_prompt(context: _PromptContext) -> str:
         "",
         "Test audit:",
         "- Check whether tests consume generated behavior and exercise real prod surfaces where required.",
-        "- Reject tests that mutate generated test cases, fake authorization decisions, fake emitted events, fake rendered state machine surfaces, duplicate generated behavior, or mask missing spec coverage.",
+        "- Reject tests that mutate generated test cases, fake authorization decisions, fake emitted domain_events, fake rendered state machine surfaces, duplicate generated behavior, or mask missing spec coverage.",
         "- For every test issue, provide a recommended prompt for `test.md` that asks for the smallest harness/test fix, or asks the test agent to report a PM/design gap when the spec is wrong.",
         "",
         "Dev audit:",
         "- Check whether implementation consumes generated projections/constants and implements the declared contract without inventing contract surface.",
-        "- Reject invented routes, text resources, selectors, events, workflows, authorization_policies, application_actions, fixtures, test-case IDs, persistence contracts, or content source signatures outside the spec.",
+        "- Reject invented routes, text resources, selectors, domain_events, workflows, authorization_policies, application_actions, fixtures, test-case IDs, persistence contracts, or content source signatures outside the spec.",
         "- For every dev issue, provide a recommended prompt for `dev.md` that asks for the smallest implementation fix.",
         "",
         "Evidence checks:",
@@ -319,7 +319,7 @@ def _dev_prompt(context: _PromptContext) -> str:
         context.compiled_summary(),
         "",
         "Do not change `spec/spec.yaml` to fix implementation failures unless the user explicitly switches you into PM/design work.",
-        "Use generated constants and projections; do not invent routes, strings, state machine surfaces, CSS selectors, Textual widgets, Textual style rules, events, workflows, authorization_policies, application_actions, fixtures, test-case IDs, storage tables, or migrations outside the spec and implementation layer.",
+        "Use generated constants and projections; do not invent routes, strings, state machine surfaces, CSS selectors, Textual widgets, Textual style rules, domain_events, workflows, authorization_policies, application_actions, fixtures, test-case IDs, storage tables, or migrations outside the spec and implementation layer.",
         "",
         "Generated interfaces to consume:",
         "- `spec/generated/behavior/test_cases.yaml` and `spec/generated/behavior/fixtures.yaml`",
@@ -327,8 +327,8 @@ def _dev_prompt(context: _PromptContext) -> str:
     ]
     if "http" in context.layers:
         lines.append("- `spec/generated/product_interfaces/http.openapi.yaml`")
-    if "events" in context.layers:
-        lines.append("- `spec/generated/product_interfaces/events.asyncapi.yaml`")
+    if "domain_events" in context.layers:
+        lines.append("- `spec/generated/product_interfaces/integration_messages.asyncapi.yaml`")
     if "workflow" in context.layers:
         lines.append("- `spec/generated/product_interfaces/workflow.cwl.yaml`")
     if "html" in context.layers:

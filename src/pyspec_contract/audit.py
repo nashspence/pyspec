@@ -599,7 +599,7 @@ def _audit_evidence_for_pointer(contract: dict[str, Any], pointer: str) -> list[
         return _data_contract_evidence_files(contract, owner)
     if parts[0] == "entry_points":
         return _entry_point_evidence_files(contract, owner)
-    if parts[0] == "events":
+    if parts[0] == "domain_events":
         return _event_evidence_files(contract, owner)
     if parts[0] == "facts":
         return _fact_evidence_files(contract, owner)
@@ -672,10 +672,10 @@ _VISUAL_TEXT_REF_PREFIXES = (
     "authorization_policy.",
     "cli_command.",
     "data_contract.",
-    "data_signal.",
+    "data_refresh_signal.",
     "entry_point.",
-    "event.",
-    "message.",
+    "domain_event.",
+    "local_signal.",
     "application_action.",
     "query.",
     "state_machine.",
@@ -726,7 +726,7 @@ def _visual_text_witness_tokens(contract: dict[str, Any], pointer: str, evidence
         tokens.extend(_entry_point_text_witness_tokens(contract, parts, value))
     elif collection == "application_actions":
         tokens.extend(_application_action_text_witness_tokens(contract, parts, value, detail_evidence))
-    elif collection == "events":
+    elif collection == "domain_events":
         tokens.extend(_event_text_witness_tokens(contract, parts, value))
     elif collection == "workflows":
         tokens.extend(_workflow_text_witness_tokens(contract, parts, value))
@@ -762,7 +762,7 @@ def _generic_reference_witness_allowed(parts: list[str], detail_evidence: bool) 
         return True
     if parts[0] == "application_actions":
         return detail_evidence or parts[-2:] == ["authorization", "policy"]
-    if parts[0] == "events":
+    if parts[0] == "domain_events":
         return detail_evidence
     if parts[0] == "authorization_policies":
         return detail_evidence
@@ -773,9 +773,9 @@ def _state_machine_reference_witness_allowed(parts: list[str]) -> bool:
     if "view_states" in parts:
         return any(marker in parts for marker in {"text", "assets", "action_bindings", "child_state_machines", "signal_sync_rules"})
     if "transitions" in parts:
-        return parts[-1] in {"data_signal", "message", "application_action", "state_machine", "workflow", "event"}
+        return parts[-1] in {"data_refresh_signal", "local_signal", "application_action", "state_machine", "workflow", "domain_event"}
     if "signals" in parts:
-        return "messages" in parts
+        return "local_signals" in parts
     return False
 
 
@@ -1058,10 +1058,10 @@ def _authorization_policy_evidence_files(contract: dict[str, Any], policy_id: st
 
 
 def _event_evidence_files(contract: dict[str, Any], event_id: str) -> list[str]:
-    if event_id not in contract.get("events", {}):
+    if event_id not in contract.get("domain_events", {}):
         return []
     files: list[str] = []
-    event = contract["events"][event_id]
+    event = contract["domain_events"][event_id]
     for application_action_id in event.get("emitted_by", []):
         files.extend(_application_action_evidence_files(contract, application_action_id))
     for workflow_id, workflow in sorted(contract.get("workflows", {}).items()):
@@ -1077,7 +1077,7 @@ def _data_contract_evidence_files(contract: dict[str, Any], data_contract_id: st
     if data_contract_id not in contract.get("data_contracts", {}):
         return []
     files: list[str] = []
-    for event_id, event in sorted(contract.get("events", {}).items()):
+    for event_id, event in sorted(contract.get("domain_events", {}).items()):
         if _value_contains_string(event.get("payload_schema", {}), data_contract_id):
             files.extend(_event_evidence_files(contract, event_id))
     for application_action_id, operation in sorted(contract.get("application_actions", {}).items()):
@@ -1099,7 +1099,7 @@ def _model_evidence_files(contract: dict[str, Any], model_id: str) -> list[str]:
     for application_action_id, operation in sorted(contract.get("application_actions", {}).items()):
         if _value_contains_string(operation, model_id):
             files.extend(_application_action_evidence_files(contract, application_action_id))
-    for event_id, event in sorted(contract.get("events", {}).items()):
+    for event_id, event in sorted(contract.get("domain_events", {}).items()):
         if _value_contains_string(event, model_id):
             files.extend(_event_evidence_files(contract, event_id))
     for entry_id, entry in sorted(contract.get("entry_points", {}).items()):
@@ -1157,8 +1157,8 @@ def _test_case_evidence_files(contract: dict[str, Any], test_case_id: str) -> li
             files.extend(_entry_point_evidence_files(contract, when[action]["ref"]))
     if "invoke_application_action" in when:
         files.extend(_application_action_evidence_files(contract, when["invoke_application_action"]["ref"]))
-    if "emit_event" in when:
-        files.extend(_event_evidence_files(contract, when["emit_event"]["ref"]))
+    if "emit_domain_event" in when:
+        files.extend(_event_evidence_files(contract, when["emit_domain_event"]["ref"]))
     if "run_workflow" in when:
         files.extend(_workflow_evidence_files(contract, when["run_workflow"]["ref"]))
     for case_id, case in sorted(audit_cases(contract).items()):
@@ -1778,22 +1778,22 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
     if mount_node_ids and not has_sync:
         lines.extend(_dot_invisible_order(mount_node_ids, indent="  "))
     if not has_sync:
-        lines.append(_dot_html_node("message_route_none", _dot_card("No message routes", "message routing", [], style=_DOT_STYLE_NEUTRAL)))
+        lines.append(_dot_html_node("local_signal_route_none", _dot_card("No local signal routes", "local signal routing", [], style=_DOT_STYLE_NEUTRAL)))
     for rule in state_machine.get("signal_sync_rules", []):
-        signal_id = rule["when"]["message"]
-        emit_id = _dot_node_id("message_emit", f"{rule['id']}_{rule['when']['instance']}_{signal_id}")
-        sync_id = _dot_node_id("message_route", rule["id"])
+        signal_id = rule["when"]["local_signal"]
+        emit_id = _dot_node_id("local_signal_emit", f"{rule['id']}_{rule['when']['instance']}_{signal_id}")
+        sync_id = _dot_node_id("local_signal_route", rule["id"])
         send_effects = [(index, effect) for index, effect in enumerate(rule.get("effects", [])) if "send" in effect]
-        effect_ids = [_dot_node_id("message_effect", f"{rule['id']}_{index}") for index, _ in send_effects]
+        effect_ids = [_dot_node_id("local_signal_effect", f"{rule['id']}_{index}") for index, _ in send_effects]
         lines.append(
             _dot_html_node(
                 emit_id,
                 _dot_card(
-                    _message_label(signal_id),
-                    "emitted message",
+                    _local_signal_label(signal_id),
+                    "emitted local signal",
                     [
                         ("source", _emitting_transition_refs(rule["when"]["instance"], signal_id, mount_by_id, contract)),
-                        ("payload", _emitted_message_data_lines(rule["when"]["instance"], signal_id, mount_by_id, contract)),
+                        ("payload", _emitted_local_signal_data_lines(rule["when"]["instance"], signal_id, mount_by_id, contract)),
                     ],
                     style=_DOT_STYLE_EVENT,
                 ),
@@ -1804,21 +1804,21 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
                 sync_id,
                 _dot_card(
                     rule["id"],
-                    "message route",
+                    "local signal route",
                     [("set", _route_set_lines(rule, state_machine))],
                     style=_DOT_STYLE_WORKFLOW,
                 ),
             )
         )
         for index, effect in send_effects:
-            effect_id = _dot_node_id("message_effect", f"{rule['id']}_{index}")
+            effect_id = _dot_node_id("local_signal_effect", f"{rule['id']}_{index}")
             lines.append(_dot_html_node(effect_id, _dot_sync_effect_card(effect, mount_by_id, contract)))
         if effect_ids:
             lines.append("  { rank=same; " + " ".join(_dot_quote(effect_id) for effect_id in effect_ids) + " }")
             lines.extend(_dot_invisible_order(effect_ids, indent="  "))
     for rule in state_machine.get("signal_sync_rules", []):
-        emit_id = _dot_node_id("message_emit", f"{rule['id']}_{rule['when']['instance']}_{rule['when']['message']}")
-        sync_id = _dot_node_id("message_route", rule["id"])
+        emit_id = _dot_node_id("local_signal_emit", f"{rule['id']}_{rule['when']['instance']}_{rule['when']['local_signal']}")
+        sync_id = _dot_node_id("local_signal_route", rule["id"])
         source = mount_node_by_id.get(rule["when"]["instance"])
         if source:
             lines.append(_dot_edge(source, emit_id, {"color": _DOT_COLOR_EVENT_BORDER, "penwidth": "1.4"}))
@@ -1826,7 +1826,7 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
         for index, effect in enumerate(rule.get("effects", [])):
             if "send" not in effect:
                 continue
-            effect_id = _dot_node_id("message_effect", f"{rule['id']}_{index}")
+            effect_id = _dot_node_id("local_signal_effect", f"{rule['id']}_{index}")
             lines.append(_dot_edge(sync_id, effect_id, {"color": _DOT_COLOR_MESSAGE_BORDER, "penwidth": "1.3"}))
             target = mount_node_by_id.get(effect["send"]["instance"])
             if not target:
@@ -1894,7 +1894,7 @@ def _entry_io_card_titles(adapter_kind: str) -> tuple[str, str]:
     if adapter_kind == "cli":
         return "command input", "command output"
     if adapter_kind == "worker":
-        return "event payload", "message disposition"
+        return "domain event payload", "integration message disposition"
     if adapter_kind == "scheduled":
         return "schedule trigger", "trigger disposition"
     return "input", "output"
@@ -1972,7 +1972,7 @@ def application_action_flow_dot(application_action_id: str, application_action: 
     event_nodes: dict[str, str] = {}
     for _, outcome in sorted(application_action.get("outcomes", {}).items()):
         for emit in outcome.get("emits", []):
-            event_id = emit["event"] if isinstance(emit, dict) else emit
+            event_id = emit["domain_event"] if isinstance(emit, dict) else emit
             event_nodes.setdefault(event_id, _dot_node_id("application_action_event", f"{application_action_id}_{event_id}"))
 
     lines = _dot_graph_preamble("application_action_" + safe_id(application_action_id))
@@ -2009,7 +2009,7 @@ def application_action_flow_dot(application_action_id: str, application_action: 
         elif flow_tail:
             lines.append(_dot_edge(flow_tail, node_id, {"label": outcome["kind"], "color": _outcome_edge_color(outcome["kind"])}))
         for emit in outcome.get("emits", []):
-            event_id = emit["event"] if isinstance(emit, dict) else emit
+            event_id = emit["domain_event"] if isinstance(emit, dict) else emit
             lines.append(_dot_edge(node_id, event_nodes[event_id], {"label": "emit", "color": _DOT_COLOR_EVENT_BORDER, "penwidth": "1.2"}))
     if outcome_nodes:
         lines.append("  { rank=same; " + " ".join(_dot_quote(node_id) for node_id, _, _ in outcome_nodes) + " }")
@@ -2313,7 +2313,7 @@ def _entry_target_card(
             rationale=delegated.get("rationale", ""),
             style=_DOT_STYLE_ENTRY,
         )
-    if target_kind == "event":
+    if target_kind == "domain_event":
         return _event_card(target_value, contract)
     return _dot_card(target_value, f"target {target_kind}", [], style=_DOT_STYLE_NEUTRAL)
 
@@ -2389,8 +2389,8 @@ def _state_machine_view_state_sections(
 
 
 def _workflow_trigger_card(trigger_kind: str, trigger_value: str, contract: dict[str, Any]) -> str:
-    if trigger_kind == "event":
-        return _event_card(trigger_value, contract, subtitle="event trigger")
+    if trigger_kind == "domain_event":
+        return _event_card(trigger_value, contract, subtitle="domain event trigger")
     if trigger_kind == "application_action":
         application_action = contract["application_actions"][trigger_value]
         return _dot_card(
@@ -2462,10 +2462,10 @@ def _event_card(
     event_id: str,
     contract: dict[str, Any],
     *,
-    subtitle: str = "target event",
+    subtitle: str = "target domain event",
     mode: _EventCardMode = "reference",
 ) -> str:
-    event = contract.get("events", {}).get(event_id, {})
+    event = contract.get("domain_events", {}).get(event_id, {})
     sections: list[tuple[str, list[object]]] = []
     if event.get("payload_schema"):
         payload_field = _DotExpandedTypedField("payload", event["payload_schema"]) if mode == "emitted" else _DotTypedField("payload", event["payload_schema"])
@@ -2576,11 +2576,11 @@ def _dot_sync_effect_card(
     if "send" in effect:
         send = effect["send"]
         return _dot_card(
-            _message_label(send["message"]),
-            "sent message",
+            _local_signal_label(send["local_signal"]),
+            "sent local signal",
             [
-                ("causes", _receiving_transition_refs(send["instance"], send["message"], mount_by_id, contract)),
-                ("payload", _sent_message_data_lines(send, mount_by_id, contract)),
+                ("causes", _receiving_transition_refs(send["instance"], send["local_signal"], mount_by_id, contract)),
+                ("payload", _sent_local_signal_data_lines(send, mount_by_id, contract)),
             ],
             style=_DOT_STYLE_MESSAGE,
         )
@@ -2595,13 +2595,13 @@ def _dot_sync_effect_card(
     )
 
 
-def _emitted_message_data_lines(
+def _emitted_local_signal_data_lines(
     instance_id: str,
     emitted: str,
     mount_by_id: dict[str, dict[str, Any]],
     contract: dict[str, Any],
 ) -> list[_DotTypedField]:
-    payload = _message_payload_for_instance(instance_id, "emits", emitted, mount_by_id, contract)
+    payload = _local_signal_payload_for_instance(instance_id, "emits", emitted, mount_by_id, contract)
     lines: list[_DotTypedField] = []
     seen: set[str] = set()
     for emit in _emitting_transition_emits(instance_id, emitted, mount_by_id, contract):
@@ -2625,12 +2625,12 @@ def _route_set_lines(rule: dict[str, Any], state_machine: dict[str, Any]) -> lis
     return lines
 
 
-def _sent_message_data_lines(
+def _sent_local_signal_data_lines(
     send: dict[str, Any],
     mount_by_id: dict[str, dict[str, Any]],
     contract: dict[str, Any],
 ) -> list[_DotTypedField]:
-    payload = _message_payload_for_instance(send["instance"], "accepts", send["message"], mount_by_id, contract)
+    payload = _local_signal_payload_for_instance(send["instance"], "accepts", send["local_signal"], mount_by_id, contract)
     return _format_typed_data_flow(send.get("payload_bindings", {}), payload)
 
 
@@ -2638,16 +2638,16 @@ def _assignment_value(assignment: dict[str, Any]) -> Any:
     return assignment.get("from", assignment.get("value", ""))
 
 
-def _message_payload_for_instance(
+def _local_signal_payload_for_instance(
     instance_id: str,
     direction: str,
-    message: str,
+    local_signal: str,
     mount_by_id: dict[str, dict[str, Any]],
     contract: dict[str, Any],
 ) -> dict[str, str]:
     mount = mount_by_id[instance_id]
     state_machine = contract["state_machines"][mount["state_machine"]]
-    return state_machine["signals"][direction]["messages"][message]["payload_schema"]
+    return state_machine["signals"][direction]["local_signals"][local_signal]["payload_schema"]
 
 
 def _emitting_transition_emits(
@@ -2662,7 +2662,7 @@ def _emitting_transition_emits(
     for transition in state_machine.get("transitions", []):
         for effect in transition.get("effects", []):
             emit = effect.get("emit")
-            if emit and emit["message"] == emitted:
+            if emit and emit["local_signal"] == emitted:
                 emits.append(emit)
     return emits
 
@@ -2683,14 +2683,14 @@ def _emitting_transition_refs(
     if not state_machine:
         return refs
     for transition in state_machine.get("transitions", []):
-        if any(effect.get("emit", {}).get("message") == emitted for effect in transition.get("effects", [])):
+        if any(effect.get("emit", {}).get("local_signal") == emitted for effect in transition.get("effects", [])):
             refs.append(_signal_label(transition["on"]))
     return refs
 
 
 def _receiving_transition_refs(
     instance_id: str,
-    message: str,
+    local_signal: str,
     mount_by_id: dict[str, dict[str, Any]],
     contract: dict[str, Any] | None,
 ) -> list[str]:
@@ -2704,7 +2704,7 @@ def _receiving_transition_refs(
         return []
     target_sources: dict[str, list[str]] = {}
     for transition in state_machine.get("transitions", []):
-        if transition["on"] == {"message": message}:
+        if transition["on"] == {"local_signal": local_signal}:
             target_sources.setdefault(transition["to"], []).append(transition["from"])
     if len(target_sources) == 1:
         target = next(iter(target_sources))
@@ -3031,7 +3031,7 @@ def _wrap_dot_token(text: str, width: int) -> list[str]:
     return lines or [text]
 
 
-def _format_data_flow(mapping: dict[str, Any], *, identity_scope: str | None = "message") -> list[str]:
+def _format_data_flow(mapping: dict[str, Any], *, identity_scope: str | None = "local_signal") -> list[str]:
     return [_format_flow_assignment(key, value, identity_scope=identity_scope) for key, value in sorted(mapping.items())]
 
 
@@ -3039,7 +3039,7 @@ def _format_typed_data_flow(
     mapping: dict[str, Any],
     field_types: dict[str, str],
     *,
-    identity_scope: str | None = "message",
+    identity_scope: str | None = "local_signal",
 ) -> list[_DotTypedField]:
     return [
         _format_typed_flow_assignment(key, field_types[key], value, identity_scope=identity_scope)
@@ -3052,22 +3052,22 @@ def _format_typed_flow_assignment(
     type_name: Any,
     value: Any,
     *,
-    identity_scope: str | None = "message",
+    identity_scope: str | None = "local_signal",
 ) -> _DotTypedField:
     source = _format_flow_source(value)
     if identity_scope and source == f"{identity_scope}.{target}":
         return _DotTypedField(target, type_name)
-    if source.startswith("message."):
-        source = source[len("message.") :]
+    if source.startswith("local_signal."):
+        source = source[len("local_signal.") :]
     return _DotTypedField(target, type_name, source)
 
 
-def _format_flow_assignment(target: str, value: Any, *, identity_scope: str | None = "message") -> str:
+def _format_flow_assignment(target: str, value: Any, *, identity_scope: str | None = "local_signal") -> str:
     source = _format_flow_source(value)
     if identity_scope and source == f"{identity_scope}.{target}":
         return target
-    if source.startswith("message."):
-        source = source[len("message.") :]
+    if source.startswith("local_signal."):
+        source = source[len("local_signal.") :]
     return f"{target} {_DOT_ARROW_ASSIGN} {source}"
 
 
@@ -3085,7 +3085,7 @@ def _format_transition_sections(
     state_machine: dict[str, Any], transition: dict[str, Any], contract: dict[str, Any]
 ) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
-    if _is_data_signal(transition["on"]):
+    if _is_data_refresh_signal(transition["on"]):
         bindings = _transition_data_bindings(state_machine, transition)
         application_action_ids = [binding["application_action"] for binding in bindings]
         data_sources = _format_application_action_outputs(application_action_ids, contract)
@@ -3142,7 +3142,7 @@ def _state_field_data_bindings(state_machine: dict[str, Any], state_name: str, s
         return bindings
     incoming_data_bindings: list[dict[str, Any]] = []
     for transition in state_machine.get("transitions", []):
-        if transition["to"] == state_name and _is_data_signal(transition["on"]):
+        if transition["to"] == state_name and _is_data_refresh_signal(transition["on"]):
             incoming_data_bindings.extend(_transition_data_bindings(state_machine, transition))
     if incoming_data_bindings:
         return _unique_data_bindings(incoming_data_bindings)
@@ -3214,20 +3214,20 @@ def _format_data_inputs(
     return inputs
 
 
-def _is_data_signal(signal: dict[str, str]) -> bool:
-    return "data_signal" in signal
+def _is_data_refresh_signal(signal: dict[str, str]) -> bool:
+    return "data_refresh_signal" in signal
 
 
 def _signal_label(signal: dict[str, str]) -> str:
-    if "message" in signal:
-        return _message_label(signal["message"])
-    if "data_signal" in signal:
-        return f"data_signal.{signal['data_signal']}"
+    if "local_signal" in signal:
+        return _local_signal_label(signal["local_signal"])
+    if "data_refresh_signal" in signal:
+        return f"data_refresh_signal.{signal['data_refresh_signal']}"
     return str(signal)
 
 
-def _message_label(message: str) -> str:
-    return f"message.{message}"
+def _local_signal_label(local_signal: str) -> str:
+    return f"local_signal.{local_signal}"
 
 
 def _transition_data_bindings(state_machine: dict[str, Any], transition: dict[str, Any]) -> list[dict[str, Any]]:
@@ -3259,8 +3259,8 @@ def _format_transition_effect_sections(state_machine: dict[str, Any], transition
     for effect in transition.get("effects", []):
         if "emit" in effect:
             emit = effect["emit"]
-            sections.append(("emit", [_message_label(emit["message"])]))
-            payload_types = state_machine["signals"]["emits"]["messages"][emit["message"]]["payload_schema"]
+            sections.append(("emit", [_local_signal_label(emit["local_signal"])]))
+            payload_types = state_machine["signals"]["emits"]["local_signals"][emit["local_signal"]]["payload_schema"]
             payload = _format_typed_data_flow(emit.get("payload_bindings", {}), payload_types)
             if payload:
                 sections.append(("payload", payload))

@@ -62,7 +62,7 @@ class ReferenceSpecDriver:
             self.response = self._call_entry_point(body["ref"], self._resolve_map(body.get("input", {})), test_case["then"].get("outcome"))
         elif kind == "invoke_application_action":
             self.last_result = self._invoke(body["ref"], self._resolve_map(body.get("input", {})), test_case["then"].get("outcome"))
-        elif kind == "emit_event":
+        elif kind == "emit_domain_event":
             self._emit(body["ref"], self._resolve_map(body.get("payload", {})))
         else:  # pragma: no cover - schema prevents this.
             raise AssertionError(f"Unsupported when kind: {kind}")
@@ -111,10 +111,10 @@ class ReferenceSpecDriver:
         if exists:
             where = self._resolve_map(exists["where"])
             assert any(_matches(record, where) for record in self.store[exists["model"]]), f"Missing model {exists}"
-        events = assertions.get("events") or {}
-        for event_id in events.get("emitted", []):
+        domain_events = assertions.get("domain_events") or {}
+        for event_id in domain_events.get("emitted", []):
             assert event_id in self.emitted
-        for event_id in events.get("not_emitted", []):
+        for event_id in domain_events.get("not_emitted", []):
             assert event_id not in self.emitted
         workflow = assertions.get("workflow")
         if workflow:
@@ -382,7 +382,7 @@ class ReferenceSpecDriver:
     def _emit(self, event_id: str, payload: dict[str, Any]) -> None:
         self._record_event(event_id, payload)
         for workflow_id, workflow in self.contract["workflows"].items():
-            if workflow["trigger"] == {"event": event_id}:
+            if workflow["trigger"] == {"domain_event": event_id}:
                 self.workflows_executed.append(workflow_id)
                 self.workflow_outcomes[workflow_id] = self._run_workflow(workflow, payload)
 
@@ -420,8 +420,8 @@ class ReferenceSpecDriver:
             return emit, dict(result)
         namespace = {"input": dict(input_values), "outcome": {"result": dict(result)}}
         if "payload_source" in emit:
-            return emit["event"], _resolve_binding(emit["payload_source"], namespace)
-        return emit["event"], {field: _resolve_binding(source, namespace) for field, source in emit["payload_bindings"].items()}
+            return emit["domain_event"], _resolve_binding(emit["payload_source"], namespace)
+        return emit["domain_event"], {field: _resolve_binding(source, namespace) for field, source in emit["payload_bindings"].items()}
 
     def _record_event(self, event_id: str, payload: dict[str, Any]) -> None:
         self.emitted.append(event_id)

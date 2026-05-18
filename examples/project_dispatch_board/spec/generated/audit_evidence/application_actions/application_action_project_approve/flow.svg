@@ -1,6 +1,6 @@
-<svg width="1387pt" height="747pt"
- viewBox="0.00 0.00 1387.00 747.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 134017cc1c1d36eae2c25e257d07a017d82e78e11eb27a35cd7eba3673741223 -->
+<svg width="1397pt" height="747pt"
+ viewBox="0.00 0.00 1397.00 747.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: 5da332b6a85f16b67f9ff289a026dc88f47aa571d896bd5cf074f0cee30dd51b -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 729)">
 <title>application_action_application_action_project_approve</title>
 <!-- application_action_input_application_action_project_approve -->
@@ -185,26 +185,26 @@
 <text text-anchor="middle" x="892.5" y="-166.5" font-family="Arial" font-size="10.00">failure</text>
 </g>
 <!-- action_outcome_application_action_project_approve_approved&#45;&gt;action_outcome_application_action_project_approve_forbidden -->
-<!-- application_action_event_application_action_project_approve_event_project_approved -->
+<!-- application_action_event_application_action_project_approve_domain_event_project_approved -->
 <g id="node10" class="node">
-<title>application_action_event_application_action_project_approve_event_project_approved</title>
-<polygon fill="#ffffff" stroke="transparent" points="1138,-610 1138,-711 1351,-711 1351,-610 1138,-610"/>
-<polygon fill="#4f46e5" stroke="transparent" points="1139.5,-701.5 1139.5,-709.5 1350.5,-709.5 1350.5,-701.5 1139.5,-701.5"/>
-<polygon fill="#eef2ff" stroke="transparent" points="1139.5,-670.5 1139.5,-701.5 1350.5,-701.5 1350.5,-670.5 1139.5,-670.5"/>
-<text text-anchor="start" x="1143.5" y="-688.1" font-family="Arial" font-weight="bold" font-size="13.00">event.project.approved</text>
+<title>application_action_event_application_action_project_approve_domain_event_project_approved</title>
+<polygon fill="#ffffff" stroke="transparent" points="1138,-610 1138,-711 1361,-711 1361,-610 1138,-610"/>
+<polygon fill="#4f46e5" stroke="transparent" points="1139.5,-701.5 1139.5,-709.5 1360.5,-709.5 1360.5,-701.5 1139.5,-701.5"/>
+<polygon fill="#eef2ff" stroke="transparent" points="1139.5,-670.5 1139.5,-701.5 1360.5,-701.5 1360.5,-670.5 1139.5,-670.5"/>
+<text text-anchor="start" x="1143.5" y="-688.1" font-family="Arial" font-weight="bold" font-size="13.00">domain_event.project.approved</text>
 <text text-anchor="start" x="1143.5" y="-677.1" font-family="Arial" font-size="8.00" fill="#64748b">emitted event</text>
-<text text-anchor="start" x="1143.5" y="-659.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approval events carry the reviewer and project</text>
-<text text-anchor="start" x="1143.5" y="-648.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">identity needed by notification workflows.</text>
+<text text-anchor="start" x="1143.5" y="-659.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approval domain events carry the reviewer and</text>
+<text text-anchor="start" x="1143.5" y="-648.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">project identity needed by notification workflows.</text>
 <text text-anchor="start" x="1143.5" y="-629.5" font-family="Arial" font-weight="bold" font-size="10.00">payload</text>
 <text text-anchor="start" x="1143.5" y="-618.5" font-family="Arial" font-size="10.00">payload</text>
 <text text-anchor="start" x="1177.5" y="-618.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  data_contract.project.approved</text>
-<polygon fill="none" stroke="#4f46e5" points="1138,-610 1138,-711 1351,-711 1351,-610 1138,-610"/>
+<polygon fill="none" stroke="#4f46e5" points="1138,-610 1138,-711 1361,-711 1361,-610 1138,-610"/>
 </g>
-<!-- action_outcome_application_action_project_approve_approved&#45;&gt;application_action_event_application_action_project_approve_event_project_approved -->
+<!-- action_outcome_application_action_project_approve_approved&#45;&gt;application_action_event_application_action_project_approve_domain_event_project_approved -->
 <g id="edge4" class="edge">
-<title>action_outcome_application_action_project_approve_approved&#45;&gt;application_action_event_application_action_project_approve_event_project_approved</title>
-<path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M1035.06,-660.5C1059.99,-660.5 1095.17,-660.5 1129.54,-660.5"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="1129.79,-663.3 1137.79,-660.5 1129.79,-657.7 1129.79,-663.3"/>
+<title>action_outcome_application_action_project_approve_approved&#45;&gt;application_action_event_application_action_project_approve_domain_event_project_approved</title>
+<path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M1035.24,-660.5C1060.11,-660.5 1095.17,-660.5 1129.69,-660.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="1129.97,-663.3 1137.97,-660.5 1129.97,-657.7 1129.97,-663.3"/>
 <text text-anchor="middle" x="1097.5" y="-663.5" font-family="Arial" font-size="10.00">emit</text>
 </g>
 <!-- action_outcome_application_action_project_approve_forbidden&#45;&gt;action_outcome_application_action_project_approve_invalid_state -->

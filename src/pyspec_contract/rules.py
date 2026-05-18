@@ -9,7 +9,7 @@ def resource_tail(value: str) -> str:
     for prefix in (
         "application_action",
         "entry_point",
-        "event",
+        "domain_event",
         "workflow",
         "state_machine",
         "test_case",
@@ -20,8 +20,8 @@ def resource_tail(value: str) -> str:
         "content_case",
         "data_contract",
         "render_profile",
-        "message",
-        "data_signal",
+        "local_signal",
+        "data_refresh_signal",
         "authorization_policy",
     ):
         marker = f"{prefix}."

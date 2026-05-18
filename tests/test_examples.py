@@ -49,8 +49,8 @@ def test_canonical_contract_is_fresh_and_complete() -> None:
 def test_canonical_openapi_asyncapi_and_cwl_are_visible() -> None:
     openapi = read_yaml(ROOT / "spec" / "generated" / "product_interfaces" / "http.openapi.yaml")
     assert openapi["paths"]["/workspaces/{workspace_id}/projects"]["post"]["operationId"] == "application_action.project.create"
-    asyncapi = read_yaml(ROOT / "spec" / "generated" / "product_interfaces" / "events.asyncapi.yaml")
-    assert any(channel.get("address") == "event.project.approved" for channel in asyncapi["channels"].values() if isinstance(channel, dict))
+    asyncapi = read_yaml(ROOT / "spec" / "generated" / "product_interfaces" / "integration_messages.asyncapi.yaml")
+    assert any(channel.get("address") == "domain_event.project.approved" for channel in asyncapi["channels"].values() if isinstance(channel, dict))
     cwl = read_yaml(ROOT / "spec" / "generated" / "product_interfaces" / "workflow.cwl.yaml")
     assert "#workflow_project_approval_notice" in {item["id"] for item in cwl["$graph"]}
     assert not (ROOT / "spec" / "generated" / "persistence.sql").exists()

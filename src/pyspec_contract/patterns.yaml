@@ -8,14 +8,14 @@ authoring_layers:
       opens: [entry_point.adapter.http_api]
       requires: [core]
       projections_when_declared: [spec/generated/product_interfaces/http.openapi.yaml, spec/generated/audit_evidence/entrypoints]
-    events:
+    domain_events:
       opens: [entry_point.adapter.webhook]
       requires: [core]
-      projections_when_declared: [spec/generated/product_interfaces/events.asyncapi.yaml, spec/generated/audit_evidence/entrypoints]
+      projections_when_declared: [spec/generated/product_interfaces/integration_messages.asyncapi.yaml, spec/generated/audit_evidence/entrypoints]
     workflow:
       opens: [workflow, entry_point.adapter.cli, entry_point.adapter.worker, entry_point.adapter.scheduled]
       requires: [core]
-      projections_when_declared: [spec/generated/product_interfaces/workflow.cwl.yaml, spec/generated/product_interfaces/events.asyncapi.yaml, spec/generated/audit_evidence/workflows, spec/generated/audit_evidence/entrypoints]
+      projections_when_declared: [spec/generated/product_interfaces/workflow.cwl.yaml, spec/generated/product_interfaces/integration_messages.asyncapi.yaml, spec/generated/audit_evidence/workflows, spec/generated/audit_evidence/entrypoints]
     ui:
       opens: [state_machine, text_resource, asset, content_case, render_profile, render_audit_case]
       requires: [core]
@@ -30,7 +30,7 @@ authoring_layers:
       projections_when_declared: [spec/generated/product_interfaces/html.routes.json, spec/generated/audit_evidence/**/renders/*.png]
   common_sets:
     api_only: core,http
-    evented_api: core,events
+    evented_api: core,domain_events
     ci_client: core,workflow
     textual_app: core,ui,textual
     html_app: core,ui,html
@@ -57,12 +57,12 @@ test_case_archetypes:
     then: [state_machine.instances, state_machine.context, state_machine.signal_sync_rules.observed_rules]
   action_outcome:
     when: invoke_application_action
-    then: [outcome, model.exists, events.emitted, invoked]
+    then: [outcome, model.exists, domain_events.emitted, invoked]
   entry_point_response:
     when: call_entry_point
-    then: [outcome, response.status, model.exists, events.emitted, invoked]
+    then: [outcome, response.status, model.exists, domain_events.emitted, invoked]
   workflow_trigger_success:
-    when: emit_event
+    when: emit_domain_event
     then: [workflow.executed, workflow.outcome, invoked]
   authorization_denial:
     when: open_entry_point
@@ -88,7 +88,7 @@ entry_point_adapters:
   webhook:
     target: workflow
     requires: [path]
-    layer: events
+    layer: domain_events
   html_route:
     target: state_machine
     requires: [path]

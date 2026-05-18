@@ -1,7 +1,7 @@
 $graph:
 - class: Workflow
-  doc: 'contract workflow workflow.project.approval_notice; trigger={''event'': ''event.project.approved''}; outcomes=[''completed'',
-    ''delivery_failed'', ''notice_forbidden'', ''notice_unauthenticated'']; ref=workflow.project.approval_notice'
+  doc: 'contract workflow workflow.project.approval_notice; trigger={''domain_event'': ''domain_event.project.approved''};
+    outcomes=[''completed'', ''delivery_failed'', ''notice_forbidden'', ''notice_unauthenticated'']; ref=workflow.project.approval_notice'
   id: '#workflow_project_approval_notice'
   inputs:
     trigger_payload:

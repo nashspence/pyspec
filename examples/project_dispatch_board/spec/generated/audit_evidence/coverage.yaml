@@ -93,25 +93,25 @@ visual_evidence_sets:
   - spec/generated/audit_evidence/state_machines/state_machine_project_detail/state_machine.svg
   - spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg
   V0013:
-  - spec/generated/audit_evidence/entrypoints/http_api/entry_point_api_project_approve/flow.svg
-  V0014:
-  - spec/generated/audit_evidence/entrypoints/http_api/entry_point_api_project_create/flow.svg
-  V0015:
-  - spec/generated/audit_evidence/entrypoints/http_api/entry_point_api_project_list/flow.svg
-  V0016:
-  - spec/generated/audit_evidence/entrypoints/cli/entry_point_cli_project_approve/flow.svg
-  V0017:
-  - spec/generated/audit_evidence/entrypoints/cli/entry_point_cli_project_board/flow.svg
-  V0018:
-  - spec/generated/audit_evidence/entrypoints/html_route/entry_point_html_project_board/flow.svg
-  V0019:
-  - spec/generated/audit_evidence/entrypoints/worker/entry_point_worker_project_approval_notice/flow.svg
-  V0020:
   - spec/generated/audit_evidence/application_actions/application_action_project_approve/flow.svg
   - spec/generated/audit_evidence/entrypoints/cli/entry_point_cli_project_approve/flow.svg
   - spec/generated/audit_evidence/entrypoints/http_api/entry_point_api_project_approve/flow.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_detail/state_machine.svg
   - spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg
+  V0014:
+  - spec/generated/audit_evidence/entrypoints/http_api/entry_point_api_project_approve/flow.svg
+  V0015:
+  - spec/generated/audit_evidence/entrypoints/http_api/entry_point_api_project_create/flow.svg
+  V0016:
+  - spec/generated/audit_evidence/entrypoints/http_api/entry_point_api_project_list/flow.svg
+  V0017:
+  - spec/generated/audit_evidence/entrypoints/cli/entry_point_cli_project_approve/flow.svg
+  V0018:
+  - spec/generated/audit_evidence/entrypoints/cli/entry_point_cli_project_board/flow.svg
+  V0019:
+  - spec/generated/audit_evidence/entrypoints/html_route/entry_point_html_project_board/flow.svg
+  V0020:
+  - spec/generated/audit_evidence/entrypoints/worker/entry_point_worker_project_approval_notice/flow.svg
   V0021:
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.compact.screenshot.png
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/view_states/ready/cases/state_machine_project_board_ready_ready_selected_audit/renders/html.render_profile_default.wide.screenshot.png
@@ -281,7 +281,7 @@ visual_audit:
       /application_actions/application_action.project.approve/deletes: V0001
       /application_actions/application_action.project.approve/input/approved_by/primitive: V0001
       /application_actions/application_action.project.approve/input/project_id/primitive: V0001
-      /application_actions/application_action.project.approve/outcomes/approved/emits/0/event: V0001
+      /application_actions/application_action.project.approve/outcomes/approved/emits/0/domain_event: V0001
       /application_actions/application_action.project.approve/outcomes/approved/emits/0/payload_bindings/approved_by/from: V0001
       /application_actions/application_action.project.approve/outcomes/approved/emits/0/payload_bindings/project_id/from: V0001
       /application_actions/application_action.project.approve/outcomes/approved/kind: V0001
@@ -316,7 +316,7 @@ visual_audit:
       /application_actions/application_action.project.archive/creates: V0002
       /application_actions/application_action.project.archive/deletes: V0002
       /application_actions/application_action.project.archive/input/project_id/primitive: V0002
-      /application_actions/application_action.project.archive/outcomes/archived/emits/0/event: V0002
+      /application_actions/application_action.project.archive/outcomes/archived/emits/0/domain_event: V0002
       /application_actions/application_action.project.archive/outcomes/archived/emits/0/payload_source: V0002
       /application_actions/application_action.project.archive/outcomes/archived/kind: V0002
       /application_actions/application_action.project.archive/outcomes/archived/result/model: V0002
@@ -349,7 +349,7 @@ visual_audit:
       /application_actions/application_action.project.create/input/priority/primitive: V0003
       /application_actions/application_action.project.create/input/title/primitive: V0003
       /application_actions/application_action.project.create/input/workspace_id/primitive: V0003
-      /application_actions/application_action.project.create/outcomes/created/emits/0/event: V0003
+      /application_actions/application_action.project.create/outcomes/created/emits/0/domain_event: V0003
       /application_actions/application_action.project.create/outcomes/created/emits/0/payload_source: V0003
       /application_actions/application_action.project.create/outcomes/created/kind: V0003
       /application_actions/application_action.project.create/outcomes/created/result/model: V0003
@@ -449,7 +449,7 @@ visual_audit:
       /application_actions/application_action.project.submit/outcomes/not_found/emits: V0007
       /application_actions/application_action.project.submit/outcomes/not_found/kind: V0007
       /application_actions/application_action.project.submit/outcomes/not_found/result/model: V0007
-      /application_actions/application_action.project.submit/outcomes/submitted/emits/0/event: V0007
+      /application_actions/application_action.project.submit/outcomes/submitted/emits/0/domain_event: V0007
       /application_actions/application_action.project.submit/outcomes/submitted/emits/0/payload_source: V0007
       /application_actions/application_action.project.submit/outcomes/submitted/kind: V0007
       /application_actions/application_action.project.submit/outcomes/submitted/result/model: V0007
@@ -494,143 +494,143 @@ visual_audit:
       /data_contracts/data_contract.project.notice_result/fields/queued_at/required: V0006
       /data_contracts/data_contract.project.notice_result/fields/queued_at/type/primitive: V0006
       /data_contracts/data_contract.project.notice_result/rationale: V0006
-      /entry_points/entry_point.api.project.approve/adapter/http_api/input/body/approved_by/primitive: V0013
-      /entry_points/entry_point.api.project.approve/adapter/http_api/input/path_params/project_id/primitive: V0013
-      /entry_points/entry_point.api.project.approve/adapter/http_api/method: V0013
-      /entry_points/entry_point.api.project.approve/adapter/http_api/path: V0013
-      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/approved/body/from: V0013
-      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/approved/body/type/model: V0013
-      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/approved/status: V0013
-      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/forbidden/body/from: V0013
-      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/forbidden/body/type/model: V0013
-      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/forbidden/status: V0013
-      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/invalid_state/body/from: V0013
-      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/invalid_state/body/type/model: V0013
-      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/invalid_state/status: V0013
-      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/not_found/body/from: V0013
-      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/not_found/body/type/model: V0013
-      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/not_found/status: V0013
-      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/unauthenticated/body/from: V0013
-      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/unauthenticated/body/type/model: V0013
-      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/unauthenticated/status: V0013
-      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/unavailable/body/from: V0013
-      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/unavailable/body/type/model: V0013
-      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/unavailable/status: V0013
-      /entry_points/entry_point.api.project.approve/authorization_policy: V0013
-      /entry_points/entry_point.api.project.approve/endpoint: V0013
-      /entry_points/entry_point.api.project.approve/rationale: V0013
-      /entry_points/entry_point.api.project.approve/retry_safe: V0013
-      /entry_points/entry_point.api.project.approve/target/application_action/input_bindings/approved_by/from: V0013
-      /entry_points/entry_point.api.project.approve/target/application_action/input_bindings/project_id/from: V0013
-      /entry_points/entry_point.api.project.approve/target/application_action/ref: V0013
-      /entry_points/entry_point.api.project.create/adapter/http_api/input/body/customer/primitive: V0014
-      /entry_points/entry_point.api.project.create/adapter/http_api/input/body/priority/primitive: V0014
-      /entry_points/entry_point.api.project.create/adapter/http_api/input/body/title/primitive: V0014
-      /entry_points/entry_point.api.project.create/adapter/http_api/input/path_params/workspace_id/primitive: V0014
-      /entry_points/entry_point.api.project.create/adapter/http_api/method: V0014
-      /entry_points/entry_point.api.project.create/adapter/http_api/path: V0014
-      /entry_points/entry_point.api.project.create/adapter/http_api/responses/created/body/from: V0014
-      /entry_points/entry_point.api.project.create/adapter/http_api/responses/created/body/type/model: V0014
-      /entry_points/entry_point.api.project.create/adapter/http_api/responses/created/status: V0014
-      /entry_points/entry_point.api.project.create/adapter/http_api/responses/forbidden/body/from: V0014
-      /entry_points/entry_point.api.project.create/adapter/http_api/responses/forbidden/body/type/model: V0014
-      /entry_points/entry_point.api.project.create/adapter/http_api/responses/forbidden/status: V0014
-      /entry_points/entry_point.api.project.create/adapter/http_api/responses/unauthenticated/body/from: V0014
-      /entry_points/entry_point.api.project.create/adapter/http_api/responses/unauthenticated/body/type/model: V0014
-      /entry_points/entry_point.api.project.create/adapter/http_api/responses/unauthenticated/status: V0014
-      /entry_points/entry_point.api.project.create/adapter/http_api/responses/validation_failed/body/from: V0014
-      /entry_points/entry_point.api.project.create/adapter/http_api/responses/validation_failed/body/type/model: V0014
-      /entry_points/entry_point.api.project.create/adapter/http_api/responses/validation_failed/status: V0014
-      /entry_points/entry_point.api.project.create/authorization_policy: V0014
-      /entry_points/entry_point.api.project.create/endpoint: V0014
-      /entry_points/entry_point.api.project.create/rationale: V0014
-      /entry_points/entry_point.api.project.create/target/application_action/input_bindings/customer/from: V0014
-      /entry_points/entry_point.api.project.create/target/application_action/input_bindings/priority/from: V0014
-      /entry_points/entry_point.api.project.create/target/application_action/input_bindings/title/from: V0014
-      /entry_points/entry_point.api.project.create/target/application_action/input_bindings/workspace_id/from: V0014
-      /entry_points/entry_point.api.project.create/target/application_action/ref: V0014
-      /entry_points/entry_point.api.project.list/adapter/http_api/input/path_params/workspace_id/primitive: V0015
-      /entry_points/entry_point.api.project.list/adapter/http_api/method: V0015
-      /entry_points/entry_point.api.project.list/adapter/http_api/path: V0015
-      /entry_points/entry_point.api.project.list/adapter/http_api/responses/forbidden/body/from: V0015
-      /entry_points/entry_point.api.project.list/adapter/http_api/responses/forbidden/body/type/model: V0015
-      /entry_points/entry_point.api.project.list/adapter/http_api/responses/forbidden/status: V0015
-      /entry_points/entry_point.api.project.list/adapter/http_api/responses/listed/body/from: V0015
-      /entry_points/entry_point.api.project.list/adapter/http_api/responses/listed/body/type/array/model: V0015
-      /entry_points/entry_point.api.project.list/adapter/http_api/responses/listed/status: V0015
-      /entry_points/entry_point.api.project.list/adapter/http_api/responses/unauthenticated/body/from: V0015
-      /entry_points/entry_point.api.project.list/adapter/http_api/responses/unauthenticated/body/type/model: V0015
-      /entry_points/entry_point.api.project.list/adapter/http_api/responses/unauthenticated/status: V0015
-      /entry_points/entry_point.api.project.list/adapter/http_api/responses/unavailable/body/from: V0015
-      /entry_points/entry_point.api.project.list/adapter/http_api/responses/unavailable/body/type/model: V0015
-      /entry_points/entry_point.api.project.list/adapter/http_api/responses/unavailable/status: V0015
-      /entry_points/entry_point.api.project.list/authorization_policy: V0015
-      /entry_points/entry_point.api.project.list/endpoint: V0015
-      /entry_points/entry_point.api.project.list/rationale: V0015
-      /entry_points/entry_point.api.project.list/target/application_action/input_bindings/workspace_id/from: V0015
-      /entry_points/entry_point.api.project.list/target/application_action/ref: V0015
-      /entry_points/entry_point.cli.project.approve/adapter/cli/cli_command: V0016
-      /entry_points/entry_point.cli.project.approve/adapter/cli/input/args/approved_by/primitive: V0016
-      /entry_points/entry_point.cli.project.approve/adapter/cli/input/args/project_id/primitive: V0016
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/approved/exit_code: V0016
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/approved/stdout/bindings/project_id/from: V0016
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/approved/stdout/text: V0016
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/forbidden/exit_code: V0016
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/forbidden/stderr/bindings/message/from: V0016
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/forbidden/stderr/text: V0016
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/invalid_state/exit_code: V0016
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/invalid_state/stderr/bindings/message/from: V0016
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/invalid_state/stderr/text: V0016
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/not_found/exit_code: V0016
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/not_found/stderr/bindings/message/from: V0016
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/not_found/stderr/text: V0016
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unauthenticated/exit_code: V0016
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unauthenticated/stderr/bindings/message/from: V0016
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unauthenticated/stderr/text: V0016
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unavailable/exit_code: V0016
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unavailable/retry_policy/attempts: V0016
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unavailable/retry_policy/backoff: V0016
-      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unavailable/stderr/text: V0016
-      /entry_points/entry_point.cli.project.approve/cli_command_ref: V0016
-      /entry_points/entry_point.cli.project.approve/rationale: V0016
-      /entry_points/entry_point.cli.project.approve/target/entry_point/input_bindings/body/approved_by/from: V0016
-      /entry_points/entry_point.cli.project.approve/target/entry_point/input_bindings/path_params/project_id/from: V0016
-      /entry_points/entry_point.cli.project.approve/target/entry_point/ref: V0016
-      /entry_points/entry_point.cli.project.board/adapter/cli/cli_command: V0017
-      /entry_points/entry_point.cli.project.board/adapter/cli/input/args/workspace_id/primitive: V0017
-      /entry_points/entry_point.cli.project.board/cli_command_ref: V0017
-      /entry_points/entry_point.cli.project.board/rationale: V0017
-      /entry_points/entry_point.cli.project.board/target/state_machine/input_bindings/workspace_id/from: V0017
-      /entry_points/entry_point.cli.project.board/target/state_machine/ref: V0017
-      /entry_points/entry_point.cli.project.board/target/state_machine/renderer: V0017
-      /entry_points/entry_point.html.project.board/adapter/html_route/input/path_params/workspace_id/primitive: V0018
-      /entry_points/entry_point.html.project.board/adapter/html_route/path: V0018
-      /entry_points/entry_point.html.project.board/rationale: V0018
-      /entry_points/entry_point.html.project.board/route: V0018
-      /entry_points/entry_point.html.project.board/target/state_machine/input_bindings/workspace_id/from: V0018
-      /entry_points/entry_point.html.project.board/target/state_machine/ref: V0018
-      /entry_points/entry_point.html.project.board/target/state_machine/renderer: V0018
-      /entry_points/entry_point.worker.project.approval_notice/adapter/worker/ingress_responses/accepted/disposition: V0019
-      /entry_points/entry_point.worker.project.approval_notice/adapter/worker/ingress_responses/malformed/disposition: V0019
-      /entry_points/entry_point.worker.project.approval_notice/adapter/worker/ingress_responses/malformed/problem/model: V0019
-      /entry_points/entry_point.worker.project.approval_notice/adapter/worker/input/payload/data_contract: V0019
-      /entry_points/entry_point.worker.project.approval_notice/rationale: V0019
-      /entry_points/entry_point.worker.project.approval_notice/target/workflow/ref: V0019
-      /entry_points/entry_point.worker.project.approval_notice/target/workflow/trigger_bindings/approved_by/from: V0019
-      /entry_points/entry_point.worker.project.approval_notice/target/workflow/trigger_bindings/project_id/from: V0019
-      /entry_points/entry_point.worker.project.approval_notice/workflow_ref: V0019
-      /events/event.project.approved/emitted_by/0: V0020
-      /events/event.project.approved/payload_schema/data_contract: V0020
-      /events/event.project.approved/rationale: V0020
-      /events/event.project.archived/emitted_by/0: V0002
-      /events/event.project.archived/payload_schema/model: V0002
-      /events/event.project.archived/rationale: V0002
-      /events/event.project.created/emitted_by/0: V0003
-      /events/event.project.created/payload_schema/model: V0003
-      /events/event.project.created/rationale: V0003
-      /events/event.project.submitted/emitted_by/0: V0007
-      /events/event.project.submitted/payload_schema/model: V0007
-      /events/event.project.submitted/rationale: V0007
+      /domain_events/domain_event.project.approved/emitted_by/0: V0013
+      /domain_events/domain_event.project.approved/payload_schema/data_contract: V0013
+      /domain_events/domain_event.project.approved/rationale: V0013
+      /domain_events/domain_event.project.archived/emitted_by/0: V0002
+      /domain_events/domain_event.project.archived/payload_schema/model: V0002
+      /domain_events/domain_event.project.archived/rationale: V0002
+      /domain_events/domain_event.project.created/emitted_by/0: V0003
+      /domain_events/domain_event.project.created/payload_schema/model: V0003
+      /domain_events/domain_event.project.created/rationale: V0003
+      /domain_events/domain_event.project.submitted/emitted_by/0: V0007
+      /domain_events/domain_event.project.submitted/payload_schema/model: V0007
+      /domain_events/domain_event.project.submitted/rationale: V0007
+      /entry_points/entry_point.api.project.approve/adapter/http_api/input/body/approved_by/primitive: V0014
+      /entry_points/entry_point.api.project.approve/adapter/http_api/input/path_params/project_id/primitive: V0014
+      /entry_points/entry_point.api.project.approve/adapter/http_api/method: V0014
+      /entry_points/entry_point.api.project.approve/adapter/http_api/path: V0014
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/approved/body/from: V0014
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/approved/body/type/model: V0014
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/approved/status: V0014
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/forbidden/body/from: V0014
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/forbidden/body/type/model: V0014
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/forbidden/status: V0014
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/invalid_state/body/from: V0014
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/invalid_state/body/type/model: V0014
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/invalid_state/status: V0014
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/not_found/body/from: V0014
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/not_found/body/type/model: V0014
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/not_found/status: V0014
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/unauthenticated/body/from: V0014
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/unauthenticated/body/type/model: V0014
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/unauthenticated/status: V0014
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/unavailable/body/from: V0014
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/unavailable/body/type/model: V0014
+      /entry_points/entry_point.api.project.approve/adapter/http_api/responses/unavailable/status: V0014
+      /entry_points/entry_point.api.project.approve/authorization_policy: V0014
+      /entry_points/entry_point.api.project.approve/endpoint: V0014
+      /entry_points/entry_point.api.project.approve/rationale: V0014
+      /entry_points/entry_point.api.project.approve/retry_safe: V0014
+      /entry_points/entry_point.api.project.approve/target/application_action/input_bindings/approved_by/from: V0014
+      /entry_points/entry_point.api.project.approve/target/application_action/input_bindings/project_id/from: V0014
+      /entry_points/entry_point.api.project.approve/target/application_action/ref: V0014
+      /entry_points/entry_point.api.project.create/adapter/http_api/input/body/customer/primitive: V0015
+      /entry_points/entry_point.api.project.create/adapter/http_api/input/body/priority/primitive: V0015
+      /entry_points/entry_point.api.project.create/adapter/http_api/input/body/title/primitive: V0015
+      /entry_points/entry_point.api.project.create/adapter/http_api/input/path_params/workspace_id/primitive: V0015
+      /entry_points/entry_point.api.project.create/adapter/http_api/method: V0015
+      /entry_points/entry_point.api.project.create/adapter/http_api/path: V0015
+      /entry_points/entry_point.api.project.create/adapter/http_api/responses/created/body/from: V0015
+      /entry_points/entry_point.api.project.create/adapter/http_api/responses/created/body/type/model: V0015
+      /entry_points/entry_point.api.project.create/adapter/http_api/responses/created/status: V0015
+      /entry_points/entry_point.api.project.create/adapter/http_api/responses/forbidden/body/from: V0015
+      /entry_points/entry_point.api.project.create/adapter/http_api/responses/forbidden/body/type/model: V0015
+      /entry_points/entry_point.api.project.create/adapter/http_api/responses/forbidden/status: V0015
+      /entry_points/entry_point.api.project.create/adapter/http_api/responses/unauthenticated/body/from: V0015
+      /entry_points/entry_point.api.project.create/adapter/http_api/responses/unauthenticated/body/type/model: V0015
+      /entry_points/entry_point.api.project.create/adapter/http_api/responses/unauthenticated/status: V0015
+      /entry_points/entry_point.api.project.create/adapter/http_api/responses/validation_failed/body/from: V0015
+      /entry_points/entry_point.api.project.create/adapter/http_api/responses/validation_failed/body/type/model: V0015
+      /entry_points/entry_point.api.project.create/adapter/http_api/responses/validation_failed/status: V0015
+      /entry_points/entry_point.api.project.create/authorization_policy: V0015
+      /entry_points/entry_point.api.project.create/endpoint: V0015
+      /entry_points/entry_point.api.project.create/rationale: V0015
+      /entry_points/entry_point.api.project.create/target/application_action/input_bindings/customer/from: V0015
+      /entry_points/entry_point.api.project.create/target/application_action/input_bindings/priority/from: V0015
+      /entry_points/entry_point.api.project.create/target/application_action/input_bindings/title/from: V0015
+      /entry_points/entry_point.api.project.create/target/application_action/input_bindings/workspace_id/from: V0015
+      /entry_points/entry_point.api.project.create/target/application_action/ref: V0015
+      /entry_points/entry_point.api.project.list/adapter/http_api/input/path_params/workspace_id/primitive: V0016
+      /entry_points/entry_point.api.project.list/adapter/http_api/method: V0016
+      /entry_points/entry_point.api.project.list/adapter/http_api/path: V0016
+      /entry_points/entry_point.api.project.list/adapter/http_api/responses/forbidden/body/from: V0016
+      /entry_points/entry_point.api.project.list/adapter/http_api/responses/forbidden/body/type/model: V0016
+      /entry_points/entry_point.api.project.list/adapter/http_api/responses/forbidden/status: V0016
+      /entry_points/entry_point.api.project.list/adapter/http_api/responses/listed/body/from: V0016
+      /entry_points/entry_point.api.project.list/adapter/http_api/responses/listed/body/type/array/model: V0016
+      /entry_points/entry_point.api.project.list/adapter/http_api/responses/listed/status: V0016
+      /entry_points/entry_point.api.project.list/adapter/http_api/responses/unauthenticated/body/from: V0016
+      /entry_points/entry_point.api.project.list/adapter/http_api/responses/unauthenticated/body/type/model: V0016
+      /entry_points/entry_point.api.project.list/adapter/http_api/responses/unauthenticated/status: V0016
+      /entry_points/entry_point.api.project.list/adapter/http_api/responses/unavailable/body/from: V0016
+      /entry_points/entry_point.api.project.list/adapter/http_api/responses/unavailable/body/type/model: V0016
+      /entry_points/entry_point.api.project.list/adapter/http_api/responses/unavailable/status: V0016
+      /entry_points/entry_point.api.project.list/authorization_policy: V0016
+      /entry_points/entry_point.api.project.list/endpoint: V0016
+      /entry_points/entry_point.api.project.list/rationale: V0016
+      /entry_points/entry_point.api.project.list/target/application_action/input_bindings/workspace_id/from: V0016
+      /entry_points/entry_point.api.project.list/target/application_action/ref: V0016
+      /entry_points/entry_point.cli.project.approve/adapter/cli/cli_command: V0017
+      /entry_points/entry_point.cli.project.approve/adapter/cli/input/args/approved_by/primitive: V0017
+      /entry_points/entry_point.cli.project.approve/adapter/cli/input/args/project_id/primitive: V0017
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/approved/exit_code: V0017
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/approved/stdout/bindings/project_id/from: V0017
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/approved/stdout/text: V0017
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/forbidden/exit_code: V0017
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/forbidden/stderr/bindings/message/from: V0017
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/forbidden/stderr/text: V0017
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/invalid_state/exit_code: V0017
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/invalid_state/stderr/bindings/message/from: V0017
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/invalid_state/stderr/text: V0017
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/not_found/exit_code: V0017
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/not_found/stderr/bindings/message/from: V0017
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/not_found/stderr/text: V0017
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unauthenticated/exit_code: V0017
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unauthenticated/stderr/bindings/message/from: V0017
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unauthenticated/stderr/text: V0017
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unavailable/exit_code: V0017
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unavailable/retry_policy/attempts: V0017
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unavailable/retry_policy/backoff: V0017
+      /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unavailable/stderr/text: V0017
+      /entry_points/entry_point.cli.project.approve/cli_command_ref: V0017
+      /entry_points/entry_point.cli.project.approve/rationale: V0017
+      /entry_points/entry_point.cli.project.approve/target/entry_point/input_bindings/body/approved_by/from: V0017
+      /entry_points/entry_point.cli.project.approve/target/entry_point/input_bindings/path_params/project_id/from: V0017
+      /entry_points/entry_point.cli.project.approve/target/entry_point/ref: V0017
+      /entry_points/entry_point.cli.project.board/adapter/cli/cli_command: V0018
+      /entry_points/entry_point.cli.project.board/adapter/cli/input/args/workspace_id/primitive: V0018
+      /entry_points/entry_point.cli.project.board/cli_command_ref: V0018
+      /entry_points/entry_point.cli.project.board/rationale: V0018
+      /entry_points/entry_point.cli.project.board/target/state_machine/input_bindings/workspace_id/from: V0018
+      /entry_points/entry_point.cli.project.board/target/state_machine/ref: V0018
+      /entry_points/entry_point.cli.project.board/target/state_machine/renderer: V0018
+      /entry_points/entry_point.html.project.board/adapter/html_route/input/path_params/workspace_id/primitive: V0019
+      /entry_points/entry_point.html.project.board/adapter/html_route/path: V0019
+      /entry_points/entry_point.html.project.board/rationale: V0019
+      /entry_points/entry_point.html.project.board/route: V0019
+      /entry_points/entry_point.html.project.board/target/state_machine/input_bindings/workspace_id/from: V0019
+      /entry_points/entry_point.html.project.board/target/state_machine/ref: V0019
+      /entry_points/entry_point.html.project.board/target/state_machine/renderer: V0019
+      /entry_points/entry_point.worker.project.approval_notice/adapter/worker/ingress_responses/accepted/disposition: V0020
+      /entry_points/entry_point.worker.project.approval_notice/adapter/worker/ingress_responses/malformed/disposition: V0020
+      /entry_points/entry_point.worker.project.approval_notice/adapter/worker/ingress_responses/malformed/problem/model: V0020
+      /entry_points/entry_point.worker.project.approval_notice/adapter/worker/input/payload/data_contract: V0020
+      /entry_points/entry_point.worker.project.approval_notice/rationale: V0020
+      /entry_points/entry_point.worker.project.approval_notice/target/workflow/ref: V0020
+      /entry_points/entry_point.worker.project.approval_notice/target/workflow/trigger_bindings/approved_by/from: V0020
+      /entry_points/entry_point.worker.project.approval_notice/target/workflow/trigger_bindings/project_id/from: V0020
+      /entry_points/entry_point.worker.project.approval_notice/workflow_ref: V0020
       /models/Problem/fields/code/nullable: V0023
       /models/Problem/fields/code/required: V0023
       /models/Problem/fields/code/type/primitive: V0023
@@ -704,18 +704,18 @@ visual_audit:
       /state_machines/state_machine.project.activity/initial_view_state: V0025
       /state_machines/state_machine.project.activity/model: V0025
       /state_machines/state_machine.project.activity/rationale: V0025
-      /state_machines/state_machine.project.activity/signals/accepts/data_signals: V0025
-      ? /state_machines/state_machine.project.activity/signals/accepts/messages/selection_changed/payload_schema/project_id/primitive
+      /state_machines/state_machine.project.activity/signals/accepts/data_refresh_signals: V0025
+      ? /state_machines/state_machine.project.activity/signals/accepts/local_signals/selection_changed/payload_schema/project_id/primitive
       : V0025
-      /state_machines/state_machine.project.activity/signals/accepts/messages/selection_cleared/payload_schema: V0025
-      /state_machines/state_machine.project.activity/signals/emits/messages: V0025
+      /state_machines/state_machine.project.activity/signals/accepts/local_signals/selection_cleared/payload_schema: V0025
+      /state_machines/state_machine.project.activity/signals/emits/local_signals: V0025
       /state_machines/state_machine.project.activity/transitions/0/from: V0025
-      /state_machines/state_machine.project.activity/transitions/0/on/message: V0025
+      /state_machines/state_machine.project.activity/transitions/0/on/local_signal: V0025
       /state_machines/state_machine.project.activity/transitions/0/to: V0025
       /state_machines/state_machine.project.activity/transitions/1/effects/0/set/context: V0025
       /state_machines/state_machine.project.activity/transitions/1/effects/0/set/value: V0025
       /state_machines/state_machine.project.activity/transitions/1/from: V0025
-      /state_machines/state_machine.project.activity/transitions/1/on/message: V0025
+      /state_machines/state_machine.project.activity/transitions/1/on/local_signal: V0025
       /state_machines/state_machine.project.activity/transitions/1/to: V0025
       /state_machines/state_machine.project.activity/view_states/empty/action_bindings: V0025
       /state_machines/state_machine.project.activity/view_states/empty/assets: V0025
@@ -776,9 +776,9 @@ visual_audit:
       /state_machines/state_machine.project.board/initial_view_state: V0026
       /state_machines/state_machine.project.board/model: V0026
       /state_machines/state_machine.project.board/rationale: V0026
-      /state_machines/state_machine.project.board/signals/accepts/data_signals: V0026
-      /state_machines/state_machine.project.board/signals/accepts/messages: V0026
-      /state_machines/state_machine.project.board/signals/emits/messages: V0026
+      /state_machines/state_machine.project.board/signals/accepts/data_refresh_signals: V0026
+      /state_machines/state_machine.project.board/signals/accepts/local_signals: V0026
+      /state_machines/state_machine.project.board/signals/emits/local_signals: V0026
       /state_machines/state_machine.project.board/transitions: V0026
       /state_machines/state_machine.project.board/view_states/ready/action_bindings: V0026
       /state_machines/state_machine.project.board/view_states/ready/assets: V0026
@@ -878,16 +878,16 @@ visual_audit:
       /state_machines/state_machine.project.board/view_states/ready/signal_sync_rules/0/effects/0/set/context: V0026
       /state_machines/state_machine.project.board/view_states/ready/signal_sync_rules/0/effects/0/set/from: V0026
       /state_machines/state_machine.project.board/view_states/ready/signal_sync_rules/0/effects/1/send/instance: V0026
-      /state_machines/state_machine.project.board/view_states/ready/signal_sync_rules/0/effects/1/send/message: V0026
+      /state_machines/state_machine.project.board/view_states/ready/signal_sync_rules/0/effects/1/send/local_signal: V0026
       ? /state_machines/state_machine.project.board/view_states/ready/signal_sync_rules/0/effects/1/send/payload_bindings/project_id/from
       : V0026
       /state_machines/state_machine.project.board/view_states/ready/signal_sync_rules/0/effects/2/send/instance: V0026
-      /state_machines/state_machine.project.board/view_states/ready/signal_sync_rules/0/effects/2/send/message: V0026
+      /state_machines/state_machine.project.board/view_states/ready/signal_sync_rules/0/effects/2/send/local_signal: V0026
       ? /state_machines/state_machine.project.board/view_states/ready/signal_sync_rules/0/effects/2/send/payload_bindings/project_id/from
       : V0026
       /state_machines/state_machine.project.board/view_states/ready/signal_sync_rules/0/id: V0026
       /state_machines/state_machine.project.board/view_states/ready/signal_sync_rules/0/when/instance: V0026
-      /state_machines/state_machine.project.board/view_states/ready/signal_sync_rules/0/when/message: V0026
+      /state_machines/state_machine.project.board/view_states/ready/signal_sync_rules/0/when/local_signal: V0026
       /state_machines/state_machine.project.board/view_states/ready/surface: V0026
       /state_machines/state_machine.project.board/view_states/ready/text: V0026
       /state_machines/state_machine.project.detail/context/project_id/nullable: V0027
@@ -897,34 +897,35 @@ visual_audit:
       /state_machines/state_machine.project.detail/initial_view_state: V0027
       /state_machines/state_machine.project.detail/model: V0027
       /state_machines/state_machine.project.detail/rationale: V0027
-      /state_machines/state_machine.project.detail/signals/accepts/data_signals/project_changed/payload_schema: V0027
-      /state_machines/state_machine.project.detail/signals/accepts/data_signals/project_load_failed/payload_schema: V0027
-      /state_machines/state_machine.project.detail/signals/accepts/data_signals/project_loaded/payload_schema: V0027
-      ? /state_machines/state_machine.project.detail/signals/accepts/messages/selection_changed/payload_schema/project_id/primitive
+      /state_machines/state_machine.project.detail/signals/accepts/data_refresh_signals/project_changed/payload_schema: V0027
+      /state_machines/state_machine.project.detail/signals/accepts/data_refresh_signals/project_load_failed/payload_schema: V0027
+      /state_machines/state_machine.project.detail/signals/accepts/data_refresh_signals/project_loaded/payload_schema: V0027
+      ? /state_machines/state_machine.project.detail/signals/accepts/local_signals/selection_changed/payload_schema/project_id/primitive
       : V0027
-      /state_machines/state_machine.project.detail/signals/accepts/messages/selection_cleared/payload_schema: V0027
-      /state_machines/state_machine.project.detail/signals/accepts/messages/show_invalid_state/payload_schema/message/primitive: V0027
-      /state_machines/state_machine.project.detail/signals/emits/messages: V0027
+      /state_machines/state_machine.project.detail/signals/accepts/local_signals/selection_cleared/payload_schema: V0027
+      ? /state_machines/state_machine.project.detail/signals/accepts/local_signals/show_invalid_state/payload_schema/message/primitive
+      : V0027
+      /state_machines/state_machine.project.detail/signals/emits/local_signals: V0027
       /state_machines/state_machine.project.detail/transitions/0/from: V0027
-      /state_machines/state_machine.project.detail/transitions/0/on/message: V0027
+      /state_machines/state_machine.project.detail/transitions/0/on/local_signal: V0027
       /state_machines/state_machine.project.detail/transitions/0/to: V0027
       /state_machines/state_machine.project.detail/transitions/1/from: V0027
-      /state_machines/state_machine.project.detail/transitions/1/on/data_signal: V0027
+      /state_machines/state_machine.project.detail/transitions/1/on/data_refresh_signal: V0027
       /state_machines/state_machine.project.detail/transitions/1/to: V0027
       /state_machines/state_machine.project.detail/transitions/2/from: V0027
-      /state_machines/state_machine.project.detail/transitions/2/on/data_signal: V0027
+      /state_machines/state_machine.project.detail/transitions/2/on/data_refresh_signal: V0027
       /state_machines/state_machine.project.detail/transitions/2/to: V0027
       /state_machines/state_machine.project.detail/transitions/3/effects/0/set/context: V0027
       /state_machines/state_machine.project.detail/transitions/3/effects/0/set/value: V0027
       /state_machines/state_machine.project.detail/transitions/3/from: V0027
-      /state_machines/state_machine.project.detail/transitions/3/on/message: V0027
+      /state_machines/state_machine.project.detail/transitions/3/on/local_signal: V0027
       /state_machines/state_machine.project.detail/transitions/3/to: V0027
       /state_machines/state_machine.project.detail/transitions/4/from: V0027
-      /state_machines/state_machine.project.detail/transitions/4/on/data_signal: V0027
+      /state_machines/state_machine.project.detail/transitions/4/on/data_refresh_signal: V0027
       /state_machines/state_machine.project.detail/transitions/4/rationale: V0027
       /state_machines/state_machine.project.detail/transitions/4/to: V0027
       /state_machines/state_machine.project.detail/transitions/5/from: V0027
-      /state_machines/state_machine.project.detail/transitions/5/on/message: V0027
+      /state_machines/state_machine.project.detail/transitions/5/on/local_signal: V0027
       /state_machines/state_machine.project.detail/transitions/5/rationale: V0027
       /state_machines/state_machine.project.detail/transitions/5/to: V0027
       /state_machines/state_machine.project.detail/view_states/error/action_bindings: V0027
@@ -939,17 +940,17 @@ visual_audit:
       /state_machines/state_machine.project.detail/view_states/loading/data_loaders/read_project/application_action: V0027
       /state_machines/state_machine.project.detail/view_states/loading/data_loaders/read_project/input_bindings/project_id/from: V0027
       /state_machines/state_machine.project.detail/view_states/loading/data_loaders/read_project/load/on_enter: V0027
-      ? /state_machines/state_machine.project.detail/view_states/loading/data_loaders/read_project/outcome_routes/forbidden/raise/data_signal
+      ? /state_machines/state_machine.project.detail/view_states/loading/data_loaders/read_project/outcome_routes/forbidden/raise/data_refresh_signal
       : V0027
-      ? /state_machines/state_machine.project.detail/view_states/loading/data_loaders/read_project/outcome_routes/found/raise/data_signal
+      ? /state_machines/state_machine.project.detail/view_states/loading/data_loaders/read_project/outcome_routes/found/raise/data_refresh_signal
       : V0027
       ? /state_machines/state_machine.project.detail/view_states/loading/data_loaders/read_project/outcome_routes/found/result_binding/data_key
       : V0027
       ? /state_machines/state_machine.project.detail/view_states/loading/data_loaders/read_project/outcome_routes/found/result_binding/from/from
       : V0027
-      ? /state_machines/state_machine.project.detail/view_states/loading/data_loaders/read_project/outcome_routes/not_found/raise/data_signal
+      ? /state_machines/state_machine.project.detail/view_states/loading/data_loaders/read_project/outcome_routes/not_found/raise/data_refresh_signal
       : V0027
-      ? /state_machines/state_machine.project.detail/view_states/loading/data_loaders/read_project/outcome_routes/unauthenticated/raise/data_signal
+      ? /state_machines/state_machine.project.detail/view_states/loading/data_loaders/read_project/outcome_routes/unauthenticated/raise/data_refresh_signal
       : V0027
       /state_machines/state_machine.project.detail/view_states/loading/fields: V0027
       /state_machines/state_machine.project.detail/view_states/loading/surface: V0027
@@ -964,13 +965,13 @@ visual_audit:
       /state_machines/state_machine.project.detail/view_states/ready/action_bindings/approve/application_action: V0027
       /state_machines/state_machine.project.detail/view_states/ready/action_bindings/approve/input_bindings/approved_by/from: V0027
       /state_machines/state_machine.project.detail/view_states/ready/action_bindings/approve/input_bindings/project_id/from: V0027
-      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/approve/outcome_routes/approved/raise/data_signal
+      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/approve/outcome_routes/approved/raise/data_refresh_signal
       : V0027
       ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/approve/outcome_routes/forbidden/no_signal/rationale
       : V0027
       ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/approve/outcome_routes/forbidden/no_signal/reason
       : V0027
-      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/approve/outcome_routes/invalid_state/raise/message
+      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/approve/outcome_routes/invalid_state/raise/local_signal
       : V0027
       ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/approve/outcome_routes/invalid_state/raise/payload_bindings/message/from
       : V0027
@@ -988,21 +989,21 @@ visual_audit:
       : V0027
       /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/application_action: V0027
       /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/input_bindings/project_id/from: V0027
-      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/outcome_routes/archived/raise/data_signal
+      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/outcome_routes/archived/raise/data_refresh_signal
       : V0027
-      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/outcome_routes/forbidden/raise/message
+      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/outcome_routes/forbidden/raise/local_signal
       : V0027
       ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/outcome_routes/forbidden/raise/payload_bindings/message/from
       : V0027
-      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/outcome_routes/invalid_state/raise/message
+      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/outcome_routes/invalid_state/raise/local_signal
       : V0027
       ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/outcome_routes/invalid_state/raise/payload_bindings/message/from
       : V0027
-      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/outcome_routes/not_found/raise/message
+      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/outcome_routes/not_found/raise/local_signal
       : V0027
       ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/outcome_routes/not_found/raise/payload_bindings/message/from
       : V0027
-      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/outcome_routes/unauthenticated/raise/message
+      ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/outcome_routes/unauthenticated/raise/local_signal
       : V0027
       ? /state_machines/state_machine.project.detail/view_states/ready/action_bindings/archive/outcome_routes/unauthenticated/raise/payload_bindings/message/from
       : V0027
@@ -1010,8 +1011,9 @@ visual_audit:
       /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/application_action: V0027
       /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/input_bindings/project_id/from: V0027
       /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/load/on_enter: V0027
-      /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/load/refresh_on/0/data_signal: V0027
-      ? /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/outcome_routes/forbidden/raise/message
+      ? /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/load/refresh_on/0/data_refresh_signal
+      : V0027
+      ? /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/outcome_routes/forbidden/raise/local_signal
       : V0027
       ? /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/outcome_routes/forbidden/raise/payload_bindings/message/from
       : V0027
@@ -1021,11 +1023,11 @@ visual_audit:
       : V0027
       ? /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/outcome_routes/found/result_binding/from/from
       : V0027
-      ? /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/outcome_routes/not_found/raise/message
+      ? /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/outcome_routes/not_found/raise/local_signal
       : V0027
       ? /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/outcome_routes/not_found/raise/payload_bindings/message/from
       : V0027
-      ? /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/outcome_routes/unauthenticated/raise/message
+      ? /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/outcome_routes/unauthenticated/raise/local_signal
       : V0027
       ? /state_machines/state_machine.project.detail/view_states/ready/data_loaders/read_project/outcome_routes/unauthenticated/raise/payload_bindings/message/from
       : V0027
@@ -1045,11 +1047,11 @@ visual_audit:
       /state_machines/state_machine.project.list/data_loaders/list_projects/application_action: V0028
       /state_machines/state_machine.project.list/data_loaders/list_projects/input_bindings/workspace_id/from: V0028
       /state_machines/state_machine.project.list/data_loaders/list_projects/load/on_start: V0028
-      /state_machines/state_machine.project.list/data_loaders/list_projects/load/refresh_on/0/data_signal: V0028
-      /state_machines/state_machine.project.list/data_loaders/list_projects/outcome_routes/forbidden/raise/data_signal: V0028
+      /state_machines/state_machine.project.list/data_loaders/list_projects/load/refresh_on/0/data_refresh_signal: V0028
+      /state_machines/state_machine.project.list/data_loaders/list_projects/outcome_routes/forbidden/raise/data_refresh_signal: V0028
       ? /state_machines/state_machine.project.list/data_loaders/list_projects/outcome_routes/listed/conditional_routes/0/context_updates/workspace_id/from
       : V0028
-      ? /state_machines/state_machine.project.list/data_loaders/list_projects/outcome_routes/listed/conditional_routes/0/raise/data_signal
+      ? /state_machines/state_machine.project.list/data_loaders/list_projects/outcome_routes/listed/conditional_routes/0/raise/data_refresh_signal
       : V0028
       ? /state_machines/state_machine.project.list/data_loaders/list_projects/outcome_routes/listed/conditional_routes/0/result_binding/data_key
       : V0028
@@ -1059,7 +1061,7 @@ visual_audit:
       : V0028
       ? /state_machines/state_machine.project.list/data_loaders/list_projects/outcome_routes/listed/conditional_routes/1/context_updates/workspace_id/from
       : V0028
-      ? /state_machines/state_machine.project.list/data_loaders/list_projects/outcome_routes/listed/conditional_routes/1/raise/data_signal
+      ? /state_machines/state_machine.project.list/data_loaders/list_projects/outcome_routes/listed/conditional_routes/1/raise/data_refresh_signal
       : V0028
       ? /state_machines/state_machine.project.list/data_loaders/list_projects/outcome_routes/listed/conditional_routes/1/result_binding/data_key
       : V0028
@@ -1067,54 +1069,58 @@ visual_audit:
       : V0028
       ? /state_machines/state_machine.project.list/data_loaders/list_projects/outcome_routes/listed/conditional_routes/1/when/result_non_empty
       : V0028
-      /state_machines/state_machine.project.list/data_loaders/list_projects/outcome_routes/unauthenticated/raise/data_signal: V0028
-      /state_machines/state_machine.project.list/data_loaders/list_projects/outcome_routes/unavailable/raise/data_signal: V0028
+      ? /state_machines/state_machine.project.list/data_loaders/list_projects/outcome_routes/unauthenticated/raise/data_refresh_signal
+      : V0028
+      /state_machines/state_machine.project.list/data_loaders/list_projects/outcome_routes/unavailable/raise/data_refresh_signal: V0028
       /state_machines/state_machine.project.list/data_loaders/list_projects/result_scope: V0028
       /state_machines/state_machine.project.list/initial_view_state: V0028
       /state_machines/state_machine.project.list/model: V0028
       /state_machines/state_machine.project.list/rationale: V0028
-      /state_machines/state_machine.project.list/signals/accepts/data_signals/project_collection_empty/payload_schema: V0028
-      /state_machines/state_machine.project.list/signals/accepts/data_signals/project_list_failed/payload_schema: V0028
-      /state_machines/state_machine.project.list/signals/accepts/data_signals/projects_changed/payload_schema: V0028
-      /state_machines/state_machine.project.list/signals/accepts/data_signals/projects_loaded/payload_schema: V0028
-      /state_machines/state_machine.project.list/signals/accepts/messages/project_select/payload_schema/project_id/primitive: V0028
-      /state_machines/state_machine.project.list/signals/accepts/messages/show_invalid_state/payload_schema/message/primitive: V0028
-      /state_machines/state_machine.project.list/signals/emits/messages/project_selected/payload_schema/project_id/primitive: V0028
+      /state_machines/state_machine.project.list/signals/accepts/data_refresh_signals/project_collection_empty/payload_schema: V0028
+      /state_machines/state_machine.project.list/signals/accepts/data_refresh_signals/project_list_failed/payload_schema: V0028
+      /state_machines/state_machine.project.list/signals/accepts/data_refresh_signals/projects_changed/payload_schema: V0028
+      /state_machines/state_machine.project.list/signals/accepts/data_refresh_signals/projects_loaded/payload_schema: V0028
+      ? /state_machines/state_machine.project.list/signals/accepts/local_signals/project_select/payload_schema/project_id/primitive
+      : V0028
+      ? /state_machines/state_machine.project.list/signals/accepts/local_signals/show_invalid_state/payload_schema/message/primitive
+      : V0028
+      ? /state_machines/state_machine.project.list/signals/emits/local_signals/project_selected/payload_schema/project_id/primitive
+      : V0028
       /state_machines/state_machine.project.list/transitions/0/from: V0028
-      /state_machines/state_machine.project.list/transitions/0/on/data_signal: V0028
+      /state_machines/state_machine.project.list/transitions/0/on/data_refresh_signal: V0028
       /state_machines/state_machine.project.list/transitions/0/to: V0028
       /state_machines/state_machine.project.list/transitions/1/from: V0028
-      /state_machines/state_machine.project.list/transitions/1/on/data_signal: V0028
+      /state_machines/state_machine.project.list/transitions/1/on/data_refresh_signal: V0028
       /state_machines/state_machine.project.list/transitions/1/to: V0028
       /state_machines/state_machine.project.list/transitions/2/from: V0028
-      /state_machines/state_machine.project.list/transitions/2/on/data_signal: V0028
+      /state_machines/state_machine.project.list/transitions/2/on/data_refresh_signal: V0028
       /state_machines/state_machine.project.list/transitions/2/to: V0028
       /state_machines/state_machine.project.list/transitions/3/from: V0028
-      /state_machines/state_machine.project.list/transitions/3/on/data_signal: V0028
+      /state_machines/state_machine.project.list/transitions/3/on/data_refresh_signal: V0028
       /state_machines/state_machine.project.list/transitions/3/to: V0028
       /state_machines/state_machine.project.list/transitions/4/from: V0028
-      /state_machines/state_machine.project.list/transitions/4/on/data_signal: V0028
+      /state_machines/state_machine.project.list/transitions/4/on/data_refresh_signal: V0028
       /state_machines/state_machine.project.list/transitions/4/rationale: V0028
       /state_machines/state_machine.project.list/transitions/4/to: V0028
       /state_machines/state_machine.project.list/transitions/5/from: V0028
-      /state_machines/state_machine.project.list/transitions/5/on/message: V0028
+      /state_machines/state_machine.project.list/transitions/5/on/local_signal: V0028
       /state_machines/state_machine.project.list/transitions/5/rationale: V0028
       /state_machines/state_machine.project.list/transitions/5/to: V0028
-      /state_machines/state_machine.project.list/transitions/6/effects/0/emit/message: V0028
+      /state_machines/state_machine.project.list/transitions/6/effects/0/emit/local_signal: V0028
       /state_machines/state_machine.project.list/transitions/6/effects/0/emit/payload_bindings/project_id/from: V0028
       /state_machines/state_machine.project.list/transitions/6/from: V0028
-      /state_machines/state_machine.project.list/transitions/6/on/message: V0028
+      /state_machines/state_machine.project.list/transitions/6/on/local_signal: V0028
       /state_machines/state_machine.project.list/transitions/6/to: V0028
       /state_machines/state_machine.project.list/transitions/7/from: V0028
-      /state_machines/state_machine.project.list/transitions/7/on/data_signal: V0028
+      /state_machines/state_machine.project.list/transitions/7/on/data_refresh_signal: V0028
       /state_machines/state_machine.project.list/transitions/7/rationale: V0028
       /state_machines/state_machine.project.list/transitions/7/to: V0028
       /state_machines/state_machine.project.list/transitions/8/from: V0028
-      /state_machines/state_machine.project.list/transitions/8/on/data_signal: V0028
+      /state_machines/state_machine.project.list/transitions/8/on/data_refresh_signal: V0028
       /state_machines/state_machine.project.list/transitions/8/rationale: V0028
       /state_machines/state_machine.project.list/transitions/8/to: V0028
       /state_machines/state_machine.project.list/transitions/9/from: V0028
-      /state_machines/state_machine.project.list/transitions/9/on/message: V0028
+      /state_machines/state_machine.project.list/transitions/9/on/local_signal: V0028
       /state_machines/state_machine.project.list/transitions/9/rationale: V0028
       /state_machines/state_machine.project.list/transitions/9/to: V0028
       /state_machines/state_machine.project.list/view_states/empty/action_bindings/create/application_action: V0028
@@ -1122,7 +1128,7 @@ visual_audit:
       /state_machines/state_machine.project.list/view_states/empty/action_bindings/create/input_bindings/priority/value: V0028
       /state_machines/state_machine.project.list/view_states/empty/action_bindings/create/input_bindings/title/value: V0028
       /state_machines/state_machine.project.list/view_states/empty/action_bindings/create/input_bindings/workspace_id/from: V0028
-      ? /state_machines/state_machine.project.list/view_states/empty/action_bindings/create/outcome_routes/created/raise/data_signal
+      ? /state_machines/state_machine.project.list/view_states/empty/action_bindings/create/outcome_routes/created/raise/data_refresh_signal
       : V0028
       ? /state_machines/state_machine.project.list/view_states/empty/action_bindings/create/outcome_routes/forbidden/no_signal/rationale
       : V0028
@@ -1132,7 +1138,7 @@ visual_audit:
       : V0028
       ? /state_machines/state_machine.project.list/view_states/empty/action_bindings/create/outcome_routes/unauthenticated/no_signal/reason
       : V0028
-      ? /state_machines/state_machine.project.list/view_states/empty/action_bindings/create/outcome_routes/validation_failed/raise/message
+      ? /state_machines/state_machine.project.list/view_states/empty/action_bindings/create/outcome_routes/validation_failed/raise/local_signal
       : V0028
       ? /state_machines/state_machine.project.list/view_states/empty/action_bindings/create/outcome_routes/validation_failed/raise/payload_bindings/message/from
       : V0028
@@ -1160,7 +1166,7 @@ visual_audit:
       /state_machines/state_machine.project.list/view_states/ready/action_bindings/create/input_bindings/priority/value: V0028
       /state_machines/state_machine.project.list/view_states/ready/action_bindings/create/input_bindings/title/value: V0028
       /state_machines/state_machine.project.list/view_states/ready/action_bindings/create/input_bindings/workspace_id/from: V0028
-      ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/create/outcome_routes/created/raise/data_signal
+      ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/create/outcome_routes/created/raise/data_refresh_signal
       : V0028
       ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/create/outcome_routes/forbidden/no_signal/rationale
       : V0028
@@ -1176,19 +1182,21 @@ visual_audit:
       : V0028
       /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/application_action: V0028
       /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/input_bindings/project_id/from: V0028
-      /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/outcome_routes/forbidden/raise/message: V0028
+      ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/outcome_routes/forbidden/raise/local_signal
+      : V0028
       ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/outcome_routes/forbidden/raise/payload_bindings/message/from
       : V0028
-      ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/outcome_routes/invalid_state/raise/message
+      ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/outcome_routes/invalid_state/raise/local_signal
       : V0028
       ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/outcome_routes/invalid_state/raise/payload_bindings/message/from
       : V0028
-      /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/outcome_routes/not_found/raise/message: V0028
+      ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/outcome_routes/not_found/raise/local_signal
+      : V0028
       ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/outcome_routes/not_found/raise/payload_bindings/message/from
       : V0028
-      ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/outcome_routes/submitted/raise/data_signal
+      ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/outcome_routes/submitted/raise/data_refresh_signal
       : V0028
-      ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/outcome_routes/unauthenticated/raise/message
+      ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/outcome_routes/unauthenticated/raise/local_signal
       : V0028
       ? /state_machines/state_machine.project.list/view_states/ready/action_bindings/submit/outcome_routes/unauthenticated/raise/payload_bindings/message/from
       : V0028
@@ -1220,7 +1228,7 @@ visual_audit:
       /workflows/workflow.project.approval_notice/steps/0/outcome_routes/forbidden/fail_as: V0033
       /workflows/workflow.project.approval_notice/steps/0/outcome_routes/sent/complete_as: V0033
       /workflows/workflow.project.approval_notice/steps/0/outcome_routes/unauthenticated/fail_as: V0033
-      /workflows/workflow.project.approval_notice/trigger/event: V0033
+      /workflows/workflow.project.approval_notice/trigger/domain_event: V0033
     missing: {}
     text_witnesses:
       /application_actions/application_action.project.approve/authorization/forbidden_as:
@@ -1247,10 +1255,10 @@ visual_audit:
         tokens:
         - project_id
         - ID
-      /application_actions/application_action.project.approve/outcomes/approved/emits/0/event:
+      /application_actions/application_action.project.approve/outcomes/approved/emits/0/domain_event:
         visual_evidence_set: V0001
         tokens:
-        - event.project.approved
+        - domain_event.project.approved
       /application_actions/application_action.project.approve/outcomes/approved/kind:
         visual_evidence_set: V0001
         tokens:
@@ -1330,10 +1338,10 @@ visual_audit:
         tokens:
         - project_id
         - ID
-      /application_actions/application_action.project.archive/outcomes/archived/emits/0/event:
+      /application_actions/application_action.project.archive/outcomes/archived/emits/0/domain_event:
         visual_evidence_set: V0002
         tokens:
-        - event.project.archived
+        - domain_event.project.archived
       /application_actions/application_action.project.archive/outcomes/archived/kind:
         visual_evidence_set: V0002
         tokens:
@@ -1418,10 +1426,10 @@ visual_audit:
         tokens:
         - workspace_id
         - ID
-      /application_actions/application_action.project.create/outcomes/created/emits/0/event:
+      /application_actions/application_action.project.create/outcomes/created/emits/0/domain_event:
         visual_evidence_set: V0003
         tokens:
-        - event.project.created
+        - domain_event.project.created
       /application_actions/application_action.project.create/outcomes/created/kind:
         visual_evidence_set: V0003
         tokens:
@@ -1687,10 +1695,10 @@ visual_audit:
         tokens:
         - not_found
         - Problem
-      /application_actions/application_action.project.submit/outcomes/submitted/emits/0/event:
+      /application_actions/application_action.project.submit/outcomes/submitted/emits/0/domain_event:
         visual_evidence_set: V0007
         tokens:
-        - event.project.submitted
+        - domain_event.project.submitted
       /application_actions/application_action.project.submit/outcomes/submitted/kind:
         visual_evidence_set: V0007
         tokens:
@@ -1777,429 +1785,429 @@ visual_audit:
         visual_evidence_set: V0011
         tokens:
         - Project
-      /entry_points/entry_point.api.project.approve/adapter/http_api/input/body/approved_by/primitive:
+      /domain_events/domain_event.project.approved/emitted_by/0:
         visual_evidence_set: V0013
+        tokens:
+        - application_action.project.approve
+      /domain_events/domain_event.project.approved/payload_schema/data_contract:
+        visual_evidence_set: V0013
+        tokens:
+        - data_contract.project.approved
+      /domain_events/domain_event.project.archived/emitted_by/0:
+        visual_evidence_set: V0002
+        tokens:
+        - application_action.project.archive
+      /domain_events/domain_event.project.created/emitted_by/0:
+        visual_evidence_set: V0003
+        tokens:
+        - application_action.project.create
+      /domain_events/domain_event.project.submitted/emitted_by/0:
+        visual_evidence_set: V0007
+        tokens:
+        - application_action.project.submit
+      /entry_points/entry_point.api.project.approve/adapter/http_api/input/body/approved_by/primitive:
+        visual_evidence_set: V0014
         tokens:
         - approved_by
         - ID
       /entry_points/entry_point.api.project.approve/adapter/http_api/input/path_params/project_id/primitive:
-        visual_evidence_set: V0013
+        visual_evidence_set: V0014
         tokens:
         - project_id
         - ID
       /entry_points/entry_point.api.project.approve/adapter/http_api/method:
-        visual_evidence_set: V0013
+        visual_evidence_set: V0014
         tokens:
         - POST
       /entry_points/entry_point.api.project.approve/adapter/http_api/path:
-        visual_evidence_set: V0013
+        visual_evidence_set: V0014
         tokens:
         - /projects/{project_id}/approve
       /entry_points/entry_point.api.project.approve/adapter/http_api/responses/approved/body/type/model:
-        visual_evidence_set: V0013
+        visual_evidence_set: V0014
         tokens:
         - body
         - Project
       /entry_points/entry_point.api.project.approve/adapter/http_api/responses/approved/status:
-        visual_evidence_set: V0013
+        visual_evidence_set: V0014
         tokens:
         - status
         - '200'
       /entry_points/entry_point.api.project.approve/adapter/http_api/responses/forbidden/body/type/model:
-        visual_evidence_set: V0013
+        visual_evidence_set: V0014
         tokens:
         - body
         - Problem
       /entry_points/entry_point.api.project.approve/adapter/http_api/responses/forbidden/status:
-        visual_evidence_set: V0013
+        visual_evidence_set: V0014
         tokens:
         - status
         - '403'
       /entry_points/entry_point.api.project.approve/adapter/http_api/responses/invalid_state/body/type/model:
-        visual_evidence_set: V0013
+        visual_evidence_set: V0014
         tokens:
         - body
         - Problem
       /entry_points/entry_point.api.project.approve/adapter/http_api/responses/invalid_state/status:
-        visual_evidence_set: V0013
+        visual_evidence_set: V0014
         tokens:
         - status
         - '409'
       /entry_points/entry_point.api.project.approve/adapter/http_api/responses/not_found/body/type/model:
-        visual_evidence_set: V0013
+        visual_evidence_set: V0014
         tokens:
         - body
         - Problem
       /entry_points/entry_point.api.project.approve/adapter/http_api/responses/not_found/status:
-        visual_evidence_set: V0013
+        visual_evidence_set: V0014
         tokens:
         - status
         - '404'
       /entry_points/entry_point.api.project.approve/adapter/http_api/responses/unauthenticated/body/type/model:
-        visual_evidence_set: V0013
+        visual_evidence_set: V0014
         tokens:
         - body
         - Problem
       /entry_points/entry_point.api.project.approve/adapter/http_api/responses/unauthenticated/status:
-        visual_evidence_set: V0013
+        visual_evidence_set: V0014
         tokens:
         - status
         - '401'
       /entry_points/entry_point.api.project.approve/adapter/http_api/responses/unavailable/body/type/model:
-        visual_evidence_set: V0013
+        visual_evidence_set: V0014
         tokens:
         - body
         - Problem
       /entry_points/entry_point.api.project.approve/adapter/http_api/responses/unavailable/status:
-        visual_evidence_set: V0013
+        visual_evidence_set: V0014
         tokens:
         - status
         - '503'
       /entry_points/entry_point.api.project.approve/authorization_policy:
-        visual_evidence_set: V0013
+        visual_evidence_set: V0014
         tokens:
         - authorization_policy.project.reviewer
       /entry_points/entry_point.api.project.approve/endpoint:
-        visual_evidence_set: V0013
+        visual_evidence_set: V0014
         tokens:
         - endpoint.project.approve
       /entry_points/entry_point.api.project.approve/target/application_action/ref:
-        visual_evidence_set: V0013
+        visual_evidence_set: V0014
         tokens:
         - application_action.project.approve
       /entry_points/entry_point.api.project.create/adapter/http_api/input/body/customer/primitive:
-        visual_evidence_set: V0014
+        visual_evidence_set: V0015
         tokens:
         - customer
         - Text
       /entry_points/entry_point.api.project.create/adapter/http_api/input/body/priority/primitive:
-        visual_evidence_set: V0014
+        visual_evidence_set: V0015
         tokens:
         - priority
         - Text
       /entry_points/entry_point.api.project.create/adapter/http_api/input/body/title/primitive:
-        visual_evidence_set: V0014
+        visual_evidence_set: V0015
         tokens:
         - title
         - Text
       /entry_points/entry_point.api.project.create/adapter/http_api/input/path_params/workspace_id/primitive:
-        visual_evidence_set: V0014
+        visual_evidence_set: V0015
         tokens:
         - workspace_id
         - ID
       /entry_points/entry_point.api.project.create/adapter/http_api/method:
-        visual_evidence_set: V0014
+        visual_evidence_set: V0015
         tokens:
         - POST
       /entry_points/entry_point.api.project.create/adapter/http_api/path:
-        visual_evidence_set: V0014
+        visual_evidence_set: V0015
         tokens:
         - /workspaces/{workspace_id}/projects
       /entry_points/entry_point.api.project.create/adapter/http_api/responses/created/body/type/model:
-        visual_evidence_set: V0014
+        visual_evidence_set: V0015
         tokens:
         - body
         - Project
       /entry_points/entry_point.api.project.create/adapter/http_api/responses/created/status:
-        visual_evidence_set: V0014
+        visual_evidence_set: V0015
         tokens:
         - status
         - '201'
       /entry_points/entry_point.api.project.create/adapter/http_api/responses/forbidden/body/type/model:
-        visual_evidence_set: V0014
+        visual_evidence_set: V0015
         tokens:
         - body
         - Problem
       /entry_points/entry_point.api.project.create/adapter/http_api/responses/forbidden/status:
-        visual_evidence_set: V0014
+        visual_evidence_set: V0015
         tokens:
         - status
         - '403'
       /entry_points/entry_point.api.project.create/adapter/http_api/responses/unauthenticated/body/type/model:
-        visual_evidence_set: V0014
+        visual_evidence_set: V0015
         tokens:
         - body
         - Problem
       /entry_points/entry_point.api.project.create/adapter/http_api/responses/unauthenticated/status:
-        visual_evidence_set: V0014
+        visual_evidence_set: V0015
         tokens:
         - status
         - '401'
       /entry_points/entry_point.api.project.create/adapter/http_api/responses/validation_failed/body/type/model:
-        visual_evidence_set: V0014
+        visual_evidence_set: V0015
         tokens:
         - body
         - Problem
       /entry_points/entry_point.api.project.create/adapter/http_api/responses/validation_failed/status:
-        visual_evidence_set: V0014
+        visual_evidence_set: V0015
         tokens:
         - status
         - '422'
       /entry_points/entry_point.api.project.create/authorization_policy:
-        visual_evidence_set: V0014
+        visual_evidence_set: V0015
         tokens:
         - authorization_policy.project.member
       /entry_points/entry_point.api.project.create/endpoint:
-        visual_evidence_set: V0014
+        visual_evidence_set: V0015
         tokens:
         - endpoint.project.create
       /entry_points/entry_point.api.project.create/target/application_action/ref:
-        visual_evidence_set: V0014
+        visual_evidence_set: V0015
         tokens:
         - application_action.project.create
       /entry_points/entry_point.api.project.list/adapter/http_api/input/path_params/workspace_id/primitive:
-        visual_evidence_set: V0015
+        visual_evidence_set: V0016
         tokens:
         - workspace_id
         - ID
       /entry_points/entry_point.api.project.list/adapter/http_api/method:
-        visual_evidence_set: V0015
+        visual_evidence_set: V0016
         tokens:
         - GET
       /entry_points/entry_point.api.project.list/adapter/http_api/path:
-        visual_evidence_set: V0015
+        visual_evidence_set: V0016
         tokens:
         - /workspaces/{workspace_id}/projects
       /entry_points/entry_point.api.project.list/adapter/http_api/responses/forbidden/body/type/model:
-        visual_evidence_set: V0015
+        visual_evidence_set: V0016
         tokens:
         - body
         - Problem
       /entry_points/entry_point.api.project.list/adapter/http_api/responses/forbidden/status:
-        visual_evidence_set: V0015
+        visual_evidence_set: V0016
         tokens:
         - status
         - '403'
       /entry_points/entry_point.api.project.list/adapter/http_api/responses/listed/body/type/array/model:
-        visual_evidence_set: V0015
+        visual_evidence_set: V0016
         tokens:
         - body
         - Project
       /entry_points/entry_point.api.project.list/adapter/http_api/responses/listed/status:
-        visual_evidence_set: V0015
+        visual_evidence_set: V0016
         tokens:
         - status
         - '200'
       /entry_points/entry_point.api.project.list/adapter/http_api/responses/unauthenticated/body/type/model:
-        visual_evidence_set: V0015
+        visual_evidence_set: V0016
         tokens:
         - body
         - Problem
       /entry_points/entry_point.api.project.list/adapter/http_api/responses/unauthenticated/status:
-        visual_evidence_set: V0015
+        visual_evidence_set: V0016
         tokens:
         - status
         - '401'
       /entry_points/entry_point.api.project.list/adapter/http_api/responses/unavailable/body/type/model:
-        visual_evidence_set: V0015
+        visual_evidence_set: V0016
         tokens:
         - body
         - Problem
       /entry_points/entry_point.api.project.list/adapter/http_api/responses/unavailable/status:
-        visual_evidence_set: V0015
+        visual_evidence_set: V0016
         tokens:
         - status
         - '503'
       /entry_points/entry_point.api.project.list/authorization_policy:
-        visual_evidence_set: V0015
+        visual_evidence_set: V0016
         tokens:
         - authorization_policy.project.member
       /entry_points/entry_point.api.project.list/endpoint:
-        visual_evidence_set: V0015
+        visual_evidence_set: V0016
         tokens:
         - endpoint.project.list
       /entry_points/entry_point.api.project.list/target/application_action/ref:
-        visual_evidence_set: V0015
+        visual_evidence_set: V0016
         tokens:
         - application_action.project.list
       /entry_points/entry_point.cli.project.approve/adapter/cli/cli_command:
-        visual_evidence_set: V0016
+        visual_evidence_set: V0017
         tokens:
         - project approve
       /entry_points/entry_point.cli.project.approve/adapter/cli/input/args/approved_by/primitive:
-        visual_evidence_set: V0016
+        visual_evidence_set: V0017
         tokens:
         - approved_by
         - ID
       /entry_points/entry_point.cli.project.approve/adapter/cli/input/args/project_id/primitive:
-        visual_evidence_set: V0016
+        visual_evidence_set: V0017
         tokens:
         - project_id
         - ID
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/approved/exit_code:
-        visual_evidence_set: V0016
+        visual_evidence_set: V0017
         tokens:
         - exit_code
         - '0'
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/approved/stdout/bindings/project_id/from:
-        visual_evidence_set: V0016
+        visual_evidence_set: V0017
         tokens:
         - response.body.id
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/approved/stdout/text:
-        visual_evidence_set: V0016
+        visual_evidence_set: V0017
         tokens:
         - text.project.approve.success
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/forbidden/exit_code:
-        visual_evidence_set: V0016
+        visual_evidence_set: V0017
         tokens:
         - exit_code
         - '5'
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/forbidden/stderr/bindings/message/from:
-        visual_evidence_set: V0016
+        visual_evidence_set: V0017
         tokens:
         - response.body.message
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/forbidden/stderr/text:
-        visual_evidence_set: V0016
+        visual_evidence_set: V0017
         tokens:
         - text.project.approve.forbidden
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/invalid_state/exit_code:
-        visual_evidence_set: V0016
+        visual_evidence_set: V0017
         tokens:
         - exit_code
         - '2'
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/invalid_state/stderr/bindings/message/from:
-        visual_evidence_set: V0016
+        visual_evidence_set: V0017
         tokens:
         - response.body.message
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/invalid_state/stderr/text:
-        visual_evidence_set: V0016
+        visual_evidence_set: V0017
         tokens:
         - text.project.approve.invalid_state
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/not_found/exit_code:
-        visual_evidence_set: V0016
+        visual_evidence_set: V0017
         tokens:
         - exit_code
         - '3'
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/not_found/stderr/bindings/message/from:
-        visual_evidence_set: V0016
+        visual_evidence_set: V0017
         tokens:
         - response.body.message
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/not_found/stderr/text:
-        visual_evidence_set: V0016
+        visual_evidence_set: V0017
         tokens:
         - text.project.approve.not_found
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unauthenticated/exit_code:
-        visual_evidence_set: V0016
+        visual_evidence_set: V0017
         tokens:
         - exit_code
         - '4'
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unauthenticated/stderr/bindings/message/from:
-        visual_evidence_set: V0016
+        visual_evidence_set: V0017
         tokens:
         - response.body.message
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unauthenticated/stderr/text:
-        visual_evidence_set: V0016
+        visual_evidence_set: V0017
         tokens:
         - text.project.approve.unauthenticated
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unavailable/exit_code:
-        visual_evidence_set: V0016
+        visual_evidence_set: V0017
         tokens:
         - exit_code
         - '75'
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unavailable/retry_policy/attempts:
-        visual_evidence_set: V0016
+        visual_evidence_set: V0017
         tokens:
         - retry
         - '3'
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unavailable/retry_policy/backoff:
-        visual_evidence_set: V0016
+        visual_evidence_set: V0017
         tokens:
         - retry
         - exponential
       /entry_points/entry_point.cli.project.approve/adapter/cli/response_handlers/unavailable/stderr/text:
-        visual_evidence_set: V0016
+        visual_evidence_set: V0017
         tokens:
         - text.project.approve.unavailable
       /entry_points/entry_point.cli.project.approve/cli_command_ref:
-        visual_evidence_set: V0016
+        visual_evidence_set: V0017
         tokens:
         - cli_command.project.approve
       /entry_points/entry_point.cli.project.approve/target/entry_point/ref:
-        visual_evidence_set: V0016
+        visual_evidence_set: V0017
         tokens:
         - entry_point.api.project.approve
       /entry_points/entry_point.cli.project.board/adapter/cli/cli_command:
-        visual_evidence_set: V0017
+        visual_evidence_set: V0018
         tokens:
         - project board
       /entry_points/entry_point.cli.project.board/adapter/cli/input/args/workspace_id/primitive:
-        visual_evidence_set: V0017
+        visual_evidence_set: V0018
         tokens:
         - workspace_id
         - ID
       /entry_points/entry_point.cli.project.board/cli_command_ref:
-        visual_evidence_set: V0017
+        visual_evidence_set: V0018
         tokens:
         - cli_command.project.board
       /entry_points/entry_point.cli.project.board/target/state_machine/ref:
-        visual_evidence_set: V0017
+        visual_evidence_set: V0018
         tokens:
         - state_machine.project.board
       /entry_points/entry_point.html.project.board/adapter/html_route/input/path_params/workspace_id/primitive:
-        visual_evidence_set: V0018
+        visual_evidence_set: V0019
         tokens:
         - workspace_id
         - ID
       /entry_points/entry_point.html.project.board/adapter/html_route/path:
-        visual_evidence_set: V0018
+        visual_evidence_set: V0019
         tokens:
         - /workspaces/{workspace_id}/dispatch
       /entry_points/entry_point.html.project.board/route:
-        visual_evidence_set: V0018
+        visual_evidence_set: V0019
         tokens:
         - route.project.board
       /entry_points/entry_point.html.project.board/target/state_machine/ref:
-        visual_evidence_set: V0018
+        visual_evidence_set: V0019
         tokens:
         - state_machine.project.board
       /entry_points/entry_point.worker.project.approval_notice/adapter/worker/ingress_responses/accepted/disposition:
-        visual_evidence_set: V0019
+        visual_evidence_set: V0020
         tokens:
         - disposition
         - acknowledge
       /entry_points/entry_point.worker.project.approval_notice/adapter/worker/ingress_responses/malformed/disposition:
-        visual_evidence_set: V0019
+        visual_evidence_set: V0020
         tokens:
         - disposition
         - dead_letter
       /entry_points/entry_point.worker.project.approval_notice/adapter/worker/ingress_responses/malformed/problem/model:
-        visual_evidence_set: V0019
+        visual_evidence_set: V0020
         tokens:
         - problem
         - Problem
       /entry_points/entry_point.worker.project.approval_notice/adapter/worker/input/payload/data_contract:
-        visual_evidence_set: V0019
+        visual_evidence_set: V0020
         tokens:
         - data_contract.project.approved
         - payload
       /entry_points/entry_point.worker.project.approval_notice/target/workflow/ref:
-        visual_evidence_set: V0019
+        visual_evidence_set: V0020
         tokens:
         - workflow.project.approval_notice
       /entry_points/entry_point.worker.project.approval_notice/workflow_ref:
-        visual_evidence_set: V0019
+        visual_evidence_set: V0020
         tokens:
         - workflow.project.approval_notice
-      /events/event.project.approved/emitted_by/0:
-        visual_evidence_set: V0020
-        tokens:
-        - application_action.project.approve
-      /events/event.project.approved/payload_schema/data_contract:
-        visual_evidence_set: V0020
-        tokens:
-        - data_contract.project.approved
-      /events/event.project.archived/emitted_by/0:
-        visual_evidence_set: V0002
-        tokens:
-        - application_action.project.archive
-      /events/event.project.created/emitted_by/0:
-        visual_evidence_set: V0003
-        tokens:
-        - application_action.project.create
-      /events/event.project.submitted/emitted_by/0:
-        visual_evidence_set: V0007
-        tokens:
-        - application_action.project.submit
       /models/Problem/fields/code/type/primitive:
         visual_evidence_set: V0023
         tokens:
@@ -2303,7 +2311,7 @@ visual_audit:
         visual_evidence_set: V0024
         tokens:
         - archived
-      ? /state_machines/state_machine.project.activity/signals/accepts/messages/selection_changed/payload_schema/project_id/primitive
+      ? /state_machines/state_machine.project.activity/signals/accepts/local_signals/selection_changed/payload_schema/project_id/primitive
       : visual_evidence_set: V0025
         tokens:
         - project_id
@@ -2368,13 +2376,13 @@ visual_audit:
         visual_evidence_set: V0026
         tokens:
         - aside
-      ? /state_machines/state_machine.project.detail/signals/accepts/messages/selection_changed/payload_schema/project_id/primitive
+      ? /state_machines/state_machine.project.detail/signals/accepts/local_signals/selection_changed/payload_schema/project_id/primitive
       : visual_evidence_set: V0027
         tokens:
         - project_id
         - ID
-      /state_machines/state_machine.project.detail/signals/accepts/messages/show_invalid_state/payload_schema/message/primitive:
-        visual_evidence_set: V0027
+      ? /state_machines/state_machine.project.detail/signals/accepts/local_signals/show_invalid_state/payload_schema/message/primitive
+      : visual_evidence_set: V0027
         tokens:
         - message
         - Text
@@ -2414,18 +2422,18 @@ visual_audit:
         visual_evidence_set: V0027
         tokens:
         - text.project.detail.ready.heading
-      /state_machines/state_machine.project.list/signals/accepts/messages/project_select/payload_schema/project_id/primitive:
-        visual_evidence_set: V0028
+      ? /state_machines/state_machine.project.list/signals/accepts/local_signals/project_select/payload_schema/project_id/primitive
+      : visual_evidence_set: V0028
         tokens:
         - project_id
         - ID
-      /state_machines/state_machine.project.list/signals/accepts/messages/show_invalid_state/payload_schema/message/primitive:
-        visual_evidence_set: V0028
+      ? /state_machines/state_machine.project.list/signals/accepts/local_signals/show_invalid_state/payload_schema/message/primitive
+      : visual_evidence_set: V0028
         tokens:
         - message
         - Text
-      /state_machines/state_machine.project.list/signals/emits/messages/project_selected/payload_schema/project_id/primitive:
-        visual_evidence_set: V0028
+      ? /state_machines/state_machine.project.list/signals/emits/local_signals/project_selected/payload_schema/project_id/primitive
+      : visual_evidence_set: V0028
         tokens:
         - project_id
         - ID
@@ -2532,10 +2540,10 @@ visual_audit:
         visual_evidence_set: V0033
         tokens:
         - notice_unauthenticated
-      /workflows/workflow.project.approval_notice/trigger/event:
+      /workflows/workflow.project.approval_notice/trigger/domain_event:
         visual_evidence_set: V0033
         tokens:
-        - event.project.approved
+        - domain_event.project.approved
   optional:
     covered:
       /assets/asset.project.detail.ready.priority_badge/args/priority/primitive: V0008
@@ -2589,21 +2597,21 @@ visual_audit:
       /fixtures/fixture.workspace.member/values/actor/roles/0: V0022
       /fixtures/fixture.workspace.member/values/workspace/id: V0022
       /fixtures/fixture.workspace.member/values/workspace/name: V0022
-      /test_cases/test_case.project.approval_notice.workflow/archetype: V0020
-      /test_cases/test_case.project.approval_notice.workflow/feature_tag: V0020
-      /test_cases/test_case.project.approval_notice.workflow/given/domain_facts: V0020
-      /test_cases/test_case.project.approval_notice.workflow/given/seed_fixtures/0: V0020
-      /test_cases/test_case.project.approval_notice.workflow/rationale: V0020
-      /test_cases/test_case.project.approval_notice.workflow/subject_ref/workflow: V0020
-      /test_cases/test_case.project.approval_notice.workflow/then/events/emitted/0: V0020
-      /test_cases/test_case.project.approval_notice.workflow/then/invoked/0: V0020
-      /test_cases/test_case.project.approval_notice.workflow/then/workflow/executed: V0020
-      /test_cases/test_case.project.approval_notice.workflow/then/workflow/outcome: V0020
-      /test_cases/test_case.project.approval_notice.workflow/then/workflow/ref: V0020
-      /test_cases/test_case.project.approval_notice.workflow/title: V0020
-      /test_cases/test_case.project.approval_notice.workflow/when/emit_event/payload/approved_by/from: V0020
-      /test_cases/test_case.project.approval_notice.workflow/when/emit_event/payload/project_id/value: V0020
-      /test_cases/test_case.project.approval_notice.workflow/when/emit_event/ref: V0020
+      /test_cases/test_case.project.approval_notice.workflow/archetype: V0013
+      /test_cases/test_case.project.approval_notice.workflow/feature_tag: V0013
+      /test_cases/test_case.project.approval_notice.workflow/given/domain_facts: V0013
+      /test_cases/test_case.project.approval_notice.workflow/given/seed_fixtures/0: V0013
+      /test_cases/test_case.project.approval_notice.workflow/rationale: V0013
+      /test_cases/test_case.project.approval_notice.workflow/subject_ref/workflow: V0013
+      /test_cases/test_case.project.approval_notice.workflow/then/domain_events/emitted/0: V0013
+      /test_cases/test_case.project.approval_notice.workflow/then/invoked/0: V0013
+      /test_cases/test_case.project.approval_notice.workflow/then/workflow/executed: V0013
+      /test_cases/test_case.project.approval_notice.workflow/then/workflow/outcome: V0013
+      /test_cases/test_case.project.approval_notice.workflow/then/workflow/ref: V0013
+      /test_cases/test_case.project.approval_notice.workflow/title: V0013
+      /test_cases/test_case.project.approval_notice.workflow/when/emit_domain_event/payload/approved_by/from: V0013
+      /test_cases/test_case.project.approval_notice.workflow/when/emit_domain_event/payload/project_id/value: V0013
+      /test_cases/test_case.project.approval_notice.workflow/when/emit_domain_event/ref: V0013
       /test_cases/test_case.project.approve.forbidden/archetype: V0001
       /test_cases/test_case.project.approve.forbidden/feature_tag: V0001
       /test_cases/test_case.project.approve.forbidden/given/domain_facts/0/present/model: V0001
@@ -2622,7 +2630,7 @@ visual_audit:
       /test_cases/test_case.project.approve.forbidden/subject_ref/application_action: V0001
       /test_cases/test_case.project.approve.forbidden/then/authorization/denied/0/application_action: V0001
       /test_cases/test_case.project.approve.forbidden/then/authorization/denied/0/authorization_policy: V0001
-      /test_cases/test_case.project.approve.forbidden/then/events/not_emitted/0: V0001
+      /test_cases/test_case.project.approve.forbidden/then/domain_events/not_emitted/0: V0001
       /test_cases/test_case.project.approve.forbidden/then/outcome: V0001
       /test_cases/test_case.project.approve.forbidden/title: V0001
       /test_cases/test_case.project.approve.forbidden/when/invoke_application_action/input/approved_by/from: V0001
@@ -2646,7 +2654,7 @@ visual_audit:
       /test_cases/test_case.project.approve.success/subject_ref/application_action: V0001
       /test_cases/test_case.project.approve.success/then/authorization/allowed/0/application_action: V0001
       /test_cases/test_case.project.approve.success/then/authorization/allowed/0/authorization_policy: V0001
-      /test_cases/test_case.project.approve.success/then/events/emitted/0: V0001
+      /test_cases/test_case.project.approve.success/then/domain_events/emitted/0: V0001
       /test_cases/test_case.project.approve.success/then/invoked/0: V0001
       /test_cases/test_case.project.approve.success/then/model/exists/model: V0001
       /test_cases/test_case.project.approve.success/then/model/exists/where/id/value: V0001
@@ -2656,326 +2664,326 @@ visual_audit:
       /test_cases/test_case.project.approve.success/when/invoke_application_action/input/approved_by/from: V0001
       /test_cases/test_case.project.approve.success/when/invoke_application_action/input/project_id/value: V0001
       /test_cases/test_case.project.approve.success/when/invoke_application_action/ref: V0001
-      /test_cases/test_case.project.board.empty/archetype: V0018
-      /test_cases/test_case.project.board.empty/feature_tag: V0018
-      /test_cases/test_case.project.board.empty/given/domain_facts/0/absent/model: V0018
-      /test_cases/test_case.project.board.empty/given/domain_facts/0/absent/where/workspace_id/from: V0018
-      /test_cases/test_case.project.board.empty/given/seed_fixtures/0: V0018
-      /test_cases/test_case.project.board.empty/rationale: V0018
-      /test_cases/test_case.project.board.empty/subject_ref/state_machine: V0018
-      /test_cases/test_case.project.board.empty/then/authorization/denied/0/application_action: V0018
-      /test_cases/test_case.project.board.empty/then/authorization/denied/0/authorization_policy: V0018
-      /test_cases/test_case.project.board.empty/then/enables/0: V0018
-      /test_cases/test_case.project.board.empty/then/requires/action_bindings/0: V0018
-      /test_cases/test_case.project.board.empty/then/requires/assets/0: V0018
-      /test_cases/test_case.project.board.empty/then/requires/data_loaders/0: V0018
-      /test_cases/test_case.project.board.empty/then/requires/data_loaders/1: V0018
-      /test_cases/test_case.project.board.empty/then/requires/surfaces/0: V0018
-      /test_cases/test_case.project.board.empty/then/requires/surfaces/1: V0018
-      /test_cases/test_case.project.board.empty/then/requires/surfaces/2: V0018
-      /test_cases/test_case.project.board.empty/then/requires/surfaces/3: V0018
-      /test_cases/test_case.project.board.empty/then/requires/text/0: V0018
-      /test_cases/test_case.project.board.empty/then/requires/text/1: V0018
-      /test_cases/test_case.project.board.empty/then/requires/text/2: V0018
-      /test_cases/test_case.project.board.empty/then/requires/text/3: V0018
-      /test_cases/test_case.project.board.empty/then/requires/text/4: V0018
-      /test_cases/test_case.project.board.empty/then/requires/text/5: V0018
+      /test_cases/test_case.project.board.empty/archetype: V0019
+      /test_cases/test_case.project.board.empty/feature_tag: V0019
+      /test_cases/test_case.project.board.empty/given/domain_facts/0/absent/model: V0019
+      /test_cases/test_case.project.board.empty/given/domain_facts/0/absent/where/workspace_id/from: V0019
+      /test_cases/test_case.project.board.empty/given/seed_fixtures/0: V0019
+      /test_cases/test_case.project.board.empty/rationale: V0019
+      /test_cases/test_case.project.board.empty/subject_ref/state_machine: V0019
+      /test_cases/test_case.project.board.empty/then/authorization/denied/0/application_action: V0019
+      /test_cases/test_case.project.board.empty/then/authorization/denied/0/authorization_policy: V0019
+      /test_cases/test_case.project.board.empty/then/enables/0: V0019
+      /test_cases/test_case.project.board.empty/then/requires/action_bindings/0: V0019
+      /test_cases/test_case.project.board.empty/then/requires/assets/0: V0019
+      /test_cases/test_case.project.board.empty/then/requires/data_loaders/0: V0019
+      /test_cases/test_case.project.board.empty/then/requires/data_loaders/1: V0019
+      /test_cases/test_case.project.board.empty/then/requires/surfaces/0: V0019
+      /test_cases/test_case.project.board.empty/then/requires/surfaces/1: V0019
+      /test_cases/test_case.project.board.empty/then/requires/surfaces/2: V0019
+      /test_cases/test_case.project.board.empty/then/requires/surfaces/3: V0019
+      /test_cases/test_case.project.board.empty/then/requires/text/0: V0019
+      /test_cases/test_case.project.board.empty/then/requires/text/1: V0019
+      /test_cases/test_case.project.board.empty/then/requires/text/2: V0019
+      /test_cases/test_case.project.board.empty/then/requires/text/3: V0019
+      /test_cases/test_case.project.board.empty/then/requires/text/4: V0019
+      /test_cases/test_case.project.board.empty/then/requires/text/5: V0019
       ? /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/0/context_bindings/selected_project_id/from
-      : V0018
+      : V0019
       ? /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/0/context_bindings/workspace_id/from
-      : V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/0/html_region: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/0/id: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/0/initial_view_state: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/0/state_machine: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/0/textual_container: V0018
+      : V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/0/html_region: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/0/id: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/0/initial_view_state: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/0/state_machine: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/0/textual_container: V0019
       ? /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/1/context_bindings/project_id/from
-      : V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/1/html_region: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/1/id: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/1/initial_view_state: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/1/selected/view_state: V0018
+      : V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/1/html_region: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/1/id: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/1/initial_view_state: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/1/selected/view_state: V0019
       ? /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/1/selected/when/context_present
-      : V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/1/state_machine: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/1/textual_container: V0018
+      : V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/1/state_machine: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/1/textual_container: V0019
       ? /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/2/context_bindings/project_id/from
-      : V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/2/html_region: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/2/id: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/2/initial_view_state: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/2/selected/view_state: V0018
+      : V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/2/html_region: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/2/id: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/2/initial_view_state: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/2/selected/view_state: V0019
       ? /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/2/selected/when/context_present
-      : V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/2/state_machine: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/2/textual_container: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/aside/classes/0: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/aside/element: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/aside/must_render: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/aside/order: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/aside/role: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/main/classes/0: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/main/element: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/main/must_render: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/main/order: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/main/role: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/nav/classes/0: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/nav/element: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/nav/must_render: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/nav/order: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/nav/role: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/root/classes/0: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/root/element: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/root/role: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/style/rules/0/declarations/display: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/style/rules/0/declarations/gap: V0018
+      : V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/2/state_machine: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/child_state_machines/2/textual_container: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/aside/classes/0: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/aside/element: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/aside/must_render: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/aside/order: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/aside/role: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/main/classes/0: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/main/element: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/main/must_render: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/main/order: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/main/role: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/nav/classes/0: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/nav/element: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/nav/must_render: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/nav/order: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/regions/nav/role: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/root/classes/0: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/root/element: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/layout/root/role: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/style/rules/0/declarations/display: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/style/rules/0/declarations/gap: V0019
       ? /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/style/rules/0/declarations/grid-template-columns
-      : V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/style/rules/0/selector: V0018
+      : V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/style/rules/0/selector: V0019
       ? /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/style/rules/1/declarations/min-width
-      : V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/style/rules/1/selector: V0018
+      : V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/style/rules/1/selector: V0019
       ? /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/style/rules/2/declarations/min-width
-      : V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/style/rules/2/selector: V0018
+      : V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/style/rules/2/selector: V0019
       ? /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/style/rules/3/declarations/min-width
-      : V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/style/rules/3/selector: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/style/tokens/aside_width: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/style/tokens/gap: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/style/tokens/nav_width: V0018
+      : V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/style/rules/3/selector: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/style/tokens/aside_width: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/style/tokens/gap: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/html/style/tokens/nav_width: V0019
       ? /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/layout/containers/aside/container_class
-      : V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/layout/containers/aside/id: V0018
+      : V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/layout/containers/aside/id: V0019
       ? /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/layout/containers/aside/must_render
-      : V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/layout/containers/aside/order: V0018
+      : V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/layout/containers/aside/order: V0019
       ? /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/layout/containers/main/container_class
-      : V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/layout/containers/main/id: V0018
+      : V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/layout/containers/main/id: V0019
       ? /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/layout/containers/main/must_render
-      : V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/layout/containers/main/order: V0018
+      : V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/layout/containers/main/order: V0019
       ? /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/layout/containers/nav/container_class
-      : V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/layout/containers/nav/id: V0018
+      : V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/layout/containers/nav/id: V0019
       ? /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/layout/containers/nav/must_render
-      : V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/layout/containers/nav/order: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/layout/screen_class: V0018
+      : V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/layout/containers/nav/order: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/layout/screen_class: V0019
       ? /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/style/rules/0/declarations/layout
-      : V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/style/rules/0/selector: V0018
+      : V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/style/rules/0/selector: V0019
       ? /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/style/rules/1/declarations/width
-      : V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/style/rules/1/selector: V0018
+      : V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/style/rules/1/selector: V0019
       ? /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/style/rules/2/declarations/width
-      : V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/style/rules/2/selector: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/signal_sync_rules/0/effects/0/set/context: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/signal_sync_rules/0/effects/0/set/from: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/signal_sync_rules/0/effects/1/send/instance: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/signal_sync_rules/0/effects/1/send/message: V0018
+      : V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/renderers/textual/style/rules/2/selector: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/signal_sync_rules/0/effects/0/set/context: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/signal_sync_rules/0/effects/0/set/from: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/signal_sync_rules/0/effects/1/send/instance: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/signal_sync_rules/0/effects/1/send/local_signal: V0019
       ? /test_cases/test_case.project.board.empty/then/state_machine/composition/signal_sync_rules/0/effects/1/send/payload_bindings/project_id/from
-      : V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/signal_sync_rules/0/effects/2/send/instance: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/signal_sync_rules/0/effects/2/send/message: V0018
+      : V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/signal_sync_rules/0/effects/2/send/instance: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/signal_sync_rules/0/effects/2/send/local_signal: V0019
       ? /test_cases/test_case.project.board.empty/then/state_machine/composition/signal_sync_rules/0/effects/2/send/payload_bindings/project_id/from
-      : V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/signal_sync_rules/0/id: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/signal_sync_rules/0/when/instance: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/composition/signal_sync_rules/0/when/message: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/instances/activity/source: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/instances/activity/surface: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/instances/activity/view_state: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/instances/detail/source: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/instances/detail/surface: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/instances/detail/view_state: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/instances/list/source: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/instances/list/surface: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/instances/list/view_state: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/ref: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/signal_sync_rules/observed_rules/0: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/surface: V0018
-      /test_cases/test_case.project.board.empty/then/state_machine/view_state: V0018
-      /test_cases/test_case.project.board.empty/title: V0018
-      /test_cases/test_case.project.board.empty/when/open_entry_point/input/workspace_id/from: V0018
-      /test_cases/test_case.project.board.empty/when/open_entry_point/ref: V0018
-      /test_cases/test_case.project.board.ready/archetype: V0018
-      /test_cases/test_case.project.board.ready/feature_tag: V0018
-      /test_cases/test_case.project.board.ready/given/domain_facts/0/present/model: V0018
-      /test_cases/test_case.project.board.ready/given/domain_facts/0/present/values/assignee/value: V0018
-      /test_cases/test_case.project.board.ready/given/domain_facts/0/present/values/created_at/value: V0018
-      /test_cases/test_case.project.board.ready/given/domain_facts/0/present/values/customer/value: V0018
-      /test_cases/test_case.project.board.ready/given/domain_facts/0/present/values/id/value: V0018
-      /test_cases/test_case.project.board.ready/given/domain_facts/0/present/values/priority/value: V0018
-      /test_cases/test_case.project.board.ready/given/domain_facts/0/present/values/status/value: V0018
-      /test_cases/test_case.project.board.ready/given/domain_facts/0/present/values/summary/value: V0018
-      /test_cases/test_case.project.board.ready/given/domain_facts/0/present/values/title/value: V0018
-      /test_cases/test_case.project.board.ready/given/domain_facts/0/present/values/updated_at/value: V0018
-      /test_cases/test_case.project.board.ready/given/domain_facts/0/present/values/workspace_id/from: V0018
-      /test_cases/test_case.project.board.ready/given/seed_fixtures/0: V0018
-      /test_cases/test_case.project.board.ready/rationale: V0018
-      /test_cases/test_case.project.board.ready/subject_ref/state_machine: V0018
-      /test_cases/test_case.project.board.ready/then/enables/0: V0018
-      /test_cases/test_case.project.board.ready/then/enables/1: V0018
-      /test_cases/test_case.project.board.ready/then/requires/action_bindings/0: V0018
-      /test_cases/test_case.project.board.ready/then/requires/action_bindings/1: V0018
-      /test_cases/test_case.project.board.ready/then/requires/assets: V0018
-      /test_cases/test_case.project.board.ready/then/requires/data_loaders/0: V0018
-      /test_cases/test_case.project.board.ready/then/requires/data_loaders/1: V0018
-      /test_cases/test_case.project.board.ready/then/requires/surfaces/0: V0018
-      /test_cases/test_case.project.board.ready/then/requires/surfaces/1: V0018
-      /test_cases/test_case.project.board.ready/then/requires/surfaces/2: V0018
-      /test_cases/test_case.project.board.ready/then/requires/surfaces/3: V0018
-      /test_cases/test_case.project.board.ready/then/requires/text/0: V0018
-      /test_cases/test_case.project.board.ready/then/requires/text/1: V0018
-      /test_cases/test_case.project.board.ready/then/requires/text/2: V0018
-      /test_cases/test_case.project.board.ready/then/requires/text/3: V0018
-      /test_cases/test_case.project.board.ready/then/requires/text/4: V0018
+      : V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/signal_sync_rules/0/id: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/signal_sync_rules/0/when/instance: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/composition/signal_sync_rules/0/when/local_signal: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/instances/activity/source: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/instances/activity/surface: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/instances/activity/view_state: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/instances/detail/source: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/instances/detail/surface: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/instances/detail/view_state: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/instances/list/source: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/instances/list/surface: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/instances/list/view_state: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/ref: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/signal_sync_rules/observed_rules/0: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/surface: V0019
+      /test_cases/test_case.project.board.empty/then/state_machine/view_state: V0019
+      /test_cases/test_case.project.board.empty/title: V0019
+      /test_cases/test_case.project.board.empty/when/open_entry_point/input/workspace_id/from: V0019
+      /test_cases/test_case.project.board.empty/when/open_entry_point/ref: V0019
+      /test_cases/test_case.project.board.ready/archetype: V0019
+      /test_cases/test_case.project.board.ready/feature_tag: V0019
+      /test_cases/test_case.project.board.ready/given/domain_facts/0/present/model: V0019
+      /test_cases/test_case.project.board.ready/given/domain_facts/0/present/values/assignee/value: V0019
+      /test_cases/test_case.project.board.ready/given/domain_facts/0/present/values/created_at/value: V0019
+      /test_cases/test_case.project.board.ready/given/domain_facts/0/present/values/customer/value: V0019
+      /test_cases/test_case.project.board.ready/given/domain_facts/0/present/values/id/value: V0019
+      /test_cases/test_case.project.board.ready/given/domain_facts/0/present/values/priority/value: V0019
+      /test_cases/test_case.project.board.ready/given/domain_facts/0/present/values/status/value: V0019
+      /test_cases/test_case.project.board.ready/given/domain_facts/0/present/values/summary/value: V0019
+      /test_cases/test_case.project.board.ready/given/domain_facts/0/present/values/title/value: V0019
+      /test_cases/test_case.project.board.ready/given/domain_facts/0/present/values/updated_at/value: V0019
+      /test_cases/test_case.project.board.ready/given/domain_facts/0/present/values/workspace_id/from: V0019
+      /test_cases/test_case.project.board.ready/given/seed_fixtures/0: V0019
+      /test_cases/test_case.project.board.ready/rationale: V0019
+      /test_cases/test_case.project.board.ready/subject_ref/state_machine: V0019
+      /test_cases/test_case.project.board.ready/then/enables/0: V0019
+      /test_cases/test_case.project.board.ready/then/enables/1: V0019
+      /test_cases/test_case.project.board.ready/then/requires/action_bindings/0: V0019
+      /test_cases/test_case.project.board.ready/then/requires/action_bindings/1: V0019
+      /test_cases/test_case.project.board.ready/then/requires/assets: V0019
+      /test_cases/test_case.project.board.ready/then/requires/data_loaders/0: V0019
+      /test_cases/test_case.project.board.ready/then/requires/data_loaders/1: V0019
+      /test_cases/test_case.project.board.ready/then/requires/surfaces/0: V0019
+      /test_cases/test_case.project.board.ready/then/requires/surfaces/1: V0019
+      /test_cases/test_case.project.board.ready/then/requires/surfaces/2: V0019
+      /test_cases/test_case.project.board.ready/then/requires/surfaces/3: V0019
+      /test_cases/test_case.project.board.ready/then/requires/text/0: V0019
+      /test_cases/test_case.project.board.ready/then/requires/text/1: V0019
+      /test_cases/test_case.project.board.ready/then/requires/text/2: V0019
+      /test_cases/test_case.project.board.ready/then/requires/text/3: V0019
+      /test_cases/test_case.project.board.ready/then/requires/text/4: V0019
       ? /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/0/context_bindings/selected_project_id/from
-      : V0018
+      : V0019
       ? /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/0/context_bindings/workspace_id/from
-      : V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/0/html_region: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/0/id: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/0/initial_view_state: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/0/state_machine: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/0/textual_container: V0018
+      : V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/0/html_region: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/0/id: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/0/initial_view_state: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/0/state_machine: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/0/textual_container: V0019
       ? /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/1/context_bindings/project_id/from
-      : V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/1/html_region: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/1/id: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/1/initial_view_state: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/1/selected/view_state: V0018
+      : V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/1/html_region: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/1/id: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/1/initial_view_state: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/1/selected/view_state: V0019
       ? /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/1/selected/when/context_present
-      : V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/1/state_machine: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/1/textual_container: V0018
+      : V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/1/state_machine: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/1/textual_container: V0019
       ? /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/2/context_bindings/project_id/from
-      : V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/2/html_region: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/2/id: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/2/initial_view_state: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/2/selected/view_state: V0018
+      : V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/2/html_region: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/2/id: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/2/initial_view_state: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/2/selected/view_state: V0019
       ? /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/2/selected/when/context_present
-      : V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/2/state_machine: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/2/textual_container: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/aside/classes/0: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/aside/element: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/aside/must_render: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/aside/order: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/aside/role: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/main/classes/0: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/main/element: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/main/must_render: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/main/order: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/main/role: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/nav/classes/0: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/nav/element: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/nav/must_render: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/nav/order: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/nav/role: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/root/classes/0: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/root/element: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/root/role: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/style/rules/0/declarations/display: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/style/rules/0/declarations/gap: V0018
+      : V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/2/state_machine: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/child_state_machines/2/textual_container: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/aside/classes/0: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/aside/element: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/aside/must_render: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/aside/order: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/aside/role: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/main/classes/0: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/main/element: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/main/must_render: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/main/order: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/main/role: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/nav/classes/0: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/nav/element: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/nav/must_render: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/nav/order: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/regions/nav/role: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/root/classes/0: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/root/element: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/layout/root/role: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/style/rules/0/declarations/display: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/style/rules/0/declarations/gap: V0019
       ? /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/style/rules/0/declarations/grid-template-columns
-      : V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/style/rules/0/selector: V0018
+      : V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/style/rules/0/selector: V0019
       ? /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/style/rules/1/declarations/min-width
-      : V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/style/rules/1/selector: V0018
+      : V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/style/rules/1/selector: V0019
       ? /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/style/rules/2/declarations/min-width
-      : V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/style/rules/2/selector: V0018
+      : V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/style/rules/2/selector: V0019
       ? /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/style/rules/3/declarations/min-width
-      : V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/style/rules/3/selector: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/style/tokens/aside_width: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/style/tokens/gap: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/style/tokens/nav_width: V0018
+      : V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/style/rules/3/selector: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/style/tokens/aside_width: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/style/tokens/gap: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/html/style/tokens/nav_width: V0019
       ? /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/layout/containers/aside/container_class
-      : V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/layout/containers/aside/id: V0018
+      : V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/layout/containers/aside/id: V0019
       ? /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/layout/containers/aside/must_render
-      : V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/layout/containers/aside/order: V0018
+      : V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/layout/containers/aside/order: V0019
       ? /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/layout/containers/main/container_class
-      : V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/layout/containers/main/id: V0018
+      : V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/layout/containers/main/id: V0019
       ? /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/layout/containers/main/must_render
-      : V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/layout/containers/main/order: V0018
+      : V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/layout/containers/main/order: V0019
       ? /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/layout/containers/nav/container_class
-      : V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/layout/containers/nav/id: V0018
+      : V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/layout/containers/nav/id: V0019
       ? /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/layout/containers/nav/must_render
-      : V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/layout/containers/nav/order: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/layout/screen_class: V0018
+      : V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/layout/containers/nav/order: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/layout/screen_class: V0019
       ? /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/style/rules/0/declarations/layout
-      : V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/style/rules/0/selector: V0018
+      : V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/style/rules/0/selector: V0019
       ? /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/style/rules/1/declarations/width
-      : V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/style/rules/1/selector: V0018
+      : V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/style/rules/1/selector: V0019
       ? /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/style/rules/2/declarations/width
-      : V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/style/rules/2/selector: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/signal_sync_rules/0/effects/0/set/context: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/signal_sync_rules/0/effects/0/set/from: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/signal_sync_rules/0/effects/1/send/instance: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/signal_sync_rules/0/effects/1/send/message: V0018
+      : V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/renderers/textual/style/rules/2/selector: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/signal_sync_rules/0/effects/0/set/context: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/signal_sync_rules/0/effects/0/set/from: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/signal_sync_rules/0/effects/1/send/instance: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/signal_sync_rules/0/effects/1/send/local_signal: V0019
       ? /test_cases/test_case.project.board.ready/then/state_machine/composition/signal_sync_rules/0/effects/1/send/payload_bindings/project_id/from
-      : V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/signal_sync_rules/0/effects/2/send/instance: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/signal_sync_rules/0/effects/2/send/message: V0018
+      : V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/signal_sync_rules/0/effects/2/send/instance: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/signal_sync_rules/0/effects/2/send/local_signal: V0019
       ? /test_cases/test_case.project.board.ready/then/state_machine/composition/signal_sync_rules/0/effects/2/send/payload_bindings/project_id/from
-      : V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/signal_sync_rules/0/id: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/signal_sync_rules/0/when/instance: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/composition/signal_sync_rules/0/when/message: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/instances/activity/source: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/instances/activity/surface: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/instances/activity/view_state: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/instances/detail/source: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/instances/detail/surface: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/instances/detail/view_state: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/instances/list/source: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/instances/list/surface: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/instances/list/view_state: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/ref: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/signal_sync_rules/observed_rules/0: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/surface: V0018
-      /test_cases/test_case.project.board.ready/then/state_machine/view_state: V0018
-      /test_cases/test_case.project.board.ready/title: V0018
-      /test_cases/test_case.project.board.ready/when/open_entry_point/input/workspace_id/from: V0018
-      /test_cases/test_case.project.board.ready/when/open_entry_point/ref: V0018
-      /test_cases/test_case.project.create.api.success/archetype: V0014
-      /test_cases/test_case.project.create.api.success/feature_tag: V0014
-      /test_cases/test_case.project.create.api.success/given/domain_facts/0/absent/model: V0014
-      /test_cases/test_case.project.create.api.success/given/domain_facts/0/absent/where/workspace_id/from: V0014
-      /test_cases/test_case.project.create.api.success/given/seed_fixtures/0: V0014
-      /test_cases/test_case.project.create.api.success/rationale: V0014
-      /test_cases/test_case.project.create.api.success/subject_ref/entry_point: V0014
-      /test_cases/test_case.project.create.api.success/then/authorization/allowed/0/application_action: V0014
-      /test_cases/test_case.project.create.api.success/then/authorization/allowed/0/authorization_policy: V0014
-      /test_cases/test_case.project.create.api.success/then/events/emitted/0: V0014
-      /test_cases/test_case.project.create.api.success/then/invoked/0: V0014
-      /test_cases/test_case.project.create.api.success/then/model/exists/model: V0014
-      /test_cases/test_case.project.create.api.success/then/model/exists/where/title/value: V0014
-      /test_cases/test_case.project.create.api.success/then/model/exists/where/workspace_id/from: V0014
-      /test_cases/test_case.project.create.api.success/then/outcome: V0014
-      /test_cases/test_case.project.create.api.success/then/response/status: V0014
-      /test_cases/test_case.project.create.api.success/title: V0014
-      /test_cases/test_case.project.create.api.success/when/call_entry_point/input/customer/value: V0014
-      /test_cases/test_case.project.create.api.success/when/call_entry_point/input/priority/value: V0014
-      /test_cases/test_case.project.create.api.success/when/call_entry_point/input/title/value: V0014
-      /test_cases/test_case.project.create.api.success/when/call_entry_point/input/workspace_id/from: V0014
-      /test_cases/test_case.project.create.api.success/when/call_entry_point/ref: V0014
+      : V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/signal_sync_rules/0/id: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/signal_sync_rules/0/when/instance: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/composition/signal_sync_rules/0/when/local_signal: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/instances/activity/source: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/instances/activity/surface: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/instances/activity/view_state: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/instances/detail/source: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/instances/detail/surface: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/instances/detail/view_state: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/instances/list/source: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/instances/list/surface: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/instances/list/view_state: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/ref: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/signal_sync_rules/observed_rules/0: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/surface: V0019
+      /test_cases/test_case.project.board.ready/then/state_machine/view_state: V0019
+      /test_cases/test_case.project.board.ready/title: V0019
+      /test_cases/test_case.project.board.ready/when/open_entry_point/input/workspace_id/from: V0019
+      /test_cases/test_case.project.board.ready/when/open_entry_point/ref: V0019
+      /test_cases/test_case.project.create.api.success/archetype: V0015
+      /test_cases/test_case.project.create.api.success/feature_tag: V0015
+      /test_cases/test_case.project.create.api.success/given/domain_facts/0/absent/model: V0015
+      /test_cases/test_case.project.create.api.success/given/domain_facts/0/absent/where/workspace_id/from: V0015
+      /test_cases/test_case.project.create.api.success/given/seed_fixtures/0: V0015
+      /test_cases/test_case.project.create.api.success/rationale: V0015
+      /test_cases/test_case.project.create.api.success/subject_ref/entry_point: V0015
+      /test_cases/test_case.project.create.api.success/then/authorization/allowed/0/application_action: V0015
+      /test_cases/test_case.project.create.api.success/then/authorization/allowed/0/authorization_policy: V0015
+      /test_cases/test_case.project.create.api.success/then/domain_events/emitted/0: V0015
+      /test_cases/test_case.project.create.api.success/then/invoked/0: V0015
+      /test_cases/test_case.project.create.api.success/then/model/exists/model: V0015
+      /test_cases/test_case.project.create.api.success/then/model/exists/where/title/value: V0015
+      /test_cases/test_case.project.create.api.success/then/model/exists/where/workspace_id/from: V0015
+      /test_cases/test_case.project.create.api.success/then/outcome: V0015
+      /test_cases/test_case.project.create.api.success/then/response/status: V0015
+      /test_cases/test_case.project.create.api.success/title: V0015
+      /test_cases/test_case.project.create.api.success/when/call_entry_point/input/customer/value: V0015
+      /test_cases/test_case.project.create.api.success/when/call_entry_point/input/priority/value: V0015
+      /test_cases/test_case.project.create.api.success/when/call_entry_point/input/title/value: V0015
+      /test_cases/test_case.project.create.api.success/when/call_entry_point/input/workspace_id/from: V0015
+      /test_cases/test_case.project.create.api.success/when/call_entry_point/ref: V0015
       /text_resources/text.project.activity.empty.body/intent: V0029
       /text_resources/text.project.activity.empty.body/max_chars: V0029
       /text_resources/text.project.activity.empty.body/placeholder: V0029
@@ -2988,35 +2996,35 @@ visual_audit:
       /text_resources/text.project.activity.ready.heading/max_chars: V0030
       /text_resources/text.project.activity.ready.heading/placeholder: V0030
       /text_resources/text.project.activity.ready.heading/rationale: V0030
-      /text_resources/text.project.approve.forbidden/args/message/primitive: V0016
-      /text_resources/text.project.approve.forbidden/intent: V0016
-      /text_resources/text.project.approve.forbidden/max_chars: V0016
-      /text_resources/text.project.approve.forbidden/placeholder: V0016
-      /text_resources/text.project.approve.forbidden/rationale: V0016
-      /text_resources/text.project.approve.invalid_state/args/message/primitive: V0016
-      /text_resources/text.project.approve.invalid_state/intent: V0016
-      /text_resources/text.project.approve.invalid_state/max_chars: V0016
-      /text_resources/text.project.approve.invalid_state/placeholder: V0016
-      /text_resources/text.project.approve.invalid_state/rationale: V0016
-      /text_resources/text.project.approve.not_found/args/message/primitive: V0016
-      /text_resources/text.project.approve.not_found/intent: V0016
-      /text_resources/text.project.approve.not_found/max_chars: V0016
-      /text_resources/text.project.approve.not_found/placeholder: V0016
-      /text_resources/text.project.approve.not_found/rationale: V0016
-      /text_resources/text.project.approve.success/args/project_id/primitive: V0016
-      /text_resources/text.project.approve.success/intent: V0016
-      /text_resources/text.project.approve.success/max_chars: V0016
-      /text_resources/text.project.approve.success/placeholder: V0016
-      /text_resources/text.project.approve.success/rationale: V0016
-      /text_resources/text.project.approve.unauthenticated/args/message/primitive: V0016
-      /text_resources/text.project.approve.unauthenticated/intent: V0016
-      /text_resources/text.project.approve.unauthenticated/max_chars: V0016
-      /text_resources/text.project.approve.unauthenticated/placeholder: V0016
-      /text_resources/text.project.approve.unauthenticated/rationale: V0016
-      /text_resources/text.project.approve.unavailable/intent: V0016
-      /text_resources/text.project.approve.unavailable/max_chars: V0016
-      /text_resources/text.project.approve.unavailable/placeholder: V0016
-      /text_resources/text.project.approve.unavailable/rationale: V0016
+      /text_resources/text.project.approve.forbidden/args/message/primitive: V0017
+      /text_resources/text.project.approve.forbidden/intent: V0017
+      /text_resources/text.project.approve.forbidden/max_chars: V0017
+      /text_resources/text.project.approve.forbidden/placeholder: V0017
+      /text_resources/text.project.approve.forbidden/rationale: V0017
+      /text_resources/text.project.approve.invalid_state/args/message/primitive: V0017
+      /text_resources/text.project.approve.invalid_state/intent: V0017
+      /text_resources/text.project.approve.invalid_state/max_chars: V0017
+      /text_resources/text.project.approve.invalid_state/placeholder: V0017
+      /text_resources/text.project.approve.invalid_state/rationale: V0017
+      /text_resources/text.project.approve.not_found/args/message/primitive: V0017
+      /text_resources/text.project.approve.not_found/intent: V0017
+      /text_resources/text.project.approve.not_found/max_chars: V0017
+      /text_resources/text.project.approve.not_found/placeholder: V0017
+      /text_resources/text.project.approve.not_found/rationale: V0017
+      /text_resources/text.project.approve.success/args/project_id/primitive: V0017
+      /text_resources/text.project.approve.success/intent: V0017
+      /text_resources/text.project.approve.success/max_chars: V0017
+      /text_resources/text.project.approve.success/placeholder: V0017
+      /text_resources/text.project.approve.success/rationale: V0017
+      /text_resources/text.project.approve.unauthenticated/args/message/primitive: V0017
+      /text_resources/text.project.approve.unauthenticated/intent: V0017
+      /text_resources/text.project.approve.unauthenticated/max_chars: V0017
+      /text_resources/text.project.approve.unauthenticated/placeholder: V0017
+      /text_resources/text.project.approve.unauthenticated/rationale: V0017
+      /text_resources/text.project.approve.unavailable/intent: V0017
+      /text_resources/text.project.approve.unavailable/max_chars: V0017
+      /text_resources/text.project.approve.unavailable/placeholder: V0017
+      /text_resources/text.project.approve.unavailable/rationale: V0017
       /text_resources/text.project.detail.error.body/intent: V0027
       /text_resources/text.project.detail.error.body/max_chars: V0027
       /text_resources/text.project.detail.error.body/placeholder: V0027

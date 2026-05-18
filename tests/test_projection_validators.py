@@ -56,7 +56,7 @@ def test_openapi_validator_rejects_unresolved_component_ref() -> None:
 
 def test_asyncapi_validator_rejects_wrong_channel_message_binding() -> None:
     contract = _contract()
-    asyncapi = read_yaml(ROOT / "spec" / "generated" / "product_interfaces" / "events.asyncapi.yaml")
+    asyncapi = read_yaml(ROOT / "spec" / "generated" / "product_interfaces" / "integration_messages.asyncapi.yaml")
     mutated = copy.deepcopy(asyncapi)
     first_channel = next(value for value in mutated["channels"].values() if isinstance(value, dict) and "messages" in value)
     first_channel["messages"] = {"message_drift": {"$ref": "#/components/messages/message_drift"}}

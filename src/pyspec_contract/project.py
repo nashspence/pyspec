@@ -56,7 +56,7 @@ def projection_paths(contract: dict[str, Any]) -> list[str]:
     if _has_api(contract):
         paths.append(g("product_interfaces", "http.openapi.yaml"))
     if _has_asyncapi(contract):
-        paths.append(g("product_interfaces", "events.asyncapi.yaml"))
+        paths.append(g("product_interfaces", "integration_messages.asyncapi.yaml"))
     if _has_html_routes(contract):
         paths.append(g("product_interfaces", "html.routes.json"))
     if _has_ui(contract):
@@ -90,7 +90,7 @@ def projection_files(contract: dict[str, Any], *, layers: str | set[str] | None 
     if _has_api(contract):
         yield g("product_interfaces", "http.openapi.yaml"), openapi_projection(contract), "yaml"
     if _has_asyncapi(contract):
-        yield g("product_interfaces", "events.asyncapi.yaml"), asyncapi_projection(contract), "yaml"
+        yield g("product_interfaces", "integration_messages.asyncapi.yaml"), asyncapi_projection(contract), "yaml"
     if _has_html_routes(contract):
         yield g("product_interfaces", "html.routes.json"), routes_projection(contract), "json"
     if _has_ui(contract):
@@ -130,7 +130,7 @@ def _has_api(contract: dict[str, Any]) -> bool:
 
 
 def _has_asyncapi(contract: dict[str, Any]) -> bool:
-    return bool(contract.get("events")) and (bool(_entry_points_with_adapter(contract, "webhook", "worker")) or any("event" in wf.get("trigger", {}) for wf in contract.get("workflows", {}).values()))
+    return bool(contract.get("domain_events")) and (bool(_entry_points_with_adapter(contract, "webhook", "worker")) or any("domain_event" in wf.get("trigger", {}) for wf in contract.get("workflows", {}).values()))
 
 
 def _has_html_routes(contract: dict[str, Any]) -> bool:
@@ -226,14 +226,14 @@ def asyncapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
     operations: dict[str, Any] = {}
     messages: dict[str, Any] = {}
 
-    for event_id, event in sorted(contract["events"].items()):
+    for event_id, event in sorted(contract["domain_events"].items()):
         key = safe_id(event_id)
-        channel_id = f"event_{key}"
-        message_id = f"message_{key}"
+        channel_id = f"domain_event_{key}"
+        message_id = f"integration_message_{key}"
         channels[channel_id] = {
             "address": event_id,
             "messages": {message_id: {"$ref": f"#/components/messages/{message_id}"}},
-            "x-event": event_id,
+            "x-domain-event": event_id,
         }
         messages[message_id] = {
             "name": event_id,
@@ -250,14 +250,14 @@ def asyncapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
 
     for workflow_id, workflow in sorted(contract["workflows"].items()):
         trigger = workflow["trigger"]
-        if "event" not in trigger:
+        if "domain_event" not in trigger:
             continue
-        event_id = trigger["event"]
+        event_id = trigger["domain_event"]
         key = safe_id(event_id)
         operations[f"receive_{safe_id(workflow_id)}"] = {
             "action": "receive",
-            "channel": {"$ref": f"#/channels/event_{key}"},
-            "messages": [{"$ref": f"#/components/messages/message_{key}"}],
+            "channel": {"$ref": f"#/channels/domain_event_{key}"},
+            "messages": [{"$ref": f"#/components/messages/integration_message_{key}"}],
             "x-workflow": workflow_id,
             "x-contract-ref": workflow["ref"],
         }
@@ -725,8 +725,8 @@ def _entry_point_effective_application_action_ref(contract: dict[str, Any], entr
 
 def _workflow_trigger_payload_type(contract: dict[str, Any], workflow: dict[str, Any]) -> str:
     trigger = workflow["trigger"]
-    if "event" in trigger:
-        return contract["events"][trigger["event"]]["payload_schema"]
+    if "domain_event" in trigger:
+        return contract["domain_events"][trigger["domain_event"]]["payload_schema"]
     operation = contract["application_actions"][trigger["application_action"]]
     successes = [outcome["result"] for outcome in operation["outcomes"].values() if outcome["kind"] == "success"]
     return successes[0]
@@ -870,7 +870,7 @@ def refs_py_projection(contract: dict[str, Any]) -> str:
         "Operation": sorted(contract["application_actions"]),
         "Text": sorted(contract.get("text_resources", {})),
         "ContentCase": sorted(contract.get("content_cases", {})),
-        "Event": sorted(contract["events"]),
+        "DomainEvent": sorted(contract["domain_events"]),
         "Fact": sorted(contract.get("facts", {})),
         "Fixture": sorted(contract["fixtures"]),
         "StateMachine": sorted(contract.get("state_machines", {})),

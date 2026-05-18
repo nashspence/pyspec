@@ -98,8 +98,8 @@ def validate_generated_projections(root: Path, contract: dict[str, Any]) -> None
     validate_refs_py(root, contract)
     if g("product_interfaces", "http.openapi.yaml") in expected_paths:
         validate_openapi(contract, read_yaml(generated / "product_interfaces" / "http.openapi.yaml"))
-    if g("product_interfaces", "events.asyncapi.yaml") in expected_paths:
-        validate_asyncapi(contract, read_yaml(generated / "product_interfaces" / "events.asyncapi.yaml"))
+    if g("product_interfaces", "integration_messages.asyncapi.yaml") in expected_paths:
+        validate_asyncapi(contract, read_yaml(generated / "product_interfaces" / "integration_messages.asyncapi.yaml"))
     if g("product_interfaces", "html.routes.json") in expected_paths:
         validate_routes(contract, read_json(generated / "product_interfaces" / "html.routes.json"))
     if g("product_interfaces", "html.state_machines.json") in expected_paths:
@@ -245,33 +245,33 @@ def validate_asyncapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
     if components["schemas"] != components_projection(contract)["schemas"]:
         raise ContractError("AsyncAPI component schemas do not exactly match contract schemas")
 
-    expected_channels = {f"event_{safe_id(event_id)}" for event_id in contract["events"]}
+    expected_channels = {f"domain_event_{safe_id(event_id)}" for event_id in contract["domain_events"]}
     if set(channels) != expected_channels:
         raise ContractError(_diff_message("AsyncAPI channels", expected_channels, set(channels)))
-    expected_messages = {f"message_{safe_id(event_id)}" for event_id in contract["events"]}
+    expected_messages = {f"integration_message_{safe_id(event_id)}" for event_id in contract["domain_events"]}
     if set(components["messages"]) != expected_messages:
         raise ContractError(_diff_message("AsyncAPI messages", expected_messages, set(components["messages"])))
 
-    expected_operations = {f"send_{safe_id(event_id)}" for event_id in contract["events"]}
+    expected_operations = {f"send_{safe_id(event_id)}" for event_id in contract["domain_events"]}
     for workflow_id, workflow in contract["workflows"].items():
-        if "event" in workflow["trigger"]:
+        if "domain_event" in workflow["trigger"]:
             expected_operations.add(f"receive_{safe_id(workflow_id)}")
     if set(operations) != expected_operations:
         raise ContractError(_diff_message("AsyncAPI operations", expected_operations, set(operations)))
 
     seen_addresses: set[str] = set()
-    for event_id, event in sorted(contract["events"].items()):
+    for event_id, event in sorted(contract["domain_events"].items()):
         key = safe_id(event_id)
-        channel_id = f"event_{key}"
-        message_id = f"message_{key}"
+        channel_id = f"domain_event_{key}"
+        message_id = f"integration_message_{key}"
         channel = channels[channel_id]
         if channel.get("address") != event_id:
             raise ContractError(f"AsyncAPI channel {channel_id} address must be {event_id}")
         if channel["address"] in seen_addresses:
             raise ContractError(f"AsyncAPI channel address is duplicated: {channel['address']}")
         seen_addresses.add(channel["address"])
-        if channel.get("x-event") != event_id:
-            raise ContractError(f"AsyncAPI channel {channel_id} missing x-event")
+        if channel.get("x-domain-event") != event_id:
+            raise ContractError(f"AsyncAPI channel {channel_id} missing x-domain-event")
         if channel.get("messages") != {message_id: {"$ref": f"#/components/messages/{message_id}"}}:
             raise ContractError(f"AsyncAPI channel {channel_id} message binding is malformed")
 
@@ -291,14 +291,14 @@ def validate_asyncapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             raise ContractError(f"AsyncAPI send operation for {event_id} has wrong emitters")
 
     for workflow_id, workflow in sorted(contract["workflows"].items()):
-        if "event" not in workflow["trigger"]:
+        if "domain_event" not in workflow["trigger"]:
             continue
-        event_id = workflow["trigger"]["event"]
+        event_id = workflow["trigger"]["domain_event"]
         op_id = f"receive_{safe_id(workflow_id)}"
         op = operations[op_id]
         if op.get("action") != "receive":
             raise ContractError(f"AsyncAPI receive operation {op_id} must have action=receive")
-        _expect_asyncapi_operation_channel(op, f"event_{safe_id(event_id)}", f"message_{safe_id(event_id)}", op_id)
+        _expect_asyncapi_operation_channel(op, f"domain_event_{safe_id(event_id)}", f"integration_message_{safe_id(event_id)}", op_id)
         if op.get("x-workflow") != workflow_id or op.get("x-contract-ref") != workflow["ref"]:
             raise ContractError(f"AsyncAPI receive operation {op_id} does not point to workflow")
         expected_dispositions = _workflow_entry_dispositions(contract, workflow_id)
@@ -590,8 +590,8 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
 
 def _workflow_trigger_payload_type(contract: dict[str, Any], workflow: dict[str, Any]) -> str:
     trigger = workflow["trigger"]
-    if "event" in trigger:
-        return contract["events"][trigger["event"]]["payload_schema"]
+    if "domain_event" in trigger:
+        return contract["domain_events"][trigger["domain_event"]]["payload_schema"]
     operation = contract["application_actions"][trigger["application_action"]]
     successes = [outcome["result"] for outcome in operation["outcomes"].values() if outcome["kind"] == "success"]
     return successes[0]
@@ -878,7 +878,7 @@ def validate_refs_py(root: Path, contract: dict[str, Any]) -> None:
         "RenderProfile": sorted(contract.get("render_profiles", {})),
         "ContentCase": sorted(contract.get("content_cases", {})),
         "EntryPoint": sorted(contract["entry_points"]),
-        "Event": sorted(contract["events"]),
+        "DomainEvent": sorted(contract["domain_events"]),
         "Fact": sorted(contract.get("facts", {})),
         "Fixture": sorted(contract["fixtures"]),
         "Operation": sorted(contract["application_actions"]),

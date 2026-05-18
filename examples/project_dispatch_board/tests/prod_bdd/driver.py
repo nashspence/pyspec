@@ -24,8 +24,8 @@ class ProdDriver:
             self.app.call_entry_point(body["ref"], self._resolve_map(body.get("input", {})))
         elif kind == "invoke_application_action":
             self.app.invoke_application_action(body["ref"], self._resolve_map(body.get("input", {})))
-        elif kind == "emit_event":
-            self.app.emit_event(body["ref"], self._resolve_map(body.get("payload", {})))
+        elif kind == "emit_domain_event":
+            self.app.emit_domain_event(body["ref"], self._resolve_map(body.get("payload", {})))
         else:  # pragma: no cover - generated test cases prevent this.
             raise AssertionError(f"Unsupported when kind: {kind}")
 

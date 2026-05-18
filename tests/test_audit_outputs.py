@@ -91,10 +91,10 @@ def test_audit_coverage_index_maps_compiled_paths_to_evidence() -> None:
         "visual_evidence_set": approve_policy_set,
         "tokens": ["authorization_policy.project.reviewer"],
     }
-    approved_payload_set = index["visual_audit"]["required"]["covered"]["/events/event.project.approved/payload_schema/data_contract"]
+    approved_payload_set = index["visual_audit"]["required"]["covered"]["/domain_events/domain_event.project.approved/payload_schema/data_contract"]
     assert "spec/generated/audit_evidence/application_actions/application_action_project_approve/flow.svg" in visual_evidence_sets[approved_payload_set]
     assert "spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg" in visual_evidence_sets[approved_payload_set]
-    assert text_witnesses["/events/event.project.approved/payload_schema/data_contract"] == {
+    assert text_witnesses["/domain_events/domain_event.project.approved/payload_schema/data_contract"] == {
         "visual_evidence_set": approved_payload_set,
         "tokens": ["data_contract.project.approved"],
     }
@@ -172,8 +172,8 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert operation.startswith("digraph ")
     assert "stateDiagram" not in state_machine
     assert "flowchart" not in composition
-    assert "data_signal.projects_loaded" in state_machine
-    assert "on data_signal.projects_loaded" not in state_machine
+    assert "data_refresh_signal.projects_loaded" in state_machine
+    assert "on data_refresh_signal.projects_loaded" not in state_machine
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">initial view state</FONT>' in state_machine
     assert "initial_view_state" not in state_machine
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">view state</FONT>' in state_machine
@@ -184,11 +184,11 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert state_machine.index("<B>assets:</B>") < state_machine.index("<B>action_bindings:</B>")
     assert state_machine.index("<B>text:</B>&#160;&#160;text.project.list.ready.heading") < state_machine.index("<B>application_action.project.list fields</B>")
     assert state_machine.index("<B>application_action.project.list fields</B>") < state_machine.index("<B>action_bindings</B>")
-    assert "<B>emit:</B>&#160;&#160;message.project_selected" in state_machine
+    assert "<B>emit:</B>&#160;&#160;local_signal.project_selected" in state_machine
     payload_project = '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
     assert payload_project in state_machine
     assert "<B>effects:</B>" not in state_machine
-    assert "emit message.project_selected" not in state_machine
+    assert "emit local_signal.project_selected" not in state_machine
     assert "<B>projection:</B>" not in state_machine
     assert '<FONT POINT-SIZE="10"><B>load:</B>&#160;&#160;application_action.project.list</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;array&lt;Project&gt;</FONT>' in state_machine
     assert "<B>data_loaders:</B>&#160;&#160;list_projects" in state_machine
@@ -197,7 +197,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert state_machine.index(input_workspace) < state_machine.index("<B>data_loaders:</B>&#160;&#160;list_projects")
     assert state_machine.index("<B>data_loaders:</B>&#160;&#160;list_projects") < state_machine.index("<B>load:</B>&#160;&#160;application_action.project.list")
     detail_transition = state_machine_dot("state_machine.project.detail", contract["state_machines"]["state_machine.project.detail"], contract)
-    selection_card = detail_transition[detail_transition.index("message.selection_changed") :]
+    selection_card = detail_transition[detail_transition.index("local_signal.selection_changed") :]
     input_project = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;read_project.project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>'
     assert selection_card.index(input_project) < selection_card.index("<B>data_loaders:</B>&#160;&#160;read_project")
     load_project = '<FONT POINT-SIZE="10"><B>load:</B>&#160;&#160;application_action.project.read</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>'
@@ -216,22 +216,22 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "authorization_policy.project.member" in state_machine
     assert "<B>model:</B>" not in state_machine
     assert "<B>context:</B>" not in state_machine
-    assert "$message." not in state_machine
-    assert "$event." not in state_machine
-    assert "emitted message" in composition
-    assert "sent message" in composition
-    assert "message route" in composition
+    assert "$local_signal." not in state_machine
+    assert "$domain_event." not in state_machine
+    assert "emitted local signal" in composition
+    assert "sent local signal" in composition
+    assert "local signal route" in composition
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">nav mount</FONT>' in composition
     board_fsm = state_machine_dot("state_machine.project.board", contract["state_machines"]["state_machine.project.board"], contract)
     assert "<B>child_state_machines</B>" in board_fsm
     assert '<FONT POINT-SIZE="10">nav</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;state_machine.project.list</FONT>' in board_fsm
     assert "nav: state_machine.project.list" not in board_fsm
-    assert '<FONT POINT-SIZE="8" COLOR="#64748b">emitted message</FONT>' in composition
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">emitted local signal</FONT>' in composition
     assert "authorization_policy.project.reviewer" in operation
     assert 'graph [label="application_action.project.approve"' not in operation
     assert "Project.status" in operation
-    assert "event.project.approved" in operation
-    assert "event.project.created" in create_operation
+    assert "domain_event.project.approved" in operation
+    assert "domain_event.project.created" in create_operation
     assert '<FONT POINT-SIZE="10"><B>payload</B></FONT>' in operation
     assert '<FONT POINT-SIZE="10">payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.approved</FONT>' in operation
     assert "payload:" not in operation
@@ -244,11 +244,11 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert operation.index('"application_action_input_application_action_project_approve"') < operation.index('"application_action_policy_authorization_policy_project_reviewer"')
     assert operation.index('"application_action_policy_authorization_policy_project_reviewer"') < operation.index('"application_action_resource_application_action_project_approve_transition_Project_status"')
     assert operation.index('"application_action_resource_application_action_project_approve_transition_Project_status"') < operation.index('"action_outcome_application_action_project_approve_approved"')
-    assert operation.index('"action_outcome_application_action_project_approve_approved"') < operation.index('"application_action_event_application_action_project_approve_event_project_approved"')
+    assert operation.index('"action_outcome_application_action_project_approve_approved"') < operation.index('"application_action_event_application_action_project_approve_domain_event_project_approved"')
     assert '"application_action_input_application_action_project_approve" -> "application_action_policy_authorization_policy_project_reviewer" [label="authorize"' in operation
     assert '"application_action_policy_authorization_policy_project_reviewer" -> "application_action_resource_application_action_project_approve_transition_Project_status" [label="transition"' in operation
     assert '"application_action_resource_application_action_project_approve_transition_Project_status" -> "action_outcome_application_action_project_approve_approved" [label="success"' in operation
-    assert '"action_outcome_application_action_project_approve_approved" -> "application_action_event_application_action_project_approve_event_project_approved" [label="emit"' in operation
+    assert '"action_outcome_application_action_project_approve_approved" -> "application_action_event_application_action_project_approve_domain_event_project_approved" [label="emit"' in operation
     assert "<B>authorization_policy:</B>" not in operation
     assert "<B>creates:</B>" not in create_operation
     assert "<B>kind:</B>" not in operation
@@ -262,7 +262,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "authorization_effect" not in operation
     assert "authorization_subjects" not in operation
     assert "authorization_conditions" not in operation
-    assert "<B>source:</B>&#160;&#160;message.project_select" in composition
+    assert "<B>source:</B>&#160;&#160;local_signal.project_select" in composition
     assert "ready to ready" not in composition
     assert "<B>transition:</B>" not in composition
     assert "selected state:" not in composition
@@ -279,13 +279,13 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "query.project.board.list" not in composition
     assert "<B>model:</B>" not in composition
     assert "<B>context</B>" not in composition
-    assert "$message." not in composition
-    assert "$event." not in composition
+    assert "$local_signal." not in composition
+    assert "$domain_event." not in composition
     assert "$state_machine." not in composition
     assert "<B>from:</B>" not in composition
     assert "<B>effects:</B>" not in composition
     assert "Layout / mounted state machines" not in composition
-    assert "Message routing" not in composition
+    assert "Local signal routing" not in composition
     assert "Sync rules" not in composition
     assert "<B>region:</B>" not in composition
     assert "<B>list</B>" in composition
@@ -313,7 +313,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert 'BGCOLOR="#faf5ff"' in state_machine_target_card
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">target state machine (textual)</FONT>' in cli_entrypoint
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">target workflow</FONT>' in worker_entrypoint
-    assert "<B>message disposition</B>" not in worker_entrypoint
+    assert "<B>integration message disposition</B>" not in worker_entrypoint
     assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.approved</FONT>' in worker_entrypoint
     worker_entry_card = worker_entrypoint[worker_entrypoint.index('"entrypoint_entry_point_worker_project_approval_notice"') : worker_entrypoint.index('"entrypoint_target_workflow_project_approval_notice"')]
     assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.approved</FONT>' in worker_entry_card
@@ -382,9 +382,9 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "validation_failed" not in target_card
     assert "application_action.project.create action map" not in target_card
     assert "<B>detail:</B>" not in target_card
-    assert "<B>emit:</B>&#160;&#160;created → event.project.created" not in target_card
+    assert "<B>emit:</B>&#160;&#160;created → domain_event.project.created" not in target_card
     assert '<FONT POINT-SIZE="10"><B>payload_schema:</B>&#160;&#160;payload_schema</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT>' not in target_card
-    assert "<B>emits:</B>&#160;&#160;event.project.created" not in target_card
+    assert "<B>emits:</B>&#160;&#160;domain_event.project.created" not in target_card
     assert "<B>authorization_policy:</B>" not in target_card
     assert "authorization_policy.project.member" in target_card
     assert "<B>authorization_effect:</B>&#160;&#160;allow" not in target_card
@@ -395,9 +395,9 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     cli_approve_target_card = cli_approve_entrypoint[cli_approve_entrypoint.index('"entrypoint_target_entry_point_api_project_approve"') : cli_approve_entrypoint.index('"entrypoint_response_entry_point_cli_project_approve_approved"')]
     assert "<B>entry_point.api.project.approve</B>" in cli_approve_entrypoint
     assert "delegated entry point" in cli_approve_entrypoint
-    assert "<B>emit:</B>&#160;&#160;approved → event.project.approved" not in cli_approve_target_card
+    assert "<B>emit:</B>&#160;&#160;approved → domain_event.project.approved" not in cli_approve_target_card
     assert '<FONT POINT-SIZE="10"><B>payload_schema:</B>&#160;&#160;payload_schema</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.approved</FONT>' not in cli_approve_target_card
-    assert "<B>emits:</B>&#160;&#160;event.project.approved" not in cli_approve_target_card
+    assert "<B>emits:</B>&#160;&#160;domain_event.project.approved" not in cli_approve_target_card
     assert "<B>authorization_policy:</B>" not in cli_approve_target_card
     assert "authorization_policy.project.reviewer" in cli_approve_target_card
     assert "actor ← input.approved_by" not in cli_approve_target_card
@@ -411,12 +411,12 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "state_machine.selected_project_id" not in entrypoint
     assert "$state_machine." not in entrypoint
     assert "workflow_start" not in workflow
-    assert '"workflow_trigger_event_event_project_approved" -> "workflow_workflow_project_approval_notice"' in workflow
+    assert '"workflow_trigger_domain_event_domain_event_project_approved" -> "workflow_workflow_project_approval_notice"' in workflow
     workflow_completed_card = workflow[workflow.index('"workflow_outcome_workflow_project_approval_notice_completed"') : workflow.index('"workflow_outcome_workflow_project_approval_notice_delivery_failed"')]
     workflow_failed_card = workflow[workflow.index('"workflow_outcome_workflow_project_approval_notice_delivery_failed"') :]
     assert 'COLOR="#16a34a" BGCOLOR="#ffffff"' in workflow_completed_card
     assert 'COLOR="#dc2626" BGCOLOR="#ffffff"' in workflow_failed_card
-    assert '<FONT POINT-SIZE="8" COLOR="#64748b">event trigger</FONT>' in workflow
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">domain event trigger</FONT>' in workflow
     assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;data_contract.project.approved</FONT>' in workflow
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">workflow step</FONT>' in workflow
     assert "<B>application_action:</B>&#160;&#160;application_action.project.send_approval_notice" in workflow
@@ -460,10 +460,10 @@ def test_composition_dot_routes_messages_generically() -> None:
         "signal_sync_rules": [
             {
                 "id": "route_alpha_beta",
-                "when": {"instance": "publisher", "message": "ready"},
+                "when": {"instance": "publisher", "local_signal": "ready"},
                 "effects": [
-                    {"send": {"instance": "receiver", "message": "consume", "payload_bindings": {"item_id": {"from": "$message.id"}}}},
-                    {"set": {"context": "selected_id", "from": "$message.id"}},
+                    {"send": {"instance": "receiver", "local_signal": "consume", "payload_bindings": {"item_id": {"from": "$local_signal.id"}}}},
+                    {"set": {"context": "selected_id", "from": "$local_signal.id"}},
                 ],
             }
         ],
@@ -473,33 +473,33 @@ def test_composition_dot_routes_messages_generically() -> None:
             "state_machine.alpha": {
                 "signals": {
                     "accepts": {
-                        "messages": {"submit": {"payload_schema": {"id": P("ID")}}},
-                        "data_signals": {},
+                        "local_signals": {"submit": {"payload_schema": {"id": P("ID")}}},
+                        "data_refresh_signals": {},
                     },
                     "emits": {
-                        "messages": {"ready": {"payload_schema": {"id": P("ID")}}},
+                        "local_signals": {"ready": {"payload_schema": {"id": P("ID")}}},
                     },
                 },
                 "transitions": [
                     {
-                        "on": {"message": "submit"},
+                        "on": {"local_signal": "submit"},
                         "from": "idle",
                         "to": "ready",
-                        "effects": [{"emit": {"message": "ready", "payload_bindings": {"id": {"from": "$message.id"}}}}],
+                        "effects": [{"emit": {"local_signal": "ready", "payload_bindings": {"id": {"from": "$local_signal.id"}}}}],
                     }
                 ]
             },
             "state_machine.beta": {
                 "signals": {
                     "accepts": {
-                        "messages": {"consume": {"payload_schema": {"item_id": P("ID")}}},
-                        "data_signals": {},
+                        "local_signals": {"consume": {"payload_schema": {"item_id": P("ID")}}},
+                        "data_refresh_signals": {},
                     },
-                    "emits": {"messages": {}},
+                    "emits": {"local_signals": {}},
                 },
                 "transitions": [
                     {
-                        "on": {"message": "consume"},
+                        "on": {"local_signal": "consume"},
                         "from": "waiting",
                         "to": "consumed",
                     }
@@ -510,28 +510,28 @@ def test_composition_dot_routes_messages_generically() -> None:
 
     composition = composition_dot("generic.state_machine", state_machine, contract)
 
-    assert "emitted message" in composition
-    assert "sent message" in composition
-    assert "message route" in composition
+    assert "emitted local signal" in composition
+    assert "sent local signal" in composition
+    assert "local signal route" in composition
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">source mount</FONT>' in composition
-    assert "<B>source:</B>&#160;&#160;message.submit" in composition
+    assert "<B>source:</B>&#160;&#160;local_signal.submit" in composition
     assert "idle to ready" not in composition
     assert "<B>transition:</B>" not in composition
-    assert "message.consume" in composition
+    assert "local_signal.consume" in composition
     assert "<B>causes:</B>&#160;&#160;to consumed" in composition
     assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT>' in composition
     assert '<FONT POINT-SIZE="10"><B>set:</B>&#160;&#160;selected_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT><FONT POINT-SIZE="8">&#160;←&#160;id</FONT>' in composition
     assert 'item_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;ID</FONT><FONT POINT-SIZE="8">&#160;←&#160;id</FONT>' in composition
     assert "item_id &lt;- state_machine.selected_id" not in composition
     assert "context binding" not in composition
-    assert "$message." not in composition
-    assert "$event." not in composition
+    assert "$local_signal." not in composition
+    assert "$domain_event." not in composition
     assert "$state_machine." not in composition
     assert "<B>target:</B>" not in composition
     assert "<B>from:</B>" not in composition
     assert "<B>effects:</B>" not in composition
-    assert '"message_effect_route_alpha_beta_0" -> "child_state_machine_receiver"' in composition
-    assert "message_effect_route_alpha_beta_1" not in composition
+    assert '"local_signal_effect_route_alpha_beta_0" -> "child_state_machine_receiver"' in composition
+    assert "local_signal_effect_route_alpha_beta_1" not in composition
     assert '#ecfdf5' in composition
     assert '#047857' in composition
     assert '#fdf2f8' in composition
@@ -557,7 +557,7 @@ def test_composition_dot_routes_messages_generically() -> None:
 def test_audit_transition_rationale_renders_for_otherwise_sparse_card() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
     activity = author["state_machines"]["state_machine.project.activity"]
-    cleared = next(transition for transition in activity["transitions"] if transition["on"] == {"message": "selection_cleared"})
+    cleared = next(transition for transition in activity["transitions"] if transition["on"] == {"local_signal": "selection_cleared"})
     cleared.pop("effects")
     cleared["rationale"] = "Clearing the selection returns the activity state to its empty state."
     contract = compile_source(author)
@@ -577,14 +577,14 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     cli_approve_entrypoint = (ROOT / entrypoint_flow_file("entry_point.cli.project.approve", "cli")).read_text(encoding="utf-8")
     workflow = (ROOT / workflow_flow_file("workflow.project.approval_notice")).read_text(encoding="utf-8")
     approve_operation = (ROOT / application_action_flow_file("application_action.project.approve")).read_text(encoding="utf-8")
-    assert "data_signal.projects_loaded" in list_fsm
-    assert "on data_signal.projects_loaded" not in list_fsm
+    assert "data_refresh_signal.projects_loaded" in list_fsm
+    assert "on data_refresh_signal.projects_loaded" not in list_fsm
     assert "text.project.list.ready.heading" in list_fsm
     assert "asset.project.list.empty.illustration" in list_fsm
     assert "emit:" in list_fsm
-    assert "message.project_selected" in list_fsm
+    assert "local_signal.project_selected" in list_fsm
     assert "payload:" in list_fsm
-    assert "emit message.project_selected" not in list_fsm
+    assert "emit local_signal.project_selected" not in list_fsm
     assert "effects:" not in list_fsm
     assert "application_action: application_action.project.list" not in list_fsm
     assert "data_loaders:" in list_fsm
@@ -601,7 +601,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "projection:" not in list_fsm
     assert "model:" not in list_fsm
     assert "context:" not in list_fsm
-    assert "&#45; data_signal.projects_loaded" not in list_fsm
+    assert "&#45; data_refresh_signal.projects_loaded" not in list_fsm
     assert "&#45; text.project" not in list_fsm
     assert "&#45; none" not in list_fsm
     assert ">rationale<" not in list_fsm
@@ -610,10 +610,10 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "initial:" not in list_fsm
     assert "state machine html renderer" not in list_fsm
     assert "declared, no arrow" not in list_fsm
-    assert "transition events" not in list_fsm
-    assert "emitted events" not in list_fsm
-    assert "$message." not in list_fsm
-    assert "$event." not in list_fsm
+    assert "transition domain_events" not in list_fsm
+    assert "emitted domain_events" not in list_fsm
+    assert "$local_signal." not in list_fsm
+    assert "$domain_event." not in list_fsm
     assert "text.project.detail.ready.heading" in detail_fsm
     assert "application_action.project.read fields" in detail_fsm
     assert "array&lt;Project&gt;" in list_fsm
@@ -641,7 +641,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert 'fill="#94a3b8">\xa0\xa0ID</text>' in detail_fsm
     assert '\xa0←\xa0null</text>' in detail_fsm
     assert "select_project_updates_state_machines" not in detail_fsm
-    assert "data_signal.project_loaded" not in activity_fsm
+    assert "data_refresh_signal.project_loaded" not in activity_fsm
     assert "input:" in activity_fsm
     assert "data_loaders:" in activity_fsm
     assert "read_activity" in activity_fsm
@@ -651,9 +651,9 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "set:" in activity_fsm
     assert "project_id &lt;&#45; null" not in activity_fsm
     assert '\xa0←\xa0null</text>' in activity_fsm
-    assert "emitted message" in composition
-    assert "sent message" in composition
-    assert "message.project_select" in composition
+    assert "emitted local signal" in composition
+    assert "sent local signal" in composition
+    assert "local_signal.project_select" in composition
     assert "selection_changed" in composition
     assert "to loading" in composition
     assert "to ready" in composition
@@ -674,8 +674,8 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "context binding" not in composition
     assert "state_machine.selected_project_id" not in composition
     assert "state machine context" not in composition
-    assert "$message." not in composition
-    assert "$event." not in composition
+    assert "$local_signal." not in composition
+    assert "$domain_event." not in composition
     assert "$state_machine." not in composition
     assert "region:" not in composition
     assert "mount" in composition
@@ -685,7 +685,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "from:" not in composition
     assert "effects:" not in composition
     assert "Layout / mounted state machines" not in composition
-    assert "Message routing" not in composition
+    assert "Local signal routing" not in composition
     assert "Sync rules" not in composition
     assert "nav" in composition
     assert "main" in composition
@@ -703,7 +703,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "authorization_conditions" not in approve_operation
     assert "conditions" in approve_operation
     assert "submitted → approved" in approve_operation
-    assert "event.project.approved" in approve_operation
+    assert "domain_event.project.approved" in approve_operation
 
 
 def test_audit_html_sources_render_copy_assets_and_fixture_fields() -> None:

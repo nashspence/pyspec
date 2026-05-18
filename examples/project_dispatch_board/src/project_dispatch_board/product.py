@@ -26,7 +26,7 @@ class ProductApp:
     def reset(self) -> None:
         self.fixtures: dict[str, Any] = {}
         self.projects: list[dict[str, Any]] = []
-        self.emitted_events: list[str] = []
+        self.emitted_domain_events: list[str] = []
         self.invoked_application_actions: list[str] = []
         self.executed_workflows: list[str] = []
         self.workflow_outcomes: dict[str, str] = {}
@@ -208,7 +208,7 @@ class ProductApp:
         if application_action_id == "application_action.project.create":
             project = self._project(values)
             self.projects.append(project)
-            self._record_event("event.project.created")
+            self._record_domain_event("domain_event.project.created")
             return project
         if application_action_id == "application_action.project.list":
             return [p for p in self.projects if p["workspace_id"] == values.get("workspace_id")]
@@ -216,29 +216,29 @@ class ProductApp:
             project = self._find_project(values["project_id"])
             assert project["status"] == "draft"
             project["status"] = "submitted"
-            self._record_event("event.project.submitted")
+            self._record_domain_event("domain_event.project.submitted")
             return project
         if application_action_id == "application_action.project.approve":
             project = self._find_project(values["project_id"])
             assert project["status"] == "submitted"
             project["status"] = "approved"
             project["approved_by"] = values["approved_by"]
-            self._record_event("event.project.approved")
+            self._record_domain_event("domain_event.project.approved")
             return project
         if application_action_id == "application_action.project.archive":
             project = self._find_project(values["project_id"])
             assert project["status"] == "approved"
             project["status"] = "archived"
-            self._record_event("event.project.archived")
+            self._record_domain_event("domain_event.project.archived")
             return project
         if application_action_id == "application_action.project.send_approval_notice":
             return {"ok": True, "sent": True, **values}
         raise AssertionError(f"Unsupported application_action: {application_action_id}")
 
-    def emit_event(self, event_id: str, payload: Mapping[str, Any]) -> None:
-        self._record_event(event_id)
+    def emit_domain_event(self, event_id: str, payload: Mapping[str, Any]) -> None:
+        self._record_domain_event(event_id)
         for workflow_id, workflow in self.contract["workflows"].items():
-            if workflow["trigger"] == {"event": event_id}:
+            if workflow["trigger"] == {"domain_event": event_id}:
                 self.executed_workflows.append(workflow_id)
                 self.workflow_outcomes[workflow_id] = self._run_workflow(workflow, payload)
 
@@ -303,11 +303,11 @@ class ProductApp:
         if exists:
             where = self._resolve_map(exists["where"])
             assert any(_matches(project, where) for project in self.projects)
-        events = assertions.get("events") or {}
-        for event_id in events.get("emitted", []):
-            assert event_id in self.emitted_events
-        for event_id in events.get("not_emitted", []):
-            assert event_id not in self.emitted_events
+        domain_events = assertions.get("domain_events") or {}
+        for event_id in domain_events.get("emitted", []):
+            assert event_id in self.emitted_domain_events
+        for event_id in domain_events.get("not_emitted", []):
+            assert event_id not in self.emitted_domain_events
         workflow = assertions.get("workflow")
         if workflow:
             assert (workflow["ref"] in self.executed_workflows) is workflow["executed"]
@@ -355,8 +355,8 @@ class ProductApp:
                 return project
         raise AssertionError(f"Project not found: {project_id}")
 
-    def _record_event(self, event_id: str) -> None:
-        self.emitted_events.append(event_id)
+    def _record_domain_event(self, event_id: str) -> None:
+        self.emitted_domain_events.append(event_id)
 
     def _resolve_map(self, values: Mapping[str, Any]) -> dict[str, Any]:
         return resolve_map(values, self.fixtures)

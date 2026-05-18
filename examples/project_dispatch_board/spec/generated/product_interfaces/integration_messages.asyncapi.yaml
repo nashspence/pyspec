@@ -1,57 +1,57 @@
 asyncapi: 3.1.0
 channels:
-  event_event_project_approved:
-    address: event.project.approved
+  domain_event_domain_event_project_approved:
+    address: domain_event.project.approved
     messages:
-      message_event_project_approved:
-        $ref: '#/components/messages/message_event_project_approved'
-    x-event: event.project.approved
-  event_event_project_archived:
-    address: event.project.archived
+      integration_message_domain_event_project_approved:
+        $ref: '#/components/messages/integration_message_domain_event_project_approved'
+    x-domain-event: domain_event.project.approved
+  domain_event_domain_event_project_archived:
+    address: domain_event.project.archived
     messages:
-      message_event_project_archived:
-        $ref: '#/components/messages/message_event_project_archived'
-    x-event: event.project.archived
-  event_event_project_created:
-    address: event.project.created
+      integration_message_domain_event_project_archived:
+        $ref: '#/components/messages/integration_message_domain_event_project_archived'
+    x-domain-event: domain_event.project.archived
+  domain_event_domain_event_project_created:
+    address: domain_event.project.created
     messages:
-      message_event_project_created:
-        $ref: '#/components/messages/message_event_project_created'
-    x-event: event.project.created
-  event_event_project_submitted:
-    address: event.project.submitted
+      integration_message_domain_event_project_created:
+        $ref: '#/components/messages/integration_message_domain_event_project_created'
+    x-domain-event: domain_event.project.created
+  domain_event_domain_event_project_submitted:
+    address: domain_event.project.submitted
     messages:
-      message_event_project_submitted:
-        $ref: '#/components/messages/message_event_project_submitted'
-    x-event: event.project.submitted
+      integration_message_domain_event_project_submitted:
+        $ref: '#/components/messages/integration_message_domain_event_project_submitted'
+    x-domain-event: domain_event.project.submitted
 components:
   messages:
-    message_event_project_approved:
-      name: event.project.approved
+    integration_message_domain_event_project_approved:
+      name: domain_event.project.approved
       payload:
         $ref: '#/components/schemas/data_contract.project.approved'
-      title: Event Project Approved
+      title: Domain Event Project Approved
       x-emitted-by:
       - application_action.project.approve
-    message_event_project_archived:
-      name: event.project.archived
+    integration_message_domain_event_project_archived:
+      name: domain_event.project.archived
       payload:
         $ref: '#/components/schemas/Project'
-      title: Event Project Archived
+      title: Domain Event Project Archived
       x-emitted-by:
       - application_action.project.archive
-    message_event_project_created:
-      name: event.project.created
+    integration_message_domain_event_project_created:
+      name: domain_event.project.created
       payload:
         $ref: '#/components/schemas/Project'
-      title: Event Project Created
+      title: Domain Event Project Created
       x-emitted-by:
       - application_action.project.create
-    message_event_project_submitted:
-      name: event.project.submitted
+    integration_message_domain_event_project_submitted:
+      name: domain_event.project.submitted
       payload:
         $ref: '#/components/schemas/Project'
-      title: Event Project Submitted
+      title: Domain Event Project Submitted
       x-emitted-by:
       - application_action.project.submit
   schemas:
@@ -138,9 +138,9 @@ operations:
   receive_workflow_project_approval_notice:
     action: receive
     channel:
-      $ref: '#/channels/event_event_project_approved'
+      $ref: '#/channels/domain_event_domain_event_project_approved'
     messages:
-    - $ref: '#/components/messages/message_event_project_approved'
+    - $ref: '#/components/messages/integration_message_domain_event_project_approved'
     x-contract-ref: workflow.project.approval_notice
     x-dispositions:
       entry_point.worker.project.approval_notice:
@@ -151,35 +151,35 @@ operations:
           problem:
             model: Problem
     x-workflow: workflow.project.approval_notice
-  send_event_project_approved:
+  send_domain_event_project_approved:
     action: send
     channel:
-      $ref: '#/channels/event_event_project_approved'
+      $ref: '#/channels/domain_event_domain_event_project_approved'
     messages:
-    - $ref: '#/components/messages/message_event_project_approved'
+    - $ref: '#/components/messages/integration_message_domain_event_project_approved'
     x-emitted-by:
     - application_action.project.approve
-  send_event_project_archived:
+  send_domain_event_project_archived:
     action: send
     channel:
-      $ref: '#/channels/event_event_project_archived'
+      $ref: '#/channels/domain_event_domain_event_project_archived'
     messages:
-    - $ref: '#/components/messages/message_event_project_archived'
+    - $ref: '#/components/messages/integration_message_domain_event_project_archived'
     x-emitted-by:
     - application_action.project.archive
-  send_event_project_created:
+  send_domain_event_project_created:
     action: send
     channel:
-      $ref: '#/channels/event_event_project_created'
+      $ref: '#/channels/domain_event_domain_event_project_created'
     messages:
-    - $ref: '#/components/messages/message_event_project_created'
+    - $ref: '#/components/messages/integration_message_domain_event_project_created'
     x-emitted-by:
     - application_action.project.create
-  send_event_project_submitted:
+  send_domain_event_project_submitted:
     action: send
     channel:
-      $ref: '#/channels/event_event_project_submitted'
+      $ref: '#/channels/domain_event_domain_event_project_submitted'
     messages:
-    - $ref: '#/components/messages/message_event_project_submitted'
+    - $ref: '#/components/messages/integration_message_domain_event_project_submitted'
     x-emitted-by:
     - application_action.project.submit

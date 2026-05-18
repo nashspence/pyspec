@@ -1,6 +1,6 @@
-<svg width="1343pt" height="607pt"
- viewBox="0.00 0.00 1343.00 607.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: bb5a83b4dfb9f211f6ebe2ea43694dc8e3ded4ecd644107b4a488be43d4749a8 -->
+<svg width="1358pt" height="607pt"
+ viewBox="0.00 0.00 1358.00 607.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: e81c5799f9e4dd6ff63c471f2d98cac7b900b032bd9b56cd56f9f9a3e179f9d5 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 589)">
 <title>application_action_application_action_project_submit</title>
 <!-- application_action_input_application_action_project_submit -->
@@ -166,26 +166,26 @@
 <!-- action_outcome_application_action_project_submit_invalid_state&#45;&gt;action_outcome_application_action_project_submit_not_found -->
 <!-- action_outcome_application_action_project_submit_not_found&#45;&gt;action_outcome_application_action_project_submit_submitted -->
 <!-- action_outcome_application_action_project_submit_submitted&#45;&gt;action_outcome_application_action_project_submit_unauthenticated -->
-<!-- application_action_event_application_action_project_submit_event_project_submitted -->
+<!-- application_action_event_application_action_project_submit_domain_event_project_submitted -->
 <g id="node9" class="node">
-<title>application_action_event_application_action_project_submit_event_project_submitted</title>
-<polygon fill="#ffffff" stroke="transparent" points="1105,-110 1105,-211 1307,-211 1307,-110 1105,-110"/>
-<polygon fill="#4f46e5" stroke="transparent" points="1106,-201.5 1106,-209.5 1306,-209.5 1306,-201.5 1106,-201.5"/>
-<polygon fill="#eef2ff" stroke="transparent" points="1106,-170.5 1106,-201.5 1306,-201.5 1306,-170.5 1106,-170.5"/>
-<text text-anchor="start" x="1110" y="-188.1" font-family="Arial" font-weight="bold" font-size="13.00">event.project.submitted</text>
-<text text-anchor="start" x="1110" y="-177.1" font-family="Arial" font-size="8.00" fill="#64748b">emitted event</text>
-<text text-anchor="start" x="1110" y="-159.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Draft dispatch projects can be submitted for</text>
-<text text-anchor="start" x="1110" y="-148.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">review.</text>
-<text text-anchor="start" x="1110" y="-129.5" font-family="Arial" font-weight="bold" font-size="10.00">payload</text>
-<text text-anchor="start" x="1110" y="-118.5" font-family="Arial" font-size="10.00">payload</text>
-<text text-anchor="start" x="1144" y="-118.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
-<polygon fill="none" stroke="#4f46e5" points="1105,-110 1105,-211 1307,-211 1307,-110 1105,-110"/>
+<title>application_action_event_application_action_project_submit_domain_event_project_submitted</title>
+<polygon fill="#ffffff" stroke="transparent" points="1105,-110 1105,-211 1322,-211 1322,-110 1105,-110"/>
+<polygon fill="#4f46e5" stroke="transparent" points="1106.5,-201.5 1106.5,-209.5 1321.5,-209.5 1321.5,-201.5 1106.5,-201.5"/>
+<polygon fill="#eef2ff" stroke="transparent" points="1106.5,-170.5 1106.5,-201.5 1321.5,-201.5 1321.5,-170.5 1106.5,-170.5"/>
+<text text-anchor="start" x="1110.5" y="-188.1" font-family="Arial" font-weight="bold" font-size="13.00">domain_event.project.submitted</text>
+<text text-anchor="start" x="1110.5" y="-177.1" font-family="Arial" font-size="8.00" fill="#64748b">emitted event</text>
+<text text-anchor="start" x="1110.5" y="-159.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Draft dispatch projects can be submitted for</text>
+<text text-anchor="start" x="1110.5" y="-148.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">review.</text>
+<text text-anchor="start" x="1110.5" y="-129.5" font-family="Arial" font-weight="bold" font-size="10.00">payload</text>
+<text text-anchor="start" x="1110.5" y="-118.5" font-family="Arial" font-size="10.00">payload</text>
+<text text-anchor="start" x="1144.5" y="-118.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
+<polygon fill="none" stroke="#4f46e5" points="1105,-110 1105,-211 1322,-211 1322,-110 1105,-110"/>
 </g>
-<!-- action_outcome_application_action_project_submit_submitted&#45;&gt;application_action_event_application_action_project_submit_event_project_submitted -->
+<!-- action_outcome_application_action_project_submit_submitted&#45;&gt;application_action_event_application_action_project_submit_domain_event_project_submitted -->
 <g id="edge7" class="edge">
-<title>action_outcome_application_action_project_submit_submitted&#45;&gt;application_action_event_application_action_project_submit_event_project_submitted</title>
-<path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M1003.57,-160.5C1028.56,-160.5 1063.24,-160.5 1096.8,-160.5"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="1096.84,-163.3 1104.84,-160.5 1096.84,-157.7 1096.84,-163.3"/>
+<title>action_outcome_application_action_project_submit_submitted&#45;&gt;application_action_event_application_action_project_submit_domain_event_project_submitted</title>
+<path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M1003.65,-160.5C1028.48,-160.5 1062.94,-160.5 1096.72,-160.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="1096.83,-163.3 1104.82,-160.5 1096.82,-157.7 1096.83,-163.3"/>
 <text text-anchor="middle" x="1064.5" y="-163.5" font-family="Arial" font-size="10.00">emit</text>
 </g>
 </g>

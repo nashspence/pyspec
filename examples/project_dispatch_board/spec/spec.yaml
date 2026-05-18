@@ -73,7 +73,7 @@ facts:
           from: $fixture.workspace.id
 data_contracts:
   data_contract.project.approved:
-    rationale: Approval events carry only the integration payload required by downstream workflows.
+    rationale: Approval domain events carry only the integration payload required by downstream workflows.
     fields:
       approved_by:
         nullable: false
@@ -230,7 +230,7 @@ application_actions:
     outcomes:
       approved:
         emits:
-        - event: event.project.approved
+        - domain_event: domain_event.project.approved
           payload_bindings:
             approved_by:
               from: $input.approved_by
@@ -272,7 +272,7 @@ application_actions:
     outcomes:
       archived:
         emits:
-        - event: event.project.archived
+        - domain_event: domain_event.project.archived
           payload_source: $outcome.result
         kind: success
         result:
@@ -314,7 +314,7 @@ application_actions:
     outcomes:
       created:
         emits:
-        - event: event.project.created
+        - domain_event: domain_event.project.created
           payload_source: $outcome.result
         kind: success
         result:
@@ -445,7 +445,7 @@ application_actions:
           model: Problem
       submitted:
         emits:
-        - event: event.project.submitted
+        - domain_event: domain_event.project.submitted
           payload_source: $outcome.result
         kind: success
         result:
@@ -454,9 +454,9 @@ application_actions:
         kind: failure
         result:
           model: Problem
-events:
-  event.project.approved:
-    rationale: Approval events carry the reviewer and project identity needed by notification workflows.
+domain_events:
+  domain_event.project.approved:
+    rationale: Approval domain events carry the reviewer and project identity needed by notification workflows.
     payload_schema:
       data_contract: data_contract.project.approved
 state_machines:
@@ -472,7 +472,7 @@ state_machines:
     model: Project
     signals:
       accepts:
-        messages:
+        local_signals:
           selection_changed:
             payload_schema:
               project_id:
@@ -481,7 +481,7 @@ state_machines:
     transitions:
     - from: empty
       on:
-        message: selection_changed
+        local_signal: selection_changed
       to: ready
     - effects:
       - set:
@@ -489,7 +489,7 @@ state_machines:
           value: null
       from: ready
       on:
-        message: selection_cleared
+        local_signal: selection_cleared
       to: empty
     view_states:
       empty:
@@ -648,23 +648,23 @@ state_machines:
         - effects:
           - set:
               context: selected_project_id
-              from: $message.project_id
+              from: $local_signal.project_id
           - send:
               instance: detail
-              message: selection_changed
+              local_signal: selection_changed
               payload_bindings:
                 project_id:
-                  from: $message.project_id
+                  from: $local_signal.project_id
           - send:
               instance: activity
-              message: selection_changed
+              local_signal: selection_changed
               payload_bindings:
                 project_id:
-                  from: $message.project_id
+                  from: $local_signal.project_id
           id: select_project_updates_state_machines
           when:
             instance: list
-            message: project_selected
+            local_signal: project_selected
         renderers:
           textual:
             layout:
@@ -757,7 +757,7 @@ state_machines:
     model: Project
     signals:
       accepts:
-        messages:
+        local_signals:
           selection_changed:
             payload_schema:
               project_id:
@@ -767,22 +767,22 @@ state_machines:
             payload_schema:
               message:
                 primitive: Text
-        data_signals:
+        data_refresh_signals:
           project_changed: {}
           project_load_failed: {}
           project_loaded: {}
     transitions:
     - from: none
       on:
-        message: selection_changed
+        local_signal: selection_changed
       to: loading
     - from: loading
       on:
-        data_signal: project_loaded
+        data_refresh_signal: project_loaded
       to: ready
     - from: loading
       on:
-        data_signal: project_load_failed
+        data_refresh_signal: project_load_failed
       to: error
     - effects:
       - set:
@@ -790,16 +790,16 @@ state_machines:
           value: null
       from: ready
       on:
-        message: selection_cleared
+        local_signal: selection_cleared
       to: none
     - from: ready
       on:
-        data_signal: project_changed
+        data_refresh_signal: project_changed
       rationale: Detail mutations mark ready-state project data stale and trigger query refresh.
       to: ready
     - from: ready
       on:
-        message: show_invalid_state
+        local_signal: show_invalid_state
       rationale: Invalid detail application_actions move the detail panel into its displayable error state.
       to: error
     view_states:
@@ -825,16 +825,16 @@ state_machines:
                   from:
                     from: $outcome.result
                 raise:
-                  data_signal: project_loaded
+                  data_refresh_signal: project_loaded
               forbidden:
                 raise:
-                  data_signal: project_load_failed
+                  data_refresh_signal: project_load_failed
               not_found:
                 raise:
-                  data_signal: project_load_failed
+                  data_refresh_signal: project_load_failed
               unauthenticated:
                 raise:
-                  data_signal: project_load_failed
+                  data_refresh_signal: project_load_failed
       none:
         text_slots:
         - heading
@@ -847,7 +847,7 @@ state_machines:
             load:
               on_enter: true
               refresh_on:
-              - data_signal: project_changed
+              - data_refresh_signal: project_changed
             application_action: application_action.project.read
             input_bindings:
               project_id:
@@ -862,19 +862,19 @@ state_machines:
                   reason: result_bound_without_signal
               forbidden:
                 raise:
-                  message: show_invalid_state
+                  local_signal: show_invalid_state
                   payload_bindings:
                     message:
                       from: $outcome.result.message
               not_found:
                 raise:
-                  message: show_invalid_state
+                  local_signal: show_invalid_state
                   payload_bindings:
                     message:
                       from: $outcome.result.message
               unauthenticated:
                 raise:
-                  message: show_invalid_state
+                  local_signal: show_invalid_state
                   payload_bindings:
                     message:
                       from: $outcome.result.message
@@ -897,14 +897,14 @@ state_machines:
             outcome_routes:
               approved:
                 raise:
-                  data_signal: project_changed
+                  data_refresh_signal: project_changed
               forbidden:
                 no_signal:
                   reason: handled_by_response_surface
                   rationale: The response surface keeps the detail panel unchanged for forbidden approval.
               invalid_state:
                 raise:
-                  message: show_invalid_state
+                  local_signal: show_invalid_state
                   payload_bindings:
                     message:
                       from: $outcome.result.message
@@ -928,28 +928,28 @@ state_machines:
             outcome_routes:
               archived:
                 raise:
-                  data_signal: project_changed
+                  data_refresh_signal: project_changed
               forbidden:
                 raise:
-                  message: show_invalid_state
+                  local_signal: show_invalid_state
                   payload_bindings:
                     message:
                       from: $outcome.result.message
               invalid_state:
                 raise:
-                  message: show_invalid_state
+                  local_signal: show_invalid_state
                   payload_bindings:
                     message:
                       from: $outcome.result.message
               not_found:
                 raise:
-                  message: show_invalid_state
+                  local_signal: show_invalid_state
                   payload_bindings:
                     message:
                       from: $outcome.result.message
               unauthenticated:
                 raise:
-                  message: show_invalid_state
+                  local_signal: show_invalid_state
                   payload_bindings:
                     message:
                       from: $outcome.result.message
@@ -972,7 +972,7 @@ state_machines:
         load:
           on_start: true
           refresh_on:
-          - data_signal: projects_changed
+          - data_refresh_signal: projects_changed
         application_action: application_action.project.list
         input_bindings:
           workspace_id:
@@ -990,7 +990,7 @@ state_machines:
                 workspace_id:
                   from: $invocation.input.workspace_id
               raise:
-                data_signal: project_collection_empty
+                data_refresh_signal: project_collection_empty
             - when:
                 result_non_empty: true
               result_binding:
@@ -1001,21 +1001,21 @@ state_machines:
                 workspace_id:
                   from: $invocation.input.workspace_id
               raise:
-                data_signal: projects_loaded
+                data_refresh_signal: projects_loaded
           forbidden:
             raise:
-              data_signal: project_list_failed
+              data_refresh_signal: project_list_failed
           unauthenticated:
             raise:
-              data_signal: project_list_failed
+              data_refresh_signal: project_list_failed
           unavailable:
             raise:
-              data_signal: project_list_failed
+              data_refresh_signal: project_list_failed
     initial_view_state: loading
     model: Project
     signals:
       accepts:
-        messages:
+        local_signals:
           project_select:
             payload_schema:
               project_id:
@@ -1024,13 +1024,13 @@ state_machines:
             payload_schema:
               message:
                 primitive: Text
-        data_signals:
+        data_refresh_signals:
           project_collection_empty: {}
           project_list_failed: {}
           projects_changed: {}
           projects_loaded: {}
       emits:
-        messages:
+        local_signals:
           project_selected:
             payload_schema:
               project_id:
@@ -1038,53 +1038,53 @@ state_machines:
     transitions:
     - from: loading
       on:
-        data_signal: project_collection_empty
+        data_refresh_signal: project_collection_empty
       to: empty
     - from: loading
       on:
-        data_signal: projects_loaded
+        data_refresh_signal: projects_loaded
       to: ready
     - from: loading
       on:
-        data_signal: project_list_failed
+        data_refresh_signal: project_list_failed
       to: error
     - from: empty
       on:
-        data_signal: projects_loaded
+        data_refresh_signal: projects_loaded
       to: ready
     - from: empty
       on:
-        data_signal: projects_changed
+        data_refresh_signal: projects_changed
       rationale: List mutations invalidate the empty collection and let the list query refresh it.
       to: empty
     - from: empty
       on:
-        message: show_invalid_state
+        local_signal: show_invalid_state
       rationale: Invalid create attempts move the list into its displayable error state.
       to: error
     - effects:
       - emit:
-          message: project_selected
+          local_signal: project_selected
           payload_bindings:
             project_id:
-              from: $message.project_id
+              from: $local_signal.project_id
       from: ready
       on:
-        message: project_select
+        local_signal: project_select
       to: ready
     - from: ready
       on:
-        data_signal: projects_changed
+        data_refresh_signal: projects_changed
       rationale: List mutations mark ready-state collection data stale and trigger query refresh.
       to: ready
     - from: ready
       on:
-        data_signal: projects_loaded
+        data_refresh_signal: projects_loaded
       rationale: Successful list queries refresh ready-state collection data.
       to: ready
     - from: ready
       on:
-        message: show_invalid_state
+        local_signal: show_invalid_state
       rationale: Invalid list application_actions move the list into its displayable error state.
       to: error
     view_states:
@@ -1109,7 +1109,7 @@ state_machines:
             outcome_routes:
               created:
                 raise:
-                  data_signal: projects_changed
+                  data_refresh_signal: projects_changed
               forbidden:
                 no_signal:
                   reason: handled_by_response_surface
@@ -1120,7 +1120,7 @@ state_machines:
                   rationale: The response surface reports authentication failure without a local transition.
               validation_failed:
                 raise:
-                  message: show_invalid_state
+                  local_signal: show_invalid_state
                   payload_bindings:
                     message:
                       from: $outcome.result.message
@@ -1154,7 +1154,7 @@ state_machines:
             outcome_routes:
               created:
                 raise:
-                  data_signal: projects_changed
+                  data_refresh_signal: projects_changed
               forbidden:
                 no_signal:
                   reason: handled_by_response_surface
@@ -1175,28 +1175,28 @@ state_machines:
             outcome_routes:
               forbidden:
                 raise:
-                  message: show_invalid_state
+                  local_signal: show_invalid_state
                   payload_bindings:
                     message:
                       from: $outcome.result.message
               invalid_state:
                 raise:
-                  message: show_invalid_state
+                  local_signal: show_invalid_state
                   payload_bindings:
                     message:
                       from: $outcome.result.message
               not_found:
                 raise:
-                  message: show_invalid_state
+                  local_signal: show_invalid_state
                   payload_bindings:
                     message:
                       from: $outcome.result.message
               submitted:
                 raise:
-                  data_signal: projects_changed
+                  data_refresh_signal: projects_changed
               unauthenticated:
                 raise:
-                  message: show_invalid_state
+                  local_signal: show_invalid_state
                   payload_bindings:
                     message:
                       from: $outcome.result.message
@@ -1476,7 +1476,7 @@ entry_points:
             from: $input.payload.project_id
 workflows:
   workflow.project.approval_notice:
-    rationale: Approval event sends a downstream notice.
+    rationale: Approval domain event sends a downstream notice.
     outcomes:
       completed:
         kind: success
@@ -1515,11 +1515,11 @@ workflows:
         unauthenticated:
           fail_as: notice_unauthenticated
     trigger:
-      event: event.project.approved
+      domain_event: domain_event.project.approved
 test_cases:
   test_case.project.approval_notice.workflow:
     archetype: workflow_trigger_success
-    rationale: Approval event dispatches the notification workflow.
+    rationale: Approval domain event dispatches the notification workflow.
     feature_tag: project.approval_notice
     subject_ref:
       workflow: workflow.project.approval_notice
@@ -1528,27 +1528,27 @@ test_cases:
       seed_fixtures:
       - fixture.workspace.reviewer
     then:
-      events:
+      domain_events:
         emitted:
-        - event.project.approved
+        - domain_event.project.approved
       invoked:
       - application_action.project.send_approval_notice
       workflow:
         outcome: completed
         executed: true
         ref: workflow.project.approval_notice
-    title: Approval event sends notice
+    title: Approval domain event sends notice
     when:
-      emit_event:
+      emit_domain_event:
         payload:
           approved_by:
             from: $fixture.actor.id
           project_id:
             value: project_submitted_1
-        ref: event.project.approved
+        ref: domain_event.project.approved
   test_case.project.approve.success:
     archetype: action_outcome
-    rationale: Approval transitions a submitted project to approved and emits the event.
+    rationale: Approval transitions a submitted project to approved and emits the domain event.
     feature_tag: project.approve
     subject_ref:
       application_action: application_action.project.approve
@@ -1558,9 +1558,9 @@ test_cases:
       seed_fixtures:
       - fixture.workspace.reviewer
     then:
-      events:
+      domain_events:
         emitted:
-        - event.project.approved
+        - domain_event.project.approved
       invoked:
       - application_action.project.approve
       model:
@@ -1596,9 +1596,9 @@ test_cases:
       authorization:
         denied:
         - application_action: application_action.project.approve
-      events:
+      domain_events:
         not_emitted:
-        - event.project.approved
+        - domain_event.project.approved
       outcome: forbidden
     title: Approval authorization maps forbidden outcome
     when:
@@ -1701,9 +1701,9 @@ test_cases:
       seed_fixtures:
       - fixture.workspace.member
     then:
-      events:
+      domain_events:
         emitted:
-        - event.project.created
+        - domain_event.project.created
       invoked:
       - application_action.project.create
       model:

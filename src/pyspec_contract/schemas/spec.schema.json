@@ -688,9 +688,9 @@
       "pattern": "^data_contract\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
-    "data_signal_name": {
+    "data_refresh_signal_name": {
       "$ref": "#/$defs/local_name",
-      "description": "State-machine-local data signal name."
+      "description": "State-machine-local data-refresh signal name."
     },
     "entry_application_action_target": {
       "additionalProperties": false,
@@ -1037,7 +1037,7 @@
       ],
       "type": "object"
     },
-    "event_item": {
+    "domain_event_item": {
       "additionalProperties": false,
       "properties": {
         "emitted_by": {
@@ -1060,8 +1060,8 @@
       ],
       "type": "object"
     },
-    "event_ref": {
-      "pattern": "^event\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+    "domain_event_ref": {
+      "pattern": "^domain_event\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
     "fact_body": {
@@ -1758,9 +1758,9 @@
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
     },
-    "message_name": {
+    "local_signal_name": {
       "$ref": "#/$defs/local_name",
-      "description": "State-machine-local message name."
+      "description": "State-machine-local signal name."
     },
     "model_item": {
       "additionalProperties": false,
@@ -1859,8 +1859,8 @@
         }
       ],
       "properties": {
-        "event": {
-          "$ref": "#/$defs/event_ref"
+        "domain_event": {
+          "$ref": "#/$defs/domain_event_ref"
         },
         "payload_bindings": {
           "$ref": "#/$defs/runtime_bindings"
@@ -1870,7 +1870,7 @@
         }
       },
       "required": [
-        "event"
+        "domain_event"
       ],
       "type": "object"
     },
@@ -2243,8 +2243,8 @@
             "instance": {
               "$ref": "#/$defs/instance_id"
             },
-            "message": {
-              "$ref": "#/$defs/message_name"
+            "local_signal": {
+              "$ref": "#/$defs/local_signal_name"
             },
             "payload_bindings": {
               "$ref": "#/$defs/runtime_bindings"
@@ -2252,7 +2252,7 @@
           },
           "required": [
             "instance",
-            "message",
+            "local_signal",
             "payload_bindings"
           ],
           "type": "object"
@@ -2269,14 +2269,14 @@
         "instance": {
           "$ref": "#/$defs/instance_id"
         },
-        "message": {
-          "$ref": "#/$defs/message_name",
-          "description": "Emitted state-machine-local message that triggers the sync rule. Data signals are not sent between child state-machine instances."
+        "local_signal": {
+          "$ref": "#/$defs/local_signal_name",
+          "description": "Emitted state-machine-local signal that triggers the sync rule. Data-refresh signals are not sent between child state-machine instances."
         }
       },
       "required": [
         "instance",
-        "message"
+        "local_signal"
       ],
       "type": "object"
     },
@@ -2735,30 +2735,30 @@
         {
           "additionalProperties": false,
           "properties": {
-            "message": {
-              "$ref": "#/$defs/message_name"
+            "local_signal": {
+              "$ref": "#/$defs/local_signal_name"
             },
             "payload_bindings": {
               "$ref": "#/$defs/runtime_bindings"
             }
           },
           "required": [
-            "message"
+            "local_signal"
           ],
           "type": "object"
         },
         {
           "additionalProperties": false,
           "properties": {
-            "data_signal": {
-              "$ref": "#/$defs/data_signal_name"
+            "data_refresh_signal": {
+              "$ref": "#/$defs/data_refresh_signal_name"
             },
             "payload_bindings": {
               "$ref": "#/$defs/runtime_bindings"
             }
           },
           "required": [
-            "data_signal"
+            "data_refresh_signal"
           ],
           "type": "object"
         }
@@ -2769,24 +2769,24 @@
         {
           "additionalProperties": false,
           "properties": {
-            "message": {
-              "$ref": "#/$defs/message_name"
+            "local_signal": {
+              "$ref": "#/$defs/local_signal_name"
             }
           },
           "required": [
-            "message"
+            "local_signal"
           ],
           "type": "object"
         },
         {
           "additionalProperties": false,
           "properties": {
-            "data_signal": {
-              "$ref": "#/$defs/data_signal_name"
+            "data_refresh_signal": {
+              "$ref": "#/$defs/data_refresh_signal_name"
             }
           },
           "required": [
-            "data_signal"
+            "data_refresh_signal"
           ],
           "type": "object"
         }
@@ -2809,26 +2809,26 @@
     },
     "state_machine_signals": {
       "additionalProperties": false,
-      "description": "State-machine-local signal declarations. Accepted signals may be messages or data signals; emitted signals are messages.",
+      "description": "State-machine-local signal declarations. Accepted signals may be local signals or data-refresh signals; emitted signals are local signals.",
       "properties": {
         "accepts": {
           "additionalProperties": false,
           "properties": {
-            "data_signals": {
+            "data_refresh_signals": {
               "additionalProperties": {
                 "$ref": "#/$defs/state_machine_signal"
               },
               "propertyNames": {
-                "$ref": "#/$defs/data_signal_name"
+                "$ref": "#/$defs/data_refresh_signal_name"
               },
               "type": "object"
             },
-            "messages": {
+            "local_signals": {
               "additionalProperties": {
                 "$ref": "#/$defs/state_machine_signal"
               },
               "propertyNames": {
-                "$ref": "#/$defs/message_name"
+                "$ref": "#/$defs/local_signal_name"
               },
               "type": "object"
             }
@@ -2838,12 +2838,12 @@
         "emits": {
           "additionalProperties": false,
           "properties": {
-            "messages": {
+            "local_signals": {
               "additionalProperties": {
                 "$ref": "#/$defs/state_machine_signal"
               },
               "propertyNames": {
-                "$ref": "#/$defs/message_name"
+                "$ref": "#/$defs/local_signal_name"
               },
               "type": "object"
             }
@@ -2872,15 +2872,15 @@
                   "emit": {
                     "additionalProperties": false,
                     "properties": {
-                      "message": {
-                        "$ref": "#/$defs/message_name"
+                      "local_signal": {
+                        "$ref": "#/$defs/local_signal_name"
                       },
                       "payload_bindings": {
                         "$ref": "#/$defs/runtime_bindings"
                       }
                     },
                     "required": [
-                      "message",
+                      "local_signal",
                       "payload_bindings"
                     ],
                     "type": "object"
@@ -2903,24 +2903,24 @@
             {
               "additionalProperties": false,
               "properties": {
-                "message": {
-                  "$ref": "#/$defs/message_name"
+                "local_signal": {
+                  "$ref": "#/$defs/local_signal_name"
                 }
               },
               "required": [
-                "message"
+                "local_signal"
               ],
               "type": "object"
             },
             {
               "additionalProperties": false,
               "properties": {
-                "data_signal": {
-                  "$ref": "#/$defs/data_signal_name"
+                "data_refresh_signal": {
+                  "$ref": "#/$defs/data_refresh_signal_name"
                 }
               },
               "required": [
-                "data_signal"
+                "data_refresh_signal"
               ],
               "type": "object"
             }
@@ -2949,8 +2949,8 @@
         "entry_point": {
           "$ref": "#/$defs/entry_point_ref"
         },
-        "event": {
-          "$ref": "#/$defs/event_ref"
+        "domain_event": {
+          "$ref": "#/$defs/domain_event_ref"
         },
         "application_action": {
           "$ref": "#/$defs/application_action_ref"
@@ -3264,19 +3264,19 @@
           "type": "array",
           "uniqueItems": true
         },
-        "events": {
+        "domain_events": {
           "additionalProperties": false,
           "properties": {
             "emitted": {
               "items": {
-                "$ref": "#/$defs/event_ref"
+                "$ref": "#/$defs/domain_event_ref"
               },
               "type": "array",
               "uniqueItems": true
             },
             "not_emitted": {
               "items": {
-                "$ref": "#/$defs/event_ref"
+                "$ref": "#/$defs/domain_event_ref"
               },
               "type": "array",
               "uniqueItems": true
@@ -3801,14 +3801,14 @@
         {
           "additionalProperties": false,
           "properties": {
-            "emit_event": {
+            "emit_domain_event": {
               "additionalProperties": false,
               "properties": {
                 "payload": {
                   "$ref": "#/$defs/value_map"
                 },
                 "ref": {
-                  "$ref": "#/$defs/event_ref"
+                  "$ref": "#/$defs/domain_event_ref"
                 }
               },
               "required": [
@@ -3818,7 +3818,7 @@
             }
           },
           "required": [
-            "emit_event"
+            "emit_domain_event"
           ],
           "type": "object"
         }
@@ -4028,8 +4028,8 @@
       "maxProperties": 1,
       "minProperties": 1,
       "properties": {
-        "event": {
-          "$ref": "#/$defs/event_ref"
+        "domain_event": {
+          "$ref": "#/$defs/domain_event_ref"
         },
         "application_action": {
           "$ref": "#/$defs/application_action_ref"
@@ -4041,7 +4041,7 @@
   "$id": "https://example.invalid/compiled-output-product-spec.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Compiler-normalized output schema for the compiled specification file at spec/generated/compiled/spec.yaml. Contains normalized ids, derived events, derived routes, generated references, endpoint expansions, and empty collection expansions.",
+  "description": "Compiler-normalized output schema for the compiled specification file at spec/generated/compiled/spec.yaml. Contains normalized ids, derived domain_events, derived routes, generated references, endpoint expansions, and empty collection expansions.",
   "properties": {
     "assets": {
       "additionalProperties": {
@@ -4088,12 +4088,12 @@
       },
       "type": "object"
     },
-    "events": {
+    "domain_events": {
       "additionalProperties": {
-        "$ref": "#/$defs/event_item"
+        "$ref": "#/$defs/domain_event_item"
       },
       "propertyNames": {
-        "$ref": "#/$defs/event_ref"
+        "$ref": "#/$defs/domain_event_ref"
       },
       "type": "object"
     },
@@ -4203,7 +4203,7 @@
     "models",
     "data_contracts",
     "application_actions",
-    "events",
+    "domain_events",
     "entry_points",
     "workflows",
     "test_cases",

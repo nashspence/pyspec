@@ -69,7 +69,7 @@ Common layer sets:
 ```text
 core
 core,http
-core,events
+core,domain_events
 core,workflow
 core,ui,textual
 core,ui,web
@@ -107,7 +107,7 @@ spec/generated/
     spec.yaml
   product_interfaces/
     http.openapi.yaml
-    events.asyncapi.yaml
+    integration_messages.asyncapi.yaml
     workflow.cwl.yaml
     web.routes.json
     web.state_machines.json

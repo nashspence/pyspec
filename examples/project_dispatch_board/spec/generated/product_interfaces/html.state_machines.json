@@ -201,16 +201,16 @@
             {
               "set": {
                 "context": "selected_project_id",
-                "from": "$message.project_id"
+                "from": "$local_signal.project_id"
               }
             },
             {
               "send": {
                 "instance": "detail",
-                "message": "selection_changed",
+                "local_signal": "selection_changed",
                 "payload_bindings": {
                   "project_id": {
-                    "from": "$message.project_id"
+                    "from": "$local_signal.project_id"
                   }
                 }
               }
@@ -218,10 +218,10 @@
             {
               "send": {
                 "instance": "activity",
-                "message": "selection_changed",
+                "local_signal": "selection_changed",
                 "payload_bindings": {
                   "project_id": {
-                    "from": "$message.project_id"
+                    "from": "$local_signal.project_id"
                   }
                 }
               }
@@ -230,7 +230,7 @@
           "id": "select_project_updates_state_machines",
           "when": {
             "instance": "list",
-            "message": "project_selected"
+            "local_signal": "project_selected"
           }
         }
       ],
@@ -269,7 +269,7 @@
           {
             "from": "empty",
             "on": {
-              "message": "selection_changed"
+              "local_signal": "selection_changed"
             },
             "to": "ready"
           },
@@ -284,7 +284,7 @@
             ],
             "from": "ready",
             "on": {
-              "message": "selection_cleared"
+              "local_signal": "selection_cleared"
             },
             "to": "empty"
           }
@@ -367,7 +367,7 @@
           {
             "from": "empty",
             "on": {
-              "message": "selection_changed"
+              "local_signal": "selection_changed"
             },
             "to": "ready"
           },
@@ -382,7 +382,7 @@
             ],
             "from": "ready",
             "on": {
-              "message": "selection_cleared"
+              "local_signal": "selection_cleared"
             },
             "to": "empty"
           }
@@ -519,21 +519,21 @@
           {
             "from": "none",
             "on": {
-              "message": "selection_changed"
+              "local_signal": "selection_changed"
             },
             "to": "loading"
           },
           {
             "from": "loading",
             "on": {
-              "data_signal": "project_loaded"
+              "data_refresh_signal": "project_loaded"
             },
             "to": "ready"
           },
           {
             "from": "loading",
             "on": {
-              "data_signal": "project_load_failed"
+              "data_refresh_signal": "project_load_failed"
             },
             "to": "error"
           },
@@ -548,14 +548,14 @@
             ],
             "from": "ready",
             "on": {
-              "message": "selection_cleared"
+              "local_signal": "selection_cleared"
             },
             "to": "none"
           },
           {
             "from": "ready",
             "on": {
-              "data_signal": "project_changed"
+              "data_refresh_signal": "project_changed"
             },
             "rationale": "Detail mutations mark ready-state project data stale and trigger query refresh.",
             "to": "ready"
@@ -563,7 +563,7 @@
           {
             "from": "ready",
             "on": {
-              "message": "show_invalid_state"
+              "local_signal": "show_invalid_state"
             },
             "rationale": "Invalid detail application_actions move the detail panel into its displayable error state.",
             "to": "error"
@@ -587,12 +587,12 @@
           "outcome_routes": {
             "forbidden": {
               "raise": {
-                "data_signal": "project_load_failed"
+                "data_refresh_signal": "project_load_failed"
               }
             },
             "found": {
               "raise": {
-                "data_signal": "project_loaded"
+                "data_refresh_signal": "project_loaded"
               },
               "result_binding": {
                 "data_key": "project",
@@ -603,12 +603,12 @@
             },
             "not_found": {
               "raise": {
-                "data_signal": "project_load_failed"
+                "data_refresh_signal": "project_load_failed"
               }
             },
             "unauthenticated": {
               "raise": {
-                "data_signal": "project_load_failed"
+                "data_refresh_signal": "project_load_failed"
               }
             }
           }
@@ -640,21 +640,21 @@
           {
             "from": "none",
             "on": {
-              "message": "selection_changed"
+              "local_signal": "selection_changed"
             },
             "to": "loading"
           },
           {
             "from": "loading",
             "on": {
-              "data_signal": "project_loaded"
+              "data_refresh_signal": "project_loaded"
             },
             "to": "ready"
           },
           {
             "from": "loading",
             "on": {
-              "data_signal": "project_load_failed"
+              "data_refresh_signal": "project_load_failed"
             },
             "to": "error"
           },
@@ -669,14 +669,14 @@
             ],
             "from": "ready",
             "on": {
-              "message": "selection_cleared"
+              "local_signal": "selection_cleared"
             },
             "to": "none"
           },
           {
             "from": "ready",
             "on": {
-              "data_signal": "project_changed"
+              "data_refresh_signal": "project_changed"
             },
             "rationale": "Detail mutations mark ready-state project data stale and trigger query refresh.",
             "to": "ready"
@@ -684,7 +684,7 @@
           {
             "from": "ready",
             "on": {
-              "message": "show_invalid_state"
+              "local_signal": "show_invalid_state"
             },
             "rationale": "Invalid detail application_actions move the detail panel into its displayable error state.",
             "to": "error"
@@ -722,21 +722,21 @@
           {
             "from": "none",
             "on": {
-              "message": "selection_changed"
+              "local_signal": "selection_changed"
             },
             "to": "loading"
           },
           {
             "from": "loading",
             "on": {
-              "data_signal": "project_loaded"
+              "data_refresh_signal": "project_loaded"
             },
             "to": "ready"
           },
           {
             "from": "loading",
             "on": {
-              "data_signal": "project_load_failed"
+              "data_refresh_signal": "project_load_failed"
             },
             "to": "error"
           },
@@ -751,14 +751,14 @@
             ],
             "from": "ready",
             "on": {
-              "message": "selection_cleared"
+              "local_signal": "selection_cleared"
             },
             "to": "none"
           },
           {
             "from": "ready",
             "on": {
-              "data_signal": "project_changed"
+              "data_refresh_signal": "project_changed"
             },
             "rationale": "Detail mutations mark ready-state project data stale and trigger query refresh.",
             "to": "ready"
@@ -766,7 +766,7 @@
           {
             "from": "ready",
             "on": {
-              "message": "show_invalid_state"
+              "local_signal": "show_invalid_state"
             },
             "rationale": "Invalid detail application_actions move the detail panel into its displayable error state.",
             "to": "error"
@@ -788,14 +788,14 @@
             "on_enter": true,
             "refresh_on": [
               {
-                "data_signal": "project_changed"
+                "data_refresh_signal": "project_changed"
               }
             ]
           },
           "outcome_routes": {
             "forbidden": {
               "raise": {
-                "message": "show_invalid_state",
+                "local_signal": "show_invalid_state",
                 "payload_bindings": {
                   "message": {
                     "from": "$outcome.result.message"
@@ -816,7 +816,7 @@
             },
             "not_found": {
               "raise": {
-                "message": "show_invalid_state",
+                "local_signal": "show_invalid_state",
                 "payload_bindings": {
                   "message": {
                     "from": "$outcome.result.message"
@@ -826,7 +826,7 @@
             },
             "unauthenticated": {
               "raise": {
-                "message": "show_invalid_state",
+                "local_signal": "show_invalid_state",
                 "payload_bindings": {
                   "message": {
                     "from": "$outcome.result.message"
@@ -855,7 +855,7 @@
             "outcome_routes": {
               "approved": {
                 "raise": {
-                  "data_signal": "project_changed"
+                  "data_refresh_signal": "project_changed"
                 }
               },
               "forbidden": {
@@ -866,7 +866,7 @@
               },
               "invalid_state": {
                 "raise": {
-                  "message": "show_invalid_state",
+                  "local_signal": "show_invalid_state",
                   "payload_bindings": {
                     "message": {
                       "from": "$outcome.result.message"
@@ -904,12 +904,12 @@
             "outcome_routes": {
               "archived": {
                 "raise": {
-                  "data_signal": "project_changed"
+                  "data_refresh_signal": "project_changed"
                 }
               },
               "forbidden": {
                 "raise": {
-                  "message": "show_invalid_state",
+                  "local_signal": "show_invalid_state",
                   "payload_bindings": {
                     "message": {
                       "from": "$outcome.result.message"
@@ -919,7 +919,7 @@
               },
               "invalid_state": {
                 "raise": {
-                  "message": "show_invalid_state",
+                  "local_signal": "show_invalid_state",
                   "payload_bindings": {
                     "message": {
                       "from": "$outcome.result.message"
@@ -929,7 +929,7 @@
               },
               "not_found": {
                 "raise": {
-                  "message": "show_invalid_state",
+                  "local_signal": "show_invalid_state",
                   "payload_bindings": {
                     "message": {
                       "from": "$outcome.result.message"
@@ -939,7 +939,7 @@
               },
               "unauthenticated": {
                 "raise": {
-                  "message": "show_invalid_state",
+                  "local_signal": "show_invalid_state",
                   "payload_bindings": {
                     "message": {
                       "from": "$outcome.result.message"
@@ -979,21 +979,21 @@
           {
             "from": "none",
             "on": {
-              "message": "selection_changed"
+              "local_signal": "selection_changed"
             },
             "to": "loading"
           },
           {
             "from": "loading",
             "on": {
-              "data_signal": "project_loaded"
+              "data_refresh_signal": "project_loaded"
             },
             "to": "ready"
           },
           {
             "from": "loading",
             "on": {
-              "data_signal": "project_load_failed"
+              "data_refresh_signal": "project_load_failed"
             },
             "to": "error"
           },
@@ -1008,14 +1008,14 @@
             ],
             "from": "ready",
             "on": {
-              "message": "selection_cleared"
+              "local_signal": "selection_cleared"
             },
             "to": "none"
           },
           {
             "from": "ready",
             "on": {
-              "data_signal": "project_changed"
+              "data_refresh_signal": "project_changed"
             },
             "rationale": "Detail mutations mark ready-state project data stale and trigger query refresh.",
             "to": "ready"
@@ -1023,7 +1023,7 @@
           {
             "from": "ready",
             "on": {
-              "message": "show_invalid_state"
+              "local_signal": "show_invalid_state"
             },
             "rationale": "Invalid detail application_actions move the detail panel into its displayable error state.",
             "to": "error"
@@ -1058,7 +1058,7 @@
             "outcome_routes": {
               "created": {
                 "raise": {
-                  "data_signal": "projects_changed"
+                  "data_refresh_signal": "projects_changed"
                 }
               },
               "forbidden": {
@@ -1075,7 +1075,7 @@
               },
               "validation_failed": {
                 "raise": {
-                  "message": "show_invalid_state",
+                  "local_signal": "show_invalid_state",
                   "payload_bindings": {
                     "message": {
                       "from": "$outcome.result.message"
@@ -1117,35 +1117,35 @@
           {
             "from": "loading",
             "on": {
-              "data_signal": "project_collection_empty"
+              "data_refresh_signal": "project_collection_empty"
             },
             "to": "empty"
           },
           {
             "from": "loading",
             "on": {
-              "data_signal": "projects_loaded"
+              "data_refresh_signal": "projects_loaded"
             },
             "to": "ready"
           },
           {
             "from": "loading",
             "on": {
-              "data_signal": "project_list_failed"
+              "data_refresh_signal": "project_list_failed"
             },
             "to": "error"
           },
           {
             "from": "empty",
             "on": {
-              "data_signal": "projects_loaded"
+              "data_refresh_signal": "projects_loaded"
             },
             "to": "ready"
           },
           {
             "from": "empty",
             "on": {
-              "data_signal": "projects_changed"
+              "data_refresh_signal": "projects_changed"
             },
             "rationale": "List mutations invalidate the empty collection and let the list query refresh it.",
             "to": "empty"
@@ -1153,7 +1153,7 @@
           {
             "from": "empty",
             "on": {
-              "message": "show_invalid_state"
+              "local_signal": "show_invalid_state"
             },
             "rationale": "Invalid create attempts move the list into its displayable error state.",
             "to": "error"
@@ -1162,10 +1162,10 @@
             "effects": [
               {
                 "emit": {
-                  "message": "project_selected",
+                  "local_signal": "project_selected",
                   "payload_bindings": {
                     "project_id": {
-                      "from": "$message.project_id"
+                      "from": "$local_signal.project_id"
                     }
                   }
                 }
@@ -1173,14 +1173,14 @@
             ],
             "from": "ready",
             "on": {
-              "message": "project_select"
+              "local_signal": "project_select"
             },
             "to": "ready"
           },
           {
             "from": "ready",
             "on": {
-              "data_signal": "projects_changed"
+              "data_refresh_signal": "projects_changed"
             },
             "rationale": "List mutations mark ready-state collection data stale and trigger query refresh.",
             "to": "ready"
@@ -1188,7 +1188,7 @@
           {
             "from": "ready",
             "on": {
-              "data_signal": "projects_loaded"
+              "data_refresh_signal": "projects_loaded"
             },
             "rationale": "Successful list queries refresh ready-state collection data.",
             "to": "ready"
@@ -1196,7 +1196,7 @@
           {
             "from": "ready",
             "on": {
-              "message": "show_invalid_state"
+              "local_signal": "show_invalid_state"
             },
             "rationale": "Invalid list application_actions move the list into its displayable error state.",
             "to": "error"
@@ -1241,35 +1241,35 @@
           {
             "from": "loading",
             "on": {
-              "data_signal": "project_collection_empty"
+              "data_refresh_signal": "project_collection_empty"
             },
             "to": "empty"
           },
           {
             "from": "loading",
             "on": {
-              "data_signal": "projects_loaded"
+              "data_refresh_signal": "projects_loaded"
             },
             "to": "ready"
           },
           {
             "from": "loading",
             "on": {
-              "data_signal": "project_list_failed"
+              "data_refresh_signal": "project_list_failed"
             },
             "to": "error"
           },
           {
             "from": "empty",
             "on": {
-              "data_signal": "projects_loaded"
+              "data_refresh_signal": "projects_loaded"
             },
             "to": "ready"
           },
           {
             "from": "empty",
             "on": {
-              "data_signal": "projects_changed"
+              "data_refresh_signal": "projects_changed"
             },
             "rationale": "List mutations invalidate the empty collection and let the list query refresh it.",
             "to": "empty"
@@ -1277,7 +1277,7 @@
           {
             "from": "empty",
             "on": {
-              "message": "show_invalid_state"
+              "local_signal": "show_invalid_state"
             },
             "rationale": "Invalid create attempts move the list into its displayable error state.",
             "to": "error"
@@ -1286,10 +1286,10 @@
             "effects": [
               {
                 "emit": {
-                  "message": "project_selected",
+                  "local_signal": "project_selected",
                   "payload_bindings": {
                     "project_id": {
-                      "from": "$message.project_id"
+                      "from": "$local_signal.project_id"
                     }
                   }
                 }
@@ -1297,14 +1297,14 @@
             ],
             "from": "ready",
             "on": {
-              "message": "project_select"
+              "local_signal": "project_select"
             },
             "to": "ready"
           },
           {
             "from": "ready",
             "on": {
-              "data_signal": "projects_changed"
+              "data_refresh_signal": "projects_changed"
             },
             "rationale": "List mutations mark ready-state collection data stale and trigger query refresh.",
             "to": "ready"
@@ -1312,7 +1312,7 @@
           {
             "from": "ready",
             "on": {
-              "data_signal": "projects_loaded"
+              "data_refresh_signal": "projects_loaded"
             },
             "rationale": "Successful list queries refresh ready-state collection data.",
             "to": "ready"
@@ -1320,7 +1320,7 @@
           {
             "from": "ready",
             "on": {
-              "message": "show_invalid_state"
+              "local_signal": "show_invalid_state"
             },
             "rationale": "Invalid list application_actions move the list into its displayable error state.",
             "to": "error"
@@ -1364,35 +1364,35 @@
           {
             "from": "loading",
             "on": {
-              "data_signal": "project_collection_empty"
+              "data_refresh_signal": "project_collection_empty"
             },
             "to": "empty"
           },
           {
             "from": "loading",
             "on": {
-              "data_signal": "projects_loaded"
+              "data_refresh_signal": "projects_loaded"
             },
             "to": "ready"
           },
           {
             "from": "loading",
             "on": {
-              "data_signal": "project_list_failed"
+              "data_refresh_signal": "project_list_failed"
             },
             "to": "error"
           },
           {
             "from": "empty",
             "on": {
-              "data_signal": "projects_loaded"
+              "data_refresh_signal": "projects_loaded"
             },
             "to": "ready"
           },
           {
             "from": "empty",
             "on": {
-              "data_signal": "projects_changed"
+              "data_refresh_signal": "projects_changed"
             },
             "rationale": "List mutations invalidate the empty collection and let the list query refresh it.",
             "to": "empty"
@@ -1400,7 +1400,7 @@
           {
             "from": "empty",
             "on": {
-              "message": "show_invalid_state"
+              "local_signal": "show_invalid_state"
             },
             "rationale": "Invalid create attempts move the list into its displayable error state.",
             "to": "error"
@@ -1409,10 +1409,10 @@
             "effects": [
               {
                 "emit": {
-                  "message": "project_selected",
+                  "local_signal": "project_selected",
                   "payload_bindings": {
                     "project_id": {
-                      "from": "$message.project_id"
+                      "from": "$local_signal.project_id"
                     }
                   }
                 }
@@ -1420,14 +1420,14 @@
             ],
             "from": "ready",
             "on": {
-              "message": "project_select"
+              "local_signal": "project_select"
             },
             "to": "ready"
           },
           {
             "from": "ready",
             "on": {
-              "data_signal": "projects_changed"
+              "data_refresh_signal": "projects_changed"
             },
             "rationale": "List mutations mark ready-state collection data stale and trigger query refresh.",
             "to": "ready"
@@ -1435,7 +1435,7 @@
           {
             "from": "ready",
             "on": {
-              "data_signal": "projects_loaded"
+              "data_refresh_signal": "projects_loaded"
             },
             "rationale": "Successful list queries refresh ready-state collection data.",
             "to": "ready"
@@ -1443,7 +1443,7 @@
           {
             "from": "ready",
             "on": {
-              "message": "show_invalid_state"
+              "local_signal": "show_invalid_state"
             },
             "rationale": "Invalid list application_actions move the list into its displayable error state.",
             "to": "error"
@@ -1478,7 +1478,7 @@
             "outcome_routes": {
               "created": {
                 "raise": {
-                  "data_signal": "projects_changed"
+                  "data_refresh_signal": "projects_changed"
                 }
               },
               "forbidden": {
@@ -1511,7 +1511,7 @@
             "outcome_routes": {
               "forbidden": {
                 "raise": {
-                  "message": "show_invalid_state",
+                  "local_signal": "show_invalid_state",
                   "payload_bindings": {
                     "message": {
                       "from": "$outcome.result.message"
@@ -1521,7 +1521,7 @@
               },
               "invalid_state": {
                 "raise": {
-                  "message": "show_invalid_state",
+                  "local_signal": "show_invalid_state",
                   "payload_bindings": {
                     "message": {
                       "from": "$outcome.result.message"
@@ -1531,7 +1531,7 @@
               },
               "not_found": {
                 "raise": {
-                  "message": "show_invalid_state",
+                  "local_signal": "show_invalid_state",
                   "payload_bindings": {
                     "message": {
                       "from": "$outcome.result.message"
@@ -1541,12 +1541,12 @@
               },
               "submitted": {
                 "raise": {
-                  "data_signal": "projects_changed"
+                  "data_refresh_signal": "projects_changed"
                 }
               },
               "unauthenticated": {
                 "raise": {
-                  "message": "show_invalid_state",
+                  "local_signal": "show_invalid_state",
                   "payload_bindings": {
                     "message": {
                       "from": "$outcome.result.message"
@@ -1590,35 +1590,35 @@
           {
             "from": "loading",
             "on": {
-              "data_signal": "project_collection_empty"
+              "data_refresh_signal": "project_collection_empty"
             },
             "to": "empty"
           },
           {
             "from": "loading",
             "on": {
-              "data_signal": "projects_loaded"
+              "data_refresh_signal": "projects_loaded"
             },
             "to": "ready"
           },
           {
             "from": "loading",
             "on": {
-              "data_signal": "project_list_failed"
+              "data_refresh_signal": "project_list_failed"
             },
             "to": "error"
           },
           {
             "from": "empty",
             "on": {
-              "data_signal": "projects_loaded"
+              "data_refresh_signal": "projects_loaded"
             },
             "to": "ready"
           },
           {
             "from": "empty",
             "on": {
-              "data_signal": "projects_changed"
+              "data_refresh_signal": "projects_changed"
             },
             "rationale": "List mutations invalidate the empty collection and let the list query refresh it.",
             "to": "empty"
@@ -1626,7 +1626,7 @@
           {
             "from": "empty",
             "on": {
-              "message": "show_invalid_state"
+              "local_signal": "show_invalid_state"
             },
             "rationale": "Invalid create attempts move the list into its displayable error state.",
             "to": "error"
@@ -1635,10 +1635,10 @@
             "effects": [
               {
                 "emit": {
-                  "message": "project_selected",
+                  "local_signal": "project_selected",
                   "payload_bindings": {
                     "project_id": {
-                      "from": "$message.project_id"
+                      "from": "$local_signal.project_id"
                     }
                   }
                 }
@@ -1646,14 +1646,14 @@
             ],
             "from": "ready",
             "on": {
-              "message": "project_select"
+              "local_signal": "project_select"
             },
             "to": "ready"
           },
           {
             "from": "ready",
             "on": {
-              "data_signal": "projects_changed"
+              "data_refresh_signal": "projects_changed"
             },
             "rationale": "List mutations mark ready-state collection data stale and trigger query refresh.",
             "to": "ready"
@@ -1661,7 +1661,7 @@
           {
             "from": "ready",
             "on": {
-              "data_signal": "projects_loaded"
+              "data_refresh_signal": "projects_loaded"
             },
             "rationale": "Successful list queries refresh ready-state collection data.",
             "to": "ready"
@@ -1669,7 +1669,7 @@
           {
             "from": "ready",
             "on": {
-              "message": "show_invalid_state"
+              "local_signal": "show_invalid_state"
             },
             "rationale": "Invalid list application_actions move the list into its displayable error state.",
             "to": "error"

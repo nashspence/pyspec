@@ -123,7 +123,7 @@ TARGET_ORDER = (
     "model",
     "authorization_policy",
     "application_action",
-    "event",
+    "domain_event",
     "state_machine",
     "entry_point",
     "workflow",
@@ -143,7 +143,7 @@ ENTITY_SECTIONS: dict[str, str] = {
     "model": "models",
     "authorization_policy": "authorization_policies",
     "application_action": "application_actions",
-    "event": "events",
+    "domain_event": "domain_events",
     "state_machine": "state_machines",
     "entry_point": "entry_points",
     "workflow": "workflows",
@@ -187,7 +187,7 @@ def empty_compiled_contract(project: str) -> dict[str, Any]:
         "models": {},
         "authorization_policies": {},
         "application_actions": {},
-        "events": {},
+        "domain_events": {},
         "state_machines": {},
         "entry_points": {},
         "workflows": {},
@@ -203,7 +203,7 @@ AUTHOR_SECTION_ORDER = (
     "models",
     "authorization_policies",
     "application_actions",
-    "events",
+    "domain_events",
     "state_machines",
     "entry_points",
     "workflows",
@@ -229,26 +229,26 @@ def _default_rationale(entity: str, entity_id: str) -> str:
 
 
 def _empty_signals() -> dict[str, dict[str, Any]]:
-    return {"accepts": {"messages": {}, "data_signals": {}}, "emits": {"messages": {}}}
+    return {"accepts": {"local_signals": {}, "data_refresh_signals": {}}, "emits": {"local_signals": {}}}
 
 
 def _normalize_signals(signals: dict[str, Any] | None) -> dict[str, dict[str, Any]]:
     signals = signals or {}
     normalized = _empty_signals()
     accepts = signals.get("accepts") or {}
-    for signal_name, signal in (accepts.get("messages") or {}).items():
+    for signal_name, signal in (accepts.get("local_signals") or {}).items():
         signal_spec = copy.deepcopy(signal)
         signal_spec["payload_schema"] = normalize_type_map(signal_spec.get("payload_schema"))
-        normalized["accepts"]["messages"][signal_name] = signal_spec
-    for signal_name, signal in (accepts.get("data_signals") or {}).items():
+        normalized["accepts"]["local_signals"][signal_name] = signal_spec
+    for signal_name, signal in (accepts.get("data_refresh_signals") or {}).items():
         signal_spec = copy.deepcopy(signal)
         signal_spec["payload_schema"] = normalize_type_map(signal_spec.get("payload_schema"))
-        normalized["accepts"]["data_signals"][signal_name] = signal_spec
+        normalized["accepts"]["data_refresh_signals"][signal_name] = signal_spec
     emits = signals.get("emits") or {}
-    for signal_name, signal in (emits.get("messages") or {}).items():
+    for signal_name, signal in (emits.get("local_signals") or {}).items():
         signal_spec = copy.deepcopy(signal)
         signal_spec["payload_schema"] = normalize_type_map(signal_spec.get("payload_schema"))
-        normalized["emits"]["messages"][signal_name] = signal_spec
+        normalized["emits"]["local_signals"][signal_name] = signal_spec
     return normalized
 
 
@@ -257,7 +257,7 @@ def _prune_empty_author_state_machine_signal_directions(author: dict[str, Any]) 
         signals = state_machine.get("signals")
         if not isinstance(signals, dict):
             continue
-        for direction, groups in (("accepts", ("messages", "data_signals")), ("emits", ("messages",))):
+        for direction, groups in (("accepts", ("local_signals", "data_refresh_signals")), ("emits", ("local_signals",))):
             direction_body = signals.get(direction)
             if not isinstance(direction_body, dict):
                 continue
@@ -306,7 +306,7 @@ def compile_author(author: dict[str, Any], layers: set[str] | None = None) -> di
             section[entity_id] = _compile_entity(entity, spec, contract)
 
     _derive_application_action_transitions(contract)
-    contract["events"] = _derive_events(contract)
+    contract["domain_events"] = _derive_domain_events(contract)
     contract["refs"] = _derive_refs(contract)
     used_facts = _expand_test_case_fact_uses(contract)
     _semantic_validate(contract, used_facts)
@@ -411,7 +411,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             "rationale": spec["rationale"],
         }
 
-    if entity == "event":
+    if entity == "domain_event":
         return {
             "payload_schema": normalize_type_expr(spec["payload_schema"]),
             "emitted_by": [],
@@ -589,29 +589,29 @@ def _derive_application_action_transitions(contract: dict[str, Any]) -> None:
         application_action["transition"] = derived
 
 
-def _derive_events(contract: dict[str, Any]) -> dict[str, Any]:
-    events: dict[str, Any] = copy.deepcopy(contract.get("events", {}))
+def _derive_domain_events(contract: dict[str, Any]) -> dict[str, Any]:
+    domain_events: dict[str, Any] = copy.deepcopy(contract.get("domain_events", {}))
     for application_action_id, operation in sorted(contract["application_actions"].items()):
         for outcome_id, outcome in sorted(operation["outcomes"].items()):
             for emit in outcome.get("emits", []):
-                event_id = _emit_event_id(emit)
+                event_id = _emit_domain_event_id(emit)
                 if outcome["kind"] != "success":
-                    raise ContractError(f"Application action {application_action_id} failure outcome {outcome_id} must not emit events")
-                payload_type = events.get(event_id, {}).get("payload_schema", outcome["result"])
-                event = events.setdefault(event_id, {
+                    raise ContractError(f"Application action {application_action_id} failure outcome {outcome_id} must not emit domain events")
+                payload_type = domain_events.get(event_id, {}).get("payload_schema", outcome["result"])
+                event = domain_events.setdefault(event_id, {
                     "emitted_by": [],
                     "payload_schema": payload_type,
                     "rationale": operation["rationale"],
                 })
                 _validate_emit_payload_mapping(contract, application_action_id, operation, outcome_id, outcome, event_id, event["payload_schema"], emit)
                 event["emitted_by"].append(application_action_id)
-    return events
+    return domain_events
 
 
-def _emit_event_id(emit: Any) -> str:
+def _emit_domain_event_id(emit: Any) -> str:
     if isinstance(emit, str):
         return emit
-    return emit["event"]
+    return emit["domain_event"]
 
 
 def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
@@ -1020,8 +1020,8 @@ def _validate_type_references(contract: dict[str, Any]) -> None:
     for state_machine_id, state_machine in contract.get("state_machines", {}).items():
         for field_name, field in state_machine.get("context", {}).items():
             _validate_type_reference(contract, f"State machine {state_machine_id} context {field_name}", field["type"])
-    for event_id, event in contract.get("events", {}).items():
-        _validate_type_reference(contract, f"Event {event_id} payload_schema", event["payload_schema"])
+    for event_id, event in contract.get("domain_events", {}).items():
+        _validate_type_reference(contract, f"Domain event {event_id} payload_schema", event["payload_schema"])
 
 
 def _validate_type_reference(contract: dict[str, Any], label: str, expr: Any) -> None:
@@ -1084,10 +1084,10 @@ def _validate_application_actions(contract: dict[str, Any]) -> None:
                 or cap_transition["to"] != transition["to"]
             ):
                 raise ContractError(f"Model {rid} lifecycle and application action {triggered_by} disagree")
-    for event_id, event in contract["events"].items():
+    for event_id, event in contract["domain_events"].items():
         for cap_id in event["emitted_by"]:
             if cap_id not in application_actions:
-                raise ContractError(f"Event {event_id} emitted by unknown application action {cap_id}")
+                raise ContractError(f"Domain event {event_id} emitted by unknown application action {cap_id}")
 
 
 def _validate_application_action_relationships(cid: str, cap: dict[str, Any], models: dict[str, Any]) -> None:
@@ -1110,7 +1110,7 @@ def _validate_application_action_relationships(cid: str, cap: dict[str, Any], mo
             raise ContractError(f"Query application action {cid} must not declare transition")
         emitting_outcomes = sorted(outcome_id for outcome_id, outcome in cap["outcomes"].items() if outcome.get("emits"))
         if emitting_outcomes:
-            raise ContractError(f"Query application action {cid} must not emit events: {emitting_outcomes}")
+            raise ContractError(f"Query application action {cid} must not emit domain events: {emitting_outcomes}")
         _validate_query_success_result(cid, cap)
     elif action_kind == "command":
         if "transition" in cap:
@@ -1176,12 +1176,12 @@ def _validate_action_outcomes(cid: str, cap: dict[str, Any]) -> None:
         raise ContractError(f"Application action {cid} has unsupported outcome kinds: {unknown_kinds}")
     for outcome_id, outcome in outcomes.items():
         emits = outcome.get("emits", [])
-        emit_ids = [_emit_event_id(emit) for emit in emits]
+        emit_ids = [_emit_domain_event_id(emit) for emit in emits]
         if len(emit_ids) != len(set(emit_ids)):
-            raise ContractError(f"Application action {cid} outcome {outcome_id} emits duplicate events")
+            raise ContractError(f"Application action {cid} outcome {outcome_id} emits duplicate domain events")
         if outcome["kind"] == "failure":
             if emits:
-                raise ContractError(f"Application action {cid} failure outcome {outcome_id} must not emit events")
+                raise ContractError(f"Application action {cid} failure outcome {outcome_id} must not emit domain events")
             if not is_problem_type(outcome["result"]):
                 raise ContractError(f"Application action {cid} failure outcome {outcome_id} result must be Problem or a *Problem type")
 
@@ -1209,7 +1209,7 @@ def _validate_action_authorization_outcomes(application_action_id: str, applicat
             )
         if outcome.get("emits"):
             raise ContractError(
-                f"Application action {application_action_id} authorization.{field} outcome {outcome_id} must not emit events"
+                f"Application action {application_action_id} authorization.{field} outcome {outcome_id} must not emit domain events"
             )
 
 
@@ -1318,7 +1318,7 @@ def _validate_emit_payload_mapping(
     if isinstance(emit, str):
         if not type_equals(event_payload, outcome["result"]):
             raise ContractError(
-                f"{label} must declare payload mapping because event payload is "
+                f"{label} must declare payload mapping because domain-event payload is "
                 f"{type_display(event_payload)}, not {type_display(outcome['result'])}"
             )
         return
@@ -1502,14 +1502,14 @@ def _validate_action_binding_routes(
 
 
 def _lint_mutation_loaded_signal(label: str, application_action: dict[str, Any], signal: dict[str, Any], route: dict[str, Any]) -> None:
-    data_signal = signal.get("data_signal")
-    if application_action.get("action_kind") not in {"command", "transition"} or not data_signal:
+    data_refresh_signal = signal.get("data_refresh_signal")
+    if application_action.get("action_kind") not in {"command", "transition"} or not data_refresh_signal:
         return
-    if data_signal == "loaded" or data_signal.endswith("_loaded"):
+    if data_refresh_signal == "loaded" or data_refresh_signal.endswith("_loaded"):
         has_loaded_payload = bool(signal.get("payload_bindings")) or "result_binding" in route or "context_updates" in route
         if not has_loaded_payload:
             warnings.warn(
-                f"{label} raises data signal {data_signal!r} from a mutation without binding loaded data; prefer changed/invalidated/completed signals and query refresh",
+                f"{label} raises data-refresh signal {data_refresh_signal!r} from a mutation without binding loaded data; prefer changed/invalidated/completed signals and query refresh",
                 ContractLintWarning,
                 stacklevel=3,
             )
@@ -1650,7 +1650,7 @@ def _validate_data_loaders(
             if outcome.get("emits")
         )
         if emitting_outcomes:
-            raise ContractError(f"{label} query application action outcomes must not emit durable events: {emitting_outcomes}")
+            raise ContractError(f"{label} query application action outcomes must not emit durable domain events: {emitting_outcomes}")
         if model and model not in application_action.get("reads", []):
             raise ContractError(f"{label} application action must read model {model}")
         _validate_runtime_binding_map(
@@ -1955,14 +1955,14 @@ def _query_result_item_type(result_type: Any) -> Any:
 
 def _validate_collection_empty_signal_routes(state_machine_id: str, state_machine: dict[str, Any]) -> None:
     for transition in state_machine.get("transitions", []):
-        if not _is_data_signal(transition["on"]):
+        if not _is_data_refresh_signal(transition["on"]):
             continue
-        signal_name = transition["on"]["data_signal"]
+        signal_name = transition["on"]["data_refresh_signal"]
         if not _is_empty_collection_signal(signal_name):
             continue
-        if not _query_routes_raise_data_signal(state_machine, signal_name):
+        if not _query_routes_raise_data_refresh_signal(state_machine, signal_name):
             raise ContractError(
-                f"state machine {state_machine_id} transition uses empty-collection signal data_signal.{signal_name} "
+                f"state machine {state_machine_id} transition uses empty-collection signal data_refresh_signal.{signal_name} "
                 "without an explicit query route raising it"
             )
 
@@ -1971,22 +1971,22 @@ def _is_empty_collection_signal(signal_name: str) -> bool:
     return signal_name.endswith("_empty") or "collection_empty" in signal_name
 
 
-def _query_routes_raise_data_signal(state_machine: dict[str, Any], signal_name: str) -> bool:
+def _query_routes_raise_data_refresh_signal(state_machine: dict[str, Any], signal_name: str) -> bool:
     for invocation in (state_machine.get("data_loaders") or {}).values():
-        if _data_loader_raises_data_signal(invocation, signal_name):
+        if _data_loader_raises_data_refresh_signal(invocation, signal_name):
             return True
     for state in state_machine.get("view_states", {}).values():
         for invocation in (state.get("data_loaders") or {}).values():
-            if _data_loader_raises_data_signal(invocation, signal_name):
+            if _data_loader_raises_data_refresh_signal(invocation, signal_name):
                 return True
     return False
 
 
-def _data_loader_raises_data_signal(invocation: dict[str, Any], signal_name: str) -> bool:
+def _data_loader_raises_data_refresh_signal(invocation: dict[str, Any], signal_name: str) -> bool:
     for route in (invocation.get("outcome_routes") or {}).values():
         for branch in _query_route_effect_branches(route):
             signal = branch.get("raise") or {}
-            if signal.get("data_signal") == signal_name:
+            if signal.get("data_refresh_signal") == signal_name:
                 return True
     return False
 
@@ -2034,11 +2034,11 @@ def _validate_state_machine_transitions(contract: dict[str, Any], state_machine_
     for transition in state_machine.get("transitions", []):
         if transition["from"] not in states or transition["to"] not in states:
             raise ContractError(f"state machine {state_machine_id} transition uses unknown state: {transition}")
-        if _is_data_signal(transition["on"]) and not _transition_data_bindings(state_machine, transition):
+        if _is_data_refresh_signal(transition["on"]) and not _transition_data_bindings(state_machine, transition):
             raise ContractError(
-                f"state machine {state_machine_id} transition uses data signal without state machine or source-state data: {_signal_label(transition['on'])}"
+                f"state machine {state_machine_id} transition uses data-refresh signal without state machine or source-state data: {_signal_label(transition['on'])}"
             )
-        message_payload = _state_machine_signal_payload(state_machine, "accepts", transition["on"], f"state machine {state_machine_id} transition signal")
+        local_signal_payload = _state_machine_signal_payload(state_machine, "accepts", transition["on"], f"state machine {state_machine_id} transition signal")
         for effect in transition.get("effects", []):
             kind, body = _one(effect, f"state machine {state_machine_id} transition effect")
             if kind == "set":
@@ -2050,17 +2050,17 @@ def _validate_state_machine_transitions(contract: dict[str, Any], state_machine_
                     f"state machine {state_machine_id} transition set {body['context']}",
                     binding,
                     state_machine["context"][body["context"]],
-                    {"message": _type_scope(message_payload), "context": _type_scope(state_machine.get("context", {}))},
+                    {"local_signal": _type_scope(local_signal_payload), "context": _type_scope(state_machine.get("context", {}))},
                     allow_nullable_source=False,
                 )
             elif kind == "emit":
-                emitted_payload = _state_machine_signal_payload(state_machine, "emits", {"message": body["message"]}, f"state machine {state_machine_id} transition emit")
+                emitted_payload = _state_machine_signal_payload(state_machine, "emits", {"local_signal": body["local_signal"]}, f"state machine {state_machine_id} transition emit")
                 _validate_payload_bindings(
                     contract=contract,
-                    label=f"state machine {state_machine_id} transition emit {body['message']} payload_bindings",
+                    label=f"state machine {state_machine_id} transition emit {body['local_signal']} payload_bindings",
                     bindings=body["payload_bindings"],
                     payload=emitted_payload,
-                    scopes={"message": _type_scope(message_payload), "context": _type_scope(state_machine.get("context", {}))},
+                    scopes={"local_signal": _type_scope(local_signal_payload), "context": _type_scope(state_machine.get("context", {}))},
                 )
             else:  # pragma: no cover - schema prevents this.
                 raise ContractError(f"state machine {state_machine_id} unsupported transition effect: {kind}")
@@ -2098,19 +2098,19 @@ def _validate_signals(state_machine_id: str, state_machine: dict[str, Any]) -> N
 
 def _lint_signal_names(state_machine_id: str, state_machine: dict[str, Any], signals: dict[str, Any]) -> None:
     view_states = set(state_machine.get("view_states", {}))
-    messages = set(signals.get("accepts", {}).get("messages", {})) | set(signals.get("emits", {}).get("messages", {}))
-    data_signal_specs = signals.get("accepts", {}).get("data_signals", {}) or {}
-    data_signals = set(data_signal_specs)
-    for name in sorted((messages | data_signals) & view_states):
+    local_signals = set(signals.get("accepts", {}).get("local_signals", {})) | set(signals.get("emits", {}).get("local_signals", {}))
+    data_refresh_signal_specs = signals.get("accepts", {}).get("data_refresh_signals", {}) or {}
+    data_refresh_signals = set(data_refresh_signal_specs)
+    for name in sorted((local_signals | data_refresh_signals) & view_states):
         warnings.warn(
             f"state machine {state_machine_id} signal {name!r} also names a view state; prefer event-like names such as project_loaded, project_load_failed, collection_empty, or application_action_failed",
             ContractLintWarning,
             stacklevel=3,
         )
-    for name, signal in sorted(data_signal_specs.items()):
+    for name, signal in sorted(data_refresh_signal_specs.items()):
         if name in {"ready", "error", "empty", "loaded"} and not signal.get("rationale"):
             warnings.warn(
-                f"state machine {state_machine_id} data signal {name!r} is state-like; prefer event-like names such as project_loaded, project_load_failed, collection_empty, or application_action_failed",
+                f"state machine {state_machine_id} data-refresh signal {name!r} is state-like; prefer event-like names such as project_loaded, project_load_failed, collection_empty, or application_action_failed",
                 ContractLintWarning,
                 stacklevel=3,
             )
@@ -2126,21 +2126,21 @@ def _lint_signal_names(state_machine_id: str, state_machine: dict[str, Any], sig
 
 def _declared_signal_keys(signals: dict[str, Any], direction: str) -> set[tuple[str, str]]:
     body = signals.get(direction) or {}
-    keys = {("message", name) for name in (body.get("messages") or {})}
+    keys = {("local_signal", name) for name in (body.get("local_signals") or {})}
     if direction == "accepts":
-        keys.update(("data_signal", name) for name in (body.get("data_signals") or {}))
+        keys.update(("data_refresh_signal", name) for name in (body.get("data_refresh_signals") or {}))
     return keys
 
 
 def _validate_state_machine_signal_payload_consistency(contract: dict[str, Any]) -> None:
     declared: dict[str, tuple[str, str, dict[str, Any]]] = {}
-    domain_events = set(contract.get("events", {}))
+    domain_events = set(contract.get("domain_events", {}))
     for state_machine_id, state_machine in contract.get("state_machines", {}).items():
         signals = state_machine.get("signals", _empty_signals())
-        for direction, groups in (("accepts", ("messages", "data_signals")), ("emits", ("messages",))):
+        for direction, groups in (("accepts", ("local_signals", "data_refresh_signals")), ("emits", ("local_signals",))):
             for group in groups:
                 for signal_id, signal in (signals.get(direction, {}).get(group) or {}).items():
-                    kind = "message" if group == "messages" else "data_signal"
+                    kind = "local_signal" if group == "local_signals" else "data_refresh_signal"
                     signal_key = f"{kind}.{signal_id}"
                     if signal_key in domain_events:
                         raise ContractError(f"state-machine signal {signal_key} conflicts with domain event {signal_key}")
@@ -2297,7 +2297,7 @@ def _state_machine_emits(state_machine: dict[str, Any]) -> set[tuple[str, str]]:
         for effect in transition.get("effects", []):
             kind, body = _one(effect, "state_machine transition effect")
             if kind == "emit":
-                emits.add(("message", body["message"]))
+                emits.add(("local_signal", body["local_signal"]))
     return emits
 
 
@@ -2315,7 +2315,7 @@ def _state_machine_accepts(state_machine: dict[str, Any]) -> set[tuple[str, str]
 
 def _state_machine_signal_payload(state_machine: dict[str, Any], direction: str, selector: dict[str, str], label: str) -> dict[str, Any]:
     kind, signal_id = _signal_selector_key(selector)
-    group = "messages" if kind == "message" else "data_signals"
+    group = "local_signals" if kind == "local_signal" else "data_refresh_signals"
     signal = state_machine.get("signals", {}).get(direction, {}).get(group, {}).get(signal_id)
     if not signal:
         raise ContractError(f"{label} references undeclared state-machine signal: {_signal_label((kind, signal_id))}")
@@ -2519,11 +2519,11 @@ def _signal_selector_key(selector: dict[str, str]) -> tuple[str, str]:
 
 
 def _signal_raise_selector_key(selector: dict[str, Any]) -> tuple[str, str]:
-    if "message" in selector:
-        return "message", selector["message"]
-    if "data_signal" in selector:
-        return "data_signal", selector["data_signal"]
-    raise ContractError(f"state-machine signal raise must declare message or data_signal: {selector}")
+    if "local_signal" in selector:
+        return "local_signal", selector["local_signal"]
+    if "data_refresh_signal" in selector:
+        return "data_refresh_signal", selector["data_refresh_signal"]
+    raise ContractError(f"state-machine signal raise must declare local_signal or data_refresh_signal: {selector}")
 
 
 def _signal_raise_selector(selector: dict[str, Any]) -> dict[str, str]:
@@ -2536,8 +2536,8 @@ def _signal_label(selector: dict[str, str] | tuple[str, str]) -> str:
     return f"{kind}.{name}"
 
 
-def _is_data_signal(signal: dict[str, str]) -> bool:
-    return _signal_selector_key(signal)[0] == "data_signal"
+def _is_data_refresh_signal(signal: dict[str, str]) -> bool:
+    return _signal_selector_key(signal)[0] == "data_refresh_signal"
 
 
 def _transition_data_bindings(state_machine: dict[str, Any], transition: dict[str, Any]) -> dict[str, Any]:
@@ -2553,7 +2553,7 @@ def _transition_target_data_bindings(state_machine: dict[str, Any], transition: 
 def _transition_has_audit_content(state_machine: dict[str, Any], transition: dict[str, Any]) -> bool:
     if transition.get("rationale") or transition.get("effects"):
         return True
-    if _is_data_signal(transition["on"]):
+    if _is_data_refresh_signal(transition["on"]):
         return bool(_transition_data_bindings(state_machine, transition))
     return bool(_transition_target_data_bindings(state_machine, transition))
 
@@ -2577,10 +2577,10 @@ def _validate_sync_rules(
         if source_id not in mounts:
             raise ContractError(f"composed state machine state {label} sync source instance is unknown: {source_id}")
         source_fsm = contract["state_machines"][mounts[source_id]["state_machine"]]
-        signal_id = rule["when"]["message"]
-        if ("message", signal_id) not in _state_machine_emits(source_fsm):
+        signal_id = rule["when"]["local_signal"]
+        if ("local_signal", signal_id) not in _state_machine_emits(source_fsm):
             raise ContractError(f"composed state machine state {label} sync listens for signal the source does not emit: {signal_id}")
-        source_payload = _state_machine_signal_payload(source_fsm, "emits", {"message": signal_id}, f"composed state machine state {label} sync trigger")
+        source_payload = _state_machine_signal_payload(source_fsm, "emits", {"local_signal": signal_id}, f"composed state machine state {label} sync trigger")
         for effect in rule["effects"]:
             kind, body = _one(effect, f"composed state machine state {label} sync effect")
             if kind == "set":
@@ -2592,7 +2592,7 @@ def _validate_sync_rules(
                     f"composed state machine state {label} sync set {body['context']}",
                     binding,
                     context[body["context"]],
-                    {"message": _type_scope(source_payload), "state_machine": _type_scope(context)},
+                    {"local_signal": _type_scope(source_payload), "state_machine": _type_scope(context)},
                     allow_nullable_source=False,
                 )
             elif kind == "send":
@@ -2600,15 +2600,15 @@ def _validate_sync_rules(
                 if target_id not in mounts:
                     raise ContractError(f"composed state machine state {label} sync sends to unknown instance: {target_id}")
                 target_fsm = contract["state_machines"][mounts[target_id]["state_machine"]]
-                if ("message", body["message"]) not in _state_machine_accepts(target_fsm):
-                    raise ContractError(f"composed state machine state {label} sync sends message the target does not accept: {body['message']}")
-                target_payload = _state_machine_signal_payload(target_fsm, "accepts", {"message": body["message"]}, f"composed state machine state {label} sync send")
+                if ("local_signal", body["local_signal"]) not in _state_machine_accepts(target_fsm):
+                    raise ContractError(f"composed state machine state {label} sync sends local_signal the target does not accept: {body['local_signal']}")
+                target_payload = _state_machine_signal_payload(target_fsm, "accepts", {"local_signal": body["local_signal"]}, f"composed state machine state {label} sync send")
                 _validate_payload_bindings(
                     contract=contract,
-                    label=f"composed state machine state {label} sync send {body['message']} to {target_id} payload_bindings",
+                    label=f"composed state machine state {label} sync send {body['local_signal']} to {target_id} payload_bindings",
                     bindings=body["payload_bindings"],
                     payload=target_payload,
-                    scopes={"message": _type_scope(source_payload), "state_machine": _type_scope(context)},
+                    scopes={"local_signal": _type_scope(source_payload), "state_machine": _type_scope(context)},
                 )
             else:  # pragma: no cover - schema prevents this.
                 raise ContractError(f"composed state machine state {label} unsupported sync effect: {kind}")
@@ -3144,12 +3144,12 @@ def _validate_api_entry_input(
 
 def _validate_event_payload_entry_input(contract: dict[str, Any], entry_id: str, entry: dict[str, Any], workflow_id: str) -> None:
     trigger = contract["workflows"][workflow_id]["trigger"]
-    if "event" not in trigger:
+    if "domain_event" not in trigger:
         return
-    event_id = trigger["event"]
-    event = contract["events"].get(event_id)
+    event_id = trigger["domain_event"]
+    event = contract["domain_events"].get(event_id)
     if not event:
-        raise ContractError(f"Entry {entry_id} workflow target source references unknown event {event_id}")
+        raise ContractError(f"Entry {entry_id} workflow target source references unknown domain event {event_id}")
     payload_type = entry_point_input(entry).get("payload")
     if not type_equals(payload_type, event["payload_schema"]):
         raise ContractError(f"Entry {entry_id} input.payload must be {type_display(event['payload_schema'])}, got {type_display(payload_type)}")
@@ -3731,8 +3731,8 @@ def _success_result_type(cap: dict[str, Any]) -> Any:
 def _validate_workflows(contract: dict[str, Any]) -> None:
     for wid, workflow in contract["workflows"].items():
         kind, value = _one(workflow["trigger"], f"workflow {wid} trigger")
-        if kind == "event" and value not in contract["events"]:
-            raise ContractError(f"Workflow {wid} trigger references unknown event {value}")
+        if kind == "domain_event" and value not in contract["domain_events"]:
+            raise ContractError(f"Workflow {wid} trigger references unknown domain event {value}")
         if kind == "application_action" and value not in contract["application_actions"]:
             raise ContractError(f"Workflow {wid} trigger references unknown application action {value}")
         _validate_workflow_outcomes(wid, workflow)
@@ -3779,8 +3779,8 @@ def _workflow_trigger_source_types(contract: dict[str, Any], workflow_id: str, w
 
 def _workflow_trigger_payload_type(contract: dict[str, Any], workflow_id: str, workflow: dict[str, Any]) -> Any:
     kind, value = _one(workflow["trigger"], f"workflow {workflow_id} trigger")
-    if kind == "event":
-        return contract["events"][value]["payload_schema"]
+    if kind == "domain_event":
+        return contract["domain_events"][value]["payload_schema"]
     return _success_result_type(contract["application_actions"][value])
 
 
@@ -4050,15 +4050,15 @@ def _validate_test_case_when(contract: dict[str, Any], test_case_id: str, test_c
     elif kind == "invoke_application_action":
         if ref not in contract["application_actions"]:
             raise ContractError(f"Test case {test_case_id} references unknown application action {ref}")
-    elif kind == "emit_event":
-        if ref not in contract["events"]:
-            raise ContractError(f"Test case {test_case_id} references unknown event {ref}")
+    elif kind == "emit_domain_event":
+        if ref not in contract["domain_events"]:
+            raise ContractError(f"Test case {test_case_id} references unknown domain event {ref}")
         _validate_test_case_event_payload(contract, test_case_id, ref, body.get("payload", {}))
     _validate_test_case_outcome(contract, test_case_id, test_case)
 
 
 def _validate_test_case_event_payload(contract: dict[str, Any], test_case_id: str, event_id: str, payload: dict[str, Any]) -> None:
-    event = contract["events"][event_id]
+    event = contract["domain_events"][event_id]
     fields = object_fields_for_type(contract, event["payload_schema"])
     if not fields:
         return
@@ -4073,7 +4073,7 @@ def _validate_test_case_event_payload(contract: dict[str, Any], test_case_id: st
         if extra:
             parts.append("extra: " + ", ".join(extra))
         raise ContractError(
-            f"Test case {test_case_id} emit_event.payload must exactly match event {event_id} payload "
+            f"Test case {test_case_id} emit_domain_event.payload must exactly match domain event {event_id} payload "
             f"{type_display(event['payload_schema'])}" + (": " + "; ".join(parts) if parts else "")
         )
 
@@ -4107,7 +4107,7 @@ def _validate_test_case_subject(contract: dict[str, Any], test_case_id: str, tes
     subject_kind, subject_value = _subject_ref(test_case["subject_ref"])
     collections = {
         "entry_point": "entry_points",
-        "event": "events",
+        "domain_event": "domain_events",
         "application_action": "application_actions",
         "state_machine": "state_machines",
         "workflow": "workflows",
@@ -4119,15 +4119,15 @@ def _validate_test_case_subject(contract: dict[str, Any], test_case_id: str, tes
     then = test_case["then"]
     application_action_ref = _test_case_application_action_ref(contract, when_kind, when_body)
     entry_ref = when_body["ref"] if when_kind in {"open_entry_point", "call_entry_point"} else None
-    event_ref = when_body["ref"] if when_kind == "emit_event" else None
+    domain_event_ref = when_body["ref"] if when_kind == "emit_domain_event" else None
     state_machine_ref = _test_case_state_machine_ref(contract, when_kind, when_body)
 
     if subject_kind == "entry_point" and entry_ref != subject_value:
         raise ContractError(f"Test case {test_case_id} subject_ref.entry_point must match the entry point under test")
     if subject_kind == "application_action" and application_action_ref != subject_value:
         raise ContractError(f"Test case {test_case_id} subject_ref.application_action must match the application action under test")
-    if subject_kind == "event" and event_ref != subject_value and subject_value not in (then.get("events") or {}).get("emitted", []):
-        raise ContractError(f"Test case {test_case_id} subject_ref.event must match the emitted event under test")
+    if subject_kind == "domain_event" and domain_event_ref != subject_value and subject_value not in (then.get("domain_events") or {}).get("emitted", []):
+        raise ContractError(f"Test case {test_case_id} subject_ref.domain_event must match the emitted domain event under test")
     if subject_kind == "state_machine":
         asserted = (then.get("state_machine") or {}).get("ref")
         if subject_value not in {state_machine_ref, asserted}:
@@ -4219,15 +4219,15 @@ def _validate_test_case_then(contract: dict[str, Any], test_case_id: str, test_c
         unknown_fields = sorted(set(model_exists["where"]) - set(contract["models"][model_id]["fields"]))
         if unknown_fields:
             raise ContractError(f"Test case {test_case_id} model.exists filters unknown {model_id} fields: {unknown_fields}")
-    events = then.get("events") or {}
-    emitted = set(events.get("emitted", []))
-    not_emitted = set(events.get("not_emitted", []))
+    domain_events = then.get("domain_events") or {}
+    emitted = set(domain_events.get("emitted", []))
+    not_emitted = set(domain_events.get("not_emitted", []))
     overlap = sorted(emitted & not_emitted)
     if overlap:
-        raise ContractError(f"Test case {test_case_id} asserts events as both emitted and not_emitted: {overlap}")
+        raise ContractError(f"Test case {test_case_id} asserts domain events as both emitted and not_emitted: {overlap}")
     for event_id in list(emitted) + list(not_emitted):
-        if event_id not in contract["events"]:
-            raise ContractError(f"Test case {test_case_id} asserts unknown event {event_id}")
+        if event_id not in contract["domain_events"]:
+            raise ContractError(f"Test case {test_case_id} asserts unknown domain event {event_id}")
     _validate_test_case_event_emissions(contract, test_case_id, test_case, emitted, not_emitted)
     _validate_test_case_invocations(contract, test_case_id, test_case)
     workflow = then.get("workflow")
@@ -4276,7 +4276,7 @@ def _validate_test_case_event_emissions(
 ) -> None:
     when_kind, when_body = _one(test_case["when"], f"test case {test_case_id} when")
     then = test_case["then"]
-    if when_kind == "emit_event":
+    if when_kind == "emit_domain_event":
         if when_body["ref"] in emitted:
             return
         return
@@ -4285,15 +4285,15 @@ def _validate_test_case_event_emissions(
     if not application_action_id or not outcome_id or outcome_id not in contract["application_actions"][application_action_id]["outcomes"]:
         return
     possible = {
-        _emit_event_id(emit)
+        _emit_domain_event_id(emit)
         for emit in contract["application_actions"][application_action_id]["outcomes"][outcome_id].get("emits", [])
     }
     unexpected = sorted(emitted - possible)
     if unexpected:
-        raise ContractError(f"Test case {test_case_id} asserts events not emitted by {application_action_id}.{outcome_id}: {unexpected}")
+        raise ContractError(f"Test case {test_case_id} asserts domain events not emitted by {application_action_id}.{outcome_id}: {unexpected}")
     contradicted = sorted(not_emitted & possible)
     if contradicted:
-        raise ContractError(f"Test case {test_case_id} asserts not_emitted events emitted by {application_action_id}.{outcome_id}: {contradicted}")
+        raise ContractError(f"Test case {test_case_id} asserts not_emitted domain events emitted by {application_action_id}.{outcome_id}: {contradicted}")
 
 
 def _validate_test_case_invocations(contract: dict[str, Any], test_case_id: str, test_case: dict[str, Any]) -> None:
@@ -4303,10 +4303,10 @@ def _validate_test_case_invocations(contract: dict[str, Any], test_case_id: str,
     when_kind, when_body = _one(test_case["when"], f"test case {test_case_id} when")
     direct = _test_case_application_action_ref(contract, when_kind, when_body)
     expected = {direct} if direct else set()
-    if when_kind == "emit_event":
+    if when_kind == "emit_domain_event":
         event_id = when_body["ref"]
         for workflow in contract["workflows"].values():
-            if workflow["trigger"] == {"event": event_id}:
+            if workflow["trigger"] == {"domain_event": event_id}:
                 expected.update(step["application_action"] for step in workflow["steps"])
     unexpected = sorted(invoked - expected)
     if unexpected:
@@ -4321,7 +4321,7 @@ def _workflow_can_run_from_test_case(contract: dict[str, Any], test_case: dict[s
     workflow = contract["workflows"][workflow_id]
     when_kind, when_body = _one(test_case["when"], "test case when")
     trigger_kind, trigger_ref = _one(workflow["trigger"], f"workflow {workflow_id} trigger")
-    if when_kind == "emit_event" and trigger_kind == "event":
+    if when_kind == "emit_domain_event" and trigger_kind == "domain_event":
         return when_body["ref"] == trigger_ref
     application_action_id = _test_case_application_action_ref(contract, when_kind, when_body)
     return trigger_kind == "application_action" and application_action_id == trigger_ref
@@ -4396,8 +4396,8 @@ def _validate_test_case_archetype(test_case_id: str, test_case: dict[str, Any]) 
             raise ContractError(f"Test case {test_case_id} entry_point_response requires call_entry_point, outcome, and response")
     elif archetype == "workflow_trigger_success":
         workflow = then.get("workflow", {})
-        if when_kind != "emit_event" or not workflow.get("executed") or "outcome" not in workflow:
-            raise ContractError(f"Test case {test_case_id} workflow_trigger_success requires emit_event, workflow.executed=true, and workflow.outcome")
+        if when_kind != "emit_domain_event" or not workflow.get("executed") or "outcome" not in workflow:
+            raise ContractError(f"Test case {test_case_id} workflow_trigger_success requires emit_domain_event, workflow.executed=true, and workflow.outcome")
     elif archetype == "authorization_denial":
         if not then.get("authorization", {}).get("denied"):
             raise ContractError(f"Test case {test_case_id} authorization_denial requires authorization.denied")

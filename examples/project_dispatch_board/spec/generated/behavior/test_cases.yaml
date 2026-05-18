@@ -7,28 +7,28 @@ test_cases:
       domain_facts: []
       seed_fixtures:
       - fixture.workspace.reviewer
-    rationale: Approval event dispatches the notification workflow.
+    rationale: Approval domain event dispatches the notification workflow.
     subject_ref:
       workflow: workflow.project.approval_notice
     then:
-      events:
+      domain_events:
         emitted:
-        - event.project.approved
+        - domain_event.project.approved
       invoked:
       - application_action.project.send_approval_notice
       workflow:
         executed: true
         outcome: completed
         ref: workflow.project.approval_notice
-    title: Approval event sends notice
+    title: Approval domain event sends notice
     when:
-      emit_event:
+      emit_domain_event:
         payload:
           approved_by:
             from: $fixture.actor.id
           project_id:
             value: project_submitted_1
-        ref: event.project.approved
+        ref: domain_event.project.approved
   test_case.project.approve.forbidden:
     archetype: authorization_denial
     feature_tag: project.approve
@@ -67,9 +67,9 @@ test_cases:
         denied:
         - application_action: application_action.project.approve
           authorization_policy: authorization_policy.project.reviewer
-      events:
+      domain_events:
         not_emitted:
-        - event.project.approved
+        - domain_event.project.approved
       outcome: forbidden
     title: Approval authorization maps forbidden outcome
     when:
@@ -110,7 +110,7 @@ test_cases:
               from: $fixture.workspace.id
       seed_fixtures:
       - fixture.workspace.reviewer
-    rationale: Approval transitions a submitted project to approved and emits the event.
+    rationale: Approval transitions a submitted project to approved and emits the domain event.
     subject_ref:
       application_action: application_action.project.approve
     then:
@@ -118,9 +118,9 @@ test_cases:
         allowed:
         - application_action: application_action.project.approve
           authorization_policy: authorization_policy.project.reviewer
-      events:
+      domain_events:
         emitted:
-        - event.project.approved
+        - domain_event.project.approved
       invoked:
       - application_action.project.approve
       model:
@@ -304,23 +304,23 @@ test_cases:
           - effects:
             - set:
                 context: selected_project_id
-                from: $message.project_id
+                from: $local_signal.project_id
             - send:
                 instance: detail
-                message: selection_changed
+                local_signal: selection_changed
                 payload_bindings:
                   project_id:
-                    from: $message.project_id
+                    from: $local_signal.project_id
             - send:
                 instance: activity
-                message: selection_changed
+                local_signal: selection_changed
                 payload_bindings:
                   project_id:
-                    from: $message.project_id
+                    from: $local_signal.project_id
             id: select_project_updates_state_machines
             when:
               instance: list
-              message: project_selected
+              local_signal: project_selected
         instances:
           activity:
             source: state_machine.project.activity
@@ -524,23 +524,23 @@ test_cases:
           - effects:
             - set:
                 context: selected_project_id
-                from: $message.project_id
+                from: $local_signal.project_id
             - send:
                 instance: detail
-                message: selection_changed
+                local_signal: selection_changed
                 payload_bindings:
                   project_id:
-                    from: $message.project_id
+                    from: $local_signal.project_id
             - send:
                 instance: activity
-                message: selection_changed
+                local_signal: selection_changed
                 payload_bindings:
                   project_id:
-                    from: $message.project_id
+                    from: $local_signal.project_id
             id: select_project_updates_state_machines
             when:
               instance: list
-              message: project_selected
+              local_signal: project_selected
         instances:
           activity:
             source: state_machine.project.activity
@@ -587,9 +587,9 @@ test_cases:
         allowed:
         - application_action: application_action.project.create
           authorization_policy: authorization_policy.project.member
-      events:
+      domain_events:
         emitted:
-        - event.project.created
+        - domain_event.project.created
       invoked:
       - application_action.project.create
       model:

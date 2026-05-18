@@ -1,6 +1,6 @@
-<svg width="1127pt" height="235pt"
- viewBox="0.00 0.00 1127.00 234.50" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: a66c71cd0125baab500e558e4878bc6e26d948adafffaf667de3aade5164c2ec -->
+<svg width="1147pt" height="235pt"
+ viewBox="0.00 0.00 1147.00 234.50" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: b4d7b8e9f4976ed6f2b34e013cfbf2639f3fffae8b9045d978d03c9ac276fdfb -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 216.5)">
 <title>state_machine_state_machine_project_activity</title>
 <!-- view_state_empty -->
@@ -16,13 +16,13 @@
 <text text-anchor="start" x="5.5" y="-8" font-family="Arial" font-size="10.00">text.project.activity.empty.body</text>
 <polygon fill="none" stroke="#0891b2" points="0,0 0,-82 159,-82 159,0 0,0"/>
 </g>
-<!-- transition_0_empty_ready_message_selection_changed -->
+<!-- transition_0_empty_ready_local_signal_selection_changed -->
 <g id="node3" class="node">
-<title>transition_0_empty_ready_message_selection_changed</title>
+<title>transition_0_empty_ready_local_signal_selection_changed</title>
 <polygon fill="#ffffff" stroke="transparent" points="220,-45 220,-161 479,-161 479,-45 220,-45"/>
 <polygon fill="#2563eb" stroke="transparent" points="221.5,-152 221.5,-160 478.5,-160 478.5,-152 221.5,-152"/>
 <polygon fill="#eff6ff" stroke="transparent" points="221.5,-121 221.5,-152 478.5,-152 478.5,-121 221.5,-121"/>
-<text text-anchor="start" x="225.5" y="-138.6" font-family="Arial" font-weight="bold" font-size="13.00">message.selection_changed</text>
+<text text-anchor="start" x="225.5" y="-138.6" font-family="Arial" font-weight="bold" font-size="13.00">local_signal.selection_changed</text>
 <text text-anchor="start" x="225.5" y="-127.6" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
 <text text-anchor="start" x="226.5" y="-109" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
 <text text-anchor="start" x="254.5" y="-109" font-family="Arial" font-size="10.00">  read_activity.project_id</text>
@@ -37,9 +37,9 @@
 <text text-anchor="start" x="225.5" y="-53" font-family="Arial" font-size="10.00">  authorization_policy.project.member</text>
 <polygon fill="none" stroke="#2563eb" points="220,-45 220,-161 479,-161 479,-45 220,-45"/>
 </g>
-<!-- view_state_empty&#45;&gt;transition_0_empty_ready_message_selection_changed -->
+<!-- view_state_empty&#45;&gt;transition_0_empty_ready_local_signal_selection_changed -->
 <g id="edge1" class="edge">
-<title>view_state_empty&#45;&gt;transition_0_empty_ready_message_selection_changed</title>
+<title>view_state_empty&#45;&gt;transition_0_empty_ready_local_signal_selection_changed</title>
 <path fill="none" stroke="#3f3f46" d="M159.1,-59.18C175.64,-63.01 193.55,-67.15 211.53,-71.31"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="211.36,-74.15 219.79,-73.22 212.63,-68.69 211.36,-74.15"/>
 </g>
@@ -68,37 +68,37 @@
 <text text-anchor="start" x="545.5" y="-41" font-family="Arial" font-size="10.00">  authorization_policy.project.member</text>
 <polygon fill="none" stroke="#71717a" points="540,-33.5 540,-198.5 845,-198.5 845,-33.5 540,-33.5"/>
 </g>
-<!-- transition_1_ready_empty_message_selection_cleared -->
+<!-- transition_1_ready_empty_local_signal_selection_cleared -->
 <g id="node4" class="node">
-<title>transition_1_ready_empty_message_selection_cleared</title>
-<polygon fill="#ffffff" stroke="transparent" points="906,-23 906,-85 1091,-85 1091,-23 906,-23"/>
-<polygon fill="#2563eb" stroke="transparent" points="907.5,-76 907.5,-84 1090.5,-84 1090.5,-76 907.5,-76"/>
-<polygon fill="#eff6ff" stroke="transparent" points="907.5,-45 907.5,-76 1090.5,-76 1090.5,-45 907.5,-45"/>
-<text text-anchor="start" x="911.5" y="-62.6" font-family="Arial" font-weight="bold" font-size="13.00">message.selection_cleared</text>
+<title>transition_1_ready_empty_local_signal_selection_cleared</title>
+<polygon fill="#ffffff" stroke="transparent" points="906,-23 906,-85 1111,-85 1111,-23 906,-23"/>
+<polygon fill="#2563eb" stroke="transparent" points="907.5,-76 907.5,-84 1110.5,-84 1110.5,-76 907.5,-76"/>
+<polygon fill="#eff6ff" stroke="transparent" points="907.5,-45 907.5,-76 1110.5,-76 1110.5,-45 907.5,-45"/>
+<text text-anchor="start" x="911.5" y="-62.6" font-family="Arial" font-weight="bold" font-size="13.00">local_signal.selection_cleared</text>
 <text text-anchor="start" x="911.5" y="-51.6" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
 <text text-anchor="start" x="912.5" y="-33" font-family="Arial" font-weight="bold" font-size="10.00">set:</text>
 <text text-anchor="start" x="929.5" y="-33" font-family="Arial" font-size="10.00">  project_id</text>
 <text text-anchor="start" x="978.5" y="-33" font-family="Arial" font-size="8.00" fill="#94a3b8">  nullable&lt;ID&gt;</text>
 <text text-anchor="start" x="1027.5" y="-33" font-family="Arial" font-size="8.00"> ← null</text>
-<polygon fill="none" stroke="#2563eb" points="906,-23 906,-85 1091,-85 1091,-23 906,-23"/>
+<polygon fill="none" stroke="#2563eb" points="906,-23 906,-85 1111,-85 1111,-23 906,-23"/>
 </g>
-<!-- view_state_ready&#45;&gt;transition_1_ready_empty_message_selection_cleared -->
+<!-- view_state_ready&#45;&gt;transition_1_ready_empty_local_signal_selection_cleared -->
 <g id="edge3" class="edge">
-<title>view_state_ready&#45;&gt;transition_1_ready_empty_message_selection_cleared</title>
-<path fill="none" stroke="#3f3f46" d="M845.05,-85.09C862.95,-81.44 880.85,-77.79 897.77,-74.34"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="898.71,-77.01 905.99,-72.66 897.59,-71.52 898.71,-77.01"/>
+<title>view_state_ready&#45;&gt;transition_1_ready_empty_local_signal_selection_cleared</title>
+<path fill="none" stroke="#3f3f46" d="M845.44,-86C863.06,-82.52 880.77,-79.02 897.68,-75.68"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="898.6,-78.36 905.91,-74.06 897.52,-72.86 898.6,-78.36"/>
 </g>
-<!-- transition_0_empty_ready_message_selection_changed&#45;&gt;view_state_ready -->
+<!-- transition_0_empty_ready_local_signal_selection_changed&#45;&gt;view_state_ready -->
 <g id="edge2" class="edge">
-<title>transition_0_empty_ready_message_selection_changed&#45;&gt;view_state_ready</title>
+<title>transition_0_empty_ready_local_signal_selection_changed&#45;&gt;view_state_ready</title>
 <path fill="none" stroke="#3f3f46" d="M479.42,-107.91C496.51,-108.57 514.19,-109.24 531.73,-109.91"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="531.67,-112.71 539.77,-110.22 531.88,-107.11 531.67,-112.71"/>
 </g>
-<!-- transition_1_ready_empty_message_selection_cleared&#45;&gt;view_state_empty -->
+<!-- transition_1_ready_empty_local_signal_selection_cleared&#45;&gt;view_state_empty -->
 <g id="edge4" class="edge">
-<title>transition_1_ready_empty_message_selection_cleared&#45;&gt;view_state_empty</title>
-<path fill="none" stroke="#3f3f46" d="M905.71,-30.13C885.83,-25.91 864.82,-22.18 845,-20 600.6,6.91 309.74,-16.1 167.53,-30.89"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="166.87,-28.14 159.21,-31.76 167.45,-33.71 166.87,-28.14"/>
+<title>transition_1_ready_empty_local_signal_selection_cleared&#45;&gt;view_state_empty</title>
+<path fill="none" stroke="#3f3f46" d="M905.72,-29.36C885.71,-25.46 864.78,-22.05 845,-20 600.42,5.31 309.64,-16.99 167.49,-31.26"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="166.85,-28.51 159.17,-32.1 167.41,-34.08 166.85,-28.51"/>
 </g>
 </g>
 </svg>

@@ -1,6 +1,6 @@
 <svg width="1255pt" height="492pt"
  viewBox="0.00 0.00 1255.00 491.50" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 7997fe81308b5585918240464d2eb43516381f790de1066df22558141b3606e4 -->
+<!-- pyspec-contract-input-sha256: 760454bd58310a253b4d24b6b3d54ddf65a692023be10e63765fa6ce7fef5231 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 473.5)">
 <title>application_action_application_action_project_create</title>
 <!-- application_action_input_application_action_project_create -->
@@ -166,13 +166,13 @@
 <text text-anchor="middle" x="768.5" y="-122.5" font-family="Arial" font-size="10.00">failure</text>
 </g>
 <!-- action_outcome_application_action_project_create_created&#45;&gt;action_outcome_application_action_project_create_forbidden -->
-<!-- application_action_event_application_action_project_create_event_project_created -->
+<!-- application_action_event_application_action_project_create_domain_event_project_created -->
 <g id="node8" class="node">
-<title>application_action_event_application_action_project_create_event_project_created</title>
+<title>application_action_event_application_action_project_create_domain_event_project_created</title>
 <polygon fill="#ffffff" stroke="transparent" points="1015,-365.5 1015,-455.5 1219,-455.5 1219,-365.5 1015,-365.5"/>
 <polygon fill="#4f46e5" stroke="transparent" points="1016,-446.5 1016,-454.5 1218,-454.5 1218,-446.5 1016,-446.5"/>
 <polygon fill="#eef2ff" stroke="transparent" points="1016,-415.5 1016,-446.5 1218,-446.5 1218,-415.5 1016,-415.5"/>
-<text text-anchor="start" x="1020" y="-433.1" font-family="Arial" font-weight="bold" font-size="13.00">event.project.created</text>
+<text text-anchor="start" x="1020" y="-433.1" font-family="Arial" font-weight="bold" font-size="13.00">domain_event.project.created</text>
 <text text-anchor="start" x="1020" y="-422.1" font-family="Arial" font-size="8.00" fill="#64748b">emitted event</text>
 <text text-anchor="start" x="1020" y="-404.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Members can create a new dispatch project.</text>
 <text text-anchor="start" x="1020" y="-385.5" font-family="Arial" font-weight="bold" font-size="10.00">payload</text>
@@ -180,9 +180,9 @@
 <text text-anchor="start" x="1054" y="-374.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
 <polygon fill="none" stroke="#4f46e5" points="1015,-365.5 1015,-455.5 1219,-455.5 1219,-365.5 1015,-365.5"/>
 </g>
-<!-- action_outcome_application_action_project_create_created&#45;&gt;application_action_event_application_action_project_create_event_project_created -->
+<!-- action_outcome_application_action_project_create_created&#45;&gt;application_action_event_application_action_project_create_domain_event_project_created -->
 <g id="edge4" class="edge">
-<title>action_outcome_application_action_project_create_created&#45;&gt;application_action_event_application_action_project_create_event_project_created</title>
+<title>action_outcome_application_action_project_create_created&#45;&gt;application_action_event_application_action_project_create_domain_event_project_created</title>
 <path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M911.75,-410.5C936.86,-410.5 972.26,-410.5 1006.54,-410.5"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="1006.76,-413.3 1014.76,-410.5 1006.76,-407.7 1006.76,-413.3"/>
 <text text-anchor="middle" x="974.5" y="-413.5" font-family="Arial" font-size="10.00">emit</text>

@@ -1,6 +1,6 @@
-<svg width="1361pt" height="617pt"
- viewBox="0.00 0.00 1361.00 616.50" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 87923d94180a68df385174aafc91166a1ffd907d471755303c596046ceef83eb -->
+<svg width="1366pt" height="617pt"
+ viewBox="0.00 0.00 1366.00 616.50" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: 471c20feb3603fee398451fe1fa085d4b38ab90e5bf2cd0fc6641bf5f760f9e2 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 598.5)">
 <title>application_action_application_action_project_archive</title>
 <!-- application_action_input_application_action_project_archive -->
@@ -163,25 +163,25 @@
 <text text-anchor="middle" x="875.5" y="-210.5" font-family="Arial" font-size="10.00">failure</text>
 </g>
 <!-- action_outcome_application_action_project_archive_archived&#45;&gt;action_outcome_application_action_project_archive_forbidden -->
-<!-- application_action_event_application_action_project_archive_event_project_archived -->
+<!-- application_action_event_application_action_project_archive_domain_event_project_archived -->
 <g id="node9" class="node">
-<title>application_action_event_application_action_project_archive_event_project_archived</title>
-<polygon fill="#ffffff" stroke="transparent" points="1121,-490.5 1121,-580.5 1325,-580.5 1325,-490.5 1121,-490.5"/>
-<polygon fill="#4f46e5" stroke="transparent" points="1122,-571.5 1122,-579.5 1324,-579.5 1324,-571.5 1122,-571.5"/>
-<polygon fill="#eef2ff" stroke="transparent" points="1122,-540.5 1122,-571.5 1324,-571.5 1324,-540.5 1122,-540.5"/>
-<text text-anchor="start" x="1126" y="-558.1" font-family="Arial" font-weight="bold" font-size="13.00">event.project.archived</text>
-<text text-anchor="start" x="1126" y="-547.1" font-family="Arial" font-size="8.00" fill="#64748b">emitted event</text>
-<text text-anchor="start" x="1126" y="-529.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approved dispatch projects can be archived.</text>
-<text text-anchor="start" x="1126" y="-510.5" font-family="Arial" font-weight="bold" font-size="10.00">payload</text>
-<text text-anchor="start" x="1126" y="-499.5" font-family="Arial" font-size="10.00">payload</text>
-<text text-anchor="start" x="1160" y="-499.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
-<polygon fill="none" stroke="#4f46e5" points="1121,-490.5 1121,-580.5 1325,-580.5 1325,-490.5 1121,-490.5"/>
+<title>application_action_event_application_action_project_archive_domain_event_project_archived</title>
+<polygon fill="#ffffff" stroke="transparent" points="1121,-490.5 1121,-580.5 1330,-580.5 1330,-490.5 1121,-490.5"/>
+<polygon fill="#4f46e5" stroke="transparent" points="1122.5,-571.5 1122.5,-579.5 1329.5,-579.5 1329.5,-571.5 1122.5,-571.5"/>
+<polygon fill="#eef2ff" stroke="transparent" points="1122.5,-540.5 1122.5,-571.5 1329.5,-571.5 1329.5,-540.5 1122.5,-540.5"/>
+<text text-anchor="start" x="1126.5" y="-558.1" font-family="Arial" font-weight="bold" font-size="13.00">domain_event.project.archived</text>
+<text text-anchor="start" x="1126.5" y="-547.1" font-family="Arial" font-size="8.00" fill="#64748b">emitted event</text>
+<text text-anchor="start" x="1126.5" y="-529.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approved dispatch projects can be archived.</text>
+<text text-anchor="start" x="1126.5" y="-510.5" font-family="Arial" font-weight="bold" font-size="10.00">payload</text>
+<text text-anchor="start" x="1126.5" y="-499.5" font-family="Arial" font-size="10.00">payload</text>
+<text text-anchor="start" x="1160.5" y="-499.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
+<polygon fill="none" stroke="#4f46e5" points="1121,-490.5 1121,-580.5 1330,-580.5 1330,-490.5 1121,-490.5"/>
 </g>
-<!-- action_outcome_application_action_project_archive_archived&#45;&gt;application_action_event_application_action_project_archive_event_project_archived -->
+<!-- action_outcome_application_action_project_archive_archived&#45;&gt;application_action_event_application_action_project_archive_domain_event_project_archived -->
 <g id="edge4" class="edge">
-<title>action_outcome_application_action_project_archive_archived&#45;&gt;application_action_event_application_action_project_archive_event_project_archived</title>
-<path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M1018.18,-535.5C1043.24,-535.5 1078.56,-535.5 1112.77,-535.5"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="1112.97,-538.3 1120.97,-535.5 1112.97,-532.7 1112.97,-538.3"/>
+<title>action_outcome_application_action_project_archive_archived&#45;&gt;application_action_event_application_action_project_archive_domain_event_project_archived</title>
+<path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M1018.03,-535.5C1043.03,-535.5 1078.34,-535.5 1112.7,-535.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="1112.94,-538.3 1120.94,-535.5 1112.94,-532.7 1112.94,-538.3"/>
 <text text-anchor="middle" x="1080.5" y="-538.5" font-family="Arial" font-size="10.00">emit</text>
 </g>
 <!-- action_outcome_application_action_project_archive_forbidden&#45;&gt;action_outcome_application_action_project_archive_invalid_state -->
