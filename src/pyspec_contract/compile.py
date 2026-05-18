@@ -196,6 +196,8 @@ def empty_compiled_contract(project: str) -> dict[str, Any]:
         "schemas": {},
         "entity_types": {},
         "authorization_policies": {},
+        "commands": {},
+        "queries": {},
         "application_actions": {},
         "domain_events": {},
         "state_machines": {},
@@ -213,6 +215,8 @@ AUTHOR_SECTION_ORDER = (
     "schemas",
     "entity_types",
     "authorization_policies",
+    "commands",
+    "queries",
     "application_actions",
     "domain_events",
     "state_machines",
@@ -337,6 +341,7 @@ def compile_author(author: dict[str, Any], layers: set[str] | None = None) -> di
             section[entity_id] = _compile_entity(entity, spec, contract)
 
     _derive_application_action_lifecycle_transitions(contract)
+    _derive_command_query_sections(contract)
     contract["domain_events"] = _derive_domain_events(contract)
     contract["refs"] = _derive_refs(contract)
     used_preconditions, used_assertions = _expand_behavior_scenario_predicate_refs(contract)
@@ -620,6 +625,79 @@ def _derive_application_action_lifecycle_transitions(contract: dict[str, Any]) -
         if not derived:
             continue
         application_action["lifecycle_transition"] = derived
+
+
+def _derive_command_query_sections(contract: dict[str, Any]) -> None:
+    commands: dict[str, Any] = {}
+    queries: dict[str, Any] = {}
+    for application_action_id, application_action in sorted(contract["application_actions"].items()):
+        if application_action["action_kind"] == "query":
+            queries[_operation_split_ref("query", application_action_id)] = _query_from_application_action(application_action)
+        else:
+            commands[_operation_split_ref("command", application_action_id)] = _command_from_application_action(application_action)
+    contract["commands"] = commands
+    contract["queries"] = queries
+
+
+def _operation_split_ref(kind: str, application_action_id: str) -> str:
+    if application_action_id.startswith("application_action."):
+        return f"{kind}.{application_action_id.removeprefix('application_action.')}"
+    if application_action_id.startswith(("command.", "query.")):
+        return application_action_id
+    return f"{kind}.{application_action_id}"
+
+
+def _outcomes_without_domain_event_emits(outcomes: dict[str, Any]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for outcome_id, outcome in sorted(outcomes.items()):
+        normalized = copy.deepcopy(outcome)
+        normalized.pop("emits", None)
+        result[outcome_id] = normalized
+    return result
+
+
+def _command_from_application_action(application_action: dict[str, Any]) -> dict[str, Any]:
+    effects: dict[str, Any] = {}
+    for field in ("creates", "updates", "deletes"):
+        values = list(application_action.get(field, []))
+        if values:
+            effects[field] = values
+    if application_action.get("lifecycle_transition"):
+        effects["lifecycle_transition"] = copy.deepcopy(application_action["lifecycle_transition"])
+
+    emits_domain_events: list[dict[str, Any]] = []
+    for outcome_id, outcome in sorted(application_action["outcomes"].items()):
+        for emit in outcome.get("emits", []):
+            item = copy.deepcopy(emit)
+            item["outcome"] = outcome_id
+            emits_domain_events.append(item)
+
+    command = {
+        "input_schema": application_action["input"],
+        "effects": effects,
+        "outcomes": _outcomes_without_domain_event_emits(application_action["outcomes"]),
+        "emits_domain_events": emits_domain_events,
+        "rationale": application_action["rationale"],
+    }
+    if application_action.get("authorization"):
+        command["authorization"] = copy.deepcopy(application_action["authorization"])
+    if application_action.get("retry_safe"):
+        command["retry_safe"] = True
+    return command
+
+
+def _query_from_application_action(application_action: dict[str, Any]) -> dict[str, Any]:
+    success_results = [
+        outcome["result"]
+        for outcome in application_action["outcomes"].values()
+        if outcome["kind"] == "success"
+    ]
+    return {
+        "input_schema": application_action["input"],
+        "result_schema": copy.deepcopy(success_results[0] if success_results else EMPTY_OBJECT_SCHEMA),
+        "outcomes": _outcomes_without_domain_event_emits(application_action["outcomes"]),
+        "rationale": application_action["rationale"],
+    }
 
 
 def _derive_domain_events(contract: dict[str, Any]) -> dict[str, Any]:

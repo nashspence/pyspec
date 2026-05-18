@@ -6,11 +6,11 @@
         "access_denied_as": {
           "$ref": "#/$defs/outcome_name"
         },
-        "policy": {
-          "$ref": "#/$defs/authorization_policy_ref"
-        },
         "authentication_required_as": {
           "$ref": "#/$defs/outcome_name"
+        },
+        "policy": {
+          "$ref": "#/$defs/authorization_policy_ref"
         }
       },
       "required": [
@@ -209,6 +209,28 @@
         "table"
       ]
     },
+    "assertion_body": {
+      "$ref": "#/$defs/precondition_body"
+    },
+    "assertion_item": {
+      "$ref": "#/$defs/precondition_item"
+    },
+    "assertion_ref": {
+      "pattern": "^assertion\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "type": "string"
+    },
+    "assertion_use": {
+      "additionalProperties": false,
+      "properties": {
+        "ref": {
+          "$ref": "#/$defs/assertion_ref"
+        }
+      },
+      "required": [
+        "ref"
+      ],
+      "type": "object"
+    },
     "asset_item": {
       "additionalProperties": false,
       "properties": {
@@ -289,10 +311,6 @@
       "pattern": "^asset\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
-    "render_example_id": {
-      "$ref": "#/$defs/local_name",
-      "description": "Local render example identifier within a view state."
-    },
     "authored_value": {
       "description": "Explicit authored literal-or-binding-expression value used by tests, preconditions, and render example inputs.",
       "oneOf": [
@@ -338,103 +356,6 @@
           },
           "type": "array",
           "uniqueItems": true
-        }
-      },
-      "type": "object"
-    },
-    "condition": {
-      "additionalProperties": false,
-      "oneOf": [
-        {
-          "required": [
-            "unconditional"
-          ]
-        },
-        {
-          "required": [
-            "input_present"
-          ]
-        },
-        {
-          "required": [
-            "entity_exists"
-          ]
-        },
-        {
-          "required": [
-            "entity_state_condition"
-          ]
-        },
-        {
-          "required": [
-            "subject_has_role"
-          ]
-        },
-        {
-          "required": [
-            "value_equals"
-          ]
-        }
-      ],
-      "properties": {
-        "entity_exists": {
-          "additionalProperties": false,
-          "properties": {
-            "entity_type": {
-              "$ref": "#/$defs/entity_type_ref"
-            }
-          },
-          "required": [
-            "entity_type"
-          ],
-          "type": "object"
-        },
-        "entity_state_condition": {
-          "additionalProperties": false,
-          "properties": {
-            "entity_type": {
-              "$ref": "#/$defs/entity_type_ref"
-            },
-            "equals": {
-              "$ref": "#/$defs/json_value"
-            },
-            "field": {
-              "$ref": "#/$defs/field_name"
-            }
-          },
-          "required": [
-            "entity_type",
-            "field",
-            "equals"
-          ],
-          "type": "object"
-        },
-        "input_present": {
-          "$ref": "#/$defs/field_name"
-        },
-        "subject_has_role": {
-          "$ref": "#/$defs/role_name"
-        },
-        "unconditional": {
-          "const": true,
-          "description": "Unconditional authorization condition; the only valid value is true."
-        },
-        "value_equals": {
-          "additionalProperties": false,
-          "description": "Compares two explicit authorization binding values for equality.",
-          "properties": {
-            "left": {
-              "$ref": "#/$defs/binding_value"
-            },
-            "right": {
-              "$ref": "#/$defs/binding_value"
-            }
-          },
-          "required": [
-            "left",
-            "right"
-          ],
-          "type": "object"
         }
       },
       "type": "object"
@@ -486,17 +407,17 @@
         "rationale": {
           "$ref": "#/$defs/rationale"
         },
-        "subjects": {
+        "resources": {
           "items": {
-            "$ref": "#/$defs/subject"
+            "$ref": "#/$defs/resource"
           },
           "minItems": 1,
           "type": "array",
           "uniqueItems": true
         },
-        "resources": {
+        "subjects": {
           "items": {
-            "$ref": "#/$defs/resource"
+            "$ref": "#/$defs/subject"
           },
           "minItems": 1,
           "type": "array",
@@ -516,54 +437,62 @@
       "pattern": "^authorization_policy\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
-    "subject": {
+    "behavior_scenario_item": {
       "additionalProperties": false,
       "properties": {
-        "kind": {
-          "enum": [
-            "actor",
-            "system",
-            "anonymous"
-          ]
+        "archetype": {
+          "type": "string"
         },
-        "source": {
-          "$ref": "#/$defs/binding_expression"
+        "feature_tag": {
+          "$ref": "#/$defs/feature_tag"
+        },
+        "given": {
+          "$ref": "#/$defs/given"
+        },
+        "rationale": {
+          "$ref": "#/$defs/rationale"
+        },
+        "system_under_test_ref": {
+          "$ref": "#/$defs/system_under_test_ref"
+        },
+        "then": {
+          "$ref": "#/$defs/then"
+        },
+        "title": {
+          "type": "string"
+        },
+        "when": {
+          "$ref": "#/$defs/when"
         }
       },
       "required": [
-        "kind"
+        "feature_tag",
+        "title",
+        "archetype",
+        "system_under_test_ref",
+        "given",
+        "when",
+        "then",
+        "rationale"
       ],
       "type": "object"
     },
-    "resource": {
-      "additionalProperties": false,
-      "oneOf": [
-        {
-          "required": [
-            "entity_type"
-          ]
-        },
-        {
-          "required": [
-            "action"
-          ]
-        },
-        {
-          "required": [
-            "entry_point"
-          ]
-        }
-      ],
-      "properties": {
-        "action": {
-          "$ref": "#/$defs/application_action_ref"
-        },
-        "entity_type": {
-          "$ref": "#/$defs/entity_type_ref"
-        },
-        "entry_point": {
-          "$ref": "#/$defs/entry_point_ref"
-        }
+    "behavior_scenario_ref": {
+      "pattern": "^behavior_scenario\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "type": "string"
+    },
+    "binding_expression": {
+      "description": "Shared binding expression using $root.path.to.field syntax. Context-specific compiler validation restricts allowed roots and field paths.",
+      "pattern": "^\\$[a-z][a-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+$",
+      "type": "string"
+    },
+    "binding_map": {
+      "additionalProperties": {
+        "$ref": "#/$defs/binding_value"
+      },
+      "description": "Map from target field names to explicit binding values.",
+      "propertyNames": {
+        "$ref": "#/$defs/field_name"
       },
       "type": "object"
     },
@@ -727,6 +656,231 @@
       "minProperties": 1,
       "propertyNames": {
         "$ref": "#/$defs/outcome_name"
+      },
+      "type": "object"
+    },
+    "command_domain_event_emit": {
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "payload_source"
+          ]
+        },
+        {
+          "required": [
+            "payload_bindings"
+          ]
+        }
+      ],
+      "properties": {
+        "domain_event": {
+          "$ref": "#/$defs/domain_event_ref"
+        },
+        "outcome": {
+          "$ref": "#/$defs/outcome_name"
+        },
+        "payload_bindings": {
+          "$ref": "#/$defs/binding_map"
+        },
+        "payload_source": {
+          "$ref": "#/$defs/binding_expression"
+        }
+      },
+      "required": [
+        "domain_event",
+        "outcome"
+      ],
+      "type": "object"
+    },
+    "command_effects": {
+      "additionalProperties": false,
+      "properties": {
+        "creates": {
+          "items": {
+            "$ref": "#/$defs/entity_type_ref"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "deletes": {
+          "items": {
+            "$ref": "#/$defs/entity_type_ref"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "lifecycle_transition": {
+          "additionalProperties": false,
+          "properties": {
+            "entity_type": {
+              "$ref": "#/$defs/entity_type_ref"
+            },
+            "field": {
+              "$ref": "#/$defs/field_name"
+            },
+            "from": {
+              "type": "string"
+            },
+            "to": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "entity_type",
+            "field",
+            "from",
+            "to"
+          ],
+          "type": "object"
+        },
+        "updates": {
+          "items": {
+            "$ref": "#/$defs/entity_type_ref"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "type": "object"
+    },
+    "command_item": {
+      "additionalProperties": false,
+      "properties": {
+        "authorization": {
+          "$ref": "#/$defs/action_authorization"
+        },
+        "effects": {
+          "$ref": "#/$defs/command_effects"
+        },
+        "emits_domain_events": {
+          "items": {
+            "$ref": "#/$defs/command_domain_event_emit"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "input_schema": {
+          "$ref": "#/$defs/schema"
+        },
+        "outcomes": {
+          "$ref": "#/$defs/operation_outcomes"
+        },
+        "rationale": {
+          "$ref": "#/$defs/rationale"
+        },
+        "retry_safe": {
+          "description": "Explicitly marks a command as safe for automatic command-level retries.",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "input_schema",
+        "effects",
+        "outcomes",
+        "emits_domain_events",
+        "rationale"
+      ],
+      "type": "object"
+    },
+    "command_ref": {
+      "pattern": "^command\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "type": "string"
+    },
+    "condition": {
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "unconditional"
+          ]
+        },
+        {
+          "required": [
+            "input_present"
+          ]
+        },
+        {
+          "required": [
+            "entity_exists"
+          ]
+        },
+        {
+          "required": [
+            "entity_state_condition"
+          ]
+        },
+        {
+          "required": [
+            "subject_has_role"
+          ]
+        },
+        {
+          "required": [
+            "value_equals"
+          ]
+        }
+      ],
+      "properties": {
+        "entity_exists": {
+          "additionalProperties": false,
+          "properties": {
+            "entity_type": {
+              "$ref": "#/$defs/entity_type_ref"
+            }
+          },
+          "required": [
+            "entity_type"
+          ],
+          "type": "object"
+        },
+        "entity_state_condition": {
+          "additionalProperties": false,
+          "properties": {
+            "entity_type": {
+              "$ref": "#/$defs/entity_type_ref"
+            },
+            "equals": {
+              "$ref": "#/$defs/json_value"
+            },
+            "field": {
+              "$ref": "#/$defs/field_name"
+            }
+          },
+          "required": [
+            "entity_type",
+            "field",
+            "equals"
+          ],
+          "type": "object"
+        },
+        "input_present": {
+          "$ref": "#/$defs/field_name"
+        },
+        "subject_has_role": {
+          "$ref": "#/$defs/role_name"
+        },
+        "unconditional": {
+          "const": true,
+          "description": "Unconditional authorization condition; the only valid value is true."
+        },
+        "value_equals": {
+          "additionalProperties": false,
+          "description": "Compares two explicit authorization binding values for equality.",
+          "properties": {
+            "left": {
+              "$ref": "#/$defs/binding_value"
+            },
+            "right": {
+              "$ref": "#/$defs/binding_value"
+            }
+          },
+          "required": [
+            "left",
+            "right"
+          ],
+          "type": "object"
+        }
       },
       "type": "object"
     },
@@ -1334,160 +1488,6 @@
       ],
       "type": "object"
     },
-    "precondition_body": {
-      "oneOf": [
-        {
-          "additionalProperties": false,
-          "properties": {
-            "absent": {
-              "additionalProperties": false,
-              "properties": {
-                "entity_type": {
-                  "$ref": "#/$defs/entity_type_ref"
-                },
-                "where": {
-                  "$ref": "#/$defs/value_map"
-                }
-              },
-              "required": [
-                "entity_type",
-                "where"
-              ],
-              "type": "object"
-            }
-          },
-          "required": [
-            "absent"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "present": {
-              "additionalProperties": false,
-              "properties": {
-                "entity_type": {
-                  "$ref": "#/$defs/entity_type_ref"
-                },
-                "values": {
-                  "$ref": "#/$defs/value_map"
-                }
-              },
-              "required": [
-                "entity_type",
-                "values"
-              ],
-              "type": "object"
-            }
-          },
-          "required": [
-            "present"
-          ],
-          "type": "object"
-        }
-      ]
-    },
-    "precondition_item": {
-      "oneOf": [
-        {
-          "additionalProperties": false,
-          "properties": {
-            "absent": {
-              "additionalProperties": false,
-              "properties": {
-                "entity_type": {
-                  "$ref": "#/$defs/entity_type_ref"
-                },
-                "where": {
-                  "$ref": "#/$defs/value_map"
-                }
-              },
-              "required": [
-                "entity_type",
-                "where"
-              ],
-              "type": "object"
-            },
-            "rationale": {
-              "$ref": "#/$defs/rationale"
-            }
-          },
-          "required": [
-            "absent",
-            "rationale"
-          ],
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "present": {
-              "additionalProperties": false,
-              "properties": {
-                "entity_type": {
-                  "$ref": "#/$defs/entity_type_ref"
-                },
-                "values": {
-                  "$ref": "#/$defs/value_map"
-                }
-              },
-              "required": [
-                "entity_type",
-                "values"
-              ],
-              "type": "object"
-            },
-            "rationale": {
-              "$ref": "#/$defs/rationale"
-            }
-          },
-          "required": [
-            "present",
-            "rationale"
-          ],
-          "type": "object"
-        }
-      ]
-    },
-    "precondition_ref": {
-      "pattern": "^precondition\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
-      "type": "string"
-    },
-    "precondition_use": {
-      "additionalProperties": false,
-      "properties": {
-        "ref": {
-          "$ref": "#/$defs/precondition_ref"
-        }
-      },
-      "required": [
-        "ref"
-      ],
-      "type": "object"
-    },
-    "assertion_body": {
-      "$ref": "#/$defs/precondition_body"
-    },
-    "assertion_item": {
-      "$ref": "#/$defs/precondition_item"
-    },
-    "assertion_ref": {
-      "pattern": "^assertion\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
-      "type": "string"
-    },
-    "assertion_use": {
-      "additionalProperties": false,
-      "properties": {
-        "ref": {
-          "$ref": "#/$defs/assertion_ref"
-        }
-      },
-      "required": [
-        "ref"
-      ],
-      "type": "object"
-    },
     "feature_tag": {
       "description": "Unprefixed dotted feature grouping tag; feature tags are labels, not typed references.",
       "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
@@ -1939,9 +1939,171 @@
       "$ref": "#/$defs/local_name",
       "description": "State-machine-local signal name."
     },
+    "operation_outcome": {
+      "additionalProperties": false,
+      "description": "Command or query outcome without embedded domain-event emission metadata.",
+      "properties": {
+        "kind": {
+          "enum": [
+            "success",
+            "failure"
+          ]
+        },
+        "result": {
+          "$ref": "#/$defs/schema"
+        }
+      },
+      "required": [
+        "kind",
+        "result"
+      ],
+      "type": "object"
+    },
+    "operation_outcomes": {
+      "additionalProperties": {
+        "$ref": "#/$defs/operation_outcome"
+      },
+      "minProperties": 2,
+      "propertyNames": {
+        "$ref": "#/$defs/outcome_name"
+      },
+      "type": "object"
+    },
     "outcome_name": {
       "$ref": "#/$defs/local_name",
       "description": "Local application-action or workflow outcome identifier."
+    },
+    "precondition_body": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "absent": {
+              "additionalProperties": false,
+              "properties": {
+                "entity_type": {
+                  "$ref": "#/$defs/entity_type_ref"
+                },
+                "where": {
+                  "$ref": "#/$defs/value_map"
+                }
+              },
+              "required": [
+                "entity_type",
+                "where"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "absent"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "present": {
+              "additionalProperties": false,
+              "properties": {
+                "entity_type": {
+                  "$ref": "#/$defs/entity_type_ref"
+                },
+                "values": {
+                  "$ref": "#/$defs/value_map"
+                }
+              },
+              "required": [
+                "entity_type",
+                "values"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "present"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "precondition_item": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "absent": {
+              "additionalProperties": false,
+              "properties": {
+                "entity_type": {
+                  "$ref": "#/$defs/entity_type_ref"
+                },
+                "where": {
+                  "$ref": "#/$defs/value_map"
+                }
+              },
+              "required": [
+                "entity_type",
+                "where"
+              ],
+              "type": "object"
+            },
+            "rationale": {
+              "$ref": "#/$defs/rationale"
+            }
+          },
+          "required": [
+            "absent",
+            "rationale"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "present": {
+              "additionalProperties": false,
+              "properties": {
+                "entity_type": {
+                  "$ref": "#/$defs/entity_type_ref"
+                },
+                "values": {
+                  "$ref": "#/$defs/value_map"
+                }
+              },
+              "required": [
+                "entity_type",
+                "values"
+              ],
+              "type": "object"
+            },
+            "rationale": {
+              "$ref": "#/$defs/rationale"
+            }
+          },
+          "required": [
+            "present",
+            "rationale"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "precondition_ref": {
+      "pattern": "^precondition\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "type": "string"
+    },
+    "precondition_use": {
+      "additionalProperties": false,
+      "properties": {
+        "ref": {
+          "$ref": "#/$defs/precondition_ref"
+        }
+      },
+      "required": [
+        "ref"
+      ],
+      "type": "object"
     },
     "python_class_name": {
       "pattern": "^[A-Z][A-Za-z0-9]*$",
@@ -1949,6 +2111,34 @@
     },
     "python_identifier": {
       "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$",
+      "type": "string"
+    },
+    "query_item": {
+      "additionalProperties": false,
+      "properties": {
+        "input_schema": {
+          "$ref": "#/$defs/schema"
+        },
+        "outcomes": {
+          "$ref": "#/$defs/operation_outcomes"
+        },
+        "rationale": {
+          "$ref": "#/$defs/rationale"
+        },
+        "result_schema": {
+          "$ref": "#/$defs/schema"
+        }
+      },
+      "required": [
+        "input_schema",
+        "result_schema",
+        "outcomes",
+        "rationale"
+      ],
+      "type": "object"
+    },
+    "query_ref": {
+      "pattern": "^query\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
     "query_result_binding": {
@@ -2000,6 +2190,49 @@
     "region_id": {
       "$ref": "#/$defs/local_name",
       "description": "Local HTML layout region identifier within a view state."
+    },
+    "render_example": {
+      "additionalProperties": false,
+      "description": "Render example for a state-machine view state. Global render profiles are applied by tooling; render examples do not reference render profiles.",
+      "properties": {
+        "context": {
+          "$ref": "#/$defs/value_map"
+        },
+        "instances": {
+          "additionalProperties": {
+            "$ref": "#/$defs/view_state_assertion"
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/instance_id"
+          },
+          "type": "object"
+        },
+        "precondition_refs": {
+          "description": "Precondition references used to seed rendered entity_type state for this render example.",
+          "items": {
+            "$ref": "#/$defs/precondition_use"
+          },
+          "type": "array"
+        },
+        "rationale": {
+          "$ref": "#/$defs/rationale"
+        },
+        "seed_fixtures": {
+          "items": {
+            "$ref": "#/$defs/fixture_ref"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "seed_fixtures"
+      ],
+      "type": "object"
+    },
+    "render_example_id": {
+      "$ref": "#/$defs/local_name",
+      "description": "Local render example identifier within a view state."
     },
     "render_profile_item": {
       "additionalProperties": false,
@@ -2065,6 +2298,38 @@
       },
       "type": "object"
     },
+    "resource": {
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "entity_type"
+          ]
+        },
+        {
+          "required": [
+            "action"
+          ]
+        },
+        {
+          "required": [
+            "entry_point"
+          ]
+        }
+      ],
+      "properties": {
+        "action": {
+          "$ref": "#/$defs/application_action_ref"
+        },
+        "entity_type": {
+          "$ref": "#/$defs/entity_type_ref"
+        },
+        "entry_point": {
+          "$ref": "#/$defs/entry_point_ref"
+        }
+      },
+      "type": "object"
+    },
     "role_name": {
       "$ref": "#/$defs/local_name",
       "description": "Local authorization role name."
@@ -2072,21 +2337,6 @@
     "rule_id": {
       "$ref": "#/$defs/local_name",
       "description": "Local state-machine synchronization rule identifier."
-    },
-    "binding_map": {
-      "additionalProperties": {
-        "$ref": "#/$defs/binding_value"
-      },
-      "description": "Map from target field names to explicit binding values.",
-      "propertyNames": {
-        "$ref": "#/$defs/field_name"
-      },
-      "type": "object"
-    },
-    "binding_expression": {
-      "description": "Shared binding expression using $root.path.to.field syntax. Context-specific compiler validation restricts allowed roots and field paths.",
-      "pattern": "^\\$[a-z][a-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+$",
-      "type": "string"
     },
     "scalar": {
       "type": [
@@ -2680,45 +2930,6 @@
       "pattern": "^state_machine\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
-    "render_example": {
-      "additionalProperties": false,
-      "description": "Render example for a state-machine view state. Global render profiles are applied by tooling; render examples do not reference render profiles.",
-      "properties": {
-        "context": {
-          "$ref": "#/$defs/value_map"
-        },
-        "precondition_refs": {
-          "description": "Precondition references used to seed rendered entity_type state for this render example.",
-          "items": {
-            "$ref": "#/$defs/precondition_use"
-          },
-          "type": "array"
-        },
-        "instances": {
-          "additionalProperties": {
-            "$ref": "#/$defs/view_state_assertion"
-          },
-          "propertyNames": {
-            "$ref": "#/$defs/instance_id"
-          },
-          "type": "object"
-        },
-        "rationale": {
-          "$ref": "#/$defs/rationale"
-        },
-        "seed_fixtures": {
-          "items": {
-            "$ref": "#/$defs/fixture_ref"
-          },
-          "type": "array",
-          "uniqueItems": true
-        }
-      },
-      "required": [
-        "seed_fixtures"
-      ],
-      "type": "object"
-    },
     "state_machine_signal": {
       "additionalProperties": false,
       "properties": {
@@ -2929,6 +3140,25 @@
       ],
       "type": "object"
     },
+    "subject": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "actor",
+            "system",
+            "anonymous"
+          ]
+        },
+        "source": {
+          "$ref": "#/$defs/binding_expression"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "type": "object"
+    },
     "system_under_test_ref": {
       "additionalProperties": false,
       "description": "Typed reference to the primary resource under test.",
@@ -2952,50 +3182,6 @@
         }
       },
       "type": "object"
-    },
-    "behavior_scenario_item": {
-      "additionalProperties": false,
-      "properties": {
-        "archetype": {
-          "type": "string"
-        },
-        "feature_tag": {
-          "$ref": "#/$defs/feature_tag"
-        },
-        "given": {
-          "$ref": "#/$defs/given"
-        },
-        "rationale": {
-          "$ref": "#/$defs/rationale"
-        },
-        "system_under_test_ref": {
-          "$ref": "#/$defs/system_under_test_ref"
-        },
-        "then": {
-          "$ref": "#/$defs/then"
-        },
-        "title": {
-          "type": "string"
-        },
-        "when": {
-          "$ref": "#/$defs/when"
-        }
-      },
-      "required": [
-        "feature_tag",
-        "title",
-        "archetype",
-        "system_under_test_ref",
-        "given",
-        "when",
-        "then",
-        "rationale"
-      ],
-      "type": "object"
-    },
-    "behavior_scenario_ref": {
-      "pattern": "^behavior_scenario\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
-      "type": "string"
     },
     "text_ref": {
       "pattern": "^text\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
@@ -3295,19 +3481,6 @@
           },
           "type": "object"
         },
-        "postconditions": {
-          "items": {
-            "oneOf": [
-              {
-                "$ref": "#/$defs/assertion_body"
-              },
-              {
-                "$ref": "#/$defs/assertion_use"
-              }
-            ]
-          },
-          "type": "array"
-        },
         "forbids": {
           "items": {
             "$ref": "#/$defs/application_action_ref"
@@ -3324,6 +3497,19 @@
         },
         "outcome": {
           "$ref": "#/$defs/outcome_name"
+        },
+        "postconditions": {
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/assertion_body"
+              },
+              {
+                "$ref": "#/$defs/assertion_use"
+              }
+            ]
+          },
+          "type": "array"
         },
         "requires": {
           "additionalProperties": false,
@@ -3914,6 +4100,15 @@
       },
       "type": "object"
     },
+    "assertions": {
+      "additionalProperties": {
+        "$ref": "#/$defs/assertion_item"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/assertion_ref"
+      },
+      "type": "object"
+    },
     "assets": {
       "additionalProperties": {
         "$ref": "#/$defs/asset_item"
@@ -3929,6 +4124,24 @@
       },
       "propertyNames": {
         "$ref": "#/$defs/authorization_policy_ref"
+      },
+      "type": "object"
+    },
+    "behavior_scenarios": {
+      "additionalProperties": {
+        "$ref": "#/$defs/behavior_scenario_item"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/behavior_scenario_ref"
+      },
+      "type": "object"
+    },
+    "commands": {
+      "additionalProperties": {
+        "$ref": "#/$defs/command_item"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/command_ref"
       },
       "type": "object"
     },
@@ -3968,24 +4181,6 @@
       },
       "type": "object"
     },
-    "preconditions": {
-      "additionalProperties": {
-        "$ref": "#/$defs/precondition_item"
-      },
-      "propertyNames": {
-        "$ref": "#/$defs/precondition_ref"
-      },
-      "type": "object"
-    },
-    "assertions": {
-      "additionalProperties": {
-        "$ref": "#/$defs/assertion_item"
-      },
-      "propertyNames": {
-        "$ref": "#/$defs/assertion_ref"
-      },
-      "type": "object"
-    },
     "fixtures": {
       "additionalProperties": {
         "$ref": "#/$defs/fixture_item"
@@ -3995,9 +4190,27 @@
       },
       "type": "object"
     },
+    "preconditions": {
+      "additionalProperties": {
+        "$ref": "#/$defs/precondition_item"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/precondition_ref"
+      },
+      "type": "object"
+    },
     "project": {
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
+    },
+    "queries": {
+      "additionalProperties": {
+        "$ref": "#/$defs/query_item"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/query_ref"
+      },
+      "type": "object"
     },
     "refs": {
       "additionalProperties": {
@@ -4033,15 +4246,6 @@
       },
       "propertyNames": {
         "$ref": "#/$defs/state_machine_ref"
-      },
-      "type": "object"
-    },
-    "behavior_scenarios": {
-      "additionalProperties": {
-        "$ref": "#/$defs/behavior_scenario_item"
-      },
-      "propertyNames": {
-        "$ref": "#/$defs/behavior_scenario_ref"
       },
       "type": "object"
     },
@@ -4081,7 +4285,9 @@
     "behavior_scenarios",
     "refs",
     "content_examples",
-    "state_machines"
+    "state_machines",
+    "commands",
+    "queries"
   ],
   "title": "Compiled-Output Product Spec",
   "type": "object"

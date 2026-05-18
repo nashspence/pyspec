@@ -558,7 +558,21 @@ def _non_visual_path_classification(contract: dict[str, Any], pointer: str) -> d
         return {
             "reason": "compiled reference index metadata; owning resources are covered at their compiled spec paths",
         }
+    if parts[0] in {"commands", "queries"}:
+        operation_ref = _application_action_ref_from_split(parts[0], parts[1] if len(parts) > 1 else "")
+        return {
+            "reason": "derived command/query split; visual coverage remains anchored to executable operation diagrams",
+            "evidence": _application_action_evidence_files(contract, operation_ref),
+        }
     return None
+
+
+def _application_action_ref_from_split(collection: str, operation_ref: str) -> str:
+    if collection == "commands" and operation_ref.startswith("command."):
+        return "application_action." + operation_ref.removeprefix("command.")
+    if collection == "queries" and operation_ref.startswith("query."):
+        return "application_action." + operation_ref.removeprefix("query.")
+    return operation_ref
 
 
 def _visual_path_obligation(contract: dict[str, Any], pointer: str) -> dict[str, str]:

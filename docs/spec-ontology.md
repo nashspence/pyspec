@@ -22,7 +22,9 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - <!-- top-level:assertions --> `assertions`: reusable entity_type presence/absence expected predicates referenced by behavior-scenario `then.postconditions`; assertions are not setup predicates or invariants.
 - <!-- top-level:fixtures --> `fixtures`: named concrete seed data namespaces used by behavior scenarios, preconditions, assertions, content examples, and render examples.
 - <!-- top-level:entity_types --> `entity_types`: collection-prefixed stable product/domain entity type ids such as `entity_type.project`, each with a PascalCase display/type `name` such as `Project`, fields, and optional `entity_lifecycle` declarations. Entity types are not ORM types, API contracts, generated implementation classes, or storage schemas.
-- <!-- top-level:application_actions --> `application_actions`: executable product application actions with typed input, effects, outcomes, emitted domain events, and optional explicit authorization mapping.
+- <!-- top-level:commands --> `commands`: effectful product operations with `input_schema`, optional authorization, explicit effects, outcomes, and `emits_domain_events`.
+- <!-- top-level:queries --> `queries`: read-only product operations with `input_schema`, `result_schema`, and outcomes.
+- <!-- top-level:application_actions --> `application_actions`: compatibility executable operation catalog used by existing target/projection slots while commands and queries are split out.
 - <!-- top-level:authorization_policies --> `authorization_policies`: authorization policies with subjects, authorization resources, conditions, and effect.
 - <!-- top-level:project --> `project`: the project slug for the specification workspace.
 - <!-- top-level:refs --> `refs`: compiled-only index of generated references used by projections and tests.
@@ -338,6 +340,8 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:authored_entity_type --> `$defs/authored_entity_type`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_authorization_policy --> `$defs/authored_authorization_policy`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_application_action --> `$defs/authored_application_action`: human-authored source object for this resource or nested contract.
+- <!-- schema-def:authored_command --> `$defs/authored_command`: human-authored command with input_schema, authorization, effects, outcomes, and emitted domain-event mappings.
+- <!-- schema-def:authored_query --> `$defs/authored_query`: human-authored query with input_schema, result_schema, and outcomes.
 - <!-- schema-def:authored_state_machine --> `$defs/authored_state_machine`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_view_state --> `$defs/authored_view_state`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:authored_workflow --> `$defs/authored_workflow`: human-authored source object for this resource or nested contract.
@@ -403,6 +407,12 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:action_binding_id --> `$defs/action_binding_id`: local view-state action binding identifier.
 - <!-- schema-def:action_outcome --> `$defs/action_outcome`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:action_outcomes --> `$defs/action_outcomes`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:command_domain_event_emit --> `$defs/command_domain_event_emit`: command-level domain-event emission mapping keyed by outcome.
+- <!-- schema-def:command_effects --> `$defs/command_effects`: command effect summary containing creates, updates, deletes, or lifecycle_transition effects.
+- <!-- schema-def:command_ref --> `$defs/command_ref`: typed reference definition for its namespace.
+- <!-- schema-def:query_ref --> `$defs/query_ref`: typed reference definition for its namespace.
+- <!-- schema-def:operation_outcome --> `$defs/operation_outcome`: command/query outcome without embedded domain-event emission metadata.
+- <!-- schema-def:operation_outcomes --> `$defs/operation_outcomes`: map from outcome names to command/query outcomes.
 - <!-- schema-def:application_action_ref --> `$defs/application_action_ref`: typed reference definition for its namespace.
 - <!-- schema-def:authorization_policy_ref --> `$defs/authorization_policy_ref`: typed reference definition for its namespace.
 - <!-- schema-def:python_class_name --> `$defs/python_class_name`: shared schema component used by authored source or compiled output.
@@ -511,6 +521,8 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:entity_type_item --> `$defs/entity_type_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:authorization_policy_item --> `$defs/authorization_policy_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:application_action_item --> `$defs/application_action_item`: compiled-output object for this resource or nested contract.
+- <!-- schema-def:command_item --> `$defs/command_item`: compiled command with input_schema, effects, outcomes, and emitted domain-event mappings.
+- <!-- schema-def:query_item --> `$defs/query_item`: compiled query with input_schema, result_schema, and outcomes.
 - <!-- schema-def:behavior_scenario_item --> `$defs/behavior_scenario_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:state_machine_item --> `$defs/state_machine_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:view_state --> `$defs/view_state`: compiled-output object for this resource or nested contract.

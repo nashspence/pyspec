@@ -1014,6 +1014,238 @@ behavior_scenarios:
           workspace_id:
             from: $fixture.workspace.id
         ref: entry_point.api.project.create
+commands:
+  command.project.approve:
+    authorization:
+      access_denied_as: access_denied
+      authentication_required_as: authentication_required
+      policy: authorization_policy.project.reviewer
+    effects:
+      lifecycle_transition:
+        entity_type: entity_type.project
+        field: status
+        from: submitted
+        to: approved
+    emits_domain_events:
+    - domain_event: domain_event.project.approved
+      outcome: approved
+      payload_bindings:
+        approved_by:
+          from: $operation_input.approved_by
+        project_id:
+          from: $operation_input.project_id
+    input_schema:
+      additionalProperties: false
+      properties:
+        approved_by:
+          type: string
+        project_id:
+          type: string
+      required:
+      - approved_by
+      - project_id
+      type: object
+    outcomes:
+      access_denied:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+      approved:
+        kind: success
+        result:
+          $ref: entity_type.project
+      authentication_required:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+      not_found:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+      transition_not_allowed:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+      unavailable:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+    rationale: Reviewers can approve submitted dispatch projects.
+    retry_safe: true
+  command.project.archive:
+    authorization:
+      access_denied_as: access_denied
+      authentication_required_as: authentication_required
+      policy: authorization_policy.project.reviewer
+    effects:
+      lifecycle_transition:
+        entity_type: entity_type.project
+        field: status
+        from: approved
+        to: archived
+    emits_domain_events:
+    - domain_event: domain_event.project.archived
+      outcome: archived
+      payload_source: $action_outcome.result
+    input_schema:
+      additionalProperties: false
+      properties:
+        project_id:
+          type: string
+      required:
+      - project_id
+      type: object
+    outcomes:
+      access_denied:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+      archived:
+        kind: success
+        result:
+          $ref: entity_type.project
+      authentication_required:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+      not_found:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+      transition_not_allowed:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+    rationale: Approved dispatch projects can be archived.
+  command.project.create:
+    authorization:
+      access_denied_as: access_denied
+      authentication_required_as: authentication_required
+      policy: authorization_policy.project.member
+    effects:
+      creates:
+      - entity_type.project
+    emits_domain_events:
+    - domain_event: domain_event.project.created
+      outcome: created
+      payload_source: $action_outcome.result
+    input_schema:
+      additionalProperties: false
+      properties:
+        customer:
+          type: string
+        priority:
+          type: string
+        title:
+          type: string
+        workspace_id:
+          type: string
+      required:
+      - customer
+      - priority
+      - title
+      - workspace_id
+      type: object
+    outcomes:
+      access_denied:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+      authentication_required:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+      created:
+        kind: success
+        result:
+          $ref: entity_type.project
+      validation_failed:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+    rationale: Members can create a new dispatch project.
+  command.project.send_approval_notice:
+    authorization:
+      access_denied_as: access_denied
+      authentication_required_as: authentication_required
+      policy: authorization_policy.project.reviewer
+    effects: {}
+    emits_domain_events: []
+    input_schema:
+      additionalProperties: false
+      properties:
+        approved_by:
+          type: string
+        project_id:
+          type: string
+      required:
+      - approved_by
+      - project_id
+      type: object
+    outcomes:
+      access_denied:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+      authentication_required:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+      delivery_failed:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+      sent:
+        kind: success
+        result:
+          $ref: schema.project.notice_result
+    rationale: Approval triggers a notification command for downstream coordination.
+    retry_safe: true
+  command.project.submit:
+    authorization:
+      access_denied_as: access_denied
+      authentication_required_as: authentication_required
+      policy: authorization_policy.project.member
+    effects:
+      lifecycle_transition:
+        entity_type: entity_type.project
+        field: status
+        from: draft
+        to: submitted
+    emits_domain_events:
+    - domain_event: domain_event.project.submitted
+      outcome: submitted
+      payload_source: $action_outcome.result
+    input_schema:
+      additionalProperties: false
+      properties:
+        project_id:
+          type: string
+      required:
+      - project_id
+      type: object
+    outcomes:
+      access_denied:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+      authentication_required:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+      not_found:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+      submitted:
+        kind: success
+        result:
+          $ref: entity_type.project
+      transition_not_allowed:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+    rationale: Draft dispatch projects can be submitted for review.
 content_examples:
   content_example.project.detail.heading.high_priority:
     args:
@@ -1491,6 +1723,69 @@ preconditions:
           from: $fixture.workspace.id
     rationale: Submitted dispatch project shared by approval, ready-board, and visual audit behavior scenarios.
 project: project_dispatch_board
+queries:
+  query.project.list:
+    input_schema:
+      additionalProperties: false
+      properties:
+        workspace_id:
+          type: string
+      required:
+      - workspace_id
+      type: object
+    outcomes:
+      access_denied:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+      authentication_required:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+      listed:
+        kind: success
+        result:
+          items:
+            $ref: entity_type.project
+          type: array
+      unavailable:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+    rationale: The board requires a project list query scoped by workspace.
+    result_schema:
+      items:
+        $ref: entity_type.project
+      type: array
+  query.project.read:
+    input_schema:
+      additionalProperties: false
+      properties:
+        project_id:
+          type: string
+      required:
+      - project_id
+      type: object
+    outcomes:
+      access_denied:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+      authentication_required:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+      found:
+        kind: success
+        result:
+          $ref: entity_type.project
+      not_found:
+        kind: failure
+        result:
+          $ref: entity_type.problem
+    rationale: The detail state machine loads the selected project by id.
+    result_schema:
+      $ref: entity_type.project
 refs:
   action_binding:
   - action_binding.project.detail.ready.approve
