@@ -255,7 +255,7 @@ Layers are compile/validate guardrails and are not written into `spec/generated/
 | External-interface command/query/state-machine/workflow invocation mappings | `$adapter_input` |
 | External-interface delegation mappings | `$adapter_input` |
 | HTTP API response bodies | `$invocation_outcome.result` only |
-| CLI command/query response handlers | `$adapter_input`, `$invocation_outcome` |
+| CLI invoked response handlers | `$adapter_input`, `$invocation_outcome` |
 | CLI delegated response handlers | `$adapter_input`, `$adapter_response` |
 | Workflow activity `input_mapping` | `$workflow_input`, `$activity_outcome` |
 | Authored test/precondition/assertion/content-example/render-example value maps | `$fixture` |
@@ -295,7 +295,7 @@ The visual audit includes state-machine and composition diagrams, external-inter
 - `$command_outcome.kind` reads the command outcome kind during command-binding `local_effects` payload mappings.
 - `$query_outcome.result[.<field>]` reads query outcome result during query-binding `local_effects` mapping.
 - `$query_outcome.kind` reads the query outcome kind during query-binding `local_effects` payload mappings.
-- `$invocation_outcome.result[.<field>]` reads command or query outcome result during external-interface response mapping.
+- `$invocation_outcome.result[.<field>]` reads the selected outcome result from the invoked command, query, workflow, state-machine, or delegated external interface during external-interface response mapping.
 - `$command_binding.input.<field>` reads the bound command input during command-binding local_effects.
 - `$query_binding.input.<field>` reads the bound query input during query-binding local_effects.
 - `$adapter_response.body[.<field>]` reads the delegated external-interface response body inside delegating CLI `response_handlers`.
