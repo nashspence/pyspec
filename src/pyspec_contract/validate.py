@@ -103,7 +103,7 @@ def _generated_files(root: Path) -> set[str]:
 def _release_gate(contract: dict[str, Any]) -> None:
     """External release policy; does not rely on contract metadata fields."""
     placeholder_content = []
-    for section in ["text_resources", "assets"]:
+    for section in ["text_resources", "media_assets"]:
         for ref, item in contract.get(section, {}).items():
             if not item.get("source_ref"):
                 placeholder_content.append(ref)

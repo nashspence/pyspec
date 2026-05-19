@@ -161,7 +161,7 @@ states:
                   from: $command_outcome.result.message
           access_denied:
             no_local_effect:
-              reason: handled_by_response_surface
+              reason: handled_by_response_mapping
               rationale: The response mapping reports authorization failure.
 ```
 
@@ -358,7 +358,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:authored_command --> `$defs/authored_command`: human-authored command with input_schema, authorization, entity_changes, outcomes, and emitted domain-event mappings.
 - <!-- schema-def:authored_query --> `$defs/authored_query`: human-authored query with input_schema, result_schema, and outcomes.
 - <!-- schema-def:authored_state_machine --> `$defs/authored_state_machine`: human-authored source object for this resource or nested contract.
-- <!-- schema-def:authored_state --> `$defs/authored_state`: human-authored source object for this resource or nested contract.
+- <!-- schema-def:authored_state_machine_state --> `$defs/authored_state_machine_state`: human-authored state-machine state source object.
 - <!-- schema-def:authored_workflow --> `$defs/authored_workflow`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:rationale --> `$defs/rationale`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:child_state_machine_selected --> `$defs/child_state_machine_selected`: state-machine contract component.
@@ -459,7 +459,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:state_machine_signal_raise --> `$defs/state_machine_signal_raise`: state-machine local signal raise contract component.
 - <!-- schema-def:state_machine_signal_trigger --> `$defs/state_machine_signal_trigger`: tagged local signal/data-refresh-signal trigger contract component.
 - <!-- schema-def:state_machine_signal --> `$defs/state_machine_signal`: state-machine contract component.
-- <!-- schema-def:state_query_binding --> `$defs/state_query_binding`: state query binding contract component.
+- <!-- schema-def:state_machine_state_query_binding --> `$defs/state_machine_state_query_binding`: state-machine state query binding contract component.
 - <!-- schema-def:state_machine_ref --> `$defs/state_machine_ref`: typed reference definition for its namespace.
 - <!-- schema-def:state_machine_transition --> `$defs/state_machine_transition`: state-machine contract component.
 - <!-- schema-def:text_resource_ref --> `$defs/text_resource_ref`: typed reference definition for its namespace.
@@ -472,7 +472,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:schema_map --> `$defs/schema_map`: map from field or parameter names to JSON Schema fragments.
 - <!-- schema-def:html_route_adapter --> `$defs/html_route_adapter`: HTML renderer contract component.
 - <!-- schema-def:value_map --> `$defs/value_map`: shared schema component used by authored source or compiled output.
-- <!-- schema-def:state_assertion --> `$defs/state_assertion`: state-machine contract component.
+- <!-- schema-def:state_machine_state_assertion --> `$defs/state_machine_state_assertion`: state-machine state assertion contract component.
 - <!-- schema-def:state_machine_state_id --> `$defs/state_machine_state_id`: state-machine state identifier.
 - <!-- schema-def:html_renderer_contract --> `$defs/html_renderer_contract`: HTML renderer contract component.
 - <!-- schema-def:html_renderer_layout --> `$defs/html_renderer_layout`: HTML renderer contract component.

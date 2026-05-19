@@ -19,7 +19,7 @@ def test_final_text_source_is_contract_declared_and_executable() -> None:
         ROOT,
         "text_resource.project.detail.ready.heading",
         {"title": "Replace rooftop condenser fan", "customer": "Atlas Foods"},
-        ContentContext(surface="test"),
+        ContentContext(render_surface="test"),
     )
     assert result == "Replace rooftop condenser fan · Atlas Foods"
 
@@ -29,7 +29,7 @@ def test_final_asset_resolver_is_contract_declared_and_svg() -> None:
         ROOT,
         "media_asset.project.detail.ready.priority_badge",
         {"priority": "High"},
-        ContentContext(surface="test"),
+        ContentContext(render_surface="test"),
     )
     assert result.mime_type == "image/svg+xml"
     assert result.body.lstrip().startswith("<svg")
@@ -43,7 +43,7 @@ def test_priority_badge_escapes_dynamic_svg_values() -> None:
         ROOT,
         "media_asset.project.detail.ready.priority_badge",
         {"priority": priority},
-        ContentContext(surface="test"),
+        ContentContext(render_surface="test"),
     )
     assert "High &amp; &lt;urgent&gt;" in result.body
     assert 'aria-label="High &amp; &lt;urgent&gt; &quot;quoted&quot; &#x27;single&#x27; priority"' in result.body

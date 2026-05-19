@@ -1637,7 +1637,7 @@
         "reason": {
           "enum": [
             "state_unchanged",
-            "handled_by_response_surface",
+            "handled_by_response_mapping",
             "handled_by_query_refresh",
             "intentionally_unobservable",
             "result_bound_without_signal"
@@ -1911,7 +1911,7 @@
         },
         "instances": {
           "additionalProperties": {
-            "$ref": "#/$defs/state_assertion"
+            "$ref": "#/$defs/state_machine_state_assertion"
           },
           "propertyNames": {
             "$ref": "#/$defs/instance_id"
@@ -3220,7 +3220,7 @@
             },
             "instances": {
               "additionalProperties": {
-                "$ref": "#/$defs/state_assertion"
+                "$ref": "#/$defs/state_machine_state_assertion"
               },
               "propertyNames": {
                 "$ref": "#/$defs/instance_id"
@@ -3288,7 +3288,7 @@
           },
           "type": "object"
         },
-        "assets": {
+        "media_assets": {
           "items": {
             "pattern": "^media_asset\\.",
             "type": "string"
@@ -3334,11 +3334,11 @@
           },
           "type": "array"
         },
-        "surface": {
+        "renderer_surface": {
           "pattern": "^state_machine\\.",
           "type": "string"
         },
-        "text": {
+        "text_resources": {
           "items": {
             "pattern": "^text_resource\\.",
             "type": "string"
@@ -3347,16 +3347,16 @@
         }
       },
       "required": [
-        "surface",
+        "renderer_surface",
         "query_bindings",
-        "text",
-        "assets",
+        "text_resources",
+        "media_assets",
         "command_bindings",
         "fields"
       ],
       "type": "object"
     },
-    "state_assertion": {
+    "state_machine_state_assertion": {
       "additionalProperties": false,
       "properties": {
         "source": {

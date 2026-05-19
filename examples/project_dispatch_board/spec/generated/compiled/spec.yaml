@@ -613,7 +613,7 @@ behavior_scenarios:
               from: $fixture.workspace.id
       seed_fixtures:
       - fixture.workspace.member
-    rationale: The API create endpoint delegates to the create command and emits project.created.
+    rationale: The API create HTTP operation delegates to the create command and emits project.created.
     system_under_test_ref:
       external_interface: external_interface.api.project.create
     then:
@@ -1065,7 +1065,7 @@ external_interfaces:
             type:
               $ref: entity_type.problem
           status: 503
-    rationale: HTTP endpoint for approving submitted dispatch projects.
+    rationale: HTTP operation for approving submitted dispatch projects.
     retryable: true
   external_interface.api.project.create:
     access_policy: access_policy.project.member
@@ -1123,7 +1123,7 @@ external_interfaces:
             type:
               $ref: entity_type.problem
           status: 422
-    rationale: HTTP endpoint for creating a dispatch project.
+    rationale: HTTP operation for creating a dispatch project.
   external_interface.api.project.list:
     adapter:
       http_api:
@@ -1168,7 +1168,7 @@ external_interfaces:
             type:
               $ref: entity_type.problem
           status: 503
-    rationale: HTTP endpoint for listing dispatch projects.
+    rationale: HTTP operation for listing dispatch projects.
   external_interface.cli.project.approve:
     adapter:
       cli:
@@ -1687,21 +1687,21 @@ state_machines:
     rationale: The activity state machine summarizes latest status around the selected project.
     states:
       empty:
-        assets: []
         command_bindings: {}
         fields: []
+        media_assets: []
         query_bindings: {}
-        surface: state_machine.project.activity.empty
-        text:
+        renderer_surface: state_machine.project.activity.empty
+        text_resources:
         - text_resource.project.activity.empty.heading
         - text_resource.project.activity.empty.body
       ready:
-        assets: []
         command_bindings: {}
         fields:
         - updated_at
         - status
         - assignee
+        media_assets: []
         query_bindings:
           read_activity:
             input_mapping:
@@ -1730,8 +1730,8 @@ state_machines:
                   rationale: The parent detail panel owns not-found display for the selected project.
                   reason: intentionally_unobservable
             query: query.project.read
-        surface: state_machine.project.activity.ready
-        text:
+        renderer_surface: state_machine.project.activity.ready
+        text_resources:
         - text_resource.project.activity.ready.heading
     transitions:
     - from: empty
@@ -1779,11 +1779,11 @@ state_machines:
           access_denied:
             no_local_effect:
               rationale: The board shell leaves child surfaces unchanged when list access is access_denied.
-              reason: handled_by_response_surface
+              reason: handled_by_response_mapping
           authentication_required:
             no_local_effect:
               rationale: The entry response mapping owns authentication_required display.
-              reason: handled_by_response_surface
+              reason: handled_by_response_mapping
           listed:
             no_local_effect:
               reason: result_bound_without_signal
@@ -1794,7 +1794,7 @@ state_machines:
           unavailable:
             no_local_effect:
               rationale: The board shell leaves child surfaces unchanged while the list service is unavailable.
-              reason: handled_by_response_surface
+              reason: handled_by_response_mapping
         query: query.project.list
         rationale: Board-level project list is shared shell data for composed child state machines; the child list machine
           owns visible loading and empty/non-empty transitions.
@@ -1802,7 +1802,6 @@ state_machines:
     rationale: The dispatch board composes list, detail, and activity state machines through shared selected-project context_resource.
     states:
       ready:
-        assets: []
         child_state_machines:
         - context_bindings:
             selected_project_id:
@@ -1840,6 +1839,7 @@ state_machines:
           textual_container: aside
         command_bindings: {}
         fields: []
+        media_assets: []
         query_bindings: {}
         render_examples:
           empty:
@@ -1870,6 +1870,7 @@ state_machines:
             rationale: Audit render for selected-project board state vector using named project preconditions.
             seed_fixtures:
             - fixture.workspace.member
+        renderer_surface: state_machine.project.board.ready
         renderers:
           html:
             layout:
@@ -1971,8 +1972,7 @@ state_machines:
           trigger:
             instance: list
             local_signal: project_selected
-        surface: state_machine.project.board.ready
-        text: []
+        text_resources: []
     transitions: []
   state_machine.project.detail:
     context_schema:
@@ -2038,18 +2038,18 @@ state_machines:
     rationale: The detail state machine is independent from the list and reacts to selected project context_resource.
     states:
       error:
-        assets: []
         command_bindings: {}
         fields: []
+        media_assets: []
         query_bindings: {}
-        surface: state_machine.project.detail.error
-        text:
+        renderer_surface: state_machine.project.detail.error
+        text_resources:
         - text_resource.project.detail.error.heading
         - text_resource.project.detail.error.body
       loading:
-        assets: []
         command_bindings: {}
         fields: []
+        media_assets: []
         query_bindings:
           read_project:
             input_mapping:
@@ -2075,21 +2075,19 @@ state_machines:
                 raise:
                   data_refresh_signal: project_load_failed
             query: query.project.read
-        surface: state_machine.project.detail.loading
-        text:
+        renderer_surface: state_machine.project.detail.loading
+        text_resources:
         - text_resource.project.detail.loading.message
       none:
-        assets: []
         command_bindings: {}
         fields: []
+        media_assets: []
         query_bindings: {}
-        surface: state_machine.project.detail.none
-        text:
+        renderer_surface: state_machine.project.detail.none
+        text_resources:
         - text_resource.project.detail.none.heading
         - text_resource.project.detail.none.body
       ready:
-        assets:
-        - media_asset.project.detail.ready.priority_badge
         command_bindings:
           approve:
             command: command.project.approve
@@ -2102,14 +2100,14 @@ state_machines:
               access_denied:
                 no_local_effect:
                   rationale: The response mapping keeps the detail panel unchanged for access_denied approval.
-                  reason: handled_by_response_surface
+                  reason: handled_by_response_mapping
               approved:
                 raise:
                   data_refresh_signal: project_changed
               authentication_required:
                 no_local_effect:
                   rationale: The response mapping reports authentication failure without a local transition.
-                  reason: handled_by_response_surface
+                  reason: handled_by_response_mapping
               lifecycle_transition_not_allowed:
                 raise:
                   local_signal: show_lifecycle_transition_not_allowed
@@ -2119,11 +2117,11 @@ state_machines:
               not_found:
                 no_local_effect:
                   rationale: The response mapping reports a missing project without a local transition.
-                  reason: handled_by_response_surface
+                  reason: handled_by_response_mapping
               unavailable:
                 no_local_effect:
                   rationale: The response mapping reports temporary unavailability without a local transition.
-                  reason: handled_by_response_surface
+                  reason: handled_by_response_mapping
           archive:
             command: command.project.archive
             input_mapping:
@@ -2163,6 +2161,8 @@ state_machines:
         - status
         - assignee
         - summary
+        media_assets:
+        - media_asset.project.detail.ready.priority_badge
         query_bindings:
           read_project:
             input_mapping:
@@ -2199,8 +2199,8 @@ state_machines:
                     message:
                       from: $query_outcome.result.message
             query: query.project.read
-        surface: state_machine.project.detail.ready
-        text:
+        renderer_surface: state_machine.project.detail.ready
+        text_resources:
         - text_resource.project.detail.ready.heading
     transitions:
     - from: none
@@ -2351,8 +2351,6 @@ state_machines:
     rationale: The list state machine owns collection loading, empty, ready, error, and selection behavior.
     states:
       empty:
-        assets:
-        - media_asset.project.list.empty.illustration
         command_bindings:
           create:
             command: command.project.create
@@ -2369,11 +2367,11 @@ state_machines:
               access_denied:
                 no_local_effect:
                   rationale: The response mapping keeps the empty list visible for access_denied create.
-                  reason: handled_by_response_surface
+                  reason: handled_by_response_mapping
               authentication_required:
                 no_local_effect:
                   rationale: The response mapping reports authentication failure without a local transition.
-                  reason: handled_by_response_surface
+                  reason: handled_by_response_mapping
               created:
                 raise:
                   data_refresh_signal: projects_changed
@@ -2384,30 +2382,31 @@ state_machines:
                     message:
                       from: $command_outcome.result.message
         fields: []
+        media_assets:
+        - media_asset.project.list.empty.illustration
         query_bindings: {}
-        surface: state_machine.project.list.empty
-        text:
+        renderer_surface: state_machine.project.list.empty
+        text_resources:
         - text_resource.project.list.empty.heading
         - text_resource.project.list.empty.body
       error:
-        assets: []
         command_bindings: {}
         fields: []
+        media_assets: []
         query_bindings: {}
-        surface: state_machine.project.list.error
-        text:
+        renderer_surface: state_machine.project.list.error
+        text_resources:
         - text_resource.project.list.error.heading
         - text_resource.project.list.error.body
       loading:
-        assets: []
         command_bindings: {}
         fields: []
+        media_assets: []
         query_bindings: {}
-        surface: state_machine.project.list.loading
-        text:
+        renderer_surface: state_machine.project.list.loading
+        text_resources:
         - text_resource.project.list.loading.message
       ready:
-        assets: []
         command_bindings:
           create:
             command: command.project.create
@@ -2424,18 +2423,18 @@ state_machines:
               access_denied:
                 no_local_effect:
                   rationale: The response mapping keeps the ready list visible for access_denied create.
-                  reason: handled_by_response_surface
+                  reason: handled_by_response_mapping
               authentication_required:
                 no_local_effect:
                   rationale: The response mapping reports authentication failure without a local transition.
-                  reason: handled_by_response_surface
+                  reason: handled_by_response_mapping
               created:
                 raise:
                   data_refresh_signal: projects_changed
               validation_failed:
                 no_local_effect:
                   rationale: The ready list keeps focus while the response mapping shows validation errors.
-                  reason: handled_by_response_surface
+                  reason: handled_by_response_mapping
           submit:
             command: command.project.submit
             input_mapping:
@@ -2474,9 +2473,10 @@ state_machines:
         - customer
         - priority
         - status
+        media_assets: []
         query_bindings: {}
-        surface: state_machine.project.list.ready
-        text:
+        renderer_surface: state_machine.project.list.ready
+        text_resources:
         - text_resource.project.list.ready.heading
     transitions:
     - from: loading

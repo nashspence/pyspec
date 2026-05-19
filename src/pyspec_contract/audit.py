@@ -255,8 +255,8 @@ def _fixtures_doc(
 def _state_needs_data(contract: dict[str, Any], state_machine: dict[str, Any]) -> bool:
     if state_machine.get("query_bindings") or state_machine["slots"].get("fields"):
         return True
-    text_resource_refs = state_machine["slots"].get("text", [])
-    media_asset_refs = state_machine["slots"].get("assets", [])
+    text_resource_refs = state_machine["slots"].get("text_resources", [])
+    media_asset_refs = state_machine["slots"].get("media_assets", [])
     return any(contract["text_resources"][ref].get("args") for ref in text_resource_refs) or any(contract["media_assets"][ref].get("args") for ref in media_asset_refs)
 
 
@@ -298,8 +298,8 @@ def _fixture_ids_for_preconditions(contract: dict[str, Any], precondition_ids: I
 
 
 def _surface_scope_inputs(contract: dict[str, Any], state_machine: dict[str, Any]) -> tuple[set[str], set[str], set[str], set[str], dict[str, Any]]:
-    text_resource_refs = set(state_machine["slots"].get("text", []))
-    media_asset_refs = set(state_machine["slots"].get("assets", []))
+    text_resource_refs = set(state_machine["slots"].get("text_resources", []))
+    media_asset_refs = set(state_machine["slots"].get("media_assets", []))
     fixture_ids: set[str] = set()
     precondition_ids: set[str] = set()
     if _state_needs_data(contract, state_machine):
@@ -312,8 +312,8 @@ def _surface_scope_inputs(contract: dict[str, Any], state_machine: dict[str, Any
 
 def _render_example_scope_inputs(contract: dict[str, Any], case: dict[str, Any]) -> tuple[set[str], set[str], set[str], set[str], dict[str, Any]]:
     state_machines = render_example_state_machines(contract, case)
-    text_resource_refs = {text_resource_ref for state_machine in state_machines for text_resource_ref in state_machine["slots"].get("text", [])}
-    media_asset_refs = {media_asset_ref for state_machine in state_machines for media_asset_ref in state_machine["slots"].get("assets", [])}
+    text_resource_refs = {text_resource_ref for state_machine in state_machines for text_resource_ref in state_machine["slots"].get("text_resources", [])}
+    media_asset_refs = {media_asset_ref for state_machine in state_machines for media_asset_ref in state_machine["slots"].get("media_assets", [])}
     fixture_ids = set(case.get("seed_fixtures", []))
     precondition_ids = {precondition_use["ref"] for precondition_use in case.get("precondition_refs", [])}
     return text_resource_refs, media_asset_refs, fixture_ids, precondition_ids, case.get("context") or {}
@@ -592,7 +592,7 @@ def _audit_evidence_for_pointer(contract: dict[str, Any], pointer: str) -> list[
     if len(parts) < 2:
         return []
     owner = parts[1]
-    if parts[0] == "assets":
+    if parts[0] == "media_assets":
         return _asset_evidence_files(contract, owner)
     if parts[0] == "access_policies":
         return _access_policy_evidence_files(contract, owner)
@@ -784,7 +784,7 @@ def _generic_reference_witness_allowed(parts: list[str], detail_evidence: bool) 
 
 def _state_machine_reference_witness_allowed(parts: list[str]) -> bool:
     if "states" in parts:
-        return any(marker in parts for marker in {"text", "assets", "command_bindings", "child_state_machines", "signal_sync_rules"})
+        return any(marker in parts for marker in {"text_resources", "media_assets", "command_bindings", "child_state_machines", "signal_sync_rules"})
     if "transitions" in parts:
         return parts[-1] in {"data_refresh_signal", "local_signal", "command", "query", "state_machine", "workflow", "domain_event"}
     if "local_signals" in parts:
@@ -2421,8 +2421,8 @@ def _state_machine_state_sections(
     query_command_query_refs = [_invocation_command_or_query_ref(invocation) for invocation in query_bindings.values()]
     command_refs = [_invocation_command_or_query_ref(invocation) for invocation in command_bindings.values()]
     return [
-        ("text", state.get("text", [])),
-        ("assets", state.get("assets", [])),
+        ("text_resources", state.get("text_resources", [])),
+        ("media_assets", state.get("media_assets", [])),
         (_state_field_section_title(state_machine, state_name, state), _format_state_fields(state_machine, state, contract)),
         ("query_bindings", _format_command_binding_outputs(query_bindings, contract)),
         ("command_bindings", _format_command_binding_outputs(command_bindings, contract)),
@@ -3565,7 +3565,7 @@ def render_html_field_slot(record: dict[str, Any], slot: dict[str, Any]) -> list
 
 
 def slot_ref(state_machine: dict[str, Any], kind: str, slot: str) -> str:
-    key = "text" if kind == "text" else "assets"
+    key = "text_resources" if kind == "text" else "media_assets"
     for ref in state_machine["slots"][key]:
         if ref.rsplit(".", 1)[-1] == slot:
             return ref
@@ -3616,9 +3616,9 @@ def state_machine_textual_lines(root: Path, contract: dict[str, Any], state_mach
     record = records[0] if records else {}
     context = render_context(contract, case)
     namespace = render_namespace(contract, case)
-    for text_resource_ref in state_machine["slots"]["text"]:
+    for text_resource_ref in state_machine["slots"]["text_resources"]:
         lines.append(("static", resolve_text_resource(root, contract, text_resource_ref, record, context, namespace)))
-    for media_asset_ref in state_machine["slots"]["assets"]:
+    for media_asset_ref in state_machine["slots"]["media_assets"]:
         lines.append(("static", resolve_asset_result(root, contract, media_asset_ref, record, context, namespace).alt or contract["media_assets"][media_asset_ref]["placeholder"]["label"]))
     fields = state_machine["slots"].get("fields", [])
     if fields:
@@ -3780,7 +3780,7 @@ def resolve_text_resource(root: Path, contract: dict[str, Any], ref: str, record
         text = item["placeholder"]
     else:
         try:
-            text = call_text_resource(root, ref, content_args(contract, ref, item, record, context, namespace), ContentContext(surface="audit"))
+            text = call_text_resource(root, ref, content_args(contract, ref, item, record, context, namespace), ContentContext(render_surface="audit"))
         except ContentError as exc:
             raise ContractError(str(exc)) from exc
     max_chars = item.get("max_chars")
@@ -3797,7 +3797,7 @@ def resolve_asset_result(root: Path, contract: dict[str, Any], ref: str, record:
     if not source_ref:
         return MediaAssetResult(mime_type="image/svg+xml", body=asset_placeholder_svg(item), alt=item["placeholder"]["label"])
     try:
-        result = call_media_asset(root, ref, content_args(contract, ref, item, record, context, namespace), ContentContext(surface="audit"))
+        result = call_media_asset(root, ref, content_args(contract, ref, item, record, context, namespace), ContentContext(render_surface="audit"))
     except ContentError as exc:
         raise ContractError(str(exc)) from exc
     if result.mime_type != "image/svg+xml":

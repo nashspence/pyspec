@@ -91,7 +91,7 @@ def _contract_has_ui(contract: dict[str, Any]) -> bool:
     return bool(
         contract.get("state_machines")
         or contract.get("text_resources")
-        or contract.get("assets")
+        or contract.get("media_assets")
         or contract.get("content_examples")
         or contract.get("viewport_profiles")
     )
@@ -192,7 +192,7 @@ def _pm_design_prompt(context: _PromptContext) -> str:
         "- Core: fixtures, preconditions, assertions, entity_types, commands, queries, and product behavior scenarios.",
     ]
     if "http" in context.layers:
-        lines.append("- HTTP: HTTP external interfaces that bind commands or queries to externally visible API endpoints.")
+        lines.append("- HTTP: HTTP external interfaces that bind commands or queries to externally visible HTTP operations.")
     else:
         lines.append("- Do not author HTTP/API external interfaces or OpenAPI details; the HTTP layer is inactive.")
     if "eventing" in context.layers:
@@ -204,9 +204,9 @@ def _pm_design_prompt(context: _PromptContext) -> str:
     else:
         lines.append("- Do not add workflow, CLI, worker, or schedule vocabulary.")
     if "ui" in context.layers:
-        lines.append("- UI: state machines with state-local layouts, child state machines, render examples, text resources/assets, content examples, and viewport profiles.")
+        lines.append("- UI: state machines with state-local layouts, child state machines, render examples, text resources, media assets, content examples, and viewport profiles.")
     else:
-        lines.append("- Do not author UI state machines, text resources/assets, render examples, or surface presentation.")
+        lines.append("- Do not author UI state machines, text resources, media assets, render examples, or renderer presentation.")
     if "html" in context.layers:
         lines.append("- HTML UI: html renderer layout, presentation, style, UI external interfaces, HTML routes, and HTML audit surfaces.")
     elif "ui" in context.layers:

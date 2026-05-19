@@ -100,7 +100,7 @@ class ProductApp:
         workspace_id = context.get("workspace_id")
         matching = [p for p in self.projects if p.get("workspace_id") == workspace_id]
         parent_state_name = "ready" if "ready" in state_machine.get("states", {}) else next(iter(state_machine.get("states", {"ready": {}})))
-        parent_state = state_machine["states"].get(parent_state_name, {"surface": None, "text": [], "assets": [], "command_bindings": {}, "query_bindings": {}})
+        parent_state = state_machine["states"].get(parent_state_name, {"renderer_surface": None, "text_resources": [], "media_assets": [], "command_bindings": {}, "query_bindings": {}})
         if parent_state.get("child_state_machines"):
             parent_state_machine = state_machine
             state_machines: dict[str, Any] = {}
@@ -112,25 +112,25 @@ class ProductApp:
                 state_machines[mount["id"]] = {
                     "source": source_id,
                     "state": state_name,
-                    "surface": state["surface"],
+                    "renderer_surface": state["renderer_surface"],
                     "query_bindings": {
                         **child_state_machine.get("query_bindings", {}),
                         **state.get("query_bindings", {}),
                     },
-                    "text": list(state["text"]),
-                    "assets": list(state["assets"]),
+                    "text_resources": list(state["text_resources"]),
+                    "media_assets": list(state["media_assets"]),
                     "command_bindings": dict(state["command_bindings"]),
                 }
             self.rendered_state_machine = {
                 "ref": state_machine_id,
                 "state": parent_state_name,
-                "surface": parent_state.get("surface"),
+                "renderer_surface": parent_state.get("renderer_surface"),
                 "query_bindings": {
                     **parent_state_machine.get("query_bindings", {}),
                     **parent_state.get("query_bindings", {}),
                 },
-                "text": list(parent_state.get("text", [])),
-                "assets": list(parent_state.get("assets", [])),
+                "text_resources": list(parent_state.get("text_resources", [])),
+                "media_assets": list(parent_state.get("media_assets", [])),
                 "command_bindings": dict(parent_state.get("command_bindings", {})),
                 "context": context,
                 "instances": state_machines,
@@ -142,9 +142,9 @@ class ProductApp:
         self.rendered_state_machine = {
             "ref": state_machine_id,
             "state": state_name,
-            "surface": state["surface"],
-            "text": list(state["text"]),
-            "assets": list(state["assets"]),
+            "renderer_surface": state["renderer_surface"],
+            "text_resources": list(state["text_resources"]),
+            "media_assets": list(state["media_assets"]),
             "query_bindings": {
                 **state_machine.get("query_bindings", {}),
                 **state.get("query_bindings", {}),
@@ -169,11 +169,11 @@ class ProductApp:
         if not self.rendered_state_machine:
             return set()
         if "instances" in self.rendered_state_machine:
-            state_machines = {state_machine["surface"] for state_machine in self.rendered_state_machine["instances"].values()}
-            if self.rendered_state_machine.get("surface"):
-                state_machines.add(self.rendered_state_machine["surface"])
+            state_machines = {state_machine["renderer_surface"] for state_machine in self.rendered_state_machine["instances"].values()}
+            if self.rendered_state_machine.get("renderer_surface"):
+                state_machines.add(self.rendered_state_machine["renderer_surface"])
             return state_machines
-        return {self.rendered_state_machine["surface"]}
+        return {self.rendered_state_machine["renderer_surface"]}
 
     def _rendered_values(self, key: str) -> set[str]:
         if not self.rendered_state_machine:
@@ -311,28 +311,28 @@ class ProductApp:
             assert self.rendered_state_machine["ref"] == expected["ref"]
             if "state" in expected:
                 assert self.rendered_state_machine["state"] == expected["state"]
-                assert self.rendered_state_machine["surface"] == expected["renderer_surface"]
+                assert self.rendered_state_machine["renderer_surface"] == expected["renderer_surface"]
             if "instances" in expected:
                 assert set(self.rendered_state_machine["instances"]) == set(expected["instances"])
                 for instance_id, state_machine_expected in expected["instances"].items():
                     actual = self.rendered_state_machine["instances"][instance_id]
                     assert actual["state"] == state_machine_expected["state"]
-                    assert actual["surface"] == state_machine_expected["renderer_surface"]
+                    assert actual["renderer_surface"] == state_machine_expected["renderer_surface"]
                 for sync_id in (expected.get("signal_sync_rules") or {}).get("observed_rules", []):
                     assert sync_id in self.rendered_state_machine.get("signal_sync_rules", [])
         requires = assertions.get("requires", {})
         if requires:
             assert self.rendered_state_machine is not None
             rendered_state_machines = self._rendered_state_machine_ids()
-            rendered_text = self._rendered_values("text")
-            rendered_assets = self._rendered_values("assets")
+            rendered_text = self._rendered_values("text_resources")
+            rendered_assets = self._rendered_values("media_assets")
             rendered_command_bindings = self._rendered_values("command_bindings")
-            for state_machine in requires.get("surfaces", []):
+            for state_machine in requires.get("renderer_surfaces", []):
                 assert state_machine in self.surfaces
                 assert state_machine in rendered_state_machines
-            for key in requires.get("text", []):
+            for key in requires.get("text_resources", []):
                 assert key in rendered_text
-            for key in requires.get("assets", []):
+            for key in requires.get("media_assets", []):
                 assert key in rendered_assets
             for cap in requires.get("command_bindings", []):
                 assert cap in rendered_command_bindings

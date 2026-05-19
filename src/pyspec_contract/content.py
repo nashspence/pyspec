@@ -17,7 +17,7 @@ class ContentError(ValueError):
 
 @dataclass(frozen=True)
 class ContentContext:
-    surface: str = "audit"
+    render_surface: str = "audit"
     locale: str = "en-US"
 
 

@@ -509,7 +509,7 @@ def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
                 result = item["placeholder"]
             else:
                 try:
-                    result = call_text_resource(root, ref, args, ContentContext(surface="content_example"))
+                    result = call_text_resource(root, ref, args, ContentContext(render_surface="content_example"))
                 except ContentError as exc:
                     raise ContractError(str(exc)) from exc
             if not isinstance(result, str) or not result.strip():
@@ -520,7 +520,7 @@ def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
             item = contract["media_assets"][ref]
             if item.get("source_ref"):
                 try:
-                    result = call_media_asset(root, ref, args, ContentContext(surface="content_example"))
+                    result = call_media_asset(root, ref, args, ContentContext(render_surface="content_example"))
                 except ContentError as exc:
                     raise ContractError(str(exc)) from exc
                 if result.mime_type != "image/svg+xml" or not result.body.lstrip().startswith("<svg") or "</svg>" not in result.body:
@@ -1048,8 +1048,8 @@ def _expected_textual_compose(state_machine: dict[str, Any]) -> list[tuple[str, 
         return [(widget["widget_class"], _widget_label(widget)) for widget in widgets]
     slots = state_machine["slots"]
     result: list[tuple[str, str]] = []
-    result.extend(("Static", key) for key in slots["text"])
-    result.extend(("Static", key) for key in slots["assets"])
+    result.extend(("Static", key) for key in slots["text_resources"])
+    result.extend(("Static", key) for key in slots["media_assets"])
     result.extend(("Static", key) for key in slots.get("fields", []))
     result.extend(("Button", invocation_id) for invocation_id in slots["command_bindings"])
     return result

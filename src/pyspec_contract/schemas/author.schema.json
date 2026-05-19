@@ -731,7 +731,7 @@
         },
         "states": {
           "additionalProperties": {
-            "$ref": "#/$defs/authored_state"
+            "$ref": "#/$defs/authored_state_machine_state"
           },
           "minProperties": 1,
           "propertyNames": {
@@ -816,7 +816,7 @@
         }
       ]
     },
-    "authored_state": {
+    "authored_state_machine_state": {
       "additionalProperties": false,
       "properties": {
         "command_bindings": {
@@ -843,7 +843,7 @@
         },
         "query_bindings": {
           "additionalProperties": {
-            "$ref": "#/$defs/state_query_binding"
+            "$ref": "#/$defs/state_machine_state_query_binding"
           },
           "minProperties": 1,
           "propertyNames": {
@@ -1977,7 +1977,7 @@
         "reason": {
           "enum": [
             "state_unchanged",
-            "handled_by_response_surface",
+            "handled_by_response_mapping",
             "handled_by_query_refresh",
             "intentionally_unobservable",
             "result_bound_without_signal"
@@ -2165,7 +2165,7 @@
         },
         "instances": {
           "additionalProperties": {
-            "$ref": "#/$defs/state_assertion"
+            "$ref": "#/$defs/state_machine_state_assertion"
           },
           "propertyNames": {
             "$ref": "#/$defs/instance_id"
@@ -3245,7 +3245,7 @@
             },
             "instances": {
               "additionalProperties": {
-                "$ref": "#/$defs/state_assertion"
+                "$ref": "#/$defs/state_machine_state_assertion"
               },
               "propertyNames": {
                 "$ref": "#/$defs/instance_id"
@@ -3298,7 +3298,7 @@
       },
       "type": "object"
     },
-    "state_assertion": {
+    "state_machine_state_assertion": {
       "additionalProperties": false,
       "properties": {
         "state": {
@@ -3310,7 +3310,7 @@
       ],
       "type": "object"
     },
-    "state_query_binding": {
+    "state_machine_state_query_binding": {
       "$ref": "#/$defs/state_machine_query_binding"
     },
     "state_machine_state_id": {
@@ -3908,7 +3908,7 @@
   "$id": "https://example.invalid/authored-source-product-spec.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Sparse, human-authored source product specification. The compiler produces the compiled specification at spec/generated/compiled/spec.yaml, including normalized identifiers, derived domain_events, derived HTML routes, generated references, expanded endpoints, and expanded empty-collection states.",
+  "description": "Sparse, human-authored source product specification. The compiler produces the compiled specification at spec/generated/compiled/spec.yaml, including normalized identifiers, derived domain_events, derived HTML routes, generated references, expanded HTTP operations, and expanded empty-collection states.",
   "properties": {
     "access_policies": {
       "additionalProperties": {

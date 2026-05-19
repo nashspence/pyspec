@@ -198,9 +198,9 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">transition signal</FONT>' in state_machine
     assert "text_resource.project.list.ready.heading" in state_machine
     assert "media_asset.project.list.empty.illustration" in state_machine
-    assert state_machine.index("<B>text</B>") < state_machine.index("<B>assets:</B>")
-    assert state_machine.index("<B>assets:</B>") < state_machine.index("<B>command_bindings:</B>")
-    assert state_machine.index("<B>text:</B>&#160;&#160;text_resource.project.list.ready.heading") < state_machine.index("<B>query.project.list fields</B>")
+    assert state_machine.index("<B>text_resources</B>") < state_machine.index("<B>media_assets:</B>")
+    assert state_machine.index("<B>media_assets:</B>") < state_machine.index("<B>command_bindings:</B>")
+    assert state_machine.index("<B>text_resources:</B>&#160;&#160;text_resource.project.list.ready.heading") < state_machine.index("<B>query.project.list fields</B>")
     assert state_machine.index("<B>query.project.list fields</B>") < state_machine.index("<B>command_bindings</B>")
     assert "<B>emit:</B>&#160;&#160;local_signal.project_selected" in state_machine
     payload_project = '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;string</FONT>'

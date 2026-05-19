@@ -106,21 +106,21 @@ class ReferenceSpecDriver:
             assert self.last_state_machine["ref"] == expected["ref"]
             if "state" in expected:
                 assert self.last_state_machine["state"] == expected["state"]
-                assert self.last_state_machine["surface"] == expected["renderer_surface"]
+                assert self.last_state_machine["renderer_surface"] == expected["renderer_surface"]
             if "instances" in expected:
                 assert set(self.last_state_machine["instances"]) == set(expected["instances"])
                 for instance_id, state_machine_expected in expected["instances"].items():
                     actual = self.last_state_machine["instances"][instance_id]
                     assert actual["state"] == state_machine_expected["state"]
-                    assert actual["surface"] == state_machine_expected["renderer_surface"]
+                    assert actual["renderer_surface"] == state_machine_expected["renderer_surface"]
                 for sync_id in (expected.get("signal_sync_rules") or {}).get("observed_rules", []):
                     assert sync_id in self.last_state_machine.get("signal_sync_rules", [])
         requires = assertions.get("requires", {})
         if requires:
             assert self.last_state_machine is not None, "state-machine requirements need a rendered state machine"
             rendered_state_machines = self._rendered_state_machine_ids()
-            rendered_text = self._rendered_values("text")
-            rendered_assets = self._rendered_values("assets")
+            rendered_text = self._rendered_values("text_resources")
+            rendered_assets = self._rendered_values("media_assets")
             rendered_command_bindings = self._rendered_values("command_bindings")
             for state_machine in requires.get("renderer_surfaces", []):
                 assert state_machine in self.surfaces
@@ -187,7 +187,7 @@ class ReferenceSpecDriver:
         context = self._entry_target_input(entry, input_values)
         records = self._filter(state_machine["entity_type"], context) if state_machine.get("entity_type") else []
         parent_state_name = "ready" if "ready" in state_machine.get("states", {}) else next(iter(state_machine.get("states", {"ready": {}})))
-        state = state_machine["states"].get(parent_state_name, {"surface": None, "text": [], "assets": [], "command_bindings": {}, "query_bindings": {}})
+        state = state_machine["states"].get(parent_state_name, {"renderer_surface": None, "text_resources": [], "media_assets": [], "command_bindings": {}, "query_bindings": {}})
         if state.get("child_state_machines"):
             parent_state_machine = state_machine
             state_machines: dict[str, Any] = {}
@@ -199,25 +199,25 @@ class ReferenceSpecDriver:
                 state_machines[mount["id"]] = {
                     "source": source_id,
                     "state": child_state_name,
-                    "surface": child_state["surface"],
+                    "renderer_surface": child_state["renderer_surface"],
                     "query_bindings": {
                         **child_state_machine.get("query_bindings", {}),
                         **child_state.get("query_bindings", {}),
                     },
-                    "text": child_state["text"],
-                    "assets": child_state["assets"],
+                    "text_resources": child_state["text_resources"],
+                    "media_assets": child_state["media_assets"],
                     "command_bindings": child_state["command_bindings"],
                 }
             return {
                 "ref": state_machine_id,
                 "state": parent_state_name,
-                "surface": state.get("surface"),
+                "renderer_surface": state.get("renderer_surface"),
                 "query_bindings": {
                     **parent_state_machine.get("query_bindings", {}),
                     **state.get("query_bindings", {}),
                 },
-                "text": state.get("text", []),
-                "assets": state.get("assets", []),
+                "text_resources": state.get("text_resources", []),
+                "media_assets": state.get("media_assets", []),
                 "command_bindings": state.get("command_bindings", {}),
                 "context": context,
                 "instances": state_machines,
@@ -228,9 +228,9 @@ class ReferenceSpecDriver:
         return {
             "ref": state_machine_id,
             "state": state_name,
-            "surface": state["surface"],
-            "text": state["text"],
-            "assets": state["assets"],
+            "renderer_surface": state["renderer_surface"],
+            "text_resources": state["text_resources"],
+            "media_assets": state["media_assets"],
             "query_bindings": {
                 **state_machine.get("query_bindings", {}),
                 **state.get("query_bindings", {}),
@@ -254,11 +254,11 @@ class ReferenceSpecDriver:
         if not self.last_state_machine:
             return set()
         if "instances" in self.last_state_machine:
-            state_machines = {state_machine["surface"] for state_machine in self.last_state_machine["instances"].values()}
-            if self.last_state_machine.get("surface"):
-                state_machines.add(self.last_state_machine["surface"])
+            state_machines = {state_machine["renderer_surface"] for state_machine in self.last_state_machine["instances"].values()}
+            if self.last_state_machine.get("renderer_surface"):
+                state_machines.add(self.last_state_machine["renderer_surface"])
             return state_machines
-        return {self.last_state_machine["surface"]}
+        return {self.last_state_machine["renderer_surface"]}
 
     def _rendered_values(self, key: str) -> set[str]:
         if not self.last_state_machine:

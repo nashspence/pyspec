@@ -1,6 +1,6 @@
 <svg width="857pt" height="723pt"
  viewBox="0.00 0.00 857.00 723.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 630d6292ae9bd4b54b5cc680cf6131f147820b3775fc94d10419e9983a564ecc -->
+<!-- pyspec-contract-input-sha256: f38ebb530c1f4a1d4d114b679fd9012ead3f84523724e73652fef2bc7f6cc6b9 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 705)">
 <title>external_interface_external_interface_api_project_approve</title>
 <!-- external_interface_external_interface_api_project_approve -->
@@ -11,7 +11,7 @@
 <polygon fill="#ecfeff" stroke="transparent" points="1,-405 1,-436 241,-436 241,-405 1,-405"/>
 <text text-anchor="start" x="5" y="-422.6" font-family="Arial" font-weight="bold" font-size="13.00">POST /projects/{project_id}/approve</text>
 <text text-anchor="start" x="5" y="-411.6" font-family="Arial" font-size="8.00" fill="#64748b">http_api external interface</text>
-<text text-anchor="start" x="5" y="-394" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">HTTP endpoint for approving submitted dispatch</text>
+<text text-anchor="start" x="5" y="-394" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">HTTP operation for approving submitted dispatch</text>
 <text text-anchor="start" x="5" y="-383" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">projects.</text>
 <text text-anchor="start" x="6" y="-363" font-family="Arial" font-weight="bold" font-size="10.00">http operation:</text>
 <text text-anchor="start" x="75" y="-363" font-family="Arial" font-size="10.00">  http_operation.project.approve</text>

@@ -5,7 +5,7 @@ summary:
   missing_required_visual_pointers: 0
   required_visual_text_witnesses: 284
   optional_visual_pointers: 503
-  optional_visual_pointers_not_shown: 21
+  optional_visual_pointers_not_shown: 6
   non_visual_pointers: 149
   visual_evidence_sets: 34
 visual_evidence_sets:
@@ -127,11 +127,17 @@ visual_evidence_sets:
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.viewport_profile_default.compact.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.viewport_profile_default.wide.capture.svg
   V0020:
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.viewport_profile_default.compact.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.viewport_profile_default.wide.screenshot.png
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.viewport_profile_default.compact.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.viewport_profile_default.wide.capture.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_list/state_machine.svg
+  V0021:
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/html.viewport_profile_default.compact.screenshot.png
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/html.viewport_profile_default.wide.screenshot.png
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.viewport_profile_default.compact.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.viewport_profile_default.wide.capture.svg
-  V0021:
+  V0022:
   - spec/generated/audit_evidence/external_interfaces/http_api/external_interface_api_project_list/flow.svg
   - spec/generated/audit_evidence/queries/query_project_list/flow.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/state_machine.svg
@@ -145,20 +151,20 @@ visual_evidence_sets:
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.viewport_profile_default.compact.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.viewport_profile_default.wide.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_list/state_machine.svg
-  V0022:
+  V0023:
   - spec/generated/audit_evidence/queries/query_project_read/flow.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_activity/state_machine.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_detail/state_machine.svg
-  V0023:
+  V0024:
   - spec/generated/audit_evidence/commands/command_project_approve/flow.svg
   - spec/generated/audit_evidence/external_interfaces/cli/external_interface_cli_project_approve/flow.svg
   - spec/generated/audit_evidence/external_interfaces/http_api/external_interface_api_project_approve/flow.svg
   - spec/generated/audit_evidence/external_interfaces/worker/external_interface_worker_project_approval_notice/flow.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_detail/state_machine.svg
   - spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg
-  V0024:
-  - spec/generated/audit_evidence/state_machines/state_machine_project_activity/state_machine.svg
   V0025:
+  - spec/generated/audit_evidence/state_machines/state_machine_project_activity/state_machine.svg
+  V0026:
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/state_machine.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/composition.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.viewport_profile_default.compact.screenshot.png
@@ -169,34 +175,28 @@ visual_evidence_sets:
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/html.viewport_profile_default.wide.screenshot.png
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.viewport_profile_default.compact.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.viewport_profile_default.wide.capture.svg
-  V0026:
-  - spec/generated/audit_evidence/state_machines/state_machine_project_detail/state_machine.svg
   V0027:
-  - spec/generated/audit_evidence/state_machines/state_machine_project_list/state_machine.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_detail/state_machine.svg
   V0028:
+  - spec/generated/audit_evidence/state_machines/state_machine_project_list/state_machine.svg
+  V0029:
   - spec/generated/audit_evidence/state_machines/state_machine_project_activity/state_machine.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.viewport_profile_default.compact.screenshot.png
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.viewport_profile_default.wide.screenshot.png
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.viewport_profile_default.compact.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.viewport_profile_default.wide.capture.svg
-  V0029:
+  V0030:
   - spec/generated/audit_evidence/state_machines/state_machine_project_activity/state_machine.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/html.viewport_profile_default.compact.screenshot.png
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/html.viewport_profile_default.wide.screenshot.png
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.viewport_profile_default.compact.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.viewport_profile_default.wide.capture.svg
-  V0030:
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.viewport_profile_default.compact.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.viewport_profile_default.wide.screenshot.png
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.viewport_profile_default.compact.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.viewport_profile_default.wide.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_detail/state_machine.svg
   V0031:
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.viewport_profile_default.compact.screenshot.png
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/html.viewport_profile_default.wide.screenshot.png
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.viewport_profile_default.compact.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_empty_audit/renders/textual.viewport_profile_default.wide.capture.svg
-  - spec/generated/audit_evidence/state_machines/state_machine_project_list/state_machine.svg
+  - spec/generated/audit_evidence/state_machines/state_machine_project_detail/state_machine.svg
   V0032:
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/html.viewport_profile_default.compact.screenshot.png
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/html.viewport_profile_default.wide.screenshot.png
@@ -213,20 +213,20 @@ visual_evidence_sets:
 render_presence:
   media_assets:
     rendered:
-      media_asset.project.detail.ready.priority_badge: V0020
+      media_asset.project.detail.ready.priority_badge: V0021
       media_asset.project.list.empty.illustration: V0034
     not_rendered: []
   text_resources:
     rendered:
       text_resource.project.activity.empty.body: V0034
       text_resource.project.activity.empty.heading: V0034
-      text_resource.project.activity.ready.heading: V0020
+      text_resource.project.activity.ready.heading: V0021
       text_resource.project.detail.none.body: V0034
       text_resource.project.detail.none.heading: V0034
-      text_resource.project.detail.ready.heading: V0020
+      text_resource.project.detail.ready.heading: V0021
       text_resource.project.list.empty.body: V0034
       text_resource.project.list.empty.heading: V0034
-      text_resource.project.list.ready.heading: V0020
+      text_resource.project.list.ready.heading: V0021
     not_rendered:
     - text_resource.project.approve.access_denied
     - text_resource.project.approve.authentication_required
@@ -247,13 +247,13 @@ render_presence:
     - fixture.workspace.reviewer
   preconditions:
     rendered:
-      precondition.project.draft: V0020
-      precondition.project.submitted: V0020
+      precondition.project.draft: V0021
+      precondition.project.submitted: V0021
     not_rendered: []
   content_examples:
     rendered:
-      content_example.project.detail.heading.high_priority: V0020
-      content_example.project.detail.priority_badge.high_priority: V0020
+      content_example.project.detail.heading.high_priority: V0021
+      content_example.project.detail.priority_badge.high_priority: V0021
     not_rendered: []
 visual_audit:
   required:
@@ -622,43 +622,43 @@ visual_audit:
       : V0018
       /external_interfaces/external_interface.worker.project.approval_notice/rationale: V0018
       /external_interfaces/external_interface.worker.project.approval_notice/workflow_ref: V0018
-      /queries/query.project.list/input_schema/additionalProperties: V0021
-      /queries/query.project.list/input_schema/properties/workspace_id/type: V0021
-      /queries/query.project.list/input_schema/required/0: V0021
-      /queries/query.project.list/input_schema/type: V0021
-      /queries/query.project.list/outcomes/access_denied/kind: V0021
-      /queries/query.project.list/outcomes/access_denied/result/$ref: V0021
-      /queries/query.project.list/outcomes/authentication_required/kind: V0021
-      /queries/query.project.list/outcomes/authentication_required/result/$ref: V0021
-      /queries/query.project.list/outcomes/listed/kind: V0021
-      /queries/query.project.list/outcomes/listed/result/items/$ref: V0021
-      /queries/query.project.list/outcomes/listed/result/type: V0021
-      /queries/query.project.list/outcomes/unavailable/kind: V0021
-      /queries/query.project.list/outcomes/unavailable/result/$ref: V0021
-      /queries/query.project.list/rationale: V0021
-      /queries/query.project.list/result_schema/items/$ref: V0021
-      /queries/query.project.list/result_schema/type: V0021
-      /queries/query.project.read/input_schema/additionalProperties: V0022
-      /queries/query.project.read/input_schema/properties/project_id/type: V0022
-      /queries/query.project.read/input_schema/required/0: V0022
-      /queries/query.project.read/input_schema/type: V0022
-      /queries/query.project.read/outcomes/access_denied/kind: V0022
-      /queries/query.project.read/outcomes/access_denied/result/$ref: V0022
-      /queries/query.project.read/outcomes/authentication_required/kind: V0022
-      /queries/query.project.read/outcomes/authentication_required/result/$ref: V0022
-      /queries/query.project.read/outcomes/found/kind: V0022
-      /queries/query.project.read/outcomes/found/result/$ref: V0022
-      /queries/query.project.read/outcomes/not_found/kind: V0022
-      /queries/query.project.read/outcomes/not_found/result/$ref: V0022
-      /queries/query.project.read/rationale: V0022
-      /queries/query.project.read/result_schema/$ref: V0022
-      /schemas/schema.project.approved/rationale: V0023
-      /schemas/schema.project.approved/schema/additionalProperties: V0023
-      /schemas/schema.project.approved/schema/properties/approved_by/type: V0023
-      /schemas/schema.project.approved/schema/properties/project_id/type: V0023
-      /schemas/schema.project.approved/schema/required/0: V0023
-      /schemas/schema.project.approved/schema/required/1: V0023
-      /schemas/schema.project.approved/schema/type: V0023
+      /queries/query.project.list/input_schema/additionalProperties: V0022
+      /queries/query.project.list/input_schema/properties/workspace_id/type: V0022
+      /queries/query.project.list/input_schema/required/0: V0022
+      /queries/query.project.list/input_schema/type: V0022
+      /queries/query.project.list/outcomes/access_denied/kind: V0022
+      /queries/query.project.list/outcomes/access_denied/result/$ref: V0022
+      /queries/query.project.list/outcomes/authentication_required/kind: V0022
+      /queries/query.project.list/outcomes/authentication_required/result/$ref: V0022
+      /queries/query.project.list/outcomes/listed/kind: V0022
+      /queries/query.project.list/outcomes/listed/result/items/$ref: V0022
+      /queries/query.project.list/outcomes/listed/result/type: V0022
+      /queries/query.project.list/outcomes/unavailable/kind: V0022
+      /queries/query.project.list/outcomes/unavailable/result/$ref: V0022
+      /queries/query.project.list/rationale: V0022
+      /queries/query.project.list/result_schema/items/$ref: V0022
+      /queries/query.project.list/result_schema/type: V0022
+      /queries/query.project.read/input_schema/additionalProperties: V0023
+      /queries/query.project.read/input_schema/properties/project_id/type: V0023
+      /queries/query.project.read/input_schema/required/0: V0023
+      /queries/query.project.read/input_schema/type: V0023
+      /queries/query.project.read/outcomes/access_denied/kind: V0023
+      /queries/query.project.read/outcomes/access_denied/result/$ref: V0023
+      /queries/query.project.read/outcomes/authentication_required/kind: V0023
+      /queries/query.project.read/outcomes/authentication_required/result/$ref: V0023
+      /queries/query.project.read/outcomes/found/kind: V0023
+      /queries/query.project.read/outcomes/found/result/$ref: V0023
+      /queries/query.project.read/outcomes/not_found/kind: V0023
+      /queries/query.project.read/outcomes/not_found/result/$ref: V0023
+      /queries/query.project.read/rationale: V0023
+      /queries/query.project.read/result_schema/$ref: V0023
+      /schemas/schema.project.approved/rationale: V0024
+      /schemas/schema.project.approved/schema/additionalProperties: V0024
+      /schemas/schema.project.approved/schema/properties/approved_by/type: V0024
+      /schemas/schema.project.approved/schema/properties/project_id/type: V0024
+      /schemas/schema.project.approved/schema/required/0: V0024
+      /schemas/schema.project.approved/schema/required/1: V0024
+      /schemas/schema.project.approved/schema/type: V0024
       /schemas/schema.project.notice_result/rationale: V0009
       /schemas/schema.project.notice_result/schema/additionalProperties: V0009
       /schemas/schema.project.notice_result/schema/properties/notice_id/type: V0009
@@ -667,607 +667,607 @@ visual_audit:
       /schemas/schema.project.notice_result/schema/required/0: V0009
       /schemas/schema.project.notice_result/schema/required/1: V0009
       /schemas/schema.project.notice_result/schema/type: V0009
-      /state_machines/state_machine.project.activity/context_schema/additionalProperties: V0024
-      /state_machines/state_machine.project.activity/context_schema/properties/project_id/type/0: V0024
-      /state_machines/state_machine.project.activity/context_schema/properties/project_id/type/1: V0024
-      /state_machines/state_machine.project.activity/context_schema/required: V0024
-      /state_machines/state_machine.project.activity/context_schema/type: V0024
-      /state_machines/state_machine.project.activity/entity_type: V0024
-      /state_machines/state_machine.project.activity/initial_state: V0024
-      /state_machines/state_machine.project.activity/local_signals/accepts/data_refresh_signals: V0024
+      /state_machines/state_machine.project.activity/context_schema/additionalProperties: V0025
+      /state_machines/state_machine.project.activity/context_schema/properties/project_id/type/0: V0025
+      /state_machines/state_machine.project.activity/context_schema/properties/project_id/type/1: V0025
+      /state_machines/state_machine.project.activity/context_schema/required: V0025
+      /state_machines/state_machine.project.activity/context_schema/type: V0025
+      /state_machines/state_machine.project.activity/entity_type: V0025
+      /state_machines/state_machine.project.activity/initial_state: V0025
+      /state_machines/state_machine.project.activity/local_signals/accepts/data_refresh_signals: V0025
       ? /state_machines/state_machine.project.activity/local_signals/accepts/local_signals/selection_changed/payload_schema/additionalProperties
-      : V0024
+      : V0025
       ? /state_machines/state_machine.project.activity/local_signals/accepts/local_signals/selection_changed/payload_schema/properties/project_id/type
-      : V0024
+      : V0025
       ? /state_machines/state_machine.project.activity/local_signals/accepts/local_signals/selection_changed/payload_schema/required/0
-      : V0024
-      /state_machines/state_machine.project.activity/local_signals/accepts/local_signals/selection_changed/payload_schema/type: V0024
+      : V0025
+      /state_machines/state_machine.project.activity/local_signals/accepts/local_signals/selection_changed/payload_schema/type: V0025
       ? /state_machines/state_machine.project.activity/local_signals/accepts/local_signals/selection_cleared/payload_schema/additionalProperties
-      : V0024
+      : V0025
       ? /state_machines/state_machine.project.activity/local_signals/accepts/local_signals/selection_cleared/payload_schema/properties
-      : V0024
+      : V0025
       ? /state_machines/state_machine.project.activity/local_signals/accepts/local_signals/selection_cleared/payload_schema/required
-      : V0024
-      /state_machines/state_machine.project.activity/local_signals/accepts/local_signals/selection_cleared/payload_schema/type: V0024
-      /state_machines/state_machine.project.activity/local_signals/emits/local_signals: V0024
-      /state_machines/state_machine.project.activity/query_bindings: V0024
-      /state_machines/state_machine.project.activity/rationale: V0024
-      /state_machines/state_machine.project.activity/states/empty/assets: V0024
-      /state_machines/state_machine.project.activity/states/empty/command_bindings: V0024
-      /state_machines/state_machine.project.activity/states/empty/fields: V0024
-      /state_machines/state_machine.project.activity/states/empty/query_bindings: V0024
-      /state_machines/state_machine.project.activity/states/empty/surface: V0024
-      /state_machines/state_machine.project.activity/states/empty/text/0: V0024
-      /state_machines/state_machine.project.activity/states/empty/text/1: V0024
-      /state_machines/state_machine.project.activity/states/ready/assets: V0024
-      /state_machines/state_machine.project.activity/states/ready/command_bindings: V0024
-      /state_machines/state_machine.project.activity/states/ready/fields/0: V0024
-      /state_machines/state_machine.project.activity/states/ready/fields/1: V0024
-      /state_machines/state_machine.project.activity/states/ready/fields/2: V0024
-      /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/input_mapping/project_id/from: V0024
-      /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/load/on_enter: V0024
+      : V0025
+      /state_machines/state_machine.project.activity/local_signals/accepts/local_signals/selection_cleared/payload_schema/type: V0025
+      /state_machines/state_machine.project.activity/local_signals/emits/local_signals: V0025
+      /state_machines/state_machine.project.activity/query_bindings: V0025
+      /state_machines/state_machine.project.activity/rationale: V0025
+      /state_machines/state_machine.project.activity/states/empty/command_bindings: V0025
+      /state_machines/state_machine.project.activity/states/empty/fields: V0025
+      /state_machines/state_machine.project.activity/states/empty/media_assets: V0025
+      /state_machines/state_machine.project.activity/states/empty/query_bindings: V0025
+      /state_machines/state_machine.project.activity/states/empty/renderer_surface: V0025
+      /state_machines/state_machine.project.activity/states/empty/text_resources/0: V0025
+      /state_machines/state_machine.project.activity/states/empty/text_resources/1: V0025
+      /state_machines/state_machine.project.activity/states/ready/command_bindings: V0025
+      /state_machines/state_machine.project.activity/states/ready/fields/0: V0025
+      /state_machines/state_machine.project.activity/states/ready/fields/1: V0025
+      /state_machines/state_machine.project.activity/states/ready/fields/2: V0025
+      /state_machines/state_machine.project.activity/states/ready/media_assets: V0025
+      /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/input_mapping/project_id/from: V0025
+      /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/load/on_enter: V0025
       ? /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/local_effects/access_denied/no_local_effect/rationale
-      : V0024
+      : V0025
       ? /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/local_effects/access_denied/no_local_effect/reason
-      : V0024
+      : V0025
       ? /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/local_effects/authentication_required/no_local_effect/rationale
-      : V0024
+      : V0025
       ? /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/local_effects/authentication_required/no_local_effect/reason
-      : V0024
+      : V0025
       ? /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/local_effects/found/no_local_effect/reason
-      : V0024
+      : V0025
       ? /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/local_effects/found/result_binding/data_key
-      : V0024
+      : V0025
       ? /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/local_effects/found/result_binding/from/from
-      : V0024
+      : V0025
       ? /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/local_effects/not_found/no_local_effect/rationale
-      : V0024
+      : V0025
       ? /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/local_effects/not_found/no_local_effect/reason
-      : V0024
-      /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/query: V0024
-      /state_machines/state_machine.project.activity/states/ready/surface: V0024
-      /state_machines/state_machine.project.activity/states/ready/text/0: V0024
-      /state_machines/state_machine.project.activity/transitions/0/from: V0024
-      /state_machines/state_machine.project.activity/transitions/0/to: V0024
-      /state_machines/state_machine.project.activity/transitions/0/trigger/local_signal: V0024
-      /state_machines/state_machine.project.activity/transitions/1/from: V0024
-      /state_machines/state_machine.project.activity/transitions/1/local_effects/0/set/context: V0024
-      /state_machines/state_machine.project.activity/transitions/1/local_effects/0/set/value: V0024
-      /state_machines/state_machine.project.activity/transitions/1/to: V0024
-      /state_machines/state_machine.project.activity/transitions/1/trigger/local_signal: V0024
-      /state_machines/state_machine.project.board/archetype: V0025
-      /state_machines/state_machine.project.board/context_schema/additionalProperties: V0025
-      /state_machines/state_machine.project.board/context_schema/properties/selected_project_id/type/0: V0025
-      /state_machines/state_machine.project.board/context_schema/properties/selected_project_id/type/1: V0025
-      /state_machines/state_machine.project.board/context_schema/properties/workspace_id/type: V0025
-      /state_machines/state_machine.project.board/context_schema/required/0: V0025
-      /state_machines/state_machine.project.board/context_schema/type: V0025
-      /state_machines/state_machine.project.board/entity_type: V0025
-      /state_machines/state_machine.project.board/initial_state: V0025
-      /state_machines/state_machine.project.board/local_signals/accepts/data_refresh_signals: V0025
-      /state_machines/state_machine.project.board/local_signals/accepts/local_signals: V0025
-      /state_machines/state_machine.project.board/local_signals/emits/local_signals: V0025
-      /state_machines/state_machine.project.board/query_bindings/list_board/input_mapping/workspace_id/from: V0025
-      /state_machines/state_machine.project.board/query_bindings/list_board/load/on_start: V0025
+      : V0025
+      /state_machines/state_machine.project.activity/states/ready/query_bindings/read_activity/query: V0025
+      /state_machines/state_machine.project.activity/states/ready/renderer_surface: V0025
+      /state_machines/state_machine.project.activity/states/ready/text_resources/0: V0025
+      /state_machines/state_machine.project.activity/transitions/0/from: V0025
+      /state_machines/state_machine.project.activity/transitions/0/to: V0025
+      /state_machines/state_machine.project.activity/transitions/0/trigger/local_signal: V0025
+      /state_machines/state_machine.project.activity/transitions/1/from: V0025
+      /state_machines/state_machine.project.activity/transitions/1/local_effects/0/set/context: V0025
+      /state_machines/state_machine.project.activity/transitions/1/local_effects/0/set/value: V0025
+      /state_machines/state_machine.project.activity/transitions/1/to: V0025
+      /state_machines/state_machine.project.activity/transitions/1/trigger/local_signal: V0025
+      /state_machines/state_machine.project.board/archetype: V0026
+      /state_machines/state_machine.project.board/context_schema/additionalProperties: V0026
+      /state_machines/state_machine.project.board/context_schema/properties/selected_project_id/type/0: V0026
+      /state_machines/state_machine.project.board/context_schema/properties/selected_project_id/type/1: V0026
+      /state_machines/state_machine.project.board/context_schema/properties/workspace_id/type: V0026
+      /state_machines/state_machine.project.board/context_schema/required/0: V0026
+      /state_machines/state_machine.project.board/context_schema/type: V0026
+      /state_machines/state_machine.project.board/entity_type: V0026
+      /state_machines/state_machine.project.board/initial_state: V0026
+      /state_machines/state_machine.project.board/local_signals/accepts/data_refresh_signals: V0026
+      /state_machines/state_machine.project.board/local_signals/accepts/local_signals: V0026
+      /state_machines/state_machine.project.board/local_signals/emits/local_signals: V0026
+      /state_machines/state_machine.project.board/query_bindings/list_board/input_mapping/workspace_id/from: V0026
+      /state_machines/state_machine.project.board/query_bindings/list_board/load/on_start: V0026
       ? /state_machines/state_machine.project.board/query_bindings/list_board/local_effects/access_denied/no_local_effect/rationale
-      : V0025
-      /state_machines/state_machine.project.board/query_bindings/list_board/local_effects/access_denied/no_local_effect/reason: V0025
+      : V0026
+      /state_machines/state_machine.project.board/query_bindings/list_board/local_effects/access_denied/no_local_effect/reason: V0026
       ? /state_machines/state_machine.project.board/query_bindings/list_board/local_effects/authentication_required/no_local_effect/rationale
-      : V0025
+      : V0026
       ? /state_machines/state_machine.project.board/query_bindings/list_board/local_effects/authentication_required/no_local_effect/reason
-      : V0025
-      /state_machines/state_machine.project.board/query_bindings/list_board/local_effects/listed/no_local_effect/reason: V0025
-      /state_machines/state_machine.project.board/query_bindings/list_board/local_effects/listed/result_binding/data_key: V0025
-      /state_machines/state_machine.project.board/query_bindings/list_board/local_effects/listed/result_binding/from/from: V0025
-      /state_machines/state_machine.project.board/query_bindings/list_board/local_effects/unavailable/no_local_effect/rationale: V0025
-      /state_machines/state_machine.project.board/query_bindings/list_board/local_effects/unavailable/no_local_effect/reason: V0025
-      /state_machines/state_machine.project.board/query_bindings/list_board/query: V0025
-      /state_machines/state_machine.project.board/query_bindings/list_board/rationale: V0025
-      /state_machines/state_machine.project.board/query_bindings/list_board/result_scope: V0025
-      /state_machines/state_machine.project.board/rationale: V0025
-      /state_machines/state_machine.project.board/states/ready/assets: V0025
-      /state_machines/state_machine.project.board/states/ready/child_state_machines/0/context_bindings/selected_project_id/from: V0025
-      /state_machines/state_machine.project.board/states/ready/child_state_machines/0/context_bindings/workspace_id/from: V0025
-      /state_machines/state_machine.project.board/states/ready/child_state_machines/0/html_region: V0025
-      /state_machines/state_machine.project.board/states/ready/child_state_machines/0/id: V0025
-      /state_machines/state_machine.project.board/states/ready/child_state_machines/0/initial_state: V0025
-      /state_machines/state_machine.project.board/states/ready/child_state_machines/0/state_machine: V0025
-      /state_machines/state_machine.project.board/states/ready/child_state_machines/0/textual_container: V0025
-      /state_machines/state_machine.project.board/states/ready/child_state_machines/1/context_bindings/project_id/from: V0025
-      /state_machines/state_machine.project.board/states/ready/child_state_machines/1/html_region: V0025
-      /state_machines/state_machine.project.board/states/ready/child_state_machines/1/id: V0025
-      /state_machines/state_machine.project.board/states/ready/child_state_machines/1/initial_state: V0025
-      /state_machines/state_machine.project.board/states/ready/child_state_machines/1/selected/condition/context_non_null: V0025
-      /state_machines/state_machine.project.board/states/ready/child_state_machines/1/selected/state: V0025
-      /state_machines/state_machine.project.board/states/ready/child_state_machines/1/state_machine: V0025
-      /state_machines/state_machine.project.board/states/ready/child_state_machines/1/textual_container: V0025
-      /state_machines/state_machine.project.board/states/ready/child_state_machines/2/context_bindings/project_id/from: V0025
-      /state_machines/state_machine.project.board/states/ready/child_state_machines/2/html_region: V0025
-      /state_machines/state_machine.project.board/states/ready/child_state_machines/2/id: V0025
-      /state_machines/state_machine.project.board/states/ready/child_state_machines/2/initial_state: V0025
-      /state_machines/state_machine.project.board/states/ready/child_state_machines/2/selected/condition/context_non_null: V0025
-      /state_machines/state_machine.project.board/states/ready/child_state_machines/2/selected/state: V0025
-      /state_machines/state_machine.project.board/states/ready/child_state_machines/2/state_machine: V0025
-      /state_machines/state_machine.project.board/states/ready/child_state_machines/2/textual_container: V0025
-      /state_machines/state_machine.project.board/states/ready/command_bindings: V0025
-      /state_machines/state_machine.project.board/states/ready/fields: V0025
-      /state_machines/state_machine.project.board/states/ready/query_bindings: V0025
-      /state_machines/state_machine.project.board/states/ready/render_examples/empty/instances/activity/state: V0025
-      /state_machines/state_machine.project.board/states/ready/render_examples/empty/instances/detail/state: V0025
-      /state_machines/state_machine.project.board/states/ready/render_examples/empty/instances/list/state: V0025
-      /state_machines/state_machine.project.board/states/ready/render_examples/empty/rationale: V0025
-      /state_machines/state_machine.project.board/states/ready/render_examples/empty/seed_fixtures/0: V0025
-      /state_machines/state_machine.project.board/states/ready/render_examples/ready_selected/context/selected_project_id/value: V0025
-      /state_machines/state_machine.project.board/states/ready/render_examples/ready_selected/instances/activity/state: V0025
-      /state_machines/state_machine.project.board/states/ready/render_examples/ready_selected/instances/detail/state: V0025
-      /state_machines/state_machine.project.board/states/ready/render_examples/ready_selected/instances/list/state: V0025
-      /state_machines/state_machine.project.board/states/ready/render_examples/ready_selected/precondition_refs/0/ref: V0025
-      /state_machines/state_machine.project.board/states/ready/render_examples/ready_selected/precondition_refs/1/ref: V0025
-      /state_machines/state_machine.project.board/states/ready/render_examples/ready_selected/rationale: V0025
-      /state_machines/state_machine.project.board/states/ready/render_examples/ready_selected/seed_fixtures/0: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/aside/classes/0: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/aside/element: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/aside/must_render: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/aside/order: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/aside/role: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/main/classes/0: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/main/element: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/main/must_render: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/main/order: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/main/role: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/nav/classes/0: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/nav/element: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/nav/must_render: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/nav/order: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/nav/role: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/root/classes/0: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/root/element: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/root/role: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/style/rules/0/declarations/display: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/style/rules/0/declarations/gap: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/style/rules/0/declarations/grid-template-columns: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/style/rules/0/selector: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/style/rules/1/declarations/min-width: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/style/rules/1/selector: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/style/rules/2/declarations/min-width: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/style/rules/2/selector: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/style/rules/3/declarations/min-width: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/style/rules/3/selector: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/style/tokens/aside_width: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/style/tokens/gap: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/html/style/tokens/nav_width: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/textual/layout/containers/aside/container_class: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/textual/layout/containers/aside/id: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/textual/layout/containers/aside/must_render: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/textual/layout/containers/aside/order: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/textual/layout/containers/main/container_class: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/textual/layout/containers/main/id: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/textual/layout/containers/main/must_render: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/textual/layout/containers/main/order: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/textual/layout/containers/nav/container_class: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/textual/layout/containers/nav/id: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/textual/layout/containers/nav/must_render: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/textual/layout/containers/nav/order: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/textual/layout/screen_class: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/textual/style/rules/0/declarations/layout: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/textual/style/rules/0/selector: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/textual/style/rules/1/declarations/width: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/textual/style/rules/1/selector: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/textual/style/rules/2/declarations/width: V0025
-      /state_machines/state_machine.project.board/states/ready/renderers/textual/style/rules/2/selector: V0025
-      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/id: V0025
-      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/0/set/context: V0025
-      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/0/set/from: V0025
-      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/1/send/instance: V0025
-      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/1/send/local_signal: V0025
+      : V0026
+      /state_machines/state_machine.project.board/query_bindings/list_board/local_effects/listed/no_local_effect/reason: V0026
+      /state_machines/state_machine.project.board/query_bindings/list_board/local_effects/listed/result_binding/data_key: V0026
+      /state_machines/state_machine.project.board/query_bindings/list_board/local_effects/listed/result_binding/from/from: V0026
+      /state_machines/state_machine.project.board/query_bindings/list_board/local_effects/unavailable/no_local_effect/rationale: V0026
+      /state_machines/state_machine.project.board/query_bindings/list_board/local_effects/unavailable/no_local_effect/reason: V0026
+      /state_machines/state_machine.project.board/query_bindings/list_board/query: V0026
+      /state_machines/state_machine.project.board/query_bindings/list_board/rationale: V0026
+      /state_machines/state_machine.project.board/query_bindings/list_board/result_scope: V0026
+      /state_machines/state_machine.project.board/rationale: V0026
+      /state_machines/state_machine.project.board/states/ready/child_state_machines/0/context_bindings/selected_project_id/from: V0026
+      /state_machines/state_machine.project.board/states/ready/child_state_machines/0/context_bindings/workspace_id/from: V0026
+      /state_machines/state_machine.project.board/states/ready/child_state_machines/0/html_region: V0026
+      /state_machines/state_machine.project.board/states/ready/child_state_machines/0/id: V0026
+      /state_machines/state_machine.project.board/states/ready/child_state_machines/0/initial_state: V0026
+      /state_machines/state_machine.project.board/states/ready/child_state_machines/0/state_machine: V0026
+      /state_machines/state_machine.project.board/states/ready/child_state_machines/0/textual_container: V0026
+      /state_machines/state_machine.project.board/states/ready/child_state_machines/1/context_bindings/project_id/from: V0026
+      /state_machines/state_machine.project.board/states/ready/child_state_machines/1/html_region: V0026
+      /state_machines/state_machine.project.board/states/ready/child_state_machines/1/id: V0026
+      /state_machines/state_machine.project.board/states/ready/child_state_machines/1/initial_state: V0026
+      /state_machines/state_machine.project.board/states/ready/child_state_machines/1/selected/condition/context_non_null: V0026
+      /state_machines/state_machine.project.board/states/ready/child_state_machines/1/selected/state: V0026
+      /state_machines/state_machine.project.board/states/ready/child_state_machines/1/state_machine: V0026
+      /state_machines/state_machine.project.board/states/ready/child_state_machines/1/textual_container: V0026
+      /state_machines/state_machine.project.board/states/ready/child_state_machines/2/context_bindings/project_id/from: V0026
+      /state_machines/state_machine.project.board/states/ready/child_state_machines/2/html_region: V0026
+      /state_machines/state_machine.project.board/states/ready/child_state_machines/2/id: V0026
+      /state_machines/state_machine.project.board/states/ready/child_state_machines/2/initial_state: V0026
+      /state_machines/state_machine.project.board/states/ready/child_state_machines/2/selected/condition/context_non_null: V0026
+      /state_machines/state_machine.project.board/states/ready/child_state_machines/2/selected/state: V0026
+      /state_machines/state_machine.project.board/states/ready/child_state_machines/2/state_machine: V0026
+      /state_machines/state_machine.project.board/states/ready/child_state_machines/2/textual_container: V0026
+      /state_machines/state_machine.project.board/states/ready/command_bindings: V0026
+      /state_machines/state_machine.project.board/states/ready/fields: V0026
+      /state_machines/state_machine.project.board/states/ready/media_assets: V0026
+      /state_machines/state_machine.project.board/states/ready/query_bindings: V0026
+      /state_machines/state_machine.project.board/states/ready/render_examples/empty/instances/activity/state: V0026
+      /state_machines/state_machine.project.board/states/ready/render_examples/empty/instances/detail/state: V0026
+      /state_machines/state_machine.project.board/states/ready/render_examples/empty/instances/list/state: V0026
+      /state_machines/state_machine.project.board/states/ready/render_examples/empty/rationale: V0026
+      /state_machines/state_machine.project.board/states/ready/render_examples/empty/seed_fixtures/0: V0026
+      /state_machines/state_machine.project.board/states/ready/render_examples/ready_selected/context/selected_project_id/value: V0026
+      /state_machines/state_machine.project.board/states/ready/render_examples/ready_selected/instances/activity/state: V0026
+      /state_machines/state_machine.project.board/states/ready/render_examples/ready_selected/instances/detail/state: V0026
+      /state_machines/state_machine.project.board/states/ready/render_examples/ready_selected/instances/list/state: V0026
+      /state_machines/state_machine.project.board/states/ready/render_examples/ready_selected/precondition_refs/0/ref: V0026
+      /state_machines/state_machine.project.board/states/ready/render_examples/ready_selected/precondition_refs/1/ref: V0026
+      /state_machines/state_machine.project.board/states/ready/render_examples/ready_selected/rationale: V0026
+      /state_machines/state_machine.project.board/states/ready/render_examples/ready_selected/seed_fixtures/0: V0026
+      /state_machines/state_machine.project.board/states/ready/renderer_surface: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/aside/classes/0: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/aside/element: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/aside/must_render: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/aside/order: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/aside/role: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/main/classes/0: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/main/element: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/main/must_render: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/main/order: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/main/role: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/nav/classes/0: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/nav/element: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/nav/must_render: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/nav/order: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/nav/role: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/root/classes/0: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/root/element: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/layout/root/role: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/style/rules/0/declarations/display: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/style/rules/0/declarations/gap: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/style/rules/0/declarations/grid-template-columns: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/style/rules/0/selector: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/style/rules/1/declarations/min-width: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/style/rules/1/selector: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/style/rules/2/declarations/min-width: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/style/rules/2/selector: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/style/rules/3/declarations/min-width: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/style/rules/3/selector: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/style/tokens/aside_width: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/style/tokens/gap: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/html/style/tokens/nav_width: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/textual/layout/containers/aside/container_class: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/textual/layout/containers/aside/id: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/textual/layout/containers/aside/must_render: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/textual/layout/containers/aside/order: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/textual/layout/containers/main/container_class: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/textual/layout/containers/main/id: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/textual/layout/containers/main/must_render: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/textual/layout/containers/main/order: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/textual/layout/containers/nav/container_class: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/textual/layout/containers/nav/id: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/textual/layout/containers/nav/must_render: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/textual/layout/containers/nav/order: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/textual/layout/screen_class: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/textual/style/rules/0/declarations/layout: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/textual/style/rules/0/selector: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/textual/style/rules/1/declarations/width: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/textual/style/rules/1/selector: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/textual/style/rules/2/declarations/width: V0026
+      /state_machines/state_machine.project.board/states/ready/renderers/textual/style/rules/2/selector: V0026
+      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/id: V0026
+      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/0/set/context: V0026
+      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/0/set/from: V0026
+      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/1/send/instance: V0026
+      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/1/send/local_signal: V0026
       ? /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/1/send/payload_bindings/project_id/from
-      : V0025
-      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/2/send/instance: V0025
-      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/2/send/local_signal: V0025
+      : V0026
+      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/2/send/instance: V0026
+      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/2/send/local_signal: V0026
       ? /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/2/send/payload_bindings/project_id/from
-      : V0025
-      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/trigger/instance: V0025
-      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/trigger/local_signal: V0025
-      /state_machines/state_machine.project.board/states/ready/surface: V0025
-      /state_machines/state_machine.project.board/states/ready/text: V0025
-      /state_machines/state_machine.project.board/transitions: V0025
-      /state_machines/state_machine.project.detail/context_schema/additionalProperties: V0026
-      /state_machines/state_machine.project.detail/context_schema/properties/project_id/type/0: V0026
-      /state_machines/state_machine.project.detail/context_schema/properties/project_id/type/1: V0026
-      /state_machines/state_machine.project.detail/context_schema/required: V0026
-      /state_machines/state_machine.project.detail/context_schema/type: V0026
-      /state_machines/state_machine.project.detail/entity_type: V0026
-      /state_machines/state_machine.project.detail/initial_state: V0026
+      : V0026
+      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/trigger/instance: V0026
+      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/trigger/local_signal: V0026
+      /state_machines/state_machine.project.board/states/ready/text_resources: V0026
+      /state_machines/state_machine.project.board/transitions: V0026
+      /state_machines/state_machine.project.detail/context_schema/additionalProperties: V0027
+      /state_machines/state_machine.project.detail/context_schema/properties/project_id/type/0: V0027
+      /state_machines/state_machine.project.detail/context_schema/properties/project_id/type/1: V0027
+      /state_machines/state_machine.project.detail/context_schema/required: V0027
+      /state_machines/state_machine.project.detail/context_schema/type: V0027
+      /state_machines/state_machine.project.detail/entity_type: V0027
+      /state_machines/state_machine.project.detail/initial_state: V0027
       ? /state_machines/state_machine.project.detail/local_signals/accepts/data_refresh_signals/project_changed/payload_schema/additionalProperties
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/local_signals/accepts/data_refresh_signals/project_changed/payload_schema/properties
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/local_signals/accepts/data_refresh_signals/project_changed/payload_schema/required
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/local_signals/accepts/data_refresh_signals/project_changed/payload_schema/type
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/local_signals/accepts/data_refresh_signals/project_load_failed/payload_schema/additionalProperties
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/local_signals/accepts/data_refresh_signals/project_load_failed/payload_schema/properties
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/local_signals/accepts/data_refresh_signals/project_load_failed/payload_schema/required
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/local_signals/accepts/data_refresh_signals/project_load_failed/payload_schema/type
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/local_signals/accepts/data_refresh_signals/project_loaded/payload_schema/additionalProperties
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/local_signals/accepts/data_refresh_signals/project_loaded/payload_schema/properties
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/local_signals/accepts/data_refresh_signals/project_loaded/payload_schema/required
-      : V0026
-      /state_machines/state_machine.project.detail/local_signals/accepts/data_refresh_signals/project_loaded/payload_schema/type: V0026
+      : V0027
+      /state_machines/state_machine.project.detail/local_signals/accepts/data_refresh_signals/project_loaded/payload_schema/type: V0027
       ? /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/selection_changed/payload_schema/additionalProperties
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/selection_changed/payload_schema/properties/project_id/type
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/selection_changed/payload_schema/required/0
-      : V0026
-      /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/selection_changed/payload_schema/type: V0026
+      : V0027
+      /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/selection_changed/payload_schema/type: V0027
       ? /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/selection_cleared/payload_schema/additionalProperties
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/selection_cleared/payload_schema/properties
-      : V0026
-      /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/selection_cleared/payload_schema/required: V0026
-      /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/selection_cleared/payload_schema/type: V0026
+      : V0027
+      /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/selection_cleared/payload_schema/required: V0027
+      /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/selection_cleared/payload_schema/type: V0027
       ? /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/show_lifecycle_transition_not_allowed/payload_schema/additionalProperties
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/show_lifecycle_transition_not_allowed/payload_schema/properties/message/type
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/show_lifecycle_transition_not_allowed/payload_schema/required/0
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/show_lifecycle_transition_not_allowed/payload_schema/type
-      : V0026
-      /state_machines/state_machine.project.detail/local_signals/emits/local_signals: V0026
-      /state_machines/state_machine.project.detail/query_bindings: V0026
-      /state_machines/state_machine.project.detail/rationale: V0026
-      /state_machines/state_machine.project.detail/states/error/assets: V0026
-      /state_machines/state_machine.project.detail/states/error/command_bindings: V0026
-      /state_machines/state_machine.project.detail/states/error/fields: V0026
-      /state_machines/state_machine.project.detail/states/error/query_bindings: V0026
-      /state_machines/state_machine.project.detail/states/error/surface: V0026
-      /state_machines/state_machine.project.detail/states/error/text/0: V0026
-      /state_machines/state_machine.project.detail/states/error/text/1: V0026
-      /state_machines/state_machine.project.detail/states/loading/assets: V0026
-      /state_machines/state_machine.project.detail/states/loading/command_bindings: V0026
-      /state_machines/state_machine.project.detail/states/loading/fields: V0026
-      /state_machines/state_machine.project.detail/states/loading/query_bindings/read_project/input_mapping/project_id/from: V0026
-      /state_machines/state_machine.project.detail/states/loading/query_bindings/read_project/load/on_enter: V0026
+      : V0027
+      /state_machines/state_machine.project.detail/local_signals/emits/local_signals: V0027
+      /state_machines/state_machine.project.detail/query_bindings: V0027
+      /state_machines/state_machine.project.detail/rationale: V0027
+      /state_machines/state_machine.project.detail/states/error/command_bindings: V0027
+      /state_machines/state_machine.project.detail/states/error/fields: V0027
+      /state_machines/state_machine.project.detail/states/error/media_assets: V0027
+      /state_machines/state_machine.project.detail/states/error/query_bindings: V0027
+      /state_machines/state_machine.project.detail/states/error/renderer_surface: V0027
+      /state_machines/state_machine.project.detail/states/error/text_resources/0: V0027
+      /state_machines/state_machine.project.detail/states/error/text_resources/1: V0027
+      /state_machines/state_machine.project.detail/states/loading/command_bindings: V0027
+      /state_machines/state_machine.project.detail/states/loading/fields: V0027
+      /state_machines/state_machine.project.detail/states/loading/media_assets: V0027
+      /state_machines/state_machine.project.detail/states/loading/query_bindings/read_project/input_mapping/project_id/from: V0027
+      /state_machines/state_machine.project.detail/states/loading/query_bindings/read_project/load/on_enter: V0027
       ? /state_machines/state_machine.project.detail/states/loading/query_bindings/read_project/local_effects/access_denied/raise/data_refresh_signal
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/loading/query_bindings/read_project/local_effects/authentication_required/raise/data_refresh_signal
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/loading/query_bindings/read_project/local_effects/found/raise/data_refresh_signal
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/loading/query_bindings/read_project/local_effects/found/result_binding/data_key
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/loading/query_bindings/read_project/local_effects/found/result_binding/from/from
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/loading/query_bindings/read_project/local_effects/not_found/raise/data_refresh_signal
-      : V0026
-      /state_machines/state_machine.project.detail/states/loading/query_bindings/read_project/query: V0026
-      /state_machines/state_machine.project.detail/states/loading/surface: V0026
-      /state_machines/state_machine.project.detail/states/loading/text/0: V0026
-      /state_machines/state_machine.project.detail/states/none/assets: V0026
-      /state_machines/state_machine.project.detail/states/none/command_bindings: V0026
-      /state_machines/state_machine.project.detail/states/none/fields: V0026
-      /state_machines/state_machine.project.detail/states/none/query_bindings: V0026
-      /state_machines/state_machine.project.detail/states/none/surface: V0026
-      /state_machines/state_machine.project.detail/states/none/text/0: V0026
-      /state_machines/state_machine.project.detail/states/none/text/1: V0026
-      /state_machines/state_machine.project.detail/states/ready/assets/0: V0026
-      /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/command: V0026
-      /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/input_mapping/approved_by/from: V0026
-      /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/input_mapping/project_id/from: V0026
+      : V0027
+      /state_machines/state_machine.project.detail/states/loading/query_bindings/read_project/query: V0027
+      /state_machines/state_machine.project.detail/states/loading/renderer_surface: V0027
+      /state_machines/state_machine.project.detail/states/loading/text_resources/0: V0027
+      /state_machines/state_machine.project.detail/states/none/command_bindings: V0027
+      /state_machines/state_machine.project.detail/states/none/fields: V0027
+      /state_machines/state_machine.project.detail/states/none/media_assets: V0027
+      /state_machines/state_machine.project.detail/states/none/query_bindings: V0027
+      /state_machines/state_machine.project.detail/states/none/renderer_surface: V0027
+      /state_machines/state_machine.project.detail/states/none/text_resources/0: V0027
+      /state_machines/state_machine.project.detail/states/none/text_resources/1: V0027
+      /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/command: V0027
+      /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/input_mapping/approved_by/from: V0027
+      /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/input_mapping/project_id/from: V0027
       ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/access_denied/no_local_effect/rationale
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/access_denied/no_local_effect/reason
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/approved/raise/data_refresh_signal
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/authentication_required/no_local_effect/rationale
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/authentication_required/no_local_effect/reason
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/lifecycle_transition_not_allowed/raise/local_signal
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/lifecycle_transition_not_allowed/raise/payload_bindings/message/from
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/not_found/no_local_effect/rationale
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/not_found/no_local_effect/reason
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/unavailable/no_local_effect/rationale
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/unavailable/no_local_effect/reason
-      : V0026
-      /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/command: V0026
-      /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/input_mapping/project_id/from: V0026
+      : V0027
+      /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/command: V0027
+      /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/input_mapping/project_id/from: V0027
       ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/local_effects/access_denied/raise/local_signal
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/local_effects/access_denied/raise/payload_bindings/message/from
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/local_effects/archived/raise/data_refresh_signal
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/local_effects/authentication_required/raise/local_signal
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/local_effects/authentication_required/raise/payload_bindings/message/from
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/local_effects/lifecycle_transition_not_allowed/raise/local_signal
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/local_effects/lifecycle_transition_not_allowed/raise/payload_bindings/message/from
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/local_effects/not_found/raise/local_signal
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/local_effects/not_found/raise/payload_bindings/message/from
-      : V0026
-      /state_machines/state_machine.project.detail/states/ready/fields/0: V0026
-      /state_machines/state_machine.project.detail/states/ready/fields/1: V0026
-      /state_machines/state_machine.project.detail/states/ready/fields/2: V0026
-      /state_machines/state_machine.project.detail/states/ready/fields/3: V0026
-      /state_machines/state_machine.project.detail/states/ready/fields/4: V0026
-      /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/input_mapping/project_id/from: V0026
-      /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/load/on_enter: V0026
+      : V0027
+      /state_machines/state_machine.project.detail/states/ready/fields/0: V0027
+      /state_machines/state_machine.project.detail/states/ready/fields/1: V0027
+      /state_machines/state_machine.project.detail/states/ready/fields/2: V0027
+      /state_machines/state_machine.project.detail/states/ready/fields/3: V0027
+      /state_machines/state_machine.project.detail/states/ready/fields/4: V0027
+      /state_machines/state_machine.project.detail/states/ready/media_assets/0: V0027
+      /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/input_mapping/project_id/from: V0027
+      /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/load/on_enter: V0027
       ? /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/load/refresh_on/0/data_refresh_signal
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/local_effects/access_denied/raise/local_signal
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/local_effects/access_denied/raise/payload_bindings/message/from
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/local_effects/authentication_required/raise/local_signal
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/local_effects/authentication_required/raise/payload_bindings/message/from
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/local_effects/found/no_local_effect/reason
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/local_effects/found/result_binding/data_key
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/local_effects/found/result_binding/from/from
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/local_effects/not_found/raise/local_signal
-      : V0026
+      : V0027
       ? /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/local_effects/not_found/raise/payload_bindings/message/from
-      : V0026
-      /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/query: V0026
-      /state_machines/state_machine.project.detail/states/ready/surface: V0026
-      /state_machines/state_machine.project.detail/states/ready/text/0: V0026
-      /state_machines/state_machine.project.detail/transitions/0/from: V0026
-      /state_machines/state_machine.project.detail/transitions/0/to: V0026
-      /state_machines/state_machine.project.detail/transitions/0/trigger/local_signal: V0026
-      /state_machines/state_machine.project.detail/transitions/1/from: V0026
-      /state_machines/state_machine.project.detail/transitions/1/to: V0026
-      /state_machines/state_machine.project.detail/transitions/1/trigger/data_refresh_signal: V0026
-      /state_machines/state_machine.project.detail/transitions/2/from: V0026
-      /state_machines/state_machine.project.detail/transitions/2/to: V0026
-      /state_machines/state_machine.project.detail/transitions/2/trigger/data_refresh_signal: V0026
-      /state_machines/state_machine.project.detail/transitions/3/from: V0026
-      /state_machines/state_machine.project.detail/transitions/3/local_effects/0/set/context: V0026
-      /state_machines/state_machine.project.detail/transitions/3/local_effects/0/set/value: V0026
-      /state_machines/state_machine.project.detail/transitions/3/to: V0026
-      /state_machines/state_machine.project.detail/transitions/3/trigger/local_signal: V0026
-      /state_machines/state_machine.project.detail/transitions/4/from: V0026
-      /state_machines/state_machine.project.detail/transitions/4/rationale: V0026
-      /state_machines/state_machine.project.detail/transitions/4/to: V0026
-      /state_machines/state_machine.project.detail/transitions/4/trigger/data_refresh_signal: V0026
-      /state_machines/state_machine.project.detail/transitions/5/from: V0026
-      /state_machines/state_machine.project.detail/transitions/5/rationale: V0026
-      /state_machines/state_machine.project.detail/transitions/5/to: V0026
-      /state_machines/state_machine.project.detail/transitions/5/trigger/local_signal: V0026
-      /state_machines/state_machine.project.list/context_schema/additionalProperties: V0027
-      /state_machines/state_machine.project.list/context_schema/properties/selected_project_id/type/0: V0027
-      /state_machines/state_machine.project.list/context_schema/properties/selected_project_id/type/1: V0027
-      /state_machines/state_machine.project.list/context_schema/properties/workspace_id/type: V0027
-      /state_machines/state_machine.project.list/context_schema/required/0: V0027
-      /state_machines/state_machine.project.list/context_schema/type: V0027
-      /state_machines/state_machine.project.list/entity_type: V0027
-      /state_machines/state_machine.project.list/initial_state: V0027
+      : V0027
+      /state_machines/state_machine.project.detail/states/ready/query_bindings/read_project/query: V0027
+      /state_machines/state_machine.project.detail/states/ready/renderer_surface: V0027
+      /state_machines/state_machine.project.detail/states/ready/text_resources/0: V0027
+      /state_machines/state_machine.project.detail/transitions/0/from: V0027
+      /state_machines/state_machine.project.detail/transitions/0/to: V0027
+      /state_machines/state_machine.project.detail/transitions/0/trigger/local_signal: V0027
+      /state_machines/state_machine.project.detail/transitions/1/from: V0027
+      /state_machines/state_machine.project.detail/transitions/1/to: V0027
+      /state_machines/state_machine.project.detail/transitions/1/trigger/data_refresh_signal: V0027
+      /state_machines/state_machine.project.detail/transitions/2/from: V0027
+      /state_machines/state_machine.project.detail/transitions/2/to: V0027
+      /state_machines/state_machine.project.detail/transitions/2/trigger/data_refresh_signal: V0027
+      /state_machines/state_machine.project.detail/transitions/3/from: V0027
+      /state_machines/state_machine.project.detail/transitions/3/local_effects/0/set/context: V0027
+      /state_machines/state_machine.project.detail/transitions/3/local_effects/0/set/value: V0027
+      /state_machines/state_machine.project.detail/transitions/3/to: V0027
+      /state_machines/state_machine.project.detail/transitions/3/trigger/local_signal: V0027
+      /state_machines/state_machine.project.detail/transitions/4/from: V0027
+      /state_machines/state_machine.project.detail/transitions/4/rationale: V0027
+      /state_machines/state_machine.project.detail/transitions/4/to: V0027
+      /state_machines/state_machine.project.detail/transitions/4/trigger/data_refresh_signal: V0027
+      /state_machines/state_machine.project.detail/transitions/5/from: V0027
+      /state_machines/state_machine.project.detail/transitions/5/rationale: V0027
+      /state_machines/state_machine.project.detail/transitions/5/to: V0027
+      /state_machines/state_machine.project.detail/transitions/5/trigger/local_signal: V0027
+      /state_machines/state_machine.project.list/context_schema/additionalProperties: V0028
+      /state_machines/state_machine.project.list/context_schema/properties/selected_project_id/type/0: V0028
+      /state_machines/state_machine.project.list/context_schema/properties/selected_project_id/type/1: V0028
+      /state_machines/state_machine.project.list/context_schema/properties/workspace_id/type: V0028
+      /state_machines/state_machine.project.list/context_schema/required/0: V0028
+      /state_machines/state_machine.project.list/context_schema/type: V0028
+      /state_machines/state_machine.project.list/entity_type: V0028
+      /state_machines/state_machine.project.list/initial_state: V0028
       ? /state_machines/state_machine.project.list/local_signals/accepts/data_refresh_signals/project_collection_empty/payload_schema/additionalProperties
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/local_signals/accepts/data_refresh_signals/project_collection_empty/payload_schema/properties
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/local_signals/accepts/data_refresh_signals/project_collection_empty/payload_schema/required
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/local_signals/accepts/data_refresh_signals/project_collection_empty/payload_schema/type
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/local_signals/accepts/data_refresh_signals/project_list_failed/payload_schema/additionalProperties
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/local_signals/accepts/data_refresh_signals/project_list_failed/payload_schema/properties
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/local_signals/accepts/data_refresh_signals/project_list_failed/payload_schema/required
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/local_signals/accepts/data_refresh_signals/project_list_failed/payload_schema/type
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/local_signals/accepts/data_refresh_signals/projects_changed/payload_schema/additionalProperties
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/local_signals/accepts/data_refresh_signals/projects_changed/payload_schema/properties
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/local_signals/accepts/data_refresh_signals/projects_changed/payload_schema/required
-      : V0027
-      /state_machines/state_machine.project.list/local_signals/accepts/data_refresh_signals/projects_changed/payload_schema/type: V0027
+      : V0028
+      /state_machines/state_machine.project.list/local_signals/accepts/data_refresh_signals/projects_changed/payload_schema/type: V0028
       ? /state_machines/state_machine.project.list/local_signals/accepts/data_refresh_signals/projects_loaded/payload_schema/additionalProperties
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/local_signals/accepts/data_refresh_signals/projects_loaded/payload_schema/properties
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/local_signals/accepts/data_refresh_signals/projects_loaded/payload_schema/required
-      : V0027
-      /state_machines/state_machine.project.list/local_signals/accepts/data_refresh_signals/projects_loaded/payload_schema/type: V0027
+      : V0028
+      /state_machines/state_machine.project.list/local_signals/accepts/data_refresh_signals/projects_loaded/payload_schema/type: V0028
       ? /state_machines/state_machine.project.list/local_signals/accepts/local_signals/project_select/payload_schema/additionalProperties
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/local_signals/accepts/local_signals/project_select/payload_schema/properties/project_id/type
-      : V0027
-      /state_machines/state_machine.project.list/local_signals/accepts/local_signals/project_select/payload_schema/required/0: V0027
-      /state_machines/state_machine.project.list/local_signals/accepts/local_signals/project_select/payload_schema/type: V0027
+      : V0028
+      /state_machines/state_machine.project.list/local_signals/accepts/local_signals/project_select/payload_schema/required/0: V0028
+      /state_machines/state_machine.project.list/local_signals/accepts/local_signals/project_select/payload_schema/type: V0028
       ? /state_machines/state_machine.project.list/local_signals/accepts/local_signals/show_lifecycle_transition_not_allowed/payload_schema/additionalProperties
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/local_signals/accepts/local_signals/show_lifecycle_transition_not_allowed/payload_schema/properties/message/type
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/local_signals/accepts/local_signals/show_lifecycle_transition_not_allowed/payload_schema/required/0
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/local_signals/accepts/local_signals/show_lifecycle_transition_not_allowed/payload_schema/type
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/local_signals/emits/local_signals/project_selected/payload_schema/additionalProperties
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/local_signals/emits/local_signals/project_selected/payload_schema/properties/project_id/type
-      : V0027
-      /state_machines/state_machine.project.list/local_signals/emits/local_signals/project_selected/payload_schema/required/0: V0027
-      /state_machines/state_machine.project.list/local_signals/emits/local_signals/project_selected/payload_schema/type: V0027
-      /state_machines/state_machine.project.list/query_bindings/list_projects/input_mapping/workspace_id/from: V0027
-      /state_machines/state_machine.project.list/query_bindings/list_projects/load/on_start: V0027
-      /state_machines/state_machine.project.list/query_bindings/list_projects/load/refresh_on/0/data_refresh_signal: V0027
+      : V0028
+      /state_machines/state_machine.project.list/local_signals/emits/local_signals/project_selected/payload_schema/required/0: V0028
+      /state_machines/state_machine.project.list/local_signals/emits/local_signals/project_selected/payload_schema/type: V0028
+      /state_machines/state_machine.project.list/query_bindings/list_projects/input_mapping/workspace_id/from: V0028
+      /state_machines/state_machine.project.list/query_bindings/list_projects/load/on_start: V0028
+      /state_machines/state_machine.project.list/query_bindings/list_projects/load/refresh_on/0/data_refresh_signal: V0028
       ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/access_denied/raise/data_refresh_signal
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/authentication_required/raise/data_refresh_signal
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/listed/conditional_local_effects/0/context_updates/workspace_id/from
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/listed/conditional_local_effects/0/raise/data_refresh_signal
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/listed/conditional_local_effects/0/result_binding/data_key
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/listed/conditional_local_effects/0/result_binding/from/from
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/listed/conditional_local_effects/0/result_condition
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/listed/conditional_local_effects/1/context_updates/workspace_id/from
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/listed/conditional_local_effects/1/raise/data_refresh_signal
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/listed/conditional_local_effects/1/result_binding/data_key
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/listed/conditional_local_effects/1/result_binding/from/from
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/listed/conditional_local_effects/1/result_condition
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/query_bindings/list_projects/local_effects/unavailable/raise/data_refresh_signal
-      : V0027
-      /state_machines/state_machine.project.list/query_bindings/list_projects/query: V0027
-      /state_machines/state_machine.project.list/query_bindings/list_projects/result_scope: V0027
-      /state_machines/state_machine.project.list/rationale: V0027
-      /state_machines/state_machine.project.list/states/empty/assets/0: V0027
-      /state_machines/state_machine.project.list/states/empty/command_bindings/create/command: V0027
-      /state_machines/state_machine.project.list/states/empty/command_bindings/create/input_mapping/customer/value: V0027
-      /state_machines/state_machine.project.list/states/empty/command_bindings/create/input_mapping/priority/value: V0027
-      /state_machines/state_machine.project.list/states/empty/command_bindings/create/input_mapping/title/value: V0027
-      /state_machines/state_machine.project.list/states/empty/command_bindings/create/input_mapping/workspace_id/from: V0027
+      : V0028
+      /state_machines/state_machine.project.list/query_bindings/list_projects/query: V0028
+      /state_machines/state_machine.project.list/query_bindings/list_projects/result_scope: V0028
+      /state_machines/state_machine.project.list/rationale: V0028
+      /state_machines/state_machine.project.list/states/empty/command_bindings/create/command: V0028
+      /state_machines/state_machine.project.list/states/empty/command_bindings/create/input_mapping/customer/value: V0028
+      /state_machines/state_machine.project.list/states/empty/command_bindings/create/input_mapping/priority/value: V0028
+      /state_machines/state_machine.project.list/states/empty/command_bindings/create/input_mapping/title/value: V0028
+      /state_machines/state_machine.project.list/states/empty/command_bindings/create/input_mapping/workspace_id/from: V0028
       ? /state_machines/state_machine.project.list/states/empty/command_bindings/create/local_effects/access_denied/no_local_effect/rationale
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/states/empty/command_bindings/create/local_effects/access_denied/no_local_effect/reason
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/states/empty/command_bindings/create/local_effects/authentication_required/no_local_effect/rationale
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/states/empty/command_bindings/create/local_effects/authentication_required/no_local_effect/reason
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/states/empty/command_bindings/create/local_effects/created/raise/data_refresh_signal
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/states/empty/command_bindings/create/local_effects/validation_failed/raise/local_signal
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/states/empty/command_bindings/create/local_effects/validation_failed/raise/payload_bindings/message/from
-      : V0027
-      /state_machines/state_machine.project.list/states/empty/fields: V0027
-      /state_machines/state_machine.project.list/states/empty/query_bindings: V0027
-      /state_machines/state_machine.project.list/states/empty/surface: V0027
-      /state_machines/state_machine.project.list/states/empty/text/0: V0027
-      /state_machines/state_machine.project.list/states/empty/text/1: V0027
-      /state_machines/state_machine.project.list/states/error/assets: V0027
-      /state_machines/state_machine.project.list/states/error/command_bindings: V0027
-      /state_machines/state_machine.project.list/states/error/fields: V0027
-      /state_machines/state_machine.project.list/states/error/query_bindings: V0027
-      /state_machines/state_machine.project.list/states/error/surface: V0027
-      /state_machines/state_machine.project.list/states/error/text/0: V0027
-      /state_machines/state_machine.project.list/states/error/text/1: V0027
-      /state_machines/state_machine.project.list/states/loading/assets: V0027
-      /state_machines/state_machine.project.list/states/loading/command_bindings: V0027
-      /state_machines/state_machine.project.list/states/loading/fields: V0027
-      /state_machines/state_machine.project.list/states/loading/query_bindings: V0027
-      /state_machines/state_machine.project.list/states/loading/surface: V0027
-      /state_machines/state_machine.project.list/states/loading/text/0: V0027
-      /state_machines/state_machine.project.list/states/ready/assets: V0027
-      /state_machines/state_machine.project.list/states/ready/command_bindings/create/command: V0027
-      /state_machines/state_machine.project.list/states/ready/command_bindings/create/input_mapping/customer/value: V0027
-      /state_machines/state_machine.project.list/states/ready/command_bindings/create/input_mapping/priority/value: V0027
-      /state_machines/state_machine.project.list/states/ready/command_bindings/create/input_mapping/title/value: V0027
-      /state_machines/state_machine.project.list/states/ready/command_bindings/create/input_mapping/workspace_id/from: V0027
+      : V0028
+      /state_machines/state_machine.project.list/states/empty/fields: V0028
+      /state_machines/state_machine.project.list/states/empty/media_assets/0: V0028
+      /state_machines/state_machine.project.list/states/empty/query_bindings: V0028
+      /state_machines/state_machine.project.list/states/empty/renderer_surface: V0028
+      /state_machines/state_machine.project.list/states/empty/text_resources/0: V0028
+      /state_machines/state_machine.project.list/states/empty/text_resources/1: V0028
+      /state_machines/state_machine.project.list/states/error/command_bindings: V0028
+      /state_machines/state_machine.project.list/states/error/fields: V0028
+      /state_machines/state_machine.project.list/states/error/media_assets: V0028
+      /state_machines/state_machine.project.list/states/error/query_bindings: V0028
+      /state_machines/state_machine.project.list/states/error/renderer_surface: V0028
+      /state_machines/state_machine.project.list/states/error/text_resources/0: V0028
+      /state_machines/state_machine.project.list/states/error/text_resources/1: V0028
+      /state_machines/state_machine.project.list/states/loading/command_bindings: V0028
+      /state_machines/state_machine.project.list/states/loading/fields: V0028
+      /state_machines/state_machine.project.list/states/loading/media_assets: V0028
+      /state_machines/state_machine.project.list/states/loading/query_bindings: V0028
+      /state_machines/state_machine.project.list/states/loading/renderer_surface: V0028
+      /state_machines/state_machine.project.list/states/loading/text_resources/0: V0028
+      /state_machines/state_machine.project.list/states/ready/command_bindings/create/command: V0028
+      /state_machines/state_machine.project.list/states/ready/command_bindings/create/input_mapping/customer/value: V0028
+      /state_machines/state_machine.project.list/states/ready/command_bindings/create/input_mapping/priority/value: V0028
+      /state_machines/state_machine.project.list/states/ready/command_bindings/create/input_mapping/title/value: V0028
+      /state_machines/state_machine.project.list/states/ready/command_bindings/create/input_mapping/workspace_id/from: V0028
       ? /state_machines/state_machine.project.list/states/ready/command_bindings/create/local_effects/access_denied/no_local_effect/rationale
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/states/ready/command_bindings/create/local_effects/access_denied/no_local_effect/reason
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/states/ready/command_bindings/create/local_effects/authentication_required/no_local_effect/rationale
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/states/ready/command_bindings/create/local_effects/authentication_required/no_local_effect/reason
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/states/ready/command_bindings/create/local_effects/created/raise/data_refresh_signal
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/states/ready/command_bindings/create/local_effects/validation_failed/no_local_effect/rationale
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/states/ready/command_bindings/create/local_effects/validation_failed/no_local_effect/reason
-      : V0027
-      /state_machines/state_machine.project.list/states/ready/command_bindings/submit/command: V0027
-      /state_machines/state_machine.project.list/states/ready/command_bindings/submit/input_mapping/project_id/from: V0027
+      : V0028
+      /state_machines/state_machine.project.list/states/ready/command_bindings/submit/command: V0028
+      /state_machines/state_machine.project.list/states/ready/command_bindings/submit/input_mapping/project_id/from: V0028
       ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/local_effects/access_denied/raise/local_signal
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/local_effects/access_denied/raise/payload_bindings/message/from
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/local_effects/authentication_required/raise/local_signal
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/local_effects/authentication_required/raise/payload_bindings/message/from
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/local_effects/lifecycle_transition_not_allowed/raise/local_signal
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/local_effects/lifecycle_transition_not_allowed/raise/payload_bindings/message/from
-      : V0027
-      /state_machines/state_machine.project.list/states/ready/command_bindings/submit/local_effects/not_found/raise/local_signal: V0027
+      : V0028
+      /state_machines/state_machine.project.list/states/ready/command_bindings/submit/local_effects/not_found/raise/local_signal: V0028
       ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/local_effects/not_found/raise/payload_bindings/message/from
-      : V0027
+      : V0028
       ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/local_effects/submitted/raise/data_refresh_signal
-      : V0027
-      /state_machines/state_machine.project.list/states/ready/fields/0: V0027
-      /state_machines/state_machine.project.list/states/ready/fields/1: V0027
-      /state_machines/state_machine.project.list/states/ready/fields/2: V0027
-      /state_machines/state_machine.project.list/states/ready/fields/3: V0027
-      /state_machines/state_machine.project.list/states/ready/query_bindings: V0027
-      /state_machines/state_machine.project.list/states/ready/surface: V0027
-      /state_machines/state_machine.project.list/states/ready/text/0: V0027
-      /state_machines/state_machine.project.list/transitions/0/from: V0027
-      /state_machines/state_machine.project.list/transitions/0/to: V0027
-      /state_machines/state_machine.project.list/transitions/0/trigger/data_refresh_signal: V0027
-      /state_machines/state_machine.project.list/transitions/1/from: V0027
-      /state_machines/state_machine.project.list/transitions/1/to: V0027
-      /state_machines/state_machine.project.list/transitions/1/trigger/data_refresh_signal: V0027
-      /state_machines/state_machine.project.list/transitions/2/from: V0027
-      /state_machines/state_machine.project.list/transitions/2/to: V0027
-      /state_machines/state_machine.project.list/transitions/2/trigger/data_refresh_signal: V0027
-      /state_machines/state_machine.project.list/transitions/3/from: V0027
-      /state_machines/state_machine.project.list/transitions/3/to: V0027
-      /state_machines/state_machine.project.list/transitions/3/trigger/data_refresh_signal: V0027
-      /state_machines/state_machine.project.list/transitions/4/from: V0027
-      /state_machines/state_machine.project.list/transitions/4/rationale: V0027
-      /state_machines/state_machine.project.list/transitions/4/to: V0027
-      /state_machines/state_machine.project.list/transitions/4/trigger/data_refresh_signal: V0027
-      /state_machines/state_machine.project.list/transitions/5/from: V0027
-      /state_machines/state_machine.project.list/transitions/5/rationale: V0027
-      /state_machines/state_machine.project.list/transitions/5/to: V0027
-      /state_machines/state_machine.project.list/transitions/5/trigger/local_signal: V0027
-      /state_machines/state_machine.project.list/transitions/6/from: V0027
-      /state_machines/state_machine.project.list/transitions/6/local_effects/0/emit/local_signal: V0027
-      /state_machines/state_machine.project.list/transitions/6/local_effects/0/emit/payload_bindings/project_id/from: V0027
-      /state_machines/state_machine.project.list/transitions/6/to: V0027
-      /state_machines/state_machine.project.list/transitions/6/trigger/local_signal: V0027
-      /state_machines/state_machine.project.list/transitions/7/from: V0027
-      /state_machines/state_machine.project.list/transitions/7/rationale: V0027
-      /state_machines/state_machine.project.list/transitions/7/to: V0027
-      /state_machines/state_machine.project.list/transitions/7/trigger/data_refresh_signal: V0027
-      /state_machines/state_machine.project.list/transitions/8/from: V0027
-      /state_machines/state_machine.project.list/transitions/8/rationale: V0027
-      /state_machines/state_machine.project.list/transitions/8/to: V0027
-      /state_machines/state_machine.project.list/transitions/8/trigger/data_refresh_signal: V0027
-      /state_machines/state_machine.project.list/transitions/9/from: V0027
-      /state_machines/state_machine.project.list/transitions/9/rationale: V0027
-      /state_machines/state_machine.project.list/transitions/9/to: V0027
-      /state_machines/state_machine.project.list/transitions/9/trigger/local_signal: V0027
+      : V0028
+      /state_machines/state_machine.project.list/states/ready/fields/0: V0028
+      /state_machines/state_machine.project.list/states/ready/fields/1: V0028
+      /state_machines/state_machine.project.list/states/ready/fields/2: V0028
+      /state_machines/state_machine.project.list/states/ready/fields/3: V0028
+      /state_machines/state_machine.project.list/states/ready/media_assets: V0028
+      /state_machines/state_machine.project.list/states/ready/query_bindings: V0028
+      /state_machines/state_machine.project.list/states/ready/renderer_surface: V0028
+      /state_machines/state_machine.project.list/states/ready/text_resources/0: V0028
+      /state_machines/state_machine.project.list/transitions/0/from: V0028
+      /state_machines/state_machine.project.list/transitions/0/to: V0028
+      /state_machines/state_machine.project.list/transitions/0/trigger/data_refresh_signal: V0028
+      /state_machines/state_machine.project.list/transitions/1/from: V0028
+      /state_machines/state_machine.project.list/transitions/1/to: V0028
+      /state_machines/state_machine.project.list/transitions/1/trigger/data_refresh_signal: V0028
+      /state_machines/state_machine.project.list/transitions/2/from: V0028
+      /state_machines/state_machine.project.list/transitions/2/to: V0028
+      /state_machines/state_machine.project.list/transitions/2/trigger/data_refresh_signal: V0028
+      /state_machines/state_machine.project.list/transitions/3/from: V0028
+      /state_machines/state_machine.project.list/transitions/3/to: V0028
+      /state_machines/state_machine.project.list/transitions/3/trigger/data_refresh_signal: V0028
+      /state_machines/state_machine.project.list/transitions/4/from: V0028
+      /state_machines/state_machine.project.list/transitions/4/rationale: V0028
+      /state_machines/state_machine.project.list/transitions/4/to: V0028
+      /state_machines/state_machine.project.list/transitions/4/trigger/data_refresh_signal: V0028
+      /state_machines/state_machine.project.list/transitions/5/from: V0028
+      /state_machines/state_machine.project.list/transitions/5/rationale: V0028
+      /state_machines/state_machine.project.list/transitions/5/to: V0028
+      /state_machines/state_machine.project.list/transitions/5/trigger/local_signal: V0028
+      /state_machines/state_machine.project.list/transitions/6/from: V0028
+      /state_machines/state_machine.project.list/transitions/6/local_effects/0/emit/local_signal: V0028
+      /state_machines/state_machine.project.list/transitions/6/local_effects/0/emit/payload_bindings/project_id/from: V0028
+      /state_machines/state_machine.project.list/transitions/6/to: V0028
+      /state_machines/state_machine.project.list/transitions/6/trigger/local_signal: V0028
+      /state_machines/state_machine.project.list/transitions/7/from: V0028
+      /state_machines/state_machine.project.list/transitions/7/rationale: V0028
+      /state_machines/state_machine.project.list/transitions/7/to: V0028
+      /state_machines/state_machine.project.list/transitions/7/trigger/data_refresh_signal: V0028
+      /state_machines/state_machine.project.list/transitions/8/from: V0028
+      /state_machines/state_machine.project.list/transitions/8/rationale: V0028
+      /state_machines/state_machine.project.list/transitions/8/to: V0028
+      /state_machines/state_machine.project.list/transitions/8/trigger/data_refresh_signal: V0028
+      /state_machines/state_machine.project.list/transitions/9/from: V0028
+      /state_machines/state_machine.project.list/transitions/9/rationale: V0028
+      /state_machines/state_machine.project.list/transitions/9/to: V0028
+      /state_machines/state_machine.project.list/transitions/9/trigger/local_signal: V0028
       /workflows/workflow.project.approval_notice/activities/0/command: V0033
       /workflows/workflow.project.approval_notice/activities/0/id: V0033
       /workflows/workflow.project.approval_notice/activities/0/input_mapping/approved_by/from: V0033
@@ -2262,254 +2262,254 @@ visual_audit:
         tokens:
         - workflow.project.approval_notice
       /queries/query.project.list/input_schema/properties/workspace_id/type:
-        visual_evidence_set: V0021
+        visual_evidence_set: V0022
         tokens:
         - workspace_id
         - string
       /queries/query.project.list/outcomes/access_denied/kind:
-        visual_evidence_set: V0021
+        visual_evidence_set: V0022
         tokens:
         - access_denied
         - failure
       /queries/query.project.list/outcomes/access_denied/result/$ref:
-        visual_evidence_set: V0021
+        visual_evidence_set: V0022
         tokens:
         - access_denied
         - Problem
       /queries/query.project.list/outcomes/authentication_required/kind:
-        visual_evidence_set: V0021
+        visual_evidence_set: V0022
         tokens:
         - authentication_required
         - failure
       /queries/query.project.list/outcomes/authentication_required/result/$ref:
-        visual_evidence_set: V0021
+        visual_evidence_set: V0022
         tokens:
         - authentication_required
         - Problem
       /queries/query.project.list/outcomes/listed/kind:
-        visual_evidence_set: V0021
+        visual_evidence_set: V0022
         tokens:
         - listed
         - success
       /queries/query.project.list/outcomes/unavailable/kind:
-        visual_evidence_set: V0021
+        visual_evidence_set: V0022
         tokens:
         - unavailable
         - failure
       /queries/query.project.list/outcomes/unavailable/result/$ref:
-        visual_evidence_set: V0021
+        visual_evidence_set: V0022
         tokens:
         - unavailable
         - Problem
       /queries/query.project.read/input_schema/properties/project_id/type:
-        visual_evidence_set: V0022
+        visual_evidence_set: V0023
         tokens:
         - project_id
         - string
       /queries/query.project.read/outcomes/access_denied/kind:
-        visual_evidence_set: V0022
+        visual_evidence_set: V0023
         tokens:
         - access_denied
         - failure
       /queries/query.project.read/outcomes/access_denied/result/$ref:
-        visual_evidence_set: V0022
+        visual_evidence_set: V0023
         tokens:
         - access_denied
         - Problem
       /queries/query.project.read/outcomes/authentication_required/kind:
-        visual_evidence_set: V0022
+        visual_evidence_set: V0023
         tokens:
         - authentication_required
         - failure
       /queries/query.project.read/outcomes/authentication_required/result/$ref:
-        visual_evidence_set: V0022
+        visual_evidence_set: V0023
         tokens:
         - authentication_required
         - Problem
       /queries/query.project.read/outcomes/found/kind:
-        visual_evidence_set: V0022
+        visual_evidence_set: V0023
         tokens:
         - found
         - success
       /queries/query.project.read/outcomes/found/result/$ref:
-        visual_evidence_set: V0022
+        visual_evidence_set: V0023
         tokens:
         - found
         - Project
       /queries/query.project.read/outcomes/not_found/kind:
-        visual_evidence_set: V0022
+        visual_evidence_set: V0023
         tokens:
         - not_found
         - failure
       /queries/query.project.read/outcomes/not_found/result/$ref:
-        visual_evidence_set: V0022
+        visual_evidence_set: V0023
         tokens:
         - not_found
         - Problem
       ? /state_machines/state_machine.project.activity/local_signals/accepts/local_signals/selection_changed/payload_schema/properties/project_id/type
-      : visual_evidence_set: V0024
+      : visual_evidence_set: V0025
         tokens:
         - project_id
         - string
-      /state_machines/state_machine.project.activity/states/empty/text/0:
-        visual_evidence_set: V0024
+      /state_machines/state_machine.project.activity/states/empty/text_resources/0:
+        visual_evidence_set: V0025
         tokens:
         - text_resource.project.activity.empty.heading
-      /state_machines/state_machine.project.activity/states/empty/text/1:
-        visual_evidence_set: V0024
+      /state_machines/state_machine.project.activity/states/empty/text_resources/1:
+        visual_evidence_set: V0025
         tokens:
         - text_resource.project.activity.empty.body
-      /state_machines/state_machine.project.activity/states/ready/text/0:
-        visual_evidence_set: V0024
+      /state_machines/state_machine.project.activity/states/ready/text_resources/0:
+        visual_evidence_set: V0025
         tokens:
         - text_resource.project.activity.ready.heading
       /state_machines/state_machine.project.board/states/ready/child_state_machines/0/html_region:
-        visual_evidence_set: V0025
+        visual_evidence_set: V0026
         tokens:
         - nav
       /state_machines/state_machine.project.board/states/ready/child_state_machines/0/initial_state:
-        visual_evidence_set: V0025
+        visual_evidence_set: V0026
         tokens:
         - loading
       /state_machines/state_machine.project.board/states/ready/child_state_machines/0/state_machine:
-        visual_evidence_set: V0025
+        visual_evidence_set: V0026
         tokens:
         - state_machine.project.list
       /state_machines/state_machine.project.board/states/ready/child_state_machines/0/textual_container:
-        visual_evidence_set: V0025
+        visual_evidence_set: V0026
         tokens:
         - nav
       /state_machines/state_machine.project.board/states/ready/child_state_machines/1/html_region:
-        visual_evidence_set: V0025
+        visual_evidence_set: V0026
         tokens:
         - main
       /state_machines/state_machine.project.board/states/ready/child_state_machines/1/initial_state:
-        visual_evidence_set: V0025
+        visual_evidence_set: V0026
         tokens:
         - none
       /state_machines/state_machine.project.board/states/ready/child_state_machines/1/state_machine:
-        visual_evidence_set: V0025
+        visual_evidence_set: V0026
         tokens:
         - state_machine.project.detail
       /state_machines/state_machine.project.board/states/ready/child_state_machines/1/textual_container:
-        visual_evidence_set: V0025
+        visual_evidence_set: V0026
         tokens:
         - main
       /state_machines/state_machine.project.board/states/ready/child_state_machines/2/html_region:
-        visual_evidence_set: V0025
+        visual_evidence_set: V0026
         tokens:
         - aside
       /state_machines/state_machine.project.board/states/ready/child_state_machines/2/initial_state:
-        visual_evidence_set: V0025
+        visual_evidence_set: V0026
         tokens:
         - empty
       /state_machines/state_machine.project.board/states/ready/child_state_machines/2/state_machine:
-        visual_evidence_set: V0025
+        visual_evidence_set: V0026
         tokens:
         - state_machine.project.activity
       /state_machines/state_machine.project.board/states/ready/child_state_machines/2/textual_container:
-        visual_evidence_set: V0025
+        visual_evidence_set: V0026
         tokens:
         - aside
       ? /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/selection_changed/payload_schema/properties/project_id/type
-      : visual_evidence_set: V0026
+      : visual_evidence_set: V0027
         tokens:
         - project_id
         - string
       ? /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/show_lifecycle_transition_not_allowed/payload_schema/properties/message/type
-      : visual_evidence_set: V0026
+      : visual_evidence_set: V0027
         tokens:
         - message
         - string
-      /state_machines/state_machine.project.detail/states/error/text/0:
-        visual_evidence_set: V0026
+      /state_machines/state_machine.project.detail/states/error/text_resources/0:
+        visual_evidence_set: V0027
         tokens:
         - text_resource.project.detail.error.heading
-      /state_machines/state_machine.project.detail/states/error/text/1:
-        visual_evidence_set: V0026
+      /state_machines/state_machine.project.detail/states/error/text_resources/1:
+        visual_evidence_set: V0027
         tokens:
         - text_resource.project.detail.error.body
-      /state_machines/state_machine.project.detail/states/loading/text/0:
-        visual_evidence_set: V0026
+      /state_machines/state_machine.project.detail/states/loading/text_resources/0:
+        visual_evidence_set: V0027
         tokens:
         - text_resource.project.detail.loading.message
-      /state_machines/state_machine.project.detail/states/none/text/0:
-        visual_evidence_set: V0026
+      /state_machines/state_machine.project.detail/states/none/text_resources/0:
+        visual_evidence_set: V0027
         tokens:
         - text_resource.project.detail.none.heading
-      /state_machines/state_machine.project.detail/states/none/text/1:
-        visual_evidence_set: V0026
+      /state_machines/state_machine.project.detail/states/none/text_resources/1:
+        visual_evidence_set: V0027
         tokens:
         - text_resource.project.detail.none.body
-      /state_machines/state_machine.project.detail/states/ready/assets/0:
-        visual_evidence_set: V0026
-        tokens:
-        - media_asset.project.detail.ready.priority_badge
       /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/command:
-        visual_evidence_set: V0026
+        visual_evidence_set: V0027
         tokens:
         - command.project.approve
       /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/command:
-        visual_evidence_set: V0026
+        visual_evidence_set: V0027
         tokens:
         - command.project.archive
-      /state_machines/state_machine.project.detail/states/ready/text/0:
-        visual_evidence_set: V0026
+      /state_machines/state_machine.project.detail/states/ready/media_assets/0:
+        visual_evidence_set: V0027
+        tokens:
+        - media_asset.project.detail.ready.priority_badge
+      /state_machines/state_machine.project.detail/states/ready/text_resources/0:
+        visual_evidence_set: V0027
         tokens:
         - text_resource.project.detail.ready.heading
       ? /state_machines/state_machine.project.list/local_signals/accepts/local_signals/project_select/payload_schema/properties/project_id/type
-      : visual_evidence_set: V0027
+      : visual_evidence_set: V0028
         tokens:
         - project_id
         - string
       ? /state_machines/state_machine.project.list/local_signals/accepts/local_signals/show_lifecycle_transition_not_allowed/payload_schema/properties/message/type
-      : visual_evidence_set: V0027
+      : visual_evidence_set: V0028
         tokens:
         - message
         - string
       ? /state_machines/state_machine.project.list/local_signals/emits/local_signals/project_selected/payload_schema/properties/project_id/type
-      : visual_evidence_set: V0027
+      : visual_evidence_set: V0028
         tokens:
         - project_id
         - string
-      /state_machines/state_machine.project.list/states/empty/assets/0:
-        visual_evidence_set: V0027
-        tokens:
-        - media_asset.project.list.empty.illustration
       /state_machines/state_machine.project.list/states/empty/command_bindings/create/command:
-        visual_evidence_set: V0027
+        visual_evidence_set: V0028
         tokens:
         - command.project.create
-      /state_machines/state_machine.project.list/states/empty/text/0:
-        visual_evidence_set: V0027
+      /state_machines/state_machine.project.list/states/empty/media_assets/0:
+        visual_evidence_set: V0028
+        tokens:
+        - media_asset.project.list.empty.illustration
+      /state_machines/state_machine.project.list/states/empty/text_resources/0:
+        visual_evidence_set: V0028
         tokens:
         - text_resource.project.list.empty.heading
-      /state_machines/state_machine.project.list/states/empty/text/1:
-        visual_evidence_set: V0027
+      /state_machines/state_machine.project.list/states/empty/text_resources/1:
+        visual_evidence_set: V0028
         tokens:
         - text_resource.project.list.empty.body
-      /state_machines/state_machine.project.list/states/error/text/0:
-        visual_evidence_set: V0027
+      /state_machines/state_machine.project.list/states/error/text_resources/0:
+        visual_evidence_set: V0028
         tokens:
         - text_resource.project.list.error.heading
-      /state_machines/state_machine.project.list/states/error/text/1:
-        visual_evidence_set: V0027
+      /state_machines/state_machine.project.list/states/error/text_resources/1:
+        visual_evidence_set: V0028
         tokens:
         - text_resource.project.list.error.body
-      /state_machines/state_machine.project.list/states/loading/text/0:
-        visual_evidence_set: V0027
+      /state_machines/state_machine.project.list/states/loading/text_resources/0:
+        visual_evidence_set: V0028
         tokens:
         - text_resource.project.list.loading.message
       /state_machines/state_machine.project.list/states/ready/command_bindings/create/command:
-        visual_evidence_set: V0027
+        visual_evidence_set: V0028
         tokens:
         - command.project.create
       /state_machines/state_machine.project.list/states/ready/command_bindings/submit/command:
-        visual_evidence_set: V0027
+        visual_evidence_set: V0028
         tokens:
         - command.project.submit
-      /state_machines/state_machine.project.list/states/ready/text/0:
-        visual_evidence_set: V0027
+      /state_machines/state_machine.project.list/states/ready/text_resources/0:
+        visual_evidence_set: V0028
         tokens:
         - text_resource.project.list.ready.heading
       /workflows/workflow.project.approval_notice/activities/0/command:
@@ -3125,42 +3125,57 @@ visual_audit:
       /fixtures/fixture.workspace.member/values/actor/roles/0: V0019
       /fixtures/fixture.workspace.member/values/workspace/id: V0019
       /fixtures/fixture.workspace.member/values/workspace/name: V0019
-      /preconditions/precondition.project.draft/present/entity_type: V0020
-      /preconditions/precondition.project.draft/present/values/assignee/value: V0020
-      /preconditions/precondition.project.draft/present/values/created_at/value: V0020
-      /preconditions/precondition.project.draft/present/values/customer/value: V0020
-      /preconditions/precondition.project.draft/present/values/id/value: V0020
-      /preconditions/precondition.project.draft/present/values/priority/value: V0020
-      /preconditions/precondition.project.draft/present/values/status/value: V0020
-      /preconditions/precondition.project.draft/present/values/summary/value: V0020
-      /preconditions/precondition.project.draft/present/values/title/value: V0020
-      /preconditions/precondition.project.draft/present/values/updated_at/value: V0020
-      /preconditions/precondition.project.draft/present/values/workspace_id/from: V0020
-      /preconditions/precondition.project.draft/rationale: V0020
-      /preconditions/precondition.project.submitted/present/entity_type: V0020
-      /preconditions/precondition.project.submitted/present/values/assignee/value: V0020
-      /preconditions/precondition.project.submitted/present/values/created_at/value: V0020
-      /preconditions/precondition.project.submitted/present/values/customer/value: V0020
-      /preconditions/precondition.project.submitted/present/values/id/value: V0020
-      /preconditions/precondition.project.submitted/present/values/priority/value: V0020
-      /preconditions/precondition.project.submitted/present/values/status/value: V0020
-      /preconditions/precondition.project.submitted/present/values/summary/value: V0020
-      /preconditions/precondition.project.submitted/present/values/title/value: V0020
-      /preconditions/precondition.project.submitted/present/values/updated_at/value: V0020
-      /preconditions/precondition.project.submitted/present/values/workspace_id/from: V0020
-      /preconditions/precondition.project.submitted/rationale: V0020
-      /text_resources/text_resource.project.activity.empty.body/intent: V0028
-      /text_resources/text_resource.project.activity.empty.body/max_chars: V0028
-      /text_resources/text_resource.project.activity.empty.body/placeholder: V0028
-      /text_resources/text_resource.project.activity.empty.body/rationale: V0028
-      /text_resources/text_resource.project.activity.empty.heading/intent: V0028
-      /text_resources/text_resource.project.activity.empty.heading/max_chars: V0028
-      /text_resources/text_resource.project.activity.empty.heading/placeholder: V0028
-      /text_resources/text_resource.project.activity.empty.heading/rationale: V0028
-      /text_resources/text_resource.project.activity.ready.heading/intent: V0029
-      /text_resources/text_resource.project.activity.ready.heading/max_chars: V0029
-      /text_resources/text_resource.project.activity.ready.heading/placeholder: V0029
-      /text_resources/text_resource.project.activity.ready.heading/rationale: V0029
+      /media_assets/media_asset.project.detail.ready.priority_badge/args/priority/type: V0011
+      /media_assets/media_asset.project.detail.ready.priority_badge/asset_role: V0011
+      /media_assets/media_asset.project.detail.ready.priority_badge/media_kind: V0011
+      /media_assets/media_asset.project.detail.ready.priority_badge/placeholder/aspect_ratio: V0011
+      /media_assets/media_asset.project.detail.ready.priority_badge/placeholder/label: V0011
+      /media_assets/media_asset.project.detail.ready.priority_badge/placeholder/placeholder_symbol: V0011
+      /media_assets/media_asset.project.detail.ready.priority_badge/rationale: V0011
+      /media_assets/media_asset.project.detail.ready.priority_badge/source_ref: V0011
+      /media_assets/media_asset.project.list.empty.illustration/alt_text: V0020
+      /media_assets/media_asset.project.list.empty.illustration/asset_role: V0020
+      /media_assets/media_asset.project.list.empty.illustration/media_kind: V0020
+      /media_assets/media_asset.project.list.empty.illustration/placeholder/aspect_ratio: V0020
+      /media_assets/media_asset.project.list.empty.illustration/placeholder/label: V0020
+      /media_assets/media_asset.project.list.empty.illustration/placeholder/placeholder_symbol: V0020
+      /media_assets/media_asset.project.list.empty.illustration/rationale: V0020
+      /preconditions/precondition.project.draft/present/entity_type: V0021
+      /preconditions/precondition.project.draft/present/values/assignee/value: V0021
+      /preconditions/precondition.project.draft/present/values/created_at/value: V0021
+      /preconditions/precondition.project.draft/present/values/customer/value: V0021
+      /preconditions/precondition.project.draft/present/values/id/value: V0021
+      /preconditions/precondition.project.draft/present/values/priority/value: V0021
+      /preconditions/precondition.project.draft/present/values/status/value: V0021
+      /preconditions/precondition.project.draft/present/values/summary/value: V0021
+      /preconditions/precondition.project.draft/present/values/title/value: V0021
+      /preconditions/precondition.project.draft/present/values/updated_at/value: V0021
+      /preconditions/precondition.project.draft/present/values/workspace_id/from: V0021
+      /preconditions/precondition.project.draft/rationale: V0021
+      /preconditions/precondition.project.submitted/present/entity_type: V0021
+      /preconditions/precondition.project.submitted/present/values/assignee/value: V0021
+      /preconditions/precondition.project.submitted/present/values/created_at/value: V0021
+      /preconditions/precondition.project.submitted/present/values/customer/value: V0021
+      /preconditions/precondition.project.submitted/present/values/id/value: V0021
+      /preconditions/precondition.project.submitted/present/values/priority/value: V0021
+      /preconditions/precondition.project.submitted/present/values/status/value: V0021
+      /preconditions/precondition.project.submitted/present/values/summary/value: V0021
+      /preconditions/precondition.project.submitted/present/values/title/value: V0021
+      /preconditions/precondition.project.submitted/present/values/updated_at/value: V0021
+      /preconditions/precondition.project.submitted/present/values/workspace_id/from: V0021
+      /preconditions/precondition.project.submitted/rationale: V0021
+      /text_resources/text_resource.project.activity.empty.body/intent: V0029
+      /text_resources/text_resource.project.activity.empty.body/max_chars: V0029
+      /text_resources/text_resource.project.activity.empty.body/placeholder: V0029
+      /text_resources/text_resource.project.activity.empty.body/rationale: V0029
+      /text_resources/text_resource.project.activity.empty.heading/intent: V0029
+      /text_resources/text_resource.project.activity.empty.heading/max_chars: V0029
+      /text_resources/text_resource.project.activity.empty.heading/placeholder: V0029
+      /text_resources/text_resource.project.activity.empty.heading/rationale: V0029
+      /text_resources/text_resource.project.activity.ready.heading/intent: V0030
+      /text_resources/text_resource.project.activity.ready.heading/max_chars: V0030
+      /text_resources/text_resource.project.activity.ready.heading/placeholder: V0030
+      /text_resources/text_resource.project.activity.ready.heading/rationale: V0030
       /text_resources/text_resource.project.approve.access_denied/args/message/type: V0016
       /text_resources/text_resource.project.approve.access_denied/intent: V0016
       /text_resources/text_resource.project.approve.access_denied/max_chars: V0016
@@ -3190,26 +3205,26 @@ visual_audit:
       /text_resources/text_resource.project.approve.unavailable/max_chars: V0016
       /text_resources/text_resource.project.approve.unavailable/placeholder: V0016
       /text_resources/text_resource.project.approve.unavailable/rationale: V0016
-      /text_resources/text_resource.project.detail.error.body/intent: V0026
-      /text_resources/text_resource.project.detail.error.body/max_chars: V0026
-      /text_resources/text_resource.project.detail.error.body/placeholder: V0026
-      /text_resources/text_resource.project.detail.error.body/rationale: V0026
-      /text_resources/text_resource.project.detail.error.heading/intent: V0026
-      /text_resources/text_resource.project.detail.error.heading/max_chars: V0026
-      /text_resources/text_resource.project.detail.error.heading/placeholder: V0026
-      /text_resources/text_resource.project.detail.error.heading/rationale: V0026
-      /text_resources/text_resource.project.detail.loading.message/intent: V0026
-      /text_resources/text_resource.project.detail.loading.message/max_chars: V0026
-      /text_resources/text_resource.project.detail.loading.message/placeholder: V0026
-      /text_resources/text_resource.project.detail.loading.message/rationale: V0026
-      /text_resources/text_resource.project.detail.none.body/intent: V0030
-      /text_resources/text_resource.project.detail.none.body/max_chars: V0030
-      /text_resources/text_resource.project.detail.none.body/placeholder: V0030
-      /text_resources/text_resource.project.detail.none.body/rationale: V0030
-      /text_resources/text_resource.project.detail.none.heading/intent: V0030
-      /text_resources/text_resource.project.detail.none.heading/max_chars: V0030
-      /text_resources/text_resource.project.detail.none.heading/placeholder: V0030
-      /text_resources/text_resource.project.detail.none.heading/rationale: V0030
+      /text_resources/text_resource.project.detail.error.body/intent: V0027
+      /text_resources/text_resource.project.detail.error.body/max_chars: V0027
+      /text_resources/text_resource.project.detail.error.body/placeholder: V0027
+      /text_resources/text_resource.project.detail.error.body/rationale: V0027
+      /text_resources/text_resource.project.detail.error.heading/intent: V0027
+      /text_resources/text_resource.project.detail.error.heading/max_chars: V0027
+      /text_resources/text_resource.project.detail.error.heading/placeholder: V0027
+      /text_resources/text_resource.project.detail.error.heading/rationale: V0027
+      /text_resources/text_resource.project.detail.loading.message/intent: V0027
+      /text_resources/text_resource.project.detail.loading.message/max_chars: V0027
+      /text_resources/text_resource.project.detail.loading.message/placeholder: V0027
+      /text_resources/text_resource.project.detail.loading.message/rationale: V0027
+      /text_resources/text_resource.project.detail.none.body/intent: V0031
+      /text_resources/text_resource.project.detail.none.body/max_chars: V0031
+      /text_resources/text_resource.project.detail.none.body/placeholder: V0031
+      /text_resources/text_resource.project.detail.none.body/rationale: V0031
+      /text_resources/text_resource.project.detail.none.heading/intent: V0031
+      /text_resources/text_resource.project.detail.none.heading/max_chars: V0031
+      /text_resources/text_resource.project.detail.none.heading/placeholder: V0031
+      /text_resources/text_resource.project.detail.none.heading/rationale: V0031
       /text_resources/text_resource.project.detail.ready.heading/args/customer/type: V0011
       /text_resources/text_resource.project.detail.ready.heading/args/title/type: V0011
       /text_resources/text_resource.project.detail.ready.heading/intent: V0011
@@ -3217,26 +3232,26 @@ visual_audit:
       /text_resources/text_resource.project.detail.ready.heading/placeholder: V0011
       /text_resources/text_resource.project.detail.ready.heading/rationale: V0011
       /text_resources/text_resource.project.detail.ready.heading/source_ref: V0011
-      /text_resources/text_resource.project.list.empty.body/intent: V0031
-      /text_resources/text_resource.project.list.empty.body/max_chars: V0031
-      /text_resources/text_resource.project.list.empty.body/placeholder: V0031
-      /text_resources/text_resource.project.list.empty.body/rationale: V0031
-      /text_resources/text_resource.project.list.empty.heading/intent: V0031
-      /text_resources/text_resource.project.list.empty.heading/max_chars: V0031
-      /text_resources/text_resource.project.list.empty.heading/placeholder: V0031
-      /text_resources/text_resource.project.list.empty.heading/rationale: V0031
-      /text_resources/text_resource.project.list.error.body/intent: V0027
-      /text_resources/text_resource.project.list.error.body/max_chars: V0027
-      /text_resources/text_resource.project.list.error.body/placeholder: V0027
-      /text_resources/text_resource.project.list.error.body/rationale: V0027
-      /text_resources/text_resource.project.list.error.heading/intent: V0027
-      /text_resources/text_resource.project.list.error.heading/max_chars: V0027
-      /text_resources/text_resource.project.list.error.heading/placeholder: V0027
-      /text_resources/text_resource.project.list.error.heading/rationale: V0027
-      /text_resources/text_resource.project.list.loading.message/intent: V0027
-      /text_resources/text_resource.project.list.loading.message/max_chars: V0027
-      /text_resources/text_resource.project.list.loading.message/placeholder: V0027
-      /text_resources/text_resource.project.list.loading.message/rationale: V0027
+      /text_resources/text_resource.project.list.empty.body/intent: V0020
+      /text_resources/text_resource.project.list.empty.body/max_chars: V0020
+      /text_resources/text_resource.project.list.empty.body/placeholder: V0020
+      /text_resources/text_resource.project.list.empty.body/rationale: V0020
+      /text_resources/text_resource.project.list.empty.heading/intent: V0020
+      /text_resources/text_resource.project.list.empty.heading/max_chars: V0020
+      /text_resources/text_resource.project.list.empty.heading/placeholder: V0020
+      /text_resources/text_resource.project.list.empty.heading/rationale: V0020
+      /text_resources/text_resource.project.list.error.body/intent: V0028
+      /text_resources/text_resource.project.list.error.body/max_chars: V0028
+      /text_resources/text_resource.project.list.error.body/placeholder: V0028
+      /text_resources/text_resource.project.list.error.body/rationale: V0028
+      /text_resources/text_resource.project.list.error.heading/intent: V0028
+      /text_resources/text_resource.project.list.error.heading/max_chars: V0028
+      /text_resources/text_resource.project.list.error.heading/placeholder: V0028
+      /text_resources/text_resource.project.list.error.heading/rationale: V0028
+      /text_resources/text_resource.project.list.loading.message/intent: V0028
+      /text_resources/text_resource.project.list.loading.message/max_chars: V0028
+      /text_resources/text_resource.project.list.loading.message/placeholder: V0028
+      /text_resources/text_resource.project.list.loading.message/rationale: V0028
       /text_resources/text_resource.project.list.ready.heading/intent: V0032
       /text_resources/text_resource.project.list.ready.heading/max_chars: V0032
       /text_resources/text_resource.project.list.ready.heading/placeholder: V0032
@@ -3263,36 +3278,6 @@ visual_audit:
         reason: fixtures may support behavior or content tests without appearing in render examples
       /fixtures/fixture.workspace.reviewer/values/workspace/name:
         reason: fixtures may support behavior or content tests without appearing in render examples
-      /media_assets/media_asset.project.detail.ready.priority_badge/args/priority/type:
-        reason: declared media assets may be unused by rendered states
-      /media_assets/media_asset.project.detail.ready.priority_badge/asset_role:
-        reason: declared media assets may be unused by rendered states
-      /media_assets/media_asset.project.detail.ready.priority_badge/media_kind:
-        reason: declared media assets may be unused by rendered states
-      /media_assets/media_asset.project.detail.ready.priority_badge/placeholder/aspect_ratio:
-        reason: declared media assets may be unused by rendered states
-      /media_assets/media_asset.project.detail.ready.priority_badge/placeholder/label:
-        reason: declared media assets may be unused by rendered states
-      /media_assets/media_asset.project.detail.ready.priority_badge/placeholder/placeholder_symbol:
-        reason: declared media assets may be unused by rendered states
-      /media_assets/media_asset.project.detail.ready.priority_badge/rationale:
-        reason: declared media assets may be unused by rendered states
-      /media_assets/media_asset.project.detail.ready.priority_badge/source_ref:
-        reason: declared media assets may be unused by rendered states
-      /media_assets/media_asset.project.list.empty.illustration/alt_text:
-        reason: declared media assets may be unused by rendered states
-      /media_assets/media_asset.project.list.empty.illustration/asset_role:
-        reason: declared media assets may be unused by rendered states
-      /media_assets/media_asset.project.list.empty.illustration/media_kind:
-        reason: declared media assets may be unused by rendered states
-      /media_assets/media_asset.project.list.empty.illustration/placeholder/aspect_ratio:
-        reason: declared media assets may be unused by rendered states
-      /media_assets/media_asset.project.list.empty.illustration/placeholder/label:
-        reason: declared media assets may be unused by rendered states
-      /media_assets/media_asset.project.list.empty.illustration/placeholder/placeholder_symbol:
-        reason: declared media assets may be unused by rendered states
-      /media_assets/media_asset.project.list.empty.illustration/rationale:
-        reason: declared media assets may be unused by rendered states
   non_visual:
     /project:
       reason: workspace metadata for generated artifacts; visual coverage tracks product contract paths

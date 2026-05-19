@@ -573,10 +573,10 @@ def _compile_states(owner_id: str, states: dict[str, Any]) -> dict[str, Any]:
     compiled = {}
     for state_name, state in states.items():
         item = {
-            "surface": _state_surface_ref(owner_id, state_name),
+            "renderer_surface": _state_surface_ref(owner_id, state_name),
             "query_bindings": _compile_query_bindings(state.get("query_bindings", {}), scope="state"),
-            "text": [rules.text_resource_ref(subject, state_name, slot) for slot in state.get("text_slots", [])],
-            "assets": [rules.media_asset_ref(subject, state_name, slot) for slot in state.get("asset_slots", [])],
+            "text_resources": [rules.text_resource_ref(subject, state_name, slot) for slot in state.get("text_slots", [])],
+            "media_assets": [rules.media_asset_ref(subject, state_name, slot) for slot in state.get("asset_slots", [])],
             "fields": state.get("field_slots", []),
             "command_bindings": copy.deepcopy(state.get("command_bindings", {})),
         }
@@ -745,9 +745,9 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
                             _generated_query_local_signal_raise_ref(state_machine_id, None, invocation_id, outcome_id, kind, signal_id)
                         )
         for state_name, state in owner.get("states", {}).items():
-            refs["renderer_surface"].add(state["surface"])
-            refs["text_resource"].update(state["text"])
-            refs["media_asset"].update(state["assets"])
+            refs["renderer_surface"].add(state["renderer_surface"])
+            refs["text_resource"].update(state["text_resources"])
+            refs["media_asset"].update(state["media_assets"])
             for invocation_id, invocation in sorted((state.get("query_bindings") or {}).items()):
                 refs["query_binding"].add(_generated_query_binding_ref(state_machine_id, state_name, invocation_id))
                 for outcome_id, effect in sorted(invocation.get("local_effects", {}).items()):
@@ -903,8 +903,8 @@ def _validate_text_assets(contract: dict[str, Any]) -> None:
     used_assets: set[str] = set()
     for owner in contract.get("state_machines", {}).values():
         for state in owner.get("states", {}).values():
-            used_text.update(state.get("text", []))
-            used_assets.update(state.get("assets", []))
+            used_text.update(state.get("text_resources", []))
+            used_assets.update(state.get("media_assets", []))
     for entry in contract.get("external_interfaces", {}).values():
         for handler in external_interface_output_response_handlers(entry).values():
             for stream in ("stdout", "stderr"):
@@ -1628,7 +1628,7 @@ def _validate_command_binding_local_effects(
             outcome,
             effect,
             effect_scope="command_binding",
-            has_response_surface=_command_has_response_surface(contract, command_id, outcome_id),
+            has_response_mapping_or_renderer_surface=_command_has_response_mapping_or_renderer_surface(contract, command_id, outcome_id),
             authorization_outcome=outcome_id in _command_authorization_outcomes(command),
         ):
             continue
@@ -1671,7 +1671,7 @@ def _validate_no_local_effect(
     effect: dict[str, Any],
     *,
     effect_scope: str,
-    has_response_surface: bool = False,
+    has_response_mapping_or_renderer_surface: bool = False,
     has_query_refresh: bool = False,
     has_result_binding: bool = False,
     has_data_effect: bool = False,
@@ -1683,22 +1683,22 @@ def _validate_no_local_effect(
     reason = no_local_effect.get("reason")
     if outcome.get("emits"):
         raise ContractError(f"{label} no_local_effect must not suppress durable command_outcome.emits")
-    if reason == "handled_by_response_surface" and not has_response_surface:
-        raise ContractError(f"{label} no_local_effect.reason handled_by_response_surface requires an adapter response mapping or renderer surface for this outcome")
+    if reason == "handled_by_response_mapping" and not has_response_mapping_or_renderer_surface:
+        raise ContractError(f"{label} no_local_effect.reason handled_by_response_mapping requires an adapter response mapping or renderer surface for this outcome")
     if reason == "handled_by_query_refresh" and not has_query_refresh:
         raise ContractError(f"{label} no_local_effect.reason handled_by_query_refresh requires an explicit query result binding or context refresh")
     if reason == "result_bound_without_signal" and not (has_result_binding or has_data_effect):
         raise ContractError(f"{label} no_local_effect.reason result_bound_without_signal requires result_binding or context/cache update")
-    if authorization_outcome and effect_scope == "command_binding" and reason != "handled_by_response_surface":
-        raise ContractError(f"{label} authorization failure no_local_effect requires handled_by_response_surface")
+    if authorization_outcome and effect_scope == "command_binding" and reason != "handled_by_response_mapping":
+        raise ContractError(f"{label} authorization failure no_local_effect requires handled_by_response_mapping")
     if outcome.get("kind") == "failure":
-        if reason == "handled_by_response_surface":
-            if not has_response_surface:
-                raise ContractError(f"{label} failure outcome no_local_effect handled_by_response_surface requires a proven response mapping")
+        if reason == "handled_by_response_mapping":
+            if not has_response_mapping_or_renderer_surface:
+                raise ContractError(f"{label} failure outcome no_local_effect handled_by_response_mapping requires a proven response mapping")
             return True
         if reason != "intentionally_unobservable":
             raise ContractError(
-                f"{label} failure outcome no_local_effect must use reason handled_by_response_surface with a proven response mapping or intentionally_unobservable with rationale"
+                f"{label} failure outcome no_local_effect must use reason handled_by_response_mapping with a proven response mapping or intentionally_unobservable with rationale"
             )
         if not no_local_effect.get("rationale"):
             raise ContractError(f"{label} failure outcome no_local_effect must declare rationale")
@@ -1710,7 +1710,7 @@ def _command_authorization_outcomes(command: dict[str, Any]) -> set[str]:
     return {value for key, value in authorization.items() if key in {"authentication_required_as", "access_denied_as"}}
 
 
-def _command_has_response_surface(contract: dict[str, Any], command_id: str, outcome_id: str) -> bool:
+def _command_has_response_mapping_or_renderer_surface(contract: dict[str, Any], command_id: str, outcome_id: str) -> bool:
     for entry_id in contract.get("external_interfaces", {}):
         if _external_interface_effective_command_ref(contract, entry_id) != command_id:
             continue
@@ -1990,7 +1990,7 @@ def _validate_query_local_outcome_effect(
             outcome,
             effect,
             effect_scope="query_binding",
-            has_response_surface=_command_has_response_surface(contract, _invocation_command_or_query_ref(invocation), outcome_id),
+            has_response_mapping_or_renderer_surface=_command_has_response_mapping_or_renderer_surface(contract, _invocation_command_or_query_ref(invocation), outcome_id),
             has_query_refresh=has_query_refresh,
             has_result_binding=has_result_binding,
             has_data_effect=has_context_updates,
@@ -2776,8 +2776,8 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
     renderers = state.get("renderers") or {}
     if not renderers:
         return
-    text_slots = {ref.rsplit(".", 1)[-1] for ref in state["text"]}
-    asset_slots = {ref.rsplit(".", 1)[-1] for ref in state["assets"]}
+    text_slots = {ref.rsplit(".", 1)[-1] for ref in state["text_resources"]}
+    asset_slots = {ref.rsplit(".", 1)[-1] for ref in state["media_assets"]}
     field_slots = set(state.get("fields", []))
     command_bindings = set(state["command_bindings"])
     html_regions = set(renderer_html_regions(state))
@@ -4767,23 +4767,23 @@ def _expand_behavior_scenarios(contract: dict[str, Any]) -> None:
                     "media_assets": [],
                     "command_bindings": [],
                 }
-                state_machine_assertion["renderer_surface"] = parent_state["surface"]
-                required["renderer_surfaces"].append(parent_state["surface"])
+                state_machine_assertion["renderer_surface"] = parent_state["renderer_surface"]
+                required["renderer_surfaces"].append(parent_state["renderer_surface"])
                 required["query_bindings"].extend(parent_state.get("query_bindings", {}))
-                required["text_resources"].extend(parent_state["text"])
-                required["media_assets"].extend(parent_state["assets"])
+                required["text_resources"].extend(parent_state["text_resources"])
+                required["media_assets"].extend(parent_state["media_assets"])
                 required["command_bindings"].extend(parent_state["command_bindings"])
                 for instance_id, expected in state_machine_assertion["instances"].items():
                     mount = mounts[instance_id]
                     mounted_state_machine = contract["state_machines"][mount["state_machine"]]
                     mounted_state = mounted_state_machine["states"][expected["state"]]
-                    expected["renderer_surface"] = mounted_state["surface"]
+                    expected["renderer_surface"] = mounted_state["renderer_surface"]
                     expected["source"] = mount["state_machine"]
                     required["query_bindings"].extend(mounted_state_machine.get("query_bindings", {}))
                     required["query_bindings"].extend(mounted_state.get("query_bindings", {}))
-                    required["renderer_surfaces"].append(mounted_state["surface"])
-                    required["text_resources"].extend(mounted_state["text"])
-                    required["media_assets"].extend(mounted_state["assets"])
+                    required["renderer_surfaces"].append(mounted_state["renderer_surface"])
+                    required["text_resources"].extend(mounted_state["text_resources"])
+                    required["media_assets"].extend(mounted_state["media_assets"])
                     required["command_bindings"].extend(mounted_state["command_bindings"])
                 state_machine_assertion["state_machine_composition"] = {
                     "renderers": parent_state.get("renderers", {}),
@@ -4794,12 +4794,12 @@ def _expand_behavior_scenarios(contract: dict[str, Any]) -> None:
             elif "state" in state_machine_assertion:
                 state_name = state_machine_assertion["state"]
                 state = state_machine["states"][state_name]
-                state_machine_assertion["renderer_surface"] = state["surface"]
+                state_machine_assertion["renderer_surface"] = state["renderer_surface"]
                 assertions["requires"] = {
                     "query_bindings": list(state_machine.get("query_bindings", {})) + list(state.get("query_bindings", {})),
-                    "renderer_surfaces": [state["surface"]],
-                    "text_resources": list(state["text"]),
-                    "media_assets": list(state["assets"]),
+                    "renderer_surfaces": [state["renderer_surface"]],
+                    "text_resources": list(state["text_resources"]),
+                    "media_assets": list(state["media_assets"]),
                     "command_bindings": list(state["command_bindings"]),
                 }
         when_kind, when_body = _one(behavior_scenario["when"], "behavior scenario when")

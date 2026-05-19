@@ -348,14 +348,14 @@ def state_machines_projection(contract: dict[str, Any]) -> dict[str, Any]:
 
 def state_machine_projection_item(owner_kind: str, owner_id: str, state_name: str, state: dict[str, Any]) -> dict[str, Any]:
     item = {
-        "id": state["surface"],
+        "id": state["renderer_surface"],
         "owner_kind": owner_kind,
         "owner": owner_id,
         "state": state_name,
         "query_bindings": state.get("query_bindings", {}),
         "slots": {
-            "text": state["text"],
-            "assets": state["assets"],
+            "text_resources": state["text_resources"],
+            "media_assets": state["media_assets"],
             "fields": state.get("fields", []),
             "command_bindings": state["command_bindings"],
         },
@@ -479,8 +479,8 @@ def compose_contract_state_machine(surface_id: str) -> list[tuple[str, str]]:
         return [(widget["widget_class"], widget_label(widget)) for widget in widgets]
     slots = item["slots"]
     result: list[tuple[str, str]] = []
-    result.extend(("Static", key) for key in slots["text"])
-    result.extend(("Static", key) for key in slots["assets"])
+    result.extend(("Static", key) for key in slots["text_resources"])
+    result.extend(("Static", key) for key in slots["media_assets"])
     result.extend(("Static", key) for key in slots.get("fields", []))
     result.extend(("Button", invocation_id) for invocation_id in slots["command_bindings"])
     return result
@@ -554,14 +554,14 @@ def _textual_screen_class(
 
 def default_html_slots(state_machine: dict[str, Any]) -> list[dict[str, Any]]:
     slots: list[dict[str, Any]] = []
-    for text_resource_ref in state_machine["slots"]["text"]:
+    for text_resource_ref in state_machine["slots"]["text_resources"]:
         slot = text_resource_ref.rsplit(".", 1)[-1]
         element = "h2" if slot == "title" else "p"
         item: dict[str, Any] = {"binding": {"text_slot": slot}, "component": "text", "element": element}
         if slot == "title":
             item.update({"role": "heading", "level": 2})
         slots.append(item)
-    for media_asset_ref in state_machine["slots"]["assets"]:
+    for media_asset_ref in state_machine["slots"]["media_assets"]:
         slots.append({"binding": {"asset_slot": media_asset_ref.rsplit(".", 1)[-1]}, "component": "image", "element": "img"})
     for field in state_machine["slots"].get("fields", []):
         slots.append({"binding": {"field_slot": field}, "component": "field", "element": "p"})

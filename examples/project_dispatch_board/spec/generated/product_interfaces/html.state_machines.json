@@ -248,10 +248,10 @@
       "owner_kind": "state_machine",
       "query_bindings": {},
       "slots": {
-        "assets": [],
         "command_bindings": {},
         "fields": [],
-        "text": [
+        "media_assets": [],
+        "text_resources": [
           "text_resource.project.activity.empty.heading",
           "text_resource.project.activity.empty.body"
         ]
@@ -347,14 +347,14 @@
         }
       },
       "slots": {
-        "assets": [],
         "command_bindings": {},
         "fields": [
           "updated_at",
           "status",
           "assignee"
         ],
-        "text": [
+        "media_assets": [],
+        "text_resources": [
           "text_resource.project.activity.ready.heading"
         ]
       },
@@ -473,10 +473,10 @@
         }
       },
       "slots": {
-        "assets": [],
         "command_bindings": {},
         "fields": [],
-        "text": []
+        "media_assets": [],
+        "text_resources": []
       },
       "state": "ready",
       "state_machine": {
@@ -508,10 +508,10 @@
       "owner_kind": "state_machine",
       "query_bindings": {},
       "slots": {
-        "assets": [],
         "command_bindings": {},
         "fields": [],
-        "text": [
+        "media_assets": [],
+        "text_resources": [
           "text_resource.project.detail.error.heading",
           "text_resource.project.detail.error.body"
         ]
@@ -634,10 +634,10 @@
         }
       },
       "slots": {
-        "assets": [],
         "command_bindings": {},
         "fields": [],
-        "text": [
+        "media_assets": [],
+        "text_resources": [
           "text_resource.project.detail.loading.message"
         ]
       },
@@ -719,10 +719,10 @@
       "owner_kind": "state_machine",
       "query_bindings": {},
       "slots": {
-        "assets": [],
         "command_bindings": {},
         "fields": [],
-        "text": [
+        "media_assets": [],
+        "text_resources": [
           "text_resource.project.detail.none.heading",
           "text_resource.project.detail.none.body"
         ]
@@ -865,9 +865,6 @@
         }
       },
       "slots": {
-        "assets": [
-          "media_asset.project.detail.ready.priority_badge"
-        ],
         "command_bindings": {
           "approve": {
             "command": "command.project.approve",
@@ -883,7 +880,7 @@
               "access_denied": {
                 "no_local_effect": {
                   "rationale": "The response mapping keeps the detail panel unchanged for access_denied approval.",
-                  "reason": "handled_by_response_surface"
+                  "reason": "handled_by_response_mapping"
                 }
               },
               "approved": {
@@ -894,7 +891,7 @@
               "authentication_required": {
                 "no_local_effect": {
                   "rationale": "The response mapping reports authentication failure without a local transition.",
-                  "reason": "handled_by_response_surface"
+                  "reason": "handled_by_response_mapping"
                 }
               },
               "lifecycle_transition_not_allowed": {
@@ -910,13 +907,13 @@
               "not_found": {
                 "no_local_effect": {
                   "rationale": "The response mapping reports a missing project without a local transition.",
-                  "reason": "handled_by_response_surface"
+                  "reason": "handled_by_response_mapping"
                 }
               },
               "unavailable": {
                 "no_local_effect": {
                   "rationale": "The response mapping reports temporary unavailability without a local transition.",
-                  "reason": "handled_by_response_surface"
+                  "reason": "handled_by_response_mapping"
                 }
               }
             }
@@ -984,7 +981,10 @@
           "assignee",
           "summary"
         ],
-        "text": [
+        "media_assets": [
+          "media_asset.project.detail.ready.priority_badge"
+        ],
+        "text_resources": [
           "text_resource.project.detail.ready.heading"
         ]
       },
@@ -1066,9 +1066,6 @@
       "owner_kind": "state_machine",
       "query_bindings": {},
       "slots": {
-        "assets": [
-          "media_asset.project.list.empty.illustration"
-        ],
         "command_bindings": {
           "create": {
             "command": "command.project.create",
@@ -1090,13 +1087,13 @@
               "access_denied": {
                 "no_local_effect": {
                   "rationale": "The response mapping keeps the empty list visible for access_denied create.",
-                  "reason": "handled_by_response_surface"
+                  "reason": "handled_by_response_mapping"
                 }
               },
               "authentication_required": {
                 "no_local_effect": {
                   "rationale": "The response mapping reports authentication failure without a local transition.",
-                  "reason": "handled_by_response_surface"
+                  "reason": "handled_by_response_mapping"
                 }
               },
               "created": {
@@ -1118,7 +1115,10 @@
           }
         },
         "fields": [],
-        "text": [
+        "media_assets": [
+          "media_asset.project.list.empty.illustration"
+        ],
+        "text_resources": [
           "text_resource.project.list.empty.heading",
           "text_resource.project.list.empty.body"
         ]
@@ -1241,10 +1241,10 @@
       "owner_kind": "state_machine",
       "query_bindings": {},
       "slots": {
-        "assets": [],
         "command_bindings": {},
         "fields": [],
-        "text": [
+        "media_assets": [],
+        "text_resources": [
           "text_resource.project.list.error.heading",
           "text_resource.project.list.error.body"
         ]
@@ -1367,10 +1367,10 @@
       "owner_kind": "state_machine",
       "query_bindings": {},
       "slots": {
-        "assets": [],
         "command_bindings": {},
         "fields": [],
-        "text": [
+        "media_assets": [],
+        "text_resources": [
           "text_resource.project.list.loading.message"
         ]
       },
@@ -1492,7 +1492,6 @@
       "owner_kind": "state_machine",
       "query_bindings": {},
       "slots": {
-        "assets": [],
         "command_bindings": {
           "create": {
             "command": "command.project.create",
@@ -1514,13 +1513,13 @@
               "access_denied": {
                 "no_local_effect": {
                   "rationale": "The response mapping keeps the ready list visible for access_denied create.",
-                  "reason": "handled_by_response_surface"
+                  "reason": "handled_by_response_mapping"
                 }
               },
               "authentication_required": {
                 "no_local_effect": {
                   "rationale": "The response mapping reports authentication failure without a local transition.",
-                  "reason": "handled_by_response_surface"
+                  "reason": "handled_by_response_mapping"
                 }
               },
               "created": {
@@ -1531,7 +1530,7 @@
               "validation_failed": {
                 "no_local_effect": {
                   "rationale": "The ready list keeps focus while the response mapping shows validation errors.",
-                  "reason": "handled_by_response_surface"
+                  "reason": "handled_by_response_mapping"
                 }
               }
             }
@@ -1598,7 +1597,8 @@
           "priority",
           "status"
         ],
-        "text": [
+        "media_assets": [],
+        "text_resources": [
           "text_resource.project.list.ready.heading"
         ]
       },

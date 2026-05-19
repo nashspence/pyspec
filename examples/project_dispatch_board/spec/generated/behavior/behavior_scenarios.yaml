@@ -578,7 +578,7 @@ behavior_scenarios:
               from: $fixture.workspace.id
       seed_fixtures:
       - fixture.workspace.member
-    rationale: The API create endpoint delegates to the create command and emits project.created.
+    rationale: The API create HTTP operation delegates to the create command and emits project.created.
     system_under_test_ref:
       external_interface: external_interface.api.project.create
     then:

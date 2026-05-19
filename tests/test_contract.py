@@ -1361,8 +1361,8 @@ def test_command_binding_failure_no_local_effect_requires_reason_and_rationale()
     author = _author()
     effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["local_effects"]["lifecycle_transition_not_allowed"]
     effect.clear()
-    effect["no_local_effect"] = {"reason": "handled_by_response_surface", "rationale": "test effect"}
-    with pytest.raises(ContractError, match=r"handled_by_response_surface requires an adapter response mapping or renderer surface"):
+    effect["no_local_effect"] = {"reason": "handled_by_response_mapping", "rationale": "test effect"}
+    with pytest.raises(ContractError, match=r"handled_by_response_mapping requires an adapter response mapping or renderer surface"):
         compile_source(author)
 
 
@@ -1371,7 +1371,7 @@ def test_command_binding_failure_no_local_effect_rejects_state_unchanged() -> No
     effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["local_effects"]["lifecycle_transition_not_allowed"]
     effect.clear()
     effect["no_local_effect"] = {"reason": "state_unchanged", "rationale": "Invalid submit leaves the list unchanged."}
-    with pytest.raises(ContractError, match=r"failure outcome no_local_effect must use reason handled_by_response_surface with a proven response mapping or intentionally_unobservable with rationale"):
+    with pytest.raises(ContractError, match=r"failure outcome no_local_effect must use reason handled_by_response_mapping with a proven response mapping or intentionally_unobservable with rationale"):
         compile_source(author)
 
 
@@ -1435,7 +1435,7 @@ def test_command_binding_routes_are_local_per_state() -> None:
     assert "raise" in empty_create["local_effects"]["validation_failed"]
     assert ready_create["local_effects"]["validation_failed"] == {
         "no_local_effect": {
-            "reason": "handled_by_response_surface",
+            "reason": "handled_by_response_mapping",
             "rationale": "The ready list keeps focus while the response mapping shows validation errors.",
         }
     }
@@ -1632,9 +1632,9 @@ def test_query_binding_ids_cannot_shadow_state_machine_scope() -> None:
                     "result_binding": {"data_key": "projects", "from": {"from": "$query_outcome.result"}},
                     "no_local_effect": {"reason": "result_bound_without_signal"},
                 },
-                "access_denied": {"no_local_effect": {"reason": "handled_by_response_surface", "rationale": "Shadow test."}},
-                "authentication_required": {"no_local_effect": {"reason": "handled_by_response_surface", "rationale": "Shadow test."}},
-                "unavailable": {"no_local_effect": {"reason": "handled_by_response_surface", "rationale": "Shadow test."}},
+                "access_denied": {"no_local_effect": {"reason": "handled_by_response_mapping", "rationale": "Shadow test."}},
+                "authentication_required": {"no_local_effect": {"reason": "handled_by_response_mapping", "rationale": "Shadow test."}},
+                "unavailable": {"no_local_effect": {"reason": "handled_by_response_mapping", "rationale": "Shadow test."}},
             },
         }
     }

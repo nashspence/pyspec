@@ -615,15 +615,15 @@ state_machines:
               reason: result_bound_without_signal
           access_denied:
             no_local_effect:
-              reason: handled_by_response_surface
+              reason: handled_by_response_mapping
               rationale: The board shell leaves child surfaces unchanged when list access is access_denied.
           authentication_required:
             no_local_effect:
-              reason: handled_by_response_surface
+              reason: handled_by_response_mapping
               rationale: The entry response mapping owns authentication_required display.
           unavailable:
             no_local_effect:
-              reason: handled_by_response_surface
+              reason: handled_by_response_mapping
               rationale: The board shell leaves child surfaces unchanged while the list service is unavailable.
     initial_state: ready
     states:
@@ -961,7 +961,7 @@ state_machines:
                   data_refresh_signal: project_changed
               access_denied:
                 no_local_effect:
-                  reason: handled_by_response_surface
+                  reason: handled_by_response_mapping
                   rationale: The response mapping keeps the detail panel unchanged for access_denied approval.
               lifecycle_transition_not_allowed:
                 raise:
@@ -971,15 +971,15 @@ state_machines:
                       from: $command_outcome.result.message
               not_found:
                 no_local_effect:
-                  reason: handled_by_response_surface
+                  reason: handled_by_response_mapping
                   rationale: The response mapping reports a missing project without a local transition.
               unavailable:
                 no_local_effect:
-                  reason: handled_by_response_surface
+                  reason: handled_by_response_mapping
                   rationale: The response mapping reports temporary unavailability without a local transition.
               authentication_required:
                 no_local_effect:
-                  reason: handled_by_response_surface
+                  reason: handled_by_response_mapping
                   rationale: The response mapping reports authentication failure without a local transition.
           archive:
             command: command.project.archive
@@ -1187,11 +1187,11 @@ state_machines:
                   data_refresh_signal: projects_changed
               access_denied:
                 no_local_effect:
-                  reason: handled_by_response_surface
+                  reason: handled_by_response_mapping
                   rationale: The response mapping keeps the empty list visible for access_denied create.
               authentication_required:
                 no_local_effect:
-                  reason: handled_by_response_surface
+                  reason: handled_by_response_mapping
                   rationale: The response mapping reports authentication failure without a local transition.
               validation_failed:
                 raise:
@@ -1232,15 +1232,15 @@ state_machines:
                   data_refresh_signal: projects_changed
               access_denied:
                 no_local_effect:
-                  reason: handled_by_response_surface
+                  reason: handled_by_response_mapping
                   rationale: The response mapping keeps the ready list visible for access_denied create.
               authentication_required:
                 no_local_effect:
-                  reason: handled_by_response_surface
+                  reason: handled_by_response_mapping
                   rationale: The response mapping reports authentication failure without a local transition.
               validation_failed:
                 no_local_effect:
-                  reason: handled_by_response_surface
+                  reason: handled_by_response_mapping
                   rationale: The ready list keeps focus while the response mapping shows validation errors.
           submit:
             command: command.project.submit
@@ -1281,7 +1281,7 @@ external_interfaces:
       http_api:
         method: POST
         path: /workspaces/{workspace_id}/projects
-    rationale: HTTP endpoint for creating a dispatch project.
+    rationale: HTTP operation for creating a dispatch project.
     invokes:
       command:
         ref: command.project.create
@@ -1336,7 +1336,7 @@ external_interfaces:
       http_api:
         method: GET
         path: /workspaces/{workspace_id}/projects
-    rationale: HTTP endpoint for listing dispatch projects.
+    rationale: HTTP operation for listing dispatch projects.
     invokes:
       query:
         ref: query.project.list
@@ -1382,7 +1382,7 @@ external_interfaces:
       http_api:
         method: POST
         path: /projects/{project_id}/approve
-    rationale: HTTP endpoint for approving submitted dispatch projects.
+    rationale: HTTP operation for approving submitted dispatch projects.
     invokes:
       command:
         ref: command.project.approve
@@ -1798,7 +1798,7 @@ behavior_scenarios:
         ref: external_interface.html.project.board
   behavior_scenario.project.create.api.success:
     archetype: external_interface_response
-    rationale: The API create endpoint delegates to the create command and emits project.created.
+    rationale: The API create HTTP operation delegates to the create command and emits project.created.
     feature_tag: project.create
     system_under_test_ref:
       external_interface: external_interface.api.project.create

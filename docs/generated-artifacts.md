@@ -6,7 +6,7 @@ The tree is organized by artifact purpose:
 
 - `agent_prompts/` contains standalone layer-specific role prompts for PM/design, test, dev, and review agents.
 - `compiled/` contains the compiler-normalized spec.
-- `product_interfaces/` contains product-facing projections such as OpenAPI, AsyncAPI, CWL, HTML routes, state-machine surface manifests, and Textual projections.
+- `product_interfaces/` contains product-facing projections such as OpenAPI, AsyncAPI, CWL, HTML routes, state-machine renderer manifests, and Textual projections.
 - `behavior/` contains semantic fixtures and behavior scenarios.
 - `content_resolvers/` contains typed signatures, examples, and implementation stubs for `spec/spec.py`.
 - `test_adapters/` contains Python and pytest-bdd glue derived from `behavior/`.

@@ -5,7 +5,7 @@ src/pyspec_contract/
   package code, schemas, generated artifact writers, validators, runtime helpers
 
 examples/project_dispatch_board/
-  canonical full-surface product specification workspace
+  canonical full-scope product specification workspace
 
 tests/
   package and canonical-example regression tests
