@@ -366,6 +366,7 @@
       "additionalProperties": false,
       "properties": {
         "archetype": {
+          "description": "Compiled behavior-scenario archetype. authorization_denial is the archetype for then.authorization.denied assertions, not an access-policy field or authorization decision value.",
           "type": "string"
         },
         "feature_tag": {

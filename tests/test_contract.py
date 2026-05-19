@@ -358,11 +358,11 @@ def test_response_assertion_requires_call_external_interface() -> None:
         compile_author(author)
 
 
-def test_authorization_denial_outcome_must_be_mapped_authorization_failure() -> None:
+def test_authorization_denial_archetype_outcome_must_be_mapped_authorization_failure() -> None:
     author = _author()
     case = author["behavior_scenarios"]["behavior_scenario.project.approve.access_denied"]
     case["then"]["outcome"] = "lifecycle_transition_not_allowed"
-    with pytest.raises(ContractError, match=r"authorization_denial outcome must be one of command authorization failure outcomes"):
+    with pytest.raises(ContractError, match=r"authorization_denial archetype outcome must be one of command authorization failure outcomes"):
         compile_author(author)
 
 

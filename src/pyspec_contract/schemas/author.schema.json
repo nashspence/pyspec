@@ -283,6 +283,7 @@
       "additionalProperties": false,
       "properties": {
         "archetype": {
+          "description": "Behavior-scenario archetype. authorization_denial is the archetype for then.authorization.denied assertions, not an access-policy field or authorization decision value.",
           "enum": [
             "external_interface_response",
             "command_outcome",
