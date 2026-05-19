@@ -2068,17 +2068,17 @@ def test_response_root_is_only_available_inside_delegated_cli_response_handlers(
         compile_source(author)
 
 
-def test_cli_retry_policy_requires_retry_safe_delegated_external_interface() -> None:
+def test_cli_retry_policy_requires_idempotent_delegated_external_interface() -> None:
     author = _author()
-    del author["external_interfaces"]["external_interface.api.project.approve"]["retry_safe"]
-    with pytest.raises(ContractError, match=r"retry_policy requires delegated external interface external_interface\.api\.project\.approve and its final invocation to be retry_safe or query"):
+    del author["external_interfaces"]["external_interface.api.project.approve"]["idempotent"]
+    with pytest.raises(ContractError, match=r"retry_policy requires delegated external interface external_interface\.api\.project\.approve and its final invocation to be idempotent or query"):
         compile_source(author)
 
 
-def test_cli_retry_policy_requires_retry_safe_final_command() -> None:
+def test_cli_retry_policy_requires_idempotent_final_command() -> None:
     author = _author()
-    del author["commands"]["command.project.approve"]["retry_safe"]
-    with pytest.raises(ContractError, match=r"retry_policy requires delegated external interface external_interface\.api\.project\.approve and its final invocation to be retry_safe or query"):
+    del author["commands"]["command.project.approve"]["idempotent"]
+    with pytest.raises(ContractError, match=r"retry_policy requires delegated external interface external_interface\.api\.project\.approve and its final invocation to be idempotent or query"):
         compile_source(author)
 
 

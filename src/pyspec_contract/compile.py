@@ -430,8 +430,8 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             "emits_domain_events": copy.deepcopy(spec.get("emits_domain_events", [])),
             "rationale": spec["rationale"],
         }
-        if spec.get("retry_safe"):
-            command["retry_safe"] = True
+        if spec.get("idempotent"):
+            command["idempotent"] = True
         if "authorization" in spec:
             command["authorization"] = copy.deepcopy(spec["authorization"])
         return command
@@ -494,8 +494,8 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
         }
         if "access_policy" in spec:
             entry["access_policy"] = copy.deepcopy(spec["access_policy"])
-        if spec.get("retry_safe"):
-            entry["retry_safe"] = True
+        if spec.get("idempotent"):
+            entry["idempotent"] = True
         adapter_kind, _ = external_interface_adapter_pair(entry)
         invoked_kind, invoked = external_interface_invokes_pair(entry)
         if adapter_kind == "html_route" and invoked_kind == "state_machine":
@@ -644,8 +644,8 @@ def _command_or_query_input(behavior: dict[str, Any]) -> dict[str, Any]:
     return _schema_fields(behavior.get("input_schema", EMPTY_OBJECT_SCHEMA))
 
 
-def _command_or_query_retry_safe(behavior_ref: str, behavior: dict[str, Any]) -> bool:
-    return behavior_ref.startswith("query.") or bool(behavior.get("retry_safe"))
+def _command_or_query_idempotent(behavior_ref: str, behavior: dict[str, Any]) -> bool:
+    return behavior_ref.startswith("query.") or bool(behavior.get("idempotent"))
 
 
 def _invocation_command_or_query_ref(invocation: dict[str, Any]) -> str:
@@ -1717,22 +1717,22 @@ def _command_has_response_surface(contract: dict[str, Any], command_id: str, out
     return False
 
 
-def _command_retry_safe(command: dict[str, Any]) -> bool:
-    return command.get("behavior_kind") == "query" or bool(command.get("retry_safe"))
+def _command_idempotent(command: dict[str, Any]) -> bool:
+    return command.get("behavior_kind") == "query" or bool(command.get("idempotent"))
 
 
-def _external_interface_retry_safe(contract: dict[str, Any], entry_id: str) -> bool:
+def _external_interface_idempotent(contract: dict[str, Any], entry_id: str) -> bool:
     entry = contract["external_interfaces"][entry_id]
     target_kind, target_ref = external_interface_invoked_ref_pair(entry)
     if target_kind in {"command", "query"}:
-        return _command_retry_safe(_command_query_map(contract)[target_ref]) and (
-            _command_query_map(contract)[target_ref]["behavior_kind"] == "query" or bool(entry.get("retry_safe"))
+        return _command_idempotent(_command_query_map(contract)[target_ref]) and (
+            _command_query_map(contract)[target_ref]["behavior_kind"] == "query" or bool(entry.get("idempotent"))
         )
     if target_kind == "external_interface":
-        return bool(entry.get("retry_safe")) and _external_interface_retry_safe(contract, target_ref)
+        return bool(entry.get("idempotent")) and _external_interface_idempotent(contract, target_ref)
     if target_kind == "workflow":
-        return bool(entry.get("retry_safe"))
-    return bool(entry.get("retry_safe"))
+        return bool(entry.get("idempotent"))
+    return bool(entry.get("idempotent"))
 
 
 def _local_outcome_effect_scopes(
@@ -3177,7 +3177,7 @@ def _validate_binding_map(
 
 
 def _validate_external_interface_fields(entry_id: str, entry: dict[str, Any], adapter_kind: str) -> None:
-    allowed = {"adapter", "invokes", "input_mapping", "output_mapping", "rationale", "access_policy", "retry_safe"}
+    allowed = {"adapter", "invokes", "input_mapping", "output_mapping", "rationale", "access_policy", "idempotent"}
     generated = {
         "html_route": {"html_route"},
         "http_api": {"http_operation"},
@@ -3405,8 +3405,8 @@ def _validate_cli_command_response_handlers(
                 "invocation_outcome": _typed_source_paths(contract, ("result",), outcome["result"]),
             },
             delegated_entry_id=None,
-            retry_allowed=_command_retry_safe(command),
-            retry_error=f"CLI external interface {entry_id} response handler {outcome_id} retry_policy requires a query or retry_safe invoked behavior",
+            retry_allowed=_command_idempotent(command),
+            retry_error=f"CLI external interface {entry_id} response handler {outcome_id} retry_policy requires a query or idempotent invoked behavior",
             exit_codes=exit_codes,
         )
 
@@ -3435,12 +3435,12 @@ def _validate_cli_delegated_response_handlers(
     exit_codes: dict[int, str] = {}
     outcome_kinds = _external_interface_outcome_kinds(contract, delegated_entry_id)
     response_types = _external_interface_response_body_types(contract, delegated_entry_id)
-    retry_allowed = _external_interface_retry_safe(contract, delegated_entry_id)
+    retry_allowed = _external_interface_idempotent(contract, delegated_entry_id)
     for outcome_id, handler in handlers.items():
         if handler.get("retry_policy") and not retry_allowed:
             raise ContractError(
                 f"CLI external interface {entry_id} response handler {outcome_id} retry_policy requires delegated external interface "
-                f"{delegated_entry_id} and its final invocation to be retry_safe or query"
+                f"{delegated_entry_id} and its final invocation to be idempotent or query"
             )
         source_scopes: TypeScopes = {"adapter_input": _entry_input_source_types(contract, entry)}
         response_type = response_types.get(outcome_id)
@@ -3457,7 +3457,7 @@ def _validate_cli_delegated_response_handlers(
             retry_allowed=retry_allowed,
             retry_error=(
                 f"CLI external interface {entry_id} response handler {outcome_id} retry_policy requires delegated external interface "
-                f"{delegated_entry_id} and its final invocation to be retry_safe or query"
+                f"{delegated_entry_id} and its final invocation to be idempotent or query"
             ),
             exit_codes=exit_codes,
         )
@@ -4088,10 +4088,10 @@ def _validate_workflow_activity_sequence_flows(
         if sequence_flow_key == "retry_policy":
             if outcome["kind"] != "failure":
                 raise ContractError(f"Workflow {workflow_id} activity {activity['id']} sequence_flow {sequence_flow_id} retry_policy is only valid for failure outcomes")
-            if not _command_retry_safe(command):
+            if not _command_idempotent(command):
                 raise ContractError(
                     f"Workflow {workflow_id} activity {activity['id']} sequence_flow {sequence_flow_id} retry_policy requires "
-                    "a query or retry_safe invoked behavior"
+                    "a query or idempotent invoked behavior"
                 )
             retry = value
             if retry["attempts"] < 1 or retry["attempts"] > 10:

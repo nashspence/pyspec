@@ -263,7 +263,7 @@ commands:
       policy: access_policy.project.reviewer
       authentication_required_as: authentication_required
       access_denied_as: access_denied
-    retry_safe: true
+    idempotent: true
   command.project.archive:
     rationale: Approved dispatch projects can be archived.
     input_schema:
@@ -387,7 +387,7 @@ commands:
       policy: access_policy.project.reviewer
       authentication_required_as: authentication_required
       access_denied_as: access_denied
-    retry_safe: true
+    idempotent: true
   command.project.submit:
     rationale: Draft dispatch projects can be submitted for review.
     input_schema:
@@ -1374,7 +1374,7 @@ external_interfaces:
               $ref: entity_type.problem
           status: 503
   external_interface.api.project.approve:
-    retry_safe: true
+    idempotent: true
     adapter:
       http_api:
         method: POST

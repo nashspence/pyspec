@@ -49,8 +49,8 @@
         "rationale": {
           "$ref": "#/$defs/rationale"
         },
-        "retry_safe": {
-          "description": "Explicitly marks a command as safe for automatic command-level retries.",
+        "idempotent": {
+          "description": "Explicitly marks a command as idempotent for automatic command-level retries.",
           "type": "boolean"
         }
       },
@@ -1111,7 +1111,7 @@
         "rationale": {
           "$ref": "#/$defs/rationale"
         },
-        "retry_safe": {
+        "idempotent": {
           "type": "boolean"
         },
         "html_route": {

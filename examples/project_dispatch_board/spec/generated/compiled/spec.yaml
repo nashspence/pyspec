@@ -670,6 +670,7 @@ commands:
         field: status
         from: submitted
         to: approved
+    idempotent: true
     input_schema:
       additionalProperties: false
       properties:
@@ -707,7 +708,6 @@ commands:
         result:
           $ref: entity_type.problem
     rationale: Reviewers can approve submitted dispatch projects.
-    retry_safe: true
   command.project.archive:
     authorization:
       access_denied_as: access_denied
@@ -807,6 +807,7 @@ commands:
       policy: access_policy.project.reviewer
     emits_domain_events: []
     entity_changes: {}
+    idempotent: true
     input_schema:
       additionalProperties: false
       properties:
@@ -836,7 +837,6 @@ commands:
         result:
           $ref: schema.project.notice_result
     rationale: Approval triggers a notification command for downstream coordination.
-    retry_safe: true
   command.project.submit:
     authorization:
       access_denied_as: access_denied
@@ -1009,6 +1009,7 @@ external_interfaces:
         method: POST
         path: /projects/{project_id}/approve
     http_operation: http_operation.project.approve
+    idempotent: true
     input_mapping:
       bindings:
         approved_by:
@@ -1063,7 +1064,6 @@ external_interfaces:
               $ref: entity_type.problem
           status: 503
     rationale: HTTP endpoint for approving submitted dispatch projects.
-    retry_safe: true
   external_interface.api.project.create:
     access_policy: access_policy.project.member
     adapter:

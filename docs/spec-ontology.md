@@ -84,8 +84,8 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `adapter ingress response`: asynchronous adapter acknowledgement or disposition keyed by adapter-level outcomes, such as accepted, malformed, retry, reject, or dead-letter handling. Worker, webhook, and scheduled adapters use `ingress_responses` when receipt/disposition is distinct from invoked workflow execution outcomes.
 - `response handler`: adapter-specific projection of an invoked or delegated response outcome.
 - `CLI response handler`: maps a named response outcome to stdout, stderr, an exit code, and optionally a retry policy. It does not restate HTTP status classification when the delegated external interface is an HTTP API.
-- `retry_safe`: explicit command or external-interface marker permitting automatic retry of delegated, command, transition, or workflow execution. The default is false. Queries are retry-safe by definition.
-- `retry safety`: validation that a retry policy applies only to a retry-safe delegated external interface and final invocation, a query, an explicitly retry-safe command or external interface, or an ingress/disposition outcome where no invoked command has executed. Transport retry, ingress retry, workflow retry, and command retry are separate scopes.
+- `idempotent`: explicit command or external-interface marker permitting automatic retry of delegated, command, transition, or workflow execution. The default is false. Queries are idempotent by definition. This is idempotency for product behavior and retry semantics, not HTTP safe-method vocabulary.
+- `idempotency`: validation that a retry policy applies only to an idempotent delegated external interface and final invocation, a query, an explicitly idempotent command or external interface, or an ingress/disposition outcome where no invoked command has executed. Transport retry, ingress retry, workflow retry, and command retry are separate scopes.
 - `workflow_activity`: a BPMN-like workflow activity that invokes a command with an `input_mapping`.
 - `workflow_gateway`: a BPMN-like workflow branching or joining node. Gateways are explicit workflow elements even when a simple workflow has none.
 - `workflow_sequence_flow`: a top-level BPMN-like workflow control-flow edge from `source_activity` and `source_outcome` to exactly one of `target_activity`, `complete_as`, `fail_as`, `retry_policy`, or `dead_letter_as`.
@@ -380,7 +380,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:external_interface_response --> `$defs/external_interface_response`: external-interface adapter, invocation, input, or response contract component.
 - <!-- schema-def:external_interface_response_value --> `$defs/external_interface_response_value`: external-interface adapter, invocation, input, or response contract component.
 - <!-- schema-def:external_interface_responses --> `$defs/external_interface_responses`: external-interface adapter, invocation, input, or response contract component.
-- <!-- schema-def:external_interface_retry_policy --> `$defs/external_interface_retry_policy`: bounded automatic retry policy for retry-safe delegated external interfaces.
+- <!-- schema-def:external_interface_retry_policy --> `$defs/external_interface_retry_policy`: bounded automatic retry policy for idempotent delegated external interfaces.
 - <!-- schema-def:external_interface_state_machine_invocation --> `$defs/external_interface_state_machine_invocation`: external-interface adapter, invocation, input, or response contract component.
 - <!-- schema-def:external_interface_workflow_invocation --> `$defs/external_interface_workflow_invocation`: external-interface adapter, invocation, input, or response contract component.
 - <!-- schema-def:domain_event_ref --> `$defs/domain_event_ref`: typed reference definition for its namespace.

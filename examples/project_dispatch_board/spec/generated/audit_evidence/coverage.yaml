@@ -290,6 +290,7 @@ visual_audit:
       /commands/command.project.approve/entity_changes/lifecycle_transition/field: V0004
       /commands/command.project.approve/entity_changes/lifecycle_transition/from: V0004
       /commands/command.project.approve/entity_changes/lifecycle_transition/to: V0004
+      /commands/command.project.approve/idempotent: V0004
       /commands/command.project.approve/input_schema/additionalProperties: V0004
       /commands/command.project.approve/input_schema/properties/approved_by/type: V0004
       /commands/command.project.approve/input_schema/properties/project_id/type: V0004
@@ -309,7 +310,6 @@ visual_audit:
       /commands/command.project.approve/outcomes/unavailable/kind: V0004
       /commands/command.project.approve/outcomes/unavailable/result/$ref: V0004
       /commands/command.project.approve/rationale: V0004
-      /commands/command.project.approve/retry_safe: V0004
       /commands/command.project.archive/authorization/access_denied_as: V0007
       /commands/command.project.archive/authorization/authentication_required_as: V0007
       /commands/command.project.archive/authorization/policy: V0007
@@ -366,6 +366,7 @@ visual_audit:
       /commands/command.project.send_approval_notice/authorization/policy: V0009
       /commands/command.project.send_approval_notice/emits_domain_events: V0009
       /commands/command.project.send_approval_notice/entity_changes: V0009
+      /commands/command.project.send_approval_notice/idempotent: V0009
       /commands/command.project.send_approval_notice/input_schema/additionalProperties: V0009
       /commands/command.project.send_approval_notice/input_schema/properties/approved_by/type: V0009
       /commands/command.project.send_approval_notice/input_schema/properties/project_id/type: V0009
@@ -381,7 +382,6 @@ visual_audit:
       /commands/command.project.send_approval_notice/outcomes/sent/kind: V0009
       /commands/command.project.send_approval_notice/outcomes/sent/result/$ref: V0009
       /commands/command.project.send_approval_notice/rationale: V0009
-      /commands/command.project.send_approval_notice/retry_safe: V0009
       /commands/command.project.submit/authorization/access_denied_as: V0010
       /commands/command.project.submit/authorization/authentication_required_as: V0010
       /commands/command.project.submit/authorization/policy: V0010
@@ -477,6 +477,7 @@ visual_audit:
       /external_interfaces/external_interface.api.project.approve/adapter/http_api/method: V0014
       /external_interfaces/external_interface.api.project.approve/adapter/http_api/path: V0014
       /external_interfaces/external_interface.api.project.approve/http_operation: V0014
+      /external_interfaces/external_interface.api.project.approve/idempotent: V0014
       /external_interfaces/external_interface.api.project.approve/input_mapping/bindings/approved_by/from: V0014
       /external_interfaces/external_interface.api.project.approve/input_mapping/bindings/project_id/from: V0014
       /external_interfaces/external_interface.api.project.approve/input_mapping/body/approved_by/type: V0014
@@ -502,7 +503,6 @@ visual_audit:
       /external_interfaces/external_interface.api.project.approve/output_mapping/responses/unavailable/body/type/$ref: V0014
       /external_interfaces/external_interface.api.project.approve/output_mapping/responses/unavailable/status: V0014
       /external_interfaces/external_interface.api.project.approve/rationale: V0014
-      /external_interfaces/external_interface.api.project.approve/retry_safe: V0014
       /external_interfaces/external_interface.api.project.create/access_policy: V0006
       /external_interfaces/external_interface.api.project.create/adapter/http_api/method: V0006
       /external_interfaces/external_interface.api.project.create/adapter/http_api/path: V0006
