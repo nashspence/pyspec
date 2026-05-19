@@ -2125,7 +2125,14 @@ def test_cli_retry_policy_requires_retryable_final_command() -> None:
 def test_retryable_command_requires_idempotent_marker() -> None:
     author = _author()
     del author["commands"]["command.project.approve"]["idempotent"]
-    with pytest.raises(ContractError, match=r"Command command\.project\.approve retryable requires idempotent true"):
+    with pytest.raises(ContractError, match=r"Schema validation failed"):
+        compile_source(author)
+
+
+def test_retryable_external_interface_requires_idempotent_marker() -> None:
+    author = _author()
+    del author["external_interfaces"]["external_interface.api.project.approve"]["idempotent"]
+    with pytest.raises(ContractError, match=r"Schema validation failed"):
         compile_source(author)
 
 

@@ -109,6 +109,30 @@
     },
     "authored_command": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "retryable": {
+                "const": true
+              }
+            },
+            "required": [
+              "retryable"
+            ]
+          },
+          "then": {
+            "properties": {
+              "idempotent": {
+                "const": true
+              }
+            },
+            "required": [
+              "idempotent"
+            ]
+          }
+        }
+      ],
       "properties": {
         "authorization": {
           "$ref": "#/$defs/command_authorization"
@@ -495,6 +519,30 @@
     },
     "authored_external_interface": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "retryable": {
+                "const": true
+              }
+            },
+            "required": [
+              "retryable"
+            ]
+          },
+          "then": {
+            "properties": {
+              "idempotent": {
+                "const": true
+              }
+            },
+            "required": [
+              "idempotent"
+            ]
+          }
+        }
+      ],
       "properties": {
         "adapter": {
           "$ref": "#/$defs/external_interface_adapter"
