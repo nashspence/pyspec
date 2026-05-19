@@ -264,6 +264,7 @@ commands:
       authentication_required_as: authentication_required
       access_denied_as: access_denied
     idempotent: true
+    retryable: true
   command.project.archive:
     rationale: Approved dispatch projects can be archived.
     input_schema:
@@ -388,6 +389,7 @@ commands:
       authentication_required_as: authentication_required
       access_denied_as: access_denied
     idempotent: true
+    retryable: true
   command.project.submit:
     rationale: Draft dispatch projects can be submitted for review.
     input_schema:
@@ -1375,6 +1377,7 @@ external_interfaces:
           status: 503
   external_interface.api.project.approve:
     idempotent: true
+    retryable: true
     adapter:
       http_api:
         method: POST

@@ -50,7 +50,11 @@
           "$ref": "#/$defs/rationale"
         },
         "idempotent": {
-          "description": "Explicitly marks a command as idempotent for automatic command-level retries.",
+          "description": "Repeated identical command execution has the same intended product-state effect as a single execution.",
+          "type": "boolean"
+        },
+        "retryable": {
+          "description": "Explicitly permits automatic command retry. Retryable commands must currently also be idempotent.",
           "type": "boolean"
         }
       },
@@ -1112,6 +1116,11 @@
           "$ref": "#/$defs/rationale"
         },
         "idempotent": {
+          "description": "Repeated identical external-interface invocation has the same intended product-state effect as a single invocation.",
+          "type": "boolean"
+        },
+        "retryable": {
+          "description": "Explicitly permits automatic retry of this external-interface invocation.",
           "type": "boolean"
         },
         "html_route": {

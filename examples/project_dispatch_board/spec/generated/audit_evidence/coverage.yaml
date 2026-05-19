@@ -1,7 +1,7 @@
 version: 1
 project: project_dispatch_board
 summary:
-  required_visual_pointers: 891
+  required_visual_pointers: 894
   missing_required_visual_pointers: 0
   required_visual_text_witnesses: 284
   optional_visual_pointers: 503
@@ -310,6 +310,7 @@ visual_audit:
       /commands/command.project.approve/outcomes/unavailable/kind: V0004
       /commands/command.project.approve/outcomes/unavailable/result/$ref: V0004
       /commands/command.project.approve/rationale: V0004
+      /commands/command.project.approve/retryable: V0004
       /commands/command.project.archive/authorization/access_denied_as: V0007
       /commands/command.project.archive/authorization/authentication_required_as: V0007
       /commands/command.project.archive/authorization/policy: V0007
@@ -382,6 +383,7 @@ visual_audit:
       /commands/command.project.send_approval_notice/outcomes/sent/kind: V0009
       /commands/command.project.send_approval_notice/outcomes/sent/result/$ref: V0009
       /commands/command.project.send_approval_notice/rationale: V0009
+      /commands/command.project.send_approval_notice/retryable: V0009
       /commands/command.project.submit/authorization/access_denied_as: V0010
       /commands/command.project.submit/authorization/authentication_required_as: V0010
       /commands/command.project.submit/authorization/policy: V0010
@@ -503,6 +505,7 @@ visual_audit:
       /external_interfaces/external_interface.api.project.approve/output_mapping/responses/unavailable/body/type/$ref: V0014
       /external_interfaces/external_interface.api.project.approve/output_mapping/responses/unavailable/status: V0014
       /external_interfaces/external_interface.api.project.approve/rationale: V0014
+      /external_interfaces/external_interface.api.project.approve/retryable: V0014
       /external_interfaces/external_interface.api.project.create/access_policy: V0006
       /external_interfaces/external_interface.api.project.create/adapter/http_api/method: V0006
       /external_interfaces/external_interface.api.project.create/adapter/http_api/path: V0006

@@ -2094,17 +2094,24 @@ def test_response_root_is_only_available_inside_delegated_cli_response_handlers(
         compile_source(author)
 
 
-def test_cli_retry_policy_requires_idempotent_delegated_external_interface() -> None:
+def test_cli_retry_policy_requires_retryable_delegated_external_interface() -> None:
     author = _author()
-    del author["external_interfaces"]["external_interface.api.project.approve"]["idempotent"]
-    with pytest.raises(ContractError, match=r"retry_policy requires delegated external interface external_interface\.api\.project\.approve and its final invocation to be idempotent or query"):
+    del author["external_interfaces"]["external_interface.api.project.approve"]["retryable"]
+    with pytest.raises(ContractError, match=r"retry_policy requires delegated external interface external_interface\.api\.project\.approve and its final invocation to be retryable or query"):
         compile_source(author)
 
 
-def test_cli_retry_policy_requires_idempotent_final_command() -> None:
+def test_cli_retry_policy_requires_retryable_final_command() -> None:
+    author = _author()
+    del author["commands"]["command.project.approve"]["retryable"]
+    with pytest.raises(ContractError, match=r"retry_policy requires delegated external interface external_interface\.api\.project\.approve and its final invocation to be retryable or query"):
+        compile_source(author)
+
+
+def test_retryable_command_requires_idempotent_marker() -> None:
     author = _author()
     del author["commands"]["command.project.approve"]["idempotent"]
-    with pytest.raises(ContractError, match=r"retry_policy requires delegated external interface external_interface\.api\.project\.approve and its final invocation to be idempotent or query"):
+    with pytest.raises(ContractError, match=r"Command command\.project\.approve retryable requires idempotent true"):
         compile_source(author)
 
 
@@ -2194,6 +2201,13 @@ def test_workflow_activities_must_sequence_flow_authorization_failure_outcomes()
     author = _author()
     del author["workflows"]["workflow.project.approval_notice"]["sequence_flows"]["send_notice_access_denied"]
     with pytest.raises(ContractError, match=r"Workflow workflow.project\.approval_notice activity send_notice sequence_flows must exactly map command outcomes: missing: access_denied"):
+        compile_source(author)
+
+
+def test_workflow_retry_policy_requires_retryable_command() -> None:
+    author = _author()
+    del author["commands"]["command.project.send_approval_notice"]["retryable"]
+    with pytest.raises(ContractError, match=r"Workflow workflow\.project\.approval_notice activity send_notice sequence_flow send_notice_delivery_failed retry_policy requires a query or retryable invoked behavior"):
         compile_source(author)
 
 

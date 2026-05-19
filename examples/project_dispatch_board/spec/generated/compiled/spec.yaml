@@ -708,6 +708,7 @@ commands:
         result:
           $ref: entity_type.problem
     rationale: Reviewers can approve submitted dispatch projects.
+    retryable: true
   command.project.archive:
     authorization:
       access_denied_as: access_denied
@@ -837,6 +838,7 @@ commands:
         result:
           $ref: schema.project.notice_result
     rationale: Approval triggers a notification command for downstream coordination.
+    retryable: true
   command.project.submit:
     authorization:
       access_denied_as: access_denied
@@ -1064,6 +1066,7 @@ external_interfaces:
               $ref: entity_type.problem
           status: 503
     rationale: HTTP endpoint for approving submitted dispatch projects.
+    retryable: true
   external_interface.api.project.create:
     access_policy: access_policy.project.member
     adapter:
