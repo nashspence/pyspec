@@ -339,7 +339,7 @@ Binding expressions appear inside binding objects. Authored value maps use `{fro
 Each `$defs` entry in the JSON Schemas is documented exactly once here. The schema-inventory test treats these hidden markers as the authoritative inventory.
 
 - <!-- schema-def:aria_role --> `$defs/aria_role`: renderer contract component scoped to HTML and/or Textual invocations.
-- <!-- schema-def:asset_placeholder --> `$defs/asset_placeholder`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:media_asset_placeholder --> `$defs/media_asset_placeholder`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:media_asset_ref --> `$defs/media_asset_ref`: typed reference definition for its namespace.
 - <!-- schema-def:viewport_profile_ref --> `$defs/viewport_profile_ref`: typed reference definition for its namespace.
 - <!-- schema-def:authored_media_asset --> `$defs/authored_media_asset`: human-authored source object for this resource or nested contract.

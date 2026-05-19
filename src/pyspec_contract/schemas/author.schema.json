@@ -70,7 +70,7 @@
       ],
       "type": "object"
     },
-    "asset_placeholder": {
+    "media_asset_placeholder": {
       "additionalProperties": false,
       "properties": {
         "aspect_ratio": {
@@ -179,7 +179,7 @@
           ]
         },
         "placeholder": {
-          "$ref": "#/$defs/asset_placeholder"
+          "$ref": "#/$defs/media_asset_placeholder"
         },
         "rationale": {
           "$ref": "#/$defs/rationale"

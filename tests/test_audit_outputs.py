@@ -741,7 +741,7 @@ def test_audit_html_sources_render_copy_assets_and_fixture_fields() -> None:
     assert "data:image/svg+xml;base64" in empty_text
 
 
-def test_audit_asset_placeholder_is_generic_and_not_named() -> None:
+def test_audit_media_asset_placeholder_is_generic_and_not_named() -> None:
     asset = ROOT / "spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_empty_audit/media_assets/media_asset_project_list_empty_illustration.svg"
     text = asset.read_text(encoding="utf-8")
     assert text.lstrip().startswith("<svg")
@@ -766,7 +766,7 @@ def test_text_resource_placeholder_is_required_for_used_text_ref() -> None:
         compile_source(author)
 
 
-def test_asset_placeholder_schema_rejects_missing_visual_intent() -> None:
+def test_media_asset_placeholder_schema_rejects_missing_visual_intent() -> None:
     author = read_yaml(ROOT / SOURCE_SPEC_PATH)
     asset_id = next(iter(author["media_assets"]))
     del author["media_assets"][asset_id]["placeholder"]
