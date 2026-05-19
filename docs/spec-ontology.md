@@ -4,7 +4,7 @@ This glossary is the vocabulary contract for the authored-source, layer-pruned a
 
 ## Terminology Boundaries
 
-- `domain_event`: a durable product/domain occurrence that happened. Domain events are emitted by successful command or entity_lifecycle_transition outcomes and may serve as workflow inputs.
+- `domain_event`: a durable product-domain occurrence that happened. Domain events are emitted by successful command or entity_lifecycle_transition outcomes and may serve as workflow inputs.
 - `integration_message`: a wire-level AsyncAPI message in `integration_messages.asyncapi.yaml`. It carries a domain-event payload over a channel, but it is not state-machine vocabulary.
 - `local_signal`: a state-machine-local trigger or emitted signal. Local signals may be accepted by transitions, emitted by transitions, and synced between mounted child state-machine instances.
 - `data_refresh_signal`: a state-machine-local data refresh or invalidation signal, commonly consumed by `query_binding.load.refresh_on`.
@@ -17,7 +17,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - <!-- top-level:schemas --> `schemas`: first-class reusable JSON Schema payload or object schemas referenced with `schema.*` ids.
 - <!-- top-level:commands --> `commands`: state-changing product behavior with `input_schema`, optional authorization, explicit `entity_changes`, outcomes, and `emits_domain_events`.
 - <!-- top-level:queries --> `queries`: read-only product behavior with `input_schema`, `result_schema`, and outcomes.
-- <!-- top-level:domain_events --> `domain_events`: durable domain/application occurrences with payload_schema contracts and compiled emitters.
+- <!-- top-level:domain_events --> `domain_events`: durable product-domain occurrences with payload_schema contracts and compiled emitters.
 - <!-- top-level:workflows --> `workflows`: BPMN-like asynchronous or long-running process contracts with `inputs`, `activities`, `gateways`, top-level `sequence_flows`, `outputs`, `retry_policies`, and `failure_handlers`. CWL is a generated projection target, not the authored workflow vocabulary.
 - <!-- top-level:state_machines --> `state_machines`: UI/component state-machine contracts with `context_schema`, states, transitions, triggers, guards, local_effects, local signals, command bindings, and query bindings.
 - <!-- top-level:external_interfaces --> `external_interfaces`: canonical external invocation declarations split into explicit adapter and invocation objects.
