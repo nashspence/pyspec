@@ -114,6 +114,7 @@ ALLOWED_ANY_OF_PATHS_BY_SCHEMA = {
         "$defs.schema.properties.anyOf",
         "$defs.state_machine_query_conditional_local_effect.anyOf",
         "$defs.state_machine_query_binding_local_outcome_effect.anyOf",
+        "$defs.then.anyOf",
     },
     "spec.schema.json": {
         "$defs.child_state_machine_item.anyOf",
@@ -123,6 +124,7 @@ ALLOWED_ANY_OF_PATHS_BY_SCHEMA = {
         "$defs.schema.properties.anyOf",
         "$defs.state_machine_query_conditional_local_effect.anyOf",
         "$defs.state_machine_query_binding_local_outcome_effect.anyOf",
+        "$defs.then.anyOf",
     },
 }
 ALLOWED_ONE_OF_WITHOUT_OBJECT_DISCRIMINATORS = {

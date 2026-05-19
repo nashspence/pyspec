@@ -7,7 +7,7 @@ import pytest
 
 from pyspec_contract.compile import ContractError, compile_source, validate_against_schema
 from pyspec_contract.io import read_yaml
-from pyspec_contract.paths import SOURCE_SPEC_PATH
+from pyspec_contract.paths import COMPILED_SPEC_PATH, SOURCE_SPEC_PATH
 from tests.helpers import EXAMPLE_ROOT
 
 ROOT = EXAMPLE_ROOT
@@ -135,6 +135,20 @@ def test_author_command_entity_changes_must_declare_real_change() -> None:
     author["commands"]["command.project.submit"]["entity_changes"]["entity_lifecycle_transition"]["from"] = "draft-state"
     with pytest.raises(ContractError, match="Schema validation failed"):
         validate_against_schema(author, "author.schema.json")
+
+
+def test_behavior_scenario_then_must_declare_observable_assertion() -> None:
+    author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+    author["behavior_scenarios"]["behavior_scenario.project.approve.success"]["then"] = {}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(author, "author.schema.json")
+
+    contract = copy.deepcopy(read_yaml(ROOT / COMPILED_SPEC_PATH))
+    contract["behavior_scenarios"]["behavior_scenario.project.board.empty"]["then"] = {
+        "requires": {"renderer_surfaces": ["html"]}
+    }
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(contract, "spec.schema.json")
 
 
 def test_author_async_adapters_use_ingress_responses() -> None:

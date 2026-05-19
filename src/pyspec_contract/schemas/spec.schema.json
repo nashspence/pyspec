@@ -3097,6 +3097,64 @@
     },
     "then": {
       "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "authorization"
+          ]
+        },
+        {
+          "required": [
+            "domain_events"
+          ]
+        },
+        {
+          "required": [
+            "entity"
+          ]
+        },
+        {
+          "required": [
+            "outcome"
+          ]
+        },
+        {
+          "required": [
+            "postconditions"
+          ]
+        },
+        {
+          "required": [
+            "response"
+          ]
+        },
+        {
+          "required": [
+            "state_machine"
+          ]
+        },
+        {
+          "required": [
+            "workflow"
+          ]
+        },
+        {
+          "required": [
+            "enables"
+          ]
+        },
+        {
+          "required": [
+            "forbids"
+          ]
+        },
+        {
+          "required": [
+            "invoked"
+          ]
+        }
+      ],
+      "minProperties": 1,
       "properties": {
         "authorization": {
           "$ref": "#/$defs/authorization_assertion"
