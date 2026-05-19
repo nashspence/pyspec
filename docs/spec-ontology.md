@@ -22,11 +22,11 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - <!-- top-level:state_machines --> `state_machines`: UI/component state-machine contracts with `context_schema`, states, transitions, triggers, guards, local_effects, local signals, command bindings, and query bindings.
 - <!-- top-level:external_interfaces --> `external_interfaces`: canonical external invocation declarations split into explicit adapter and invocation objects.
 - <!-- top-level:access_policies --> `access_policies`: canonical access-control policies with `subject`, `resource`, `action`, `environment`, rules, `rule_effect`, and `combining_algorithm`.
-- <!-- top-level:fixtures --> `fixtures`: named concrete seed data namespaces used by behavior scenarios, preconditions, assertions, content examples, and render_examples.
+- <!-- top-level:fixtures --> `fixtures`: named concrete seed data namespaces used by behavior scenarios, preconditions, assertions, content examples, and `render_example` objects.
 - <!-- top-level:behavior_scenarios --> `behavior_scenarios`: formal BDD behavior scenarios with system_under_test_ref, given, when, and then contracts.
 - <!-- top-level:media_assets --> `media_assets`: canonical media assets with media kind, asset role, placeholders, and resolver-backed resolution when present.
-- <!-- top-level:text_resources --> `text_resources`: text resources used by state-machine slots and content-resolver projections.
-- <!-- top-level:content_examples --> `content_examples`: named content-resolver examples for dynamic text and media asset content.
+- <!-- top-level:text_resources --> `text_resources`: text resources used by state-machine slots and content_resolver projections.
+- <!-- top-level:content_examples --> `content_examples`: named content_resolver examples for dynamic text and media asset content.
 - <!-- top-level:viewport_profiles --> `viewport_profiles`: canonical global HTML and Textual viewport profiles for audit/golden-image rendering.
 - <!-- top-level:reference_index --> `reference_index`: canonical compiled-only index of generated references used by projections and tests.
 - <!-- top-level:project --> `project`: the project slug for the specification workspace.
@@ -36,14 +36,14 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 ## ID Namespaces
 
 - `media_asset_ref`: `media_asset.<domain>...`; media asset declarations, generated media asset slots, content examples, and audit evidence.
-- `content_example_ref`: `content_example.<domain>...`; content resolver examples.
+- `content_example_ref`: `content_example.<domain>...`; content_resolver examples.
 - `schema_ref`: `schema.<domain>...`; reusable typed payload schemas referenced through JSON Schema `$ref`.
 - `data_refresh_signal_name`: local state-machine data-refresh signal name; authored sources do not use global-looking `data_refresh_signal.*` references for local refresh signals.
 - `external_interface_ref`: `external_interface.<domain>...`; external-interface declarations, delegated external-interface invocations, and behavior-scenario `open_external_interface` or `call_external_interface` stimuli.
 - `domain_event_ref`: `domain_event.<domain>...`; durable domain-event declarations, command emissions, workflow inputs, and behavior-scenario domain-event assertions.
 - `precondition_ref`: `precondition.<domain>...`; named setup predicates referenced through `precondition_use.ref`.
 - `assertion_ref`: `assertion.<domain>...`; named expected predicates referenced through `assertion_use.ref`.
-- `fixture_ref`: `fixture.<domain>...`; seed data fixtures used by behavior scenarios, content examples, preconditions, assertions, and render_examples.
+- `fixture_ref`: `fixture.<domain>...`; seed data fixtures used by behavior scenarios, content examples, preconditions, assertions, and `render_example` objects.
 - `feature_tag`: unprefixed dotted feature grouping label used by behavior scenarios and generated feature files; it is not a typed reference.
 - `instance_id`: local child state-machine instance id within a composed `state_machine_state`.
 - `local_signal_name`: local state-machine signal name; authored sources do not use global-looking `local_signal.*` references for local signals.
@@ -56,11 +56,11 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `access_policy_ref`: `access_policy.<domain>...`; access-control policy declarations, `command.authorization.policy`, external-interface `access_policy` fields, generated access-policy projections, and authorization behavior-scenario assertions.
 - `viewport_profile_ref`: `viewport_profile.<domain>...`; named HTML/Textual viewport profiles.
 - `local_signal_sync_rule_id`: local child-machine `local_signal` synchronization rule id within one composed `state_machine_state`.
-- `state_machine_ref`: `state_machine.<domain>...`; state-machine declarations, `child_state_machines`, state_machine_external_interface_invocation mappings, and behavior-scenario state-machine assertions.
+- `state_machine_ref`: `state_machine.<domain>...`; state-machine declarations, `child_state_machines`, external_interface_state_machine_invocation mappings, and behavior-scenario state-machine assertions.
 - `state_machine_state_id`: local state-machine state id within one `state_machine`.
 - `render_example_id`: local render_example id within one `state_machine_state`.
 - `behavior_scenario_ref`: `behavior_scenario.<domain>...`; formal behavior-scenario declarations and generated feature tags.
-- `text_resource_ref`: `text_resource.<domain>...`; text resource declarations, generated text slots, content examples, and content resolver signatures.
+- `text_resource_ref`: `text_resource.<domain>...`; text resource declarations, generated text slots, content examples, and content_resolver signatures.
 - `container_id`: local Textual layout container id within one `state_machine_state`.
 - `viewport_id`: local viewport id within `html_viewports` or `textual_viewports`.
 - `workflow_ref`: `workflow.<domain>...`; workflow declarations, workflow external-interface invocations, and generated workflow references.
@@ -81,14 +81,14 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `adapter_input_shape`: HTTP API input may use `path_params`, `query_params`, and `body`; HTML route input may use `path_params` and `query_params`; CLI input uses `args`; worker input uses `payload`; webhook input may use `path_params`, `query_params`, and `payload`; scheduled input has no external input sections.
 - `external_interface_invokes`: exactly one invocation object: `command`, `query`, `state_machine`, `workflow`, or `external_interface`.
 - `external_interface_invocation_bindings`: top-level `input_mapping.bindings` binds adapter input into command input, query input, state-machine context, or workflow input and must exactly cover the invoked fields.
-- `state_machine_external_interface_invocation`: `invokes.state_machine` must declare `renderer: html` or `renderer: textual`. HTML route external interfaces can invoke only `html`; CLI external interfaces can launch `html` or `textual`; the invoked state machine must declare the selected renderer in at least one `state_machine_state`.
-- `workflow_external_interface_invocation`: `invokes.workflow.ref` names the workflow and `input_mapping.bindings` binds adapter input into workflow input fields.
+- `external_interface_state_machine_invocation`: `invokes.state_machine` must declare `renderer: html` or `renderer: textual`. HTML route external interfaces can invoke only `html`; CLI external interfaces can launch `html` or `textual`; the invoked state machine must declare the selected renderer in at least one `state_machine_state`.
+- `external_interface_workflow_invocation`: `invokes.workflow.ref` names the workflow and `input_mapping.bindings` binds adapter input into workflow input fields.
 - `external_interface_delegation`: an external interface whose `invokes.external_interface.ref` points at another external interface. `input_mapping.delegated_input` binds adapter input into the delegated external-interface `adapter_input_shape`. Delegation is general and is not CLI-to-HTTP-specific.
 - `delegating_external_interface`: the outer external interface whose adapter exposes a facade and binds its input into the delegated external-interface input shape.
 - `delegated_external_interface`: the inner external interface that receives delegated invocation. Its `access_policy` and the delegated command/query authorization outcomes remain visible to the delegating external interface.
 - `invoked_outcome_response`: synchronous adapter response keyed by command, query, workflow, state-machine, or delegated external-interface outcome names. HTTP API `responses` and delegated CLI `response_handlers` are invoked-outcome response mappings.
 - `adapter_ingress_response`: asynchronous adapter acknowledgement or disposition keyed by adapter-level outcomes, such as accepted, malformed, retry, reject, or dead-letter handling. Worker, webhook, and scheduled adapters use `ingress_responses` when receipt/disposition is distinct from invoked workflow execution outcomes.
-- `response_handler`: adapter-specific projection of an invoked or delegated response outcome.
+- `response_handler`: generic adapter projection concept; currently only `cli_response_handler` is represented as a concrete schema component.
 - `cli_response_handler`: maps a named response outcome to stdout, stderr, an exit code, and optionally a retry policy. It does not restate HTTP status classification when the delegated external interface is an HTTP API.
 - `idempotent`: repeated identical command or external-interface execution has the same intended product-state effect as a single execution. Retry policies may rely on this marker. The default is false. Queries are idempotent by definition: repeated query execution does not change product state; it does not imply result determinism. This is idempotency for product behavior, not HTTP safe-method vocabulary.
 - `retryable`: explicit command or external-interface marker permitting automatic retry of delegated external-interface, command, `entity_lifecycle_transition`, or workflow execution. Retryable commands must currently also be idempotent; future idempotency-key or proven-non-execution guards may provide other retry proofs. Transport retry, ingress retry, workflow retry, and command retry are separate scopes.
@@ -100,8 +100,9 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `selected.condition`: child state-machine selected-state guard. It uses state-machine condition vocabulary and does not reuse BDD `when`.
 - `local_signal_sync_rule.trigger`: child state-machine `local_signal` source that starts a local-signal synchronization rule. It does not reuse BDD `when`.
 - `viewport_profile`: global audit/golden-image viewport map. Renderable state machines require at least one viewport profile, and profiles must include viewport sets for each declared renderer surface (`html_viewports` for HTML, `textual_viewports` for Textual).
-- `render_example`: state-machine-state-local visual evidence input. It supplies seed fixtures, optional context, optional precondition references, and, for composed `state_machine_state` values, an exact child instance state vector; it never names viewport profiles directly.
-- `content_resolver`: a final resolver declaration implemented by a `text_resource` or `media_asset`; `resolver_ref` is a union reference to exactly one `text_resource_ref` or `media_asset_ref` and must equal the containing resource id. Content resolvers are not independent top-level resources. Final content resolvers require at least one matching `content_example`, and example args must exactly match the resource args.
+- `render_example`: state_machine_state-local visual evidence input. It supplies seed fixtures, optional context, optional precondition references, and, for composed `state_machine_state` values, an exact child instance state vector; it never names viewport profiles directly.
+- `render_examples`: local map of `render_example` objects within one `state_machine_state`; not a top-level resource kind.
+- `content_resolver`: a final resolver declaration implemented by a `text_resource` or `media_asset`; `resolver_ref` is a union reference to exactly one `text_resource_ref` or `media_asset_ref` and must equal the containing resource id. `content_resolvers` are not independent top-level resources. Final content_resolvers require at least one matching `content_example`, and example args must exactly match the resource args.
 - `rationale`: bounded plain text used on authored resources and on intentionally unobservable local effects. Missing top-level resource rationale is filled by a deterministic compiler default.
 - `command_binding`: local state use of a global command, normally user-triggered, including `input_mapping` and local_effects. A renderer control binds to this local invocation, not directly to `command_ref`.
 - `query_binding`: local state-machine or state-machine-state use of a query for data loading or refresh, including `input_mapping`, load policy, context updates, result binding, and local_effects. State-machine-level queries load with `on_start`/`on_mount`; state-machine-state queries load with `on_enter`.
@@ -279,7 +280,7 @@ The visual audit includes state-machine and composition diagrams, external-inter
 
 ## Binding Expression Namespaces
 
-- `$fixture.<path>` reads merged seed fixture data in behavior scenarios, preconditions, assertions, content examples, and render_examples.
+- `$fixture.<path>` reads merged seed fixture data in behavior scenarios, preconditions, assertions, content examples, and `render_example` objects.
 - `$state_machine.<field>` reads parent state-machine context in child state-machine context bindings and composition guards.
 - `$trigger.payload.<field>` reads the current `state_machine_trigger` payload in transition local_effects and sync sends.
 - `$state_context.<field>` reads current state-machine context in transition local_effects, command/query binding input mappings, and local_outcome_effect signal payload mappings.
