@@ -29,7 +29,7 @@ behavior_scenarios:
             value: project_submitted_1
         ref: domain_event.project.approved
   behavior_scenario.project.approve.access_denied:
-    archetype: authorization_denial
+    archetype: authorization_denied_assertion
     feature_tag: project.approve
     given:
       preconditions:

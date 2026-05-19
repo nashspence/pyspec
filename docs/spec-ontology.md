@@ -4,9 +4,9 @@ This glossary is the vocabulary contract for the authored-source, layer-pruned a
 
 ## Terminology Boundaries
 
-- `domain_event`: a durable product-domain occurrence that happened. Domain events are emitted by successful command or entity_lifecycle_transition outcomes and may serve as workflow inputs.
+- `domain_event`: a durable product-domain occurrence that happened. `domain_events` are emitted by successful command or entity_lifecycle_transition outcomes and may serve as workflow inputs.
 - `integration_message`: a wire-level AsyncAPI message in `integration_messages.asyncapi.yaml`. It carries a domain-event payload over a channel, but it is not state-machine vocabulary.
-- `local_signal`: a state-machine-local trigger or emitted signal. Local signals may be accepted by transitions, emitted by transitions, and synced between mounted child state-machine instances.
+- `local_signal`: a state-machine-local trigger or emitted signal. `local_signals` may be accepted by transitions, emitted by transitions, and synced between mounted child state-machine instances.
 - `data_refresh_signal`: a state-machine-local data refresh or invalidation signal, commonly consumed by `query_binding.load.refresh_on`.
 
 Bare `event` is avoided for durable domain occurrences because CloudEvents and UML/state-machine terminology also use that word. Bare `message` is avoided in state machines because AsyncAPI uses message for transport exchange.
@@ -53,7 +53,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `command_binding_id`: local state command binding name; authored sources do not use global-looking `command_binding.*` references for local invocation keys.
 - `query_binding_id`: local state-machine or state query binding name; authored sources do not use global-looking `query_binding.*` references for local invocation keys.
 - `region_id`: local HTML layout region id within one state.
-- `access_policy_ref`: `access_policy.<domain>...`; access-control policy declarations, `command.authorization.policy`, external-interface `access_policy` fields, generated access-policy projections, and authorization test assertions.
+- `access_policy_ref`: `access_policy.<domain>...`; access-control policy declarations, `command.authorization.policy`, external-interface `access_policy` fields, generated access-policy projections, and authorization behavior-scenario assertions.
 - `viewport_profile_ref`: `viewport_profile.<domain>...`; named HTML/Textual viewport profiles.
 - `rule_id`: local state-machine signal-sync rule id within one composed state.
 - `state_machine_ref`: `state_machine.<domain>...`; state-machine declarations, `child_state_machines`, state-machine external-interface invocations, and behavior-scenario state-machine assertions.
@@ -69,7 +69,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `system_under_test_ref`: exactly one typed reference to the resource under test: `external_interface`, `domain_event`, `command`, `query`, `state_machine`, or `workflow`.
 - `given`: setup contract split into `seed_fixtures` and `preconditions`.
 - `when`: BDD behavior-scenario stimulus only: `open_external_interface`, `call_external_interface`, `invoke_command`, `invoke_query`, or `emit_domain_event`.
-- `then`: assertions for `outcome`, entity existence, emitted/not-emitted domain events, workflow execution, authorization decisions, responses, command/query availability, invocation, and access-denial assertions, state-machine state, and `postconditions`. Compiled state-machine assertions may add `renderer_surface`, `state_machine_composition`, and top-level `requires`.
+- `then`: assertions for `outcome`, entity existence, emitted/not-emitted domain events, workflow execution, `authorization_decision`, responses, command/query availability, invocation, and access-denial assertions, state-machine state, and `postconditions`. Compiled state-machine assertions may add `renderer_surface`, `state_machine_composition`, and top-level `requires`.
 - `then.requires`: compiled-only derived projection dependencies for a state-machine assertion, split into `renderer_surfaces`, `text_resources`, `media_assets`, `query_bindings`, and `command_bindings`.
 - `external_interface_adapter`: exactly one adapter object: `http_api`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`.
 - `adapter input shape`: HTTP API input may use `path_params`, `query_params`, and `body`; HTML route input may use `path_params` and `query_params`; CLI input uses `args`; worker input uses `payload`; webhook input may use `path_params`, `query_params`, and `payload`; scheduled input has no external input sections.
@@ -84,9 +84,9 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `adapter ingress response`: asynchronous adapter acknowledgement or disposition keyed by adapter-level outcomes, such as accepted, malformed, retry, reject, or dead-letter handling. Worker, webhook, and scheduled adapters use `ingress_responses` when receipt/disposition is distinct from invoked workflow execution outcomes.
 - `response handler`: adapter-specific projection of an invoked or delegated response outcome.
 - `CLI response handler`: maps a named response outcome to stdout, stderr, an exit code, and optionally a retry policy. It does not restate HTTP status classification when the delegated external interface is an HTTP API.
-- `idempotent`: repeated identical command or external-interface execution has the same intended product-state effect as a single execution. Retry policies may rely on this marker. The default is false. Queries are idempotent by definition. This is idempotency for product behavior, not HTTP safe-method vocabulary.
+- `idempotent`: repeated identical command or external-interface execution has the same intended product-state effect as a single execution. Retry policies may rely on this marker. The default is false. Queries are idempotent by definition: repeated query execution does not change product state; it does not imply result determinism. This is idempotency for product behavior, not HTTP safe-method vocabulary.
 - `retryable`: explicit command or external-interface marker permitting automatic retry of delegated external-interface, command, `entity_lifecycle_transition`, or workflow execution. Retryable commands must currently also be idempotent; future idempotency-key or proven-non-execution guards may provide other retry proofs. Transport retry, ingress retry, workflow retry, and command retry are separate scopes.
-- `workflow_activity`: a BPMN-like command activity that invokes a command with an `input_mapping`; workflow activities do not invoke queries, external interfaces, workers, or subworkflows.
+- `workflow_activity`: a BPMN-like unit of workflow work. The current authored schema supports command-invoking workflow activities with `command` and `input_mapping`; future activity kinds may cover subworkflows, workers, or external-interface calls without changing sequence-flow vocabulary.
 - `workflow_gateway`: a BPMN-like workflow branching or joining node. Gateways are explicit workflow elements even when a simple workflow has none.
 - `workflow_sequence_flow`: a top-level BPMN-like workflow control-flow edge from `source_ref` (`activity` or `gateway`) to `target_ref` (`activity`, `gateway`, or terminal workflow outcome). Activity-sourced flows use `source_result` to map command outcomes; gateway-sourced flows may use `condition` expressions and may not use `source_result`.
 - `state-machine context schema`: local machine context declared as JSON Schema object `properties` and `required`. Nullability uses JSON Schema type arrays such as `type: [string, null]`; local_effects may set a context field to null only when that field schema allows null.
@@ -95,30 +95,29 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `signal_sync_rule.trigger`: child state-machine local-signal source that starts a signal synchronization rule. It does not reuse BDD `when`.
 - `viewport_profile`: global audit/golden-image viewport map. Renderable state machines require at least one viewport profile, and profiles must include viewport sets for each declared renderer surface (`html_viewports` for HTML, `textual_viewports` for Textual).
 - `render example`: state-local visual evidence input. It supplies seed fixtures, optional context, optional precondition references, and, for composed states, an exact child instance state vector; it never names viewport profiles directly.
-- `content_resolver`: a final resolver declaration where `text_resource.resolver_ref` or `media_asset.resolver_ref` equals the resource id. Final content resolvers require at least one matching `content_example`, and example args must exactly match the resource args.
+- `content_resolver`: a final resolver declaration implemented by a `text_resource` or `media_asset`; `resolver_ref` is a union reference to exactly one `text_resource_ref` or `media_asset_ref` and must equal the containing resource id. Content resolvers are not independent top-level resources. Final content resolvers require at least one matching `content_example`, and example args must exactly match the resource args.
 - `rationale`: bounded plain text used on authored resources and on intentionally unobservable local effects. Missing top-level resource rationale is filled by a deterministic compiler default.
-- `Command binding`: local state use of a global command, normally user-triggered, including `input_mapping` and local_effects. A renderer control binds to this local invocation, not directly to `command_ref`.
-- `Query binding`: local state-machine or state use of a query for data loading or refresh, including `input_mapping`, load policy, context updates, result binding, and local_effects. State-machine-level queries load with `on_start`/`on_mount`; state-level queries load with `on_enter`.
-- `Query binding local_effect`: each query `local_outcome_effect` must update context, bind/cache a result, raise a local signal, or explicitly declare a scoped `no_local_effect`. `result_binding.data_key` names the state-machine/state result data populated from a binding value.
-- `Query refresh signal`: local data-refresh signal raised by a mutation, query outcome, or other invalidation `local_effect`, such as `project_changed`, and consumed by `query_binding.load.refresh_on`. Loaded/missing/error data-refresh signals should come from query outcomes after data has actually been bound or classified.
+- `command_binding`: local state use of a global command, normally user-triggered, including `input_mapping` and local_effects. A renderer control binds to this local invocation, not directly to `command_ref`.
+- `query_binding`: local state-machine or state use of a query for data loading or refresh, including `input_mapping`, load policy, context updates, result binding, and local_effects. State-machine-level queries load with `on_start`/`on_mount`; state-level queries load with `on_enter`.
+- `query_binding_local_effect`: each query `local_outcome_effect` must update context, bind/cache a result, raise a local signal, or explicitly declare a scoped `no_local_effect`. `result_binding.data_key` names the state-machine/state result data populated from a binding value.
+- `query_refresh_signal`: local data-refresh signal raised by a mutation, query outcome, or other invalidation `local_effect`, such as `project_changed`, and consumed by `query_binding.load.refresh_on`. Loaded/missing/error data-refresh signals should come from query outcomes after data has actually been bound or classified.
 - `Empty/non-empty query handling`: array-valued query outcomes split the local_outcome_effect with `conditional_local_effects` using `result_condition: empty` and `result_condition: non_empty`. Both branches must be declared so empty collection states are reachable through authored handling rather than compiler length guesses.
 - `Machine-scoped query ownership`: state-machine-level query bindings declare `result_scope: local`, `shared`, or `prefetch`. Machine-scoped result bindings that do not raise a signal must use shared/prefetch ownership with rationale, especially when a child machine also owns visible loading.
 - `Field-slot source resolution`: every field slot resolves to exactly one context field or query result binding. A bound entity_type or array item can feed field slots when the slot name exists on the result type; ambiguous or missing sources fail semantic validation.
 - `local_outcome_effect`: mapping from a command/query-binding outcome to context updates, result binding, a local signal raise, or explicit `no_local_effect` handling.
-- `No local effect`: explicit declaration that an outcome is covered but intentionally has no local state-machine effect. It is not omission and does not suppress durable domain events. Reasons are scope-sensitive: response mapping handling needs a real adapter response mapping or renderer surface, query refresh needs explicit result/context refresh, result-bound-without-signal needs result binding or context/cache update, and failure outcomes must use proven response mapping handling or `intentionally_unobservable` with rationale.
+- `no_local_effect`: explicit declaration that an outcome is covered but intentionally has no local state-machine effect. It is not omission and does not suppress durable domain events. Reasons are scope-sensitive: response mapping handling needs a real adapter response mapping or renderer surface, query refresh needs explicit result/context refresh, result-bound-without-signal needs result binding or context/cache update, and failure outcomes must use proven response mapping handling or `intentionally_unobservable` with rationale.
 - `Authored value`: explicit literal-or-fixture-reference value used in authored behavior-scenario, precondition, assertion, content-example, and render-example value maps. Use `{value: ...}` for JSON literals, including literal strings beginning with `$`, and `{from: $fixture...}` for fixture references. Raw `$...` strings are not interpreted as references.
 - `Binding root`: the first segment of a binding expression. Local state-machine bindings use `$state_context`, `$principal`, `$trigger.payload`, and `$state_machine`; command domain-event payload mappings use `$command_input` and `$command_outcome`; external-interface response mappings use `$invocation_outcome`; adapter/delegation bindings use `$adapter_input` and `$adapter_response`; workflow activity bindings use `$workflow_input` and `$activity_outcome`. `$message` is reserved for AsyncAPI/wire-level messages, not local state-machine signaling.
 - `state_machine_trigger`: the current state-machine-local trigger, sourced from either a `local_signal` or `data_refresh_signal`.
 - `Actor/user binding source`: local command bindings should bind actor-like input fields such as `actor_id`, `approved_by`, or `reviewer_id` from `$principal.id` or an explicit context source. Literal actor/user ids are linted because they usually hide fixture-only assumptions in authored UI behavior.
-- `Local signal raise`: creation of a state-machine-local `local_signal` or `data_refresh_signal`.
-- `Data refresh signal`: local state-machine signal commonly used for data refresh, invalidation, loaded/missing states, or render updates. Data-refresh signals are not sent between child state-machine instances.
-- `Local signal`: local state-machine signal that may also be sent between child state-machine instances where sync rules support local-signal sends.
-- `Domain event`: durable domain occurrence emitted by a command outcome, distinct from local state-machine signals and AsyncAPI integration messages.
-- `Integration message`: AsyncAPI transport-level message projected from a domain event into a channel.
+- `local_signal_raise`: creation of a state-machine-local `local_signal` or `data_refresh_signal`.
+- `data_refresh_signal`: local state-machine signal commonly used for data refresh, invalidation, loaded/missing states, or render updates. Data-refresh signals are not sent between child state-machine instances.
+- `local_signal`: local state-machine signal that may also be sent between child state-machine instances where sync rules support local-signal sends.
+- `domain_event`: durable domain occurrence emitted by a command outcome, distinct from local state-machine signals and AsyncAPI integration messages.
+- `integration_message`: AsyncAPI transport-level message projected from a domain event into a channel.
 - `emits_domain_events`: command-level durable domain-event emission mapping keyed by successful command outcome. It is not used for local state-machine transition local_effects.
 - `command_binding.local_effects.raise`: local state-machine `local_signal` or `data_refresh_signal` raise after a user command binding.
 - `query_binding.local_effects.raise`: local state-machine `local_signal` or `data_refresh_signal` raise after a query load or refresh outcome.
-- `no_local_effect`: explicit declaration that a command-binding or query-binding outcome has no local state-machine effect.
 - `local_signals`: local UI/component/state-machine signal contracts split into accepted `local_signals`/`data_refresh_signals` maps and emitted `local_signals` maps with JSON Schema `payload_schema` declarations.
 - `renderer_contracts`: state renderer declarations keyed by concrete renderer surface. `renderers.html` and `renderers.textual` each own renderer-local `layout`, `presentation`, and `style`.
 - `renderer placement validation`: HTML slots and child machines must reference declared HTML `region_id`s; Textual widgets and child machines must reference declared Textual `container_id`s. Placement ids are layout ids, not field names.
@@ -127,19 +126,19 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `access_policy`: direct `access_policy_ref` fields identify the access policy applied to an external interface or authorization assertion. Commands use `authorization.policy` plus explicit `authentication_required_as` and `access_denied_as` outcome mappings.
 - `command_authorization`: command-local access-policy mapping with `policy`, `authentication_required_as`, and `access_denied_as`. The mapped names must be normal command outcomes with `kind: failure`.
 - `access policy`: reusable rule set that determines whether `subject` may attempt `action` on `resource` under `environment`. Policies with identical `subject`, `resource`, `action`, `environment`, combining behavior, and `rules` should be one `access_policy`.
-- `rule_effect`: access-policy rule result vocabulary, currently `permit` or `deny`, carried by each rule's `effect`.
-- `combining_algorithm`: access-policy rule-combining behavior. `all_permit_rules_must_match` means all environment conditions and all permit-rule conditions must match for the evaluated authorization decision to be `permit`; any required condition miss evaluates to `deny`, and evaluation errors produce `indeterminate`.
-- `authorization decision`: evaluated authorization result vocabulary such as `permit`, `deny`, `not_applicable`, or `indeterminate`. Decision vocabulary is reserved for assertions and runtime evaluation, not authored policy-combining metadata.
+- `rule_effect`: access-policy rule result vocabulary carried by each rule's `effect`; currently only `permit` is active while `combining_algorithm` is `all_permit_rules_must_match`. Deny rules are not part of the active authored ontology yet.
+- `combining_algorithm`: access-policy rule-combining behavior. `all_permit_rules_must_match` means all environment conditions and all permit-rule conditions must match for the evaluated `authorization_decision` to be `permit`; any required condition miss evaluates to `deny`, and evaluation errors produce `indeterminate`.
+- `authorization_decision`: evaluated authorization result vocabulary: `permit`, `deny`, or `indeterminate`. Decision vocabulary is reserved for assertions and runtime evaluation, not authored policy-combining metadata.
 - `authorization failure outcome`: named failure outcome produced before command execution when authorization fails. These outcomes live in `command.outcomes`; they are not a separate `errors` or `authorization_outcomes` collection.
-- `authorization_denial`: behavior-scenario archetype for asserting evaluated authorization denial through `then.authorization.denied`. It is not an access-policy field, rule effect, authorization decision value, command outcome, or lifecycle/domain failure assertion.
+- `authorization_denied_assertion`: behavior-scenario archetype for asserting that the evaluated `authorization_decision` is `deny` through `then.authorization.denied`. It is distinct from the command failure outcome `access_denied`.
 - `authentication_required`: authorization failure where no acceptable subject identity is available. HTTP examples conventionally map this outcome to `401`; CLI examples map it to stderr plus a nonzero exit code.
 - `access_denied`: authorization failure where a subject identity exists but does not satisfy the access policy. HTTP examples conventionally map this outcome to `403`; CLI examples map it to stderr plus a nonzero exit code.
 - `domain failure outcome`: command outcome produced by command execution or domain validation, such as `validation_failed` or `not_found`.
 - `lifecycle_transition_applicability`: entity-lifecycle source-state check derived from `entity_type.entity_lifecycle.lifecycle_transitions[*]`, not authorization.
-- `lifecycle_transition_not_allowed`: lifecycle_transition_applicability/domain failure outcome for lifecycle source-state mismatch. It is not an authorization failure and should be asserted with `command_outcome` or `external_interface_response`, not the `authorization_denial` behavior-scenario archetype.
+- `lifecycle_transition_not_allowed`: lifecycle_transition_applicability/domain failure outcome for lifecycle source-state mismatch. It is not an authorization failure and should be asserted with `command_outcome` or `external_interface_response`, not the `authorization_denied_assertion` behavior-scenario archetype.
 - `rule.entity_state_condition`: explicit author-authored access-control rule when an entity lifecycle state is truly part of who may attempt a command. The compiler does not generate this rule from entity_lifecycle_transition `from` states; lifecycle source-state mismatch remains lifecycle_transition_applicability and maps to `lifecycle_transition_not_allowed`.
 
-## Command Binding Example
+## command_binding Example
 
 ```yaml
 states:
@@ -166,7 +165,7 @@ states:
               rationale: The response mapping reports authorization failure.
 ```
 
-## Query Binding Example
+## query_binding Example
 
 ```yaml
 query_bindings:
@@ -246,10 +245,10 @@ Layers are compile/validate guardrails and are not written into `spec/generated/
 
 | Context | Valid roots |
 | --- | --- |
-| Command binding `input_mapping` | `$state_context`, `$principal` |
-| Command binding local_effects | `$command_outcome`, `$command_binding`, `$state_context` |
-| Query binding `input_mapping` | `$state_context`, `$principal` |
-| Query binding local_effects | `$query_outcome`, `$query_binding`, `$state_context` |
+| `command_binding.input_mapping` | `$state_context`, `$principal` |
+| `command_binding.local_effects` | `$command_outcome`, `$command_binding`, `$state_context` |
+| `query_binding.input_mapping` | `$state_context`, `$principal` |
+| `query_binding.local_effects` | `$query_outcome`, `$query_binding`, `$state_context` |
 | State-machine transition local_effects | `$trigger.payload`, `$state_context` |
 | Child state-machine `context_bindings` and `selected.condition` guards | `$state_machine` for parent state-machine context |
 | Command domain-event-emission payload mappings | `$command_input`, `$command_outcome` |
@@ -330,10 +329,10 @@ Binding expressions appear inside binding objects. Authored value maps use `{fro
 - `spec/generated/audit_evidence/commands/{command}/flow.svg`: chronological command flows showing input, authorization, touched resources, outcomes, and emitted domain events.
 - `spec/generated/audit_evidence/queries/{query}/flow.svg`: chronological query flows showing input, authorization, results, and outcomes.
 - `spec/generated/audit_evidence/state_machines/{state_machine}/state_machine.svg`: state-machine diagrams.
-- `spec/generated/audit_evidence/state_machines/{state_machine}/states/{state}/composition.svg`: composed state-machine state diagrams.
-- `spec/generated/audit_evidence/state_machines/{state_machine}/states/{state}/{text_resources.yaml,fixtures.yaml,media_assets/*}`: state-scoped audit inputs.
-- `spec/generated/audit_evidence/state_machines/{state_machine}/states/{state}/renders/*`: HTML/Textual state render source and captures.
-- `spec/generated/audit_evidence/state_machines/{state_machine}/states/{state}/render_examples/{render_example}/**`: render-example scoped inputs and render captures.
+- `spec/generated/audit_evidence/state_machines/{state_machine}/states/{state_machine_state}/composition.svg`: composed state-machine state diagrams.
+- `spec/generated/audit_evidence/state_machines/{state_machine}/states/{state_machine_state}/{text_resources.yaml,fixtures.yaml,media_assets/*}`: state-scoped audit inputs.
+- `spec/generated/audit_evidence/state_machines/{state_machine}/states/{state_machine_state}/renders/*`: HTML/Textual state render source and captures.
+- `spec/generated/audit_evidence/state_machines/{state_machine}/states/{state_machine_state}/render_examples/{render_example}/**`: render-example scoped inputs and render captures.
 
 ## Schema Definition Inventory
 
@@ -370,7 +369,6 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:context_condition --> `$defs/context_condition`: state-machine contract component.
 - <!-- schema-def:content_args --> `$defs/content_args`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:content_example_ref --> `$defs/content_example_ref`: typed reference definition for its namespace.
-- <!-- schema-def:content_resolver_ref --> `$defs/content_resolver_ref`: typed reference definition for its namespace.
 - <!-- schema-def:context_bindings --> `$defs/context_bindings`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:context_set_local_effect --> `$defs/context_set_local_effect`: state-machine contract component.
 - <!-- schema-def:external_interface_command_invocation --> `$defs/external_interface_command_invocation`: external-interface adapter, invocation, input, or response contract component.
@@ -486,11 +484,14 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:workflow_sequence_flows --> `$defs/workflow_sequence_flows`: BPMN-like workflow input, activity, gateway, sequence-flow, retry, output, or binding contract component.
 - <!-- schema-def:workflow_outputs --> `$defs/workflow_outputs`: BPMN-like workflow input, activity, gateway, sequence-flow, retry, output, or binding contract component.
 - <!-- schema-def:workflow_ref --> `$defs/workflow_ref`: typed reference definition for its namespace.
+- <!-- schema-def:workflow_activity_id --> `$defs/workflow_activity_id`: local workflow activity id within one workflow.
+- <!-- schema-def:workflow_gateway_id --> `$defs/workflow_gateway_id`: local workflow gateway id within one workflow.
+- <!-- schema-def:workflow_sequence_flow_id --> `$defs/workflow_sequence_flow_id`: local workflow sequence-flow id within one workflow.
 - <!-- schema-def:workflow_retry_policy --> `$defs/workflow_retry_policy`: BPMN-like workflow input, activity, gateway, sequence-flow, retry, output, or binding contract component.
 - <!-- schema-def:workflow_sequence_flow --> `$defs/workflow_sequence_flow`: BPMN-like workflow input, activity, gateway, sequence-flow, retry, output, or binding contract component.
-- <!-- schema-def:workflow_sequence_flow_source_ref --> `$defs/workflow_sequence_flow_source_ref`: workflow sequence-flow source reference to an activity or gateway.
-- <!-- schema-def:workflow_sequence_flow_target_ref --> `$defs/workflow_sequence_flow_target_ref`: workflow sequence-flow target reference to an activity, gateway, or terminal workflow outcome.
-- <!-- schema-def:workflow_activity --> `$defs/workflow_activity`: BPMN-like workflow activity contract component.
+- <!-- schema-def:workflow_sequence_flow_source_ref --> `$defs/workflow_sequence_flow_source_ref`: workflow sequence-flow source reference to a local `workflow_activity_id` or `workflow_gateway_id`.
+- <!-- schema-def:workflow_sequence_flow_target_ref --> `$defs/workflow_sequence_flow_target_ref`: workflow sequence-flow target reference to a local `workflow_activity_id`, local `workflow_gateway_id`, or terminal workflow outcome.
+- <!-- schema-def:workflow_activity --> `$defs/workflow_activity`: BPMN-like workflow activity contract component; currently command-invoking.
 - <!-- schema-def:workflow_gateway --> `$defs/workflow_gateway`: BPMN-like workflow gateway contract component.
 - <!-- schema-def:workflow_input_source --> `$defs/workflow_input_source`: BPMN-like workflow input, activity, gateway, sequence-flow, retry, output, or binding contract component.
 - <!-- schema-def:schema_ref --> `$defs/schema_ref`: typed reference definition for its namespace.

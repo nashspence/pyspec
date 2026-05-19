@@ -1137,7 +1137,7 @@ def _validate_type_references(contract: dict[str, Any]) -> None:
         for field_name, field in _state_machine_context(state_machine).items():
             _validate_type_reference(contract, f"State machine {state_machine_id} context {field_name}", field)
     for event_id, event in contract.get("domain_events", {}).items():
-        _validate_type_reference(contract, f"Domain event {event_id} payload_schema", event["payload_schema"])
+        _validate_type_reference(contract, f"domain_event {event_id} payload_schema", event["payload_schema"])
 
 
 def _validate_type_reference(contract: dict[str, Any], label: str, expr: Any) -> None:
@@ -1205,7 +1205,7 @@ def _validate_commands(contract: dict[str, Any]) -> None:
     for event_id, event in contract["domain_events"].items():
         for cap_id in event["emitted_by"]:
             if cap_id not in commands:
-                raise ContractError(f"Domain event {event_id} emitted by unknown command {cap_id}")
+                raise ContractError(f"domain_event {event_id} emitted by unknown command {cap_id}")
 
 
 def _validate_command_relationships(cid: str, cap: dict[str, Any], entity_types: dict[str, Any]) -> None:
@@ -4501,11 +4501,11 @@ def _validate_behavior_scenario_then(contract: dict[str, Any], behavior_scenario
         when_kind, _ = _one(behavior_scenario["when"], f"behavior scenario {behavior_scenario_id} when")
         if when_kind != "call_external_interface":
             raise ContractError(f"Behavior scenario {behavior_scenario_id} response assertions require call_external_interface")
-    _validate_authorization_denial_archetype_outcome(contract, behavior_scenario_id, behavior_scenario)
+    _validate_authorization_denied_assertion_archetype_outcome(contract, behavior_scenario_id, behavior_scenario)
 
 
-def _validate_authorization_denial_archetype_outcome(contract: dict[str, Any], behavior_scenario_id: str, behavior_scenario: dict[str, Any]) -> None:
-    if behavior_scenario["archetype"] != "authorization_denial":
+def _validate_authorization_denied_assertion_archetype_outcome(contract: dict[str, Any], behavior_scenario_id: str, behavior_scenario: dict[str, Any]) -> None:
+    if behavior_scenario["archetype"] != "authorization_denied_assertion":
         return
     outcome_id = behavior_scenario["then"].get("outcome")
     if not outcome_id:
@@ -4513,14 +4513,14 @@ def _validate_authorization_denial_archetype_outcome(contract: dict[str, Any], b
     when_kind, when_body = _one(behavior_scenario["when"], f"behavior scenario {behavior_scenario_id} when")
     command_id = _behavior_scenario_command_ref(contract, when_kind, when_body)
     if not command_id:
-        raise ContractError(f"Behavior scenario {behavior_scenario_id} authorization_denial archetype outcome requires a command or query binding")
+        raise ContractError(f"Behavior scenario {behavior_scenario_id} authorization_denied_assertion archetype outcome requires a command or query binding")
     authorization = _command_query_map(contract)[command_id].get("authorization")
     if not authorization:
-        raise ContractError(f"Behavior scenario {behavior_scenario_id} authorization_denial archetype outcome requires command authorization")
+        raise ContractError(f"Behavior scenario {behavior_scenario_id} authorization_denied_assertion archetype outcome requires command authorization")
     mapped = {authorization["authentication_required_as"], authorization["access_denied_as"]}
     if outcome_id not in mapped:
         raise ContractError(
-            f"Behavior scenario {behavior_scenario_id} authorization_denial archetype outcome must be one of command authorization failure outcomes: "
+            f"Behavior scenario {behavior_scenario_id} authorization_denied_assertion archetype outcome must be one of command authorization failure outcomes: "
             + ", ".join(sorted(mapped))
         )
 
@@ -4656,9 +4656,9 @@ def _validate_behavior_scenario_archetype(behavior_scenario_id: str, behavior_sc
         workflow = then.get("workflow", {})
         if when_kind != "emit_domain_event" or not workflow.get("executed") or "outcome" not in workflow:
             raise ContractError(f"Behavior scenario {behavior_scenario_id} workflow_execution_success requires emit_domain_event, workflow.executed=true, and workflow.outcome")
-    elif archetype == "authorization_denial":
+    elif archetype == "authorization_denied_assertion":
         if not then.get("authorization", {}).get("denied"):
-            raise ContractError(f"Behavior scenario {behavior_scenario_id} authorization_denial requires authorization.denied")
+            raise ContractError(f"Behavior scenario {behavior_scenario_id} authorization_denied_assertion requires authorization.denied")
 
 
 def _expand_behavior_scenario_predicate_refs(contract: dict[str, Any]) -> tuple[set[str], set[str]]:

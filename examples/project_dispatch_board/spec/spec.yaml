@@ -1693,7 +1693,7 @@ behavior_scenarios:
             value: project_submitted_1
         ref: command.project.approve
   behavior_scenario.project.approve.access_denied:
-    archetype: authorization_denial
+    archetype: authorization_denied_assertion
     rationale: A workspace member who is not a reviewer receives the mapped access_denied outcome before approval executes.
     feature_tag: project.approve
     system_under_test_ref:

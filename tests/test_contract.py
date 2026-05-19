@@ -358,11 +358,11 @@ def test_response_assertion_requires_call_external_interface() -> None:
         compile_author(author)
 
 
-def test_authorization_denial_archetype_outcome_must_be_mapped_authorization_failure() -> None:
+def test_authorization_denied_assertion_archetype_outcome_must_be_mapped_authorization_failure() -> None:
     author = _author()
     case = author["behavior_scenarios"]["behavior_scenario.project.approve.access_denied"]
     case["then"]["outcome"] = "lifecycle_transition_not_allowed"
-    with pytest.raises(ContractError, match=r"authorization_denial archetype outcome must be one of command authorization failure outcomes"):
+    with pytest.raises(ContractError, match=r"authorization_denied_assertion archetype outcome must be one of command authorization failure outcomes"):
         compile_author(author)
 
 
@@ -443,10 +443,10 @@ def test_access_policies_reject_duplicated_rule_sets() -> None:
         compile_author(author)
 
 
-def test_all_permit_rules_must_match_rejects_deny_rule_effects() -> None:
+def test_access_policy_rule_effect_is_permit_only() -> None:
     author = _authorized_transition_author()
     author["access_policies"]["access_policy.ticket.submit"]["rules"][0]["effect"] = "deny"
-    with pytest.raises(ContractError, match=r"combining_algorithm all_permit_rules_must_match requires rule_effect permit"):
+    with pytest.raises(ContractError, match="Schema validation failed"):
         compile_author(author)
 
 

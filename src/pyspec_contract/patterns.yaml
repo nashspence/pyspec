@@ -64,7 +64,7 @@ behavior_scenario_archetypes:
   workflow_execution_success:
     when: emit_domain_event
     then: [workflow.executed, workflow.outcome, invoked]
-  authorization_denial:
+  authorization_denied_assertion:
     when: open_external_interface
     then: [authorization.denied]
 

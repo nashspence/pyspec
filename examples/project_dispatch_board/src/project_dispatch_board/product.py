@@ -48,8 +48,7 @@ def _evaluate_access_policy_decision(policy: Mapping[str, Any], matched_environm
         return "indeterminate"
     if not (matched_environment and matched_rules):
         return "deny"
-    rule_effect = {rule["effect"] for rule in policy.get("rules", [])}
-    return "permit" if rule_effect == {"permit"} else "indeterminate"
+    return "permit"
 
 
 class ProductApp:

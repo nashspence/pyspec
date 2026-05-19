@@ -23,6 +23,6 @@ Edit boundary:
 Rules:
 - There is exactly one generated Gherkin corpus; both spec and prod harnesses consume `spec/generated/test_adapters/pytest_bdd_features/`.
 - The spec harness may use the generated/reference driver to prove behavior-scenario coherence.
-- The prod harness must call real product surfaces and must not import the reference driver, fake authorization decisions, fake emitted domain_events, fake rendered state machine surfaces, or mutate generated behavior scenarios.
+- The prod harness must call real product surfaces and must not import the reference driver, fake authorization_decision values, fake emitted domain_events, fake rendered state machine surfaces, or mutate generated behavior scenarios.
 - If generated behavior files are missing, ask for PM/design authoring and `pyspec compile` before inventing tests.
 - Check freshness with `pyspec validate . --layers full`.

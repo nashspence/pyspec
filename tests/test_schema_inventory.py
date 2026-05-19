@@ -119,15 +119,18 @@ ALLOWED_ANY_OF_PATHS_BY_SCHEMA = {
 ALLOWED_ONE_OF_WITHOUT_OBJECT_DISCRIMINATORS = {
     "$defs.authored_content_example.properties.ref.oneOf",
     "$defs.content_example_item.properties.ref.oneOf",
-    "$defs.content_resolver_ref.oneOf",
+    "$defs.authored_media_asset.properties.resolver_ref.oneOf",
+    "$defs.authored_text_resource.properties.resolver_ref.oneOf",
     "$defs.given.properties.preconditions.items.oneOf",
     "$defs.json_value.oneOf",
+    "$defs.media_asset_item.properties.resolver_ref.oneOf",
     "$defs.schema.properties.additionalProperties.oneOf",
     "$defs.schema.properties.oneOf",
     "$defs.schema.properties.type.oneOf",
     "$defs.state_machine_local_signals.properties.accepts.propertyNames.oneOf",
     "$defs.state_machine_signal_trigger.oneOf",
     "$defs.then.properties.postconditions.items.oneOf",
+    "$defs.text_resource_item.properties.resolver_ref.oneOf",
 }
 JSON_SCHEMA_KEYWORD_PROPERTY_NAMES = {
     "$defs",

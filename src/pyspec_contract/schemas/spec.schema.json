@@ -149,7 +149,15 @@
           "$ref": "#/$defs/rationale"
         },
         "resolver_ref": {
-          "$ref": "#/$defs/content_resolver_ref"
+          "description": "Reference to the text resource or media asset implemented by the resolver. The value must equal the containing resource id.",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/text_resource_ref"
+            },
+            {
+              "$ref": "#/$defs/media_asset_ref"
+            }
+          ]
         }
       },
       "required": [
@@ -280,8 +288,7 @@
         },
         "effect": {
           "enum": [
-            "permit",
-            "deny"
+            "permit"
           ]
         }
       },
@@ -366,7 +373,7 @@
       "additionalProperties": false,
       "properties": {
         "archetype": {
-          "description": "Compiled behavior-scenario archetype. authorization_denial is the archetype for then.authorization.denied assertions, not an access-policy field or authorization decision value.",
+          "description": "Compiled behavior-scenario archetype. authorization_denied_assertion is the archetype for then.authorization.denied assertions, distinct from the access_denied command or external-interface outcome.",
           "type": "string"
         },
         "feature_tag": {
@@ -803,17 +810,6 @@
     "content_example_ref": {
       "pattern": "^content_example\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
-    },
-    "content_resolver_ref": {
-      "description": "Content resolver reference. Text resources use text_resource.* identifiers; media assets use media_asset.* identifiers.",
-      "oneOf": [
-        {
-          "$ref": "#/$defs/text_resource_ref"
-        },
-        {
-          "$ref": "#/$defs/media_asset_ref"
-        }
-      ]
     },
     "context_bindings": {
       "additionalProperties": {
@@ -2858,7 +2854,15 @@
           "$ref": "#/$defs/rationale"
         },
         "resolver_ref": {
-          "$ref": "#/$defs/content_resolver_ref"
+          "description": "Reference to the text resource or media asset implemented by the resolver. The value must equal the containing resource id.",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/text_resource_ref"
+            },
+            {
+              "$ref": "#/$defs/media_asset_ref"
+            }
+          ]
         }
       },
       "required": [
@@ -3544,6 +3548,9 @@
           "additionalProperties": {
             "$ref": "#/$defs/workflow_gateway"
           },
+          "propertyNames": {
+            "$ref": "#/$defs/workflow_gateway_id"
+          },
           "type": "object"
         },
         "sequence_flows": {
@@ -3606,7 +3613,7 @@
       },
       "minProperties": 1,
       "propertyNames": {
-        "$ref": "#/$defs/local_name"
+        "$ref": "#/$defs/workflow_sequence_flow_id"
       },
       "type": "object"
     },
@@ -3623,6 +3630,18 @@
     "workflow_ref": {
       "pattern": "^workflow\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
+    },
+    "workflow_activity_id": {
+      "description": "Local workflow activity id within one workflow.",
+      "$ref": "#/$defs/local_name"
+    },
+    "workflow_gateway_id": {
+      "description": "Local workflow gateway id within one workflow.",
+      "$ref": "#/$defs/local_name"
+    },
+    "workflow_sequence_flow_id": {
+      "description": "Local workflow sequence-flow id within one workflow.",
+      "$ref": "#/$defs/local_name"
     },
     "workflow_retry_policy": {
       "additionalProperties": false,
@@ -3673,8 +3692,7 @@
           "$ref": "#/$defs/command_ref"
         },
         "id": {
-          "pattern": "^[a-z][a-z0-9_]*$",
-          "type": "string"
+          "$ref": "#/$defs/workflow_activity_id"
         },
         "input_mapping": {
           "$ref": "#/$defs/binding_map"
@@ -3703,12 +3721,10 @@
       ],
       "properties": {
         "activity": {
-          "pattern": "^[a-z][a-z0-9_]*$",
-          "type": "string"
+          "$ref": "#/$defs/workflow_activity_id"
         },
         "gateway": {
-          "pattern": "^[a-z][a-z0-9_]*$",
-          "type": "string"
+          "$ref": "#/$defs/workflow_gateway_id"
         }
       },
       "type": "object"
@@ -3734,12 +3750,10 @@
       ],
       "properties": {
         "activity": {
-          "pattern": "^[a-z][a-z0-9_]*$",
-          "type": "string"
+          "$ref": "#/$defs/workflow_activity_id"
         },
         "gateway": {
-          "pattern": "^[a-z][a-z0-9_]*$",
-          "type": "string"
+          "$ref": "#/$defs/workflow_gateway_id"
         },
         "terminal": {
           "$ref": "#/$defs/outcome_name"

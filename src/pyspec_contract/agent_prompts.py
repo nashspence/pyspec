@@ -262,7 +262,7 @@ def _test_prompt(context: _PromptContext) -> str:
         "Rules:",
         "- There is exactly one generated Gherkin corpus; both spec and prod harnesses consume `spec/generated/test_adapters/pytest_bdd_features/`.",
         "- The spec harness may use the generated/reference driver to prove behavior-scenario coherence.",
-        "- The prod harness must call real product surfaces and must not import the reference driver, fake authorization decisions, fake emitted domain_events, fake rendered state machine surfaces, or mutate generated behavior scenarios.",
+        "- The prod harness must call real product surfaces and must not import the reference driver, fake authorization_decision values, fake emitted domain_events, fake rendered state machine surfaces, or mutate generated behavior scenarios.",
         "- If generated behavior files are missing, ask for PM/design authoring and `pyspec compile` before inventing tests.",
         f"- Check freshness with `pyspec validate . --layers {context.layer_arg}`.",
     ]
@@ -292,7 +292,7 @@ def _review_prompt(context: _PromptContext) -> str:
         "",
         "Test audit:",
         "- Check whether tests consume generated behavior and exercise real prod surfaces where required.",
-        "- Reject tests that mutate generated behavior scenarios, fake authorization decisions, fake emitted domain_events, fake rendered state machine surfaces, duplicate generated behavior, or mask missing spec coverage.",
+        "- Reject tests that mutate generated behavior scenarios, fake authorization_decision values, fake emitted domain_events, fake rendered state machine surfaces, duplicate generated behavior, or mask missing spec coverage.",
         "- For every test issue, provide a recommended prompt for `test.md` that asks for the smallest harness/test fix, or asks the test agent to report a PM/design gap when the spec is wrong.",
         "",
         "Dev audit:",
