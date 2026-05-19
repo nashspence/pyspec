@@ -207,7 +207,7 @@
       "type": "string"
     },
     "authored_value": {
-      "description": "Explicit authored literal-or-binding-expression value used by behavior scenarios, preconditions, assertions, content examples, and render_example inputs.",
+      "description": "Explicit authored literal-or-fixture-reference value used by behavior scenarios, preconditions, assertions, content examples, and render_example inputs.",
       "oneOf": [
         {
           "additionalProperties": false,
@@ -225,7 +225,7 @@
           "additionalProperties": false,
           "properties": {
             "from": {
-              "$ref": "#/$defs/binding_expression"
+              "$ref": "#/$defs/fixture_binding_expression"
             }
           },
           "required": [
@@ -419,6 +419,10 @@
     "binding_expression": {
       "description": "Shared binding expression using $root.path.to.field syntax. Context-specific compiler validation restricts allowed roots and field paths.",
       "pattern": "^\\$[a-z][a-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+$",
+      "type": "string"
+    },
+    "fixture_binding_expression": {
+      "pattern": "^\\$fixture\\.[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)*$",
       "type": "string"
     },
     "binding_map": {

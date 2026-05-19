@@ -334,7 +334,7 @@ The visual audit includes state-machine and composition diagrams, external-inter
 - `$workflow_input.payload[.<field>]` reads workflow input payload.
 - `$activity_outcome.<activity>.<outcome>.result[.<field>]` reads a previous workflow activity result.
 
-Binding expressions appear inside binding objects. `authored_value` maps use `{from: ...}` for these expressions and `{value: ...}` for literal JSON values; a raw string beginning with `$` is a literal only when wrapped with `value`.
+Binding expressions appear inside binding objects. `authored_value` maps use `{from: $fixture...}` for fixture expressions and `{value: ...}` for literal JSON values; a raw string beginning with `$` is a literal only when wrapped with `value`.
 - The shared grammar is `$source.path.to.field`; semantic validation checks available roots and declared field paths for each context.
 
 ## Generated Artifacts
@@ -471,9 +471,10 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:query_result_binding --> `$defs/query_result_binding`: explicit query result binding to a named local `data_key`.
 - <!-- schema-def:renderer_contracts --> `$defs/renderer_contracts`: renderer contract component scoped to HTML and/or Textual invocations.
 - <!-- schema-def:binding_expression --> `$defs/binding_expression`: shared schema component used by authored source or compiled output.
+- <!-- schema-def:fixture_binding_expression --> `$defs/fixture_binding_expression`: fixture-only binding expression used by authored value maps.
 - <!-- schema-def:binding_map --> `$defs/binding_map`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:binding_value --> `$defs/binding_value`: explicit binding value object using either `from` for binding expressions or `value` for literal JSON.
-- <!-- schema-def:authored_value --> `$defs/authored_value`: explicit authored value object using either `from` for binding expressions or `value` for literal JSON.
+- <!-- schema-def:authored_value --> `$defs/authored_value`: explicit authored value object using either `from` for fixture expressions or `value` for literal JSON.
 - <!-- schema-def:scalar --> `$defs/scalar`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:authored_behavior_scenario --> `$defs/authored_behavior_scenario`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:system_under_test_ref --> `$defs/system_under_test_ref`: typed reference definition for its namespace.

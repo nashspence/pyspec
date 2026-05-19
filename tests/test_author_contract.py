@@ -111,6 +111,18 @@ def test_author_value_maps_require_tagged_literals_or_binding_sources() -> None:
     body["input"]["literal_dollar"] = {"value": "$literal"}
     validate_against_schema(author, "author.schema.json")
 
+    author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+    body = author["behavior_scenarios"]["behavior_scenario.project.board.empty"]["when"]["open_external_interface"]
+    body["input"]["workspace_id"] = {"from": "$state_context.workspace_id"}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(author, "author.schema.json")
+
+    contract = copy.deepcopy(read_yaml(ROOT / COMPILED_SPEC_PATH))
+    body = contract["behavior_scenarios"]["behavior_scenario.project.board.empty"]["when"]["open_external_interface"]
+    body["input"]["workspace_id"] = {"from": "$state_context.workspace_id"}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(contract, "spec.schema.json")
+
 
 def test_author_no_local_effect_reasons_are_closed_vocabulary() -> None:
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
