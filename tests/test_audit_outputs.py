@@ -421,7 +421,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert external_interface_input in external_interface
     assert external_interface.index(external_interface_input) < external_interface.index("<B>query_bindings:</B>&#160;&#160;list_board")
     assert external_interface.index("<B>query_bindings:</B>&#160;&#160;list_board") < external_interface.index("<B>load:</B>&#160;&#160;query.project.list")
-    assert "<B>signal_sync_rules:</B>&#160;&#160;select_project_updates_state_machines" in external_interface
+    assert "<B>local_signal_sync_rules:</B>&#160;&#160;select_project_updates_state_machines" in external_interface
     assert "<B>state_machine:</B>" not in external_interface
     assert "state_machine.selected_project_id" not in external_interface
     assert "$state_machine." not in external_interface
@@ -474,7 +474,7 @@ def test_composition_dot_syncs_local_signals_generically() -> None:
             {"id": "publisher", "html_region": "source", "state_machine": "state_machine.alpha", "initial_state": "idle", "context_bindings": {}},
             {"id": "receiver", "html_region": "receiver", "state_machine": "state_machine.beta", "initial_state": "waiting", "context_bindings": {"item_id": {"from": "$state_machine.selected_id"}}},
         ],
-        "signal_sync_rules": [
+        "local_signal_sync_rules": [
             {
                     "id": "sync_alpha_beta",
                 "trigger": {"instance": "publisher", "local_signal": "ready"},

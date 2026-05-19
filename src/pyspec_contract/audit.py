@@ -784,7 +784,7 @@ def _generic_reference_witness_allowed(parts: list[str], detail_evidence: bool) 
 
 def _state_machine_reference_witness_allowed(parts: list[str]) -> bool:
     if "states" in parts:
-        return any(marker in parts for marker in {"text_resources", "media_assets", "command_bindings", "child_state_machines", "signal_sync_rules"})
+        return any(marker in parts for marker in {"text_resources", "media_assets", "command_bindings", "child_state_machines", "local_signal_sync_rules"})
     if "transitions" in parts:
         return parts[-1] in {"data_refresh_signal", "local_signal", "command", "query", "state_machine", "workflow", "domain_event"}
     if "local_signals" in parts:
@@ -923,7 +923,7 @@ def _workflow_text_witness_tokens(contract: dict[str, Any], parts: list[str], va
                 tokens.extend([outcome_id, value])
             elif parts[-2:] == ["result", "schema"]:
                 tokens.extend([outcome_id, value])
-        elif parts[-1] in {"source_result", "activity", "gateway", "terminal"}:
+        elif parts[-1] in {"source_outcome", "activity", "gateway", "terminal"}:
             tokens.append(value)
         elif parts[-1] == "backoff":
             tokens.extend(["retry_policy", value])
@@ -1779,7 +1779,7 @@ def state_machine_dot(state_machine_id: str, state_machine: dict[str, Any], cont
 
 def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contract: dict[str, Any]) -> str:
     sync_state_machine_order: list[str] = []
-    for rule in state_machine.get("signal_sync_rules", []):
+    for rule in state_machine.get("local_signal_sync_rules", []):
         sync_state_machine_order.append(rule["trigger"]["instance"])
         sync_state_machine_order.extend(effect["send"]["instance"] for effect in rule.get("local_effects", []) if "send" in effect)
     sync_state_machine_index = {state_machine_id: index for index, state_machine_id in enumerate(dict.fromkeys(sync_state_machine_order))}
@@ -1790,7 +1790,7 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
     mount_by_id = {mount["id"]: mount for mount in mounts}
     mount_node_by_id = {mount["id"]: _dot_node_id("child_state_machine", mount["id"]) for mount in mounts}
     mount_node_ids = [mount_node_by_id[mount["id"]] for mount in mounts]
-    has_sync = bool(state_machine.get("signal_sync_rules"))
+    has_sync = bool(state_machine.get("local_signal_sync_rules"))
     lines = _dot_graph_preamble("composition_" + safe_id(state_machine_id))
     for mount in mounts:
         lines.append(_dot_html_node(mount_node_by_id[mount["id"]], _dot_mount_card(mount)))
@@ -1798,7 +1798,7 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
         lines.extend(_dot_invisible_order(mount_node_ids, indent="  "))
     if not has_sync:
         lines.append(_dot_html_node("local_signal_sync_none", _dot_card("No local signal sync", "local signal sync", [], style=_DOT_STYLE_NEUTRAL)))
-    for rule in state_machine.get("signal_sync_rules", []):
+    for rule in state_machine.get("local_signal_sync_rules", []):
         signal_id = rule["trigger"]["local_signal"]
         emit_id = _dot_node_id("local_signal_emit", f"{rule['id']}_{rule['trigger']['instance']}_{signal_id}")
         sync_id = _dot_node_id("local_signal_sync", rule["id"])
@@ -1835,7 +1835,7 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
         if effect_ids:
             lines.append("  { rank=same; " + " ".join(_dot_quote(effect_id) for effect_id in effect_ids) + " }")
             lines.extend(_dot_invisible_order(effect_ids, indent="  "))
-    for rule in state_machine.get("signal_sync_rules", []):
+    for rule in state_machine.get("local_signal_sync_rules", []):
         emit_id = _dot_node_id("local_signal_emit", f"{rule['id']}_{rule['trigger']['instance']}_{rule['trigger']['local_signal']}")
         sync_id = _dot_node_id("local_signal_sync", rule["id"])
         source = mount_node_by_id.get(rule["trigger"]["instance"])
@@ -1968,7 +1968,7 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
     for sequence_flow_id, sequence_flow in sorted(workflow["sequence_flows"].items()):
         source_kind, source_id = _workflow_sequence_flow_source_ref(sequence_flow)
         node_id = activity_node_by_id[source_id] if source_kind == "activity" else gateway_node_by_id[source_id]
-        attrs = {"label": sequence_flow.get("source_result") or sequence_flow.get("condition") or sequence_flow_id}
+        attrs = {"label": sequence_flow.get("source_outcome") or sequence_flow.get("condition") or sequence_flow_id}
         target_kind, target_id = _workflow_sequence_flow_target_ref(sequence_flow)
         if target_kind == "activity":
             lines.append(_dot_edge(node_id, activity_node_by_id[target_id], attrs))
@@ -2395,9 +2395,9 @@ def _state_machine_summary_sections(state_machine: dict[str, Any], contract: dic
     if guards:
         sections.append(("access_policies", guards))
     sections.append(("entity_type", [state_machine["entity_type"]]))
-    sync_ids = [rule["id"] for state in state_machine.get("states", {}).values() for rule in state.get("signal_sync_rules", [])]
+    sync_ids = [rule["id"] for state in state_machine.get("states", {}).values() for rule in state.get("local_signal_sync_rules", [])]
     if sync_ids:
-        sections.append(("signal_sync_rules", sync_ids))
+        sections.append(("local_signal_sync_rules", sync_ids))
     return sections
 
 
@@ -2428,7 +2428,7 @@ def _state_machine_state_sections(
         ("command_bindings", _format_command_binding_outputs(command_bindings, contract)),
         ("access_policies", _format_action_access_policies([*query_command_query_refs, *command_refs], contract)),
         ("child_state_machines", _format_mounts(state.get("child_state_machines", []))),
-        ("signal_sync_rules", [rule["id"] for rule in state.get("signal_sync_rules", [])]),
+        ("local_signal_sync_rules", [rule["id"] for rule in state.get("local_signal_sync_rules", [])]),
     ]
 
 
@@ -2485,7 +2485,7 @@ def _workflow_sequence_flow_lines(activity: dict[str, Any], workflow: dict[str, 
         if sequence_flow["source_ref"].get("activity") == activity["id"]
     }
     for sequence_flow_id, sequence_flow in sorted(sequence_flows.items()):
-        lines.append(f"{sequence_flow['source_result']}: {_workflow_sequence_flow_destination(sequence_flow)}")
+        lines.append(f"{sequence_flow['source_outcome']}: {_workflow_sequence_flow_destination(sequence_flow)}")
     return lines
 
 

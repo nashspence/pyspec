@@ -341,7 +341,7 @@ def state_machines_projection(contract: dict[str, Any]) -> dict[str, Any]:
                     "context_schema": state_machine.get("context_schema", {}),
                     "renderers": state.get("renderers", {}),
                     "child_state_machines": state.get("child_state_machines", []),
-                    "signal_sync_rules": state.get("signal_sync_rules", []),
+                    "local_signal_sync_rules": state.get("local_signal_sync_rules", []),
                 })
     return {"project": contract["project"], "state_machines": state_machines, "compositions": compositions}
 

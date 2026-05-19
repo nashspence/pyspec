@@ -54,7 +54,7 @@ behavior_scenario_archetypes:
     then: [state_machine.instances, enables, authorization.denied]
   state_machine_composition_sync:
     when: open_external_interface
-    then: [state_machine.instances, state_machine.context, state_machine.signal_sync_rules.observed_rules]
+    then: [state_machine.instances, state_machine.context, state_machine.local_signal_sync_rules.observed_rules]
   command_outcome:
     when: invoke_command
     then: [outcome, entity.exists, domain_events.emitted, invoked]

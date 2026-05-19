@@ -90,6 +90,13 @@ STALE_SCHEMA_DEFINITION_NAMES = {
     "workflow_" + "input_" + "bindings",
     "workflow_source",
     "workflow_" + "trigger_target",
+    "rule_" + "id",
+    "signal_" + "sync_rule_id",
+    "signal_" + "sync_local_effect",
+    "signal_" + "sync_assertion",
+    "signal_" + "sync_rule",
+    "signal_" + "sync_send_local_effect",
+    "signal_" + "sync_trigger",
     "subject",
     "resource",
 }
@@ -119,18 +126,15 @@ ALLOWED_ANY_OF_PATHS_BY_SCHEMA = {
 ALLOWED_ONE_OF_WITHOUT_OBJECT_DISCRIMINATORS = {
     "$defs.authored_content_example.properties.ref.oneOf",
     "$defs.content_example_item.properties.ref.oneOf",
-    "$defs.authored_media_asset.properties.resolver_ref.oneOf",
-    "$defs.authored_text_resource.properties.resolver_ref.oneOf",
     "$defs.given.properties.preconditions.items.oneOf",
     "$defs.json_value.oneOf",
-    "$defs.media_asset_item.properties.resolver_ref.oneOf",
+    "$defs.resolver_ref.oneOf",
     "$defs.schema.properties.additionalProperties.oneOf",
     "$defs.schema.properties.oneOf",
     "$defs.schema.properties.type.oneOf",
     "$defs.state_machine_local_signals.properties.accepts.propertyNames.oneOf",
     "$defs.state_machine_signal_trigger.oneOf",
     "$defs.then.properties.postconditions.items.oneOf",
-    "$defs.text_resource_item.properties.resolver_ref.oneOf",
 }
 JSON_SCHEMA_KEYWORD_PROPERTY_NAMES = {
     "$defs",

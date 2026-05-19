@@ -196,11 +196,11 @@ behavior_scenarios:
             renderer_surface: state_machine.project.list.empty
             source: state_machine.project.list
             state: empty
-        ref: state_machine.project.board
-        renderer_surface: state_machine.project.board.ready
-        signal_sync_rules:
+        local_signal_sync_rules:
           observed_rules:
           - select_project_updates_state_machines
+        ref: state_machine.project.board
+        renderer_surface: state_machine.project.board.ready
         state: ready
         state_machine_composition:
           child_state_machines:
@@ -238,6 +238,27 @@ behavior_scenarios:
               state: ready
             state_machine: state_machine.project.activity
             textual_container: aside
+          local_signal_sync_rules:
+          - id: select_project_updates_state_machines
+            local_effects:
+            - set:
+                context: selected_project_id
+                from: $trigger.payload.project_id
+            - send:
+                instance: detail
+                local_signal: selection_changed
+                payload_bindings:
+                  project_id:
+                    from: $trigger.payload.project_id
+            - send:
+                instance: activity
+                local_signal: selection_changed
+                payload_bindings:
+                  project_id:
+                    from: $trigger.payload.project_id
+            trigger:
+              instance: list
+              local_signal: project_selected
           renderers:
             html:
               layout:
@@ -318,27 +339,6 @@ behavior_scenarios:
                 - declarations:
                     width: '28'
                   selector: container.aside
-          signal_sync_rules:
-          - id: select_project_updates_state_machines
-            local_effects:
-            - set:
-                context: selected_project_id
-                from: $trigger.payload.project_id
-            - send:
-                instance: detail
-                local_signal: selection_changed
-                payload_bindings:
-                  project_id:
-                    from: $trigger.payload.project_id
-            - send:
-                instance: activity
-                local_signal: selection_changed
-                payload_bindings:
-                  project_id:
-                    from: $trigger.payload.project_id
-            trigger:
-              instance: list
-              local_signal: project_selected
     title: Empty dispatch board
     when:
       open_external_interface:
@@ -416,11 +416,11 @@ behavior_scenarios:
             renderer_surface: state_machine.project.list.ready
             source: state_machine.project.list
             state: ready
-        ref: state_machine.project.board
-        renderer_surface: state_machine.project.board.ready
-        signal_sync_rules:
+        local_signal_sync_rules:
           observed_rules:
           - select_project_updates_state_machines
+        ref: state_machine.project.board
+        renderer_surface: state_machine.project.board.ready
         state: ready
         state_machine_composition:
           child_state_machines:
@@ -458,6 +458,27 @@ behavior_scenarios:
               state: ready
             state_machine: state_machine.project.activity
             textual_container: aside
+          local_signal_sync_rules:
+          - id: select_project_updates_state_machines
+            local_effects:
+            - set:
+                context: selected_project_id
+                from: $trigger.payload.project_id
+            - send:
+                instance: detail
+                local_signal: selection_changed
+                payload_bindings:
+                  project_id:
+                    from: $trigger.payload.project_id
+            - send:
+                instance: activity
+                local_signal: selection_changed
+                payload_bindings:
+                  project_id:
+                    from: $trigger.payload.project_id
+            trigger:
+              instance: list
+              local_signal: project_selected
           renderers:
             html:
               layout:
@@ -538,27 +559,6 @@ behavior_scenarios:
                 - declarations:
                     width: '28'
                   selector: container.aside
-          signal_sync_rules:
-          - id: select_project_updates_state_machines
-            local_effects:
-            - set:
-                context: selected_project_id
-                from: $trigger.payload.project_id
-            - send:
-                instance: detail
-                local_signal: selection_changed
-                payload_bindings:
-                  project_id:
-                    from: $trigger.payload.project_id
-            - send:
-                instance: activity
-                local_signal: selection_changed
-                payload_bindings:
-                  project_id:
-                    from: $trigger.payload.project_id
-            trigger:
-              instance: list
-              local_signal: project_selected
     title: Ready dispatch board
     when:
       open_external_interface:

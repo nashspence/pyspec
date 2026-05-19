@@ -582,7 +582,7 @@ def _compile_states(owner_id: str, states: dict[str, Any]) -> dict[str, Any]:
         }
         if "renderers" in state:
             item["renderers"] = state["renderers"]
-        for field in ["child_state_machines", "signal_sync_rules"]:
+        for field in ["child_state_machines", "local_signal_sync_rules"]:
             if field in state:
                 item[field] = state[field]
         if state.get("render_examples"):
@@ -1517,7 +1517,7 @@ def _validate_state_machines(contract: dict[str, Any]) -> None:
                 data_context=_state_machine_context(state_machine),
                 entity_type=entity_type,
             )
-            if state.get("child_state_machines") or state.get("renderers") or state.get("signal_sync_rules"):
+            if state.get("child_state_machines") or state.get("renderers") or state.get("local_signal_sync_rules"):
                 _validate_state_composition(contract, state_machine_id, state_machine, state_name, state)
         _validate_query_binding_id_scope(state_machine_id, state_machine)
         _validate_field_state_data_sources(
@@ -2727,7 +2727,7 @@ def _validate_sync_rules(
     label = f"{state_machine_id}.{state_name}"
     seen: set[str] = set()
     context = _state_machine_context(state_machine)
-    for rule in state.get("signal_sync_rules", []):
+    for rule in state.get("local_signal_sync_rules", []):
         if rule["id"] in seen:
             raise ContractError(f"composed state machine state {label} has duplicate sync rule: {rule['id']}")
         seen.add(rule["id"])
@@ -4000,10 +4000,10 @@ def _validate_workflow_sequence_flow_refs(
         raise ContractError(f"Workflow {workflow_id} sequence_flow {sequence_flow_id} references unknown target gateway {target_id}")
     if target_kind == "terminal" and target_id not in output_ids:
         raise ContractError(f"Workflow {workflow_id} sequence_flow {sequence_flow_id} references unknown workflow outcome {target_id}")
-    if source_kind == "gateway" and "source_result" in sequence_flow:
-        raise ContractError(f"Workflow {workflow_id} sequence_flow {sequence_flow_id} source_result is only valid for activity sources")
-    if source_kind == "activity" and "source_result" not in sequence_flow:
-        raise ContractError(f"Workflow {workflow_id} sequence_flow {sequence_flow_id} activity source requires source_result")
+    if source_kind == "gateway" and "source_outcome" in sequence_flow:
+        raise ContractError(f"Workflow {workflow_id} sequence_flow {sequence_flow_id} source_outcome is only valid for activity sources")
+    if source_kind == "activity" and "source_outcome" not in sequence_flow:
+        raise ContractError(f"Workflow {workflow_id} sequence_flow {sequence_flow_id} activity source requires source_outcome")
     if source_kind == target_kind and source_id == target_id:
         raise ContractError(f"Workflow {workflow_id} sequence_flow {sequence_flow_id} cannot loop to itself")
 
@@ -4064,12 +4064,12 @@ def _validate_workflow_activity_sequence_flows(
     flow_by_outcome: dict[str, tuple[str, dict[str, Any]]] = {}
     duplicate_outcomes: list[str] = []
     for sequence_flow_id, sequence_flow in sequence_flows.items():
-        source_result = sequence_flow["source_result"]
-        if source_result in flow_by_outcome:
-            duplicate_outcomes.append(source_result)
-        flow_by_outcome[source_result] = (sequence_flow_id, sequence_flow)
+        source_outcome = sequence_flow["source_outcome"]
+        if source_outcome in flow_by_outcome:
+            duplicate_outcomes.append(source_outcome)
+        flow_by_outcome[source_outcome] = (sequence_flow_id, sequence_flow)
     if duplicate_outcomes:
-        raise ContractError(f"Workflow {workflow_id} activity {activity['id']} sequence_flows duplicate source_result: {', '.join(sorted(duplicate_outcomes))}")
+        raise ContractError(f"Workflow {workflow_id} activity {activity['id']} sequence_flows duplicate source_outcome: {', '.join(sorted(duplicate_outcomes))}")
     if set(flow_by_outcome) != set(command["outcomes"]):
         missing = sorted(set(command["outcomes"]) - set(flow_by_outcome))
         extra = sorted(set(flow_by_outcome) - set(command["outcomes"]))
@@ -4445,10 +4445,10 @@ def _validate_behavior_scenario_then(contract: dict[str, Any], behavior_scenario
                 child_state_machine_id = mounted_instances[instance_id]["state_machine"]
                 if expectation["state"] not in contract["state_machines"][child_state_machine_id]["states"]:
                     raise ContractError(f"Behavior scenario {behavior_scenario_id} references unknown state machine state {child_state_machine_id}.{expectation['state']}")
-        for sync_id in (expected_state_machine.get("signal_sync_rules") or {}).get("observed_rules", []):
+        for sync_id in (expected_state_machine.get("local_signal_sync_rules") or {}).get("observed_rules", []):
             state_name = expected_state_machine.get("state")
             selected_state = state_machine.get("states", {}).get(state_name, {}) if state_name else {}
-            if sync_id not in {rule["id"] for rule in selected_state.get("signal_sync_rules", [])}:
+            if sync_id not in {rule["id"] for rule in selected_state.get("local_signal_sync_rules", [])}:
                 raise ContractError(f"Behavior scenario {behavior_scenario_id} references unknown sync rule {state_machine_id}.{sync_id}")
         for key in (expected_state_machine.get("context_schema") or {}):
             if key not in _state_machine_context(state_machine):
@@ -4788,7 +4788,7 @@ def _expand_behavior_scenarios(contract: dict[str, Any]) -> None:
                 state_machine_assertion["state_machine_composition"] = {
                     "renderers": parent_state.get("renderers", {}),
                     "child_state_machines": parent_state.get("child_state_machines", []),
-                    "signal_sync_rules": parent_state.get("signal_sync_rules", []),
+                    "local_signal_sync_rules": parent_state.get("local_signal_sync_rules", []),
                 }
                 assertions["requires"] = {key: list(dict.fromkeys(values)) for key, values in required.items()}
             elif "state" in state_machine_assertion:

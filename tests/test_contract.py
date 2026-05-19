@@ -955,8 +955,8 @@ def test_workflow_input_mapping_supports_binding_sources_and_literal_values() ->
                 ],
                 "gateways": {},
                 "sequence_flows": {
-                    "notify_sent": {"source_ref": {"activity": "notify"}, "source_result": "sent", "target_ref": {"terminal": "completed"}},
-                    "notify_failed": {"source_ref": {"activity": "notify"}, "source_result": "failed", "target_ref": {"terminal": "failed"}},
+                    "notify_sent": {"source_ref": {"activity": "notify"}, "source_outcome": "sent", "target_ref": {"terminal": "completed"}},
+                    "notify_failed": {"source_ref": {"activity": "notify"}, "source_outcome": "failed", "target_ref": {"terminal": "failed"}},
                 },
                 "retry_policies": {},
                 "failure_handlers": {},
@@ -1675,7 +1675,7 @@ def test_state_machine_composition_rejects_unknown_mounted_state_machine() -> No
 def test_state_machine_composition_rejects_unknown_sync_target_local_signal() -> None:
     author = _author()
     state_machine = _item(author, "state_machines", "state_machine.project.board")["states"]["ready"]
-    for effect in state_machine["signal_sync_rules"][0]["local_effects"]:
+    for effect in state_machine["local_signal_sync_rules"][0]["local_effects"]:
         if "send" in effect:
             effect["send"]["local_signal"] = "ghost_message"
             break
@@ -1698,7 +1698,7 @@ def test_state_machine_emit_data_must_exactly_match_emitted_local_signal_payload
 def test_sync_send_data_must_exactly_match_target_local_signal_payload() -> None:
     author = _author()
     state_machine = _item(author, "state_machines", "state_machine.project.board")["states"]["ready"]
-    send = next(effect["send"] for effect in state_machine["signal_sync_rules"][0]["local_effects"] if "send" in effect)
+    send = next(effect["send"] for effect in state_machine["local_signal_sync_rules"][0]["local_effects"] if "send" in effect)
     send["payload_bindings"] = {}
     with pytest.raises(ContractError, match=r"sync send selection_changed to detail payload_bindings must exactly match payload fields: missing: project_id"):
         compile_source(author)
@@ -1707,7 +1707,7 @@ def test_sync_send_data_must_exactly_match_target_local_signal_payload() -> None
 def test_sync_send_data_must_match_target_local_signal_payload_type() -> None:
     author = _author()
     state_machine = _item(author, "state_machines", "state_machine.project.board")["states"]["ready"]
-    send = next(effect["send"] for effect in state_machine["signal_sync_rules"][0]["local_effects"] if "send" in effect)
+    send = next(effect["send"] for effect in state_machine["local_signal_sync_rules"][0]["local_effects"] if "send" in effect)
     send["payload_bindings"]["project_id"] = {"value": 1}
     with pytest.raises(ContractError, match=r"payload_bindings\.project_id literal value is not compatible with string"):
         compile_source(author)
@@ -1732,7 +1732,7 @@ def test_state_machine_signal_direction_must_be_unambiguous() -> None:
 def test_state_machine_trigger_payload_uses_trigger_root_not_signal_root() -> None:
     author = _author()
     ready = author["state_machines"]["state_machine.project.board"]["states"]["ready"]
-    ready["signal_sync_rules"][0]["local_effects"][0]["set"]["from"] = "$" + "signal.payload.project_id"
+    ready["local_signal_sync_rules"][0]["local_effects"][0]["set"]["from"] = "$" + "signal.payload.project_id"
     with pytest.raises(ContractError, match=r"references unavailable binding root: \$signal"):
         compile_source(author)
 
@@ -2231,7 +2231,7 @@ def test_workflow_authorization_failure_collapse_requires_rationale() -> None:
     del workflow["outputs"]["notice_access_denied"]
     workflow["sequence_flows"]["send_notice_access_denied"] = {
         "source_ref": {"activity": "send_notice"},
-        "source_result": "access_denied",
+        "source_outcome": "access_denied",
         "target_ref": {"terminal": "delivery_failed"},
     }
     with pytest.raises(ContractError, match=r"collapses authorization failure into delivery_failed"):

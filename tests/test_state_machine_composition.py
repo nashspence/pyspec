@@ -45,7 +45,7 @@ def test_composed_state_machine_contract_is_closed_and_projected() -> None:
     generated = read_json(ROOT / "spec" / "generated" / "product_interfaces" / "html.state_machines.json")
     composition = next(item for item in generated["compositions"] if item["id"] == "state_machine.project.board.ready")
     assert composition["child_state_machines"] == state_machine["child_state_machines"]
-    assert composition["signal_sync_rules"] == state_machine["signal_sync_rules"]
+    assert composition["local_signal_sync_rules"] == state_machine["local_signal_sync_rules"]
 
 
 def test_state_machine_composition_rejects_unknown_html_region() -> None:
@@ -67,7 +67,7 @@ def test_state_machine_composition_rejects_context_binding_drift() -> None:
 def test_state_machine_composition_rejects_sync_local_signal_not_emitted_by_source_instance() -> None:
     author = _author()
     state_machine = _item(author, "state_machines", "state_machine.project.board")["states"]["ready"]
-    state_machine["signal_sync_rules"][0]["trigger"]["local_signal"] = "unannounced"
+    state_machine["local_signal_sync_rules"][0]["trigger"]["local_signal"] = "unannounced"
     with pytest.raises(ContractError, match="sync listens for signal the source does not emit"):
         compile_source(author)
 

@@ -185,15 +185,7 @@
           "$ref": "#/$defs/rationale"
         },
         "resolver_ref": {
-          "description": "Reference to the text resource or media asset implemented by the resolver. The value must equal the containing resource id.",
-          "oneOf": [
-            {
-              "$ref": "#/$defs/text_resource_ref"
-            },
-            {
-              "$ref": "#/$defs/media_asset_ref"
-            }
-          ]
+          "$ref": "#/$defs/resolver_ref"
         }
       },
       "required": [
@@ -787,15 +779,7 @@
           "$ref": "#/$defs/rationale"
         },
         "resolver_ref": {
-          "description": "Reference to the text resource or media asset implemented by the resolver. The value must equal the containing resource id.",
-          "oneOf": [
-            {
-              "$ref": "#/$defs/text_resource_ref"
-            },
-            {
-              "$ref": "#/$defs/media_asset_ref"
-            }
-          ]
+          "$ref": "#/$defs/resolver_ref"
         }
       },
       "required": [
@@ -886,9 +870,9 @@
         "renderers": {
           "$ref": "#/$defs/renderer_contracts"
         },
-        "signal_sync_rules": {
+        "local_signal_sync_rules": {
           "items": {
-            "$ref": "#/$defs/signal_sync_rule"
+            "$ref": "#/$defs/local_signal_sync_rule"
           },
           "type": "array"
         },
@@ -1328,6 +1312,17 @@
     "content_example_ref": {
       "pattern": "^content_example\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
+    },
+    "resolver_ref": {
+      "description": "Union reference to exactly one text_resource_ref or media_asset_ref; used only by resolver-backed text resources and media assets.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/text_resource_ref"
+        },
+        {
+          "$ref": "#/$defs/media_asset_ref"
+        }
+      ]
     },
     "context_bindings": {
       "additionalProperties": {
@@ -2252,7 +2247,7 @@
       "$ref": "#/$defs/local_name",
       "description": "Access-control role name used by access-policy subject role conditions."
     },
-    "rule_id": {
+    "local_signal_sync_rule_id": {
       "$ref": "#/$defs/local_name",
       "description": "Local state-machine synchronization rule identifier."
     },
@@ -2388,22 +2383,22 @@
       "pattern": "^schema\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
-    "signal_sync_local_effect": {
+    "local_signal_sync_local_effect": {
       "oneOf": [
         {
           "$ref": "#/$defs/context_set_local_effect"
         },
         {
-          "$ref": "#/$defs/signal_sync_send_local_effect"
+          "$ref": "#/$defs/local_signal_sync_send_local_effect"
         }
       ]
     },
-    "signal_sync_assertion": {
+    "local_signal_sync_assertion": {
       "additionalProperties": false,
       "properties": {
         "observed_rules": {
           "items": {
-            "$ref": "#/$defs/rule_id"
+            "$ref": "#/$defs/local_signal_sync_rule_id"
           },
           "type": "array",
           "uniqueItems": true
@@ -2411,21 +2406,21 @@
       },
       "type": "object"
     },
-    "signal_sync_rule": {
+    "local_signal_sync_rule": {
       "additionalProperties": false,
       "properties": {
         "local_effects": {
           "items": {
-            "$ref": "#/$defs/signal_sync_local_effect"
+            "$ref": "#/$defs/local_signal_sync_local_effect"
           },
           "minItems": 1,
           "type": "array"
         },
         "id": {
-          "$ref": "#/$defs/rule_id"
+          "$ref": "#/$defs/local_signal_sync_rule_id"
         },
         "trigger": {
-          "$ref": "#/$defs/signal_sync_trigger"
+          "$ref": "#/$defs/local_signal_sync_trigger"
         }
       },
       "required": [
@@ -2435,7 +2430,7 @@
       ],
       "type": "object"
     },
-    "signal_sync_send_local_effect": {
+    "local_signal_sync_send_local_effect": {
       "additionalProperties": false,
       "properties": {
         "send": {
@@ -2464,7 +2459,7 @@
       ],
       "type": "object"
     },
-    "signal_sync_trigger": {
+    "local_signal_sync_trigger": {
       "additionalProperties": false,
       "properties": {
         "instance": {
@@ -3263,8 +3258,8 @@
             "ref": {
               "$ref": "#/$defs/state_machine_ref"
             },
-            "signal_sync_rules": {
-              "$ref": "#/$defs/signal_sync_assertion"
+            "local_signal_sync_rules": {
+              "$ref": "#/$defs/local_signal_sync_assertion"
             },
             "state": {
               "$ref": "#/$defs/state_machine_state_id"
@@ -3652,7 +3647,7 @@
         "source_ref": {
           "$ref": "#/$defs/workflow_sequence_flow_source_ref"
         },
-        "source_result": {
+        "source_outcome": {
           "$ref": "#/$defs/outcome_name"
         },
         "rationale": {

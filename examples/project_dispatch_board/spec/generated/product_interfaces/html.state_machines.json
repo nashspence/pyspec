@@ -73,6 +73,45 @@
         "type": "object"
       },
       "id": "state_machine.project.board.ready",
+      "local_signal_sync_rules": [
+        {
+          "id": "select_project_updates_state_machines",
+          "local_effects": [
+            {
+              "set": {
+                "context": "selected_project_id",
+                "from": "$trigger.payload.project_id"
+              }
+            },
+            {
+              "send": {
+                "instance": "detail",
+                "local_signal": "selection_changed",
+                "payload_bindings": {
+                  "project_id": {
+                    "from": "$trigger.payload.project_id"
+                  }
+                }
+              }
+            },
+            {
+              "send": {
+                "instance": "activity",
+                "local_signal": "selection_changed",
+                "payload_bindings": {
+                  "project_id": {
+                    "from": "$trigger.payload.project_id"
+                  }
+                }
+              }
+            }
+          ],
+          "trigger": {
+            "instance": "list",
+            "local_signal": "project_selected"
+          }
+        }
+      ],
       "renderers": {
         "html": {
           "layout": {
@@ -197,45 +236,6 @@
           }
         }
       },
-      "signal_sync_rules": [
-        {
-          "id": "select_project_updates_state_machines",
-          "local_effects": [
-            {
-              "set": {
-                "context": "selected_project_id",
-                "from": "$trigger.payload.project_id"
-              }
-            },
-            {
-              "send": {
-                "instance": "detail",
-                "local_signal": "selection_changed",
-                "payload_bindings": {
-                  "project_id": {
-                    "from": "$trigger.payload.project_id"
-                  }
-                }
-              }
-            },
-            {
-              "send": {
-                "instance": "activity",
-                "local_signal": "selection_changed",
-                "payload_bindings": {
-                  "project_id": {
-                    "from": "$trigger.payload.project_id"
-                  }
-                }
-              }
-            }
-          ],
-          "trigger": {
-            "instance": "list",
-            "local_signal": "project_selected"
-          }
-        }
-      ],
       "state": "ready",
       "state_machine": "state_machine.project.board"
     }

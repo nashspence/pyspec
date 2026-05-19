@@ -790,6 +790,19 @@ visual_audit:
       /state_machines/state_machine.project.board/states/ready/child_state_machines/2/textual_container: V0026
       /state_machines/state_machine.project.board/states/ready/command_bindings: V0026
       /state_machines/state_machine.project.board/states/ready/fields: V0026
+      /state_machines/state_machine.project.board/states/ready/local_signal_sync_rules/0/id: V0026
+      /state_machines/state_machine.project.board/states/ready/local_signal_sync_rules/0/local_effects/0/set/context: V0026
+      /state_machines/state_machine.project.board/states/ready/local_signal_sync_rules/0/local_effects/0/set/from: V0026
+      /state_machines/state_machine.project.board/states/ready/local_signal_sync_rules/0/local_effects/1/send/instance: V0026
+      /state_machines/state_machine.project.board/states/ready/local_signal_sync_rules/0/local_effects/1/send/local_signal: V0026
+      ? /state_machines/state_machine.project.board/states/ready/local_signal_sync_rules/0/local_effects/1/send/payload_bindings/project_id/from
+      : V0026
+      /state_machines/state_machine.project.board/states/ready/local_signal_sync_rules/0/local_effects/2/send/instance: V0026
+      /state_machines/state_machine.project.board/states/ready/local_signal_sync_rules/0/local_effects/2/send/local_signal: V0026
+      ? /state_machines/state_machine.project.board/states/ready/local_signal_sync_rules/0/local_effects/2/send/payload_bindings/project_id/from
+      : V0026
+      /state_machines/state_machine.project.board/states/ready/local_signal_sync_rules/0/trigger/instance: V0026
+      /state_machines/state_machine.project.board/states/ready/local_signal_sync_rules/0/trigger/local_signal: V0026
       /state_machines/state_machine.project.board/states/ready/media_assets: V0026
       /state_machines/state_machine.project.board/states/ready/query_bindings: V0026
       /state_machines/state_machine.project.board/states/ready/render_examples/empty/instances/activity/state: V0026
@@ -856,19 +869,6 @@ visual_audit:
       /state_machines/state_machine.project.board/states/ready/renderers/textual/style/rules/1/selector: V0026
       /state_machines/state_machine.project.board/states/ready/renderers/textual/style/rules/2/declarations/width: V0026
       /state_machines/state_machine.project.board/states/ready/renderers/textual/style/rules/2/selector: V0026
-      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/id: V0026
-      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/0/set/context: V0026
-      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/0/set/from: V0026
-      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/1/send/instance: V0026
-      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/1/send/local_signal: V0026
-      ? /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/1/send/payload_bindings/project_id/from
-      : V0026
-      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/2/send/instance: V0026
-      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/2/send/local_signal: V0026
-      ? /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/local_effects/2/send/payload_bindings/project_id/from
-      : V0026
-      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/trigger/instance: V0026
-      /state_machines/state_machine.project.board/states/ready/signal_sync_rules/0/trigger/local_signal: V0026
       /state_machines/state_machine.project.board/states/ready/text_resources: V0026
       /state_machines/state_machine.project.board/transitions: V0026
       /state_machines/state_machine.project.detail/context_schema/additionalProperties: V0027
@@ -1289,19 +1289,19 @@ visual_audit:
       /workflows/workflow.project.approval_notice/retry_policies: V0033
       /workflows/workflow.project.approval_notice/sequence_flows/notice_success_completed/source_ref/gateway: V0033
       /workflows/workflow.project.approval_notice/sequence_flows/notice_success_completed/target_ref/terminal: V0033
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_access_denied/source_outcome: V0033
       /workflows/workflow.project.approval_notice/sequence_flows/send_notice_access_denied/source_ref/activity: V0033
-      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_access_denied/source_result: V0033
       /workflows/workflow.project.approval_notice/sequence_flows/send_notice_access_denied/target_ref/terminal: V0033
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_authentication_required/source_outcome: V0033
       /workflows/workflow.project.approval_notice/sequence_flows/send_notice_authentication_required/source_ref/activity: V0033
-      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_authentication_required/source_result: V0033
       /workflows/workflow.project.approval_notice/sequence_flows/send_notice_authentication_required/target_ref/terminal: V0033
       /workflows/workflow.project.approval_notice/sequence_flows/send_notice_delivery_failed/retry_policy/attempts: V0033
       /workflows/workflow.project.approval_notice/sequence_flows/send_notice_delivery_failed/retry_policy/backoff: V0033
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_delivery_failed/source_outcome: V0033
       /workflows/workflow.project.approval_notice/sequence_flows/send_notice_delivery_failed/source_ref/activity: V0033
-      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_delivery_failed/source_result: V0033
       /workflows/workflow.project.approval_notice/sequence_flows/send_notice_delivery_failed/target_ref/terminal: V0033
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_sent/source_outcome: V0033
       /workflows/workflow.project.approval_notice/sequence_flows/send_notice_sent/source_ref/activity: V0033
-      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_sent/source_result: V0033
       /workflows/workflow.project.approval_notice/sequence_flows/send_notice_sent/target_ref/gateway: V0033
     missing: {}
     text_witnesses:
@@ -2540,26 +2540,26 @@ visual_audit:
         visual_evidence_set: V0033
         tokens:
         - completed
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_access_denied/source_outcome:
+        visual_evidence_set: V0033
+        tokens:
+        - access_denied
       /workflows/workflow.project.approval_notice/sequence_flows/send_notice_access_denied/source_ref/activity:
         visual_evidence_set: V0033
         tokens:
         - send_notice
-      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_access_denied/source_result:
-        visual_evidence_set: V0033
-        tokens:
-        - access_denied
       /workflows/workflow.project.approval_notice/sequence_flows/send_notice_access_denied/target_ref/terminal:
         visual_evidence_set: V0033
         tokens:
         - notice_access_denied
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_authentication_required/source_outcome:
+        visual_evidence_set: V0033
+        tokens:
+        - authentication_required
       /workflows/workflow.project.approval_notice/sequence_flows/send_notice_authentication_required/source_ref/activity:
         visual_evidence_set: V0033
         tokens:
         - send_notice
-      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_authentication_required/source_result:
-        visual_evidence_set: V0033
-        tokens:
-        - authentication_required
       /workflows/workflow.project.approval_notice/sequence_flows/send_notice_authentication_required/target_ref/terminal:
         visual_evidence_set: V0033
         tokens:
@@ -2574,26 +2574,26 @@ visual_audit:
         tokens:
         - retry_policy
         - exponential
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_delivery_failed/source_outcome:
+        visual_evidence_set: V0033
+        tokens:
+        - delivery_failed
       /workflows/workflow.project.approval_notice/sequence_flows/send_notice_delivery_failed/source_ref/activity:
         visual_evidence_set: V0033
         tokens:
         - send_notice
-      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_delivery_failed/source_result:
-        visual_evidence_set: V0033
-        tokens:
-        - delivery_failed
       /workflows/workflow.project.approval_notice/sequence_flows/send_notice_delivery_failed/target_ref/terminal:
         visual_evidence_set: V0033
         tokens:
         - delivery_failed
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_sent/source_outcome:
+        visual_evidence_set: V0033
+        tokens:
+        - sent
       /workflows/workflow.project.approval_notice/sequence_flows/send_notice_sent/source_ref/activity:
         visual_evidence_set: V0033
         tokens:
         - send_notice
-      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_sent/source_result:
-        visual_evidence_set: V0033
-        tokens:
-        - sent
       /workflows/workflow.project.approval_notice/sequence_flows/send_notice_sent/target_ref/gateway:
         visual_evidence_set: V0033
         tokens:
@@ -2700,9 +2700,9 @@ visual_audit:
       /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/instances/list/renderer_surface: V0005
       /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/instances/list/source: V0005
       /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/instances/list/state: V0005
+      /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/local_signal_sync_rules/observed_rules/0: V0005
       /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/ref: V0005
       /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/renderer_surface: V0005
-      /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/signal_sync_rules/observed_rules/0: V0005
       /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/state: V0005
       ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/state_machine_composition/child_state_machines/0/context_bindings/selected_project_id/from
       : V0005
@@ -2749,6 +2749,28 @@ visual_audit:
       ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/state_machine_composition/child_state_machines/2/state_machine
       : V0005
       ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/state_machine_composition/child_state_machines/2/textual_container
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/state_machine_composition/local_signal_sync_rules/0/id
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/state_machine_composition/local_signal_sync_rules/0/local_effects/0/set/context
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/state_machine_composition/local_signal_sync_rules/0/local_effects/0/set/from
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/state_machine_composition/local_signal_sync_rules/0/local_effects/1/send/instance
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/state_machine_composition/local_signal_sync_rules/0/local_effects/1/send/local_signal
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/state_machine_composition/local_signal_sync_rules/0/local_effects/1/send/payload_bindings/project_id/from
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/state_machine_composition/local_signal_sync_rules/0/local_effects/2/send/instance
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/state_machine_composition/local_signal_sync_rules/0/local_effects/2/send/local_signal
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/state_machine_composition/local_signal_sync_rules/0/local_effects/2/send/payload_bindings/project_id/from
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/state_machine_composition/local_signal_sync_rules/0/trigger/instance
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/state_machine_composition/local_signal_sync_rules/0/trigger/local_signal
       : V0005
       ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/state_machine_composition/renderers/html/layout/regions/aside/classes/0
       : V0005
@@ -2850,28 +2872,6 @@ visual_audit:
       : V0005
       ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/state_machine_composition/renderers/textual/style/rules/2/selector
       : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/state_machine_composition/signal_sync_rules/0/id
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/state_machine_composition/signal_sync_rules/0/local_effects/0/set/context
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/state_machine_composition/signal_sync_rules/0/local_effects/0/set/from
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/state_machine_composition/signal_sync_rules/0/local_effects/1/send/instance
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/state_machine_composition/signal_sync_rules/0/local_effects/1/send/local_signal
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/state_machine_composition/signal_sync_rules/0/local_effects/1/send/payload_bindings/project_id/from
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/state_machine_composition/signal_sync_rules/0/local_effects/2/send/instance
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/state_machine_composition/signal_sync_rules/0/local_effects/2/send/local_signal
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/state_machine_composition/signal_sync_rules/0/local_effects/2/send/payload_bindings/project_id/from
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/state_machine_composition/signal_sync_rules/0/trigger/instance
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/state_machine_composition/signal_sync_rules/0/trigger/local_signal
-      : V0005
       /behavior_scenarios/behavior_scenario.project.board.empty/title: V0005
       /behavior_scenarios/behavior_scenario.project.board.empty/when/open_external_interface/input/workspace_id/from: V0005
       /behavior_scenarios/behavior_scenario.project.board.empty/when/open_external_interface/ref: V0005
@@ -2916,9 +2916,9 @@ visual_audit:
       /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/instances/list/renderer_surface: V0005
       /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/instances/list/source: V0005
       /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/instances/list/state: V0005
+      /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/local_signal_sync_rules/observed_rules/0: V0005
       /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/ref: V0005
       /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/renderer_surface: V0005
-      /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/signal_sync_rules/observed_rules/0: V0005
       /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state: V0005
       ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state_machine_composition/child_state_machines/0/context_bindings/selected_project_id/from
       : V0005
@@ -2965,6 +2965,28 @@ visual_audit:
       ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state_machine_composition/child_state_machines/2/state_machine
       : V0005
       ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state_machine_composition/child_state_machines/2/textual_container
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state_machine_composition/local_signal_sync_rules/0/id
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state_machine_composition/local_signal_sync_rules/0/local_effects/0/set/context
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state_machine_composition/local_signal_sync_rules/0/local_effects/0/set/from
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state_machine_composition/local_signal_sync_rules/0/local_effects/1/send/instance
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state_machine_composition/local_signal_sync_rules/0/local_effects/1/send/local_signal
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state_machine_composition/local_signal_sync_rules/0/local_effects/1/send/payload_bindings/project_id/from
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state_machine_composition/local_signal_sync_rules/0/local_effects/2/send/instance
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state_machine_composition/local_signal_sync_rules/0/local_effects/2/send/local_signal
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state_machine_composition/local_signal_sync_rules/0/local_effects/2/send/payload_bindings/project_id/from
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state_machine_composition/local_signal_sync_rules/0/trigger/instance
+      : V0005
+      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state_machine_composition/local_signal_sync_rules/0/trigger/local_signal
       : V0005
       ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state_machine_composition/renderers/html/layout/regions/aside/classes/0
       : V0005
@@ -3065,28 +3087,6 @@ visual_audit:
       ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state_machine_composition/renderers/textual/style/rules/2/declarations/width
       : V0005
       ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state_machine_composition/renderers/textual/style/rules/2/selector
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state_machine_composition/signal_sync_rules/0/id
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state_machine_composition/signal_sync_rules/0/local_effects/0/set/context
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state_machine_composition/signal_sync_rules/0/local_effects/0/set/from
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state_machine_composition/signal_sync_rules/0/local_effects/1/send/instance
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state_machine_composition/signal_sync_rules/0/local_effects/1/send/local_signal
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state_machine_composition/signal_sync_rules/0/local_effects/1/send/payload_bindings/project_id/from
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state_machine_composition/signal_sync_rules/0/local_effects/2/send/instance
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state_machine_composition/signal_sync_rules/0/local_effects/2/send/local_signal
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state_machine_composition/signal_sync_rules/0/local_effects/2/send/payload_bindings/project_id/from
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state_machine_composition/signal_sync_rules/0/trigger/instance
-      : V0005
-      ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/state_machine_composition/signal_sync_rules/0/trigger/local_signal
       : V0005
       /behavior_scenarios/behavior_scenario.project.board.ready/title: V0005
       /behavior_scenarios/behavior_scenario.project.board.ready/when/open_external_interface/input/workspace_id/from: V0005

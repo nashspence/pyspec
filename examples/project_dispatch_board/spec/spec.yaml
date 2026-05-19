@@ -692,7 +692,7 @@ state_machines:
           html_region: aside
           textual_container: aside
           initial_state: empty
-        signal_sync_rules:
+        local_signal_sync_rules:
         - local_effects:
           - set:
               context: selected_project_id
@@ -1577,7 +1577,7 @@ workflows:
       send_notice_delivery_failed:
         source_ref:
           activity: send_notice
-        source_result: delivery_failed
+        source_outcome: delivery_failed
         target_ref:
           terminal: delivery_failed
         retry_policy:
@@ -1586,13 +1586,13 @@ workflows:
       send_notice_access_denied:
         source_ref:
           activity: send_notice
-        source_result: access_denied
+        source_outcome: access_denied
         target_ref:
           terminal: notice_access_denied
       send_notice_sent:
         source_ref:
           activity: send_notice
-        source_result: sent
+        source_outcome: sent
         target_ref:
           gateway: notice_success
       notice_success_completed:
@@ -1603,7 +1603,7 @@ workflows:
       send_notice_authentication_required:
         source_ref:
           activity: send_notice
-        source_result: authentication_required
+        source_outcome: authentication_required
         target_ref:
           terminal: notice_authentication_required
     inputs:
@@ -1749,7 +1749,7 @@ behavior_scenarios:
             state: none
           list:
             state: empty
-        signal_sync_rules:
+        local_signal_sync_rules:
           observed_rules:
           - select_project_updates_state_machines
         ref: state_machine.project.board
@@ -1784,7 +1784,7 @@ behavior_scenarios:
             state: none
           list:
             state: ready
-        signal_sync_rules:
+        local_signal_sync_rules:
           observed_rules:
           - select_project_updates_state_machines
         ref: state_machine.project.board

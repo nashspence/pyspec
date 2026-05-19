@@ -15,7 +15,7 @@ PROJECT_ENTITY_TYPE = "entity_type.project"
 
 def _workflow_sequence_flow_for_activity_result(workflow: Mapping[str, Any], activity_id: str, outcome_id: str) -> Mapping[str, Any]:
     for sequence_flow in workflow["sequence_flows"].values():
-        if sequence_flow["source_ref"].get("activity") == activity_id and sequence_flow.get("source_result") == outcome_id:
+        if sequence_flow["source_ref"].get("activity") == activity_id and sequence_flow.get("source_outcome") == outcome_id:
             return sequence_flow
     raise AssertionError(f"Workflow activity {activity_id} has no sequence_flow for outcome {outcome_id}")
 
@@ -133,7 +133,7 @@ class ProductApp:
                 "command_bindings": dict(parent_state.get("command_bindings", {})),
                 "context": context,
                 "instances": state_machines,
-                "signal_sync_rules": [rule["id"] for rule in parent_state.get("signal_sync_rules", [])],
+                "local_signal_sync_rules": [rule["id"] for rule in parent_state.get("local_signal_sync_rules", [])],
             }
             return self.rendered_state_machine
         state_name = "ready" if matching else "empty"
@@ -317,8 +317,8 @@ class ProductApp:
                     actual = self.rendered_state_machine["instances"][instance_id]
                     assert actual["state"] == state_machine_expected["state"]
                     assert actual["renderer_surface"] == state_machine_expected["renderer_surface"]
-                for sync_id in (expected.get("signal_sync_rules") or {}).get("observed_rules", []):
-                    assert sync_id in self.rendered_state_machine.get("signal_sync_rules", [])
+                for sync_id in (expected.get("local_signal_sync_rules") or {}).get("observed_rules", []):
+                    assert sync_id in self.rendered_state_machine.get("local_signal_sync_rules", [])
         requires = assertions.get("requires", {})
         if requires:
             assert self.rendered_state_machine is not None
