@@ -69,7 +69,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `system_under_test_ref`: exactly one typed reference to the resource under test: `external_interface`, `domain_event`, `command`, `query`, `state_machine`, or `workflow`.
 - `given`: setup contract split into `seed_fixtures` and `preconditions`.
 - `when`: BDD behavior-scenario stimulus only: `open_external_interface`, `call_external_interface`, `invoke_command`, `invoke_query`, or `emit_domain_event`.
-- `then`: assertions for `outcome`, entity existence, emitted/not-emitted domain events, workflow execution, authorization decisions, responses, invoked/enabled/access_denied commands or queries, state-machine state, and `postconditions`. Compiled state-machine assertions may add `surface`, `composition`, and top-level `requires`.
+- `then`: assertions for `outcome`, entity existence, emitted/not-emitted domain events, workflow execution, authorization decisions, responses, command/query availability, invocation, and access-denial assertions, state-machine state, and `postconditions`. Compiled state-machine assertions may add `surface`, `composition`, and top-level `requires`.
 - `then.requires`: compiled-only derived projection dependencies for a state-machine assertion, split into `renderer_surfaces`, `text_resources`, `media_assets`, `query_bindings`, and `command_bindings`.
 - `external_interface_adapter`: exactly one adapter object: `http_api`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`.
 - `adapter input shape`: HTTP API input may use `path_params`, `query_params`, and `body`; HTML route input may use `path_params` and `query_params`; CLI input uses `args`; worker input uses `payload`; webhook input may use `path_params`, `query_params`, and `payload`; scheduled input has no external input sections.
@@ -86,7 +86,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `CLI response handler`: maps a named response outcome to stdout, stderr, an exit code, and optionally a retry policy. It does not restate HTTP status classification when the delegated external interface is an HTTP API.
 - `idempotent`: repeated identical command or external-interface execution has the same intended product-state effect as a single execution. Retry policies may rely on this marker. The default is false. Queries are idempotent by definition. This is idempotency for product behavior, not HTTP safe-method vocabulary.
 - `retryable`: explicit command or external-interface marker permitting automatic retry of delegated, command, transition, or workflow execution. Retryable commands must currently also be idempotent; future idempotency-key or proven-non-execution guards may provide other retry proofs. Transport retry, ingress retry, workflow retry, and command retry are separate scopes.
-- `workflow_activity`: a BPMN-like workflow activity that invokes a command with an `input_mapping`.
+- `workflow_activity`: a BPMN-like command activity that invokes a command with an `input_mapping`; workflow activities do not invoke queries, external interfaces, workers, or subworkflows.
 - `workflow_gateway`: a BPMN-like workflow branching or joining node. Gateways are explicit workflow elements even when a simple workflow has none.
 - `workflow_sequence_flow`: a top-level BPMN-like workflow control-flow edge from `source_ref` (`activity` or `gateway`) to `target_ref` (`activity`, `gateway`, or terminal workflow outcome). Activity-sourced flows use `source_result` to map command outcomes; gateway-sourced flows may use `condition` expressions and may not use `source_result`.
 - `state-machine context schema`: local machine context declared as JSON Schema object `properties` and `required`. Nullability uses JSON Schema type arrays such as `type: [string, null]`; local_effects may set a context field to null only when that field schema allows null.
@@ -165,7 +165,7 @@ states:
               rationale: The response surface reports authorization failure.
 ```
 
-## Query Invocation Example
+## Query Binding Example
 
 ```yaml
 query_bindings:
