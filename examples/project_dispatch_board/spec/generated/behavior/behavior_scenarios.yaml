@@ -183,7 +183,26 @@ behavior_scenarios:
         - text_resource.project.list.empty.heading
         - text_resource.project.list.empty.body
       state_machine:
-        composition:
+        instances:
+          activity:
+            renderer_surface: state_machine.project.activity.empty
+            source: state_machine.project.activity
+            state: empty
+          detail:
+            renderer_surface: state_machine.project.detail.none
+            source: state_machine.project.detail
+            state: none
+          list:
+            renderer_surface: state_machine.project.list.empty
+            source: state_machine.project.list
+            state: empty
+        ref: state_machine.project.board
+        renderer_surface: state_machine.project.board.ready
+        signal_sync_rules:
+          observed_rules:
+          - select_project_updates_state_machines
+        state: ready
+        state_machine_composition:
           child_state_machines:
           - context_bindings:
               selected_project_id:
@@ -320,25 +339,6 @@ behavior_scenarios:
             trigger:
               instance: list
               local_signal: project_selected
-        instances:
-          activity:
-            source: state_machine.project.activity
-            state: empty
-            surface: state_machine.project.activity.empty
-          detail:
-            source: state_machine.project.detail
-            state: none
-            surface: state_machine.project.detail.none
-          list:
-            source: state_machine.project.list
-            state: empty
-            surface: state_machine.project.list.empty
-        ref: state_machine.project.board
-        signal_sync_rules:
-          observed_rules:
-          - select_project_updates_state_machines
-        state: ready
-        surface: state_machine.project.board.ready
     title: Empty dispatch board
     when:
       open_external_interface:
@@ -403,7 +403,26 @@ behavior_scenarios:
         - text_resource.project.detail.none.body
         - text_resource.project.list.ready.heading
       state_machine:
-        composition:
+        instances:
+          activity:
+            renderer_surface: state_machine.project.activity.empty
+            source: state_machine.project.activity
+            state: empty
+          detail:
+            renderer_surface: state_machine.project.detail.none
+            source: state_machine.project.detail
+            state: none
+          list:
+            renderer_surface: state_machine.project.list.ready
+            source: state_machine.project.list
+            state: ready
+        ref: state_machine.project.board
+        renderer_surface: state_machine.project.board.ready
+        signal_sync_rules:
+          observed_rules:
+          - select_project_updates_state_machines
+        state: ready
+        state_machine_composition:
           child_state_machines:
           - context_bindings:
               selected_project_id:
@@ -540,25 +559,6 @@ behavior_scenarios:
             trigger:
               instance: list
               local_signal: project_selected
-        instances:
-          activity:
-            source: state_machine.project.activity
-            state: empty
-            surface: state_machine.project.activity.empty
-          detail:
-            source: state_machine.project.detail
-            state: none
-            surface: state_machine.project.detail.none
-          list:
-            source: state_machine.project.list
-            state: ready
-            surface: state_machine.project.list.ready
-        ref: state_machine.project.board
-        signal_sync_rules:
-          observed_rules:
-          - select_project_updates_state_machines
-        state: ready
-        surface: state_machine.project.board.ready
     title: Ready dispatch board
     when:
       open_external_interface:

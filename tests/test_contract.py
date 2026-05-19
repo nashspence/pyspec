@@ -122,6 +122,7 @@ def test_compiled_then_requires_uses_projection_bucket_names() -> None:
     contract = compile_author(_author())
     behavior_scenario = contract["behavior_scenarios"]["behavior_scenario.project.board.ready"]
     requires = behavior_scenario["then"]["requires"]
+    state_machine_assertion = behavior_scenario["then"]["state_machine"]
 
     assert set(requires) == {
         "command_bindings",
@@ -134,6 +135,12 @@ def test_compiled_then_requires_uses_projection_bucket_names() -> None:
     assert "surfaces" not in requires
     assert "text" not in requires
     assert "assets" not in requires
+    assert "renderer_surface" in state_machine_assertion
+    assert "state_machine_composition" in state_machine_assertion
+    assert "surface" not in state_machine_assertion
+    assert "composition" not in state_machine_assertion
+    assert all("renderer_surface" in instance for instance in state_machine_assertion["instances"].values())
+    assert all("surface" not in instance for instance in state_machine_assertion["instances"].values())
 
 
 def test_legacy_top_level_sections_are_rejected() -> None:
@@ -1355,7 +1362,7 @@ def test_command_binding_failure_no_local_effect_requires_reason_and_rationale()
     effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["local_effects"]["transition_not_allowed"]
     effect.clear()
     effect["no_local_effect"] = {"reason": "handled_by_response_surface", "rationale": "test effect"}
-    with pytest.raises(ContractError, match=r"handled_by_response_surface requires an adapter or renderer response surface"):
+    with pytest.raises(ContractError, match=r"handled_by_response_surface requires an adapter response mapping or renderer surface"):
         compile_source(author)
 
 
@@ -1364,7 +1371,7 @@ def test_command_binding_failure_no_local_effect_rejects_state_unchanged() -> No
     effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["local_effects"]["transition_not_allowed"]
     effect.clear()
     effect["no_local_effect"] = {"reason": "state_unchanged", "rationale": "Invalid submit leaves the list unchanged."}
-    with pytest.raises(ContractError, match=r"failure outcome no_local_effect must use reason handled_by_response_surface with a proven response surface or intentionally_unobservable with rationale"):
+    with pytest.raises(ContractError, match=r"failure outcome no_local_effect must use reason handled_by_response_surface with a proven response mapping or intentionally_unobservable with rationale"):
         compile_source(author)
 
 
@@ -1429,7 +1436,7 @@ def test_command_binding_routes_are_local_per_state() -> None:
     assert ready_create["local_effects"]["validation_failed"] == {
         "no_local_effect": {
             "reason": "handled_by_response_surface",
-            "rationale": "The ready list keeps focus while the response surface shows validation errors.",
+            "rationale": "The ready list keeps focus while the response mapping shows validation errors.",
         }
     }
 

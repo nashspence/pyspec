@@ -1684,7 +1684,7 @@ def _validate_no_local_effect(
     if outcome.get("emits"):
         raise ContractError(f"{label} no_local_effect must not suppress durable command_outcome.emits")
     if reason == "handled_by_response_surface" and not has_response_surface:
-        raise ContractError(f"{label} no_local_effect.reason handled_by_response_surface requires an adapter or renderer response surface for this outcome")
+        raise ContractError(f"{label} no_local_effect.reason handled_by_response_surface requires an adapter response mapping or renderer surface for this outcome")
     if reason == "handled_by_query_refresh" and not has_query_refresh:
         raise ContractError(f"{label} no_local_effect.reason handled_by_query_refresh requires an explicit query result binding or context refresh")
     if reason == "result_bound_without_signal" and not (has_result_binding or has_data_effect):
@@ -1694,11 +1694,11 @@ def _validate_no_local_effect(
     if outcome.get("kind") == "failure":
         if reason == "handled_by_response_surface":
             if not has_response_surface:
-                raise ContractError(f"{label} failure outcome no_local_effect handled_by_response_surface requires a proven response surface")
+                raise ContractError(f"{label} failure outcome no_local_effect handled_by_response_surface requires a proven response mapping")
             return True
         if reason != "intentionally_unobservable":
             raise ContractError(
-                f"{label} failure outcome no_local_effect must use reason handled_by_response_surface with a proven response surface or intentionally_unobservable with rationale"
+                f"{label} failure outcome no_local_effect must use reason handled_by_response_surface with a proven response mapping or intentionally_unobservable with rationale"
             )
         if not no_local_effect.get("rationale"):
             raise ContractError(f"{label} failure outcome no_local_effect must declare rationale")
@@ -4767,7 +4767,7 @@ def _expand_behavior_scenarios(contract: dict[str, Any]) -> None:
                     "media_assets": [],
                     "command_bindings": [],
                 }
-                state_machine_assertion["surface"] = parent_state["surface"]
+                state_machine_assertion["renderer_surface"] = parent_state["surface"]
                 required["renderer_surfaces"].append(parent_state["surface"])
                 required["query_bindings"].extend(parent_state.get("query_bindings", {}))
                 required["text_resources"].extend(parent_state["text"])
@@ -4777,7 +4777,7 @@ def _expand_behavior_scenarios(contract: dict[str, Any]) -> None:
                     mount = mounts[instance_id]
                     mounted_state_machine = contract["state_machines"][mount["state_machine"]]
                     mounted_state = mounted_state_machine["states"][expected["state"]]
-                    expected["surface"] = mounted_state["surface"]
+                    expected["renderer_surface"] = mounted_state["surface"]
                     expected["source"] = mount["state_machine"]
                     required["query_bindings"].extend(mounted_state_machine.get("query_bindings", {}))
                     required["query_bindings"].extend(mounted_state.get("query_bindings", {}))
@@ -4785,7 +4785,7 @@ def _expand_behavior_scenarios(contract: dict[str, Any]) -> None:
                     required["text_resources"].extend(mounted_state["text"])
                     required["media_assets"].extend(mounted_state["assets"])
                     required["command_bindings"].extend(mounted_state["command_bindings"])
-                state_machine_assertion["composition"] = {
+                state_machine_assertion["state_machine_composition"] = {
                     "renderers": parent_state.get("renderers", {}),
                     "child_state_machines": parent_state.get("child_state_machines", []),
                     "signal_sync_rules": parent_state.get("signal_sync_rules", []),
@@ -4794,12 +4794,12 @@ def _expand_behavior_scenarios(contract: dict[str, Any]) -> None:
             elif "state" in state_machine_assertion:
                 state_name = state_machine_assertion["state"]
                 state = state_machine["states"][state_name]
-                state_machine_assertion["surface"] = state["surface"]
+                state_machine_assertion["renderer_surface"] = state["surface"]
                 assertions["requires"] = {
                     "query_bindings": list(state_machine.get("query_bindings", {})) + list(state.get("query_bindings", {})),
-                    "surfaces": [state["surface"]],
-                    "text": list(state["text"]),
-                    "assets": list(state["assets"]),
+                    "renderer_surfaces": [state["surface"]],
+                    "text_resources": list(state["text"]),
+                    "media_assets": list(state["assets"]),
                     "command_bindings": list(state["command_bindings"]),
                 }
         when_kind, when_body = _one(behavior_scenario["when"], "behavior scenario when")

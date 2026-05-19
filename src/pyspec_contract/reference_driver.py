@@ -106,13 +106,13 @@ class ReferenceSpecDriver:
             assert self.last_state_machine["ref"] == expected["ref"]
             if "state" in expected:
                 assert self.last_state_machine["state"] == expected["state"]
-                assert self.last_state_machine["surface"] == expected["surface"]
+                assert self.last_state_machine["surface"] == expected["renderer_surface"]
             if "instances" in expected:
                 assert set(self.last_state_machine["instances"]) == set(expected["instances"])
                 for instance_id, state_machine_expected in expected["instances"].items():
                     actual = self.last_state_machine["instances"][instance_id]
                     assert actual["state"] == state_machine_expected["state"]
-                    assert actual["surface"] == state_machine_expected["surface"]
+                    assert actual["surface"] == state_machine_expected["renderer_surface"]
                 for sync_id in (expected.get("signal_sync_rules") or {}).get("observed_rules", []):
                     assert sync_id in self.last_state_machine.get("signal_sync_rules", [])
         requires = assertions.get("requires", {})

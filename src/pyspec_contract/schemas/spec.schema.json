@@ -3212,7 +3212,7 @@
         "state_machine": {
           "additionalProperties": false,
           "properties": {
-            "composition": {
+            "state_machine_composition": {
               "type": "object"
             },
             "context": {
@@ -3233,7 +3233,7 @@
             "signal_sync_rules": {
               "$ref": "#/$defs/signal_sync_assertion"
             },
-            "surface": {
+            "renderer_surface": {
               "type": "string"
             },
             "state": {
@@ -3362,7 +3362,7 @@
         "source": {
           "$ref": "#/$defs/state_machine_ref"
         },
-        "surface": {
+        "renderer_surface": {
           "type": "string"
         },
         "state": {

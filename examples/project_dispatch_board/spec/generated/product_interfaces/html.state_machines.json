@@ -321,7 +321,7 @@
             },
             "authentication_required": {
               "no_local_effect": {
-                "rationale": "The entry response surface owns authentication_required display.",
+                "rationale": "The entry response mapping owns authentication_required display.",
                 "reason": "intentionally_unobservable"
               }
             },
@@ -882,7 +882,7 @@
             "local_effects": {
               "access_denied": {
                 "no_local_effect": {
-                  "rationale": "The response surface keeps the detail panel unchanged for access_denied approval.",
+                  "rationale": "The response mapping keeps the detail panel unchanged for access_denied approval.",
                   "reason": "handled_by_response_surface"
                 }
               },
@@ -893,13 +893,13 @@
               },
               "authentication_required": {
                 "no_local_effect": {
-                  "rationale": "The response surface reports authentication failure without a local transition.",
+                  "rationale": "The response mapping reports authentication failure without a local transition.",
                   "reason": "handled_by_response_surface"
                 }
               },
               "not_found": {
                 "no_local_effect": {
-                  "rationale": "The response surface reports a missing project without a local transition.",
+                  "rationale": "The response mapping reports a missing project without a local transition.",
                   "reason": "handled_by_response_surface"
                 }
               },
@@ -915,7 +915,7 @@
               },
               "unavailable": {
                 "no_local_effect": {
-                  "rationale": "The response surface reports temporary unavailability without a local transition.",
+                  "rationale": "The response mapping reports temporary unavailability without a local transition.",
                   "reason": "handled_by_response_surface"
                 }
               }
@@ -1089,13 +1089,13 @@
             "local_effects": {
               "access_denied": {
                 "no_local_effect": {
-                  "rationale": "The response surface keeps the empty list visible for access_denied create.",
+                  "rationale": "The response mapping keeps the empty list visible for access_denied create.",
                   "reason": "handled_by_response_surface"
                 }
               },
               "authentication_required": {
                 "no_local_effect": {
-                  "rationale": "The response surface reports authentication failure without a local transition.",
+                  "rationale": "The response mapping reports authentication failure without a local transition.",
                   "reason": "handled_by_response_surface"
                 }
               },
@@ -1513,13 +1513,13 @@
             "local_effects": {
               "access_denied": {
                 "no_local_effect": {
-                  "rationale": "The response surface keeps the ready list visible for access_denied create.",
+                  "rationale": "The response mapping keeps the ready list visible for access_denied create.",
                   "reason": "handled_by_response_surface"
                 }
               },
               "authentication_required": {
                 "no_local_effect": {
-                  "rationale": "The response surface reports authentication failure without a local transition.",
+                  "rationale": "The response mapping reports authentication failure without a local transition.",
                   "reason": "handled_by_response_surface"
                 }
               },
@@ -1530,7 +1530,7 @@
               },
               "validation_failed": {
                 "no_local_effect": {
-                  "rationale": "The ready list keeps focus while the response surface shows validation errors.",
+                  "rationale": "The ready list keeps focus while the response mapping shows validation errors.",
                   "reason": "handled_by_response_surface"
                 }
               }

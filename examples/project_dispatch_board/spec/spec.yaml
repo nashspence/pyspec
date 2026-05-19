@@ -577,7 +577,7 @@ state_machines:
               authentication_required:
                 no_local_effect:
                   reason: intentionally_unobservable
-                  rationale: The entry response surface owns authentication_required display.
+                  rationale: The entry response mapping owns authentication_required display.
   state_machine.project.board:
     archetype: dashboard
     rationale: The dispatch board composes list, detail, and activity state machines through shared selected-project context_resource.
@@ -620,7 +620,7 @@ state_machines:
           authentication_required:
             no_local_effect:
               reason: handled_by_response_surface
-              rationale: The entry response surface owns authentication_required display.
+              rationale: The entry response mapping owns authentication_required display.
           unavailable:
             no_local_effect:
               reason: handled_by_response_surface
@@ -962,7 +962,7 @@ state_machines:
               access_denied:
                 no_local_effect:
                   reason: handled_by_response_surface
-                  rationale: The response surface keeps the detail panel unchanged for access_denied approval.
+                  rationale: The response mapping keeps the detail panel unchanged for access_denied approval.
               transition_not_allowed:
                 raise:
                   local_signal: show_transition_not_allowed
@@ -972,15 +972,15 @@ state_machines:
               not_found:
                 no_local_effect:
                   reason: handled_by_response_surface
-                  rationale: The response surface reports a missing project without a local transition.
+                  rationale: The response mapping reports a missing project without a local transition.
               unavailable:
                 no_local_effect:
                   reason: handled_by_response_surface
-                  rationale: The response surface reports temporary unavailability without a local transition.
+                  rationale: The response mapping reports temporary unavailability without a local transition.
               authentication_required:
                 no_local_effect:
                   reason: handled_by_response_surface
-                  rationale: The response surface reports authentication failure without a local transition.
+                  rationale: The response mapping reports authentication failure without a local transition.
           archive:
             command: command.project.archive
             input_mapping:
@@ -1188,11 +1188,11 @@ state_machines:
               access_denied:
                 no_local_effect:
                   reason: handled_by_response_surface
-                  rationale: The response surface keeps the empty list visible for access_denied create.
+                  rationale: The response mapping keeps the empty list visible for access_denied create.
               authentication_required:
                 no_local_effect:
                   reason: handled_by_response_surface
-                  rationale: The response surface reports authentication failure without a local transition.
+                  rationale: The response mapping reports authentication failure without a local transition.
               validation_failed:
                 raise:
                   local_signal: show_transition_not_allowed
@@ -1233,15 +1233,15 @@ state_machines:
               access_denied:
                 no_local_effect:
                   reason: handled_by_response_surface
-                  rationale: The response surface keeps the ready list visible for access_denied create.
+                  rationale: The response mapping keeps the ready list visible for access_denied create.
               authentication_required:
                 no_local_effect:
                   reason: handled_by_response_surface
-                  rationale: The response surface reports authentication failure without a local transition.
+                  rationale: The response mapping reports authentication failure without a local transition.
               validation_failed:
                 no_local_effect:
                   reason: handled_by_response_surface
-                  rationale: The ready list keeps focus while the response surface shows validation errors.
+                  rationale: The ready list keeps focus while the response mapping shows validation errors.
           submit:
             command: command.project.submit
             input_mapping:

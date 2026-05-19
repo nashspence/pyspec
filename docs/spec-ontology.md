@@ -69,7 +69,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `system_under_test_ref`: exactly one typed reference to the resource under test: `external_interface`, `domain_event`, `command`, `query`, `state_machine`, or `workflow`.
 - `given`: setup contract split into `seed_fixtures` and `preconditions`.
 - `when`: BDD behavior-scenario stimulus only: `open_external_interface`, `call_external_interface`, `invoke_command`, `invoke_query`, or `emit_domain_event`.
-- `then`: assertions for `outcome`, entity existence, emitted/not-emitted domain events, workflow execution, authorization decisions, responses, command/query availability, invocation, and access-denial assertions, state-machine state, and `postconditions`. Compiled state-machine assertions may add `surface`, `composition`, and top-level `requires`.
+- `then`: assertions for `outcome`, entity existence, emitted/not-emitted domain events, workflow execution, authorization decisions, responses, command/query availability, invocation, and access-denial assertions, state-machine state, and `postconditions`. Compiled state-machine assertions may add `renderer_surface`, `state_machine_composition`, and top-level `requires`.
 - `then.requires`: compiled-only derived projection dependencies for a state-machine assertion, split into `renderer_surfaces`, `text_resources`, `media_assets`, `query_bindings`, and `command_bindings`.
 - `external_interface_adapter`: exactly one adapter object: `http_api`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`.
 - `adapter input shape`: HTTP API input may use `path_params`, `query_params`, and `body`; HTML route input may use `path_params` and `query_params`; CLI input uses `args`; worker input uses `payload`; webhook input may use `path_params`, `query_params`, and `payload`; scheduled input has no external input sections.
@@ -80,7 +80,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `external-interface delegation`: an external interface whose `invokes.external_interface.ref` points at another external interface. `input_mapping.delegated_input` binds adapter input into the delegated external-interface adapter input shape. Delegation is general and is not CLI-to-HTTP-specific.
 - `delegating external interface`: the outer external interface whose adapter exposes a facade and binds its input into the delegated external-interface input shape.
 - `delegated external interface`: the inner external interface that receives delegated invocation. Its `access_policy` and the delegated command/query authorization outcomes remain visible to the delegating external interface.
-- `invoked outcome response`: synchronous adapter response keyed by command, query, workflow, state-machine, or delegated external-interface outcome names. HTTP API `responses` and delegated CLI `response_handlers` are invoked-outcome response surfaces.
+- `invoked outcome response`: synchronous adapter response keyed by command, query, workflow, state-machine, or delegated external-interface outcome names. HTTP API `responses` and delegated CLI `response_handlers` are invoked-outcome response mappings.
 - `adapter ingress response`: asynchronous adapter acknowledgement or disposition keyed by adapter-level outcomes, such as accepted, malformed, retry, reject, or dead-letter handling. Worker, webhook, and scheduled adapters use `ingress_responses` when receipt/disposition is distinct from invoked workflow execution outcomes.
 - `response handler`: adapter-specific projection of an invoked or delegated response outcome.
 - `CLI response handler`: maps a named response outcome to stdout, stderr, an exit code, and optionally a retry policy. It does not restate HTTP status classification when the delegated external interface is an HTTP API.
@@ -105,7 +105,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `Machine-scoped query ownership`: state-machine-level query bindings declare `result_scope: local`, `shared`, or `prefetch`. Machine-scoped result bindings that do not raise a signal must use shared/prefetch ownership with rationale, especially when a child machine also owns visible loading.
 - `Field-slot source resolution`: every field slot resolves to exactly one context field or query result binding. A bound entity_type or array item can feed field slots when the slot name exists on the result type; ambiguous or missing sources fail semantic validation.
 - `local_outcome_effect`: mapping from a command/query-binding outcome to context updates, result binding, a local signal raise, or explicit `no_local_effect` handling.
-- `No local effect`: explicit declaration that an outcome is covered but intentionally has no local state-machine effect. It is not omission and does not suppress durable domain events. Reasons are scope-sensitive: response-surface handling needs a real adapter/renderer surface, query refresh needs explicit result/context refresh, result-bound-without-signal needs result binding or context/cache update, and failure outcomes must use proven response-surface handling or `intentionally_unobservable` with rationale.
+- `No local effect`: explicit declaration that an outcome is covered but intentionally has no local state-machine effect. It is not omission and does not suppress durable domain events. Reasons are scope-sensitive: response mapping handling needs a real adapter response mapping or renderer surface, query refresh needs explicit result/context refresh, result-bound-without-signal needs result binding or context/cache update, and failure outcomes must use proven response mapping handling or `intentionally_unobservable` with rationale.
 - `Authored value`: explicit literal-or-fixture-reference value used in authored test, precondition, content-example, and render-example value maps. Use `{value: ...}` for JSON literals, including literal strings beginning with `$`, and `{from: $fixture...}` for fixture references. Raw `$...` strings are not interpreted as references.
 - `Binding root`: the first segment of a binding expression. Local state-machine bindings use `$state_context`, `$principal`, `$trigger.payload`, and `$state_machine`; command domain-event payload mappings use `$command_input` and `$command_outcome`; external-interface response mappings use `$invocation_outcome`; adapter/delegation bindings use `$adapter_input` and `$adapter_response`; workflow activity bindings use `$workflow_input` and `$activity_outcome`. `$message` is reserved for AsyncAPI/wire-level messages, not local state-machine signaling.
 - `state_machine_trigger`: the current state-machine-local trigger, sourced from either a `local_signal` or `data_refresh_signal`.
@@ -162,7 +162,7 @@ states:
           access_denied:
             no_local_effect:
               reason: handled_by_response_surface
-              rationale: The response surface reports authorization failure.
+              rationale: The response mapping reports authorization failure.
 ```
 
 ## Query Binding Example

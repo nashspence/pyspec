@@ -218,7 +218,26 @@ behavior_scenarios:
         - text_resource.project.list.empty.heading
         - text_resource.project.list.empty.body
       state_machine:
-        composition:
+        instances:
+          activity:
+            renderer_surface: state_machine.project.activity.empty
+            source: state_machine.project.activity
+            state: empty
+          detail:
+            renderer_surface: state_machine.project.detail.none
+            source: state_machine.project.detail
+            state: none
+          list:
+            renderer_surface: state_machine.project.list.empty
+            source: state_machine.project.list
+            state: empty
+        ref: state_machine.project.board
+        renderer_surface: state_machine.project.board.ready
+        signal_sync_rules:
+          observed_rules:
+          - select_project_updates_state_machines
+        state: ready
+        state_machine_composition:
           child_state_machines:
           - context_bindings:
               selected_project_id:
@@ -355,25 +374,6 @@ behavior_scenarios:
             trigger:
               instance: list
               local_signal: project_selected
-        instances:
-          activity:
-            source: state_machine.project.activity
-            state: empty
-            surface: state_machine.project.activity.empty
-          detail:
-            source: state_machine.project.detail
-            state: none
-            surface: state_machine.project.detail.none
-          list:
-            source: state_machine.project.list
-            state: empty
-            surface: state_machine.project.list.empty
-        ref: state_machine.project.board
-        signal_sync_rules:
-          observed_rules:
-          - select_project_updates_state_machines
-        state: ready
-        surface: state_machine.project.board.ready
     title: Empty dispatch board
     when:
       open_external_interface:
@@ -438,7 +438,26 @@ behavior_scenarios:
         - text_resource.project.detail.none.body
         - text_resource.project.list.ready.heading
       state_machine:
-        composition:
+        instances:
+          activity:
+            renderer_surface: state_machine.project.activity.empty
+            source: state_machine.project.activity
+            state: empty
+          detail:
+            renderer_surface: state_machine.project.detail.none
+            source: state_machine.project.detail
+            state: none
+          list:
+            renderer_surface: state_machine.project.list.ready
+            source: state_machine.project.list
+            state: ready
+        ref: state_machine.project.board
+        renderer_surface: state_machine.project.board.ready
+        signal_sync_rules:
+          observed_rules:
+          - select_project_updates_state_machines
+        state: ready
+        state_machine_composition:
           child_state_machines:
           - context_bindings:
               selected_project_id:
@@ -575,25 +594,6 @@ behavior_scenarios:
             trigger:
               instance: list
               local_signal: project_selected
-        instances:
-          activity:
-            source: state_machine.project.activity
-            state: empty
-            surface: state_machine.project.activity.empty
-          detail:
-            source: state_machine.project.detail
-            state: none
-            surface: state_machine.project.detail.none
-          list:
-            source: state_machine.project.list
-            state: ready
-            surface: state_machine.project.list.ready
-        ref: state_machine.project.board
-        signal_sync_rules:
-          observed_rules:
-          - select_project_updates_state_machines
-        state: ready
-        surface: state_machine.project.board.ready
     title: Ready dispatch board
     when:
       open_external_interface:
@@ -1716,7 +1716,7 @@ state_machines:
                   reason: intentionally_unobservable
               authentication_required:
                 no_local_effect:
-                  rationale: The entry response surface owns authentication_required display.
+                  rationale: The entry response mapping owns authentication_required display.
                   reason: intentionally_unobservable
               found:
                 no_local_effect:
@@ -1782,7 +1782,7 @@ state_machines:
               reason: handled_by_response_surface
           authentication_required:
             no_local_effect:
-              rationale: The entry response surface owns authentication_required display.
+              rationale: The entry response mapping owns authentication_required display.
               reason: handled_by_response_surface
           listed:
             no_local_effect:
@@ -2101,18 +2101,18 @@ state_machines:
             local_effects:
               access_denied:
                 no_local_effect:
-                  rationale: The response surface keeps the detail panel unchanged for access_denied approval.
+                  rationale: The response mapping keeps the detail panel unchanged for access_denied approval.
                   reason: handled_by_response_surface
               approved:
                 raise:
                   data_refresh_signal: project_changed
               authentication_required:
                 no_local_effect:
-                  rationale: The response surface reports authentication failure without a local transition.
+                  rationale: The response mapping reports authentication failure without a local transition.
                   reason: handled_by_response_surface
               not_found:
                 no_local_effect:
-                  rationale: The response surface reports a missing project without a local transition.
+                  rationale: The response mapping reports a missing project without a local transition.
                   reason: handled_by_response_surface
               transition_not_allowed:
                 raise:
@@ -2122,7 +2122,7 @@ state_machines:
                       from: $command_outcome.result.message
               unavailable:
                 no_local_effect:
-                  rationale: The response surface reports temporary unavailability without a local transition.
+                  rationale: The response mapping reports temporary unavailability without a local transition.
                   reason: handled_by_response_surface
           archive:
             command: command.project.archive
@@ -2368,11 +2368,11 @@ state_machines:
             local_effects:
               access_denied:
                 no_local_effect:
-                  rationale: The response surface keeps the empty list visible for access_denied create.
+                  rationale: The response mapping keeps the empty list visible for access_denied create.
                   reason: handled_by_response_surface
               authentication_required:
                 no_local_effect:
-                  rationale: The response surface reports authentication failure without a local transition.
+                  rationale: The response mapping reports authentication failure without a local transition.
                   reason: handled_by_response_surface
               created:
                 raise:
@@ -2423,18 +2423,18 @@ state_machines:
             local_effects:
               access_denied:
                 no_local_effect:
-                  rationale: The response surface keeps the ready list visible for access_denied create.
+                  rationale: The response mapping keeps the ready list visible for access_denied create.
                   reason: handled_by_response_surface
               authentication_required:
                 no_local_effect:
-                  rationale: The response surface reports authentication failure without a local transition.
+                  rationale: The response mapping reports authentication failure without a local transition.
                   reason: handled_by_response_surface
               created:
                 raise:
                   data_refresh_signal: projects_changed
               validation_failed:
                 no_local_effect:
-                  rationale: The ready list keeps focus while the response surface shows validation errors.
+                  rationale: The ready list keeps focus while the response mapping shows validation errors.
                   reason: handled_by_response_surface
           submit:
             command: command.project.submit
