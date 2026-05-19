@@ -87,6 +87,7 @@ visual_evidence_sets:
   - spec/generated/audit_evidence/commands/command_project_approve/flow.svg
   - spec/generated/audit_evidence/commands/command_project_archive/flow.svg
   - spec/generated/audit_evidence/commands/command_project_create/flow.svg
+  - spec/generated/audit_evidence/commands/command_project_send_approval_notice/flow.svg
   - spec/generated/audit_evidence/commands/command_project_submit/flow.svg
   - spec/generated/audit_evidence/external_interfaces/cli/external_interface_cli_project_approve/flow.svg
   - spec/generated/audit_evidence/external_interfaces/http_api/external_interface_api_project_approve/flow.svg
@@ -107,6 +108,7 @@ visual_evidence_sets:
   - spec/generated/audit_evidence/state_machines/state_machine_project_board/states/ready/render_examples/state_machine_project_board_ready_ready_selected_audit/renders/textual.viewport_profile_default.wide.capture.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_detail/state_machine.svg
   - spec/generated/audit_evidence/state_machines/state_machine_project_list/state_machine.svg
+  - spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg
   V0014:
   - spec/generated/audit_evidence/external_interfaces/http_api/external_interface_api_project_approve/flow.svg
   V0015:
@@ -366,7 +368,7 @@ visual_audit:
       /commands/command.project.send_approval_notice/authorization/authentication_required_as: V0009
       /commands/command.project.send_approval_notice/authorization/policy: V0009
       /commands/command.project.send_approval_notice/emits_domain_events: V0009
-      /commands/command.project.send_approval_notice/entity_changes: V0009
+      /commands/command.project.send_approval_notice/entity_changes/updates/0: V0009
       /commands/command.project.send_approval_notice/idempotent: V0009
       /commands/command.project.send_approval_notice/input_schema/additionalProperties: V0009
       /commands/command.project.send_approval_notice/input_schema/properties/approved_by/type: V0009

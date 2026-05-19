@@ -225,7 +225,12 @@ commands:
       - approved_by
       - project_id
       additionalProperties: false
-    entity_changes: {}
+    entity_changes:
+      entity_lifecycle_transition:
+        entity_type: entity_type.project
+        field: status
+        from: submitted
+        to: approved
     outcomes:
       approved:
         kind: success
@@ -275,7 +280,12 @@ commands:
       required:
       - project_id
       additionalProperties: false
-    entity_changes: {}
+    entity_changes:
+      entity_lifecycle_transition:
+        entity_type: entity_type.project
+        field: status
+        from: approved
+        to: archived
     outcomes:
       archived:
         kind: success
@@ -365,7 +375,9 @@ commands:
       - approved_by
       - project_id
       additionalProperties: false
-    entity_changes: {}
+    entity_changes:
+      updates:
+      - entity_type.project
     outcomes:
       delivery_failed:
         kind: failure
@@ -400,7 +412,12 @@ commands:
       required:
       - project_id
       additionalProperties: false
-    entity_changes: {}
+    entity_changes:
+      entity_lifecycle_transition:
+        entity_type: entity_type.project
+        field: status
+        from: draft
+        to: submitted
     outcomes:
       lifecycle_transition_not_allowed:
         kind: failure

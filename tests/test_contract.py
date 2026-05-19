@@ -248,7 +248,12 @@ def test_author_contract_is_sparse_source() -> None:
         }
     }
     assert "refs" not in author
-    assert "entity_lifecycle_transition" not in author["commands"]["command.project.submit"]["entity_changes"]
+    assert author["commands"]["command.project.submit"]["entity_changes"]["entity_lifecycle_transition"] == {
+        "entity_type": "entity_type.project",
+        "field": "status",
+        "from": "draft",
+        "to": "submitted",
+    }
     assert author["behavior_scenarios"]["behavior_scenario.project.approve.success"]["given"]["preconditions"] == [{"ref": "precondition.project.submitted"}]
     assert compile_author(author) == read_yaml(ROOT / COMPILED_SPEC_PATH)
 
@@ -390,7 +395,7 @@ def test_named_assertion_expands_into_compiled_behavior_scenario() -> None:
 
 
 def test_access_policies_require_explicit_conditions_and_support_value_equals() -> None:
-    author = _derived_transition_author()
+    author = _explicit_transition_author()
     author["commands"]["command.ticket.submit"]["authorization"] = {
         "policy": "access_policy.ticket.submit",
         "authentication_required_as": "authentication_required",
@@ -451,7 +456,7 @@ def test_access_policy_rule_effect_is_permit_only() -> None:
 
 
 def _authorized_transition_author() -> dict:
-    author = _derived_transition_author()
+    author = _explicit_transition_author()
     command = author["commands"]["command.ticket.submit"]
     command["authorization"] = {
         "policy": "access_policy.ticket.submit",
@@ -537,7 +542,7 @@ def test_authorization_failure_outcomes_must_not_emit_domain_events() -> None:
         compile_author(author)
 
 
-def _derived_transition_author() -> dict:
+def _explicit_transition_author() -> dict:
     return {
         "project": "derived_transition",
         "entity_types": {
@@ -561,7 +566,14 @@ def _derived_transition_author() -> dict:
         "commands": {
             "command.ticket.submit": {
                 "input_schema": O({"ticket_id": P("ID")}),
-                "entity_changes": {},
+                "entity_changes": {
+                    "entity_lifecycle_transition": {
+                        "entity_type": "entity_type.ticket",
+                        "field": "status",
+                        "from": "draft",
+                        "to": "submitted",
+                    }
+                },
                 "emits_domain_events": [],
                 "outcomes": {
                     "submitted": {"kind": "success", "result": M("Ticket")},
@@ -573,8 +585,8 @@ def _derived_transition_author() -> dict:
     }
 
 
-def test_lifecycle_transition_command_derives_state_change_from_entity_lifecycle() -> None:
-    author = _derived_transition_author()
+def test_lifecycle_transition_command_compiles_explicit_state_change() -> None:
+    author = _explicit_transition_author()
     contract = compile_author(author)
     assert contract["commands"]["command.ticket.submit"]["entity_changes"]["entity_lifecycle_transition"] == {
         "entity_type": "entity_type.ticket",
@@ -587,7 +599,7 @@ def test_lifecycle_transition_command_derives_state_change_from_entity_lifecycle
 
 
 def test_authored_lifecycle_transition_metadata_must_match_entity_lifecycle() -> None:
-    author = _derived_transition_author()
+    author = _explicit_transition_author()
     author["commands"]["command.ticket.submit"]["entity_changes"]["entity_lifecycle_transition"] = {
         "entity_type": "entity_type.ticket",
         "field": "status",
@@ -599,7 +611,7 @@ def test_authored_lifecycle_transition_metadata_must_match_entity_lifecycle() ->
 
 
 def test_lifecycle_transition_commands_must_be_referenced_by_entity_lifecycle() -> None:
-    author = _derived_transition_author()
+    author = _explicit_transition_author()
     author["commands"]["command.ticket.close"] = {
         "input_schema": O({"ticket_id": P("ID")}),
         "entity_changes": {
@@ -622,7 +634,7 @@ def test_lifecycle_transition_commands_must_be_referenced_by_entity_lifecycle() 
 
 
 def test_lifecycle_transition_commands_must_declare_lifecycle_transition_not_allowed_failure() -> None:
-    author = _derived_transition_author()
+    author = _explicit_transition_author()
     author["commands"]["command.ticket.submit"]["outcomes"]["other_failure"] = {"kind": "failure", "result": M("Problem")}
     del author["commands"]["command.ticket.submit"]["outcomes"]["lifecycle_transition_not_allowed"]
     with pytest.raises(ContractError, match=r"must declare lifecycle_transition_not_allowed failure outcome"):
@@ -630,7 +642,7 @@ def test_lifecycle_transition_commands_must_declare_lifecycle_transition_not_all
 
 
 def test_entity_lifecycle_field_must_exist_on_entity_type() -> None:
-    author = _derived_transition_author()
+    author = _explicit_transition_author()
     del author["entity_types"]["entity_type.ticket"]["schema"]["properties"]["status"]
     author["entity_types"]["entity_type.ticket"]["schema"]["required"].remove("status")
     with pytest.raises(ContractError, match=r"Entity type entity_type\.ticket entity_lifecycle field is not a field: status"):
@@ -638,28 +650,28 @@ def test_entity_lifecycle_field_must_exist_on_entity_type() -> None:
 
 
 def test_lifecycle_initial_state_must_be_declared() -> None:
-    author = _derived_transition_author()
+    author = _explicit_transition_author()
     author["entity_types"]["entity_type.ticket"]["entity_lifecycle"]["initial_state"] = "missing"
     with pytest.raises(ContractError, match=r"Entity type entity_type\.ticket initial lifecycle_state is not declared: missing"):
         compile_author(author)
 
 
 def test_lifecycle_transition_states_must_be_declared() -> None:
-    author = _derived_transition_author()
+    author = _explicit_transition_author()
     author["entity_types"]["entity_type.ticket"]["entity_lifecycle"]["lifecycle_transitions"][0]["to"] = "missing"
     with pytest.raises(ContractError, match=r"Entity type entity_type\.ticket entity_lifecycle_transition uses unknown lifecycle_state"):
         compile_author(author)
 
 
 def test_commands_reject_behavior_kind_field() -> None:
-    author = _derived_transition_author()
+    author = _explicit_transition_author()
     author["commands"]["command.ticket.submit"]["behavior_kind"] = "command"
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_author(author)
 
 
 def test_lifecycle_transition_must_reference_known_command() -> None:
-    author = _derived_transition_author()
+    author = _explicit_transition_author()
     author["entity_types"]["entity_type.ticket"]["entity_lifecycle"]["lifecycle_transitions"][0]["command"] = "command.ticket.missing"
     with pytest.raises(
         ContractError,
@@ -687,13 +699,13 @@ def test_schema_properties_reject_legacy_nullability_and_presence_wrappers() -> 
         compile_source(author)
 
 
-def test_command_allows_empty_entity_changes() -> None:
+def test_command_rejects_empty_entity_changes() -> None:
     author = _author()
     author["commands"]["command.project.create"]["entity_changes"] = {}
     author["external_interfaces"]["external_interface.api.project.create"]["output_mapping"]["responses"]["created"]["status"] = 200
     author["behavior_scenarios"]["behavior_scenario.project.create.api.success"]["then"]["response"]["status"] = 200
-    contract = compile_source(author)
-    assert contract["commands"]["command.project.create"]["entity_changes"] == {}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_source(author)
 
 
 def test_state_machine_data_query_result_must_match_state_machine_entity_type() -> None:
@@ -723,9 +735,9 @@ def test_queries_reject_command_entity_change_and_emit_fields() -> None:
         compile_source(author)
 
 
-def test_command_without_entity_changes_is_valid() -> None:
+def test_command_entity_changes_declares_non_empty_project_update() -> None:
     contract = compile_source(_author())
-    assert contract["commands"]["command.project.send_approval_notice"]["entity_changes"] == {}
+    assert contract["commands"]["command.project.send_approval_notice"]["entity_changes"] == {"updates": [ET("Project")]}
 
 
 def test_author_contract_can_omit_absent_sections() -> None:
@@ -912,6 +924,11 @@ def test_workflow_input_mapping_supports_binding_sources_and_literal_values() ->
             },
         },
         "entity_types": {
+            ET("Ticket"): {
+                "name": "Ticket",
+                "schema": O({"id": P("ID"), "title": P("Text")}),
+                "rationale": "Ticket receives notification side effects.",
+            },
             ET("Problem"): {
                 "name": "Problem",
                 "schema": O({"code": P("Text"), "message": P("Text")}),
@@ -921,7 +938,7 @@ def test_workflow_input_mapping_supports_binding_sources_and_literal_values() ->
         "commands": {
             "command.ticket.notify": {
                 "input_schema": O({"source_id": P("ID"), "title": P("Text")}),
-                "entity_changes": {},
+                "entity_changes": {"updates": [ET("Ticket")]},
                 "emits_domain_events": [],
                 "outcomes": {
                     "sent": {"kind": "success", "result": D("schema.ticket.notice")},

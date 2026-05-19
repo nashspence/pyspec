@@ -668,12 +668,7 @@ def _command_emits_by_outcome(command: dict[str, Any]) -> dict[str, list[dict[st
 
 
 def _derive_command_entity_lifecycle_transitions(contract: dict[str, Any]) -> None:
-    """Derive entity_lifecycle_transition action details from entity_lifecycle declarations.
-
-    Authored sources should not have to repeat the same entity_lifecycle_transition in both
-    the entity_lifecycle and the command. The compiled contract remains
-    explicit for downstream projections and validators.
-    """
+    """Keep lifecycle-transition commands explicit and one-to-one with entity lifecycles."""
     by_command: dict[str, dict[str, Any]] = {}
     for entity_type_ref, entity_type in contract.get("entity_types", {}).items():
         entity_lifecycle = entity_type.get("entity_lifecycle")

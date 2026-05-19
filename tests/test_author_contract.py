@@ -120,6 +120,23 @@ def test_author_no_local_effect_reasons_are_closed_vocabulary() -> None:
         validate_against_schema(author, "author.schema.json")
 
 
+def test_author_command_entity_changes_must_declare_real_change() -> None:
+    author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+    author["commands"]["command.project.create"]["entity_changes"] = {}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(author, "author.schema.json")
+
+    author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+    author["commands"]["command.project.create"]["entity_changes"] = {"creates": []}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(author, "author.schema.json")
+
+    author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+    author["commands"]["command.project.submit"]["entity_changes"]["entity_lifecycle_transition"]["from"] = "draft-state"
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(author, "author.schema.json")
+
+
 def test_author_async_adapters_use_ingress_responses() -> None:
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
     worker_output = author["external_interfaces"]["external_interface.worker.project.approval_notice"]["output_mapping"]

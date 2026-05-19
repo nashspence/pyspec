@@ -1203,11 +1203,35 @@
     },
     "command_entity_changes": {
       "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "creates"
+          ]
+        },
+        {
+          "required": [
+            "updates"
+          ]
+        },
+        {
+          "required": [
+            "deletes"
+          ]
+        },
+        {
+          "required": [
+            "entity_lifecycle_transition"
+          ]
+        }
+      ],
+      "minProperties": 1,
       "properties": {
         "creates": {
           "items": {
             "$ref": "#/$defs/entity_type_ref"
           },
+          "minItems": 1,
           "type": "array",
           "uniqueItems": true
         },
@@ -1215,6 +1239,7 @@
           "items": {
             "$ref": "#/$defs/entity_type_ref"
           },
+          "minItems": 1,
           "type": "array",
           "uniqueItems": true
         },
@@ -1228,10 +1253,10 @@
               "$ref": "#/$defs/field_name"
             },
             "from": {
-              "type": "string"
+              "$ref": "#/$defs/local_name"
             },
             "to": {
-              "type": "string"
+              "$ref": "#/$defs/local_name"
             }
           },
           "required": [
@@ -1246,6 +1271,7 @@
           "items": {
             "$ref": "#/$defs/entity_type_ref"
           },
+          "minItems": 1,
           "type": "array",
           "uniqueItems": true
         }

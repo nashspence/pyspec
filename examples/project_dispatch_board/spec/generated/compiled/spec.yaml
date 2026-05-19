@@ -807,7 +807,9 @@ commands:
       authentication_required_as: authentication_required
       policy: access_policy.project.reviewer
     emits_domain_events: []
-    entity_changes: {}
+    entity_changes:
+      updates:
+      - entity_type.project
     idempotent: true
     input_schema:
       additionalProperties: false
