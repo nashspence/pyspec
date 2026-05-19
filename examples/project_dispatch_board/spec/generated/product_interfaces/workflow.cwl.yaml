@@ -1,14 +1,15 @@
 $graph:
 - class: Workflow
   doc: 'BPMN-like contract workflow workflow.project.approval_notice; inputs={''domain_event'': ''domain_event.project.approved''};
-    activities=[''send_notice'']; gateways=[]; sequence_flows={''send_notice_delivery_failed'': {''source_activity'': ''send_notice'',
-    ''source_outcome'': ''delivery_failed'', ''retry_policy'': {''attempts'': 3, ''backoff'': ''exponential'', ''fail_as'':
-    ''delivery_failed''}}, ''send_notice_access_denied'': {''source_activity'': ''send_notice'', ''source_outcome'': ''access_denied'',
-    ''fail_as'': ''notice_access_denied''}, ''send_notice_sent'': {''source_activity'': ''send_notice'', ''source_outcome'':
-    ''sent'', ''complete_as'': ''completed''}, ''send_notice_authentication_required'': {''source_activity'': ''send_notice'',
-    ''source_outcome'': ''authentication_required'', ''fail_as'': ''notice_authentication_required''}}; outputs=[''completed'',
-    ''delivery_failed'', ''notice_access_denied'', ''notice_authentication_required'']; ref=workflow.project.approval_notice;
-    projected_to=CWL'
+    activities=[''send_notice'']; gateways=[''notice_success'']; sequence_flows={''send_notice_delivery_failed'': {''source_ref'':
+    {''activity'': ''send_notice''}, ''source_result'': ''delivery_failed'', ''target_ref'': {''terminal'': ''delivery_failed''},
+    ''retry_policy'': {''attempts'': 3, ''backoff'': ''exponential''}}, ''send_notice_access_denied'': {''source_ref'': {''activity'':
+    ''send_notice''}, ''source_result'': ''access_denied'', ''target_ref'': {''terminal'': ''notice_access_denied''}}, ''send_notice_sent'':
+    {''source_ref'': {''activity'': ''send_notice''}, ''source_result'': ''sent'', ''target_ref'': {''gateway'': ''notice_success''}},
+    ''notice_success_completed'': {''source_ref'': {''gateway'': ''notice_success''}, ''target_ref'': {''terminal'': ''completed''}},
+    ''send_notice_authentication_required'': {''source_ref'': {''activity'': ''send_notice''}, ''source_result'': ''authentication_required'',
+    ''target_ref'': {''terminal'': ''notice_authentication_required''}}}; outputs=[''completed'', ''delivery_failed'', ''notice_access_denied'',
+    ''notice_authentication_required'']; ref=workflow.project.approval_notice; projected_to=CWL'
   id: '#workflow_project_approval_notice'
   inputs:
     workflow_input_payload:
@@ -26,12 +27,13 @@ $graph:
   steps:
     send_notice:
       doc: 'activity=send_notice; input_mapping={''approved_by'': {''from'': ''$workflow_input.payload.approved_by''}, ''project_id'':
-        {''from'': ''$workflow_input.payload.project_id''}}; sequence_flows={''send_notice_delivery_failed'': {''source_activity'':
-        ''send_notice'', ''source_outcome'': ''delivery_failed'', ''retry_policy'': {''attempts'': 3, ''backoff'': ''exponential'',
-        ''fail_as'': ''delivery_failed''}}, ''send_notice_access_denied'': {''source_activity'': ''send_notice'', ''source_outcome'':
-        ''access_denied'', ''fail_as'': ''notice_access_denied''}, ''send_notice_sent'': {''source_activity'': ''send_notice'',
-        ''source_outcome'': ''sent'', ''complete_as'': ''completed''}, ''send_notice_authentication_required'': {''source_activity'':
-        ''send_notice'', ''source_outcome'': ''authentication_required'', ''fail_as'': ''notice_authentication_required''}}'
+        {''from'': ''$workflow_input.payload.project_id''}}; sequence_flows={''send_notice_delivery_failed'': {''source_ref'':
+        {''activity'': ''send_notice''}, ''source_result'': ''delivery_failed'', ''target_ref'': {''terminal'': ''delivery_failed''},
+        ''retry_policy'': {''attempts'': 3, ''backoff'': ''exponential''}}, ''send_notice_access_denied'': {''source_ref'':
+        {''activity'': ''send_notice''}, ''source_result'': ''access_denied'', ''target_ref'': {''terminal'': ''notice_access_denied''}},
+        ''send_notice_sent'': {''source_ref'': {''activity'': ''send_notice''}, ''source_result'': ''sent'', ''target_ref'':
+        {''gateway'': ''notice_success''}}, ''send_notice_authentication_required'': {''source_ref'': {''activity'': ''send_notice''},
+        ''source_result'': ''authentication_required'', ''target_ref'': {''terminal'': ''notice_authentication_required''}}}'
       in:
         approved_by: workflow_input_payload
         project_id: workflow_input_payload

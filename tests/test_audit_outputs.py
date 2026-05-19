@@ -443,8 +443,10 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "access_policy.project.reviewer" in workflow_activity
     assert "success workflow outcome" in workflow
     assert "failure workflow outcome" in workflow
-    assert "sent: complete_as → completed" in workflow
-    assert "delivery_failed: retry_policy → delivery_failed" in workflow
+    assert "workflow gateway" in workflow
+    assert "sent: gateway → notice_success" in workflow
+    assert "notice_success_completed: terminal → completed" in workflow
+    assert "delivery_failed: retry_policy → terminal → delivery_failed" in workflow
     for graph_id, dot_source in {"state_machine_project_list": state_machine, "project_board": composition, "html_project_board": external_interface, "api_project_create": api_external_interface, "cli_project_approve": cli_approve_external_interface, "project_approval_notice": workflow}.items():
         svg = _render_graphviz_svg(dot_source, graph_id)
         assert svg.lstrip().startswith("<svg")

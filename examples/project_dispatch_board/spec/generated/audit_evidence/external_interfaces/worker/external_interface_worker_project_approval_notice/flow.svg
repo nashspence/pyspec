@@ -1,6 +1,6 @@
 <svg width="830pt" height="218pt"
  viewBox="0.00 0.00 830.00 218.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 7636040e414bd721f9f886a68aa876a139dade81de11f8f46a15bafad5933ab0 -->
+<!-- pyspec-contract-input-sha256: cecbd1a700961a59c501a3cda24449e5f235c5bdbd1c0758acaf6a759f15a56a -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 200)">
 <title>external_interface_external_interface_worker_project_approval_notice</title>
 <!-- external_interface_external_interface_worker_project_approval_notice -->
@@ -37,7 +37,7 @@
 <text text-anchor="start" x="303" y="-99" font-family="Arial" font-weight="bold" font-size="10.00">activities:</text>
 <text text-anchor="start" x="348" y="-99" font-family="Arial" font-size="10.00">  send_notice → command.project.send_approval_notice</text>
 <text text-anchor="start" x="303" y="-87" font-family="Arial" font-weight="bold" font-size="10.00">gateways:</text>
-<text text-anchor="start" x="349" y="-87" font-family="Arial" font-size="10.00">  none</text>
+<text text-anchor="start" x="349" y="-87" font-family="Arial" font-size="10.00">  notice_success</text>
 <text text-anchor="start" x="302" y="-67" font-family="Arial" font-weight="bold" font-size="10.00">outcomes</text>
 <text text-anchor="start" x="302" y="-56" font-family="Arial" font-size="10.00">completed</text>
 <text text-anchor="start" x="348" y="-56" font-family="Arial" font-size="8.00" fill="#94a3b8">  schema.project.notice_result</text>

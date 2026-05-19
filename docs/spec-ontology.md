@@ -88,7 +88,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `idempotency`: validation that a retry policy applies only to an idempotent delegated external interface and final invocation, a query, an explicitly idempotent command or external interface, or an ingress/disposition outcome where no invoked command has executed. Transport retry, ingress retry, workflow retry, and command retry are separate scopes.
 - `workflow_activity`: a BPMN-like workflow activity that invokes a command with an `input_mapping`.
 - `workflow_gateway`: a BPMN-like workflow branching or joining node. Gateways are explicit workflow elements even when a simple workflow has none.
-- `workflow_sequence_flow`: a top-level BPMN-like workflow control-flow edge from `source_activity` and `source_outcome` to exactly one of `target_activity`, `complete_as`, `fail_as`, `retry_policy`, or `dead_letter_as`.
+- `workflow_sequence_flow`: a top-level BPMN-like workflow control-flow edge from `source_ref` (`activity` or `gateway`) to `target_ref` (`activity`, `gateway`, or terminal workflow outcome). Activity-sourced flows use `source_result` to map command outcomes; gateway-sourced flows may use `condition` expressions and may not use `source_result`.
 - `state-machine context schema`: local machine context declared as JSON Schema object `properties` and `required`. Nullability uses JSON Schema type arrays such as `type: [string, null]`; local_effects may set a context field to null only when that field schema allows null.
 - `context_non_null`: state-machine condition meaning the declared context field exists in the current context and its value is not `null`. JSON Schema property presence remains separate: `required` means a property is present even when its value is `null`.
 - `selected.condition`: child state-machine selected-state guard. It uses state-machine condition vocabulary and does not reuse BDD `when`.
@@ -483,6 +483,8 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:workflow_ref --> `$defs/workflow_ref`: typed reference definition for its namespace.
 - <!-- schema-def:workflow_retry_policy --> `$defs/workflow_retry_policy`: BPMN-like workflow input, activity, gateway, sequence-flow, retry, output, or binding contract component.
 - <!-- schema-def:workflow_sequence_flow --> `$defs/workflow_sequence_flow`: BPMN-like workflow input, activity, gateway, sequence-flow, retry, output, or binding contract component.
+- <!-- schema-def:workflow_sequence_flow_source_ref --> `$defs/workflow_sequence_flow_source_ref`: workflow sequence-flow source reference to an activity or gateway.
+- <!-- schema-def:workflow_sequence_flow_target_ref --> `$defs/workflow_sequence_flow_target_ref`: workflow sequence-flow target reference to an activity, gateway, or terminal workflow outcome.
 - <!-- schema-def:workflow_activity --> `$defs/workflow_activity`: BPMN-like workflow activity contract component.
 - <!-- schema-def:workflow_gateway --> `$defs/workflow_gateway`: BPMN-like workflow gateway contract component.
 - <!-- schema-def:workflow_input_source --> `$defs/workflow_input_source`: BPMN-like workflow input, activity, gateway, sequence-flow, retry, output, or binding contract component.

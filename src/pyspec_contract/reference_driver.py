@@ -19,11 +19,34 @@ from .targets import (
 from .json_schema import entity_type_id, schema_properties
 
 
-def _workflow_sequence_flow_for_activity_outcome(workflow: dict[str, Any], activity_id: str, outcome_id: str) -> dict[str, Any]:
+def _workflow_sequence_flow_for_activity_result(workflow: dict[str, Any], activity_id: str, outcome_id: str) -> dict[str, Any]:
     for sequence_flow in workflow["sequence_flows"].values():
-        if sequence_flow["source_activity"] == activity_id and sequence_flow["source_outcome"] == outcome_id:
+        if sequence_flow["source_ref"].get("activity") == activity_id and sequence_flow.get("source_result") == outcome_id:
             return sequence_flow
     raise AssertionError(f"Workflow activity {activity_id} has no sequence_flow for outcome {outcome_id}")
+
+
+def _workflow_sequence_flow_for_gateway(workflow: dict[str, Any], gateway_id: str, namespace: Mapping[str, Any]) -> dict[str, Any]:
+    fallback: dict[str, Any] | None = None
+    for sequence_flow in workflow["sequence_flows"].values():
+        if sequence_flow["source_ref"].get("gateway") != gateway_id:
+            continue
+        condition = sequence_flow.get("condition")
+        if condition is None:
+            fallback = sequence_flow
+            continue
+        try:
+            if _resolve_binding(condition, namespace):
+                return sequence_flow
+        except (KeyError, TypeError):
+            continue
+    if fallback is not None:
+        return fallback
+    raise AssertionError(f"Workflow gateway {gateway_id} has no matching sequence_flow")
+
+
+def _workflow_sequence_flow_target_ref(sequence_flow: Mapping[str, Any]) -> tuple[str, str]:
+    return next(iter(sequence_flow["target_ref"].items()))
 
 
 class ReferenceSpecDriver:
@@ -399,25 +422,23 @@ class ReferenceSpecDriver:
 
     def _run_workflow(self, workflow: dict[str, Any], payload: dict[str, Any]) -> str:
         activity_by_id = {activity["id"]: activity for activity in workflow["activities"]}
-        current = workflow["activities"][0]["id"]
+        current_kind = "activity"
+        current_id = workflow["activities"][0]["id"]
         namespace: dict[str, Any] = {"workflow_input": {"payload": payload}, "activity_outcome": {}}
         while True:
-            activity = activity_by_id[current]
-            input_values = {name: _resolve_binding(source, namespace) for name, source in activity["input_mapping"].items()}
-            result = self._invoke(activity["command"], input_values)
-            outcome_id = self.last_outcome
-            assert outcome_id is not None
-            namespace["activity_outcome"].setdefault(activity["id"], {})[outcome_id] = {"result": result}
-            transition = _workflow_sequence_flow_for_activity_outcome(workflow, activity["id"], outcome_id)
-            if "complete_as" in transition:
-                return transition["complete_as"]
-            if "fail_as" in transition:
-                return transition["fail_as"]
-            if "retry_policy" in transition:
-                return transition["retry_policy"]["fail_as"]
-            if "dead_letter_as" in transition:
-                return transition["dead_letter_as"]
-            current = transition["target_activity"]
+            if current_kind == "activity":
+                activity = activity_by_id[current_id]
+                input_values = {name: _resolve_binding(source, namespace) for name, source in activity["input_mapping"].items()}
+                result = self._invoke(activity["command"], input_values)
+                outcome_id = self.last_outcome
+                assert outcome_id is not None
+                namespace["activity_outcome"].setdefault(activity["id"], {})[outcome_id] = {"result": result}
+                transition = _workflow_sequence_flow_for_activity_result(workflow, activity["id"], outcome_id)
+            else:
+                transition = _workflow_sequence_flow_for_gateway(workflow, current_id, namespace)
+            current_kind, current_id = _workflow_sequence_flow_target_ref(transition)
+            if current_kind == "terminal":
+                return current_id
 
     def _event_payload_from_emit(
         self,

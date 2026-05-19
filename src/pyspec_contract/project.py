@@ -676,7 +676,7 @@ def workflows_projection(contract: dict[str, Any]) -> dict[str, Any]:
             sequence_flows = {
                 sequence_flow_id: sequence_flow
                 for sequence_flow_id, sequence_flow in workflow["sequence_flows"].items()
-                if sequence_flow["source_activity"] == activity["id"]
+                if sequence_flow["source_ref"].get("activity") == activity["id"]
             }
             steps[activity["id"]] = {
                 "doc": f"activity={activity['id']}; input_mapping={activity['input_mapping']}; sequence_flows={sequence_flows}",

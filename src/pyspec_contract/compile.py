@@ -3905,18 +3905,23 @@ def _validate_workflows(contract: dict[str, Any]) -> None:
         if len(activity_ids) != len(set(activity_ids)):
             raise ContractError(f"Workflow {wid} activity ids must be unique")
         activity_id_set = set(activity_ids)
+        gateway_id_set = set(workflow["gateways"])
         for sequence_flow_id, sequence_flow in workflow["sequence_flows"].items():
-            if sequence_flow["source_activity"] not in activity_id_set:
-                raise ContractError(f"Workflow {wid} sequence_flow {sequence_flow_id} references unknown source activity {sequence_flow['source_activity']}")
+            _validate_workflow_sequence_flow_refs(wid, sequence_flow_id, sequence_flow, activity_id_set, gateway_id_set, set(workflow["outputs"]))
         source_types = _workflow_input_source_types(contract, wid, workflow)
+        condition_source_types = copy.deepcopy(source_types)
+        for activity in workflow["activities"]:
+            if activity["command"] in _command_query_map(contract):
+                _merge_type_scopes(condition_source_types, _workflow_activity_source_types(contract, activity, _command_query_map(contract)[activity["command"]]))
         terminal_outcomes: set[str] = set()
         for activity in workflow["activities"]:
             if activity["command"] not in _command_query_map(contract):
                 raise ContractError(f"Workflow {wid} activity references unknown command {activity['command']}")
             behavior = _command_query_map(contract)[activity["command"]]
             _validate_workflow_activity_bindings(contract, wid, activity, behavior, source_types)
-            terminal_outcomes.update(_validate_workflow_activity_sequence_flows(wid, workflow, activity, behavior, activity_id_set))
+            terminal_outcomes.update(_validate_workflow_activity_sequence_flows(wid, workflow, activity, behavior, activity_id_set, gateway_id_set))
             _merge_type_scopes(source_types, _workflow_activity_source_types(contract, activity, behavior))
+        terminal_outcomes.update(_validate_workflow_gateway_sequence_flows(contract, wid, workflow, gateway_id_set, condition_source_types))
         if terminal_outcomes != set(workflow["outputs"]):
             missing = sorted(set(workflow["outputs"]) - terminal_outcomes)
             extra = sorted(terminal_outcomes - set(workflow["outputs"]))
@@ -3925,7 +3930,7 @@ def _validate_workflows(contract: dict[str, Any]) -> None:
                 parts.append("missing output sequence_flows: " + ", ".join(missing))
             if extra:
                 parts.append("unknown output sequence_flows: " + ", ".join(extra))
-            raise ContractError(f"Workflow {wid} outputs must be reachable from activity sequence_flows" + (": " + "; ".join(parts) if parts else ""))
+            raise ContractError(f"Workflow {wid} outputs must be reachable from sequence_flows" + (": " + "; ".join(parts) if parts else ""))
 
 
 def _validate_workflow_outputs(workflow_id: str, workflow: dict[str, Any]) -> None:
@@ -3967,25 +3972,46 @@ def _workflow_activity_source_types(contract: dict[str, Any], activity: dict[str
     return {"activity_outcome": sources}
 
 
-WORKFLOW_SEQUENCE_FLOW_KEYS = ("target_activity", "complete_as", "fail_as", "retry_policy", "dead_letter_as")
+def _workflow_sequence_flow_source_ref(sequence_flow: dict[str, Any]) -> tuple[str, str]:
+    return _one(sequence_flow["source_ref"], "workflow sequence_flow source_ref")
 
 
-def _workflow_sequence_flow_choice(sequence_flow: dict[str, Any]) -> tuple[str, Any]:
-    keys = [key for key in WORKFLOW_SEQUENCE_FLOW_KEYS if key in sequence_flow]
-    if len(keys) != 1:
-        raise ContractError(
-            "workflow sequence_flow must declare exactly one of "
-            + ", ".join(WORKFLOW_SEQUENCE_FLOW_KEYS)
-        )
-    key = keys[0]
-    return key, sequence_flow[key]
+def _workflow_sequence_flow_target_ref(sequence_flow: dict[str, Any]) -> tuple[str, str]:
+    return _one(sequence_flow["target_ref"], "workflow sequence_flow target_ref")
 
 
-def _workflow_sequence_flow_outcome(sequence_flow_key: str, value: Any) -> str | None:
-    if sequence_flow_key in {"complete_as", "fail_as", "dead_letter_as"}:
-        return value
-    if sequence_flow_key == "retry_policy":
-        return value["fail_as"]
+def _validate_workflow_sequence_flow_refs(
+    workflow_id: str,
+    sequence_flow_id: str,
+    sequence_flow: dict[str, Any],
+    activity_ids: set[str],
+    gateway_ids: set[str],
+    output_ids: set[str],
+) -> None:
+    source_kind, source_id = _workflow_sequence_flow_source_ref(sequence_flow)
+    if source_kind == "activity" and source_id not in activity_ids:
+        raise ContractError(f"Workflow {workflow_id} sequence_flow {sequence_flow_id} references unknown source activity {source_id}")
+    if source_kind == "gateway" and source_id not in gateway_ids:
+        raise ContractError(f"Workflow {workflow_id} sequence_flow {sequence_flow_id} references unknown source gateway {source_id}")
+    target_kind, target_id = _workflow_sequence_flow_target_ref(sequence_flow)
+    if target_kind == "activity" and target_id not in activity_ids:
+        raise ContractError(f"Workflow {workflow_id} sequence_flow {sequence_flow_id} references unknown target activity {target_id}")
+    if target_kind == "gateway" and target_id not in gateway_ids:
+        raise ContractError(f"Workflow {workflow_id} sequence_flow {sequence_flow_id} references unknown target gateway {target_id}")
+    if target_kind == "terminal" and target_id not in output_ids:
+        raise ContractError(f"Workflow {workflow_id} sequence_flow {sequence_flow_id} references unknown workflow outcome {target_id}")
+    if source_kind == "gateway" and "source_result" in sequence_flow:
+        raise ContractError(f"Workflow {workflow_id} sequence_flow {sequence_flow_id} source_result is only valid for activity sources")
+    if source_kind == "activity" and "source_result" not in sequence_flow:
+        raise ContractError(f"Workflow {workflow_id} sequence_flow {sequence_flow_id} activity source requires source_result")
+    if source_kind == target_kind and source_id == target_id:
+        raise ContractError(f"Workflow {workflow_id} sequence_flow {sequence_flow_id} cannot loop to itself")
+
+
+def _workflow_sequence_flow_terminal(sequence_flow: dict[str, Any]) -> str | None:
+    target_kind, target_id = _workflow_sequence_flow_target_ref(sequence_flow)
+    if target_kind == "terminal":
+        return target_id
     return None
 
 
@@ -4028,21 +4054,22 @@ def _validate_workflow_activity_sequence_flows(
     activity: dict[str, Any],
     command: dict[str, Any],
     activity_ids: set[str],
+    gateway_ids: set[str],
 ) -> set[str]:
     sequence_flows = {
         sequence_flow_id: sequence_flow
         for sequence_flow_id, sequence_flow in workflow["sequence_flows"].items()
-        if sequence_flow["source_activity"] == activity["id"]
+        if sequence_flow["source_ref"].get("activity") == activity["id"]
     }
     flow_by_outcome: dict[str, tuple[str, dict[str, Any]]] = {}
     duplicate_outcomes: list[str] = []
     for sequence_flow_id, sequence_flow in sequence_flows.items():
-        source_outcome = sequence_flow["source_outcome"]
-        if source_outcome in flow_by_outcome:
-            duplicate_outcomes.append(source_outcome)
-        flow_by_outcome[source_outcome] = (sequence_flow_id, sequence_flow)
+        source_result = sequence_flow["source_result"]
+        if source_result in flow_by_outcome:
+            duplicate_outcomes.append(source_result)
+        flow_by_outcome[source_result] = (sequence_flow_id, sequence_flow)
     if duplicate_outcomes:
-        raise ContractError(f"Workflow {workflow_id} activity {activity['id']} sequence_flows duplicate source_outcome: {', '.join(sorted(duplicate_outcomes))}")
+        raise ContractError(f"Workflow {workflow_id} activity {activity['id']} sequence_flows duplicate source_result: {', '.join(sorted(duplicate_outcomes))}")
     if set(flow_by_outcome) != set(command["outcomes"]):
         missing = sorted(set(command["outcomes"]) - set(flow_by_outcome))
         extra = sorted(set(flow_by_outcome) - set(command["outcomes"]))
@@ -4055,25 +4082,24 @@ def _validate_workflow_activity_sequence_flows(
 
     terminal_outcomes: set[str] = set()
     for outcome_id, (sequence_flow_id, sequence_flow) in flow_by_outcome.items():
-        try:
-            sequence_flow_key, value = _workflow_sequence_flow_choice(sequence_flow)
-        except ContractError as exc:
-            raise ContractError(f"Workflow {workflow_id} activity {activity['id']} sequence_flow {sequence_flow_id} {exc}") from exc
         outcome = command["outcomes"][outcome_id]
-        if sequence_flow_key == "target_activity":
-            target_activity = value
-            if target_activity not in activity_ids:
-                raise ContractError(f"Workflow {workflow_id} activity {activity['id']} sequence_flow {sequence_flow_id} references unknown target activity {target_activity}")
-            if target_activity == activity["id"]:
+        if "condition" in sequence_flow:
+            raise ContractError(f"Workflow {workflow_id} activity {activity['id']} sequence_flow {sequence_flow_id} condition is only valid for gateway sources")
+        target_kind, target_id = _workflow_sequence_flow_target_ref(sequence_flow)
+        if target_kind == "activity":
+            if target_id not in activity_ids:
+                raise ContractError(f"Workflow {workflow_id} activity {activity['id']} sequence_flow {sequence_flow_id} references unknown target activity {target_id}")
+            if target_id == activity["id"]:
                 raise ContractError(f"Workflow {workflow_id} activity {activity['id']} sequence_flow {sequence_flow_id} cannot loop to itself")
+        elif target_kind == "gateway":
+            if target_id not in gateway_ids:
+                raise ContractError(f"Workflow {workflow_id} activity {activity['id']} sequence_flow {sequence_flow_id} references unknown target gateway {target_id}")
         else:
-            routed_outcome_id = _workflow_sequence_flow_outcome(sequence_flow_key, value)
-            assert routed_outcome_id is not None
+            routed_outcome_id = target_id
             routed_outcome = workflow["outputs"].get(routed_outcome_id)
             if not routed_outcome:
                 raise ContractError(f"Workflow {workflow_id} activity {activity['id']} sequence_flow {sequence_flow_id} references unknown workflow outcome {routed_outcome_id}")
-            expected_kind = "success" if sequence_flow_key == "complete_as" else "failure"
-            if outcome["kind"] != expected_kind or routed_outcome["kind"] != expected_kind:
+            if outcome["kind"] != routed_outcome["kind"]:
                 raise ContractError(f"Workflow {workflow_id} activity {activity['id']} sequence_flow {sequence_flow_id} must preserve {outcome['kind']} outcome semantics")
             if not type_equals(routed_outcome["result"], outcome["result"]):
                 raise ContractError(
@@ -4085,19 +4111,61 @@ def _validate_workflow_activity_sequence_flows(
                     f"Workflow {workflow_id} activity {activity['id']} sequence_flow {sequence_flow_id} collapses authorization failure into {routed_outcome_id}; declare an explicit authorization outcome or add rationale"
                 )
             terminal_outcomes.add(routed_outcome_id)
-        if sequence_flow_key == "retry_policy":
+        if "retry_policy" in sequence_flow:
             if outcome["kind"] != "failure":
                 raise ContractError(f"Workflow {workflow_id} activity {activity['id']} sequence_flow {sequence_flow_id} retry_policy is only valid for failure outcomes")
+            if target_kind != "terminal":
+                raise ContractError(f"Workflow {workflow_id} activity {activity['id']} sequence_flow {sequence_flow_id} retry_policy requires a terminal target_ref")
             if not _command_idempotent(command):
                 raise ContractError(
                     f"Workflow {workflow_id} activity {activity['id']} sequence_flow {sequence_flow_id} retry_policy requires "
                     "a query or idempotent invoked behavior"
                 )
-            retry = value
+            retry = sequence_flow["retry_policy"]
             if retry["attempts"] < 1 or retry["attempts"] > 10:
                 raise ContractError(f"Workflow {workflow_id} activity {activity['id']} sequence_flow {sequence_flow_id} retry_policy attempts must be between 1 and 10")
-        if sequence_flow_key == "dead_letter_as" and outcome["kind"] != "failure":
-            raise ContractError(f"Workflow {workflow_id} activity {activity['id']} sequence_flow {sequence_flow_id} dead_letter_as is only valid for failure outcomes")
+    return terminal_outcomes
+
+
+def _validate_workflow_gateway_sequence_flows(
+    contract: dict[str, Any],
+    workflow_id: str,
+    workflow: dict[str, Any],
+    gateway_ids: set[str],
+    source_types: TypeScopes,
+) -> set[str]:
+    terminal_outcomes: set[str] = set()
+    incoming = {gateway_id: 0 for gateway_id in gateway_ids}
+    outgoing: dict[str, list[tuple[str, dict[str, Any]]]] = {gateway_id: [] for gateway_id in gateway_ids}
+    for sequence_flow_id, sequence_flow in workflow["sequence_flows"].items():
+        source_kind, source_id = _workflow_sequence_flow_source_ref(sequence_flow)
+        target_kind, target_id = _workflow_sequence_flow_target_ref(sequence_flow)
+        if target_kind == "gateway":
+            incoming[target_id] = incoming.get(target_id, 0) + 1
+        if source_kind == "gateway":
+            outgoing.setdefault(source_id, []).append((sequence_flow_id, sequence_flow))
+        terminal = _workflow_sequence_flow_terminal(sequence_flow)
+        if terminal is not None:
+            terminal_outcomes.add(terminal)
+    for gateway_id in sorted(gateway_ids):
+        if incoming.get(gateway_id, 0) == 0:
+            raise ContractError(f"Workflow {workflow_id} gateway {gateway_id} must have at least one incoming sequence_flow")
+        if not outgoing.get(gateway_id):
+            raise ContractError(f"Workflow {workflow_id} gateway {gateway_id} must have at least one outgoing sequence_flow")
+    for gateway_id, sequence_flows in outgoing.items():
+        unconditional = [sequence_flow_id for sequence_flow_id, sequence_flow in sequence_flows if "condition" not in sequence_flow]
+        if len(unconditional) > 1:
+            raise ContractError(f"Workflow {workflow_id} gateway {gateway_id} sequence_flows must not declare multiple unconditional branches")
+        for sequence_flow_id, sequence_flow in sequence_flows:
+            if "condition" in sequence_flow:
+                _expression_type(
+                    contract,
+                    sequence_flow["condition"],
+                    source_types,
+                    f"Workflow {workflow_id} gateway {gateway_id} sequence_flow {sequence_flow_id} condition",
+                )
+            if "retry_policy" in sequence_flow:
+                raise ContractError(f"Workflow {workflow_id} gateway {gateway_id} sequence_flow {sequence_flow_id} retry_policy is only valid for activity result sequence_flows")
     return terminal_outcomes
 
 

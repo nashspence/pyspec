@@ -923,8 +923,8 @@ def test_workflow_input_mapping_supports_binding_sources_and_literal_values() ->
                 ],
                 "gateways": {},
                 "sequence_flows": {
-                    "notify_sent": {"source_activity": "notify", "source_outcome": "sent", "complete_as": "completed"},
-                    "notify_failed": {"source_activity": "notify", "source_outcome": "failed", "fail_as": "failed"},
+                    "notify_sent": {"source_ref": {"activity": "notify"}, "source_result": "sent", "target_ref": {"terminal": "completed"}},
+                    "notify_failed": {"source_ref": {"activity": "notify"}, "source_result": "failed", "target_ref": {"terminal": "failed"}},
                 },
                 "retry_policies": {},
                 "failure_handlers": {},
@@ -2175,7 +2175,11 @@ def test_workflow_authorization_failure_collapse_requires_rationale() -> None:
     author = _author()
     workflow = author["workflows"]["workflow.project.approval_notice"]
     del workflow["outputs"]["notice_access_denied"]
-    workflow["sequence_flows"]["send_notice_access_denied"] = {"source_activity": "send_notice", "source_outcome": "access_denied", "fail_as": "delivery_failed"}
+    workflow["sequence_flows"]["send_notice_access_denied"] = {
+        "source_ref": {"activity": "send_notice"},
+        "source_result": "access_denied",
+        "target_ref": {"terminal": "delivery_failed"},
+    }
     with pytest.raises(ContractError, match=r"collapses authorization failure into delivery_failed"):
         compile_source(author)
 
@@ -2183,10 +2187,10 @@ def test_workflow_authorization_failure_collapse_requires_rationale() -> None:
     compile_source(author)
 
 
-def test_workflow_sequence_flow_choices_must_be_exclusive() -> None:
+def test_workflow_sequence_flow_target_refs_must_be_exclusive() -> None:
     author = _author()
     transition = author["workflows"]["workflow.project.approval_notice"]["sequence_flows"]["send_notice_delivery_failed"]
-    transition["fail_as"] = "delivery_failed"
+    transition["target_ref"]["activity"] = "send_notice"
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
@@ -2194,7 +2198,7 @@ def test_workflow_sequence_flow_choices_must_be_exclusive() -> None:
 def test_workflow_sequence_flows_must_reference_known_outputs() -> None:
     author = _author()
     transition = author["workflows"]["workflow.project.approval_notice"]["sequence_flows"]["send_notice_delivery_failed"]
-    transition["retry_policy"]["fail_as"] = "missing"
+    transition["target_ref"]["terminal"] = "missing"
     with pytest.raises(ContractError, match=r"sequence_flow send_notice_delivery_failed references unknown workflow outcome missing"):
         compile_source(author)
 

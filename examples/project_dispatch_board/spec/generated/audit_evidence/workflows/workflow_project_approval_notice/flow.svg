@@ -1,176 +1,199 @@
-<svg width="1306pt" height="482pt"
- viewBox="0.00 0.00 1306.00 482.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: db130fbed5d1349b9bcec665ff9f93826874061981a9176cf88c5cf26983a48b -->
+<svg width="1734pt" height="482pt"
+ viewBox="0.00 0.00 1734.00 482.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: b183dac863bf13299c7e15bb40e859ad4d58741d4380ec671ba2ae80fc41db64 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 464)">
 <title>workflow_workflow_project_approval_notice</title>
 <!-- workflow_input_domain_event_domain_event_project_approved -->
 <g id="node1" class="node">
 <title>workflow_input_domain_event_domain_event_project_approved</title>
-<polygon fill="#ffffff" stroke="transparent" points="0,-149.5 0,-253.5 223,-253.5 223,-149.5 0,-149.5"/>
-<polygon fill="#4f46e5" stroke="transparent" points="1.5,-244.5 1.5,-252.5 222.5,-252.5 222.5,-244.5 1.5,-244.5"/>
-<polygon fill="#eef2ff" stroke="transparent" points="1.5,-213.5 1.5,-244.5 222.5,-244.5 222.5,-213.5 1.5,-213.5"/>
-<text text-anchor="start" x="5.5" y="-231.1" font-family="Arial" font-weight="bold" font-size="13.00">domain_event.project.approved</text>
-<text text-anchor="start" x="5.5" y="-220.1" font-family="Arial" font-size="8.00" fill="#64748b">domain event input</text>
-<text text-anchor="start" x="5.5" y="-202.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approval domain events carry the reviewer and</text>
-<text text-anchor="start" x="5.5" y="-191.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">project identity needed by notification workflows.</text>
-<text text-anchor="start" x="6.5" y="-171.5" font-family="Arial" font-weight="bold" font-size="10.00">payload:</text>
-<text text-anchor="start" x="46.5" y="-171.5" font-family="Arial" font-size="10.00">  payload</text>
-<text text-anchor="start" x="86.5" y="-171.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  schema.project.approved</text>
-<text text-anchor="start" x="6.5" y="-159.5" font-family="Arial" font-weight="bold" font-size="10.00">emitted by:</text>
-<text text-anchor="start" x="58.5" y="-159.5" font-family="Arial" font-size="10.00">  command.project.approve</text>
-<polygon fill="none" stroke="#4f46e5" points="0,-149.5 0,-253.5 223,-253.5 223,-149.5 0,-149.5"/>
+<polygon fill="#ffffff" stroke="transparent" points="0,-148.5 0,-252.5 223,-252.5 223,-148.5 0,-148.5"/>
+<polygon fill="#4f46e5" stroke="transparent" points="1.5,-243.5 1.5,-251.5 222.5,-251.5 222.5,-243.5 1.5,-243.5"/>
+<polygon fill="#eef2ff" stroke="transparent" points="1.5,-212.5 1.5,-243.5 222.5,-243.5 222.5,-212.5 1.5,-212.5"/>
+<text text-anchor="start" x="5.5" y="-230.1" font-family="Arial" font-weight="bold" font-size="13.00">domain_event.project.approved</text>
+<text text-anchor="start" x="5.5" y="-219.1" font-family="Arial" font-size="8.00" fill="#64748b">domain event input</text>
+<text text-anchor="start" x="5.5" y="-201.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approval domain events carry the reviewer and</text>
+<text text-anchor="start" x="5.5" y="-190.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">project identity needed by notification workflows.</text>
+<text text-anchor="start" x="6.5" y="-170.5" font-family="Arial" font-weight="bold" font-size="10.00">payload:</text>
+<text text-anchor="start" x="46.5" y="-170.5" font-family="Arial" font-size="10.00">  payload</text>
+<text text-anchor="start" x="86.5" y="-170.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  schema.project.approved</text>
+<text text-anchor="start" x="6.5" y="-158.5" font-family="Arial" font-weight="bold" font-size="10.00">emitted by:</text>
+<text text-anchor="start" x="58.5" y="-158.5" font-family="Arial" font-size="10.00">  command.project.approve</text>
+<polygon fill="none" stroke="#4f46e5" points="0,-148.5 0,-252.5 223,-252.5 223,-148.5 0,-148.5"/>
 </g>
 <!-- workflow_workflow_project_approval_notice -->
 <g id="node2" class="node">
 <title>workflow_workflow_project_approval_notice</title>
-<polygon fill="#ffffff" stroke="transparent" points="286,-117.5 286,-285.5 590,-285.5 590,-117.5 286,-117.5"/>
-<polygon fill="#a16207" stroke="transparent" points="287,-276.5 287,-284.5 589,-284.5 589,-276.5 287,-276.5"/>
-<polygon fill="#fefce8" stroke="transparent" points="287,-245.5 287,-276.5 589,-276.5 589,-245.5 287,-245.5"/>
-<text text-anchor="start" x="291" y="-263.1" font-family="Arial" font-weight="bold" font-size="13.00">workflow.project.approval_notice</text>
-<text text-anchor="start" x="291" y="-252.1" font-family="Arial" font-size="8.00" fill="#64748b">workflow</text>
-<text text-anchor="start" x="291" y="-234.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approval domain event sends a downstream notice.</text>
-<text text-anchor="start" x="292" y="-214.5" font-family="Arial" font-weight="bold" font-size="10.00">ref:</text>
-<text text-anchor="start" x="308" y="-214.5" font-family="Arial" font-size="10.00">  workflow.project.approval_notice</text>
-<text text-anchor="start" x="292" y="-202.5" font-family="Arial" font-weight="bold" font-size="10.00">activities:</text>
-<text text-anchor="start" x="337" y="-202.5" font-family="Arial" font-size="10.00">  send_notice → command.project.send_approval_notice</text>
-<text text-anchor="start" x="292" y="-190.5" font-family="Arial" font-weight="bold" font-size="10.00">gateways:</text>
-<text text-anchor="start" x="338" y="-190.5" font-family="Arial" font-size="10.00">  none</text>
-<text text-anchor="start" x="291" y="-170.5" font-family="Arial" font-weight="bold" font-size="10.00">outcomes</text>
-<text text-anchor="start" x="291" y="-159.5" font-family="Arial" font-size="10.00">completed</text>
-<text text-anchor="start" x="337" y="-159.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  schema.project.notice_result</text>
-<text text-anchor="start" x="443" y="-159.5" font-family="Arial" font-size="8.00"> ← success</text>
-<text text-anchor="start" x="291" y="-148.5" font-family="Arial" font-size="10.00">delivery_failed</text>
-<text text-anchor="start" x="354" y="-148.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<text text-anchor="start" x="389" y="-148.5" font-family="Arial" font-size="8.00"> ← failure</text>
-<text text-anchor="start" x="291" y="-137.5" font-family="Arial" font-size="10.00">notice_access_denied</text>
-<text text-anchor="start" x="388" y="-137.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<text text-anchor="start" x="423" y="-137.5" font-family="Arial" font-size="8.00"> ← failure</text>
-<text text-anchor="start" x="291" y="-126.5" font-family="Arial" font-size="10.00">notice_authentication_required</text>
-<text text-anchor="start" x="424" y="-126.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<text text-anchor="start" x="459" y="-126.5" font-family="Arial" font-size="8.00"> ← failure</text>
-<polygon fill="none" stroke="#a16207" points="286,-117.5 286,-285.5 590,-285.5 590,-117.5 286,-117.5"/>
+<polygon fill="#ffffff" stroke="transparent" points="286,-116.5 286,-284.5 590,-284.5 590,-116.5 286,-116.5"/>
+<polygon fill="#a16207" stroke="transparent" points="287,-275.5 287,-283.5 589,-283.5 589,-275.5 287,-275.5"/>
+<polygon fill="#fefce8" stroke="transparent" points="287,-244.5 287,-275.5 589,-275.5 589,-244.5 287,-244.5"/>
+<text text-anchor="start" x="291" y="-262.1" font-family="Arial" font-weight="bold" font-size="13.00">workflow.project.approval_notice</text>
+<text text-anchor="start" x="291" y="-251.1" font-family="Arial" font-size="8.00" fill="#64748b">workflow</text>
+<text text-anchor="start" x="291" y="-233.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approval domain event sends a downstream notice.</text>
+<text text-anchor="start" x="292" y="-213.5" font-family="Arial" font-weight="bold" font-size="10.00">ref:</text>
+<text text-anchor="start" x="308" y="-213.5" font-family="Arial" font-size="10.00">  workflow.project.approval_notice</text>
+<text text-anchor="start" x="292" y="-201.5" font-family="Arial" font-weight="bold" font-size="10.00">activities:</text>
+<text text-anchor="start" x="337" y="-201.5" font-family="Arial" font-size="10.00">  send_notice → command.project.send_approval_notice</text>
+<text text-anchor="start" x="292" y="-189.5" font-family="Arial" font-weight="bold" font-size="10.00">gateways:</text>
+<text text-anchor="start" x="338" y="-189.5" font-family="Arial" font-size="10.00">  notice_success</text>
+<text text-anchor="start" x="291" y="-169.5" font-family="Arial" font-weight="bold" font-size="10.00">outcomes</text>
+<text text-anchor="start" x="291" y="-158.5" font-family="Arial" font-size="10.00">completed</text>
+<text text-anchor="start" x="337" y="-158.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  schema.project.notice_result</text>
+<text text-anchor="start" x="443" y="-158.5" font-family="Arial" font-size="8.00"> ← success</text>
+<text text-anchor="start" x="291" y="-147.5" font-family="Arial" font-size="10.00">delivery_failed</text>
+<text text-anchor="start" x="354" y="-147.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<text text-anchor="start" x="389" y="-147.5" font-family="Arial" font-size="8.00"> ← failure</text>
+<text text-anchor="start" x="291" y="-136.5" font-family="Arial" font-size="10.00">notice_access_denied</text>
+<text text-anchor="start" x="388" y="-136.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<text text-anchor="start" x="423" y="-136.5" font-family="Arial" font-size="8.00"> ← failure</text>
+<text text-anchor="start" x="291" y="-125.5" font-family="Arial" font-size="10.00">notice_authentication_required</text>
+<text text-anchor="start" x="424" y="-125.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<text text-anchor="start" x="459" y="-125.5" font-family="Arial" font-size="8.00"> ← failure</text>
+<polygon fill="none" stroke="#a16207" points="286,-116.5 286,-284.5 590,-284.5 590,-116.5 286,-116.5"/>
 </g>
 <!-- workflow_input_domain_event_domain_event_project_approved&#45;&gt;workflow_workflow_project_approval_notice -->
 <g id="edge1" class="edge">
 <title>workflow_input_domain_event_domain_event_project_approved&#45;&gt;workflow_workflow_project_approval_notice</title>
-<path fill="none" stroke="#3f3f46" d="M223.27,-201.5C240.78,-201.5 259.19,-201.5 277.55,-201.5"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="277.98,-204.3 285.98,-201.5 277.98,-198.7 277.98,-204.3"/>
+<path fill="none" stroke="#3f3f46" d="M223.27,-200.5C240.78,-200.5 259.19,-200.5 277.55,-200.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="277.98,-203.3 285.98,-200.5 277.98,-197.7 277.98,-203.3"/>
 </g>
 <!-- workflow_activity_workflow_project_approval_notice_send_notice -->
 <g id="node3" class="node">
 <title>workflow_activity_workflow_project_approval_notice_send_notice</title>
-<polygon fill="#ffffff" stroke="transparent" points="653,-56 653,-347 895,-347 895,-56 653,-56"/>
-<polygon fill="#71717a" stroke="transparent" points="654,-337.5 654,-345.5 894,-345.5 894,-337.5 654,-337.5"/>
-<polygon fill="#f8fafc" stroke="transparent" points="654,-306.5 654,-337.5 894,-337.5 894,-306.5 654,-306.5"/>
-<text text-anchor="start" x="658" y="-324.1" font-family="Arial" font-weight="bold" font-size="13.00">send_notice</text>
-<text text-anchor="start" x="658" y="-313.1" font-family="Arial" font-size="8.00" fill="#64748b">workflow activity</text>
-<text text-anchor="start" x="658" y="-295.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approval triggers a notification command for</text>
-<text text-anchor="start" x="658" y="-284.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">downstream coordination.</text>
-<text text-anchor="start" x="659" y="-264.5" font-family="Arial" font-weight="bold" font-size="10.00">command:</text>
-<text text-anchor="start" x="709" y="-264.5" font-family="Arial" font-size="10.00">  command.project.send_approval_notice</text>
-<text text-anchor="start" x="658" y="-244.5" font-family="Arial" font-weight="bold" font-size="10.00">input mapping</text>
-<text text-anchor="start" x="658" y="-232.5" font-family="Arial" font-size="10.00">approved_by ← workflow_input.payload.approved_by</text>
-<text text-anchor="start" x="658" y="-221.5" font-family="Arial" font-size="10.00">project_id ← workflow_input.payload.project_id</text>
-<text text-anchor="start" x="658" y="-203.5" font-family="Arial" font-weight="bold" font-size="10.00">sequence flows</text>
-<text text-anchor="start" x="658" y="-191.5" font-family="Arial" font-size="10.00">access_denied: fail_as → notice_access_denied</text>
-<text text-anchor="start" x="658" y="-180.5" font-family="Arial" font-size="10.00">authentication_required: fail_as →</text>
-<text text-anchor="start" x="658" y="-169.5" font-family="Arial" font-size="10.00">notice_authentication_required</text>
-<text text-anchor="start" x="658" y="-158.5" font-family="Arial" font-size="10.00">delivery_failed: retry_policy → delivery_failed (3</text>
-<text text-anchor="start" x="658" y="-147.5" font-family="Arial" font-size="10.00">exponential)</text>
-<text text-anchor="start" x="658" y="-136.5" font-family="Arial" font-size="10.00">sent: complete_as → completed</text>
-<text text-anchor="start" x="659" y="-117.5" font-family="Arial" font-weight="bold" font-size="10.00">kind:</text>
-<text text-anchor="start" x="683" y="-117.5" font-family="Arial" font-size="10.00">  command</text>
-<text text-anchor="start" x="658" y="-97.5" font-family="Arial" font-weight="bold" font-size="10.00">authorization</text>
-<text text-anchor="start" x="658" y="-85.5" font-family="Arial" font-size="10.00">policy: access_policy.project.reviewer</text>
-<text text-anchor="start" x="658" y="-74.5" font-family="Arial" font-size="10.00">authentication_required_as: authentication_required</text>
-<text text-anchor="start" x="658" y="-63.5" font-family="Arial" font-size="10.00">access_denied_as: access_denied</text>
-<polygon fill="none" stroke="#71717a" points="653,-56 653,-347 895,-347 895,-56 653,-56"/>
+<polygon fill="#ffffff" stroke="transparent" points="653,-55 653,-346 910,-346 910,-55 653,-55"/>
+<polygon fill="#71717a" stroke="transparent" points="654.5,-336.5 654.5,-344.5 909.5,-344.5 909.5,-336.5 654.5,-336.5"/>
+<polygon fill="#f8fafc" stroke="transparent" points="654.5,-305.5 654.5,-336.5 909.5,-336.5 909.5,-305.5 654.5,-305.5"/>
+<text text-anchor="start" x="658.5" y="-323.1" font-family="Arial" font-weight="bold" font-size="13.00">send_notice</text>
+<text text-anchor="start" x="658.5" y="-312.1" font-family="Arial" font-size="8.00" fill="#64748b">workflow activity</text>
+<text text-anchor="start" x="658.5" y="-294.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approval triggers a notification command for</text>
+<text text-anchor="start" x="658.5" y="-283.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">downstream coordination.</text>
+<text text-anchor="start" x="659.5" y="-263.5" font-family="Arial" font-weight="bold" font-size="10.00">command:</text>
+<text text-anchor="start" x="709.5" y="-263.5" font-family="Arial" font-size="10.00">  command.project.send_approval_notice</text>
+<text text-anchor="start" x="658.5" y="-243.5" font-family="Arial" font-weight="bold" font-size="10.00">input mapping</text>
+<text text-anchor="start" x="658.5" y="-231.5" font-family="Arial" font-size="10.00">approved_by ← workflow_input.payload.approved_by</text>
+<text text-anchor="start" x="658.5" y="-220.5" font-family="Arial" font-size="10.00">project_id ← workflow_input.payload.project_id</text>
+<text text-anchor="start" x="658.5" y="-202.5" font-family="Arial" font-weight="bold" font-size="10.00">sequence flows</text>
+<text text-anchor="start" x="658.5" y="-190.5" font-family="Arial" font-size="10.00">access_denied: terminal → notice_access_denied</text>
+<text text-anchor="start" x="658.5" y="-179.5" font-family="Arial" font-size="10.00">authentication_required: terminal →</text>
+<text text-anchor="start" x="658.5" y="-168.5" font-family="Arial" font-size="10.00">notice_authentication_required</text>
+<text text-anchor="start" x="658.5" y="-157.5" font-family="Arial" font-size="10.00">delivery_failed: retry_policy → terminal → delivery_failed</text>
+<text text-anchor="start" x="658.5" y="-146.5" font-family="Arial" font-size="10.00">(3 exponential)</text>
+<text text-anchor="start" x="658.5" y="-135.5" font-family="Arial" font-size="10.00">sent: gateway → notice_success</text>
+<text text-anchor="start" x="659.5" y="-116.5" font-family="Arial" font-weight="bold" font-size="10.00">kind:</text>
+<text text-anchor="start" x="683.5" y="-116.5" font-family="Arial" font-size="10.00">  command</text>
+<text text-anchor="start" x="658.5" y="-96.5" font-family="Arial" font-weight="bold" font-size="10.00">authorization</text>
+<text text-anchor="start" x="658.5" y="-84.5" font-family="Arial" font-size="10.00">policy: access_policy.project.reviewer</text>
+<text text-anchor="start" x="658.5" y="-73.5" font-family="Arial" font-size="10.00">authentication_required_as: authentication_required</text>
+<text text-anchor="start" x="658.5" y="-62.5" font-family="Arial" font-size="10.00">access_denied_as: access_denied</text>
+<polygon fill="none" stroke="#71717a" points="653,-55 653,-346 910,-346 910,-55 653,-55"/>
 </g>
 <!-- workflow_workflow_project_approval_notice&#45;&gt;workflow_activity_workflow_project_approval_notice_send_notice -->
 <g id="edge2" class="edge">
 <title>workflow_workflow_project_approval_notice&#45;&gt;workflow_activity_workflow_project_approval_notice_send_notice</title>
-<path fill="none" stroke="#3f3f46" d="M590.36,-201.5C608.55,-201.5 626.99,-201.5 644.8,-201.5"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="644.93,-204.3 652.93,-201.5 644.93,-198.7 644.93,-204.3"/>
+<path fill="none" stroke="#3f3f46" d="M590.28,-200.5C608.38,-200.5 626.78,-200.5 644.64,-200.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="644.81,-203.3 652.81,-200.5 644.81,-197.7 644.81,-203.3"/>
 </g>
-<!-- workflow_outcome_workflow_project_approval_notice_completed -->
+<!-- workflow_gateway_workflow_project_approval_notice_notice_success -->
 <g id="node4" class="node">
-<title>workflow_outcome_workflow_project_approval_notice_completed</title>
-<polygon fill="#ffffff" stroke="transparent" points="1093.5,-375 1093.5,-446 1234.5,-446 1234.5,-375 1093.5,-375"/>
-<polygon fill="#16a34a" stroke="transparent" points="1095,-436.5 1095,-444.5 1234,-444.5 1234,-436.5 1095,-436.5"/>
-<polygon fill="#f0fdf4" stroke="transparent" points="1095,-405.5 1095,-436.5 1234,-436.5 1234,-405.5 1095,-405.5"/>
-<text text-anchor="start" x="1099" y="-423.1" font-family="Arial" font-weight="bold" font-size="13.00">completed</text>
-<text text-anchor="start" x="1099" y="-412.1" font-family="Arial" font-size="8.00" fill="#64748b">success workflow outcome</text>
-<text text-anchor="start" x="1099" y="-394.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
-<text text-anchor="start" x="1099" y="-383.5" font-family="Arial" font-size="10.00">result</text>
-<text text-anchor="start" x="1124" y="-383.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  schema.project.notice_result</text>
-<polygon fill="none" stroke="#16a34a" points="1093.5,-375 1093.5,-446 1234.5,-446 1234.5,-375 1093.5,-375"/>
+<title>workflow_gateway_workflow_project_approval_notice_notice_success</title>
+<polygon fill="#ffffff" stroke="transparent" points="991,-333.5 991,-437.5 1305,-437.5 1305,-333.5 991,-333.5"/>
+<polygon fill="#a16207" stroke="transparent" points="992,-428.5 992,-436.5 1304,-436.5 1304,-428.5 992,-428.5"/>
+<polygon fill="#fefce8" stroke="transparent" points="992,-397.5 992,-428.5 1304,-428.5 1304,-397.5 992,-397.5"/>
+<text text-anchor="start" x="996" y="-415.1" font-family="Arial" font-weight="bold" font-size="13.00">notice_success</text>
+<text text-anchor="start" x="996" y="-404.1" font-family="Arial" font-size="8.00" fill="#64748b">workflow gateway</text>
+<text text-anchor="start" x="996" y="-386.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Successful notice delivery enters the terminal</text>
+<text text-anchor="start" x="996" y="-375.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">success branch.</text>
+<text text-anchor="start" x="997" y="-355.5" font-family="Arial" font-weight="bold" font-size="10.00">type:</text>
+<text text-anchor="start" x="1020" y="-355.5" font-family="Arial" font-size="10.00">  exclusive</text>
+<text text-anchor="start" x="997" y="-343.5" font-family="Arial" font-weight="bold" font-size="10.00">sequence flows:</text>
+<text text-anchor="start" x="1073" y="-343.5" font-family="Arial" font-size="10.00">  notice_success_completed: terminal → completed</text>
+<polygon fill="none" stroke="#a16207" points="991,-333.5 991,-437.5 1305,-437.5 1305,-333.5 991,-333.5"/>
 </g>
-<!-- workflow_activity_workflow_project_approval_notice_send_notice&#45;&gt;workflow_outcome_workflow_project_approval_notice_completed -->
-<g id="edge6" class="edge">
-<title>workflow_activity_workflow_project_approval_notice_send_notice&#45;&gt;workflow_outcome_workflow_project_approval_notice_completed</title>
-<path fill="none" stroke="#3f3f46" d="M895.11,-266.2C958.8,-300.5 1034.97,-341.54 1089.79,-371.06"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1088.66,-373.64 1097.04,-374.97 1091.32,-368.71 1088.66,-373.64"/>
-<text text-anchor="middle" x="976.5" y="-339.5" font-family="Arial" font-size="10.00">sent</text>
+<!-- workflow_activity_workflow_project_approval_notice_send_notice&#45;&gt;workflow_gateway_workflow_project_approval_notice_notice_success -->
+<g id="edge7" class="edge">
+<title>workflow_activity_workflow_project_approval_notice_send_notice&#45;&gt;workflow_gateway_workflow_project_approval_notice_notice_success</title>
+<path fill="none" stroke="#3f3f46" d="M910.4,-267.79C920.74,-273.14 931.04,-278.42 941,-283.5 970.88,-298.72 1003.33,-314.93 1033.45,-329.85"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1032.24,-332.37 1040.65,-333.41 1034.72,-327.35 1032.24,-332.37"/>
+<text text-anchor="middle" x="950.5" y="-294.5" font-family="Arial" font-size="10.00">sent</text>
 </g>
 <!-- workflow_outcome_workflow_project_approval_notice_delivery_failed -->
-<g id="node5" class="node">
+<g id="node6" class="node">
 <title>workflow_outcome_workflow_project_approval_notice_delivery_failed</title>
-<polygon fill="#ffffff" stroke="transparent" points="1112,-250 1112,-321 1216,-321 1216,-250 1112,-250"/>
-<polygon fill="#dc2626" stroke="transparent" points="1113,-311.5 1113,-319.5 1215,-319.5 1215,-311.5 1113,-311.5"/>
-<polygon fill="#fef2f2" stroke="transparent" points="1113,-280.5 1113,-311.5 1215,-311.5 1215,-280.5 1113,-280.5"/>
-<text text-anchor="start" x="1117" y="-298.1" font-family="Arial" font-weight="bold" font-size="13.00">delivery_failed</text>
-<text text-anchor="start" x="1117" y="-287.1" font-family="Arial" font-size="8.00" fill="#64748b">failure workflow outcome</text>
-<text text-anchor="start" x="1117" y="-269.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
-<text text-anchor="start" x="1117" y="-258.5" font-family="Arial" font-size="10.00">result</text>
-<text text-anchor="start" x="1142" y="-258.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<polygon fill="none" stroke="#dc2626" points="1112,-250 1112,-321 1216,-321 1216,-250 1112,-250"/>
+<polygon fill="#ffffff" stroke="transparent" points="1540,-250 1540,-321 1644,-321 1644,-250 1540,-250"/>
+<polygon fill="#dc2626" stroke="transparent" points="1541,-311.5 1541,-319.5 1643,-319.5 1643,-311.5 1541,-311.5"/>
+<polygon fill="#fef2f2" stroke="transparent" points="1541,-280.5 1541,-311.5 1643,-311.5 1643,-280.5 1541,-280.5"/>
+<text text-anchor="start" x="1545" y="-298.1" font-family="Arial" font-weight="bold" font-size="13.00">delivery_failed</text>
+<text text-anchor="start" x="1545" y="-287.1" font-family="Arial" font-size="8.00" fill="#64748b">failure workflow outcome</text>
+<text text-anchor="start" x="1545" y="-269.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
+<text text-anchor="start" x="1545" y="-258.5" font-family="Arial" font-size="10.00">result</text>
+<text text-anchor="start" x="1570" y="-258.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<polygon fill="none" stroke="#dc2626" points="1540,-250 1540,-321 1644,-321 1644,-250 1540,-250"/>
 </g>
 <!-- workflow_activity_workflow_project_approval_notice_send_notice&#45;&gt;workflow_outcome_workflow_project_approval_notice_delivery_failed -->
-<g id="edge5" class="edge">
+<g id="edge6" class="edge">
 <title>workflow_activity_workflow_project_approval_notice_send_notice&#45;&gt;workflow_outcome_workflow_project_approval_notice_delivery_failed</title>
-<path fill="none" stroke="#3f3f46" d="M895.11,-227.5C964.47,-242.52 1048.66,-260.75 1103.92,-272.71"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1103.44,-275.47 1111.85,-274.43 1104.63,-270 1103.44,-275.47"/>
-<text text-anchor="middle" x="976.5" y="-258.5" font-family="Arial" font-size="10.00">delivery_failed</text>
+<path fill="none" stroke="#3f3f46" d="M910.16,-213.92C1087.38,-232.55 1400.84,-265.51 1531.36,-279.23"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1531.44,-282.05 1539.69,-280.11 1532.03,-276.48 1531.44,-282.05"/>
+<text text-anchor="middle" x="1148" y="-256.5" font-family="Arial" font-size="10.00">delivery_failed</text>
 </g>
 <!-- workflow_outcome_workflow_project_approval_notice_notice_access_denied -->
-<g id="node6" class="node">
+<g id="node7" class="node">
 <title>workflow_outcome_workflow_project_approval_notice_notice_access_denied</title>
-<polygon fill="#ffffff" stroke="transparent" points="1087,-125 1087,-196 1241,-196 1241,-125 1087,-125"/>
-<polygon fill="#dc2626" stroke="transparent" points="1088,-186.5 1088,-194.5 1240,-194.5 1240,-186.5 1088,-186.5"/>
-<polygon fill="#fef2f2" stroke="transparent" points="1088,-155.5 1088,-186.5 1240,-186.5 1240,-155.5 1088,-155.5"/>
-<text text-anchor="start" x="1092" y="-173.1" font-family="Arial" font-weight="bold" font-size="13.00">notice_access_denied</text>
-<text text-anchor="start" x="1092" y="-162.1" font-family="Arial" font-size="8.00" fill="#64748b">failure workflow outcome</text>
-<text text-anchor="start" x="1092" y="-144.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
-<text text-anchor="start" x="1092" y="-133.5" font-family="Arial" font-size="10.00">result</text>
-<text text-anchor="start" x="1117" y="-133.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<polygon fill="none" stroke="#dc2626" points="1087,-125 1087,-196 1241,-196 1241,-125 1087,-125"/>
+<polygon fill="#ffffff" stroke="transparent" points="1515,-125 1515,-196 1669,-196 1669,-125 1515,-125"/>
+<polygon fill="#dc2626" stroke="transparent" points="1516,-186.5 1516,-194.5 1668,-194.5 1668,-186.5 1516,-186.5"/>
+<polygon fill="#fef2f2" stroke="transparent" points="1516,-155.5 1516,-186.5 1668,-186.5 1668,-155.5 1516,-155.5"/>
+<text text-anchor="start" x="1520" y="-173.1" font-family="Arial" font-weight="bold" font-size="13.00">notice_access_denied</text>
+<text text-anchor="start" x="1520" y="-162.1" font-family="Arial" font-size="8.00" fill="#64748b">failure workflow outcome</text>
+<text text-anchor="start" x="1520" y="-144.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
+<text text-anchor="start" x="1520" y="-133.5" font-family="Arial" font-size="10.00">result</text>
+<text text-anchor="start" x="1545" y="-133.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<polygon fill="none" stroke="#dc2626" points="1515,-125 1515,-196 1669,-196 1669,-125 1515,-125"/>
 </g>
 <!-- workflow_activity_workflow_project_approval_notice_send_notice&#45;&gt;workflow_outcome_workflow_project_approval_notice_notice_access_denied -->
-<g id="edge3" class="edge">
+<g id="edge4" class="edge">
 <title>workflow_activity_workflow_project_approval_notice_send_notice&#45;&gt;workflow_outcome_workflow_project_approval_notice_notice_access_denied</title>
-<path fill="none" stroke="#3f3f46" d="M895.11,-188.81C954.59,-182.52 1024.98,-175.08 1078.67,-169.41"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1079.14,-172.18 1086.8,-168.55 1078.55,-166.61 1079.14,-172.18"/>
-<text text-anchor="middle" x="976.5" y="-187.5" font-family="Arial" font-size="10.00">access_denied</text>
+<path fill="none" stroke="#3f3f46" d="M910.16,-194.18C1076.94,-185.93 1364.36,-171.71 1506.44,-164.68"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1506.91,-167.46 1514.76,-164.27 1506.63,-161.87 1506.91,-167.46"/>
+<text text-anchor="middle" x="1148" y="-192.5" font-family="Arial" font-size="10.00">access_denied</text>
 </g>
 <!-- workflow_outcome_workflow_project_approval_notice_notice_authentication_required -->
-<g id="node7" class="node">
+<g id="node8" class="node">
 <title>workflow_outcome_workflow_project_approval_notice_notice_authentication_required</title>
-<polygon fill="#ffffff" stroke="transparent" points="1058,0 1058,-71 1270,-71 1270,0 1058,0"/>
-<polygon fill="#dc2626" stroke="transparent" points="1059,-61.5 1059,-69.5 1269,-69.5 1269,-61.5 1059,-61.5"/>
-<polygon fill="#fef2f2" stroke="transparent" points="1059,-30.5 1059,-61.5 1269,-61.5 1269,-30.5 1059,-30.5"/>
-<text text-anchor="start" x="1063" y="-48.1" font-family="Arial" font-weight="bold" font-size="13.00">notice_authentication_required</text>
-<text text-anchor="start" x="1063" y="-37.1" font-family="Arial" font-size="8.00" fill="#64748b">failure workflow outcome</text>
-<text text-anchor="start" x="1063" y="-19.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
-<text text-anchor="start" x="1063" y="-8.5" font-family="Arial" font-size="10.00">result</text>
-<text text-anchor="start" x="1088" y="-8.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<polygon fill="none" stroke="#dc2626" points="1058,0 1058,-71 1270,-71 1270,0 1058,0"/>
+<polygon fill="#ffffff" stroke="transparent" points="1486,0 1486,-71 1698,-71 1698,0 1486,0"/>
+<polygon fill="#dc2626" stroke="transparent" points="1487,-61.5 1487,-69.5 1697,-69.5 1697,-61.5 1487,-61.5"/>
+<polygon fill="#fef2f2" stroke="transparent" points="1487,-30.5 1487,-61.5 1697,-61.5 1697,-30.5 1487,-30.5"/>
+<text text-anchor="start" x="1491" y="-48.1" font-family="Arial" font-weight="bold" font-size="13.00">notice_authentication_required</text>
+<text text-anchor="start" x="1491" y="-37.1" font-family="Arial" font-size="8.00" fill="#64748b">failure workflow outcome</text>
+<text text-anchor="start" x="1491" y="-19.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
+<text text-anchor="start" x="1491" y="-8.5" font-family="Arial" font-size="10.00">result</text>
+<text text-anchor="start" x="1516" y="-8.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<polygon fill="none" stroke="#dc2626" points="1486,0 1486,-71 1698,-71 1698,0 1486,0"/>
 </g>
 <!-- workflow_activity_workflow_project_approval_notice_send_notice&#45;&gt;workflow_outcome_workflow_project_approval_notice_notice_authentication_required -->
-<g id="edge4" class="edge">
+<g id="edge5" class="edge">
 <title>workflow_activity_workflow_project_approval_notice_send_notice&#45;&gt;workflow_outcome_workflow_project_approval_notice_notice_authentication_required</title>
-<path fill="none" stroke="#3f3f46" d="M895.11,-150.11C952.39,-125.6 1019.79,-96.77 1072.65,-74.16"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1073.75,-76.73 1080.01,-71.01 1071.55,-71.58 1073.75,-76.73"/>
-<text text-anchor="middle" x="976.5" y="-135.5" font-family="Arial" font-size="10.00">authentication_required</text>
+<path fill="none" stroke="#3f3f46" d="M910.12,-174.12C936.84,-168.62 964.84,-162.86 991,-157.5 1160.49,-122.79 1357,-82.9 1477.65,-58.45"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1478.56,-61.12 1485.85,-56.79 1477.45,-55.63 1478.56,-61.12"/>
+<text text-anchor="middle" x="1148" y="-160.5" font-family="Arial" font-size="10.00">authentication_required</text>
+</g>
+<!-- workflow_outcome_workflow_project_approval_notice_completed -->
+<g id="node5" class="node">
+<title>workflow_outcome_workflow_project_approval_notice_completed</title>
+<polygon fill="#ffffff" stroke="transparent" points="1521.5,-375 1521.5,-446 1662.5,-446 1662.5,-375 1521.5,-375"/>
+<polygon fill="#16a34a" stroke="transparent" points="1523,-436.5 1523,-444.5 1662,-444.5 1662,-436.5 1523,-436.5"/>
+<polygon fill="#f0fdf4" stroke="transparent" points="1523,-405.5 1523,-436.5 1662,-436.5 1662,-405.5 1523,-405.5"/>
+<text text-anchor="start" x="1527" y="-423.1" font-family="Arial" font-weight="bold" font-size="13.00">completed</text>
+<text text-anchor="start" x="1527" y="-412.1" font-family="Arial" font-size="8.00" fill="#64748b">success workflow outcome</text>
+<text text-anchor="start" x="1527" y="-394.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
+<text text-anchor="start" x="1527" y="-383.5" font-family="Arial" font-size="10.00">result</text>
+<text text-anchor="start" x="1552" y="-383.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  schema.project.notice_result</text>
+<polygon fill="none" stroke="#16a34a" points="1521.5,-375 1521.5,-446 1662.5,-446 1662.5,-375 1521.5,-375"/>
+</g>
+<!-- workflow_gateway_workflow_project_approval_notice_notice_success&#45;&gt;workflow_outcome_workflow_project_approval_notice_completed -->
+<g id="edge3" class="edge">
+<title>workflow_gateway_workflow_project_approval_notice_notice_success&#45;&gt;workflow_outcome_workflow_project_approval_notice_completed</title>
+<path fill="none" stroke="#3f3f46" d="M1305.14,-394.33C1375.59,-398.32 1455.68,-402.85 1513.13,-406.1"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1513.29,-408.91 1521.44,-406.57 1513.61,-403.32 1513.29,-408.91"/>
+<text text-anchor="middle" x="1395.5" y="-404.5" font-family="Arial" font-size="10.00">notice_success_completed</text>
 </g>
 <!-- workflow_outcome_workflow_project_approval_notice_completed&#45;&gt;workflow_outcome_workflow_project_approval_notice_delivery_failed -->
 <!-- workflow_outcome_workflow_project_approval_notice_delivery_failed&#45;&gt;workflow_outcome_workflow_project_approval_notice_notice_access_denied -->

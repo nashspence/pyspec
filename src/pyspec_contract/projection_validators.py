@@ -587,7 +587,7 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             sequence_flows = {
                 sequence_flow_id: sequence_flow
                 for sequence_flow_id, sequence_flow in workflow["sequence_flows"].items()
-                if sequence_flow["source_activity"] == activity["id"]
+                if sequence_flow["source_ref"].get("activity") == activity["id"]
             }
             expected_doc = f"activity={activity['id']}; input_mapping={activity['input_mapping']}; sequence_flows={sequence_flows}"
             if set(actual) != {"doc", "run", "in", "out"} or actual.get("doc") != expected_doc or actual.get("in") != expected_in or actual.get("out") != expected_out:

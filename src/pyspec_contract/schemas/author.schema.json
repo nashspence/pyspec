@@ -3498,6 +3498,7 @@
     },
     "workflow_retry_policy": {
       "additionalProperties": false,
+      "description": "Bounded workflow retry policy for activity-result sequence flows targeting a terminal workflow outcome.",
       "properties": {
         "attempts": {
           "maximum": 10,
@@ -3510,15 +3511,11 @@
             "linear",
             "exponential"
           ]
-        },
-        "fail_as": {
-          "$ref": "#/$defs/outcome_name"
         }
       },
       "required": [
         "attempts",
-        "backoff",
-        "fail_as"
+        "backoff"
       ],
       "type": "object"
     },
@@ -3562,66 +3559,91 @@
       ],
       "type": "object"
     },
-    "workflow_sequence_flow": {
+    "workflow_sequence_flow_source_ref": {
       "additionalProperties": false,
       "oneOf": [
         {
           "required": [
-            "target_activity"
+            "activity"
           ]
         },
         {
           "required": [
-            "complete_as"
-          ]
-        },
-        {
-          "required": [
-            "fail_as"
-          ]
-        },
-        {
-          "required": [
-            "retry_policy"
-          ]
-        },
-        {
-          "required": [
-            "dead_letter_as"
+            "gateway"
           ]
         }
       ],
       "properties": {
-        "complete_as": {
-          "$ref": "#/$defs/outcome_name"
-        },
-        "dead_letter_as": {
-          "$ref": "#/$defs/outcome_name"
-        },
-        "fail_as": {
-          "$ref": "#/$defs/outcome_name"
-        },
-        "source_activity": {
+        "activity": {
           "pattern": "^[a-z][a-z0-9_]*$",
           "type": "string"
         },
-        "source_outcome": {
-          "$ref": "#/$defs/outcome_name"
-        },
-        "target_activity": {
+        "gateway": {
           "pattern": "^[a-z][a-z0-9_]*$",
           "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "workflow_sequence_flow_target_ref": {
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "activity"
+          ]
+        },
+        {
+          "required": [
+            "gateway"
+          ]
+        },
+        {
+          "required": [
+            "terminal"
+          ]
+        }
+      ],
+      "properties": {
+        "activity": {
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        },
+        "gateway": {
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        },
+        "terminal": {
+          "$ref": "#/$defs/outcome_name"
+        }
+      },
+      "type": "object"
+    },
+    "workflow_sequence_flow": {
+      "additionalProperties": false,
+      "properties": {
+        "condition": {
+          "$ref": "#/$defs/binding_expression"
+        },
+        "source_ref": {
+          "$ref": "#/$defs/workflow_sequence_flow_source_ref"
+        },
+        "source_result": {
+          "$ref": "#/$defs/outcome_name"
         },
         "rationale": {
           "$ref": "#/$defs/rationale"
         },
         "retry_policy": {
           "$ref": "#/$defs/workflow_retry_policy"
+        },
+        "target_ref": {
+          "$ref": "#/$defs/workflow_sequence_flow_target_ref"
         }
       },
       "required": [
-        "source_activity",
-        "source_outcome"
+        "source_ref",
+        "target_ref"
       ],
       "type": "object"
     },

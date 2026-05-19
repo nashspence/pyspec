@@ -923,7 +923,7 @@ def _workflow_text_witness_tokens(contract: dict[str, Any], parts: list[str], va
                 tokens.extend([outcome_id, value])
             elif parts[-2:] == ["result", "schema"]:
                 tokens.extend([outcome_id, value])
-        elif parts[-1] in {"source_activity", "source_outcome", "target_activity", "complete_as", "fail_as", "dead_letter_as"}:
+        elif parts[-1] in {"source_result", "activity", "gateway", "terminal"}:
             tokens.append(value)
         elif parts[-1] == "backoff":
             tokens.extend(["retry_policy", value])
@@ -1924,11 +1924,16 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
     trigger_node = _dot_node_id("workflow_input", f"{trigger_kind}_{trigger_value}")
     workflow_node = _dot_node_id("workflow", workflow_id)
     activity_nodes = [(_dot_node_id("workflow_activity", f"{workflow_id}_{activity['id']}"), activity) for activity in workflow["activities"]]
+    gateway_nodes = [
+        (_dot_node_id("workflow_gateway", f"{workflow_id}_{gateway_id}"), gateway_id, gateway)
+        for gateway_id, gateway in sorted(workflow["gateways"].items())
+    ]
     outcome_nodes = [
         (_dot_node_id("workflow_outcome", f"{workflow_id}_{outcome_id}"), outcome_id, outcome)
         for outcome_id, outcome in sorted(workflow["outputs"].items())
     ]
     activity_node_by_id = {activity["id"]: node_id for node_id, activity in activity_nodes}
+    gateway_node_by_id = {gateway_id: node_id for node_id, gateway_id, _ in gateway_nodes}
     outcome_node_by_id = {outcome_id: node_id for node_id, outcome_id, _ in outcome_nodes}
     lines = _dot_graph_preamble("workflow_" + safe_id(workflow_id))
     lines.extend(
@@ -1953,21 +1958,24 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
     )
     for node_id, activity in activity_nodes:
         lines.append(_dot_html_node(node_id, _workflow_activity_card(activity, workflow, contract)))
+    for node_id, gateway_id, gateway in gateway_nodes:
+        lines.append(_dot_html_node(node_id, _workflow_gateway_card(gateway_id, gateway, workflow)))
     for node_id, outcome_id, outcome in outcome_nodes:
         lines.append(_dot_html_node(node_id, _workflow_outcome_card(outcome_id, outcome)))
     lines.append(_dot_edge(trigger_node, workflow_node))
     if activity_nodes:
         lines.append(_dot_edge(workflow_node, activity_nodes[0][0]))
     for sequence_flow_id, sequence_flow in sorted(workflow["sequence_flows"].items()):
-        node_id = activity_node_by_id[sequence_flow["source_activity"]]
-        attrs = {"label": sequence_flow["source_outcome"]}
-        transition_key, value = _workflow_sequence_flow_choice(sequence_flow)
-        if transition_key == "target_activity":
-            lines.append(_dot_edge(node_id, activity_node_by_id[value], attrs))
+        source_kind, source_id = _workflow_sequence_flow_source_ref(sequence_flow)
+        node_id = activity_node_by_id[source_id] if source_kind == "activity" else gateway_node_by_id[source_id]
+        attrs = {"label": sequence_flow.get("source_result") or sequence_flow.get("condition") or sequence_flow_id}
+        target_kind, target_id = _workflow_sequence_flow_target_ref(sequence_flow)
+        if target_kind == "activity":
+            lines.append(_dot_edge(node_id, activity_node_by_id[target_id], attrs))
+        elif target_kind == "gateway":
+            lines.append(_dot_edge(node_id, gateway_node_by_id[target_id], attrs))
         else:
-            outcome = _workflow_sequence_flow_outcome(transition_key, value)
-            assert outcome is not None
-            lines.append(_dot_edge(node_id, outcome_node_by_id[outcome], attrs))
+            lines.append(_dot_edge(node_id, outcome_node_by_id[target_id], attrs))
     if outcome_nodes:
         lines.append("  { rank=same; " + " ".join(_dot_quote(node_id) for node_id, _, _ in outcome_nodes) + " }")
         lines.extend(_dot_invisible_order([node_id for node_id, _, _ in outcome_nodes], indent="  "))
@@ -2456,38 +2464,59 @@ def _workflow_activity_card(activity: dict[str, Any], workflow: dict[str, Any], 
     )
 
 
+def _workflow_gateway_card(gateway_id: str, gateway: dict[str, Any], workflow: dict[str, Any]) -> str:
+    return _dot_card(
+        gateway_id,
+        "workflow gateway",
+        [
+            ("type", [gateway["gateway_type"]]),
+            ("sequence flows", _workflow_gateway_sequence_flow_lines(gateway_id, workflow)),
+        ],
+        rationale=gateway.get("rationale", ""),
+        style=_DOT_STYLE_WORKFLOW,
+    )
+
+
 def _workflow_sequence_flow_lines(activity: dict[str, Any], workflow: dict[str, Any]) -> list[str]:
     lines: list[str] = []
     sequence_flows = {
         sequence_flow_id: sequence_flow
         for sequence_flow_id, sequence_flow in workflow["sequence_flows"].items()
-        if sequence_flow["source_activity"] == activity["id"]
+        if sequence_flow["source_ref"].get("activity") == activity["id"]
     }
     for sequence_flow_id, sequence_flow in sorted(sequence_flows.items()):
-        sequence_flow_key, value = _workflow_sequence_flow_choice(sequence_flow)
-        if sequence_flow_key == "retry_policy":
-            destination = f"retry_policy {_DOT_ARROW_FORWARD} {value['fail_as']}"
-            suffix = f" ({value['attempts']} {value['backoff']})"
-        else:
-            destination = f"{sequence_flow_key} {_DOT_ARROW_FORWARD} {value}"
-            suffix = ""
-        lines.append(f"{sequence_flow['source_outcome']}: {destination}{suffix}")
+        lines.append(f"{sequence_flow['source_result']}: {_workflow_sequence_flow_destination(sequence_flow)}")
     return lines
 
 
-def _workflow_sequence_flow_choice(sequence_flow: dict[str, Any]) -> tuple[str, Any]:
-    for sequence_flow_key in ("target_activity", "complete_as", "fail_as", "retry_policy", "dead_letter_as"):
-        if sequence_flow_key in sequence_flow:
-            return sequence_flow_key, sequence_flow[sequence_flow_key]
-    raise KeyError("workflow sequence_flow has no recognized key")
+def _workflow_gateway_sequence_flow_lines(gateway_id: str, workflow: dict[str, Any]) -> list[str]:
+    lines: list[str] = []
+    sequence_flows = {
+        sequence_flow_id: sequence_flow
+        for sequence_flow_id, sequence_flow in workflow["sequence_flows"].items()
+        if sequence_flow["source_ref"].get("gateway") == gateway_id
+    }
+    for sequence_flow_id, sequence_flow in sorted(sequence_flows.items()):
+        label = sequence_flow.get("condition") or sequence_flow_id
+        lines.append(f"{label}: {_workflow_sequence_flow_destination(sequence_flow)}")
+    return lines
 
 
-def _workflow_sequence_flow_outcome(sequence_flow_key: str, value: Any) -> str | None:
-    if sequence_flow_key in {"complete_as", "fail_as", "dead_letter_as"}:
-        return value
-    if sequence_flow_key == "retry_policy":
-        return value["fail_as"]
-    return None
+def _workflow_sequence_flow_source_ref(sequence_flow: dict[str, Any]) -> tuple[str, str]:
+    return next(iter(sequence_flow["source_ref"].items()))
+
+
+def _workflow_sequence_flow_target_ref(sequence_flow: dict[str, Any]) -> tuple[str, str]:
+    return next(iter(sequence_flow["target_ref"].items()))
+
+
+def _workflow_sequence_flow_destination(sequence_flow: dict[str, Any]) -> str:
+    target_kind, target_id = _workflow_sequence_flow_target_ref(sequence_flow)
+    destination = f"{target_kind} {_DOT_ARROW_FORWARD} {target_id}"
+    if "retry_policy" not in sequence_flow:
+        return destination
+    retry = sequence_flow["retry_policy"]
+    return f"retry_policy {_DOT_ARROW_FORWARD} {destination} ({retry['attempts']} {retry['backoff']})"
 
 
 def _workflow_outcome_card(outcome_id: str, outcome: dict[str, Any]) -> str:

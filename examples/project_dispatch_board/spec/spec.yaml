@@ -1566,27 +1566,43 @@ workflows:
           from: $workflow_input.payload.approved_by
         project_id:
           from: $workflow_input.payload.project_id
-    gateways: {}
+    gateways:
+      notice_success:
+        gateway_type: exclusive
+        rationale: Successful notice delivery enters the terminal success branch.
     sequence_flows:
       send_notice_delivery_failed:
-        source_activity: send_notice
-        source_outcome: delivery_failed
+        source_ref:
+          activity: send_notice
+        source_result: delivery_failed
+        target_ref:
+          terminal: delivery_failed
         retry_policy:
           attempts: 3
           backoff: exponential
-          fail_as: delivery_failed
       send_notice_access_denied:
-        source_activity: send_notice
-        source_outcome: access_denied
-        fail_as: notice_access_denied
+        source_ref:
+          activity: send_notice
+        source_result: access_denied
+        target_ref:
+          terminal: notice_access_denied
       send_notice_sent:
-        source_activity: send_notice
-        source_outcome: sent
-        complete_as: completed
+        source_ref:
+          activity: send_notice
+        source_result: sent
+        target_ref:
+          gateway: notice_success
+      notice_success_completed:
+        source_ref:
+          gateway: notice_success
+        target_ref:
+          terminal: completed
       send_notice_authentication_required:
-        source_activity: send_notice
-        source_outcome: authentication_required
-        fail_as: notice_authentication_required
+        source_ref:
+          activity: send_notice
+        source_result: authentication_required
+        target_ref:
+          terminal: notice_authentication_required
     inputs:
       domain_event: domain_event.project.approved
     outputs:
