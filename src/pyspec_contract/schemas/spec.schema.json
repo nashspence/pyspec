@@ -22,7 +22,7 @@
     },
     "command_binding_id": {
       "$ref": "#/$defs/local_name",
-      "description": "Local command binding identifier within a state."
+      "description": "Local command binding identifier within a state_machine_state."
     },
     "command_item": {
       "additionalProperties": false,
@@ -197,7 +197,7 @@
       "type": "string"
     },
     "authored_value": {
-      "description": "Explicit authored literal-or-binding-expression value used by behavior scenarios, preconditions, assertions, content examples, and render example inputs.",
+      "description": "Explicit authored literal-or-binding-expression value used by behavior scenarios, preconditions, assertions, content examples, and render_example inputs.",
       "oneOf": [
         {
           "additionalProperties": false,
@@ -753,7 +753,7 @@
     },
     "container_id": {
       "$ref": "#/$defs/local_name",
-      "description": "Local Textual layout container identifier within a state."
+      "description": "Local Textual layout container identifier within a state_machine_state."
     },
     "content_args": {
       "additionalProperties": {
@@ -906,7 +906,7 @@
     },
     "query_binding_id": {
       "$ref": "#/$defs/local_name",
-      "description": "Local query binding identifier within a state machine or state."
+      "description": "Local query binding identifier within a state_machine or state_machine_state."
     },
     "query_binding_load_policy": {
       "additionalProperties": false,
@@ -1624,7 +1624,7 @@
       ]
     },
     "local_name": {
-      "description": "Local unprefixed identifier used for named slots, outcomes, rules, roles, render examples, and viewports.",
+      "description": "Local unprefixed identifier used for named slots, outcomes, rules, roles, render_examples, and viewports.",
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
     },
@@ -1900,11 +1900,11 @@
     },
     "region_id": {
       "$ref": "#/$defs/local_name",
-      "description": "Local HTML layout region identifier within a state."
+      "description": "Local HTML layout region identifier within a state_machine_state."
     },
     "render_example": {
       "additionalProperties": false,
-      "description": "Render example for a state-machine state. Global viewport profiles are applied by tooling; render examples do not reference viewport profiles.",
+      "description": "render_example for a state_machine_state. Global viewport_profiles are applied by tooling; render_examples do not reference viewport_profiles.",
       "properties": {
         "context": {
           "$ref": "#/$defs/value_map"
@@ -1919,7 +1919,7 @@
           "type": "object"
         },
         "precondition_refs": {
-          "description": "Precondition references used to seed rendered entity_type state for this render example.",
+          "description": "Precondition references used to seed rendered entity_type state for this render_example.",
           "items": {
             "$ref": "#/$defs/precondition_use"
           },
@@ -1943,7 +1943,7 @@
     },
     "render_example_id": {
       "$ref": "#/$defs/local_name",
-      "description": "Local render example identifier within a state."
+      "description": "Local render_example identifier within a state_machine_state."
     },
     "viewport_profile_item": {
       "additionalProperties": false,
@@ -1959,7 +1959,7 @@
           ]
         }
       ],
-      "description": "Global audit/golden-image viewport profile. Audit tooling applies declared HTML and Textual viewport sizes globally to eligible state-machine render examples and renderer contracts.",
+      "description": "Global audit/golden-image viewport profile. Audit tooling applies declared HTML and Textual viewport sizes globally to eligible state-machine render_examples and renderer contracts.",
       "properties": {
         "html_viewports": {
           "additionalProperties": {
@@ -2353,7 +2353,7 @@
     },
     "slot_name": {
       "$ref": "#/$defs/local_name",
-      "description": "Local slot identifier within a state."
+      "description": "Local slot identifier within a state_machine_state."
     },
     "state_machine_command_binding": {
       "additionalProperties": false,
